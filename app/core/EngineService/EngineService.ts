@@ -35,6 +35,10 @@ import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
 import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
+import {
+  markPreUnlockInitializeControllersEnd,
+  tracePreUnlockEngineSubscriptions,
+} from '../../util/startup/preUnlockStartupTelemetry';
 
 /**
  * Reads the AnalyticsController's own persisted copy of the analytics identity.
@@ -162,7 +166,6 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
-    const persistedState = await ControllerStorage.getAllPersistedState();
 
     if (reduxState?.user?.existingUser) {
       Logger.log(
@@ -176,6 +179,8 @@ export class EngineService {
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
     });
+
+    const persistedState = await ControllerStorage.getAllPersistedState();
 
     const state =
       (hasTestOverrides
@@ -197,10 +202,13 @@ export class EngineService {
       Engine.init(analyticsId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
-      this.initializeControllers(
-        Engine as unknown as TypedEngine,
-        state as Record<string, unknown>,
-      );
+      tracePreUnlockEngineSubscriptions(() => {
+        this.initializeControllers(
+          Engine as unknown as TypedEngine,
+          state as Record<string, unknown>,
+        );
+      });
+      markPreUnlockInitializeControllersEnd();
 
       // Fire-and-forget: refresh social following state from the server.
       // Non-blocking — persisted state covers the UI until this resolves.

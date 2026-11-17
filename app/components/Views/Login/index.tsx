@@ -78,6 +78,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
+import { recordPreUnlockLoginVisible } from '../../../util/startup/preUnlockStartupTelemetry';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
 import Device from '../../../util/device';
 import { hasTestOverrides } from '../../../util/test/utils';
@@ -153,6 +154,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     screen: ONBOARDING_LOADING_STALL_SCREEN.LOGIN,
     saveOnboardingEvent,
   });
+
+  const loginVisibleRecorded = useRef(false);
+  useEffect(() => {
+    if (loginVisibleRecorded.current) {
+      return;
+    }
+    loginVisibleRecorded.current = true;
+    recordPreUnlockLoginVisible();
+  }, []);
 
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();

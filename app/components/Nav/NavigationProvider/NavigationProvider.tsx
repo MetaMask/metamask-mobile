@@ -23,6 +23,7 @@ import { NAVIGATION_CHILDREN_ROUTE } from './constants';
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { endNavigationInitializationAppStart } from '../../../util/sentry/navigationInitializationAppStart';
+import { markPreUnlockMilestone } from '../../../util/startup/preUnlockStartupTelemetry';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
 import {
   focusedRouteFromNavigationState,
@@ -83,6 +84,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const onReady = () => {
     // End trace when navigation is ready
     endTrace({ name: TraceName.NavInit });
+    markPreUnlockMilestone('M2');
     // Trim standalone App Start to this point via the Navigation
     // Initialization child started in setupSentry after Sentry.init.
     endNavigationInitializationAppStart();

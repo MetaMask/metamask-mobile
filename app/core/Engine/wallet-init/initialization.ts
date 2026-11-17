@@ -30,6 +30,10 @@ import { getAnalyticsControllerInitMessenger } from './messengers/analytics-cont
 import { setupAnalyticsControllerListeners } from './listeners/analytics-controller';
 import { getGeolocationApiServiceInstanceOptions } from './instance-options/geolocation-api-service';
 import { fetchInitialGeolocation } from './listeners/geolocation-controller';
+import {
+  completePreUnlockWalletInit,
+  startPreUnlockWalletInit,
+} from '../../../util/startup/preUnlockStartupTelemetry';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
@@ -127,7 +131,16 @@ export function initializeWallet({
   // reads `MultichainNetworkController:getState`. Mobile registers that
   // controller after the wallet, so Engine calls
   // `NetworkEnablementController.init()` again once it exists.
-  wallet.init().catch((error: unknown) => console.error(error));
+  startPreUnlockWalletInit();
+  wallet
+    .init()
+    .then(() => {
+      completePreUnlockWalletInit(1);
+    })
+    .catch((error: unknown) => {
+      console.error(error);
+      completePreUnlockWalletInit(0);
+    });
 
   fetchInitialGeolocation(wallet.getInstance('GeolocationController'));
 

@@ -4,6 +4,7 @@ import {
   TraceOperation,
   trace,
 } from '../../util/trace';
+import { markPreUnlockMilestone } from '../../util/startup/preUnlockStartupTelemetry';
 
 let UIStartupSpan: TraceContext | null = null;
 
@@ -14,6 +15,7 @@ const getUIStartupSpan = (startTime?: number) => {
       startTime,
       op: TraceOperation.UIStartup,
     });
+    markPreUnlockMilestone('M0');
   }
 
   return UIStartupSpan;

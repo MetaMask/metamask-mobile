@@ -19,6 +19,7 @@ import {
   clearAttribution,
   expireAttributionIfStale,
 } from '../core/redux/slices/attribution';
+import { markPreUnlockMilestone } from '../util/startup/preUnlockStartupTelemetry';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -69,6 +70,7 @@ const createStoreAndPersistor = async () => {
    */
   const onPersistComplete = () => {
     endTrace({ name: TraceName.StoreInit });
+    markPreUnlockMilestone('M1');
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
 

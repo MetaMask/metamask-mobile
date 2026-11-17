@@ -345,6 +345,14 @@ export enum TraceName {
   // Social V1 Performance
   SocialTabTimeToContent = 'Social Tab Time To Content',
   SocialTabDataFetch = 'Social Tab Data Fetch',
+  /** Pre-unlock startup child spans (spec-008). */
+  PreUnlockPersistGather = 'Pre-unlock Persist Gather',
+  PreUnlockPersistControllerLoad = 'Pre-unlock Persist Controller Load',
+  PreUnlockEngineInitFunction = 'Pre-unlock Engine Init Function',
+  PreUnlockWalletInit = 'Pre-unlock Wallet Init',
+  PreUnlockEngineSubscriptions = 'Pre-unlock Engine Subscriptions',
+  PreUnlockControllersGate = 'Pre-unlock Controllers Gate',
+  PreUnlockLoginVisible = 'Pre-unlock Login Visible',
 }
 
 export enum TraceOperation {
@@ -435,6 +443,13 @@ export enum TraceOperation {
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
   TokenOverviewAdvancedChartTimeRange = 'token_overview.advanced_chart_time_range',
+  PreUnlockPersistGather = 'persist.gather',
+  PreUnlockPersistControllerLoad = 'persist.controller_load',
+  PreUnlockEngineInitFunction = 'engine.init_function',
+  PreUnlockWalletInit = 'wallet.init',
+  PreUnlockEngineSubscriptions = 'engine.subscriptions',
+  PreUnlockControllersGate = 'pre_unlock.controllers_gate',
+  PreUnlockLoginVisible = 'pre_unlock.login_visible',
 }
 
 const ID_DEFAULT = 'default';

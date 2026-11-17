@@ -1,6 +1,7 @@
 import { createMigrate, createTransform } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
+import performance from 'react-native-performance';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
 import type { CardSliceState } from '../../core/redux/slices/card';
@@ -12,6 +13,12 @@ import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
+import {
+  endPreUnlockPersistGather,
+  recordPreUnlockPersistControllerLoad,
+  startPreUnlockPersistGather,
+  utf8ByteLength,
+} from '../../util/startup/preUnlockStartupTelemetry';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -79,6 +86,7 @@ export const ControllerStorage = {
   ...createStorage(false),
 
   async getAllPersistedState(): Promise<Record<string, unknown>> {
+    startPreUnlockPersistGather();
     try {
       const backgroundState: Record<string, unknown> = {};
 
@@ -94,27 +102,43 @@ export const ControllerStorage = {
           const key = `persist:${controllerName}`;
           try {
             const data = await FilesystemStorage.getItem(key);
-            if (data) {
-              const parsedData = JSON.parse(data);
-
-              // Ensure parsedData is an object to prevent destructuring errors
-              if (
-                !parsedData ||
-                typeof parsedData !== 'object' ||
-                Array.isArray(parsedData)
-              ) {
-                Logger.error(
-                  new Error(
-                    `Invalid persisted data for ${controllerName}: not an object`,
-                  ),
-                );
-                return; // This just skips this controller, doesn't exit getKey()
-              }
-
-              const { _persist, ...controllerState } = parsedData;
-
-              backgroundState[controllerName] = controllerState;
+            if (!data) {
+              recordPreUnlockPersistControllerLoad(controllerName, {
+                bytes: 0,
+                parseMs: 0,
+                hadFile: false,
+              });
+              return;
             }
+
+            const bytes = utf8ByteLength(data);
+            const parseStart = performance.now();
+            const parsedData = JSON.parse(data);
+            const parseMs = performance.now() - parseStart;
+
+            recordPreUnlockPersistControllerLoad(controllerName, {
+              bytes,
+              parseMs,
+              hadFile: true,
+            });
+
+            // Ensure parsedData is an object to prevent destructuring errors
+            if (
+              !parsedData ||
+              typeof parsedData !== 'object' ||
+              Array.isArray(parsedData)
+            ) {
+              Logger.error(
+                new Error(
+                  `Invalid persisted data for ${controllerName}: not an object`,
+                ),
+              );
+              return; // This just skips this controller, doesn't exit getKey()
+            }
+
+            const { _persist, ...controllerState } = parsedData;
+
+            backgroundState[controllerName] = controllerState;
           } catch (error) {
             Logger.error(error as Error, {
               message: `Failed to get controller state for ${controllerName}`,
@@ -130,6 +154,8 @@ export const ControllerStorage = {
         message: 'Failed to gather controller states',
       });
       return { backgroundState: {} };
+    } finally {
+      endPreUnlockPersistGather();
     }
   },
 };

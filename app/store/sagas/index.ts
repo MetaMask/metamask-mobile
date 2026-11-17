@@ -28,6 +28,7 @@ import {
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
+import { recordPreUnlockControllersGateOpen } from '../../util/startup/preUnlockStartupTelemetry';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
@@ -579,6 +580,7 @@ export function* startAppServices() {
   yield call(hydrateSocialTermsAcceptance);
 
   // Unblock the ControllersGate
+  recordPreUnlockControllersGateOpen();
   yield put(setAppServicesReady());
 
   // Wait for the next frame to ensure that navigation stack is rendered.

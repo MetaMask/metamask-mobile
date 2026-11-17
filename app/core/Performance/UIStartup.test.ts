@@ -11,6 +11,10 @@ jest.mock('../../util/trace', () => ({
   },
 }));
 
+jest.mock('../../util/startup/preUnlockStartupTelemetry', () => ({
+  markPreUnlockMilestone: jest.fn(),
+}));
+
 describe('getUIStartupSpan', () => {
   let getUIStartupSpan: (startTime?: number) => traceObj.TraceContext;
 

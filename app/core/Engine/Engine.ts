@@ -47,6 +47,7 @@ import Logger from '../../util/Logger';
 import { ensureError } from '../../util/errorUtils';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
+import { markPreUnlockEngineConstructorEnd } from '../../util/startup/preUnlockStartupTelemetry';
 
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
@@ -692,6 +693,8 @@ export class Engine {
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
     };
+
+    markPreUnlockEngineConstructorEnd();
 
     const childControllers = Object.assign({}, this.context);
     STATELESS_NON_CONTROLLER_NAMES.forEach((name) => {

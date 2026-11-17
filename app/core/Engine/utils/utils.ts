@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import { MESSENGER_FACTORIES } from '../messengers';
 import { Wallet } from '@metamask/wallet';
+import { tracePreUnlockInitFunction } from '../../../util/startup/preUnlockStartupTelemetry';
 
 const log = createProjectLogger('messenger-client-init');
 
@@ -90,7 +91,9 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
     };
 
     // Initialize the messenger client
-    const { controller } = initFunction(finalInitRequest);
+    const { controller } = tracePreUnlockInitFunction(messengerClientName, () =>
+      initFunction(finalInitRequest),
+    );
 
     // Add the messenger client to the map
     partialMessengerClientsByName = {
