@@ -1,4 +1,5 @@
 import type { Profile } from '@metamask/profile-controller';
+import type { CaipAccountId } from '@metamask/utils';
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
@@ -235,10 +236,10 @@ describe('ManageProfileLinkedAccountView', () => {
     );
 
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
-    const nextLinkedAddresses = [
-      `eip155:1:${internalAccount1.address}`,
-      `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
-      'eip155:1:0xabc',
+    const nextLinkedAddresses: CaipAccountId[] = [
+      `eip155:1:${internalAccount1.address}` as CaipAccountId,
+      `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}` as CaipAccountId,
+      'eip155:1:0xabc' as CaipAccountId,
     ];
     accounts[0] = {
       ...accounts[0],
