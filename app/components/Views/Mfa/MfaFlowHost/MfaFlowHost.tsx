@@ -9,7 +9,6 @@ import {
 } from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   HeaderStandard,
   type BottomSheetRef,
@@ -24,6 +23,9 @@ import TotpSetupStep from './steps/TotpSetupStep';
 import CodeStep from './steps/CodeStep';
 import PasskeyStep from './steps/PasskeyStep';
 import FailureStep from './steps/FailureStep';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Full-screen modal for MFA flows. While on the stack it shows the running
@@ -32,6 +34,7 @@ import FailureStep from './steps/FailureStep';
  * opens a new modal.
  */
 const MfaFlowHost = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
@@ -140,7 +143,8 @@ const MfaFlowHost = () => {
         onClose={cancel}
         testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={() => sheetRef.current?.onCloseBottomSheet()}
           closeButtonProps={{ testID: MfaFlowSelectorsIDs.CLOSE_BUTTON }}
         />

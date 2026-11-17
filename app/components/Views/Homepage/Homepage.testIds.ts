@@ -16,4 +16,5 @@ export const homepageSectionTitleTestId = (sectionName: string): string =>
 /** Homepage Perps section. */
 export const HomepagePerpsSelectorsIDs = {
   SERVICE_INTERRUPTION_BANNER: 'homepage-perps-service-interruption-banner',
+  CROSS_MARGIN_RATIO_BANNER: 'homepage-perps-cross-margin-ratio-banner',
 } as const;

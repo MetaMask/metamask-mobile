@@ -11,7 +11,9 @@ import {
   formatVolume,
   formatCoinVolume,
   formatPositionSize,
+  formatAccountLeverage,
   formatLeverage,
+  formatCrossMarginRatio,
   formatLiquidationDistance,
   parseCurrencyString,
   truncateToTwoDecimals,
@@ -1634,6 +1636,35 @@ describe('formatUtils', () => {
       expect(formatLiquidationDistance(0, 70)).toBeUndefined();
       expect(formatLiquidationDistance(100, 'abc')).toBeUndefined();
       expect(formatLiquidationDistance(100, Infinity)).toBeUndefined();
+    });
+  });
+
+  describe('formatCrossMarginRatio', () => {
+    it.each([
+      [0.174, '17.4%'],
+      [0.634, '63.4%'],
+      [0.63, '63%'],
+      [0.30004, '30%'],
+      [0, '0%'],
+      [0.0255, '2.6%'],
+      [0.1245, '12.5%'],
+    ])('formats %s as an unsigned percentage (%s)', (ratio, expected) => {
+      expect(formatCrossMarginRatio(ratio, 'en-US')).toBe(expected);
+    });
+
+    it('follows the locale decimal separator', () => {
+      expect(formatCrossMarginRatio(0.174, 'de-DE')).toMatch(/^17,4\s?%$/u);
+    });
+  });
+
+  describe('formatAccountLeverage', () => {
+    it('formats one decimal with an x suffix', () => {
+      expect(formatAccountLeverage(2, 'en-US')).toBe('2.0x');
+      expect(formatAccountLeverage(1.04, 'en-US')).toBe('1.0x');
+    });
+
+    it('uses the locale decimal separator', () => {
+      expect(formatAccountLeverage(2.5, 'de-DE')).toBe('2,5x');
     });
   });
 
