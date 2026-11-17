@@ -26,6 +26,7 @@ import {
   isDiskSpaceSentryReport,
 } from './diskSpaceSentry';
 import { ReduxStore } from '../../core/redux';
+import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController';
 import { OTA_VERSION } from '../../constants/ota';
 
 /**
@@ -678,6 +679,34 @@ const TRACE_SAMPLE_RATE_OVERRIDES: Partial<
   [TraceName.SwapQuoteFetch]: { android: 0.25 },
 };
 
+/**
+ * Reads the remote `sentry.transactionSampleRates[name][Platform.OS]` rate,
+ * which wins over TRACE_SAMPLE_RATE_OVERRIDES. Undefined until the store has
+ * loaded flags, or when the value is not a number in [0, 1].
+ */
+function getRemoteTraceSampleRate(name: string): number | undefined {
+  try {
+    const state = (store as ReduxStore | undefined)?.getState();
+    if (!state) {
+      return undefined;
+    }
+    const { sentry } = selectRemoteFeatureFlags(state) as {
+      sentry?: {
+        transactionSampleRates?: Record<
+          string,
+          Partial<Record<typeof Platform.OS, unknown>>
+        >;
+      };
+    };
+    const rate = sentry?.transactionSampleRates?.[name]?.[Platform.OS];
+    return typeof rate === 'number' && rate >= 0 && rate <= 1
+      ? rate
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Setup sentry remote error reporting
 export async function setupSentry(
   forceEnabled: boolean = false,
@@ -720,17 +749,16 @@ export async function setupSentry(
       environment,
       integrations: integrations as Sentry.ReactNativeOptions['integrations'],
       tracesSampleRate,
-      // Takes precedence over tracesSampleRate, so it must reproduce the
-      // default: inherit the parent decision, otherwise use tracesSampleRate.
+      // Takes precedence over tracesSampleRate. A per-name rate pins
+      // regardless of the parent; otherwise this reproduces the SDK default.
       tracesSampler: ({ name, parentSampled }) => {
-        if (parentSampled !== undefined) {
-          return parentSampled;
-        }
         if (isFullSampling) {
           return 1;
         }
         return (
+          getRemoteTraceSampleRate(name) ??
           TRACE_SAMPLE_RATE_OVERRIDES[name as TraceName]?.[Platform.OS] ??
+          parentSampled ??
           tracesSampleRate
         );
       },

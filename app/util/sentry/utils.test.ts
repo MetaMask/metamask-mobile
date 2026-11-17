@@ -1548,6 +1548,18 @@ describe('setupSentry', () => {
       replacedOS = jest.replaceProperty(Platform, 'OS', os);
     };
     const globalWithDev = global as typeof global & { __DEV__: boolean };
+    const mockGetState = jest.mocked(store.getState);
+    const setRemoteRates = (transactionSampleRates: unknown) =>
+      mockGetState.mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: { sentry: { transactionSampleRates } },
+            },
+          },
+        },
+      } as unknown as RootState);
 
     const getInitOptions = async () => {
       await setupSentry();
@@ -1560,6 +1572,10 @@ describe('setupSentry', () => {
       };
       return initOptions;
     };
+
+    beforeEach(() => {
+      mockGetState.mockReturnValue(undefined as unknown as RootState);
+    });
 
     afterEach(() => {
       replacedOS?.restore();
@@ -1592,23 +1608,47 @@ describe('setupSentry', () => {
     );
 
     it.each([true, false])(
-      'inherits the parent sampling decision (%s)',
+      'inherits the parent decision (%s) unless a per-name rate pins it',
       async (parentSampled) => {
         setPlatformOS('android');
         const { tracesSampler } = await getInitOptions();
 
-        expect(
-          tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled }),
-        ).toBe(parentSampled);
         expect(tracesSampler({ name: 'SomeRoute', parentSampled })).toBe(
           parentSampled,
         );
+        expect(
+          tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled }),
+        ).toBe(0.25);
       },
     );
 
-    it('keeps full sampling for Swap Quote Fetch in dev builds', async () => {
+    it('prefers the remote sentry.transactionSampleRates rate over the built-in one', async () => {
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.5 },
+        SomeRoute: { android: 0 },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.5);
+      expect(tracesSampler({ name: 'SomeRoute', parentSampled: true })).toBe(0);
+    });
+
+    it.each([-0.1, 1.5, '0.5', null])(
+      'ignores an invalid remote rate (%s) and uses the built-in one',
+      async (rate) => {
+        setPlatformOS('android');
+        setRemoteRates({ [TraceName.SwapQuoteFetch]: { android: rate } });
+        const { tracesSampler } = await getInitOptions();
+
+        expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
+      },
+    );
+
+    it('keeps full sampling in dev builds even with a remote rate', async () => {
       globalWithDev.__DEV__ = true;
       setPlatformOS('android');
+      setRemoteRates({ [TraceName.SwapQuoteFetch]: { android: 0.5 } });
       const { tracesSampler } = await getInitOptions();
 
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(1);
