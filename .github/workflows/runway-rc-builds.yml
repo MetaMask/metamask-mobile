@@ -22,15 +22,6 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
-      runner_provider:
-        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
-        required: false
-        type: choice
-        options:
-          - inherit
-          - namespace
-          - current
-        default: inherit
 
 permissions:
   contents: read
@@ -62,7 +53,6 @@ jobs:
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: true
       build_attribution: official
-      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   upload-ios-testflight:
@@ -80,7 +70,6 @@ jobs:
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
       distribute_external: true
-      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   slack-notification:
