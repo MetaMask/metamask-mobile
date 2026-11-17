@@ -18,6 +18,21 @@ import { endPerpsCufTrace } from '../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import { PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS } from '../constants/perpsConfig';
+import { buildPerpsClosePostTradePreview } from '../utils/perpsPostTradeShare';
+import {
+  formatPercent,
+  formatSignedUsd,
+} from '../../SocialFeed/utils/formatters';
+import {
+  clearPostTradeShareSession,
+  getPostTradeShareSession,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import type { PostTradePrompt } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import { openPostTradeComposer } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
+import {
+  incrementShareSheetCount,
+  markClaimSheetSeen,
+} from '../../../../util/social/postTradePromptStorage';
 
 const mockNavigate = jest.fn();
 const mockPositionsSubscribe = jest.fn();
@@ -69,6 +84,23 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
+}));
+jest.mock('../../../../util/social/postTradePromptStorage', () => ({
+  incrementShareSheetCount: jest.fn(),
+  markClaimSheetSeen: jest.fn(),
+}));
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+  () => ({
+    ...jest.requireActual(
+      '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+    ),
+    openPostTradeComposer: jest.fn(),
+  }),
+);
+jest.mock('../../../../core/ToastService', () => ({
+  __esModule: true,
+  default: { toastRef: { current: { closeToast: jest.fn() } } },
 }));
 
 // Create stable mock references for usePerpsToasts
@@ -1707,6 +1739,193 @@ describe('usePerpsClosePosition', () => {
 
       expect(onSuccess1).not.toHaveBeenCalled();
       expect(onSuccess2).toHaveBeenCalled();
+    });
+  });
+
+  describe('post-trade share', () => {
+    const countKey = { address: '0xlinked', product: 'perps' as const };
+    const preview = buildPerpsClosePostTradePreview({
+      asset: 'BTC',
+      direction: 'long',
+      leverage: 10,
+      amountUsd: '5000',
+      entryPrice: '50000',
+    });
+    const closeFullPositionSuccess = mockPerpsToastOptions.positionManagement
+      .closePosition.marketClose.full.closeFullPositionSuccess as jest.Mock;
+
+    const close = async (
+      prompt: PostTradePrompt,
+      closeResult: OrderResult | Error = {
+        success: true,
+        orderId: '42',
+        averagePrice: '51000',
+      },
+    ) => {
+      if (closeResult instanceof Error) {
+        mockClosePosition.mockRejectedValue(closeResult);
+      } else {
+        mockClosePosition.mockResolvedValue(closeResult);
+      }
+      const { result } = renderHook(() => usePerpsClosePosition());
+      await act(async () => {
+        await result.current
+          .handleClosePosition({
+            position: mockPosition,
+            postTradeShare: { prompt, preview, providerId: 'hyperliquid' },
+          })
+          .catch(() => undefined);
+      });
+    };
+
+    beforeEach(() => {
+      clearPostTradeShareSession();
+      closeFullPositionSuccess.mockReturnValue({ label: 'closed' });
+    });
+
+    afterEach(() => {
+      clearPostTradeShareSession();
+    });
+
+    it('completes a counted share sheet in place of the close toasts', async () => {
+      await close({ kind: 'share_sheet', countKey });
+
+      const session = getPostTradeShareSession();
+      expect(session).toEqual(
+        expect.objectContaining({
+          product: 'perps',
+          status: 'complete',
+          orderId: '42',
+          variant: 'share',
+          pairLabel: 'social_leaderboard.post_trade_share.close_pair_label',
+        }),
+      );
+      expect(session?.preview).toEqual(
+        expect.objectContaining({
+          action: 'close',
+          exitPriceLabel: '$51,000',
+          pnlValueLabel: formatSignedUsd(100),
+          pnlLabel: formatPercent(20),
+          isPnlPositive: true,
+        }),
+      );
+      expect(incrementShareSheetCount).toHaveBeenCalledWith(
+        '0xlinked',
+        'perps',
+      );
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('derives the closed PnL from the fill when it crosses the entry price', async () => {
+      await close(
+        { kind: 'share_sheet', countKey },
+        {
+          success: true,
+          orderId: '42',
+          averagePrice: '49990',
+          filledSize: '0.1',
+        },
+      );
+
+      expect(getPostTradeShareSession()?.preview).toEqual(
+        expect.objectContaining({
+          exitPriceLabel: '$49,990',
+          pnlValueLabel: formatSignedUsd(-1),
+          pnlLabel: formatPercent(-0.2),
+          isPnlPositive: false,
+        }),
+      );
+    });
+
+    it('marks the claim sheet seen after a create profile sheet', async () => {
+      await close({ kind: 'claim_sheet' });
+
+      expect(getPostTradeShareSession()?.variant).toBe('create_profile');
+      expect(markClaimSheetSeen).toHaveBeenCalledWith('perps');
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+    });
+
+    it('adds a post to feed CTA to the success toast after the sheet limit', async () => {
+      await close({ kind: 'post_to_feed_toast' });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      const successToast = mockShowToast.mock.calls.at(-1)?.[0];
+      expect(successToast).toEqual(
+        expect.objectContaining({
+          label: 'closed',
+          linkButtonOptions: expect.objectContaining({
+            label: 'social_leaderboard.post_trade_share.post_to_feed',
+          }),
+        }),
+      );
+
+      successToast.linkButtonOptions.onPress();
+
+      expect(openPostTradeComposer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tradeInFlight: expect.objectContaining({
+            chain: 'hyperliquid',
+            orderId: '42',
+          }),
+          preview: expect.objectContaining({
+            action: 'close',
+            exitPriceLabel: '$51,000',
+          }),
+        }),
+      );
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+    });
+
+    it('marks the share sheet failed and skips the failure toast', async () => {
+      await close(
+        { kind: 'share_sheet', countKey },
+        { success: false, error: 'rejected' },
+      );
+
+      expect(getPostTradeShareSession()?.status).toBe('failed');
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+    });
+
+    it('marks the share sheet failed when the close throws', async () => {
+      await close({ kind: 'share_sheet', countKey }, new Error('boom'));
+
+      expect(getPostTradeShareSession()?.status).toBe('failed');
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('clears the share sheet and shows the normal toast when no order id comes back', async () => {
+      await close({ kind: 'share_sheet', countKey }, { success: true });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(closeFullPositionSuccess).toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith({ label: 'closed' });
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+    });
+
+    it('shows the normal success toast when the user closed the sheet first', async () => {
+      mockClosePosition.mockImplementation(async () => {
+        clearPostTradeShareSession();
+        return { success: true, orderId: '42' };
+      });
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      await act(async () => {
+        await result.current.handleClosePosition({
+          position: mockPosition,
+          postTradeShare: {
+            prompt: { kind: 'share_sheet', countKey },
+            preview,
+            providerId: 'hyperliquid',
+          },
+        });
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith({ label: 'closed' });
+      expect(incrementShareSheetCount).toHaveBeenCalledWith(
+        '0xlinked',
+        'perps',
+      );
     });
   });
 });
