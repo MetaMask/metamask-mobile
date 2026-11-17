@@ -69,7 +69,7 @@ on:
         description: 'source_branch input passed to this workflow'
         value: ${{ inputs.source_branch }}
       checkout_ref:
-        description: 'Git ref used for checkout (same as source_branch)'
+        description: 'source_branch input; the build checks out the commit it pointed to when the run started (built_commit_sha)'
         value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
       built_commit_sha:
         description: 'Resolved commit SHA at checkout_ref after build succeeded'
@@ -157,6 +157,7 @@ jobs:
         }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
+      # Must list every environment that the prod-signer builds in builds.yml use.
       production_release: ${{ steps.config.outputs.github_environment == 'build-production' || steps.config.outputs.github_environment == 'build-flask-prod' }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
       tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
@@ -164,7 +165,9 @@ jobs:
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
-      checkout_ref_for_setup: ${{ inputs.source_branch }}
+      # Later jobs check out this commit, not source_branch, so a push to the branch
+      # while the run waits for approval does not change what gets built.
+      source_sha: ${{ steps.source.outputs.sha }}
       should_cache: ${{ (startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch') && steps.cache-mode.outputs.mode == 'write' }}
       cache_mode: ${{ steps.cache-mode.outputs.mode }}
     steps:
@@ -193,6 +196,12 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
+      - name: Resolve source commit
+        id: source
+        run: |
+          sha="$(git rev-parse HEAD)"
+          echo "::notice::Building commit ${sha}"
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.cache-mode.outputs.mode == 'write' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -253,7 +262,7 @@ jobs:
       id-token: write # requested by setup-node-modules.yml
     uses: ./.github/workflows/setup-node-modules.yml
     with:
-      ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+      ref: ${{ needs.prepare.outputs.source_sha }}
       fetch-depth: 1
       checkout-submodules: true
       platform: ${{ matrix.platform }}
@@ -273,7 +282,12 @@ jobs:
     name: Release approval
     needs: [prepare]
     if: ${{ needs.prepare.outputs.production_release == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     permissions: {}
     steps:
@@ -377,12 +391,12 @@ jobs:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
-          ref: ${{ inputs.source_branch }}
+          ref: ${{ needs.prepare.outputs.source_sha }}
           submodules: recursive
       - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
-          ref: ${{ inputs.source_branch }}
+          ref: ${{ needs.prepare.outputs.source_sha }}
           submodules: recursive
 
       - name: Apply version override locally
@@ -895,12 +909,12 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 1
-          ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+          ref: ${{ needs.prepare.outputs.source_sha }}
       - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
-          ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+          ref: ${{ needs.prepare.outputs.source_sha }}
 
       - name: Apply version override locally
         if: ${{ inputs.version != '' }}
@@ -923,8 +937,9 @@ jobs:
 
       - name: Read metadata from tree at built ref
         id: meta
+        env:
+          REF: ${{ inputs.source_branch }}
         run: |
-          REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
           {
             echo "checkout_ref=$REF"
             echo "built_commit_sha=$(git rev-parse HEAD)"

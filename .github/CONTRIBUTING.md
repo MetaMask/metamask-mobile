@@ -72,7 +72,7 @@ Two rules:
 
 ### Production release approvals
 
-Production builds (`build-production` and `build-flask-prod` environments in `builds.yml`) and production OTA updates need approval from two different release approvers. Neither can be the person who triggered the run.
+Production builds (`build-production` and `build-flask-prod` environments in `builds.yml`) and production OTA updates need approval from two different release approvers. The account that started the run doesn't count as one of them. Runs started from Runway are started by the Runway app, so the person who clicked the button in Runway can still be one of the two approvers.
 
 GitHub environments let one reviewer approve each job, so these runs pause twice on the same environment:
 
@@ -81,7 +81,7 @@ GitHub environments let one reviewer approve each job, so these runs pause twice
 
 The signing job's first step, "Verify release approvals", reads the run's approval history and fails unless two different people approved, not counting whoever started the run. It also fails on any re-run, because approvals from an earlier attempt would still count. To retry a production release, including after one person approved both pauses, start a new run (from Runway or the workflow) so it gets fresh approvals.
 
-Environment setup (repo admins): keep required reviewers on `build-production` and `build-flask-prod`, and enable "Prevent self-review" on both. Without required reviewers no approval is recorded, so the check fails closed.
+Environment setup (repo admins): keep required reviewers on `build-production` and `build-flask-prod`, enable "Prevent self-review" on both, and limit their deployment branches to protected branches (`main` and `release/*`). Without required reviewers no approval is recorded, so the check fails closed. The trust policy of the `metamask-mobile-prod-signer` AWS role should match only the exact OIDC subjects of those two environments.
 
 Break-glass: a repo admin sets the `RELEASE_APPROVALS_REQUIRED` repository variable to `1`. The organization audit log records the variable change, and each affected run logs a "Break-glass" warning. It cannot go below one, because the environment's own reviewer rule still applies. Delete the variable afterwards.
 
