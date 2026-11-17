@@ -69,16 +69,27 @@ const PortfolioAction = ({
 
 interface PortfolioActionsProps {
   onPositionsPress: () => void;
+  /** Opens the deposit. Absent unless deposits are ready for the Venue. */
+  onAddFundsPress?: () => void;
 }
 
 /**
- * Home's portfolio entry points. Only working actions appear: funding is
- * added when it has a real implementation and the Venue supports it.
+ * Home's portfolio entry points. Only working actions appear: Add funds
+ * only when the caller passes it, because deposits are ready.
  */
 export const PortfolioActions = ({
   onPositionsPress,
+  onAddFundsPress,
 }: PortfolioActionsProps) => (
   <Box twClassName="flex-row gap-3" testID={PredictHomeTestIds.ACTIONS}>
+    {onAddFundsPress ? (
+      <PortfolioAction
+        iconName={IconName.Add}
+        label={strings('predict_next.portfolio.add_funds')}
+        onPress={onAddFundsPress}
+        testID={PredictHomeTestIds.ADD_FUNDS}
+      />
+    ) : null}
     <PortfolioAction
       iconName={IconName.Book}
       label={strings('predict_next.portfolio.positions')}

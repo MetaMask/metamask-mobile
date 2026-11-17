@@ -44,6 +44,7 @@ import {
   type PredictVenueCapabilities,
 } from '../../capabilities';
 import { useNextVenueId } from '../../implementation';
+import { usePredictNextDepositAvailable } from '../../funding';
 import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
@@ -226,6 +227,11 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
+  const canDeposit = usePredictNextDepositAvailable(venueId);
+  const openDeposit = useCallback(
+    () => navigation.navigate(PredictNextRoutes.DEPOSIT, { venueId }),
+    [navigation, venueId],
+  );
   const openSearch = useCallback(
     () =>
       navigation.navigate(PredictNextRoutes.SEARCH, {
@@ -398,9 +404,10 @@ const PredictHomeView = ({
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
           />
-          {/* Funding actions appear when PRED-1162 ships them and the
-              Venue descriptor lists deposit or withdraw. */}
-          <PortfolioActions onPositionsPress={openPortfolio} />
+          <PortfolioActions
+            onPositionsPress={openPortfolio}
+            onAddFundsPress={canDeposit ? openDeposit : undefined}
+          />
           <HomeTrendingSection
             events={liveRows.trending}
             isLoading={isRowsLoading}

@@ -7,7 +7,13 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -16,6 +22,7 @@ import { useActivity } from '../../hooks/useActivity';
 import { usePortfolioSummary } from '../../hooks/usePortfolioSummary';
 import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
+import { usePredictNextDepositAvailable } from '../../funding';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
@@ -73,6 +80,12 @@ export const PredictPortfolioScreen = () => {
       tab: activeTab,
     },
   });
+
+  const canDeposit = usePredictNextDepositAvailable(venueId);
+  const openDeposit = useCallback(
+    () => navigation.navigate(PredictNextRoutes.DEPOSIT, { venueId }),
+    [navigation, venueId],
+  );
 
   const browseMarkets = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -135,6 +148,19 @@ export const PredictPortfolioScreen = () => {
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => summaryQuery.refetch()}
         />
+        {canDeposit ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            isFullWidth
+            startIconName={IconName.Add}
+            onPress={openDeposit}
+            twClassName="mb-4"
+            testID={PredictPortfolioScreenTestIds.ADD_FUNDS}
+          >
+            {strings('predict_next.portfolio.add_funds')}
+          </Button>
+        ) : null}
         <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">

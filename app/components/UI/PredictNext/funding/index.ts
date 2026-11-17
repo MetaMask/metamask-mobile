@@ -11,6 +11,7 @@ export type {
   PredictFundingResolution,
   PredictFundingUnavailableReason,
 } from './types';
+export { usePredictNextDepositAvailable } from './usePredictNextDepositAvailable';
 export {
   createSimulatedTransferExecutor,
   createWalletTransferExecutor,

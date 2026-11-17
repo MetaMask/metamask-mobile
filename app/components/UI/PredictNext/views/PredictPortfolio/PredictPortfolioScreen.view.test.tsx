@@ -191,6 +191,39 @@ describe('PredictPortfolioScreen', () => {
     expect(view.queryByText(/%/u)).not.toBeOnTheScreen();
   });
 
+  it('offers Add funds only when Kalshi deposits are on, and opens the deposit', async () => {
+    const off = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await off.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    expect(
+      off.queryByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    off.unmount();
+
+    const view = renderPredictPortfolioScreen(
+      { venueId: KALSHI_VENUE_ID },
+      false,
+      undefined,
+      {
+        predictConfig: {
+          enabled: true,
+          venues: {
+            polymarket: { enabled: false },
+            kalshi: { enabled: true },
+          },
+          venueSelection: { enabled: false },
+          kalshiDepositsEnabled: true,
+        },
+      },
+    );
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+
+    fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS));
+
+    expect(
+      await view.findByTestId('route-PredictNextDeposit'),
+    ).toBeOnTheScreen();
+  });
+
   it('masks the Summary in privacy mode', async () => {
     const view = renderPredictPortfolioScreen(
       { venueId: KALSHI_VENUE_ID },

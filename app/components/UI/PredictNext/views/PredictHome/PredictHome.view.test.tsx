@@ -260,12 +260,39 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('offers no funding actions while none is implemented', async () => {
+  it('offers no funding actions while Kalshi deposits are off', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
     expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
     expect(view.queryByText('Add Funds')).not.toBeOnTheScreen();
+    expect(view.queryByText('Withdraw')).not.toBeOnTheScreen();
+  });
+
+  it('opens the Kalshi deposit from Add funds when Kalshi deposits are on', async () => {
+    const view = renderPredictNext(false, {
+      remoteFeatureFlags: {
+        predictConfig: {
+          enabled: true,
+          venues: {
+            polymarket: { enabled: false },
+            kalshi: { enabled: true },
+          },
+          venueSelection: { enabled: false },
+          kalshiDepositsEnabled: true,
+        },
+      },
+    });
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
+
+    expect(
+      await view.findByTestId('route-PredictNextDeposit'),
+    ).toBeOnTheScreen();
     expect(view.queryByText('Withdraw')).not.toBeOnTheScreen();
   });
 
