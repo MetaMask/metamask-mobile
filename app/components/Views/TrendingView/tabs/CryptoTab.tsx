@@ -31,6 +31,7 @@ import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import CryptoTokensPillBlock from '../feeds/tokens/CryptoTokensPillBlock';
 import {
   getEffectiveActiveCryptoPillKey,
+  getSelectableCryptoPills,
   getVisibleCryptoPills,
   useCryptoPillFeed,
 } from '../feeds/tokens/useCryptoPillFeed';
@@ -166,11 +167,16 @@ const CryptoTabContent: React.FC<TabProps> = ({
     () => getVisibleCryptoPills(tokensFeed.results, isWatchlistEnabled),
     [tokensFeed.results, isWatchlistEnabled],
   );
+  const selectableCryptoPills = useMemo(
+    () => getSelectableCryptoPills(tokensFeed.results, isWatchlistEnabled),
+    [tokensFeed.results, isWatchlistEnabled],
+  );
   const showTokensSection = visibleCryptoPills.length > 0;
   const effectiveActiveCryptoPillKey = getEffectiveActiveCryptoPillKey(
     activeCryptoPillKey,
     visibleCryptoPills,
     defaultCryptoPillKey,
+    selectableCryptoPills,
   );
   useEffect(() => {
     setFeedActivePillKey(effectiveActiveCryptoPillKey);

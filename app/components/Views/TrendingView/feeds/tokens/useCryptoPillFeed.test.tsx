@@ -8,8 +8,18 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fetchCryptoPillTokens } from './cryptoPillApi';
-import type { CryptoPillKey } from './cryptoPillConfig';
-import { useCryptoPillFeed } from './useCryptoPillFeed';
+import {
+  CRYPTO_TOKEN_PILLS,
+  CRYPTO_WATCHLIST_PILL,
+  type CryptoPillKey,
+} from './cryptoPillConfig';
+import {
+  getEffectiveActiveCryptoPillKey,
+  getSelectableCryptoPills,
+  getVisibleCryptoPills,
+  useCryptoPillFeed,
+  type CryptoPillFeedResult,
+} from './useCryptoPillFeed';
 
 jest.mock('./cryptoPillApi', () => ({
   ...jest.requireActual('./cryptoPillApi'),
@@ -131,6 +141,92 @@ const isTopGainersRequest = (request: {
 }): boolean =>
   request.path === '/v3/tokens/top-gainers' &&
   request.sort === 'h24_price_change_percentage_desc';
+
+describe('getSelectableCryptoPills', () => {
+  const makeResult = (
+    data: TrendingAsset[] | undefined,
+  ): CryptoPillFeedResult => ({
+    data,
+    isLoading: data === undefined,
+    isError: false,
+  });
+
+  const makeResultsWithWatchlist = (
+    watchlist: CryptoPillFeedResult,
+  ): Record<string, CryptoPillFeedResult> => ({
+    watchlist,
+    trending: makeResult([makeToken('BTC')]),
+    top_gainers: makeResult([makeToken('SOL')]),
+    top_losers: makeResult([makeToken('DOGE')]),
+    most_traded: makeResult([makeToken('XRP')]),
+    robinhood: makeResult([makeToken('MOW')]),
+  });
+
+  it('keeps a loaded-empty watchlist visible but not selectable', () => {
+    const results = makeResultsWithWatchlist(makeResult([]));
+
+    expect(
+      getVisibleCryptoPills(results, true).map((pill) => pill.key),
+    ).toContain('watchlist');
+    expect(
+      getSelectableCryptoPills(results, true).map((pill) => pill.key),
+    ).not.toContain('watchlist');
+    expect(getSelectableCryptoPills(results, true)[0]?.key).toBe('trending');
+  });
+
+  it('keeps the watchlist selectable while it is still loading', () => {
+    const results = makeResultsWithWatchlist(makeResult(undefined));
+
+    expect(getSelectableCryptoPills(results, true)[0]?.key).toBe('watchlist');
+  });
+
+  it('keeps the watchlist selectable when it has items', () => {
+    const results = makeResultsWithWatchlist(makeResult([makeToken('WNEW')]));
+
+    expect(getSelectableCryptoPills(results, true)[0]?.key).toBe('watchlist');
+  });
+
+  it('excludes the watchlist entirely when the flag is off', () => {
+    const results = makeResultsWithWatchlist(makeResult([makeToken('WNEW')]));
+
+    expect(
+      getSelectableCryptoPills(results, false).map((pill) => pill.key),
+    ).not.toContain('watchlist');
+  });
+});
+
+describe('getEffectiveActiveCryptoPillKey default pills', () => {
+  const visiblePills = [CRYPTO_WATCHLIST_PILL, ...CRYPTO_TOKEN_PILLS];
+  const defaultPills = CRYPTO_TOKEN_PILLS;
+
+  it('uses the first default pill when no pill is selected', () => {
+    expect(
+      getEffectiveActiveCryptoPillKey(
+        undefined,
+        visiblePills,
+        'trending',
+        defaultPills,
+      ),
+    ).toBe('trending');
+  });
+
+  it('keeps a user selection that is visible even when it is not a default pill', () => {
+    expect(
+      getEffectiveActiveCryptoPillKey(
+        'watchlist',
+        visiblePills,
+        'trending',
+        defaultPills,
+      ),
+    ).toBe('watchlist');
+  });
+
+  it('falls back to the fallback key when no default pill is visible', () => {
+    expect(
+      getEffectiveActiveCryptoPillKey(undefined, visiblePills, 'trending', []),
+    ).toBe('trending');
+  });
+});
 
 describe('useCryptoPillFeed', () => {
   let resolveActiveFetch: ((tokens: TrendingAsset[]) => void) | undefined;

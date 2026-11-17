@@ -147,10 +147,12 @@ const arrangeMocks = ({
   perpsEnabled = false,
   earnSectionVisible = false,
   quickTradeEnabled = false,
+  watchlistEnabled = false,
 }: {
   perpsEnabled?: boolean;
   earnSectionVisible?: boolean;
   quickTradeEnabled?: boolean;
+  watchlistEnabled?: boolean;
 } = {}) => {
   jest.clearAllMocks();
   mockUseIsFocused.mockReturnValue(true);
@@ -165,7 +167,7 @@ const arrangeMocks = ({
 
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
-    if (selector === selectTokenWatchlistEnabled) return false;
+    if (selector === selectTokenWatchlistEnabled) return watchlistEnabled;
     if (selector === selectIsExploreEarnSectionVisible) {
       return earnSectionVisible;
     }
@@ -382,6 +384,30 @@ describe('CryptoTab — tokens pill block', () => {
     render(<CryptoTab {...defaultTabProps} />);
 
     expect(mockUseCryptoPillFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ activePillKey: 'trending' }),
+    );
+  });
+
+  it('defaults the feed to trending when the watchlist is enabled but empty', () => {
+    arrangeMocks({ watchlistEnabled: true });
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        watchlist: {
+          data: [],
+          isLoading: false,
+          isError: false,
+        },
+        trending: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+      },
+    } as never);
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockUseCryptoPillFeed).toHaveBeenLastCalledWith(
       expect.objectContaining({ activePillKey: 'trending' }),
     );
   });

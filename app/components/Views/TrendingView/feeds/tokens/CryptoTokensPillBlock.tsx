@@ -29,6 +29,7 @@ import {
 } from './cryptoPillConfig';
 import {
   getEffectiveActiveCryptoPillKey,
+  getSelectableCryptoPills,
   getVisibleCryptoPills,
   useCryptoPillFeed,
 } from './useCryptoPillFeed';
@@ -88,14 +89,20 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     [isWatchlistEnabled, results],
   );
 
-  const firstVisibleKey = visiblePills[0]?.key ?? defaultPillKey;
+  const selectablePills = useMemo(
+    () => getSelectableCryptoPills(results, isWatchlistEnabled),
+    [isWatchlistEnabled, results],
+  );
+
+  const firstSelectableKey = selectablePills[0]?.key ?? defaultPillKey;
   const isUserKeyVisible =
     activePillKey !== undefined &&
     visiblePills.some((pill) => pill.key === activePillKey);
   const effectiveActiveKey = getEffectiveActiveCryptoPillKey(
     activePillKey,
     visiblePills,
-    firstVisibleKey,
+    firstSelectableKey,
+    selectablePills,
   );
 
   useEffect(() => {
@@ -104,11 +111,11 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
       visiblePills.length > 0 &&
       !isUserKeyVisible
     ) {
-      onActivePillChange(firstVisibleKey);
+      onActivePillChange(firstSelectableKey);
     }
   }, [
     activePillKey,
-    firstVisibleKey,
+    firstSelectableKey,
     isUserKeyVisible,
     onActivePillChange,
     visiblePills.length,
@@ -117,9 +124,9 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   const activeDefinition = useMemo(
     () =>
       pills.find((pill) => pill.key === effectiveActiveKey) ??
-      pills.find((pill) => pill.key === firstVisibleKey) ??
+      pills.find((pill) => pill.key === firstSelectableKey) ??
       pills[0],
-    [pills, effectiveActiveKey, firstVisibleKey],
+    [pills, effectiveActiveKey, firstSelectableKey],
   );
 
   const activeSectionName = activeDefinition?.sectionName ?? 'tokens_trending';

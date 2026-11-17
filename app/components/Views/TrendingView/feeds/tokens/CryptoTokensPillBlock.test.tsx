@@ -189,8 +189,11 @@ const CryptoPillBlockHarness: React.FC<{
     CryptoTokensPillBlockProps,
     'activePillKey' | 'onActivePillChange'
   >;
-}> = ({ blockProps }) => {
-  const [activePillKey, setActivePillKey] = useState<CryptoPillKey>();
+  initialActivePillKey?: CryptoPillKey;
+}> = ({ blockProps, initialActivePillKey }) => {
+  const [activePillKey, setActivePillKey] = useState<CryptoPillKey | undefined>(
+    initialActivePillKey,
+  );
   return (
     <CryptoTokensPillBlock
       {...blockProps}
@@ -206,12 +209,18 @@ const renderBlock = (
     CryptoTokensPillBlockProps,
     'activePillKey' | 'onActivePillChange'
   > = DEFAULT_PROPS,
+  initialActivePillKey?: CryptoPillKey,
 ) => {
   arrange(results);
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
   } as never);
-  return render(<CryptoPillBlockHarness blockProps={props} />);
+  return render(
+    <CryptoPillBlockHarness
+      blockProps={props}
+      initialActivePillKey={initialActivePillKey}
+    />,
+  );
 };
 
 describe('CryptoTokensPillBlock', () => {
@@ -303,6 +312,29 @@ describe('CryptoTokensPillBlock', () => {
       expect(queryByTestId('token-row-SOL')).toBeNull();
       expect(getByTestId('token-row-WNEW')).toBeTruthy();
     });
+
+    it('resets the selection to a pill with content, skipping an empty watchlist', () => {
+      const emptyWatchlist = makeResults({
+        watchlist: { data: [], isLoading: false, isError: false },
+      });
+      const { getByTestId, queryByTestId, rerender } =
+        renderBlock(emptyWatchlist);
+
+      act(() => {
+        fireEvent.press(getByTestId('crypto-tokens-pill-top_gainers'));
+      });
+      expect(getByTestId('token-row-SOL')).toBeTruthy();
+
+      const errored = makeResults({
+        watchlist: { data: [], isLoading: false, isError: false },
+        top_gainers: { data: undefined, isLoading: false, isError: true },
+      });
+      arrange(errored);
+      rerender(<CryptoPillBlockHarness blockProps={DEFAULT_PROPS} />);
+
+      expect(getByTestId('token-row-BTC')).toBeTruthy();
+      expect(queryByTestId('crypto-tokens-pill-top_gainers')).toBeNull();
+    });
   });
 
   describe('watchlist flag gating', () => {
@@ -354,11 +386,27 @@ describe('CryptoTokensPillBlock', () => {
   });
 
   describe('watchlist empty state', () => {
-    it('renders the watchlist empty fallback when the watchlist has no tokens', () => {
+    it('defaults to the trending pill instead of the empty watchlist fallback', () => {
       const results = makeResults({
         watchlist: { data: [], isLoading: false, isError: false },
       });
       const { getByTestId, queryByTestId } = renderBlock(results);
+
+      expect(queryByTestId('watchlist-empty-fallback')).toBeNull();
+      expect(getByTestId('crypto-tokens-list')).toBeTruthy();
+      expect(getByTestId('token-row-BTC')).toBeTruthy();
+      expect(getByTestId('crypto-tokens-pill-watchlist')).toBeTruthy();
+    });
+
+    it('renders the watchlist empty fallback when the empty watchlist is user-selected', () => {
+      const results = makeResults({
+        watchlist: { data: [], isLoading: false, isError: false },
+      });
+      const { getByTestId, queryByTestId } = renderBlock(
+        results,
+        DEFAULT_PROPS,
+        'watchlist',
+      );
 
       expect(getByTestId('watchlist-empty-fallback')).toBeTruthy();
       expect(queryByTestId('crypto-tokens-list')).toBeNull();

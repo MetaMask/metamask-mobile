@@ -75,8 +75,28 @@ export const getVisibleCryptoPills = (
   });
 
 /**
+ * Pills eligible to be the implicit active pill: every visible pill except
+ * a watchlist that has loaded empty. The empty watchlist stays in the pill
+ * row for discoverability and remains selectable, but a section nobody has
+ * interacted with should show trending content, not an empty state.
+ */
+export const getSelectableCryptoPills = (
+  results: Record<string, CryptoPillFeedResult>,
+  isWatchlistEnabled: boolean,
+): readonly CryptoPillDefinition[] => {
+  const watchlist = results[CRYPTO_WATCHLIST_PILL.key];
+  const watchlistLoadedEmpty =
+    watchlist?.data !== undefined && watchlist.data.length === 0;
+  return getVisibleCryptoPills(results, isWatchlistEnabled).filter(
+    (pill) => !(watchlistLoadedEmpty && pill.key === CRYPTO_WATCHLIST_PILL.key),
+  );
+};
+
+/**
  * The pill the section actually displays: the user's selection while it is
- * still visible, otherwise the first visible pill, otherwise `fallbackKey`.
+ * still visible, otherwise the first eligible default pill, otherwise
+ * `fallbackKey`. `defaultPills` defaults to `visiblePills`; callers pass the
+ * selectable pills so the implicit default skips a loaded-empty watchlist.
  * Shared so CryptoTab's pull-to-refresh and the block's rendering target
  * the same pill.
  */
@@ -84,11 +104,12 @@ export const getEffectiveActiveCryptoPillKey = (
   activePillKey: CryptoPillKey | undefined,
   visiblePills: readonly CryptoPillDefinition[],
   fallbackKey: CryptoPillKey,
+  defaultPills: readonly CryptoPillDefinition[] = visiblePills,
 ): CryptoPillKey =>
   activePillKey !== undefined &&
   visiblePills.some((pill) => pill.key === activePillKey)
     ? activePillKey
-    : (visiblePills[0]?.key ?? fallbackKey);
+    : (defaultPills[0]?.key ?? fallbackKey);
 
 interface CryptoPillQueryDescriptor {
   key: CryptoPillKey;
