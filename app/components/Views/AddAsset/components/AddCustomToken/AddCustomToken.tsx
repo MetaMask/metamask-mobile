@@ -209,14 +209,11 @@ const AddCustomToken = ({
 
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
-  // Provide address + chainId so the hook can determine whether the token is
-  // already hidden in AssetsController (isHidden) vs brand-new (not tracked).
   const tokenForVisibility = useMemo(
     () => (address && chainId ? ({ address, chainId } as TokenI) : undefined),
     [address, chainId],
   );
-  const { handleAddCustomAsset, handleHideToken, isHidden } =
-    useAssetVisibility(tokenForVisibility);
+  const { handleAddCustomAsset } = useAssetVisibility(tokenForVisibility);
 
   // Token metadata (async validation + RPC fetch)
   const {
@@ -303,18 +300,16 @@ const AddCustomToken = ({
     let didFailImport = false;
     let importError: unknown;
     try {
-      if (isHidden) {
-        // Token exists but was hidden — unhide it instead of re-adding
-        handleHideToken();
-      } else {
-        await handleAddCustomAsset(caipAssetType, {
-          address: trimmedAddress,
-          symbol,
-          name,
-          decimals: Number(decimals),
-          chainId: caipChainId,
-        });
-      }
+      // addCustomAsset also clears the hidden flag. Hiding a custom token
+      // removes it from customAssets, so merely unhiding a hidden token
+      // (e.g. one with no balance) would leave it nowhere to be listed.
+      await handleAddCustomAsset(caipAssetType, {
+        address: trimmedAddress,
+        symbol,
+        name,
+        decimals: Number(decimals),
+        chainId: caipChainId,
+      });
     } catch (error) {
       didFailImport = true;
       importError = error;
@@ -362,8 +357,6 @@ const AddCustomToken = ({
     trackEvent,
     createEventBuilder,
     handleAddCustomAsset,
-    handleHideToken,
-    isHidden,
   ]);
 
   const handleNext = useCallback(() => {
