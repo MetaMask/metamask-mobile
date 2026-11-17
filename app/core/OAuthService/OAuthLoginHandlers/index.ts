@@ -140,6 +140,7 @@ export function createLoginHandler(
             appRedirectUri: GoogleRedirectUri,
             authServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
+            nonce: options?.nonce,
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({

@@ -7,6 +7,7 @@ import {
 import { createLoginHandler, type CreateLoginHandlerOptions } from './index';
 import { OAuthError, OAuthErrorType } from '../error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import { AuthRequest } from 'expo-auth-session';
 
 /**
  * Most suite cases expect Telegram login to be allowed; the factory no longer reads Redux,
@@ -119,7 +120,7 @@ const mockSignInAsync = jest.fn().mockResolvedValue({
   identityToken: 'appleIdToken',
 });
 jest.mock('expo-apple-authentication', () => ({
-  signInAsync: () => mockSignInAsync(),
+  signInAsync: (...args: unknown[]) => mockSignInAsync(...args),
   AppleAuthenticationScope: {
     FULL_NAME: 'full_name',
     EMAIL: 'email',
@@ -435,6 +436,25 @@ describe('OAuth login handlers', () => {
         }
       });
 
+      it('maps a cancelled provider token request to UserCancelled', async () => {
+        mockSignInAsync.mockRejectedValue(
+          Object.assign(new Error('canceled'), {
+            code: 'ERR_REQUEST_CANCELED',
+          }),
+        );
+
+        const handler = createLoginHandler('ios', AuthConnection.Apple, false, {
+          nonce: 'caller-nonce',
+        });
+
+        await expect(handler.getProviderIdToken()).rejects.toMatchObject({
+          code: OAuthErrorType.UserCancelled,
+        });
+        expect(mockSignInAsync).toHaveBeenCalledWith(
+          expect.objectContaining({ nonce: 'caller-nonce' }),
+        );
+      });
+
       it('re-throw existing OAuthError instances', async () => {
         const existingError = new OAuthError(
           'Test error',
@@ -660,6 +680,40 @@ describe('OAuth login handlers', () => {
             OAuthErrorType.AppleLoginError,
           );
         }
+      });
+
+      it('returns the redirect id_token for the caller nonce', async () => {
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({
+          type: 'success',
+          params: { id_token: 'apple-id-token' },
+        });
+
+        const handler = createLoginHandler(
+          'android',
+          AuthConnection.Apple,
+          false,
+          { nonce: 'caller-nonce' },
+        );
+
+        await expect(handler.getProviderIdToken()).resolves.toBe(
+          'apple-id-token',
+        );
+        const requestConfig = jest
+          .mocked(AuthRequest)
+          .mock.calls.at(-1)?.[0] as { state?: string } | undefined;
+        expect(JSON.parse(requestConfig?.state ?? '{}')).toMatchObject({
+          nonce: 'caller-nonce',
+        });
+      });
+
+      it('maps a cancelled provider token request to UserCancelled', async () => {
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({ type: 'cancel' });
+
+        const handler = createLoginHandler('android', AuthConnection.Apple);
+
+        await expect(handler.getProviderIdToken()).rejects.toMatchObject({
+          code: OAuthErrorType.UserCancelled,
+        });
       });
 
       it('throw error when promptAsync throws exception', async () => {

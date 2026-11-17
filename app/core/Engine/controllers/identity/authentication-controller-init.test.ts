@@ -10,6 +10,7 @@ import {
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { getVersion } from 'react-native-device-info';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { RootState } from '../../../../reducers';
 
@@ -26,11 +27,15 @@ jest.mock(
 jest.mock('../../../../selectors/featureFlagController/mfaUiKit', () => ({
   selectMfaUiKitEnabled: jest.fn(() => false),
 }));
+jest.mock('../../../../selectors/featureFlagController/mfaRecovery', () => ({
+  selectMfaRecoveryEnabled: jest.fn(() => false),
+}));
 
 const mockedSelectIsBasicFunctionalityConsolidationEnabled = jest.mocked(
   selectIsBasicFunctionalityConsolidationEnabled,
 );
 const mockedSelectMfaUiKitEnabled = jest.mocked(selectMfaUiKitEnabled);
+const mockedSelectMfaRecoveryEnabled = jest.mocked(selectMfaRecoveryEnabled);
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<AuthenticationControllerMessenger>
@@ -58,6 +63,7 @@ describe('AuthenticationControllerInit', () => {
     jest.clearAllMocks();
     mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
     mockedSelectMfaUiKitEnabled.mockReturnValue(false);
+    mockedSelectMfaRecoveryEnabled.mockReturnValue(false);
   });
 
   it('initializes the controller', () => {
@@ -113,6 +119,20 @@ describe('AuthenticationControllerInit', () => {
     mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
 
     expect(getIsSocialPairingEnabled()?.()).toBe(false);
+  });
+
+  it('enables social pairing when mfaRecovery is on and the UI kit is off', () => {
+    const rootState = {} as RootState;
+    const requestMock = getInitRequestMock();
+    requestMock.getState.mockReturnValue(rootState);
+    mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
+    mockedSelectMfaUiKitEnabled.mockReturnValue(false);
+    mockedSelectMfaRecoveryEnabled.mockReturnValue(true);
+
+    authenticationControllerInit(requestMock);
+
+    expect(getIsSocialPairingEnabled()?.()).toBe(true);
+    expect(selectMfaRecoveryEnabled).toHaveBeenCalledWith(rootState);
   });
 
   it('enables social pairing when the MFA UI kit is on', () => {
