@@ -46,6 +46,8 @@ export interface SocialPreviewReferralOffer {
   status: SocialPreviewReferralOfferStatus;
   /** The link's pending Money referral code, offered or not. */
   pendingReferralCode: string | null;
+  /** Server copy for what accepting earns, once the code is offered. */
+  benefitTitle: string | null;
   /** The invite "Learn more" link, once the code is offered and has one. */
   termsLink: InviteTermsLink | null;
 }
@@ -75,6 +77,7 @@ export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
   const [status, setStatus] = useState<SocialPreviewReferralOfferStatus>(
     canCheck ? 'checking' : 'none',
   );
+  const [benefitTitle, setBenefitTitle] = useState<string | null>(null);
   const [termsLink, setTermsLink] = useState<InviteTermsLink | null>(null);
 
   useEffect(() => {
@@ -127,6 +130,9 @@ export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
           setStatus('none');
           return;
         }
+        setBenefitTitle(
+          referralMe?.localized_text?.invitedBenefitTitle?.trim() || null,
+        );
         setTermsLink(resolveInviteTermsLink(referralMe?.localized_text));
         setStatus('offered');
       })
@@ -150,5 +156,5 @@ export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
     store,
   ]);
 
-  return { status, pendingReferralCode, termsLink };
+  return { status, pendingReferralCode, benefitTitle, termsLink };
 };

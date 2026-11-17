@@ -206,9 +206,11 @@ const StatsCard = ({
 
 const ReferralRowContent = ({
   code,
+  benefitTitle,
   termsLink,
 }: {
   code: string;
+  benefitTitle: string | null;
   termsLink: InviteTermsLinkValue | null;
 }) => {
   const tw = useTailwind();
@@ -230,19 +232,23 @@ const ReferralRowContent = ({
             code,
           })}
         </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.trader_preview.referral_benefit')}
-          {termsLink ? (
-            <>
-              {' '}
+        {benefitTitle || termsLink ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={TraderPreviewSheetSelectorsIDs.REFERRAL_BENEFIT}
+          >
+            {benefitTitle}
+            {benefitTitle && termsLink ? ' ' : null}
+            {termsLink ? (
               <InviteTermsLink
                 link={termsLink}
                 variant={TextVariant.BodySm}
                 testID={TraderPreviewSheetSelectorsIDs.REFERRAL_TERMS_LINK}
               />
-            </>
-          ) : null}
-        </Text>
+            ) : null}
+          </Text>
+        ) : null}
       </Box>
     </>
   );
@@ -254,10 +260,12 @@ const REFERRAL_ROW_CLASS =
 /** The offered code, or a same-sized placeholder while it is checked. */
 const ReferralCodeRow = ({
   code,
+  benefitTitle,
   termsLink,
   animate,
 }: {
   code: string | null;
+  benefitTitle: string | null;
   termsLink: InviteTermsLinkValue | null;
   animate: boolean;
 }) =>
@@ -266,7 +274,11 @@ const ReferralCodeRow = ({
       twClassName={REFERRAL_ROW_CLASS}
       testID={TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_ROW}
     >
-      <ReferralRowContent code={code} termsLink={termsLink} />
+      <ReferralRowContent
+        code={code}
+        benefitTitle={benefitTitle}
+        termsLink={termsLink}
+      />
     </Box>
   ) : (
     <Skeleton
@@ -276,7 +288,11 @@ const ReferralCodeRow = ({
       testID={TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_SKELETON}
     >
       <Box twClassName={REFERRAL_ROW_CLASS}>
-        <ReferralRowContent code={PLACEHOLDER_VALUE} termsLink={null} />
+        <ReferralRowContent
+          code={PLACEHOLDER_VALUE}
+          benefitTitle={PLACEHOLDER_HANDLE}
+          termsLink={null}
+        />
       </Box>
     </Skeleton>
   );
@@ -555,6 +571,7 @@ const TraderPreviewSheet = () => {
           {offeredReferralCode || isCheckingReferral ? (
             <ReferralCodeRow
               code={offeredReferralCode}
+              benefitTitle={referralOffer.benefitTitle}
               termsLink={referralOffer.termsLink}
               animate={animateSkeletons}
             />

@@ -94,6 +94,7 @@ describe('useSocialPreviewReferralOffer', () => {
     expect(result.current).toEqual({
       status: 'none',
       pendingReferralCode: null,
+      benefitTitle: null,
       termsLink: null,
     });
     expect(mockFetchReferralMe).not.toHaveBeenCalled();
@@ -108,6 +109,29 @@ describe('useSocialPreviewReferralOffer', () => {
     expect(DevLogger.log).not.toHaveBeenCalled();
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
     expect(result.current.termsLink).toBeNull();
+    expect(result.current.benefitTitle).toBeNull();
+  });
+
+  it('takes the benefit copy from invitedBenefitTitle', async () => {
+    const { result } = renderOffer({
+      referralMe: buildReferralMe([], {
+        invitedBenefitTitle: '  Earning 50% rebates on Swaps and Perps  ',
+      }),
+    });
+
+    await waitFor(() => expect(result.current.status).toBe('offered'));
+    expect(result.current.benefitTitle).toBe(
+      'Earning 50% rebates on Swaps and Perps',
+    );
+  });
+
+  it('has no benefit copy when invitedBenefitTitle is blank', async () => {
+    const { result } = renderOffer({
+      referralMe: buildReferralMe([], { invitedBenefitTitle: '   ' }),
+    });
+
+    await waitFor(() => expect(result.current.status).toBe('offered'));
+    expect(result.current.benefitTitle).toBeNull();
   });
 
   it('resolves the invite terms link with the offer', async () => {

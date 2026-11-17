@@ -18,6 +18,7 @@ import type { SharedPositionPreview } from './useSharedPositionPreview';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 
 const TERMS_URL = 'https://link.metamask.io/rewards/terms';
+const BENEFIT_TITLE = 'Earning 50% rebates on Swaps and Perps';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -28,6 +29,7 @@ let mockProfile: TraderProfileResponse | null = null;
 let mockReferralOffer: SocialPreviewReferralOffer = {
   status: 'none',
   pendingReferralCode: null,
+  benefitTitle: null,
   termsLink: null,
 };
 let mockParams: { traderId: string; positionId?: string } = {
@@ -169,6 +171,7 @@ const offerReferral = (
   mockReferralOffer = {
     status: 'offered',
     pendingReferralCode: 'CODE1234',
+    benefitTitle: BENEFIT_TITLE,
     termsLink: null,
     ...overrides,
   };
@@ -190,6 +193,7 @@ describe('TraderPreviewSheet', () => {
     mockReferralOffer = {
       status: 'none',
       pendingReferralCode: null,
+      benefitTitle: null,
       termsLink: null,
     };
     mockParams = { traderId: 'trader-1' };
@@ -419,7 +423,7 @@ describe('TraderPreviewSheet', () => {
   });
 
   describe('referral', () => {
-    it('shows the offered code with its benefit', () => {
+    it('shows the offered code with the server benefit copy', () => {
       offerReferral();
 
       render(<TraderPreviewSheet />);
@@ -432,17 +436,50 @@ describe('TraderPreviewSheet', () => {
         }),
       );
       expect(
-        screen.getByText(
-          strings('social_leaderboard.trader_preview.referral_benefit'),
-          { exact: false },
-        ),
-      ).toBeOnTheScreen();
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_BENEFIT),
+      ).toHaveTextContent(BENEFIT_TITLE);
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           interaction_type: 'viewed',
           referral_code: 'CODE1234',
         }),
       );
+    });
+
+    it('shows Learn more after the benefit copy', () => {
+      offerReferral({ termsLink: { label: 'Learn more', url: TERMS_URL } });
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_BENEFIT),
+      ).toHaveTextContent(`${BENEFIT_TITLE} Learn more`);
+    });
+
+    it('shows Learn more alone without benefit copy', () => {
+      offerReferral({
+        benefitTitle: null,
+        termsLink: { label: 'Learn more', url: TERMS_URL },
+      });
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_BENEFIT),
+      ).toHaveTextContent('Learn more');
+    });
+
+    it('shows only the code without benefit copy or terms link', () => {
+      offerReferral({ benefitTitle: null });
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_BENEFIT),
+      ).toBeNull();
     });
 
     it('shows the code for a position link too', () => {
@@ -486,6 +523,7 @@ describe('TraderPreviewSheet', () => {
       mockReferralOffer = {
         status: 'checking',
         pendingReferralCode: 'CODE1234',
+        benefitTitle: null,
         termsLink: null,
       };
 
@@ -505,6 +543,7 @@ describe('TraderPreviewSheet', () => {
       mockReferralOffer = {
         status: 'none',
         pendingReferralCode: 'CODE1234',
+        benefitTitle: null,
         termsLink: null,
       };
 
@@ -554,6 +593,7 @@ describe('TraderPreviewSheet', () => {
       mockReferralOffer = {
         status: 'none',
         pendingReferralCode: 'CODE1234',
+        benefitTitle: null,
         termsLink: null,
       };
       render(<TraderPreviewSheet />);
@@ -573,6 +613,7 @@ describe('TraderPreviewSheet', () => {
       mockReferralOffer = {
         status: 'checking',
         pendingReferralCode: 'CODE1234',
+        benefitTitle: null,
         termsLink: null,
       };
       render(<TraderPreviewSheet />);

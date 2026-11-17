@@ -1837,7 +1837,6 @@
     "trader_preview": {
       "join": "Join Social",
       "referral_code": "Referral code: {{code}}",
-      "referral_benefit": "Get 15% back on trading fees",
       "referral_accepted": "Referral accepted",
       "referral_failed": "Couldn't accept the referral"
     },

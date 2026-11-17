@@ -15,6 +15,7 @@ export const TraderPreviewSheetSelectorsIDs = {
   POSITION_CARD_SKELETON: 'social-trader-preview-sheet-position-card-skeleton',
   REFERRAL_CODE_ROW: 'social-trader-preview-sheet-referral-code-row',
   REFERRAL_CODE: 'social-trader-preview-sheet-referral-code',
+  REFERRAL_BENEFIT: 'social-trader-preview-sheet-referral-benefit',
   REFERRAL_CODE_SKELETON: 'social-trader-preview-sheet-referral-code-skeleton',
   REFERRAL_TERMS_LINK: 'social-trader-preview-sheet-referral-terms-link',
   JOIN_BUTTON: 'social-trader-preview-sheet-join-button',
