@@ -19,8 +19,7 @@ import { ApproveMethod } from '../../../types/approve';
 import { SpendingCapInput } from '../../spending-cap-input';
 import styleSheet from './edit-spending-cap-modal.styles';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export interface EditSpendingCapProps {
   approveMethod: ApproveMethod;
@@ -44,7 +43,7 @@ export const EditSpendingCapModal = ({
   onClose,
   tokenSymbol,
 }: EditSpendingCapProps & ModalProps) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [newSpendingCap, setNewSpendingCap] = useState(spendingCap);

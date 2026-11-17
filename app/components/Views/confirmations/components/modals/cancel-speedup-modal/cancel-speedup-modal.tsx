@@ -46,8 +46,7 @@ import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import InfoSection from '../../UI/info-row/info-section';
 import InfoRow from '../../UI/info-row/info-row';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 const NetworkFeeRow = ({
   fiat,
@@ -163,7 +162,7 @@ export function CancelSpeedupModal({
   onClose,
   confirmDisabled = false,
 }: CancelSpeedupModalProps) {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const { colors } = useTheme();

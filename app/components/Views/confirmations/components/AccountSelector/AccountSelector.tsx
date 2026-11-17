@@ -38,7 +38,7 @@ import { selectVisibleAccountGroupsByWallet } from '../../../../../selectors/mul
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../hooks/useIsGlassHeader';
 
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
@@ -65,7 +65,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   style,
   isAccountAllowed,
 }) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(stylesheet, {});

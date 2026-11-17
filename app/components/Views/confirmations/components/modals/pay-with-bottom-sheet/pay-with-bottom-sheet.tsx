@@ -16,13 +16,12 @@ import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const PAY_WITH_BOTTOM_SHEET_TEST_ID = PayWithBottomSheetIDs.BOTTOM_SHEET;
 
 export function PayWithBottomSheet() {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { sections } = usePayWithSections();

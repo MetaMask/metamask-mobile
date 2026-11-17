@@ -14,11 +14,10 @@ import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { GasFeeTokenListItem } from '../gas-fee-token-list-item';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 

@@ -24,8 +24,7 @@ import { GasPriceInput } from '../../../components/gas/gas-price-input';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import styleSheet from './advanced-gas-price-modal.styles';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const AdvancedGasPriceModal = ({
   setActiveModal,
@@ -34,7 +33,7 @@ export const AdvancedGasPriceModal = ({
   setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;

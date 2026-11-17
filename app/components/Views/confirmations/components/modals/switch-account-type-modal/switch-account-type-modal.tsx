@@ -22,7 +22,7 @@ import AccountNetworkRow from './account-network-row';
 import styleSheet from './switch-account-type-modal.styles';
 import Engine from '../../../../../../core/Engine';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 interface SwitchAccountTypeModalRouteParams {
   address?: Hex;
@@ -34,7 +34,7 @@ interface SwitchAccountTypeModalParamList {
 }
 
 const SwitchAccountTypeModal = () => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const route =
     useRoute<
       RouteProp<

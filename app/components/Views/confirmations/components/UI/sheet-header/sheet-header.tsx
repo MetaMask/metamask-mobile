@@ -1,10 +1,9 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 
 import BottomSheetHeaderGlass, {
   type BottomSheetHeaderGlassProps,
 } from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export type ConfirmationSheetHeaderProps = Omit<
   BottomSheetHeaderGlassProps,
@@ -18,6 +17,6 @@ export type ConfirmationSheetHeaderProps = Omit<
 export const ConfirmationSheetHeader = (
   props: ConfirmationSheetHeaderProps,
 ) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   return <BottomSheetHeaderGlass {...props} isGlass={isGlassHeader} />;
 };

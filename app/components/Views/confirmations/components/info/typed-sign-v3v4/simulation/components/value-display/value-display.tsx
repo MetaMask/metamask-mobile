@@ -42,7 +42,7 @@ import AnimatedPulse from '../../../../../UI/animated-pulse';
 import { selectContractExchangeRatesByChainId } from '../../../../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../../../../reducers';
 import BottomSheetHeaderGlass from '../../../../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { selectGlassHeadersEnabled } from '../../../../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../../../../hooks/useIsGlassHeader';
 
 interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
@@ -98,7 +98,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   allowed,
   canDisplayValueAsUnlimited = false,
 }) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 

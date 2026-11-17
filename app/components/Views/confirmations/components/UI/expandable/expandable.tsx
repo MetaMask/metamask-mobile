@@ -10,8 +10,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 interface ExpandableProps {
   collapsedContent: ReactNode;
@@ -36,7 +35,7 @@ const Expandable = ({
   isCompact,
   copyText,
 }: ExpandableProps) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, { isCompact });
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [expanded, setExpanded] = useState(false);

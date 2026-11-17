@@ -25,8 +25,7 @@ import { MaxBaseFeeInput } from '../../../components/gas/max-base-fee-input';
 import { PriorityFeeInput } from '../../../components/gas/priority-fee-input';
 import styleSheet from './advanced-eip1559-modal.styles';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const AdvancedEIP1559Modal = ({
   setActiveModal,
@@ -35,7 +34,7 @@ export const AdvancedEIP1559Modal = ({
   setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;

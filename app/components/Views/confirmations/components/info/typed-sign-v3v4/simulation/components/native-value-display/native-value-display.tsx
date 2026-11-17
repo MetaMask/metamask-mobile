@@ -33,7 +33,7 @@ import {
  */
 import styleSheet from '../value-display/value-display.styles';
 import BottomSheetHeaderGlass from '../../../../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { selectGlassHeadersEnabled } from '../../../../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../../../../hooks/useIsGlassHeader';
 
 const NATIVE_DECIMALS = 18;
 
@@ -61,7 +61,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   modalHeaderText,
   value,
 }) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
