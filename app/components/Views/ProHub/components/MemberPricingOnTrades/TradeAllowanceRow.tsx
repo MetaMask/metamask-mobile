@@ -50,21 +50,23 @@ const formatUsedValue = (item: TradeAllowanceItem): string => {
 };
 
 /**
- * Fill percent for the allowance bar. Exhausted meters are full. Any other
- * meter stays at 99% or below, so cents just under the cap cannot round up
- * to a full bar.
+ * Fill percent for the allowance bar.
+ *
+ * A full or exhausted amount fills the bar, matching the text. Spend below
+ * the allowance rounds to the nearest percent, then stops at 99 so cents
+ * just under the cap cannot draw a full bar. Rounding keeps a bar under 1%
+ * visible.
  */
 const calculateProgressPercent = (item: TradeAllowanceItem): number => {
-  if (item.exhausted) {
-    return 100;
-  }
-
   if (item.allowance <= 0) {
     return 0;
   }
 
-  const ratio = Math.min(item.used / item.allowance, 1);
-  return Math.min(99, Math.floor(ratio * 100));
+  if (item.exhausted || item.used >= item.allowance) {
+    return 100;
+  }
+
+  return Math.min(99, Math.round((item.used / item.allowance) * 100));
 };
 
 const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {

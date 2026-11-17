@@ -11,8 +11,6 @@ import {
   type TradeAllowanceKind,
 } from '../../ProHub.constants';
 
-export const MICRO_USD_PER_USD = 1_000_000;
-
 /** One cent, in micro-USD. Currency rows keep this precision. */
 const MICRO_USD_PER_CENT = 10_000;
 
@@ -21,11 +19,18 @@ export const PLUS_BENEFIT_PRODUCT_COUNT =
   Object.keys(TRADE_ALLOWANCE_IDS).length;
 
 /**
- * Converts micro-USD to USD rounded to the nearest cent.
- * `999_600_000` becomes `999.6`, which the row formats as `$999.60`.
+ * Converts micro-USD to USD at cent precision.
+ *
+ * The cap rounds to the nearest cent. Spend floors, so an amount just under
+ * the cap cannot become the cap. `999_996_000` of `1_000_000_000` is
+ * `$999.99` of `$1,000.00`.
  */
-const toUsd = (microUsd: number): number =>
-  Math.round(microUsd / MICRO_USD_PER_CENT) / 100;
+const toUsd = (microUsd: number, rounding: 'floor' | 'round'): number => {
+  const cents = microUsd / MICRO_USD_PER_CENT;
+  const roundedCents =
+    rounding === 'floor' ? Math.floor(cents) : Math.round(cents);
+  return roundedCents / 100;
+};
 
 const mapMeteredRow = ({
   id,
@@ -59,9 +64,10 @@ const mapMeteredRow = ({
     return undefined;
   }
 
-  const allowance = kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(cap) : cap;
+  const allowance =
+    kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(cap, 'round') : cap;
   let displayUsed =
-    kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(used) : used;
+    kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(used, 'floor') : used;
   displayUsed = Math.min(Math.max(0, displayUsed), allowance);
 
   if (exhausted) {

@@ -127,14 +127,14 @@ describe('mapPlusBenefitsToTradeAllowances', () => {
     );
   });
 
-  it('keeps a partial cent amount below the next cent', () => {
+  it('floors a partial cent of spend and rounds the cap', () => {
     const items = mapPlusBenefitsToTradeAllowances(
       createBenefits({
         swaps: {
           feeBips: '0',
           capMicroUsd: 1_000_000_000,
-          consumedMicroUsd: 999_400_000,
-          remainingMicroUsd: 600_000,
+          consumedMicroUsd: 999_406_000,
+          remainingMicroUsd: 594_000,
           exhausted: false,
         },
       }),
@@ -142,6 +142,28 @@ describe('mapPlusBenefitsToTradeAllowances', () => {
 
     expect(items.find((item) => item.id === 'swaps')).toEqual(
       expect.objectContaining({ used: 999.4, allowance: 1000 }),
+    );
+  });
+
+  it('keeps spend just under the cap below the rounded cap', () => {
+    const items = mapPlusBenefitsToTradeAllowances(
+      createBenefits({
+        swaps: {
+          feeBips: '0',
+          capMicroUsd: 1_000_000_000,
+          consumedMicroUsd: 999_996_000,
+          remainingMicroUsd: 4_000,
+          exhausted: false,
+        },
+      }),
+    );
+
+    expect(items.find((item) => item.id === 'swaps')).toEqual(
+      expect.objectContaining({
+        used: 999.99,
+        allowance: 1000,
+        exhausted: false,
+      }),
     );
   });
 

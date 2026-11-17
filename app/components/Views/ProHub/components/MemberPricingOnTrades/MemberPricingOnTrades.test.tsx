@@ -263,7 +263,7 @@ describe('TradeAllowanceRow', () => {
   it('rounds fractional progress fill width to a whole percent', () => {
     const fractionalItem: TradeAllowanceItem = {
       id: 'swaps',
-      used: 1,
+      used: 2,
       allowance: 3,
       kind: 'currency',
     };
@@ -275,7 +275,7 @@ describe('TradeAllowanceRow', () => {
     );
 
     expect(getFlattenedStyle(fill.props.style)).toEqual(
-      expect.objectContaining({ width: '33%' }),
+      expect.objectContaining({ width: '67%' }),
     );
   });
 
@@ -320,6 +320,22 @@ describe('TradeAllowanceRow', () => {
     ).toHaveTextContent(toRegex(expected));
   });
 
+  it('shows a 1% bar when usage is below 1%', () => {
+    const { getByTestId } = renderTradeAllowanceRow({
+      id: 'swaps',
+      used: 4.99,
+      allowance: 500,
+      kind: 'currency',
+    });
+
+    expect(
+      getFlattenedStyle(
+        getByTestId(MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps')).props
+          .style,
+      ),
+    ).toEqual(expect.objectContaining({ width: '1%' }));
+  });
+
   it('keeps a near-cap meter short of a full bar until it is exhausted', () => {
     const { getByTestId } = renderTradeAllowanceRow({
       id: 'swaps',
@@ -337,7 +353,7 @@ describe('TradeAllowanceRow', () => {
     ).toEqual(expect.objectContaining({ width: '99%' }));
   });
 
-  it('caps the bar at 99% when used exceeds the allowance before exhaustion', () => {
+  it('fills the bar when used has reached the allowance before exhaustion', () => {
     const overAllowanceItem: TradeAllowanceItem = {
       id: 'swaps',
       used: 600,
@@ -355,7 +371,7 @@ describe('TradeAllowanceRow', () => {
     );
 
     expect(getFlattenedStyle(fill.props.style)).toEqual(
-      expect.objectContaining({ width: '99%' }),
+      expect.objectContaining({ width: '100%' }),
     );
     expect(progress.props.accessibilityValue).toEqual({
       min: 0,
