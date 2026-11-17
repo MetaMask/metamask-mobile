@@ -118,7 +118,6 @@ const QrSyncImportSummary = ({ summary }: QrSyncImportSummaryProps) => {
               <React.Fragment key={wallet.id}>
                 {walletIndex > 0 ? (
                   <Box
-                    paddingHorizontal={4}
                     paddingVertical={2}
                     testID={
                       ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_DIVIDER_ID

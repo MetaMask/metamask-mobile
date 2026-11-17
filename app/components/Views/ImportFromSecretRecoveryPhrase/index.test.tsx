@@ -1573,9 +1573,19 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         ).toBeOnTheScreen();
       });
 
+      const [walletDivider] = getAllByTestId(
+        ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_DIVIDER_ID,
+      );
+      expect(walletDivider).toBeDefined();
+      expect(StyleSheet.flatten(walletDivider.props.style)).toEqual(
+        expect.objectContaining({
+          paddingBottom: 8,
+          paddingTop: 8,
+        }),
+      );
       expect(
-        getAllByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_DIVIDER_ID),
-      ).toHaveLength(1);
+        StyleSheet.flatten(walletDivider.props.style).paddingHorizontal,
+      ).toBeUndefined();
       fireEvent.press(
         getByTestId(
           `${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_WALLET_ID}-0`,
