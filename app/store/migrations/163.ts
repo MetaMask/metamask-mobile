@@ -248,7 +248,10 @@ function healAssetsInfoMetadata(
     return null;
   }
 
-  return { assetsInfo: assetsInfoAdditions, customAssets: customAssetAdditions };
+  return {
+    assetsInfo: assetsInfoAdditions,
+    customAssets: customAssetAdditions,
+  };
 }
 
 /**

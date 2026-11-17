@@ -215,7 +215,9 @@ describe(`Migration ${migrationVersion}: remove TokensController state`, () => {
   it('only heals assetsInfo when the token owner has no account', () => {
     const state = createState({
       TokensController: tokensControllerWith({
-        [FLARE_HEX]: { '0x0000000000000000000000000000000000000001': [flareToken] },
+        [FLARE_HEX]: {
+          '0x0000000000000000000000000000000000000001': [flareToken],
+        },
       }),
       AccountsController: accountsController,
       AssetsController: emptyAssetsController,

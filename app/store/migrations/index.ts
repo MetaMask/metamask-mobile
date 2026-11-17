@@ -504,7 +504,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    */
   const removeDroppedControllerFiles = async (
     migratedBackgroundState: Record<string, unknown>,
-  ) => {
+  ): Promise<void> => {
     await Promise.all(
       REMOVED_CONTROLLER_NAMES.filter(
         (controllerName) => !(controllerName in migratedBackgroundState),
