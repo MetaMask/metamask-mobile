@@ -1597,7 +1597,7 @@ describe('OAuthRehydration', () => {
     /** First kit attempt (OS highest factor) cancelled → full-page picker. */
     const cancelHighestFactorOnce = () => {
       mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('cancelled'), { code: 'flow_cancelled' }),
+        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
       );
     };
 
@@ -1622,7 +1622,7 @@ describe('OAuthRehydration', () => {
     it('shows full-page verify when the highest MFA factor is cancelled', async () => {
       enableMfaFlags();
       mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('cancelled'), { code: 'flow_cancelled' }),
+        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
       );
       let resolveList!: (value: unknown) => void;
       mockListActiveSocialLoginMethods.mockReturnValue(
@@ -1662,7 +1662,7 @@ describe('OAuthRehydration', () => {
     it('shows only enrolled methods on the custom verify picker', async () => {
       enableMfaFlags();
       mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('cancelled'), { code: 'flow_cancelled' }),
+        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
       );
       mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
 
@@ -1687,7 +1687,7 @@ describe('OAuthRehydration', () => {
       enableMfaFlags();
       mockVerifyForSocialLogin
         .mockRejectedValueOnce(
-          Object.assign(new Error('cancelled'), { code: 'flow_cancelled' }),
+          Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
         )
         .mockResolvedValueOnce({ token: 'aal2-token' });
       mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
@@ -1715,7 +1715,9 @@ describe('OAuthRehydration', () => {
     it('continues to password when no MFA methods are enrolled', async () => {
       enableMfaFlags();
       mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('none'), { code: 'credential_not_enrolled' }),
+        Object.assign(new Error('none'), {
+          mfaCode: 'credential_not_enrolled',
+        }),
       );
       mockListActiveSocialLoginMethods.mockResolvedValue([]);
 
@@ -1733,6 +1735,29 @@ describe('OAuthRehydration', () => {
         mockEngine.context.AuthenticationController
           .holdLockedRecoveryVerification,
       ).not.toHaveBeenCalled();
+    });
+
+    it('continues to password when the highest MFA factor fails without cancel', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('failed'), { mfaCode: 'invalid_assertion' }),
+      );
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey', 'totp']);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        { state: mfaState },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+      ).toBeNull();
+      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
     });
 
     it('times out the loading gate when social auth never arrives', async () => {
