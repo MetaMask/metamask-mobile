@@ -99,14 +99,6 @@ export interface MoneyAddMoneySheetParams {
 }
 
 /**
- * Params for the geo-block sheet. `product` is set when the sheet opens from
- * the MetaMask Orange entry, so the copy names that product instead of Money.
- */
-export interface MoneyGeoBlockSheetParams {
-  product?: 'metamask_orange';
-}
-
-/**
  * Param list for screens inside the Money modal stack (`MoneyModalStack`).
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -126,7 +118,7 @@ export type MoneyModalsNavigationParamList = {
   MoneyEarnCryptoInfoSheet:
     | { variant?: 'default' | 'deposit'; showMoneyHomeCta?: boolean }
     | undefined;
-  MoneyGeoBlockSheet: MoneyGeoBlockSheetParams | undefined;
+  MoneyGeoBlockSheet: undefined;
 };
 
 interface MoneyPotentialEarningsParams {

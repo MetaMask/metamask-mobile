@@ -858,7 +858,7 @@ describe('AccountsMenu', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('opens the Money geo sheet when a member in a blocked country taps Orange', () => {
+    it('opens Pro Hub when a member in a blocked country taps Orange', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
@@ -872,9 +872,8 @@ describe('AccountsMenu', () => {
       expect(
         getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
       ).toHaveTextContent('accounts_menu.metamask_orange');
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-        params: { product: 'metamask_orange' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'accounts_menu',
       });
     });
 

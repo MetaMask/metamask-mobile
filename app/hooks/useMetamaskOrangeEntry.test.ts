@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 
 import {
-  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
@@ -184,7 +183,7 @@ describe('useMetamaskOrangeEntry', () => {
     expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: true });
   });
 
-  it('opens the Money geo sheet for a member in a blocked country', () => {
+  it('opens Pro Hub for a member in a blocked country', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
@@ -206,11 +205,10 @@ describe('useMetamaskOrangeEntry', () => {
       button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
       component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
       label_key: 'accounts_menu.metamask_orange',
-      redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+      redirect_target: SCREEN_NAMES.PRO_HUB,
     });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-      params: { product: 'metamask_orange' },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+      source: 'accounts_menu',
     });
   });
 

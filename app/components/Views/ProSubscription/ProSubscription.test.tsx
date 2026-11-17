@@ -253,7 +253,7 @@ describe('ProSubscription', () => {
       expectProHubReplacesSubscriptionModal();
     });
 
-    it('shows the Money geo sheet for a member in a blocked country', () => {
+    it('sends a geo-blocked member to the hub', () => {
       mockUseHasProMembership.mockReturnValue(true);
       mockUseSelector.mockImplementation((selector: unknown) =>
         selector === selectMoneyAccountAccessBlockReason
@@ -263,12 +263,8 @@ describe('ProSubscription', () => {
 
       render(<ProSubscription />);
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-        params: { product: 'metamask_orange' },
-      });
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expectProHubReplacesSubscriptionModal();
     });
 
     it('sends an existing member straight to the hub', () => {

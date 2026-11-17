@@ -15,7 +15,6 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/visibility';
-import Routes from '../../../constants/navigation/Routes';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
@@ -90,24 +89,11 @@ const ProSubscription = () => {
 
   // Dismiss when the Pro flag is off, or when Money Account is blocked and
   // the user has no membership. Unknown access waits so a restored member's
-  // fetch can finish before a blocked country closes checkout. A member in a
-  // blocked country gets the Money geo sheet instead of Pro Hub.
+  // fetch can finish before a blocked country closes checkout. A member still
+  // goes to Pro Hub, including while geolocation is loading, so they can cancel.
   useEffect(() => {
     if (proAccess === MoneyAccountPlusAccess.Disabled) {
       navigation.goBack();
-      return;
-    }
-
-    if (
-      proAccess !== MoneyAccountPlusAccess.Unknown &&
-      accessBlockReason === 'geo_blocked' &&
-      hasMembership
-    ) {
-      navigation.goBack();
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-        params: { product: 'metamask_orange' },
-      });
       return;
     }
 

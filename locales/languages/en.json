@@ -10194,8 +10194,6 @@
     "geo_block": {
       "title": "Money account unavailable",
       "description": "Money account isn't available in your location due to local restrictions or sanctions.",
-      "metamask_orange_title": "MetaMask Orange unavailable",
-      "metamask_orange_description": "MetaMask Orange isn't available in your location due to local restrictions or sanctions.",
       "button": "Got it"
     },
     "deeplink_modal": {

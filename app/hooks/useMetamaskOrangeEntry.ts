@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 
 import { strings } from '../../locales/i18n';
 import {
-  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
@@ -21,9 +20,8 @@ import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 export interface UseMetamaskOrangeEntryResult {
   /**
    * True when the Pro flow is on and the user may see Orange. A blocked
-   * Money Account hides the join row. An existing member still sees the row.
-   * In a blocked country, tapping it explains that Money Account is
-   * unavailable instead of opening Pro Hub.
+   * Money Account hides the join row. An existing member still sees the row
+   * and can open Pro Hub, including to cancel.
    */
   showOrangeEntry: boolean;
   /** Subscriber or join label, already localized. */
@@ -53,7 +51,7 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   useSubscriptions({
     enabled: isProSubscriptionEnabled && !isAccessOpen,
   });
-  // A member still sees the row. A blocked country opens the Money geo sheet.
+  // A member still sees the row so they can open Pro Hub and cancel.
   const showOrangeEntry =
     isProSubscriptionEnabled && (isAccessOpen || hasMembership);
   const labelKey = hasMembership
@@ -61,24 +59,8 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
     : 'accounts_menu.join_metamask_orange';
 
   const onPress = useCallback(() => {
-    // Same sheet Money Account shows when an existing balance is opened
-    // from a blocked country. The row stays visible; Pro Hub does not.
-    if (accessBlockReason === 'geo_blocked') {
-      trackButtonClicked({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
-        button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
-        label_key: labelKey,
-        redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
-      });
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-        params: { product: 'metamask_orange' },
-      });
-      return;
-    }
-
-    // Statuses Pro Hub can show open the hub. Canceled, incomplete,
+    // Statuses Pro Hub can show open the hub, including when the country is
+    // blocked or still loading, so a member can cancel. Canceled, incomplete,
     // incomplete-expired, no subscription, and a still-loading membership
     // open Benefits.
     const destination = hasMembership
@@ -104,13 +86,7 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
     navigation.navigate(destination.route, {
       source: 'accounts_menu',
     });
-  }, [
-    accessBlockReason,
-    hasMembership,
-    labelKey,
-    navigation,
-    trackButtonClicked,
-  ]);
+  }, [hasMembership, labelKey, navigation, trackButtonClicked]);
 
   return {
     showOrangeEntry,

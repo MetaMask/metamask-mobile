@@ -38,7 +38,6 @@ import {
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
-import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/visibility';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
@@ -119,7 +118,6 @@ const ProHub = () => {
   const { model: membershipBanner } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
   const hasMembership = useHasProMembership();
-  const accessBlockReason = useSelector(selectMoneyAccountAccessBlockReason);
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
   const { sinceInceptionQuery: premiumSinceInceptionQuery } =
     useMoneyPremiumAccountInterest();
@@ -155,23 +153,10 @@ const ProHub = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // Statuses the hub banner can show stay. Unknown access waits for the
-  // first fetch. A member in a blocked country gets the Money geo sheet
-  // instead of the hub. A canceled, incomplete, or missing plan leaves.
+  // Statuses the hub banner can show stay, including in a blocked country,
+  // so a member can still cancel. Unknown access waits for the first fetch.
+  // A canceled, incomplete, or missing plan leaves.
   useEffect(() => {
-    if (
-      proAccess !== MoneyAccountPlusAccess.Unknown &&
-      proAccess !== MoneyAccountPlusAccess.Disabled &&
-      accessBlockReason === 'geo_blocked'
-    ) {
-      navigation.goBack();
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-        params: { product: 'metamask_orange' },
-      });
-      return;
-    }
-
     if (
       proAccess === MoneyAccountPlusAccess.Unknown ||
       (hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)
@@ -179,7 +164,7 @@ const ProHub = () => {
       return;
     }
     navigation.goBack();
-  }, [accessBlockReason, hasMembership, navigation, proAccess]);
+  }, [hasMembership, navigation, proAccess]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
