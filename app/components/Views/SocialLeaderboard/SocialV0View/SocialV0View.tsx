@@ -62,6 +62,8 @@ import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot
 import Routes from '../../../../constants/navigation/Routes';
 import { SocialV0ViewSelectorsIDs } from './SocialV0View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
+import { useDeferredRender } from '../../../DeferredRender';
+import { useScreenTransitionMeasure } from '../../../hooks/useScreenTransitionMeasure';
 import {
   LEADERBOARD_LANDING_FEED_AB_KEY,
   LEADERBOARD_LANDING_FEED_EXPOSURE_METADATA,
@@ -109,6 +111,20 @@ const SocialV0View: React.FC = () => {
     useRoute<
       RouteProp<RootStackParamList, 'SocialV0View' | 'SocialLeaderboardTab'>
     >();
+  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
+
+  // Hold the two pager pages out of the opening transition: they are the whole
+  // cost of this screen's first commit. The header and tabs stay eager so the
+  // screen paints its chrome immediately.
+  const isDeferredReady = useDeferredRender({
+    mode: isPushedScreen ? 'transition' : 'paint',
+    screenId: 'SocialV0View',
+  });
+  useScreenTransitionMeasure({
+    screenId: 'SocialV0View',
+    contentReady: isDeferredReady,
+  });
+
   const { track } = useSocialLeaderboardAnalytics();
   // Wait until the visible leaderboard query settles before warming feed
   // pages, so those requests never contend with the landing list fetch.
@@ -422,7 +438,6 @@ const SocialV0View: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
   const title = strings('homepage.sections.top_traders');
 
   const notificationButtonProps = useMemo(
@@ -469,38 +484,42 @@ const SocialV0View: React.FC = () => {
         onPageSelected={handlePageSelected}
         testID={SocialV0ViewSelectorsIDs.PAGER}
       >
-        {tabOrder.map((tab) =>
-          tab === 'leaderboard' ? (
-            <View
-              key="leaderboard"
-              style={tw.style('flex-1')}
-              collapsable={false}
-              testID={SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE}
-            >
-              <TopTradersView
-                onScroll={leaderboardScrollHandler}
-                pageRef={leaderboardPageRef}
-                onVisibleLeaderboardSettled={handleVisibleLeaderboardSettled}
-              />
-            </View>
-          ) : (
-            <View
-              key="feed"
-              style={tw.style('flex-1')}
-              collapsable={false}
-              testID={SocialV0ViewSelectorsIDs.FEED_PAGE}
-            >
-              <FeedView
-                isActive={activeIndex === feedIndex}
-                initialAudience={route.params?.landingFeedAudience}
-                onQuickBuy={handleQuickBuy}
-                onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
-                onScroll={feedScrollHandler}
-                pageRef={feedPageRef}
-              />
-            </View>
-          ),
-        )}
+        {isDeferredReady
+          ? tabOrder.map((tab) =>
+              tab === 'leaderboard' ? (
+                <View
+                  key="leaderboard"
+                  style={tw.style('flex-1')}
+                  collapsable={false}
+                  testID={SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE}
+                >
+                  <TopTradersView
+                    onScroll={leaderboardScrollHandler}
+                    pageRef={leaderboardPageRef}
+                    onVisibleLeaderboardSettled={
+                      handleVisibleLeaderboardSettled
+                    }
+                  />
+                </View>
+              ) : (
+                <View
+                  key="feed"
+                  style={tw.style('flex-1')}
+                  collapsable={false}
+                  testID={SocialV0ViewSelectorsIDs.FEED_PAGE}
+                >
+                  <FeedView
+                    isActive={activeIndex === feedIndex}
+                    initialAudience={route.params?.landingFeedAudience}
+                    onQuickBuy={handleQuickBuy}
+                    onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
+                    onScroll={feedScrollHandler}
+                    pageRef={feedPageRef}
+                  />
+                </View>
+              ),
+            )
+          : null}
       </PagerView>
     </>
   );

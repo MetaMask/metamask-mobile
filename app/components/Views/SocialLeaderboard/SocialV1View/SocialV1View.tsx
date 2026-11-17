@@ -80,6 +80,8 @@ import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/Tra
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
+import { useDeferredRender } from '../../../DeferredRender';
+import { useScreenTransitionMeasure } from '../../../hooks/useScreenTransitionMeasure';
 import Routes from '../../../../constants/navigation/Routes';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
@@ -201,6 +203,20 @@ const SocialV1ViewContent: React.FC = () => {
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
+
+  // Hold the tab pages out of the opening transition: the landing page is the
+  // whole cost of this screen's first commit. The header and tab bar stay
+  // eager so the screen paints its chrome immediately.
+  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
+  const isDeferredReady = useDeferredRender({
+    mode: isPushedScreen ? 'transition' : 'paint',
+    screenId: 'SocialV1View',
+  });
+  useScreenTransitionMeasure({
+    screenId: 'SocialV1View',
+    contentReady: isDeferredReady,
+  });
+
   const analyticsSource = getSocialEventSource(route.params?.source);
   const { profile: myProfile } = useMyProfile();
   const accountAddress = useSelector(
@@ -892,7 +908,9 @@ const SocialV1ViewContent: React.FC = () => {
           isActive={isFocused && isPageActive}
           rotatesTraderStats={isFocused && isPageActive}
         >
-          {renderPage(tab, isPageActive, pageRefs[tab])}
+          {isDeferredReady
+            ? renderPage(tab, isPageActive, pageRefs[tab])
+            : null}
         </SocialFeedPageProviders>
       </View>
     );
