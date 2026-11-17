@@ -11,3 +11,16 @@ export type {
   PredictFundingResolution,
   PredictFundingUnavailableReason,
 } from './types';
+export {
+  createSimulatedTransferExecutor,
+  createWalletTransferExecutor,
+  type DepositTransferExecutor,
+} from './deposit/depositTransferExecutor';
+export {
+  canReuseClientOperationId,
+  payDeposit,
+  startDeposit,
+  type DepositOutcome,
+  type DepositWorkflowDeps,
+} from './deposit/runDeposit';
+export { toUsdcBaseUnits } from './deposit/usdcTransfer';
