@@ -10,6 +10,7 @@ import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytic
 import { selectIsMoneyAccountGeoEligible } from '../components/UI/Money/selectors/eligibility';
 import Routes from '../constants/navigation/Routes';
 import { strings } from '../../locales/i18n';
+import useSubscriptions from '../components/hooks/useSubscriptions';
 import { useHasProMembership } from './useHasProMembership';
 import { useMetamaskOrangeEntry } from './useMetamaskOrangeEntry';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
@@ -40,6 +41,8 @@ jest.mock('./useHasProMembership', () => ({
   useHasProMembership: jest.fn(() => false),
 }));
 
+jest.mock('../components/hooks/useSubscriptions', () => jest.fn());
+
 jest.mock('../components/UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackButtonClicked: mockTrackButtonClicked,
@@ -48,6 +51,7 @@ jest.mock('../components/UI/Money/hooks/useMoneyAnalytics', () => ({
 
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
 const mockUseHasProMembership = jest.mocked(useHasProMembership);
+const mockUseSubscriptions = jest.mocked(useSubscriptions);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 
 describe('useMetamaskOrangeEntry', () => {
@@ -123,6 +127,29 @@ describe('useMetamaskOrangeEntry', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
       source: 'accounts_menu',
     });
+  });
+
+  it('fetches subscriptions when the country is not geo-eligible', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseSelector.mockImplementation((selector: unknown) =>
+      selector === selectIsMoneyAccountGeoEligible ? false : undefined,
+    );
+
+    renderHook(() => useMetamaskOrangeEntry());
+
+    expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('leaves the subscriptions fetch off when the country is geo-eligible', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+
+    renderHook(() => useMetamaskOrangeEntry());
+
+    expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('hides the join row when the country is geo-blocked', () => {

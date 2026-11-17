@@ -202,7 +202,7 @@ describe('ProSubscription', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps Benefits visible while geolocation is still unknown', () => {
+    it('navigates back while geolocation is still unknown', () => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectIsMoneyAccountGeoEligible) {
           return false;
@@ -213,10 +213,27 @@ describe('ProSubscription', () => {
         return undefined;
       });
 
-      const { getByTestId } = render(<ProSubscription />);
+      render(<ProSubscription />);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends a member to the hub while geolocation is still unknown', () => {
+      mockUseHasProMembership.mockReturnValue(true);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectIsMoneyAccountGeoEligible) {
+          return false;
+        }
+        if (selector === getDetectedGeolocation) {
+          return undefined;
+        }
+        return undefined;
+      });
+
+      render(<ProSubscription />);
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(getByTestId('mock-benefits')).toBeOnTheScreen();
+      expectProHubReplacesSubscriptionModal();
     });
 
     it('sends a geo-blocked member to the hub', () => {

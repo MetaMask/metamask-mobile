@@ -11,6 +11,7 @@ import {
 } from '../components/UI/Money/constants/moneyEvents';
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
 import { selectIsMoneyAccountGeoEligible } from '../components/UI/Money/selectors/eligibility';
+import useSubscriptions from '../components/hooks/useSubscriptions';
 import Routes from '../constants/navigation/Routes';
 import type { AppNavigationProp } from '../core/NavigationService/types';
 import { useHasProMembership } from './useHasProMembership';
@@ -43,8 +44,13 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
   });
-  // Join stays hidden in a blocked or unresolved country. A member still
-  // sees the row so they can manage or cancel from Pro Hub.
+  // Join stays hidden in a blocked or unresolved country. A restored wallet
+  // in that country has no stored membership until this fetch runs, so a
+  // member would otherwise stay hidden.
+  useSubscriptions({
+    enabled: isProSubscriptionEnabled && !isGeoEligible,
+  });
+  // A member still sees the row so they can manage or cancel from Pro Hub.
   const showOrangeEntry =
     isProSubscriptionEnabled && (isGeoEligible || hasMembership);
   const labelKey = hasMembership

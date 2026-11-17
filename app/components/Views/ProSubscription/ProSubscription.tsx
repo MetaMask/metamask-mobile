@@ -15,7 +15,6 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
-import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
@@ -64,7 +63,6 @@ const ProSubscription = () => {
   const proAccess = useMoneyAccountPlusAccess();
   const hasMembership = useHasProMembership();
   const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
-  const detectedGeolocation = useSelector(getDetectedGeolocation);
   const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
     ProSubscriptionScreen.Benefits,
   );
@@ -77,18 +75,18 @@ const ProSubscription = () => {
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
   const { showProcessingToast } = useProSubscriptionPaymentToasts();
 
-  // Dismiss when the Pro flag is off, or when a resolved country is
-  // geo-blocked and the user has no membership. Unknown geolocation stays
-  // on this screen so a slow lookup does not dismiss an allowed user. A
-  // Plus status the hub can show already owns a membership, so send them
-  // to the hub instead of Benefits.
+  // Dismiss when the Pro flag is off, or when the country is not eligible
+  // and the user has no membership. Unknown geolocation is not eligible, so
+  // a deep link cannot reach checkout before the country resolves. A Plus
+  // status the hub can show already owns a membership, so send them to the
+  // hub instead of Benefits.
   useEffect(() => {
     if (proAccess === MoneyAccountPlusAccess.Disabled) {
       navigation.goBack();
       return;
     }
 
-    if (detectedGeolocation && !isGeoEligible && !hasMembership) {
+    if (!isGeoEligible && !hasMembership) {
       navigation.goBack();
       return;
     }
@@ -107,7 +105,6 @@ const ProSubscription = () => {
     proAccess,
     hasMembership,
     isGeoEligible,
-    detectedGeolocation,
     currentScreen,
     isCheckoutInProgress,
     navigation,

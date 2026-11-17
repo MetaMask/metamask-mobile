@@ -182,6 +182,8 @@ jest.mock('../../../hooks/useHasProMembership', () => ({
   useHasProMembership: () => mockUseHasProMembership(),
 }));
 
+jest.mock('../../../components/hooks/useSubscriptions', () => jest.fn());
+
 let mockIsMoneyAccountGeoEligible = true;
 
 const mockTrackButtonClicked = jest.fn();
