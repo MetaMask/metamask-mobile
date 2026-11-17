@@ -18,11 +18,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import FooterGlass from '../../../../component-library/components-temp/FooterGlass';
+import { MIN_PASSWORD_LENGTH } from '../../../../util/password';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { LoginViewSelectors } from '../../Login/LoginView.testIds';
 import { WalletRecoverySelectorsIDs } from './WalletRecovery.testIds';
 
+export type WalletRecoveryPasswordMode = 'unlock' | 'create';
+
 export interface WalletRecoveryPasswordProps {
+  /**
+   * `unlock` — existing password from the custom picker (Login-like).
+   * `create` — new password after MFA when passwordless recovery is prepared.
+   */
+  mode?: WalletRecoveryPasswordMode;
   password: string;
   error?: string | null;
   isLoading?: boolean;
@@ -34,9 +42,12 @@ export interface WalletRecoveryPasswordProps {
 }
 
 /**
- * Password step of wallet recovery. Matches the lock-screen password gate.
+ * Password step of wallet recovery.
+ * Unlock matches the lock-screen password gate. Create is only used after a
+ * verified factor when a recovery secret is enrolled.
  */
 const WalletRecoveryPassword = ({
+  mode = 'unlock',
   password,
   error = null,
   isLoading = false,
@@ -50,13 +61,30 @@ const WalletRecoveryPassword = ({
   const insets = useSafeAreaInsets();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const inputDisabled = isDisabled || isLoading;
-  // Same as Login — enable once non-empty (min length checked on submit).
-  const submitDisabled = inputDisabled || password.length === 0;
+  // Unlock: same as Login — enable once non-empty (min length checked on submit).
+  // Create: require ChoosePassword minimum before CTA enables.
+  const submitDisabled =
+    inputDisabled ||
+    (mode === 'create'
+      ? password.length < MIN_PASSWORD_LENGTH
+      : password.length === 0);
 
-  const title = strings('wallet_recovery_mfa.verify_title');
-  const description = strings('wallet_recovery_mfa.password_description');
-  const ctaLabel = strings('login.unlock_button');
-  const placeholder = strings('login.password_placeholder');
+  const title =
+    mode === 'create'
+      ? strings('wallet_recovery_mfa.create_password_title')
+      : strings('wallet_recovery_mfa.verify_title');
+  const description =
+    mode === 'create'
+      ? strings('wallet_recovery_mfa.create_password_description')
+      : strings('wallet_recovery_mfa.password_description');
+  const ctaLabel =
+    mode === 'create'
+      ? strings('wallet_recovery_mfa.create_password_cta')
+      : strings('login.unlock_button');
+  const placeholder =
+    mode === 'create'
+      ? strings('choose_password.new_password_placeholder')
+      : strings('login.password_placeholder');
 
   return (
     <Box twClassName="flex-1 bg-default" testID={LoginViewSelectors.CONTAINER}>

@@ -3,6 +3,7 @@ export const WalletRecoverySelectorsIDs = {
   LOADING_MESSAGE: 'wallet-recovery-loading-message',
   VERIFY_SCREEN: 'wallet-recovery-verify-screen',
   PASSWORD_SCREEN: 'wallet-recovery-password-screen',
+  ENTER_PASSWORD_SCREEN: 'wallet-recovery-enter-password-screen',
   PASSWORD_VISIBILITY: 'wallet-recovery-password-visibility',
 
   USE_PASSKEY_BUTTON: 'wallet-recovery-use-passkey-button',

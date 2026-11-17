@@ -175,6 +175,9 @@ jest.mock('../../../core/Engine', () => ({
       verifyPassword: jest.fn(),
       submitPassword: jest.fn(),
     },
+    AuthenticationController: {
+      holdLockedRecoveryVerification: jest.fn(),
+    },
   },
 }));
 
@@ -225,6 +228,20 @@ jest.mock('../../../util/identity/mfa', () => ({
       mockListActiveSocialLoginMethods(...args),
     verifyForSocialLogin: (...args: unknown[]) =>
       mockVerifyForSocialLogin(...args),
+  }),
+}));
+
+const mockPasswordlessPrepare = jest.fn().mockResolvedValue(false);
+const mockPasswordlessPrefetch = jest.fn().mockResolvedValue(true);
+const mockPasswordlessRecover = jest.fn().mockResolvedValue(undefined);
+const mockPasswordlessClear = jest.fn();
+jest.mock('../../../core/MfaRecovery/usePasswordlessRecovery', () => ({
+  usePasswordlessRecovery: () => ({
+    prepare: (...args: unknown[]) => mockPasswordlessPrepare(...args),
+    prefetchForChoosePassword: (...args: unknown[]) =>
+      mockPasswordlessPrefetch(...args),
+    recover: (...args: unknown[]) => mockPasswordlessRecover(...args),
+    clear: (...args: unknown[]) => mockPasswordlessClear(...args),
   }),
 }));
 
@@ -294,6 +311,11 @@ describe('OAuthRehydration', () => {
     mockVerifyForSocialLogin.mockReset();
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
+    mockPasswordlessPrepare.mockReset();
+    mockPasswordlessPrepare.mockResolvedValue(false);
+    mockPasswordlessRecover.mockReset();
+    mockPasswordlessRecover.mockResolvedValue(undefined);
+    mockEngine.context.AuthenticationController.holdLockedRecoveryVerification.mockReset();
     (traceMock as jest.Mock).mockImplementation(
       (_config: unknown, fn?: () => Promise<void>) =>
         fn ? fn() : Promise.resolve(),
@@ -1648,7 +1670,7 @@ describe('OAuthRehydration', () => {
       expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL)).toBeNull();
     });
 
-    it('continues to password after picker verify', async () => {
+    it('holds the AAL2 token and continues to password after picker verify', async () => {
       enableMfaFlags();
       mockVerifyForSocialLogin
         .mockRejectedValueOnce(
@@ -1671,6 +1693,10 @@ describe('OAuthRehydration', () => {
       expect(mockVerifyForSocialLogin).toHaveBeenCalledWith(
         expect.objectContaining({ method: 'passkey' }),
       );
+      expect(
+        mockEngine.context.AuthenticationController
+          .holdLockedRecoveryVerification,
+      ).toHaveBeenCalledWith('aal2-token');
     });
 
     it('continues to password when no MFA methods are enrolled', async () => {
@@ -1690,6 +1716,10 @@ describe('OAuthRehydration', () => {
         ).toBeOnTheScreen();
       });
       expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+      expect(
+        mockEngine.context.AuthenticationController
+          .holdLockedRecoveryVerification,
+      ).not.toHaveBeenCalled();
     });
 
     it('times out the loading gate when social auth never arrives', async () => {
@@ -1816,6 +1846,29 @@ describe('OAuthRehydration', () => {
       expect(queryByTestId(LoginViewSelectors.RESET_WALLET)).toBeNull();
     });
 
+    it('skips holding a token when kit verify returns none', async () => {
+      enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+      cancelHighestFactorOnce();
+      mockVerifyForSocialLogin.mockResolvedValueOnce({ credentials: [] });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await completePasskeyVerify(getByTestId);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        mockEngine.context.AuthenticationController
+          .holdLockedRecoveryVerification,
+      ).not.toHaveBeenCalled();
+    });
+
     it('offers MFA via recovery flag when Money MFA is off and password is outdated', async () => {
       mockSelectMfaUiKitEnabled.mockReturnValue(true);
       mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
@@ -1843,6 +1896,10 @@ describe('OAuthRehydration', () => {
         ).toBeOnTheScreen();
       });
       expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+      expect(
+        mockEngine.context.AuthenticationController
+          .holdLockedRecoveryVerification,
+      ).toHaveBeenCalledWith('aal2-token');
     });
 
     it('unlocks with the existing password after picker MFA verify', async () => {
@@ -1886,6 +1943,7 @@ describe('OAuthRehydration', () => {
           }),
         );
       });
+      expect(mockPasswordlessRecover).not.toHaveBeenCalled();
     });
   });
 });
