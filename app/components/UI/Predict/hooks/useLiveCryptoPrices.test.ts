@@ -12,6 +12,24 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+let mockSelectedEvmAccount: { address: string } | null = {
+  address: '0xabc',
+};
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn(
+      () => mockSelectedEvmAccount,
+    ),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
 describe('useLiveCryptoPrices', () => {
   const mockSubscribeToCryptoPrices = Engine.context.PredictController
     .subscribeToCryptoPrices as jest.Mock;
@@ -22,6 +40,7 @@ describe('useLiveCryptoPrices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockSelectedEvmAccount = { address: '0xabc' };
 
     mockSubscribeToCryptoPrices.mockReturnValue(mockUnsubscribe);
     mockGetConnectionStatus.mockReturnValue({
@@ -44,6 +63,29 @@ describe('useLiveCryptoPrices', () => {
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
         ['btc/usd'],
         expect.any(Function),
+        { twapWindowSeconds: undefined },
+      );
+    });
+
+    it('subscribes to the market TWAP window', () => {
+      renderHook(() => useLiveCryptoPrices('btc/usd', jest.fn(), 30));
+
+      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
+        ['btc/usd'],
+        expect.any(Function),
+        { twapWindowSeconds: 30 },
+      );
+    });
+
+    it('subscribes to the provider the market settles against', () => {
+      renderHook(() =>
+        useLiveCryptoPrices('btc/usd', jest.fn(), undefined, 'binance'),
+      );
+
+      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
+        ['btc/usd'],
+        expect.any(Function),
+        { twapWindowSeconds: undefined, provider: 'binance' },
       );
     });
 
@@ -79,6 +121,47 @@ describe('useLiveCryptoPrices', () => {
 
       expect(mockUnsubscribe).toHaveBeenCalled();
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('selected account', () => {
+    it('resubscribes when an EVM account becomes selected', () => {
+      mockSelectedEvmAccount = null;
+      const { rerender } = renderHook(() =>
+        useLiveCryptoPrices('btc/usd', jest.fn()),
+      );
+
+      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(1);
+
+      mockSelectedEvmAccount = { address: '0xabc' };
+      rerender({});
+
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(2);
+    });
+
+    it('resubscribes when the selected account group changes', () => {
+      const { rerender } = renderHook(() =>
+        useLiveCryptoPrices('btc/usd', jest.fn()),
+      );
+
+      mockSelectedEvmAccount = { address: '0xdef' };
+      rerender({});
+
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps the subscription while the selected account is unchanged', () => {
+      const { rerender } = renderHook(() =>
+        useLiveCryptoPrices('btc/usd', jest.fn()),
+      );
+
+      mockSelectedEvmAccount = { address: '0xabc' };
+      rerender({});
+
+      expect(mockUnsubscribe).not.toHaveBeenCalled();
+      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(1);
     });
   });
 

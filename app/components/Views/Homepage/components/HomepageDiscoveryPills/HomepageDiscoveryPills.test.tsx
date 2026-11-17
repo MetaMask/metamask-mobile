@@ -2,7 +2,8 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
-import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
+import { selectPredictAvailability } from '../../../../UI/PredictNext';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { HomepageDiscoveryPillsTestIds } from './HomepageDiscoveryPills.testIds';
 import { HOMESCREEN_PILL_SOURCE } from './useHomepageDiscoveryPillsNavigation';
 
@@ -54,10 +55,13 @@ const mockSelectorState = ({
     if (selector === selectPerpsEnabledFlag) {
       return isPerpsEnabled;
     }
-    if (selector === selectPredictEnabledFlag) {
+    if (selector === selectPredictAvailability) {
       return isPredictEnabled;
     }
-    return undefined;
+    // Other selectors, such as Predict's Active Venue, read the default state.
+    return (selector as (state: unknown) => unknown)({
+      engine: { backgroundState },
+    });
   });
 };
 
@@ -89,7 +93,9 @@ describe('HomepageDiscoveryPills', () => {
   });
 
   it('renders enabled discovery pills', () => {
-    const { getByTestId } = render(<HomepageDiscoveryPills iconStyle="gray" />);
+    const { getByLabelText, getByTestId } = render(
+      <HomepageDiscoveryPills iconStyle="gray" />,
+    );
 
     expect(
       getByTestId(HomepageDiscoveryPillsTestIds.CONTAINER),
@@ -106,6 +112,7 @@ describe('HomepageDiscoveryPills', () => {
     expect(
       getByTestId(HomepageDiscoveryPillsTestIds.pill('stocks')),
     ).toBeOnTheScreen();
+    expect(getByLabelText('Perps')).toBeOnTheScreen();
   });
 
   it('omits perps pill when perps flag is disabled', () => {

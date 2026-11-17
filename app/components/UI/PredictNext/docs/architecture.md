@@ -2,7 +2,7 @@
 
 PredictNext is a Kalshi-first replacement architecture developed beside, not inside, the legacy Polymarket implementation. This document records stable boundaries and invariants. It does not prescribe modules that no active vertical slice needs.
 
-The Kalshi ADR set is currently proposed in [MetaMask/decisions PR #241](https://github.com/MetaMask/decisions/pull/241). Its topology and security recommendations are working direction until accepted. Jira owns delivery scope; [`../CONTEXT.md`](../CONTEXT.md) owns domain language.
+The Kalshi ADR set is currently proposed in [MetaMask/decisions PR #241](https://github.com/MetaMask/decisions/pull/241), which is unmerged although its files are marked `Accepted`. Its topology and security recommendations are working direction until accepted. Jira owns delivery scope; [`../CONTEXT.md`](../CONTEXT.md) owns domain language.
 
 ## Scope and delivery
 
@@ -19,7 +19,18 @@ Kalshi product surface
           -> Kalshi
 ```
 
-The lanes remain independent during Kalshi delivery. A Kalshi rollback must not alter Polymarket. Polymarket migration begins only through explicit later work and uses seams proven in production by Kalshi.
+The lanes remain independent during Kalshi delivery. A Kalshi rollback must not alter Polymarket. Polymarket migration begins only through explicit later work (PRED-1356). It moves the Polymarket Venue adapter to the Predict API service and uses seams proven in production by Kalshi.
+
+Code outside Predict reaches both lanes through one PredictNext public API ([ADR-0002](./adr/0002-permanent-public-api-private-legacy.md)):
+
+```text
+External wallet code (Homepage, Trending, Activity, wallet actions, ...)
+  -> PredictNext public API (Venue-neutral, consumer-shaped)
+    -> Kalshi: PredictNext lane above
+    -> Polymarket: legacy lane, passed through unchanged
+```
+
+The Polymarket branch is deleted by PRED-1356. Execution wiring (confirmations, transaction-pay, Engine) is not routed through this API before then. See [the public API contract](./public-api-contract.md).
 
 Development proceeds in end-to-end vertical slices. A slice introduces only the types, adapter capability, service behavior, React integration, and UI it requires. The first read-only slice does not need account, portfolio, trading, funding, live-data, or compatibility modules.
 
@@ -40,7 +51,9 @@ Do not add a forwarding layer that only repeats another module's interface. Do n
 
 Product-facing modules use the language in [`../CONTEXT.md`](../CONTEXT.md): Event, Market, Outcome, Order, Position, Predict User, Funding Wallet, and Venue Account. Kalshi DTO names and protocol mechanics remain inside the adapter/backend boundary.
 
-Every domain entity and query is Venue-qualified. Raw Venue identifiers are not globally unique.
+Every root Feed, Event, query, route, and operation is Venue-qualified. A canonical Event has one parent Venue Event; Feeds may combine discovery results but never merge Markets from multiple Venue Events. An immutable Game detail read may append validated sibling Markets while retaining the requested parent identity. Nested Category, Series, Market, and Outcome identifiers inherit Venue and parent scope through containment; raw Venue identifiers are not globally unique.
+
+The public read-model direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Feed and detail reads initially share the complete Event model. An Event may have one product-owned Category and one genuine Venue-backed Series; synthetic singleton Series are not created merely to make the hierarchy uniform.
 
 ### Identity is not a wallet
 
@@ -62,7 +75,7 @@ A Venue exposes only supported capability modules. Unsupported operations are ab
 
 A Venue adapter is the translation boundary for one Venue. Capabilities are grouped by independently varying product concerns:
 
-- `marketData` — public Event, Market, Outcome, status, and price reads,
+- `marketData` — public Feed, Event, Category, Series, Sports/Game context, Market, Outcome, status, Volume, media, and price reads,
 - `account` — Account Readiness and optional Account Setup,
 - `portfolio` — Balance, Position, Fill/Activity, and optional open Order reads,
 - `trading` — Order Preview and submission; optional Resting Order operations,
@@ -77,7 +90,7 @@ See [`venue-adapters.md`](./venue-adapters.md).
 
 ### 2. Product services
 
-A service exists when a vertical slice needs a deep module for shared behavior. Depending on the concern, it may own:
+A service exists when a vertical slice needs a deep module for shared behavior. The first Kalshi-only read slice receives its `marketData` capability directly from the composition root; add a Venue registry only when runtime resolution among multiple Venues is required. Depending on the concern, a service may own:
 
 - server-read caching and request deduplication,
 - bounded read retry,
@@ -90,6 +103,17 @@ Use repository controller and data-service primitives where they fit. Do not cre
 
 A composition root may build the enabled graph and own initialization/teardown. It must remain stateless, expose no same-name workflow proxies, and stay off read/write hot paths.
 
+`PredictDeviceAuthService` is an Engine-owned stateless capability service. It
+owns the unlocked P-256 key and in-memory A2T lifecycle, delegates only the
+Authentication, Keyring, and feature-flag dependencies it needs, and exposes
+no generic signing action. PredictNext may ask it to prepare
+credentials without blocking rendering. Lock, identity replacement, flag
+disable, and wallet reset invalidate the appropriate credentials independently
+of React mount state. The service binds a bundled authentication profile to an
+allowlisted key implementation; configuration may select the bundled profile
+ID but cannot supply cryptographic instructions. Profile IDs version protocol
+behavior, while stable key slots define key rotation.
+
 ### 3. React integration
 
 A query hook triggers one Venue-qualified query. A component needing only Balance must not also fetch Positions or Activity.
@@ -100,7 +124,7 @@ Imperative hooks wrap service-owned workflows but do not recreate state machines
 
 UI uses the MetaMask design system first and may reuse existing venue-neutral presentation. It consumes canonical models and user-meaningful states, not Venue DTOs, credentials, transport errors, or protocol steps.
 
-Reusable primitives, widgets, and views are extracted when real callers prove reuse. The architecture does not require a complete three-tier UI scaffold before implementation.
+Product UI is organized by owning feature or domain. Reusable primitives and views are extracted when real callers prove reuse; do not introduce a generic `widgets` tier. Cross-module consumers use deliberate module-root public APIs, while private composition stays under its owner's `internal/` directory. The architecture does not require a complete UI scaffold before implementation. See [`module-structure.md`](./module-structure.md).
 
 ## Data flows
 
@@ -110,7 +134,7 @@ Reusable primitives, widgets, and views are extracted when real callers prove re
 View
   -> one query hook(venueId, params)
     -> market-data service
-      -> adapter registry.get(venueId).marketData
+      -> injected Kalshi marketData capability
         -> MetaMask Predict backend
           -> Kalshi market API
 ```
@@ -118,10 +142,14 @@ View
 Properties:
 
 - `venueId` is explicit and part of every cache key,
-- no selected wallet or account session is required,
+- no selected wallet, bearer token, or account session is required,
+- Feed and immutable Event responses use the same complete canonical Event shape and include the initial Outcome Bid Price and Ask Price snapshot,
+- rolling Series reads return the backend-selected current Event while immutable Event reads always preserve the requested Event identity,
 - transport and DTO normalization stay below the service,
-- responses are runtime-validated,
-- bounded retry applies only to safe reads.
+- Event and Market Volume remain independent decimal-string projections, and image URLs come from backend-approved HTTPS sources,
+- optional Sports/Game snapshots are normalized by the backend and Game status remains independent of Market lifecycle,
+- responses are runtime-validated and unknown fields are discarded,
+- the service alone owns response caching, deduplication, and bounded retry for safe reads.
 
 ### Account-scoped read
 
@@ -157,19 +185,38 @@ Rules:
 - ambiguous results remain observable and reconcile or block safely,
 - durable remote operation state lives on the backend; mobile persists only safe references needed to resume observation.
 
+Order recovery pauses on lock, offline, or background transitions without
+aborting a dispatched Commit. The caller receives an unknown outcome; only
+identity replacement or wallet reset abandons process-local operations.
+Journal v2 records the backend Preview expiry. A missing-operation GET begun
+after that expiry plus a 30-second clock-skew/claim grace resolves not-placed;
+expiry alone, older GETs, transport failures, and migrated v1 references without
+expiry never prove an outcome. Restored references never authorize submission
+or prove a terminal status. Invalid entries are logged without their payload
+and quarantined independently, preserving valid references.
+
+Server-confirmed `needs_manual_review` is terminal for automatic recovery. The
+service publishes `recoveryChanged` before removing its durable journal row,
+keeps the status queryable for the current identity's process lifetime, and
+logs the Preview reference and pruning reason once. Unknown/checking entries
+are never pruned on a local deadline. After restart, backend discovery can
+surface terminal review again without relying on a journal marker or scanning
+the order; no approval or mutation is restored.
+
 ## State ownership
 
 Choose state by lifetime and authority:
 
-| State                                               | Owner                                         |
-| --------------------------------------------------- | --------------------------------------------- |
-| Server read models                                  | Shared query/data-service cache               |
-| Cross-screen workflow projection                    | The service/controller that owns the workflow |
-| Durable remote setup/financial operation            | MetaMask Predict backend                      |
-| Transport, retry, in-flight, subscription internals | Private service fields                        |
-| Form input and visual interaction                   | React local state                             |
+| State                                               | Owner                                            |
+| --------------------------------------------------- | ------------------------------------------------ |
+| Server read models                                  | Shared query/data-service cache                  |
+| Cross-screen workflow projection                    | The service/controller that owns the workflow    |
+| Durable remote setup/financial operation            | MetaMask Predict backend                         |
+| Transport, retry, in-flight, subscription internals | Private service fields                           |
+| Form input and visual interaction                   | React local state                                |
+| Kalshi device P-256 key and its salt                | SecureKeychain ciphertext, memory while unlocked |
 
-Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. Cache/query keys must contain no sensitive identity or payload data.
+Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. The Kalshi device private key and salt are the exception stored as SecureKeychain ciphertext, and their plaintext exists only while the wallet is unlocked. Cache/query keys must contain no sensitive identity or payload data.
 
 ## Failure boundaries
 
@@ -184,7 +231,7 @@ Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transf
 
 Each vertical slice leaves the smallest meaningful coverage at its deep interfaces:
 
-- shared mobile/backend contract fixtures and runtime parser tests,
+- runtime parser tests against synthetic canonical values,
 - adapter transformation tests against sanitized Venue payloads,
 - service tests for retry, state transitions, and reconciliation,
 - component-view tests for user-visible behavior,
@@ -194,6 +241,6 @@ Follow the repository's canonical unit, component-view, and E2E testing guides. 
 
 ## Module boundary
 
-The feature root eventually exports only stable product-facing views, selected reusable UI, hooks, selectors, domain types, and errors. Services, concrete adapters, backend DTOs, sessions, query descriptors, and future compatibility code remain internal.
+Meaningful feature and domain modules export only stable product-facing views, selected reusable UI, hooks, selectors, domain types, and errors through deliberate module-root `index.ts` files. Services, concrete adapters, backend DTOs, sessions, query descriptors, private UI parts, and future compatibility code remain internal to their owners.
 
-Do not create a full entrypoint allowlist before implementations exist. Code and tests define the implemented public surface; documentation is updated as stable callers appear.
+Do not add barrels at every directory level or a catch-all PredictNext root barrel. Code outside PredictNext imports only the curated entry point `app/components/UI/PredictNext/index.ts`, apart from named composition wiring. External consumers and proposed public APIs are mapped in [the public API contract](./public-api-contract.md); each export is added by the ticket that migrates its first caller. Code and tests define the implemented public surface; [`module-structure.md`](./module-structure.md) records placement and import conventions as owners emerge.

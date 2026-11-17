@@ -6,3 +6,4 @@ export {
   executeHardwareWalletOperation,
   type HardwareWalletOperationType,
 } from './executeHardwareWalletOperation';
+export { skipHardwareWalletErrorIfReplacementSubmitted } from './skipHardwareWalletErrorIfReplacementSubmitted';

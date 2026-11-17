@@ -17,11 +17,15 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'PermissionController:getPermissions',
   'PhishingController:bulkScanTokens',
   'RemoteFeatureFlagController:getState',
+  'AccountTreeController:isInitialized',
+  'ClientController:getState',
+  'KeyringController:isUnlocked',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:selectedAccountGroupChange',
-  'AccountTreeController:stateChange',
+  'AccountTreeController:initialized',
+  'AccountTreeController:uninitialized',
   'NetworkEnablementController:stateChange',
   'ClientController:stateChange',
   'KeyringController:lock',
@@ -36,6 +40,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
+  'MultichainTransactionsController:transactionConfirmed',
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',
   'RemoteFeatureFlagController:stateChange',
@@ -115,10 +120,67 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountTreeController:selectedAccountGroupChange',
-          'AccountTreeController:stateChange',
           'NetworkEnablementController:stateChange',
           'ClientController:stateChange',
         ]),
+      }),
+    );
+  });
+
+  it('does not delegate the retired AccountTreeController stateChange event (assets-controller@15.0.0)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.not.arrayContaining([
+          'AccountTreeController:stateChange',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates lifecycle actions required by assets-controller@15.0.0', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:isInitialized',
+          'ClientController:getState',
+          'KeyringController:isUnlocked',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates AccountTreeController initialized event (core#9892)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining(['AccountTreeController:initialized']),
+      }),
+    );
+  });
+
+  it('delegates AccountTreeController uninitialized event (core#9892)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining(['AccountTreeController:uninitialized']),
       }),
     );
   });
@@ -145,6 +207,21 @@ describe('getAssetsControllerMessenger', () => {
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         events: expect.arrayContaining(['NetworkController:stateChange']),
+      }),
+    );
+  });
+
+  it('delegates MultichainTransactionsController transactionConfirmed (assets-controller@18.0.0)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining([
+          'MultichainTransactionsController:transactionConfirmed',
+        ]),
       }),
     );
   });
@@ -228,7 +305,6 @@ describe('getAssetsControllerInitMessenger', () => {
         actions: expect.arrayContaining([
           'AuthenticationController:getBearerToken',
           'PreferencesController:getState',
-          'RemoteFeatureFlagController:getState',
           'AnalyticsController:trackEvent',
         ]),
       }),

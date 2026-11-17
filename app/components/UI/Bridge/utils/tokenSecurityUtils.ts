@@ -23,7 +23,8 @@ export const getSecurityWarnings = (
  * Adapts the trending-API security shape (`TokenSecurityData`) to the bridge's
  * legacy `SecurityData` shape consumed by Bridge UI and analytics.
  *
- * Returns `undefined` if the input is missing. Unknown `resultType` strings are
+ * Returns `undefined` if the input or its `resultType` is missing, so callers
+ * never receive a `SecurityData` without a `type`. Unknown `resultType` strings are
  * passed through cast as `SecurityDataType`; downstream consumers already
  * tolerate unrecognized values via default branches in
  * `getBridgeTokenSecurityConfig`, `isNegativeSecurityType`, etc.
@@ -31,7 +32,7 @@ export const getSecurityWarnings = (
 export const adaptTokenSecurityData = (
   data: TokenSecurityData | undefined,
 ): SecurityData | undefined => {
-  if (!data) return undefined;
+  if (!data?.resultType) return undefined;
   return {
     type: data.resultType as SecurityDataType,
     metadata: {

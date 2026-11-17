@@ -6,10 +6,10 @@ import {
 import {
   HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS,
   OPTIN_META_METRICS_UI_SEEN,
-  PREDICT_GTM_MODAL_SHOWN,
   TRUE,
   USE_TERMS,
 } from '../constants/storage';
+import { acceptSocialTerms } from '../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import { storePrivacyPolicyClickedOrClosed } from '../actions/legalNotices';
 import { Authentication } from '../core';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
@@ -89,12 +89,10 @@ async function applyVaultInitialization() {
 
     // removes the necessity of the user to see the terms of use modal
     await StorageWrapper.setItem(USE_TERMS, TRUE);
+    await acceptSocialTerms();
 
     // removes the necessity of the user to see the opt-in metrics modal
     await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
-
-    // removes the necessity of the user to see the predictions GTM modal
-    await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, TRUE);
 
     // prevents the enable notifications modal from showing
     await StorageWrapper.setItem(HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS, TRUE);

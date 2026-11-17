@@ -10,6 +10,7 @@ import { ensureError } from '../../../../util/errorUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import usePerpsToasts from './usePerpsToasts';
+import { flushEngineState } from '../utils/flushEngineState';
 import { WATCHLIST_LIMIT } from '../utils/marketUtils';
 
 interface UsePerpsWatchlistActionsResult {
@@ -52,7 +53,11 @@ export const usePerpsWatchlistActions = (
           return;
         }
 
-        await controller.toggleWatchlistMarket(symbol);
+        // Not awaited: the controller applies its local update synchronously
+        // and only then persists to AUS. Awaiting the network write delayed the
+        // toast and its haptic by the round-trip. The controller handles AUS
+        // failures by reverting its optimistic update before resolving.
+        const persisted = controller.toggleWatchlistMarket(symbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (watchlistAfter.includes(symbol)) {
@@ -65,7 +70,13 @@ export const usePerpsWatchlistActions = (
             [PERPS_EVENT_PROPERTY.SOURCE]: source,
             [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistAfter.length,
           });
+          showToast(PerpsToastOptions.watchlist.added(symbol));
         }
+
+        flushEngineState();
+        await persisted.finally(() => {
+          flushEngineState();
+        });
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.add'), {
           tags: {
@@ -89,7 +100,8 @@ export const usePerpsWatchlistActions = (
     async (symbol: string): Promise<void> => {
       try {
         const controller = Engine.context.PerpsController;
-        await controller.toggleWatchlistMarket(symbol);
+        // Not awaited before the toast — see addToWatchlist.
+        const persisted = controller.toggleWatchlistMarket(symbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (!watchlistAfter.includes(symbol)) {
@@ -102,7 +114,13 @@ export const usePerpsWatchlistActions = (
             [PERPS_EVENT_PROPERTY.SOURCE]: source,
             [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistAfter.length,
           });
+          showToast(PerpsToastOptions.watchlist.removed(symbol));
         }
+
+        flushEngineState();
+        await persisted.finally(() => {
+          flushEngineState();
+        });
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.remove'), {
           tags: {
@@ -115,9 +133,11 @@ export const usePerpsWatchlistActions = (
             data: { symbol, source },
           },
         });
+
+        showToast(PerpsToastOptions.watchlist.removeError);
       }
     },
-    [source, track],
+    [source, track, showToast, PerpsToastOptions],
   );
 
   return { addToWatchlist, removeFromWatchlist };

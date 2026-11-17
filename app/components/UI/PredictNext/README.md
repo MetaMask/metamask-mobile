@@ -1,6 +1,8 @@
 # PredictNext
 
-PredictNext is the new prediction-markets module for MetaMask Mobile. Its first production implementation is Kalshi. It is developed separately from the legacy `Predict/` implementation, which continues to serve Polymarket until a later, explicit migration.
+PredictNext is the new prediction-markets module for MetaMask Mobile. Its first production implementation is Kalshi. It is developed separately from the legacy `Predict/` implementation, which continues to serve Polymarket until its Venue adapter moves to the Predict API service under PRED-1356.
+
+Code outside Predict migrates to a thin PredictNext public API. During the dual-codebase period, that API passes Polymarket through to the unchanged legacy code. See [ADR-0002](./docs/adr/0002-permanent-public-api-private-legacy.md).
 
 ## Current direction
 
@@ -26,11 +28,12 @@ The first delivery track is defined by [PRED-1109](https://consensyssoftware.atl
 - Venue-qualified public reads and account-scoped workflows.
 - Kalshi-specific feature flags, kill switches, and rollout controls.
 - The minimum UI and services required by each Jira vertical slice.
+- A Venue-neutral public API for external callers, with a pass-through legacy Polymarket branch ([PRED-1374](./docs/public-api-contract.md)).
 
 ### Not in scope now
 
-- Rewriting or moving production Polymarket code.
-- A Polymarket adapter or compatibility layer.
+- Rewriting production Polymarket code. Moving legacy code behind a public API without behavior changes is allowed.
+- A client-side Polymarket adapter or conversion of legacy Polymarket data into canonical types. That mapping belongs to the Predict API service under PRED-1356.
 - Multi-Venue aggregation.
 - A generic remote-adapter framework before a second remote Venue proves the need.
 - Scaffolding every future service, hook, component tier, or optional capability.
@@ -44,7 +47,7 @@ The first delivery track is defined by [PRED-1109](https://consensyssoftware.atl
 - Kalshi account-scoped operations and credentials remain behind the MetaMask Predict backend.
 - The backend derives authorization from authenticated identity, never from client-supplied wallet, email, profile, user, or external Venue identifiers.
 - Venue DTOs and protocol details do not escape the adapter boundary.
-- Credentials, bearer tokens, OTPs, PII/KYC values, and transfer-authorization material never enter Redux, persisted mobile storage, logs, analytics, traces, or fixtures.
+- Credentials, bearer tokens, OTPs, PII/KYC values, and transfer-authorization material never enter Redux, logs, analytics, traces, or fixtures. The Kalshi device key ciphertext is stored in SecureKeychain and loaded only after the wallet unlocks.
 - Financial writes use prepare → user confirmation → commit → reconciliation. A local operation key does not make an external write safe to retry.
 - Unsupported capabilities are absent, not stubbed with methods that throw.
 - Every slice includes runtime contract validation and risk-appropriate tests.
@@ -70,16 +73,24 @@ PredictNext has four conceptual layers:
 3. **Product services** own caching, workflow state, retry/reconciliation policy, and coordination.
 4. **Venue adapters** translate canonical operations to a Venue or the MetaMask Predict backend.
 
-These are boundaries, not a requirement to create every possible directory or module up front. See [docs/architecture.md](./docs/architecture.md).
+These are boundaries, not a requirement to create every possible directory or module up front. Product UI uses feature/domain-first ownership, while cross-feature architectural layers keep their established boundaries. See [docs/architecture.md](./docs/architecture.md) and [docs/module-structure.md](./docs/module-structure.md).
 
 ## Documentation
 
 - [`AGENTS.md`](./AGENTS.md) — instructions for coding agents and contributors.
 - [`CONTEXT.md`](./CONTEXT.md) — canonical product language.
 - [`docs/architecture.md`](./docs/architecture.md) — stable architecture boundaries and data flows.
+- [`docs/canonical-read-model-and-api.md`](./docs/canonical-read-model-and-api.md) — agreed working direction for public read types, relationships, and REST routes.
+- [`docs/ui-components.md`](./docs/ui-components.md) — composition rules for complex PredictNext UI components.
+- [`docs/module-structure.md`](./docs/module-structure.md) — directory ownership, public module APIs, and internal boundaries.
+- [`docs/public-api-contract.md`](./docs/public-api-contract.md) — external consumer migration, the pass-through legacy branch, and PRED-1356 inputs.
+- [`docs/active-venue.md`](./docs/active-venue.md) — Active Venue resolution, its persisted inputs, availability, and the transition semantics of `predictConfig` and `predictTradingEnabled`.
+- [`docs/adr/0002-permanent-public-api-private-legacy.md`](./docs/adr/0002-permanent-public-api-private-legacy.md) — permanent public API with pass-through legacy Polymarket.
 - [`docs/venue-adapters.md`](./docs/venue-adapters.md) — capability adapter rules.
 - [`docs/remote-adapters.md`](./docs/remote-adapters.md) — remote trust and transport rules.
+- [`docs/live-data-subscriptions.md`](./docs/live-data-subscriptions.md) — viewport-driven live-data subscriptions, per-surface granularity, live-game gating, and cap degradation.
 - [`docs/agents/issue-tracker.md`](./docs/agents/issue-tracker.md) — Predict Jira conventions.
+- [`docs/kalshi-device-key.md`](./docs/kalshi-device-key.md) — Kalshi P-256 device key in SecureKeychain, and the native keystore work that replaces it.
 
 ## Development rule
 

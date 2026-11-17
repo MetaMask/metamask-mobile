@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Icon,
   IconColor,
@@ -9,6 +8,9 @@ import {
   ListItem,
 } from '@metamask/design-system-react-native';
 import type { PerpsActionSheetProps } from './PerpsActionSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 function PerpsActionSheet<T extends string>({
   isVisible = true,
@@ -19,6 +21,7 @@ function PerpsActionSheet<T extends string>({
   sheetRef: externalSheetRef,
   testID,
 }: PerpsActionSheetProps<T>) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
 
@@ -46,7 +49,9 @@ function PerpsActionSheet<T extends string>({
       onClose={externalSheetRef ? onClose : undefined}
       testID={testID}
     >
-      <BottomSheetHeader onClose={handleClose}>{title}</BottomSheetHeader>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
+        {title}
+      </BottomSheetHeaderGlass>
       {options.map((option) => (
         <ListItem
           key={option.action}

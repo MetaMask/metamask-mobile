@@ -1,6 +1,13 @@
+import { Platform } from 'react-native';
+import { getBuildNumber, getVersion } from 'react-native-device-info';
+import QuickCrypto from 'react-native-quick-crypto';
 import type { MessengerClientInitFunction } from '../../types';
 import { CardController, defaultCardControllerState } from './CardController';
-import type { CardControllerMessenger } from './types';
+import type {
+  CardClientInfo,
+  CardControllerMessenger,
+  CardSha256,
+} from './types';
 import { BaanxService } from './services/BaanxService';
 import { BaanxProvider } from './providers/BaanxProvider';
 import { resolveBaanxConfig } from './services/baanx-config';
@@ -10,10 +17,28 @@ import { resolveImmersveConfig } from './services/immersve-config';
 import { CardService } from './services/CardService';
 import { CardProviderIds } from './provider-types';
 import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
-  resolveCardFeatureFlag,
+  findImmersveFundingChannelById,
+  readCardFeatureFlag,
+  readCardImmersveMfaEnabled,
+  readCardProviderConfig,
+  resolveImmersveFundingChannel,
   type CardFeatureFlag,
+  type ImmersveProgramConfig,
 } from '../../../../selectors/featureFlagController/card';
+
+const getMobileClientInfo = (): CardClientInfo => ({
+  product: 'metamask-mobile',
+  version: getVersion(),
+  build: getBuildNumber(),
+  platform: Platform.OS,
+});
+
+const mobileSha256: CardSha256 = async (text) =>
+  new Uint8Array(
+    await QuickCrypto.subtle.digest('SHA-256', new TextEncoder().encode(text)),
+  );
 
 /**
  * Initialize the CardController.
@@ -25,12 +50,19 @@ export const cardControllerInit: MessengerClientInitFunction<
   CardController,
   CardControllerMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState } = request;
+  const { controllerMessenger, persistedState, getState } = request;
+
+  const getRemoteFeatureFlags = () =>
+    controllerMessenger.call('RemoteFeatureFlagController:getState')
+      .remoteFeatureFlags;
 
   const getCardFeatureFlag = (): CardFeatureFlag =>
-    resolveCardFeatureFlag(
-      controllerMessenger.call('RemoteFeatureFlagController:getState')
-        .remoteFeatureFlags?.cardFeature as CardFeatureFlag | undefined,
+    readCardFeatureFlag(getRemoteFeatureFlags());
+
+  const getImmersveConfig = (): ImmersveProgramConfig =>
+    readCardProviderConfig<ImmersveProgramConfig>(
+      getRemoteFeatureFlags(),
+      CardProviderIds.Immersve,
     );
 
   const baanxConfig = resolveBaanxConfig();
@@ -39,19 +71,30 @@ export const cardControllerInit: MessengerClientInitFunction<
     getCardFeatureFlag,
   });
 
+  let readSelectedCountry: () => string | null = () => null;
   const immersveConfig = resolveImmersveConfig();
   const immersveProvider = new ImmersveProvider({
     service: new ImmersveService({
       getBaseUrl: () =>
-        getCardFeatureFlag()?.immersve?.apiBaseUrl || immersveConfig.baseUrl,
+        getImmersveConfig().apiBaseUrl || immersveConfig.baseUrl,
     }),
     config: immersveConfig,
-    getCardFeatureFlag,
+    getProgramConfig: getImmersveConfig,
+    getSelectedCountry: () => readSelectedCountry(),
+    getFundingChannel: () =>
+      resolveImmersveFundingChannel(
+        getRemoteFeatureFlags(),
+        readSelectedCountry(),
+      ),
+    findFundingChannelById: (channelId) =>
+      findImmersveFundingChannelById(getRemoteFeatureFlags(), channelId),
+    isMfaEnabled: () => readCardImmersveMfaEnabled(getRemoteFeatureFlags()),
   });
 
   const cardService = new CardService({
     getBaseUrl: () =>
       getDefaultCardApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT),
+    getClientInfo: getMobileClientInfo,
   });
 
   const controller = new CardController({
@@ -64,7 +107,12 @@ export const cardControllerInit: MessengerClientInitFunction<
       [CardProviderIds.Immersve]: immersveProvider,
     },
     cardService,
+    sha256: mobileSha256,
+    isBasicFunctionalityEnabled: () =>
+      selectBasicFunctionalityEnabled(getState()),
   });
+
+  readSelectedCountry = () => controller.state.selectedCountry;
 
   return { controller };
 };

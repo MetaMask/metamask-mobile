@@ -6,6 +6,7 @@ import { phishingControllerInit } from './phishing-controller-init';
 import {
   PhishingController,
   PhishingControllerMessenger,
+  RequestSourcePlatform,
 } from '@metamask/phishing-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -50,6 +51,7 @@ describe('PhishingControllerInit', () => {
     const controllerMock = jest.mocked(PhishingController);
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
+      platform: RequestSourcePlatform.Mobile,
     });
   });
 });

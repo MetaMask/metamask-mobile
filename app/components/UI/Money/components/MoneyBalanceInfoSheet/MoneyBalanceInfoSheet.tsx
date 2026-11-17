@@ -4,8 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -16,8 +16,12 @@ import { MoneyBalanceInfoSheetTestIds } from './MoneyBalanceInfoSheet.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MoneyBalanceInfoSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -43,17 +47,18 @@ const MoneyBalanceInfoSheet = () => {
       testID={MoneyBalanceInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         <Text
           variant={TextVariant.HeadingSm}
           testID={MoneyBalanceInfoSheetTestIds.TITLE}
         >
           {strings('money.balance_card.info_sheet_title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.content}>
         <Text
           variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           testID={MoneyBalanceInfoSheetTestIds.BODY}
         >
           {strings('money.balance_card.info_sheet_body')}

@@ -77,3 +77,5 @@ export type Alert = {
    */
   title?: string;
 } & MessageOrContent;
+
+export const NO_ALERTS: Alert[] = Object.freeze([]) as unknown as Alert[];

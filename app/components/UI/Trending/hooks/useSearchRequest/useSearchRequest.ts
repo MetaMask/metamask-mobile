@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import {
   searchTokens,
@@ -6,7 +6,11 @@ import {
   TokenSecurityData,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { useTrendingChainIds } from '../useTrendingChainIds/useTrendingChainIds';
+import type {
+  SearchRequestOutcome,
+  SearchRequestPerformance,
+} from '../../../../../util/searchPerformance';
 
 interface SearchResult {
   assetId: CaipChainId;
@@ -34,6 +38,7 @@ export const useSearchRequest = (options: {
   includeMarketData?: boolean;
   /** Whether to debounce the query (default: false). */
   enableDebounce?: boolean;
+  performance?: SearchRequestPerformance;
 }) => {
   const {
     chainIds: providedChainIds = [],
@@ -41,15 +46,11 @@ export const useSearchRequest = (options: {
     limit,
     includeMarketData,
     enableDebounce = false,
+    performance,
   } = options;
 
   // Use provided chainIds or default to trending networks
-  const chainIds = useMemo((): CaipChainId[] => {
-    if (providedChainIds.length > 0) {
-      return providedChainIds;
-    }
-    return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
-  }, [providedChainIds]);
+  const chainIds = useTrendingChainIds(providedChainIds);
 
   // Debounce the query when enabled to avoid firing API calls on every keystroke
   const [debouncedQuery, setDebouncedQuery] = useState(query);
@@ -79,6 +80,8 @@ export const useSearchRequest = (options: {
 
   // Stabilize the chainIds array reference to prevent unnecessary re-fetching
   const stableChainIds = useStableArray(chainIds);
+  const performanceRef = useRef(performance);
+  performanceRef.current = performance;
 
   const searchTokensRequest = useCallback(async () => {
     if (!debouncedQuery) {
@@ -99,6 +102,9 @@ export const useSearchRequest = (options: {
     setHasNextPage(false);
     setTotalCount(undefined);
 
+    const requestHandle = performanceRef.current?.startRequest(debouncedQuery);
+    let outcome: SearchRequestOutcome = 'success';
+
     try {
       const searchResults = await searchTokens(stableChainIds, debouncedQuery, {
         limit,
@@ -116,10 +122,12 @@ export const useSearchRequest = (options: {
             : undefined,
         );
         if (searchResults?.error) {
+          outcome = 'error';
           setError({ message: searchResults.error, name: 'SearchError' });
         }
       }
     } catch (err) {
+      outcome = 'error';
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setError(err as Error);
@@ -130,6 +138,7 @@ export const useSearchRequest = (options: {
       if (currentRequestId === requestIdRef.current) {
         setIsFetching(false);
       }
+      requestHandle?.end(outcome);
     }
   }, [stableChainIds, debouncedQuery, limit, includeMarketData]);
 

@@ -54,9 +54,9 @@ project(':react-native-gesture-handler').projectDir = new File(rootProject.proje
 // `com.facebook.react` Gradle plugin injects the google()/mavenCentral()
 // repositories that host them, so no from-source includeBuild is required.
 
-// Build Detox from source to ensure our patches are applied
-include ':detox'
-project(':detox').projectDir = new File(rootProject.projectDir, '../node_modules/detox/android/detox')
+// MMQA-2230: Detox `:detox` include (node_modules/detox/android/detox) removed.
+// Appium smoke owns E2E; keeping the include without the npm package breaks
+// assemble*AndroidTest variant resolution.
 
 // Expo SDK 55+ autolinking: provided by the `expo-autolinking-settings` plugin
 // applied above (replaces the removed `expo/scripts/autolinking.gradle`).

@@ -1,0 +1,183 @@
+import React from 'react';
+import { Box } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
+import type { PredictMarket, PredictOutcome } from '../../../types';
+import {
+  formatAskPrice,
+  formatMarketGroupOption,
+  getAskPricePercent,
+} from '../../shared/formatting';
+import { MarketGroupOptionSelector } from './MarketGroupOptionSelector';
+import { MarketGroupCardTestIds } from '../MarketGroupCard.testIds';
+import { MarketCard } from './MarketCard';
+import { isOutcomeTradeable } from '../../shared/tradeable';
+import { OutcomeRow as SharedOutcomeRow } from '../../shared/ui';
+
+/** How one Outcome row of a line picker looks: its color and trailing value. */
+export interface MarketGroupOutcomeAppearance {
+  color: string;
+  value: string;
+}
+
+export interface MarketGroupCardProps {
+  groupKey: string;
+  /** Omitted when a section header already names the card. */
+  title?: string;
+  markets: readonly PredictMarket[];
+  selectedMarket: PredictMarket;
+  onSelectMarket: (marketId: PredictMarket['id']) => void;
+  /**
+   * Opens the selected line's rules from the title, when it has rules. The
+   * title is the only entry point, so without a `title` this never fires.
+   */
+  onRulesPress?: (market: PredictMarket) => void;
+  onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
+  /** Supplied by the spread or total composition. */
+  describeOutcome: (
+    market: PredictMarket,
+    outcome: PredictOutcome,
+  ) => MarketGroupOutcomeAppearance;
+  /** Which side's row comes first, supplied by the composition. */
+  orderSides: (
+    market: PredictMarket,
+  ) => readonly [PredictOutcome['side'], PredictOutcome['side']];
+}
+
+function findOutcome(
+  market: PredictMarket,
+  side: PredictOutcome['side'],
+): PredictOutcome | undefined {
+  return market.outcomes.find((outcome) => outcome.side === side);
+}
+
+function getOutcomeOptionValue(
+  market: PredictMarket,
+  outcome: PredictOutcome,
+): string {
+  return formatMarketGroupOption(market, outcome.side) ?? '—';
+}
+
+// Keeps a near-zero chance visible as a short line.
+const MIN_LINE_PERCENT = 9.5;
+
+function OutcomeRow({
+  groupKey,
+  market,
+  outcome,
+  onOrder,
+  appearance: { color, value },
+}: {
+  groupKey: string;
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
+  appearance: MarketGroupOutcomeAppearance;
+}): React.JSX.Element {
+  const price = formatAskPrice(outcome.askPrice);
+  const optionValue = getOutcomeOptionValue(market, outcome);
+  const askPricePercent = getAskPricePercent(outcome.askPrice);
+
+  return (
+    <SharedOutcomeRow.Root
+      testID={MarketGroupCardTestIds.row(groupKey, market.id, outcome.side)}
+    >
+      <SharedOutcomeRow.Label
+        label={outcome.label}
+        percent={
+          askPricePercent === undefined
+            ? undefined
+            : Math.max(MIN_LINE_PERCENT, askPricePercent)
+        }
+        color={color}
+        lineTestID={MarketGroupCardTestIds.quoteBar(
+          groupKey,
+          market.id,
+          outcome.side,
+        )}
+      />
+      <SharedOutcomeRow.Value>{value}</SharedOutcomeRow.Value>
+      <SharedOutcomeRow.Price
+        price={price}
+        color={color}
+        isDisabled={!isOutcomeTradeable(market, outcome)}
+        onPress={() => onOrder?.(market, outcome)}
+        accessibilityLabel={strings(
+          'predict.market_groups.outcome_accessibility_label',
+          {
+            team: outcome.label,
+            line: optionValue,
+            price: price ?? strings('predict.market_groups.price_unavailable'),
+          },
+        )}
+        testID={MarketGroupCardTestIds.outcomeButton(
+          groupKey,
+          market.id,
+          outcome.side,
+        )}
+      />
+    </SharedOutcomeRow.Root>
+  );
+}
+
+export function MarketGroupCard({
+  groupKey,
+  title,
+  markets,
+  selectedMarket,
+  onSelectMarket,
+  onRulesPress,
+  onOrder,
+  describeOutcome,
+  orderSides,
+}: MarketGroupCardProps): React.JSX.Element | null {
+  const rules = selectedMarket.rules?.trim();
+  const handleRulesPress =
+    rules && onRulesPress ? () => onRulesPress(selectedMarket) : undefined;
+  const yesOutcome = findOutcome(selectedMarket, 'yes');
+  const noOutcome = findOutcome(selectedMarket, 'no');
+
+  if (!yesOutcome || !noOutcome) {
+    return null;
+  }
+
+  return (
+    <MarketCard.Root testID={MarketGroupCardTestIds.card(groupKey)}>
+      {title ? (
+        <MarketCard.Title
+          testID={MarketGroupCardTestIds.title(groupKey)}
+          onPress={handleRulesPress}
+          accessibilityHint={strings(
+            'predict.rules.market_accessibility_label',
+          )}
+        >
+          {title}
+        </MarketCard.Title>
+      ) : null}
+      <Box twClassName="gap-3">
+        {orderSides(selectedMarket).map((side) => {
+          const outcome = side === 'yes' ? yesOutcome : noOutcome;
+          return (
+            <OutcomeRow
+              key={side}
+              groupKey={groupKey}
+              market={selectedMarket}
+              outcome={outcome}
+              onOrder={onOrder}
+              appearance={describeOutcome(selectedMarket, outcome)}
+            />
+          );
+        })}
+      </Box>
+      {markets.length > 1 ? (
+        <MarketCard.Footer>
+          <MarketGroupOptionSelector
+            groupKey={groupKey}
+            markets={markets}
+            selectedMarketId={selectedMarket.id}
+            onSelect={onSelectMarket}
+          />
+        </MarketCard.Footer>
+      ) : null}
+    </MarketCard.Root>
+  );
+}

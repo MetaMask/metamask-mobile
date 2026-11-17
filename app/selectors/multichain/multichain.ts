@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /* eslint-disable arrow-body-style */
 import { RootState } from '../../reducers';
 import {
@@ -16,6 +15,7 @@ import {
   SolScope,
   Transaction as NonEvmTransaction,
   TrxScope,
+  XlmScope,
 } from '@metamask/keyring-api';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -290,6 +290,7 @@ export const selectMultichainTokenListForAccountsAnyChain =
 
           tokens.push({
             name: metadata?.name ?? '',
+            // TokenI has no assetId; non-EVM CAIP-19 IDs are stored in address.
             address: assetId,
             symbol: metadata?.symbol ?? '',
             image: metadata?.iconUrl,
@@ -348,13 +349,22 @@ export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
         selectMultichainTokenListForAccountsAnyChain(state, [account]) || [];
 
       for (const token of nonEvmTokensForAccount) {
-        if (isTronSpecialAsset(String(token.chainId), token.symbol)) {
+        // TokenI has no assetId. This Earn adapter maps CAIP-19 IDs onto
+        // TokenI.address (see selectMultichainTokenListForAccountsAnyChain).
+        if (isTronSpecialAsset(token.address)) {
           continue;
         }
         // We just need tron mainnet, at least for now
         if (
           String(token.chainId).startsWith('tron:') &&
           token.chainId !== TrxScope.Mainnet
+        ) {
+          continue;
+        }
+        // We just need stellar pubnet, at least for now
+        if (
+          String(token.chainId).startsWith('stellar:') &&
+          token.chainId !== XlmScope.Pubnet
         ) {
           continue;
         }
@@ -747,5 +757,3 @@ export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
     }, {});
   },
 );
-
-///: END:ONLY_INCLUDE_IF

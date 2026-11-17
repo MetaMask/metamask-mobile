@@ -47,6 +47,19 @@ describeForPlatforms('ImportNewSecretRecoveryPhrase component views', () => {
     expect(await findByTestId(ImportSRPIDs.IMPORT_BUTTON)).toBeDisabled();
   });
 
+  it('renders the SRP info icon at 16px next to the subtitle', async () => {
+    const { findByTestId } = renderImportNewSRP();
+
+    const infoIcon = await findByTestId('info-icon');
+
+    expect(infoIcon).toHaveStyle({ height: 20, width: 20 });
+    expect(infoIcon.children[0]).toEqual(
+      expect.objectContaining({
+        props: expect.objectContaining({ size: 'sm' }),
+      }),
+    );
+  });
+
   it('shows a validation error when an invalid SRP is submitted', async () => {
     // Twelve valid BIP-39 words with an invalid checksum — passes length check but fails onSubmit validation.
     const invalidSrp = Array(12).fill('abandon').join(' ');

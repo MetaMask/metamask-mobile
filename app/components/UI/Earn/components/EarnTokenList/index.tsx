@@ -5,11 +5,10 @@ import React, {
   useReducer,
   useMemo,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
@@ -51,10 +50,12 @@ import BN4 from 'bnjs4';
 import {
   sortByHighestBalance,
   sortByHighestRewards,
-  truncateNumber,
+  formatEarnRatePercentage,
 } from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -95,6 +96,7 @@ export interface EarnTokenListProps {
 }
 
 const EarnTokenList = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   // Start polling lending networks when this component mounts and stops when it unmounts
   // This is currently the main component that needs data cross chain on boot
   useEarnNetworkPolling();
@@ -312,7 +314,8 @@ const EarnTokenList = () => {
   const renderTokenItem = ({ item }: { item: EarnTokenDetails }) => {
     const onItemPressScreen = params?.onItemPressScreen;
     const tokenApr = getTokenApr(item);
-    const formattedApr = tokenApr > 0 ? truncateNumber(tokenApr) : tokenApr;
+    const formattedApr =
+      tokenApr > 0 ? formatEarnRatePercentage(tokenApr) : tokenApr;
 
     return (
       <View style={styles.listItemContainer}>
@@ -327,7 +330,7 @@ const EarnTokenList = () => {
             onPress={handleRedirectToInputScreen}
             primaryText={{
               value: `${formattedApr}% APR`,
-              color: TextColor.Success,
+              color: TextColor.SuccessDefault,
             }}
             {...(!isEmptyBalance(item) && {
               secondaryText: {
@@ -353,7 +356,7 @@ const EarnTokenList = () => {
         primaryText={strings('stake.you_could_earn_up_to')}
         secondaryText={
           isNoEarnableTokensWithBalance
-            ? `${highestAvailableApr.toString()}%`
+            ? `${formatEarnRatePercentage(highestAvailableApr)}%`
             : `${earnableTotalFiatFormatted}`
         }
         tertiaryText={strings('stake.per_year_on_your_tokens')}
@@ -381,7 +384,9 @@ const EarnTokenList = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={
           params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
             ? strings('stake.select_a_token_to_withdraw')

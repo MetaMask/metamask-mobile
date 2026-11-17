@@ -3,6 +3,10 @@ import {
   Button,
   ButtonAnimated,
   ButtonVariant,
+  Box,
+  BottomSheetDialog,
+  BottomSheetOverlay,
+  FontWeight,
   Icon,
   IconName,
   IconSize,
@@ -13,7 +17,15 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -29,8 +41,15 @@ import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
+import type { QuickBuyFooterLayout } from '../../QuickBuy/abTestConfig';
+import type { QuickBuyTradeMode } from '../../QuickBuy/types';
+import TraderPositionPnl, {
+  type TraderPositionPnlProps,
+} from '../TraderPositionPnl/TraderPositionPnl';
+import TraderPositionPnlDetails from '../TraderPositionPnl/TraderPositionPnlDetails';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -39,8 +58,12 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 8,
     paddingVertical: 4,
+  },
+  traderPositionFooter: {
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   iconButton: {
     flex: 1,
@@ -55,28 +78,38 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 999,
   },
-  earnButton: {
+  moneyDepositButton: {
     flex: 1,
     paddingLeft: 0,
     paddingRight: 0,
+  },
+  expandedDetailsMeasurement: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    opacity: 0,
   },
 });
 
 const BALANCE_THRESHOLD_USD = 100;
 
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
+const ERROR_TEXT_PROPS = { color: TextColor.ErrorInverse } as const;
 const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
+const EXPANDED_DETAILS_FALLBACK_HEIGHT = 240;
+const EXPANDED_DETAILS_BOTTOM_SPACING = 16;
+const SHEET_SWIPE_ACTIVATION_OFFSET_PX = 10;
 
 type StickyButtonLayout =
   | 'both'
   | 'buy'
   | 'swap'
-  | 'swap_earn'
-  | 'earn_buy'
-  | 'earn'
+  | 'money_swap'
+  | 'money'
+  | 'buy_sell'
   | null;
 
-export interface MoneyEarnCtaConfig {
+export interface MoneyDepositCtaConfig {
   isLoading: boolean;
   label?: string;
   onPress: () => void;
@@ -92,9 +125,9 @@ interface TokenStickyFooterProps {
   /** Up-to-date token balance for useTokenActions swap logic */
   currentTokenBalance?: string;
   hasTokenBalance?: boolean;
-  moneyEarnCta?: MoneyEarnCtaConfig;
+  moneyDepositCta?: MoneyDepositCtaConfig;
   onStickyButtonsResolved?: (shown: StickyButtonLayout) => void;
-  /** When true the footer omits its built-in safe-area bottom inset so the parent can manage spacing. */
+  /** When true the footer omits its small bottom spacing because the parent manages it. */
   skipBottomInset?: boolean;
   /** Optional testID for the swap button (used by E2E tests in different screens) */
   swapTestID?: string;
@@ -108,10 +141,37 @@ interface TokenStickyFooterProps {
   onQuickBuyPress?: () => void;
   /** Optional testID for the quick buy button. */
   quickBuyTestID?: string;
+  /** SWAPS-5094 footer layout. Non-control layouts need `onOpenQuickBuy` and are ignored while the Money CTA is active. */
+  quickBuyEntrypointLayout?: QuickBuyFooterLayout;
+  /** Opens the Quick Buy sheet in the given mode; used by the non-control layouts. */
+  onOpenQuickBuy?: (mode: QuickBuyTradeMode) => void;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
+  /** Enables the updated button treatment used by the feature-flagged V1 page. */
+  isTokenDetailsV1?: boolean;
+  /**
+   * Token Details page analytics version. `'v3'` for the new (V1) page, `'v2'`
+   * for the legacy page. Threaded into the footer `TOKEN_DETAILS_CTA_CLICKED`
+   * events and the shared security warning bottom-sheet events.
+   */
+  tdpVersion?: TdpVersion;
+  /**
+   * Optional trader position header rendered above the footer actions. The
+   * footer always shows its action buttons; this line is appended once the
+   * position resolves (a missing position just leaves the buttons on their own).
+   */
+  traderPositionPnl?: TraderPositionPnlProps;
+  /**
+   * Render the trader-position container (the sheet shell + layout) from the
+   * first render, before `traderPositionPnl` resolves. Pages that will show a
+   * position line set this so the footer mounts once in its final container and
+   * only the position line appends when it loads — instead of swapping the
+   * container type mid-load and remounting the buttons (flicker).
+   */
+  reserveTraderPositionLayout?: boolean;
+  onFooterLayout?: (height: number) => void;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -121,7 +181,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   networkName,
   currentTokenBalance,
   hasTokenBalance = false,
-  moneyEarnCta,
+  moneyDepositCta,
   onStickyButtonsResolved,
   skipBottomInset = false,
   swapTestID,
@@ -130,8 +190,15 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onBuyPress,
   onQuickBuyPress,
   quickBuyTestID,
+  quickBuyEntrypointLayout = 'lightning_swap_buy',
+  onOpenQuickBuy,
   sourcePage,
   useAmbientColor = false,
+  isTokenDetailsV1 = false,
+  tdpVersion = 'v2',
+  traderPositionPnl,
+  reserveTraderPositionLayout = false,
+  onFooterLayout,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
@@ -182,7 +249,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     });
 
   const { isBuyable } = useTokenBuyability(token);
-  const { isTokenTradingOpen, isStockToken } = useRWAToken();
+  const { isTokenTradable, isStockToken } = useRWAToken();
 
   const isRwaGeoRestricted = useMemo(() => {
     if (!isStockToken(token as BridgeToken)) return false;
@@ -195,31 +262,151 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const trackStickyFooterTapped = useStickyFooterTracking();
 
-  const isMoneyEarnCtaActive = Boolean(moneyEarnCta);
-  const showSwapButton = isMoneyEarnCtaActive
-    ? hasTokenBalance && hasEligibleSwapTokens
-    : hasEligibleSwapTokens;
-  const showBuyButton = isMoneyEarnCtaActive
-    ? !hasTokenBalance && (isBuyable || !hasEligibleSwapTokens)
-    : isBuyable || !hasEligibleSwapTokens;
-  const showMoneyEarnButton = isMoneyEarnCtaActive;
+  const isMoneyDepositCtaActive = Boolean(moneyDepositCta);
+  const entrypointLayout =
+    !isMoneyDepositCtaActive && onOpenQuickBuy
+      ? quickBuyEntrypointLayout
+      : 'lightning_swap_buy';
+  const isBuySellLayout = entrypointLayout === 'buy_sell';
+  const showSwapButton = hasEligibleSwapTokens;
+  const showBuyButton =
+    !isMoneyDepositCtaActive && (isBuyable || !hasEligibleSwapTokens);
+  const showMoneyDepositButton = isMoneyDepositCtaActive;
   const showBothButtons = showSwapButton && showBuyButton;
-  const showQuickBuyButton =
-    !isMoneyEarnCtaActive && Boolean(onQuickBuyPress) && hasEligibleSwapTokens;
+  const showQuickBuyButton = Boolean(onQuickBuyPress);
+  const buyButtonLabel =
+    isTokenDetailsV1 && token.symbol
+      ? strings('asset_overview.buy_token_button', { symbol: token.symbol })
+      : strings('asset_overview.buy_button');
+  const hasTraderPosition = Boolean(traderPositionPnl);
+  // Keep the trader-position container/layout stable across the position load so
+  // the footer mounts once and only the position line appends (no remount flicker).
+  const showTraderPositionLayout =
+    hasTraderPosition || reserveTraderPositionLayout;
+  const isTraderPositionExpanded = Boolean(traderPositionPnl?.isExpanded);
+  const onToggleTraderPositionExpanded = traderPositionPnl?.onToggleExpanded;
+  const expandedDetailsHeight = useSharedValue(
+    EXPANDED_DETAILS_FALLBACK_HEIGHT,
+  );
+  const expandedDetailsProgress = useSharedValue(
+    isTraderPositionExpanded ? 1 : 0,
+  );
+  const gestureStartProgress = useSharedValue(isTraderPositionExpanded ? 1 : 0);
+  const expandedDetailsStyle = useAnimatedStyle(
+    () => ({
+      maxHeight: expandedDetailsHeight.value * expandedDetailsProgress.value,
+      overflow: 'hidden',
+    }),
+    [expandedDetailsHeight, expandedDetailsProgress],
+  );
 
-  const tradingOpen = isTokenTradingOpen(token as BridgeToken);
+  useEffect(() => {
+    expandedDetailsProgress.set(
+      withTiming(isTraderPositionExpanded ? 1 : 0, {
+        duration: 300,
+        easing: Easing.inOut(Easing.cubic),
+      }),
+    );
+  }, [expandedDetailsProgress, isTraderPositionExpanded]);
+
+  useEffect(() => {
+    if (!showTraderPositionLayout) {
+      onFooterLayout?.(0);
+    }
+  }, [onFooterLayout, showTraderPositionLayout]);
+
+  const handleExpandedDetailsLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const measuredHeight = event.nativeEvent.layout.height;
+      if (measuredHeight > 0) {
+        expandedDetailsHeight.set(
+          measuredHeight + EXPANDED_DETAILS_BOTTOM_SPACING,
+        );
+      }
+    },
+    [expandedDetailsHeight],
+  );
+
+  const handleSwipeExpandedStateChange = useCallback(
+    (isExpanded: boolean) => {
+      onToggleTraderPositionExpanded?.(isExpanded);
+    },
+    [onToggleTraderPositionExpanded],
+  );
+  const handleCollapseTraderPosition = useCallback(() => {
+    onToggleTraderPositionExpanded?.(false);
+  }, [onToggleTraderPositionExpanded]);
+
+  const sheetGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(
+          isTraderPositionExpanded && Boolean(onToggleTraderPositionExpanded),
+        )
+        .activeOffsetY([
+          -SHEET_SWIPE_ACTIVATION_OFFSET_PX,
+          SHEET_SWIPE_ACTIVATION_OFFSET_PX,
+        ])
+        .onStart(() => {
+          'worklet';
+          gestureStartProgress.set(expandedDetailsProgress.value);
+        })
+        .onUpdate((event) => {
+          'worklet';
+          const detailsHeight = Math.max(expandedDetailsHeight.value, 1);
+          const nextProgress =
+            gestureStartProgress.value - event.translationY / detailsHeight;
+          expandedDetailsProgress.set(Math.max(0, Math.min(1, nextProgress)));
+        })
+        .onEnd((event) => {
+          'worklet';
+          const shouldCollapse =
+            event.translationY > expandedDetailsHeight.value * 0.35 ||
+            event.velocityY > 800;
+          const targetProgress = shouldCollapse ? 0 : 1;
+
+          expandedDetailsProgress.set(
+            withTiming(
+              targetProgress,
+              {
+                duration: 300,
+                easing: Easing.inOut(Easing.cubic),
+              },
+              (finished) => {
+                if (finished) {
+                  scheduleOnRN(handleSwipeExpandedStateChange, !shouldCollapse);
+                }
+              },
+            ),
+          );
+        })
+        .withTestId('token-details-sticky-footer-sheet-gesture'),
+    [
+      expandedDetailsHeight,
+      expandedDetailsProgress,
+      gestureStartProgress,
+      handleSwipeExpandedStateChange,
+      isTraderPositionExpanded,
+      onToggleTraderPositionExpanded,
+    ],
+  );
+
+  const tradingOpen = isTokenTradable(token as BridgeToken);
   useEffect(() => {
     if (onStickyButtonsResolved) {
       if (!tradingOpen) {
         onStickyButtonsResolved(null);
         return;
       }
-      const shown: StickyButtonLayout = isMoneyEarnCtaActive
+      if (isBuySellLayout) {
+        onStickyButtonsResolved(hasTokenBalance ? 'buy_sell' : 'buy');
+        return;
+      }
+      // Resolve visible CTA layout for TOKEN_DETAILS_OPENED analytics.
+      const shown: StickyButtonLayout = isMoneyDepositCtaActive
         ? showSwapButton
-          ? 'swap_earn'
-          : showBuyButton
-            ? 'earn_buy'
-            : 'earn'
+          ? 'money_swap'
+          : 'money'
         : showBothButtons
           ? 'both'
           : showSwapButton
@@ -228,7 +415,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       onStickyButtonsResolved(shown);
     }
   }, [
-    isMoneyEarnCtaActive,
+    hasTokenBalance,
+    isBuySellLayout,
+    isMoneyDepositCtaActive,
     onStickyButtonsResolved,
     showBothButtons,
     showBuyButton,
@@ -242,12 +431,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
    * When only one button is shown it always gets the success style.
    * When both are shown, swap gets success if balance >= $100, buy gets success otherwise.
    */
-  const swapIsSuccess = isMoneyEarnCtaActive
+  const swapIsSuccess = isMoneyDepositCtaActive
     ? false
     : showBothButtons
       ? balanceUsd >= BALANCE_THRESHOLD_USD
       : showSwapButton;
-  const buyIsSuccess = isMoneyEarnCtaActive
+  const buyIsSuccess = isMoneyDepositCtaActive
     ? showBuyButton
     : showBothButtons
       ? !swapIsSuccess
@@ -299,6 +488,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           tokenSymbol: token.symbol || token.name,
           chainId: token.chainId,
           features: securityData?.features,
+          tdpVersion,
         },
       });
     },
@@ -310,10 +500,52 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       token.name,
       token.address,
       token.chainId,
+      tdpVersion,
     ],
   );
 
+  // Quick Buy shows its own token warning on Buy, so it skips the security sheet.
+  const handleQuickBuyAction = (action: () => void) => {
+    if (isRwaGeoRestricted) {
+      rwaUnavailableSheetRef.current?.onOpenBottomSheet();
+      return;
+    }
+    action();
+  };
+
+  const handleOpenQuickBuy = (mode: QuickBuyTradeMode) => {
+    if (!onOpenQuickBuy) return;
+    trackStickyFooterTapped({
+      ctaType: mode === 'sell' ? 'quick_sell' : 'quick_buy',
+      balanceFiatUsd,
+      tokenAddress: token.address ?? '',
+      chainId: token.chainId ?? '',
+      indicatorsActive,
+      tdp_version: tdpVersion,
+    });
+    handleQuickBuyAction(() => onOpenQuickBuy(mode));
+  };
+
+  // The trader-position footer renders inside a design-system BottomSheetDialog
+  // whose own fill is `elevated1`. When collapsed the footer blends into the
+  // page (`background.default`); when expanded it reads as a raised sheet
+  // (`elevated1`). The dialog shell and the inner surface share this color:
+  // the shell shows through around the inner surface (its hidden drag-handle
+  // row on top and the safe-area padding below), so any mismatch leaves
+  // visible bands (ASSETS-4183).
+  const footerSurfaceColor = traderPositionPnl?.isExpanded
+    ? colors.background.elevated1
+    : colors.background.default;
   const footerStyle = useMemo(
+    () => ({
+      backgroundColor: footerSurfaceColor,
+      paddingHorizontal: 16,
+      paddingTop: traderPositionPnl?.isExpanded ? 22 : 0,
+      paddingBottom: 0,
+    }),
+    [footerSurfaceColor, traderPositionPnl?.isExpanded],
+  );
+  const legacyFooterStyle = useMemo(
     () => ({
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
@@ -322,23 +554,43 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     }),
     [colors.background.default, insets.bottom, skipBottomInset],
   );
+  const bottomSheetStyle = useMemo(
+    () => ({
+      backgroundColor: footerSurfaceColor,
+      // Design spec: expanded sheet uses a 38px top corner radius (ASSETS-4183).
+      borderTopLeftRadius: traderPositionPnl?.isExpanded ? 38 : 0,
+      borderTopRightRadius: traderPositionPnl?.isExpanded ? 38 : 0,
+      // The design-system dialog paints a faint `border-muted` hairline on
+      // top/left/right. When collapsed the top edge is flat, so keep that top
+      // line as the divider shown in the design. When expanded, the large 38px
+      // corner + `overflow-hidden` renders the stroke unevenly around the curve
+      // (broken border), and the design has no border there — so drop it and
+      // rely on the shadow + overlay for separation (ASSETS-4183).
+      borderWidth: 0,
+      borderTopColor: colors.border.muted,
+      borderTopWidth: traderPositionPnl?.isExpanded ? 0 : 1,
+      paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
+    }),
+    [
+      colors.border.muted,
+      footerSurfaceColor,
+      insets.bottom,
+      skipBottomInset,
+      traderPositionPnl?.isExpanded,
+    ],
+  );
+  if (!tradingOpen && !isTokenDetailsV1) return null;
 
-  if (!tradingOpen) return null;
-
-  const moneyEarnButton = showMoneyEarnButton ? (
+  const moneyDepositButton = showMoneyDepositButton ? (
     <Button
       testID="money-asset-overview-footer-cta"
-      variant={
-        hasTokenBalance ? ButtonVariant.Primary : ButtonVariant.Secondary
-      }
-      style={styles.earnButton}
-      twClassName={
-        hasTokenBalance ? successBg : `bg-transparent ${successBorder}`
-      }
-      textProps={hasTokenBalance ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-      isLoading={moneyEarnCta?.isLoading}
+      variant={ButtonVariant.Primary}
+      style={styles.moneyDepositButton}
+      twClassName={successBg}
+      textProps={SUCCESS_TEXT_PROPS}
+      isLoading={moneyDepositCta?.isLoading}
       onPress={() => {
-        if (!moneyEarnCta?.label) return;
+        if (!moneyDepositCta?.label) return;
 
         trackStickyFooterTapped({
           ctaType: 'money_deposit',
@@ -346,127 +598,235 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           tokenAddress: token.address ?? '',
           chainId: token.chainId ?? '',
           indicatorsActive,
+          tdp_version: tdpVersion,
         });
-        handleFooterAction(moneyEarnCta.onPress, moneyEarnCta.label);
+        handleFooterAction(moneyDepositCta.onPress, moneyDepositCta.label);
       }}
     >
-      {moneyEarnCta?.label}
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.SuccessInverse}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        twClassName="text-center"
+      >
+        {moneyDepositCta?.label}
+      </Text>
     </Button>
   ) : null;
 
+  const handleFooterLayout = (event: LayoutChangeEvent) => {
+    if (expandedDetailsProgress.value === 0) {
+      onFooterLayout?.(event.nativeEvent.layout.height);
+    }
+  };
+
+  const positionContent = traderPositionPnl ? (
+    <>
+      <TraderPositionPnl {...traderPositionPnl} />
+      {traderPositionPnl.expandedDetails && (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.expandedDetailsMeasurement}
+          onLayout={handleExpandedDetailsLayout}
+        >
+          <TraderPositionPnlDetails {...traderPositionPnl.expandedDetails} />
+        </View>
+      )}
+      <Animated.View style={expandedDetailsStyle}>
+        {traderPositionPnl.expandedDetails && (
+          <TraderPositionPnlDetails {...traderPositionPnl.expandedDetails} />
+        )}
+      </Animated.View>
+    </>
+  ) : null;
+
+  const footerActions = (
+    <>
+      <Box
+        testID="bottomsheetfooter"
+        style={[
+          styles.footer,
+          (isTokenDetailsV1 || showTraderPositionLayout) &&
+            styles.traderPositionFooter,
+        ]}
+      >
+        {showSwapButton && !isBuySellLayout && (
+          <Button
+            testID={swapTestID}
+            variant={
+              swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+            }
+            style={styles.iconButton}
+            twClassName={
+              swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
+            }
+            textProps={swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
+            startIconName={IconName.SwapVertical}
+            startIconProps={
+              swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
+            }
+            onPress={() => {
+              if (entrypointLayout === 'swap_buy') {
+                handleOpenQuickBuy('buy');
+                return;
+              }
+              trackStickyFooterTapped({
+                ctaType: 'swap',
+                balanceFiatUsd,
+                tokenAddress: token.address ?? '',
+                chainId: token.chainId ?? '',
+                indicatorsActive,
+                tdp_version: tdpVersion,
+              });
+              handleFooterAction(
+                onSwap,
+                strings('asset_overview.swap'),
+                onSwapPress,
+              );
+            }}
+          >
+            {strings('asset_overview.swap')}
+          </Button>
+        )}
+        {moneyDepositButton}
+        {showBuyButton && !isBuySellLayout && (
+          <Button
+            testID={buyTestID}
+            variant={
+              buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+            }
+            style={styles.iconButton}
+            twClassName={
+              buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
+            }
+            textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
+            startIconName={IconName.Bank}
+            startIconProps={
+              buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
+            }
+            onPress={() => {
+              trackStickyFooterTapped({
+                ctaType: 'buy',
+                balanceFiatUsd,
+                tokenAddress: token.address ?? '',
+                chainId: token.chainId ?? '',
+                indicatorsActive,
+                tdp_version: tdpVersion,
+              });
+              handleFooterAction(onBuy, buyButtonLabel, onBuyPress);
+            }}
+          >
+            {buyButtonLabel}
+          </Button>
+        )}
+        {isBuySellLayout && hasTokenBalance && (
+          <Button
+            testID="token-details-footer-quick-sell"
+            variant={
+              isTokenDetailsV1 ? ButtonVariant.Primary : ButtonVariant.Secondary
+            }
+            style={styles.iconButton}
+            twClassName={
+              isTokenDetailsV1
+                ? 'bg-error-default'
+                : `bg-transparent ${successBorder}`
+            }
+            textProps={isTokenDetailsV1 ? ERROR_TEXT_PROPS : secondaryTextProps}
+            onPress={() => handleOpenQuickBuy('sell')}
+          >
+            {strings('asset_overview.sell_button')}
+          </Button>
+        )}
+        {isBuySellLayout && (
+          <Button
+            testID="token-details-footer-quick-buy"
+            variant={ButtonVariant.Primary}
+            style={styles.iconButton}
+            twClassName={successBg}
+            textProps={SUCCESS_TEXT_PROPS}
+            onPress={() => handleOpenQuickBuy('buy')}
+          >
+            {buyButtonLabel}
+          </Button>
+        )}
+        {showQuickBuyButton && entrypointLayout === 'lightning_swap_buy' && (
+          <ButtonAnimated
+            testID={quickBuyTestID}
+            accessibilityRole="button"
+            accessibilityLabel={strings('asset_overview.buy_button')}
+            style={[styles.quickBuyButton, { borderColor: successColorHex }]}
+            onPress={() => {
+              if (!onQuickBuyPress) return;
+              trackStickyFooterTapped({
+                ctaType: 'quick_buy',
+                balanceFiatUsd,
+                tokenAddress: token.address ?? '',
+                chainId: token.chainId ?? '',
+                indicatorsActive,
+                tdp_version: tdpVersion,
+              });
+              handleQuickBuyAction(onQuickBuyPress);
+            }}
+          >
+            <Icon
+              name={IconName.FlashFilled}
+              size={IconSize.Md}
+              twClassName={successText}
+            />
+          </ButtonAnimated>
+        )}
+      </Box>
+      {isMoneyDepositCtaActive && !moneyDepositCta?.isLoading && (
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="mt-2 text-center"
+        >
+          {strings('money.asset_overview.cta.current_apy_disclaimer')}
+        </Text>
+      )}
+    </>
+  );
+
+  const traderPositionFooter = showTraderPositionLayout ? (
+    <BottomSheetDialog
+      testID="token-details-sticky-footer"
+      isInteractable={false}
+      style={bottomSheetStyle}
+      onLayout={handleFooterLayout}
+    >
+      <GestureDetector gesture={sheetGesture}>
+        <View testID="token-details-sticky-footer-surface" style={footerStyle}>
+          {isTraderPositionExpanded && (
+            <Box
+              testID="token-details-trader-position-pnl-handle"
+              twClassName="absolute inset-x-0 top-1 z-10 items-center"
+            >
+              <Box twClassName="h-1 w-10 rounded-sm bg-border-muted" />
+            </Box>
+          )}
+          {positionContent}
+          {footerActions}
+        </View>
+      </GestureDetector>
+    </BottomSheetDialog>
+  ) : (
+    <View style={legacyFooterStyle}>{footerActions}</View>
+  );
+
   return (
     <>
-      <View style={footerStyle}>
-        <View testID="bottomsheetfooter" style={styles.footer}>
-          {showSwapButton && (
-            <Button
-              testID={swapTestID}
-              variant={
-                swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
-              }
-              style={styles.iconButton}
-              twClassName={
-                swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
-              }
-              textProps={
-                swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps
-              }
-              startIconName={IconName.SwapVertical}
-              startIconProps={
-                swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
-              }
-              onPress={() => {
-                trackStickyFooterTapped({
-                  ctaType: 'swap',
-                  balanceFiatUsd,
-                  tokenAddress: token.address ?? '',
-                  chainId: token.chainId ?? '',
-                  indicatorsActive,
-                });
-                handleFooterAction(
-                  onSwap,
-                  strings('asset_overview.swap'),
-                  onSwapPress,
-                );
-              }}
-            >
-              {strings('asset_overview.swap')}
-            </Button>
-          )}
-          {!hasTokenBalance && moneyEarnButton}
-          {showBuyButton && (
-            <Button
-              testID={buyTestID}
-              variant={
-                buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
-              }
-              style={styles.iconButton}
-              twClassName={
-                buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
-              }
-              textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-              startIconName={IconName.Bank}
-              startIconProps={
-                buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
-              }
-              onPress={() => {
-                trackStickyFooterTapped({
-                  ctaType: 'buy',
-                  balanceFiatUsd,
-                  tokenAddress: token.address ?? '',
-                  chainId: token.chainId ?? '',
-                  indicatorsActive,
-                });
-                handleFooterAction(
-                  onBuy,
-                  strings('asset_overview.buy_button'),
-                  onBuyPress,
-                );
-              }}
-            >
-              {strings('asset_overview.buy_button')}
-            </Button>
-          )}
-          {hasTokenBalance && moneyEarnButton}
-          {showQuickBuyButton && (
-            <ButtonAnimated
-              testID={quickBuyTestID}
-              accessibilityRole="button"
-              accessibilityLabel={strings('asset_overview.buy_button')}
-              style={[styles.quickBuyButton, { borderColor: successColorHex }]}
-              onPress={() => {
-                if (!onQuickBuyPress) return;
-                trackStickyFooterTapped({
-                  ctaType: 'quick_buy',
-                  balanceFiatUsd,
-                  tokenAddress: token.address ?? '',
-                  chainId: token.chainId ?? '',
-                  indicatorsActive,
-                });
-                handleFooterAction(
-                  onQuickBuyPress,
-                  strings('asset_overview.buy_button'),
-                );
-              }}
-            >
-              <Icon
-                name={IconName.FlashFilled}
-                size={IconSize.Md}
-                twClassName={successText}
-              />
-            </ButtonAnimated>
-          )}
-        </View>
-        {isMoneyEarnCtaActive && !moneyEarnCta?.isLoading && (
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            twClassName="mt-2 text-center"
-          >
-            {strings('money.asset_overview.cta.current_apy_disclaimer')}
-          </Text>
-        )}
-      </View>
+      {isTraderPositionExpanded && (
+        <BottomSheetOverlay
+          testID="token-details-trader-position-pnl-overlay"
+          onPress={handleCollapseTraderPosition}
+        />
+      )}
+      {traderPositionFooter}
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />
       {networkModal}
     </>

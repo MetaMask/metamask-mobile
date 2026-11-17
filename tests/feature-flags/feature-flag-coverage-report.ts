@@ -64,7 +64,7 @@ export interface CoverageReport {
 // Configuration
 // ============================================================================
 
-const SCAN_DIRS = ['tests/smoke', 'tests/smoke-appium'];
+const SCAN_DIRS = ['tests/smoke-appium'];
 const SCAN_EXTENSIONS = new Set(['.ts', '.js']);
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build']);
 

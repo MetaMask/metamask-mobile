@@ -19,9 +19,9 @@ import path from 'path';
 import { JsonReportGenerator } from './JsonReportGenerator';
 import type { ReportData, MetricsEntry, FailedTestEntry } from '../types';
 
-const mockWriteFileSync = fs.writeFileSync as jest.Mock;
-const mockExistsSync = fs.existsSync as jest.Mock;
-const mockMkdirSync = fs.mkdirSync as jest.Mock;
+let mockWriteFileSync: jest.Mock;
+let mockExistsSync: jest.Mock;
+let mockMkdirSync: jest.Mock;
 
 function makeMetricsEntry(overrides: Partial<MetricsEntry> = {}): MetricsEntry {
   return {
@@ -54,6 +54,9 @@ describe('JsonReportGenerator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockWriteFileSync = fs.writeFileSync as jest.Mock;
+    mockExistsSync = fs.existsSync as jest.Mock;
+    mockMkdirSync = fs.mkdirSync as jest.Mock;
     mockExistsSync.mockReturnValue(true);
     generator = new JsonReportGenerator();
   });
@@ -85,6 +88,20 @@ describe('JsonReportGenerator', () => {
         (p: string) => p.includes('iPhone_14_Pro') && p.includes('16.1'),
       ),
     ).toBe(true);
+  });
+
+  it('suffixes TestMu metric files so they do not overwrite BrowserStack reports', () => {
+    const data = makeReportData({
+      metrics: [
+        makeMetricsEntry({
+          device: { name: 'Pixel 8 Pro', osVersion: '14', provider: 'testmu' },
+        }),
+      ],
+    });
+
+    const files = generator.generate(data, '/reports');
+
+    expect(files.some((file) => file.endsWith('-testmu.json'))).toBe(true);
   });
 
   it('groups metrics by device key', () => {
@@ -203,6 +220,8 @@ describe('JsonReportGenerator', () => {
             testName: 'Cold Start Login',
             projectName: 'browserstack-android',
             sessionId: 'session-1',
+            videoURL:
+              'https://app-automate.browserstack.com/builds/b1/sessions/session-1',
             timestamp: '2026-07-22T12:00:00.000Z',
             profilingSummary,
             profilingData: profilingData as MetricsEntry['profilingData'],
@@ -212,6 +231,8 @@ describe('JsonReportGenerator', () => {
             testName: 'Warm Start Wallet',
             projectName: 'browserstack-android',
             sessionId: 'session-2',
+            videoURL:
+              'https://app-automate.browserstack.com/builds/b1/sessions/session-2',
             timestamp: '2026-07-22T12:01:00.000Z',
             profilingSummary,
             profilingData: profilingData as MetricsEntry['profilingData'],
@@ -221,6 +242,7 @@ describe('JsonReportGenerator', () => {
             testName: 'Send ETH',
             projectName: 'browserstack-android',
             sessionId: 'session-3',
+            videoURL: null,
             timestamp: '2026-07-22T12:02:00.000Z',
             profilingSummary,
             profilingData: profilingData as MetricsEntry['profilingData'],
@@ -247,10 +269,15 @@ describe('JsonReportGenerator', () => {
         testName: 'Cold Start Login',
         projectName: 'browserstack-android',
         sessionId: 'session-1',
+        videoURL:
+          'https://app-automate.browserstack.com/builds/b1/sessions/session-1',
         profilingSummary,
         apiCalls,
       });
       expect(firstArtifact.profilingData).toEqual(profilingData);
+
+      const thirdArtifact = JSON.parse(profilingWrites[2][1] as string);
+      expect(thirdArtifact.videoURL).toBeNull();
     });
 
     it('creates the app-profiling directory when missing', () => {

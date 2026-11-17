@@ -78,22 +78,6 @@ jest.mock('@react-navigation/native-stack', () => {
   };
 });
 
-// Mock LockManagerService - must use inline jest.fn() to avoid hoisting issues
-jest.mock('../../../../core/LockManagerService', () => ({
-  __esModule: true,
-  default: {
-    stopListening: jest.fn(),
-    startListening: jest.fn(),
-  },
-}));
-
-// Get references to the mock functions for assertions
-const mockLockManagerService = jest.requireMock(
-  '../../../../core/LockManagerService',
-).default;
-const mockStopListening = mockLockManagerService.stopListening;
-const mockStartListening = mockLockManagerService.startListening;
-
 // Mock navigation components
 jest.mock('../components/Onboarding/SignUp', () => 'SignUp');
 jest.mock('../components/Onboarding/ConfirmEmail', () => 'ConfirmEmail');
@@ -112,11 +96,14 @@ jest.mock(
   () => 'ImmersveKYCProcessing',
 );
 jest.mock(
+  '../components/ImmersveKYCModal/ImmersveKYCModal',
+  () => 'ImmersveKYCModal',
+);
+jest.mock(
   '../components/Onboarding/ImmersveFundingApproval',
   () => 'ImmersveFundingApproval',
 );
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
-jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
@@ -146,6 +133,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: React.PropsWithChildren<Record<string, unknown>>) => (
       <View {...props}>{children}</View>
     ),
+    Spinner: (props: Record<string, unknown>) => <View {...props} />,
+    IconSize: { Xl: 'Xl' },
   };
 });
 
@@ -215,7 +204,7 @@ describe('OnboardingNavigator', () => {
   });
 
   describe('Loading State', () => {
-    describe('when SDK is loading', () => {
+    describe('when SDK is loading and there is no onboarding id', () => {
       beforeEach(() => {
         mockUseSelector.mockReturnValue(null); // onboardingId
         mockUseCardSDK.mockReturnValue({
@@ -225,6 +214,32 @@ describe('OnboardingNavigator', () => {
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
           fetchUserData: jest.fn(),
+          isReturningSession: false,
+        });
+      });
+
+      it('renders the stack without a loading indicator', () => {
+        const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+        expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
+        const stackNavigator = queryByTestId('stack-navigator');
+        expect(stackNavigator).not.toBeNull();
+        expect(stackNavigator?.props.initialRouteName).toBe(
+          Routes.CARD.ONBOARDING.SIGN_UP,
+        );
+      });
+    });
+
+    describe('when SDK is loading for a Baanx resume', () => {
+      beforeEach(() => {
+        mockUseSelector.mockReturnValue('onboarding-123');
+        mockUseCardSDK.mockReturnValue({
+          user: null,
+          isLoading: true,
+          sdk: null,
+          setUser: jest.fn(),
+          logoutFromProvider: jest.fn(),
+          fetchUserData: jest.fn(() => new Promise<void>(() => undefined)),
           isReturningSession: false,
         });
       });
@@ -1057,51 +1072,6 @@ describe('OnboardingNavigator', () => {
       expect(stackNavigator?.props.initialRouteName).toBe(
         Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC,
       );
-    });
-  });
-
-  describe('Auto-lock Management', () => {
-    beforeEach(() => {
-      mockStopListening.mockClear();
-      mockStartListening.mockClear();
-    });
-
-    it('disables auto-lock when component mounts', () => {
-      mockUseSelector.mockReturnValue(null);
-      mockUseCardSDK.mockReturnValue({
-        user: null,
-        isLoading: false,
-        sdk: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-        fetchUserData: jest.fn(),
-        isReturningSession: false,
-      });
-
-      renderWithNavigation(<OnboardingNavigator />);
-
-      expect(mockStopListening).toHaveBeenCalledTimes(1);
-    });
-
-    it('re-enables auto-lock when component unmounts', () => {
-      mockUseSelector.mockReturnValue(null);
-      mockUseCardSDK.mockReturnValue({
-        user: null,
-        isLoading: false,
-        sdk: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-        fetchUserData: jest.fn(),
-        isReturningSession: false,
-      });
-
-      const { unmount } = renderWithNavigation(<OnboardingNavigator />);
-
-      expect(mockStartListening).not.toHaveBeenCalled();
-
-      unmount();
-
-      expect(mockStartListening).toHaveBeenCalledTimes(1);
     });
   });
 

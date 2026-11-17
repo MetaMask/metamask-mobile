@@ -146,7 +146,7 @@ describe('BaseNotification', () => {
     const { queryByText } = renderWithProvider(
       <BaseNotification
         status="success"
-        data={{ title: 'Agent CLI successfully linked', description: '' }}
+        data={{ title: 'Agent wallet successfully linked', description: '' }}
       />,
     );
 
@@ -231,7 +231,84 @@ describe('BaseNotification', () => {
     jest.useRealTimers();
   });
 
-  it('handles unmount and ignores duplicate layout after enter', async () => {
+  it('restarts auto-dismiss when content changes without a layout change', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId, rerender } = renderWithProvider(
+      <BaseNotification
+        status="pending"
+        data={{ title: 'Pending', description: 'Working' }}
+        dismissDuration={1000}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      // Finish entrance spring and start the auto-dismiss delay.
+      jest.advanceTimersByTime(500);
+    });
+
+    await act(async () => {
+      rerender(
+        <BaseNotification
+          status="success"
+          data={{ title: 'Pending', description: 'Working' }}
+          dismissDuration={1000}
+          onDismissComplete={onDismissComplete}
+        />,
+      );
+    });
+
+    // No second layout: same height content must still auto-dismiss.
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('does not restart auto-dismiss when only onDismissComplete identity changes', async () => {
+    jest.useFakeTimers();
+    const { getByTestId, rerender } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={1000}
+        onDismissComplete={() => undefined}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      // Finish entrance spring and start the auto-dismiss delay.
+      jest.advanceTimersByTime(500);
+    });
+
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+    clearTimeoutSpy.mockClear();
+
+    await act(async () => {
+      // New inline callback identity — must not clear/restart the timer.
+      rerender(
+        <BaseNotification
+          status="success"
+          data={defaultData}
+          dismissDuration={1000}
+          onDismissComplete={() => undefined}
+        />,
+      );
+    });
+
+    expect(clearTimeoutSpy).not.toHaveBeenCalled();
+    clearTimeoutSpy.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it('handles unmount after enter without duplicate dismiss callbacks', async () => {
     jest.useFakeTimers();
     const onDismissComplete = jest.fn();
     const { getByTestId, unmount } = renderWithProvider(

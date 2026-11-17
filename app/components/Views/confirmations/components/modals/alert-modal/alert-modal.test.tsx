@@ -3,9 +3,9 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import AlertModal from './alert-modal';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { Severity } from '../../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
+import { Text } from '@metamask/design-system-react-native';
 import { AlertModalSelectorsIDs } from '../../../ConfirmationView.testIds';
 
 jest.mock('../../../context/alert-system-context', () => ({
@@ -233,9 +233,11 @@ describe('AlertModal', () => {
     expect(hideAlertModal).toHaveBeenCalledTimes(1);
   });
 
-  it('disables Acknowledge button for blocking alerts', () => {
+  it('closes the modal when Got it is pressed on a blocking alert', async () => {
+    const hideAlertModal = jest.fn();
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
+      hideAlertModal,
       fieldAlerts: [
         {
           ...mockAlerts[1],
@@ -244,12 +246,19 @@ describe('AlertModal', () => {
       ],
       alertKey: 'alert2',
     });
-    const { getByTestId } = render(<AlertModal />);
 
+    const { getByTestId } = render(<AlertModal />);
     const acknowledgeButton = getByTestId(
       AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON,
     );
-    expect(acknowledgeButton).toBeDisabled();
+
+    expect(acknowledgeButton).not.toBeDisabled();
+
+    await act(async () => {
+      fireEvent.press(acknowledgeButton);
+    });
+
+    expect(hideAlertModal).toHaveBeenCalledTimes(1);
   });
 
   it('calls onAcknowledgeClick only for Acknowledge button, not Close button', async () => {

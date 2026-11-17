@@ -139,6 +139,29 @@ describe('ImmersveService', () => {
     });
   });
 
+  describe('request', () => {
+    it('supports an explicit baseURL override for secure-host calls', async () => {
+      mockRequest.mockResolvedValue({ data: {}, status: 200 });
+      const service = createService();
+
+      await service.request('/api/cards/card-1/set-pin', {
+        method: 'POST',
+        body: { newPin: '1337' },
+        tokenSet: TOKEN_SET,
+        baseURL: 'https://test-sec.immersve.com',
+      });
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseURL: 'https://test-sec.immersve.com',
+          url: '/api/cards/card-1/set-pin',
+          method: 'POST',
+          data: { newPin: '1337' },
+        }),
+      );
+    });
+  });
+
   describe('patch', () => {
     it('sends PATCH request with body and auth', async () => {
       mockRequest.mockResolvedValue({ data: {}, status: 200 });

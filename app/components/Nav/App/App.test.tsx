@@ -9,8 +9,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
-  CURRENT_APP_VERSION,
-  LAST_APP_VERSION,
 } from '../../../constants/storage';
 import {
   NavigationContainer,
@@ -18,8 +16,11 @@ import {
   PartialState,
 } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
+import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import { UIMessengerProvider } from '../../../contexts/ui-messenger';
+import { createMockUIMessenger } from '../../../util/test/mock-ui-messenger';
 import { View as MockView } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
@@ -30,6 +31,12 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOn
 import { TraceName } from '../../../util/trace';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import Logger from '../../../util/Logger';
+
+const mockQueueColdHomepageReadyTrace = jest.fn();
+jest.mock('../../../core/Performance/HomepageReady', () => ({
+  queueColdHomepageReadyTrace: (...args: unknown[]) =>
+    mockQueueColdHomepageReadyTrace(...args),
+}));
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -68,12 +75,13 @@ jest.mock('../../UI/Predict/hooks/usePredictToastRegistrations', () => ({
   usePredictToastRegistrations: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock(
-  '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations',
-  () => ({
-    useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
-  }),
-);
+jest.mock('../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations', () => ({
+  useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('../../Views/SocialLeaderboard/PostTradeShareBottomSheet', () => ({
+  PostTradeShareBottomSheet: () => null,
+}));
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
 jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
@@ -147,9 +155,6 @@ jest.mock(
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));
-jest.mock('../../Views/SocialLoginIosUser', () => () => (
-  <MockView testID="mock-social-login" />
-));
 jest.mock('../../Views/WalletCreationError', () => () => (
   <MockView testID="mock-wallet-error" />
 ));
@@ -190,10 +195,10 @@ jest.mock(
   '../../UI/TokenDetails/components/SecurityBadgeBottomSheet',
   () => () => <MockView testID="mock-security-badge" />,
 );
-jest.mock('../../../components/UI/DeleteWalletModal', () => () => (
+jest.mock('../../UI/DeleteWalletModal', () => () => (
   <MockView testID="mock-delete-wallet" />
 ));
-jest.mock('../../../components/Views/AccountActions', () => () => (
+jest.mock('../../Views/AccountActions', () => () => (
   <MockView testID="mock-account-actions" />
 ));
 jest.mock('../../Views/EditAccountName/EditAccountName', () => () => (
@@ -225,8 +230,15 @@ jest.mock('../../UI/SelectOptionSheet/OptionsSheet', () => () => (
 jest.mock('../../Views/NetworksManagement/NetworkDetailsView', () => () => (
   <MockView testID="mock-network-details" />
 ));
-jest.mock('../../Views/LockScreen', () => () => (
-  <MockView testID="mock-lock-screen" />
+jest.mock('../../Views/ProHub', () => () => <MockView testID="mock-pro-hub" />);
+jest.mock('../../Views/ProHub/screens/Membership', () => () => (
+  <MockView testID="mock-pro-hub-membership" />
+));
+jest.mock('../../Views/ProHub/screens/Earned', () => () => (
+  <MockView testID="mock-pro-hub-earned" />
+));
+jest.mock('../../Views/ProHub/screens/CancelMembership', () => () => (
+  <MockView testID="mock-pro-hub-cancel-membership" />
 ));
 jest.mock('../../Views/MultichainAccounts/AddressList', () => ({
   AddressList: () => <MockView testID="mock-address-list" />,
@@ -304,7 +316,7 @@ jest.mock('../../../util/trace', () => ({
 const mockCheckIsSeedlessPasswordOutdated = jest
   .fn()
   .mockResolvedValue(undefined);
-jest.mock('../../../core/', () => ({
+jest.mock('../../../core', () => ({
   Authentication: {
     checkIsSeedlessPasswordOutdated: (...args: unknown[]) =>
       mockCheckIsSeedlessPasswordOutdated(...args),
@@ -379,7 +391,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
-jest.mock('../../../components/hooks/useAsyncResult', () => ({
+jest.mock('../../hooks/useAsyncResult', () => ({
   useAsyncResultOrThrow: jest.fn().mockResolvedValue({
     pending: false,
     value: {},
@@ -387,16 +399,13 @@ jest.mock('../../../components/hooks/useAsyncResult', () => ({
 }));
 
 // Mock 7702 networks
-jest.mock(
-  '../../../components/Views/confirmations/hooks/7702/useEIP7702Networks',
-  () => ({
-    useEIP7702Networks: jest.fn().mockReturnValue({
-      network7702List: [],
-      networkSupporting7702Present: false,
-      pending: false,
-    }),
+jest.mock('../../Views/confirmations/hooks/7702/useEIP7702Networks', () => ({
+  useEIP7702Networks: jest.fn().mockReturnValue({
+    network7702List: [],
+    networkSupporting7702Present: false,
+    pending: false,
   }),
-);
+}));
 
 jest.mock('../../../core/Multichain/networks', () => ({
   getMultichainBlockExplorer: jest.fn().mockReturnValue({
@@ -407,8 +416,6 @@ jest.mock('../../../core/Multichain/networks', () => ({
 }));
 
 describe('App', () => {
-  jest.useFakeTimers();
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
@@ -416,11 +423,7 @@ describe('App', () => {
 
   afterEach(() => {
     cleanup();
-    jest.runOnlyPendingTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   describe('Renders multichain account details', () => {
@@ -477,7 +480,7 @@ describe('App', () => {
       },
     };
 
-    beforeAll(() => {
+    beforeEach(() => {
       // Mock the storage item to simulate existing user and bypass onboarding
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {
@@ -538,7 +541,7 @@ describe('App', () => {
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
         ).toBeOnTheScreen();
       });
-    }, 30000);
+    });
 
     it('renders the multichain account edit name screen when navigated to', async () => {
       const routeState = {
@@ -562,11 +565,9 @@ describe('App', () => {
         expect(getByText('Account Group')).toBeOnTheScreen();
         expect(getByText('Account name')).toBeOnTheScreen();
       });
-    }, 30000);
+    });
 
     it('renders the multichain account share address screen when navigated to', async () => {
-      jest.useRealTimers();
-
       const routeState = {
         index: 0,
         routes: [
@@ -587,9 +588,7 @@ describe('App', () => {
       await waitFor(() => {
         expect(getByText('Share address')).toBeOnTheScreen();
       });
-
-      jest.useFakeTimers();
-    }, 30000);
+    });
   });
 
   describe('route registration', () => {
@@ -709,10 +708,6 @@ describe('App', () => {
       expect(Routes.EDIT_NETWORK).toBeDefined();
     });
 
-    it('has lock screen route defined', () => {
-      expect(Routes.LOCK_SCREEN).toBeDefined();
-    });
-
     it('has confirmation routes defined', () => {
       expect(Routes.CONFIRMATION_REQUEST_MODAL).toBeDefined();
       expect(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE).toBeDefined();
@@ -758,72 +753,6 @@ describe('App', () => {
     });
   });
 
-  describe('App version handling', () => {
-    it('should handle version storage operations', async () => {
-      const getItemSpy = jest
-        .spyOn(StorageWrapper, 'getItem')
-        .mockResolvedValue(null);
-
-      const mockStore = configureMockStore();
-      const store = mockStore(initialState);
-
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      render(<App />, { wrapper: Providers });
-
-      // Flush startApp's microtasks. Avoid waitFor here: this suite uses fake
-      // timers and testSetup freezes Date.now, so waitFor's timeout never
-      // elapses and a delayed getItem call hangs until Jest's test timeout.
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(getItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION);
-      getItemSpy.mockRestore();
-    });
-  });
-
-  describe('App version handling branches', () => {
-    const renderAppForVersionTest = (state: DeepPartial<RootState>) => {
-      const mockStoreCreator = configureMockStore();
-      const store = mockStoreCreator(state);
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-      return render(<App />, { wrapper: Providers });
-    };
-
-    it('handles errors in startApp gracefully', async () => {
-      const getItemSpy = jest
-        .spyOn(StorageWrapper, 'getItem')
-        .mockRejectedValue(new Error('Storage error'));
-
-      renderAppForVersionTest(initialState);
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(getItemSpy).toHaveBeenCalled();
-
-      getItemSpy.mockRestore();
-    });
-  });
-
   describe('AppFlow navigation structure', () => {
     const renderAppWithDefaultState = (
       routeState: PartialState<NavigationState>,
@@ -854,19 +783,6 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
-      });
-    });
-
-    it('renders the lock screen route', async () => {
-      const routeState = {
-        index: 0,
-        routes: [{ name: Routes.LOCK_SCREEN }],
-      };
-
-      const { toJSON } = renderAppWithDefaultState(routeState);
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
       });
     });
   });
@@ -903,10 +819,7 @@ describe('App', () => {
     });
 
     it('has social login routes defined', () => {
-      expect(Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER).toBeDefined();
-      expect(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-      ).toBeDefined();
+      expect(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE).toBeDefined();
     });
 
     it('has wallet creation error route defined', () => {
@@ -1194,6 +1107,10 @@ describe('App', () => {
       expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR).toBeDefined();
     });
 
+    it('has manage accounts route defined', () => {
+      expect(Routes.MANAGE_ACCOUNTS_VIEW).toBeDefined();
+    });
+
     it('has address selector route defined', () => {
       expect(Routes.SHEET.ADDRESS_SELECTOR).toBeDefined();
     });
@@ -1420,9 +1337,29 @@ describe('App', () => {
   });
 
   describe('Performance tracing', () => {
-    const renderApp = () => {
+    const getHomepageReadyState = (
+      isUnlocked: boolean,
+    ): DeepPartial<RootState> => ({
+      ...initialState,
+      user: {
+        ...initialState.user,
+        existingUser: true,
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine?.backgroundState,
+          KeyringController: {
+            ...backgroundState.KeyringController,
+            isUnlocked,
+          },
+        },
+      },
+    });
+
+    const renderApp = (state: DeepPartial<RootState> = initialState) => {
       const mockStore = configureMockStore();
-      const store = mockStore(initialState);
+      const store = mockStore(state);
 
       const Providers = ({ children }: { children: React.ReactElement }) => (
         <NavigationContainer>
@@ -1446,20 +1383,31 @@ describe('App', () => {
         });
       });
     });
-  });
 
-  describe('Version handling - detailed branches', () => {
-    const renderAppWithExistingUser = (existingUser: boolean) => {
-      const mockStore = configureMockStore();
-      const state: DeepPartial<RootState> = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser,
-        },
-      };
-      const store = mockStore(state);
+    it('queues Homepage Ready at app open for an unlocked existing user', () => {
+      renderApp(getHomepageReadyState(true));
 
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not queue Homepage Ready before credentials for a locked user', () => {
+      renderApp(getHomepageReadyState(false));
+
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
+    });
+
+    it('queues Homepage Ready when the unlocked state becomes available after mount', () => {
+      const lockedState = getHomepageReadyState(false);
+      const unlockedState = getHomepageReadyState(true);
+      const store = createStore((state: unknown | undefined, action) => {
+        if (action.type === 'TEST/UNLOCKED_STATE_AVAILABLE') {
+          return unlockedState;
+        }
+        if (action.type === 'TEST/LOCKED') {
+          return lockedState;
+        }
+        return state ?? lockedState;
+      }, lockedState as unknown);
       const Providers = ({ children }: { children: React.ReactElement }) => (
         <NavigationContainer>
           <Provider store={store}>
@@ -1470,113 +1418,20 @@ describe('App', () => {
         </NavigationContainer>
       );
 
-      return render(<App />, { wrapper: Providers });
-    };
+      render(<App />, { wrapper: Providers });
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
 
-    it('saves last and current version when currentVersion differs from savedVersion', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return '0.9.0';
-        if (key === LAST_APP_VERSION) return '0.8.0';
-        return null;
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/LOCKED' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
       });
 
-      renderAppWithExistingUser(false);
-
-      await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '0.9.0');
-        expect(setItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
-      });
-
-      setItemSpy.mockRestore();
-    });
-
-    it('saves only current version when savedVersion is null', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return null;
-        if (key === LAST_APP_VERSION) return null;
-        return null;
-      });
-
-      renderAppWithExistingUser(false);
-
-      await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
-        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '1.0.0');
-      });
-
-      setItemSpy.mockRestore();
-    });
-
-    it('sets lastVersion to 0.0.1 when existingUser is true and lastVersion is missing', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return '1.0.0';
-        if (key === LAST_APP_VERSION) return null;
-        return null;
-      });
-
-      renderAppWithExistingUser(true);
-
-      await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '0.0.1');
-      });
-
-      setItemSpy.mockRestore();
-    });
-
-    it('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return '1.0.0';
-        if (key === LAST_APP_VERSION) return null;
-        return null;
-      });
-
-      renderAppWithExistingUser(false);
-
-      await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '1.0.0');
-      });
-
-      setItemSpy.mockRestore();
-    });
-
-    it('does not overwrite versions when currentVersion matches savedVersion', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return '1.0.0';
-        if (key === LAST_APP_VERSION) return '0.9.0';
-        return null;
-      });
-
-      renderAppWithExistingUser(false);
-
-      await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalled();
-      });
-
-      expect(setItemSpy).not.toHaveBeenCalledWith(
-        CURRENT_APP_VERSION,
-        expect.anything(),
-      );
-      expect(setItemSpy).not.toHaveBeenCalledWith(
-        LAST_APP_VERSION,
-        expect.anything(),
-      );
-
-      setItemSpy.mockRestore();
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1620,8 +1475,6 @@ describe('App', () => {
     it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', async () => {
       renderAppWithSeedlessState(true);
 
-      jest.advanceTimersByTime(0);
-
       await waitFor(() => {
         expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -1632,14 +1485,10 @@ describe('App', () => {
       });
     });
 
-    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', async () => {
+    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', () => {
       renderAppWithSeedlessState(false);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
-      });
+      expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
     });
 
     it('logs error when checkIsSeedlessPasswordOutdated rejects', async () => {
@@ -1647,8 +1496,6 @@ describe('App', () => {
       mockCheckIsSeedlessPasswordOutdated.mockRejectedValueOnce(testError);
 
       renderAppWithSeedlessState(true);
-
-      jest.advanceTimersByTime(0);
 
       await waitFor(() => {
         expect(Logger.error).toHaveBeenCalledWith(
@@ -1986,7 +1833,7 @@ describe('App', () => {
       });
     });
 
-    it('renders the AddNetworkFlow screen', async () => {
+    it('renders the AddNetwork screen', async () => {
       const routeState = {
         index: 0,
         routes: [{ name: Routes.ADD_NETWORK }],
@@ -1996,6 +1843,58 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId('mock-network-details')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHub screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.ROOT }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubMembership screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.MEMBERSHIP }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-membership')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubEarned screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.EARNED }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-earned')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubCancelMembership screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.CANCEL_MEMBERSHIP }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-cancel-membership')).toBeTruthy();
       });
     });
 
@@ -2064,25 +1963,81 @@ describe('App', () => {
       });
     });
 
-    it('renders the RevealPrivateCredential screen', async () => {
+    it('presents RevealPrivateCredential above AppFlow sheets', async () => {
       const routeState = {
-        index: 0,
-        routes: [{ name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL }],
+        index: 1,
+        routes: [
+          { name: Routes.FOX_LOADER },
+          { name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL },
+        ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { UNSAFE_root } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(
+          UNSAFE_root.findAll(
+            (node) =>
+              node.props.stackPresentation === 'fullScreenModal' &&
+              node.props.stackAnimation === 'slide_from_right',
+          ),
+        ).not.toHaveLength(0);
+      });
+    });
+
+    it('registers the simple webview on AppFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.WEBVIEW.MAIN,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.WEBVIEW.SIMPLE }],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-webview')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers the QR tab switcher on AppFlow', async () => {
+      const routeState = {
+        index: 1,
+        routes: [{ name: Routes.FOX_LOADER }, { name: Routes.QR_TAB_SWITCHER }],
+      };
+      const store = configureMockStore()(initialState);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <UIMessengerProvider value={createMockUIMessenger()}>
+              <ThemeContext.Provider value={mockTheme}>
+                {children}
+              </ThemeContext.Provider>
+            </UIMessengerProvider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      const { UNSAFE_root } = render(<App />, { wrapper: Providers });
+
+      await waitFor(() => {
+        expect(
+          UNSAFE_root.findAll(
+            (node) =>
+              node.props.stackPresentation === 'push' &&
+              node.props.stackAnimation === 'slide_from_bottom',
+          ),
+        ).not.toHaveLength(0);
       });
     });
 
     it('renders the MultichainAddressList screen', async () => {
-      // Nested navigator shares the ADDRESS_LIST route name; seed child state so
-      // the mocked screen mounts without waiting on navigation effects.
-      // Avoid waitFor: App suite uses fake timers and testSetup mocks Date.now,
-      // so waitFor's timeout never elapses and a slow mount hangs until Jest's
-      // 5s test timeout (flaky CI failures).
       const routeState = {
         index: 0,
         routes: [
@@ -2098,11 +2053,9 @@ describe('App', () => {
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await act(async () => {
-        jest.advanceTimersByTime(0);
+      await waitFor(() => {
+        expect(getByTestId('mock-address-list')).toBeOnTheScreen();
       });
-
-      expect(getByTestId('mock-address-list')).toBeOnTheScreen();
     });
 
     it('renders the MultichainPrivateKeyList screen', async () => {
@@ -2121,23 +2074,8 @@ describe('App', () => {
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await act(async () => {
-        jest.advanceTimersByTime(0);
-      });
-
-      expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
-    });
-
-    it('renders the LockScreen route', async () => {
-      const routeState = {
-        index: 0,
-        routes: [{ name: Routes.LOCK_SCREEN }],
-      };
-
-      const { getByTestId } = renderAppAtRoute(routeState);
-
       await waitFor(() => {
-        expect(getByTestId('mock-lock-screen')).toBeTruthy();
+        expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
       });
     });
   });
@@ -2172,10 +2110,10 @@ describe('App', () => {
         ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-network-details')).toBeTruthy();
       });
     });
 

@@ -48,9 +48,16 @@ appiumTest.describe(SmokeAccounts('Account syncing - Setting'), () => {
           await loginAndOpenAccountList({ scenarioType: 'e2e' });
           await assertAccountCount(DEFAULT_ACCOUNT_NAME, 1);
 
-          const { prepareEventsEmittedCounter } = arrangeTestUtils(
-            userStorageMockttpController,
-          );
+          const {
+            prepareEventsEmittedCounter,
+            waitUntilSyncedAccountsNumberEquals,
+          } = arrangeTestUtils(userStorageMockttpController);
+
+          // Initial account-tree sync must finish before mutating — otherwise
+          // enqueueSingleGroupSync can drop the PUT_SINGLE while sync is still
+          // in progress (UI already shows idle "Add account").
+          await waitUntilSyncedAccountsNumberEquals(1);
+
           const { waitUntilEventsEmittedNumberEquals } =
             prepareEventsEmittedCounter(
               UserStorageMockttpControllerEvents.PUT_SINGLE,

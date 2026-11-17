@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import RewardsDashboard from './RewardsDashboard';
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,8 +18,37 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
+let runAfterInteractionsSpy: jest.SpyInstance;
+
+beforeAll(() => {
+  runAfterInteractionsSpy = jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((task) => {
+      if (typeof task === 'function') {
+        task();
+      }
+      return {
+        then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+        done: () => Promise.resolve(),
+        cancel: jest.fn(),
+      } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+    });
+});
+
+afterAll(() => {
+  runAfterInteractionsSpy.mockRestore();
+});
+
 // Mock navigation
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => false);
+// The navigator Rewards is mounted under: a tab in control, the root stack once
+// treatment hands the tab slot to Social and reaches Rewards by a push.
+let mockParentNavigatorType = 'tab';
+const mockGetParent = jest.fn(() => ({
+  getState: () => ({ type: mockParentNavigatorType }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -27,6 +57,9 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
+      getParent: mockGetParent,
     }),
     useFocusEffect: (effect: () => void | (() => void)) => {
       ReactActual.useEffect(() => {
@@ -37,6 +70,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock(
+  '../../../../component-library/components/Navigation/TabBarFloating',
+  () => ({
+    useFloatingTabBarInset: jest.fn(() => 0),
+  }),
+);
+
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
@@ -45,7 +85,6 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectIsVipReferee: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
-  selectPendingDeeplink: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -71,16 +110,15 @@ import {
   selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
-  selectPendingDeeplink,
 } from '../../../../reducers/rewards/selectors';
-// Real action creator (the rewards reducer module is intentionally not mocked),
-// so the deeplink tests can assert the exact clear action dispatched.
-import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectSettingsReferralAvailable } from '../../../../reducers/rewardsMoney/selectors';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
@@ -123,14 +161,12 @@ const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
     typeof selectSelectedAccountGroup
   >;
-const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
-  typeof selectPendingDeeplink
->;
 
 // Mock react-native-safe-area-context
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { analytics } from '../../../../util/analytics/analytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 // Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
@@ -220,6 +256,14 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => ({
   },
 }));
 
+jest.mock('../components/Money/RewardsOptInSection', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="rewards-opt-in-section" />,
+  };
+});
+
 jest.mock('../components/Benefits/BenefitsPreview', () => ({
   __esModule: true,
   default: function MockBenefitsPreview() {
@@ -246,6 +290,10 @@ jest.mock('../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
 }));
 
+jest.mock('../hooks/useMoneyAccountSweepstakesOptIn', () => ({
+  useResumePendingMasSeriesOptIn: jest.fn(),
+}));
+
 jest.mock('../hooks/useOndoOutcomeToast', () => ({
   useOndoOutcomeToast: jest.fn(),
 }));
@@ -258,10 +306,15 @@ jest.mock('../hooks/useGetPredictThePitchOutcomeToast', () => ({
   useGetPredictThePitchOutcomeToast: jest.fn(),
 }));
 
+jest.mock('../hooks/useMoneyAccountSweepstakesOutcomeToast', () => ({
+  useMoneyAccountSweepstakesOutcomeToast: jest.fn(),
+}));
+
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
+import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
@@ -285,7 +338,10 @@ const mockUseGetPredictThePitchOutcomeToast =
   useGetPredictThePitchOutcomeToast as jest.MockedFunction<
     typeof useGetPredictThePitchOutcomeToast
   >;
-
+const mockUseMoneyAccountSweepstakesOutcomeToast =
+  useMoneyAccountSweepstakesOutcomeToast as jest.MockedFunction<
+    typeof useMoneyAccountSweepstakesOutcomeToast
+  >;
 describe('RewardsDashboard', () => {
   const mockShowUnlinkedAccountsModal = jest.fn();
   const mockShowNotOptedInModal = jest.fn();
@@ -354,6 +410,7 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(analytics, 'trackEvent').mockImplementation(() => undefined);
 
     // Configure mocks before passing them to the mock hook factory
     // so the hook receives already-configured references
@@ -451,18 +508,9 @@ describe('RewardsDashboard', () => {
         mockUsePerpsTradingCampaignEndedOutcomeToast,
       ).toHaveBeenCalledTimes(1);
       expect(mockUseGetPredictThePitchOutcomeToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders all child components', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
-      expect(getByTestId('campaigns-preview')).toBeTruthy();
-      expect(getByTestId('earn-rewards-preview')).toBeTruthy();
-      expect(getByTestId('benefits-preview')).toBeTruthy();
+      expect(mockUseMoneyAccountSweepstakesOutcomeToast).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('calls modal hooks when component is rendered', () => {
@@ -493,14 +541,99 @@ describe('RewardsDashboard', () => {
       expect(getByText('Rewards')).toBeOnTheScreen();
     });
 
+    it('renders no back button as a tab, even though canGoBack is true', () => {
+      // Arrange - the tab navigator's default `firstRoute` back behaviour makes
+      // `canGoBack()` true on any non-first tab, so it cannot gate the header.
+      mockCanGoBack.mockReturnValue(true);
+
+      // Act
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      // Assert
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      mockCanGoBack.mockReturnValue(false);
+    });
+
+    describe('when pushed onto the stack instead of shown as a tab', () => {
+      beforeEach(() => {
+        mockParentNavigatorType = 'stack';
+      });
+      afterEach(() => {
+        mockParentNavigatorType = 'tab';
+      });
+
+      it('renders a back button that pops the screen', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON));
+
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+
+      it('keeps the header action icons alongside the back button', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        expect(
+          getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+        ).toBeOnTheScreen();
+        expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      });
+    });
+
+    it('renders no back button as a tab, where there is nothing to pop', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    describe('with glass headers on', () => {
+      beforeEach(() => {
+        const defaultSelector = mockUseSelector.getMockImplementation();
+        mockUseSelector.mockImplementation((selector) =>
+          selector === selectGlassHeadersEnabled
+            ? true
+            : defaultSelector?.(selector),
+        );
+      });
+
+      it('floats the tab header over the content', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+        expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      });
+
+      it('keeps settings pressable in its glass capsule', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: Routes.REWARDS_SETTINGS_VIEW,
+          params: undefined,
+        });
+      });
+    });
+
+    it('keeps the solid header when glass headers are off', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
+    });
+
     it('renders settings button in header', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      const { getByLabelText, getByTestId } = render(<RewardsDashboard />);
 
       // Assert
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
       ).toBeOnTheScreen();
+      expect(getByLabelText('rewards.settings.title')).toBeOnTheScreen();
     });
   });
 
@@ -516,18 +649,6 @@ describe('RewardsDashboard', () => {
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
         screen: Routes.REWARDS_SETTINGS_VIEW,
-        params: undefined,
-      });
-    });
-
-    it('navigates to referral view when referral button is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REFERRAL_REWARDS_VIEW,
         params: undefined,
       });
     });
@@ -741,120 +862,8 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('deeplink navigation', () => {
-    // The dashboard reads the pending deeplink from Redux on mount and routes
-    // into the corresponding rewards sub-page, then clears it so it does not
-    // re-fire. navigateToRewardsRoute (not mocked) forwards through the
-    // REWARDS_FLOW host, so mockNavigate receives that wrapper shape.
-    const renderWithPendingDeeplink = (
-      pendingDeeplink: Record<string, unknown> | null,
-    ) => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPendingDeeplink) return pendingDeeplink;
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectIsCurrentSubscriptionVipEnabled)
-          return defaultSelectorValues.isVipEnabled;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === mockHasAcceptedVipInviteSelector) return false;
-        return undefined;
-      });
-      return render(<RewardsDashboard />);
-    };
-
-    it.each([
-      ['page', 'campaigns', Routes.REWARDS_CAMPAIGNS_VIEW],
-      ['campaign', 'ondo', Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW],
-      ['campaign', 'season1', Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW],
-      [
-        'campaign',
-        'perps-comp',
-        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-      ],
-      [
-        'campaign',
-        'predict-the-pitch',
-        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-      ],
-      ['page', 'musd', Routes.REWARDS_MUSD_CALCULATOR_VIEW],
-    ])(
-      'routes %s=%s into the rewards flow and clears the pending deeplink',
-      (key, value, expectedScreen) => {
-        renderWithPendingDeeplink({ [key]: value });
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-          screen: expectedScreen,
-          params: undefined,
-        });
-        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-      },
-    );
-
-    it('navigates directly to the benefits full view (registered at root) for page=benefits', () => {
-      // Benefits is registered at the root MainNavigator level, so the dashboard
-      // navigates directly rather than through the REWARDS_FLOW host.
-      renderWithPendingDeeplink({ page: 'benefits' });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARD_BENEFITS_FULL_VIEW,
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('does nothing when there is no pending deeplink', () => {
-      renderWithPendingDeeplink(null);
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('does not clear the pending deeplink for an unrecognized page/campaign', () => {
-      // Unrecognized intents are preserved (not cleared) so they can be retried
-      // rather than silently dropped.
-      renderWithPendingDeeplink({ page: 'totally-unknown' });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-  });
-
-  describe('referral button state', () => {
-    it('always renders the referral button as enabled regardless of subscription state', () => {
-      // Arrange - no subscriptionId
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const referralButton = getByTestId(
-        REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
-      );
-
-      // Assert - referral button is never disabled
-      expect(referralButton).not.toBeDisabled();
-    });
-  });
-
   describe('settings button state', () => {
-    it('disables settings button when user is not opted in', () => {
+    it('enables settings and navigates when the user is not opted in', () => {
       // Arrange
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
       mockUseSelector.mockImplementation((selector) => {
@@ -867,6 +876,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSettingsReferralAvailable) return true;
         return undefined;
       });
 
@@ -875,9 +885,38 @@ describe('RewardsDashboard', () => {
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
+      fireEvent.press(settingsButton);
 
       // Assert
-      expect(settingsButton).toBeDisabled();
+      expect(settingsButton).not.toBeDisabled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SETTINGS_VIEW,
+        params: undefined,
+      });
+    });
+
+    it('hides settings when the user is not opted in and the money referral is unavailable', () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId) return null;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSettingsReferralAvailable) return false;
+        return undefined;
+      });
+
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('enables settings button when user is opted in', () => {
@@ -893,7 +932,7 @@ describe('RewardsDashboard', () => {
   });
 
   describe('modal triggering for current account', () => {
-    it('shows not opted in modal when account group has opted out accounts and modal has not been shown', async () => {
+    it('does not show the add account modal when the current account is not opted in', async () => {
       // Arrange
       const mockAccountGroupWithOptedOut = {
         id: 'keyring:wallet1/1' as const,
@@ -930,7 +969,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowNotOptedInModal).toHaveBeenCalled();
+        expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
       });
     });
 
@@ -1032,7 +1071,7 @@ describe('RewardsDashboard', () => {
       },
     ];
 
-    it('shows unlinked accounts modal when there are unlinked accounts and user has subscription', async () => {
+    it('does not show the add accounts modal when there are unlinked accounts', async () => {
       // Arrange
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
@@ -1047,7 +1086,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
+        expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
       });
     });
 
@@ -1089,7 +1128,7 @@ describe('RewardsDashboard', () => {
   });
 
   describe('modal prioritization', () => {
-    it('shows unlinked accounts modal when current account banner dismissed and account group is fully opted in', async () => {
+    it('does not show the add accounts modal when the current account banner is dismissed', async () => {
       // Arrange
       const mockWalletWithOptedOutAccounts = [
         {
@@ -1156,7 +1195,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
+        expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
       });
       expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
     });
@@ -1363,8 +1402,17 @@ describe('RewardsDashboard', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED,
       );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        dashboard: 'rewards',
+        has_subscription: true,
+      });
       expect(mockBuild).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
+      expect(analytics.trackEvent).toHaveBeenCalledWith({
+        event: 'mock-event',
+      });
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_VIEWED,
+      );
     });
 
     it('tracks dashboard viewed event only once', () => {
@@ -1387,7 +1435,7 @@ describe('RewardsDashboard', () => {
       expect(mockCreateEventBuilder).not.toHaveBeenCalled();
     });
 
-    it('tracks tab viewed event when activeTab changes', () => {
+    it('does not track a dashboard tab event when activeTab changes', () => {
       // Arrange
       const { rerender } = render(<RewardsDashboard />);
       mockTrackEvent.mockClear();
@@ -1411,12 +1459,7 @@ describe('RewardsDashboard', () => {
       rerender(<RewardsDashboard />);
 
       // Assert
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'activity' });
-      expect(mockBuild).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
     });
   });
 
@@ -1541,11 +1584,12 @@ describe('RewardsDashboard', () => {
 
       // Act — 5 quick taps
       tapTitle(getByTestId as never, 5);
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
 
       // Assert
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
-      });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
         'RewardsController:getVIPDashboard',
         defaultSelectorValues.subscriptionId,
@@ -1635,8 +1679,8 @@ describe('RewardsDashboard', () => {
 
       // Act — first 5 taps trigger; another 5 should be ignored
       tapTitle(getByTestId as never, 5);
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await jest.runAllTimersAsync();
       });
       tapTitle(getByTestId as never, 5);
 
@@ -1651,15 +1695,17 @@ describe('RewardsDashboard', () => {
 
       // Act — first 5 taps fail; another 5 should be allowed
       tapTitle(getByTestId as never, 5);
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await jest.runAllTimersAsync();
       });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
       tapTitle(getByTestId as never, 5);
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
 
       // Assert
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
-      });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -14,6 +14,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import CollectibleMedia from '../CollectibleMedia';
+import { fireImpact, ImpactMoment } from '../../../util/haptics';
 import { Skeleton } from '../../../component-library/components-temp/Skeleton';
 
 const debouncedNavigation = debounce((navigation, collectible, source) => {
@@ -61,7 +62,10 @@ const NftGridItem = ({
         style,
       ]}
       onPress={onPress}
-      onLongPress={() => onLongPress(item)}
+      onLongPress={() => {
+        fireImpact(ImpactMoment.SecondaryCTA);
+        onLongPress(item);
+      }}
       testID={`collectible-${item.name}-${item.tokenId}`}
     >
       <Box twClassName="self-stretch aspect-square">
@@ -85,14 +89,16 @@ const NftGridItem = ({
       </Text>
 
       {/* TODO: check if is better to use collection name from nft contract? */}
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        twClassName="text-alternative"
-        numberOfLines={1}
-      >
-        {item.collection?.name}
-      </Text>
+      {item.collection?.name ? (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-alternative"
+          numberOfLines={1}
+        >
+          {item.collection.name}
+        </Text>
+      ) : null}
     </Pressable>
   );
 };

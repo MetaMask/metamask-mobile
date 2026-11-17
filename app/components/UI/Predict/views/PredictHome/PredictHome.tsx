@@ -1,7 +1,11 @@
 import React, { useCallback, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
@@ -10,7 +14,12 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  SectionDivider,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -33,6 +42,14 @@ import PredictTrendingSection from './components/PredictTrendingSection';
 import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
 import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
+import PredictOffline from '../../components/PredictOffline';
+import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
+import { usePredictLiveNowSection } from './components/PredictLiveNowSection/usePredictLiveNowSection';
+import { POPULAR_TODAY_FILTER_PARAMS } from './components/PredictPopularTodaySection/PredictPopularTodaySection';
+import { usePredictFilterOptions } from '../../hooks/usePredictFilterOptions';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 /**
  * Redesigned Predict homepage shell (PRED-834).
@@ -61,6 +78,11 @@ const PredictHome: React.FC = () => {
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const isGlass = useIsGlassSurfaceEnabled(selectPredictBrandRefreshEnabled);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
+    useHeaderGlassInset(isBrandRefresh, safeAreaInsets.top);
 
   const handleSectionViewed = useCallback(
     (sectionId: string) => {
@@ -88,7 +110,13 @@ const PredictHome: React.FC = () => {
     useCallback(() => {
       Engine.context.PredictController.trackHomeViewed({ entryPoint });
       resetImpressions();
-    }, [entryPoint, resetImpressions]),
+
+      return () => {
+        if (entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [entryPoint, navigation, resetImpressions]),
   );
 
   const {
@@ -126,6 +154,26 @@ const PredictHome: React.FC = () => {
 
   const withdrawUnavailableSheetRef =
     useRef<PredictWithdrawUnavailableSheetRef>(null);
+  const {
+    error: homeError,
+    markets: homeMarkets,
+    refetch: retryHome,
+  } = usePredictTrendingSection();
+  const showHomeError = Boolean(homeError) && homeMarkets.length === 0;
+
+  // Visibility signals for sections that can hide themselves (return null).
+  // Hoisting these lets us gate the surrounding dividers/padding/impression
+  // wrappers so hidden sections don't leave stray lines, empty gaps, or
+  // register phantom in-view impressions. Both sections call the same hooks
+  // internally and hit the same React Query cache keys, so there is exactly
+  // one underlying fetch shared between PredictHome and the section.
+  const { isEmpty: isLiveNowEmpty } = usePredictLiveNowSection();
+  const {
+    filterOptions: popularTodayFilterOptions,
+    isLoading: isPopularTodayLoading,
+  } = usePredictFilterOptions(POPULAR_TODAY_FILTER_PARAMS);
+  const isPopularTodayEmpty =
+    !isPopularTodayLoading && popularTodayFilterOptions.length === 0;
   const handleDepositWalletWithdrawPress = useCallback(() => {
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
@@ -140,87 +188,128 @@ const PredictHome: React.FC = () => {
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
+        {/* Mounted before the content so assistive tech reads the header first. */}
         <PredictHeaderStacked
           scrollY={scrollY}
           titleSectionHeight={titleSectionHeight}
           onBack={handleBackPress}
           onSearchPress={handleShowSearch}
+          isGlass={isBrandRefresh}
+          onLayout={isBrandRefresh ? handleFloatingHeaderLayout : undefined}
         />
 
-        <Animated.ScrollView
-          testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
-          onScroll={onScroll}
-          onLayout={setViewportHeight}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('px-4 pb-8')}
-        >
-          <Box
-            testID={PredictHomeSelectorsIDs.TITLE_SECTION}
-            onLayout={handleTitleLayout}
-            twClassName="pt-2 pb-2"
+        {showHomeError ? (
+          <Box twClassName="flex-1" style={{ paddingTop: floatingHeaderInset }}>
+            <PredictOffline onRetry={retryHome} />
+          </Box>
+        ) : (
+          <Animated.ScrollView
+            testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
+            onScroll={onScroll}
+            onLayout={setViewportHeight}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+            style={tw.style('flex-1')}
+            contentContainerStyle={[
+              tw.style('px-4 pb-8'),
+              { paddingTop: floatingHeaderInset },
+            ]}
           >
-            <Text
-              testID={PredictHomeSelectorsIDs.TITLE}
-              variant={TextVariant.HeadingMd}
+            <Box
+              testID={PredictHomeSelectorsIDs.TITLE_SECTION}
+              onLayout={handleTitleLayout}
+              twClassName="pt-2 pb-2"
             >
-              {strings('wallet.predict')}
-            </Text>
-          </Box>
+              <Text
+                testID={PredictHomeSelectorsIDs.TITLE}
+                variant={TextVariant.HeadingMd}
+              >
+                {strings('wallet.predict')}
+              </Text>
+            </Box>
 
-          <Box twClassName="gap-6">
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.BeforePortfolio}
-            />
-            <PredictPortfolioModule
-              onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-            />
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterPortfolio}
-            />
-            <Box
-              testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
-              onLayout={registerSection(PredictEventValues.SECTION_ID.LIVE_NOW)}
-            >
-              <PredictLiveNowSection />
-            </Box>
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterLiveNow}
-            />
-            <Box
-              testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
-              onLayout={registerSection(
-                PredictEventValues.SECTION_ID.CATEGORIES,
+            <Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.BeforePortfolio}
+              />
+              <Box twClassName="pb-3">
+                <PredictPortfolioModule
+                  isGlass={isGlass}
+                  onDepositWalletWithdrawPress={
+                    handleDepositWalletWithdrawPress
+                  }
+                />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterPortfolio}
+              />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
+              {!isLiveNowEmpty && (
+                <Box
+                  testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
+                  onLayout={registerSection(
+                    PredictEventValues.SECTION_ID.LIVE_NOW,
+                  )}
+                  twClassName="pt-3 pb-3"
+                >
+                  <PredictLiveNowSection />
+                </Box>
               )}
-            >
-              <PredictCategoriesSection />
-            </Box>
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterCategories}
-            />
-            <Box
-              testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
-              onLayout={registerSection(
-                PredictEventValues.SECTION_ID.POPULAR_TODAY,
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterLiveNow}
+              />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
+              <Box
+                testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.CATEGORIES,
+                )}
+                twClassName="pt-3 pb-3"
+              >
+                <PredictCategoriesSection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterCategories}
+              />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
+              {!isPopularTodayEmpty && (
+                <Box
+                  testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
+                  onLayout={registerSection(
+                    PredictEventValues.SECTION_ID.POPULAR_TODAY,
+                  )}
+                  twClassName="pt-3 pb-3"
+                >
+                  <PredictPopularTodaySection />
+                </Box>
               )}
-            >
-              <PredictPopularTodaySection />
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterPopularToday}
+              />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
+              <Box
+                testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.TRENDING,
+                )}
+                twClassName="pt-3"
+              >
+                <PredictTrendingSection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterTrending}
+              />
             </Box>
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterPopularToday}
-            />
-            <Box
-              testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
-              onLayout={registerSection(PredictEventValues.SECTION_ID.TRENDING)}
-            >
-              <PredictTrendingSection />
-            </Box>
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterTrending}
-            />
-          </Box>
-        </Animated.ScrollView>
+          </Animated.ScrollView>
+        )}
 
         <PredictSearchOverlay
           isVisible={isSearchVisible}

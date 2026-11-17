@@ -28,19 +28,26 @@ import {
   ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
+import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
+import { PerpsRecentActivityListSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
   isLoading?: boolean;
   iconSize?: number;
+  /** Render a stream error below the heading while retaining cached activity. */
+  errorContent?: React.ReactNode;
 }
 
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   transactions,
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  errorContent,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activityTitle = strings('perps.home.recent_activity');
 
@@ -67,21 +74,20 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             .build(),
         );
 
-        navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-          transaction,
-        });
+        navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
       }
     },
-    [navigation, trackEvent, createEventBuilder],
+    [navigation, isTestnet, trackEvent, createEventBuilder],
   );
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction }) => {
-      const { item } = props;
+    (props: { item: PerpsTransaction; index: number }) => {
+      const { item, index } = props;
       const fill = item.fill;
 
       return (
         <ListItem
+          testID={PerpsRecentActivityListSelectorsIDs.ROW(index)}
           isInteractive
           avatar={
             <PerpsTokenLogo
@@ -102,9 +108,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           }
           value={fill?.amount}
           valueProps={{
-            color: fill?.isPositive
-              ? TextColor.SuccessDefault
-              : TextColor.ErrorDefault,
+            color:
+              fill?.isPositive === undefined
+                ? TextColor.TextDefault
+                : fill.isPositive
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault,
           }}
           onPress={() => handleTransactionPress(item)}
         />
@@ -117,12 +126,13 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     return (
       <Box>
         <SectionHeader title={activityTitle} />
+        {errorContent}
         <PerpsRowSkeleton count={3} />
       </Box>
     );
   }
 
-  if (transactions.length === 0) {
+  if (transactions.length === 0 && !errorContent) {
     return null;
   }
 
@@ -130,10 +140,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     <Box>
       <SectionHeader
         title={activityTitle}
-        isInteractive
+        isInteractive={transactions.length > 0}
         onPress={handleSeeAll}
       />
+      {errorContent}
       <FlatList
+        testID={PerpsRecentActivityListSelectorsIDs.LIST}
         data={transactions}
         renderItem={renderItem}
         keyExtractor={(item, index) => `${item.id || index}`}

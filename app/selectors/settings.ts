@@ -23,6 +23,18 @@ export const selectBasicFunctionalityEnabled = createSelector(
     settingsState.basicFunctionalityEnabled as boolean,
 );
 
+export const selectIsBasicFunctionalityConsolidatedEnabled = createSelector(
+  selectSettings,
+  (settingsState: Record<string, unknown>) =>
+    Boolean(settingsState.isBasicFunctionalityConsolidatedEnabled),
+);
+
+export const selectHasLinkedSocialLoginProfile = createSelector(
+  selectSettings,
+  (settingsState: Record<string, unknown>) =>
+    Boolean(settingsState.hasLinkedSocialLoginProfile),
+);
+
 export const selectHideZeroBalanceTokens = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>

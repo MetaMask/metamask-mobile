@@ -15,9 +15,8 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { TokenI } from '../../../Tokens/types';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -26,26 +25,20 @@ jest.mock('react-redux', () => ({
 
 const mockDispatch = jest.fn();
 const mockInitiateDeposit = jest.fn();
-const mockUseMoneyAccountBalance = jest.fn();
-const mockRedirectToOnboardingIfNeeded = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
+const mockUseMoneyVaultApy = jest.fn();
 const mockShouldShowMoneyEarnBanner = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
 const mockTrackTokenSurfaceClicked = jest.fn();
 
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: () => ({
-    initiateDeposit: mockInitiateDeposit,
-  }),
-}));
-
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
-  default: () => mockUseMoneyAccountBalance(),
+  default: () => mockUseMoneyVaultApy(),
 }));
 
 jest.mock('../../hooks/useMoneyAnalytics');
 jest.mock('../../hooks/useMoneyCtaVisibility');
-jest.mock('../../hooks/useMoneyNavigation');
+jest.mock('../../hooks/useMoneyDepositNavigation');
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -55,9 +48,7 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUseDispatch = jest.mocked(useDispatch);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
-const mockUseMoneyOnboardingNavigation = jest.mocked(
-  useMoneyOnboardingNavigation,
-);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
 
 const MOCK_USDC = {
   name: 'USD Coin',
@@ -80,9 +71,20 @@ describe('MoneyEarnBanner', () => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
+    });
+    mockNavigateToMoneyDeposit.mockImplementation(
+      async ({ track, ...options }) => {
+        track?.({
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        });
+        await mockInitiateDeposit(options);
+      },
+    );
     mockShouldShowMoneyEarnBanner.mockReturnValue(true);
-    mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: undefined });
+    mockUseMoneyVaultApy.mockReturnValue({ apyPercent: undefined });
     mockUseMoneyAnalytics.mockReturnValue({
       trackTokenButtonClicked: mockTrackTokenButtonClicked,
       trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
@@ -92,10 +94,6 @@ describe('MoneyEarnBanner', () => {
       shouldShowMoneyAssetOverviewFooterCta: jest.fn(),
       shouldShowMoneyTokenListItemCta: jest.fn(),
       shouldShowMoneyEarnBanner: mockShouldShowMoneyEarnBanner,
-    });
-    mockUseMoneyOnboardingNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: false,
-      redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
     });
   });
 
@@ -144,7 +142,7 @@ describe('MoneyEarnBanner', () => {
     });
 
     it('renders the title with the APY when apyPercent is positive', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: 5.2 });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 5.2 });
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
@@ -154,7 +152,7 @@ describe('MoneyEarnBanner', () => {
     });
 
     it('falls back to the no-APY title when apyPercent is unavailable', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: undefined });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: undefined });
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
@@ -232,12 +230,6 @@ describe('MoneyEarnBanner', () => {
 
       fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CONTAINER));
 
-      expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-          preferredPaymentToken: MOCK_PREFERRED_PAYMENT_TOKEN,
-        },
-      });
       expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
         preferredPaymentToken: MOCK_PREFERRED_PAYMENT_TOKEN,
@@ -253,7 +245,12 @@ describe('MoneyEarnBanner', () => {
     });
 
     it('redirects first-time users to Money onboarding instead of the deposit flow', () => {
-      mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+      mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+        track?.({
+          button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+          redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        });
+      });
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
@@ -324,7 +321,12 @@ describe('MoneyEarnBanner', () => {
     });
 
     it('tracks an onboarding button click without depositing when onboarding is needed', () => {
-      mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+      mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+        track?.({
+          button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+          redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        });
+      });
       const ctaLabel = strings('money.earn_banner.cta', { symbol: 'USDC' });
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);

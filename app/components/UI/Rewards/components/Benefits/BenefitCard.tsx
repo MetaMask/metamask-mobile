@@ -5,6 +5,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -18,25 +19,131 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants.ts';
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SubscriptionBenefitDto } from '../../../../../core/Engine/controllers/rewards-controller/types.ts';
-import { formatDateRemaining } from '../../utils/formatUtils.ts';
+import {
+  formatDateRemaining,
+  resolveBenefitEndDate,
+} from '../../utils/formatUtils.ts';
+
+/** Narrow enough that the next card peeks in from the right edge. */
+export const BENEFIT_PREVIEW_CARD_WIDTH = 210;
+export const BENEFIT_PREVIEW_CARD_HEIGHT = 248;
 
 interface Props {
   benefit: SubscriptionBenefitDto;
+  /**
+   * Dashboard carousel tile. Omit for the full-list row used by BenefitsFullView.
+   */
+  variant?: 'preview';
+  /**
+   * When true the card cannot be pressed. The carousel sets this while the
+   * row is being dragged so a swipe does not open the benefit.
+   */
+  disabled?: boolean;
 }
 
-const BenefitCard = ({ benefit }: Props) => {
+/**
+ * Benefit row for the full list, or a cover-image tile when `variant="preview"`.
+ */
+const BenefitCard = ({ benefit, variant, disabled }: Props) => {
   const tw = useTailwind();
+  const isPreview = variant === 'preview';
   const benefitImageTestId = `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`;
 
+  const remainingTimeEndDate = resolveBenefitEndDate(
+    benefit.validTo,
+    benefit.actionDate,
+  );
   const remainingTime =
-    benefit.actionDate == null
+    remainingTimeEndDate == null
       ? null
-      : formatDateRemaining(benefit.actionDate, Date.now());
+      : formatDateRemaining(remainingTimeEndDate, Date.now());
   const companyName = benefit.companyName?.trim();
+
+  const image = (
+    <Image
+      source={{ uri: benefit.thumbnail }}
+      style={tw.style(isPreview ? 'w-full h-full' : 'w-full h-full rounded-lg')}
+      resizeMode="cover"
+      testID={benefitImageTestId}
+    />
+  );
+
+  const copy = (
+    <Box twClassName="gap-1">
+      <Text
+        variant={TextVariant.HeadingSm}
+        twClassName="text-default"
+        numberOfLines={1}
+      >
+        {benefit.longTitle}
+      </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        numberOfLines={3}
+      >
+        {benefit.shortDescription}
+      </Text>
+    </Box>
+  );
+
+  const footer =
+    remainingTime != null || companyName ? (
+      <Box
+        gap={1}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        testID={`${REWARDS_VIEW_SELECTORS.BENEFIT_CARD_FOOTER}-${benefit.id}`}
+      >
+        {remainingTime != null ? (
+          <Box
+            gap={1}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-1"
+          >
+            <Icon
+              name={IconName.Clock}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {remainingTime}
+            </Text>
+          </Box>
+        ) : (
+          <Box twClassName="flex-1" />
+        )}
+        {companyName ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            twClassName="max-w-[40%]"
+            numberOfLines={1}
+          >
+            {companyName}
+          </Text>
+        ) : null}
+      </Box>
+    ) : null;
 
   return (
     <TouchableOpacity
-      style={tw.style('bg-section rounded-lg p-4 h-[154px]')}
+      style={
+        isPreview
+          ? tw.style('bg-section rounded-xl overflow-hidden', {
+              width: BENEFIT_PREVIEW_CARD_WIDTH,
+              height: BENEFIT_PREVIEW_CARD_HEIGHT,
+            })
+          : tw.style('bg-section rounded-lg p-4')
+      }
+      disabled={disabled}
       onPress={() =>
         NavigationService.navigation.navigate(Routes.REWARD_BENEFIT_FULL_VIEW, {
           benefit,
@@ -44,69 +151,25 @@ const BenefitCard = ({ benefit }: Props) => {
       }
       activeOpacity={0.7}
     >
-      <Box gap={4} twClassName="flex-row items-start">
-        <Box twClassName="w-[78px] h-[78px] rounded-lg bg-muted overflow-hidden items-center justify-center">
-          <Image
-            source={{ uri: benefit.thumbnail }}
-            style={tw.style('w-full h-full rounded-lg')}
-            resizeMode="cover"
-            testID={benefitImageTestId}
-          />
-        </Box>
-
-        <Box twClassName="flex-1 gap-1">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2"
-          >
-            <Text
-              variant={TextVariant.HeadingSm}
-              twClassName="text-default flex-1"
-              numberOfLines={1}
-            >
-              {benefit.longTitle}
-            </Text>
-            {companyName ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                twClassName="max-w-[40%]"
-                numberOfLines={1}
-              >
-                {companyName}
-              </Text>
-            ) : null}
+      {isPreview ? (
+        <>
+          <Box twClassName="w-full h-24 bg-muted overflow-hidden">{image}</Box>
+          <Box twClassName="flex-1 justify-between gap-2 p-4">
+            {copy}
+            {footer}
           </Box>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            numberOfLines={3}
-          >
-            {benefit.shortDescription}
-          </Text>
-          {remainingTime != null && (
-            <Box
-              gap={1}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              <Icon
-                name={IconName.Clock}
-                size={IconSize.Md}
-                color={IconColor.IconAlternative}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {remainingTime}
-              </Text>
-            </Box>
-          )}
+        </>
+      ) : (
+        <Box gap={4} twClassName="flex-row items-start">
+          <Box twClassName="w-[78px] h-[78px] rounded-lg bg-muted overflow-hidden items-center justify-center">
+            {image}
+          </Box>
+          <Box twClassName="flex-1 gap-1">
+            {copy}
+            {footer}
+          </Box>
         </Box>
-      </Box>
+      )}
     </TouchableOpacity>
   );
 };

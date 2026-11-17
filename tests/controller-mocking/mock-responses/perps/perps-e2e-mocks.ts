@@ -206,17 +206,21 @@ export class PerpsE2EMockService {
       this.mockOrders.push(solOrder);
     }
 
-    // Seed a completed deposit so Activity > Deposits is populated
-    this.mockUserHistory.push({
-      id: `seed_deposit_${Date.now()}`,
-      timestamp: Date.now() - 5 * 60 * 1000,
-      type: 'deposit',
-      amount: '100.00',
-      asset: 'USDC',
-      txHash: '0xseeddeposit',
-      status: 'completed',
-      details: { source: 'e2e-mock' },
-    });
+    // Seed a completed deposit so Activity > Deposits is populated.
+    // Skipped for 'no-positions' so deposit-flow tests that create their own
+    // real deposit tx render a single entry instead of a duplicate.
+    if (profile !== 'no-positions') {
+      this.mockUserHistory.push({
+        id: `seed_deposit_${Date.now()}`,
+        timestamp: Date.now() - 5 * 60 * 1000,
+        type: 'deposit',
+        amount: '100.00',
+        asset: 'USDC',
+        txHash: '0xseeddeposit',
+        status: 'completed',
+        details: { source: 'e2e-mock' },
+      });
+    }
   }
 
   // Mock successful order placement

@@ -13,14 +13,22 @@ export interface OnboardingState {
 }
 
 export interface CardSliceState {
-  hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
   pendingMoneyAccountCardLink: CardEntryPoint | null;
+  /**
+   * True after a Money account funding approval was submitted and Immersve
+   * has not yet reported spending as active. Session-only.
+   */
+  immersveFundingSettling: boolean;
+  cardArrivalAnimationSeen: boolean;
+  /** Armed by the developer-options reset; consumed on arrival, not persisted. */
+  cardArrivalPreviewRequested: boolean;
+  /** One-time Apple Pay availability splash on Card Home. */
+  applePaySplashSeen: boolean;
 }
 
 export const initialState: CardSliceState = {
-  hasViewedCardButton: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -29,6 +37,10 @@ export const initialState: CardSliceState = {
   },
   isDaimoDemo: false,
   pendingMoneyAccountCardLink: null,
+  immersveFundingSettling: false,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
+  applePaySplashSeen: false,
 };
 
 const name = 'card';
@@ -38,9 +50,6 @@ const slice = createSlice({
   initialState,
   reducers: {
     resetCardState: () => initialState,
-    setHasViewedCardButton: (state, action: PayloadAction<boolean>) => {
-      state.hasViewedCardButton = action.payload;
-    },
     setIsDaimoDemo: (state, action: PayloadAction<boolean>) => {
       state.isDaimoDemo = action.payload;
     },
@@ -73,6 +82,18 @@ const slice = createSlice({
     ) => {
       state.pendingMoneyAccountCardLink = action.payload;
     },
+    setImmersveFundingSettling: (state, action: PayloadAction<boolean>) => {
+      state.immersveFundingSettling = action.payload;
+    },
+    setCardArrivalAnimationSeen: (state, action: PayloadAction<boolean>) => {
+      state.cardArrivalAnimationSeen = action.payload;
+    },
+    setCardArrivalPreviewRequested: (state, action: PayloadAction<boolean>) => {
+      state.cardArrivalPreviewRequested = action.payload;
+    },
+    setApplePaySplashSeen: (state, action: PayloadAction<boolean>) => {
+      state.applePaySplashSeen = action.payload;
+    },
   },
 });
 
@@ -82,11 +103,6 @@ export default reducer;
 
 // Base selectors
 const selectCardState = (state: RootState) => state[name];
-
-export const selectHasViewedCardButton = createSelector(
-  selectCardState,
-  (card) => card.hasViewedCardButton,
-);
 
 export const selectIsDaimoDemo = createSelector(
   selectCardState,
@@ -118,10 +134,29 @@ export const selectPendingMoneyAccountCardLink = createSelector(
   (card) => card.pendingMoneyAccountCardLink,
 );
 
+export const selectImmersveFundingSettling = createSelector(
+  selectCardState,
+  (card) => card.immersveFundingSettling ?? false,
+);
+
+export const selectCardArrivalAnimationSeen = createSelector(
+  selectCardState,
+  (card) => card.cardArrivalAnimationSeen,
+);
+
+export const selectCardArrivalPreviewRequested = createSelector(
+  selectCardState,
+  (card) => card.cardArrivalPreviewRequested,
+);
+
+export const selectApplePaySplashSeen = createSelector(
+  selectCardState,
+  (card) => card?.applePaySplashSeen ?? false,
+);
+
 // Actions
 export const {
   resetCardState,
-  setHasViewedCardButton,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
@@ -129,4 +164,8 @@ export const {
   resetOnboardingState,
   setIsDaimoDemo,
   setPendingMoneyAccountCardLink,
+  setImmersveFundingSettling,
+  setCardArrivalAnimationSeen,
+  setCardArrivalPreviewRequested,
+  setApplePaySplashSeen,
 } = actions;

@@ -46,4 +46,18 @@ describe('ExploreScroll', () => {
     );
     expect(scrollView.props.style.__twClasses).toBe('flex-1 pt-3');
   });
+
+  it('subscribes to scroll and layout notifications at a bounded frequency', () => {
+    const { UNSAFE_getByType } = render(
+      <ExploreScroll refreshing={false} onRefresh={jest.fn()}>
+        <Text>child</Text>
+      </ExploreScroll>,
+    );
+
+    const scrollView = UNSAFE_getByType(ScrollView);
+
+    expect(scrollView.props.scrollEventThrottle).toBe(50);
+    expect(scrollView.props.onScroll).toEqual(expect.any(Function));
+    expect(scrollView.props.onLayout).toEqual(expect.any(Function));
+  });
 });

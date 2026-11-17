@@ -6,19 +6,18 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconColor,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  IconColor,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import PendingSpinner from '../../../UI/Money/components/PendingSpinner/PendingSpinner';
 import {
   getPendingTxActionVisibility,
   hasAnyPendingTxAction,
+  showSpeedUp,
 } from '../../../UI/Transactions/pendingTxActions';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
@@ -70,7 +69,7 @@ export function ActivityDetailsPendingBanner({
       testID={ActivityDetailsSelectorsIDs.PENDING_BANNER}
     >
       <Box twClassName="flex-row items-center gap-2">
-        <PendingSpinner size={IconSize.Sm} color={IconColor.Default} />
+        <PendingSpinner size={IconSize.Sm} color={IconColor.IconDefault} />
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('activity_details.transaction_pending')}
         </Text>
@@ -97,15 +96,17 @@ export function ActivityDetailsPendingBanner({
           >
             {strings('transaction.cancel')}
           </Button>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            twClassName="flex-1"
-            onPress={() => onSpeedUpAction(true, tx)}
-            testID={ActivityDetailsSelectorsIDs.PENDING_SPEED_UP_BUTTON}
-          >
-            {strings('transaction.speedup')}
-          </Button>
+          {showSpeedUp(tx.type) && (
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              twClassName="flex-1"
+              onPress={() => onSpeedUpAction(true, tx)}
+              testID={ActivityDetailsSelectorsIDs.PENDING_SPEED_UP_BUTTON}
+            >
+              {strings('transaction.speedup')}
+            </Button>
+          )}
         </Box>
       ) : null}
 

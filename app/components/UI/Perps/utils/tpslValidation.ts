@@ -10,9 +10,11 @@
  * - Stop Loss must be above current price (loss when price goes up)
  */
 
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
-  DECIMAL_PRECISION_CONFIG,
+  isPositiveTriggerPrice,
+  isStopLossSafeFromLiquidation,
+  isValidStopLossPrice,
+  isValidTakeProfitPrice,
   type OrderType,
 } from '@metamask/perps-controller';
 // Re-export significant figures utilities from controller for backwards compatibility
@@ -21,88 +23,6 @@ export {
   hasExceededSignificantFigures,
   roundToSignificantFigures,
 } from '@metamask/perps-controller';
-
-interface ValidationParams {
-  currentPrice: number;
-  direction?: 'long' | 'short';
-  leverage?: number;
-  entryPrice?: number; // For existing positions
-  liquidationPrice?: string;
-}
-
-/**
- * Validates if a take profit price is valid for the given direction.
- *
- * @param price - The take profit price to validate
- * @param validationParams - Validation parameters
- * @param validationParams.currentPrice - The current market price
- * @param validationParams.direction - The position direction (long or short)
- * @returns True if the take profit price is valid, false otherwise
- */
-export const isValidTakeProfitPrice = (
-  price: string,
-  { currentPrice, direction }: ValidationParams,
-): boolean => {
-  if (!currentPrice || !direction || !price) return true;
-
-  const tpPrice = parseFloat(price.replace(/[$,]/g, ''));
-  if (isNaN(tpPrice)) return true;
-
-  const isLong = direction === 'long';
-  return isLong ? tpPrice > currentPrice : tpPrice < currentPrice;
-};
-
-/**
- * Validates if a stop loss price is valid for the given direction.
- *
- * @param price - The stop loss price to validate
- * @param validationParams - Validation parameters
- * @param validationParams.currentPrice - The current market price
- * @param validationParams.direction - The position direction (long or short)
- * @returns True if the stop loss price is valid, false otherwise
- */
-export const isValidStopLossPrice = (
-  price: string,
-  { currentPrice, direction }: ValidationParams,
-): boolean => {
-  if (!currentPrice || !direction || !price) return true;
-
-  const slPrice = parseFloat(price.replace(/[$,]/g, ''));
-  if (isNaN(slPrice)) return true;
-
-  const isLong = direction === 'long';
-  return isLong ? slPrice < currentPrice : slPrice > currentPrice;
-};
-
-/**
- * Validates if a stop loss price is within the liquidation price.
- * For long positions: stop loss must be ABOVE liquidation price.
- * For short positions: stop loss must be BELOW liquidation price.
- *
- * @param price - The stop loss price to validate
- * @param liquidationPrice - The liquidation price threshold
- * @param direction - The position direction (long or short)
- * @returns True if the stop loss is safe from liquidation, false otherwise
- */
-export const isStopLossSafeFromLiquidation = (
-  price?: string,
-  liquidationPrice?: string,
-  direction?: 'long' | 'short',
-) => {
-  if (!liquidationPrice || !direction || !price) return true;
-
-  // Clean up string values if necessary ($ or ,)
-  const slPriceNum = parseFloat(price.replace(/[$,]/g, ''));
-  const liquidationPriceNum = parseFloat(liquidationPrice.replace(/[$,]/g, ''));
-
-  if (isNaN(slPriceNum) || isNaN(liquidationPriceNum)) return true;
-
-  const isLong = direction === 'long';
-
-  return isLong
-    ? slPriceNum > liquidationPriceNum
-    : slPriceNum < liquidationPriceNum;
-};
 
 export interface PerpsOrderTpSlWarningsInput {
   orderType: OrderType;
@@ -162,20 +82,22 @@ export const getPerpsOrderTpSlWarnings = ({
 
   const isTakeProfitPriceInvalid = Boolean(
     takeProfitPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidTakeProfitPrice(takeProfitPrice, {
-        currentPrice: validationReferencePrice,
-        direction,
-      }),
+      (!isPositiveTriggerPrice(takeProfitPrice) ||
+        (validationReferencePrice > 0 &&
+          !isValidTakeProfitPrice(takeProfitPrice, {
+            currentPrice: validationReferencePrice,
+            direction,
+          }))),
   );
 
   const isStopLossPriceInvalid = Boolean(
     stopLossPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidStopLossPrice(stopLossPrice, {
-        currentPrice: validationReferencePrice,
-        direction,
-      }),
+      (!isPositiveTriggerPrice(stopLossPrice) ||
+        (validationReferencePrice > 0 &&
+          !isValidStopLossPrice(stopLossPrice, {
+            currentPrice: validationReferencePrice,
+            direction,
+          }))),
   );
 
   return {
@@ -184,44 +106,6 @@ export const getPerpsOrderTpSlWarnings = ({
     isStopLossPriceInvalid,
     tpslPriceType,
   };
-};
-
-/**
- * Validates both take profit and stop loss prices.
- *
- * @param takeProfitPrice - The take profit price to validate
- * @param stopLossPrice - The stop loss price to validate
- * @param params - Validation parameters including currentPrice, direction, and liquidationPrice
- * @returns True if both prices are valid, false otherwise
- */
-export const validateTPSLPrices = (
-  takeProfitPrice: string | undefined,
-  stopLossPrice: string | undefined,
-  params: ValidationParams,
-): boolean => {
-  if (!params.currentPrice || !params.direction) return true;
-
-  let isValid = true;
-
-  if (takeProfitPrice) {
-    isValid = isValid && isValidTakeProfitPrice(takeProfitPrice, params);
-  }
-
-  if (stopLossPrice) {
-    isValid = isValid && isValidStopLossPrice(stopLossPrice, params);
-  }
-
-  if (params.liquidationPrice) {
-    isValid =
-      isValid &&
-      isStopLossSafeFromLiquidation(
-        stopLossPrice,
-        params.liquidationPrice,
-        params.direction,
-      );
-  }
-
-  return isValid;
 };
 
 /**
@@ -264,72 +148,6 @@ export const getStopLossLiquidationErrorDirection = (
 };
 
 /**
- * Calculates price based on percentage change from current price.
- *
- * @param percentage - The percentage change
- * @param isProfit - Whether this is for take profit (true) or stop loss (false)
- * @param validationParams - Validation parameters
- * @param validationParams.currentPrice - The current market price
- * @param validationParams.direction - The position direction (long or short)
- * @returns The calculated price as a string
- */
-export const calculatePriceForPercentage = (
-  percentage: number,
-  isProfit: boolean,
-  { currentPrice, direction }: ValidationParams,
-): string => {
-  if (!currentPrice) return '';
-
-  // For long positions: profit = price up, loss = price down
-  // For short positions: profit = price down, loss = price up
-  const isLong = direction === 'long';
-  const profitMultiplier = isLong ? 1 + percentage / 100 : 1 - percentage / 100;
-  const lossMultiplier = isLong ? 1 - percentage / 100 : 1 + percentage / 100;
-  const multiplier = isProfit ? profitMultiplier : lossMultiplier;
-
-  const calculatedPrice = currentPrice * multiplier;
-  // Return raw number string without formatting
-  return calculatedPrice.toFixed(2);
-};
-
-/**
- * Calculates percentage change based on target price.
- *
- * @param price - The target price (as string, may include formatting)
- * @param isProfit - Whether this is for take profit (true) or stop loss (false)
- * @param validationParams - Validation parameters
- * @param validationParams.currentPrice - The current market price
- * @param validationParams.direction - The position direction (long or short)
- * @returns The percentage as a string
- */
-export const calculatePercentageForPrice = (
-  price: string,
-  isProfit: boolean,
-  { currentPrice, direction }: ValidationParams,
-): string => {
-  if (!currentPrice || !price) return '';
-
-  const priceNum = parseFloat(price.replace(/[$,]/g, ''));
-  if (isNaN(priceNum)) return '';
-
-  const isLong = direction === 'long';
-  const priceDiff = priceNum - currentPrice;
-  const percentage = Math.abs((priceDiff / currentPrice) * 100);
-
-  // Validate direction consistency
-  if (isProfit) {
-    // For profit: long needs higher price, short needs lower price
-    const isValidDirection = isLong ? priceDiff > 0 : priceDiff < 0;
-    return isValidDirection
-      ? percentage.toFixed(2)
-      : `-${percentage.toFixed(2)}`;
-  }
-  // For loss: long needs lower price, short needs higher price
-  const isValidDirection = isLong ? priceDiff < 0 : priceDiff > 0;
-  return isValidDirection ? percentage.toFixed(2) : `-${percentage.toFixed(2)}`;
-};
-
-/**
  * Checks if take profit or stop loss values have changed from their initial values
  * @param currentTakeProfitPrice Current take profit price value
  * @param currentStopLossPrice Current stop loss price value
@@ -366,197 +184,16 @@ export const hasTPSLValuesChanged = (
 };
 
 /**
- * Calculates the trigger price for a given RoE percentage.
- * RoE% = (PnL / marginUsed) * 100
- * PnL = (exitPrice - entryPrice) * size (for long)
- * PnL = (entryPrice - exitPrice) * size (for short)
- *
- * @param roePercentage - The target RoE percentage (e.g., 10 for +10%, -5 for -5%)
- * @param isProfit - Whether this is for take profit (true) or stop loss (false)
- * @param validationParams - Validation parameters
- * @param validationParams.currentPrice - The current market price
- * @param validationParams.direction - The position direction (long or short)
- * @param validationParams.leverage - The position leverage multiplier
- * @param validationParams.entryPrice - The entry price for existing positions
- * @returns The calculated trigger price as a string
- */
-export const calculatePriceForRoE = (
-  roePercentage: number,
-  isProfit: boolean,
-  { currentPrice, direction, leverage = 1, entryPrice }: ValidationParams,
-): string => {
-  // Use entry price if available (for existing positions), otherwise use current price
-  const basePrice = entryPrice || currentPrice;
-  if (!basePrice || basePrice <= 0 || !direction) {
-    return '';
-  }
-
-  const isLong = direction === 'long';
-
-  // Prevent stop loss from exceeding maximum possible loss
-  // Maximum theoretical loss is 100% * leverage (before liquidation)
-  // But we'll cap it at 99% to avoid negative prices
-  if (!isProfit && Math.abs(roePercentage) >= leverage * 99) {
-    // Cap at 99% of max loss to prevent negative prices
-    roePercentage = -(leverage * 99);
-  }
-
-  DevLogger.log('[TPSL Debug] calculatePriceForRoE inputs:', {
-    roePercentage,
-    isProfit,
-    basePrice,
-    currentPrice,
-    entryPrice,
-    direction,
-    leverage,
-    isLong,
-  });
-
-  // RoE% = (PnL / marginUsed) * 100
-  // PnL = RoE% * marginUsed / 100
-  // marginUsed = positionValue / leverage
-  // positionValue = entryPrice * size
-  // Therefore: PnL = RoE% * (entryPrice * size) / (leverage * 100)
-  // Simplifying: PnL/positionValue = RoE% / (leverage * 100)
-  // priceChange/entryPrice = RoE% / (leverage * 100)
-  // priceChange = entryPrice * RoE% / (leverage * 100)
-
-  const priceChangeRatio = roePercentage / (leverage * 100);
-
-  let calculatedPrice: number;
-  if (isProfit) {
-    // For take profit
-    if (isLong) {
-      // Long TP: price needs to go up
-      calculatedPrice = basePrice * (1 + priceChangeRatio);
-    } else {
-      // Short TP: price needs to go down
-      calculatedPrice = basePrice * (1 - priceChangeRatio);
-    }
-  } else if (isLong) {
-    // For stop loss (negative RoE)
-    // Long SL: price needs to go down
-    calculatedPrice = basePrice * (1 - -priceChangeRatio);
-    // Ensure price never goes negative
-    if (calculatedPrice <= 0) {
-      calculatedPrice = basePrice * 0.01; // Minimum 1% of base price
-    }
-  } else {
-    // Short SL: price needs to go up
-    calculatedPrice = basePrice * (1 + -priceChangeRatio);
-  }
-
-  // Determine appropriate precision based on the price magnitude
-  // For very small prices (like PEPE), use more decimal places
-  let precision = 2;
-  if (calculatedPrice < 0.01) {
-    precision = 8; // For prices less than $0.01, use 8 decimal places
-  } else if (calculatedPrice < 1) {
-    precision = DECIMAL_PRECISION_CONFIG.MaxPriceDecimals; // For prices less than $1, use MAX_PRICE_DECIMALS decimal places
-  } else if (calculatedPrice < 100) {
-    precision = 4; // For prices less than $100, use 4 decimal places
-  }
-
-  let finalResult = calculatedPrice.toFixed(precision);
-
-  // Apply clean formatting - remove unnecessary trailing zeros and decimal point
-  const numValue = parseFloat(finalResult);
-  if (numValue % 1 === 0) {
-    // If it's a whole number, show without decimals
-    finalResult = numValue.toString();
-  } else {
-    // Otherwise, use the formatted result but remove trailing zeros
-    finalResult = parseFloat(finalResult).toString();
-  }
-
-  DevLogger.log('[TPSL Debug] calculatePriceForRoE result:', {
-    priceChangeRatio,
-    calculatedPrice,
-    precision,
-    beforeCleanup: calculatedPrice.toFixed(precision),
-    finalResult,
-  });
-
-  return finalResult;
-};
-
-/**
- * Calculates the RoE percentage for a given trigger price.
- *
- * @param price - The trigger price (as string, may include formatting)
- * @param isProfit - Whether this is for take profit (true) or stop loss (false)
- * @param isForPositionBoundTpsl - Whether this is for position bound TP/SL roe calculation
- * @param validationParams - Validation parameters
- * @param validationParams.currentPrice - The current market price
- * @param validationParams.direction - The position direction (long or short)
- * @param validationParams.leverage - The position leverage multiplier
- * @param validationParams.entryPrice - The entry price for existing positions
- * @returns The RoE percentage as a string
- */
-export const calculateRoEForPrice = (
-  price: string,
-  isProfit: boolean,
-  isForPositionBoundTpsl: boolean,
-  { currentPrice, direction, leverage = 1, entryPrice }: ValidationParams,
-): string => {
-  // Use entry price if available (for existing positions), otherwise use current price
-  const basePrice = entryPrice || currentPrice;
-  if (!basePrice || basePrice <= 0 || !price || !direction) {
-    return '';
-  }
-
-  const priceNum = parseFloat(price.replace(/[$,]/g, ''));
-  if (isNaN(priceNum) || priceNum <= 0) return '';
-
-  const isLong = direction === 'long';
-
-  // Calculate price change ratio
-  const priceChangeRatio = (priceNum - basePrice) / basePrice;
-
-  // RoE% = priceChangeRatio * leverage * 100
-  let roePercentage = priceChangeRatio * leverage * 100;
-  if (!isLong) {
-    roePercentage = -roePercentage;
-  }
-
-  if (
-    !isForPositionBoundTpsl &&
-    ((isProfit && roePercentage < 0) || (!isProfit && roePercentage > 0))
-  ) {
-    roePercentage = 0;
-  }
-
-  return roePercentage.toFixed(2);
-};
-
-/**
- * Safely parse RoE percentage to avoid NaN display in UI
- * @param roePercent - RoE percentage string from calculateRoEForPrice
- * @returns Formatted percentage string or empty string for invalid input
- */
-export const safeParseRoEPercentage = (roePercent: string): string => {
-  if (!roePercent || roePercent.trim() === '') {
-    return ''; // Return empty string for invalid input
-  }
-
-  const parsed = parseFloat(roePercent);
-  if (isNaN(parsed)) {
-    return ''; // Return empty string for NaN
-  }
-
-  // Show clean integers when possible (10% instead of 10.00%)
-  return parsed % 1 === 0 ? parsed.toFixed(0) : parsed.toFixed(2);
-};
-
-/**
  * Format RoE percentage for display based on focus state
  * @param value - The raw percentage value as string
  * @param isFocused - Whether the input is currently focused
+ * @param includeSign - When false, omit `+`/`-` (the Auto Close badge owns the sign)
  * @returns Formatted percentage string for display
  */
 export const formatRoEPercentageDisplay = (
   value: string,
   isFocused: boolean,
+  includeSign: boolean = true,
 ): string => {
   if (!value || value.trim() === '') {
     return '';
@@ -590,36 +227,15 @@ export const formatRoEPercentageDisplay = (
   const formattedValue =
     absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
 
+  if (!includeSign) {
+    return formattedValue;
+  }
+
   // Always show sign for display
   if (parsed >= 0) {
     return `+ ${formattedValue}`;
   }
   return `- ${formattedValue}`;
-};
-
-/**
- * Calculate the maximum allowed stop loss percentage based on leverage
- * @param leverage The position leverage
- * @returns The maximum stop loss percentage (as a positive number)
- */
-export const getMaxStopLossPercentage = (leverage: number): number =>
-  // Maximum theoretical loss is 100% * leverage (before liquidation)
-  // But we cap it at 99% to avoid negative prices and leave room for fees
-  Math.min(leverage * 99, 999);
-
-/**
- * Validate if a stop loss percentage is within allowed bounds
- * @param percentage The stop loss percentage (as a positive number)
- * @param leverage The position leverage
- * @returns True if valid, false otherwise
- */
-export const isValidStopLossPercentage = (
-  percentage: number,
-  leverage: number,
-): boolean => {
-  if (percentage <= 0) return false;
-  const maxAllowed = getMaxStopLossPercentage(leverage);
-  return percentage <= maxAllowed;
 };
 
 /**

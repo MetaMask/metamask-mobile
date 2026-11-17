@@ -1,14 +1,14 @@
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { QuickBuy } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/quickBuy';
-import { TOP_TRADERS_QUICK_BUY_FEATURES } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/features';
-import type { QuickBuyTarget } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/types';
+import { QuickBuy } from '../../../QuickBuy/quickBuy';
+import { TOP_TRADERS_QUICK_BUY_FEATURES } from '../../../QuickBuy/features';
+import type { QuickBuyTarget } from '../../../QuickBuy/types';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   QuickBuyEventProperties,
   type QuickBuySheetSource,
-} from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+} from '../../../QuickBuy/analytics';
 import { useSocialLeaderboardAnalytics } from '../../../../Views/SocialLeaderboard/analytics';
 
 export interface TrendingQuickBuyProps {
@@ -30,13 +30,16 @@ const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
     if (!token) return null;
     const [caipChainId, assetIdentifier] = token.assetId.split('/');
     if (!caipChainId) return null;
+    const isEvmChain = caipChainId.startsWith('eip155:');
     const isNative = assetIdentifier?.startsWith('slip44:');
-    const tokenAddress = isNative
+    const address = isNative
       ? NATIVE_SWAPS_TOKEN_ADDRESS
       : (assetIdentifier?.split(':')[1] ?? '');
     return {
       chain: caipChainId as QuickBuyTarget['chain'],
-      tokenAddress,
+      // Non-EVM references (e.g. Stellar `CODE-ISSUER`) can't be resolved
+      // without their namespace, so keep the full CAIP-19 ID.
+      tokenAddress: isEvmChain || isNative ? address : token.assetId,
       tokenSymbol: token.symbol ?? '',
       tokenName: token.name ?? '',
     };

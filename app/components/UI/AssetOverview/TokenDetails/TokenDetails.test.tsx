@@ -18,6 +18,7 @@ import * as reactRedux from 'react-redux';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { handleFetch } from '@metamask/controller-utils';
+import { act, waitFor } from '@testing-library/react-native';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -471,5 +472,192 @@ describe('TokenDetails', () => {
     expect(getByText('Market details')).toBeDefined();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(handleFetch).not.toHaveBeenCalled();
+  });
+
+  // Token Details V1 resolves market data once for the whole screen and passes
+  // it down, so this component must not duplicate the request.
+  it('does not fetch market data when it is supplied by the caller', async () => {
+    jest.clearAllMocks();
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { getByText } = renderWithProvider(
+      <TokenDetails
+        asset={mockDAI}
+        marketData={
+          {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 0,
+            marketCap: 5_000_000,
+          } as never
+        }
+      />,
+      { state: initialState },
+    );
+
+    expect(getByText('Market details')).toBeOnTheScreen();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(handleFetch).not.toHaveBeenCalled();
+  });
+
+  // The caller passes null while its own request is in flight. Fetching here
+  // would race it with an identical request, which is what the prop exists to
+  // prevent — so presence of the prop, not its value, has to gate the fetch.
+  it('does not fetch market data when the caller supplies null', async () => {
+    jest.clearAllMocks();
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    // No market data from any source, so the section itself stays hidden —
+    // what matters here is that no request went out to populate it.
+    const { getByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} marketData={null} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Token details')).toBeOnTheScreen();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(handleFetch).not.toHaveBeenCalled();
+  });
+
+  // Omitting the prop entirely is the legacy page, which still owns its fetch.
+  it('fetches market data when no caller supplies it', async () => {
+    jest.clearAllMocks();
+
+    jest.mocked(handleFetch).mockResolvedValue({});
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    renderWithProvider(<TokenDetails asset={mockDAI} />, {
+      state: initialState,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(handleFetch).toHaveBeenCalledWith(
+      expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
+    );
+  });
+
+  it('keeps token details on screen when the spot price response is null', async () => {
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    jest.mocked(handleFetch).mockReset();
+    jest.mocked(handleFetch).mockResolvedValue(null);
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { findByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      { state: initialState },
+    );
+
+    expect(await findByText('Token details')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(handleFetch).toHaveBeenCalledTimes(1);
+    });
+    await act(async () => {
+      await jest.mocked(handleFetch).mock.results[0]?.value;
+    });
+    expect(queryByText('Market details')).not.toBeOnTheScreen();
+    expect(errorSpy).not.toHaveBeenCalledWith(
+      'Failed to fetch market data:',
+      expect.anything(),
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('logs a spot price fetch failure and still renders token details', async () => {
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    const failure = new Error('spot price unavailable');
+    jest.mocked(handleFetch).mockReset();
+    jest.mocked(handleFetch).mockRejectedValue(failure);
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { findByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      { state: initialState },
+    );
+
+    expect(await findByText('Token details')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Failed to fetch market data:',
+        failure,
+      );
+    });
+    expect(queryByText('Market details')).not.toBeOnTheScreen();
+    errorSpy.mockRestore();
+  });
+
+  // Supplied data is already in the selected currency, so applying the native
+  // conversion rate on top of it would inflate every figure.
+  it('renders supplied market data without applying the conversion rate', () => {
+    jest.clearAllMocks();
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { getByText } = renderWithProvider(
+      <TokenDetails
+        asset={mockDAI}
+        marketData={
+          {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 0,
+            marketCap: 5_000_000,
+          } as never
+        }
+      />,
+      { state: initialState },
+    );
+
+    // 5M as given, not 5M multiplied by the ETH rate.
+    expect(getByText('$5.00M')).toBeOnTheScreen();
   });
 });

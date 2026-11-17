@@ -1,9 +1,11 @@
-import EventEmitter2 from 'eventemitter2';
 import type {
   MarkAsReadNotificationsParam,
   NotificationServicesControllerEnableNotificationsOptions,
 } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
+import { unregisterBrazePush } from '../../../core/Braze/unregisterPush';
+import { markBrazePushRegistrationDesired } from '../../../core/Braze/pushRegistrationState';
+import Logger from '../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
 const CLIENT_TYPE = 'mobile' as const;
@@ -12,32 +14,21 @@ const GET_NOTIFICATION_PREFERENCES_ACTION =
 const PUT_NOTIFICATION_PREFERENCES_ACTION =
   'AuthenticatedUserStorageService:putNotificationPreferences' as const;
 
-const previewTokenEventEmitter = new EventEmitter2();
-const PREVIEW_TOKEN_UPDATE_EVENT = 'previewTokenUpdate';
-let previewToken: string | undefined;
-
-export function setContentPreviewToken(newPreviewToken?: string | null) {
-  if (typeof newPreviewToken === 'string') {
-    previewToken = newPreviewToken;
-    previewTokenEventEmitter.emit(PREVIEW_TOKEN_UPDATE_EVENT, previewToken);
-  }
-}
-
-export function getContentPreviewToken() {
-  return previewToken;
-}
-
-export function subscribeToContentPreviewToken(
-  callback: (token: string) => void,
-) {
-  const sub = previewTokenEventEmitter.on(PREVIEW_TOKEN_UPDATE_EVENT, callback);
-  return () => sub.off(PREVIEW_TOKEN_UPDATE_EVENT, callback);
-}
-
 export const assertIsFeatureEnabled = () => {
   if (!isNotificationsFeatureEnabled()) {
     throw new Error(
       'Notifications Feature is not yet enabled, you should not have been able to access this yet!',
+    );
+  }
+};
+
+const markBrazePushRegistrationDesiredSafely = async (): Promise<void> => {
+  try {
+    await markBrazePushRegistrationDesired();
+  } catch (error) {
+    Logger.error(
+      error instanceof Error ? error : new Error(String(error)),
+      '[Braze] Failed to persist push registration intent',
     );
   }
 };
@@ -51,6 +42,9 @@ export const enableNotifications = async (
   options?: NotificationServicesControllerEnableNotificationsOptions,
 ) => {
   assertIsFeatureEnabled();
+  if (options?.registerPushNotifications !== false) {
+    await markBrazePushRegistrationDesiredSafely();
+  }
   await Engine.context.NotificationServicesController.enableMetamaskNotifications(
     options,
   );
@@ -100,6 +94,9 @@ export const setMarketingNotificationPreferencesEnabled = async (
  */
 export const disableNotifications = async () => {
   assertIsFeatureEnabled();
+  if (!Engine.context.NotificationServicesPushController.state.fcmToken) {
+    await unregisterBrazePush();
+  }
   await Engine.context.NotificationServicesController.disableNotificationServices();
 };
 
@@ -110,15 +107,22 @@ export const disableNotifications = async () => {
  */
 export const enablePushNotifications = async () => {
   assertIsFeatureEnabled();
+  await markBrazePushRegistrationDesiredSafely();
   await Engine.context.NotificationServicesController.enablePushNotifications();
 };
 
 /**
  * Push Notifications Switch
  * - Allows us to disable push notifications
+ * When NaaP has no FCM token, unregisters Braze here because the push
+ * controller otherwise returns before invoking its token-deletion callback.
+ * Failures persist for retry on the next app session.
  */
 export const disablePushNotifications = async () => {
   assertIsFeatureEnabled();
+  if (!Engine.context.NotificationServicesPushController.state.fcmToken) {
+    await unregisterBrazePush();
+  }
   await Engine.context.NotificationServicesController.disablePushNotifications();
 };
 
@@ -180,9 +184,7 @@ export const enableAccounts = async (accounts: string[]) => {
  */
 export const fetchNotifications = async () => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications(
-    getContentPreviewToken(),
-  );
+  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications();
 };
 
 /**

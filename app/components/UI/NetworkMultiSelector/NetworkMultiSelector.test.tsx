@@ -116,6 +116,11 @@ jest.mock('../../../util/networks/customNetworks', () => ({
   PopularList: [],
 }));
 
+const mockTrackFiltering = jest.fn();
+jest.mock('../Tokens/hooks/useTokenListFilteringEvent', () => ({
+  useTokenListFilteringEvent: () => mockTrackFiltering,
+}));
+
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
@@ -238,7 +243,10 @@ describe('NetworkMultiSelector', () => {
     bitcoinNetworks: networks.filter((n) =>
       n.caipChainId.startsWith('bip122:'),
     ),
-    tronNetworks: [],
+    tronNetworks: networks.filter((n) => n.caipChainId.startsWith('tron:')),
+    stellarNetworks: networks.filter((n) =>
+      n.caipChainId.startsWith('stellar:'),
+    ),
     selectedEvmAccount: networks.some((n) =>
       n.caipChainId.startsWith('eip155:'),
     )
@@ -251,11 +259,13 @@ describe('NetworkMultiSelector', () => {
       : null,
     selectedBitcoinAccount: null,
     selectedTronAccount: null,
+    selectedStellarAccount: null,
     areAllNetworksSelectedCombined: areAllSelected,
     areAllEvmNetworksSelected: false,
     areAllSolanaNetworksSelected: false,
     areAllBitcoinNetworksSelected: false,
     areAllTronNetworksSelected: false,
+    areAllStellarNetworksSelected: false,
   });
 
   const setupMockSelectors = (
@@ -375,15 +385,18 @@ describe('NetworkMultiSelector', () => {
       solanaNetworks: mockNetworks,
       bitcoinNetworks: mockNetworks,
       tronNetworks: mockNetworks,
+      stellarNetworks: mockNetworks,
       selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
       selectedTronAccount: { id: 'tron-account' } as InternalAccount,
+      selectedStellarAccount: { id: 'stellar-account' } as InternalAccount,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
       areAllBitcoinNetworksSelected: false,
       areAllTronNetworksSelected: false,
+      areAllStellarNetworksSelected: false,
     });
 
     mockUseSelector.mockImplementation((selector) => {
@@ -772,6 +785,7 @@ describe('NetworkMultiSelector', () => {
         solanaNetworks: [],
         bitcoinNetworks: [],
         tronNetworks: [],
+        stellarNetworks: [],
         selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
@@ -780,7 +794,9 @@ describe('NetworkMultiSelector', () => {
         areAllSolanaNetworksSelected: false,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        areAllStellarNetworksSelected: false,
         selectedTronAccount: null,
+        selectedStellarAccount: null,
       });
 
       // Setup selector mock
@@ -854,12 +870,15 @@ describe('NetworkMultiSelector', () => {
         solanaNetworks: mockSolanaNetworks,
         bitcoinNetworks: [],
         tronNetworks: [],
+        stellarNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
+        selectedStellarAccount: null,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        areAllStellarNetworksSelected: false,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: true,
@@ -935,6 +954,7 @@ describe('NetworkMultiSelector', () => {
         solanaNetworks: [],
         bitcoinNetworks: [],
         tronNetworks: [],
+        stellarNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
@@ -943,7 +963,9 @@ describe('NetworkMultiSelector', () => {
         areAllSolanaNetworksSelected: false,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        areAllStellarNetworksSelected: false,
         selectedTronAccount: null,
+        selectedStellarAccount: null,
       });
 
       mockUseSelector.mockImplementation((selector) => {
@@ -1008,15 +1030,18 @@ describe('NetworkMultiSelector', () => {
         solanaNetworks: [],
         bitcoinNetworks: [],
         tronNetworks: [],
+        stellarNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
+        selectedStellarAccount: null,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        areAllStellarNetworksSelected: false,
       });
 
       mockUseSelector.mockImplementation((selector) => {
@@ -1316,6 +1341,7 @@ describe('NetworkMultiSelector', () => {
         'mock-network-multi-selector-list',
       ).props.onSelectNetwork('eip155:8453');
 
+      expect(mockTrackFiltering).not.toHaveBeenCalled();
       const trackEventCall = mockTrackEvent.mock.calls[0][0];
       expect(trackEventCall.properties).toMatchObject({
         chain_id: '8453',
@@ -1598,6 +1624,7 @@ describe('NetworkMultiSelector', () => {
         <NetworkMultiSelector
           openModal={mockOpenModal}
           dismissModal={jest.fn()}
+          searchQuery="eth"
         />,
       );
 
@@ -1615,6 +1642,11 @@ describe('NetworkMultiSelector', () => {
           }),
         }),
       );
+
+      expect(mockTrackFiltering).toHaveBeenCalledWith('network_switched', {
+        searchQuery: 'eth',
+        networkFilter: 'eip155:1',
+      });
     });
 
     it('tracks NETWORK_SWITCHED event when switching from a specific network to All Networks', async () => {
@@ -1675,6 +1707,7 @@ describe('NetworkMultiSelector', () => {
         <NetworkMultiSelector
           openModal={mockOpenModal}
           dismissModal={jest.fn()}
+          searchQuery=""
         />,
       );
 
@@ -1692,6 +1725,11 @@ describe('NetworkMultiSelector', () => {
           }),
         }),
       );
+
+      expect(mockTrackFiltering).toHaveBeenCalledWith('network_switched', {
+        searchQuery: '',
+        networkFilter: undefined,
+      });
     });
 
     it('does not track NETWORK_SWITCHED event when selecting the same network', async () => {

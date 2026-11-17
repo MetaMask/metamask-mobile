@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingQuickBuy from './TrendingQuickBuy';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { QuickBuyEventProperties } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import { QuickBuyEventProperties } from '../../../QuickBuy/analytics';
 
 const mockTrack = jest.fn();
 jest.mock(
@@ -14,24 +14,18 @@ jest.mock(
 );
 
 const mockQuickBuyRoot = jest.fn();
-jest.mock(
-  '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/quickBuy',
-  () => ({
-    QuickBuy: {
-      Root: (props: Record<string, unknown>) => {
-        mockQuickBuyRoot(props);
-        return null;
-      },
+jest.mock('../../../QuickBuy/quickBuy', () => ({
+  QuickBuy: {
+    Root: (props: Record<string, unknown>) => {
+      mockQuickBuyRoot(props);
+      return null;
     },
-  }),
-);
+  },
+}));
 
-jest.mock(
-  '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/features',
-  () => ({
-    TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy', 'sell'] },
-  }),
-);
+jest.mock('../../../QuickBuy/features', () => ({
+  TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy', 'sell'] },
+}));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -102,6 +96,46 @@ describe('TrendingQuickBuy', () => {
         target: expect.objectContaining({
           tokenAddress: '0x0000000000000000000000000000000000000000',
           tokenSymbol: 'ETH',
+        }),
+      }),
+    );
+  });
+
+  it.each([
+    'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  ] as const)(
+    'keeps the full CAIP-19 assetId for non-EVM token %s',
+    (assetId) => {
+      render(
+        <TrendingQuickBuy token={makeToken({ assetId })} onClose={jest.fn()} />,
+      );
+
+      expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+        expect.objectContaining({
+          target: expect.objectContaining({
+            chain: assetId.split('/')[0],
+            tokenAddress: assetId,
+          }),
+        }),
+      );
+    },
+  );
+
+  it('maps a non-EVM native (slip44) TrendingAsset to the zero address', () => {
+    const token = makeToken({
+      assetId: 'stellar:pubnet/slip44:148',
+      symbol: 'XLM',
+      name: 'Stellar',
+    });
+
+    render(<TrendingQuickBuy token={token} onClose={jest.fn()} />);
+
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: expect.objectContaining({
+          chain: 'stellar:pubnet',
+          tokenAddress: '0x0000000000000000000000000000000000000000',
         }),
       }),
     );

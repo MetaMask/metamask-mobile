@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -11,20 +11,18 @@ import { strings } from '../../../../../locales/i18n';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { isMusdToken } from '../../../UI/Earn/constants/musd';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import useAssetVisibility from './useAssetVisibility';
 import { TokenDetailsAction } from '../constants/constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
@@ -48,15 +46,94 @@ type MoreTokenActionsMenuRouteProp = RouteProp<
   'MoreTokenActionsMenu'
 >;
 
-interface ActionConfig {
-  type: string;
+function symbolOrNull(symbol: string): string | null {
+  if (!symbol) {
+    return null;
+  }
+  return symbol;
+}
+
+type ActionKind =
+  | 'receive'
+  | 'cash-buy'
+  | 'view-explorer'
+  | 'remove-token'
+  | 'stellar-deactivate-trustline';
+
+interface ActionDescriptor {
+  kind: ActionKind;
   label: string;
-  description?: string;
   iconName: IconName;
   testID: string;
-  isVisible: boolean;
   isDisabled?: boolean;
-  onPress: () => void;
+}
+
+interface BuildActionDescriptorsParams {
+  hasPerpsMarket: boolean;
+  hasBalance: boolean;
+  isBuyable: boolean;
+  hasOnReceive: boolean;
+  assetSymbol: string;
+  hasBlockExplorer: boolean;
+  showRemoveToken: boolean;
+  canDeactivate: boolean;
+  isDeactivating: boolean;
+}
+
+function buildActionDescriptors({
+  hasPerpsMarket,
+  hasBalance,
+  isBuyable,
+  hasOnReceive,
+  assetSymbol,
+  hasBlockExplorer,
+  showRemoveToken,
+  canDeactivate,
+  isDeactivating,
+}: BuildActionDescriptorsParams): ActionDescriptor[] {
+  const actions: ActionDescriptor[] = [];
+  if (hasPerpsMarket && hasBalance && hasOnReceive) {
+    actions.push({
+      kind: 'receive',
+      label: strings('asset_overview.receive_button'),
+      iconName: IconName.QrCode,
+      testID: 'more-actions-receive',
+    });
+  }
+  if (hasPerpsMarket && isBuyable) {
+    actions.push({
+      kind: 'cash-buy',
+      label: `Cash buy ${assetSymbol}`,
+      iconName: IconName.AttachMoney,
+      testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+    });
+  }
+  if (hasBlockExplorer) {
+    actions.push({
+      kind: 'view-explorer',
+      label: strings('asset_details.options.view_on_block'),
+      iconName: IconName.ArrowSquareOut,
+      testID: 'more-actions-view-explorer',
+    });
+  }
+  if (showRemoveToken) {
+    actions.push({
+      kind: 'remove-token',
+      label: strings('asset_details.options.remove_token'),
+      iconName: IconName.Trash,
+      testID: 'more-actions-remove-token',
+    });
+  }
+  if (canDeactivate) {
+    actions.push({
+      kind: 'stellar-deactivate-trustline',
+      label: strings('asset_details.options.deactivate_asset'),
+      iconName: IconName.Trash,
+      testID: 'more-actions-deactivate-asset',
+      isDisabled: isDeactivating,
+    });
+  }
+  return actions;
 }
 
 const MoreTokenActionsMenu = () => {
@@ -78,9 +155,6 @@ const MoreTokenActionsMenu = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const explorer = useBlockExplorer(asset.chainId);
 
-  const isAssetsUnifyStateEnabled = useSelector(
-    selectIsAssetsUnifyStateEnabled,
-  );
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -103,14 +177,24 @@ const MoreTokenActionsMenu = () => {
   const goToBrowserUrl = useCallback(
     (url: string, title: string) => {
       closeBottomSheetAndNavigate(async () => {
-        if (await InAppBrowser.isAvailable()) {
-          await InAppBrowser.open(url);
-        } else {
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: { url, title },
-          });
+        navigation.navigate('WalletView');
+
+        try {
+          if (await InAppBrowser.isAvailable()) {
+            await InAppBrowser.open(url);
+            return;
+          }
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'MoreTokenActionsMenu: Failed to open InAppBrowser',
+          );
         }
+
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: { url, title },
+        });
       });
     },
     [closeBottomSheetAndNavigate, navigation],
@@ -166,26 +250,19 @@ const MoreTokenActionsMenu = () => {
           onConfirm: async () => {
             navigation.navigate('WalletView');
             try {
-              if (asset.chainId && isNonEvmChainId(asset.chainId)) {
-                await removeNonEvmToken({
-                  tokenAddress: asset.address,
-                  tokenChainId: asset.chainId,
-                  selectInternalAccountByScope,
-                });
-              } else {
-                const { TokensController, NetworkController } = Engine.context;
-                const networkClientId =
-                  NetworkController.findNetworkClientIdByChainId(
-                    asset.chainId as Hex,
-                  );
-                TokensController.ignoreTokens([asset.address], networkClientId);
+              if (asset.chainId) {
+                if (isNonEvmChainId(asset.chainId)) {
+                  await removeNonEvmToken({
+                    tokenAddress: asset.address,
+                    tokenChainId: asset.chainId,
+                    selectInternalAccountByScope,
+                  });
+                }
               }
 
-              if (isAssetsUnifyStateEnabled) {
-                handleHideToken();
-              }
+              handleHideToken();
 
-              const tokenSymbol = asset.symbol || null;
+              const tokenSymbol = symbolOrNull(asset.symbol);
 
               NotificationManager.showSimpleNotification({
                 status: 'simple_notification',
@@ -220,7 +297,6 @@ const MoreTokenActionsMenu = () => {
     asset.chainId,
     asset.address,
     asset.symbol,
-    isAssetsUnifyStateEnabled,
     handleHideToken,
     selectInternalAccountByScope,
     trackEvent,
@@ -256,108 +332,44 @@ const MoreTokenActionsMenu = () => {
     }),
   );
 
-  const actionConfigs: ActionConfig[] = useMemo(() => {
-    const actions: ActionConfig[] = [];
-
-    // Show receive option when perps market is active and has balance
-    // (Receive button not shown in main actions in this case)
-    if (hasPerpsMarket && hasBalance && onReceive) {
-      actions.push({
-        type: 'receive',
-        label: strings('asset_overview.receive_button'),
-        iconName: IconName.QrCode,
-        testID: 'more-actions-receive',
-        isVisible: true,
-        onPress: handleReceive,
-      });
-    }
-
-    // Show Cash buy option when perps market is active (Cash Buy button not shown in main actions)
-    if (hasPerpsMarket && isBuyable) {
-      actions.push({
-        type: 'cash-buy',
-        label: `Cash buy ${asset.symbol}`,
-        iconName: IconName.AttachMoney,
-        testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-        isVisible: true,
-        onPress: handleBuy,
-      });
-    }
-
-    // View on block explorer
-    if (explorer.getBlockExplorerName(asset.chainId)) {
-      actions.push({
-        type: 'view-explorer',
-        label: strings('asset_details.options.view_on_block'),
-        iconName: IconName.Export,
-        testID: 'more-actions-view-explorer',
-        isVisible: true,
-        onPress: handleViewOnBlockExplorer,
-      });
-    }
-
-    // Remove token
-    if (!isNativeCurrency && tokenIsInAccount && !isMusdToken(asset.address)) {
-      actions.push({
-        type: 'remove-token',
-        label: strings('asset_details.options.remove_token'),
-        iconName: IconName.Trash,
-        testID: 'more-actions-remove-token',
-        isVisible: true,
-        onPress: handleRemoveToken,
-      });
-    }
-
-    if (canDeactivate) {
-      actions.push({
-        type: 'stellar-deactivate-trustline',
-        label: strings('asset_details.options.deactivate_asset'),
-        iconName: IconName.Trash,
-        testID: 'more-actions-deactivate-asset',
-        isVisible: true,
-        isDisabled: isDeactivating,
-        onPress: handleDeactivateTrustline,
-      });
-    }
-
-    return actions;
-  }, [
-    asset.address,
+  const hasBlockExplorer = Boolean(
+    explorer.getBlockExplorerName(asset.chainId),
+  );
+  const showRemoveToken = Boolean(
+    !isNativeCurrency && tokenIsInAccount && !isMusdToken(asset.address),
+  );
+  const actionDescriptors = buildActionDescriptors({
     hasPerpsMarket,
     hasBalance,
     isBuyable,
-    isNativeCurrency,
-    asset.chainId,
-    asset.symbol,
-    explorer,
-    tokenIsInAccount,
-    onReceive,
-    handleReceive,
-    handleBuy,
-    handleViewOnBlockExplorer,
-    handleRemoveToken,
-    handleDeactivateTrustline,
+    hasOnReceive: Boolean(onReceive),
+    assetSymbol: asset.symbol,
+    hasBlockExplorer,
+    showRemoveToken,
     canDeactivate,
     isDeactivating,
-  ]);
+  });
+  const handlers: Record<ActionKind, () => void> = {
+    receive: handleReceive,
+    'cash-buy': handleBuy,
+    'view-explorer': handleViewOnBlockExplorer,
+    'remove-token': handleRemoveToken,
+    'stellar-deactivate-trustline': handleDeactivateTrustline,
+  };
 
   return (
     <BottomSheet ref={sheetRef}>
       <Box twClassName="py-4">
-        {actionConfigs.map(
-          (config) =>
-            config.isVisible && (
-              <ActionListItem
-                key={config.type}
-                label={config.label}
-                description={config.description}
-                iconName={config.iconName}
-                onPress={config.onPress}
-                testID={config.testID}
-                isDisabled={config.isDisabled}
-              />
-            ),
-        )}
+        {actionDescriptors.map((config) => (
+          <ActionListItem
+            key={config.kind}
+            label={config.label}
+            iconName={config.iconName}
+            onPress={handlers[config.kind]}
+            testID={config.testID}
+            isDisabled={config.isDisabled}
+          />
+        ))}
       </Box>
     </BottomSheet>
   );

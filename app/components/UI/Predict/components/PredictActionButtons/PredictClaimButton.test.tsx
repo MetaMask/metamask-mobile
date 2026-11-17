@@ -1,7 +1,23 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { GlassView } from 'expo-glass-effect';
 import PredictClaimButton from './PredictClaimButton';
+import { PREDICT_CLAIM_BUTTON_TEST_IDS } from './PredictClaimButton.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
@@ -30,7 +46,7 @@ describe('PredictClaimButton', () => {
     jest.clearAllMocks();
   });
 
-  describe('with amount (ButtonHero variant)', () => {
+  describe('with amount', () => {
     it('renders with formatted amount', () => {
       const props = createDefaultProps({ amount: 25.5 });
 
@@ -104,7 +120,7 @@ describe('PredictClaimButton', () => {
     });
   });
 
-  describe('without amount (Button Secondary variant)', () => {
+  describe('without amount', () => {
     it('renders "Claim winnings" text', () => {
       const props = createDefaultProps({ amount: undefined });
 
@@ -219,6 +235,46 @@ describe('PredictClaimButton', () => {
 
       // Assert
       expect(mockOnPress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('glass', () => {
+    it('keeps the solid primary button by default', () => {
+      const { UNSAFE_queryAllByType } = renderWithProvider(
+        <PredictClaimButton amount={1.15} onPress={jest.fn()} />,
+      );
+
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+    });
+
+    it('keeps the solid fill on interactive glass and stays pressable', () => {
+      const onPress = jest.fn();
+      const { UNSAFE_getByType } = renderWithProvider(
+        <PredictClaimButton amount={1.15} onPress={onPress} isGlass />,
+      );
+
+      const glass = UNSAFE_getByType(GlassView);
+      expect(glass.props.tintColor).toBeUndefined();
+      expect(glass.props.isInteractive).toBe(true);
+
+      fireEvent.press(
+        screen.getByTestId(PREDICT_CLAIM_BUTTON_TEST_IDS.PREDICT_CLAIM_BUTTON),
+      );
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops the glass reacting to touch while claiming', () => {
+      const { UNSAFE_getByType } = renderWithProvider(
+        <PredictClaimButton
+          amount={1.15}
+          onPress={jest.fn()}
+          isGlass
+          isLoading
+        />,
+      );
+
+      expect(UNSAFE_getByType(GlassView).props.isInteractive).toBe(false);
     });
   });
 });

@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { InteractionManager } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { useGeoRewardsMetadata } from './useGeoRewardsMetadata';
@@ -37,6 +38,21 @@ jest.mock('react', () => ({
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
+
+beforeAll(() => {
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((task) => {
+      if (typeof task === 'function') {
+        task();
+      }
+      return {
+        then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+        done: () => Promise.resolve(),
+        cancel: jest.fn(),
+      } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+    });
+});
 
 describe('useGeoRewardsMetadata', () => {
   const mockDispatch = jest.fn();

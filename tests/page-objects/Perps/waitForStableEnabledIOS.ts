@@ -1,7 +1,9 @@
 import Utilities, { sleep } from '../../framework/Utilities';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 async function waitForStableElementEnabled(
-  detoxElement: DetoxElement,
+  elem: Promise<AppiumElement>,
   options: {
     timeout?: number;
     pollIntervalMs?: number;
@@ -19,7 +21,7 @@ async function waitForStableElementEnabled(
 
   while (Date.now() < deadline) {
     try {
-      await Utilities.checkElementEnabled(detoxElement);
+      await Utilities.checkElementEnabled(elem);
       streak += 1;
       if (streak >= consecutiveSuccess) {
         return;
@@ -42,15 +44,15 @@ async function waitForStableElementEnabled(
  * enforced there before tap).
  */
 export async function waitForStableEnabledIOS(
-  detoxElement: DetoxElement,
+  elem: Promise<AppiumElement>,
   options: {
     timeout?: number;
     pollIntervalMs?: number;
     consecutiveSuccess?: number;
   } = {},
 ): Promise<void> {
-  if (device.getPlatform() !== 'ios') {
+  if (!PlatformDetector.isIOS()) {
     return;
   }
-  await waitForStableElementEnabled(detoxElement, options);
+  await waitForStableElementEnabled(elem, options);
 }

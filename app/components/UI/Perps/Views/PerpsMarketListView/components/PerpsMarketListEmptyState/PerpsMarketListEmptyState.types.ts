@@ -8,12 +8,7 @@ export interface PerpsMarketListEmptyStateProps {
   containerTestID?: string;
 
   /**
-   * Heading text shown below the icon.
-   */
-  title: string;
-
-  /**
-   * Supporting description text shown below the title.
+   * Supporting description text shown below the icon.
    */
   description: string;
 

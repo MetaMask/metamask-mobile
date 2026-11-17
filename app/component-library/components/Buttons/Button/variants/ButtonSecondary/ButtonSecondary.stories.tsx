@@ -71,7 +71,7 @@ export const AllStates = {
   render: () => (
     <>
       <ButtonSecondaryComponent
-        label="Default Secondary"
+        label="Default secondary"
         onPress={handlePress}
       />
       <ButtonSecondaryComponent label="Danger" isDanger onPress={handlePress} />
@@ -81,7 +81,7 @@ export const AllStates = {
         onPress={handlePress}
       />
       <ButtonSecondaryComponent
-        label="Inverse Danger"
+        label="Inverse danger"
         isInverse
         isDanger
         onPress={handlePress}
@@ -101,7 +101,7 @@ export const AllStates = {
 // Individual state stories
 export const Default = {
   args: {
-    label: 'Default Secondary',
+    label: 'Default secondary',
     onPress: handlePress,
   },
 };
@@ -124,7 +124,7 @@ export const Inverse = {
 
 export const InverseDanger = {
   args: {
-    label: 'Inverse Danger',
+    label: 'Inverse danger',
     isInverse: true,
     isDanger: true,
     onPress: handlePress,
@@ -133,7 +133,7 @@ export const InverseDanger = {
 
 export const WithIcons = {
   args: {
-    label: 'With Icons',
+    label: 'With icons',
     startIconName: IconName.Bank,
     endIconName: IconName.ArrowRight,
     onPress: handlePress,

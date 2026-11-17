@@ -1,5 +1,5 @@
 import '../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { renderComponentViewScreen } from '../../../../tests/component-view/render';
 import { initialStateIdentity } from '../../../../tests/component-view/presets/identity';
@@ -67,26 +67,18 @@ describeForPlatforms('DeleteWalletModal component views', () => {
     ).toBeOnTheScreen();
   });
 
-  it('goes back to the initial screen when the back button is pressed on the confirmation screen', async () => {
-    const { findByTestId, findByText } = renderDeleteWalletModal();
+  it('hides the back button on the confirmation screen after Reset Wallet is pressed', async () => {
+    const { findByTestId, findByText, queryByTestId } =
+      renderDeleteWalletModal();
 
-    // Advance to confirmation screen
     fireEvent.press(
       await findByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
     );
-    await findByText(strings('login.are_you_sure'));
 
-    // Press the back arrow
-    fireEvent.press(
-      await findByTestId(ForgotPasswordModalSelectorsIDs.BACK_BUTTON),
-    );
-
-    // Should return to the initial "Forgot your password?" screen
-    await waitFor(async () => {
-      expect(
-        await findByText(strings('login.forgot_password_desc')),
-      ).toBeOnTheScreen();
-    });
+    expect(await findByText(strings('login.are_you_sure'))).toBeOnTheScreen();
+    expect(
+      queryByTestId(ForgotPasswordModalSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens on the confirmation screen when isResetWallet route param is set without a back button', async () => {

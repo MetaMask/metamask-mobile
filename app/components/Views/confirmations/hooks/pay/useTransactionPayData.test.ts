@@ -10,6 +10,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
+  useIsTransactionPaySubmitReady,
   useTransactionPayQuotes,
   useTransactionPayQuotesLastUpdated,
   useTransactionPayRequiredTokens,
@@ -205,6 +206,28 @@ describe('useTransactionPayData', () => {
       renderHookWithProvider(useTransactionPayFiatPayment, { state }).result
         .current,
     ).toStrictEqual(FIAT_PAYMENT_MOCK);
+  });
+
+  it('returns submit ready when an executable quote is in state', () => {
+    expect(
+      renderHookWithProvider(useIsTransactionPaySubmitReady, { state }).result
+        .current,
+    ).toBe(true);
+  });
+
+  it('returns not submit ready when only a no-op quote is in state', () => {
+    const updatedState = cloneDeep(state);
+    updatedState.engine.backgroundState.TransactionPayController.transactionData[
+      transactionIdMock
+    ].quotes = [
+      { strategy: TransactionPayStrategy.None } as TransactionPayQuote<Json>,
+    ];
+
+    expect(
+      renderHookWithProvider(useIsTransactionPaySubmitReady, {
+        state: updatedState,
+      }).result.current,
+    ).toBe(false);
   });
 
   it('returns false for isPostQuote when no transaction data', () => {

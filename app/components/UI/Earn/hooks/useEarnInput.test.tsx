@@ -77,22 +77,11 @@ describe('useEarnInputHandlers', () => {
 
   const mockConversionRate = 2000;
   const mockExchangeRate = 1;
-  const mockAddress = '0x00000';
-  const mockUsdcAddress = '0x00001';
   const mockInitialState = {
     engine: {
       backgroundState: {
         ...backgroundState,
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-        TokenBalancesController: {
-          tokenBalances: {
-            [mockAddress]: {
-              [CHAIN_IDS.MAINNET]: {
-                [mockUsdcAddress]: '0x0' as Hex,
-              },
-            },
-          },
-        },
         MultichainNetworkController: {
           isEvmSelected: true,
           selectedMultichainNetworkChainId: undefined,
@@ -279,47 +268,25 @@ describe('useEarnInputHandlers', () => {
   });
 
   it('handles ERC20 token with correct decimals conversion', () => {
-    const { result } = renderHook(
-      {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            TokenBalancesController: {
-              ...mockInitialState.engine.backgroundState
-                .TokenBalancesController,
-              tokenBalances: {
-                [mockAddress]: {
-                  [CHAIN_IDS.MAINNET]: {
-                    [mockUsdcAddress]: '0x5f5e100' as Hex,
-                  },
-                },
-              },
-            },
-          },
+    const { result } = renderHook(mockInitialState, {
+      earnToken: {
+        ...mockEarnToken,
+        isETH: false,
+        balanceMinimalUnit: '1000000000',
+        decimals: 6,
+        ticker: 'USDC',
+        experience: {
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '10 USDC',
+          estimatedAnnualRewardsFiatNumber: 10,
+          estimatedAnnualRewardsTokenMinimalUnit: '10000000',
+          estimatedAnnualRewardsTokenFormatted: '`10 USDC',
         },
       },
-      {
-        earnToken: {
-          ...mockEarnToken,
-          isETH: false,
-          balanceMinimalUnit: '1000000000',
-          decimals: 6,
-          ticker: 'USDC',
-          experience: {
-            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-            apr: '5%',
-            estimatedAnnualRewardsFormatted: '10 USDC',
-            estimatedAnnualRewardsFiatNumber: 10,
-            estimatedAnnualRewardsTokenMinimalUnit: '10000000',
-            estimatedAnnualRewardsTokenFormatted: '`10 USDC',
-          },
-        },
-        conversionRate: 1,
-        exchangeRate: 1,
-      },
-    );
+      conversionRate: 1,
+      exchangeRate: 1,
+    });
 
     act(() => {
       result.current.handleTokenInput('1');

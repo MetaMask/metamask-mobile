@@ -7,6 +7,8 @@ import {
   isMusdOnMoneyAccountChain,
   isMusdToken,
 } from '../../Earn/constants/musd';
+import { store } from '../../../../store';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import type { MoneyAccountDepositIntent } from '../hooks/useMoneyAccount';
 
 /**
@@ -68,6 +70,54 @@ export const isSingleRowMusdMoneyWithdraw = (
 
 export const isMoneyAccountTx = (transactionMeta: TransactionMeta) =>
   isMoneyDepositTx(transactionMeta) || isMoneyWithdrawTx(transactionMeta);
+
+/**
+ * True when the transaction's `from` is the current primary Money account.
+ * The guard runs outside React (transaction-confirmed handler), so it reads
+ * the address straight from the Redux store.
+ */
+function isFromPrimaryMoneyAccount(transactionMeta: TransactionMeta): boolean {
+  const from = transactionMeta.txParams?.from?.toLowerCase();
+  if (!from) {
+    return false;
+  }
+  const primaryAddress = selectPrimaryMoneyAccount(
+    store.getState(),
+  )?.address?.toLowerCase();
+  return Boolean(primaryAddress) && primaryAddress === from;
+}
+
+/**
+ * The recovery-only mUSD rescue send: a plain ERC-20 `transfer` of mUSD on the
+ * Money chain sent *from* the primary Money account address. Narrowly matched
+ * so ordinary unrelated `tokenMethodTransfer` transactions (including the
+ * withdrawal batch's nested transfer) never trigger a Money balance refresh.
+ */
+export const isMusdRescueSendTx = (transactionMeta: TransactionMeta) => {
+  const rescueTransferType = TransactionType.tokenMethodTransfer;
+  // Withdrawal batches can contain the same nested mUSD transfer; they are
+  // not rescue sends and must never take the rescue path.
+  if (isMoneyWithdrawTx(transactionMeta)) {
+    return false;
+  }
+  const isMusdTransfer = (to: string | undefined) =>
+    isMusdOnMoneyAccountChain(to, transactionMeta.chainId);
+  const isTopLevelRescueTransfer =
+    transactionMeta.type === rescueTransferType &&
+    isMusdTransfer(transactionMeta.txParams?.to);
+  const isNestedRescueTransfer = Boolean(
+    transactionMeta.nestedTransactions?.some(
+      (nestedTransaction) =>
+        nestedTransaction.type === rescueTransferType &&
+        isMusdTransfer(nestedTransaction.to),
+    ),
+  );
+
+  return (
+    (isTopLevelRescueTransfer || isNestedRescueTransfer) &&
+    isFromPrimaryMoneyAccount(transactionMeta)
+  );
+};
 
 /**
  * Perps/Predict deposit parent types (money → service). When funded from the

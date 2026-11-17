@@ -13,6 +13,7 @@ import {
   RegistrationSettingsResponse,
   CardLocation,
   CardStatus,
+  CardType,
   type CardNetwork,
 } from '../../../../../components/UI/Card/types';
 import type {
@@ -28,12 +29,13 @@ import {
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../../../../components/UI/Card/constants';
-import { isAccountEligibleForProvisioning } from '../../../../../components/UI/Card/pushProvisioning/constants';
+import { buildBaanxCardholderName } from './utils/cardholderName';
 import {
   generatePKCEPair,
   generateState,
 } from '../../../../../components/UI/Card/util/pkceHelpers';
 import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
+import { networkToCaipChainId } from '../../../../../components/UI/Card/util/redeemDestination';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
   CardAccountStatus,
@@ -47,6 +49,8 @@ import {
   CardFundingAsset,
   CardHomeData,
   CardProviderCapabilities,
+  ApplePayProvisioningParams,
+  CardWalletProvisioningInfo,
   CardSecureView,
   CardSecureViewParams,
   AuthTokenValidity,
@@ -68,10 +72,27 @@ import {
   CreditWithdrawParams,
   CreditWithdrawResponse,
   type DelegationChallengeResponse,
+  type CompleteMoneyAccountLinkParams,
+  type MoneyAccountLinkPreparation,
+  type PrepareMoneyAccountLinkParams,
   emptyCardHomeData,
   isCardAuthTokenError,
   CardProviderIds,
+  CardTransactionStatus,
+  CardTransactionType,
+  CardMerchantCategory,
+  type CardTransaction,
+  type CardTransactionFundingSource,
+  type CardTransactionListParams,
+  type CardTransactionPage,
 } from '../provider-types';
+import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
+import { resolveMoneyAccountCardToken } from '../utils/moneyAccountCardToken';
+import {
+  MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../../components/UI/Card/util/vedaToken';
 import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -94,6 +115,122 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
     tags: { feature: 'card', provider: 'baanx' },
     context: { name: 'BaanxProvider', data: { method, ...extra } },
   };
+}
+
+// -- Transactions (GET /v1/card/transactions) --
+
+/**
+ * Cursor payload for Baanx page-based pagination. `pg` is the next 0-indexed
+ * page to fetch; `i` contains page 0's row ids, used to detect the API's
+ * out-of-range behavior (it silently returns page 0 again instead of an empty
+ * page).
+ */
+interface BaanxCursorPayload {
+  pg: number;
+  /** IDs from page 0, used to detect the API wrapping back to page 0. */
+  i?: string[];
+}
+
+interface BaanxFundingSourceRaw {
+  id?: string;
+  address?: string;
+  network?: string;
+  txHash?: string;
+  currency?: string;
+  amount?: string;
+  fees?: string;
+  swapFee?: string;
+}
+
+interface BaanxTransactionRaw {
+  id: string;
+  cardId?: string;
+  panLast4?: string;
+  transactionId?: string;
+  dateTime: string;
+  sign: 'DEBIT' | 'CREDIT';
+  merchantNameLocation?: string;
+  merchantType?: string;
+  merchantId?: string;
+  mcc?: number;
+  mccCategory?: string;
+  transactionCurrency: string;
+  amountInTransactionCurrency: string;
+  feesInTransactionCurrency?: string;
+  originalCurrency?: string;
+  amountInOriginalCurrency?: string;
+  feesInOriginalCurrency?: string;
+  billingConversionRate?: string;
+  status: 'CONFIRMED' | 'PENDING' | 'DECLINED' | 'REVERTED';
+  declineReason?: string;
+  fundingSources?: BaanxFundingSourceRaw[];
+}
+
+const BAANX_STATUS_MAP: Record<
+  BaanxTransactionRaw['status'],
+  CardTransactionStatus
+> = {
+  PENDING: CardTransactionStatus.Pending,
+  CONFIRMED: CardTransactionStatus.Completed,
+  DECLINED: CardTransactionStatus.Failed,
+  REVERTED: CardTransactionStatus.Reversed,
+};
+
+const BAANX_MCC_CATEGORY_MAP: Record<string, CardMerchantCategory> = {
+  SUBSCRIPTIONS: CardMerchantCategory.Subscriptions,
+  FOOD: CardMerchantCategory.Food,
+  TRAVEL: CardMerchantCategory.Travel,
+  ENTERTAINMENT: CardMerchantCategory.Entertainment,
+  HEALTH: CardMerchantCategory.Health,
+  ATM: CardMerchantCategory.Atm,
+  UTILITIES: CardMerchantCategory.Utilities,
+  MISC: CardMerchantCategory.Misc,
+};
+
+/** Baanx date filters take ISO date-only strings (YYYY-MM-DD). */
+function toDateOnly(epochMs: number): string {
+  return new Date(epochMs).toISOString().slice(0, 10);
+}
+
+function isBaanxCursorPayload(value: unknown): value is BaanxCursorPayload {
+  if (value == null || typeof value !== 'object') {
+    return false;
+  }
+  const payload = value as Partial<BaanxCursorPayload>;
+  if (!Number.isSafeInteger(payload.pg) || (payload.pg ?? 0) <= 0) {
+    return false;
+  }
+  return (
+    Array.isArray(payload.i) &&
+    payload.i.length > 0 &&
+    payload.i.every((id) => typeof id === 'string' && id.length > 0)
+  );
+}
+
+/**
+ * Detects Baanx returning page 0 for an out-of-range page request.
+ *
+ * If new transactions arrive between requests, a wrapped page contains those
+ * unseen rows followed by a prefix of the original page 0. A real next page
+ * instead contains a suffix of the original page 0 followed by older unseen
+ * rows. Comparing this ordering avoids treating a shifted real page as the end.
+ */
+function isWrappedTransactionPage(
+  items: BaanxTransactionRaw[],
+  pageZeroIds: string[],
+): boolean {
+  const pageZeroIdSet = new Set(pageZeroIds);
+  const firstKnownIndex = items.findIndex((item) => pageZeroIdSet.has(item.id));
+  if (firstKnownIndex === -1) {
+    return false;
+  }
+
+  const knownSuffix = items.slice(firstKnownIndex);
+  if (knownSuffix.some((item) => !pageZeroIdSet.has(item.id))) {
+    return false;
+  }
+
+  return knownSuffix.every((item, index) => item.id === pageZeroIds[index]);
 }
 
 // Earliest block where the FoxConnect spender contracts were deployed on Linea.
@@ -234,6 +371,20 @@ function mapAllowanceToFundingStatus(
   return FundingAssetStatus.Active;
 }
 
+function baanxProvisioningCountryCode(
+  location: string,
+  countryOfResidence: string | null | undefined,
+): string | undefined {
+  if (location === 'us') {
+    return 'US';
+  }
+  const residence = countryOfResidence?.trim();
+  if (!residence) {
+    return undefined;
+  }
+  return residence.toUpperCase();
+}
+
 export class BaanxProvider implements ICardProvider {
   readonly id = CardProviderIds.Baanx;
 
@@ -244,7 +395,7 @@ export class BaanxProvider implements ICardProvider {
     supportsFundingLimits: true,
     fundingChains: ['eip155:59144', 'eip155:8453'],
     supportsFreeze: true,
-    supportsPushProvisioning: true,
+    pushProvisioning: { applePay: true, googlePay: true },
     onboarding: {
       type: 'steps',
       steps: [
@@ -258,10 +409,16 @@ export class BaanxProvider implements ICardProvider {
       kycProvider: 'veriff',
     },
     supportsPinView: true,
+    supportsPinSet: false,
     supportsCashback: true,
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsTransactionHistory: true,
+    supportsContactDetails: false,
+    supportsMoneyAccountLinking: true,
+    usesMoneyAccountDelegationSettings: true,
+    reportsVerificationStatus: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -327,10 +484,24 @@ export class BaanxProvider implements ICardProvider {
     if (credentials.type === 'email_password') {
       return this.handleEmailPassword(session, credentials);
     }
+    if (credentials.type === 'email_code') {
+      return this.handleEmailCode(session, credentials);
+    }
     throw new Error(`Unsupported credential type: ${credentials.type}`);
   }
 
+  async requestEmailLoginCode(email: string): Promise<void> {
+    try {
+      await this.service.post('/v1/auth/login/email-code/request', { email });
+    } catch (error) {
+      throw mapApiError(error, 'requestEmailLoginCode');
+    }
+  }
+
   async executeStepAction(session: CardAuthSession): Promise<void> {
+    if (session._metadata.otpMode === 'TOTP') {
+      return;
+    }
     const userId = session._metadata.otpUserId as string | undefined;
     if (!userId) {
       throw new CardProviderError(
@@ -384,6 +555,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt:
         Date.now() + response.refresh_token_expires_in * 1000,
       location: tokens.location,
+      providerUserId: tokens.providerUserId,
     };
   }
 
@@ -411,6 +583,36 @@ export class BaanxProvider implements ICardProvider {
     await this.service.post('/v1/auth/logout', {}, tokens);
   }
 
+  /**
+   * Full authenticated Baanx profile (`GET /v1/user`), including contact fields
+   * used for UK migration SignUp prefill.
+   */
+  async getUserDetails(tokens: CardAuthTokens): Promise<UserResponse> {
+    try {
+      return await this.service.get<UserResponse>('/v1/user', tokens);
+    } catch (error) {
+      throw mapApiError(error, 'getUserDetails');
+    }
+  }
+
+  /**
+   * Signals Exodus that this Baanx user started Immersve onboarding and wants
+   * their Exodus account closed (`POST /v1/user/closure`). A 400 means the
+   * closure was already requested and is treated as success.
+   */
+  async requestAccountClosure(tokens: CardAuthTokens): Promise<void> {
+    try {
+      const userId =
+        tokens.providerUserId ?? (await this.getUserDetails(tokens)).id;
+      await this.service.post('/v1/user/closure', { userId }, tokens);
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 400) {
+        return;
+      }
+      throw mapApiError(error, 'requestAccountClosure');
+    }
+  }
+
   // -- Card Home Data --
 
   async getCardHomeData(
@@ -423,7 +625,12 @@ export class BaanxProvider implements ICardProvider {
         if (isCardAuthTokenError(err)) {
           throw mapApiError(err, logContext);
         }
-        if (err instanceof CardApiError && err.statusCode === 429) {
+        // getUserDetails maps CardApiError → CardProviderError before this
+        // catch runs, so check statusCode on both shapes.
+        if (
+          (err instanceof CardApiError || err instanceof CardProviderError) &&
+          err.statusCode === 429
+        ) {
           throw mapApiError(err, logContext);
         }
         Logger.error(err as Error, getErrorContext(logContext));
@@ -444,9 +651,9 @@ export class BaanxProvider implements ICardProvider {
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
             .catch(swallowUnlessAuthError('getCardHomeData.cardDetails')),
-          this.service
-            .get<UserResponse>('/v1/user', tokens)
-            .catch(swallowUnlessAuthError('getCardHomeData.user')),
+          this.getUserDetails(tokens).catch(
+            swallowUnlessAuthError('getCardHomeData.user'),
+          ),
         ],
       );
 
@@ -494,11 +701,17 @@ export class BaanxProvider implements ICardProvider {
       const primaryFundingAsset = this.pickPrimaryAsset(fundingAssets);
 
       const card = cardDetailsResponse
-        ? this.mapCardDetails(cardDetailsResponse)
+        ? this.mapCardDetails(
+            cardDetailsResponse,
+            tokens.location as CardLocation,
+          )
         : null;
-      const account = user
-        ? this.mapAccountStatus(user, cardDetailsResponse)
-        : null;
+      const account = user ? this.mapAccountStatus(user) : null;
+      const walletProvisioning = this.mapWalletProvisioning(
+        user,
+        card,
+        tokens.location,
+      );
       const alerts = this.buildAlerts(primaryFundingAsset, card, account);
       const actions = this.buildActions(primaryFundingAsset, card, account);
 
@@ -513,6 +726,7 @@ export class BaanxProvider implements ICardProvider {
         availableFundingAssets,
         card,
         account,
+        walletProvisioning,
         alerts,
         actions,
         delegationSettings,
@@ -543,7 +757,7 @@ export class BaanxProvider implements ICardProvider {
         '/v1/card/status',
         tokens,
       );
-      return this.mapCardDetails(response);
+      return this.mapCardDetails(response, tokens.location as CardLocation);
     } catch (error) {
       if (error instanceof CardApiError && error.statusCode === 404) {
         throw new CardProviderError(
@@ -553,6 +767,82 @@ export class BaanxProvider implements ICardProvider {
         );
       }
       throw mapApiError(error, 'getCardDetails');
+    }
+  }
+
+  /**
+   * Lists card transactions (newest first) from `GET /v1/card/transactions`.
+   *
+   * Baanx paginates with a 0-indexed `page` query param and a server-fixed
+   * page size, wrapped here into an opaque cursor. Requesting a page past the
+   * end returns page 0 again rather than an empty list, so the cursor also
+   * carries page 0's ordered row ids. Their position on later pages
+   * distinguishes a wrapped page 0 from a real page shifted by newly-arrived
+   * transactions.
+   *
+   * The server page size is unknown, so page length says nothing about whether
+   * more pages remain: the end of the list is only reached once a page comes
+   * back empty or wrapped. That costs one extra request per list.
+   *
+   * `params.limit` is accepted for interface compatibility but ignored: the
+   * page size is fixed server-side.
+   */
+  async listTransactions(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage> {
+    try {
+      const decodedCursor = params.cursor
+        ? decodeCardCursor<unknown>(params.cursor, this.id)
+        : null;
+      if (params.cursor && !isBaanxCursorPayload(decodedCursor)) {
+        throw new CardProviderError(
+          CardProviderErrorCode.Unknown,
+          'Invalid transaction pagination cursor',
+        );
+      }
+      const cursorPayload = isBaanxCursorPayload(decodedCursor)
+        ? decodedCursor
+        : null;
+      const page = cursorPayload?.pg ?? 0;
+      const pageZeroIds = cursorPayload?.i ?? [];
+
+      const query = new URLSearchParams();
+      query.set('page', String(page));
+      // The API rejects a lone dateFrom/dateTo; only send them as a pair.
+      if (params.fromDate != null && params.toDate != null) {
+        query.set('dateFrom', toDateOnly(params.fromDate));
+        query.set('dateTo', toDateOnly(params.toDate));
+      }
+
+      const raw = await this.service.get<BaanxTransactionRaw[]>(
+        `/v1/card/transactions?${query.toString()}`,
+        tokens,
+      );
+      const items = Array.isArray(raw) ? raw : [];
+
+      if (items.length === 0) {
+        return { items: [] };
+      }
+
+      // Out-of-range page wrapped back to page 0: treat as end of list.
+      if (
+        page > 0 &&
+        pageZeroIds.length > 0 &&
+        isWrappedTransactionPage(items, pageZeroIds)
+      ) {
+        return { items: [] };
+      }
+
+      const mapped = items.map((tx) => this.mapBaanxTransaction(tx));
+      const nextCursor = encodeCardCursor(this.id, {
+        pg: page + 1,
+        i: page === 0 ? items.map((item) => item.id) : pageZeroIds,
+      } satisfies BaanxCursorPayload);
+
+      return { items: mapped, nextCursor };
+    } catch (error) {
+      throw mapApiError(error, 'listTransactions');
     }
   }
 
@@ -699,6 +989,90 @@ export class BaanxProvider implements ICardProvider {
     );
   }
 
+  async prepareMoneyAccountLink(
+    params: PrepareMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<MoneyAccountLinkPreparation> {
+    const cardToken = resolveMoneyAccountCardToken(params.delegationSettings);
+    if (!cardToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token unavailable',
+      );
+    }
+
+    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
+    if (!tokenAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token address missing',
+      );
+    }
+    if (!cardToken.delegationContract) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card delegation contract missing',
+      );
+    }
+
+    const { delegationToken, nonce } = await this.fetchDelegationChallenge(
+      {
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        address: params.moneyAccountAddress,
+      },
+      tokens,
+    );
+    const caipChainId =
+      cardToken.caipChainId ?? MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID;
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+      address: params.moneyAccountAddress,
+      nonce,
+      caipChainId,
+    });
+
+    return {
+      tokenAddress,
+      spender: cardToken.delegationContract,
+      decimals: cardToken.decimals ?? 6,
+      caipChainId,
+      context: {
+        signatureMessage,
+        delegationToken,
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+      },
+    };
+  }
+
+  async completeMoneyAccountLink(
+    params: CompleteMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    const { signatureMessage, delegationToken, network, currency } =
+      params.context;
+    if (!params.sigHash || !signatureMessage || !delegationToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account link completion is missing the delegation signature',
+      );
+    }
+
+    await this.approveFunding(
+      {
+        address: params.moneyAccountAddress,
+        network: network ?? MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: currency ?? MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+        amount: params.amountHuman,
+        txHash: params.txHash,
+        sigHash: params.sigHash,
+        sigMessage: signatureMessage,
+        token: delegationToken,
+      },
+      tokens,
+    );
+  }
+
   // -- Onboarding --
 
   async getRegistrationSettings(
@@ -771,12 +1145,7 @@ export class BaanxProvider implements ICardProvider {
   }
 
   async createApplePayProvisioningRequest(
-    params: {
-      leafCertificate: string;
-      intermediateCertificate: string;
-      nonce: string;
-      nonceSignature: string;
-    },
+    params: ApplePayProvisioningParams,
     tokens: CardAuthTokens,
   ): Promise<{
     encryptedPassData: string;
@@ -793,7 +1162,11 @@ export class BaanxProvider implements ICardProvider {
       encryptedPassData?: string;
       activationData?: string;
       ephemeralPublicKey?: string;
-    }>('/v1/card/wallet/provision/apple', params, tokens);
+    }>(
+      '/v1/card/wallet/provision/apple',
+      this.toBaanxApplePayWire(params),
+      tokens,
+    );
 
     const data = response.data || response;
     if (
@@ -819,56 +1192,107 @@ export class BaanxProvider implements ICardProvider {
   async getCashbackWallet(
     tokens: CardAuthTokens,
   ): Promise<CashbackWalletResponse> {
-    return this.service.get<CashbackWalletResponse>(
-      '/v1/wallet/reward',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWalletResponse>(
+        '/v1/wallet/reward',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCashbackWallet'));
+      }
+      throw mapApiError(error, 'getCashbackWallet');
+    }
   }
 
   async getCashbackWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawEstimationResponse> {
-    return this.service.get<CashbackWithdrawEstimationResponse>(
-      '/v1/wallet/reward/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWithdrawEstimationResponse>(
+        '/v1/wallet/reward/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCashbackWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCashbackWithdrawEstimation');
+    }
   }
 
   async withdrawCashback(
     params: CashbackWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawResponse> {
-    return this.service.post<CashbackWithdrawResponse>(
-      '/v1/wallet/reward/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CashbackWithdrawResponse>(
+        '/v1/wallet/reward/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCashback'));
+      }
+      throw mapApiError(error, 'withdrawCashback');
+    }
   }
 
   // -- Credit --
 
   async getCreditWallet(tokens: CardAuthTokens): Promise<CreditWalletResponse> {
-    return this.service.get<CreditWalletResponse>('/v1/wallet/credit', tokens);
+    try {
+      return await this.service.get<CreditWalletResponse>(
+        '/v1/wallet/credit',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCreditWallet'));
+      }
+      throw mapApiError(error, 'getCreditWallet');
+    }
   }
 
   async getCreditWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawEstimationResponse> {
-    return this.service.get<CreditWithdrawEstimationResponse>(
-      '/v1/wallet/credit/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CreditWithdrawEstimationResponse>(
+        '/v1/wallet/credit/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCreditWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCreditWithdrawEstimation');
+    }
   }
 
   async withdrawCredit(
     params: CreditWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawResponse> {
-    return this.service.post<CreditWithdrawResponse>(
-      '/v1/wallet/credit/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CreditWithdrawResponse>(
+        '/v1/wallet/credit/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCredit'));
+      }
+      throw mapApiError(error, 'withdrawCredit');
+    }
   }
 
   // -- On-Chain (unauthenticated) --
@@ -953,6 +1377,7 @@ export class BaanxProvider implements ICardProvider {
         availableFundingAssets: fundingAssets,
         card: null,
         account: null,
+        walletProvisioning: null,
         alerts: [],
         actions: [{ type: 'add_funds', enabled: true }],
         delegationSettings: null,
@@ -1004,6 +1429,7 @@ export class BaanxProvider implements ICardProvider {
       availableFundingAssets: fundingAssets,
       card: null,
       account: null,
+      walletProvisioning: null,
       alerts: [],
       actions: [{ type: 'add_funds', enabled: true }],
       delegationSettings: null,
@@ -1363,6 +1789,7 @@ export class BaanxProvider implements ICardProvider {
 
     if (loginResponse.isOtpRequired) {
       session._metadata.otpUserId = loginResponse.userId;
+      delete session._metadata.otpMode;
       return {
         done: false,
         nextStep: {
@@ -1380,6 +1807,61 @@ export class BaanxProvider implements ICardProvider {
           phase: loginResponse.phase,
         },
       };
+    }
+
+    try {
+      return await this.completeAuth(session, loginResponse);
+    } catch (error) {
+      throw mapApiError(error, 'completeAuth');
+    }
+  }
+
+  private async handleEmailCode(
+    session: CardAuthSession,
+    credentials: Extract<CardCredentials, { type: 'email_code' }>,
+  ): Promise<CardAuthResult> {
+    let loginResponse: CardLoginResponse & {
+      otpMode?: 'SMS' | 'TOTP' | null;
+    };
+    try {
+      loginResponse = await this.service.post('/v1/auth/login/email-code', {
+        email: credentials.email,
+        code: credentials.code,
+        ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
+      });
+    } catch (error) {
+      throw mapLoginError(error, !!credentials.otpCode);
+    }
+
+    if (loginResponse.isOtpRequired) {
+      const mode = loginResponse.otpMode === 'TOTP' ? 'TOTP' : 'SMS';
+      session._metadata.otpUserId = loginResponse.userId;
+      session._metadata.otpMode = mode;
+      return {
+        done: false,
+        nextStep: {
+          type: 'otp',
+          destination: loginResponse.phoneNumber ?? credentials.email,
+          mode,
+        },
+      };
+    }
+
+    if (loginResponse.phase) {
+      return {
+        done: false,
+        onboardingRequired: {
+          sessionId: loginResponse.userId,
+          phase: loginResponse.phase,
+        },
+      };
+    }
+
+    if (!loginResponse.accessToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Email-code login response missing access token',
+      );
     }
 
     try {
@@ -1446,6 +1928,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt:
         Date.now() + tokenResponse.refresh_token_expires_in * 1000,
       location: metadata.location,
+      providerUserId: loginResponse.userId,
     };
 
     return { done: true, tokenSet };
@@ -1592,7 +2075,10 @@ export class BaanxProvider implements ICardProvider {
     return fallback ?? userPriority;
   }
 
-  private mapCardDetails(response: CardDetailsResponse): CardDetails {
+  private mapCardDetails(
+    response: CardDetailsResponse,
+    location: CardLocation,
+  ): CardDetails {
     return {
       id: response.id,
       status: response.status,
@@ -1600,19 +2086,171 @@ export class BaanxProvider implements ICardProvider {
       lastFour: response.panLast4,
       holderName: response.holderName,
       isFreezable: response.isFreezable,
+      hasPin: location === 'us' || response.type !== CardType.VIRTUAL,
     };
   }
 
-  private mapAccountStatus(
-    user: UserResponse,
-    card: CardDetailsResponse | null,
-  ): CardAccountStatus {
+  private mapBaanxTransaction(raw: BaanxTransactionRaw): CardTransaction {
+    const isDebit = raw.sign === 'DEBIT';
+    const category = raw.mccCategory
+      ? BAANX_MCC_CATEGORY_MAP[raw.mccCategory.toUpperCase()]
+      : undefined;
+    const merchantType = raw.merchantType ?? '';
+    const isAtm =
+      category === CardMerchantCategory.Atm ||
+      merchantType.toUpperCase().includes('ATM');
+
+    let type: CardTransactionType;
+    if (!isDebit) {
+      type = CardTransactionType.Refund;
+    } else if (isAtm) {
+      type = CardTransactionType.Withdrawal;
+    } else {
+      type = CardTransactionType.Purchase;
+    }
+
+    const { name, city } = this.parseMerchantNameLocation(
+      raw.merchantNameLocation,
+    );
+
+    const fundingSources: CardTransactionFundingSource[] = (
+      raw.fundingSources ?? []
+    ).map((fs) => ({
+      txHash: fs.txHash,
+      walletAddress: fs.address,
+      network: fs.network,
+      chainId: networkToCaipChainId(fs.network),
+      amount: fs.amount,
+      currency: fs.currency,
+      fees: fs.fees,
+      swapFee: fs.swapFee,
+    }));
+
+    const declineMessage = raw.declineReason?.trim();
+
+    return {
+      id: raw.id,
+      providerId: this.id,
+      timestamp: new Date(raw.dateTime).getTime(),
+      // Unknown future statuses must never be represented as successful.
+      status: BAANX_STATUS_MAP[raw.status] ?? CardTransactionStatus.Pending,
+      type,
+      isDebit,
+      billingAmount: {
+        value: raw.amountInTransactionCurrency,
+        currency: raw.transactionCurrency,
+      },
+      originalAmount:
+        raw.originalCurrency &&
+        raw.amountInOriginalCurrency &&
+        raw.originalCurrency !== raw.transactionCurrency
+          ? {
+              value: raw.amountInOriginalCurrency,
+              currency: raw.originalCurrency,
+            }
+          : undefined,
+      feeAmount:
+        raw.feesInTransactionCurrency && raw.feesInTransactionCurrency !== '0'
+          ? {
+              value: raw.feesInTransactionCurrency,
+              currency: raw.transactionCurrency,
+            }
+          : undefined,
+      conversionRate: raw.billingConversionRate,
+      merchant: name
+        ? {
+            name,
+            city,
+            id: raw.merchantId,
+            mcc: raw.mcc != null ? String(raw.mcc) : undefined,
+            category,
+          }
+        : undefined,
+      description: raw.merchantNameLocation,
+      reference: raw.transactionId,
+      cardLastFour: raw.panLast4,
+      declineReason: declineMessage ? { message: declineMessage } : undefined,
+      fundingSources,
+    };
+  }
+
+  /**
+   * Baanx concatenates merchant name and location into one field, e.g.
+   * "WWW.ALIEXPRESS.COM, LONDON". The city is the segment after the last
+   * comma; merchant names may themselves contain commas.
+   */
+  private parseMerchantNameLocation(combined?: string): {
+    name?: string;
+    city?: string;
+  } {
+    if (!combined?.trim()) {
+      return {};
+    }
+    const lastComma = combined.lastIndexOf(',');
+    if (lastComma === -1) {
+      return { name: combined.trim() };
+    }
+    return {
+      name: combined.slice(0, lastComma).trim(),
+      city: combined.slice(lastComma + 1).trim() || undefined,
+    };
+  }
+
+  private mapWalletProvisioning(
+    user: UserResponse | null,
+    card: CardDetails | null,
+    location: string,
+  ): CardWalletProvisioningInfo | null {
+    if (!user || !card) {
+      return null;
+    }
+
+    const countryCode = baanxProvisioningCountryCode(
+      location,
+      user.countryOfResidence,
+    );
+    const cardProcessor =
+      typeof user.cardProvider === 'string' && user.cardProvider.length > 0
+        ? user.cardProvider
+        : undefined;
+
+    return {
+      eligible: card.status === CardStatus.ACTIVE,
+      cardholderName: buildBaanxCardholderName(user),
+      lastFour: card.lastFour,
+      network: 'MASTERCARD',
+      ...(countryCode ? { countryCode } : {}),
+      ...(cardProcessor ? { cardProcessor } : {}),
+    };
+  }
+
+  private toBaanxApplePayWire(params: ApplePayProvisioningParams): {
+    leafCertificate: string;
+    intermediateCertificate: string;
+    nonce: string;
+    nonceSignature: string;
+  } {
+    if (params.certificates.length < 2) {
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidRequest,
+        'Apple Pay certificate chain must include a leaf and intermediate',
+      );
+    }
+
+    const toHex = (value: string) =>
+      Buffer.from(value, 'base64').toString('hex');
+
+    return {
+      leafCertificate: toHex(params.certificates[0]),
+      intermediateCertificate: toHex(params.certificates[1]),
+      nonce: toHex(params.nonce),
+      nonceSignature: toHex(params.nonceSignature),
+    };
+  }
+
+  private mapAccountStatus(user: UserResponse): CardAccountStatus {
     return {
       verificationStatus: user.verificationState ?? null,
-      provisioningEligible:
-        !!card &&
-        card.status === CardStatus.ACTIVE &&
-        isAccountEligibleForProvisioning(user.createdAt),
       holderName: user.firstName
         ? `${user.firstName} ${user.lastName ?? ''}`.trim()
         : null,
@@ -1630,6 +2268,7 @@ export class BaanxProvider implements ICardProvider {
         ? user.countryOfResidence.toUpperCase()
         : null,
       usState: user.usState ? user.usState.toUpperCase() : null,
+      createdAt: user.createdAt ?? null,
     };
   }
 

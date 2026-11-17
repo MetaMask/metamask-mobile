@@ -3,6 +3,7 @@ import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -129,7 +130,7 @@ describe('Migration #51', () => {
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });

@@ -28,13 +28,20 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import ToastService from '../../../../core/ToastService';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
+  PredictEventValues,
+  PredictTradeStatus,
+  PredictDismissalMethod,
+} from '../constants/eventNames';
+import {
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictBottomSheetEnabledFlag,
+  selectPredictDisablePolymarketV2MarketsFlag,
 } from '../selectors/featureFlags';
 import {
   PredictBuyPreviewParams,
   PredictSellPreviewParams,
 } from '../types/navigation';
+import { ActiveOrderState } from '../types';
 import { formatCents, getCashoutInfoText } from '../utils/format';
 import PredictPreviewSheet, {
   type PredictPreviewSheetRef,
@@ -49,10 +56,14 @@ import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWi
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
-import { PredictDismissalMethod } from '../constants/eventNames';
+import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
 import { getBuyOutcomeImage } from '../utils/sports';
+import {
+  getPredictOutcomeVersion,
+  isPolymarketV2Outcome,
+} from '../utils/marketVersion';
 import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
 
 // Registration stack of sheet-mode providers — multiple providers can be
@@ -214,8 +225,43 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
     }),
     [navigation],
   );
+  const sheet = ctx ?? fallback;
+  const isV2MarketsDisabled = useSelector(
+    selectPredictDisablePolymarketV2MarketsFlag,
+  );
 
-  return ctx ?? fallback;
+  // While the Protocol V2 kill switch is on, buy and cash out on a v2 outcome
+  // open the Market unavailable sheet instead. Every other outcome — and every
+  // outcome while the switch is off — goes through unchanged.
+  return useMemo(() => {
+    if (!isV2MarketsDisabled) {
+      return sheet;
+    }
+
+    const showMarketUnavailable = () => {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.MARKET_UNAVAILABLE,
+      });
+    };
+
+    return {
+      ...sheet,
+      openBuySheet: (params: PredictBuyPreviewParams) => {
+        if (isPolymarketV2Outcome(params.outcome)) {
+          showMarketUnavailable();
+          return;
+        }
+        sheet.openBuySheet(params);
+      },
+      openSellSheet: (params: PredictSellPreviewParams) => {
+        if (isPolymarketV2Outcome(params.outcome)) {
+          showMarketUnavailable();
+          return;
+        }
+        sheet.openSellSheet(params);
+      },
+    };
+  }, [isV2MarketsDisabled, navigation, sheet]);
 };
 
 interface PredictPreviewSheetProviderProps {
@@ -263,9 +309,8 @@ export const PredictPreviewSheetProvider: React.FC<
   /**
    * Pending timer that auto-clears `activeOrder.error` after the failure
    * toast finishes auto-dismissing (~3s — `visibilityDuration` 2750ms +
-   * exit animation in `Toast.tsx`). Cancelled when the user taps Retry
-   * (so the reopened slip surfaces the error banner) and on unmount (so
-   * we don't fire `clearOrderError` after teardown).
+   * exit animation in `Toast.tsx`). Cancelled whenever the buy sheet reopens
+   * (so the reopened slip surfaces the error banner) and on unmount.
    */
   const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -303,6 +348,11 @@ export const PredictPreviewSheetProvider: React.FC<
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
+      if (clearErrorTimerRef.current) {
+        clearTimeout(clearErrorTimerRef.current);
+        clearErrorTimerRef.current = null;
+      }
+
       if (bottomSheetEnabled) {
         lastBuyParamsRef.current = params;
         setBuyParams(params);
@@ -337,6 +387,18 @@ export const PredictPreviewSheetProvider: React.FC<
   const dismissPreviewSheet = useCallback(() => {
     setBuyParams(null);
   }, []);
+
+  useEffect(() => {
+    const orderFinishedWithoutError =
+      activeOrder?.state === ActiveOrderState.SUCCESS ||
+      (activeOrder?.state === ActiveOrderState.PREVIEW &&
+        !activeOrder.error &&
+        !buyParams);
+
+    if (orderFinishedWithoutError) {
+      lastBuyParamsRef.current = null;
+    }
+  }, [activeOrder?.error, activeOrder?.state, buyParams]);
 
   useEffect(() => {
     if (buyParams) {
@@ -388,10 +450,29 @@ export const PredictPreviewSheetProvider: React.FC<
     }
 
     const lastParams = lastBuyParamsRef.current;
+    const isPaymentFailure = activeOrder?.errorStage === 'payment';
+    const toastAnalyticsProperties = {
+      marketId: lastParams.market?.id,
+      marketTitle: lastParams.market?.title,
+      marketCategory: lastParams.market?.category,
+      entryPoint: lastParams.entryPoint,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+      outcomeVersion: getPredictOutcomeVersion(lastParams.outcome),
+    };
+
+    if (isPaymentFailure) {
+      Engine.context.PredictController.trackPredictOrderEvent({
+        status: PredictTradeStatus.PAYMENT_FAILURE_PROMPTED,
+        analyticsProperties: toastAnalyticsProperties,
+        paymentTokenAddress: activeOrder?.paymentTokenAddress,
+        paymentTokenSymbol: activeOrder?.paymentTokenSymbol,
+      });
+    }
+
     // Use `closeButtonOptions` (with `ButtonVariants.Link`) rather than
-    // `linkButtonOptions` so the Retry sits inline on the right of the row
-    // (`[icon] [label] [Retry]`) instead of stacked below the label. This
-    // matches the deposit "Adding funds / Track" toast convention.
+    // `linkButtonOptions` so the Retry / Add funds sits inline on the right of
+    // the row (`[icon] [label] [action]`) instead of stacked below the label.
+    // This matches the deposit "Adding funds / Track" toast convention.
     ToastService.showToast({
       variant: ToastVariants.Icon,
       labelOptions: [
@@ -401,23 +482,36 @@ export const PredictPreviewSheetProvider: React.FC<
         },
       ],
       // The description provides useful context AND makes the labels
-      // container two lines tall — same height as the Retry Primary
+      // container two lines tall — same height as the action Primary
       // button — so the row's `alignItems: flex-start` produces a
       // visually-balanced layout (matches the deposit/Track toast).
       descriptionOptions: {
-        description: strings('predict.order.order_failed_generic'),
+        description: isPaymentFailure
+          ? strings('predict.order.payment_failed_body_generic')
+          : strings('predict.order.order_failed_generic'),
       },
       iconName: IconName.Error,
       iconColor: themeRef.current.colors.error.default,
       backgroundColor: themeRef.current.colors.error.muted,
       hasNoTimeout: false,
       closeButtonOptions: {
-        label: strings('predict.order.retry'),
+        label: isPaymentFailure
+          ? strings('predict.deposit.add_funds')
+          : strings('predict.order.retry'),
         variant: ButtonVariants.Link,
         onPress: () => {
-          if (clearErrorTimerRef.current) {
-            clearTimeout(clearErrorTimerRef.current);
-            clearErrorTimerRef.current = null;
+          if (isPaymentFailure) {
+            Engine.context.PredictController.trackPredictOrderEvent({
+              status: PredictTradeStatus.ADD_FUNDS_SUBMITTED,
+              analyticsProperties: toastAnalyticsProperties,
+              paymentTokenAddress: activeOrder?.paymentTokenAddress,
+              paymentTokenSymbol: activeOrder?.paymentTokenSymbol,
+            });
+            navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+              screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+              params: { autoDeposit: true },
+            });
+            return;
           }
           openBuySheet(lastParams);
         },
@@ -426,22 +520,32 @@ export const PredictPreviewSheetProvider: React.FC<
 
     // Toast auto-dismisses on the platform default (~2.75s visibility +
     // ~250ms exit anim). When that finishes without the user tapping
-    // Retry, clear the error so the next slip open is clean (no banner).
-    // Tapping Retry cancels this timer so the reopened slip can show the
-    // banner explaining what went wrong.
+    // Retry, clear order-stage errors so the next slip open is clean.
+    // Payment-stage errors persist so reopening the slip still explains
+    // what happened. Reopening the sheet by any path cancels this timer
+    // so the slip can show the banner explaining what went wrong.
     if (clearErrorTimerRef.current) {
       clearTimeout(clearErrorTimerRef.current);
     }
-    clearErrorTimerRef.current = setTimeout(() => {
-      clearErrorTimerRef.current = null;
-      clearOrderError();
-    }, 3000);
+    if (!isPaymentFailure) {
+      clearErrorTimerRef.current = setTimeout(() => {
+        clearErrorTimerRef.current = null;
+        Engine.context.PredictController.cancelRetryablePredictBuyAttempt(
+          PREDICT_BUY_CANCELLATION_REASONS.RETRY_PROMPT_EXPIRED,
+        );
+        clearOrderError();
+      }, 3000);
+    }
   }, [
     activeOrder?.error,
+    activeOrder?.errorStage,
+    activeOrder?.paymentTokenAddress,
+    activeOrder?.paymentTokenSymbol,
     buyParams,
     bottomSheetEnabled,
     openBuySheet,
     clearOrderError,
+    navigation,
   ]);
 
   const BuyComponent = useMemo(
@@ -450,6 +554,13 @@ export const PredictPreviewSheetProvider: React.FC<
   );
 
   const onBuyDismiss = useCallback(() => {
+    const orderWasInitiated = predictBuyPreviewOrderInitiatedRef.current;
+    const orderIsInFlight =
+      activeOrder?.state === ActiveOrderState.DEPOSITING ||
+      activeOrder?.state === ActiveOrderState.PLACING_ORDER;
+
+    Engine.context.PredictController.cancelRetryablePredictBuyAttempt();
+
     // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
     // Skip if: the back-button handler already fired it, or the sheet is
     // closing because the user confirmed an order (not a dismissal).
@@ -475,8 +586,12 @@ export const PredictPreviewSheetProvider: React.FC<
     predictBuyPreviewOrderInitiatedRef.current = false;
 
     setBuyParams(null);
-    clearOrderError();
-  }, [clearOrderError, buyParams]);
+    const orderMayStartAfterDismiss = orderWasInitiated && !activeOrder?.error;
+    if (!orderIsInFlight && !orderMayStartAfterDismiss) {
+      lastBuyParamsRef.current = null;
+      clearOrderError();
+    }
+  }, [activeOrder?.error, activeOrder?.state, clearOrderError, buyParams]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(

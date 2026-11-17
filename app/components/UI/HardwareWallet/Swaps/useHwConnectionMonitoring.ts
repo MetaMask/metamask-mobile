@@ -2,8 +2,12 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { useDispatch } from 'react-redux';
 import { ConnectionStatus, ErrorCode } from '@metamask/hw-wallet-sdk';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
-import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
+import {
+  getRecoveryActionForErrorCode,
+  isDeviceUserRejection,
+} from '../../../../core/HardwareWallet/errors/helpers';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
+import { RecoveryAction } from '../../../../core/HardwareWallet/errors/types';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
@@ -227,11 +231,29 @@ export function useHwConnectionMonitoring({
       return;
     }
 
-    if (error && isUserCancellation(error)) {
+    if (error && isDeviceUserRejection(error)) {
       handledErrorRef.current = error;
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.Rejected,
+        }),
+      );
+      return;
+    }
+
+    // Non-recoverable signing errors (e.g. blind signing disabled on the
+    // device) cannot be fixed by reconnecting, so drive the flow state
+    // machine to its terminal retryable status instead of leaving the
+    // screen stuck on Waiting with no retry affordance.
+    if (
+      hasActiveSigning &&
+      getRecoveryActionForErrorCode(parsedError.code) ===
+        RecoveryAction.ACKNOWLEDGE
+    ) {
+      handledErrorRef.current = error;
+      dispatch(
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.TransactionFailed,
         }),
       );
       return;

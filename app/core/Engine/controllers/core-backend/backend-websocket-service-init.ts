@@ -4,6 +4,8 @@ import {
   BackendWebSocketServiceMessenger,
   BackendWebSocketServiceInitMessenger,
 } from '../../messengers/core-backend';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
@@ -30,6 +32,25 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, initMessenger }) => {
   Logger.log('Initializing BackendWebSocketService');
 
+  const isBasicFunctionality = () =>
+    selectBasicFunctionalityEnabled(store.getState());
+
+  const subscribeToBasicFunctionalityChange = (
+    onChange: (isBasic: boolean) => void,
+  ) => {
+    let previous = isBasicFunctionality();
+
+    return store.subscribe(() => {
+      const current = isBasicFunctionality();
+      if (current === previous) {
+        return;
+      }
+
+      previous = current;
+      onChange(current);
+    });
+  };
+
   const controller = new BackendWebSocketService({
     messenger: controllerMessenger,
     url:
@@ -48,13 +69,19 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
         const { backendWebSocketConnection } =
           remoteFeatureFlagState?.remoteFeatureFlags || {};
 
-        const result =
-          backendWebSocketConnection &&
+        // The flag can be a bare boolean or a legacy `{ value }` wrapper.
+        // Treat both shapes as enabled when the resolved value is truthy.
+        if (
           typeof backendWebSocketConnection === 'object' &&
-          'value' in backendWebSocketConnection &&
-          Boolean(backendWebSocketConnection.value);
+          backendWebSocketConnection !== null &&
+          'value' in backendWebSocketConnection
+        ) {
+          return Boolean(backendWebSocketConnection.value);
+        }
 
-        return Boolean(result);
+        return typeof backendWebSocketConnection === 'boolean'
+          ? backendWebSocketConnection
+          : false;
       } catch (error) {
         // If feature flag check fails, default to NOT connecting for safer startup
         Logger.log(
@@ -64,6 +91,8 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
         return false;
       }
     },
+    isBasicFunctionality,
+    subscribeToBasicFunctionalityChange,
   });
 
   // Authentication and lock/unlock handling is now managed by the core WebSocket service

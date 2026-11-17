@@ -10,21 +10,33 @@ import {
   PredictDismissalMethodValue,
   PredictEventProperties,
   PredictEventValues,
+  PredictFailureCategoryValue,
+  PredictFailureStageValue,
+  PredictOneTickDecisionValue,
+  PredictPaymentMethodValue,
+  PredictPresubmitOutcomeValue,
+  PredictRetryOutcomeValue,
+  PredictRetryReasonValue,
   PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { PlaceOrderParams, PredictOrderType } from '../types';
+import {
+  PlaceOrderParams,
+  PredictEligibility,
+  PredictOrderType,
+} from '../types';
 import { PREDICT_ANALYTICS_EVENTS } from './utils/predictAnalyticsEvents';
 
 export interface PredictAnalyticsContext {
-  getEligibility(): { eligible: boolean; country?: string };
+  getEligibility(): PredictEligibility;
 }
 
 export interface TrackPredictOrderEventArgs {
   status: PredictTradeStatusValue;
   amountUsd?: number;
+  tradeCompletedAmountUsd?: number;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   completionDuration?: number;
   failureReason?: string;
@@ -33,6 +45,28 @@ export interface TrackPredictOrderEventArgs {
   orderType?: PredictOrderType;
   paymentTokenAddress?: string;
   paymentTokenSymbol?: string;
+  attemptId?: string;
+  paymentMethod?: PredictPaymentMethodValue;
+  failureStage?: PredictFailureStageValue;
+  failureCategory?: PredictFailureCategoryValue;
+  /** Why the retry exists — always the not-filled failure for now. */
+  retryReason?: PredictRetryReasonValue;
+  /** User-initiated retry submission number within this not-filled episode. */
+  retryCount?: number;
+  /** How the 1-tick rule classified the fresh quote. */
+  oneTickDecision?: PredictOneTickDecisionValue;
+  /** Applied band as a percentage string, e.g. '5%' (sell) / '3%' (buy). */
+  slippageBand?: string;
+  /** Terminal outcome of a retry submission. */
+  retryOutcome?: PredictRetryOutcomeValue;
+  /** What the Cash Out price check decided before submitting. */
+  presubmitOutcome?: PredictPresubmitOutcomeValue;
+  /** Price the Cash Out price check compared the fresh book against. */
+  approvedPrice?: number;
+  /** Lowest bid used to fill the full size in the fresh book. */
+  worstFillPrice?: number;
+  /** True when the check follows a confirmation of a moved price. */
+  reconfirmed?: boolean;
   activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -213,6 +247,7 @@ export class PredictAnalytics {
   public async trackPredictOrderEvent({
     status,
     amountUsd,
+    tradeCompletedAmountUsd,
     analyticsProperties,
     completionDuration,
     failureReason,
@@ -221,6 +256,19 @@ export class PredictAnalytics {
     orderType,
     paymentTokenAddress,
     paymentTokenSymbol,
+    attemptId,
+    paymentMethod,
+    failureStage,
+    failureCategory,
+    retryReason,
+    retryCount,
+    oneTickDecision,
+    slippageBand,
+    retryOutcome,
+    presubmitOutcome,
+    approvedPrice,
+    worstFillPrice,
+    reconfirmed,
     activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
@@ -277,6 +325,10 @@ export class PredictAnalytics {
       ...(analyticsProperties.outcome && {
         [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
       }),
+      ...(analyticsProperties.outcomeVersion && {
+        [PredictEventProperties.OUTCOME_VERSION]:
+          analyticsProperties.outcomeVersion,
+      }),
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
       }),
@@ -314,6 +366,45 @@ export class PredictAnalytics {
       ...(paymentTokenSymbol && {
         [PredictEventProperties.PAYMENT_TOKEN_SYMBOL]: paymentTokenSymbol,
       }),
+      ...(attemptId && {
+        [PredictEventProperties.ATTEMPT_ID]: attemptId,
+      }),
+      ...(paymentMethod && {
+        [PredictEventProperties.PAYMENT_METHOD]: paymentMethod,
+      }),
+      ...(failureStage && {
+        [PredictEventProperties.FAILURE_STAGE]: failureStage,
+      }),
+      ...(failureCategory && {
+        [PredictEventProperties.FAILURE_CATEGORY]: failureCategory,
+      }),
+      ...(retryReason && {
+        [PredictEventProperties.RETRY_REASON]: retryReason,
+      }),
+      ...(retryCount !== undefined && {
+        [PredictEventProperties.RETRY_COUNT]: retryCount,
+      }),
+      ...(oneTickDecision && {
+        [PredictEventProperties.ONE_TICK_DECISION]: oneTickDecision,
+      }),
+      ...(slippageBand && {
+        [PredictEventProperties.SLIPPAGE_BAND]: slippageBand,
+      }),
+      ...(retryOutcome && {
+        [PredictEventProperties.RETRY_OUTCOME]: retryOutcome,
+      }),
+      ...(presubmitOutcome && {
+        [PredictEventProperties.PRESUBMIT_OUTCOME]: presubmitOutcome,
+      }),
+      ...(approvedPrice !== undefined && {
+        [PredictEventProperties.APPROVED_PRICE]: approvedPrice,
+      }),
+      ...(worstFillPrice !== undefined && {
+        [PredictEventProperties.WORST_FILL_PRICE]: worstFillPrice,
+      }),
+      ...(reconfirmed !== undefined && {
+        [PredictEventProperties.RECONFIRMED]: reconfirmed,
+      }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {
           [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
@@ -349,23 +440,13 @@ export class PredictAnalytics {
       analyticsProperties.transactionType ===
         PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
     ) {
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.TRADE_CONSIDERED,
-        )
-          .addProperties({
-            [PredictEventProperties.TRADE_TYPE]:
-              PredictEventValues.TRADE_TYPE.PREDICT,
-            [PredictEventProperties.IMPLEMENTATION_TYPE]:
-              PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
-          })
-          .build(),
-      );
+      this.trackTradeConsidered();
     }
 
+    const completedAmountUsd = tradeCompletedAmountUsd ?? amountUsd;
     if (
       status === PredictTradeStatus.SUCCEEDED &&
-      amountUsd !== undefined &&
+      completedAmountUsd !== undefined &&
       (analyticsProperties.transactionType ===
         PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY ||
         analyticsProperties.transactionType ===
@@ -384,11 +465,26 @@ export class PredictAnalytics {
           })
           .addSensitiveProperties({
             ...sensitiveProperties,
-            [PredictEventProperties.USD_TRADE_VALUE]: amountUsd,
+            [PredictEventProperties.USD_TRADE_VALUE]: completedAmountUsd,
           })
           .build(),
       );
     }
+  }
+
+  public trackTradeConsidered(): void {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRADE_CONSIDERED,
+      )
+        .addProperties({
+          [PredictEventProperties.TRADE_TYPE]:
+            PredictEventValues.TRADE_TYPE.PREDICT,
+          [PredictEventProperties.IMPLEMENTATION_TYPE]:
+            PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
+        })
+        .build(),
+    );
   }
 
   public trackBetslipDismissed({
@@ -511,7 +607,11 @@ export class PredictAnalytics {
     const eligibilityData = this.context.getEligibility();
 
     this.trackConfiguredEvent('geoBlockTriggered', {
-      country: eligibilityData?.country,
+      country:
+        eligibilityData.status === 'eligible' ||
+        eligibilityData.status === 'ineligible'
+          ? eligibilityData.country
+          : undefined,
       attemptedAction,
     });
   }

@@ -1,0 +1,116 @@
+import type { Position } from '@metamask/social-controllers';
+import React, { useMemo } from 'react';
+import type {
+  QuickBuyOriginalEntryPoint,
+  QuickBuySheetSource,
+} from './analytics';
+import { QuickBuy } from './quickBuy';
+import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
+import {
+  positionToQuickBuyTarget,
+  type QuickBuyAnalyticsContext,
+  type QuickBuyTradeMode,
+} from './types';
+
+export interface TraderPositionQuickBuyProps {
+  isVisible: boolean;
+  position: Position | null;
+  onClose: () => void;
+  traderAddress?: string;
+  marketCap?: number;
+  /** Latest buy-token price in the user's display currency (chart feed). */
+  tokenPriceFiat?: number;
+  source?: QuickBuySheetSource;
+  originalEntryPoint?: QuickBuyOriginalEntryPoint;
+  /** `true` when the trader has closed the position (sell); `false` when still open (buy). */
+  isTraderPositionClosed?: boolean;
+  postTradeShare?: boolean;
+  postTradeShareOwner?: string;
+  initialTradeMode?: QuickBuyTradeMode;
+  /** True when the sheet was opened from Copy trade, not Buy or Sell. */
+  isCopyTrade?: boolean;
+}
+
+/**
+ * Top Traders adapter — maps social `Position` to `QuickBuyTarget` and
+ * bundles leaderboard analytics into `analyticsContext`.
+ */
+const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
+  position,
+  isVisible,
+  onClose,
+  traderAddress,
+  marketCap,
+  tokenPriceFiat,
+  source = 'profile_position',
+  originalEntryPoint,
+  isTraderPositionClosed,
+  postTradeShare,
+  postTradeShareOwner,
+  initialTradeMode,
+  isCopyTrade,
+}) => {
+  // Stabilise the derived `target` reference so it doesn't destabilise the
+  // `destToken` memo inside `useQuickBuySetup` (which would in turn re-trigger
+  // `useQuickBuyQuotes`' fetch effect and abort in-flight quotes).
+  //
+  // `position` is reference-stable upstream — it's either a nav-param value or
+  // the cached result of `useTraderPosition` — so memoising on it is enough.
+  // If a future caller starts allocating a fresh `Position` on every render,
+  // switch to primitive-field deps (tokenAddress, tokenSymbol, tokenName, chain).
+  const target = useMemo(
+    () => (position ? positionToQuickBuyTarget(position) : null),
+    [position],
+  ); // `null` when position is null OR when its chain name has no CAIP mapping
+
+  const analyticsContext = useMemo((): QuickBuyAnalyticsContext => {
+    const traderTradeType: QuickBuyAnalyticsContext['traderTradeType'] =
+      isTraderPositionClosed === undefined
+        ? undefined
+        : isTraderPositionClosed
+          ? 'sell'
+          : 'buy';
+    const hasAny =
+      traderAddress !== undefined ||
+      marketCap !== undefined ||
+      tokenPriceFiat !== undefined ||
+      source !== undefined ||
+      originalEntryPoint !== undefined ||
+      traderTradeType !== undefined ||
+      isCopyTrade === true;
+    return hasAny
+      ? {
+          traderAddress,
+          marketCap,
+          tokenPriceFiat,
+          source,
+          originalEntryPoint,
+          traderTradeType,
+          ...(isCopyTrade ? { isCopyTrade: true } : {}),
+        }
+      : { source };
+  }, [
+    traderAddress,
+    marketCap,
+    tokenPriceFiat,
+    source,
+    originalEntryPoint,
+    isTraderPositionClosed,
+    isCopyTrade,
+  ]);
+
+  return (
+    <QuickBuy.Root
+      isVisible={isVisible}
+      target={target}
+      onClose={onClose}
+      features={TOP_TRADERS_QUICK_BUY_FEATURES}
+      analyticsContext={analyticsContext}
+      postTradeShare={postTradeShare}
+      postTradeShareOwner={postTradeShareOwner}
+      initialTradeMode={initialTradeMode}
+    />
+  );
+};
+
+export default TraderPositionQuickBuy;

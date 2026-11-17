@@ -16,7 +16,7 @@ import { FeatureFlagType, getFeatureFlagType } from '../util/feature-flags';
 import {
   selectRemoteFeatureFlagsUnfiltered,
   selectLocalOverrides,
-  selectRawFeatureFlags,
+  selectRawRemoteFeatureFlags,
 } from '../selectors/featureFlagController';
 
 jest.mock('react-redux', () => ({
@@ -45,7 +45,7 @@ jest.mock('../core/Engine', () => ({
 jest.mock('../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlagsUnfiltered: jest.fn(),
   selectLocalOverrides: jest.fn(),
-  selectRawFeatureFlags: jest.fn(),
+  selectRawRemoteFeatureFlags: jest.fn(),
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
@@ -131,7 +131,7 @@ describe('FeatureFlagOverrideContext', () => {
       if (selector === selectLocalOverrides) {
         return { ...currentOverrides };
       }
-      if (selector === selectRawFeatureFlags) {
+      if (selector === selectRawRemoteFeatureFlags) {
         return currentRawFlags;
       }
       return undefined;
@@ -504,6 +504,32 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.featureFlags.numberFlag.type).toBe('number');
       expect(result.current.featureFlags.arrayFlag.type).toBe('array');
       expect(result.current.featureFlags.objectFlag.type).toBe('object');
+    });
+
+    it('classifies A/B test group arrays as abTest from the raw value', () => {
+      // The controller resolves this to a single group value, so the effective
+      // value is no longer `{ name, value }`. Detection must use the raw array.
+      const abGroups = [
+        {
+          name: 'control',
+          value: { variant: 'A' },
+          scope: { type: 'threshold', value: 0 },
+        },
+        {
+          name: 'treatment',
+          value: { variant: 'B' },
+          scope: { type: 'threshold', value: 1 },
+        },
+      ];
+      setupSelectorMocks({ myAbFlag: abGroups });
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      expect(result.current.featureFlags.myAbFlag.type).toBe(
+        FeatureFlagType.FeatureFlagAbTest,
+      );
     });
 
     it('handles flags with null/undefined values', () => {

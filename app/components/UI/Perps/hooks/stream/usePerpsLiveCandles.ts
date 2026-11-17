@@ -26,6 +26,10 @@ export interface UsePerpsLiveCandlesOptions {
   duration: TimeDuration;
   /** Throttle delay in milliseconds (default: 1000ms) */
   throttleMs?: number;
+  /** Restarts the subscription when its market context changes. */
+  resetKey?: string;
+  /** Defers subscription until the requested market context is connected. */
+  enabled?: boolean;
 }
 
 export interface UsePerpsLiveCandlesReturn {
@@ -41,6 +45,8 @@ export interface UsePerpsLiveCandlesReturn {
   error: Error | null;
   /** Fetch more historical candles before the current oldest candle */
   fetchMoreHistory: () => Promise<void>;
+  /** Deliveries accepted by this exact symbol+interval subscription. */
+  deliveryRevision?: number;
 }
 
 /**
@@ -68,20 +74,34 @@ export interface UsePerpsLiveCandlesReturn {
 export function usePerpsLiveCandles(
   options: UsePerpsLiveCandlesOptions,
 ): UsePerpsLiveCandlesReturn {
-  const { symbol, interval, duration, throttleMs = 1000 } = options;
+  const {
+    symbol,
+    interval,
+    duration,
+    throttleMs = 1000,
+    resetKey,
+    enabled = true,
+  } = options;
   const stream = usePerpsStream();
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
   const hasReceivedFirstUpdate = useRef(false);
+  const acceptedDeliveryRef = useRef(false);
 
   useEffect(() => {
+    let isActive = true;
     // Reset state immediately when symbol or interval changes to prevent stale data
     setCandleData(null);
     setIsLoading(true);
     setError(null);
     hasReceivedFirstUpdate.current = false;
+
+    if (!enabled) {
+      return;
+    }
 
     if (!symbol) {
       setCandleData(EMPTY_CANDLE_DATA);
@@ -95,6 +115,8 @@ export function usePerpsLiveCandles(
         interval,
         duration,
         callback: (newCandleData) => {
+          acceptedDeliveryRef.current = false;
+          if (!isActive) return;
           // null/undefined means no cached data yet, keep loading state
           if (newCandleData === null || newCandleData === undefined) {
             return;
@@ -124,9 +146,17 @@ export function usePerpsLiveCandles(
           }
 
           setCandleData(newCandleData);
+          acceptedDeliveryRef.current = true;
+        },
+        onDelivery: (source) => {
+          if (source === 'fresh' && acceptedDeliveryRef.current) {
+            setDeliveryRevision((revision) => revision + 1);
+          }
+          acceptedDeliveryRef.current = false;
         },
         throttleMs,
         onError: (err: Error) => {
+          if (!isActive) return;
           const errorInstance = ensureError(err, 'usePerpsLiveCandles.onError');
 
           // Log to Sentry: async subscription initialization failure
@@ -151,6 +181,7 @@ export function usePerpsLiveCandles(
       });
 
       return () => {
+        isActive = false;
         unsubscribe();
       };
     } catch (err) {
@@ -179,7 +210,7 @@ export function usePerpsLiveCandles(
       setIsLoading(false);
       return;
     }
-  }, [stream, symbol, interval, duration, throttleMs]);
+  }, [stream, symbol, interval, duration, throttleMs, resetKey, enabled]);
 
   const hasHistoricalData =
     candleData !== null && candleData.candles.length > 0;
@@ -227,5 +258,6 @@ export function usePerpsLiveCandles(
     hasHistoricalData,
     error,
     fetchMoreHistory,
+    deliveryRevision,
   };
 }

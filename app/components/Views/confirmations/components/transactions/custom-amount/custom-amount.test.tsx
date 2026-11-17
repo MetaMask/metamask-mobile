@@ -1,12 +1,12 @@
 import React from 'react';
+import { fireEvent, within } from '@testing-library/react-native';
 import { CustomAmount } from './custom-amount';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayIsMaxAmount,
-} from '../../../hooks/pay/useTransactionPayData';
 import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { mockTheme } from '../../../../../../util/theme';
+import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators');
@@ -15,38 +15,52 @@ const mockFormatAmountWithLocaleSeparators = jest.mocked(
   formatAmountWithLocaleSeparators,
 );
 
-const mockUseTransactionPayIsMaxAmount = jest.mocked(
-  useTransactionPayIsMaxAmount,
-);
-const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
-
 describe('CustomAmount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
-    mockUseIsTransactionPayLoading.mockReturnValue(false);
     mockFormatAmountWithLocaleSeparators.mockImplementation((value) => value);
   });
 
+  it('reserves two characters of side margin when sizing the amount', () => {
+    const amountFiat = '1234567';
+    const fontSize = getFontSizeForInputLength(amountFiat.length + 2);
+
+    const { getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat={amountFiat} />,
+    );
+
+    expect(
+      within(getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE)).getByText(
+        '1',
+      ),
+    ).toHaveStyle({ fontSize, lineHeight: fontSize });
+  });
+
   it('renders amount', () => {
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    const amountValue = getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE);
+
+    expect(amountValue).toHaveTextContent('123.45');
+    expect(amountValue).toHaveProp('accessible', true);
+    expect(amountValue).toHaveProp('accessibilityLabel', '123.45');
   });
 
   it('renders the amount formatted with thousand separators', () => {
     mockFormatAmountWithLocaleSeparators.mockImplementation(() => '1,000,000');
 
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="1000000" />,
     );
 
     expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
       '1000000',
     );
-    expect(getByText('1,000,000')).toBeOnTheScreen();
+    expect(
+      getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+    ).toHaveTextContent('1,000,000');
   });
 
   it('renders fiat symbol for specified currency', () => {
@@ -64,6 +78,39 @@ describe('CustomAmount', () => {
     );
 
     expect(getByText('$')).toBeOnTheScreen();
+    expect(getByText('$')).toHaveStyle({ fontFamily: 'GrotzecCond-Bold' });
+  });
+
+  it('renders the amount in the error colour when an alert is active', () => {
+    const { getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="10" hasAlert />,
+    );
+
+    expect(
+      within(getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE)).getByText(
+        '1',
+      ),
+    ).toHaveStyle({
+      color: mockTheme.colors.error.default,
+    });
+  });
+
+  it('does not expose a press target when no payment option is available', () => {
+    const { getByTestId, queryByRole } = renderWithProvider(
+      <CustomAmount amountFiat="10" disabled onPress={jest.fn()} />,
+    );
+
+    expect(queryByRole('button')).not.toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).not.toHaveProp('onPress');
+  });
+
+  it('does not expose a press target for a fixed membership amount', () => {
+    const { getByTestId, queryByRole } = renderWithProvider(
+      <CustomAmount amountFiat="10" showCursor={false} />,
+    );
+
+    expect(queryByRole('button')).not.toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).not.toHaveProp('onPress');
   });
 
   it('renders skeleton if loading', () => {
@@ -74,37 +121,28 @@ describe('CustomAmount', () => {
     expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
   });
 
-  it('renders skeleton when max amount and quotes are loading', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
-    mockUseIsTransactionPayLoading.mockReturnValue(true);
-
+  it('calls onPress when the loading skeleton is pressed', () => {
+    // The skeleton stays pressable so a prefill or quote that never resolves
+    // cannot strand the user on a loader.
+    const onPress = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <CustomAmount amountFiat="123.45" />,
+      <CustomAmount amountFiat="123.45" isLoading onPress={onPress} />,
     );
 
-    expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
+    fireEvent.press(getByTestId('custom-amount-skeleton'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders amount when max amount but quotes are not loading', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
-    mockUseIsTransactionPayLoading.mockReturnValue(false);
-
-    const { getByText } = renderWithProvider(
+  it('renders the amount even on Max — the input shows the full amount being paid, which is known synchronously and does not wait on quotes', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
-  });
-
-  it('renders amount when quotes are loading but not max amount', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
-    mockUseIsTransactionPayLoading.mockReturnValue(true);
-
-    const { getByText } = renderWithProvider(
-      <CustomAmount amountFiat="123.45" />,
-    );
-
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(
+      getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+    ).toHaveTextContent('123.45');
+    expect(queryByTestId('custom-amount-skeleton')).toBeNull();
   });
 
   it('renders blinking cursor when showCursor is true', () => {
@@ -137,5 +175,134 @@ describe('CustomAmount', () => {
     );
 
     expect(queryByTestId('custom-amount-cursor')).toBeNull();
+  });
+
+  describe('cents truncation', () => {
+    it('truncates full-precision amounts to two decimals', () => {
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="500.123456" />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('500.12');
+    });
+
+    it('truncates rather than rounding up', () => {
+      // The rendered value is re-typable through the keypad, so rounding up
+      // would let the user enter an amount above their balance.
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="10.379" />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('10.37');
+    });
+
+    it('never carries into the whole part', () => {
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="1.999" />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('1.99');
+    });
+
+    it('truncates before applying locale separators', () => {
+      renderWithProvider(<CustomAmount amountFiat="1234.987654" />);
+
+      expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
+        '1234.98',
+      );
+    });
+
+    it('normalises a comma decimal separator to a period', () => {
+      // formatAmountWithLocaleSeparators splits on `.` and applies the locale
+      // separator itself, so handing it a comma would drop the decimals.
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="500,987654" />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('500.98');
+    });
+
+    it('renders malformed input unchanged rather than NaN', () => {
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="1.2.3456" />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('1.2.3456');
+    });
+
+    it.each(['500', '1000000', '123.45', '123.4', '0.10', '12.'])(
+      'leaves keypad input %s exactly as typed',
+      (amountFiat) => {
+        const { getByTestId } = renderWithProvider(
+          <CustomAmount amountFiat={amountFiat} />,
+        );
+
+        expect(
+          getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+        ).toHaveTextContent(amountFiat);
+      },
+    );
+  });
+
+  describe('order entry decimal assistive behavior', () => {
+    it('displays "00" assistive text after cursor when decimal point is typed on whole number', () => {
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="10000." showCursor />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('10000.');
+      expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-assistive')).toHaveTextContent('00');
+      expect(getByTestId('custom-amount-assistive')).toHaveStyle({
+        fontFamily: 'GrotzecCond-Bold',
+      });
+    });
+
+    it('displays single "0" assistive text when one decimal digit is typed', () => {
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="1.2" showCursor />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('1.2');
+      expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-assistive')).toHaveTextContent('0');
+    });
+
+    it('displays no assistive text when two decimal digits are typed', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="1.25" showCursor />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('1.25');
+      expect(queryByTestId('custom-amount-assistive')).toBeNull();
+    });
+
+    it('auto drops ".00" when not actively editing', () => {
+      const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="10000.00" showCursor={false} />,
+      );
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('10000');
+      expect(queryByText('10000.00')).toBeNull();
+      expect(queryByTestId('custom-amount-assistive')).toBeNull();
+    });
   });
 });

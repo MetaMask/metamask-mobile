@@ -5,24 +5,36 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyPotentialEarningsView from './MoneyPotentialEarningsView';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import Routes from '../../../../../constants/navigation/Routes';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { PotentialEarningsTokenRowTestIds } from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow.testIds';
 import {
+  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
+  SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockInitiateDeposit = jest.fn();
+const mockUseRoute = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockTrackTooltipClicked = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
 const mockTrackTokenSurfaceClicked = jest.fn();
 let mockTokens: unknown[] = [];
+const mockUseMoneyDepositTokens = jest.fn(
+  (_options: { overrideToUsd?: boolean }) => ({
+    tokens: mockTokens,
+    isNoFeeToken: jest.fn(() => false),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -32,6 +44,7 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -99,21 +112,17 @@ const mockDepositTokens = [
 ];
 
 jest.mock('../../hooks/useMoneyDepositTokens', () => ({
-  useMoneyDepositTokens: () => ({
-    tokens: mockTokens,
-    isNoFeeToken: jest.fn(() => false),
-  }),
+  useMoneyDepositTokens: (options: { overrideToUsd?: boolean }) =>
+    mockUseMoneyDepositTokens(options),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: () => ({
-    initiateDeposit: mockInitiateDeposit,
-  }),
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
+  useMoneyDepositNavigation: jest.fn(),
 }));
 
 jest.mock(
@@ -144,7 +153,6 @@ jest.mock('../../utils/moneyFormatFiat', () => ({
 }));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
-    trackButtonClicked: jest.fn(),
     trackScreenViewed: jest.fn(),
     trackTokenButtonClicked: mockTrackTokenButtonClicked,
     trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
@@ -157,36 +165,51 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
-const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockMoneyFormatFiat = jest.mocked(moneyFormatFiat);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 
 describe('MoneyPotentialEarningsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTokens = mockDepositTokens;
-    mockInitiateDeposit.mockResolvedValue(undefined);
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseRoute.mockReturnValue({ params: undefined });
+    mockNavigateToMoneyDeposit.mockImplementation(async ({ track }) => {
+      track?.({
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      });
+    });
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
+    });
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4,
       apyDecimal: 0.04,
       apyPercentFormatted: '4%',
-      totalFiatFormatted: '$10,000.00',
-      totalFiatRaw: '10000',
-      tokenTotal: undefined,
-      isBalanceLoading: false,
       vaultApyQuery: {
         data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
       },
-      moneyBalanceQuery: {
-        data: {
-          musdBalance: '10000000000',
-          vmusdValueInMusd: '0',
-          totalBalance: '10000000000',
-        },
-        isLoading: false,
-      },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
   });
+
+  it.each([
+    ['true', { overrideToUsd: true }, true],
+    ['false', { overrideToUsd: false }, false],
+    ['missing', undefined, false],
+  ] as const)(
+    'passes %s overrideToUsd route param to deposit tokens hook',
+    (_caseName, params, expectedOverrideToUsd) => {
+      mockUseRoute.mockReturnValue({ params });
+
+      renderWithProvider(<MoneyPotentialEarningsView />);
+
+      expect(mockUseMoneyDepositTokens).toHaveBeenCalledWith({
+        overrideToUsd: expectedOverrideToUsd,
+      });
+    },
+  );
 
   it('renders the container', () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
@@ -219,7 +242,11 @@ describe('MoneyPotentialEarningsView', () => {
       MoneyPotentialEarningsViewTestIds.DESCRIPTION,
     );
     expect(description).toBeOnTheScreen();
-    expect(description).toHaveTextContent(/Convert your/);
+    expect(description).toHaveTextContent(
+      new RegExp(
+        strings('money.potential_earnings.description_with_amounts_prefix'),
+      ),
+    );
     expect(description).toHaveTextContent(/in one year\./);
     // green-highlighted projected amount renders inline with a "+" prefix
     expect(description).toHaveTextContent(/\+\$/);
@@ -380,12 +407,20 @@ describe('MoneyPotentialEarningsView', () => {
     );
   });
 
-  it('triggers deposit when the bottom Convert CTA is pressed', async () => {
+  it('navigates to deposit when the bottom Convert CTA is pressed', async () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
 
-    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+        track: expect.any(Function),
+      }),
+    );
   });
 
   it('tracks positive balance when the bottom Convert CTA is pressed', async () => {
@@ -394,9 +429,45 @@ describe('MoneyPotentialEarningsView', () => {
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
 
     await waitFor(() =>
-      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
-        expect.objectContaining({ token_has_balance: true }),
-      ),
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.potential_earnings.convert_cta',
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        component_name: COMPONENT_NAMES.MONEY_CONVERT_CRYPTO_BUTTON,
+        token_symbol: mockDepositTokens[0].symbol,
+        token_position_in_list: 1,
+        token_chain_id: mockDepositTokens[0].chainId,
+        tokens_in_list: mockDepositTokens.length,
+        token_has_balance: true,
+      }),
+    );
+  });
+
+  it('tracks the adapter redirect target with Convert CTA properties', async () => {
+    mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+      track?.({
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      });
+    });
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
+
+    await waitFor(() =>
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.potential_earnings.convert_cta',
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+        component_name: COMPONENT_NAMES.MONEY_CONVERT_CRYPTO_BUTTON,
+        token_symbol: 'USDC',
+        token_position_in_list: 1,
+        token_chain_id: '0x1',
+        tokens_in_list: mockDepositTokens.length,
+        token_has_balance: true,
+      }),
     );
   });
 
@@ -424,25 +495,27 @@ describe('MoneyPotentialEarningsView', () => {
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
 
-    await waitFor(() => expect(mockInitiateDeposit).not.toHaveBeenCalled());
+    await waitFor(() =>
+      expect(mockNavigateToMoneyDeposit).not.toHaveBeenCalled(),
+    );
   });
 
-  it('calls initiateDeposit from the Convert CTA', async () => {
-    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
-
-    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
-
-    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
-  });
-
-  it('triggers deposit when a token row is pressed', async () => {
+  it('navigates to deposit when a token row is pressed', async () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
     fireEvent.press(
       getByTestId(MoneyPotentialEarningsViewTestIds.TOKEN_ROW(0)),
     );
 
-    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+        track: expect.any(Function),
+      }),
+    );
   });
 
   it('tracks positive balance when a token row is pressed', async () => {
@@ -453,9 +526,15 @@ describe('MoneyPotentialEarningsView', () => {
     );
 
     await waitFor(() =>
-      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith(
-        expect.objectContaining({ token_has_balance: true }),
-      ),
+      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: mockDepositTokens[0].symbol,
+        token_position_in_list: 1,
+        token_chain_id: mockDepositTokens[0].chainId,
+        tokens_in_list: mockDepositTokens.length,
+        token_has_balance: true,
+      }),
     );
   });
 
@@ -464,10 +543,26 @@ describe('MoneyPotentialEarningsView', () => {
 
     fireEvent.press(getAllByText(strings('money.potential_earnings.add'))[0]);
 
-    await waitFor(() =>
-      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
-        expect.objectContaining({ token_has_balance: true }),
-      ),
-    );
+    await waitFor(() => {
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+        track: expect.any(Function),
+      });
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+        label_key: 'money.potential_earnings.add',
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: mockDepositTokens[0].symbol,
+        token_position_in_list: 1,
+        token_chain_id: mockDepositTokens[0].chainId,
+        tokens_in_list: mockDepositTokens.length,
+        token_has_balance: true,
+      });
+    });
   });
 });

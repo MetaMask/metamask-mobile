@@ -8,6 +8,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import {
   selectTronSpecialAssetsBySelectedAccountGroup,
   TronSpecialAssetsMap,
+  TronSpecialAssetsStatus,
 } from '../../../../selectors/assets/assets-list';
 
 jest.mock('./ResourceRing', () => ({
@@ -26,6 +27,8 @@ jest.mock('../../../../../locales/i18n', () => ({
         return 'TRX 1';
       case 'asset_overview.tron.sufficient_to_cover_trx_transfers':
         return `TRX ${vars?.amount}`;
+      case 'asset_overview.tron.resource_unavailable':
+        return 'Unavailable';
       default:
         return key;
     }
@@ -33,6 +36,8 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../selectors/assets/assets-list'),
   selectTronSpecialAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
@@ -48,19 +53,24 @@ const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  status: TronSpecialAssetsStatus.Ready,
   trxReadyForWithdrawal: undefined,
   trxStakingRewards: undefined,
   trxInLockPeriod: undefined,
 });
 
 interface Resource {
+  assetId: string;
   symbol: string;
-  balance: number | string;
+  balance: string;
+  fiat: undefined;
 }
 
 const res = (symbol: string, balance: number | string): Resource => ({
+  assetId: symbol,
   symbol,
-  balance,
+  balance: String(balance),
+  fiat: undefined,
 });
 
 const ResourceRingMock = jest.mocked(ResourceRing);
@@ -82,6 +92,7 @@ describe('TronEnergyBandwidthDetail', () => {
 
   it('renders values, coverage counts, and passes correct progress to ResourceRing', () => {
     jest.mocked(selectTronSpecialAssetsBySelectedAccountGroup).mockReturnValue({
+      ...createEmptySpecialAssetsMap(),
       energy: res('energy', 130000),
       bandwidth: res('bandwidth', 560),
       maxEnergy: res('max-energy', 200000),
@@ -114,6 +125,7 @@ describe('TronEnergyBandwidthDetail', () => {
 
   it('parses balances and caps progress', () => {
     jest.mocked(selectTronSpecialAssetsBySelectedAccountGroup).mockReturnValue({
+      ...createEmptySpecialAssetsMap(),
       energy: res('energy', '1000'),
       bandwidth: res('bandwidth', '2000'),
       maxEnergy: res('max-energy', '400'),

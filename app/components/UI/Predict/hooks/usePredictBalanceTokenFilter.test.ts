@@ -13,7 +13,9 @@ jest.mock(
 );
 
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  TransactionType: {
+    predictDepositAndOrder: 'predictDepositAndOrder',
+  },
   hasTransactionType: jest.fn(),
 }));
 

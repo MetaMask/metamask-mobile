@@ -3,7 +3,6 @@ import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   Icon,
@@ -13,6 +12,9 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface FilterOptionSheetProps<T extends string> {
   /** Sheet header title. */
@@ -56,6 +58,7 @@ export function FilterOptionSheet<T extends string>({
   sheetTestID,
   getOptionTestID,
 }: FilterOptionSheetProps<T>) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   // ROOT_MODAL_FLOW uses animation: 'none', so the opening tap can land on the
@@ -88,7 +91,9 @@ export function FilterOptionSheet<T extends string>({
       isInteractable={isReady}
       testID={sheetTestID}
     >
-      <BottomSheetHeader>{title}</BottomSheetHeader>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader}>
+        {title}
+      </BottomSheetHeaderGlass>
       <Box twClassName="pb-2">
         {options.map((option) => {
           const isSelected = option === selected;

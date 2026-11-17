@@ -1,173 +1,98 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import {
-  Image,
-  View,
-  StyleSheet,
-  useWindowDimensions,
-  ViewStyle,
-  ImageStyle,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { useDispatch } from 'react-redux';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { StatusBar } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import Routes from '../../../../../constants/navigation/Routes';
+import { useExitCardFlow } from '../../hooks/useExitCardFlow';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
-import MM_CARD_ONBOARDING_FAILED from '../../../../../images/mm-card-onboarding-failed.png';
-import {
-  Box,
-  Text,
-  TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
-import { brandColor } from '@metamask/design-tokens';
-import { colors as importedColors } from '../../../../../styles/common';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { useImmersveKycOutcome } from '../../hooks/useImmersveKycOutcome';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
-
-// Threshold for small screen adjustments
-const SMALL_SCREEN_THRESHOLD = 700;
-
-const staticStyles = StyleSheet.create({
-  headerContainer: {
-    zIndex: 2,
-  },
-  footerContainer: {
-    zIndex: 3,
-  },
-});
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import KYCFailedContent from './KYCFailedContent';
 
 /**
- * Screen shown when KYC verification has failed.
- * Informs the user they are not eligible for the MetaMask Card.
+ * Terminal Card KYC rejection. The body mirrors VBA's VbaAccountCreateError
+ * terminal (see `KYCFailedContent`); Immersve shows that same body in place.
  */
 const KYCFailed = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const exitCardFlow = useExitCardFlow();
+  const { notifyKycRejected } = useImmersveKycOutcome();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isDarkTheme = useTheme().themeAppearance === AppThemeKey.dark;
+  // This screen no longer uses OnboardingStep, which was what set the status bar.
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(
+        isDarkTheme ? 'light-content' : 'dark-content',
+        true,
+      );
+    }, [isDarkTheme]),
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-
-  const dynamicStyles = useMemo<{
-    imageContainer: ViewStyle;
-    image: ImageStyle;
-  }>(() => {
-    const isSmallScreen = screenHeight < SMALL_SCREEN_THRESHOLD;
-    const imageTop = isSmallScreen ? '28%' : '25%';
-    const imageWidth = isSmallScreen ? screenWidth * 1.5 : screenWidth * 1.2;
-    const imageHeight = isSmallScreen
-      ? screenHeight * 0.8
-      : screenHeight * 0.75;
-
-    return {
-      imageContainer: {
-        position: 'absolute',
-        top: imageTop,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        zIndex: 1,
-      },
-      image: {
-        width: imageWidth,
-        height: imageHeight,
-      },
-    };
-  }, [screenWidth, screenHeight]);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const hasTrackedView = useRef(false);
 
   useEffect(() => {
     dispatch(resetOnboardingState());
   }, [dispatch]);
 
   useEffect(() => {
+    // Wait for a known provider so we don't fire with a Baanx fallback then
+    // again when Immersve resolves (duplicate / misattributed views).
+    if (hasTrackedView.current || !activeProviderId) {
+      return;
+    }
+    hasTrackedView.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.KYC_FAILED,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.KYC_FAILED,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation]);
+    // The screen is the explanation. Signing out stops a later Link card
+    // from treating this Immersve session as ready. Baanx keeps its session.
+    if (activeProviderId === CardProviderIds.Immersve) {
+      notifyKycRejected(
+        { type: 'rejected', canRetry: false, reasons: [] },
+        { source: 'kyc_failed', toast: false },
+      ).catch(() => undefined);
+    }
+    exitCardFlow();
+  }, [activeProviderId, exitCardFlow, notifyKycRejected]);
 
   return (
-    <Box twClassName="flex-1" style={tw.style(`bg-[${brandColor.purple800}]`)}>
-      {/* Header with back button */}
-      <SafeAreaView edges={['top']} style={staticStyles.headerContainer}>
-        <Box twClassName="px-4 py-2 items-start">
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Md}
-            iconColor={importedColors.white}
-            onPress={navigateToHome}
-            testID="kyc-failed-back-button"
-          />
-        </Box>
-
-        {/* Title and description */}
-        <Box twClassName="px-4 mb-4">
-          <Text
-            variant={TextVariant.HeadingLg}
-            twClassName="text-white"
-            testID="kyc-failed-title"
-          >
-            {strings('card.card_onboarding.kyc_failed.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-white opacity-80 mt-4"
-            testID="kyc-failed-description"
-          >
-            {strings('card.card_onboarding.kyc_failed.description')}
-          </Text>
-        </Box>
-      </SafeAreaView>
-
-      {/* Image - positioned absolutely to extend behind footer */}
-      <View style={dynamicStyles.imageContainer}>
-        <Image
-          source={MM_CARD_ONBOARDING_FAILED}
-          resizeMode="contain"
-          style={dynamicStyles.image}
-          testID="kyc-failed-image"
-        />
-      </View>
-
-      {/* Footer */}
-      <SafeAreaView
-        edges={['bottom']}
-        style={[
-          staticStyles.footerContainer,
-          tw.style('absolute bottom-0 left-0 right-0 px-4'),
-        ]}
-      >
-        <Box twClassName="pt-2 pb-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            onPress={navigateToHome}
-            isFullWidth
-            testID="kyc-failed-close-button"
-          >
-            {strings('card.card_onboarding.kyc_failed.close_button')}
-          </Button>
-        </Box>
-      </SafeAreaView>
-    </Box>
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={tw.style('flex-1 bg-default')}
+      testID="kyc-failed-container"
+    >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        onBack={navigateToHome}
+        backButtonProps={{
+          testID: 'kyc-failed-back-button',
+        }}
+        includesTopInset
+      />
+      <KYCFailedContent onClose={navigateToHome} />
+    </SafeAreaView>
   );
 };
 

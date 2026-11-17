@@ -14,6 +14,11 @@ import Routes from '../../../../constants/navigation/Routes';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
@@ -208,7 +213,7 @@ describe('RewardsVipTransactionsView', () => {
     expect(getByText('Transactions')).toBeOnTheScreen();
   });
 
-  it('falls back to Transactions when dashboard is unavailable', () => {
+  it('renders an empty title when dashboard is unavailable', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: null,
       isLoading: false,
@@ -217,9 +222,12 @@ describe('RewardsVipTransactionsView', () => {
       fetchVipDashboard: jest.fn(),
     });
 
-    const { getByText } = render(<RewardsVipTransactionsView />);
+    const { queryByText, getByTestId } = render(<RewardsVipTransactionsView />);
 
-    expect(getByText('Transactions')).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByText('Transactions')).toBeNull();
   });
 
   it('renders layout-matching skeletons while loading with no transactions', () => {

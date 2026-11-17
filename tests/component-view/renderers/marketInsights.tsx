@@ -2,6 +2,7 @@ import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
@@ -94,28 +95,33 @@ export function renderMarketInsightsViewWithNavigation(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
 
   const stackTree = (
-    <AccessRestrictedProvider>
-      <RootStack.Navigator
-        initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
-        screenOptions={{ headerShown: false }}
-      >
-        <RootStack.Screen
-          name={Routes.MARKET_INSIGHTS.VIEW}
-          component={MarketInsightsView as unknown as React.ComponentType}
-          initialParams={initialParams}
-        />
-        <RootStack.Screen
-          name={Routes.BRIDGE.ROOT}
-          component={BridgeNavigator}
-        />
-        <RootStack.Screen
-          name={Routes.RAMP.TOKEN_SELECTION}
-          component={RampNavigator}
-        />
-      </RootStack.Navigator>
-    </AccessRestrictedProvider>
+    <QueryClientProvider client={queryClient}>
+      <AccessRestrictedProvider>
+        <RootStack.Navigator
+          initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
+          screenOptions={{ headerShown: false }}
+        >
+          <RootStack.Screen
+            name={Routes.MARKET_INSIGHTS.VIEW}
+            component={MarketInsightsView as unknown as React.ComponentType}
+            initialParams={initialParams}
+          />
+          <RootStack.Screen
+            name={Routes.BRIDGE.ROOT}
+            component={BridgeNavigator}
+          />
+          <RootStack.Screen
+            name={Routes.RAMP.TOKEN_SELECTION}
+            component={RampNavigator}
+          />
+        </RootStack.Navigator>
+      </AccessRestrictedProvider>
+    </QueryClientProvider>
   );
 
   return renderWithProvider(stackTree, { state });

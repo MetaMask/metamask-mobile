@@ -19,11 +19,14 @@ import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { type BottomSheetRef } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 interface PerpsSelectAdjustMarginActionViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
   position?: Position;
   onClose?: () => void;
+  enableHaptics?: boolean;
+  useBottomSheet?: boolean;
 }
 
 const PerpsSelectAdjustMarginActionView: React.FC<
@@ -32,6 +35,8 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   sheetRef: externalSheetRef,
   position: positionProp,
   onClose: onExternalClose,
+  enableHaptics = false,
+  useBottomSheet = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -45,6 +50,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { navigateToAdjustMargin } = usePerpsNavigation();
+  const { playImpact } = useHaptics();
 
   const handleClose = useCallback(() => {
     if (externalSheetRef) {
@@ -57,6 +63,10 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   const handleActionSelect = useCallback(
     (action: AdjustMarginAction) => {
       if (!position) return;
+
+      if (enableHaptics) {
+        playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+      }
 
       // Track UI interaction for add/remove margin selection
       const interactionType = {
@@ -76,20 +86,20 @@ const PerpsSelectAdjustMarginActionView: React.FC<
       );
 
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
-      switch (action) {
-        case 'add_margin':
-          navigateToAdjustMargin(position, 'add');
-          break;
-        case 'reduce_margin':
-          navigateToAdjustMargin(position, 'remove');
-          break;
-      }
+      const mode = action === 'reduce_margin' ? 'remove' : 'add';
+      navigateToAdjustMargin(position, mode, {
+        enableHaptics,
+        useBottomSheet,
+      });
 
       // Close bottom sheet AFTER navigation is triggered
       sheetRef.current?.onCloseBottomSheet(handleClose);
     },
     [
       position,
+      enableHaptics,
+      useBottomSheet,
+      playImpact,
       sheetRef,
       handleClose,
       navigateToAdjustMargin,

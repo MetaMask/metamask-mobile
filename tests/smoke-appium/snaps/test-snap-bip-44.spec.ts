@@ -11,7 +11,10 @@ const multiSrpFixture = new FixtureBuilder()
   .build();
 
 appiumTest.describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Increased from 150 s: 6 serial tests on Android include a snap install
+  // (up to 60 s) plus five WebView sign-and-verify rounds, which regularly
+  // accumulates past 150 s on slower CI runners.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'can connect to BIP-44 snap',
@@ -113,10 +116,22 @@ appiumTest.describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
           await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');
           await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
           await TestSnaps.tapButton('signMessageBip44Button');
-          await Assertions.expectTextDisplayed(
-            'Entropy source with ID "invalid" not found.',
-            { timeout: 30_000 },
-          );
+          // Stable substrings — iOS alert a11y text can omit/alter quotes
+          // (same pattern as test-snap-get-entropy).
+          await Assertions.expectTextDisplayed('Entropy source with ID', {
+            timeout: 30_000,
+            description:
+              'Invalid entropy alert should mention entropy source ID',
+          });
+          await Assertions.expectTextDisplayed('invalid', {
+            timeout: 30_000,
+            description:
+              'Invalid entropy alert should name the invalid source ID',
+          });
+          await Assertions.expectTextDisplayed('not found', {
+            timeout: 30_000,
+            description: 'Invalid entropy alert should report source not found',
+          });
           await TestSnaps.dismissAlert();
         },
       );

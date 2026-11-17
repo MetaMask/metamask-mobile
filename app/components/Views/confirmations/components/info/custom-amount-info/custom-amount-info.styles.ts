@@ -1,8 +1,9 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
 const ACCOUNT_SELECTOR_VERTICAL_PADDING = 12;
 const BOTTOM_BLOCK_GAP = 16;
+const BOTTOM_BLOCK_PADDING = 16;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -20,8 +21,26 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 14,
     },
 
+    amountBlock: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+    },
+
+    // Keeps the amount fixed. The caption hangs below it, so swapping the
+    // APY line for an alert does not change the amount's position.
+    amountCaption: {
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      right: 0,
+      marginTop: 14,
+      alignItems: 'center',
+    },
+
+    // Sits on top of the safe-area inset, so the confirm button and the keypad
+    // keep clear of the home indicator / navigation bar on both platforms.
     bottomBlock: {
-      paddingBottom: Platform.OS === 'android' ? 16 : 0,
+      paddingBottom: BOTTOM_BLOCK_PADDING,
     },
 
     disabledButton: {

@@ -32,9 +32,11 @@ export function getPredictControllerMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'TransactionController:estimateGas',
+      'TransactionController:getGasFeeTokens',
       'KeyringController:signTypedMessage',
       'KeyringController:signPersonalMessage',
       'RemoteFeatureFlagController:getState',
+      'SubscriptionController:getBenefits',
     ],
     events: [
       'TransactionController:transactionSubmitted',

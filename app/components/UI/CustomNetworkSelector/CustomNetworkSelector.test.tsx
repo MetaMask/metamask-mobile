@@ -24,6 +24,7 @@ jest.mock('../../../core/Multichain/utils', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 
@@ -273,8 +274,11 @@ describe('CustomNetworkSelector', () => {
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
       selectedTronAccount: { id: 'tron-account' } as InternalAccount,
       tronNetworks: mockNetworks,
+      stellarNetworks: mockNetworks,
+      selectedStellarAccount: { id: 'stellar-account' } as InternalAccount,
       areAllBitcoinNetworksSelected: false,
       areAllTronNetworksSelected: false,
+      areAllStellarNetworksSelected: false,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
@@ -470,9 +474,12 @@ describe('CustomNetworkSelector', () => {
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
+        selectedStellarAccount: null,
         tronNetworks: [],
+        stellarNetworks: [],
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        areAllStellarNetworksSelected: false,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
@@ -518,9 +525,12 @@ describe('CustomNetworkSelector', () => {
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
+        selectedStellarAccount: null,
         tronNetworks: [],
+        stellarNetworks: [],
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        areAllStellarNetworksSelected: false,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,

@@ -9,12 +9,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
 /**
@@ -99,7 +99,7 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
   const transactionMetadata = useTransactionMetadataRequest();
   const isGasSponsored = useIsGasSponsored();
   const { goToBuy } = useRampNavigation();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
 
   const { chainId, simulationData } = transactionMetadata ?? {};
 
@@ -129,12 +129,12 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
 
   return useMemo(() => {
     if (!shouldShow || !chainId) {
-      return [];
+      return NO_ALERTS;
     }
 
     const rule = GAS_SPONSORSHIP_WARNING_RULES[chainId as Hex];
     if (!rule) {
-      return [];
+      return NO_ALERTS;
     }
 
     const { titleKey, messageKey, nativeCurrency, minBalance } = rule;

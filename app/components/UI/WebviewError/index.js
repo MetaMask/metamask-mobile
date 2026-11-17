@@ -10,7 +10,7 @@ import { WebviewErrorSelectorsIDs } from './WebviewError.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: colors.background.default,
       justifyContent: 'center',
       alignItems: 'center',
@@ -37,7 +37,7 @@ const createStyles = (colors) =>
       color: colors.text.default,
       ...fontStyles.bold,
       fontSize: 18,
-      marginBottom: 15,
+      marginBottom: 12,
     },
     errorMessage: {
       textAlign: 'center',
@@ -53,7 +53,7 @@ const createStyles = (colors) =>
     },
     buttonWrapper: {
       width: 200,
-      marginTop: 30,
+      marginTop: 24,
     },
   });
 

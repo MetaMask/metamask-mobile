@@ -8,6 +8,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 import { isEqual } from 'lodash';
+import type { OriginMetadata } from '@metamask/snaps-sdk';
 
 import {
   CaipAccountId,
@@ -18,6 +19,13 @@ import {
 } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
+import {
+  RemoteTransport,
+  getRequestSourceForTransport,
+  stampOriginProvenance,
+  removeOriginProvenance,
+} from '../OriginProvenance';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -34,6 +42,8 @@ import getRpcMethodMiddleware, {
   getRpcMethodMiddlewareHooks,
 } from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
+import { getWalletConnectSessionId } from './wc-analytics';
 import { ERROR_MESSAGES } from './WalletConnectV2';
 import {
   getScopedPermissions,
@@ -92,6 +102,12 @@ class WalletConnect2Session {
 
   private _isHandlingRequest = false;
 
+  /**
+   * Analytics context shared by every RPC request raised on this connection.
+   * Assigned in the constructor because it is derived from `channelId`.
+   */
+  private analyticsProperties: { [key: string]: string | boolean };
+
   public session: SessionTypes.Struct;
 
   constructor({
@@ -113,6 +129,11 @@ class WalletConnect2Session {
     backgroundBridgeFactory?: BackgroundBridgeFactory;
   }) {
     this.channelId = channelId;
+    this.analyticsProperties = {
+      isRemoteConn: false,
+      transport: TransportType.WALLETCONNECT,
+      remote_session_id: getWalletConnectSessionId(channelId),
+    };
     this.web3Wallet = web3Wallet;
     this.deeplink = deeplink;
     this.session = session;
@@ -137,6 +158,15 @@ class WalletConnect2Session {
       `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
     );
 
+    // Stamp the connection's provenance at the entry point: the channelId is
+    // the unspoofable connection identity; the session peer metadata is
+    // self-reported by the dapp and display-only.
+    stampOriginProvenance({
+      connectionId: channelId,
+      transport: RemoteTransport.WalletConnect,
+      selfReported: { url, name, icon: icons?.[0] },
+    });
+
     this.backgroundBridge = backgroundBridgeFactory.create({
       webview: null,
       url,
@@ -160,7 +190,16 @@ class WalletConnect2Session {
           hostname: this.selfReportedHostname,
           getProviderState,
           channelId,
-          analytics: {},
+          // Carries `remote_session_id` onto signature and other RPC events that
+          // pass through this middleware. eth_sendTransaction does not use
+          // this path; handleSendTransaction writes the same id onto the
+          // confirmation metric.
+          //
+          // `isRemoteConn` stays false on purpose: it is the flag the RPC
+          // middleware's getSource() uses to pick between the SDK v1 and
+          // MetaMask Connect request sources. WalletConnect must keep falling
+          // through to `request_source: 'WalletConnect'`.
+          analytics: this.analyticsProperties,
           isMMSDK: false,
           navigation: this.navigation,
           // Website info — self-reported by dapp via WC session metadata, shown in
@@ -526,7 +565,7 @@ class WalletConnect2Session {
         icon: {
           current: this.session.peer.metadata.icons?.[0] as ImageSourcePropType,
         },
-        analytics: {},
+        analytics: this.analyticsProperties,
         channelId: this.channelId,
         getSource: () => AppConstants.REQUEST_SOURCES.WC,
       });
@@ -558,7 +597,7 @@ class WalletConnect2Session {
         nativeCurrency: networkConfiguration.nativeCurrency,
         chainId: hexChainIdString,
         rpcUrl,
-        analytics: {},
+        analytics: this.analyticsProperties,
         origin: this.channelId,
         hooks: getRpcMethodMiddlewareHooks({
           origin: this.channelId,
@@ -568,7 +607,7 @@ class WalletConnect2Session {
             current: this.session.peer.metadata
               .icons?.[0] as ImageSourcePropType,
           },
-          analytics: {},
+          analytics: this.analyticsProperties,
           channelId: this.channelId,
           getSource: () => AppConstants.REQUEST_SOURCES.WC,
         }),
@@ -744,6 +783,10 @@ class WalletConnect2Session {
         // what Snaps must receive as the request origin, never the dapp's
         // self-reported metadata URL.
         origin: this.channelId,
+        originMetadata: {
+          transport: 'WalletConnect',
+          selfReportedOrigin: this.selfReportedUrl,
+        },
         requestEvent,
         scope: normalizedRequestChainId,
       });
@@ -873,10 +916,12 @@ class WalletConnect2Session {
    */
   private handleAdapterRequest = async ({
     origin,
+    originMetadata,
     requestEvent,
     scope,
   }: {
     origin: string;
+    originMetadata: OriginMetadata;
     requestEvent: WalletKitTypes.SessionRequest;
     scope: CaipChainId;
   }) => {
@@ -888,6 +933,7 @@ class WalletConnect2Session {
     try {
       const result = await handleMultichainRequestByAdapter({
         origin,
+        originMetadata,
         connectedAddresses,
         scope,
         requestId: requestEvent.id,
@@ -906,6 +952,7 @@ class WalletConnect2Session {
   };
 
   removeListeners = async () => {
+    removeOriginProvenance(this.channelId);
     this.backgroundBridge.onDisconnect();
   };
 
@@ -927,11 +974,35 @@ class WalletConnect2Session {
         securityAlertResponse: undefined,
       });
 
+      // Record the transport keyed by transaction id so the confirmation UI
+      // (useIsExternalAppRequest) can render the "External app" treatment:
+      // `unverifiedOrigin` is a self-reported domain the UI must not present
+      // as verified, and TransactionMeta cannot carry client-only fields.
+      store.dispatch(
+        updateConfirmationMetric({
+          id: trx.transactionMeta.id,
+          params: {
+            properties: {
+              request_source: getRequestSourceForTransport(
+                RemoteTransport.WalletConnect,
+              ),
+              // Same derivation as the connection funnel. This metric is what
+              // lands on the transaction event; the bridge analytics object
+              // above is never consulted for eth_sendTransaction.
+              remote_session_id: getWalletConnectSessionId(this.channelId),
+            },
+          },
+        }),
+      );
+
       const reqObject = {
         id: requestEvent.id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin: unverifiedOrigin,
+        // No `origin`: it would be the dapp's self-reported URL, which is
+        // unverifiable over WalletConnect and must never influence the
+        // security scan (Blockaid treats the URL as a core heuristic that
+        // can flip a verdict between malicious and benign).
         params: [
           {
             from: methodParams[0].from,

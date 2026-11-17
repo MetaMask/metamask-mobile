@@ -13,17 +13,14 @@ import {
   BtcScope,
   SolScope,
   EthScope,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
-  ///: END:ONLY_INCLUDE_IF
+  XlmScope,
 } from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
 import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
-///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
-///: END:ONLY_INCLUDE_IF
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController ??
@@ -52,21 +49,16 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
   [
     selectMultichainNetworkControllerState,
     selectIsSolanaTestnetEnabled,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     selectIsBitcoinTestnetEnabled,
-    ///: END:ONLY_INCLUDE_IF
   ],
   (
     multichainNetworkControllerState: MultichainNetworkControllerState,
     isSolanaTestnetEnabled: Json,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     isBitcoinTestnetEnabled: Json,
-    ///: END:ONLY_INCLUDE_IF
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
-    ///: END:ONLY_INCLUDE_IF
+
     const extendedNonEvmData: Record<
       CaipChainId,
       {
@@ -121,7 +113,6 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Regtest],
         isTestnet: true,
       },
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       [TrxScope.Mainnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[TrxScope.Mainnet],
         imageSource: imageIcons.TRON,
@@ -140,7 +131,12 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         ticker: MULTICHAIN_NETWORK_TICKER[TrxScope.Shasta],
         isTestnet: true,
       },
-      ///: END:ONLY_INCLUDE_IF(tron)
+      [XlmScope.Pubnet]: {
+        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[XlmScope.Pubnet] ?? 7,
+        imageSource: imageIcons.STELLAR,
+        ticker: MULTICHAIN_NETWORK_TICKER[XlmScope.Pubnet] ?? 'XLM',
+        isTestnet: false,
+      },
     };
 
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
@@ -148,20 +144,17 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       {};
 
     const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       BtcScope.Mainnet,
       ...(isBitcoinTestnetEnabledBoolean
         ? [BtcScope.Testnet, BtcScope.Signet]
         : []),
-      ///: END:ONLY_INCLUDE_IF
       SolScope.Mainnet,
       ...(isSolanaTestnetEnabledBoolean ? [SolScope.Devnet] : []),
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       TrxScope.Mainnet,
       // TODO: Uncomment these when we have a FF to enable them
       // TrxScope.Nile,
       // TrxScope.Shasta,
-      ///: END:ONLY_INCLUDE_IF
+      XlmScope.Pubnet,
     ];
 
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
@@ -275,7 +268,6 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       ];
     }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     if (account.scopes.includes(BtcScope.Mainnet)) {
       return [
         {
@@ -311,9 +303,7 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
         },
       ];
     }
-    ///: END:ONLY_INCLUDE_IF(bitcoin)
 
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (account.scopes.includes(TrxScope.Mainnet)) {
       return [
         {
@@ -335,7 +325,14 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
         },
       ];
     }
-    ///: END:ONLY_INCLUDE_IF
+
+    if (account.scopes.includes(XlmScope.Pubnet)) {
+      return [
+        {
+          caipChainId: XlmScope.Pubnet,
+        },
+      ];
+    }
 
     return [];
   },

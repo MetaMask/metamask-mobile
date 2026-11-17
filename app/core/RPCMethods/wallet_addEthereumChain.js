@@ -41,6 +41,23 @@ const addOrUpdateIndex = (array, value, comparator) => {
   return { updatedArray: array, index };
 };
 
+const getBlockExplorerUpdate = (existingNetworkConfiguration, url) =>
+  url
+    ? addOrUpdateIndex(
+        existingNetworkConfiguration.blockExplorerUrls,
+        url,
+        (existingUrl) => existingUrl === url,
+      )
+    : {
+        updatedArray: existingNetworkConfiguration.blockExplorerUrls,
+        index: existingNetworkConfiguration.defaultBlockExplorerUrlIndex,
+      };
+
+const getNewBlockExplorerFields = (url) =>
+  url
+    ? { blockExplorerUrls: [url], defaultBlockExplorerUrlIndex: 0 }
+    : { blockExplorerUrls: [], defaultBlockExplorerUrlIndex: undefined };
+
 /**
  * Add chain implementation to be used in JsonRpcEngine middleware.
  *
@@ -171,10 +188,9 @@ export const wallet_addEthereumChain = async ({
         (endpoint) => endpoint.url === firstValidRPCUrl,
       );
 
-      const blockExplorerResult = addOrUpdateIndex(
-        existingNetworkConfiguration.blockExplorerUrls,
+      const blockExplorerResult = getBlockExplorerUpdate(
+        existingNetworkConfiguration,
         firstValidBlockExplorerUrl,
-        (url) => url === firstValidBlockExplorerUrl,
       );
 
       const clonedNetworkConfiguration = {
@@ -216,9 +232,8 @@ export const wallet_addEthereumChain = async ({
     } else {
       updatedNetworkConfiguration = NetworkController.addNetwork({
         chainId,
-        blockExplorerUrls: [firstValidBlockExplorerUrl],
         defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: 0,
+        ...getNewBlockExplorerFields(firstValidBlockExplorerUrl),
         name: chainName,
         nativeCurrency: ticker,
         rpcEndpoints: [

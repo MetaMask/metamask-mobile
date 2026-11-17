@@ -4,48 +4,48 @@ import {
   AddContactViewSelectorsText,
 } from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType, PlatformDetector } from '../../../framework';
+import { type AppiumElement, PlatformDetector } from '../../../framework';
 
 class AddContactView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.CONTAINER);
   }
 
-  get addButton(): EncapsulatedElementType {
-    return PlatformDetector.isIOS()
-      ? Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
+  get addButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
-  get editButton(): EncapsulatedElementType {
+  get editButton(): Promise<AppiumElement> {
     return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
   }
 
-  get editContact(): EncapsulatedElementType {
-    return Matchers.getElementByText(AddContactViewSelectorsText.EDIT_CONTACT);
+  get editContact(): Promise<AppiumElement> {
+    return Matchers.getElementByText(AddContactViewSelectorsText.SAVE);
   }
 
-  get deleteButton(): EncapsulatedElementType {
-    return PlatformDetector.isIOS()
-      ? Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON)
-      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
+  get cancelButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.CANCEL_BUTTON);
   }
 
-  get nameInput(): EncapsulatedElementType {
+  get deleteButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON);
+  }
+
+  get nameInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.NAME_INPUT);
   }
 
-  get memoLabel(): EncapsulatedElementType {
+  get memoLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(AddContactViewSelectorsText.MEMO);
   }
 
-  get memoInput(): EncapsulatedElementType {
+  get memoInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.MEMO_INPUT);
   }
 
-  get addressInput(): EncapsulatedElementType {
+  get addressInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.ADDRESS_INPUT);
   }
 
@@ -63,7 +63,13 @@ class AddContactView {
 
   async tapEditContactCTA(): Promise<void> {
     await Gestures.waitAndTap(this.editContact, {
-      elemDescription: 'Edit Contact CTA',
+      elemDescription: 'Save Contact CTA',
+    });
+  }
+
+  async tapCancelButton(): Promise<void> {
+    await Gestures.waitAndTap(this.cancelButton, {
+      elemDescription: 'Cancel Button',
     });
   }
 

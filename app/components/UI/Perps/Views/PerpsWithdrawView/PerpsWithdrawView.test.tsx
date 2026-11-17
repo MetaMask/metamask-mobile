@@ -81,7 +81,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -281,7 +286,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(strings('perps.withdrawal.title')),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$0')).toBeOnTheScreen(); // Initial amount display matches component logic
+      expect(screen.getByLabelText('$0')).toBeOnTheScreen(); // Initial amount display matches component logic
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {

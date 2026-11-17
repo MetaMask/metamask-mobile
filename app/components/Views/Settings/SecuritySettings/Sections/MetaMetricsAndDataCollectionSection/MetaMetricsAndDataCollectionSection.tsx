@@ -7,15 +7,11 @@ import {
   FontWeight,
   Text,
   TextColor,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
 import React, { useEffect, useState } from 'react';
 import createStyles from '../../SecuritySettings.styles';
@@ -33,9 +29,9 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
+import { updateCachedConsent } from '../../../../../../util/trace';
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
-import { updateCachedConsent } from '../../../../../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
@@ -45,11 +41,20 @@ import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
   analyticsLocation?: 'settings' | 'onboarding_default_settings';
+  /** Ref to the MetaMetrics sub-section, used as a scroll target. */
+  metaMetricsRef?: React.Ref<View>;
+  /** Ref to the marketing data collection sub-section, used as a scroll target. */
+  dataCollectionRef?: React.Ref<View>;
 }
 
 const MetaMetricsAndDataCollectionSection: React.FC<
   MetaMetricsAndDataCollectionSectionProps
-> = ({ hideMarketingSection = false, analyticsLocation = 'settings' }) => {
+> = ({
+  hideMarketingSection = false,
+  analyticsLocation = 'settings',
+  metaMetricsRef,
+  dataCollectionRef,
+}) => {
   const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
@@ -66,11 +71,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
 
+  const accountType = useSelector(selectOnboardingAccountType);
+
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-
-  const accountType = useSelector(selectOnboardingAccountType);
 
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
 
@@ -86,27 +91,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     }
 
     autoSignIn();
-    const fetchMarketingStatus = async () => {
-      try {
-        const data = await OAuthService.getMarketingOptInStatus();
-        dispatch(setDataCollectionForMarketing(data.is_opt_in));
-      } catch (err) {
-        Logger.error(err as Error);
-      }
-    };
-
-    if (isSeedlessOnboardingLoginFlow) {
-      fetchMarketingStatus();
-    }
     setAnalyticsEnabled(analytics.isEnabled());
     updateCachedConsent(analytics.isEnabled());
-  }, [
-    setAnalyticsEnabled,
-    autoSignIn,
-    isBasicFunctionalityEnabled,
-    dispatch,
-    isSeedlessOnboardingLoginFlow,
-  ]);
+  }, [setAnalyticsEnabled, autoSignIn, isBasicFunctionalityEnabled, dispatch]);
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
     if (metricsEnabled) {
@@ -168,9 +155,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       setAnalyticsEnabled(false);
       updateCachedConsent(false);
 
-      if (isDataCollectionForMarketingEnabled) {
-        dispatch(setDataCollectionForMarketing(false));
-      }
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
         strings('app_settings.metametrics_restart_required'),
@@ -195,40 +179,36 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     );
   };
 
-  const toggleDataCollectionForMarketing = async (value: boolean) => {
-    if (value) {
-      if (!analyticsEnabled) {
-        await toggleMetricsOptIn(true);
-      }
-      addMarketingConsentToTraits(value);
-    } else {
+  const toggleDataCollectionForMarketing = (value: boolean) => {
+    if (!value) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.DATA_COLLECTION,
       });
-
-      if (analyticsEnabled) {
-        addMarketingConsentToTraits(value);
-      }
     }
 
-    // Store the previous state to revert if API fails
-    const previousMarketingState = !value;
+    if (analyticsEnabled) {
+      addMarketingConsentToTraits(value);
+    }
 
-    // Update client state optimistically
     dispatch(setDataCollectionForMarketing(value));
 
-    // Sync with server, revert client state if API fails
+    // Social-login wallets also store marketing consent server-side so the
+    // auth service can create the HubSpot contact for email marketing and
+    // learn of opt-outs. A failed sync keeps the local decision; only reads
+    // that would overwrite the local choice are gone.
     if (isSeedlessOnboardingLoginFlow) {
       OAuthService.updateMarketingOptInStatus(value).catch((error) => {
         Logger.error(error as Error);
-        // Revert client state back to previous value if API fails
-        dispatch(setDataCollectionForMarketing(previousMarketingState));
       });
     }
   };
 
   const renderMetaMetricsSection = () => (
-    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
+    <View
+      ref={metaMetricsRef}
+      style={styles.halfSetting}
+      testID={META_METRICS_SECTION}
+    >
       <View style={styles.titleContainer}>
         <Text
           variant={TextVariant.BodyMd}
@@ -260,19 +240,19 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         style={styles.desc}
       >
         {strings('app_settings.metametrics_description')}{' '}
-        <Button
-          variant={ButtonVariants.Link}
-          size={ButtonSize.Auto}
-          labelTextVariant={LibraryTextVariant.BodySMMedium}
+        <TextButton
+          variant={TextVariant.BodySm}
           onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-          label={strings('app_settings.learn_more')}
-        />
+        >
+          {strings('app_settings.learn_more')}
+        </TextButton>
       </Text>
     </View>
   );
 
   const renderDataCollectionSection = () => (
     <View
+      ref={dataCollectionRef}
       style={styles.halfSetting}
       testID={META_METRICS_DATA_MARKETING_SECTION}
     >

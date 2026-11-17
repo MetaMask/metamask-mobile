@@ -44,7 +44,10 @@ describe('PredictAnalytics', () => {
     jest.clearAllMocks();
 
     context = {
-      getEligibility: jest.fn(() => ({ eligible: false, country: 'US' })),
+      getEligibility: jest.fn(() => ({
+        status: 'ineligible' as const,
+        country: 'US',
+      })),
     };
     predictAnalytics = new PredictAnalytics(context);
   });
@@ -154,6 +157,106 @@ describe('PredictAnalytics', () => {
       expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
     });
 
+    it('tracks attempt properties on a Predict buy lifecycle event', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        amountUsd: 42,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+        },
+        attemptId: 'attempt-1',
+        paymentMethod: PredictEventValues.PAYMENT_METHOD.PAY_WITH_ANY_TOKEN,
+        failureStage: PredictEventValues.FAILURE_STAGE.ORDER,
+        failureCategory: PredictEventValues.FAILURE_CATEGORY.NETWORK,
+        failureReason: 'Network request failed',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        status: 'failed',
+        attempt_id: 'attempt-1',
+        payment_method: 'pay_with_any_token',
+        failure_stage: 'order',
+        failure_category: 'network',
+        failure_reason: 'Network request failed',
+      });
+      expect(event.sensitiveProperties).toMatchObject({ amount_usd: 42 });
+    });
+    it('copies retry properties onto the tracked event, keeping a zero retry count', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.RETRY_COMPLETED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+        retryReason: PredictEventValues.RETRY_REASON.ORDER_NOT_FILLED,
+        retryCount: 0,
+        oneTickDecision: PredictEventValues.ONE_TICK_DECISION.WITHIN_ONE_TICK,
+        slippageBand: '5%',
+        retryOutcome: PredictEventValues.RETRY_OUTCOME.SUCCESS,
+      });
+
+      const event = getTrackedEvent();
+
+      // retry_count must survive the spread at 0: a truthy check would drop
+      // it and misreport the first retry in the Mixpanel board.
+      expect(event.properties).toMatchObject({
+        retry_reason: 'order_not_filled',
+        retry_count: 0,
+        one_tick_decision: 'within_one_tick',
+        slippage_band: '5%',
+        retry_outcome: 'success',
+      });
+    });
+
+    it('copies Cash Out price check properties onto the tracked event, keeping a false reconfirmed flag', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.PRESUBMIT_CHECKED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+        sharePrice: 0.58,
+        completionDuration: 320,
+        presubmitOutcome: PredictEventValues.PRESUBMIT_OUTCOME.PRICE_MOVED,
+        approvedPrice: 0.6,
+        worstFillPrice: 0.57,
+        reconfirmed: false,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        status: 'presubmit_checked',
+        share_price: 0.58,
+        completion_duration: 320,
+        presubmit_outcome: 'price_moved',
+        approved_price: 0.6,
+        worst_fill_price: 0.57,
+        reconfirmed: false,
+      });
+    });
+  });
+
+  describe('trackTradeConsidered', () => {
+    it('tracks Trade Considered independently from trade status', () => {
+      predictAnalytics.trackTradeConsidered();
+
+      const tradeConsideredEvent = getTrackedEvent();
+
+      expect(tradeConsideredEvent.name).toBe(
+        MetaMetricsEvents.TRADE_CONSIDERED.category,
+      );
+      expect(tradeConsideredEvent.properties).toEqual({
+        trade_type: 'predict',
+        implementation_type: 'native',
+      });
+    });
+  });
+
+  describe('trackPredictOrderEvent completion events', () => {
     it('tracks Trade Completed after Predict Trade Transaction with matching properties', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUCCEEDED,
@@ -188,6 +291,27 @@ describe('PredictAnalytics', () => {
       expect(tradeCompletedEvent.sensitiveProperties).toEqual({
         ...predictTradeEvent.sensitiveProperties,
         usd_trade_value: 150,
+      });
+    });
+
+    it('uses executed value for Trade Completed and requested value for lifecycle', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: 150,
+        tradeCompletedAmountUsd: 125,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+        },
+      });
+
+      const predictTradeEvent = getTrackedEvent();
+      const tradeCompletedEvent = getTrackedEvent(1);
+
+      expect(predictTradeEvent.sensitiveProperties?.amount_usd).toBe(150);
+      expect(tradeCompletedEvent.sensitiveProperties).toMatchObject({
+        amount_usd: 150,
+        usd_trade_value: 125,
       });
     });
 
@@ -389,6 +513,33 @@ describe('PredictAnalytics', () => {
 
       expect(event.properties).not.toHaveProperty('predict_feed_tab');
       expect(event.properties).not.toHaveProperty('predict_screen');
+    });
+
+    it('includes outcome_version when outcomeVersion is provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        analyticsProperties: {
+          marketId: 'test',
+          entryPoint: 'predict_feed',
+          outcomeVersion: PredictEventValues.OUTCOME_VERSION.V2,
+        },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties.outcome_version).toBe('v2');
+      expect(event.sensitiveProperties).not.toHaveProperty('outcome_version');
+    });
+
+    it('omits outcome_version when outcomeVersion is not provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        analyticsProperties: { marketId: 'test', entryPoint: 'predict_feed' },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).not.toHaveProperty('outcome_version');
     });
   });
 

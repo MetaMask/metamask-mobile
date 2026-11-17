@@ -14,15 +14,21 @@ import {
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { usePredictWithdrawGasFeeToken } from '../../../hooks/gas/usePredictWithdrawGasFeeToken';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Alert } from '../../../types/alerts';
 import { useRoute } from '@react-navigation/native';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../context/confirmation-context');
 jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/gas/usePredictWithdrawGasFeeToken');
+jest.mock('../../../hooks/pay/useTransactionPayToken');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -31,14 +37,12 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 function render(props: {
-  alertTitle?: string;
   isDisabled?: boolean;
   onContinue?: () => void;
   stage?: CustomAmountStage;
 }) {
   return renderWithProvider(
     <CustomAmountConfirmButton
-      alertTitle={props.alertTitle}
       isDisabled={props.isDisabled ?? false}
       onContinue={props.onContinue}
       stage={props.stage ?? CustomAmountStage.ShowTotals}
@@ -61,11 +65,24 @@ describe('CustomAmountConfirmButton', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
   const useRouteMock = jest.mocked(useRoute);
+  const usePredictWithdrawGasFeeTokenMock = jest.mocked(
+    usePredictWithdrawGasFeeToken,
+  );
   const setIsConfirmationSubmittingMock = jest.fn();
+  const recheckMock = jest.fn();
+
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as never);
 
     useRouteMock.mockReturnValue({
       key: 'mock-route',
@@ -91,14 +108,25 @@ describe('CustomAmountConfirmButton', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: noop,
       setIsFooterVisible: noop,
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: noop,
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useConfirmActionsMock.mockReturnValue({
       onConfirm: jest.fn(),
       onReject: jest.fn(),
+    });
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
+    recheckMock.mockResolvedValue(true);
+    usePredictWithdrawGasFeeTokenMock.mockReturnValue({
+      isPending: false,
+      isUnavailable: false,
+      recheck: recheckMock,
     });
 
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -115,11 +143,10 @@ describe('CustomAmountConfirmButton', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the default label during loading even when alertTitle is set', () => {
+  it('always shows the default label regardless of stage', () => {
     // useTransactionMetadataRequest returns undefined → useButtonLabel returns the default 'done' string
     const { getByTestId, queryByText } = renderWithProvider(
       <CustomAmountConfirmButton
-        alertTitle="Test Alert Title"
         isDisabled={false}
         stage={CustomAmountStage.Loading}
       />,
@@ -127,7 +154,18 @@ describe('CustomAmountConfirmButton', () => {
     );
     const button = getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
     expect(button).toBeOnTheScreen();
-    expect(queryByText('Test Alert Title')).toBeNull();
+  });
+
+  it('shows Convert [symbol] if type is moneyAccountDeposit and payToken is present', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+    } as never);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { symbol: 'USDC' },
+    } as never);
+
+    const { getByText } = render({ stage: CustomAmountStage.ShowTotals });
+    expect(getByText('Convert USDC')).toBeOnTheScreen();
   });
 
   it('calls onConfirm and onContinue when pressed (enabled state)', async () => {
@@ -194,5 +232,77 @@ describe('CustomAmountConfirmButton', () => {
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('button is disabled when pay data is loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { getByTestId } = render({
+      isDisabled: false,
+      stage: CustomAmountStage.ShowTotals,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('disables the button while the Predict withdraw gas fee token check is pending', () => {
+    usePredictWithdrawGasFeeTokenMock.mockReturnValue({
+      isPending: true,
+      isUnavailable: false,
+      recheck: recheckMock,
+    });
+
+    const { getByTestId } = render({
+      isDisabled: false,
+      stage: CustomAmountStage.ShowTotals,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('checks the Predict withdraw gas fee token again before confirming', async () => {
+    const onConfirmMock = jest.fn();
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: onConfirmMock,
+      onReject: jest.fn(),
+    });
+
+    const { getByTestId } = render({});
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      );
+    });
+
+    expect(recheckMock).toHaveBeenCalledTimes(1);
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not confirm when the Predict withdraw gas fee token is no longer available', async () => {
+    const onConfirmMock = jest.fn();
+    const onContinueMock = jest.fn();
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: onConfirmMock,
+      onReject: jest.fn(),
+    });
+    recheckMock.mockResolvedValue(false);
+
+    const { getByTestId } = render({ onContinue: onContinueMock });
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      );
+    });
+
+    expect(onConfirmMock).not.toHaveBeenCalled();
+    expect(onContinueMock).not.toHaveBeenCalled();
+    expect(setIsConfirmationSubmittingMock).toHaveBeenNthCalledWith(1, true);
+    expect(setIsConfirmationSubmittingMock).toHaveBeenNthCalledWith(2, false);
   });
 });

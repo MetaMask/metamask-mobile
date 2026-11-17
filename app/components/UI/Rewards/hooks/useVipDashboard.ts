@@ -43,9 +43,9 @@ export const useVipDashboard = (): UseVipDashboardResult => {
     if (!subscriptionId || !isVipEnabled) {
       if (subscriptionId) {
         dispatch(setVipDashboard({ subscriptionId, dashboard: null }));
+        dispatch(setVipDashboardError({ subscriptionId, error: false }));
+        dispatch(setVipDashboardLoading({ subscriptionId, loading: false }));
       }
-      dispatch(setVipDashboardError(false));
-      dispatch(setVipDashboardLoading(false));
       setHasAttemptedFetch(true);
       return;
     }
@@ -56,8 +56,8 @@ export const useVipDashboard = (): UseVipDashboardResult => {
 
     try {
       isLoadingRef.current = true;
-      dispatch(setVipDashboardLoading(true));
-      dispatch(setVipDashboardError(false));
+      dispatch(setVipDashboardLoading({ subscriptionId, loading: true }));
+      dispatch(setVipDashboardError({ subscriptionId, error: false }));
 
       const vipDashboard = await Engine.controllerMessenger.call(
         'RewardsController:getVIPDashboard',
@@ -66,10 +66,10 @@ export const useVipDashboard = (): UseVipDashboardResult => {
 
       dispatch(setVipDashboard({ subscriptionId, dashboard: vipDashboard }));
     } catch {
-      dispatch(setVipDashboardError(true));
+      dispatch(setVipDashboardError({ subscriptionId, error: true }));
     } finally {
       isLoadingRef.current = false;
-      dispatch(setVipDashboardLoading(false));
+      dispatch(setVipDashboardLoading({ subscriptionId, loading: false }));
       setHasAttemptedFetch(true);
     }
   }, [dispatch, isVipEnabled, subscriptionId]);

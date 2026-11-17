@@ -27,7 +27,7 @@ import {
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
 import {
   PreferencesSkeleton,
   TradersFollowedSkeleton,
@@ -39,8 +39,10 @@ import {
   useNotificationPreferences,
   type TxAmountThreshold,
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
+import { isSocialV1Treatment } from '../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { areTradingSignalsChannelsDisabled } from '../../SocialLeaderboard/NotificationPreferences/hooks/tradingSignalsChannels';
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
+import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
 
 const AVATAR_SIZE = 40;
 
@@ -89,6 +91,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
         <TraderAvatar
           imageUrl={avatarUri}
           address={address}
+          profileId={traderId}
           size={AVATAR_SIZE}
           recyclingKey={traderId}
         />
@@ -123,11 +126,18 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
 export interface SocialAINotificationPreferencesContentProps {
   showPushToggle?: boolean;
   withHorizontalPadding?: boolean;
+  /**
+   * Forces the dependent Trading Signals UI (thresholds, traders) into the
+   * disabled/greyed-out look — same as when both channels are off. Used by
+   * the feature notifications gate while the master toggle is still off.
+   */
+  disabled?: boolean;
 }
 
 const SocialAINotificationPreferencesContent = ({
   showPushToggle = true,
   withHorizontalPadding = true,
+  disabled = false,
 }: SocialAINotificationPreferencesContentProps) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
@@ -153,17 +163,29 @@ const SocialAINotificationPreferencesContent = ({
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      if (isSocialV1Treatment()) {
+        const trader = followedTraders.find((item) => item.id === traderId);
+        navigateToSocialV1Profile(navigation, {
+          traderId,
+          traderName,
+          traderAddress: trader?.address,
+          traderAvatarUri: trader?.avatarUri,
+        });
+        return;
+      }
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
       });
     },
-    [navigation],
+    [followedTraders, navigation],
   );
 
   const showPreferencesSkeleton = isLoadingPreferences;
   const tradingSignalsChannelsDisabled =
-    isLoadingPreferences || areTradingSignalsChannelsDisabled(preferences);
+    disabled ||
+    isLoadingPreferences ||
+    areTradingSignalsChannelsDisabled(preferences);
 
   const handleSetEnabled = useCallback(
     (value: boolean) => {

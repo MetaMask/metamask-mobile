@@ -1,6 +1,7 @@
 import {
   selectRemoteFeatureFlags,
   selectRemoteFeatureFlagControllerState,
+  selectFeatureFlagThresholdGroups,
 } from '.';
 import {
   mockedEmptyFlagsState,
@@ -66,6 +67,52 @@ describe('featureFlagController selector', () => {
       const result = selectRemoteFeatureFlags(
         stateWithFlagsAndBasicFunctionalityDisabled,
       );
+
+      expect(result).toEqual({});
+    });
+  });
+
+  describe('selectFeatureFlagThresholdGroups', () => {
+    const thresholdGroups = { someAbTest: 'treatment' };
+
+    const stateWithThresholdGroups = (basicFunctionalityEnabled: boolean) => ({
+      ...mockedState,
+      engine: {
+        ...mockedState.engine,
+        backgroundState: {
+          ...mockedState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...mockedState.engine.backgroundState.RemoteFeatureFlagController,
+            featureFlagThresholdGroups: thresholdGroups,
+          },
+        },
+      },
+      settings: {
+        basicFunctionalityEnabled,
+      },
+    });
+
+    it('returns threshold groups when basic functionality is enabled', () => {
+      const result = selectFeatureFlagThresholdGroups(
+        stateWithThresholdGroups(true),
+      );
+
+      expect(result).toEqual(thresholdGroups);
+    });
+
+    it('returns empty groups when basic functionality is disabled', () => {
+      const result = selectFeatureFlagThresholdGroups(
+        stateWithThresholdGroups(false),
+      );
+
+      expect(result).toEqual({});
+    });
+
+    it('returns empty groups when the field is absent', () => {
+      const result = selectFeatureFlagThresholdGroups({
+        ...mockedState,
+        settings: { basicFunctionalityEnabled: true },
+      });
 
       expect(result).toEqual({});
     });

@@ -20,7 +20,17 @@ import {
 import type { PolymarketApiMarket } from './types';
 
 const DISPLAYED_SPREAD_LINE_PATTERN = /([+-]\d+(?:\.\d+)?)$/;
-const SOCCER_TEAM_TOTALS_MARKET_TYPE = 'soccer_team_totals';
+const TEAM_TOTALS_MARKET_TYPES: ReadonlySet<string> = new Set([
+  'team_totals',
+  'team_totals_home',
+  'team_totals_away',
+  'soccer_team_totals',
+]);
+const DIRECT_PLAYER_PROP_GROUP_KEYS: ReadonlySet<string> = new Set([
+  'touchdowns',
+  'rushing',
+  'receiving',
+]);
 const SOCCER_PLAYER_GOALS_MARKET_TYPE = 'soccer_player_goals';
 const OVER_UNDER_SUBJECT_PATTERN = /^(.*?)[:]?\s*O\/U\s*[\d.]+\s*$/;
 const PLAYER_GOALS_SUBJECT_PATTERN = /^(.+?):\s*\d+\+\s+goals?\s*$/iu;
@@ -174,8 +184,8 @@ const sortLineOutcomesForDisplay = (
   });
 };
 
-const isSoccerTeamTotalsMarketType = (type?: string): boolean =>
-  type?.toLowerCase() === SOCCER_TEAM_TOTALS_MARKET_TYPE;
+const isTeamTotalsMarketType = (type?: string): boolean =>
+  type !== undefined && TEAM_TOTALS_MARKET_TYPES.has(type.toLowerCase());
 
 const getOutcomeSubject = (outcome: PredictOutcome): string => {
   const raw = outcome.groupItemTitle || outcome.title || outcome.id;
@@ -185,7 +195,8 @@ const getOutcomeSubject = (outcome: PredictOutcome): string => {
   return subject || raw.trim() || outcome.id;
 };
 
-const buildSoccerTeamTotalsSubgroups = (
+const buildTeamTotalsSubgroups = (
+  type: string,
   outcomes: PredictOutcome[],
 ): PredictOutcomeGroup[] => {
   const outcomesBySubject = new Map<string, PredictOutcome[]>();
@@ -202,12 +213,9 @@ const buildSoccerTeamTotalsSubgroups = (
 
   return [...outcomesBySubject.entries()].map(
     ([subject, subjectOutcomes], index) => ({
-      key: `${SOCCER_TEAM_TOTALS_MARKET_TYPE}-${index}`,
+      key: `${type}-${index}`,
       title: `${subject} Totals`,
-      outcomes: sortLineOutcomesForDisplay(
-        subjectOutcomes,
-        SOCCER_TEAM_TOTALS_MARKET_TYPE,
-      ),
+      outcomes: sortLineOutcomesForDisplay(subjectOutcomes, type),
     }),
   );
 };
@@ -286,8 +294,8 @@ const buildSubgroupsForType = (
   type: string,
   outcomes: PredictOutcome[],
 ): PredictOutcomeGroup[] => {
-  if (isSoccerTeamTotalsMarketType(type)) {
-    return buildSoccerTeamTotalsSubgroups(outcomes);
+  if (isTeamTotalsMarketType(type)) {
+    return buildTeamTotalsSubgroups(type, outcomes);
   }
 
   if (isSoccerPlayerGoalsMarketType(type)) {
@@ -404,6 +412,16 @@ export function buildOutcomeGroups(
   });
 
   return groupEntries.map(([key, groupOutcomes]) => {
+    if (DIRECT_PLAYER_PROP_GROUP_KEYS.has(key)) {
+      return {
+        key,
+        outcomes: sortLineOutcomesForDisplay(
+          groupOutcomes,
+          groupOutcomes[0]?.sportsMarketType ?? key,
+        ),
+      };
+    }
+
     const typeMap = new Map<string, PredictOutcome[]>();
     for (const outcome of groupOutcomes) {
       const type = outcome.sportsMarketType ?? key;
@@ -417,10 +435,7 @@ export function buildOutcomeGroups(
 
     if (typeMap.size < 2) {
       const [[type, typeOutcomes]] = typeMap.entries();
-      if (
-        isSoccerTeamTotalsMarketType(type) ||
-        isSoccerPlayerGoalsMarketType(type)
-      ) {
+      if (isTeamTotalsMarketType(type) || isSoccerPlayerGoalsMarketType(type)) {
         return {
           key,
           outcomes: [],

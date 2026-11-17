@@ -8,15 +8,13 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useApprovalInfo } from '../../../hooks/useApprovalInfo';
 import { useIsExternalAppRequest } from '../../../hooks/useIsExternalAppRequest';
 import { isDappOrigin } from '../../../utils/origin';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import InfoSection from '../../UI/info-row/info-section';
 import Address from '../../UI/info-row/info-value/address';
 import DisplayURL from '../../UI/info-row/info-value/display-url';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const OriginRow = () => {
   const { approvalRequest } = useApprovalRequest();
@@ -50,7 +48,7 @@ const OriginRow = () => {
         )}
       >
         {isExternalApp ? (
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('confirm.label.external_app')}
           </Text>
         ) : (

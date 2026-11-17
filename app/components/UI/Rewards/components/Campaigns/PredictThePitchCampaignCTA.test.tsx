@@ -6,23 +6,20 @@ import {
   CampaignDto,
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../../Predict/constants/eventNames';
 
-const mockNavigate = jest.fn();
+const mockOpenPredict = jest.fn();
+const mockCanOpenPredict = jest.fn();
 let mockIsPredictEligible = true;
+let mockIsPredictAvailable = true;
 
-jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
-  usePredictEligibility: () => ({
-    isEligible: mockIsPredictEligible,
-    country: 'US',
-    refreshEligibility: jest.fn(),
-  }),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
+jest.mock('../../../PredictNext', () => ({
+  PredictEventValues: { ENTRY_POINT: { REWARDS: 'rewards' } },
+  usePredictAvailability: () => mockIsPredictAvailable,
+  usePredictCampaignEligibility: (campaign: string) =>
+    campaign === 'predict-the-pitch' && mockIsPredictEligible,
+  usePredictEntryActions: () => ({
+    openPredict: mockOpenPredict,
+    canOpenPredict: mockCanOpenPredict,
   }),
 }));
 
@@ -102,13 +99,15 @@ describe('PredictThePitchCampaignCTA', () => {
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
     jest.clearAllMocks();
     mockIsPredictEligible = true;
+    mockIsPredictAvailable = true;
+    mockCanOpenPredict.mockReturnValue(true);
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('navigates to Predict market list when the active campaign participant is opted in', () => {
+  it('opens Predict Home for the campaign when the active campaign participant is opted in', () => {
     const { getByTestId, getByText } = render(
       <PredictThePitchCampaignCTA
         campaign={buildCampaign()}
@@ -122,13 +121,40 @@ describe('PredictThePitchCampaignCTA', () => {
     expect(getByText('Predict now')).toBeOnTheScreen();
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
-      },
-    });
+    const predictNowIntent = {
+      type: 'home',
+      entryPoint: 'rewards',
+      campaign: 'predict-the-pitch',
+    };
+    expect(mockCanOpenPredict).toHaveBeenCalledWith(predictNowIntent);
+    expect(mockOpenPredict).toHaveBeenCalledTimes(1);
+    expect(mockOpenPredict).toHaveBeenCalledWith(predictNowIntent);
   });
+
+  it.each([
+    ['the campaign Venue is not active', true, false],
+    ['Predict is unavailable', false, true],
+  ])(
+    'renders no CTA for an opted-in participant when %s',
+    (_case, isAvailable, canOpen) => {
+      mockIsPredictAvailable = isAvailable;
+      mockCanOpenPredict.mockReturnValue(canOpen);
+
+      const { queryByTestId, queryByText } = render(
+        <PredictThePitchCampaignCTA
+          campaign={buildCampaign()}
+          participantStatus={{
+            status: { optedIn: true, participantCount: 1 },
+            isLoading: false,
+          }}
+        />,
+      );
+
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+      expect(queryByText('Predict now')).toBeNull();
+      expect(mockOpenPredict).not.toHaveBeenCalled();
+    },
+  );
 
   it('uses the generic opt-in CTA before the participant is opted in', () => {
     const { getByTestId, getByText, queryByTestId } = render(
@@ -147,7 +173,7 @@ describe('PredictThePitchCampaignCTA', () => {
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
     expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockOpenPredict).not.toHaveBeenCalled();
   });
 
   it('shows the geo-locked CTA when predict is not eligible and the user is not opted in', () => {
@@ -171,7 +197,7 @@ describe('PredictThePitchCampaignCTA', () => {
       "This campaign isn't available where you are. Check back later for new campaigns.",
     );
     expect(mockShowToast).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockOpenPredict).not.toHaveBeenCalled();
   });
 
   it('renders no CTA when the campaign is complete', () => {

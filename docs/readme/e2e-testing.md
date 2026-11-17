@@ -6,7 +6,7 @@
 >
 > E2E tests are significantly slower, more brittle, and resource-intensive than unit and integration tests. Always prioritize unit and integration tests over E2E ones.
 
-Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest test runners.
+Our end-to-end (E2E) testing strategy uses **Appium + Playwright** smoke tests under `tests/smoke-appium/`. Builds are **main-e2e** release binaries with `HAS_TEST_OVERRIDES=true`. See [tests/docs/appium-smoke-testing.md](../../tests/docs/appium-smoke-testing.md).
 
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
@@ -15,11 +15,9 @@ Our end-to-end (E2E) testing strategy leverages a combination of technologies to
 - [Use Expo prebuilds (recommended)](#use-expo-prebuilds-recommended)
   - [iOS builds](#ios-builds)
   - [Android builds](#android-builds)
-- [Run the E2E Tests](#run-the-e2e-tests)
 - [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright)
 - [Flask E2E Testing (Snaps Support)](#flask-e2e-testing-snaps-support)
 - [Setup Troubleshooting](#setup-troubleshooting)
-- [Legacy Appium (wdio)](#legacy-appium-wdio)
 
 ## Local environment setup
 
@@ -32,7 +30,7 @@ Ensure that following devices are set up:
 - **iOS**: iPhone 16 Pro
 - **Android**: Pixel 5 API 34
 
-> **Note**: You can change the default devices at any time by updating the `device.type` in the Detox config located at `.detoxrc.js`.
+> **Note**: Default simulator/emulator names are configured in Appium/Playwright config and `.e2e.env` (see [appium-smoke-testing.md](../../tests/docs/appium-smoke-testing.md)).
 
 **iOS:**
 
@@ -115,79 +113,27 @@ Sometimes it is necessary to build the app locally, for example, to enable build
 Please follow the [native development guide](../../README.md#native-development) for more details.
 
 ```bash
-# Build the app for testing
-yarn test:e2e:ios:debug:build
-yarn test:e2e:android:debug:build
-
-# These commands are hardcoded to build for `main` build type and `e2e` environment based on the .detoxrc.js file
+# Build main-e2e apps for Appium smoke
+yarn build:ios:main:e2e
+yarn build:android:main:e2e
 ```
 
-### Run the E2E Tests
+### Run Appium smoke
 
-Running E2E tests requires two separate terminal sessions: one for the Metro bundler and one for executing the tests.
-
-#### Terminal 1: Start the Metro Bundler
-
-First, ensure the build watcher is running in a dedicated terminal for logs:
-
-```bash
-export METAMASK_ENVIRONMENT='e2e'
-export METAMASK_BUILD_TYPE='main'
-export HAS_TEST_OVERRIDES="true"
-yarn setup:expo
-yarn watch:clean  # First time or after dependency changes
-yarn watch        # Subsequent runs
-```
-
-#### Terminal 2: Execute Tests
-
-In a separate terminal, set up and run your tests:
-
-**Initial Setup (First Time Only)**
-
-```bash
-cp .e2e.env.example .e2e.env
-```
-
-**Run All Tests**
-
-```bash
-source .e2e.env && yarn test:e2e:ios:debug:run
-source .e2e.env && yarn test:e2e:android:debug:run
-```
-
-**Run Specific Test Folder**
-
-```bash
-source .e2e.env && yarn test:e2e:ios:debug:run tests/smoke/your-folder
-source .e2e.env && yarn test:e2e:android:debug:run tests/smoke/your-folder
-```
-
-**Run Specific Test File**
-
-```bash
-source .e2e.env && yarn test:e2e:ios:debug:run tests/smoke/onboarding/create-wallet.spec.js
-source .e2e.env && yarn test:e2e:android:debug:run tests/smoke/onboarding/create-wallet.spec.js
-```
-
-**Run Tests by Tag**
-
-```bash
-source .e2e.env && yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
-source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
-```
+See **[Appium smoke tests (Playwright)](#appium-smoke-tests-playwright)** and [tests/docs/appium-smoke-testing.md](../../tests/docs/appium-smoke-testing.md).
 
 To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../tests/docs/README.md).
 
 ## Appium smoke tests (Playwright)
 
-Appium smoke tests live in `tests/smoke-appium/` and run via **Playwright + Appium** (not Detox). They mirror Detox smoke specs and share page objects, but use a **main-e2e release** build — no Metro bundler required.
+Appium smoke tests live in `tests/smoke-appium/` and run via **Playwright + Appium**. They share page objects and use a **main-e2e release** build — no Metro bundler required.
 
-| Detox smoke                   | Appium smoke                                     |
-| ----------------------------- | ------------------------------------------------ |
-| `tests/smoke/`                | `tests/smoke-appium/`                            |
-| `yarn test:e2e:ios:debug:run` | `yarn appium-smoke:ios`                          |
-| Debug build + Metro           | `main-e2e-MetaMask.app` / `main-e2e-release.apk` |
+|                     | Appium smoke                                              |
+| ------------------- | --------------------------------------------------------- |
+| Specs               | `tests/smoke-appium/`                                     |
+| Run                 | `yarn appium-smoke:ios` / `yarn appium-smoke:android`     |
+| Build               | `yarn build:ios:main:e2e` / `yarn build:android:main:e2e` |
+| Debug build + Metro | `main-e2e-MetaMask.app` / `main-e2e-release.apk`          |
 
 **Quick start (iOS, CI build):**
 
@@ -198,14 +144,14 @@ gh run download RUN_ID --repo MetaMask/metamask-mobile \
 
 IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
 IOS_SIMULATOR_NAME="iPhone 16 Pro" \
-node scripts/e2e/prepare-ios-appium-runner.mjs
+node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
 
 IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
 IOS_SIMULATOR_UDID="$(xcrun simctl list devices booted -j | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));console.log(Object.values(d.devices).flat().find(x=>x.state==='Booted')?.udid||'')")" \
 yarn appium-smoke:ios --grep SmokeAccounts
 ```
 
-Full guide: **[Appium smoke testing](../testing/appium-smoke-testing.md)** — builds, env vars, Android ABI caveats, CI, troubleshooting.
+Full guide: **[Appium smoke testing](../../tests/docs/appium-smoke-testing.md)** — builds, env vars, Android ABI caveats, CI, troubleshooting.
 
 ## Flask E2E Testing (Snaps Support)
 
@@ -230,22 +176,17 @@ yarn watch        # Subsequent runs
 **Build for E2E Testing:**
 
 ```bash
-# Build Flask app for E2E tests
-yarn test:e2e:ios:flask:build
-yarn test:e2e:android:flask:build
+# Build Flask main-e2e-style apps for Appium / snaps coverage
+yarn build:ios:flask:e2e
+yarn build:android:flask:e2e
 ```
 
-**Run Flask E2E Tests:**
+**Run Flask-related Appium smoke (Snaps):**
 
 ```bash
-# Run all Flask E2E tests
-yarn test:e2e:ios:flask:run
-yarn test:e2e:android:flask:run
-# These commands are hardcoded to build for `flask` build type and `e2e` environment based on the .detoxrc.js file
-
-# Run specific Flask test
-yarn test:e2e:ios:flask:run test/smoke/snaps/test-snap-jsx.spec.ts
-yarn test:e2e:android:flask:run tests/smoke/snaps/test-snap-jsx.spec.ts
+# After installing a Flask e2e build, run Appium smoke and filter snaps tags
+yarn appium-smoke:ios --grep SmokeSnaps
+yarn appium-smoke:android --grep SmokeSnaps
 ```
 
 ### Flask Configuration Details
@@ -298,59 +239,31 @@ export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-production}
 **How to verify you're testing the correct build:**
 
 1. Check the app splash screen - it should show "Flask" logo/text
-2. Check Metro bundler output - should show `METAMASK_BUILD_TYPE: flask`
-3. Check build artifacts:
-   - iOS: `ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app`
-   - Android: `android/app/build/outputs/apk/flask/debug/app-flask-debug.apk`
+2. Check build artifacts under the Flask e2e output paths from `yarn build:*:flask:e2e`
 
 **Solution**: Always rebuild after changing environment variables or `.js.env`:
 
 ```bash
-# Clean previous builds
-yarn watch:clean
-
-# Rebuild Flask app
-yarn test:e2e:android:flask:build  # or iOS
-```
-
-#### 3. Metro Bundler Not Running ⚠️
-
-**Problem**: Flask development builds require Metro bundler to be running with correct environment variables.
-
-**Solution**: Always start Metro bundler first with Flask environment:
-
-```bash
-# Terminal 1: Start Metro bundler
-yarn watch:clean
-
-# Terminal 2: Reinstall and run Flask app
-yarn test:e2e:android:flask:run
+yarn build:android:flask:e2e  # or yarn build:ios:flask:e2e
 ```
 
 ### Flask vs Main Build Differences
 
-| Aspect            | Main Build                          | Flask Build                           |
-| ----------------- | ----------------------------------- | ------------------------------------- |
-| **Snaps Support** | ❌ Limited                          | ✅ Enabled                            |
-| **Dev APIs**      | ❌ Limited                          | ✅ Full access                        |
-| **App Icon**      | Standard MetaMask                   | Flask logo                            |
-| **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                   |
-| **E2E Mode**      | `debugE2E`                          | `flaskDebugE2E`                       |
-| **Detox Config**  | `android.emu.main` / `ios.sim.main` | `android.emu.flask` / `ios.sim.flask` |
+| Aspect            | Main Build        | Flask Build         |
+| ----------------- | ----------------- | ------------------- |
+| **Snaps Support** | ❌ Limited        | ✅ Enabled          |
+| **Dev APIs**      | ❌ Limited        | ✅ Full access      |
+| **App Icon**      | Standard MetaMask | Flask logo          |
+| **Bundle ID**     | `io.metamask`     | `io.metamask.flask` |
+| **E2E Mode**      | main-e2e          | flask e2e           |
 
 ### Flask Troubleshooting
 
 **"Installing Snaps is currently disabled" error:**
 
 1. Check if `.js.env` has hardcoded `METAMASK_BUILD_TYPE` or `METAMASK_ENVIRONMENT` - remove them
-2. Rebuild the app with `yarn test:e2e:*:flask:build`
+2. Rebuild with `yarn build:*:flask:e2e`
 3. Verify Flask build by checking app icon/splash screen
-
-**Metro bundler shows wrong `METAMASK_BUILD_TYPE`:**
-
-1. Stop Metro bundler (Ctrl+C)
-2. Clean bundler cache: `yarn watch:clean`
-3. Restart Metro bundler: `yarn watch`
 
 **App crashes or shows blank screen:**
 
@@ -383,7 +296,7 @@ yarn test:e2e:android:flask:run
 
 ## Legacy Appium (wdio)
 
-> **⚠️ DEPRECATED**: The legacy Appium/WebDriver.io/Cucumber test infrastructure (`wdio/`) has been removed. **New** Appium coverage uses Playwright — see [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright) and [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
+> **Removed.** Use Playwright Appium smoke — [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright) and [tests/docs/appium-smoke-testing.md](../../tests/docs/appium-smoke-testing.md).
 
 ~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
 
@@ -407,13 +320,13 @@ The API Spec tests use `@open-rpc/test-coverage` against the in-app Test Dapp We
 
 #### Commands
 
-1. **Build / obtain main-e2e iOS app** (see [Appium smoke testing](../testing/appium-smoke-testing.md)), e.g. `build/ci-main-e2e/MetaMask.app`.
+1. **Build / obtain main-e2e iOS app** (see [Appium smoke testing](../../tests/docs/appium-smoke-testing.md)), e.g. `build/ci-main-e2e/MetaMask.app`.
 
 2. **Prepare simulator + Appium** (once):
 
    ```bash
    set -a && source .e2e.env && set +a
-   IOS_APP_PATH=build/ci-main-e2e/MetaMask.app node scripts/e2e/prepare-ios-appium-runner.mjs
+   IOS_APP_PATH=build/ci-main-e2e/MetaMask.app node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
    ```
 
 3. **Run API Spec Tests**:
@@ -429,62 +342,32 @@ The API Spec tests use `@open-rpc/test-coverage` against the in-app Test Dapp We
      yarn appium-smoke:ios -- tests/smoke-appium/api-specs
    ```
 
-#### Running Tests Against BrowserStack Devices
+#### Running Performance Tests on TestMu
 
-You can get your BrowserStack username and access key from the Access key dropdown on the app automate screen in BrowserStack.
+Cloud performance tests run on TestMu AI real Android devices. Credentials come from the LambdaTest / TestMu account (`LT_USERNAME` and `LT_ACCESS_KEY`).
 
-##### Set Environment Variables for BrowserStack
-
-```bash
-export BROWSERSTACK_USERNAME='your_username'
-export BROWSERSTACK_ACCESS_KEY='your_access_key'
-```
-
-MetaMask Connect browser E2E coverage now runs via Appium smoke (`SmokeMMConnect` / `tests/smoke-appium/mm-connect/`), not the performance BrowserStack suite.
-
-Update the config file with the appropriate BrowserStack app URL. You’ll need a BrowserStack URL first. To get it:
-
-1. Run [Build Mobile App](https://github.com/MetaMask/metamask-mobile/actions/workflows/build.yml) in Github Actions.
-2. Once done, open scroll down to the **Artifacts** section in the workflow and find the build artifacts.
-
-See this [workflow](https://github.com/MetaMask/metamask-mobile/actions/runs/25391553223) as an example.
-
-Download the build artifact and upload it to BrowserStack App Automate service. Once the upload is complete, it will provide a BrowserStack URL that you can copy.
-
-Add it to the config file by replacing `process.env.BROWSERSTACK_ANDROID_APP_URL` in the `buildPath` with the appropriate BrowserStack application URL:
-
-```typescript
-{
-  name: 'browserstack-android',
-  use: {
-    platform: Platform.ANDROID,
-    device: {
-      provider: 'browserstack',
-      name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can be changed
-      osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0', // this can be changed
-    },
-    buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to BrowserStack URL bs:// link
-  },
-}
-```
-
-You can repeat the same for iOS builds by replacing `process.env.BROWSERSTACK_IOS_APP_URL` in the config.
-
-##### Run Android Tests on BrowserStack
+##### Set Environment Variables for TestMu
 
 ```bash
-yarn run-playwright:android-bs
+export LT_USERNAME='your_username'
+export LT_ACCESS_KEY='your_access_key'
+export TESTMU_ANDROID_APP_URL='lt://your-android-app-id'
 ```
 
-##### Run iOS Tests on BrowserStack
+MetaMask Connect browser E2E coverage runs via Appium smoke (`SmokeMMConnect` / `tests/smoke-appium/mm-connect/`), not the performance suite.
+
+Upload the APK to TestMu App Automation. The upload returns an `lt://` app URL. Onboarding specs read `TESTMU_ANDROID_ONBOARDING_PERF_APP_URL` or `TESTMU_ANDROID_CLEAN_APP_URL` from `tests/playwright.testmu.config.ts`.
+
+##### Run Android Performance Tests on TestMu
 
 ```bash
-yarn run-playwright:ios-bs
+yarn run-playwright:android-testmu
+yarn run-playwright:android-onboarding-testmu
 ```
 
 #### Testing Locally (Simulators/Emulators)
 
-_Important Note:_ We strongly advise the use of Browserstack for this as we're still going through the migration and the amulator interface isn't yet fully ready.
+_Important Note:_ Cloud performance runs use TestMu. Local emulator and simulator projects cover a demo spec only.
 
 You need to make sure that the artifact is created. Download the binary using [`yarn install:ios:dev --skipInstall` / `yarn install:android:dev --skipInstall`](https://github.com/MetaMask/metamask-mobile/tree/main?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Playwright.
 

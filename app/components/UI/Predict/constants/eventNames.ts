@@ -27,6 +27,7 @@ export const PredictEventProperties = {
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
+  OUTCOME_VERSION: 'outcome_version',
   ORDER_TYPE: 'order_type',
   TRADE_TYPE: 'trade_type',
   IMPLEMENTATION_TYPE: 'implementation_type',
@@ -81,6 +82,23 @@ export const PredictEventProperties = {
   // Payment token (buy-with-any-token flow only)
   PAYMENT_TOKEN_ADDRESS: 'payment_token_address',
   PAYMENT_TOKEN_SYMBOL: 'payment_token_symbol',
+  PAYMENT_METHOD: 'payment_method',
+  ATTEMPT_ID: 'attempt_id',
+  FAILURE_STAGE: 'failure_stage',
+  FAILURE_CATEGORY: 'failure_category',
+
+  // Order retry (bounded-retry flow)
+  RETRY_REASON: 'retry_reason',
+  RETRY_COUNT: 'retry_count',
+  ONE_TICK_DECISION: 'one_tick_decision',
+  SLIPPAGE_BAND: 'slippage_band',
+  RETRY_OUTCOME: 'retry_outcome',
+
+  // Cash Out price check before submit (PRED-484)
+  PRESUBMIT_OUTCOME: 'presubmit_outcome',
+  APPROVED_PRICE: 'approved_price',
+  WORST_FILL_PRICE: 'worst_fill_price',
+  RECONFIRMED: 'reconfirmed',
 
   // Betslip dismissal
   DISMISSAL_METHOD: 'dismissal_method',
@@ -124,6 +142,7 @@ export const PredictEventValues = {
     HOMEPAGE_FEATURED_LIST: 'homepage_featured_list',
     MAIN_TRADE_BUTTON: 'main_trade_button',
     HOMESCREEN_PILL: 'homescreen_pill',
+    HOMESCREEN_BALANCE_BREAKDOWN: 'homescreen_balance_breakdown',
     REWARDS: 'rewards',
     GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
@@ -132,6 +151,7 @@ export const PredictEventValues = {
     BUY_PREVIEW: 'buy_preview',
     HOME_SECTION: 'home_section',
     EXPLORE: 'explore',
+    EXPLORE_SEARCH: 'explore_search',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
@@ -153,11 +173,56 @@ export const PredictEventValues = {
     INSUFFICIENT_GAS: 'insufficient_gas',
     NETWORK_ERROR: 'network_error',
     USER_REJECTED: 'user_rejected',
+    MARKET_UNAVAILABLE: 'market_unavailable',
     UNKNOWN: 'unknown',
+  },
+  PAYMENT_METHOD: {
+    PAY_WITH_ANY_TOKEN: 'pay_with_any_token',
+    PREDICT_BALANCE: 'predict_balance',
+  },
+  FAILURE_STAGE: {
+    SWAP: 'swap',
+    ORDER: 'order',
+  },
+  FAILURE_CATEGORY: {
+    GAS_LIMIT: 'gas_limit',
+    INSUFFICIENT_BALANCE: 'insufficient_balance',
+    NOT_ELIGIBLE: 'not_eligible',
+    NO_MATCH: 'no_match',
+    RELAYER: 'relayer',
+    NETWORK: 'network',
+    USER_REJECTED: 'user_rejected',
+    OTHER: 'other',
+  },
+  RETRY_REASON: {
+    ORDER_NOT_FILLED: 'order_not_filled',
+  },
+  ONE_TICK_DECISION: {
+    // Fresh quote at most 1 tick worse: single confirmation suffices.
+    WITHIN_ONE_TICK: 'within_one_tick',
+    // Fresh quote more than 1 tick worse: explicit re-confirmation shown.
+    BEYOND_ONE_TICK: 'beyond_one_tick',
+  },
+  RETRY_OUTCOME: {
+    SUCCESS: 'success',
+    NOT_FILLED: 'not_filled',
+    FAILED: 'failed',
+  },
+  PRESUBMIT_OUTCOME: {
+    SUBMITTED: 'submitted',
+    PRICE_MOVED: 'price_moved',
+    NO_MATCH: 'no_match',
+    QUOTE_UNAVAILABLE: 'quote_unavailable',
+    TIMEOUT: 'timeout',
   },
   MARKET_TYPE: {
     BINARY: 'binary',
     MULTI_OUTCOME: 'multi-outcome',
+  },
+  OUTCOME_VERSION: {
+    V1: 'v1',
+    V2: 'v2',
+    MIXED: 'mixed',
   },
   MARKET_DETAILS_TAB: {
     ABOUT: 'about',
@@ -223,10 +288,47 @@ export const PredictTradeStatus = {
   SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
+  RETRY_COMPLETED: 'retry_completed',
+  PRESUBMIT_CHECKED: 'presubmit_checked',
+  PAYMENT_FAILURE_PROMPTED: 'payment_failure_prompted',
+  ADD_FUNDS_SUBMITTED: 'add_funds_submitted',
+  ATTEMPT_STARTED: 'attempt_started',
+  ORDER_FAILED: 'order_failed',
 } as const;
+
+export const MAX_TRACKED_PREDICT_BUY_TERMINALS = 500;
 
 export type PredictTradeStatusValue =
   (typeof PredictTradeStatus)[keyof typeof PredictTradeStatus];
+
+export type PredictBuyTerminalStatus =
+  | typeof PredictTradeStatus.SUCCEEDED
+  | typeof PredictTradeStatus.FAILED
+  | typeof PredictTradeStatus.CANCELLED;
+
+export type PredictPaymentMethodValue =
+  (typeof PredictEventValues.PAYMENT_METHOD)[keyof typeof PredictEventValues.PAYMENT_METHOD];
+
+export type PredictFailureStageValue =
+  (typeof PredictEventValues.FAILURE_STAGE)[keyof typeof PredictEventValues.FAILURE_STAGE];
+
+export type PredictFailureCategoryValue =
+  (typeof PredictEventValues.FAILURE_CATEGORY)[keyof typeof PredictEventValues.FAILURE_CATEGORY];
+
+export type PredictRetryReasonValue =
+  (typeof PredictEventValues.RETRY_REASON)[keyof typeof PredictEventValues.RETRY_REASON];
+
+export type PredictOneTickDecisionValue =
+  (typeof PredictEventValues.ONE_TICK_DECISION)[keyof typeof PredictEventValues.ONE_TICK_DECISION];
+
+export type PredictRetryOutcomeValue =
+  (typeof PredictEventValues.RETRY_OUTCOME)[keyof typeof PredictEventValues.RETRY_OUTCOME];
+
+export type PredictPresubmitOutcomeValue =
+  (typeof PredictEventValues.PRESUBMIT_OUTCOME)[keyof typeof PredictEventValues.PRESUBMIT_OUTCOME];
+
+export type PredictOutcomeVersionValue =
+  (typeof PredictEventValues.OUTCOME_VERSION)[keyof typeof PredictEventValues.OUTCOME_VERSION];
 
 /**
  * Dismissal method values for the Predict Betslip Dismissed event

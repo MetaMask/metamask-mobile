@@ -19,7 +19,7 @@ interface ChartTypeToggleProps {
 }
 
 const DEFAULT_CONTAINER_CLASS =
-  'ml-2 rounded-lg border border-border-muted p-0.5';
+  'ml-2 rounded-full border border-border-muted p-0.5';
 
 const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
   chartType,
@@ -39,7 +39,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
       <Pressable
         style={({ pressed }) =>
           tw.style(
-            'items-center justify-center rounded-md px-2 py-1',
+            'items-center justify-center rounded-full px-2 py-1',
             chartType === ChartType.Line && 'bg-background-hover',
             pressed && 'opacity-70',
           )
@@ -62,7 +62,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
       <Pressable
         style={({ pressed }) =>
           tw.style(
-            'items-center justify-center rounded-md px-2 py-1',
+            'items-center justify-center rounded-full px-2 py-1',
             chartType === ChartType.Candles && 'bg-background-hover',
             pressed && 'opacity-70',
           )

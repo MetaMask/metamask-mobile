@@ -295,7 +295,7 @@ describe('AgenticCliMwpConnectionService', () => {
       expect.objectContaining({
         id: mockConnectionInfo.id,
         metadata: expect.objectContaining({
-          dapp: expect.objectContaining({ name: 'Agent CLI' }),
+          dapp: expect.objectContaining({ name: 'Agent wallet' }),
         }),
       }),
       { autodismissMs: AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS },

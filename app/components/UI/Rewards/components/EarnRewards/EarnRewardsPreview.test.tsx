@@ -1,10 +1,11 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import EarnRewardsPreview from './EarnRewardsPreview';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
-import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MONEY_DISCLAIMER_URL } from '../../../../../constants/urls';
 
@@ -25,9 +26,10 @@ const mockHandleDeeplink = handleDeeplink as jest.MockedFunction<
   typeof handleDeeplink
 >;
 
-jest.mock('../../../Money/hooks/useMoneyAccountBalance', () => jest.fn());
-const mockUseMoneyAccountBalance =
-  useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
+jest.mock('../../../Money/hooks/useMoneyVaultApy', () => jest.fn());
+const mockUseMoneyVaultApy = useMoneyVaultApy as jest.MockedFunction<
+  typeof useMoneyVaultApy
+>;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -82,7 +84,7 @@ import {
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
 import {
-  selectIsCardholder,
+  selectHasCard,
   selectIsCardAuthenticated,
 } from '../../../../../selectors/cardController';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
@@ -108,7 +110,7 @@ const setupSelectors = ({
     if (selector === selectGeolocationStatus) return geoStatus;
     if (selector === selectMoneyEnableMoneyAccountFlag)
       return isMoneyAccountEnabled;
-    if (selector === selectIsCardholder) return isCardholder;
+    if (selector === selectHasCard) return isCardholder;
     if (selector === selectIsCardAuthenticated) return isAuthenticatedCard;
     return undefined;
   });
@@ -117,9 +119,9 @@ const setupSelectors = ({
 describe('EarnRewardsPreview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 3.8,
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
   });
 
   describe('section title', () => {
@@ -137,6 +139,22 @@ describe('EarnRewardsPreview', () => {
   });
 
   describe('geo loading state', () => {
+    it('shows a header spinner while mUSD geo is loading', () => {
+      setupSelectors({ geoStatus: 'loading' });
+
+      const { UNSAFE_getByType } = render(<EarnRewardsPreview />);
+
+      expect(UNSAFE_getByType(ActivityIndicator)).toBeDefined();
+    });
+
+    it('hides the header spinner after geo has settled', () => {
+      setupSelectors({ geoLocation: 'US', geoStatus: 'complete' });
+
+      const { UNSAFE_queryByType } = render(<EarnRewardsPreview />);
+
+      expect(UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+    });
+
     it('shows mUSD skeleton and renders MetaMask Card row while mUSD geo is loading', () => {
       setupSelectors({ geoStatus: 'loading' });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
@@ -240,9 +258,9 @@ describe('EarnRewardsPreview', () => {
     });
 
     it('falls back to 3% in the mUSD card title when APY is unavailable', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({
+      mockUseMoneyVaultApy.mockReturnValue({
         apyPercent: undefined,
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      } as ReturnType<typeof useMoneyVaultApy>);
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText(/Earn up to 3% APY/)).toBeOnTheScreen();

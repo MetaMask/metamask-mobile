@@ -16,6 +16,8 @@ const mockFlashListProps: Record<string, unknown>[] = [];
 // scroll-to-top behavior driven by `scrollResetKey`/`filterKey` without
 // depending on FlatList's own (unrelated) scroll implementation.
 const mockScrollToOffset = jest.fn();
+const mockGetFirstItemOffset = jest.fn(() => 0);
+const mockGetAbsoluteLastScrollOffset = jest.fn(() => 0);
 
 // Tracks how many times a market row is mounted, used to prove that changing
 // the filter re-renders rows without tearing them down (no remount).
@@ -42,6 +44,8 @@ jest.mock('@shopify/flash-list', () => {
         mockFlashListProps.push(props);
         ReactActual.useImperativeHandle(ref, () => ({
           scrollToOffset: mockScrollToOffset,
+          getFirstItemOffset: mockGetFirstItemOffset,
+          getAbsoluteLastScrollOffset: mockGetAbsoluteLastScrollOffset,
         }));
         return ReactActual.createElement(FlatList, props);
       },
@@ -240,12 +244,91 @@ describe('PerpsMarketList', () => {
       expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
     });
 
-    it('does not render FlashList when empty', () => {
+    it('renders emptyComponent instead of the default message when markets is empty', () => {
+      render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+          emptyComponent={<View testID="custom-empty" />}
+        />,
+      );
+
+      expect(screen.getByTestId('custom-empty')).toBeOnTheScreen();
+      expect(screen.queryByTestId('perps-market-list-empty')).toBeNull();
+    });
+
+    it('does not remount the empty state when the emptyComponent element is recreated', () => {
+      let emptyMountCount = 0;
+      const CustomEmpty = (): React.ReactElement => {
+        React.useEffect(() => {
+          emptyMountCount += 1;
+        }, []);
+        return <View testID="custom-empty" />;
+      };
+
+      const { rerender } = render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+          emptyComponent={<CustomEmpty />}
+        />,
+      );
+
+      expect(emptyMountCount).toBe(1);
+
+      rerender(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+          emptyComponent={<CustomEmpty />}
+        />,
+      );
+
+      expect(screen.getByTestId('custom-empty')).toBeOnTheScreen();
+      expect(emptyMountCount).toBe(1);
+    });
+
+    it('renders the default message when no emptyComponent is provided', () => {
+      render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+        />,
+      );
+
+      expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
+    });
+
+    it('does not render FlashList when empty and no list header is provided', () => {
       render(
         <PerpsMarketList markets={[]} onMarketPress={mockOnMarketPress} />,
       );
 
       expect(screen.queryByTestId('perps-market-list')).not.toBeOnTheScreen();
+    });
+
+    it('renders ListHeaderComponent and empty state when markets are empty', () => {
+      const HeaderComponent = () => (
+        <View testID="custom-header">
+          <RNText>Custom Header</RNText>
+        </View>
+      );
+
+      render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          ListHeaderComponent={HeaderComponent}
+        />,
+      );
+
+      expect(screen.getByTestId('perps-market-list')).toBeOnTheScreen();
+      expect(screen.getByTestId('custom-header')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
     });
   });
 
@@ -371,6 +454,70 @@ describe('PerpsMarketList', () => {
       );
 
       expect(screen.queryByTestId('custom-header')).not.toBeOnTheScreen();
+    });
+
+    it('renders stickyHeader as the first list row', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={
+            <View testID="sticky-sort-row">
+              <RNText>Sort</RNText>
+            </View>
+          }
+        />,
+      );
+
+      expect(screen.getByTestId('sticky-sort-row')).toBeOnTheScreen();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+
+    it('pins stickyHeader with stickyHeaderIndices at 0', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={
+            <View testID="sticky-sort-row">
+              <RNText>Sort</RNText>
+            </View>
+          }
+        />,
+      );
+
+      const lastProps = mockFlashListProps[mockFlashListProps.length - 1];
+      expect(lastProps.stickyHeaderIndices).toEqual([0]);
+    });
+
+    it('does not set stickyHeaderIndices when stickyHeader is omitted', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+        />,
+      );
+
+      const lastProps = mockFlashListProps[mockFlashListProps.length - 1];
+      expect(lastProps.stickyHeaderIndices).toBeUndefined();
+    });
+
+    it('renders stickyHeader and empty state when markets are empty', () => {
+      render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={
+            <View testID="sticky-sort-row">
+              <RNText>Sort</RNText>
+            </View>
+          }
+        />,
+      );
+
+      expect(screen.getByTestId('perps-market-list')).toBeOnTheScreen();
+      expect(screen.getByTestId('sticky-sort-row')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
     });
   });
 
@@ -810,6 +957,58 @@ describe('PerpsMarketList', () => {
       expect(mockScrollToOffset).toHaveBeenCalledWith({
         offset: 0,
         animated: true,
+      });
+    });
+    describe('keepHeaderHiddenOnReset', () => {
+      const renderSticky = (filterKey: string) => (
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+          keepHeaderHiddenOnReset
+          filterKey={filterKey}
+        />
+      );
+
+      it('scrolls to the list header height when scrolled past it', () => {
+        mockGetFirstItemOffset.mockReturnValue(300);
+        mockGetAbsoluteLastScrollOffset.mockReturnValue(900);
+        const { rerender } = render(renderSticky('all'));
+
+        rerender(renderSticky('crypto'));
+
+        expect(mockScrollToOffset).toHaveBeenCalledTimes(1);
+        expect(mockScrollToOffset).toHaveBeenCalledWith({
+          offset: 300,
+          animated: true,
+        });
+      });
+
+      it('does not scroll when the sticky header appears without a filter change', () => {
+        mockGetFirstItemOffset.mockReturnValue(300);
+        mockGetAbsoluteLastScrollOffset.mockReturnValue(900);
+        const { rerender } = render(
+          <PerpsMarketList
+            markets={mockMarkets}
+            onMarketPress={mockOnMarketPress}
+            keepHeaderHiddenOnReset
+            filterKey="all"
+          />,
+        );
+
+        rerender(renderSticky('all'));
+
+        expect(mockScrollToOffset).not.toHaveBeenCalled();
+      });
+
+      it('does not scroll when the list header is still visible', () => {
+        mockGetFirstItemOffset.mockReturnValue(300);
+        mockGetAbsoluteLastScrollOffset.mockReturnValue(100);
+        const { rerender } = render(renderSticky('all'));
+
+        rerender(renderSticky('crypto'));
+
+        expect(mockScrollToOffset).not.toHaveBeenCalled();
       });
     });
   });

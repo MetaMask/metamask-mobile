@@ -104,6 +104,12 @@ describe('Transaction Pay Controller Init', () => {
     expect(getStrategies).toBeUndefined();
   });
 
+  it('identifies the client as mobile', () => {
+    const clientId = testConstructorOption('clientId');
+
+    expect(clientId).toBe('mobile');
+  });
+
   it('wires Polymarket callbacks into the controller', () => {
     const polymarketCallbacksMock = { __polymarketCallbacks: true };
     jest
@@ -118,6 +124,12 @@ describe('Transaction Pay Controller Init', () => {
 
     expect(createPolymarketCallbacks).toHaveBeenCalledTimes(1);
     expect(polymarket).toBe(polymarketCallbacksMock);
+  });
+
+  it('wires the getBalance callback into the controller', () => {
+    const getBalance = testConstructorOption('getBalance');
+
+    expect(getBalance).toBeInstanceOf(Function);
   });
 
   it('wires fiat test options through controller options', () => {

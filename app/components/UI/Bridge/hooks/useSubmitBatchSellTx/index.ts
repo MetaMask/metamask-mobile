@@ -1,10 +1,9 @@
 import { useSelector } from 'react-redux';
-import type {
-  MetaMetricsSwapsEventSource,
-  QuoteMetadata,
-  QuoteResponse,
+import {
+  type MetaMetricsSwapsEventSource,
+  type QuoteResponse,
+  SwapFeatureTag,
 } from '@metamask/bridge-controller';
-import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 
 import Engine from '../../../../../core/Engine';
 import {
@@ -15,6 +14,8 @@ import { RootState } from '../../../../../reducers';
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getMaybeHexChainId } from '../../../../../util/bridge';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../../constants/bridge';
+import { captureException } from '@sentry/react-native';
 
 export function useSubmitBatchSellTx() {
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
@@ -29,38 +30,35 @@ export function useSubmitBatchSellTx() {
     quoteResponses,
     location,
   }: {
-    quoteResponses: ((QuoteResponse & QuoteMetadata) | null)[];
+    quoteResponses: (QuoteResponse | null)[];
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
   }) => {
-    if (!walletAddress) {
-      throw new Error('Batch Sell wallet address is not set');
+    try {
+      if (!walletAddress) {
+        throw new Error('Batch Sell wallet address is not set');
+      }
+
+      const tokenSecurityTypeDestination =
+        destToken?.securityData?.type ?? null;
+
+      return await Engine.context.BridgeStatusController.submitBatchSell({
+        quoteResponses,
+        accountAddress: walletAddress,
+        location,
+        isStxEnabled: smartTransactionsEnabled,
+        quotesReceivedContext: undefined,
+        tokenSecurityTypeDestination,
+        migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+      });
+    } catch (error) {
+      captureException(error as Error, {
+        tags: {
+          feature: SwapFeatureTag.BATCH_SELL,
+        },
+      });
+      throw error;
     }
-
-    const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
-    const normalizedQuoteResponses = quoteResponses.map((quoteResponse) =>
-      quoteResponse
-        ? {
-            ...quoteResponse,
-            approval: quoteResponse.approval ?? undefined,
-          }
-        : quoteResponse,
-    );
-
-    // Type assertion needed: QuoteResponse/QuoteMetadata are imported from
-    // @metamask/bridge-controller v74 but submitBatchSell expects types from
-    // the v75 copy nested in @metamask/bridge-status-controller (FeatureId
-    // enum is structurally identical but nominally incompatible).
-    return await Engine.context.BridgeStatusController.submitBatchSell({
-      quoteResponses: normalizedQuoteResponses as Parameters<
-        BridgeStatusController['submitBatchSell']
-      >[0]['quoteResponses'],
-      accountAddress: walletAddress,
-      location,
-      isStxEnabled: smartTransactionsEnabled,
-      quotesReceivedContext: undefined,
-      tokenSecurityTypeDestination,
-    });
   };
 
   return { submitBatchSellTx };

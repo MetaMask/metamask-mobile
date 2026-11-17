@@ -16,7 +16,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { isPositiveNumberOrZero } from '../../utils/number';
@@ -40,7 +40,7 @@ export function BalanceProjection({
   projectedYears,
 }: BalanceProjectionProps) {
   const navigation = useNavigation<AppNavigationProp>();
-  const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyAccountBalance();
+  const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyVaultApy();
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
   });

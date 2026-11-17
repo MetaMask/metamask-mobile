@@ -5,10 +5,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import {
-  remoteFeatureMultichainAccountsAccountDetails,
-  remoteFeaturePredictGtmOnboardingModalDisabled,
-} from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import {
   createLogger,
   countProxiedRequestsMatching,
@@ -47,7 +44,6 @@ appiumTest.describe(
             testSpecificMock: async (mockServer: Mockttp) => {
               await setupRemoteFeatureFlagsMock(mockServer, {
                 ...remoteFeatureMultichainAccountsAccountDetails(),
-                ...remoteFeaturePredictGtmOnboardingModalDisabled(),
               });
             },
             analyticsExpectations: importWalletWithMetricsOptInExpectations,
@@ -110,7 +106,6 @@ appiumTest.describe(
             testSpecificMock: async (mockServer: Mockttp) => {
               await setupRemoteFeatureFlagsMock(mockServer, {
                 ...remoteFeatureMultichainAccountsAccountDetails(),
-                ...remoteFeaturePredictGtmOnboardingModalDisabled(),
               });
             },
             analyticsExpectations: withStrictWalletSetupAttributionMatch(
@@ -140,7 +135,6 @@ appiumTest.describe(
             testSpecificMock: async (mockServer: Mockttp) => {
               await setupRemoteFeatureFlagsMock(mockServer, {
                 ...remoteFeatureMultichainAccountsAccountDetails(),
-                ...remoteFeaturePredictGtmOnboardingModalDisabled(),
               });
             },
             analyticsExpectations: importWalletMetricsOptOutExpectations,

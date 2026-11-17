@@ -7,6 +7,7 @@ export const MAX_ITEMS_PER_SECTION = 3;
 export const LOCAL_SEARCH_FEEDS: ReadonlySet<SearchFeedId> = new Set([
   'perps',
   'sites',
+  'earn',
 ]);
 
 /**

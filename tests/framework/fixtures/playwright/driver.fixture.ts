@@ -1,5 +1,5 @@
 import type { FullProject, TestInfo } from '@playwright/test';
-import type { WebDriverConfig } from '../../types.ts';
+import { Platform, type WebDriverConfig } from '../../types.ts';
 import { DEFAULT_IMPLICIT_WAIT_MS } from '../../Constants.ts';
 import { setDeviceInfo } from '../../DeviceInfoCache.ts';
 import type { SharedAppiumSession, WorkerLevelFixtures } from './types.ts';
@@ -12,45 +12,91 @@ import { isSessionAlive } from '../../services/appium/sessionHealth.ts';
 import {
   consumeSharedSessionRecreate,
   isDeviceHealthError,
+  isIosAccessibilityServerError,
   requestSharedSessionRecreate,
+  setSharedSessionRecreateHandler,
 } from '../../services/appium/sessionRecovery.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
-import { FrameworkDetector, TestFramework } from '../../FrameworkDetector.ts';
-import UnifiedGestures from '../../UnifiedGestures.ts';
-import type { ServiceProvider } from '../../services';
+import { createAppiumLogger } from '../../appiumLogger.ts';
 import { isAppiumSessionReuseEnabled } from './sessionReuse.ts';
+import {
+  configureImplicitWait,
+  createSession,
+  recreateInProcessSession,
+  resolveLiveDriver,
+} from './sessionLifecycle.ts';
 
-const logger = createPlaywrightLogger('driver');
-
-async function configureImplicitWait(
-  drv: WebdriverIO.Browser,
-  implicitMs: number,
-): Promise<void> {
-  // Wrapped in retry because BrowserStack sessions can transiently reject
-  // the setTimeout command before the session is fully initialised.
-  const maxRetries = 5;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      await drv.setTimeout({ implicit: implicitMs });
-      return;
-    } catch (err) {
-      if (attempt === maxRetries) throw err;
-      const backoff = Math.min(2 ** attempt * 1000, 15000);
-      logger.warn(
-        `driver.setTimeout failed (attempt ${attempt}/${maxRetries}), retrying in ${backoff}ms`,
-      );
-      await new Promise((r) => setTimeout(r, backoff));
-    }
+/** Appium reports the OS version unprefixed in session capabilities; W3C prefixes it. */
+const readCapability = (capabilities: object | undefined, key: string) => {
+  if (!capabilities) {
+    return '';
   }
-}
+  const value: unknown =
+    key in capabilities
+      ? Reflect.get(capabilities, key)
+      : Reflect.get(capabilities, `appium:${key}`);
+  return typeof value === 'string' ? value : '';
+};
 
-async function createSession(
-  deviceProvider: ServiceProvider,
-  sharedSession: SharedAppiumSession,
-): Promise<WebdriverIO.Browser> {
-  const drv = await deviceProvider.getDriver();
-  sharedSession.drv = drv;
-  return drv;
+const logger = createAppiumLogger('driver');
+
+/**
+ * `getWindowSize` is the first command that needs a live accessibility server.
+ * When SpringBoard's server is gone, a new WebDriver session against the
+ * still-booted simulator fails the same way. Reboot that worker's simulator
+ * once and open a fresh session.
+ */
+async function readWindowSizeOrRebootIosAccessibilityServer({
+  drv,
+  implicitMs,
+  platform,
+  deviceProvider,
+  sharedSession,
+  testTitle,
+  onRecreated,
+}: {
+  drv: WebdriverIO.Browser;
+  implicitMs: number;
+  // Playwright project `use` fields are optional even when WebDriverConfig requires them.
+  platform: WebDriverConfig['platform'] | undefined;
+  deviceProvider: WorkerLevelFixtures['deviceProvider'];
+  sharedSession: SharedAppiumSession;
+  testTitle: string;
+  onRecreated: (session: WebdriverIO.Browser) => void;
+}): Promise<{ width: number; height: number }> {
+  try {
+    return await drv.getWindowSize();
+  } catch (error) {
+    const udid = process.env.IOS_SIMULATOR_UDID?.trim();
+    if (
+      platform !== Platform.IOS ||
+      !udid ||
+      !isIosAccessibilityServerError(error)
+    ) {
+      throw error;
+    }
+
+    logger.warn(
+      `iOS accessibility server is down during session setup for "${testTitle}"; rebooting simulator ${udid} once`,
+    );
+
+    try {
+      await deviceProvider.cleanupSession?.(drv);
+    } catch (cleanupError) {
+      logger.error(
+        'Failed to cleanup session before iOS simulator reboot:',
+        cleanupError,
+      );
+    }
+    sharedSession.drv = undefined;
+    const { rebootIosSimulator } = await import(
+      '../../services/appium/EmulatorHelpers.ts'
+    );
+    await rebootIosSimulator(udid);
+    const session = await createSession(deviceProvider, sharedSession);
+    onRecreated(session);
+    await configureImplicitWait(session, implicitMs);
+    return await session.getWindowSize();
+  }
 }
 
 export const driverFixture = {
@@ -115,17 +161,28 @@ export const driverFixture = {
       await configureImplicitWait(drv, implicitMs);
 
       globalThis.driver = drv;
-      FrameworkDetector.reset();
-      FrameworkDetector.setFramework(TestFramework.APPIUM);
-      UnifiedGestures.resetStrategy();
 
-      const platformName = (await drv.capabilities)?.platformName;
-      const windowSize = await drv.getWindowSize();
+      const capabilities = await drv.capabilities;
+      const platformName = capabilities?.platformName;
+      const windowSize = await readWindowSizeOrRebootIosAccessibilityServer({
+        drv,
+        implicitMs,
+        platform,
+        deviceProvider,
+        sharedSession,
+        testTitle: testInfo.title,
+        onRecreated: (session) => {
+          drv = session;
+          globalThis.driver = session;
+          sessionRecreated = true;
+        },
+      });
       setDeviceInfo(
         (platformName?.toLowerCase() === 'android' ? 'android' : 'ios') as
           | 'android'
           | 'ios',
         { width: windowSize.width, height: windowSize.height },
+        readCapability(capabilities, 'platformVersion'),
       );
 
       const deviceProviderName = project.use.device?.provider;
@@ -167,22 +224,72 @@ export const driverFixture = {
       }
 
       if (recordVideoOnFailure) {
-        recordingBackend = await startFailureRecording(drv, platform);
+        recordingBackend = await startFailureRecording(drv, testInfo, platform);
       }
 
-      await use(drv);
+      // Allow soft-reload / fixture helpers to recreate the session in-process
+      // when UiAutomator2 dies mid-attempt (avoids a Playwright-retry flake).
+      setSharedSessionRecreateHandler(async () => {
+        logger.warn(
+          `In-process WebDriver session recreate for "${testInfo.title}"`,
+        );
+        const newDrv = await recreateInProcessSession({
+          currentDrv: drv,
+          deviceProvider,
+          sharedSession,
+          implicitMs,
+          adoptSession: (session) => {
+            drv = session;
+            globalThis.driver = session;
+            sessionRecreated = true;
+          },
+          // Screen recording is bound to the session that started it, so hand
+          // it over: flush the dying session, then re-arm on the replacement
+          // so a later failure in the same attempt still produces a video.
+          ...(recordVideoOnFailure && {
+            flushDyingSession: async (dyingDrv: WebdriverIO.Browser) => {
+              const dyingBackend = recordingBackend;
+              recordingBackend = undefined;
+              await stopFailureRecordingAndAttach(
+                dyingDrv,
+                testInfo,
+                dyingBackend,
+                platform,
+              );
+            },
+            armNewSession: async (session: WebdriverIO.Browser) => {
+              recordingBackend = await startFailureRecording(
+                session,
+                testInfo,
+                platform,
+              );
+            },
+          }),
+        });
+        logger.info(
+          `In-process WebDriver session ready: sessionId=${deviceProvider.sessionId ?? newDrv.sessionId ?? 'unknown'}`,
+        );
+        return newDrv;
+      });
+
+      try {
+        await use(drv);
+      } finally {
+        setSharedSessionRecreateHandler(undefined);
+      }
     } finally {
       const testStatus = testInfo.status;
       const testError = testInfo.error?.message;
+      const liveDrv = resolveLiveDriver(drv, sharedSession);
 
       logger.info(
         `Tearing down driver fixture for "${testInfo.title}" (status: ${testStatus ?? 'unknown'}, reuse=${reuseEnabled})`,
       );
 
       try {
-        if (drv) {
+        if (liveDrv) {
           await stopFailureRecordingAndAttach(
-            drv,
+            liveDrv,
             testInfo,
             recordingBackend,
             platform,
@@ -209,8 +316,8 @@ export const driverFixture = {
       ) {
         requestSharedSessionRecreate();
         try {
-          if (drv) {
-            await deviceProvider.cleanupSession?.(drv);
+          if (liveDrv) {
+            await deviceProvider.cleanupSession?.(liveDrv);
           }
         } catch (error) {
           logger.error(
@@ -224,14 +331,14 @@ export const driverFixture = {
 
       if (!reuseEnabled) {
         try {
-          if (drv) {
+          if (liveDrv) {
             // Always pass drv so providers (including BrowserStack via
             // BaseServiceProvider) actually deleteSession — a no-arg /
             // missing cleanupSession must not leave cloud sessions open.
             if (deviceProvider.cleanupSession) {
-              await deviceProvider.cleanupSession(drv);
+              await deviceProvider.cleanupSession(liveDrv);
             } else {
-              await drv.deleteSession();
+              await liveDrv.deleteSession();
               logger.info('WebDriver session deleted');
             }
           }
@@ -243,8 +350,6 @@ export const driverFixture = {
 
         try {
           delete globalThis.driver;
-          FrameworkDetector.reset();
-          UnifiedGestures.resetStrategy();
         } catch (error) {
           logger.error('Failed to clean up global driver:', error);
         }

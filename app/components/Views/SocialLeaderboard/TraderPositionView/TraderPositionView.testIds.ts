@@ -1,6 +1,8 @@
 export const TraderPositionViewSelectorsIDs = {
   CONTAINER: 'trader-position-view-container',
   BACK_BUTTON: 'trader-position-view-back-button',
+  SHARE_BUTTON: 'trader-position-view-share-button',
+  SHARE_SPINNER: 'trader-position-view-share-spinner',
   HEADER: 'trader-position-view-header',
   TRADER_NAME_LINK: 'trader-position-view-trader-name-link',
   HEADER_COMPACT_TRADER_LINK: 'trader-position-view-header-compact-trader-link',
@@ -20,4 +22,4 @@ export const TraderPositionViewSelectorsIDs = {
   FALLBACK: 'trader-position-fallback',
   FALLBACK_PRIMARY_ACTION: 'trader-position-fallback-primary-action',
   REFRESH_CONTROL: 'trader-position-refresh-control',
-};
+} as const;

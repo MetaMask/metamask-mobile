@@ -12,3 +12,8 @@ export const HomepageMoreSelectorsIDs = {
 /** E2E selectors for sections rendered on the wallet homepage. */
 export const homepageSectionTitleTestId = (sectionName: string): string =>
   `homepage-section-title-${sectionName}`;
+
+/** Homepage Perps section. */
+export const HomepagePerpsSelectorsIDs = {
+  SERVICE_INTERRUPTION_BANNER: 'homepage-perps-service-interruption-banner',
+} as const;

@@ -1,12 +1,32 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  type RenderResult,
+} from '@testing-library/react-native';
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from 'react-native-gesture-handler/jest-utils';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { darkTheme } from '@metamask/design-tokens';
+import {
+  LIGHT_MODE_SUCCESS_GREEN,
+  mockTheme,
+  ThemeContext,
+} from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { strings } from '../../../../../locales/i18n';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -15,6 +35,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
+  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
 }));
 
 const mockIsBuyable = jest.fn(() => true);
@@ -23,11 +44,11 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
   default: () => ({ isBuyable: mockIsBuyable(), isLoading: false }),
 }));
 
-const mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsTokenTradable = jest.fn(() => true);
 const mockIsStockToken = jest.fn(() => false);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
-    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenTradable: mockIsTokenTradable,
     isStockToken: mockIsStockToken,
   }),
 }));
@@ -60,11 +81,6 @@ jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
   __esModule: true,
   default: jest.fn(() => null),
 }));
-
-jest.mock('../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../util/theme');
-  return { ...actual, useTheme: jest.fn(() => actual.mockTheme) };
-});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -111,6 +127,8 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: () => mockTrackStickyFooterTapped,
 }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -126,6 +144,7 @@ const defaultProps = {
   token: mockToken,
   securityData: mockSecurityData,
   balanceFiatUsd: 50,
+  isTokenDetailsV1: true,
 };
 
 const setupSelectorMock = (geolocation?: string) => {
@@ -137,22 +156,369 @@ const setupSelectorMock = (geolocation?: string) => {
   });
 };
 
+const mockTrackEvent = jest.fn();
+
+// The dialog's sheet has no testID; it is the host view that wraps its drag handle.
+const getSheetShell = (
+  getByTestId: RenderResult['getByTestId'],
+): ReturnType<RenderResult['getByTestId']> => {
+  let node = getByTestId('bottom-sheet-dialog-drag-handle').parent;
+  while (node && (typeof node.type !== 'string' || !node.props.style)) {
+    node = node.parent;
+  }
+  if (!node) {
+    throw new Error('Bottom sheet shell not found');
+  }
+  return node;
+};
+
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     mockIsBuyable.mockReturnValue(true);
-    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenTradable.mockReturnValue(true);
+    mockIsStockToken.mockReturnValue(false);
     mockHasEligibleSwapTokens = true;
     setupSelectorMock();
   });
 
   describe('button visibility', () => {
+    it('renders the legacy footer in flow without the bottom sheet dialog', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TokenDetailsStickyFooter {...defaultProps} isTokenDetailsV1={false} />,
+      );
+
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+      expect(queryByTestId('token-details-sticky-footer-surface')).toBeNull();
+    });
+
+    it('keeps the legacy button treatment when V1 is disabled', () => {
+      const onOpenQuickBuy = jest.fn();
+      const { getByText, getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1={false}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={onOpenQuickBuy}
+        />,
+      );
+
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'variant',
+        ButtonVariant.Secondary,
+      );
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'twClassName',
+        expect.stringContaining('bg-transparent'),
+      );
+    });
+
+    it('renders the trader position header above the footer actions', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            pnl: {
+              amount: '+$15.01',
+              percentage: '+16.99%',
+              isProfit: true,
+            },
+          }}
+        />,
+      );
+
+      expect(
+        getByTestId('token-details-trader-position-pnl'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(
+        queryByTestId('token-details-sticky-footer-surface'),
+      ).toBeOnTheScreen();
+    });
+
+    it.each([
+      ['collapsed', false, darkTheme.colors.background.default],
+      ['expanded', true, darkTheme.colors.background.elevated1],
+    ])(
+      'paints the %s trader position sheet in one color in dark mode',
+      (_state, isExpanded, expectedColor) => {
+        const darkMockTheme = {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          themeAppearance: AppThemeKey.dark,
+        };
+        const { getByTestId } = render(
+          <ThemeContext.Provider value={darkMockTheme}>
+            <TokenDetailsStickyFooter
+              {...defaultProps}
+              traderPositionPnl={{ positionValue: '$103.31', isExpanded }}
+            />
+          </ThemeContext.Provider>,
+        );
+
+        expect(getByTestId('token-details-sticky-footer-surface')).toHaveStyle({
+          backgroundColor: expectedColor,
+        });
+        expect(getSheetShell(getByTestId)).toHaveStyle({
+          backgroundColor: expectedColor,
+        });
+      },
+    );
+
+    it('reports the measured height of the trader position footer', async () => {
+      const onFooterLayout = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31' }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 132 } },
+        persist: jest.fn(),
+      });
+
+      await waitFor(() => expect(onFooterLayout).toHaveBeenLastCalledWith(132));
+    });
+
+    it('keeps the collapsed height while the trader position sheet is expanded', async () => {
+      const onFooterLayout = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31', isExpanded: true }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 392 } },
+        persist: jest.fn(),
+      });
+
+      await new Promise(process.nextTick);
+      expect(onFooterLayout).not.toHaveBeenCalled();
+    });
+
+    it('reports the collapsed height again once the trader position sheet collapses', async () => {
+      jest.useFakeTimers();
+      const onFooterLayout = jest.fn();
+      const traderPositionPnl = { positionValue: '$103.31', isExpanded: true };
+      const { getByTestId, rerender } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={traderPositionPnl}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      rerender(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ ...traderPositionPnl, isExpanded: false }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 392 } },
+        persist: jest.fn(),
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(onFooterLayout).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 163 } },
+        persist: jest.fn(),
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(onFooterLayout).toHaveBeenLastCalledWith(163);
+      jest.useRealTimers();
+    });
+
+    it('stops reporting footer height after the trader position sheet expands', async () => {
+      jest.useFakeTimers();
+      try {
+        const onFooterLayout = jest.fn();
+        const traderPositionPnl = {
+          positionValue: '$103.31',
+          isExpanded: false,
+        };
+        const { getByTestId, rerender } = render(
+          <TokenDetailsStickyFooter
+            {...defaultProps}
+            traderPositionPnl={traderPositionPnl}
+            onFooterLayout={onFooterLayout}
+          />,
+        );
+
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          nativeEvent: { layout: { height: 132 } },
+          persist: jest.fn(),
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+        expect(onFooterLayout).toHaveBeenLastCalledWith(132);
+
+        rerender(
+          <TokenDetailsStickyFooter
+            {...defaultProps}
+            traderPositionPnl={{ ...traderPositionPnl, isExpanded: true }}
+            onFooterLayout={onFooterLayout}
+          />,
+        );
+        act(() => {
+          jest.advanceTimersByTime(300);
+        });
+        onFooterLayout.mockClear();
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          nativeEvent: { layout: { height: 392 } },
+          persist: jest.fn(),
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+
+        expect(onFooterLayout).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('reports no overlay height when the footer renders in flow', () => {
+      const onFooterLayout = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      expect(onFooterLayout).toHaveBeenLastCalledWith(0);
+    });
+
+    it('renders the expanded trader position sheet with footer actions', () => {
+      const { getByTestId, getByText, getAllByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.33',
+            pnl: {
+              amount: '+$15.03',
+              percentage: '+17.02%',
+              isProfit: true,
+            },
+            expandedDetails: {
+              averageCost: '$0.0357',
+              realizedPnl: '+$8.42',
+              unrealizedPnl: '+$15.03',
+              holdTime: '12 days',
+            },
+            isExpanded: true,
+            onToggleExpanded: jest.fn(),
+          }}
+        />,
+      );
+
+      expect(
+        getByTestId('token-details-trader-position-pnl-expanded-details'),
+      ).toBeOnTheScreen();
+      expect(queryByText('Share to feed')).toBeNull();
+      expect(getByText('Average cost')).toBeOnTheScreen();
+      expect(getByText('Realized P&L')).toBeOnTheScreen();
+      expect(getAllByText('Unrealized P&L')).toHaveLength(2);
+      expect(getByText('Hold time')).toBeOnTheScreen();
+      expect(getByText('$0.0357')).toBeOnTheScreen();
+      expect(getByText('+$8.42')).toBeOnTheScreen();
+      expect(getByText('+$15.03')).toBeOnTheScreen();
+      expect(getByText('12 days')).toBeOnTheScreen();
+      expect(
+        getByTestId('token-details-trader-position-pnl-overlay'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('token-details-trader-position-pnl-handle'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(getByText('Buy ETH')).toBeOnTheScreen();
+    });
+
+    it('collapses the trader position sheet after a downward swipe', () => {
+      jest.useFakeTimers();
+      const onToggleExpanded = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            isExpanded: true,
+            onToggleExpanded,
+          }}
+        />,
+      );
+
+      act(() => {
+        fireGestureHandler(
+          getByGestureTestId('token-details-sticky-footer-sheet-gesture'),
+          [{ translationY: 200, velocityY: 900 }],
+        );
+      });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(onToggleExpanded).toHaveBeenCalledWith(false);
+      jest.useRealTimers();
+    });
+
+    it('collapses the expanded trader position sheet when the overlay is pressed', () => {
+      const onToggleExpanded = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            pnl: {
+              amount: '+$15.01',
+              percentage: '+16.99%',
+              isProfit: true,
+            },
+            isExpanded: true,
+            onToggleExpanded,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-trader-position-pnl-overlay'));
+
+      expect(onToggleExpanded).toHaveBeenCalledWith(false);
+    });
+
     it('shows both buttons when isBuyable and hasEligibleSwapTokens are true', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
 
     it('shows only swap button when not buyable and hasEligibleSwapTokens is true', () => {
@@ -161,7 +527,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(queryByText('Buy')).toBeNull();
+      expect(queryByText('Buy ETH')).toBeNull();
     });
 
     it('shows only buy button when isBuyable and no eligible swap tokens', () => {
@@ -169,7 +535,7 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText, queryByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
       expect(queryByText('Swap')).toBeNull();
     });
 
@@ -179,17 +545,32 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText, queryByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
       expect(queryByText('Swap')).toBeNull();
     });
 
-    it('renders nothing when isTokenTradingOpen returns false', () => {
-      mockIsTokenTradingOpen.mockReturnValue(false);
+    it('renders nothing when isTokenTradable returns false', () => {
+      mockIsTokenTradable.mockReturnValue(false);
       const { queryByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
+        <TokenDetailsStickyFooter {...defaultProps} isTokenDetailsV1={false} />,
       );
       expect(queryByText('Swap')).toBeNull();
-      expect(queryByText('Buy')).toBeNull();
+      expect(queryByText('Buy ETH')).toBeNull();
+    });
+
+    it('keeps the V1 buttons visible when legacy trading gating is closed', () => {
+      mockIsTokenTradable.mockReturnValue(false);
+      const { getByText, getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Buy ETH')).toBeOnTheScreen();
+      expect(getByTestId('token-details-footer-quick-sell')).toBeOnTheScreen();
     });
   });
 
@@ -229,8 +610,45 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onStickyButtonsResolved).toHaveBeenCalledWith('buy');
     });
 
-    it('reports null when trading is not open', () => {
-      mockIsTokenTradingOpen.mockReturnValue(false);
+    it('reports "money_swap" when Money Deposit and Swap CTAs are shown', () => {
+      const onStickyButtonsResolved = jest.fn();
+
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress: jest.fn(),
+          }}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('money_swap');
+    });
+
+    it('reports "money" when Money Deposit CTA is shown without Swap', () => {
+      mockHasEligibleSwapTokens = false;
+      const onStickyButtonsResolved = jest.fn();
+
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress: jest.fn(),
+          }}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('money');
+    });
+
+    it('reports null when token is not tradable', () => {
+      mockIsTokenTradable.mockReturnValue(false);
       const onStickyButtonsResolved = jest.fn();
       render(
         <TokenDetailsStickyFooter
@@ -242,47 +660,106 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('Money Earn CTA', () => {
-    const moneyEarnCta = {
+  describe('Money Deposit CTA', () => {
+    const moneyDepositCta = {
       isLoading: false,
       label: 'Earn 6% APY',
       onPress: jest.fn(),
     };
 
-    it('renders Swap and primary Earn actions for a held token', () => {
+    it('does not render Money Deposit CTA when no CTA is provided', () => {
+      const { queryByTestId, queryByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} hasTokenBalance />,
+      );
+
+      expect(queryByTestId('money-asset-overview-footer-cta')).toBeNull();
+      expect(queryByText('Earn 6% APY')).toBeNull();
+    });
+
+    it('shows Money Deposit CTA when provided', () => {
+      const { getByTestId, getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={moneyDepositCta}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta')).toBeOnTheScreen();
+      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
+    });
+
+    it('renders Swap and primary Money actions for a held token', () => {
       const { getByText, queryByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={moneyEarnCta}
+          moneyDepositCta={moneyDepositCta}
         />,
       );
 
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Earn 6% APY')).toBeOnTheScreen();
-      expect(queryByText('Buy')).not.toBeOnTheScreen();
+      expect(queryByText('Buy ETH')).not.toBeOnTheScreen();
     });
 
-    it('renders secondary Earn and Buy actions for a token without balance', () => {
-      const { getByText, queryByText } = render(
+    it('renders Swap before Money Deposit and Quick Buy in treatment', () => {
+      const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
-          hasTokenBalance={false}
-          moneyEarnCta={moneyEarnCta}
+          hasTokenBalance
+          swapTestID="swap-button"
+          moneyDepositCta={moneyDepositCta}
+          onQuickBuyPress={jest.fn()}
+          quickBuyTestID="quick-buy-button"
         />,
       );
 
-      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
-      expect(getByText('Buy')).toBeOnTheScreen();
-      expect(queryByText('Swap')).not.toBeOnTheScreen();
+      const footerChildren = getByTestId('bottomsheetfooter').props
+        .children as (
+        | React.ReactElement<{ testID?: string }>
+        | null
+        | undefined
+      )[];
+
+      expect(
+        footerChildren
+          .filter((child): child is React.ReactElement<{ testID?: string }> =>
+            Boolean(child),
+          )
+          .map((child) => child.props.testID),
+      ).toEqual([
+        'swap-button',
+        'money-asset-overview-footer-cta',
+        'quick-buy-button',
+      ]);
     });
 
-    it('renders a loading Earn button alongside Swap for a held token', () => {
+    it('uses primary variant for Money CTA and secondary variant for Swap in treatment', () => {
+      const { getByTestId, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          swapTestID="swap-button"
+          moneyDepositCta={moneyDepositCta}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta').props.variant).toBe(
+        ButtonVariant.Primary,
+      );
+      expect(getByTestId('swap-button').props.variant).toBe(
+        ButtonVariant.Secondary,
+      );
+      expect(queryByText('Buy ETH')).not.toBeOnTheScreen();
+    });
+
+    it('renders a loading Money button alongside Swap for a held token', () => {
       const { getByTestId, getByText, queryByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
         />,
       );
 
@@ -291,15 +768,15 @@ describe('TokenDetailsStickyFooter', () => {
         'isLoading',
         true,
       );
-      expect(queryByText('Buy')).not.toBeOnTheScreen();
+      expect(queryByText('Buy ETH')).not.toBeOnTheScreen();
     });
 
-    it('renders a loading Earn button alongside Buy for a token without balance', () => {
+    it('renders a loading Money button alongside Swap when provided', () => {
       const { getByTestId, getByText, queryByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance={false}
-          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
         />,
       );
 
@@ -307,8 +784,8 @@ describe('TokenDetailsStickyFooter', () => {
         'isLoading',
         true,
       );
-      expect(getByText('Buy')).toBeOnTheScreen();
-      expect(queryByText('Swap')).not.toBeOnTheScreen();
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(queryByText('Buy ETH')).not.toBeOnTheScreen();
     });
 
     it('renders disclaimer after the APY resolves', () => {
@@ -316,7 +793,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={moneyEarnCta}
+          moneyDepositCta={moneyDepositCta}
         />,
       );
 
@@ -330,7 +807,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
         />,
       );
 
@@ -345,7 +822,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{ isLoading: true, onPress }}
+          moneyDepositCta={{ isLoading: true, onPress }}
         />,
       );
 
@@ -361,7 +838,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{
+          moneyDepositCta={{
             isLoading: false,
             label: 'Earn 6% APY',
             onPress,
@@ -377,6 +854,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -386,7 +864,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{
+          moneyDepositCta={{
             isLoading: false,
             label: 'Earn 6% APY',
             onPress,
@@ -405,7 +883,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{
+          moneyDepositCta={{
             isLoading: false,
             label: 'Earn 6% APY',
             onPress,
@@ -445,7 +923,7 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
   });
 
@@ -455,7 +933,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={150} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
 
     it('applies success style to buy when balance < $100', () => {
@@ -463,7 +941,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
 
     it('applies success style to swap at exactly $100', () => {
@@ -471,7 +949,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={100} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
 
     it('handles undefined balanceFiatUsd gracefully (treats as $0, buy gets success)', () => {
@@ -482,7 +960,7 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
   });
 
@@ -500,6 +978,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -508,7 +987,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'buy',
@@ -516,6 +995,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -532,6 +1012,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -552,6 +1033,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
   });
@@ -700,7 +1182,7 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         expect.any(String),
@@ -723,7 +1205,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockOnBuy).not.toHaveBeenCalled();
     });
@@ -749,7 +1231,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockOnBuy).toHaveBeenCalled();
     });
@@ -762,7 +1244,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockOnBuy).toHaveBeenCalled();
     });
@@ -812,7 +1294,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(onBuyPress).toHaveBeenCalled();
       expect(mockOnBuy).toHaveBeenCalled();
@@ -827,7 +1309,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(onBuyPress).not.toHaveBeenCalled();
       expect(mockOnBuy).not.toHaveBeenCalled();
@@ -840,6 +1322,7 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
+          tdpVersion="v3"
           onSwapPress={onSwapPress}
           securityData={
             {
@@ -856,8 +1339,13 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onSwapPress).not.toHaveBeenCalled();
       expect(mockOnSwap).not.toHaveBeenCalled();
 
-      // Simulate user tapping "Proceed" inside the modal
+      // The security-warning sheet must carry tdp_version so the §10.4
+      // proceed-rate guardrail can split v2 vs v3; the param defaults to 'v2',
+      // so dropping it would silently mislabel V1.
       const navigateCall = mockNavigate.mock.calls[0];
+      expect(navigateCall[1].params.tdpVersion).toBe('v3');
+
+      // Simulate user tapping "Proceed" inside the modal
       const onProceed = navigateCall[1].params.onProceed;
       onProceed();
 
@@ -882,7 +1370,7 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       // Neither callback fires when the warning modal is shown
       expect(onBuyPress).not.toHaveBeenCalled();
@@ -957,6 +1445,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -977,10 +1466,10 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onQuickBuyPress).not.toHaveBeenCalled();
     });
 
-    it('hides the quick buy button when the account has no eligible swap source', () => {
+    it('renders the quick buy button when the account has no eligible swap source', () => {
       mockHasEligibleSwapTokens = false;
       const onQuickBuyPress = jest.fn();
-      const { queryByTestId } = render(
+      const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           onQuickBuyPress={onQuickBuyPress}
@@ -988,7 +1477,133 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      expect(queryByTestId(quickBuyTestID)).toBeNull();
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(onQuickBuyPress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('SWAPS-5094 entrypoint layouts', () => {
+    it('swap_buy hides lightning and opens Quick Buy from Swap', () => {
+      const onOpenQuickBuy = jest.fn();
+      const { getByText, queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={jest.fn()}
+          quickBuyTestID="quick-buy-btn"
+          quickBuyEntrypointLayout="swap_buy"
+          onOpenQuickBuy={onOpenQuickBuy}
+        />,
+      );
+
+      expect(queryByTestId('quick-buy-btn')).toBeNull();
+      fireEvent.press(getByText(strings('asset_overview.swap')));
+
+      expect(onOpenQuickBuy).toHaveBeenCalledWith('buy');
+      expect(mockOnSwap).not.toHaveBeenCalled();
+    });
+
+    it('buy_sell renders only Buy and Sell and opens Quick Buy in Sell', () => {
+      const onOpenQuickBuy = jest.fn();
+      const { getByTestId, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={onOpenQuickBuy}
+        />,
+      );
+
+      expect(queryByText(strings('asset_overview.swap'))).toBeNull();
+      expect(getByTestId('token-details-footer-quick-sell').props.variant).toBe(
+        ButtonVariant.Primary,
+      );
+      expect(
+        getByTestId('token-details-footer-quick-sell').props.twClassName,
+      ).toBe('bg-error-default');
+      fireEvent.press(getByTestId('token-details-footer-quick-sell'));
+
+      expect(onOpenQuickBuy).toHaveBeenCalledWith('sell');
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({ ctaType: 'quick_sell' }),
+      );
+      expect(mockOnBuy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('TOKEN_DETAILS_CTA_CLICKED on the buy_sell footer', () => {
+    const actionButtonEvents = () =>
+      mockTrackEvent.mock.calls
+        .map(([event]) => event)
+        .filter((event) => event?.name === 'Action Button Clicked');
+
+    it('fires the CTA event with tdp_version v3 for the V1 buy button', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1
+          tdpVersion="v3"
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-footer-quick-buy'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctaType: 'quick_buy',
+          tdp_version: 'v3',
+        }),
+      );
+      expect(actionButtonEvents()).toHaveLength(0);
+    });
+
+    it('fires the CTA event with tdp_version v3 for the V1 sell button', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1
+          tdpVersion="v3"
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-footer-quick-sell'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctaType: 'quick_sell',
+          tdp_version: 'v3',
+        }),
+      );
+      expect(actionButtonEvents()).toHaveLength(0);
+    });
+
+    it('fires the CTA event with tdp_version v2 on the legacy footer', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1={false}
+          tdpVersion="v2"
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-footer-quick-sell'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctaType: 'quick_sell',
+          tdp_version: 'v2',
+        }),
+      );
+      expect(actionButtonEvents()).toHaveLength(0);
     });
   });
 });

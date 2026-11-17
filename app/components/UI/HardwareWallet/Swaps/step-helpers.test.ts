@@ -14,17 +14,24 @@ import {
 
 describe('step-helpers', () => {
   describe('getStepTitle', () => {
-    it('returns approving title for waiting approval step', () => {
-      expect(
-        getStepTitle(
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Waiting,
-          },
-          { amount: '10', tokenSymbol: 'ETH' },
-        ),
-      ).toBe('Approving 10 ETH');
-    });
+    it.each([
+      ['Waiting', HardwareWalletsSwapsStepStatus.Waiting],
+      ['Signing', HardwareWalletsSwapsStepStatus.Signing],
+      ['Rejected', HardwareWalletsSwapsStepStatus.Rejected],
+    ] as const)(
+      'returns approve title for %s approval step (extension parity)',
+      (_statusName, status) => {
+        expect(
+          getStepTitle(
+            {
+              kind: HardwareWalletsSwapsStepKind.Approval,
+              status,
+            },
+            { amount: '10', tokenSymbol: 'ETH' },
+          ),
+        ).toBe('Approve 10 ETH');
+      },
+    );
 
     it('returns approved title for signed approval step', () => {
       expect(
@@ -95,6 +102,91 @@ describe('step-helpers', () => {
       ).toBe('Send  ');
     });
 
+    describe('same-chain swap copy (Transaction step)', () => {
+      const swapOptions = {
+        amount: '5',
+        tokenSymbol: 'USDC',
+        destAmount: '5.2',
+        destTokenSymbol: 'DAI',
+      };
+      const txStep = (status: HardwareWalletsSwapsStepStatus) => ({
+        kind: HardwareWalletsSwapsStepKind.Transaction,
+        status,
+      });
+
+      it.each([
+        [
+          'waiting',
+          HardwareWalletsSwapsStepStatus.Waiting,
+          'Swap 5 USDC for 5.2 DAI',
+        ],
+        [
+          'signing',
+          HardwareWalletsSwapsStepStatus.Signing,
+          'Swapping 5 USDC for 5.2 DAI',
+        ],
+        [
+          'rejected',
+          HardwareWalletsSwapsStepStatus.Rejected,
+          'Swapping 5 USDC for 5.2 DAI',
+        ],
+        [
+          'signed',
+          HardwareWalletsSwapsStepStatus.Signed,
+          'Swapped 5 USDC for 5.2 DAI',
+        ],
+      ] as const)(
+        'returns the %s swap title for a transaction step with dest data',
+        (_statusName, status, expected) => {
+          expect(getStepTitle(txStep(status), swapOptions)).toBe(expected);
+        },
+      );
+
+      it.each([
+        {
+          name: 'falls back to send title when destAmount is missing',
+          step: txStep(HardwareWalletsSwapsStepStatus.Waiting),
+          opts: { amount: '5', tokenSymbol: 'USDC', destTokenSymbol: 'DAI' },
+          expected: 'Send 5 USDC',
+        },
+        {
+          name: 'falls back to sent title when destTokenSymbol is missing',
+          step: txStep(HardwareWalletsSwapsStepStatus.Signed),
+          opts: { amount: '5', tokenSymbol: 'USDC', destAmount: '5.2' },
+          expected: 'Sent 5 USDC',
+        },
+        {
+          name: 'ignores dest options for approval steps (still approve copy)',
+          step: {
+            kind: HardwareWalletsSwapsStepKind.Approval,
+            status: HardwareWalletsSwapsStepStatus.Signed,
+          },
+          opts: swapOptions,
+          expected: 'Approved 5 USDC',
+        },
+        {
+          name: 'ignores dest options for fee transfer steps (still paying-fee copy)',
+          step: {
+            kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+            status: HardwareWalletsSwapsStepStatus.Waiting,
+          },
+          opts: swapOptions,
+          expected: 'Paying network fee with USDC',
+        },
+        {
+          name: 'ignores dest options for fee transfer steps (still paid-fee copy)',
+          step: {
+            kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+            status: HardwareWalletsSwapsStepStatus.Signed,
+          },
+          opts: swapOptions,
+          expected: 'Network fee paid with USDC',
+        },
+      ])('$name', ({ step, opts, expected }) => {
+        expect(getStepTitle(step, opts)).toBe(expected);
+      });
+    });
+
     describe('FeeTransfer step kind (send-only)', () => {
       it.each([
         {
@@ -154,51 +246,62 @@ describe('step-helpers', () => {
   });
 
   describe('getStepDescription', () => {
-    it('returns rejected for rejected step', () => {
+    it('returns a single rejected line for rejected step', () => {
       expect(
         getStepDescription({
           kind: HardwareWalletsSwapsStepKind.Approval,
           status: HardwareWalletsSwapsStepStatus.Rejected,
         }),
-      ).toBe('Rejected');
+      ).toEqual(['Rejected']);
     });
 
-    it('returns spender address for approval with address', () => {
+    it('returns shortened token and spender lines for approval with both addresses', () => {
+      expect(
+        getStepDescription({
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+          tokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+          address: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+        }),
+      ).toEqual(['Token: 0x90F79...3b906', 'Spender: 0x3c44C...C6cDc']);
+    });
+
+    it('returns only the shortened spender line for approval with only a spender', () => {
       expect(
         getStepDescription({
           kind: HardwareWalletsSwapsStepKind.Approval,
           status: HardwareWalletsSwapsStepStatus.Waiting,
           address: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
         }),
-      ).toBe('Spender 0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc');
+      ).toEqual(['Spender: 0x3c44C...C6cDc']);
     });
 
-    it('returns undefined for approval without address', () => {
+    it('returns no lines for approval without addresses', () => {
       expect(
         getStepDescription({
           kind: HardwareWalletsSwapsStepKind.Approval,
           status: HardwareWalletsSwapsStepStatus.Waiting,
         }),
-      ).toBeUndefined();
+      ).toEqual([]);
     });
 
-    it('returns recipient address for transaction with address', () => {
+    it('returns a shortened recipient line for transaction with address', () => {
       expect(
         getStepDescription({
           kind: HardwareWalletsSwapsStepKind.Transaction,
           status: HardwareWalletsSwapsStepStatus.Waiting,
           address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
         }),
-      ).toBe('Recipient 0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
+      ).toEqual(['To: 0x70997...c79C8']);
     });
 
-    it('returns undefined for transaction without address', () => {
+    it('returns no lines for transaction without address', () => {
       expect(
         getStepDescription({
           kind: HardwareWalletsSwapsStepKind.Transaction,
           status: HardwareWalletsSwapsStepStatus.Waiting,
         }),
-      ).toBeUndefined();
+      ).toEqual([]);
     });
 
     describe('FeeTransfer step kind (send-only)', () => {
@@ -218,17 +321,17 @@ describe('step-helpers', () => {
             status: HardwareWalletsSwapsStepStatus.Waiting,
           },
         },
-      ])('returns undefined for fee transfer $name', ({ step }) => {
-        expect(getStepDescription(step)).toBeUndefined();
+      ])('returns no lines for fee transfer $name', ({ step }) => {
+        expect(getStepDescription(step)).toEqual([]);
       });
 
-      it('returns rejected for rejected fee transfer step', () => {
+      it('returns a single rejected line for rejected fee transfer step', () => {
         expect(
           getStepDescription({
             kind: HardwareWalletsSwapsStepKind.FeeTransfer,
             status: HardwareWalletsSwapsStepStatus.Rejected,
           }),
-        ).toBe('Rejected');
+        ).toEqual(['Rejected']);
       });
     });
   });

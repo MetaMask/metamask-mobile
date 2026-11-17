@@ -6,10 +6,10 @@ import Logger from '../Logger';
  * Dispatches QR sync E2E commands to QrSyncController.
  * Used when Appium deep links do not reliably reach RN Linking.
  */
-export function dispatchQrSyncCommand(item: {
+export async function dispatchQrSyncCommand(item: {
   type: string;
   args: Record<string, unknown>;
-}): void {
+}): Promise<void> {
   if (item.type !== E2ECommandTypes.applyQrSyncSyncReady) {
     return;
   }
@@ -24,11 +24,9 @@ export function dispatchQrSyncCommand(item: {
       return;
     }
 
-    controller.applyTestSyncReadyPayload({
+    await controller.applyTestSyncReadyPayload({
       mnemonic:
         typeof item.args.mnemonic === 'string' ? item.args.mnemonic : '',
-      isPrimary:
-        item.args.isPrimary === undefined ? true : Boolean(item.args.isPrimary),
       walletName:
         typeof item.args.walletName === 'string'
           ? item.args.walletName

@@ -7,16 +7,14 @@ import React, {
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { Keyboard } from 'react-native';
 import {
   Box,
-  Label,
   Text,
+  TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -36,13 +34,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CardError, Region } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
   setOnValueChange,
 } from './RegionSelectorModal';
 import SelectField from './SelectField';
+import CardFormField from './CardFormField';
 
 const US_PHONE_REGEX = /^[2-9]\d{2}[2-9]\d{6}$/;
 
@@ -95,9 +95,11 @@ const SetPhoneNumber = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.SET_PHONE_NUMBER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.SET_PHONE_NUMBER,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -123,10 +125,12 @@ const SetPhoneNumber = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.SET_PHONE_NUMBER_BUTTON,
-            phone_number_country_code: areaCode,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.SET_PHONE_NUMBER_BUTTON,
+              phone_number_country_code: areaCode,
+            }),
+          )
           .build(),
       );
       const { success } = await sendPhoneVerification({
@@ -230,94 +234,71 @@ const SetPhoneNumber = () => {
 
   useEffect(() => () => clearOnValueChange(), []);
 
+  const phoneErrorText =
+    phoneNumber && phoneVerificationIsError
+      ? phoneVerificationError
+      : isPhoneNumberError
+        ? strings('card.card_onboarding.set_phone_number.invalid_phone_number')
+        : isUsPhoneNumberError
+          ? strings(
+              'card.card_onboarding.set_phone_number.invalid_us_phone_number',
+            )
+          : null;
+
   const renderFormFields = () => (
-    <Box>
-      <Label>
-        {strings('card.card_onboarding.set_phone_number.phone_number_label')}
-      </Label>
-      {/* Area code selector */}
-      <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="w-26">
-          <SelectField
-            value={`${selectedCountry?.emoji ?? ''} +${selectedCountry?.areaCode ?? ''}`}
-            onPress={handleCountrySelect}
-            hideIcon
-            testID="set-phone-number-country-area-code-select"
-          />
-        </Box>
-
-        {/* Phone number input */}
-        <Box twClassName="flex-1">
-          <TextField
-            autoCapitalize={'none'}
-            onChangeText={handlePhoneNumberChange}
-            numberOfLines={1}
-            autoComplete="one-time-code"
-            value={phoneNumber}
-            keyboardType="phone-pad"
-            maxLength={255}
-            accessibilityLabel={strings(
-              'card.card_onboarding.set_phone_number.phone_number_label',
-            )}
-            testID="set-phone-number-phone-number-input"
-            onSubmitEditing={handleContinue}
-            returnKeyType="done"
-          />
-        </Box>
-      </Box>
-      {phoneNumber && phoneVerificationIsError ? (
-        <Text
-          variant={TextVariant.BodySm}
-          testID="set-phone-number-phone-number-error"
-          twClassName="text-error-default"
-        >
-          {phoneVerificationError}
-        </Text>
-      ) : isPhoneNumberError ? (
-        <Text
-          variant={TextVariant.BodySm}
-          testID="set-phone-number-phone-number-error"
-          twClassName="text-error-default"
-        >
-          {strings(
-            'card.card_onboarding.set_phone_number.invalid_phone_number',
-          )}
-        </Text>
-      ) : isUsPhoneNumberError ? (
-        <Text
-          variant={TextVariant.BodySm}
-          testID="set-phone-number-us-phone-error"
-          twClassName="text-error-default"
-        >
-          {strings(
-            'card.card_onboarding.set_phone_number.invalid_us_phone_number',
-          )}
-        </Text>
-      ) : null}
-    </Box>
-  );
-
-  const renderActions = () => (
-    <Box twClassName="flex flex-col items-center justify-center gap-2">
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        isFullWidth
-        isDisabled={isDisabled}
-        isLoading={phoneVerificationIsLoading}
-        testID="set-phone-number-continue-button"
+    <>
+      <CardFormField
+        label={strings(
+          'card.card_onboarding.set_phone_number.phone_number_label',
+        )}
+        errorText={phoneErrorText}
+        errorTestID={
+          !(phoneNumber && phoneVerificationIsError) &&
+          !isPhoneNumberError &&
+          isUsPhoneNumberError
+            ? 'set-phone-number-us-phone-error'
+            : 'set-phone-number-phone-number-error'
+        }
       >
-        {strings('card.card_onboarding.continue_button')}
-      </Button>
-      <Text
-        variant={TextVariant.BodySm}
-        testID="set-phone-number-legal-terms"
-        twClassName="text-text-alternative text-center"
-      >
-        {strings('card.card_onboarding.set_phone_number.legal_terms')}
-      </Text>
-    </Box>
+        <Box twClassName="flex-row items-center gap-2">
+          {/* Area code selector */}
+          <Box twClassName="w-28">
+            <SelectField
+              value={`${selectedCountry?.emoji ?? ''} +${selectedCountry?.areaCode ?? ''}`}
+              onPress={handleCountrySelect}
+              hideIcon
+              testID="set-phone-number-country-area-code-select"
+              accessibilityLabel={`${strings(
+                'card.card_onboarding.set_phone_number.country_area_code_label',
+              )}, +${selectedCountry?.areaCode ?? ''}`}
+            />
+          </Box>
+
+          {/* Phone number input */}
+          <Box twClassName="flex-1">
+            <TextField
+              onChangeText={handlePhoneNumberChange}
+              value={phoneNumber}
+              isError={!!phoneErrorText}
+              inputProps={{
+                autoCapitalize: 'none',
+                numberOfLines: 1,
+                autoComplete: 'one-time-code',
+                keyboardType: 'phone-pad',
+                maxLength: 255,
+                accessibilityLabel: strings(
+                  'card.card_onboarding.set_phone_number.phone_number_label',
+                ),
+                testID: 'set-phone-number-phone-number-input',
+                onSubmitEditing: Keyboard.dismiss,
+                returnKeyType: 'done',
+                blurOnSubmit: true,
+              }}
+            />
+          </Box>
+        </Box>
+      </CardFormField>
+    </>
   );
 
   return (
@@ -325,8 +306,23 @@ const SetPhoneNumber = () => {
       title={strings('card.card_onboarding.set_phone_number.title')}
       description={strings('card.card_onboarding.set_phone_number.description')}
       formFields={renderFormFields()}
-      actions={renderActions()}
-      stickyActions
+      footerContent={
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID="set-phone-number-legal-terms"
+        >
+          {strings('card.card_onboarding.set_phone_number.legal_terms')}
+        </Text>
+      }
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled,
+        isLoading: phoneVerificationIsLoading,
+        testID: 'set-phone-number-continue-button',
+      }}
       headerMode="close-with-confirmation"
     />
   );

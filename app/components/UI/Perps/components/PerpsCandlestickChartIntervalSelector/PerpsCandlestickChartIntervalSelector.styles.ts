@@ -17,7 +17,7 @@ export const selectorStyleSheet = (params: { theme: Theme }) => {
     },
     intervalTab: {
       paddingVertical: 6,
-      borderRadius: 6,
+      borderRadius: 9999,
       padding: 10,
       alignItems: 'center',
     },

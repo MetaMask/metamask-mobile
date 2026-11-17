@@ -5,8 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
+  useIsTransactionPaySubmitReady,
   useTransactionPayQuotes,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
 import {
   MINIMUM_BET,
@@ -43,6 +45,8 @@ export const usePredictBuyConditions = ({
     usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
+  const isPaySubmitReady = useIsTransactionPaySubmitReady();
+  const transactionMeta = useTransactionMetadataRequest();
   const quotes = useTransactionPayQuotes();
   const { isDepositPending } = usePredictDeposit();
   const { isPredictBalanceSelected, selectedPaymentToken } =
@@ -201,6 +205,21 @@ export const usePredictBuyConditions = ({
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
+  // Mirror the publish guard: while the pay deposit transaction exists and the
+  // user is paying with a wallet token, a tap must not reach publish in a state
+  // the guard rejects with "MetaMask Pay: Cannot submit without quote". The
+  // loading and alert checks miss states where the quote fetch failed, never
+  // started, or the payment token is still unset. Predict-balance payments
+  // create a deposit transaction but never engage MetaMask Pay, so they are
+  // scoped out; direct pUSD routes pass the predicate without quotes.
+  const isPaySubmitBlocked = useMemo(
+    () =>
+      Boolean(transactionMeta) &&
+      !isPredictBalanceSelected &&
+      !isPaySubmitReady,
+    [transactionMeta, isPredictBalanceSelected, isPaySubmitReady],
+  );
+
   // Active loading: quotes are being fetched for the current ERC20 token.
   const isPayFeesLoading = useMemo(
     () => shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading),
@@ -318,6 +337,7 @@ export const usePredictBuyConditions = ({
       !isRateLimited &&
       !isBalanceLoading &&
       !isPayFeesLoading &&
+      !isPaySubmitBlocked &&
       !hasBlockingPayAlerts &&
       !isPaymentSelectorNavigationLocked,
     [
@@ -329,6 +349,7 @@ export const usePredictBuyConditions = ({
       isRateLimited,
       isBalanceLoading,
       isPayFeesLoading,
+      isPaySubmitBlocked,
       hasBlockingPayAlerts,
       isPaymentSelectorNavigationLocked,
     ],

@@ -15,6 +15,8 @@ import {
 } from '../../reducers/collectibles';
 import { Nft } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
+import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 // Mock all dependencies
 jest.mock('react-redux', () => ({
@@ -146,11 +148,35 @@ describe('useNftDetection', () => {
     },
   };
 
+  const mockSelectors = (
+    overrides: {
+      selectedAddress?: string | undefined;
+      isBasicFunctionalityEnabled?: boolean;
+    } = {},
+  ) => {
+    const selectedAddress =
+      'selectedAddress' in overrides
+        ? overrides.selectedAddress
+        : mockSelectedAddress;
+    const isBasicFunctionalityEnabled =
+      overrides.isBasicFunctionalityEnabled ?? true;
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return selectedAddress;
+      }
+      if (selector === selectBasicFunctionalityEnabled) {
+        return isBasicFunctionalityEnabled;
+      }
+      return undefined;
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockUseDispatch.mockReturnValue(mockDispatch);
-    mockUseSelector.mockReturnValue(mockSelectedAddress);
+    mockSelectors();
 
     mockAddProperties.mockReturnThis();
     mockBuild.mockReturnValue({ event: 'test-event', properties: {} });
@@ -189,7 +215,20 @@ describe('useNftDetection', () => {
 
   describe('detectNfts', () => {
     it('returns early when selectedAddress is undefined', async () => {
-      mockUseSelector.mockReturnValue(undefined);
+      mockSelectors({ selectedAddress: undefined });
+
+      const { result } = renderHook(() => useNftDetection());
+
+      await act(async () => {
+        await result.current.detectNfts();
+      });
+
+      expect(mockDetectNfts).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('returns early when Basic Functionality is off', async () => {
+      mockSelectors({ isBasicFunctionalityEnabled: false });
 
       const { result } = renderHook(() => useNftDetection());
 

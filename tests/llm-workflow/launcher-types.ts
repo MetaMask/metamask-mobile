@@ -57,9 +57,9 @@ export interface IOSAppBundleMetadata {
 /**
  * Error codes used by iOS prerequisites and launch.
  *
- * Constrained to core `ErrorCode`s: the `launch` tool collapses unknown codes
- * into `MM_LAUNCH_FAILED`. iOS-specific detail belongs in the message and
- * `remediation`.
+ * Constrained to core `ErrorCode`s: the `mm` CLI maps each known code to an
+ * exit code and maps an unknown `MM_*` code to exit 1. iOS-specific detail
+ * belongs in the message and `remediation`.
  */
 export type IOSLaunchErrorCode = Extract<
   ErrorCode,
@@ -70,20 +70,55 @@ export type IOSLaunchErrorCode = Extract<
   | 'MM_INVALID_CONFIG'
 >;
 
-export class IOSLaunchError extends Error {
-  readonly code: IOSLaunchErrorCode;
+export type MobileLaunchErrorCode = IOSLaunchErrorCode | AndroidLaunchErrorCode;
+
+export type AndroidLaunchErrorCode = Extract<
+  ErrorCode,
+  | 'MM_LAUNCH_FAILED'
+  | 'MM_SESSION_ALREADY_RUNNING'
+  | 'MM_DEPENDENCIES_MISSING'
+  | 'MM_DEVICE_NOT_AVAILABLE'
+  | 'MM_INVALID_CONFIG'
+>;
+
+export class MobileLaunchError<
+  TCode extends MobileLaunchErrorCode = MobileLaunchErrorCode,
+> extends Error {
+  readonly code: TCode;
 
   /** Optional remediation hint shown alongside the error message. */
   readonly remediation?: string;
 
+  constructor(args: { code: TCode; message: string; remediation?: string }) {
+    super(
+      args.remediation
+        ? `${args.message}\nRemediation: ${args.remediation}`
+        : args.message,
+    );
+    this.name = 'MobileLaunchError';
+    this.code = args.code;
+    this.remediation = args.remediation;
+  }
+}
+
+export class IOSLaunchError extends MobileLaunchError<IOSLaunchErrorCode> {
   constructor(args: {
     code: IOSLaunchErrorCode;
     message: string;
     remediation?: string;
   }) {
-    super(args.message);
+    super(args);
     this.name = 'IOSLaunchError';
-    this.code = args.code;
-    this.remediation = args.remediation;
+  }
+}
+
+export class AndroidLaunchError extends MobileLaunchError<AndroidLaunchErrorCode> {
+  constructor(args: {
+    code: AndroidLaunchErrorCode;
+    message: string;
+    remediation?: string;
+  }) {
+    super(args);
+    this.name = 'AndroidLaunchError';
   }
 }

@@ -22,6 +22,7 @@ export const SocialLeaderboardEventProperties = {
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
+  DEDUPLICATION_ID: 'deduplication_id',
   INTERACTION_TYPE: 'interaction_type',
   NUX_STEP: 'nux_step',
   NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
@@ -46,10 +47,16 @@ export const SocialLeaderboardEventValues = {
     FOLLOW: 'follow',
     UNFOLLOW: 'unfollow',
   },
+  /**
+   * Position-lifecycle stage of the trade a feed row announces. Asset-agnostic
+   * — pair with `trade_type` to tell a perp open from a token buy. Replaces
+   * the earlier `bought`/`sold`/`opened`/`closed` set, which conflated a
+   * partial exit with a full close and could not express an add.
+   */
   FEED_ACTION: {
-    BOUGHT: 'bought',
-    SOLD: 'sold',
     OPENED: 'opened',
+    ADDED: 'added',
+    REDUCED: 'reduced',
     CLOSED: 'closed',
   },
   FEED_AUDIENCE: {
@@ -85,7 +92,10 @@ export const SocialLeaderboardEventValues = {
   TAB: {
     CLOSED: 'closed',
     FEED: 'tab_feed',
+    FOLLOWING: 'tab_following',
+    TRENDING: 'tab_trending',
     LEADERBOARD: 'tab_leaderboard',
+    LIVE: 'tab_live',
     OPEN: 'open',
   },
   TAB_CHANGE_METHOD: {
@@ -114,6 +124,8 @@ export type SocialLeaderboardSource =
   | 'notification'
   | 'deep_link'
   | 'home_carousel'
+  | 'trending_carousel'
+  | 'profiles_to_follow'
   | 'leaderboard'
   | 'trader_profile'
   | 'trader_feed'
@@ -126,7 +138,8 @@ export type SocialLeaderboardSource =
   | 'explore_now'
   | 'explore_rwas'
   | 'explore_trending'
-  | 'explore_stocks';
+  | 'explore_stocks'
+  | 'explore_perps';
 
 export type LeaderboardScreenViewedSource = Extract<
   SocialLeaderboardSource,
@@ -136,16 +149,31 @@ export type LeaderboardScreenViewedSource = Extract<
   | 'notification'
   | 'deep_link'
   | 'home_carousel'
+  | 'explore_perps'
 >;
 
 export type TraderProfileScreenViewedSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'home_carousel' | 'notification' | 'deep_link' | 'trader_feed'
+  | 'leaderboard'
+  | 'home_carousel'
+  | 'trending_carousel'
+  | 'profiles_to_follow'
+  | 'notification'
+  | 'deep_link'
+  | 'trader_feed'
+  | 'explore_perps'
 >;
 
 export type TraderFollowInteractionSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'trader_profile' | 'home_carousel' | 'nux'
+  | 'leaderboard'
+  | 'trader_profile'
+  | 'home_carousel'
+  | 'trending_carousel'
+  | 'profiles_to_follow'
+  | 'nux'
+  | 'trader_feed'
+  | 'explore_perps'
 >;
 
 export type FollowTradingTokenSource = Extract<

@@ -60,6 +60,15 @@ export interface HardwareWalletAdapter {
   isConnected(): boolean;
 
   /**
+   * Attempt to reconnect to a known device by scanning in the background
+   * without showing the scanning UI. Returns true if connected.
+   */
+  backgroundReconnect?(
+    targetDeviceId: string,
+    timeoutMs?: number,
+  ): Promise<boolean>;
+
+  /**
    * Reset the adapter state without emitting events.
    * Used when closing device selection to ensure clean state for next attempt.
    */
@@ -125,12 +134,16 @@ export interface HardwareWalletAdapter {
 
   /**
    * Subscribe to transport availability changes (e.g., Bluetooth on/off).
-   * The adapter will call the callback when transport state changes.
+   * The adapter will call the callback when transport state changes, and
+   * MUST invoke it once at subscription time with the current state.
+   *
+   * All adapter implementations (Ledger, QR, NonHardware) are required to
+   * provide this — the provider always wires transport monitoring.
    *
    * @param callback - Called when transport state changes
    * @returns Cleanup function to unsubscribe
    */
-  onTransportStateChange?(callback: (isAvailable: boolean) => void): () => void;
+  onTransportStateChange(callback: (isAvailable: boolean) => void): () => void;
 
   /**
    * Get the required app name for this wallet type.
@@ -148,6 +161,13 @@ export interface HardwareWalletAdapter {
    * an active operation.
    */
   getTransportDisabledErrorCode(): ErrorCode | null;
+
+  /**
+   * Tear down the adapter: stop BLE monitoring, close sessions, release native
+   * resources. Called when the adapter is being discarded (provider unmount,
+   * wallet-type change).
+   */
+  destroy(): void;
 }
 
 /**

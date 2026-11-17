@@ -36,8 +36,34 @@ export const addDeviceVerificationCodeScreenOptions: NativeStackNavigationOption
     ...clearNativeStackNavigatorOptions,
   };
 
+/**
+ * Static transparent overlay: no stack animation, transparent background, and the
+ * presenting screen stays mounted. The common pairing of
+ * {@link clearNativeStackNavigatorOptions} and {@link transparentModalScreenOptions}
+ * for bottom sheets and modal stacks registered on a native stack.
+ */
+export const transparentModalStackOptions: NativeStackNavigationOptions = {
+  ...clearNativeStackNavigatorOptions,
+  ...transparentModalScreenOptions,
+};
+
 export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
   animation: 'ios_from_right',
+};
+
+export const addDeviceToWalletPageOptions: NativeStackNavigationOptions = {
+  headerShown: false,
+  animation: 'slide_from_right',
+  presentation: 'card',
+};
+
+/**
+ * Pushes the screen in from the left. `animationMatchesGesture` makes the iOS
+ * swipe-to-dismiss follow the same direction.
+ */
+export const slideFromLeftNativeOptions: NativeStackNavigationOptions = {
+  animation: 'slide_from_left',
+  animationMatchesGesture: true,
 };
 
 export const fadeNativeOptions: NativeStackNavigationOptions = {
@@ -47,11 +73,12 @@ export const fadeNativeOptions: NativeStackNavigationOptions = {
 
 /**
  * Native-stack counterpart to JS-stack `TransitionPresets.ModalSlideFromBottomIOS`.
- * Use default card presentation (not `modal` sheet or `fullScreenModal`) so content
- * stays full-screen while safe-area / HeaderStandard includesTopInset still work.
+ * Uses card presentation so content stays full-screen while safe-area /
+ * HeaderStandard includesTopInset still work.
  */
 export const fullScreenModalSlideFromBottomNativeOptions: NativeStackNavigationOptions =
   {
     animation: 'slide_from_bottom',
     headerShown: false,
+    presentation: 'card',
   };

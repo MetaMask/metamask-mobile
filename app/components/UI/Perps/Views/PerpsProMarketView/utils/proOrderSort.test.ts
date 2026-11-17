@@ -64,17 +64,19 @@ describe('sortProOrders', () => {
     expect(result.map((order) => order.orderId)).toEqual(['small', 'large']);
   });
 
-  it('sorts trigger orders using their displayed trigger price', () => {
+  it('sorts trigger-limit orders using their displayed limit price', () => {
     const orders = [
       makeOrder({
         orderId: 'high',
         isTrigger: true,
+        triggerOrderType: 'take_profit_limit',
         triggerPrice: '200',
         price: '100',
       }),
       makeOrder({
         orderId: 'low',
         isTrigger: true,
+        triggerOrderType: 'take_profit_limit',
         triggerPrice: '150',
         price: '300',
       }),
@@ -85,6 +87,37 @@ describe('sortProOrders', () => {
       direction: 'asc',
     });
 
-    expect(result.map((order) => order.orderId)).toEqual(['low', 'high']);
+    expect(result.map((order) => order.orderId)).toEqual(['high', 'low']);
   });
+
+  it.each(['price', 'orderValue'] as const)(
+    'sorts trigger-market %s using its estimated price',
+    (field) => {
+      const orders = [
+        makeOrder({
+          orderId: 'limit',
+          price: '100',
+        }),
+        makeOrder({
+          orderId: 'trigger-market',
+          orderType: 'market',
+          isTrigger: true,
+          triggerOrderType: 'stop_market',
+          detailedOrderType: 'Stop Market',
+          triggerPrice: '200',
+          price: '198',
+        }),
+      ];
+
+      const result = sortProOrders(orders, {
+        field,
+        direction: 'asc',
+      });
+
+      expect(result.map((order) => order.orderId)).toEqual([
+        'limit',
+        'trigger-market',
+      ]);
+    },
+  );
 });

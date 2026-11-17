@@ -1,30 +1,31 @@
+import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import Assertions from '../../../framework/Assertions';
+import Gestures from '../../../framework/Gestures';
+import Matchers from '../../../framework/Matchers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
-import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
-import PlaywrightGestures from '../../../framework/PlaywrightGestures';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
-import PlaywrightWebMatchers from '../../../framework/PlaywrightWebMatchers';
-import { PlaywrightElement } from '../../../framework';
+import AppiumContextHelpers from '../../../framework/AppiumContextHelpers';
+import type { AppiumElement } from '../../../framework';
 import {
   DownloadFileWebsiteSelectorsText,
   DownloadFileWebsiteSelectorsXPath,
 } from '../../../selectors/Browser/DownloadFileWebsite.selectors';
 
 class DownloadFileWebsite {
-  async getAndroidPageHeading(): Promise<PlaywrightElement> {
-    return PlaywrightMatchers.getElementByAndroidUIAutomator(
+  get androidPageHeading(): Promise<AppiumElement> {
+    return Matchers.getElementByAndroidUIAutomator(
       DownloadFileWebsiteSelectorsText.PAGE_HEADING,
     );
   }
 
-  async getAndroidDownloadButton(): Promise<PlaywrightElement> {
-    return PlaywrightMatchers.getElementByAndroidUIAutomator(
+  get androidDownloadButton(): Promise<AppiumElement> {
+    return Matchers.getElementByAndroidUIAutomator(
       DownloadFileWebsiteSelectorsText.DOWNLOAD_BUTTON,
     );
   }
 
-  async getWebDownloadButton(pageUrl: string): Promise<PlaywrightElement> {
-    return PlaywrightWebMatchers.getElementByXPath(
+  getWebDownloadButton(pageUrl: string): Promise<AppiumElement> {
+    return Matchers.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       DownloadFileWebsiteSelectorsXPath.DOWNLOAD_BUTTON,
       pageUrl,
     );
@@ -38,23 +39,22 @@ class DownloadFileWebsite {
     if (PlatformDetector.isAndroid()) {
       // Android Chromedriver context switch fails under LavaMoat ShadowRoot
       // scuttling — tap the button via the native accessibility tree instead.
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
 
-      await PlaywrightAssertions.expectElementToBeVisible(
-        this.getAndroidPageHeading(),
-      );
+      await Assertions.expectElementToBeVisible(this.androidPageHeading);
 
-      await PlaywrightGestures.waitAndTap(
-        await this.getAndroidDownloadButton(),
-      );
+      await Gestures.waitAndTap(this.androidDownloadButton, {
+        elemDescription: 'Download File website - Download button (Android)',
+      });
       return;
     }
 
-    await PlaywrightWebMatchers.withWebViewAction(pageUrl, async () => {
-      await PlaywrightGestures.waitAndTap(
-        await this.getWebDownloadButton(pageUrl),
-      );
+    // Matchers.getElementByXPath switches into WEBVIEW and does not restore
+    // NATIVE_APP (unlike withWebViewAction). Native Save-sheet asserts need it.
+    await Gestures.waitAndTap(this.getWebDownloadButton(pageUrl), {
+      elemDescription: 'Download File website - Download button (iOS)',
     });
+    await AppiumContextHelpers.switchToNativeContext();
   }
 }
 

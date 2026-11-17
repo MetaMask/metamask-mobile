@@ -1,7 +1,7 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import Logger from '../../../util/Logger';
 import { AgenticCliApprovalService } from './AgenticCliApprovalService';
 import AgenticCliApproval from './index';
@@ -12,6 +12,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
   }),
+}));
+
+let mockGlassHeadersEnabled = false;
+
+jest.mock('react-redux', () => ({
+  useSelector: () => mockGlassHeadersEnabled,
 }));
 
 jest.mock('../../../util/navigation/navUtils', () => ({
@@ -128,7 +134,7 @@ jest.mock('@metamask/react-native-webview', () => {
 });
 
 jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
+  '../../../component-library/components-temp/HeaderStandardGlass',
   () => {
     const ActualReact = jest.requireActual('react');
     const { Text: RNText } = jest.requireActual('react-native');
@@ -147,17 +153,64 @@ jest.mock(
 );
 
 describe('AgenticCliApproval', () => {
+  const originalPlatformOS = Platform.OS;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGlassHeadersEnabled = false;
     mockWebViewProps = {};
+    Platform.OS = originalPlatformOS;
+  });
+
+  afterAll(() => {
+    Platform.OS = originalPlatformOS;
   });
 
   it('renders the localized header title after the WebView loads', async () => {
     render(<AgenticCliApproval />);
 
     await waitFor(() =>
-      expect(HeaderCompactStandard).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'Review request' }),
+      expect(HeaderStandardGlass).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Review request',
+          isGlass: false,
+          isFloating: false,
+          includesTopInset: true,
+        }),
+        undefined,
+      ),
+    );
+  });
+
+  it('drops the top inset on iOS when glass headers are enabled', async () => {
+    Platform.OS = 'ios';
+    mockGlassHeadersEnabled = true;
+    render(<AgenticCliApproval />);
+
+    await waitFor(() =>
+      expect(HeaderStandardGlass).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isGlass: true,
+          isFloating: false,
+          includesTopInset: false,
+        }),
+        undefined,
+      ),
+    );
+  });
+
+  it('keeps the top inset on Android when glass headers are enabled', async () => {
+    Platform.OS = 'android';
+    mockGlassHeadersEnabled = true;
+    render(<AgenticCliApproval />);
+
+    await waitFor(() =>
+      expect(HeaderStandardGlass).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isGlass: true,
+          isFloating: false,
+          includesTopInset: true,
+        }),
         undefined,
       ),
     );
@@ -265,8 +318,12 @@ describe('AgenticCliApproval', () => {
       });
     });
 
-    expect(HeaderCompactStandard).toHaveBeenCalledWith(
-      expect.objectContaining({ includesTopInset: true }),
+    expect(HeaderStandardGlass).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGlass: false,
+        isFloating: false,
+        includesTopInset: true,
+      }),
       undefined,
     );
     expect(getByTestId('agentic-cli-approval-error-title').props.children).toBe(

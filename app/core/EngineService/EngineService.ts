@@ -20,6 +20,10 @@ import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
 
 import ReduxService from '../redux';
+import {
+  FirstQuoteFlushVariant,
+  selectFirstQuoteFlushVariant,
+} from '../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { VaultBackupResult } from './types';
@@ -31,6 +35,18 @@ import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
 import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
+
+/**
+ * Reads the AnalyticsController's own persisted copy of the analytics identity.
+ * Used to recover the identity when MMKV has lost it — see `getAnalyticsId`.
+ */
+const getPersistedAnalyticsId = (state: unknown): unknown =>
+  (state as { AnalyticsController?: { analyticsId?: unknown } })
+    ?.AnalyticsController?.analyticsId;
+
+const isFirstQuoteFlushTreatment = (): boolean =>
+  selectFirstQuoteFlushVariant(ReduxService.store.getState()) ===
+  FirstQuoteFlushVariant.Treatment;
 
 export class EngineService {
   private engineInitialized = false;
@@ -91,7 +107,16 @@ export class EngineService {
       }
       this.updateBatcher.add(controllerName);
 
-      if (controllerName === 'ApprovalController') {
+      // Each quote stream replaces the list with its first quote, which the
+      // user is waiting on. Later quotes stay batched.
+      const isFirstBridgeQuote =
+        controllerName === 'BridgeController' &&
+        engine.context.BridgeController.state.quotes.length === 1;
+
+      if (
+        controllerName === 'ApprovalController' ||
+        (isFirstBridgeQuote && isFirstQuoteFlushTreatment())
+      ) {
         this.updateBatcher.flush();
       }
     };
@@ -167,7 +192,8 @@ export class EngineService {
       // `analyticsId` is not persisted in state to prevent losing it in case of corruption.
       // It is also used as a random source for other controllers like RemoteFeatureFlagController.
       // Passing it to engine ensures all controllers are initialized with the same analyticsId.
-      const analyticsId = await getAnalyticsId();
+      // The persisted controller copy is passed as a recovery source for MMKV loss.
+      const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
       Engine.init(analyticsId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
@@ -178,6 +204,7 @@ export class EngineService {
 
       // Fire-and-forget: refresh social following state from the server.
       // Non-blocking — persisted state covers the UI until this resolves.
+      // Skipped while the wallet is locked or not signed in.
       hydrateSocialFollowing();
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
@@ -369,7 +396,7 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const analyticsId = await getAnalyticsId();
+      const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
       const instance = Engine.init(analyticsId, state, newKeyringState);
       if (instance) {
         // Pass state to detect controllers that changed during init

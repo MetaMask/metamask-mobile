@@ -1,4 +1,9 @@
-import { mapClaimFailureReason, parseAnalyticsProperties } from './analytics';
+import {
+  classifyPredictBuyFailure,
+  mapClaimFailureReason,
+  parseAnalyticsProperties,
+  sanitizePredictFailureReason,
+} from './analytics';
 import {
   Recurrence,
   type PredictMarket,
@@ -18,12 +23,32 @@ jest.mock('../constants/eventNames', () => ({
       BINARY: 'binary',
       MULTI_OUTCOME: 'multi-outcome',
     },
+    OUTCOME_VERSION: {
+      V1: 'v1',
+      V2: 'v2',
+      MIXED: 'mixed',
+    },
     CLAIM_FAILURE_REASON: {
       PENDING_RESOLUTION: 'pending_resolution',
       INSUFFICIENT_GAS: 'insufficient_gas',
       NETWORK_ERROR: 'network_error',
       USER_REJECTED: 'user_rejected',
+      MARKET_UNAVAILABLE: 'market_unavailable',
       UNKNOWN: 'unknown',
+    },
+    FAILURE_STAGE: {
+      SWAP: 'swap',
+      ORDER: 'order',
+    },
+    FAILURE_CATEGORY: {
+      GAS_LIMIT: 'gas_limit',
+      INSUFFICIENT_BALANCE: 'insufficient_balance',
+      NOT_ELIGIBLE: 'not_eligible',
+      NO_MATCH: 'no_match',
+      RELAYER: 'relayer',
+      NETWORK: 'network',
+      USER_REJECTED: 'user_rejected',
+      OTHER: 'other',
     },
   },
 }));
@@ -189,6 +214,38 @@ describe('parseAnalyticsProperties', () => {
       expect(result.marketId).toBe('market-123');
       expect(result.marketTitle).toBe('Test Market');
       expect(result.marketType).toBe('binary');
+    });
+  });
+
+  describe('outcome version', () => {
+    it.each([
+      ['v2', 'v2'],
+      ['v1', 'v1'],
+      [undefined, 'v1'],
+    ])(
+      'sets outcomeVersion from outcome version %s to %s',
+      (version, expected) => {
+        const result = parseAnalyticsProperties(
+          createMockMarket(),
+          createMockOutcomeToken(),
+          undefined,
+          undefined,
+          undefined,
+          { version },
+        );
+
+        expect(result.outcomeVersion).toBe(expected);
+      },
+    );
+
+    it('omits outcomeVersion when the outcome is not provided', () => {
+      const result = parseAnalyticsProperties(
+        createMockMarket(),
+        createMockOutcomeToken(),
+        undefined,
+      );
+
+      expect(result).not.toHaveProperty('outcomeVersion');
     });
   });
 
@@ -512,6 +569,7 @@ describe('parseAnalyticsProperties', () => {
 
   describe('mapClaimFailureReason', () => {
     it.each([
+      ['PREDICT_MARKET_UNAVAILABLE', 'market_unavailable'],
       ['PREDICT_MARKET_PENDING_RESOLUTION', 'pending_resolution'],
       ['Market is pending resolution', 'pending_resolution'],
       ['No claimable positions found', 'pending_resolution'],
@@ -535,6 +593,75 @@ describe('parseAnalyticsProperties', () => {
     it('returns unknown for undefined or non-error values', () => {
       expect(mapClaimFailureReason(undefined)).toBe('unknown');
       expect(mapClaimFailureReason({ some: 'object' })).toBe('unknown');
+    });
+  });
+
+  describe('classifyPredictBuyFailure', () => {
+    it.each([
+      ['RPC transaction gas limit too high', 'gas_limit'],
+      ['insufficient balance for bet', 'insufficient_balance'],
+      ['PREDICT_NOT_ELIGIBLE', 'not_eligible'],
+      ['PREDICT_BUY_ORDER_NOT_FULLY_FILLED', 'no_match'],
+      ['Polymarket relayer unavailable', 'relayer'],
+      ['Network request timed out', 'network'],
+      ['User rejected the request', 'user_rejected'],
+      ['Unexpected provider error', 'other'],
+    ])('maps "%s" to "%s"', (message, expected) => {
+      const result = classifyPredictBuyFailure(new Error(message), 'order');
+
+      expect(result.failureCategory).toBe(expected);
+    });
+
+    it('marks no-match failures as retryable', () => {
+      const result = classifyPredictBuyFailure(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+        'order',
+      );
+
+      expect(result.isRetryable).toBe(true);
+      expect(result.isUserRejected).toBe(false);
+    });
+
+    it('marks provider rejection code as user rejected', () => {
+      const result = classifyPredictBuyFailure(
+        { code: 4001, message: 'Request rejected' },
+        'swap',
+      );
+
+      expect(result.failureCategory).toBe('user_rejected');
+      expect(result.isUserRejected).toBe(true);
+    });
+  });
+
+  describe('sanitizePredictFailureReason', () => {
+    it('removes HTML and limits output to 255 characters', () => {
+      const result = sanitizePredictFailureReason(
+        `<html>${'failure '.repeat(80)}</html>`,
+      );
+
+      expect(result).not.toContain('<html>');
+      expect(result).toHaveLength(255);
+    });
+
+    it('extracts a message from a JSON error without sending the full payload', () => {
+      const result = sanitizePredictFailureReason(
+        JSON.stringify({
+          message: 'Relayer request failed',
+          response: { privatePayload: 'do-not-send' },
+        }),
+      );
+
+      expect(result).toBe('Relayer request failed');
+    });
+
+    it('redacts addresses, URLs, and credentials', () => {
+      const result = sanitizePredictFailureReason(
+        'Request https://rpc.example/path failed for 0x1111111111111111111111111111111111111111 token=secret',
+      );
+
+      expect(result).toBe(
+        'Request [redacted] failed for [redacted] token=[redacted]',
+      );
     });
   });
 });

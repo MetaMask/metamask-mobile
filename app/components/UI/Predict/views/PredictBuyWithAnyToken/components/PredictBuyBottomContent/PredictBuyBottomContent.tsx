@@ -29,8 +29,12 @@ const PredictBuyBottomContent = ({
     >
       <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
         <Box twClassName="w-full">{children}</Box>
-        <Box twClassName="text-center items-center justify-center px-1">
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Box twClassName="items-center justify-center px-1">
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
             {strings('predict.consent_sheet.disclaimer')}{' '}
             <Text
               variant={TextVariant.BodyXs}

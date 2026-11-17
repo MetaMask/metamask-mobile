@@ -11,7 +11,7 @@ import {
   QuoteSortMetadata,
   SellOrder,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { renderNumber } from '../../../../../util/number';
+import { renderNumber } from '../../../../../util/number/bigint';
 import { RampType } from '../types';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
@@ -157,8 +157,9 @@ export function formatAmount(amount: number, useParts = false) {
     if (useParts) {
       return getIntlNumberFormatter(I18n.locale)
         .formatToParts(amount)
-        .map(({ type, value }) => (type === 'integer' ? value : ''))
-        .join(' ');
+        .filter(({ type }) => type === 'integer' || type === 'group')
+        .map(({ value }) => value)
+        .join('');
     }
     return getIntlNumberFormatter(I18n.locale).format(amount);
   } catch (e) {

@@ -5,14 +5,15 @@ import React, {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
 import { type LayoutChangeEvent, RefreshControl, View } from 'react-native';
 import Animated, {
-  runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -31,14 +32,33 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
+import {
+  CandlePeriod,
+  TimeDuration,
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  buildSocialPositionOpenGraph,
+  readTraderShareName,
+} from '../navigation/socialShareOpenGraph';
+import {
+  shareSocialTraderPosition,
+  type SocialShareCardContext,
+} from '../navigation/socialTraderDeeplink';
+import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
   ToastContext,
   ToastVariants,
@@ -53,7 +73,7 @@ import {
   resolveQuickBuyOriginalEntryPointFromPositionSource,
   type QuickBuyOriginalEntryPoint,
   type QuickBuySheetSource,
-} from './components/QuickBuy/analytics';
+} from '../../../UI/QuickBuy/analytics';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
@@ -61,6 +81,14 @@ import TraderPositionChartSection, {
   SOCIAL_POSITION_CHART_HEIGHT,
 } from './components/TraderPositionChartSection';
 import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
+import ChartTypeToggle from '../../../UI/Charts/AdvancedChart/ChartTypeToggle';
+import { ChartType } from '../../../UI/Charts/AdvancedChart/AdvancedChart.types';
+import {
+  CandlePeriodSelector,
+  CandlePeriodBottomSheet,
+  getCandlePeriodLabel,
+} from '../../../UI/Charts/CandlePeriodSelector';
+import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 import TraderPositionPnLCard from './components/TraderPositionPnLCard';
 import TraderTradesSection, {
   type TraderTradesSectionGeometry,
@@ -74,29 +102,42 @@ import {
 } from './useTraderPositionData';
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
+import { getPositionFlagLabelKey } from '../TraderProfileView/utils/positionFlags';
+import { resolvePositionAuthorProfileId } from '../../../../util/social/positionOwnership';
 import {
   buildFollowTradingTokenContext,
+  getSocialEventSource,
   pickFollowTradingDismissedProperties,
+  SocialEvent,
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
+  useSocialAnalytics,
   useSocialLeaderboardAnalytics,
   type FollowTradingTokenSource,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { chainNameToId } from '../utils/chainMapping';
-import { getPerpPositionDirection, isPerpPosition } from '../utils/perp';
-import PerpsTradeButton from './components/PerpsTradeButton';
+import { resolvePerpsSocialOrderSource } from '../../../UI/Perps/utils/perpsAnalyticsAttribution';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
-  getPerpsDisplaySymbol,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
+  getPerpPositionDirection,
+  isPerpPosition,
+} from '../../../UI/SocialFeed/utils/perp';
+import PerpsTradeButton from './components/PerpsTradeButton';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import type { Trade } from '@metamask/social-controllers';
 import {
+  getPerpTradeFocusSpanMs,
   getTradeFocusSpanMs,
+  type PerpMetrics,
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  buildSocialTradeOgImageRequest,
+  fetchPerpOgSeries,
+  getEarliestTradeMs,
+} from '../navigation/socialOgImageCards';
+import { logSocialOgShare } from '../navigation/socialOgShareLog';
 
 // Estimate (chart + vertical margins + time selector) so the spacer and the
 // sticky-header math are close before onLayout measures the real height — avoids
@@ -123,8 +164,10 @@ const TraderPositionView = () => {
     originalEntryPoint: originalEntryPointParam,
     isClosed: isClosedParam,
     notificationSubtype,
+    isSocialV1,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -147,6 +190,10 @@ const TraderPositionView = () => {
     !isPerpsEnabled &&
     isPerpPosition(resolvedPosition);
   const displayPosition = isBlockedPerpPosition ? undefined : resolvedPosition;
+  // Any server flag excludes the position from P&L. Those positions must not
+  // be copy-traded, so the history view stays readable without Buy or Trade.
+  const isFlaggedPosition =
+    displayPosition != null && getPositionFlagLabelKey(displayPosition) != null;
 
   // Nav-param values win on first render to avoid a header flicker; once the
   // profile resolves it fills in any missing fields and powers pull-to-refresh.
@@ -155,11 +202,39 @@ const TraderPositionView = () => {
     isLoading: isProfileLoading,
     refresh: refreshProfile,
   } = useTraderProfile(traderId);
-  const traderName = traderNameParam ?? fetchedProfile?.profile?.name ?? '';
+
+  // `traderId` is a hint fetched alongside the position; once both settle,
+  // the position's owner confirms it or names who to show instead.
+  const authorProfileId =
+    resolvedPosition && !isProfileLoading
+      ? resolvePositionAuthorProfileId(
+          resolvedPosition,
+          traderId,
+          fetchedProfile?.profile,
+        )
+      : traderId;
+  const isOwnerMismatch = authorProfileId !== traderId;
+  // An owner that isn't the link's `traderId` verbatim can only be confirmed
+  // through the profile, so hold the position back until it settles.
+  const isOwnershipPending =
+    isProfileLoading &&
+    Boolean(resolvedPosition?.profileId) &&
+    resolvedPosition?.profileId !== traderId;
+  const { profile: ownerProfile, refresh: refreshOwnerProfile } =
+    useTraderProfile(isOwnerMismatch ? authorProfileId : '');
+  const authorProfile = isOwnerMismatch ? ownerProfile : fetchedProfile;
+  const authorParams = isOwnerMismatch
+    ? {}
+    : {
+        name: traderNameParam,
+        imageUrl: traderImageUrlParam,
+        address: traderAddressParam,
+      };
+  const traderName = authorParams.name ?? authorProfile?.profile?.name ?? '';
   const traderImageUrl =
-    traderImageUrlParam ?? fetchedProfile?.profile?.imageUrl ?? undefined;
+    authorParams.imageUrl ?? authorProfile?.profile?.imageUrl ?? undefined;
   const traderAddress =
-    traderAddressParam ?? fetchedProfile?.profile?.address ?? '';
+    authorParams.address ?? authorProfile?.profile?.address ?? '';
 
   const positionData = useTraderPositionData(
     displayPosition,
@@ -180,6 +255,7 @@ const TraderPositionView = () => {
     pnlPercent,
     isPnlPositive,
     allTrades,
+    tradeActions,
     activeTimePeriod,
     isTimePeriodAutoSelected,
     setActiveTimePeriod,
@@ -194,11 +270,15 @@ const TraderPositionView = () => {
       // Both hooks rethrow after logging; allSettled keeps one failure from
       // taking down the other refetch and prevents an unhandled rejection
       // from surfacing in the UI.
-      await Promise.allSettled([refetchPosition(), refreshProfile()]);
+      await Promise.allSettled([
+        refetchPosition(),
+        refreshProfile(),
+        ...(isOwnerMismatch ? [refreshOwnerProfile()] : []),
+      ]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetchPosition, refreshProfile]);
+  }, [isOwnerMismatch, refetchPosition, refreshOwnerProfile, refreshProfile]);
 
   // Plain goBack: returns to whatever the user was on before opening this
   // screen — Profile (in-app row tap), Wallet Home (cold-start push), or the
@@ -208,12 +288,104 @@ const TraderPositionView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const { isSharing, runShare } = useSocialShareInProgress();
+  const handleSharePosition = useCallback(() => {
+    if (!effectivePositionId) {
+      return;
+    }
+    const source = getSocialEventSource(sourceParam);
+    const sharedPosition = displayPosition;
+    const buildOgImageRequest = sharedPosition
+      ? async ({ promoCode }: SocialShareCardContext) => {
+          const prices = positionData.isPerp
+            ? await fetchPerpOgSeries(
+                sharedPosition.tokenSymbol,
+                getEarliestTradeMs(sharedPosition.trades),
+                Date.now(),
+              )
+            : historicalPrices;
+          logSocialOgShare('Building trade card on the position screen', {
+            positionId: effectivePositionId,
+            isPerp: positionData.isPerp,
+            isClosed,
+            priceSource: positionData.isPerp
+              ? 'hyperliquid candles'
+              : 'on-screen chart',
+            pricePoints: prices.length,
+          });
+          return buildSocialTradeOgImageRequest({
+            traderId: authorProfileId,
+            positionId: effectivePositionId,
+            username: authorProfile?.profile?.name || traderName,
+            avatarUrl: traderImageUrl,
+            position: sharedPosition,
+            market: symbol,
+            marketIconUrl:
+              sharedPosition.tokenImageUrl ?? positionData.tokenImageUrl,
+            isPerp: positionData.isPerp,
+            isClosed,
+            pnlUsd: pnlValue,
+            pnlPct: pnlPercent,
+            markPrice: currentPrice,
+            prices,
+            promoCode,
+          });
+        }
+      : undefined;
+    runShare(() =>
+      shareSocialTraderPosition(
+        effectivePositionId,
+        authorProfileId,
+        () => {
+          trackSocialPost({
+            interaction_type: SocialEvent.Interaction.POST_SHARED,
+            screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
+            share_destination: SocialEvent.ShareDestination.EXTERNAL,
+            ...(source ? { source } : {}),
+          });
+        },
+        buildSocialPositionOpenGraph({
+          traderName: readTraderShareName(authorProfile?.profile, traderName),
+          assetSymbol: symbol,
+        }),
+        buildOgImageRequest,
+      ),
+    );
+  }, [
+    authorProfile?.profile,
+    authorProfileId,
+    currentPrice,
+    displayPosition,
+    effectivePositionId,
+    historicalPrices,
+    isClosed,
+    pnlPercent,
+    pnlValue,
+    positionData.isPerp,
+    positionData.tokenImageUrl,
+    runShare,
+    sourceParam,
+    symbol,
+    trackSocialPost,
+    traderImageUrl,
+    traderName,
+  ]);
+
   const handleTraderPress = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
-      traderId,
+    if (isSocialV1Treatment()) {
+      navigateToSocialV1Profile(navigation, {
+        traderId: authorProfileId,
+        traderName,
+        traderAddress,
+        traderAvatarUri: traderImageUrl,
+      });
+      return;
+    }
+    navigation.navigate(Routes.SOCIAL.PROFILE, {
+      traderId: authorProfileId,
       traderName,
     });
-  }, [navigation, traderId, traderName]);
+  }, [authorProfileId, navigation, traderAddress, traderImageUrl, traderName]);
 
   const handleCopyTokenAddress = useCallback(async () => {
     if (!displayPosition?.tokenAddress) {
@@ -328,22 +500,53 @@ const TraderPositionView = () => {
     // Legacy (perp) chart scrub: price readout not wired for the SVG chart.
   }, []);
 
-  // Crosshair % change reported by the spot AdvancedChart while scrubbing.
+  // Crosshair % change reported by the AdvancedChart while scrubbing.
   // Overrides the header percent until the crosshair leaves the chart.
   const [scrubPercent, setScrubPercent] = useState<number | null>(null);
-  // Reset the scrub override whenever the time period changes so a stale
+  const [selectedCandlePeriod, setSelectedCandlePeriod] =
+    useState<CandlePeriod>(CandlePeriod.FifteenMinutes);
+  const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
+    useState(false);
+  const hasRoutePositionSnapshot = positionParam != null;
+  const [chartType, setChartType] = useState<ChartType>(() =>
+    hasRoutePositionSnapshot && isPerpPosition(positionParam)
+      ? ChartType.Candles
+      : ChartType.Line,
+  );
+  const chartTypeInitializedRef = useRef(hasRoutePositionSnapshot);
+  const [perpMetrics, setPerpMetrics] = useState<PerpMetrics>({
+    percentChange: undefined,
+    currentPrice: undefined,
+  });
+
+  const isPerp = displayPosition ? isPerpPosition(displayPosition) : false;
+  const [isAdvancedChartActive, setIsAdvancedChartActive] = useState(true);
+
+  useEffect(() => {
+    if (!displayPosition || chartTypeInitializedRef.current) return;
+    chartTypeInitializedRef.current = true;
+    setChartType(isPerp ? ChartType.Candles : ChartType.Line);
+  }, [displayPosition, isPerp]);
+
+  // Reset the scrub override whenever the chart interval changes so a stale
   // percent from a previous range never lingers in the header.
+  const chartPeriodKey = isPerp ? selectedCandlePeriod : activeTimePeriod;
   useEffect(() => {
     setScrubPercent(null);
-  }, [activeTimePeriod]);
-  const displayPercentChange = scrubPercent ?? pricePercentChange;
+  }, [chartPeriodKey]);
+
+  const periodLabel = isPerp
+    ? getCandlePeriodLabel(selectedCandlePeriod)
+    : activeTimePeriod;
+  const displayPercentChange =
+    scrubPercent ?? (isPerp ? perpMetrics.percentChange : pricePercentChange);
+  const displayCurrentPrice = isPerp ? perpMetrics.currentPrice : currentPrice;
 
   // Perp positions surface Long/Short CTAs instead of Buy. Hyperliquid has no
   // long/short preselect param on the market page (direction only exists on the
   // funded trade-entry flow), so both CTAs land the user on that market's Perps
   // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
   // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
-  const isPerp = displayPosition ? isPerpPosition(displayPosition) : false;
   const perpDirection =
     isPerp && displayPosition
       ? getPerpPositionDirection(displayPosition)
@@ -377,10 +580,16 @@ const TraderPositionView = () => {
       } as PerpsMarketData;
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market, source: 'social_leaderboard' },
+        params: {
+          market,
+          source: resolvePerpsSocialOrderSource(
+            sourceParam,
+            'social_leaderboard',
+          ),
+        },
       });
     },
-    [navigation, trackFollowTradingCtaClicked],
+    [navigation, sourceParam, trackFollowTradingCtaClicked],
   );
 
   // Tapping a trade row slides the chart to center that trade. The nonce changes
@@ -402,6 +611,21 @@ const TraderPositionView = () => {
     [setAutomaticTimePeriod],
   );
 
+  const handleRequestFocusCandlePeriod = useCallback(
+    (candlePeriod: CandlePeriod) => {
+      setSelectedCandlePeriod(candlePeriod);
+      setFocusRequest((current) =>
+        current
+          ? {
+              ...current,
+              spanMs: getPerpTradeFocusSpanMs(candlePeriod),
+            }
+          : current,
+      );
+    },
+    [],
+  );
+
   const handleTradePress = useCallback(
     (trade: Trade) => {
       focusNonceRef.current += 1;
@@ -409,10 +633,12 @@ const TraderPositionView = () => {
         id: trade.transactionHash,
         timestamp: trade.timestamp,
         nonce: focusNonceRef.current,
-        spanMs: getTradeFocusSpanMs(activeTimePeriod),
+        spanMs: isPerp
+          ? getPerpTradeFocusSpanMs(selectedCandlePeriod)
+          : getTradeFocusSpanMs(activeTimePeriod),
       });
     },
-    [activeTimePeriod],
+    [activeTimePeriod, isPerp, selectedCandlePeriod],
   );
 
   // Reverse interaction: tapping a circle on the chart scrolls the trades list
@@ -450,9 +676,10 @@ const TraderPositionView = () => {
   );
 
   const isInitialLoading =
-    !displayPosition &&
-    !isBlockedPerpPosition &&
-    (isPositionLoading || isProfileLoading);
+    isOwnershipPending ||
+    (!displayPosition &&
+      !isBlockedPerpPosition &&
+      (isPositionLoading || isProfileLoading));
   const hasFailed =
     isBlockedPerpPosition ||
     (!displayPosition && !isPositionLoading && !isProfileLoading);
@@ -561,7 +788,7 @@ const TraderPositionView = () => {
     },
     (elevated, previous) => {
       if (elevated !== previous) {
-        runOnJS(setIsPinnedChartElevated)(elevated);
+        scheduleOnRN(setIsPinnedChartElevated, elevated);
       }
     },
   );
@@ -599,9 +826,203 @@ const TraderPositionView = () => {
     },
     (index, previous) => {
       if (index !== previous) {
-        runOnJS(setTopDayIndex)(index);
+        scheduleOnRN(setTopDayIndex, index);
       }
     },
+  );
+
+  // Flagged positions stay on the history screen with Buy and Trade hidden.
+  let copyTradeAction: ReactNode;
+  if (isFlaggedPosition) {
+    copyTradeAction = null;
+  } else if (isPerp && displayPosition) {
+    copyTradeAction = (
+      <PerpsTradeButton
+        symbol={displayPosition.tokenSymbol}
+        onTrade={handlePerpTrade}
+        testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
+      />
+    );
+  } else {
+    copyTradeAction = (
+      <TraderPositionBuyCta
+        position={displayPosition ?? null}
+        traderAddress={traderAddress}
+        marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+        tokenPriceFiat={
+          typeof currentPrice === 'number' ? currentPrice : undefined
+        }
+        source={quickBuySource}
+        originalEntryPoint={quickBuyOriginalEntryPoint}
+        isTraderPositionClosed={isClosed}
+        onBuyCtaClicked={handleBuyCtaClicked}
+        postTradeShare={isSocialV1 === true}
+        buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+      />
+    );
+  }
+
+  const loadedPositionContent = (
+    <>
+      {/* Scroll-linked pinned-chart layout. The trades list owns the page
+          scroll: its header carries the token info row (scrolls behind the
+          nav), a spacer reserving the pinned chart's height, and the PnL
+          card. The chart + time selector live in an absolutely-positioned
+          overlay that translates up and pins below the nav. */}
+      <View style={tw.style('flex-1')}>
+        <TraderTradesSection
+          ref={tradesListRef}
+          trades={allTrades}
+          tradeActions={tradeActions}
+          traderImageUrl={traderImageUrl}
+          traderAddress={traderAddress}
+          traderProfileId={authorProfileId}
+          onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
+          emphasizedTradeId={emphasizedTradeId}
+          onScroll={onScroll}
+          onSectionGeometryChange={handleSectionGeometryChange}
+          stickyDayLabel={stickyTopDayLabel}
+          listHeaderComponent={
+            // Measured as a whole (token row + spacer + PnL card) to derive
+            // the sticky-header handoff threshold.
+            <View onLayout={handleListHeaderLayout}>
+              <View
+                testID={TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW}
+                onLayout={handleTitleSectionLayout}
+              >
+                <TraderTokenInfoRow
+                  symbol={symbol}
+                  position={displayPosition}
+                  marketCap={marketCap}
+                  currentPrice={displayCurrentPrice}
+                  pricePercentChange={displayPercentChange}
+                  activeTimePeriodLabel={periodLabel}
+                  onCopyTokenAddress={handleCopyTokenAddress}
+                  copyTokenAddressTestID={
+                    TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+                  }
+                />
+              </View>
+              {/* Reserves the pinned chart overlay's footprint so the PnL
+                  card and trades begin below the chart at rest. */}
+              <View style={{ height: chartBlockHeight }} />
+              <TraderPositionPnLCard
+                isClosed={isClosed}
+                positionValue={positionValue}
+                pnlValue={pnlValue}
+                pnlPercent={pnlPercent}
+                isPnlPositive={isPnlPositive}
+              />
+            </View>
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+            />
+          }
+        />
+
+        <Animated.View
+          testID={TraderPositionViewSelectorsIDs.PINNED_CHART_OVERLAY}
+          pointerEvents="box-none"
+          style={[
+            tw.style(
+              'absolute inset-x-0 top-0',
+              // Raise above the scrolling list only once the chart is pinned,
+              // so the token info row stays fully visible at rest.
+              isPinnedChartElevated ? 'z-10' : 'z-0',
+            ),
+            pinnedChartStyle,
+          ]}
+        >
+          <View
+            onLayout={handleChartBlockLayout}
+            pointerEvents="box-none"
+            style={tw.style('bg-default')}
+          >
+            <TraderPositionChartSection
+              historicalPrices={historicalPrices}
+              priceDiff={priceDiff}
+              isPricesLoading={isPricesLoading}
+              onChartIndexChange={handleChartIndexChange}
+              trades={allTrades}
+              assetId={chartAssetId}
+              isPerp={isPerp}
+              perpSymbol={displayPosition?.tokenSymbol}
+              selectedCandlePeriod={selectedCandlePeriod}
+              chartType={chartType}
+              activeTimePeriod={activeTimePeriod}
+              shouldAutoRequestTimePeriod={isTimePeriodAutoSelected}
+              onScrubPercentChange={setScrubPercent}
+              focusRequest={focusRequest}
+              onRequestTimePeriod={handleRequestFocusTimePeriod}
+              onRequestCandlePeriod={handleRequestFocusCandlePeriod}
+              onPerpMetricsChange={setPerpMetrics}
+              onTradeMarkerPress={
+                chartAssetId || isPerp ? handleMarkerPress : undefined
+              }
+              onSupportsChartTypeChange={setIsAdvancedChartActive}
+            />
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="pr-4"
+            >
+              <Box twClassName="min-w-0 flex-1">
+                {isPerp ? (
+                  <CandlePeriodSelector
+                    selectedPeriod={selectedCandlePeriod}
+                    onPeriodChange={setSelectedCandlePeriod}
+                    onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
+                    twClassName="px-4 pt-3 pb-3"
+                  />
+                ) : (
+                  <TraderTimePeriodSelector
+                    timePeriods={timePeriods}
+                    activeTimePeriod={activeTimePeriod}
+                    onSelectPeriod={setActiveTimePeriod}
+                  />
+                )}
+              </Box>
+              {/* Chart-type toggle only applies while AdvancedChart is
+                  the active surface (it honors chartType). Hide it on
+                  unsupported spot and whenever either advanced chart
+                  falls back to the price-only TraderPriceChart. */}
+              {(chartAssetId || isPerp) && isAdvancedChartActive && (
+                <ChartTypeToggle
+                  chartType={chartType}
+                  onChartTypeSelect={setChartType}
+                />
+              )}
+            </Box>
+          </View>
+
+          {stickyTopDayLabel ? (
+            <View pointerEvents="none">
+              <Box
+                twClassName="bg-default px-4 pt-3"
+                testID={TraderPositionViewSelectorsIDs.STICKY_DAY_HEADER}
+              >
+                <Box twClassName="self-start pb-2">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Bold}
+                    color={TextColor.TextDefault}
+                  >
+                    {stickyTopDayLabel}
+                  </Text>
+                </Box>
+                <Box twClassName="h-px bg-muted" />
+              </Box>
+            </View>
+          ) : null}
+        </Animated.View>
+      </View>
+
+      {copyTradeAction}
+    </>
   );
 
   return (
@@ -615,27 +1036,27 @@ const TraderPositionView = () => {
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
       {/* The inset sits on this wrapper rather than on the headers themselves so
-          all three branches share one value — swapping between the loading,
-          failed and loaded headers must not move the back button. */}
+          both branches share one value — swapping between the loading/failed
+          header and the loaded one must not move the back button. */}
       <Box style={{ paddingTop: insets.top }}>
-        {isInitialLoading ? (
+        {/* Loading and failed both render the plain (non-collapsing) header:
+            there is no scrollable content behind it to drive the animation. */}
+        {isInitialLoading || hasFailed ? (
           <TraderPositionHeader
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={authorProfileId}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
+            onShare={
+              effectivePositionId && !isOwnershipPending
+                ? handleSharePosition
+                : undefined
+            }
+            isSharing={isSharing}
             backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-          />
-        ) : hasFailed ? (
-          <TraderPositionHeader
-            traderName={traderName}
-            traderImageUrl={traderImageUrl}
-            traderAddress={traderAddress}
-            onBack={handleBack}
-            onTraderPress={handleTraderPress}
-            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            shareButtonTestID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
             traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
           />
         ) : (
@@ -645,13 +1066,20 @@ const TraderPositionView = () => {
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={authorProfileId}
             symbol={symbol}
             pricePercentChange={displayPercentChange}
-            activeTimePeriodLabel={activeTimePeriod}
+            activeTimePeriodLabel={periodLabel}
             perpDirection={perpDirection}
             perpLeverage={displayPosition?.perpLeverage}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
+            onShare={
+              effectivePositionId && !isOwnershipPending
+                ? handleSharePosition
+                : undefined
+            }
+            isSharing={isSharing}
           />
         )}
       </Box>
@@ -659,170 +1087,24 @@ const TraderPositionView = () => {
       {isInitialLoading ? (
         <TraderPositionSkeleton />
       ) : hasFailed ? (
-        <TraderPositionFallback traderId={traderId} traderName={traderName} />
+        <TraderPositionFallback
+          traderId={authorProfileId}
+          traderName={traderName}
+        />
+      ) : isPerp ? (
+        <PerpsStreamProvider>
+          {loadedPositionContent}
+          <CandlePeriodBottomSheet
+            isVisible={isMoreCandlePeriodsVisible}
+            onClose={() => setIsMoreCandlePeriodsVisible(false)}
+            selectedPeriod={selectedCandlePeriod}
+            selectedDuration={TimeDuration.YearToDate}
+            onPeriodChange={setSelectedCandlePeriod}
+            showAllPeriods
+          />
+        </PerpsStreamProvider>
       ) : (
-        <>
-          {/* Scroll-linked pinned-chart layout. The trades list owns the page
-              scroll: its header carries the token info row (scrolls behind the
-              nav), a spacer reserving the pinned chart's height, and the PnL
-              card. The chart + time selector live in an absolutely-positioned
-              overlay that translates up and pins below the nav. */}
-          <View style={tw.style('flex-1')}>
-            <TraderTradesSection
-              ref={tradesListRef}
-              trades={allTrades}
-              traderImageUrl={traderImageUrl}
-              traderAddress={traderAddress}
-              onTradePress={
-                chartAssetId || isPerp ? handleTradePress : undefined
-              }
-              emphasizedTradeId={emphasizedTradeId}
-              onScroll={onScroll}
-              onSectionGeometryChange={handleSectionGeometryChange}
-              stickyDayLabel={stickyTopDayLabel}
-              listHeaderComponent={
-                // Measured as a whole (token row + spacer + PnL card) to derive
-                // the sticky-header handoff threshold.
-                <View onLayout={handleListHeaderLayout}>
-                  <View
-                    testID={TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW}
-                    onLayout={handleTitleSectionLayout}
-                  >
-                    <TraderTokenInfoRow
-                      symbol={symbol}
-                      position={displayPosition}
-                      marketCap={marketCap}
-                      currentPrice={currentPrice}
-                      pricePercentChange={displayPercentChange}
-                      activeTimePeriodLabel={activeTimePeriod}
-                      onCopyTokenAddress={handleCopyTokenAddress}
-                      copyTokenAddressTestID={
-                        TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
-                      }
-                    />
-                  </View>
-                  {/* Reserves the pinned chart overlay's footprint so the PnL
-                      card and trades begin below the chart at rest. */}
-                  <View style={{ height: chartBlockHeight }} />
-                  <TraderPositionPnLCard
-                    isClosed={isClosed}
-                    positionValue={positionValue}
-                    pnlValue={pnlValue}
-                    pnlPercent={pnlPercent}
-                    isPnlPositive={isPnlPositive}
-                  />
-                </View>
-              }
-              refreshControl={
-                <RefreshControl
-                  refreshing={isRefreshing}
-                  onRefresh={handleRefresh}
-                  testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
-                />
-              }
-            />
-
-            <Animated.View
-              testID={TraderPositionViewSelectorsIDs.PINNED_CHART_OVERLAY}
-              pointerEvents="box-none"
-              style={[
-                tw.style(
-                  'absolute inset-x-0 top-0',
-                  // Raise above the scrolling list only once the chart is pinned,
-                  // so the token info row stays fully visible at rest.
-                  isPinnedChartElevated ? 'z-10' : 'z-0',
-                ),
-                pinnedChartStyle,
-              ]}
-            >
-              {/* The chart block stays fully interactive whether at rest or
-                  pinned (crosshair scrubbing + marker taps). The page still
-                  scrolls because the trades list below the chart is a normal
-                  touchable region — the user scrolls there, not over the chart,
-                  exactly like the fixed-header reference layout. `box-none` keeps
-                  the wrapper itself from being a touch target so the bg-default
-                  fill never blocks the list peeking out beside/below it. */}
-              <View
-                onLayout={handleChartBlockLayout}
-                pointerEvents="box-none"
-                style={tw.style('bg-default')}
-              >
-                <TraderPositionChartSection
-                  historicalPrices={historicalPrices}
-                  priceDiff={priceDiff}
-                  isPricesLoading={isPricesLoading}
-                  onChartIndexChange={handleChartIndexChange}
-                  trades={allTrades}
-                  assetId={chartAssetId}
-                  isPerp={isPerp}
-                  activeTimePeriod={activeTimePeriod}
-                  shouldAutoRequestTimePeriod={isTimePeriodAutoSelected}
-                  onScrubPercentChange={setScrubPercent}
-                  focusRequest={focusRequest}
-                  onRequestTimePeriod={handleRequestFocusTimePeriod}
-                  onTradeMarkerPress={
-                    chartAssetId || isPerp ? handleMarkerPress : undefined
-                  }
-                />
-                <TraderTimePeriodSelector
-                  timePeriods={timePeriods}
-                  activeTimePeriod={activeTimePeriod}
-                  onSelectPeriod={setActiveTimePeriod}
-                />
-              </View>
-
-              {/* Custom sticky day header: native sticky headers would be hidden
-                  behind the pinned chart, so once trades scroll behind the
-                  chart's bottom edge we render the top-most visible day below it.
-                  Driven by the offset-resolved `topDayIndex` (not
-                  `isPinnedChartElevated`) so it doesn't appear while the PnL card
-                  / first in-list header are still visible below the chart — which
-                  would duplicate the day label. `pointerEvents="none"` keeps the
-                  trades scrollable under the label. */}
-              {stickyTopDayLabel ? (
-                <View pointerEvents="none">
-                  <Box
-                    twClassName="bg-default px-4 pt-3"
-                    testID={TraderPositionViewSelectorsIDs.STICKY_DAY_HEADER}
-                  >
-                    <Box twClassName="self-start pb-2">
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        fontWeight={FontWeight.Bold}
-                        color={TextColor.TextDefault}
-                      >
-                        {stickyTopDayLabel}
-                      </Text>
-                    </Box>
-                    <Box twClassName="h-px bg-muted" />
-                  </Box>
-                </View>
-              ) : null}
-            </Animated.View>
-          </View>
-
-          {isPerp && displayPosition ? (
-            <PerpsTradeButton
-              symbol={displayPosition.tokenSymbol}
-              onTrade={handlePerpTrade}
-              testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
-            />
-          ) : (
-            <TraderPositionBuyCta
-              position={displayPosition ?? null}
-              traderAddress={traderAddress}
-              marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-              tokenPriceFiat={
-                typeof currentPrice === 'number' ? currentPrice : undefined
-              }
-              source={quickBuySource}
-              originalEntryPoint={quickBuyOriginalEntryPoint}
-              isTraderPositionClosed={isClosed}
-              onBuyCtaClicked={handleBuyCtaClicked}
-              buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-            />
-          )}
-        </>
+        loadedPositionContent
       )}
     </SafeAreaView>
   );

@@ -77,19 +77,6 @@ const mockPerpsData = {
   marketSource: 'hyperliquid',
 };
 
-const mockPredictionsData = {
-  id: 'pred-1',
-  providerId: 'polymarket',
-  slug: 'bitcoin-100k',
-  title: 'Will Bitcoin reach $100k?',
-  description: 'Prediction market',
-  endDate: '2025-12-31',
-  image: 'https://example.com/btc.png',
-  status: 'open',
-  liquidity: '$1M',
-  volume: '$5M',
-};
-
 const mockUseExploreSearchReturn = {
   sections: [
     {
@@ -105,12 +92,6 @@ const mockUseExploreSearchReturn = {
       isLoading: false,
     },
     {
-      feedId: 'predictions' as const,
-      title: '',
-      items: [mockPredictionsData],
-      isLoading: false,
-    },
-    {
       feedId: 'sites' as const,
       title: '',
       items: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
@@ -121,6 +102,11 @@ const mockUseExploreSearchReturn = {
 
 jest.mock('../../Views/TrendingView/search/useExploreSearch', () => ({
   useExploreSearch: jest.fn(() => mockUseExploreSearchReturn),
+}));
+// Predictions come from Predict's search source; PredictSearchResults.view.test.tsx
+// covers that section through the real source, so it stays empty here.
+jest.mock('../PredictNext', () => ({
+  usePredictSearchResults: jest.fn(() => ({ results: [], isLoading: false })),
 }));
 jest.mock('../Perps/providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
@@ -166,8 +152,8 @@ const defaultState: DeepPartial<RootState> = {
           '0x1': true,
         },
       },
-      CurrencyRateController: {
-        currentCurrency: 'USD',
+      AssetsController: {
+        selectedCurrency: 'usd',
       },
       MultichainNetworkController: {
         isEvmSelected: true,
@@ -561,25 +547,6 @@ describe('UrlAutocomplete', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays Predictions header when predictions data is available', async () => {
-      // Arrange
-      const ref = React.createRef<UrlAutocompleteRef>();
-      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
-        state: defaultState,
-      });
-
-      // Act
-      act(() => {
-        ref.current?.search('bitcoin');
-        jest.runAllTimers();
-      });
-
-      // Assert
-      expect(
-        await screen.findByText('Predictions', { includeHiddenElements: true }),
-      ).toBeOnTheScreen();
-    });
-
     it('displays search footer as a default/web search option', async () => {
       // Arrange
       const ref = React.createRef<UrlAutocompleteRef>();
@@ -636,25 +603,6 @@ describe('UrlAutocomplete', () => {
       // Assert - perps name is displayed via transformed PerpsSearchResult
       expect(
         await screen.findByText('Bitcoin', { includeHiddenElements: true }),
-      ).toBeOnTheScreen();
-    });
-
-    it('transforms predictions search results and shows header', async () => {
-      // Arrange
-      const ref = React.createRef<UrlAutocompleteRef>();
-      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
-        state: defaultState,
-      });
-
-      // Act
-      act(() => {
-        ref.current?.search('prediction');
-        jest.runAllTimers();
-      });
-
-      // Assert - Predictions section is rendered
-      expect(
-        await screen.findByText('Predictions', { includeHiddenElements: true }),
       ).toBeOnTheScreen();
     });
 

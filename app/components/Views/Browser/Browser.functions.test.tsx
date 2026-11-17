@@ -10,7 +10,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
+import { IndependentNavigationContainer } from '../../../util/test/IndependentNavigationContainer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { act } from '@testing-library/react-native';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
@@ -179,7 +179,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -196,7 +196,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -248,7 +248,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -265,7 +265,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -313,7 +313,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -330,7 +330,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -374,7 +374,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -391,7 +391,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -432,7 +432,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -455,7 +455,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -484,7 +484,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -501,7 +501,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -538,7 +538,7 @@ describe('Browser - Function Coverage Tests', () => {
       // First render with tabs, then re-render with one tab removed but activeTab still pointing to removed
       const { rerender } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -555,7 +555,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -575,7 +575,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       rerender(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -592,7 +592,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
       );
 
@@ -604,7 +604,6 @@ describe('Browser - Function Coverage Tests', () => {
       // Should navigate to Explore because activeTab 1 is not in the tabs list
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.TRENDING_VIEW,
-        { screen: Routes.TRENDING_FEED },
       );
     });
   });
@@ -628,7 +627,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -645,7 +644,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -698,7 +697,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -715,7 +714,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -769,7 +768,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -786,7 +785,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -835,7 +834,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -852,7 +851,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -884,7 +883,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -901,7 +900,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -944,7 +943,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -961,7 +960,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1012,7 +1011,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1029,7 +1028,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1080,7 +1079,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1097,7 +1096,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1140,7 +1139,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       const { queryByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1157,7 +1156,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1188,7 +1187,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1205,7 +1204,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1249,7 +1248,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1266,7 +1265,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1304,7 +1303,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1321,7 +1320,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1353,7 +1352,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1370,7 +1369,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1396,7 +1395,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1413,7 +1412,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1436,7 +1435,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1453,7 +1452,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1481,7 +1480,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1498,7 +1497,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1528,7 +1527,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       const { rerender } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1545,7 +1544,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -1569,7 +1568,7 @@ describe('Browser - Function Coverage Tests', () => {
 
       rerender(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -1586,7 +1585,7 @@ describe('Browser - Function Coverage Tests', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
       );
 

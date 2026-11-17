@@ -1,9 +1,11 @@
 import { getDefaultImmersveApiBaseUrlForMetaMaskEnv } from '../../../../../components/UI/Card/util/mapImmersveApiUrl';
+import { getDefaultImmersveSecureApiBaseUrlForMetaMaskEnv } from '../../../../../components/UI/Card/util/mapImmersveSecureApiUrl';
 import type { CardProviderConfig } from '../provider-config';
 
 export interface ImmersveProviderConfig extends CardProviderConfig {
   clientApplicationId: string;
   appUrl: string;
+  secureBaseUrl: string;
 }
 
 export function resolveImmersveConfig(): ImmersveProviderConfig {
@@ -12,6 +14,11 @@ export function resolveImmersveConfig(): ImmersveProviderConfig {
     baseUrl:
       process.env.IMMERSVE_API_URL ||
       getDefaultImmersveApiBaseUrlForMetaMaskEnv(
+        process.env.METAMASK_ENVIRONMENT,
+      ),
+    secureBaseUrl:
+      process.env.IMMERSVE_SECURE_API_URL ||
+      getDefaultImmersveSecureApiBaseUrlForMetaMaskEnv(
         process.env.METAMASK_ENVIRONMENT,
       ),
     clientApplicationId:

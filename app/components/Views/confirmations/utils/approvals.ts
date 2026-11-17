@@ -3,7 +3,10 @@ import { Hex, add0x } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 
 import { strings } from '../../../../../locales/i18n';
-import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../constants/approve';
+import {
+  APPROVAL_SELECTORS,
+  TOKEN_VALUE_UNLIMITED_THRESHOLD,
+} from '../constants/approve';
 import {
   APPROVALS_LIST,
   APPROVAL_TYPES,
@@ -12,7 +15,7 @@ import {
   SIGNATURE_PERMIT2,
 } from '../constants/approvals';
 import { ApproveMethod } from '../types/approve';
-import { parseStandardTokenTransactionData } from './transaction';
+import { get4ByteCode, parseStandardTokenTransactionData } from './transaction';
 
 export interface ParsedApprovalTransactionData {
   amountOrTokenId?: BigNumber;
@@ -25,6 +28,10 @@ export interface ParsedApprovalTransactionData {
 export function parseApprovalTransactionData(
   data: Hex,
 ): ParsedApprovalTransactionData | undefined {
+  if (!data || !APPROVAL_SELECTORS.has(get4ByteCode(data))) {
+    return undefined;
+  }
+
   const transactionDescription = parseStandardTokenTransactionData(data);
   const { args, name } = transactionDescription ?? { name: '' };
 

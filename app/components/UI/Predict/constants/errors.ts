@@ -35,6 +35,12 @@ export const PREDICT_ERROR_CODES = {
   MARKET_PENDING_RESOLUTION: 'PREDICT_MARKET_PENDING_RESOLUTION',
   MARKET_NOT_ACCEPTING_BETS: 'PREDICT_MARKET_NOT_ACCEPTING_BETS',
   MARKET_BETTABLE_CHECK_FAILED: 'PREDICT_MARKET_BETTABLE_CHECK_FAILED',
+  /** The Protocol V2 kill switch blocked the action on a v2 market. */
+  MARKET_UNAVAILABLE: 'PREDICT_MARKET_UNAVAILABLE',
+} as const;
+
+export const PREDICT_BUY_CANCELLATION_REASONS = {
+  RETRY_PROMPT_EXPIRED: 'Retry prompt expired after a retryable order failure',
 } as const;
 
 export const getPredictErrorMessages = () =>
@@ -83,5 +89,11 @@ export const getPredictErrorMessages = () =>
     ),
     [PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED]: strings(
       'predict.error_messages.market_bettable_check_failed',
+    ),
+    [PREDICT_ERROR_CODES.DEPOSIT_FAILED]: strings(
+      'predict.error_messages.deposit_failed',
+    ),
+    [PREDICT_ERROR_CODES.WITHDRAW_FAILED]: strings(
+      'predict.error_messages.withdraw_failed',
     ),
   }) as const;

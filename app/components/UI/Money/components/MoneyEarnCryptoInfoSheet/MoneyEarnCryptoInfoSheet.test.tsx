@@ -5,10 +5,14 @@ import MoneyEarnCryptoInfoSheet from './MoneyEarnCryptoInfoSheet';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import {
+  BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_INTENTS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
@@ -18,14 +22,14 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(),
+jest.mock('../../hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: jest.fn(),
 }));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -114,11 +118,16 @@ describe('MoneyEarnCryptoInfoSheet', () => {
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackButtonClicked: mockTrackButtonClicked,
     });
-    jest.mocked(useMoneyNavigation).mockReturnValue({
-      isOnboardingRedirectNeeded: false,
+    jest.mocked(useMoneyHomeNavigation).mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      track?.({
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
+    });
+    (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: 4,
     });
   });
@@ -230,7 +239,7 @@ describe('MoneyEarnCryptoInfoSheet', () => {
   });
 
   it('renders the body when APY is unavailable', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+    (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: undefined,
     });
     const { getByTestId, getByText } = renderWithProvider(

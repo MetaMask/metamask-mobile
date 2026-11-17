@@ -2,7 +2,6 @@ import React, {
   useState,
   useCallback,
   useMemo,
-  useContext,
   useEffect,
   useRef,
 } from 'react';
@@ -24,24 +23,22 @@ import {
   BoxFlexDirection,
   Button,
   ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconName,
   IconColor,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { DUPLICATE_MNEMONIC_ERROR_MESSAGES } from '../../../core/QrSync/duplicateMnemonicError';
-import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -49,14 +46,17 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
-import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
+import {
+  getTrimmedSeedPhraseWords,
+  isSRPLengthValid,
+  SPACE_CHAR,
+} from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
   validateCompleteness,
@@ -64,6 +64,8 @@ import {
   validateWords,
   validateMnemonic,
 } from './validation';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 async function checkSeedlessPasswordOutdated(): Promise<boolean> {
   return Authentication.checkIsSeedlessPasswordOutdated({
@@ -97,6 +99,7 @@ function showImportSrpErrorAlert(errorMessage: string): void {
  * View that's displayed when the user is trying to import a new secret recovery phrase
  */
 const ImportNewSecretRecoveryPhrase = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
@@ -104,8 +107,6 @@ const ImportNewSecretRecoveryPhrase = () => {
     () => tw.style('px-4 py-4 bg-default', { marginBottom: insets.bottom }),
     [insets, tw],
   );
-  const { toastRef } = useContext(ToastContext);
-  const { colors } = useTheme();
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
   // State
@@ -191,16 +192,14 @@ const ImportNewSecretRecoveryPhrase = () => {
   );
 
   const onSubmit = useCallback(async () => {
-    const phrase = seedPhrase
-      .map((item) => item.trim())
-      .filter((item) => item !== '')
-      .join(SPACE_CHAR);
+    const trimmedWords = getTrimmedSeedPhraseWords(seedPhrase);
+    const phrase = trimmedWords.join(SPACE_CHAR);
 
     setError('');
 
-    const invalidWords = Array(seedPhrase.length).fill(false);
-    let validationResult = validateSRP(seedPhrase, invalidWords);
-    validationResult = validateCompleteness(validationResult, seedPhrase);
+    const invalidWords = Array(trimmedWords.length).fill(false);
+    let validationResult = validateSRP(trimmedWords, invalidWords);
+    validationResult = validateCompleteness(validationResult, trimmedWords);
     validationResult = validateCase(validationResult, phrase);
     validationResult = validateWords(validationResult);
     validationResult = validateMnemonic(validationResult, phrase);
@@ -244,18 +243,13 @@ const ImportNewSecretRecoveryPhrase = () => {
     setLoading(false);
     setSeedPhrase(['']);
 
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        {
-          label: `${strings('import_new_secret_recovery_phrase.success_1')} ${
-            hdKeyrings.length + 1
-          } ${strings('import_new_secret_recovery_phrase.success_2')}`,
-        },
-      ],
-      iconName: ComponentIconName.Confirmation,
-      iconColor: colors.success.default,
+    toast({
+      title: `${strings('import_new_secret_recovery_phrase.success_1')} ${
+        hdKeyrings.length + 1
+      } ${strings('import_new_secret_recovery_phrase.success_2')}`,
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
 
     fetchAccountsWithActivity();
@@ -264,8 +258,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   }, [
     seedPhrase,
     trackDiscoveryEvent,
-    toastRef,
-    colors.success.default,
     hdKeyrings.length,
     fetchAccountsWithActivity,
     navigation,
@@ -273,7 +265,9 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         backButtonProps={{
           onPress: dismiss,
@@ -294,7 +288,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            twClassName="gap-0.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -304,15 +298,17 @@ const ImportNewSecretRecoveryPhrase = () => {
             </Text>
             <ButtonIcon
               iconName={IconName.Info}
+              size={ButtonIconSize.Xs}
               iconProps={{
                 color: IconColor.IconAlternative,
+                size: IconSize.Sm,
               }}
               onPress={showWhatIsSeedPhrase}
               testID="info-icon"
             />
           </Box>
         }
-        twClassName="px-4 pt-1 pb-3"
+        twClassName="px-4 pt-3 pb-6"
       />
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style(
@@ -339,6 +335,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             uniqueId={uniqueId}
             onCurrentWordChange={setCurrentInputWord}
             autoFocus={false}
+            includeTopMargin={false}
           />
         </Box>
       </KeyboardAwareScrollView>

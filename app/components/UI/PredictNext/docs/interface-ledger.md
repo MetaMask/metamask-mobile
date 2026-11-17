@@ -1,31 +1,100 @@
 # PredictNext Interface Ledger
 
-This ledger records the mobile canonical read contract stabilized by PRED-1168. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
+This ledger records the implemented mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
+
+The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). The account-scoped Position, Portfolio Summary, Activity, and Venue catalog contract is [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md); PRED-1404 made it executable. The read-model direction is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
+
+This ledger covers PredictNext's internal canonical contract. The interface exposed to code outside Predict is described in [the public API contract](./public-api-contract.md). It does not expose these types yet.
 
 ## Canonical read models
 
-- `PredictEventSummary` is returned by `getEvents`.
-- `PredictEvent` is returned by `getEvent` and contains one or more `PredictMarket` values.
+- `PredictFeed` is returned by `getFeed` and contains the Feed identity, title, Events, and optional pagination cursor.
+- `PredictEvent` is returned within a Feed and by `getEvent`, and contains one or more `PredictMarket` values.
+- Feed pagination uses `{ venueId, id, title, events, nextCursor? }`; cursors are opaque.
 - `PredictMarket` contains exactly two `PredictOutcome` values: one `yes` and one `no`.
+- `PredictMarket.group` is optional backend-owned presentation metadata. Mobile supports `marketSelector` groups with a key, Market type (including `team_total`), numeric option, and optional display order, and `choice` groups with a key and optional display order. Unknown group types remain standard Markets, and mobile never derives group values.
+- `PredictMarket.layout` is optional backend-owned Event screen placement (tab › section › optional subgroup, each a key and order). Unknown keys parse; a malformed layout is dropped without rejecting the Market (PRED-1426).
+- Game winner quotes come from the full-game moneyline `choice` Markets (layout `moneyline › full_game`), falling back to ungrouped Markets for Events without them.
+- Each Event, Market, and Outcome retains its own opaque ID. Only the root Event carries `venueId`; nested scope and parent relationships come from containment.
+- Each Outcome may contain independent `askPrice` and `bidPrice` decimal strings in the inclusive range `[0, 1]`. Missing means no current quote, not zero.
+- Event responses provide the initial Bid Price and Ask Price snapshot. Market history is read separately with `venueId + marketId + range`; it returns the last traded Yes probability observed by the backend and its exact complementary No probability.
 - Market status is a small browse projection, not a lossless Venue lifecycle.
 - Event status is intentionally absent.
-- Prices and order-book data are separate volatile read models and are not included here.
+- `PredictVenueStatus` contains the root `venueId`, an `available | degraded | unavailable` status, and the backend observation time as `PredictTimestamp`.
 - `PredictEntityId` is venue-local and opaque. An Outcome ID may be native or adapter-derived.
 - `PredictTimestamp` is an RFC 3339/ISO-8601 UTC string.
+
+## Live data patch contract
+
+`PredictLiveDataService` streams canonical patches over one WebSocket (`/v1/stream/live-data`) and exposes them through `useEventsWithLiveData`, which returns the same Events with Game fields and Market prices patched. The stream never writes to the query cache; REST is the recovery path.
+
+- Topics are `game` (keyed by Event id) and `market` (keyed by Market id), both Venue-qualified. The server sends a snapshot on first subscription, then deltas.
+- `PredictGameLive` is a patch onto `PredictGame`: `status`, `score`, `period`, `clock` under the canonical names, plus `observedAt`. Omitted fields are unchanged. Mobile accumulates frames per Event and applies a field only when its observation time is not older than the REST value; an unknown `status` string leaves the current status in place.
+- `PredictQuote` is a full snapshot onto `PredictMarket`, matched by `marketId` and then `outcomes[].id`. On a live-patched Market:
+  - `PredictOutcome.bidPrice` / `askPrice` are the streamed values; an omitted side clears the REST price, because absence means no current quote.
+  - `PredictMarket.lastPrice` is stream-only: the last traded Yes price as of the quote. The REST read model never carries it, and it is absent until the Market has traded.
+  - `PredictMarket.volume` takes the streamed value when present; stream and REST share the contract-count unit.
+  - `PredictMarket.updatedAt` becomes the quote's observation time. On a REST-only Market it stays the Venue's market-metadata update time, so the field has two sources and the type's JSDoc records both.
+- `PredictOutcome.label` and `gameSelection` are REST-only and survive a quote untouched.
+- Only the Event Screen's `LIVE` history range consumes quotes as chart points, appending one per `lastPrice`/`updatedAt` pair after the REST snapshot's last timestamp; the trail is bounded and lives in component state.
+
+Runtime validation lives in `contracts/v1/liveData.ts`: unknown fields are discarded, malformed known fields fail closed, and Game `status` is deliberately validated as a string so a new server status cannot reject the frame.
+
+## Agreed next-contract changes
+
+The next public-read contract will use `Feed → Event → Market → Outcome`, with the same complete Event shape in Feed and detail responses. It will add an optional single Category and Series to Event; optional Event and Market Volume, 24-Hour Volume, and image URL; optional Sport, Competition, Game, Team, Game status, and Game Selection metadata; product-owned Feed reads; and a current-Event read for Rolling Series. Every Event has one parent Venue Event. An immutable Game detail read may append validated Markets from authoritative sibling Venue Events without changing that parent identity.
+
+The reduced browse status will be replaced by the Kalshi lifecycle vocabulary: `initialized`, `active`, `inactive`, `closed`, `determined`, `disputed`, `amended`, and `finalized`. The existing binary Outcome invariant remains unchanged: Game Selection complements rather than replaces an Outcome's `yes | no` side.
 
 ## Query descriptors
 
 ```ts
-marketDataQueries.getEvents(venueId, params);
+marketDataQueries.getVenueStatus(venueId);
+marketDataQueries.getFeed(venueId, feedId, params);
 marketDataQueries.getEvent(venueId, eventId);
+marketDataQueries.getMarketHistory(venueId, marketId, range);
+marketDataQueries.searchEvents(venueId, { q, limit });
+marketDataQueries.getVenueCatalog(venueId);
 ```
 
-Both descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Cursors are opaque.
+All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling. The Venue catalog is fresh for five minutes, matching the catalog route's `Cache-Control: max-age=300`.
+
+## Portfolio
+
+`portfolioQueries.getBalance(venueId)` is owned by `PredictPortfolioService`. Its query key and invalidation family are `['PredictPortfolioService:getBalance', venueId]`, its stale time is 60 seconds, and its scope is `venue`. Portfolio and public market-data reads use separate service policies and circuits, so a Balance outage cannot open the market-data circuit and a Feed outage cannot open the portfolio circuit.
+
+`portfolioQueries.getPositions`, `getActivity`, and `getPortfolioSummary` follow [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md), parsed by `contracts/v1/portfolio.ts` and checked against the contract's examples in `contracts/v1/fixtures/portfolio-contract/`:
+
+- **Positions** carry `status` and the backend's valuation (`averagePrice`, `costBasis`, `currentValue`, `unrealizedPnl`, `unrealizedPnlPercent`). Each valuation field is absent, never zero, without an authoritative source; the parser rejects PnL without the value and cost basis it comes from, and zero `shares`. The params add a `status` filter and `sort` (`opened` or the unpaginated `value`), both part of the cursor-free key. Lists de-duplicate by Market and side, keeping the latest copy (`utils/positions.ts`).
+- **Activity** is `trade` entries with an authoritative `action` and Settlements of the net held side. The parser rejects a page out of the pinned order (timestamp descending, `trade` before `settlement`, `id` ascending) instead of re-sorting it, and keeps `settlementsCompleteFrom`, which the Portfolio Activity tab shows as the date Settlements are complete from.
+- **Summary** (`['PredictPortfolioService:getPortfolioSummary', venueId]`, 30-second stale time, own retry policy, `usePortfolioSummary`) is the only source of portfolio totals. The parser rejects a Summary whose `totalValue` is not exactly `availableBalance + positionsValue + claimableValue`. The Portfolio screen renders it as served and flags `complete: false` next to the total.
+
+Balance, Positions, Activity, and the Summary are account data: they belong to the authenticated Predict User, not to the wallet. Keys stay Venue-only, and the platform reset — the only event that replaces a Predict User, because a wallet reset or a new wallet runs in process — purges them. `PredictPortfolioService.clearAccountData()` cancels in-flight reads so their callers fail and late responses are discarded, removes the cached entries, and drops the remembered reads so a later invalidation cannot refresh them. The next read refetches. Lock/unlock, account switches, and sign-out/sign-in keep the cache, and the shared app query client that mirrors it is cleared only on that same reset.
+
+## Order commit (write contract, PRED-1194)
+
+The signed write is `POST /v1/venues/{venueId}/orders/{previewId}/commit`, carrying the bearer token, device envelope and exact signed body bytes. Observation is `GET /v1/venues/{venueId}/orders/{previewId}`; it never submits or re-approves.
+
+- The response is one canonical Order Receipt, validated by `parsePredictOrderReceipt` in `contracts/v1/trading.ts`. It reports the durable operation identity (`operationId`, `venueOrderId`), the quoted values, and, once reported, the execution values: filled contracts, actual spend, average Fill price, Fee, and payout exposure.
+- The first accepted commit creates one durable operation with stable venue `client_order_id`. An ambiguous POST is never resubmitted; later work uses receipt GETs and server-owned signed scan cursor/challenges.
+- `pending`, `submitted`, and `reconciliation_required` remain checking. A 404, preview expiry, local deadline or spent read budget does not prove no fill. Only authoritative `filled`, `partially_filled`, `not_filled`, or `rejected` resolves the financial outcome. `needs_manual_review` retains an unknown outcome without automatic scanning.
+- Before dispatch, mobile writes a versioned safe journal reference: authenticated canonical identity scope, venue, preview identity, dispatch timestamp and recovery marker. It stores no approval, signed body, signature, envelope or credential. Persistence failure prevents the POST.
+- Unlocked authenticated startup, foreground and reconnect merge journal entries with paginated owner-scoped `GET /v1/venues/{venueId}/orders?state=unresolved`. Recovery observes GET only, fairly bounded to 12 calls and five minutes per eligible session. Pausing preserves unknown references and server discovery/scan continuation for a later session.
+- A terminal receipt removes its journal reference before publishing a new completion, preventing a restored completion toast from replaying on every launch. Manual-review references remain visible; the Portfolio recovery panel offers observation-only refresh for checking operations.
+- Lock, background, signout and identity replacement synchronously cancel/fence work without deleting financial history. A different canonical identity cannot see or observe another scope. Wallet reset clears the wallet journal; unrelated selected-account switches do not redefine Predict identity.
+
+## Order preview and commit (action contract, PRED-1195)
+
+The same route pair serves both Order Actions (ADR-0001). A sell Preview request carries `action: 'sell'` plus `contracts` — a positive-integer decimal string, whole contracts only — while a buy request keeps the exact PRED-1194 body with no `action` key. Version tolerance: deployments skew, and a strict backend schema rejects unknown keys, so an old client must keep working against a new backend and vice versa; a buy response that omits `action` parses as the buy variant (normalized to `action: 'buy'`), an explicit `action: 'sell'` parses as the sell variant, and a response carrying the other action's fields fails validation (absent, not null).
+
+- The sell Preview reports `requestedContracts`, `estimatedContracts`, `averagePrice`, `limitPrice`, `fee` with its `feeBreakdown`, `estimatedProceeds` (gross), `estimatedNetProceeds` (Proceeds minus Fee), and `expiresAt`. `limitPrice` is a shared field on both Preview actions — the worst ask consumed on a buy, the worst bid on a sell: the Immediate Order's price floor — and the mobile buy schema masks it rather than rejecting it. Buy-only fields (`requestedAmount`, `orderAmount`, `totalDebit`, `potentialPayout`, `potentialProfit`) are absent, not null.
+- The sell Receipt reports `quotedContracts` and, once the Venue reports fills, `filledContracts`, `averageFillPrice`, `fee`, `actualProceeds`, and `netProceeds` — fill fields are projected as fixed-point decimal strings, identical across actions (`filledContracts: '7.00'`). `requestedMaxSpend`, `actualSpend`, and `payoutExposure` are absent on sell receipts.
+- Over-selling a Position fails closed with the canonical `insufficient_position` code; a failed position read reports `position_unavailable`. The backend ownership check validates the requested count against venue position evidence at preview and commit, but it is not a reservation — concurrent sells of the shared venue account can jointly exceed the position until fills settle. `reconciliation_required` observation and the idempotent re-POST of the same `previewId` are identical for both actions.
 
 ## Runtime boundary
 
-Mobile parsers in `contracts/v1/marketData.ts` validate canonical Predict API responses using `@metamask/superstruct`. Kalshi and Polymarket DTOs, status mapping, and identifier derivation are backend adapter responsibilities and must not enter this module.
+Mobile parsers in `contracts/v1/marketData.ts` validate canonical Predict API responses using `@metamask/superstruct`. Parsers discard unknown fields, reject malformed known fields, and return generic errors that do not retain received payload values. Kalshi and Polymarket DTOs, status mapping, price-field mapping, and identifier derivation are backend adapter responsibilities and must not enter this module. Contract-version header enforcement and cross-repository fixture tooling are deferred.
 
 ## Testing boundary
 
-Contract tests should validate canonical response parsing, binary outcome invariants, malformed responses failing closed, and descriptor behavior. Adapter mapping and service/controller integration tests belong to their respective delivery slices.
+Contract tests should validate canonical response parsing, binary outcome invariants, decimal price bounds, one-sided or missing quotes, recursive removal of unknown fields, malformed known fields failing closed, the complete pagination envelope, Venue Status, and descriptor behavior. Duplicate-ID validation is intentionally left to the backend. Adapter mapping and service integration tests belong to their respective delivery slices.

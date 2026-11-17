@@ -8,6 +8,9 @@ jobs:
   collect-qa-stats:
     name: Collect QA Stats
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
 
     steps:
       - uses: actions/checkout@v6
@@ -21,20 +24,20 @@ jobs:
         run: yarn install --immutable
 
       - name: Collect QA stats
-        run: node .github/scripts/collect-qa-stats.mjs
+        run: node .github/scripts/qa-automation/stats/collect-qa-stats.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Upload QA stats artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: qa-stats
           path: ./qa-stats.json
           if-no-files-found: error
 
       - name: Upload feature flag coverage report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: feature-flag-coverage-report
           path: ./tests/artifacts/feature-flag-coverage-report.json

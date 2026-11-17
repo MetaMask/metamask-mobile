@@ -71,6 +71,7 @@ const PriceLegacy = ({
   };
 
   const timePeriodTextDict: Record<TimePeriod, string> = {
+    '1h': strings('asset_overview.chart_time_period.1h'),
     '1d': strings('asset_overview.chart_time_period.1d'),
     '7d': strings('asset_overview.chart_time_period.7d'),
     '1w': strings('asset_overview.chart_time_period.1w'),

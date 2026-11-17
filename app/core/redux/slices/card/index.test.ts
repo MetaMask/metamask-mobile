@@ -3,8 +3,6 @@ import cardReducer, {
   CardSliceState,
   resetCardState,
   initialState,
-  setHasViewedCardButton,
-  selectHasViewedCardButton,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
@@ -14,13 +12,14 @@ import cardReducer, {
   selectConsentSetId,
   setPendingMoneyAccountCardLink,
   selectPendingMoneyAccountCardLink,
+  setImmersveFundingSettling,
+  selectImmersveFundingSettling,
 } from '.';
 import { CardEntryPoint } from '../../../../components/UI/Card/util/metrics';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
-  hasViewedCardButton: true,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -28,12 +27,15 @@ const CARD_STATE_MOCK: CardSliceState = {
     immersveFundingSourceId: null,
   },
   pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+  immersveFundingSettling: false,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
+  applePaySplashSeen: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
-  hasViewedCardButton: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -41,25 +43,13 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     immersveFundingSourceId: null,
   },
   pendingMoneyAccountCardLink: null,
+  immersveFundingSettling: false,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
+  applePaySplashSeen: false,
 };
 
 describe('Card Selectors', () => {
-  describe('selectHasViewedCardButton', () => {
-    it('returns false by default from initial state', () => {
-      const mockRootState = { card: initialState } as unknown as RootState;
-      expect(selectHasViewedCardButton(mockRootState)).toBe(false);
-    });
-
-    it('returns true when hasViewedCardButton is true', () => {
-      const stateWithFlag: CardSliceState = {
-        ...initialState,
-        hasViewedCardButton: true,
-      };
-      const mockRootState = { card: stateWithFlag } as unknown as RootState;
-      expect(selectHasViewedCardButton(mockRootState)).toBe(true);
-    });
-  });
-
   describe('selectPendingMoneyAccountCardLink', () => {
     it('returns null by default from initial state', () => {
       const mockRootState = { card: initialState } as unknown as RootState;
@@ -156,7 +146,6 @@ describe('Card Reducer', () => {
     it('should reset card state', () => {
       const currentState: CardSliceState = {
         isDaimoDemo: false,
-        hasViewedCardButton: true,
         onboarding: {
           onboardingId: null,
           contactVerificationId: null,
@@ -164,6 +153,10 @@ describe('Card Reducer', () => {
           immersveFundingSourceId: null,
         },
         pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        immersveFundingSettling: false,
+        cardArrivalAnimationSeen: true,
+        cardArrivalPreviewRequested: false,
+        applePaySplashSeen: false,
       };
 
       const state = cardReducer(currentState, resetCardState());
@@ -199,19 +192,24 @@ describe('Card Reducer', () => {
       });
     });
 
-    describe('setHasViewedCardButton', () => {
-      it('should set hasViewedCardButton to true', () => {
-        const state = cardReducer(initialState, setHasViewedCardButton(true));
-        expect(state.hasViewedCardButton).toBe(true);
-      });
+    describe('setImmersveFundingSettling', () => {
+      it('stores and clears the session settling flag', () => {
+        const settling = cardReducer(
+          initialState,
+          setImmersveFundingSettling(true),
+        );
+        expect(settling.immersveFundingSettling).toBe(true);
+        expect(
+          selectImmersveFundingSettling({
+            card: settling,
+          } as unknown as RootState),
+        ).toBe(true);
 
-      it('should set hasViewedCardButton to false when previously true', () => {
-        const current: CardSliceState = {
-          ...initialState,
-          hasViewedCardButton: true,
-        };
-        const state = cardReducer(current, setHasViewedCardButton(false));
-        expect(state.hasViewedCardButton).toBe(false);
+        const cleared = cardReducer(
+          settling,
+          setImmersveFundingSettling(false),
+        );
+        expect(cleared.immersveFundingSettling).toBe(false);
       });
     });
 

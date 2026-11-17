@@ -685,7 +685,12 @@ describe('useWithdrawalRequests', () => {
         expect.objectContaining({ message: 'API Error' }),
       );
       expect(mockLoggerError.mock.calls[0][1]).toMatchObject({
-        tags: { feature: expect.any(String) },
+        tags: {
+          feature: expect.any(String),
+          component: 'useWithdrawalRequests',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
+        },
         context: {
           name: 'useWithdrawalRequests.executeWithdrawalCompletionCheck',
           data: {

@@ -4,6 +4,11 @@ import PerpsSlippageBottomSheet from './PerpsSlippageBottomSheet';
 import { PerpsSlippageConfigSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
@@ -99,6 +104,15 @@ describe('PerpsSlippageBottomSheet', () => {
     fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SET));
 
     expect(defaultProps.onSave).toHaveBeenCalledWith(200);
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
+
+  it('closes without saving when Set is tapped without changes', () => {
+    render(<PerpsSlippageBottomSheet {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SET));
+
+    expect(defaultProps.onSave).not.toHaveBeenCalled();
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 

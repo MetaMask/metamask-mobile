@@ -12,11 +12,10 @@ import {
   disablePushNotifications,
   hasNotificationPreferences,
   setMarketingNotificationPreferencesEnabled,
-  type setContentPreviewToken as setContentPreviewTokenFn,
-  type getContentPreviewToken as getContentPreviewTokenFn,
-  type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
 } from '.';
 import Engine from '../../../core/Engine';
+import { unregisterBrazePush } from '../../../core/Braze/unregisterPush';
+import { markBrazePushRegistrationDesired } from '../../../core/Braze/pushRegistrationState';
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
@@ -37,19 +36,37 @@ jest.mock('../../../core/Engine', () => ({
       enablePushNotifications: jest.fn(),
       disablePushNotifications: jest.fn(),
     },
+    NotificationServicesPushController: {
+      state: {
+        fcmToken: '',
+      },
+    },
   },
   controllerMessenger: {
     call: jest.fn(),
   },
 }));
 
+jest.mock('../../../core/Braze/unregisterPush', () => ({
+  unregisterBrazePush: jest.fn().mockResolvedValue(true),
+}));
+
+jest.mock('../../../core/Braze/pushRegistrationState', () => ({
+  markBrazePushRegistrationDesired: jest.fn().mockResolvedValue(undefined),
+}));
+
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.resetAllMocks();
+  jest.mocked(unregisterBrazePush).mockResolvedValue(true);
+  Engine.context.NotificationServicesPushController.state.fcmToken = '';
 });
 
 describe('helpers - enableNotificationServices()', () => {
   it('invoke notification services method', async () => {
     await enableNotifications();
+
+    expect(markBrazePushRegistrationDesired).toHaveBeenCalledTimes(1);
     expect(
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalled();
@@ -67,9 +84,23 @@ describe('helpers - enableNotificationServices()', () => {
 
   it('forwards enable notification options', async () => {
     await enableNotifications({ registerPushNotifications: false });
+
+    expect(markBrazePushRegistrationDesired).not.toHaveBeenCalled();
     expect(
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalledWith({ registerPushNotifications: false });
+  });
+
+  it('enables NaaP when Braze registration-state persistence fails', async () => {
+    jest
+      .mocked(markBrazePushRegistrationDesired)
+      .mockRejectedValue(new Error('Storage unavailable'));
+
+    await enableNotifications();
+
+    expect(
+      Engine.context.NotificationServicesController.enableMetamaskNotifications,
+    ).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -152,11 +183,25 @@ describe('helpers - setMarketingNotificationPreferencesEnabled()', () => {
 });
 
 describe('helpers - disableNotificationServices()', () => {
-  it('invoke notification services method', async () => {
+  it('unregisters Braze directly before global disable without an FCM token', async () => {
     await disableNotifications();
+
+    expect(unregisterBrazePush).toHaveBeenCalledTimes(1);
     expect(
       Engine.context.NotificationServicesController.disableNotificationServices,
-    ).toHaveBeenCalled();
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('delegates Braze unregistration to global disable with an FCM token', async () => {
+    Engine.context.NotificationServicesPushController.state.fcmToken =
+      'fcm-token';
+
+    await disableNotifications();
+
+    expect(unregisterBrazePush).not.toHaveBeenCalled();
+    expect(
+      Engine.context.NotificationServicesController.disableNotificationServices,
+    ).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -226,78 +271,62 @@ describe('helpers - markMetamaskNotificationsAsRead()', () => {
 describe('helpers - enablePushNotifications()', () => {
   it('invoke notification services method', async () => {
     await enablePushNotifications();
+
+    expect(markBrazePushRegistrationDesired).toHaveBeenCalledTimes(1);
     expect(
       Engine.context.NotificationServicesController.enablePushNotifications,
     ).toHaveBeenCalled();
   });
+
+  it('enables NaaP push when Braze registration-state persistence fails', async () => {
+    jest
+      .mocked(markBrazePushRegistrationDesired)
+      .mockRejectedValue(new Error('Storage unavailable'));
+
+    await enablePushNotifications();
+
+    expect(
+      Engine.context.NotificationServicesController.enablePushNotifications,
+    ).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('helpers - disablePushNotifications()', () => {
-  it('invoke notification services method', async () => {
+  it('unregisters Braze directly when NaaP has no FCM token', async () => {
     await disablePushNotifications();
+
+    expect(unregisterBrazePush).toHaveBeenCalled();
+    expect(
+      Engine.context.NotificationServicesController.disablePushNotifications,
+    ).toHaveBeenCalled();
+    expect(
+      jest.mocked(unregisterBrazePush).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(
+        Engine.context.NotificationServicesController.disablePushNotifications,
+      ).mock.invocationCallOrder[0],
+    );
+  });
+
+  it('delegates Braze unregistration to token deletion when FCM has a token', async () => {
+    Engine.context.NotificationServicesPushController.state.fcmToken =
+      'fcm-token';
+
+    await disablePushNotifications();
+
+    expect(unregisterBrazePush).not.toHaveBeenCalled();
     expect(
       Engine.context.NotificationServicesController.disablePushNotifications,
     ).toHaveBeenCalled();
   });
-});
 
-describe('Content Preview Token', () => {
-  let setContentPreviewToken: typeof setContentPreviewTokenFn;
-  let getContentPreviewToken: typeof getContentPreviewTokenFn;
-  let subscribeToContentPreviewToken: typeof subscribeToContentPreviewTokenFn;
+  it('continues disabling NaaP when Braze unregistration remains pending', async () => {
+    jest.mocked(unregisterBrazePush).mockResolvedValueOnce(false);
 
-  beforeEach(() => {
-    // Reset module per test as we are modifying a local variable in this module
-    jest.isolateModules(() => {
-      const HelpersModule = jest.requireActual('./index');
-      setContentPreviewToken = HelpersModule.setContentPreviewToken;
-      getContentPreviewToken = HelpersModule.getContentPreviewToken;
-      subscribeToContentPreviewToken =
-        HelpersModule.subscribeToContentPreviewToken;
-    });
-  });
+    await disablePushNotifications();
 
-  it('sets the preview token when given a valid string', () => {
-    const token = 'preview-token-123';
-    setContentPreviewToken(token);
-    expect(getContentPreviewToken()).toBe(token);
-  });
-
-  it('does not set the preview token when given null', () => {
-    setContentPreviewToken('initial-token');
-    setContentPreviewToken(null);
-    expect(getContentPreviewToken()).toBe('initial-token');
-  });
-
-  it('does not set the preview token when given undefined', () => {
-    setContentPreviewToken('initial-token');
-    setContentPreviewToken(undefined);
-    expect(getContentPreviewToken()).toBe('initial-token');
-  });
-
-  it('initial get token will return undefined', () => {
-    expect(getContentPreviewToken()).toBeUndefined();
-  });
-
-  it('emits event when token is updated, and event is not received when unsubscribing', () => {
-    const mockCallback = jest.fn();
-    const unsubscribe = subscribeToContentPreviewToken(mockCallback);
-
-    // Call 1 - assert token update
-    setContentPreviewToken('token1');
-    expect(mockCallback).toHaveBeenCalledWith('token1');
-
-    // Call 2 - assert no token update
-    mockCallback.mockClear();
-    setContentPreviewToken(null);
-    expect(getContentPreviewToken()).toBe('token1'); // previous token not removed
-    expect(mockCallback).not.toHaveBeenCalled();
-
-    // Call 2 - assert listener removed
-    mockCallback.mockClear();
-    unsubscribe();
-    setContentPreviewToken('token2');
-    expect(getContentPreviewToken()).toBe('token2'); // new token added
-    expect(mockCallback).not.toHaveBeenCalled();
+    expect(
+      Engine.context.NotificationServicesController.disablePushNotifications,
+    ).toHaveBeenCalledTimes(1);
   });
 });

@@ -3,7 +3,7 @@ import {
   ProfileMetricsServiceMessenger,
 } from '@metamask/profile-metrics-controller';
 import { MessengerClientInitFunction } from '../types';
-import { authEnv } from '../../devApiEnv';
+import { authEnv } from '../../apiEnv';
 
 /**
  * Initialize the profile metrics service.

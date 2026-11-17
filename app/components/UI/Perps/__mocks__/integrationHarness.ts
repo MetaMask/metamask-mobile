@@ -3,13 +3,13 @@
  * alongside `tests/component-view/`. See:
  *
  *   tests/integration/AGENTS.md           — framework overview + rules
- *   tests/integration/harnesses/perps.ts  — buildPerpsIntegrationHarness
+ *   tests/integration/harnesses/perps/perps.ts  — buildPerpsIntegrationHarness
  *
  * This re-export keeps any straggler imports working. New code must import
- * from `tests/integration/harnesses/perps`.
+ * from `tests/integration/harnesses/perps/perps`.
  */
 export {
   buildPerpsIntegrationHarness,
   type PerpsIntegrationHarness,
   type PerpsHarnessOptions,
-} from '../../../../../tests/integration/harnesses/perps';
+} from '../../../../../tests/integration/harnesses/perps/perps';

@@ -58,7 +58,7 @@ export function useScamQuestionnaireMetrics() {
         }),
 
       trackContactSupport: (answers: Answers) =>
-        fire(PRODUCT_SAFETY_EVENTS.SCAM_QUESTIONNAIRE_CONTACT_SUPPORT, {
+        fire(PRODUCT_SAFETY_EVENTS.SCAM_QUESTIONNAIRE_SUPPORT_CONTACTED, {
           ...getAnswerRecord(answers),
           red_flag_count: getRedFlagCount(answers),
           simulation_sending_assets_total_value: valueAtRisk,

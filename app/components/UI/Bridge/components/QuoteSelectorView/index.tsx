@@ -1,7 +1,6 @@
 import ScreenView from '../../../../Base/ScreenView';
 import {
   Box,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -17,37 +16,35 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   selectDestToken,
   selectSelectedQuoteRequestId,
-  selectSourceToken,
   setSelectedQuoteRequestId,
 } from '../../../../../core/redux/slices/bridge';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { BigNumber } from 'bignumber.js';
 import { QuoteList } from './QuoteList';
 import { QuoteRowProps } from './QuoteRow';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import formatFiat from '../../../../../util/formatFiat';
 import { startCase } from 'lodash';
 import { QUOTES_PLACEHOLDER_DATA } from './constants';
 import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSortedEvent';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import { fromTokenMinimalUnitString } from '../../../../../util/number/bigint';
+import { sumAmounts } from '@metamask/bridge-controller';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const QuoteSelectorView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
   const currency = useSelector(selectCurrentCurrency);
   const { validQuotes, bestQuote, isLoading, blockaidError, quoteFetchError } =
-    useBridgeQuoteData();
-  const sourceToken = useSelector(selectSourceToken);
+    useBridgeQuoteDataContext();
+  const { latestSourceBalance } = useBridgeSession();
   const destToken = useSelector(selectDestToken);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
 
   const trackAllQuotesSortedEvent =
     useTrackAllQuotesSortedEvent(latestSourceBalance);
@@ -78,23 +75,28 @@ export const QuoteSelectorView = () => {
       (quote) =>
         ({
           formattedTotalCost: formatFiat(
-            new BigNumber(quote.sentAmount?.valueInCurrency ?? '0').plus(
-              isGaslessQuote(quote.quote)
-                ? (quote.includedTxFees?.valueInCurrency ?? '0')
-                : (quote.totalNetworkFee?.valueInCurrency ??
-                    quote.gasFee?.total?.valueInCurrency ??
-                    '0'),
-            ),
+            quote.quote.priceData?.cost?.valueInCurrency
+              ? new BigNumber(quote.quote.priceData.cost.valueInCurrency)
+              : new BigNumber(quote.quote.src.valueInCurrency ?? '0').plus(
+                  isGaslessQuote(quote.quote)
+                    ? (sumAmounts(quote.quote.feeData?.txFee)
+                        ?.valueInCurrency ?? '0')
+                    : (sumAmounts(
+                        quote.quote.feeData?.network,
+                        quote.quote.feeData?.relayer,
+                      )?.valueInCurrency ?? '0'),
+                ),
             currency,
           ),
-          receiveAmount: destToken
-            ? fromTokenMinimalUnit(
-                quote.quote.destTokenAmount,
-                destToken.decimals,
-              )
-            : undefined,
+          receiveAmount:
+            destToken && quote.quote.dest.amount
+              ? fromTokenMinimalUnitString(
+                  quote.quote.dest.amount,
+                  destToken.decimals,
+                )
+              : undefined,
           provider: {
-            name: startCase(quote.quote.bridges[0]),
+            name: startCase(quote.quote.protocols[0] ?? quote.quote.aggregator),
           },
           quoteRequestId: quote.quote.requestId,
           onPress: onQuoteSelect,
@@ -129,13 +131,15 @@ export const QuoteSelectorView = () => {
       style={styles.screenWrapper}
       edges={['bottom', 'left', 'right']}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('bridge.select_quote')}
         onBack={() => navigation.goBack()}
         includesTopInset
       />
       <ScreenView safeAreaEdges={[]}>
-        <Box padding={4}>
+        <Box padding={4} paddingTop={0}>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('bridge.select_quote_info')}
           </Text>

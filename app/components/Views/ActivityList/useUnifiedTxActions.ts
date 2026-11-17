@@ -9,9 +9,10 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { ToastContext } from '../../../component-library/components/Toast';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -38,7 +39,8 @@ import {
   useHardwareWallet,
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
-import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
+import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
+import { resolveTransactionUpdateErrorMessage } from '../../../util/confirmation/transactions';
 
 type Maybe<T> = T | null | undefined;
 
@@ -86,9 +88,6 @@ export function useUnifiedTxActions() {
     hideAwaitingConfirmation,
     showHardwareWalletError,
   } = useHardwareWallet();
-  const toastContext = useContext(ToastContext);
-  const toastRef = toastContext?.toastRef;
-
   const gasFeeEstimates = useSelector(selectGasFeeEstimates);
   const accounts = useSelector(selectAccounts);
   const selectedAddress = useSelector(
@@ -110,14 +109,15 @@ export function useUnifiedTxActions() {
     isHardwareAccount(selectedAddress ?? '', [ExtendedKeyringTypes.qr]),
   );
 
-  const showTransactionUpdateErrorToast = useCallback(
-    (error: unknown) => {
-      toastRef?.current?.showToast(
-        getTransactionUpdateErrorToastOptions(error),
-      );
-    },
-    [toastRef],
-  );
+  const showTransactionUpdateErrorToast = useCallback((error: unknown) => {
+    toast({
+      title: strings('transaction_update_toast.title'),
+      description: resolveTransactionUpdateErrorMessage(error),
+      severity: ToastSeverity.Danger,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
+  }, []);
 
   const closeSpeedUpCancelModal = useCallback(() => {
     setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
@@ -150,6 +150,7 @@ export function useUnifiedTxActions() {
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
+        onError: skipHardwareWalletErrorIfReplacementSubmitted(transaction.id),
         execute: async () => {
           if (
             transaction?.replacementParams?.type ===

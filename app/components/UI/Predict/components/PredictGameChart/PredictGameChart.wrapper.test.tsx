@@ -1399,12 +1399,12 @@ describe('PredictGameChart Wrapper', () => {
           ),
           endTs: Math.floor(new Date('2024-01-15T13:00:00Z').getTime() / 1000),
           interval: undefined,
-          fidelity: 2,
+          fidelity: undefined,
         }),
       );
     });
 
-    it('uses 2-minute fidelity for ended games', () => {
+    it('lets the server size the bucket for ended games', () => {
       const endedMarket = createMockMarket({
         game: {
           ...mockBaseGame,
@@ -1418,7 +1418,7 @@ describe('PredictGameChart Wrapper', () => {
 
       expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
         expect.objectContaining({
-          fidelity: 2,
+          fidelity: undefined,
         }),
       );
     });

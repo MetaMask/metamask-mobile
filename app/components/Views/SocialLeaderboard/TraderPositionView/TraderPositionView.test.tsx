@@ -9,12 +9,31 @@ import {
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { CandlePeriod } from '@metamask/perps-controller';
+import { CandlePeriodBottomSheetSelectorsIDs as PerpsCandlePeriodBottomSheetSelectorsIDs } from '../../../UI/Charts/CandlePeriodSelector';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
+import type { TradeAction } from '../../../UI/SocialFeed/utils/tradeAction';
+import Share from 'react-native-share';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
+import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
+
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(() => Promise.resolve({ success: true, message: '' })),
+  },
+}));
+jest.mock('../terms/socialTermsAcceptance');
+jest.mock('../Onboarding/socialLeaderboardOnboardingNavigation', () => ({
+  ...jest.requireActual('../Onboarding/socialLeaderboardOnboardingNavigation'),
+  isSocialV1Treatment: jest.fn(() => false),
+}));
+
+const mockIsSocialV1Treatment = jest.mocked(isSocialV1Treatment);
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -25,6 +44,13 @@ const mockTraderPriceChart = jest.fn();
 const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
 const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
 const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
+const mockCreateSocialOgImage = jest.fn();
+
+jest.mock('../navigation/socialOgImageService', () => ({
+  createSocialOgImage: (...args: unknown[]) => mockCreateSocialOgImage(...args),
+  getSocialOgDefaultImageUrl: () =>
+    'https://social.test/api/v1/og-images/default.jpg',
+}));
 
 interface MockRouteParams {
   positionId?: string;
@@ -33,15 +59,21 @@ interface MockRouteParams {
   traderImageUrl?: string;
   traderAddress?: string;
   tokenSymbol?: string;
-  position?: Position;
+  position?: PositionWithActions;
   source?: string;
   originalEntryPoint?: string;
 }
 
-const makeMockTrades = (): Trade[] => [
+type TradeWithAction = Trade & { action: TradeAction };
+type PositionWithActions = Omit<Position, 'trades'> & {
+  trades: TradeWithAction[];
+};
+
+const makeMockTrades = (): TradeWithAction[] => [
   {
     intent: 'enter',
     direction: 'buy',
+    action: 'opened',
     tokenAmount: 1000,
     usdCost: 2200,
     timestamp: Date.now() - 30 * 60 * 1000, // 30 minutes ago
@@ -50,6 +82,7 @@ const makeMockTrades = (): Trade[] => [
   {
     intent: 'exit',
     direction: 'sell',
+    action: 'reduced',
     tokenAmount: 500,
     usdCost: 1100,
     timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
@@ -57,7 +90,7 @@ const makeMockTrades = (): Trade[] => [
   },
 ];
 
-const makeDefaultPosition = (): Position => ({
+const makeDefaultPosition = (): PositionWithActions => ({
   positionId: 'pepe-base',
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
@@ -86,11 +119,13 @@ let mockRouteParams: MockRouteParams = {
 const mockState = {
   engine: {
     backgroundState: {
-      TokenRatesController: {
-        marketData: {},
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
+      AssetsController: {
+        assetsBalance: {},
+        assetsInfo: {},
+        assetsPrice: {},
+        customAssets: {},
+        assetPreferences: {},
+        selectedCurrency: 'usd' as const,
       },
     },
   },
@@ -110,7 +145,7 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 // QuickBuy provider/controller (bridge selectors, NetworkController, …). This
 // file intentionally uses a minimal Redux store, so we stub the sheet here.
 const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
-jest.mock('./components/QuickBuy', () => ({
+jest.mock('../../../UI/QuickBuy', () => ({
   __esModule: true,
   default: (props: unknown) => mockTraderPositionQuickBuy(props),
   positionToQuickBuyTarget: (position: {
@@ -147,7 +182,7 @@ jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
 }));
 
-jest.mock('./components/QuickBuy/hooks/useQuickBuySetup', () => ({
+jest.mock('../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: () => ({
     chainId: '0x2105',
     destToken: {
@@ -171,11 +206,33 @@ jest.mock('../../../UI/WhatsHappening/hooks', () => ({
   useTradablePerpsMarketSymbols: () => mockUseTradablePerpsMarketSymbols(),
 }));
 
-// PerpsTradeButton wraps itself in PerpsStreamProvider; stub it to a passthrough
-// so the real stream-manager singleton isn't pulled into this minimal-store test.
+// PerpsStreamProvider is mounted at TraderPositionView for perp positions; stub
+// the stream manager so this minimal-store test does not boot the real singleton.
 jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+  usePerpsStream: jest.fn(() => ({})),
+}));
+
+const mockUseSocialPerpsChartAdapter = jest.fn();
+jest.mock('./hooks/useSocialPerpsChartAdapter', () => ({
+  useSocialPerpsChartAdapter: (...args: unknown[]) =>
+    mockUseSocialPerpsChartAdapter(...args),
+}));
+
+const mockUseOHLCVChart = jest.fn();
+jest.mock('../../../UI/Charts/AdvancedChart/useOHLCVChart', () => ({
+  useOHLCVChart: (...args: unknown[]) => mockUseOHLCVChart(...args),
+}));
+
+const mockSetPerpsChartPreferredCandlePeriod = jest.fn((period: string) => ({
+  type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
+  payload: period,
+}));
+jest.mock('../../../../actions/settings', () => ({
+  ...jest.requireActual('../../../../actions/settings'),
+  setPerpsChartPreferredCandlePeriod: (period: string) =>
+    mockSetPerpsChartPreferredCandlePeriod(period),
 }));
 
 jest.mock('../../../../util/haptics', () => {
@@ -270,6 +327,7 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
+    selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () =>
       mockSelectSocialLeaderboardPerpsEnabled(),
   }),
@@ -291,7 +349,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -301,9 +359,43 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
     `${chainId}/erc20:${address}`,
 }));
 
+const makePerpAdapterBars = () =>
+  Array.from({ length: 20 }, (_, i) => ({
+    time: 1_700_000_000_000 + i * 60_000,
+    open: 100,
+    high: 101,
+    low: 99,
+    close: 100,
+    volume: 10,
+  }));
+
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsSocialV1Treatment.mockReturnValue(false);
+    mockUseSocialPerpsChartAdapter.mockReturnValue({
+      ohlcvData: makePerpAdapterBars(),
+      realtimeBar: undefined,
+      latestBar: makePerpAdapterBars().at(-1),
+      ohlcvSeriesKey: 'ETH|15m',
+      visibleFromMs: undefined,
+      visibleToMs: undefined,
+      isLoading: false,
+      handleFetchOlderBarsRequest: jest.fn().mockResolvedValue({
+        requestId: 'test',
+        seriesGeneration: 0,
+        bars: [],
+        noData: true,
+      }),
+    });
+    mockUseOHLCVChart.mockReturnValue({
+      ohlcvData: [],
+      isLoading: false,
+      error: null,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: true,
+    });
     mockRefetchPosition.mockResolvedValue(undefined);
     mockRefreshProfile.mockResolvedValue(undefined);
     mockHandleFetch.mockResolvedValue({});
@@ -318,6 +410,10 @@ describe('TraderPositionView', () => {
       isLoading: false,
     });
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
+    mockCreateSocialOgImage.mockReset();
+    mockCreateSocialOgImage.mockResolvedValue(
+      'https://social.test/api/v1/og-images/card.png?v=1',
+    );
     // Default the A/B test to control (Buy opens QuickBuy). clearAllMocks resets
     // call data but not implementations, so re-assert it for test isolation.
     mockUseABTest.mockReturnValue({
@@ -332,6 +428,167 @@ describe('TraderPositionView', () => {
       tokenSymbol: 'PEPE',
       position: makeDefaultPosition(),
     };
+  });
+
+  it('shares the position deeplink from the header', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&share=1',
+        failOnCancel: false,
+      });
+    });
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'Share position');
+    // The mocked price API returns no prices, so the screen falls back to
+    // the generic card rather than an incomplete trade card.
+    await waitFor(() => {
+      expect(mockCreateSocialOgImage).toHaveBeenCalledWith(
+        { kind: 'generic' },
+        expect.any(AbortSignal),
+      );
+    });
+  });
+
+  describe('position ownership', () => {
+    const buildProfileResult = (
+      profile: { profileId: string; name: string; address: string } | null,
+    ) => ({
+      profile: profile
+        ? {
+            profile,
+            stats: {},
+            followerCount: 0,
+          }
+        : null,
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn(),
+      refresh: mockRefreshProfile,
+    });
+
+    const renderWithOwner = (
+      ownerProfileId?: string,
+      { isTraderProfileLoading = false } = {},
+    ) => {
+      const { useTraderPosition } = jest.requireMock(
+        './hooks/useTraderPosition',
+      );
+      const { useTraderProfile } = jest.requireMock(
+        '../TraderProfileView/hooks/useTraderProfile',
+      );
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: { ...makeDefaultPosition(), profileId: ownerProfileId },
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
+      (useTraderProfile as jest.Mock).mockImplementation((id: string) => {
+        if (id === 'trader-1' && isTraderProfileLoading) {
+          return { ...buildProfileResult(null), isLoading: true };
+        }
+        if (id === 'trader-1') {
+          return buildProfileResult({
+            profileId: 'trader-1',
+            name: 'alice',
+            address: '0xabc',
+          });
+        }
+        if (id === 'owner-1') {
+          return buildProfileResult({
+            profileId: 'owner-1',
+            name: 'bob',
+            address: '0xowner',
+          });
+        }
+        return buildProfileResult(null);
+      });
+      mockRouteParams.position = undefined;
+      mockRouteParams.positionId = 'position-uuid-1';
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+      return useTraderProfile as jest.Mock;
+    };
+
+    afterEach(() => {
+      const { useTraderPosition } = jest.requireMock(
+        './hooks/useTraderPosition',
+      );
+      const { useTraderProfile } = jest.requireMock(
+        '../TraderProfileView/hooks/useTraderProfile',
+      );
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: undefined,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
+      (useTraderProfile as jest.Mock).mockImplementation(() =>
+        buildProfileResult(null),
+      );
+    });
+
+    const traderNameLink = () =>
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK);
+
+    it('holds the position back while the link trader profile confirms a different owner id', () => {
+      renderWithOwner('owner-1', { isTraderProfileLoading: true });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows the position without waiting when the link trader id is the owner', () => {
+      renderWithOwner('trader-1', { isTraderProfileLoading: true });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the link trader when the position has no owner', () => {
+      renderWithOwner();
+
+      expect(within(traderNameLink()).getByText('trader1')).toBeOnTheScreen();
+    });
+
+    it('keeps the link trader when they own the position', () => {
+      renderWithOwner('trader-1');
+
+      expect(within(traderNameLink()).getByText('trader1')).toBeOnTheScreen();
+    });
+
+    it('shows the real owner instead of the link trader on a mismatch', async () => {
+      const useTraderProfile = renderWithOwner('owner-1');
+
+      expect(useTraderProfile).toHaveBeenCalledWith('owner-1');
+      expect(within(traderNameLink()).getByText('bob')).toBeOnTheScreen();
+      expect(within(traderNameLink()).queryByText('trader1')).toBeNull();
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+      );
+      await waitFor(() =>
+        expect(Share.open).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: expect.stringContaining('traderId=owner-1'),
+          }),
+        ),
+      );
+    });
   });
 
   it('renders the container with real position data', () => {
@@ -349,6 +606,55 @@ describe('TraderPositionView', () => {
       ).getByText('trader1'),
     ).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders the spot time period selector and chart type toggle', () => {
+    mockUseOHLCVChart.mockReturnValue({
+      ohlcvData: makePerpAdapterBars(),
+      isLoading: false,
+      error: null,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(screen.getByText('1H')).toBeOnTheScreen();
+    expect(screen.queryByText('1min')).not.toBeOnTheScreen();
+    expect(screen.getByLabelText('Line chart')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Candlestick chart')).toBeOnTheScreen();
+  });
+
+  it('hides the chart type toggle for spot positions on unsupported chains', () => {
+    // Unsupported chain -> chartAssetId is undefined and position is not perp,
+    // so there is no OHLCV feed to back a candlestick view. The toggle must
+    // stay hidden to avoid offering a chart mode the price chart cannot render.
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      chain: 'unsupported-chain',
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(screen.queryByLabelText('Line chart')).toBeNull();
+    expect(screen.queryByLabelText('Candlestick chart')).toBeNull();
+  });
+
+  it('hides the chart type toggle when the spot advanced chart falls back to the price chart', () => {
+    mockUseOHLCVChart.mockReturnValue({
+      ohlcvData: [],
+      isLoading: false,
+      error: 'boom',
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: true,
+    });
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(screen.queryByLabelText('Line chart')).toBeNull();
+    expect(screen.queryByLabelText('Candlestick chart')).toBeNull();
   });
 
   it('does not render the floating sticky day header at rest', () => {
@@ -387,14 +693,31 @@ describe('TraderPositionView', () => {
       screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
     );
 
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'trader1',
+    });
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the V1 profile when Social V1 treatment is on', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+    );
+
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      Routes.SOCIAL.V1_PROFILE,
       {
         traderId: 'trader-1',
         traderName: 'trader1',
+        traderAddress: '0xabc',
       },
+      {},
     );
-    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
@@ -493,6 +816,47 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it.each(['insider', 'developer', 'blocked'] as const)(
+    'hides Buy for a %s position and keeps the history view',
+    (flag) => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        flags: [flag],
+      };
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps Buy when the position has an empty flags list', () => {
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      flags: [],
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('fires Follow Trading Token CTA Clicked with cta_type buy when the Buy button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -581,6 +945,32 @@ describe('TraderPositionView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('hides Trade for a flagged perp position and keeps the history view', () => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        tokenSymbol: 'ETH',
+        chain: 'hyperliquid',
+        perpPositionType: 'short',
+        perpLeverage: 10,
+        flags: ['insider'],
+      };
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW),
+      ).toBeOnTheScreen();
+    });
+
     it('navigates to the Perps market page (not QuickBuy) when the Trade button is pressed', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -599,6 +989,26 @@ describe('TraderPositionView', () => {
         },
       });
     });
+
+    it.each(['notification', 'deep_link'] as const)(
+      'keeps a %s origin on the Perps market navigation',
+      (origin) => {
+        mockRouteParams = { ...mockRouteParams, source: origin };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'ETH', name: 'ETH' },
+            source: origin,
+          },
+        });
+      },
+    );
 
     it('fires Follow Trading Token Screen Viewed with perps_market on mount', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
@@ -679,6 +1089,76 @@ describe('TraderPositionView', () => {
 
       expect(headerPerpBadges.getByText('10x')).toBeOnTheScreen();
       expect(headerPerpBadges.getByText('SHORT')).toBeOnTheScreen();
+    });
+
+    it('renders the perp candle period selector instead of the spot time period selector', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.getByText('1m')).toBeOnTheScreen();
+      expect(screen.getByText('5m')).toBeOnTheScreen();
+      expect(screen.queryByText('1H')).not.toBeOnTheScreen();
+      expect(screen.queryByText('1W')).not.toBeOnTheScreen();
+    });
+
+    it('renders the chart type toggle for perp positions', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.getByLabelText('Line chart')).toBeOnTheScreen();
+      expect(screen.getByLabelText('Candlestick chart')).toBeOnTheScreen();
+    });
+
+    it('hides the chart type toggle when the perp advanced chart falls back to the price chart', () => {
+      mockUseSocialPerpsChartAdapter.mockReturnValue({
+        ohlcvData: makePerpAdapterBars().slice(0, 2),
+        realtimeBar: undefined,
+        latestBar: makePerpAdapterBars()[1],
+        ohlcvSeriesKey: 'ETH|15m',
+        visibleFromMs: undefined,
+        visibleToMs: undefined,
+        isLoading: false,
+        handleFetchOlderBarsRequest: jest.fn().mockResolvedValue({
+          requestId: 'test',
+          seriesGeneration: 0,
+          bars: [],
+          noData: true,
+        }),
+      });
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.queryByLabelText('Line chart')).toBeNull();
+      expect(screen.queryByLabelText('Candlestick chart')).toBeNull();
+    });
+
+    it('opens the candle period bottom sheet when More is pressed', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(
+          PerpsCandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByText('More'));
+
+      expect(
+        screen.getByTestId(
+          PerpsCandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('updates the local candle period without persisting to Redux settings', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(screen.getByText('5m'));
+
+      expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interval: CandlePeriod.FiveMinutes,
+        }),
+      );
+      expect(mockSetPerpsChartPreferredCandlePeriod).not.toHaveBeenCalled();
     });
 
     it('does not render the copy token address button for a perp position', () => {
@@ -997,18 +1477,38 @@ describe('TraderPositionView', () => {
     const stateWithMarket = {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x2105': {
-                '0x1234567890123456789012345678901234567890': {
-                  marketCap: 11700000,
-                  pricePercentChange1d: 7.2,
-                },
+          AssetsController: {
+            assetsBalance: {},
+            customAssets: {},
+            assetPreferences: {},
+            selectedCurrency: 'usd' as const,
+            assetsInfo: {
+              'eip155:8453/slip44:60': {
+                type: 'native' as const,
+                decimals: 18,
+                symbol: 'NATIVE',
+                name: 'Native',
+              },
+              'eip155:8453/erc20:0x1234567890123456789012345678901234567890': {
+                type: 'erc20' as const,
+                decimals: 18,
+                symbol: 'PEPE',
+                name: 'Pepe',
               },
             },
-          },
-          CurrencyRateController: {
-            currentCurrency: 'usd',
+            assetsPrice: {
+              'eip155:8453/slip44:60': {
+                assetPriceType: 'fungible' as const,
+                price: 1,
+                usdPrice: 1,
+                lastUpdated: Date.now(),
+              },
+              'eip155:8453/erc20:0x1234567890123456789012345678901234567890': {
+                assetPriceType: 'fungible' as const,
+                marketCap: 11700000,
+                pricePercentChange1d: 7.2,
+              },
+            },
           },
         },
       },
@@ -1063,6 +1563,7 @@ describe('TraderPositionView', () => {
         {
           intent: 'enter',
           direction: 'buy',
+          action: 'opened',
           tokenAmount: 1000,
           usdCost: 2200,
           timestamp: now - 30 * 60 * 1000,
@@ -1071,6 +1572,7 @@ describe('TraderPositionView', () => {
         {
           intent: 'exit',
           direction: 'sell',
+          action: 'reduced',
           tokenAmount: 500,
           usdCost: 1100,
           timestamp: now - 2 * 24 * 60 * 60 * 1000,

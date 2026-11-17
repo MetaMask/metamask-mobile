@@ -10,14 +10,20 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '10.0.0'),
+}));
+const mockTrackCardLinkRoutingDisagreement = jest.fn();
+jest.mock('../../util/trackCardLinkRoutingDisagreement', () => ({
+  trackCardLinkRoutingDisagreement: (...args: unknown[]) =>
+    mockTrackCardLinkRoutingDisagreement(...args),
+}));
+
 const mockUseCardPostAuthRedirect = jest.fn();
 
 jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
+  ...jest.requireActual('../../hooks/useCardPostAuthRedirect'),
   useCardPostAuthRedirect: () => mockUseCardPostAuthRedirect(),
-  MONEY_HOME_CARD_ORIGIN: {
-    screen: 'Money',
-    params: { screen: 'MoneyHome' },
-  },
 }));
 
 // Mocks
@@ -69,31 +75,13 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const map: Record<string, string> = {
-      'card.card_onboarding.title': 'Enable MetaMask Card features',
-      'card.card_onboarding.description':
-        'Change your spending token and network by signing in with your Crypto Life email and password.',
-      'card.card_onboarding.apply_now_button': 'Sign in',
-      'predict.gtm_content.not_now': 'Not now',
-    };
-    return map[key] || key;
-  },
-}));
-
-jest.mock('../../../../../images/stacked-cards.png', () => 1);
-
-jest.mock('../../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../../util/theme');
-  return {
-    ...actual,
-    useTheme: () => actual.mockTheme,
-  };
-});
-
 const createTestStore = (
-  initialState: { cardholderAccounts?: string[] } = {},
+  initialState: {
+    cardholderAccounts?: string[];
+    signInLink?: Record<string, unknown> | null;
+    cardLinks?: Record<string, unknown>[] | null;
+    cardLinkApiEnabled?: boolean;
+  } = {},
 ) =>
   configureStore({
     reducer: {
@@ -102,12 +90,35 @@ const createTestStore = (
           backgroundState: {
             CardController: {
               cardholderAccounts: initialState.cardholderAccounts ?? [],
+              signInLink: initialState.signInLink ?? null,
+              cardLinks: initialState.cardLinks ?? null,
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                cardLinkApi: {
+                  enabled: initialState.cardLinkApiEnabled ?? false,
+                  minimumVersion: '0.0.0',
+                },
+              },
             },
           },
         },
       ) => state,
     },
   });
+
+const cardLinkRow = (
+  provider: 'baanx' | 'immersve',
+  status: 'onboarding' | 'active' | 'closed',
+) => ({
+  provider,
+  status,
+  linkedAccountRef: null,
+  closedReason: null,
+  migratedToProvider: null,
+  linkedAt: '2026-09-01T00:00:00.000Z',
+  updatedAt: '2026-09-01T00:00:00.000Z',
+});
 
 describe('CardWelcome', () => {
   let store: ReturnType<typeof createTestStore>;
@@ -156,17 +167,19 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
       expect(
         getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
-      ).toBeTruthy();
-      expect(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON)).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('displays correct title and description', () => {
@@ -182,6 +195,12 @@ describe('CardWelcome', () => {
       expect(
         getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
       ).toHaveTextContent(strings('card.card_onboarding.description'));
+      expect(
+        getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+      ).toHaveTextContent(strings('card.card_onboarding.apply_now_button'));
+      expect(
+        getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON),
+      ).toHaveTextContent(strings('card.card_onboarding.not_now_button'));
     });
 
     it('tracks view event on mount', () => {
@@ -254,6 +273,106 @@ describe('CardWelcome', () => {
       );
     });
 
+    describe('when cardLinkApi is on', () => {
+      it('navigates to authentication for a linked user without the card_user label', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardholderAccounts: [],
+          cardLinks: [cardLinkRow('immersve', 'active')],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+          undefined,
+        );
+        expect(mockTrackCardLinkRoutingDisagreement).toHaveBeenCalledWith(
+          expect.objectContaining({
+            source: 'card_links',
+            hasCard: true,
+            disagreesWithLegacy: true,
+          }),
+          'card_welcome',
+        );
+      });
+
+      it('lets the stored links override the card_user label', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardholderAccounts: ['eip155:0:0x1234567890abcdef'],
+          cardLinks: [cardLinkRow('baanx', 'closed')],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.ROOT,
+          undefined,
+        );
+      });
+
+      it('falls back to the card_user label when there are no links yet', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardholderAccounts: ['eip155:0:0x1234567890abcdef'],
+          cardLinks: [],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+          undefined,
+        );
+      });
+    });
+
+    it('navigates to authentication when a sign-in link exists (non-cardholder)', () => {
+      store = createTestStore({
+        cardholderAccounts: [],
+        signInLink: {
+          providerId: 'immersve',
+          status: 'linked',
+          address: '0xabc',
+          updatedAt: Date.now(),
+        },
+      });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        undefined,
+      );
+    });
+
     it('forwards postAuthRedirect to onboarding when opened from Money (non-cardholder)', () => {
       mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
       store = createTestStore({ cardholderAccounts: [] });
@@ -294,21 +413,21 @@ describe('CardWelcome', () => {
       store = createTestStore();
     });
 
-    it('applies light status bar and registers a transitionEnd listener on focus', () => {
+    it('applies a dark status bar and registers a transitionEnd listener on focus', () => {
       render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
       );
 
-      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+      expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
       expect(mockAddListener).toHaveBeenCalledWith(
         'transitionEnd',
         expect.any(Function),
       );
     });
 
-    it('reapplies the light status bar when a non-closing transition ends', () => {
+    it('reapplies the dark status bar when a non-closing transition ends', () => {
       render(
         <Provider store={store}>
           <CardWelcome />
@@ -320,10 +439,10 @@ describe('CardWelcome', () => {
 
       handleTransitionEnd({ data: { closing: false } });
 
-      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+      expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
     });
 
-    it('reapplies the light status bar when transition event has no data', () => {
+    it('reapplies the dark status bar when transition event has no data', () => {
       render(
         <Provider store={store}>
           <CardWelcome />
@@ -335,10 +454,10 @@ describe('CardWelcome', () => {
 
       handleTransitionEnd();
 
-      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+      expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
     });
 
-    it('does not reapply the light status bar when the transition is closing', () => {
+    it('does not reapply the dark status bar when the transition is closing', () => {
       render(
         <Provider store={store}>
           <CardWelcome />
@@ -393,7 +512,7 @@ describe('CardWelcome', () => {
       unmount();
 
       expect(unsubscribe).toHaveBeenCalled();
-      // mockTheme.themeAppearance is 'light', so the bar resets to dark-content.
+      // The fallback theme is light, so the bar resets to dark-content.
       expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
     });
   });

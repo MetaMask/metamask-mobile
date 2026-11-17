@@ -110,7 +110,7 @@ describe('filterLowQualityTokens', () => {
     expect(filterLowQualityTokens(tokens)).toHaveLength(0);
   });
 
-  it('only filters out tokens missing symbol/name, keeps risky tokens', () => {
+  it('only filters out tokens missing symbol/name or manipulated volume, keeps other risky tokens', () => {
     const tokens = [
       buildToken({ symbol: 'GOOD', name: 'Good Token' }),
       buildToken({ symbol: '', name: 'No Ticker' }),
@@ -132,6 +132,75 @@ describe('filterLowQualityTokens', () => {
       'GOOD',
       'RISKY',
       'SAFE',
+    ]);
+  });
+
+  it('removes tokens whose security features include WASH_TRADING', () => {
+    const tokens = [
+      buildToken({
+        symbol: 'WASH',
+        securityData: {
+          resultType: 'Warning',
+          features: [
+            {
+              featureId: 'WASH_TRADING',
+              type: 'Warning',
+              description: 'Wash trading detected',
+            },
+          ],
+        } as TrendingAsset['securityData'],
+      }),
+      buildToken({ symbol: 'KEEP' }),
+    ];
+
+    expect(filterLowQualityTokens(tokens).map((t) => t.symbol)).toEqual([
+      'KEEP',
+    ]);
+  });
+
+  it('removes tokens whose security features include FAKE_VOLUME', () => {
+    const tokens = [
+      buildToken({
+        symbol: 'FAKE',
+        securityData: {
+          resultType: 'Warning',
+          features: [
+            {
+              featureId: 'FAKE_VOLUME',
+              type: 'Warning',
+              description: 'Fake volume detected',
+            },
+          ],
+        } as TrendingAsset['securityData'],
+      }),
+      buildToken({ symbol: 'KEEP' }),
+    ];
+
+    expect(filterLowQualityTokens(tokens).map((t) => t.symbol)).toEqual([
+      'KEEP',
+    ]);
+  });
+
+  it('keeps tokens with other security features', () => {
+    const tokens = [
+      buildToken({
+        symbol: 'UNSTABLE',
+        securityData: {
+          resultType: 'Warning',
+          features: [
+            {
+              featureId: 'UNSTABLE_TOKEN_PRICE',
+              type: 'Warning',
+              description:
+                'Tokens with limited liquidity in liquidity pools - could potentially become illiquid',
+            },
+          ],
+        } as TrendingAsset['securityData'],
+      }),
+    ];
+
+    expect(filterLowQualityTokens(tokens).map((t) => t.symbol)).toEqual([
+      'UNSTABLE',
     ]);
   });
 

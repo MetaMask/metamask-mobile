@@ -13,6 +13,10 @@ import {
   approveERC20Permit2TransactionStateMock,
   revokeERC20Permit2TransactionStateMock,
 } from '../__mocks__/approve-transaction-mock';
+import {
+  permit2TokenMock,
+  tokenAddressMock,
+} from '../__mocks__/controllers/transaction-controller-mock';
 import { TokenStandard } from '../types/token';
 import { ApproveMethod } from '../types/approve';
 import { ZERO_ADDRESS } from '../constants/address';
@@ -299,6 +303,7 @@ describe('useApproveTransactionData', () => {
         spender,
         amount,
         expiration,
+        token,
       } = result.current;
 
       expect(isLoading).toBe(false);
@@ -307,7 +312,28 @@ describe('useApproveTransactionData', () => {
       expect(approveMethod).toBe(ApproveMethod.PERMIT2_APPROVE);
       expect(spender).toBe(mockedSpender);
       expect(amount).toBe('100');
-      expect(expiration).toBe('1746696740463');
+      expect(expiration).toBe('1746696740');
+      expect(token).toBe(permit2TokenMock);
+    });
+
+    it('looks up the calldata token instead of txParams.to', () => {
+      renderHookWithProvider(() => useApproveTransactionData(), {
+        state: approveERC20Permit2TransactionStateMock,
+      });
+
+      expect(mockUseGetTokenStandardAndDetails).toHaveBeenCalledWith(
+        permit2TokenMock,
+        expect.any(String),
+      );
+      expect(mockUseGetTokenStandardAndDetails).not.toHaveBeenCalledWith(
+        tokenAddressMock,
+        expect.anything(),
+      );
+      expect(mockUseERC20TokenBalance).toHaveBeenCalledWith(
+        permit2TokenMock,
+        expect.any(String),
+        expect.any(String),
+      );
     });
 
     it('returns correct data revoking permit2 token', () => {
@@ -334,8 +360,31 @@ describe('useApproveTransactionData', () => {
       expect(approveMethod).toBe(ApproveMethod.PERMIT2_APPROVE);
       expect(spender).toBe(mockedSpender);
       expect(amount).toBe('0');
-      expect(expiration).toBe('1746696740463');
+      expect(expiration).toBe('1746696740');
     });
+
+    it.each([
+      [TokenStandard.ERC721, false],
+      [undefined, true],
+    ])(
+      'returns isRevoke for a zero permit2 amount with token standard %s as %s',
+      (standard, expectedIsRevoke) => {
+        mockUseGetTokenStandardAndDetails.mockReturnValue({
+          details: { standard, decimalsNumber: undefined },
+          isPending: false,
+        } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+
+        const { result } = renderHookWithProvider(
+          () => useApproveTransactionData(),
+          { state: revokeERC20Permit2TransactionStateMock },
+        );
+
+        expect(result.current.approveMethod).toBe(
+          ApproveMethod.PERMIT2_APPROVE,
+        );
+        expect(result.current.isRevoke).toBe(expectedIsRevoke);
+      },
+    );
   });
 
   describe('loading state', () => {
@@ -407,6 +456,39 @@ describe('useApproveTransactionData', () => {
       const { isLoading } = result.current;
 
       expect(isLoading).toBe(true);
+    });
+  });
+
+  describe('non-approval transaction data', () => {
+    it.each([
+      [
+        'a token transfer',
+        `0xa9059cbb000000000000000000000000${mockedSpender.slice(
+          2,
+        )}0000000000000000000000000000000000000000000000000000000000000064`,
+      ],
+      ['an unrecognised method', '0xd0e30db0'],
+    ])('returns no approve method for %s', (_title, data) => {
+      const clonedState = cloneDeep(approveERC20TransactionStateMock);
+
+      clonedState.engine.backgroundState.TransactionController.transactions[0].txParams.data =
+        data;
+
+      const { result } = renderHookWithProvider(
+        () => useApproveTransactionData(),
+        {
+          state: clonedState,
+        },
+      );
+
+      const { isLoading, approveMethod, isRevoke, spender, amount } =
+        result.current;
+
+      expect(isLoading).toBe(false);
+      expect(approveMethod).toBeUndefined();
+      expect(isRevoke).toBe(false);
+      expect(spender).toBeUndefined();
+      expect(amount).toBeUndefined();
     });
   });
 });

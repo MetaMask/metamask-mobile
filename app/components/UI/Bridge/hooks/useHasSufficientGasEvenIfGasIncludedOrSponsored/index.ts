@@ -1,8 +1,9 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isBitcoinChainId,
   isNonEvmChainId,
+  isNativeAddress,
+  sumAmounts,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
 import { ethers } from 'ethers';
@@ -25,7 +26,7 @@ interface Props {
 export const useHasSufficientGasEvenIfGasIncludedOrSponsored = ({
   quote,
 }: Props): boolean | null => {
-  const sourceChainId = quote?.quote.srcChainId;
+  const sourceChainId = quote?.chainId;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
   if (sourceChainId) {
@@ -45,11 +46,13 @@ export const useHasSufficientGasEvenIfGasIncludedOrSponsored = ({
     decimals: sourceChainNativeAsset?.decimals,
   });
 
-  // quote.gasFee.total.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
-  const gasAmount =
-    sourceChainId && isBitcoinChainId(sourceChainId)
-      ? (quote?.totalNetworkFee?.amount ?? quote?.gasFee?.total?.amount)
-      : quote?.gasFee?.total?.amount;
+  const gasAmount = sumAmounts(
+    quote?.quote?.feeData?.network,
+    quote?.quote?.feeData?.relayer,
+    quote?.quote?.src?.asset && !isNativeAddress(quote.quote.src.asset.assetId)
+      ? quote.quote.feeData.reserve
+      : undefined,
+  )?.normalizedAmount;
   const effectiveGasFee =
     isNumberValue(gasAmount) && gasAmount != null
       ? new BigNumber(gasAmount).toFixed()

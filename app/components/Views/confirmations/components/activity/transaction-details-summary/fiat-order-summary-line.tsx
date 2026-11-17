@@ -66,7 +66,7 @@ export function FiatOrderSummaryLine({
       title={title}
       subtitle={subtitle}
       severity={severity}
-      buttonIcon={fiatOrderId ? IconName.Export : undefined}
+      buttonIcon={fiatOrderId ? IconName.ArrowSquareOut : undefined}
       onButtonPress={fiatOrderId ? handleOrderDetailsPress : undefined}
     />
   );

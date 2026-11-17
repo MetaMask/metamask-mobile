@@ -37,7 +37,7 @@ import {
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
-import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
+import { showDepositErrorToast } from '../utils/predictErrorHandler';
 
 const showPendingToast = ({
   showToast,
@@ -149,15 +149,19 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
-  const isTransactionsRedesignEnabled = useSelector(
-    selectIsTransactionsRedesignEnabled,
-  );
   const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
   const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, senderAddress, transactionId, amount, marketId } =
-        payload as PredictTransactionStatusChangedPayload;
+      const {
+        type,
+        status,
+        senderAddress,
+        transactionId,
+        amount,
+        marketId,
+        isPostDepositOrderFailure,
+      } = payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
 
@@ -202,7 +206,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               navigateToTransactionDetails(navigation, {
                 transactionId,
                 initialTypeFilter: ActivityTypeFilter.Predictions,
-                isTransactionsRedesignEnabled,
                 ...(depositMeta?.chainId
                   ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
                   : {}),
@@ -232,20 +235,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
-          showErrorToast({
-            showToast,
-            title: strings('predict.deposit.error_title'),
-            description: strings('predict.deposit.error_description'),
-            ...(canRetry
-              ? {
-                  retryLabel: strings('predict.deposit.try_again'),
-                  onRetry: () => {
-                    deposit().catch(() => undefined);
-                  },
+          showDepositErrorToast(
+            canRetry
+              ? () => {
+                  deposit().catch(() => undefined);
                 }
-              : {}),
-            iconColor: theme.colors.error.default,
-          });
+              : undefined,
+          );
           return;
         }
 
@@ -400,6 +396,34 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
+          if (isPostDepositOrderFailure) {
+            const description =
+              typeof amount === 'number' && amount > 0
+                ? strings('predict.order.post_deposit_order_failed', {
+                    amount: formatPrice(amount, {
+                      minimumDecimals: 2,
+                      maximumDecimals: 2,
+                    }),
+                  })
+                : strings('predict.order.post_deposit_order_failed_fallback');
+
+            showToast({
+              variant: ToastVariants.Icon,
+              labelOptions: [
+                {
+                  label: strings('predict.order.prediction_not_placed'),
+                  isBold: true,
+                },
+                { label: '\n', isBold: false },
+                { label: description, isBold: false },
+              ],
+              iconName: IconName.Error,
+              iconColor: theme.colors.error.default,
+              hasNoTimeout: true,
+            });
+            return;
+          }
+
           // When the bottom-sheet flow is on and the provider is mounted,
           // the provider's state-based trigger (in PredictPreviewSheetContext)
           // surfaces a persistent Retry toast for the same error. Skip here
@@ -421,7 +445,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       bottomSheetEnabled,
       claim,
       deposit,
-      isTransactionsRedesignEnabled,
       navigation,
       normalizedSelectedAddress,
       queryClient,

@@ -5,6 +5,17 @@ import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { parseAccountsApiActivity } from '../utils/accountsApi';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import {
+  readCachedFirstPage,
+  writeCachedFirstPage,
+} from '../utils/moneyActivityCache';
+import { useMoneyActivityValuations } from './useMoneyActivityValuations';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
@@ -12,6 +23,11 @@ import type { AccountsApiActivity } from '../types/moneyActivity';
 
 jest.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: jest.fn(),
+  useQueries: jest.fn(),
+}));
+
+jest.mock('./useMoneyActivityValuations', () => ({
+  useMoneyActivityValuations: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -30,6 +46,16 @@ jest.mock('../../../../core/apiClient', () => ({
 jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
+jest.mock('../../../../util/trace', () => ({
+  annotateTrace: jest.fn(),
+  trace: jest.fn((_request, fn) => fn(undefined)),
+  TraceName: { MoneyActivityFetch: 'Money Activity Fetch' },
+  TraceOperation: { MoneyAccountDataFetch: 'money.account.data_fetch' },
+}));
+jest.mock('../utils/moneyActivityCache', () => ({
+  readCachedFirstPage: jest.fn(),
+  writeCachedFirstPage: jest.fn(),
+}));
 jest.mock('../utils/accountsApi', () => ({
   parseAccountsApiActivity: jest.fn(),
   oldestRawActivityTime: jest.fn(
@@ -44,6 +70,7 @@ jest.mock('../utils/accountsApi', () => ({
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
+const mockUseMoneyActivityValuations = jest.mocked(useMoneyActivityValuations);
 const mockGetQueryOptions = jest.mocked(
   apiClient.accounts.getV1AccountTransactionsQueryOptions,
 );
@@ -51,6 +78,10 @@ const mockFetchV1AccountTransactions = jest.mocked(
   apiClient.accounts.fetchV1AccountTransactions,
 );
 const mockParse = jest.mocked(parseAccountsApiActivity);
+const mockTrace = jest.mocked(trace);
+const mockAnnotateTrace = jest.mocked(annotateTrace);
+const mockReadCachedFirstPage = jest.mocked(readCachedFirstPage);
+const mockWriteCachedFirstPage = jest.mocked(writeCachedFirstPage);
 
 const ADDR_A = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const CASHBACK_MULTISEND_CONTRACTS = [
@@ -70,6 +101,11 @@ const CARD: AccountsApiActivity = {
   amount: '5381986',
   paidTo: '0xdef',
 };
+
+const PAGE_MOCK = {
+  data: [{ hash: '0xabc', timestamp: '2026-06-04T00:00:00.000Z' }],
+  pageInfo: { count: 1, hasNextPage: true, cursor: 'cursor-2' },
+} as unknown as Awaited<ReturnType<typeof mockFetchV1AccountTransactions>>;
 
 function setupSelectors(
   opts: {
@@ -94,7 +130,7 @@ function mockQueryResult(
 ) {
   mockUseInfiniteQuery.mockReturnValue({
     data: undefined,
-    isInitialLoading: false,
+    isLoading: false,
     isError: false,
     isFetchingNextPage: false,
     hasNextPage: undefined,
@@ -112,6 +148,10 @@ beforeEach(() => {
   );
   mockQueryResult();
   mockParse.mockReturnValue([]);
+  mockUseMoneyActivityValuations.mockReturnValue({
+    getDisplayAmount: () => undefined,
+    isSettling: false,
+  });
 });
 
 describe('useMoneyAccountApiActivity', () => {
@@ -150,18 +190,128 @@ describe('useMoneyAccountApiActivity', () => {
     );
   });
 
-  it('queryFn fetches the next page using the cursor pageParam', () => {
+  it('stays disabled when the caller has no activity to resolve', () => {
+    renderHook(() => useMoneyAccountApiActivity({ enabled: false }));
+
+    expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockReadCachedFirstPage).not.toHaveBeenCalled();
+    expect(mockUseMoneyActivityValuations).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('queryFn fetches the next page using the cursor pageParam', async () => {
+    mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
     renderHook(() => useMoneyAccountApiActivity());
     const { queryFn } = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
-      queryFn: (ctx: { pageParam?: string }) => unknown;
+      queryFn: (ctx: { pageParam?: string }) => Promise<unknown>;
     };
 
-    queryFn({ pageParam: 'cursor-1' });
+    await queryFn({ pageParam: 'cursor-1' });
 
     expect(mockFetchV1AccountTransactions).toHaveBeenCalledWith(ADDR_A, {
       chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
       sortDirection: 'DESC',
       cursor: 'cursor-1',
+    });
+  });
+
+  it('traces each page fetch, flagging the initial request', async () => {
+    mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
+    renderHook(() => useMoneyAccountApiActivity());
+    const { queryFn } = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+      queryFn: (ctx: { pageParam?: string }) => Promise<unknown>;
+    };
+
+    await queryFn({});
+    await queryFn({ pageParam: 'cursor-1' });
+
+    expect(mockTrace).toHaveBeenNthCalledWith(
+      1,
+      {
+        name: TraceName.MoneyActivityFetch,
+        op: TraceOperation.MoneyAccountDataFetch,
+        tags: { is_initial_page: true },
+      },
+      expect.any(Function),
+    );
+    expect(mockTrace).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ tags: { is_initial_page: false } }),
+      expect.any(Function),
+    );
+  });
+
+  it('annotates the page span with the row count and whether more remain', async () => {
+    mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
+    renderHook(() => useMoneyAccountApiActivity());
+    const { queryFn } = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+      queryFn: (ctx: { pageParam?: string }) => Promise<unknown>;
+    };
+
+    await queryFn({});
+
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
+      row_count: PAGE_MOCK.data.length,
+      has_next_page: true,
+    });
+  });
+
+  describe('disk cache', () => {
+    it('seeds the query from the cached first page, stamped with its write time', () => {
+      mockReadCachedFirstPage.mockReturnValue({
+        page: PAGE_MOCK,
+        cachedAt: 1_700_000_000_000,
+      });
+
+      renderHook(() => useMoneyAccountApiActivity());
+
+      const options = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+        initialData?: { pages: unknown[]; pageParams: unknown[] };
+        initialDataUpdatedAt?: number;
+      };
+      expect(options.initialData).toEqual({
+        pages: [PAGE_MOCK],
+        pageParams: [undefined],
+      });
+      expect(options.initialDataUpdatedAt).toBe(1_700_000_000_000);
+    });
+
+    it('leaves the query unseeded when nothing is cached', () => {
+      mockReadCachedFirstPage.mockReturnValue(undefined);
+
+      renderHook(() => useMoneyAccountApiActivity());
+
+      const options = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+        initialData?: unknown;
+        initialDataUpdatedAt?: number;
+      };
+      expect(options.initialData).toBeUndefined();
+      expect(options.initialDataUpdatedAt).toBeUndefined();
+    });
+
+    it('does not read the cache when there is no money account', () => {
+      setupSelectors({ account: undefined });
+
+      renderHook(() => useMoneyAccountApiActivity());
+
+      expect(mockReadCachedFirstPage).not.toHaveBeenCalled();
+    });
+
+    it('caches the initial page but not follow-up pages', async () => {
+      mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
+      renderHook(() => useMoneyAccountApiActivity());
+      const { queryFn } = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+        queryFn: (ctx: { pageParam?: string }) => Promise<unknown>;
+      };
+
+      await queryFn({});
+      await queryFn({ pageParam: 'cursor-1' });
+
+      expect(mockWriteCachedFirstPage).toHaveBeenCalledTimes(1);
+      expect(mockWriteCachedFirstPage).toHaveBeenCalledWith(ADDR_A, PAGE_MOCK);
     });
   });
 
@@ -215,12 +365,14 @@ describe('useMoneyAccountApiActivity', () => {
       page1,
       ADDR_A,
       CASHBACK_MULTISEND_CONTRACTS,
+      [],
     );
     expect(mockParse).toHaveBeenNthCalledWith(
       2,
       page2,
       ADDR_A,
       CASHBACK_MULTISEND_CONTRACTS,
+      [],
     );
     expect(result.current.activity).toEqual([CARD]);
   });
@@ -334,7 +486,7 @@ describe('useMoneyAccountApiActivity', () => {
   });
 
   it('reports loading only on the initial fetch and shows no rows', () => {
-    mockQueryResult({ isInitialLoading: true });
+    mockQueryResult({ isLoading: true });
 
     const { result } = renderHook(() => useMoneyAccountApiActivity());
 

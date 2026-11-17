@@ -14,7 +14,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
@@ -50,6 +49,15 @@ import {
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TAG,
 } from '../../constants/rampsBuyCufTags';
+import { setWalletHomeOnboardingFundFlowOrderAccepted } from '../../../WalletHomeOnboardingSteps/walletHomeOnboardingFundFlow';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const createRampsOrderDetailsNavDetails =
   createNavigationDetails<RampsOrderDetailsParams>(
@@ -62,6 +70,22 @@ const PENDING_STATUSES = new Set([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.Unknown,
 ]);
+
+/**
+ * Whether an order counts as funding for the Wallet Home onboarding Fund step: every status
+ * this screen shows as processing or complete.
+ *
+ * @param status - The order status shown.
+ * @returns `true` for pending and completed orders.
+ */
+export function isWalletHomeOnboardingFundFlowOrderAccepted(
+  status: RampsOrderStatus | undefined,
+): boolean {
+  return (
+    status !== undefined &&
+    (PENDING_STATUSES.has(status) || status === RampsOrderStatus.Completed)
+  );
+}
 
 /**
  * V2 order detail screen. Reads RampsOrder from controller state only.
@@ -78,6 +102,7 @@ const styles = StyleSheet.create({
 });
 
 const OrderDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder, getOrderFromCallback, addOrder } =
     useRampsOrders();
@@ -97,6 +122,14 @@ const OrderDetails = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasFetchedFromCallback = useRef(false);
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.ORDER_DETAILS,
+    contentReady: !isLoading && Boolean(order || error),
+    contentState: error
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const executeCallbackFetch = useCallback(
     async (
@@ -186,6 +219,17 @@ const OrderDetails = () => {
     );
   }, [navigation, trackEvent, createEventBuilder]);
 
+  // Synced from the order shown, not from Close, so every way of leaving counts.
+  const orderStatus = order?.status;
+  useEffect(() => {
+    if (!params.showCloseButton || orderStatus === undefined) {
+      return;
+    }
+    setWalletHomeOnboardingFundFlowOrderAccepted(
+      isWalletHomeOnboardingFundFlowOrderAccepted(orderStatus),
+    );
+  }, [orderStatus, params.showCloseButton]);
+
   const handleRetryCallbackFetch = useCallback(async () => {
     if (!params.callbackUrl || !params.providerCode || !params.walletAddress) {
       return;
@@ -263,12 +307,22 @@ const OrderDetails = () => {
     }
   }, [order, refreshOrder]);
 
+  // Preserve prior mount-only semantics: evaluate once on first effect run.
+  // Marking the ref before the condition matters — callback success clears
+  // callback params via setParams while the order may still be pending; if we
+  // only marked the ref when refreshing, that transition would spuriously
+  // call handleOnRefresh.
+  const hasAttemptedInitialPendingRefreshRef = useRef(false);
+
   useEffect(() => {
+    if (hasAttemptedInitialPendingRefreshRef.current) {
+      return;
+    }
+    hasAttemptedInitialPendingRefreshRef.current = true;
     if (isPending && !hasCallbackParams) {
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isPending, hasCallbackParams, handleOnRefresh]);
 
   useEffect(() => {
     if (
@@ -300,7 +354,9 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -323,7 +379,9 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -368,7 +426,9 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -384,7 +444,9 @@ const OrderDetails = () => {
   return (
     <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('ramps_order_details.title')}
           onBack={handleHeaderBack}
           backButtonProps={{

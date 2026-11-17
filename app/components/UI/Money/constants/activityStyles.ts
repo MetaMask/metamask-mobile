@@ -11,6 +11,7 @@ import {
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
 import { isPerpsPredictMoneyWithdraw } from '../utils/moneyTransactionGuards';
+import { decodeErc20Transfer } from '../../../../util/transactions/erc20-transfer';
 
 function formatNumber(num: number): string {
   return getIntlNumberFormatter(I18n.locale, {
@@ -46,49 +47,6 @@ export function getMoneyAmountPrefixForTransactionMeta(
     return '-';
   }
   return '+';
-}
-
-// `0x` + 8 hex chars selector + 64 hex chars (address) + 64 hex chars (uint256).
-export const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
-// `0x` + 8 hex chars selector + 3 × 64 hex chars (from, to, uint256).
-export const ERC20_TRANSFER_FROM_CALLDATA_LENGTH = 202;
-// Slot offsets into calldata (chars). 10 = `0x` + 8-char selector; each slot
-// is 64 chars (32 bytes). transfer: [recipient, amount]. transferFrom:
-// [from, to, amount].
-const TRANSFER_AMOUNT_START = 10 + 64;
-const TRANSFER_AMOUNT_END = 10 + 64 + 64;
-const TRANSFER_FROM_AMOUNT_START = 10 + 64 + 64;
-const TRANSFER_FROM_AMOUNT_END = 10 + 64 + 64 + 64;
-
-/**
- * Decoded ERC-20 transfer amount from calldata (decimal string), or
- * `undefined` if calldata is missing/truncated/non-hex. We slice the uint256
- * slot ourselves and parse with `BigInt` to avoid the precision loss in
- * `decodeTransferData`'s `parseInt(slot, 16)` (which truncates above 2^53).
- */
-function decodeErc20TransferAmount(
-  data: string | undefined,
-  type: EvmTransactionType | undefined,
-): string | undefined {
-  if (!data) return undefined;
-  let slot: string | undefined;
-  if (
-    type === EvmTransactionType.tokenMethodTransfer &&
-    data.length >= ERC20_TRANSFER_CALLDATA_LENGTH
-  ) {
-    slot = data.substring(TRANSFER_AMOUNT_START, TRANSFER_AMOUNT_END);
-  } else if (
-    type === EvmTransactionType.tokenMethodTransferFrom &&
-    data.length >= ERC20_TRANSFER_FROM_CALLDATA_LENGTH
-  ) {
-    slot = data.substring(TRANSFER_FROM_AMOUNT_START, TRANSFER_FROM_AMOUNT_END);
-  }
-  if (!slot) return undefined;
-  try {
-    return BigInt(`0x${slot}`).toString();
-  } catch {
-    return undefined;
-  }
 }
 
 export interface ResolvedMusdTransferMeta {
@@ -130,7 +88,7 @@ export function resolveMusdTransferMeta(
     isErc20TransferType &&
     isMusdOnMoneyAccountChain(tx.txParams?.to, tx.chainId)
   ) {
-    amount = amount ?? decodeErc20TransferAmount(tx.txParams?.data, tx.type);
+    amount = amount ?? decodeErc20Transfer(tx.txParams?.data, tx.type)?.amount;
     decimals = decimals ?? MUSD_DECIMALS;
     symbol = symbol ?? MUSD_TOKEN.symbol;
     contractAddress = contractAddress ?? tx.txParams?.to;
@@ -149,10 +107,8 @@ export function resolveMusdTransferMeta(
     if (nestedMusdTransfer) {
       amount =
         amount ??
-        decodeErc20TransferAmount(
-          nestedMusdTransfer.data,
-          nestedMusdTransfer.type,
-        );
+        decodeErc20Transfer(nestedMusdTransfer.data, nestedMusdTransfer.type)
+          ?.amount;
       decimals = decimals ?? MUSD_DECIMALS;
       symbol = symbol ?? MUSD_TOKEN.symbol;
       contractAddress = contractAddress ?? nestedMusdTransfer.to;

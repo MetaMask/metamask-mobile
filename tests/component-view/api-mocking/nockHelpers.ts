@@ -6,6 +6,11 @@
  * Usage:
  * - In your feature's setup (e.g. setupXxxApiMock): call nock.cleanAll() and
  * nock.disableNetConnect() before defining interceptors, then nock('<origin>').get(...).reply(...).persist().
+ * - When the caller uses global `fetch` (undici), also pass that same reply
+ * body to `stubFetchPath(origin, path, body)` from `./fetchStub`. A nock
+ * interceptor does not always settle undici, and a per-feature fetch spy
+ * drifts from the nock payload. `clearXxxMocks` should call
+ * `restoreFetchPath` for that target.
  * - In afterEach: call teardownNock() (or your feature's clearXxxMocks() which
  * should call it) so disableNetConnect does not leak to later suites in the
  * same Jest worker.

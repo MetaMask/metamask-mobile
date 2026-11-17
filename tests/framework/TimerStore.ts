@@ -108,6 +108,21 @@ class TimerStore {
     }));
   }
 
+  /**
+   * True when any timer has been started and not yet stopped.
+   *
+   * Used to disable AI locator recovery during measured intervals so model /
+   * screenshot latency cannot inflate recorded performance durations.
+   */
+  hasActiveTimer(): boolean {
+    for (const timer of this.timers.values()) {
+      if (timer.start !== null && timer.end === null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** Removes all timers from the store. */
   resetTimers(): void {
     this.timers.clear();

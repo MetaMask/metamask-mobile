@@ -1,26 +1,29 @@
 // Third party dependencies
 import React, { useCallback, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
 import { View } from 'react-native';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
 import UntypedEngine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextVariant,
   Button,
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface AccountPermissionsConfirmRevokeAllProps {
   route: {
@@ -36,6 +39,7 @@ interface AccountPermissionsConfirmRevokeAllProps {
 const AccountPermissionsConfirmRevokeAll = (
   props: AccountPermissionsConfirmRevokeAllProps,
 ) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     hostInfo: {
       metadata: { origin: hostname },
@@ -49,6 +53,11 @@ const AccountPermissionsConfirmRevokeAll = (
   const Engine = UntypedEngine as any;
 
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation<AppNavigationProp>();
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const revokeAllAccounts = useCallback(async () => {
     try {
@@ -70,11 +79,11 @@ const AccountPermissionsConfirmRevokeAll = (
   };
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View style={styles.container}>
-        <BottomSheetHeader>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader}>
           {strings('accounts.disconnect_all')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMd}>
             {strings('accounts.reconnect_notice', {

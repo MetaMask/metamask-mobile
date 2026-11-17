@@ -4,7 +4,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -27,7 +27,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -54,7 +54,7 @@ describe('MoneyHowItWorksView', () => {
       trackScreenViewed: mockTrackScreenViewed,
       trackButtonClicked: mockTrackButtonClicked,
     });
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+    (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: 4,
     });
   });
@@ -153,7 +153,7 @@ describe('MoneyHowItWorksView', () => {
   });
 
   it('renders the dash placeholder in description_1 when APY is unavailable', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+    (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: undefined,
     });
     const { getByTestId, getByText } = renderWithProvider(

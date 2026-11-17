@@ -239,6 +239,7 @@ describe('usePerpsTransactionHistory', () => {
 
     // Mock live fills hook (returns empty by default, tests can override)
     mockUsePerpsLiveFills.mockReturnValue({
+      retry: jest.fn(),
       fills: [],
       isInitialLoading: false,
     });
@@ -605,9 +606,10 @@ describe('usePerpsTransactionHistory', () => {
       );
 
       // Fills are enriched with detailedOrderType from matching orders
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        { ...mockFills[0], detailedOrderType: 'Market' },
-      ]);
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(
+        [{ ...mockFills[0], detailedOrderType: 'Market' }],
+        { aggregate: true },
+      );
       // Orders are passed with a fillSizeByOrderId Map for accurate filled percentage calculation
       expect(mockTransformOrdersToTransactions).toHaveBeenCalledWith(
         mockOrders,
@@ -858,6 +860,7 @@ describe('usePerpsTransactionHistory', () => {
       ).context.PerpsController = undefined;
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -878,6 +881,7 @@ describe('usePerpsTransactionHistory', () => {
       mockController.getActiveProviderOrNull.mockReturnValue(null);
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -900,6 +904,7 @@ describe('usePerpsTransactionHistory', () => {
       mockProvider.getOrderFills.mockRejectedValue(new Error('Fetch error'));
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -925,6 +930,7 @@ describe('usePerpsTransactionHistory', () => {
       mockProvider.getOrderFills.mockRejectedValue('String error');
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -1111,12 +1117,15 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        {
-          ...fillsWithoutDetailedType[0],
-          detailedOrderType: 'Take Profit',
-        },
-      ]);
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(
+        [
+          {
+            ...fillsWithoutDetailedType[0],
+            detailedOrderType: 'Take Profit',
+          },
+        ],
+        { aggregate: true },
+      );
     });
 
     it('leaves detailedOrderType as undefined when no matching order exists', async () => {
@@ -1159,12 +1168,15 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        {
-          ...fillsWithoutMatch[0],
-          detailedOrderType: undefined,
-        },
-      ]);
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(
+        [
+          {
+            ...fillsWithoutMatch[0],
+            detailedOrderType: undefined,
+          },
+        ],
+        { aggregate: true },
+      );
     });
 
     it('leaves detailedOrderType as undefined when matching order has no detailedOrderType', async () => {
@@ -1206,12 +1218,15 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        {
-          ...fills[0],
-          detailedOrderType: undefined,
-        },
-      ]);
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(
+        [
+          {
+            ...fills[0],
+            detailedOrderType: undefined,
+          },
+        ],
+        { aggregate: true },
+      );
     });
 
     it('enriches all fills from same order with matching detailedOrderType when order has multiple partial fills', async () => {
@@ -1279,11 +1294,14 @@ describe('usePerpsTransactionHistory', () => {
       });
 
       // mergedTransactions sorts fills descending by timestamp before transforming
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        { ...partialFills[2], detailedOrderType: 'Stop Loss' },
-        { ...partialFills[1], detailedOrderType: 'Stop Loss' },
-        { ...partialFills[0], detailedOrderType: 'Stop Loss' },
-      ]);
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(
+        [
+          { ...partialFills[2], detailedOrderType: 'Stop Loss' },
+          { ...partialFills[1], detailedOrderType: 'Stop Loss' },
+          { ...partialFills[0], detailedOrderType: 'Stop Loss' },
+        ],
+        { aggregate: true },
+      );
     });
 
     it('handles empty fills array', async () => {
@@ -1296,7 +1314,9 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([]);
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([], {
+        aggregate: true,
+      });
     });
 
     it('handles empty orders array', async () => {
@@ -1309,9 +1329,10 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        { ...mockFills[0], detailedOrderType: undefined },
-      ]);
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(
+        [{ ...mockFills[0], detailedOrderType: undefined }],
+        { aggregate: true },
+      );
     });
   });
 
@@ -1367,6 +1388,7 @@ describe('usePerpsTransactionHistory', () => {
       ]);
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [wsRawFill],
         isInitialLoading: false,
       });

@@ -68,6 +68,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     ReactActual.createElement(View, props);
 
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     HeaderStandard,
     Box: passthrough,
     BoxFlexDirection: { Row: 'row', Column: 'column' },
@@ -230,6 +234,7 @@ const dashboardWithTiers: VipDashboardState = {
     earned: 5_555_555,
     threshold: 7_777_777,
     percent: 71.4,
+    lifetimeQualifyingPoints: null,
   },
   tiers: [
     {
@@ -258,6 +263,7 @@ const dashboardWithTiers: VipDashboardState = {
     },
   ],
   localizedText: {
+    equityLifetimePointsDescription: 'Lifetime total: {points}',
     periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
     transactionsTitle: 'Transactions',

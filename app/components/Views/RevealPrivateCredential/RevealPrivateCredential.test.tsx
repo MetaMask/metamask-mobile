@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -10,10 +11,12 @@ import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
+import Routes from '../../../constants/navigation/Routes';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import Device from '../../../util/device';
+import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ExportCredentialsIds } from '../MultichainAccounts/AccountDetails/ExportCredentials.testIds';
 import {
@@ -22,10 +25,7 @@ import {
   SrpSecurityQuestionTwoSelectorsIDs,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Quiz/SRPQuiz/SrpQuizModal.testIds';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
 
@@ -53,6 +53,19 @@ const mockCreateEventBuilder = jest
 // Mock useAuthentication hook
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -432,6 +445,28 @@ describe('RevealPrivateCredential', () => {
       expect(getByText('Get started')).toBeOnTheScreen();
     });
 
+    it('centers the introduction description so wrapped translations stay aligned', () => {
+      const { getByText } = renderWithProviders(
+        <RevealPrivateCredential cancel={() => null} />,
+      );
+
+      expect(
+        getByText(
+          'To reveal your Secret Recovery Phrase, you need to correctly answer two questions',
+        ),
+      ).toHaveStyle({ textAlign: 'center' });
+    });
+
+    it('centers the header title so wrapped translations stay aligned', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential cancel={() => null} />,
+      );
+
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TITLE_ID),
+      ).toHaveStyle({ textAlign: 'center' });
+    });
+
     it('renders password entry after completing security quiz', async () => {
       // Mock biometrics to fail so password entry is shown
       mockReauthenticate.mockRejectedValue(
@@ -454,7 +489,7 @@ describe('RevealPrivateCredential', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders warning section with eye slash icon after completing quiz', async () => {
+    it('renders a danger BannerAlert after completing the quiz', async () => {
       // Mock biometrics to fail so warning section is shown
       mockReauthenticate.mockRejectedValue(
         new Error(
@@ -462,7 +497,7 @@ describe('RevealPrivateCredential', () => {
         ),
       );
 
-      const { getByTestId } = renderWithProviders(
+      const { getByTestId, getByText } = renderWithProviders(
         <RevealPrivateCredential cancel={() => null} />,
       );
 
@@ -470,6 +505,9 @@ describe('RevealPrivateCredential', () => {
 
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('reveal_credential.seed_phrase_warning_explanation')),
       ).toBeOnTheScreen();
     });
 
@@ -754,7 +792,7 @@ describe('RevealPrivateCredential', () => {
       });
 
       // Validate specific warning message for incorrect password
-      expect(getByText('Incorrect password')).toBeOnTheScreen();
+      expect(getByText('Incorrect password. Try again.')).toBeOnTheScreen();
     });
 
     it('accepts text input in password field and triggers tryUnlock on submit editing', async () => {
@@ -859,7 +897,7 @@ describe('RevealPrivateCredential', () => {
 
       // Validate specific unknown error message
       expect(
-        getByText("Couldn't unlock your account. Please try again."),
+        getByText("Couldn't unlock your account. Try again."),
       ).toBeOnTheScreen();
     });
 
@@ -1071,27 +1109,11 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('clipboard functionality', () => {
-    const mockShowToast = jest.fn();
-    const mockToastRef = {
-      current: { showToast: mockShowToast, closeToast: jest.fn() },
-    };
-
-    const renderWithClipboardProviders = (ui: React.ReactElement) =>
-      render(
-        <Provider store={store}>
-          <ThemeContext.Provider value={mockTheme}>
-            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              {ui}
-            </ToastContext.Provider>
-          </ThemeContext.Provider>
-        </Provider>,
-      );
-
     it('copies SRP to clipboard when copy button is pressed', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { getByTestId } = renderWithClipboardProviders(
+      const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential cancel={() => null} />,
       );
 
@@ -1120,7 +1142,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { getByTestId } = renderWithClipboardProviders(
+      const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential cancel={() => null} />,
       );
 
@@ -1141,16 +1163,11 @@ describe('RevealPrivateCredential', () => {
       fireEvent.press(copyButton);
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            variant: ToastVariants.Plain,
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: expect.any(String),
-              }),
-            ]),
-          }),
-        );
+        expect(toast).toHaveBeenCalledWith({
+          title: strings('reveal_credential.copied_to_clipboard'),
+          hasNoTimeout: false,
+          showCloseButton: false,
+        });
       });
     });
   });
@@ -1577,6 +1594,30 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('done action', () => {
+    it('returns to wallet home when done is pressed from Wallet Details', async () => {
+      mockRouteParams = { returnToWalletHomeOnDone: true };
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
+      const { getByTestId } = renderWithProviders(<RevealPrivateCredential />);
+
+      await completeSecurityQuiz(getByTestId);
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+          ),
+        ).toBeOnTheScreen();
+      });
+      const doneButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+      );
+      fireEvent.press(doneButton);
+
+      expect(mockNavigationReturn?.dispatch).toHaveBeenCalledWith(
+        StackActions.popTo(Routes.ONBOARDING.HOME_NAV),
+      );
+    });
+
     it('navigates back and tracks SRP_DONE_CTA when done is pressed after unlock', async () => {
       const mockCancel = jest.fn();
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });

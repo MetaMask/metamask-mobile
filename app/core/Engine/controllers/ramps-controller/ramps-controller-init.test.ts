@@ -9,6 +9,7 @@ import {
   type UserRegion,
 } from '@metamask/ramps-controller';
 import { rampsControllerInit } from './ramps-controller-init';
+import { handleAutorampTransactionStatusChangedForMetrics } from './event-handlers/vbaTransactionAnalytics';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 
@@ -237,6 +238,13 @@ describe('ramps controller init', () => {
         (event) => event === 'RampsController:orderStatusChanged',
       ),
     ).toBe(true);
+    expect(subscribedEvents).toHaveLength(2);
+    expect(jest.mocked(RampsController).mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        trackAutorampTransactionStatusChanged:
+          handleAutorampTransactionStatusChangedForMetrics,
+      }),
+    );
   });
 
   describe('when __DEV__ is true', () => {

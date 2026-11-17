@@ -5,21 +5,25 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   IconName,
   Text,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
-import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
+import {
+  usePredictLegacyDeposit,
+  usePredictLegacyDepositEligibility,
+} from '../../../PredictNext';
 import Logger from '../../../../../util/Logger';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
@@ -33,10 +37,14 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
-type TransferAction = 'withdraw' | 'perps' | 'predict';
+type TransferAction = 'withdraw' | 'perps' | 'predict' | 'rescueSend';
 
-const MoneyTransferSheet = () => {
+const MoneyTransferSheetContent = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -46,7 +54,29 @@ const MoneyTransferSheet = () => {
   const { isEnabled: isPredictEnabled, initiatePredictDeposit } =
     useMoneyPredictDeposit();
   const isPerpsEligible = useSelector(selectPerpsEligibility);
-  const { isEligible: isPredictEligible } = usePredictEligibility();
+  const isPredictEligible = usePredictLegacyDepositEligibility();
+  // The Predictions account transfer is the legacy Polymarket deposit. It is
+  // offered only while it is the Active Venue's deposit, and re-checked when a
+  // deferred transfer runs, since the Active Venue can change in between.
+  const {
+    isAvailable: isPredictDepositAvailable,
+    isAvailableNow: isPredictDepositAvailableNow,
+  } = usePredictLegacyDeposit();
+
+  // External mUSD send is available only for a settled balance containing
+  // liquid mUSD and no vmUSD-backed balance. Loading/error/missing values and
+  // mixed or vmUSD-only balances keep the row disabled.
+  const {
+    liquidMusd,
+    withdrawableMusd,
+    isBalanceLoading,
+    isBalanceFetchError,
+  } = useMoneyAccountBalance();
+  const isRescueSendAvailable =
+    !isBalanceLoading &&
+    !isBalanceFetchError &&
+    Boolean(liquidMusd?.gt(0)) &&
+    Boolean(withdrawableMusd?.isZero());
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
@@ -73,6 +103,16 @@ const MoneyTransferSheet = () => {
         initiate = initiatePerpsDeposit;
       } else if (action === 'predict') {
         initiate = initiatePredictDeposit;
+      } else if (action === 'rescueSend') {
+        // The rescue review is a full-screen route, not an initiator callback:
+        // close this sheet and push the review in the same tick so the
+        // transition matches the other rows' slide-over UX. Navigate to the
+        // root-stack screen by name — this sheet pops `MoneyModals` on close,
+        // so a nested screen name would have no navigator left to resolve it.
+        sheetRef.current?.onCloseBottomSheet(() => {
+          navigation.navigate(Routes.MONEY.MUSD_RESCUE_SEND);
+        });
+        return;
       }
       sheetRef.current?.onCloseBottomSheet(() => {
         initiate().catch((error: Error) => {
@@ -83,7 +123,12 @@ const MoneyTransferSheet = () => {
         });
       });
     },
-    [initiateWithdrawal, initiatePerpsDeposit, initiatePredictDeposit],
+    [
+      initiateWithdrawal,
+      initiatePerpsDeposit,
+      initiatePredictDeposit,
+      navigation,
+    ],
   );
 
   // A leftover unapproved transaction would be picked up by the confirmation
@@ -107,9 +152,21 @@ const MoneyTransferSheet = () => {
     if (!deferredAction || hasPendingTransaction) {
       return;
     }
+    // The Active Venue may have changed while the rejection cleared. A stale
+    // Predictions transfer is dropped and the sheet stays open, no longer
+    // offering it.
+    if (deferredAction === 'predict' && !isPredictDepositAvailableNow()) {
+      setDeferredAction(null);
+      return;
+    }
     closeAndStart(deferredAction);
     setDeferredAction(null);
-  }, [deferredAction, hasPendingTransaction, closeAndStart]);
+  }, [
+    deferredAction,
+    hasPendingTransaction,
+    closeAndStart,
+    isPredictDepositAvailableNow,
+  ]);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -144,6 +201,15 @@ const MoneyTransferSheet = () => {
     startAction('predict');
   }, [startAction, trackSurfaceClicked]);
 
+  const handleSendExternal = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_SEND_EXTERNAL,
+      redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+    });
+
+    startAction('rescueSend');
+  }, [startAction, trackSurfaceClicked]);
+
   const options: MoneySheetOption[] = [
     {
       label: strings('money.transfer_sheet.between_accounts'),
@@ -162,7 +228,7 @@ const MoneyTransferSheet = () => {
           },
         ]
       : []),
-    ...(isPredictEligible
+    ...(isPredictEligible && isPredictDepositAvailable
       ? [
           {
             label: strings('money.transfer_sheet.predictions_account'),
@@ -173,13 +239,19 @@ const MoneyTransferSheet = () => {
           },
         ]
       : []),
-    {
-      label: strings('money.transfer_sheet.send_external'),
-      icon: IconName.Arrow2Up,
-      testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
-      disabled: true,
-      comingSoon: true,
-    },
+    ...(isRescueSendAvailable
+      ? [
+          {
+            label: strings('money.transfer_sheet.back_to_account'),
+            icon: IconName.Arrow2UpRight,
+            // The design system has no up-left arrow: the up-right "send" arrow is
+            // mirrored horizontally to point up-left ("send back").
+            iconProps: { style: { transform: [{ scaleX: -1 }] } },
+            testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
+            onPress: handleSendExternal,
+          },
+        ]
+      : []),
     {
       label: strings('money.transfer_sheet.withdraw_to_bank'),
       icon: IconName.Bank,
@@ -196,16 +268,29 @@ const MoneyTransferSheet = () => {
       testID={MoneyTransferSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.transfer_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.list}>
         <MoneySheetOptionsList options={options} />
       </View>
     </BottomSheet>
   );
+};
+
+const MoneyTransferSheet = () => {
+  const isMoneyAccountAccessible = useMoneyAccountAccessRedirect();
+
+  if (!isMoneyAccountAccessible) {
+    return null;
+  }
+
+  return <MoneyTransferSheetContent />;
 };
 
 export default MoneyTransferSheet;

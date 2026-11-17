@@ -5,7 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import type { Position } from '@metamask/perps-controller';
+import type { Position, PriceUpdate } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -14,6 +14,8 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { resetPerpsCloseLocksForTests } from '../../hooks/usePerpsClosePosition';
+import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
@@ -26,9 +28,83 @@ import type { RootState } from '../../../../../reducers';
 
 const TIMEOUT_MS = 5000;
 
+/** A 0.145% close fee quote (protocol 0.045% + MetaMask 0.1%). */
+const quoteCloseFee = () =>
+  (Engine.context.PerpsController.calculateFees as jest.Mock).mockResolvedValue(
+    {
+      feeRate: 0.00145,
+      feeAmount: 0,
+      protocolFeeRate: 0.00045,
+      protocolFeeAmount: 0,
+      metamaskFeeRate: 0.001,
+      metamaskFeeAmount: 0,
+    },
+  );
+
+const emitEthPrice = (
+  stream: { emitPrices: (prices: Record<string, PriceUpdate>) => void },
+  price: string,
+) =>
+  act(() => {
+    stream.emitPrices({
+      ETH: { symbol: 'ETH', price, timestamp: Date.now(), isTradable: true },
+    });
+  });
+
+const POST_ONLY_WINDOW_ERROR =
+  'order 0: Only post-only orders allowed immediately after network upgrade';
+
+const limitCloseEnabledOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          perpsClosePositionLimitOrderEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+const selectMidLimitClosePrice = async () => {
+  fireEvent.press(
+    await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW,
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    ),
+  );
+};
+
 describe('PerpsClosePositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // A filled close stays locked until the stream updates, which these
+    // fixtures never do; reset so each test starts unlocked.
+    resetPerpsCloseLocksForTests();
+    // The form reopens on the last Market/Limit choice for the session.
+    resetLastCloseOrderType();
+    // The close waits for a fee quote, so every test starts with one.
+    quoteCloseFee();
   });
 
   it('submits a market close for a long position with custom take profit', async () => {
@@ -82,6 +158,52 @@ describe('PerpsClosePositionView', () => {
         }),
       );
     });
+  });
+
+  it('sends one close order when confirm is double-tapped', async () => {
+    const position = createLongPositionForViews();
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+
+    const { stream } = renderPerpsClosePositionView({
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    act(() => {
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2500',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+    });
+
+    const confirmButton = await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    // One act: both taps land before the first re-render disables the button.
+    act(() => {
+      fireEvent.press(confirmButton);
+      fireEvent.press(confirmButton);
+    });
+
+    await waitFor(() => {
+      expect(closePosition).toHaveBeenCalled();
+    });
+    expect(closePosition).toHaveBeenCalledTimes(1);
   });
 
   it('uses the latest live position when take profit partially fills before manual close', async () => {
@@ -233,7 +355,7 @@ describe('PerpsClosePositionView', () => {
       stream.emitPrices({
         ETH: {
           symbol: 'ETH',
-          price: '2500',
+          price: '2650',
           timestamp: Date.now(),
           isTradable: true,
         },
@@ -261,10 +383,12 @@ describe('PerpsClosePositionView', () => {
             source: 'position_screen',
             entryPoint: 'position_screen',
             inputMethod: 'default',
-            marketPrice: 2500,
+            marketPrice: 2650,
+            // Core estimateCloseReceive at 2650: PnL (2650 - 2500) × 1, margin
+            // without its unrealized PnL plus that PnL, less the 0.145% fee
             realizedPnl: 150,
-            receivedAmount: 833.33,
-            totalFee: expect.any(Number),
+            receivedAmount: 829.49,
+            totalFee: 3.8425,
             metamaskFee: expect.any(Number),
           }),
         }),
@@ -293,7 +417,7 @@ describe('PerpsClosePositionView', () => {
       stream.emitPrices({
         ETH: {
           symbol: 'ETH',
-          price: '2500',
+          price: '2650',
           timestamp: Date.now(),
           isTradable: true,
         },
@@ -329,6 +453,107 @@ describe('PerpsClosePositionView', () => {
         }),
       );
     });
+  });
+
+  it('shows Core receive for a winning cross position, keeping its margin', async () => {
+    const position = createLongPositionForViews({
+      unrealizedPnl: '150',
+      leverage: { value: 3, type: 'cross' },
+    });
+
+    const { stream } = renderPerpsClosePositionView({
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+    emitEthPrice(stream, '2650');
+
+    // Cross margin is taken as reported (833.33), plus the PnL at 2650 (150),
+    // less the 0.145% fee (3.8425 → 3.84). The pre-Core formula subtracted
+    // the unrealized PnL here and showed $829.49.
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE),
+      ).toHaveTextContent('$979.49');
+    });
+    expect(
+      screen.getByTestId(PerpsClosePositionViewSelectorsIDs.MARGIN_VALUE),
+    ).toHaveTextContent('$983.33');
+  });
+
+  it('estimates a partial close on the size the order sends, rounded to the market decimals', async () => {
+    const position = createLongPositionForViews({
+      size: '0.33',
+      marginUsed: '275',
+      unrealizedPnl: '49.5',
+      positionValue: '825',
+      leverage: { value: 3, type: 'cross' },
+    });
+
+    const { stream } = renderPerpsClosePositionView({
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+    emitEthPrice(stream, '2650');
+
+    fireEvent.press(
+      await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+    );
+    fireEvent.press(screen.getByText('50%'));
+    fireEvent.press(screen.getByText(strings('perps.deposit.done_button')));
+
+    // ETH sizes have 2 decimals, so half of 0.33 sends 0.17, not 0.165:
+    // margin 275 × 0.17 / 0.33 plus PnL 150 × 0.17, less the fee on 0.17
+    // at 2650. On the unrounded 0.165 it would read $161.62.
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE),
+      ).toHaveTextContent('$166.52');
+    });
+  });
+
+  it('shows the receive amount as unavailable and holds the close until the fee is quoted', async () => {
+    (Engine.context.PerpsController.calculateFees as jest.Mock).mockReturnValue(
+      new Promise(() => undefined),
+    );
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+    const position = createLongPositionForViews({ unrealizedPnl: '150' });
+
+    const { stream } = renderPerpsClosePositionView({
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+    emitEthPrice(stream, '2650');
+
+    expect(
+      await screen.findByTestId(
+        PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toHaveTextContent('--');
+
+    // An unquoted fee would be tracked as 0, so the close waits for the quote.
+    const confirmButton = screen.getByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
+
+    fireEvent.press(confirmButton);
+
+    expect(confirmButton).toBeDisabled();
+    expect(closePosition).not.toHaveBeenCalled();
   });
 
   it('forwards the limit order type to closePosition when a limit close is submitted', async () => {
@@ -421,4 +646,84 @@ describe('PerpsClosePositionView', () => {
       );
     });
   });
+
+  it.each(['market', 'limit'] as const)(
+    'explains the post-only network-upgrade window when a %s close is rejected',
+    async (orderType) => {
+      const closePosition = Engine.context.PerpsController
+        .closePosition as jest.Mock;
+      closePosition.mockResolvedValueOnce({
+        success: false,
+        error: POST_ONLY_WINDOW_ERROR,
+      });
+      const position = createLongPositionForViews();
+
+      const { stream } = renderPerpsClosePositionView({
+        includeToasts: true,
+        initialParams: { position },
+        streamOverrides: {
+          account: createFundedAccountForViews('10000'),
+          positions: [position],
+          marketData: [createEthMarketForViews()],
+        },
+        overrides: limitCloseEnabledOverrides,
+      });
+
+      act(() => {
+        stream.emitPrices({
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+
+      if (orderType === 'limit') {
+        await selectMidLimitClosePrice();
+      }
+
+      const confirmButton = await screen.findByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      await waitFor(() => {
+        expect(confirmButton).not.toBeDisabled();
+      });
+
+      // The close hook rethrows after showing its failure toast.
+      await act(async () => {
+        await expect(fireEvent.press(confirmButton)).rejects.toThrow(
+          strings('perps.errors.postOnlyWindow'),
+        );
+      });
+
+      expect(
+        await screen.findByText(
+          strings('perps.errors.postOnlyWindow'),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(closePosition).toHaveBeenCalledWith(
+        expect.objectContaining({ orderType }),
+      );
+      expect(
+        screen.getByText(
+          strings('perps.close_position.failed_to_close_position'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          strings('perps.close_position.your_position_is_still_active'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryAllByText(/only post-only orders allowed/i),
+      ).toHaveLength(0);
+      expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
+    },
+  );
 });

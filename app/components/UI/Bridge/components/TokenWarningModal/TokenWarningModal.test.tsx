@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { TokenWarningModal } from './index';
 import { TokenWarningModalMode } from './constants';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -28,16 +31,12 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn().mockReturnValue(undefined),
-}));
-
 jest.mock('../../hooks/useBridgeConfirm', () => ({
   useBridgeConfirm: jest.fn(),
 }));
 
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -56,40 +55,22 @@ jest.mock('../../../../../util/remoteFeatureFlag', () => ({
 }));
 
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useSelector } from 'react-redux';
 import {
-  selectSourceToken,
   selectDestToken,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Hex } from '@metamask/utils';
 
-const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
-  typeof useLatestBalance
->;
-const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
-  typeof useBridgeConfirm
->;
-const mockUseBridgeQuoteData = useBridgeQuoteData as jest.MockedFunction<
-  typeof useBridgeQuoteData
->;
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseParams = jest.mocked(useParams);
+const mockUseBridgeConfirm = jest.mocked(useBridgeConfirm);
+const mockUseBridgeQuoteData = jest.mocked(useBridgeQuoteDataContext);
+const mockUseSelector = jest.mocked(useSelector);
 
 const mockConfirmBridge = jest.fn();
-
-const mockSourceToken = {
-  address: '0xabc',
-  decimals: 18,
-  chainId: '0x1' as Hex,
-  symbol: 'ETH',
-  name: 'Ether',
-  image: '',
-};
 
 const mockDestToken = {
   address: '0xdef',
@@ -106,8 +87,27 @@ const mockBridgeFeatureFlags = {
 
 const mockActiveQuote = {
   quote: {
-    priceData: { priceImpact: '0.05' }, // below error threshold by default
+    priceData: { priceImpact: { amount: '0.05' } }, // below error threshold by default
   },
+} as unknown as QuoteResponse;
+
+const defaultBridgeQuoteData: ReturnType<typeof useBridgeQuoteDataContext> = {
+  bestQuote: null,
+  quoteFetchError: null,
+  activeQuote: undefined,
+  quotesLoadingStatus: null,
+  destTokenAmount: undefined,
+  isLoading: false,
+  formattedQuoteData: undefined,
+  isNoQuotesAvailable: false,
+  willRefresh: false,
+  isExpired: false,
+  blockaidError: null,
+  shouldShowPriceImpactWarning: false,
+  shouldShowPriceImpactError: false,
+  validQuotes: [],
+  needsNewQuote: false,
+  isActiveQuoteForCurrentTokenPair: false,
 };
 
 const mockFeatures = [
@@ -139,13 +139,12 @@ describe('TokenWarningModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(defaultWarningParams);
-    mockUseLatestBalance.mockReturnValue(undefined);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
     mockUseBridgeQuoteData.mockReturnValue({
+      ...defaultBridgeQuoteData,
       activeQuote: mockActiveQuote,
-    } as ReturnType<typeof useBridgeQuoteData>);
+    });
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSourceToken) return mockSourceToken;
       if (selector === selectDestToken) return mockDestToken;
       if (selector === selectBridgeFeatureFlags) return mockBridgeFeatureFlags;
       return undefined;
@@ -243,6 +242,10 @@ describe('TokenWarningModal', () => {
       mockUseParams.mockReturnValue({
         ...defaultWarningParams,
         warningType: SecurityDataType.Malicious,
+        features: mockFeatures.map((feature) => ({
+          ...feature,
+          type: SecurityDataType.Malicious,
+        })),
       });
     });
 
@@ -323,6 +326,18 @@ describe('TokenWarningModal', () => {
       expect(queryByText(strings('bridge.proceed'))).toBeNull();
       expect(queryByText(strings('bridge.cancel'))).toBeNull();
     });
+
+    it('does not read quote data, so it can open outside the Bridge providers', () => {
+      mockUseParams.mockReturnValue({
+        ...defaultWarningParams,
+        mode: TokenWarningModalMode.Info,
+      });
+
+      renderModal();
+
+      expect(mockUseBridgeQuoteData).not.toHaveBeenCalled();
+      expect(mockUseBridgeConfirm).not.toHaveBeenCalled();
+    });
   });
 
   describe('handleClose', () => {
@@ -351,6 +366,21 @@ describe('TokenWarningModal', () => {
   });
 
   describe('handleProceed', () => {
+    it('calls onProceed instead of the Bridge quote checks and confirm when provided', async () => {
+      const onProceed = jest.fn().mockResolvedValue(undefined);
+      mockUseParams.mockReturnValue({ ...defaultWarningParams, onProceed });
+
+      const { getByTestId } = renderModal();
+      fireEvent.press(getByTestId('footer-secondary-button'));
+
+      await waitFor(() => {
+        expect(onProceed).toHaveBeenCalledTimes(1);
+      });
+      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockUseBridgeQuoteData).not.toHaveBeenCalled();
+      expect(mockUseBridgeConfirm).not.toHaveBeenCalled();
+    });
+
     it('calls confirmBridge when price impact is below threshold', async () => {
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -365,7 +395,7 @@ describe('TokenWarningModal', () => {
         activeQuote: {
           quote: { priceData: { priceImpact: undefined } },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -386,7 +416,7 @@ describe('TokenWarningModal', () => {
         activeQuote: {
           quote: { priceData: undefined },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -402,12 +432,15 @@ describe('TokenWarningModal', () => {
       expect(mockConfirmBridge).not.toHaveBeenCalled();
     });
 
-    it('navigates to PriceImpactModal when price impact meets error threshold', async () => {
+    it('navigates to PriceImpactModal when shouldShowPriceImpactError is true', async () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.25' } }, // exactly at threshold
+          quote: {
+            priceData: { priceImpact: { amount: '0.25' } }, // exactly at threshold
+          },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+        shouldShowPriceImpactError: true,
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -417,19 +450,21 @@ describe('TokenWarningModal', () => {
           Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
           {
             type: PriceImpactModalType.Execution,
-            token: mockSourceToken,
             location: MetaMetricsSwapsEventSource.MainView,
           },
         );
       });
     });
 
-    it('does not call confirmBridge when price impact exceeds threshold', async () => {
+    it('does not call confirmBridge when shouldShowPriceImpactError is true', async () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.90' } },
+          quote: {
+            priceData: { priceImpact: { amount: '0.90' } },
+          },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+        shouldShowPriceImpactError: true,
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -443,7 +478,6 @@ describe('TokenWarningModal', () => {
     it('uses the feature flag threshold over the AppConstants fallback', async () => {
       // Feature flag sets error threshold to 0.50 — a 0.40 impact should NOT trigger the modal
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectSourceToken) return mockSourceToken;
         if (selector === selectDestToken) return mockDestToken;
         if (selector === selectBridgeFeatureFlags)
           return { priceImpactThreshold: { error: 0.5, warning: 0.05 } };
@@ -451,9 +485,11 @@ describe('TokenWarningModal', () => {
       });
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.40' } },
+          quote: {
+            priceData: { priceImpact: { amount: '0.40' } },
+          },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));

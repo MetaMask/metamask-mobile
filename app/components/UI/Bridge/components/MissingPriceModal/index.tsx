@@ -1,14 +1,11 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { selectSourceToken } from '../../../../../core/redux/slices/bridge';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -35,15 +32,7 @@ export const MissingPriceModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
   const { location } = useParams<MissingPriceModalParams>();
-  const sourceToken = useSelector(selectSourceToken);
-  const tokenBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
-  const { activeQuote } = useBridgeQuoteData({
-    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
-  });
+  const { activeQuote } = useBridgeQuoteDataContext();
 
   const confirmBridge = useBridgeConfirm({
     activeQuote,

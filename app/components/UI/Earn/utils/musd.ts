@@ -2,7 +2,6 @@
  * mUSD utility functions for Earn namespace
  */
 
-import { Interface } from '@ethersproject/abi';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
@@ -13,11 +12,6 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
 } from '../constants/musd';
-import { getClaimedAmountFromContract } from '../components/MerklRewards/merkl-client';
-import {
-  DISTRIBUTOR_CLAIM_ABI,
-  MERKL_DISTRIBUTOR_ADDRESS,
-} from '../components/MerklRewards/constants';
 
 /**
  * Parameters for checking if a transaction is a mUSD claim for the current view.
@@ -130,115 +124,12 @@ export function convertMusdClaimAmount({
   };
 }
 
-/**
- * Result of resolving the unclaimed amount for a Merkl claim transaction.
- */
-export interface GetUnclaimedAmountForMerklClaimTxResult {
-  /** Total cumulative reward (raw base units) from tx calldata */
-  totalAmountRaw: string;
-  /** Unclaimed amount (total - claimed from contract) in raw base units */
-  unclaimedRaw: string;
-  /** True if the contract call succeeded; false if it failed (caller may omit claimed decimal from analytics) */
-  contractCallSucceeded: boolean;
-  /** Set when contractCallSucceeded is false, for caller to log */
-  error?: Error;
-}
-
-/**
- * Resolve the unclaimed amount for a Merkl mUSD claim transaction.
- * Decodes tx calldata, reads already-claimed from the Merkl distributor contract,
- * and returns total and unclaimed raw amounts.
- *
- * @param txData - Transaction data hex string (txParams.data)
- * @param chainId - Chain ID for the contract call
- * @returns Result with totalAmountRaw, unclaimedRaw, and contractCallSucceeded, or null if decoding fails
- */
-export async function getUnclaimedAmountForMerklClaimTx(
-  txData: string | undefined,
-  chainId: Hex,
-): Promise<GetUnclaimedAmountForMerklClaimTxResult | null> {
-  const claimParams = decodeMerklClaimParams(txData);
-  if (!claimParams) {
-    return null;
-  }
-
-  const totalAmountRaw = claimParams.totalAmount;
-  const totalBigInt = BigInt(totalAmountRaw);
-
-  try {
-    const claimedAmount = await getClaimedAmountFromContract(
-      claimParams.userAddress,
-      claimParams.tokenAddress as Hex,
-      chainId,
-    );
-    const claimedBigInt = BigInt(claimedAmount ?? '0');
-    const unclaimedRaw =
-      totalBigInt > claimedBigInt
-        ? (totalBigInt - claimedBigInt).toString()
-        : '0';
-    return {
-      totalAmountRaw,
-      unclaimedRaw,
-      contractCallSucceeded: true,
-    };
-  } catch (error) {
-    return {
-      totalAmountRaw,
-      unclaimedRaw: totalAmountRaw,
-      contractCallSucceeded: false,
-      error: error instanceof Error ? error : new Error(String(error)),
-    };
-  }
-}
-
-/**
- * Decoded Merkl claim transaction parameters
- */
-export interface MerklClaimParams {
-  /** Total cumulative reward amount (raw, in base units) */
-  totalAmount: string;
-  /** User address */
-  userAddress: string;
-  /** Reward token address */
-  tokenAddress: string;
-}
-
-/**
- * Decode all parameters from a Merkl claim transaction data.
- * The claim function signature is: claim(address[] users, address[] tokens, uint256[] amounts, bytes32[][] proofs)
- *
- * @param data - The transaction data hex string
- * @returns Decoded claim parameters, or null if decoding fails
- */
-export function decodeMerklClaimParams(
-  data: string | undefined,
-): MerklClaimParams | null {
-  if (!data || typeof data !== 'string') {
-    return null;
-  }
-
-  try {
-    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-    const decoded = contractInterface.decodeFunctionData('claim', data);
-    const [users, tokens, amounts] = decoded;
-
-    if (!users?.length || !tokens?.length || !amounts?.length) {
-      return null;
-    }
-
-    return {
-      totalAmount: amounts[0].toString(),
-      userAddress: users[0],
-      tokenAddress: tokens[0],
-    };
-  } catch {
-    return null;
-  }
-}
-
 // ERC-20 Transfer(address,address,uint256) event topic
 const ERC20_TRANSFER_TOPIC =
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+// Merkl distributor contract that emits the mUSD Transfer on claim
+const MERKL_DISTRIBUTOR_ADDRESS = '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae';
 
 /**
  * Log entry from a transaction receipt.

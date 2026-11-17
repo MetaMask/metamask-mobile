@@ -22,9 +22,6 @@ jest.mock('../../../../core/Engine', () => ({
       unhideAsset: jest.fn(),
       removeCustomAsset: jest.fn(),
     },
-    MultichainAssetsController: {
-      addAssets: jest.fn(),
-    },
   },
 }));
 
@@ -337,7 +334,7 @@ describe('useAssetVisibility', () => {
       expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
     });
 
-    it('calls unhideAsset AND MultichainAssetsController.addAssets when non-EVM token is in allIgnoredNonEvmAssets', () => {
+    it('calls unhideAsset for a non-EVM token in allIgnoredNonEvmAssets', () => {
       setupSelectors({
         // Solana ignored assets are keyed by the Solana account ID
         allIgnoredNonEvmAssets: { [SOL_ACCOUNT_ID]: [SOL_ASSET_ID] },
@@ -347,25 +344,6 @@ describe('useAssetVisibility', () => {
       expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
         SOL_ASSET_ID,
       );
-      // addAssets must be called with the Solana account ID, not the EVM one
-      expect(
-        Engine.context.MultichainAssetsController.addAssets,
-      ).toHaveBeenCalledWith([SOL_ASSET_ID], SOL_ACCOUNT_ID);
-    });
-
-    it('calls unhideAsset but NOT addAssets when unhiding an EVM token (not in non-EVM ignored list)', () => {
-      setupSelectors({
-        assetPreferences: { [EVM_ASSET_ID]: { hidden: true } },
-        allIgnoredNonEvmAssets: {},
-      });
-      const { result } = renderHook(() => useAssetVisibility(evmToken()));
-      act(() => result.current.handleHideToken());
-      expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
-        EVM_ASSET_ID,
-      );
-      expect(
-        Engine.context.MultichainAssetsController.addAssets,
-      ).not.toHaveBeenCalled();
     });
 
     it('calls removeCustomAsset only when custom asset has no balance entry', () => {
@@ -540,6 +518,80 @@ describe('useAssetVisibility', () => {
       expect(
         Engine.context.AssetsController.addCustomAsset,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('memo inputs', () => {
+    const stableScope = jest.fn((scope: string) => {
+      if (scope === SOL_CHAIN_CAIP) {
+        return { id: SOL_ACCOUNT_ID };
+      }
+      return { id: ACCOUNT_ID };
+    });
+
+    function setupStableScope(): void {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedInternalAccountId) return ACCOUNT_ID;
+        if (selector === selectSelectedInternalAccountByScope)
+          return stableScope;
+        if (selector === getCustomAssets) return {};
+        if (selector === getAssetsBalance) return {};
+        if (selector === getAssetPreferences) return {};
+        if (selector === selectMultichainAssetsAllIgnoredAssets) return {};
+        return undefined;
+      });
+    }
+
+    beforeEach(() => {
+      stableScope.mockClear();
+    });
+
+    it('does not re-resolve the account when only the asset object identity changes', () => {
+      setupStableScope();
+      const { result, rerender } = renderHook(
+        ({ token }: { token: TokenI }) => useAssetVisibility(token),
+        { initialProps: { token: evmToken() } },
+      );
+
+      expect(result.current.assetId).toBe(EVM_ASSET_ID);
+      const scopeCalls = stableScope.mock.calls.length;
+
+      rerender({ token: evmToken() });
+
+      expect(stableScope).toHaveBeenCalledTimes(scopeCalls);
+      expect(result.current.assetId).toBe(EVM_ASSET_ID);
+    });
+
+    it('re-resolves the account when the asset chainId changes', () => {
+      setupStableScope();
+      const { rerender } = renderHook(
+        ({ token }: { token: TokenI }) => useAssetVisibility(token),
+        { initialProps: { token: evmToken() } },
+      );
+      const scopeCalls = stableScope.mock.calls.length;
+
+      rerender({ token: evmToken('0x89') });
+
+      expect(stableScope.mock.calls.length).toBeGreaterThan(scopeCalls);
+    });
+
+    it('updates the asset id when the address changes and keeps the account lookup', () => {
+      setupStableScope();
+      const { result, rerender } = renderHook(
+        ({ token }: { token: TokenI }) => useAssetVisibility(token),
+        { initialProps: { token: evmToken() } },
+      );
+      const scopeCalls = stableScope.mock.calls.length;
+      const nextAddress = '0x0000000000000000000000000000000000000001';
+
+      rerender({
+        token: { ...evmToken(), address: nextAddress },
+      });
+
+      expect(stableScope).toHaveBeenCalledTimes(scopeCalls);
+      expect(result.current.assetId).toBe(
+        `${EVM_CHAIN_CAIP}/erc20:${nextAddress}`,
+      );
     });
   });
 });

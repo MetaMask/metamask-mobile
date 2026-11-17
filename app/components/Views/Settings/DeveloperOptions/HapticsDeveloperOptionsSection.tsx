@@ -38,11 +38,13 @@ async function runUngated(play: () => Promise<void>): Promise<void> {
  */
 const CATALOG_IMPACT_MOMENTS_ORDERED: readonly HapticImpactMoment[] = [
   ImpactMoment.QuickAmountSelection,
+  ImpactMoment.KeypadKey,
   ImpactMoment.SliderTick,
   ImpactMoment.EdgeGestureEngage,
   ImpactMoment.PageNavigation,
   ImpactMoment.SliderGrip,
   ImpactMoment.TabChange,
+  ImpactMoment.SecondaryCTA,
   ImpactMoment.PrimaryCTA,
   ImpactMoment.PullToRefreshEngage,
   ImpactMoment.PullToRefresh,
@@ -53,6 +55,8 @@ const CATALOG_IMPACT_MOMENTS_ORDERED: readonly HapticImpactMoment[] = [
 const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
   [ImpactMoment.QuickAmountSelection]:
     'app_settings.developer_options.haptics.impacts.quick_amount_selection',
+  [ImpactMoment.KeypadKey]:
+    'app_settings.developer_options.haptics.impacts.keypad_key',
   [ImpactMoment.SliderTick]:
     'app_settings.developer_options.haptics.impacts.slider_tick',
   [ImpactMoment.EdgeGestureEngage]:
@@ -63,6 +67,8 @@ const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
     'app_settings.developer_options.haptics.impacts.slider_grip',
   [ImpactMoment.TabChange]:
     'app_settings.developer_options.haptics.impacts.tab_change',
+  [ImpactMoment.SecondaryCTA]:
+    'app_settings.developer_options.haptics.impacts.secondary_cta',
   [ImpactMoment.PrimaryCTA]:
     'app_settings.developer_options.haptics.impacts.primary_cta',
   [ImpactMoment.PullToRefreshEngage]:

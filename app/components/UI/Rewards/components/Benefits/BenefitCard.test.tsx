@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import BenefitCard from './BenefitCard';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -91,6 +91,19 @@ describe('BenefitCard', () => {
       expect(getByText('Pudgy Penguins')).toBeOnTheScreen();
     });
 
+    it('renders the company name in the remaining-time row', () => {
+      const benefit = createBenefit({ companyName: 'Pudgy Penguins' });
+      const { getByTestId } = render(<BenefitCard benefit={benefit} />);
+      const footer = within(
+        getByTestId(
+          `${REWARDS_VIEW_SELECTORS.BENEFIT_CARD_FOOTER}-${benefit.id}`,
+        ),
+      );
+
+      expect(footer.getByText('Pudgy Penguins')).toBeOnTheScreen();
+      expect(footer.getByText('1mo 3d')).toBeOnTheScreen();
+    });
+
     it('does not render an empty company label when companyName is null', () => {
       const benefit = createBenefit({ companyName: null });
       const { queryByText } = render(<BenefitCard benefit={benefit} />);
@@ -109,6 +122,20 @@ describe('BenefitCard', () => {
         getByText(strings('rewards.benefits.test_short_description')).props
           .numberOfLines,
       ).toBe(3);
+    });
+
+    it('keeps the list-row style when variant is omitted', () => {
+      const benefit = createBenefit();
+
+      render(<BenefitCard benefit={benefit} />);
+
+      const { useTailwind } = jest.requireMock(
+        '@metamask/design-system-twrnc-preset',
+      );
+
+      expect(useTailwind().style).toHaveBeenCalledWith(
+        'bg-section rounded-lg p-4',
+      );
     });
 
     it('renders benefit image with expected source and format sizing', () => {
@@ -159,26 +186,34 @@ describe('BenefitCard', () => {
   });
 
   describe('remaining time', () => {
-    it('formats and renders remaining time when actionDate exists', () => {
-      const benefit = createBenefit({ actionDate: '2026-09-01T00:00:00Z' });
+    it('prefers validTo when validTo and actionDate exist', () => {
+      const benefit = createBenefit({
+        validTo: '2026-12-31T23:59:59Z',
+        actionDate: '2026-09-01T00:00:00Z',
+      });
       const { getByText } = render(<BenefitCard benefit={benefit} />);
 
       expect(mockFormatDateRemaining).toHaveBeenCalledTimes(1);
       expect(mockFormatDateRemaining).toHaveBeenCalledWith(
-        '2026-09-01T00:00:00Z',
+        benefit.validTo,
         expect.any(Number),
       );
       expect(getByText('1mo 3d')).toBeOnTheScreen();
     });
 
-    it('does not call formatter and hides remaining time when actionDate is null', () => {
+    it('falls back to actionDate when validTo is unavailable', () => {
       const benefit = createBenefit({
-        actionDate: null,
+        validTo: null,
+        actionDate: '2026-09-01T00:00:00Z',
       });
-      const { queryByText } = render(<BenefitCard benefit={benefit} />);
+      const { getByText } = render(<BenefitCard benefit={benefit} />);
 
-      expect(mockFormatDateRemaining).not.toHaveBeenCalled();
-      expect(queryByText('1mo 3d')).toBeNull();
+      expect(mockFormatDateRemaining).toHaveBeenCalledTimes(1);
+      expect(mockFormatDateRemaining).toHaveBeenCalledWith(
+        benefit.actionDate,
+        expect.any(Number),
+      );
+      expect(getByText('1mo 3d')).toBeOnTheScreen();
     });
 
     it('hides remaining time when formatter returns null', () => {
@@ -219,6 +254,16 @@ describe('BenefitCard', () => {
       expect(touchable.props.activeOpacity).toBe(0.7);
     });
 
+    it('disables the touchable when disabled is set', () => {
+      const benefit = createBenefit();
+
+      const { UNSAFE_getByType } = render(
+        <BenefitCard benefit={benefit} disabled />,
+      );
+
+      expect(UNSAFE_getByType(TouchableOpacity).props.disabled).toBe(true);
+    });
+
     it('keeps navigation payload shape stable', () => {
       const benefit = createBenefit({ id: 999, type: { id: 42, name: 'VIP' } });
       const { getByText } = render(<BenefitCard benefit={benefit} />);
@@ -234,6 +279,44 @@ describe('BenefitCard', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('preview variant', () => {
+    it('sizes the card so the next one peeks in the carousel', () => {
+      const benefit = createBenefit();
+
+      render(<BenefitCard benefit={benefit} variant="preview" />);
+
+      const { useTailwind } = jest.requireMock(
+        '@metamask/design-system-twrnc-preset',
+      );
+
+      expect(useTailwind().style).toHaveBeenCalledWith(
+        'bg-section rounded-xl overflow-hidden',
+        { width: 210, height: 248 },
+      );
+    });
+
+    it('renders the cover image with the benefit thumbnail', () => {
+      const benefit = createBenefit({
+        id: 123,
+        thumbnail: 'https://cdn.example.com/benefit.png',
+      });
+
+      const { getByTestId } = render(
+        <BenefitCard benefit={benefit} variant="preview" />,
+      );
+
+      const image = getByTestId(
+        `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`,
+      );
+
+      expect(image).toBeOnTheScreen();
+      expect(image.props.source).toEqual({
+        uri: 'https://cdn.example.com/benefit.png',
+      });
+      expect(image.props.resizeMode).toBe('cover');
     });
   });
 });

@@ -7,6 +7,7 @@ import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { useIsGaslessSupported } from './useIsGaslessSupported';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 // Chains with no native may have selectedGasFeeToken inconsistent with gasFeeTokens
@@ -45,15 +46,28 @@ export function useIsGaslessLoading() {
 
   const isGaslessSupportedFinished =
     !isGaslessSupportedPending && isGaslessSupported;
+  const isGasFeeTokensPending = gasFeeTokens === undefined;
+  const isGasFeeTokensEmpty =
+    gasFeeTokens !== undefined && gasFeeTokens.length === 0;
+
+  const isSponsoredWithoutGasFeeToken =
+    isGaslessSupportedFinished &&
+    isGasFeeTokensEmpty &&
+    shouldApplyGasFeeSponsorship({
+      transactionMeta,
+      isGaslessSupported: isGaslessSupportedFinished,
+    });
 
   const hasNoNativeTokenAvailable =
     excludeNativeTokenForFee || hasInsufficientBalance;
 
   const isGaslessLoading = Boolean(
-    isSimulationEnabled &&
+    !isSponsoredWithoutGasFeeToken &&
+      isSimulationEnabled &&
       hasNoNativeTokenAvailable &&
       (isGaslessSupportedPending || isGaslessSupportedFinished) &&
-      (!gasFeeTokens ||
+      (isGasFeeTokensPending ||
+        (!excludeNativeTokenForFee && isGasFeeTokensEmpty) ||
         (excludeNativeTokenForFee &&
           hasWrongSelectedGasFeeToken({ gasFeeTokens, selectedGasFeeToken }))),
   );

@@ -4,9 +4,9 @@ import {
   Box,
   BoxFlexDirection,
   IconName,
-  MainActionButton,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import MainActionButtonGlass from '../../../../../component-library/components-temp/MainActionButtonGlass';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 
 interface ActionButtonConfig {
@@ -18,6 +18,10 @@ interface MoneyActionButtonRowProps {
   add: ActionButtonConfig;
   transfer: ActionButtonConfig;
   card: ActionButtonConfig;
+  /** Virtual bank account details. Omitted when there is no account to show. */
+  details?: ActionButtonConfig;
+  /** Brand refresh Liquid Glass tiles; resolved by the screen. */
+  isGlass?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -31,39 +35,56 @@ const MoneyActionButtonRow = ({
   add,
   transfer,
   card,
+  details,
+  isGlass = false,
 }: MoneyActionButtonRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    twClassName="px-4 pt-4 pb-2 gap-2"
+    twClassName="px-4 pt-8 pb-2 gap-2"
     testID={MoneyActionButtonRowTestIds.CONTAINER}
   >
-    <MainActionButton
+    <MainActionButtonGlass
       iconName={IconName.Add}
       label={strings('money.action.add')}
       onPress={add.onPress}
       isDisabled={add.disabled}
       testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
       twClassName="py-3"
-      style={styles.buttonContainer}
+      containerStyle={styles.buttonContainer}
+      isGlass={isGlass}
     />
-    <MainActionButton
+    <MainActionButtonGlass
       iconName={IconName.Arrow2UpRight}
       label={strings('money.action.transfer')}
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
       twClassName="py-3"
-      style={styles.buttonContainer}
+      containerStyle={styles.buttonContainer}
+      isGlass={isGlass}
     />
-    <MainActionButton
+    <MainActionButtonGlass
       iconName={IconName.Card}
       label={strings('money.action.card')}
       onPress={card.onPress}
       isDisabled={card.disabled}
       testID={MoneyActionButtonRowTestIds.CARD_BUTTON}
       twClassName="py-3"
-      style={styles.buttonContainer}
+      containerStyle={styles.buttonContainer}
+      isGlass={isGlass}
     />
+    {details ? (
+      <MainActionButtonGlass
+        iconName={IconName.Bank}
+        label={strings('money.action.details')}
+        onPress={details.onPress}
+        isDisabled={details.disabled}
+        testID={MoneyActionButtonRowTestIds.DETAILS_BUTTON}
+        twClassName="py-3"
+        containerStyle={styles.buttonContainer}
+        isGlass={isGlass}
+      />
+    ) : null}
   </Box>
 );
 

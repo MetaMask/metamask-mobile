@@ -37,7 +37,7 @@ import {
   isPerpsPredictMoneyWithdraw,
   perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
-import type { MoneyActivityTransactionMeta } from '../constants/mockActivityData';
+import type { MoneyActivityTransactionMeta } from '../constants/moneyActivity';
 import {
   classifyMoneyActivity,
   getMoneyActivityStatus,
@@ -55,6 +55,18 @@ export interface MoneyTransactionDisplayInfo {
   isIncoming: boolean;
   icon: IconName;
   status: MoneyActivityStatus;
+  /**
+   * Render the primary amount line. Money ledger rows with a dollar amount
+   * leave this unset and show `fiatAmount` only. Pending placeholders,
+   * microdeposits, and in-flight card charges still use it.
+   */
+  showPrimaryAmount?: boolean;
+  /** Optional status text shown beneath a pending amount instead of fiat. */
+  pendingStatusLabel?: string;
+  /** Dim the primary amount while the transfer is still pending. */
+  isPrimaryAmountPending?: boolean;
+  /** Render the fiat line in the alternative text color. */
+  isFiatAmountMuted?: boolean;
 }
 
 function getMoneySubtitle(tx: TransactionMeta): string | undefined {
@@ -178,7 +190,7 @@ function isNativeTokenAddress(tokenAddress: string, chainId: Hex): boolean {
  */
 export function useMoneyTransactionDisplayInfo(
   tx: TransactionMeta,
-  _moneyAddress: string | undefined,
+  moneyAddress: string | undefined,
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
   const paymentMethodName = useFiatPaymentMethodName(tx);

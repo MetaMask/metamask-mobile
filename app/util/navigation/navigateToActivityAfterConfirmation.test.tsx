@@ -6,6 +6,7 @@ import {
   StackActions,
   createNavigationContainerRef,
   useNavigation,
+  type NavigationContainerRefWithCurrent,
   type NavigationState,
   type PartialState,
 } from '@react-navigation/native';
@@ -70,7 +71,7 @@ const SendNavigator = () => (
 
 const renderTree = (
   initialState: PartialState<NavigationState>,
-  ref: ReturnType<typeof createNavigationContainerRef>,
+  ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ) =>
   render(
     <NavigationContainer ref={ref} initialState={initialState}>
@@ -79,6 +80,9 @@ const renderTree = (
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name={Routes.HOME_TABS}>
           {() => <Probe label="home" />}
+        </RootStack.Screen>
+        <RootStack.Screen name={Routes.NFT_DETAILS}>
+          {() => <Probe label="nft-details" />}
         </RootStack.Screen>
         <RootStack.Screen
           name="StakeScreens"
@@ -101,12 +105,12 @@ const renderTree = (
 
 // Name of the currently focused leaf route in the whole tree.
 const focusedRouteName = (
-  ref: ReturnType<typeof createNavigationContainerRef>,
+  ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ): string | undefined => ref.getCurrentRoute()?.name;
 
 // Names of the top-level (root) routes, in order.
 const rootRouteNames = (
-  ref: ReturnType<typeof createNavigationContainerRef>,
+  ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ): string[] => (ref.getRootState()?.routes ?? []).map((route) => route.name);
 
 describe('navigateToActivityAfterConfirmation', () => {
@@ -211,6 +215,40 @@ describe('navigateToActivityAfterConfirmation', () => {
     fireEvent.press(getByTestId('redirect-trigger'));
 
     // The whole Send flow stack (Amount/Recipient/confirmation) is replaced.
+    expect(focusedRouteName(ref)).toBe(Routes.TRANSACTIONS_VIEW);
+    expect(rootRouteNames(ref)).toEqual([
+      Routes.HOME_TABS,
+      Routes.TRANSACTIONS_VIEW,
+    ]);
+
+    act(() => {
+      ref.goBack();
+    });
+    expect(focusedRouteName(ref)).toBe(Routes.HOME_TABS);
+  });
+
+  it('flow 4 (NFT send): removes NFT details before replacing Send with Activity', () => {
+    const ref = createNavigationContainerRef();
+    const { getByTestId } = renderTree(
+      {
+        routes: [
+          { name: Routes.HOME_TABS },
+          { name: Routes.NFT_DETAILS },
+          {
+            name: Routes.SEND.DEFAULT,
+            state: {
+              index: 1,
+              routes: [{ name: Routes.SEND.RECIPIENT }, { name: REDESIGNED }],
+            },
+          },
+        ],
+        index: 2,
+      } as PartialState<NavigationState>,
+      ref,
+    );
+
+    fireEvent.press(getByTestId('redirect-trigger'));
+
     expect(focusedRouteName(ref)).toBe(Routes.TRANSACTIONS_VIEW);
     expect(rootRouteNames(ref)).toEqual([
       Routes.HOME_TABS,

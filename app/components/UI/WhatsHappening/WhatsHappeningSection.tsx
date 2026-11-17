@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -29,8 +30,13 @@ import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import MarketInsightsDisclaimerBottomSheet from '../MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import {
-  MAX_ITEMS_DISPLAYED,
+  getWhatsHappeningTraceId,
+  getWhatsHappeningTraceTags,
+} from './utils/whatsHappeningPerformance';
+import {
+  SKELETON_CARD_COUNT,
   WHATS_HAPPENING_CARD_MIN_HEIGHT,
   WHATS_HAPPENING_CARD_WIDTH,
   WhatsHappeningInteractionType,
@@ -58,13 +64,8 @@ const CARD_WIDTH = WHATS_HAPPENING_CARD_WIDTH;
 const VIEW_MORE_MIN_HEIGHT_CLASS = `min-h-[${WHATS_HAPPENING_CARD_MIN_HEIGHT}px]`;
 const GAP = 12;
 
-const SNAP_OFFSETS = Array.from(
-  { length: MAX_ITEMS_DISPLAYED },
-  (_, i) => i * (CARD_WIDTH + GAP),
-);
-
 const SKELETON_KEYS = Array.from(
-  { length: MAX_ITEMS_DISPLAYED },
+  { length: SKELETON_CARD_COUNT },
   (__, i) => `skeleton-${i}`,
 );
 
@@ -96,10 +97,21 @@ const WhatsHappeningSection = forwardRef<
   const title = strings('whats_happening.title');
   const [isAIDisclaimerVisible, setIsAIDisclaimerVisible] = useState(false);
 
-  const internalFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED, {
+  const internalFeed = useWhatsHappening({
     enabled: feed === undefined,
+    telemetryContext: { source, stage: 'carousel' },
   });
-  const { items, isLoading, error, refresh } = feed ?? internalFeed;
+  const { items, isLoading, error, refresh, carouselTraceId } =
+    feed ?? internalFeed;
+
+  const snapOffsets = useMemo(
+    () =>
+      Array.from(
+        { length: items.length + 1 },
+        (_, i) => i * (CARD_WIDTH + GAP),
+      ),
+    [items.length],
+  );
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -107,6 +119,12 @@ const WhatsHappeningSection = forwardRef<
 
   const navigateToDetail = useCallback(
     (initialIndex: number) => {
+      trace({
+        name: TraceName.WhatsHappeningViewLoad,
+        op: TraceOperation.WhatsHappeningLoad,
+        id: getWhatsHappeningTraceId(source, 'expanded'),
+        tags: getWhatsHappeningTraceTags({ source, stage: 'expanded' }, 'warm'),
+      });
       navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
         initialIndex,
         source,
@@ -210,7 +228,7 @@ const WhatsHappeningSection = forwardRef<
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={tw.style('px-4 gap-3')}
-        snapToOffsets={SNAP_OFFSETS}
+        snapToOffsets={snapOffsets}
         decelerationRate="fast"
         onMomentumScrollEnd={handleMomentumScrollEnd}
         testID={WhatsHappeningSelectorsIDs.CAROUSEL}
@@ -225,6 +243,7 @@ const WhatsHappeningSection = forwardRef<
                 item={item}
                 cardIndex={index}
                 source={source}
+                carouselTraceId={carouselTraceId}
                 onPress={() => handleCardPress(index)}
               />
             ))}
@@ -242,26 +261,30 @@ const WhatsHappeningSection = forwardRef<
     return null;
   }
 
-  const sectionBody = (
-    <>
-      {header}
-      {carouselContent}
-      {isAIDisclaimerVisible ? (
-        <MarketInsightsDisclaimerBottomSheet
-          onClose={handleAIDisclaimerClose}
-        />
-      ) : null}
-    </>
-  );
+  const aiDisclaimerSheet = isAIDisclaimerVisible ? (
+    <MarketInsightsDisclaimerBottomSheet onClose={handleAIDisclaimerClose} />
+  ) : null;
 
   if (isExploreSection) {
-    return <Box>{sectionBody}</Box>;
+    return (
+      <>
+        <Box>
+          {header}
+          {carouselContent}
+        </Box>
+        {aiDisclaimerSheet}
+      </>
+    );
   }
 
   return (
-    <Box paddingBottom={3} style={styles.sectionGap}>
-      {sectionBody}
-    </Box>
+    <>
+      <Box paddingBottom={3} style={styles.sectionGap}>
+        {header}
+        {carouselContent}
+      </Box>
+      {aiDisclaimerSheet}
+    </>
   );
 });
 

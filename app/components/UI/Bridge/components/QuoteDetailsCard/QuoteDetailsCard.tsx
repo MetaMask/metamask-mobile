@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
+import { BigNumber } from 'bignumber.js';
+import { sumAmounts } from '@metamask/bridge-controller';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,6 +13,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -18,6 +21,8 @@ import {
   IconName,
   IconSize,
   IconColor,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
@@ -26,7 +31,6 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
@@ -52,10 +56,11 @@ import {
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { formatPriceImpact } from '../../utils/formatPriceImpact';
-import KeyValueRowLabel from '../../../../../component-library/components-temp/KeyValueRow/KeyValueLabel/KeyValueLabel';
+import TooltipLabel from '../TooltipLabel';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
-import AppConstants from '../../../../../core/AppConstants';
-
+import formatFiat from '../../../../../util/formatFiat';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 if (
   Platform.OS === 'android' &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -66,8 +71,8 @@ if (
 const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
   location,
+  gaslessFeeAsset,
 }) => {
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -77,10 +82,13 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
+    shouldShowPriceImpactWarning,
+    shouldShowPriceImpactError,
   } = useBridgeQuoteDataContext();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
+  const currency = useSelector(selectCurrentCurrency);
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
@@ -95,9 +103,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const priceImpactIsSafe =
     !activeQuote?.quote.priceData?.priceImpact ||
-    Number(activeQuote.quote.priceData.priceImpact) <=
-      (bridgeFeatureFlags?.priceImpactThreshold?.warning ??
-        AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD);
+    (!shouldShowPriceImpactWarning && !shouldShowPriceImpactError);
 
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
@@ -134,7 +140,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
         type: PriceImpactModalType.Info,
-        token: sourceToken,
         location,
       },
     });
@@ -142,15 +147,30 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const isGasless = isGaslessQuote(activeQuote?.quote);
 
+  const relayerFee = activeQuote?.quote?.feeData?.relayer;
+  const formattedRelayerFee = useMemo(() => {
+    if (!relayerFee?.length) {
+      return '-';
+    }
+
+    const fee = sumAmounts(relayerFee);
+    const valueInCurrency = fee?.valueInCurrency;
+    if (valueInCurrency == null) {
+      return '-';
+    }
+
+    return formatFiat(new BigNumber(valueInCurrency), currency);
+  }, [currency, relayerFee]);
+
   const formattedMinToTokenAmount = formatMinimumReceived(
-    activeQuote?.minToTokenAmount?.amount || '0',
+    activeQuote?.quote.dest?.minAmountNormalized || '0',
   );
 
   const priceImpactViewData = usePriceImpactViewData(
-    activeQuote?.quote.priceData?.priceImpact,
+    activeQuote?.quote.priceData?.priceImpact?.amount,
   );
   const shouldShowPriceImpactRow =
-    activeQuote?.quote.priceData?.priceImpact != null;
+    activeQuote?.quote.priceData?.priceImpact?.amount != null;
 
   // Early return for invalid states
   if (
@@ -170,28 +190,20 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={1}
         >
-          <KeyValueRowLabel
-            label={
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('bridge.rate')}
-                </Text>
-                <QuoteCountdownTimer />
-              </Box>
-            }
-            tooltip={{
-              title: strings('bridge.quote_info_title'),
-              content: strings('bridge.quote_info_content'),
-              iconName: IconNameLegacy.Info,
-            }}
-          />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={4}
+          >
+            <TooltipLabel
+              label={strings('bridge.rate')}
+              tooltipTitle={strings('bridge.quote_info_title')}
+              tooltipContent={strings('bridge.quote_info_content')}
+            />
+            <QuoteCountdownTimer
+              testID={BridgeViewSelectorsIDs.QUOTE_KEYPAD_DISMISS_TARGET}
+            />
+          </Box>
           <TouchableOpacity
             style={tw`flex-1 items-end`}
             onPress={handleRatePress}
@@ -205,7 +217,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             >
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
                 style={tw`text-right`}
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -223,17 +235,18 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
         {shouldShowGasSponsored ? (
           <KeyValueRow
             field={{
-              label: {
-                text: strings('bridge.network_fee'),
-                variant: TextVariantLegacy.BodyMDMedium,
-              },
-              tooltip: {
-                title: strings('bridge.network_fee_info_title'),
-                content: strings('bridge.network_fee_info_content_sponsored', {
-                  nativeToken: nativeTokenName,
-                }),
-                iconName: IconNameLegacy.Info,
-              },
+              label: (
+                <TooltipLabel
+                  label={strings('bridge.network_fee')}
+                  tooltipTitle={strings('bridge.network_fee_info_title')}
+                  tooltipContent={strings(
+                    'bridge.network_fee_info_content_sponsored',
+                    { nativeToken: nativeTokenName },
+                  )}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Medium}
+                />
+              ),
             }}
             value={{
               label: (
@@ -255,56 +268,95 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             }}
           />
         ) : isGasless ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {toSentenceCase(strings('bridge.network_fee'))}
-            </Text>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                style={styles.strikethroughText}
-              >
-                {formattedQuoteData.networkFee}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('bridge.included')}
-              </Text>
-            </Box>
-          </Box>
+          <KeyValueRow
+            field={{
+              label: (
+                <TooltipLabel
+                  label={toSentenceCase(strings('bridge.network_fee'))}
+                  tooltipTitle={strings('bridge.network_fee_info_title')}
+                  tooltipContent={strings(
+                    'bridge.network_fee_info_content_gasless',
+                  )}
+                />
+              ),
+            }}
+            value={{
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  testID={BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {formattedQuoteData?.networkFee}
+                  </Text>
+                  {gaslessFeeAsset ? (
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={1}
+                      twClassName="rounded-md bg-muted px-1.5"
+                    >
+                      <AvatarToken
+                        name={gaslessFeeAsset.symbol}
+                        src={
+                          gaslessFeeAsset.iconUrl
+                            ? { uri: gaslessFeeAsset.iconUrl }
+                            : undefined
+                        }
+                        size={AvatarTokenSize.Xs}
+                      />
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.TextAlternative}
+                      >
+                        {gaslessFeeAsset.symbol}
+                      </Text>
+                    </Box>
+                  ) : null}
+                </Box>
+              ),
+            }}
+          />
         ) : (
           <KeyValueRow
             field={{
-              label: {
-                text: toSentenceCase(strings('bridge.network_fee')),
-                variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Alternative,
-              },
-              tooltip: {
-                title: strings('bridge.network_fee_info_title'),
-                content: strings('bridge.network_fee_info_content'),
-                iconName: IconNameLegacy.Info,
-              },
+              label: (
+                <TooltipLabel
+                  label={toSentenceCase(strings('bridge.network_fee'))}
+                  tooltipTitle={strings('bridge.network_fee_info_title')}
+                  tooltipContent={strings('bridge.network_fee_info_content')}
+                />
+              ),
             }}
             value={{
               label: {
                 text: formattedQuoteData.networkFee,
                 variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Default,
+              },
+            }}
+          />
+        )}
+
+        {Boolean(relayerFee?.length) && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: toSentenceCase(strings('bridge.relayer_fee')),
+                variant: TextVariantLegacy.BodyMD,
                 color: TextColorLegacy.Alternative,
+              },
+            }}
+            value={{
+              label: {
+                text: formattedRelayerFee,
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Default,
               },
             }}
           />
@@ -312,16 +364,13 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
         <KeyValueRow
           field={{
-            label: {
-              text: strings('bridge.slippage'),
-              variant: TextVariantLegacy.BodyMD,
-              color: TextColorLegacy.Alternative,
-            },
-            tooltip: {
-              title: strings('bridge.slippage_info_title'),
-              content: strings('bridge.slippage_info_description'),
-              iconName: IconNameLegacy.Info,
-            },
+            label: (
+              <TooltipLabel
+                label={strings('bridge.slippage')}
+                tooltipTitle={strings('bridge.slippage_info_title')}
+                tooltipContent={strings('bridge.slippage_info_description')}
+              />
+            ),
           }}
           value={{
             label: (
@@ -333,12 +382,12 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
+                  color={TextColor.TextDefault}
                 >
                   {formattedQuoteData.slippage}
                 </Text>
                 <Icon
-                  name={IconName.Edit}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={IconColor.IconAlternative}
                 />
@@ -347,25 +396,26 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           }}
         />
 
-        {activeQuote?.minToTokenAmount && (
+        {activeQuote?.quote.dest?.minAmountNormalized && (
           <KeyValueRow
             field={{
-              label: {
-                text: toSentenceCase(strings('bridge.minimum_received')),
-                variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Alternative,
-              },
-              tooltip: {
-                title: strings('bridge.minimum_received_tooltip_title'),
-                content: strings('bridge.minimum_received_tooltip_content'),
-                iconName: IconNameLegacy.Info,
-              },
+              label: (
+                <TooltipLabel
+                  label={toSentenceCase(strings('bridge.minimum_received'))}
+                  tooltipTitle={strings(
+                    'bridge.minimum_received_tooltip_title',
+                  )}
+                  tooltipContent={strings(
+                    'bridge.minimum_received_tooltip_content',
+                  )}
+                />
+              ),
             }}
             value={{
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Alternative,
+                color: TextColorLegacy.Default,
               },
             }}
           />
@@ -374,16 +424,15 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
         {shouldShowPriceImpactRow && (
           <KeyValueRow
             field={{
-              label: {
-                text: toSentenceCase(strings('bridge.price_impact')),
-                variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Alternative,
-              },
-              tooltip: {
-                title: strings('bridge.price_impact_info_title'),
-                content: strings('bridge.price_impact_info_description'),
-                iconName: IconNameLegacy.Info,
-              },
+              label: (
+                <TooltipLabel
+                  label={toSentenceCase(strings('bridge.price_impact'))}
+                  tooltipTitle={strings('bridge.price_impact_info_title')}
+                  tooltipContent={strings(
+                    'bridge.price_impact_info_description',
+                  )}
+                />
+              ),
             }}
             value={{
               label: (
@@ -425,17 +474,16 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           <Box testID="bridge-rewards-row">
             <KeyValueRow
               field={{
-                label: {
-                  text: toSentenceCase(strings('bridge.points')),
-                  variant: TextVariantLegacy.BodyMD,
-                },
-                tooltip: {
-                  title: strings('bridge.points_tooltip'),
-                  content: `${strings(
-                    'bridge.points_tooltip_content_1',
-                  )}\n\n${strings('bridge.points_tooltip_content_2')}`,
-                  iconName: IconNameLegacy.Info,
-                },
+                label: (
+                  <TooltipLabel
+                    label={toSentenceCase(strings('bridge.points'))}
+                    tooltipTitle={strings('bridge.points_tooltip')}
+                    tooltipContent={`${strings(
+                      'bridge.points_tooltip_content_1',
+                    )}\n\n${strings('bridge.points_tooltip_content_2')}`}
+                    color={TextColor.TextDefault}
+                  />
+                ),
               }}
               value={{
                 label: (

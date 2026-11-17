@@ -19,7 +19,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -59,6 +58,9 @@ import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
 import PhoneField from './components/PhoneField';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -80,6 +82,7 @@ export interface V2BasicInfoParams {
 }
 
 const V2BasicInfo = (): React.JSX.Element => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
@@ -179,10 +182,15 @@ const V2BasicInfo = (): React.JSX.Element => {
     navigation.goBack();
   }, [navigation]);
 
+  const hasClearedSsnRef = useRef(false);
+
   useEffect(() => {
+    if (hasClearedSsnRef.current) {
+      return;
+    }
+    hasClearedSsnRef.current = true;
     handleFormDataChange('ssn')('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleFormDataChange]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
@@ -333,7 +341,9 @@ const V2BasicInfo = (): React.JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.basic_info.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

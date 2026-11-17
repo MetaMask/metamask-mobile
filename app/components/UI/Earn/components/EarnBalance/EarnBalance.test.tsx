@@ -1,11 +1,18 @@
 import React from 'react';
 import EarnBalance from '.';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import StakingBalance from '../../../Stake/components/StakingBalance/StakingBalance';
+import { MOCK_ETH_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
+import { earnSelectors } from '../../../../../selectors/earnController';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectIsMusdConversionFlowEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 /**
  * We mock underlying components because we only care about the conditional rendering.
@@ -93,11 +100,19 @@ const mockUseMusdConversionTokens =
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectIsMusdConversionFlowEnabledFlag: jest.fn().mockReturnValue(false),
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
 }));
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
   selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
     typeof selectIsMusdConversionFlowEnabledFlag
+  >;
+
+const mockSelectPooledStakingServiceInterruptionBannerEnabledFlag =
+  selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+    typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
   >;
 
 import { useMusdConversionEligibility } from '../../hooks/useMusdConversionEligibility';
@@ -120,6 +135,9 @@ describe('EarnBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (jest.mocked(selectTrxStakingEnabled) as jest.Mock).mockReturnValue(false);
+    mockSelectPooledStakingServiceInterruptionBannerEnabledFlag.mockReturnValue(
+      false,
+    );
   });
 
   describe('Ethereum Mainnet', () => {
@@ -129,6 +147,16 @@ describe('EarnBalance', () => {
       renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
 
       expect(StakingBalance).toHaveBeenCalled();
+    });
+
+    it('passes glass through to the staking balance', () => {
+      renderWithProvider(
+        <EarnBalance asset={MOCK_ETH_MAINNET_ASSET} isGlass />,
+      );
+
+      expect(jest.mocked(StakingBalance).mock.calls.at(-1)?.[0]).toEqual(
+        expect.objectContaining({ isGlass: true }),
+      );
     });
 
     it('renders when asset is supported stablecoin', () => {
@@ -163,13 +191,48 @@ describe('EarnBalance', () => {
       expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
 
-    it('renders nothinge if Staked ETH is passed', () => {
+    it('renders nothing if unsupported staked ETH is passed', () => {
       const mockEth = { isETH: true, isStaked: true, chainId: '0x1' };
 
       renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
 
       expect(StakingBalance).not.toHaveBeenCalled();
       expect(EarnLendingBalance).not.toHaveBeenCalled();
+    });
+
+    it('renders pooled-staking banner for staked output assets', () => {
+      const mockStakedEth = {
+        isETH: true,
+        isStaked: true,
+        chainId: '0x1',
+      };
+      const mockPooledStakingOutput = {
+        ...mockStakedEth,
+        experience: {
+          type: EARN_EXPERIENCES.POOLED_STAKING,
+        },
+      } as unknown as ReturnType<typeof earnSelectors.selectEarnOutputToken>;
+      mockSelectPooledStakingServiceInterruptionBannerEnabledFlag.mockReturnValue(
+        true,
+      );
+      (
+        earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+          typeof earnSelectors.selectEarnOutputToken
+        >
+      ).mockImplementationOnce(() => mockPooledStakingOutput);
+
+      const { getByText } = renderWithProvider(
+        <EarnBalance asset={mockStakedEth as unknown as TokenI} />,
+      );
+
+      expect(
+        getByText(
+          strings('earn.service_interruption_banner.maintenance_message', {
+            experienceName: 'Pooled Staking',
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(EarnLendingBalance).toHaveBeenCalled();
     });
   });
 

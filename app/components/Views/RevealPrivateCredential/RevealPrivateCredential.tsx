@@ -17,16 +17,13 @@ import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
-  BannerBase,
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
-  HeaderStandard,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
+  toast,
 } from '@metamask/design-system-react-native';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -40,12 +37,6 @@ import AppConstants from '../../../core/AppConstants';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { IconName as IconNameLibrary } from '../../../component-library/components/Icons/Icon';
-import {
-  ButtonIconVariant,
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
 import Routes from '../../../constants/navigation/Routes';
 import {
   SRPQuizIntroduction,
@@ -59,10 +50,21 @@ import {
   RevealPrivateCredentialRouteProp,
   RevealSrpStage,
 } from './types';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
+
+// Locales such as Greek wrap this title onto a second line, which defaults to
+// left alignment inside the centered header column.
+const HEADER_TITLE_PROPS = {
+  twClassName: 'text-center',
+  testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TITLE_ID,
+} as const;
+
 const RevealPrivateCredential = ({
   cancel,
   showCancelButton,
 }: IRevealPrivateCredentialProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RevealPrivateCredentialRouteProp>();
   const tabBarHeight = useContext(BottomTabBarHeightContext);
@@ -75,8 +77,6 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showSeedPhrase, setShowSeedPhrase] = useState<boolean>(false);
-
-  const { toastRef } = useContext(ToastContext);
 
   const checkSummedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -155,8 +155,8 @@ const RevealPrivateCredential = ({
       cancel?.();
       return;
     }
-    if (route?.params?.popToTopOnDone) {
-      navigation.dispatch(StackActions.popToTop());
+    if (route?.params?.returnToWalletHomeOnDone) {
+      navigation.dispatch(StackActions.popTo(Routes.ONBOARDING.HOME_NAV));
       return;
     }
     if (shouldUpdateNav) {
@@ -169,7 +169,7 @@ const RevealPrivateCredential = ({
     shouldUpdateNav,
     navigation,
     cancel,
-    route?.params?.popToTopOnDone,
+    route?.params?.returnToWalletHomeOnDone,
   ]);
 
   const cancelReveal = useCallback(() => {
@@ -249,23 +249,12 @@ const RevealPrivateCredential = ({
     trackEvent(createEventBuilder(MetaMetricsEvents.COPY_SRP).build());
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings('reveal_credential.copied_to_clipboard'),
-        },
-      ],
+    toast({
+      title: strings('reveal_credential.copied_to_clipboard'),
       hasNoTimeout: false,
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconNameLibrary.Close,
-        onPress: () => {
-          toastRef?.current?.closeToast();
-        },
-      },
+      showCloseButton: false,
     });
-  }, [trackEvent, createEventBuilder, clipboardPrivateCredential, toastRef]);
+  }, [trackEvent, createEventBuilder, clipboardPrivateCredential]);
 
   const renderSRPExplanation = () => (
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -281,23 +270,12 @@ const RevealPrivateCredential = ({
   );
 
   const renderWarning = () => (
-    <Box testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}>
-      <BannerBase
-        startAccessory={
-          <Icon
-            name={IconName.Danger}
-            color={IconColor.ErrorDefault}
-            size={IconSize.Lg}
-          />
-        }
-        title={
-          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-            {strings('reveal_credential.seed_phrase_warning_explanation')}
-          </Text>
-        }
-        twClassName="mt-6 border border-error-default bg-error-muted"
-      />
-    </Box>
+    <BannerAlert
+      severity={BannerAlertSeverity.Danger}
+      description={strings('reveal_credential.seed_phrase_warning_explanation')}
+      twClassName="mt-6"
+      testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}
+    />
   );
 
   const renderActionView = () => (
@@ -396,8 +374,11 @@ const RevealPrivateCredential = ({
       style={{ paddingBottom: bottomSpacing }}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('reveal_credential.seed_phrase_title')}
+        titleProps={HEADER_TITLE_PROPS}
         onBack={headerNavigationBack}
         backButtonProps={{
           testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
@@ -406,9 +387,10 @@ const RevealPrivateCredential = ({
       />
       {renderContent()}
       <ScreenshotDeterrent
-        enabled={unlocked}
+        enabled
         isSRP
         hasNavigation={hasNavigation}
+        warnOnScreenshot={unlocked}
       />
     </Box>
   );

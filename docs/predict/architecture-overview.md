@@ -117,7 +117,7 @@ app/components/UI/Predict/
 | PredictFeed.tsx          | 738   | 16+   | Multiple nested components, prop drilling        |
 | PredictController.ts     | 2,401 | N/A   | 15+ repeated error handling patterns             |
 
-#### 2. Legacy Styling (10 files)
+#### 2. Legacy Styling (9 files)
 
 Files using `StyleSheet.create()` instead of Tailwind:
 
@@ -127,7 +127,6 @@ Files using `StyleSheet.create()` instead of Tailwind:
 - PredictPositionEmpty.styles.ts
 - PredictPositionResolved.styles.ts
 - PredictOffline.styles.ts
-- PredictGTMModal.styles.ts
 - PredictMarketRowItem.styles.ts
 - PredictMarketMultiple.styles.ts
 - PredictSellPreview.styles.ts
@@ -362,7 +361,6 @@ PredictScreenStack
 
 PredictModalStack
 ├── PredictUnavailableModal
-├── PredictGTMModal
 ├── PredictAddFundsModal
 └── PredictActivityDetail
 ```

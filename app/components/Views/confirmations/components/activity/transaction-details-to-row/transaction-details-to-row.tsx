@@ -5,7 +5,6 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { Box } from '../../../../../UI/Box/Box';
@@ -19,6 +18,7 @@ import { parseStandardTokenTransactionData } from '../../../utils/transaction';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import { getTokenTransferData } from '../../../utils/transaction-pay';
 import MoneyIcon from '../../../../../../images/money.png';
+import { Text } from '@metamask/design-system-react-native';
 
 const iconStyles = StyleSheet.create({
   moneyIconWrapper: {
@@ -105,7 +105,17 @@ function useRecipient(): Hex | undefined {
       return undefined;
     }
     const parsed = parseStandardTokenTransactionData(data);
-    return parsed?.args?._to?.toString() as Hex | undefined;
+    const recipient = parsed?.args?._to?.toString() as Hex | undefined;
+
+    // Quoted withdrawals transfer to the money account, not the destination.
+    const isTransferToMoneyAccount =
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountWithdraw,
+      ]) &&
+      recipient?.toLowerCase() ===
+        transactionMeta?.txParams?.from?.toLowerCase();
+
+    return isTransferToMoneyAccount ? undefined : recipient;
   }, [transactionMeta]);
 }
 

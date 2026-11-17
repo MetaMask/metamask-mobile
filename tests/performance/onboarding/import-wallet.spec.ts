@@ -4,27 +4,21 @@ import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import { Performance, PerformanceOnboarding } from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import {
-  asPlaywrightElement,
   PlatformDetector,
-  PlaywrightAssertions,
-  PlaywrightGestures,
+  AppiumAssertions,
+  AppiumGestures,
 } from '../../framework';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import {
+  closePredictModal,
   dismissOnboardingInterestQuestionnaire,
-  dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
-  resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
-import { fetchProductionFeatureFlags } from '../feature-flag-helper';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
-
-const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
@@ -52,48 +46,37 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
         { ios: 2000, android: 3000 },
         currentDeviceDetails.platform,
       );
-      const timer6 = new TimerHelper(
-        'Time since the user clicks on "Done" button until feature sheet is visible',
-        { ios: 3000, android: 3000 },
-        currentDeviceDetails.platform,
-      );
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
-        // +50 accounts on BrowserStack can take longer than local emulator.
-        { ios: 21000, android: 6000 },
+        // +50 accounts on TestMu can take longer than local emulator.
+        { ios: 21000, android: 2400 },
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;
 
-      const productionFeatureFlags = await fetchProductionFeatureFlags(
-        'main',
-        testEnvironment,
-      );
-
+      await enableHermesAppProfiling();
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(OnboardingSheet.importSeedButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          OnboardingSheet.importSeedButton,
         );
       });
 
       await OnboardingSheet.tapImportSeedButton();
       await timer2.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(ImportWalletView.title),
-        );
+        await AppiumAssertions.expectElementToBeVisible(ImportWalletView.title);
       });
 
       await ImportWalletView.typeSecretRecoveryPhrase(
         process.env.TEST_SRP_3 || '',
         true,
       );
-      await PlaywrightGestures.hideKeyboard();
+      await AppiumGestures.hideKeyboard();
 
       await ImportWalletView.tapContinueButton();
       await timer3.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(CreatePasswordView.newPasswordInput),
+        await AppiumAssertions.expectElementToBeVisible(
+          CreatePasswordView.newPasswordInput,
         );
       });
 
@@ -106,48 +89,29 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
 
       await CreatePasswordView.tapPasswordVisibilityIcon();
       await CreatePasswordView.tapConfirmPasswordVisibilityIcon();
-      await CreatePasswordView.tapIUnderstandCheckBox();
       if (await PlatformDetector.isAndroid()) {
-        await PlaywrightGestures.hideKeyboard();
+        await AppiumGestures.hideKeyboard();
       }
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
 
       await timer4.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+        await AppiumAssertions.expectElementToBeVisible(
+          MetaMetricsOptInView.screenTitle,
         );
       });
 
       await MetaMetricsOptInView.tapIAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
       await dismissPushNotificationExistingUserSheet();
-      const predictGtmOnboardingModalEnabled =
-        await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
-
-      if (predictGtmOnboardingModalEnabled) {
-        await timer6.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-          );
-        });
-      }
-
-      await dismisspredictionsModalPlaywright();
+      await closePredictModal();
       await timer7.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.headerRoot),
-          { timeout: walletTokenLoadTimeoutMs },
-        );
+        await AppiumAssertions.expectElementToBeVisible(WalletView.headerRoot, {
+          timeout: walletTokenLoadTimeoutMs,
+        });
       });
 
-      performanceTracker.addTimers(timer1, timer2, timer3, timer4);
-      if (
-        predictGtmOnboardingModalEnabled &&
-        predictGtmOnboardingModalEnabled === true
-      ) {
-        performanceTracker.addTimer(timer6);
-      }
-      performanceTracker.addTimer(timer7);
+      performanceTracker.addTimers(timer1, timer2, timer3, timer4, timer7);
     },
   );
 });

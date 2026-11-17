@@ -1,0 +1,137 @@
+import type {
+  PerpsBenefitUsage,
+  PredictBenefitUsage,
+  SubscriptionBenefitsState,
+  SwapsBenefitUsage,
+} from '@metamask/subscription-controller';
+import {
+  TRADE_ALLOWANCE_IDS,
+  TRADE_ALLOWANCE_KINDS,
+  type TradeAllowanceItem,
+  type TradeAllowanceKind,
+} from '../../ProHub.constants';
+
+/** One cent, in micro-USD. Currency rows keep this precision. */
+const MICRO_USD_PER_CENT = 10_000;
+
+/** Swap, perps, and predict — the products Member pricing can show. */
+export const PLUS_BENEFIT_PRODUCT_COUNT =
+  Object.keys(TRADE_ALLOWANCE_IDS).length;
+
+/**
+ * Converts micro-USD to USD at cent precision.
+ *
+ * The cap rounds to the nearest cent. Spend floors, so an amount just under
+ * the cap cannot become the cap. `999_996_000` of `1_000_000_000` is
+ * `$999.99` of `$1,000.00`.
+ */
+const toUsd = (microUsd: number, rounding: 'floor' | 'round'): number => {
+  const cents = microUsd / MICRO_USD_PER_CENT;
+  const roundedCents =
+    rounding === 'floor' ? Math.floor(cents) : Math.round(cents);
+  return roundedCents / 100;
+};
+
+const mapMeteredRow = ({
+  id,
+  kind,
+  cap,
+  consumed,
+  remaining,
+  exhausted,
+}: {
+  id: TradeAllowanceItem['id'];
+  kind: TradeAllowanceKind;
+  cap: number | undefined;
+  consumed: number | undefined;
+  remaining: number | null;
+  exhausted: boolean;
+}): TradeAllowanceItem | undefined => {
+  if (cap === undefined || cap <= 0) {
+    return undefined;
+  }
+
+  let used: number | undefined;
+  if (consumed !== undefined) {
+    used = consumed;
+  } else if (remaining !== null) {
+    used = cap - remaining;
+  } else if (exhausted) {
+    used = cap;
+  }
+
+  if (used === undefined) {
+    return undefined;
+  }
+
+  const allowance =
+    kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(cap, 'round') : cap;
+  let displayUsed =
+    kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(used, 'floor') : used;
+  displayUsed = Math.min(Math.max(0, displayUsed), allowance);
+
+  if (exhausted) {
+    displayUsed = allowance;
+  }
+
+  return {
+    id,
+    used: displayUsed,
+    allowance,
+    kind,
+    exhausted,
+  };
+};
+
+const mapSwaps = (usage: SwapsBenefitUsage): TradeAllowanceItem | undefined =>
+  mapMeteredRow({
+    id: TRADE_ALLOWANCE_IDS.SWAPS,
+    kind: TRADE_ALLOWANCE_KINDS.CURRENCY,
+    cap: usage.capMicroUsd,
+    consumed: usage.consumedMicroUsd,
+    remaining: usage.remainingMicroUsd,
+    exhausted: usage.exhausted,
+  });
+
+const mapPerps = (usage: PerpsBenefitUsage): TradeAllowanceItem | undefined =>
+  mapMeteredRow({
+    id: TRADE_ALLOWANCE_IDS.PERPS,
+    kind: TRADE_ALLOWANCE_KINDS.CURRENCY,
+    cap: usage.capMicroUsd,
+    consumed: usage.consumedMicroUsd,
+    remaining: usage.remainingMicroUsd,
+    exhausted: usage.exhausted,
+  });
+
+const mapPredict = (
+  usage: PredictBenefitUsage,
+): TradeAllowanceItem | undefined =>
+  mapMeteredRow({
+    id: TRADE_ALLOWANCE_IDS.PREDICT,
+    kind: TRADE_ALLOWANCE_KINDS.COUNT,
+    cap: usage.capTxCount,
+    consumed: usage.consumedTxCount,
+    remaining: usage.remainingTxCount,
+    exhausted: usage.exhausted,
+  });
+
+/**
+ * Maps persisted Plus benefits onto the Member pricing rows. Products without
+ * a cap are omitted so the UI never invents an allowance bar.
+ *
+ * @param benefits - Persisted `SubscriptionController` benefits, if any.
+ * @returns Rows that can be rendered, in swaps / perps / predict order.
+ */
+export const mapPlusBenefitsToTradeAllowances = (
+  benefits: SubscriptionBenefitsState | undefined,
+): TradeAllowanceItem[] => {
+  if (!benefits) {
+    return [];
+  }
+
+  return [
+    mapSwaps(benefits.swaps),
+    mapPerps(benefits.perps),
+    mapPredict(benefits.predict),
+  ].filter((item): item is TradeAllowanceItem => item !== undefined);
+};

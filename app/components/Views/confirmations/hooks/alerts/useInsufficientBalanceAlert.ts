@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import {
@@ -18,6 +19,7 @@ import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
+import { usePredictWithdrawGasFeeToken } from '../gas/usePredictWithdrawGasFeeToken';
 import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
@@ -37,7 +39,7 @@ export const useInsufficientBalanceAlert = ({
   const { goToBuy } = useRampNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isTransactionValueUpdating } = useConfirmationContext();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
   const { isSupported: isGaslessSupported, pending: isGaslessCheckPending } =
     useIsGaslessSupported();
   const isUsingPay = useTransactionPayHasSourceAmount();
@@ -47,6 +49,8 @@ export const useInsufficientBalanceAlert = ({
   const isQuotesLoading = useIsTransactionPayLoading();
   const fiatPayment = useTransactionPayFiatPayment();
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
+  const { isUnavailable: isPredictWithdrawGasFeeTokenUnavailable } =
+    usePredictWithdrawGasFeeToken();
 
   return useMemo(() => {
     if (
@@ -55,13 +59,14 @@ export const useInsufficientBalanceAlert = ({
       isUsingPay ||
       isFiatPaymentSelected
     ) {
-      return [];
+      return NO_ALERTS;
     }
 
     const { selectedGasFeeToken, gasFeeTokens, excludeNativeTokenForFee } =
       transactionMetadata;
 
     const isGasFeeTokensEmpty = gasFeeTokens?.length === 0;
+    const { isGasFeeTokenIgnoredIfBalance } = transactionMetadata;
 
     // Check if gasless check has completed (regardless of result)
     const isGaslessCheckComplete = !isGaslessCheckPending;
@@ -80,10 +85,25 @@ export const useInsufficientBalanceAlert = ({
     // may be populated despite no gas token being available.
     // For those chains, `excludeNativeTokenForFee` will always be `true`, hence we can
     // rely on the combination of `excludeNativeTokenForFee` and `isGasFeeTokensEmpty`.
+    // A forced gas fee token with an empty gas-station list cannot pay, and
+    // native is short, so the transaction can only fail at sign time.
+    // Predict withdraws are the exception: before signing, their gas fee token
+    // list comes from an unsigned EOA `pUSD.transfer` that always reverts, so
+    // it is always empty. Use the check against the real Safe call instead.
+    const isPredictWithdraw = hasTransactionType(transactionMetadata, [
+      TransactionType.predictWithdraw,
+    ]);
+    const isForcedGasFeeTokenUnavailable = isPredictWithdraw
+      ? isPredictWithdrawGasFeeTokenUnavailable
+      : Boolean(isGasFeeTokenIgnoredIfBalance) &&
+        isGasFeeTokensEmpty &&
+        Boolean(selectedGasFeeToken);
+
     const hasNoGasFeeTokenSelected =
       ignoreGasFeeToken ||
       !selectedGasFeeToken ||
-      (excludeNativeTokenForFee && isGasFeeTokensEmpty);
+      (excludeNativeTokenForFee && isGasFeeTokensEmpty) ||
+      isForcedGasFeeTokenUnavailable;
 
     // Gasless check is complete AND one of:
     //  - Gasless is NOT supported (native currency needed for gas)
@@ -95,16 +115,23 @@ export const useInsufficientBalanceAlert = ({
         isGasFeeTokensEmpty ||
         (!isGasFeeTokensEmpty && !selectedGasFeeToken && !isQuotesLoading));
 
+    // Predict withdraw is exempt because the gas station pays in pUSD, so an
+    // empty native balance is normal. That exemption must not hide the one
+    // case the gas station cannot cover.
+    const isIgnoredType =
+      hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
+      !(isPredictWithdraw && isForcedGasFeeTokenUnavailable);
+
     const showAlert =
       hasInsufficientBalance &&
       isSimulationComplete &&
       hasNoGasFeeTokenSelected &&
       shouldCheckGaslessConditions &&
-      !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
+      !isIgnoredType &&
       !isSponsoredTransaction;
 
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [
@@ -114,8 +141,20 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
-            onReject(undefined, true);
+            goToBuy(undefined, {
+              surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION,
+            }).catch((error) =>
+              Logger.error(
+                error as Error,
+                'Insufficient balance alert: failed to open buy',
+              ),
+            );
+            onReject(undefined, true).catch((error) =>
+              Logger.error(
+                error as Error,
+                'Insufficient balance alert: failed to reject confirmation',
+              ),
+            );
           },
         },
         isBlocking: true,
@@ -133,6 +172,7 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata,
     isTransactionValueUpdating,
     isFiatPaymentSelected,
+    isPredictWithdrawGasFeeTokenUnavailable,
     isGaslessCheckPending,
     isGaslessSupported,
     isSimulationEnabled,

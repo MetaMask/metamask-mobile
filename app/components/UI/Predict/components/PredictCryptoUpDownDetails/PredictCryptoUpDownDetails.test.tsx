@@ -88,6 +88,33 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
+let mockPredictBrandRefreshEnabled = false;
+jest.mock('react-redux', () => {
+  const { selectPredictBrandRefreshEnabled } = jest.requireActual(
+    '../../../../../selectors/featureFlagController/predictBrandRefresh',
+  );
+  return {
+    ...jest.requireActual('react-redux'),
+    useSelector: (selector: unknown) =>
+      selector === selectPredictBrandRefreshEnabled
+        ? mockPredictBrandRefreshEnabled
+        : undefined,
+  };
+});
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
+
 jest.mock(
   '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
@@ -333,6 +360,7 @@ describe('PredictCryptoUpDownDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPredictBrandRefreshEnabled = false;
     mockChartCurrentPrice = undefined;
     mockUsePredictSeries.mockReturnValue({
       data: [
@@ -387,6 +415,61 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(screen.getAllByText('April 9, 1:45 PM').length).toBeGreaterThan(0);
   });
 
+  it('shows settlement information for TWAP markets', () => {
+    const market = createMockMarket({
+      priceToBeat: 78000,
+      twapWindowSeconds: 30,
+    });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(
+      screen.getByTestId(
+        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        twapWindowSeconds: 60,
+      }),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(
+        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(
+        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_SHEET,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('How this market settles')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "This market settles on BTC's average price over 60 seconds, not the price at the exact moment it closes.",
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not show settlement information for non-TWAP markets', () => {
+    render(
+      <PredictCryptoUpDownDetails
+        market={createMockMarket()}
+        onBack={mockOnBack}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders the share button in the header end area', () => {
     const market = createMockMarket();
 
@@ -395,6 +478,43 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(
       screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the current header without glass capsules when the brand refresh is off', () => {
+    render(
+      <PredictCryptoUpDownDetails
+        market={createMockMarket()}
+        onBack={mockOnBack}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('capsule')).toBeNull();
+  });
+
+  it('renders back and share in glass capsules when the brand refresh is on', () => {
+    mockPredictBrandRefreshEnabled = true;
+
+    render(
+      <PredictCryptoUpDownDetails
+        market={createMockMarket()}
+        onBack={mockOnBack}
+      />,
+    );
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.getAllByTestId('capsule')).toHaveLength(2);
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 
   it('calls usePredictShare with market id and slug', () => {

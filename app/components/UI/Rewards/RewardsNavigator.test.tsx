@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
 import RewardsNavigator from './RewardsNavigator';
 import Routes from '../../../constants/navigation/Routes';
-import { OnboardingStep } from '../../../actions/rewards';
 
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
@@ -17,18 +16,6 @@ jest.mock('../../../core/Engine', () => ({
 
 // Mock dependencies
 jest.mock('./hooks/useOptIn');
-
-jest.mock('./OnboardingNavigator', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOnboardingNavigator() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-onboarding-navigator' },
-      ReactActual.createElement(Text, null, 'Onboarding Navigator'),
-    );
-  };
-});
 
 jest.mock('./Views/RewardsDashboard', () => {
   const ReactActual = jest.requireActual('react');
@@ -42,18 +29,6 @@ jest.mock('./Views/RewardsDashboard', () => {
   };
 });
 
-jest.mock('./Views/RewardsReferralView', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockReferralRewardsView() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-referral-view' },
-      ReactActual.createElement(Text, null, 'Referral Rewards View'),
-    );
-  };
-});
-
 jest.mock('./Views/RewardsSettingsView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -63,6 +38,36 @@ jest.mock('./Views/RewardsSettingsView', () => {
       { testID: 'rewards-settings-view' },
       ReactActual.createElement(Text, null, 'Rewards Settings View'),
     );
+  };
+});
+
+jest.mock('./Views/RewardsTradingCommissionsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockRewardsTradingCommissionsView() {
+    return ReactActual.createElement(View, {
+      testID: 'rewards-trading-commissions-view',
+    });
+  };
+});
+
+jest.mock('./Views/RewardsEarningsHistoryView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockRewardsEarningsHistoryView() {
+    return ReactActual.createElement(View, {
+      testID: 'rewards-earnings-history-view',
+    });
+  };
+});
+
+jest.mock('./Views/RewardsTradingRebatesView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockRewardsTradingRebatesView() {
+    return ReactActual.createElement(View, {
+      testID: 'rewards-trading-rebates-view',
+    });
   };
 });
 
@@ -208,6 +213,10 @@ jest.mock('../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../reducers/rewardsMoney/selectors', () => ({
+  selectSettingsReferralAvailable: jest.fn(() => true),
+}));
+
 jest.mock('../../../reducers/rewards/selectors', () => ({
   selectIsRewardsVersionBlocked: jest.fn(),
   selectPendingDeeplink: jest.fn(),
@@ -330,6 +339,7 @@ jest.mock('./components/RewardsUpdateRequired/RewardsUpdateRequired', () => {
 
 // Import mocked selectors and hooks for setup
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectSettingsReferralAvailable } from '../../../reducers/rewardsMoney/selectors';
 import {
   selectIsRewardsVersionBlocked,
   selectPendingDeeplink,
@@ -387,13 +397,13 @@ describe('RewardsNavigator', () => {
       fetchVersionRequirements: jest.fn(),
     });
     mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
+    jest.mocked(selectSettingsReferralAvailable).mockReturnValue(true);
 
     // Create a mock store
     store = configureStore({
       reducer: {
         rewards: (
           state = {
-            onboardingActiveStep: OnboardingStep.INTRO,
             candidateSubscriptionId: null,
           },
         ) => state,
@@ -424,18 +434,25 @@ describe('RewardsNavigator', () => {
     mockIsFocused.mockReturnValue(true);
   });
 
-  const buildNavWrapper = (component: React.ReactElement) => (
+  const buildNavWrapper = (
+    component: React.ReactElement,
+    initialParams?: object,
+  ) => (
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Test">{() => component}</Stack.Screen>
+          <Stack.Screen name="Test" initialParams={initialParams}>
+            {() => component}
+          </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
   );
 
-  const renderWithNavigation = (component: React.ReactElement) =>
-    render(buildNavWrapper(component));
+  const renderWithNavigation = (
+    component: React.ReactElement,
+    initialParams?: object,
+  ) => render(buildNavWrapper(component, initialParams));
 
   describe('Version guard refresh key', () => {
     it('passes the active Rewards route to the version guard', () => {
@@ -467,16 +484,16 @@ describe('RewardsNavigator', () => {
   });
 
   describe('Stack Navigator Configuration', () => {
-    it('renders the first sub-page (referral view) for users with subscription', async () => {
+    it('renders the first sub-page (settings view) for users with subscription', async () => {
       // Dashboard/onboarding routing moved up to MainNavigator. RewardsNavigator
       // now only registers the rewards sub-pages, which are present only when the
-      // user is enrolled. The referral view is the first registered screen.
+      // user is enrolled. The settings view is the first registered screen.
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
       });
     });
 
@@ -502,7 +519,7 @@ describe('RewardsNavigator', () => {
       const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(queryByTestId('rewards-referral-view')).toBeNull();
+        expect(queryByTestId('rewards-settings-view')).toBeNull();
         expect(queryByTestId('rewards-dashboard-view')).toBeNull();
       });
     });
@@ -532,6 +549,107 @@ describe('RewardsNavigator', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
+    it('opens a money ledger screen without a points subscription', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_EARNINGS_HISTORY_VIEW }],
+          }),
+      );
+
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-earnings-history-view')).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('opens a money ledger screen from the nested screen param before the stack mounts', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_FLOW }],
+          }),
+      );
+
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />, {
+        screen: Routes.REWARDS_TRADING_REBATES_VIEW,
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-trading-rebates-view')).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dismisses the flow when a points screen is focused and the subscription is absent', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_VIP_VIEW }],
+          }),
+      );
+
+      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />, {
+        screen: Routes.REWARDS_EARNINGS_HISTORY_VIEW,
+      });
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(queryByTestId('rewards-earnings-history-view')).toBeNull();
+      expect(queryByTestId('rewards-vip-view')).toBeNull();
+    });
+
+    it('opens settings without a points subscription', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+          }),
+      );
+
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dismisses settings without a subscription when the money referral is unavailable', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      jest.mocked(selectSettingsReferralAvailable).mockReturnValue(false);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+          }),
+      );
+
+      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(queryByTestId('rewards-settings-view')).toBeNull();
+    });
+
     it('does not dismiss the flow while a subscription exists', async () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
       mockGoBack.mockClear();
@@ -539,7 +657,7 @@ describe('RewardsNavigator', () => {
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
       });
       expect(mockGoBack).not.toHaveBeenCalled();
     });
@@ -575,7 +693,7 @@ describe('RewardsNavigator', () => {
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       // Assert - Just verify it renders the first sub-page screen
-      expect(getByTestId('rewards-referral-view')).toBeDefined();
+      expect(getByTestId('rewards-settings-view')).toBeDefined();
     });
 
     it('does not call useGeoRewardsMetadata hook (owned by the dashboard)', () => {
@@ -598,7 +716,6 @@ describe('RewardsNavigator', () => {
       );
 
       expect(getByTestId('rewards-update-required')).toBeOnTheScreen();
-      expect(queryByTestId('rewards-onboarding-navigator')).toBeNull();
       expect(queryByTestId('rewards-dashboard-view')).toBeNull();
     });
 
@@ -622,7 +739,7 @@ describe('RewardsNavigator', () => {
 
       await waitFor(() => {
         expect(queryByTestId('rewards-update-required')).toBeNull();
-        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
       });
     });
   });

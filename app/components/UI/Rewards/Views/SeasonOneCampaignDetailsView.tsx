@@ -1,9 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  HeaderStandard,
-  Box,
-  Skeleton,
-} from '@metamask/design-system-react-native';
+import { Box, Skeleton } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -16,6 +12,9 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../locales/i18n';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -24,6 +23,7 @@ type SeasonOneCampaignDetailsRouteParams = {
 };
 
 const SeasonOneCampaignDetailsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -56,7 +56,9 @@ const SeasonOneCampaignDetailsView: React.FC = () => {
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           testID="header"
           title={campaign?.name ?? ''}
           onBack={() => navigation.goBack()}

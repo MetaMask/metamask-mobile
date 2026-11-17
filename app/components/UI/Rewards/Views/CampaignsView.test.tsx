@@ -9,9 +9,15 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
+import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
 const mockGoBack = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
 }));
@@ -48,6 +54,14 @@ jest.mock('../hooks/useGetPredictThePitchOutcomeToast', () => ({
 const mockUseGetPredictThePitchOutcomeToast =
   useGetPredictThePitchOutcomeToast as jest.MockedFunction<
     typeof useGetPredictThePitchOutcomeToast
+  >;
+
+jest.mock('../hooks/useMoneyAccountSweepstakesOutcomeToast', () => ({
+  useMoneyAccountSweepstakesOutcomeToast: jest.fn(),
+}));
+const mockUseMoneyAccountSweepstakesOutcomeToast =
+  useMoneyAccountSweepstakesOutcomeToast as jest.MockedFunction<
+    typeof useMoneyAccountSweepstakesOutcomeToast
   >;
 
 jest.mock('../components/Campaigns/CampaignsGroup', () => {
@@ -186,6 +200,7 @@ describe('CampaignsView', () => {
       1,
     );
     expect(mockUseGetPredictThePitchOutcomeToast).toHaveBeenCalledTimes(1);
+    expect(mockUseMoneyAccountSweepstakesOutcomeToast).toHaveBeenCalledTimes(1);
   });
 
   it('navigates back when the back button is pressed', () => {

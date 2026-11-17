@@ -189,6 +189,18 @@ export class MockSeedlessOnboardingController extends BaseController<
   }
 
   /**
+   * Mock changePassword — used by Settings → Change password (seedless vault).
+   * Real controller re-encrypts TOPRF secrets; E2E only updates mock password state.
+   */
+  async changePassword(
+    newPassword: string,
+    _oldPassword: string,
+  ): Promise<void> {
+    console.log('[E2E Mock] changePassword called');
+    mockState.password = newPassword;
+  }
+
+  /**
    * Mock setLocked
    */
   async setLocked(): Promise<void> {

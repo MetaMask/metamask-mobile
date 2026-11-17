@@ -4,7 +4,13 @@
 // homepage carousel).
 // ALL_CHAINS: combined spot + perps rankings (TopTradersView "All" tab).
 // PERP_CHAINS: perps-only rankings (TopTradersView "Perps" tab).
-export const SPOT_CHAINS: string[] = ['base', 'solana', 'ethereum'];
+export const SPOT_CHAINS: string[] = [
+  'base',
+  'solana',
+  'ethereum',
+  'bsc',
+  'robinhood',
+];
 
 export const ALL_CHAINS: string[] = [...SPOT_CHAINS, 'hyperliquid'];
 

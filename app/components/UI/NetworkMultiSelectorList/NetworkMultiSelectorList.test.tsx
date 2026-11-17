@@ -24,6 +24,9 @@ jest.mock('@metamask/transaction-controller', () => ({
   CHAIN_IDS: {
     MAINNET: '0x1',
     LINEA_MAINNET: '0xe708',
+    MONAD: '0x8f',
+    POLYGON: '0x89',
+    ARBITRUM: '0xa4b1',
   },
 }));
 
@@ -82,7 +85,7 @@ jest.mock('../../../component-library/hooks/index.ts', () => ({
       networkList: {},
       centeredNetworkCell: { alignItems: 'center' },
       noNetworkFeeContainer: { alignSelf: 'center' },
-      networkNameText: { flex: 1, minWidth: 0 },
+      networkNameText: { flexGrow: 0, flexShrink: 1, minWidth: 0 },
     },
   })),
 }));
@@ -678,7 +681,8 @@ describe('NetworkMultiSelectorList', () => {
       );
       expect(nameText.props.numberOfLines).toBe(1);
       expect(StyleSheet.flatten(nameText.props.style)).toMatchObject({
-        flex: 1,
+        flexGrow: 0,
+        flexShrink: 1,
         minWidth: 0,
       });
     });
@@ -861,12 +865,12 @@ describe('NetworkMultiSelectorList', () => {
     it('calls openModal with correct params when button is pressed', () => {
       const networkWithUrl: Network[] = [
         {
-          id: 'eip155:137',
-          name: 'Polygon',
+          id: 'eip155:43114',
+          name: 'Avalanche C-Chain',
           isSelected: false,
-          imageSource: { uri: 'polygon.png' },
-          caipChainId: 'eip155:137' as CaipChainId,
-          networkTypeOrRpcUrl: 'https://polygon-rpc.com',
+          imageSource: { uri: 'avalanche.png' },
+          caipChainId: 'eip155:43114' as CaipChainId,
+          networkTypeOrRpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
         },
       ];
 
@@ -883,9 +887,9 @@ describe('NetworkMultiSelectorList', () => {
 
       expect(mockOpenModal).toHaveBeenCalledWith({
         isVisible: true,
-        caipChainId: 'eip155:137',
+        caipChainId: 'eip155:43114',
         displayEdit: true,
-        networkTypeOrRpcUrl: 'https://polygon-rpc.com',
+        networkTypeOrRpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
         isReadOnly: false,
       });
     });
@@ -942,6 +946,72 @@ describe('NetworkMultiSelectorList', () => {
         <NetworkMultiSelectorList
           {...defaultProps}
           networks={mainChainNetwork}
+        />,
+      );
+
+      act(() => {
+        fireEvent.press(getByTestId('cell-button'));
+      });
+
+      expect(mockOpenModal).toHaveBeenCalledWith(
+        expect.objectContaining({ displayEdit: false }),
+      );
+    });
+
+    it('sets displayEdit=false for Polygon mainnet', () => {
+      mockFormatChainIdToCaip.mockReturnValue('eip155:999');
+      mockToHex.mockImplementation(
+        (value) => `0x${Number(value).toString(16)}`,
+      );
+
+      const polygonNetwork: Network[] = [
+        {
+          id: 'eip155:137',
+          name: 'Polygon',
+          isSelected: false,
+          imageSource: { uri: 'polygon.png' },
+          caipChainId: 'eip155:137' as CaipChainId,
+          networkTypeOrRpcUrl: 'https://polygon-rpc.com',
+        },
+      ];
+
+      const { getByTestId } = render(
+        <NetworkMultiSelectorList
+          {...defaultProps}
+          networks={polygonNetwork}
+        />,
+      );
+
+      act(() => {
+        fireEvent.press(getByTestId('cell-button'));
+      });
+
+      expect(mockOpenModal).toHaveBeenCalledWith(
+        expect.objectContaining({ displayEdit: false }),
+      );
+    });
+
+    it('sets displayEdit=false for Arbitrum mainnet', () => {
+      mockFormatChainIdToCaip.mockReturnValue('eip155:999');
+      mockToHex.mockImplementation(
+        (value) => `0x${Number(value).toString(16)}`,
+      );
+
+      const arbitrumNetwork: Network[] = [
+        {
+          id: 'eip155:42161',
+          name: 'Arbitrum One',
+          isSelected: false,
+          imageSource: { uri: 'arbitrum.png' },
+          caipChainId: 'eip155:42161' as CaipChainId,
+          networkTypeOrRpcUrl: 'https://arb1.arbitrum.io/rpc',
+        },
+      ];
+
+      const { getByTestId } = render(
+        <NetworkMultiSelectorList
+          {...defaultProps}
+          networks={arbitrumNetwork}
         />,
       );
 

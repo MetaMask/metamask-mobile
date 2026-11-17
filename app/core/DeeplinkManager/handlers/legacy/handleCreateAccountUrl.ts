@@ -3,11 +3,15 @@ import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../redux';
 import { selectAccountsWithNativeBalanceByChainId } from '../../../../selectors/multichain';
 import { BridgeViewMode } from '../../../../components/UI/Bridge/types';
-import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  getNativeAssetForChainId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import { startSwapBridgePageLoadTrace } from '../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
 import NavigationService from '../../../NavigationService';
+import { resetSwapSessionBeforeDeeplink } from '../../utils/resetSwapSessionBeforeDeeplink';
 
 export function handleCreateAccountUrl({ path }: { path: string }) {
   const chainId = new URLSearchParams(path).get('chainId');
@@ -23,8 +27,6 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
     { chainId },
   );
 
-  const hasAccountsInScope = Object.keys(accountsBalanceInScope).length > 0;
-
   const accountIdWithNativeBalanceGreaterThanZero = Object.keys(
     accountsBalanceInScope,
   ).find((accountId) => {
@@ -37,12 +39,14 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
     const sourceToken = getNativeSourceToken(chainId);
 
     // this will make the bridge view open with the correct source token
-    const params: BridgeRouteParams = {
+    const params = startSwapBridgePageLoadTrace({
       sourceToken,
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
       location: MetaMetricsSwapsEventSource.MainView,
-    };
+    });
+
+    resetSwapSessionBeforeDeeplink();
 
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
@@ -52,11 +56,14 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
     return;
   }
 
-  // if there are account in scope bu non of them have funds, navigate to ramps
+  // Pass the native asset to the Buy quote screen so it selects its currency.
+  const { assetId } = getNativeAssetForChainId(chainId);
+
   NavigationService.navigation.navigate(Routes.RAMP.BUY, {
-    screen: Routes.RAMP.GET_STARTED,
+    screen: Routes.RAMP.ID,
     params: {
-      chainId,
+      screen: Routes.RAMP.BUILD_QUOTE,
+      params: { assetId },
     },
   });
 }

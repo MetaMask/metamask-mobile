@@ -20,10 +20,14 @@ import {
   type UseFollowedTradersResult,
   type UseNotificationPreferencesResult,
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
+import { isSocialV1Treatment } from '../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
+import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';
 
 const mockNavigate = jest.fn();
+const mockIsSocialV1Treatment = jest.mocked(isSocialV1Treatment);
+const mockNavigateToSocialV1Profile = jest.mocked(navigateToSocialV1Profile);
 let mockIsSocialLeaderboardEnabled = true;
 
 jest.mock('@react-navigation/native', () => {
@@ -42,6 +46,20 @@ jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialLeaderboardEnabled: () => mockIsSocialLeaderboardEnabled,
+  }),
+);
+
+jest.mock(
+  '../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    isSocialV1Treatment: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../SocialLeaderboard/navigation/navigateToSocialV1Profile',
+  () => ({
+    navigateToSocialV1Profile: jest.fn(),
   }),
 );
 
@@ -130,6 +148,7 @@ describe('SocialAINotificationPreferencesContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsSocialLeaderboardEnabled = true;
+    mockIsSocialV1Treatment.mockReturnValue(false);
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockUseFollowedTraders.mockReturnValue(makeFollowedTradersResult());
     mockUseNotificationPreferences.mockReturnValue(
@@ -354,6 +373,33 @@ describe('SocialAINotificationPreferencesContent', () => {
     ).toBe(false);
   });
 
+  it('forces threshold and trader toggles disabled when disabled prop is true', () => {
+    mockUseFollowedTraders.mockReturnValue(
+      makeFollowedTradersResult({ traders: followedTraders }),
+    );
+    mockUseNotificationPreferences.mockReturnValue(
+      makeNotificationPreferencesResult({
+        preferences: makePreferences({
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+        }),
+      }),
+    );
+
+    renderComponent({ disabled: true });
+
+    expect(
+      screen.getByTestId(
+        NotificationPreferencesSelectorsIDs.THRESHOLD_OPTION(100),
+      ).props.accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      screen.getByTestId(
+        NotificationPreferencesSelectorsIDs.TRADER_TOGGLE('trader-1'),
+      ).props.disabled,
+    ).toBe(true);
+  });
+
   it('navigates to the trader profile when a trader row is pressed', () => {
     mockUseFollowedTraders.mockReturnValue(
       makeFollowedTradersResult({ traders: followedTraders }),
@@ -367,12 +413,38 @@ describe('SocialAINotificationPreferencesContent', () => {
       ),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'trader1',
+    });
+  });
+
+  it('navigates to the Social V1 profile for a treatment trader row', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    mockUseFollowedTraders.mockReturnValue(
+      makeFollowedTradersResult({ traders: followedTraders }),
+    );
+
+    renderComponent();
+
+    fireEvent.press(
+      screen.getByTestId(
+        NotificationPreferencesSelectorsIDs.TRADER_PRESS('trader-1'),
+      ),
+    );
+
+    expect(mockNavigateToSocialV1Profile).toHaveBeenCalledWith(
+      expect.any(Object),
       {
         traderId: 'trader-1',
         traderName: 'trader1',
+        traderAddress: followedTraders[0].address,
+        traderAvatarUri: followedTraders[0].avatarUri,
       },
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE,
+      expect.anything(),
     );
   });
 

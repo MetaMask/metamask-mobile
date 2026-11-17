@@ -5,6 +5,11 @@ import type { Hex } from '@metamask/utils';
 import AccountsApiActivityItem from './AccountsApiActivityItem';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+import {
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
@@ -17,7 +22,7 @@ const mockedSelectActivityDetailsFlag = jest.mocked(
 // Selectors are stubbed to plain getters and useSelector just invokes them, so
 // the component's currency/rate wiring runs without a full redux store.
 jest.mock('react-redux', () => ({
-  useSelector: (selector: () => unknown) => selector(),
+  useSelector: (selector: (state?: unknown) => unknown) => selector({}),
 }));
 
 const mockNavigate = jest.fn();
@@ -64,6 +69,30 @@ const cashback: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
+const bankTransfer: AccountsApiActivity = {
+  kind: 'bank_transfer',
+  hash: '0xbank' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f',
+  token,
+  amount: '15009500',
+  receivedFrom: '0x798eee806e806a0a26bc52526428dd3692217881' as Hex,
+  status: 'confirmed',
+};
+
+const enrichment: CardTransaction = {
+  id: 'baanx-1',
+  providerId: 'baanx',
+  timestamp: card.time,
+  status: CardTransactionStatus.Completed,
+  type: CardTransactionType.Purchase,
+  isDebit: true,
+  billingAmount: { value: '5.38', currency: 'USD' },
+  originalAmount: { value: '27.50', currency: 'BRL' },
+  merchant: { name: 'Coffee Shop' },
+  fundingSources: [],
+};
+
 interface CapturedRowProps {
   id: string;
   chainId: string;
@@ -71,8 +100,11 @@ interface CapturedRowProps {
   display: {
     icon: IconName;
     primaryAmount: string;
+    fiatAmount: string;
     isIncoming: boolean;
     status: string;
+    showPrimaryAmount?: boolean;
+    isFiatAmountMuted?: boolean;
   };
 }
 
@@ -94,7 +126,29 @@ describe('AccountsApiActivityItem', () => {
     expect(props.display.status).toBe('confirmed');
     expect(props.display.icon).toBe(IconName.Card);
     expect(props.display.isIncoming).toBe(false);
-    expect(props.display.primaryAmount).toBe('-5.38 mUSD');
+    expect(props.display.fiatAmount).toBe('-$5.38');
+    expect(props.display.showPrimaryAmount).toBe(false);
+    expect(props.display.isFiatAmountMuted).toBe(false);
+  });
+
+  it('hides the mUSD line when a historical valuation is present', () => {
+    render(
+      <AccountsApiActivityItem
+        activity={{
+          ...card,
+          displayAmount: {
+            type: 'historical',
+            value: '6570000',
+            decimals: 6,
+          },
+        }}
+      />,
+    );
+
+    const props = lastRowProps();
+    expect(props.display.fiatAmount).toBe('-$6.57');
+    expect(props.display.showPrimaryAmount).toBe(false);
+    expect(props.display.primaryAmount).toBe('-6.57 mUSD');
   });
 
   it('feeds a cashback credit (incoming amount) into the row view', () => {
@@ -102,7 +156,8 @@ describe('AccountsApiActivityItem', () => {
 
     const props = lastRowProps();
     expect(props.display.isIncoming).toBe(true);
-    expect(props.display.primaryAmount).toBe('+0.30 mUSD');
+    expect(props.display.fiatAmount).toBe('+$0.30');
+    expect(props.display.showPrimaryAmount).toBe(false);
   });
 
   it('navigates to the full-screen activity details with the activity on press', () => {
@@ -112,6 +167,18 @@ describe('AccountsApiActivityItem', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: card,
+      enrichment: undefined,
+    });
+  });
+
+  it('navigates with enrichment when enrichment is defined', () => {
+    render(<AccountsApiActivityItem activity={card} enrichment={enrichment} />);
+
+    lastRowProps().onPress?.(card.hash);
+
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      activity: card,
+      enrichment,
     });
   });
 
@@ -122,6 +189,18 @@ describe('AccountsApiActivityItem', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: cashback,
+      enrichment: undefined,
+    });
+  });
+
+  it('opens the custom details for a bank_transfer', () => {
+    render(<AccountsApiActivityItem activity={bankTransfer} />);
+
+    lastRowProps().onPress?.(bankTransfer.hash);
+
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      activity: bankTransfer,
+      enrichment: undefined,
     });
   });
 

@@ -1,6 +1,6 @@
 // Shared test-snaps URL for flows, selectors, and helpers without importing TestSnaps.
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
+  'https://metamask.github.io/snaps/test-snaps/3.6.0/';
 
 // Only keep selectors that are actually used in tests
 export const TestSnapViewSelectorWebIDS = {
@@ -176,6 +176,15 @@ export function snapUiNativeIosXPath(testID: string): string {
 export function snapUIJsxCountIosXPath(count: string): string {
   const scrollView = SnapUIRendererSelectorIDs.scrollView;
   return `//*[@name="${scrollView}"]//*[@accessible="true" and contains(@label,"Count, ${count}")]`;
+}
+
+/**
+ * JSX Snap Increment card — same grouped iOS parent as Count, but does not
+ * depend on the current count so a retry or second tap still finds it.
+ */
+export function snapUIJsxIncrementCardIosXPath(): string {
+  const scrollView = SnapUIRendererSelectorIDs.scrollView;
+  return `//*[@name="${scrollView}"]//*[@accessible="true" and contains(@label,"Increment")]`;
 }
 
 export function snapUIJsxCountAndroidXPath(count: string): string {

@@ -177,6 +177,7 @@ export function enrichCaveatValue({
  */
 export async function handleRequest({
   origin,
+  originMetadata,
   connectedAddresses,
   scope,
   requestId,
@@ -192,6 +193,7 @@ export async function handleRequest({
   if (method === 'tron_signMessage') {
     const result = await callTronSnap({
       origin,
+      originMetadata,
       connectedAddresses: normalizedConnectedAddresses,
       scope,
       requestId,
@@ -204,6 +206,7 @@ export async function handleRequest({
   if (method === 'tron_signTransaction') {
     const result = await callTronSnap({
       origin,
+      originMetadata,
       connectedAddresses: normalizedConnectedAddresses,
       scope,
       requestId,

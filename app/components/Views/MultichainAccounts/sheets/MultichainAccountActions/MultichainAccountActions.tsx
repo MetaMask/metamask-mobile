@@ -97,6 +97,10 @@ const MultichainAccountActions = () => {
     });
   }, [navigate, goBack, accountGroup]);
 
+  const endShowAccountAddressListTrace = useCallback(() => {
+    endTrace({ name: TraceName.ShowAccountAddressList });
+  }, []);
+
   const goToAddresses = useCallback(() => {
     // Start the trace before navigating to the address list to include the
     // navigation and render times in the trace.
@@ -108,22 +112,31 @@ const MultichainAccountActions = () => {
       },
     });
 
-    // Close the modal and navigate to address list
-    goBack();
-    navigateWithDetails(
-      { navigate },
-      createAddressListNavigationDetails({
-        groupId: accountGroup.id,
-        title: `${strings('multichain_accounts.address_list.addresses')} / ${
-          accountGroup.metadata.name
-        }`,
-        source: AddressListViewedSource.ACCOUNT_ACTIONS,
-        onLoad: () => {
-          endTrace({ name: TraceName.ShowAccountAddressList });
-        },
-      }),
-    );
-  }, [accountGroup.id, accountGroup.metadata.name, navigate, goBack]);
+    try {
+      // Close the modal and navigate to address list
+      goBack();
+      navigateWithDetails(
+        { navigate },
+        createAddressListNavigationDetails({
+          groupId: accountGroup.id,
+          title: `${strings('multichain_accounts.address_list.addresses')} / ${
+            accountGroup.metadata.name
+          }`,
+          source: AddressListViewedSource.ACCOUNT_ACTIONS,
+          onLoad: endShowAccountAddressListTrace,
+        }),
+      );
+    } catch (error) {
+      endShowAccountAddressListTrace();
+      throw error;
+    }
+  }, [
+    accountGroup.id,
+    accountGroup.metadata.name,
+    endShowAccountAddressListTrace,
+    navigate,
+    goBack,
+  ]);
 
   return (
     <BottomSheet ref={sheetRef}>

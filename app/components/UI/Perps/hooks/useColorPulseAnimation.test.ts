@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { type ViewStyle } from 'react-native';
 import {
   useColorPulseAnimation,
   type PulseColor,
@@ -139,7 +140,8 @@ describe('useColorPulseAnimation', () => {
     it('should return animated style object with required properties', () => {
       const { result } = renderHook(() => useColorPulseAnimation());
 
-      const style = result.current.getAnimatedStyle;
+      // The Jest mock of useAnimatedStyle returns the resolved plain style object
+      const style = result.current.getAnimatedStyle as ViewStyle;
 
       expect(style).toHaveProperty('opacity');
       expect(style).toHaveProperty('backgroundColor');

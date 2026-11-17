@@ -7,13 +7,13 @@ import {
 } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 
-import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectTransactionMetadataById } from '../../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { toHumanSeconds } from '../../../utils/time';
 import type { RootState } from '../../../../../../reducers';
+import { Text } from '@metamask/design-system-react-native';
 
 const getText = (userFeeLevel: UserFeeLevel | GasFeeEstimateLevel) => {
   switch (userFeeLevel) {

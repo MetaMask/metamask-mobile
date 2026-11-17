@@ -4,6 +4,8 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
+  AccountProviderWrapper,
+  XlmAccountProvider,
 } from '@metamask/multichain-account-service';
 import { MessengerClientInitFunction } from '../../types';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
@@ -13,13 +15,14 @@ import { MultichainAccountServiceInitMessenger } from '../../messengers/multicha
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.
+ * @param request.initMessenger - The messenger to use for initialization.
  * @returns The initialized service.
  */
 export const multichainAccountServiceInit: MessengerClientInitFunction<
   MultichainAccountService,
   MultichainAccountServiceMessenger,
   MultichainAccountServiceInitMessenger
-> = ({ controllerMessenger, initMessenger }) => {
+> = ({ controllerMessenger }) => {
   const snapAccountProviderConfig = {
     // READ THIS CAREFULLY:
     // We using 1 to prevent any concurrent `keyring_createAccount` requests, that make sure
@@ -39,16 +42,20 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   };
 
+  // Stellar is GA; keep the custom provider until MultichainAccountService
+  // wires XLM via `XLM_ACCOUNT_PROVIDER_NAME` like SOL/BTC/TRX.
+  const xlmProvider = new AccountProviderWrapper(
+    controllerMessenger,
+    new XlmAccountProvider(controllerMessenger, snapAccountProviderConfig),
+  );
+
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
+    providers: [xlmProvider],
     providerConfigs: {
       [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(tron)
       [TRX_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// END:ONLY_INCLUDE_IF
     },
   });
 
