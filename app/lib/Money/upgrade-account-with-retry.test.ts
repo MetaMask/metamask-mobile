@@ -115,6 +115,8 @@ describe('upgradeAccountWithRetry', () => {
     ['an open circuit breaker', () => new BrokenCircuitError()],
     ['a network failure', () => new TypeError('Network request failed')],
     ['a network timeout', () => new TypeError('Network request timed out')],
+    ['a fetch failure', () => new TypeError('Failed to fetch')],
+    ['a Node fetch failure', () => new TypeError('fetch failed')],
   ])(
     'retries %s and resolves when a later attempt succeeds',
     async (_label, createError) => {
@@ -167,6 +169,16 @@ describe('upgradeAccountWithRetry', () => {
     const upgradeAccount = jest.fn().mockRejectedValue(error);
 
     await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);
+
+    expect(upgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows a non-Error rejection without retrying', async () => {
+    const upgradeAccount = jest.fn().mockRejectedValue('upgrade failed');
+
+    await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(
+      'upgrade failed',
+    );
 
     expect(upgradeAccount).toHaveBeenCalledTimes(1);
   });
