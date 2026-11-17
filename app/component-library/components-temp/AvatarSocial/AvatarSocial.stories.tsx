@@ -39,7 +39,7 @@ const AvatarSocialMeta = {
     },
   },
   args: {
-    variant: FoxiconVariant.Base,
+    variant: FoxiconVariant.Astro,
     backgroundColor: AvatarSocialBackgroundColor.Background1,
     size: AvatarBaseSize.Md,
     shape: AvatarBaseShape.Circle,
