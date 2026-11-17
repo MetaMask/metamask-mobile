@@ -10527,9 +10527,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/foundryup@npm:1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/foundryup@npm:1.0.0"
+"@metamask/foundryup@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/foundryup@npm:2.0.0"
   dependencies:
     minipass: "npm:^7.1.2"
     tar: "npm:^7.4.3"
@@ -10537,8 +10537,8 @@ __metadata:
     yargs: "npm:^17.7.2"
     yargs-parser: "npm:^21.1.1"
   bin:
-    mm-foundryup: ./dist/cli.mjs
-  checksum: 10/20296930936a87525331ae9244a144cbd272a61cb658a367194ad7101379633daeb4a5294a6843b013aa14198d7b8bf99ee754ec2c4729880097b486e3754587
+    mm-foundryup: ./dist/cli.js
+  checksum: 10/5c1af1646d255e3885d325adc9740918c25c895e9c805299cd7476697145823cb2ea473d0e6dffbfa415c81d27863a46d77c3b0313f6251e362f9a6f301da561
   languageName: node
   linkType: hard
 
@@ -10899,11 +10899,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/messenger-cli@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/messenger-cli@npm:0.2.0"
+"@metamask/messenger-cli@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/messenger-cli@npm:1.0.0"
   dependencies:
-    "@metamask/utils": "npm:^11.9.0"
+    "@metamask/utils": "npm:^11.12.0"
     yargs: "npm:^17.7.2"
   peerDependencies:
     oxfmt: ^0.44.0
@@ -10915,8 +10915,8 @@ __metadata:
     prettier:
       optional: true
   bin:
-    messenger-action-types: ./dist/cli.mjs
-  checksum: 10/db8e10215f45d42d165cb85cdbb666956d2cd208fedf65c041f278b5b278aaeec18ad62d0146e0dacac069c145cd1892d84fa9d90e764d544c828bd50b5349fe
+    messenger-action-types: ./dist/cli.js
+  checksum: 10/7ef819a0ea8f476fd5799849d6b9309695350995680d7cd44c43db81e93c3939ddba7f298f924e88fe7e522fe22378da92b073ff2be7fb561cf42820af693720
   languageName: node
   linkType: hard
 
@@ -38277,7 +38277,7 @@ __metadata:
     "@metamask/ethjs-contract": "npm:^0.4.1"
     "@metamask/ethjs-query": "npm:^0.7.1"
     "@metamask/ethjs-unit": "npm:^0.3.0"
-    "@metamask/foundryup": "npm:1.0.0"
+    "@metamask/foundryup": "npm:2.0.0"
     "@metamask/gas-fee-controller": "npm:^27.1.1"
     "@metamask/gator-permissions-controller": "npm:^6.1.2"
     "@metamask/geolocation-controller": "npm:^2.0.0"
@@ -38295,7 +38295,7 @@ __metadata:
     "@metamask/logging-controller": "npm:^10.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/messenger-cli": "npm:^0.2.0"
+    "@metamask/messenger-cli": "npm:^1.0.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
