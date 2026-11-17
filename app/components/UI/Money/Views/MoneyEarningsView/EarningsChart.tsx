@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import BigNumber from 'bignumber.js';
-import { GestureResponderEvent, PanResponder, Pressable } from 'react-native';
+import { PanResponder, Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -174,6 +174,7 @@ const EarningsChart = ({
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [plotWidth, setPlotWidth] = useState(0);
   const isScrubbing = useRef(false);
+  const scrubOriginX = useRef(0);
   const locale = I18n.locale;
   const selectedRangeData = useMemo(
     () => getSelectedRange(entries, selectedRange),
@@ -221,6 +222,7 @@ const EarningsChart = ({
 
   const handlePointPressIn = (index: number, point: EarningsPoint): void => {
     if (isAvailableBucket(point)) {
+      scrubOriginX.current = (index / points.length) * plotWidth;
       setActiveIndex(index);
     }
   };
@@ -258,10 +260,14 @@ const EarningsChart = ({
 
           return isHorizontal;
         },
-        onPanResponderGrant: (event: GestureResponderEvent) =>
-          selectPointAtX(event.nativeEvent.locationX),
-        onPanResponderMove: (event: GestureResponderEvent) =>
-          selectPointAtX(event.nativeEvent.locationX),
+        onPanResponderGrant: (_event, gestureState) =>
+          selectPointAtX(
+            scrubOriginX.current + gestureState.moveX - gestureState.x0,
+          ),
+        onPanResponderMove: (_event, gestureState) =>
+          selectPointAtX(
+            scrubOriginX.current + gestureState.moveX - gestureState.x0,
+          ),
         onPanResponderRelease: clearActiveSelection,
         onPanResponderTerminate: clearActiveSelection,
       }),
@@ -409,36 +415,50 @@ const EarningsChart = ({
                       ]}
                     />
                   ) : null}
+                </Pressable>
+              );
+            })}
+          </Box>
+
+          <Box
+            pointerEvents="none"
+            flexDirection={BoxFlexDirection.Row}
+            twClassName="absolute bottom-0 left-0 right-0 h-[160px] overflow-visible"
+          >
+            {points.map((point, index) => {
+              const isAvailable = isAvailableBucket(point);
+              const isSelected = activeIndex === index;
+
+              return (
+                <Box
+                  key={`pill-slot-${point.start}`}
+                  alignItems={
+                    index === 0
+                      ? BoxAlignItems.Start
+                      : index === points.length - 1
+                        ? BoxAlignItems.End
+                        : BoxAlignItems.Center
+                  }
+                  twClassName="h-full flex-1 overflow-visible"
+                >
                   {isSelected && isAvailable ? (
                     <Box
-                      pointerEvents="none"
-                      alignItems={
-                        index === 0
-                          ? BoxAlignItems.Start
-                          : index === points.length - 1
-                            ? BoxAlignItems.End
-                            : BoxAlignItems.Center
-                      }
-                      twClassName="absolute left-0 right-0 top-0 h-full"
+                      testID={MoneyEarningsViewTestIds.CHART_PILL}
+                      twClassName="-top-3 rounded-full bg-text-default px-2 py-0.5 overflow-visible"
                     >
-                      <Box
-                        testID={MoneyEarningsViewTestIds.CHART_PILL}
-                        twClassName="-top-3 rounded-full bg-text-default px-2 py-0.5"
+                      <Text
+                        variant={TextVariant.BodySm}
+                        fontWeight={FontWeight.Medium}
+                        twClassName="text-primary-inverse whitespace-nowrap"
+                        numberOfLines={1}
                       >
-                        <Text
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Medium}
-                          twClassName="text-primary-inverse whitespace-nowrap"
-                          numberOfLines={1}
-                        >
-                          {`${formatSignedUsd(point.amount ?? 0)} · ${formatPointPillLabel(
-                            point,
-                          )}`}
-                        </Text>
-                      </Box>
+                        {`${formatSignedUsd(point.amount ?? 0)} · ${formatPointPillLabel(
+                          point,
+                        )}`}
+                      </Text>
                     </Box>
                   ) : null}
-                </Pressable>
+                </Box>
               );
             })}
           </Box>
