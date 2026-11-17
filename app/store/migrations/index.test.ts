@@ -227,9 +227,9 @@ describe('Critical Error Handling', () => {
 
       await asyncMigrations['108'](initialState);
 
-      expect(
-        mockedControllerStorage.getAllPersistedState,
-      ).toHaveBeenCalledWith(REMOVED_CONTROLLER_NAMES);
+      expect(mockedControllerStorage.getAllPersistedState).toHaveBeenCalledWith(
+        REMOVED_CONTROLLER_NAMES,
+      );
     });
   });
 
