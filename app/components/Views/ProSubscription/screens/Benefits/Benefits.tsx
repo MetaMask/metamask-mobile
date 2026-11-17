@@ -301,6 +301,7 @@ const Benefits = ({
                 plan={plan}
                 copy={copy}
                 isSelected={resolvedPlan === plan.id}
+                isDisabled={isSubmitting}
                 onPress={handlePlanPress}
               />
             ))

@@ -71,7 +71,10 @@ const MoneyOnboardingCard = ({
 
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
-  const { apyPercent } = useMoneyVaultApy();
+  // Money home's positions query owns this key, including the offline pause.
+  const { apyPercent } = useMoneyVaultApy({
+    positionsRefetchInterval: false,
+  });
   const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
