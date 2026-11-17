@@ -33,7 +33,7 @@ const HeaderStandardGlass = ({
   ...props
 }: HeaderStandardGlassProps) => {
   if (!isGlass) {
-    return <HeaderStandard {...props} onLayout={onLayout} />;
+    return <HeaderStandard {...props} onLayout={onLayout} twClassName="px-4" />;
   }
 
   return (
@@ -46,6 +46,7 @@ const HeaderStandardGlass = ({
     >
       <HeaderStandard
         {...props}
+        twClassName="px-4"
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />

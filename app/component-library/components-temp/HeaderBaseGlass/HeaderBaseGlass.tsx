@@ -37,7 +37,7 @@ const HeaderBaseGlass = ({
   ...props
 }: HeaderBaseGlassProps) => {
   if (!isGlass) {
-    return <HeaderBase {...props} onLayout={onLayout} />;
+    return <HeaderBase {...props} onLayout={onLayout} twClassName="px-4" />;
   }
 
   // Some headers need the same layout styles on both glass layers. Keep this
@@ -55,6 +55,7 @@ const HeaderBaseGlass = ({
     >
       <HeaderBase
         {...props}
+        twClassName="px-4"
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />
