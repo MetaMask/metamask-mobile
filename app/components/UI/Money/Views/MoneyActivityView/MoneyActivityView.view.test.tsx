@@ -116,7 +116,7 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     netInfoMock.__resetMockNetInfo();
   });
 
-  it('shows cached historical mUSD amounts for vmUSD and pvmUSD rows, then opens details', async () => {
+  it('shows cached historical dollar amounts for vmUSD and pvmUSD rows, then opens details', async () => {
     installMoneyApi({
       valuationReply: () =>
         Promise.resolve(
@@ -142,18 +142,29 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     });
 
     // The row mounts with a pending amount before the valuation query settles.
-    await waitFor(() => {
+    const cardRow = await waitFor(() => {
+      const row = getByTestId(`${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`);
       expect(
-        within(
-          getByTestId(`${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`),
-        ).getByText('-968.40 mUSD'),
-      ).toBeOnTheScreen();
+        within(row).getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
+      ).toHaveTextContent('-$968.40');
+      return row;
     });
+    expect(
+      within(cardRow).queryByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toBeNull();
+    expect(within(cardRow).queryByText(/mUSD/)).toBeNull();
 
     const cashbackRow = await findByTestId(
       `${MoneyActivityItemTestIds.ROW}-${CASHBACK_HASH}`,
     );
-    expect(within(cashbackRow).getByText('+533.86 mUSD')).toBeOnTheScreen();
+    expect(
+      within(cashbackRow).getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
+    ).toHaveTextContent('+$533.86');
+    expect(
+      within(cashbackRow).queryByTestId(
+        MoneyActivityItemTestIds.PRIMARY_AMOUNT,
+      ),
+    ).toBeNull();
     expect(valuationCallCount()).toBe(1);
     expect(engineCall).toHaveBeenCalledWith(
       'MoneyAccountApiDataService:fetchVaultShareValuations',
@@ -195,6 +206,9 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     expect(
       within(cardRow).getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
     ).toHaveTextContent('-$951.76');
+    expect(
+      within(cardRow).queryByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toBeNull();
     expect(
       queryByTestId(`${MoneyActivityItemTestIds.ROW}-${CASHBACK_HASH}`),
     ).toBeNull();

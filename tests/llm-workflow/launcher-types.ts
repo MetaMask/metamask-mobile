@@ -57,9 +57,9 @@ export interface IOSAppBundleMetadata {
 /**
  * Error codes used by iOS prerequisites and launch.
  *
- * Constrained to core `ErrorCode`s: the `launch` tool collapses unknown codes
- * into `MM_LAUNCH_FAILED`. iOS-specific detail belongs in the message and
- * `remediation`.
+ * Constrained to core `ErrorCode`s: the `mm` CLI maps each known code to an
+ * exit code and maps an unknown `MM_*` code to exit 1. iOS-specific detail
+ * belongs in the message and `remediation`.
  */
 export type IOSLaunchErrorCode = Extract<
   ErrorCode,

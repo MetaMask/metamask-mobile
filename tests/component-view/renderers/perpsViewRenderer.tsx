@@ -474,9 +474,11 @@ interface TestStreamManagerBundle {
 const withStreamControls = <T extends object>(
   renderResult: T,
   stream: PerpsStreamControls,
+  queryClient: QueryClient,
 ) => ({
   ...renderResult,
   stream,
+  queryClient,
 });
 
 const typedPositions = (positions: unknown[]): Position[] =>
@@ -837,6 +839,7 @@ export function renderPerpsView(
     return withStreamControls(
       renderWithProvider(navigationTree, { state }),
       stream,
+      queryClient,
     );
   }
 
@@ -848,6 +851,7 @@ export function renderPerpsView(
       initialParams,
     ),
     stream,
+    queryClient,
   );
 }
 
@@ -1435,6 +1439,7 @@ export function renderPerpsComponent(
       { state },
     ),
     stream,
+    queryClient,
   );
 }
 
@@ -1482,6 +1487,7 @@ export function renderPerpsComponentDisconnected(
       { state },
     ),
     stream,
+    queryClient,
   );
 }
 
