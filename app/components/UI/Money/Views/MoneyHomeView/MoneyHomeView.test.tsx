@@ -3699,6 +3699,31 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('keeps the condensed info cards while a funded balance reloads', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...settledEmptyBalance,
+        totalFiatFormatted: '$25.00',
+        totalFiatRaw: '25',
+        tokenTotal: new BigNumber(25),
+      } as ReturnType<typeof useMoneyAccountBalance>);
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+      expect(
+        getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+
+      mockUseMoneyAccountBalance.mockReturnValue(reloadingBalance);
+      rerender(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows the live sections on the first load before anything settled', () => {
       mockUseMoneyAccountBalance.mockReturnValue(reloadingBalance);
 

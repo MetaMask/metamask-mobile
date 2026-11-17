@@ -445,6 +445,7 @@ const MoneyHomeView = () => {
     () => ({
       homeCard: stableLiveHomeCard,
       cardMode: metamaskCardMode,
+      isFunded,
       isEmptyState: hasBalanceValue && !isFunded,
       showEarnings: hasBalanceValue && isFunded,
       isActivitySettling,
@@ -1196,7 +1197,7 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (isFunded) {
+  if (layout.isFunded) {
     contentSections.push({
       key: 'condensed-info',
       node: (
