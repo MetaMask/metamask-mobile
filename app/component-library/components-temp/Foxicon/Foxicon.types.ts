@@ -1,20 +1,18 @@
-import { FC } from 'react';
-import { SvgProps } from 'react-native-svg';
+import { ImageSourcePropType } from 'react-native';
 
 export const FoxiconVariant = {
   Agent: 'agent',
-  Angel: 'angel',
   Astro: 'astro',
-  Base: 'base',
-  Cannibal: 'cannibal',
-  Cyborg: 'cyborg',
-  Frozen: 'frozen',
-  Gentleman: 'gentleman',
+  Athlete: 'athlete',
+  Aviator: 'aviator',
+  Beanie: 'beanie',
+  Chrome: 'chrome',
+  Football: 'football',
   Goth: 'goth',
+  Hearts: 'hearts',
+  Laser: 'laser',
+  Magma: 'magma',
   Nerd: 'nerd',
-  Pirate: 'pirate',
-  Royal: 'royal',
-  Superhero: 'superhero',
   Vr: 'vr',
   Zombie: 'zombie',
 } as const;
@@ -22,25 +20,45 @@ export const FoxiconVariant = {
 export type FoxiconVariant =
   (typeof FoxiconVariant)[keyof typeof FoxiconVariant];
 
-export type AssetByFoxiconVariant = Record<
-  FoxiconVariant,
-  FC<SvgProps & { name: string }>
->;
+/**
+ * Variants from the first Foxicon artwork that have no counterpart in the
+ * current set. They stay valid so saved avatars keep rendering, and draw
+ * {@link FOXICON_FALLBACK_VARIANT} instead.
+ */
+export const RetiredFoxiconVariant = {
+  Angel: 'angel',
+  Base: 'base',
+  Cannibal: 'cannibal',
+  Cyborg: 'cyborg',
+  Frozen: 'frozen',
+  Gentleman: 'gentleman',
+  Pirate: 'pirate',
+  Royal: 'royal',
+  Superhero: 'superhero',
+} as const;
+
+export type RetiredFoxiconVariant =
+  (typeof RetiredFoxiconVariant)[keyof typeof RetiredFoxiconVariant];
+
+export const FOXICON_FALLBACK_VARIANT: FoxiconVariant = FoxiconVariant.Astro;
+
+export type AssetByFoxiconVariant = Record<FoxiconVariant, ImageSourcePropType>;
 
 /**
  * Foxicon component props.
  */
 export interface FoxiconProps {
   /**
-   * The fox illustration to render.
+   * The fox illustration to render. Retired or unknown variants render
+   * {@link FOXICON_FALLBACK_VARIANT}.
    */
-  variant: FoxiconVariant;
+  variant: FoxiconVariant | RetiredFoxiconVariant;
   /**
    * The width and height of the fox illustration in pixels.
    */
   size: number;
   /**
-   * Optional test ID for the rendered SVG.
+   * Optional test ID for the rendered image.
    */
   testID?: string;
 }
