@@ -39,7 +39,10 @@ export enum PredictErrorCode {
   /** The signed deposit, or its client operation ID, names another
    * request. Nothing was stored or relayed. */
   DEPOSIT_MISMATCH = 'DEPOSIT_MISMATCH',
-  /** The reported transfer does not match the deposit's Funding Plan. */
+  /** The reported transfer does not fit the deposit: another chain, a
+   * hash the backend refuses, another hash than the one it has, a hash
+   * another deposit holds, or a deposit that takes no transfer. The backend
+   * stored nothing. */
   DEPOSIT_TRANSFER_MISMATCH = 'DEPOSIT_TRANSFER_MISMATCH',
   UNKNOWN = 'UNKNOWN',
 }

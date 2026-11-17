@@ -89,7 +89,8 @@
     },
     "operation_not_found": {
       "status": 404,
-      "phases": ["observe"]
+      "phases": ["observe", "commit"],
+      "commitRelay": "not_relayed_this_invocation"
     },
     "position_unavailable": {
       "status": 503,
@@ -113,6 +114,31 @@
     "rate_limited": {
       "status": 429,
       "phases": ["signed_read"]
+    },
+    "transfer_chain_mismatch": {
+      "status": 400,
+      "phases": ["commit"],
+      "commitRelay": "not_relayed_this_invocation"
+    },
+    "transfer_hash_invalid": {
+      "status": 400,
+      "phases": ["commit"],
+      "commitRelay": "not_relayed_this_invocation"
+    },
+    "transfer_hash_mismatch": {
+      "status": 409,
+      "phases": ["commit"],
+      "commitRelay": "not_relayed_this_invocation"
+    },
+    "transfer_hash_reused": {
+      "status": 409,
+      "phases": ["commit"],
+      "commitRelay": "not_relayed_this_invocation"
+    },
+    "transfer_not_expected": {
+      "status": 409,
+      "phases": ["commit"],
+      "commitRelay": "not_relayed_this_invocation"
     },
     "unauthorized": {
       "status": 401,

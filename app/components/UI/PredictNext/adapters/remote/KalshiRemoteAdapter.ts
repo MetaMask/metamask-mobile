@@ -27,6 +27,7 @@ import { PredictError, PredictErrorCode } from '../../errors';
 import {
   predictErrorEvidence,
   type PredictErrorPhase,
+  type PredictRouteRefusals,
 } from '../../errors/apiErrorEvidence';
 import type {
   FetchOrderPreviewParams,
@@ -99,8 +100,6 @@ const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> =
     deposit_rejected: PredictErrorCode.DEPOSIT_FAILED,
     deposit_address_invalid: PredictErrorCode.DEPOSIT_FAILED,
     address_request_lost: PredictErrorCode.DEPOSIT_FAILED,
-    // PRED-1188's transfer report, built in parallel.
-    transfer_hash_mismatch: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
   };
 
 /** Where the deposit routes read a shared code differently from the Order
@@ -111,6 +110,50 @@ const FUNDING_ERROR_CODE_BY_BACKEND_CODE: Record<
 > = {
   operation_not_found: PredictErrorCode.DEPOSIT_NOT_FOUND,
   venue_preview_mismatch: PredictErrorCode.DEPOSIT_MISMATCH,
+};
+
+/** How one route reads the backend's codes: the product code where it
+ * differs from {@link ERROR_CODE_BY_BACKEND_CODE}, and the codes it refuses
+ * before it stores or relays anything. */
+interface RouteErrorReading {
+  codes: Record<string, PredictErrorCode | undefined>;
+  refusedBeforeRelay?: PredictRouteRefusals;
+}
+
+/** The deposit reads and the deposit create. */
+const FUNDING_ROUTE: RouteErrorReading = {
+  codes: FUNDING_ERROR_CODE_BY_BACKEND_CODE,
+};
+
+/** Cancel looks the deposit up before it changes it, so a missing deposit
+ * means nothing was stored. */
+const DEPOSIT_CANCEL_ROUTE: RouteErrorReading = {
+  codes: FUNDING_ERROR_CODE_BY_BACKEND_CODE,
+  refusedBeforeRelay: { operation_not_found: true },
+};
+
+/** The transfer report refuses each of these before it stores the hash or
+ * calls the venue. Each transfer code means the reported transfer does not
+ * fit this deposit: another chain, a hash the backend refuses, another hash
+ * than the one it has, a hash another deposit holds, or a deposit that takes
+ * no transfer. Only this route answers them. */
+const DEPOSIT_TRANSFER_ROUTE: RouteErrorReading = {
+  codes: {
+    ...FUNDING_ERROR_CODE_BY_BACKEND_CODE,
+    transfer_chain_mismatch: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+    transfer_hash_invalid: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+    transfer_hash_mismatch: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+    transfer_hash_reused: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+    transfer_not_expected: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  },
+  refusedBeforeRelay: {
+    operation_not_found: true,
+    transfer_chain_mismatch: true,
+    transfer_hash_invalid: true,
+    transfer_hash_mismatch: true,
+    transfer_hash_reused: true,
+    transfer_not_expected: true,
+  },
 };
 
 const isAbortError = (error: unknown): error is Error =>
@@ -132,13 +175,19 @@ const isSameAmount = (left: string, right: string): boolean =>
 const toHttpErrorMetadata = (
   error: PredictHttpError,
   phase: PredictErrorPhase,
+  routeRefusals?: PredictRouteRefusals,
 ): Record<string, unknown> => ({
   status: error.status,
   ...(error.bodyCode === undefined ? {} : { bodyCode: error.bodyCode }),
   ...(error.requestSent === undefined
     ? {}
     : { requestSent: error.requestSent }),
-  ...predictErrorEvidence(phase, error.bodyCode, error.requestSent),
+  ...predictErrorEvidence(
+    phase,
+    error.bodyCode,
+    error.requestSent,
+    routeRefusals,
+  ),
 });
 
 /**
@@ -167,7 +216,7 @@ const codeForHttpStatus = (status: number): PredictErrorCode => {
 const mapError = (
   error: unknown,
   phase: PredictErrorPhase = 'signed_read',
-  overrides: Record<string, PredictErrorCode | undefined> = {},
+  route: RouteErrorReading = { codes: {} },
 ): never => {
   if (isAbortError(error) || error instanceof PredictError) {
     throw error;
@@ -178,9 +227,13 @@ const mapError = (
   }
 
   if (error instanceof PredictHttpError) {
-    const metadata = toHttpErrorMetadata(error, phase);
+    const metadata = toHttpErrorMetadata(
+      error,
+      phase,
+      route.refusedBeforeRelay,
+    );
     const mapped = error.bodyCode
-      ? (overrides[error.bodyCode] ??
+      ? (route.codes[error.bodyCode] ??
         ERROR_CODE_BY_BACKEND_CODE[error.bodyCode])
       : undefined;
     throw PredictError.from(mapped ?? codeForHttpStatus(error.status), {
@@ -528,7 +581,7 @@ export class KalshiRemoteAdapter {
             await client.startDeposit(this.venueId, params, options),
           );
         } catch (error) {
-          return mapError(error, 'preview', FUNDING_ERROR_CODE_BY_BACKEND_CODE);
+          return mapError(error, 'preview', FUNDING_ROUTE);
         }
         if (start.kind === 'deposit') {
           // This clientOperationId already created its deposit.
@@ -551,7 +604,7 @@ export class KalshiRemoteAdapter {
           }
           return ownDeposit(created.deposit);
         } catch (error) {
-          return mapError(error, 'commit', FUNDING_ERROR_CODE_BY_BACKEND_CODE);
+          return mapError(error, 'commit', FUNDING_ROUTE);
         }
       },
       getDeposit: async (operationId, options) => {
@@ -564,7 +617,7 @@ export class KalshiRemoteAdapter {
             operationId,
           );
         } catch (error) {
-          return mapError(error, 'observe', FUNDING_ERROR_CODE_BY_BACKEND_CODE);
+          return mapError(error, 'observe', FUNDING_ROUTE);
         }
       },
       listOpenDeposits: async (options) => {
@@ -573,7 +626,7 @@ export class KalshiRemoteAdapter {
             await client.listOpenDeposits(this.venueId, options),
           );
         } catch (error) {
-          return mapError(error, 'observe', FUNDING_ERROR_CODE_BY_BACKEND_CODE);
+          return mapError(error, 'observe', FUNDING_ROUTE);
         }
       },
       reportDepositTransfer: async (operationId, params, options) => {
@@ -598,7 +651,7 @@ export class KalshiRemoteAdapter {
             operationId,
           );
         } catch (error) {
-          return mapError(error, 'commit', FUNDING_ERROR_CODE_BY_BACKEND_CODE);
+          return mapError(error, 'commit', DEPOSIT_TRANSFER_ROUTE);
         }
       },
       cancelDeposit: async (operationId, options) => {
@@ -611,7 +664,7 @@ export class KalshiRemoteAdapter {
             operationId,
           );
         } catch (error) {
-          return mapError(error, 'commit', FUNDING_ERROR_CODE_BY_BACKEND_CODE);
+          return mapError(error, 'commit', DEPOSIT_CANCEL_ROUTE);
         }
       },
     };

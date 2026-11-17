@@ -38,6 +38,11 @@ const COMMIT_PRE_RELAY_CODES: Record<string, true | undefined> = {
   venue_profile_update_required: true,
   venue_profile_not_ready: true,
 };
+/** Codes one route refuses before it stores or relays anything, on top of
+ * the codes every commit route refuses that way. A code goes here when it
+ * means that on this route only. */
+export type PredictRouteRefusals = Readonly<Record<string, true | undefined>>;
+
 /** Not a retry policy: this invocation's relay evidence says nothing about an
  * earlier/concurrent commit for the same preview. Never apply commit evidence
  * to an observation failure, including an observation 404. */
@@ -45,6 +50,7 @@ export function predictErrorEvidence(
   phase: PredictErrorPhase,
   bodyCode?: string,
   requestSent?: boolean,
+  routeRefusals: PredictRouteRefusals = {},
 ): PredictErrorEvidence {
   const relay = (): PredictMutationRelay => {
     if (phase !== 'commit') {
@@ -53,7 +59,9 @@ export function predictErrorEvidence(
     if (requestSent === false) {
       return 'not_relayed_this_invocation';
     }
-    return bodyCode !== undefined && COMMIT_PRE_RELAY_CODES[bodyCode] === true
+    return bodyCode !== undefined &&
+      (COMMIT_PRE_RELAY_CODES[bodyCode] === true ||
+        routeRefusals[bodyCode] === true)
       ? 'not_relayed_this_invocation'
       : 'unknown';
   };

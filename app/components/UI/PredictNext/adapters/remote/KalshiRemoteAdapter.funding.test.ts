@@ -423,22 +423,59 @@ describe('KalshiRemoteAdapter funding', () => {
     });
 
     it.each([
-      [
-        'transfer_hash_mismatch',
-        409,
-        PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
-      ],
-      ['operation_not_found', 404, PredictErrorCode.DEPOSIT_NOT_FOUND],
-    ] as const)('maps %s', async (code, status, expected) => {
+      ['transfer_chain_mismatch', 400],
+      ['transfer_hash_invalid', 400],
+      ['transfer_hash_mismatch', 409],
+      ['transfer_hash_reused', 409],
+      ['transfer_not_expected', 409],
+    ] as const)(
+      'maps %s to a refused transfer that was not relayed',
+      async (code, status) => {
+        client.reportDepositTransfer.mockRejectedValue(
+          new PredictHttpError(status, code),
+        );
+
+        await expect(
+          adapter.funding.reportDepositTransfer(OPERATION_ID, transfer),
+        ).rejects.toMatchObject({
+          code: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+          metadata: {
+            bodyCode: code,
+            phase: 'commit',
+            mutationRelay: 'not_relayed_this_invocation',
+          },
+        });
+      },
+    );
+
+    it('maps operation_not_found to a report that was not relayed', async () => {
       client.reportDepositTransfer.mockRejectedValue(
-        new PredictHttpError(status, code),
+        new PredictHttpError(404, 'operation_not_found'),
       );
 
       await expect(
         adapter.funding.reportDepositTransfer(OPERATION_ID, transfer),
       ).rejects.toMatchObject({
-        code: expected,
-        metadata: { bodyCode: code, phase: 'commit' },
+        code: PredictErrorCode.DEPOSIT_NOT_FOUND,
+        metadata: {
+          bodyCode: 'operation_not_found',
+          phase: 'commit',
+          mutationRelay: 'not_relayed_this_invocation',
+          operationOutcome: 'unknown',
+        },
+      });
+    });
+
+    it('reads the transfer codes on the transfer route only', async () => {
+      client.cancelDeposit.mockRejectedValue(
+        new PredictHttpError(409, 'transfer_not_expected'),
+      );
+
+      await expect(
+        adapter.funding.cancelDeposit(OPERATION_ID),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.INVALID_RESPONSE,
+        metadata: { mutationRelay: 'unknown' },
       });
     });
 
@@ -492,12 +529,13 @@ describe('KalshiRemoteAdapter funding', () => {
         PredictErrorCode.DEPOSIT_NOT_CANCELLABLE,
         'not_relayed_this_invocation',
       ],
-      // Absence says nothing about an earlier call, as for Orders.
+      // Cancel looks the deposit up before it changes it, so this call
+      // stored nothing. Absence still says nothing about an earlier call.
       [
         404,
         'operation_not_found',
         PredictErrorCode.DEPOSIT_NOT_FOUND,
-        'unknown',
+        'not_relayed_this_invocation',
       ],
     ] as const)('maps %s %s', async (status, code, expected, mutationRelay) => {
       client.cancelDeposit.mockRejectedValue(
@@ -508,7 +546,11 @@ describe('KalshiRemoteAdapter funding', () => {
         adapter.funding.cancelDeposit(OPERATION_ID),
       ).rejects.toMatchObject({
         code: expected,
-        metadata: { phase: 'commit', mutationRelay },
+        metadata: {
+          phase: 'commit',
+          mutationRelay,
+          operationOutcome: 'unknown',
+        },
       });
     });
   });
