@@ -13,6 +13,7 @@ import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import { PredictRoot } from '../../../app/components/UI/PredictNext';
 import type { PredictConfig } from '../../../app/components/UI/PredictNext/config/predictConfig';
@@ -34,6 +35,7 @@ import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext
 import { NextVenueProvider } from '../../../app/components/UI/PredictNext/implementation';
 import type { PredictVenueId } from '../../../app/components/UI/PredictNext/types';
 import type {
+  PredictNextStackParamList,
   PredictNextDepositParams,
   PredictNextEventParams,
   PredictNextFeedParams,
@@ -231,9 +233,10 @@ export const renderPredictDepositScreen = (
   { environment }: { environment?: PredictDepositEnvironment } = {},
 ) => {
   const HomeProbe = () => {
-    const navigation = useNavigation<AppNavigationProp>();
+    const navigation =
+      useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
     React.useEffect(() => {
-      navigation.navigate(PredictNextRoutes.DEPOSIT as never, params as never);
+      navigation.navigate(PredictNextRoutes.DEPOSIT, params);
     }, [navigation]);
     return <Text testID={getRouteProbeTestId(PredictNextRoutes.HOME)} />;
   };
