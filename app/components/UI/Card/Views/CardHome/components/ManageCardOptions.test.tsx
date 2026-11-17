@@ -387,21 +387,23 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
 });
 
 describe('ManageCardOptions set PIN gating', () => {
-  it('shows set PIN when supportsPinSet is true and card is ACTIVE', () => {
-    const { getByTestId } = renderComponent(
+  // The Card home redesign hides the Set PIN row. The capability gating is
+  // still asserted so the row comes back correct if the redesign restores it.
+  it('hides set PIN even when supportsPinSet is true and the card is ACTIVE', () => {
+    const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsPinSet: true }),
     );
 
-    expect(getByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeOnTheScreen();
+    expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
   });
 
-  it('shows set PIN when hasPin is true', () => {
-    const { getByTestId } = renderComponent(
+  it('hides set PIN even when hasPin is true', () => {
+    const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsPinSet: true }),
       { card: { ...CARD, hasPin: true } },
     );
 
-    expect(getByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeOnTheScreen();
+    expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
   });
 
   it('hides set PIN when hasPin is false', () => {

@@ -96,9 +96,10 @@ export interface CardHomeStatusViewProps {
 /**
  * Focused Card home status layout for states with nothing to manage yet
  * (identity in review, card being created, card not turned on). Mirrors the
- * Card "You're in!" / VBA Identity verified pattern: centred asset, title and
- * description, with one primary button pinned at the bottom. The parent
- * screen owns the header and the safe-area edges.
+ * Card "You're in!" / VBA Identity verified pattern: title and description
+ * at the top, the asset centred in the space below them, and one primary
+ * button pinned at the bottom. The parent screen owns the header and the
+ * safe-area edges.
  */
 const CardHomeStatusView = ({
   asset,
@@ -145,7 +146,7 @@ const CardHomeStatusView = ({
   return (
     <Box twClassName="flex-1" testID={testID}>
       <ScrollView
-        contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
+        contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
         showsVerticalScrollIndicator={false}
         // Bounce is needed for pull-to-refresh to be reachable.
         alwaysBounceVertical={Boolean(refreshControl)}
@@ -179,19 +180,19 @@ const CardHomeStatusView = ({
           bottomLabelWrapperProps={{
             justifyContent: BoxJustifyContent.Center,
           }}
-          topAccessory={
-            <Animated.View style={[tw.style('w-full'), assetStyle]}>
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.End}
-                twClassName="mb-6 w-full"
-                testID={CardHomeStatusViewSelectors.ASSET}
-              >
-                {asset}
-              </Box>
-            </Animated.View>
-          }
         />
+        {/* The card art fills the space between the copy and the footer, so
+        it sits centred in the middle of the screen below the copy. */}
+        <Box
+          twClassName="flex-1"
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          testID={CardHomeStatusViewSelectors.ASSET}
+        >
+          <Animated.View style={[tw.style('w-full'), assetStyle]}>
+            {asset}
+          </Animated.View>
+        </Box>
       </ScrollView>
       <Animated.View
         style={buttonStyle}

@@ -1,8 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { Alert, Linking } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   IconName,
   Text,
@@ -16,6 +16,8 @@ import Engine from '../../../../../../core/Engine';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../../../../Money/components/MoneySheetOptionsList';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 import { CardHomeSelectors } from '../CardHome.testIds';
 
 export interface CardHomeLegalDocumentLink {
@@ -66,6 +68,7 @@ const CardHomeMoreSheet = ({
   onNavigateToCardTos,
 }: CardHomeMoreSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   // Close the sheet first, then run the action (same as MoneyMoreSheet).
   const closeThen = useCallback((action: () => void) => {
@@ -162,11 +165,14 @@ const CardHomeMoreSheet = ({
       testID={CardHomeSelectors.MORE_SHEET}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('card.card_home.more_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {showLegalDocumentsError ? (
         <Box
           twClassName="px-4 pb-2 gap-1"

@@ -27,6 +27,7 @@ const setup = ({
     if (selector === selectOnboardingId) return onboardingId;
     return undefined;
   });
+
   mockUseCardSDK.mockReturnValue({
     user: verificationState ? { verificationState } : null,
   } as unknown as ReturnType<typeof useCardSDK>);
@@ -65,8 +66,16 @@ describe('useSignedOutKycPending', () => {
     expect(result.current).toBe(false);
   });
 
-  it.each(['VERIFIED', 'REJECTED', 'UNVERIFIED'])(
-    'ignores a sticky pending route param once verification is %s',
+  it('is false when signed out with no onboarding session', () => {
+    setup({ verificationState: 'PENDING' });
+
+    const { result } = renderHook(() => useSignedOutKycPending());
+
+    expect(result.current).toBe(false);
+  });
+
+  it.each(['REJECTED', 'UNVERIFIED'])(
+    'leaves the pending flow once verification is %s',
     (verificationState) => {
       setup({ onboardingId: 'onboarding-1', verificationState });
 
@@ -76,22 +85,25 @@ describe('useSignedOutKycPending', () => {
     },
   );
 
-  it('is false when signed out with no onboarding session', () => {
-    setup({ verificationState: 'PENDING' });
+  it('stays pending once verification reads VERIFIED while still signed out (A09)', () => {
+    setup({ onboardingId: 'onboarding-1', verificationState: 'PENDING' });
+    const { result, rerender } = renderHook(() => useSignedOutKycPending());
 
-    const { result } = renderHook(() => useSignedOutKycPending());
+    expect(result.current).toBe(true);
 
-    expect(result.current).toBe(false);
+    // The registration status poll lands VERIFIED; the card home is still
+    // not ready, so the waiting view must not fall through to it.
+    setup({ onboardingId: 'onboarding-1', verificationState: 'VERIFIED' });
+    rerender(undefined);
+
+    expect(result.current).toBe(true);
   });
 
-  it.each(['VERIFIED', 'REJECTED', 'UNVERIFIED'])(
-    'is false when the onboarding session is %s',
-    (verificationState) => {
-      setup({ onboardingId: 'onboarding-1', verificationState });
+  it('stays pending for a sticky pending route param once verification reads VERIFIED (A09)', () => {
+    setup({ onboardingId: 'onboarding-1', verificationState: 'VERIFIED' });
 
-      const { result } = renderHook(() => useSignedOutKycPending());
+    const { result } = renderHook(() => useSignedOutKycPending(true));
 
-      expect(result.current).toBe(false);
-    },
-  );
+    expect(result.current).toBe(true);
+  });
 });

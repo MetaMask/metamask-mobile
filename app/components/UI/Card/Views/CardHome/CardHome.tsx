@@ -153,6 +153,12 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
+import {
+  SETUP_ALERT_TYPES,
+  CARD_HOME_WAITING_COPY,
+  resolveCardHomeWaitingState,
+  type CardHomeWaitingState,
+} from './hooks/CardHomeWaitingState';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -160,12 +166,6 @@ interface CardHomeRouteParams {
   /** Opened from the KYC timeout or pending notification while still in review. */
   fromKycPending?: boolean;
 }
-
-const SETUP_ALERT_TYPES = new Set([
-  'kyc_pending',
-  'card_provisioning',
-  'allowance_revoked',
-]);
 
 /** Local tabs under the action button row (active and frozen states only). */
 enum CardHomeSegment {
@@ -312,8 +312,13 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
-  const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
-    useCardEnableCard(data, { recheckOnFocus: true });
+  const {
+    canEnableCard,
+    enableCard,
+    provisioningView,
+    isEnableCardPending,
+    recheck: recheckProvisioning,
+  } = useCardEnableCard(data, { recheckOnFocus: true });
   const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -632,24 +637,35 @@ const CardHome = () => {
     !hasSetupActions &&
     !hasSetupAlerts;
 
-  // A07 / A08 / A09: the card is being set up (identity in review, or the
-  // card being created), signed in or not. Nothing to manage yet, so these
-  // share one focused status view (card art, title, description, one button)
-  // instead of a banner over the card. A06 (Enable card) keeps its layout,
-  // and the Immersve `reconciling` check keeps its skeleton banner.
-  const isCardSetupPending =
-    !isLoading &&
-    !isUkMigrationForced &&
-    (isSignedOutKycPending ||
-      (isAuthenticated &&
-        hasAlertOnlyState &&
-        alerts.some(
-          (a) =>
-            a.type === 'kyc_pending' ||
-            (a.type === 'card_provisioning' &&
-              (provisioningView === 'provisioning' ||
-                provisioningView === 'kyc_under_review')),
-        )));
+  // A07 / A08 / A09 plus the Immersve review and reconcile checks: the card
+  // is being set up, signed in or not, and there is nothing to manage yet.
+  // These share one focused status view (title, description, centred card
+  // art, one button) instead of a banner over the card. A06 (Enable card)
+  // keeps its layout. The waiting view only gives way to the card home once
+  // the card is actually ready — re-checks, failures and in-flight states
+  // stay on it.
+  const waitingState = useMemo<CardHomeWaitingState>(
+    () =>
+      resolveCardHomeWaitingState({
+        isLoading,
+        isUkMigrationForced,
+        isAuthenticated,
+        isSignedOutKycPending,
+        hasDashboardActions: effectiveActions.length > 0,
+        alerts,
+        provisioningView,
+      }),
+    [
+      isLoading,
+      isUkMigrationForced,
+      isAuthenticated,
+      isSignedOutKycPending,
+      effectiveActions,
+      alerts,
+      provisioningView,
+    ],
+  );
+  const isCardSetupPending = waitingState.kind === 'waiting';
 
   // Re-checks while the setup pending view is up, so it moves on by itself.
   const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
@@ -659,6 +675,15 @@ const CardHome = () => {
   });
   const handleSetupPendingRefresh = useCallback(async () => {
     if (isAuthenticated) {
+      // For an Immersve KYC review the decision arrives through the
+      // provisioning reconcile, not the card home data, so pull to refresh
+      // re-checks both.
+      const isImmersveReviewWaiting =
+        waitingState.kind === 'waiting' &&
+        waitingState.step === 'immersve-review';
+      if (isImmersveReviewWaiting) {
+        recheckProvisioning();
+      }
       await handleRefresh();
       return;
     }
@@ -668,7 +693,13 @@ const CardHome = () => {
     } finally {
       setIsRefreshing(false);
     }
-  }, [handleRefresh, isAuthenticated, refreshRegistrationStatus]);
+  }, [
+    handleRefresh,
+    isAuthenticated,
+    recheckProvisioning,
+    refreshRegistrationStatus,
+    waitingState,
+  ]);
 
   const showSpendingLimitProgress =
     isAuthenticated &&
@@ -892,8 +923,9 @@ const CardHome = () => {
     );
   }
 
-  // --- A07 / A08 / A09: card setup pending ---
-  if (isCardSetupPending) {
+  // --- A07 / A08 / A09 + Immersve review/reconcile: card setup pending ---
+  if (waitingState.kind === 'waiting') {
+    const waitingCopy = CARD_HOME_WAITING_COPY[waitingState.step];
     return (
       <SafeAreaView
         edges={['right', 'bottom', 'left']}
@@ -906,19 +938,24 @@ const CardHome = () => {
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
+          title={strings('card.card_home.title')}
           endButtonIconProps={[moreButtonProps]}
         />
         <CardHomeStatusView
           asset={
-            <Box twClassName="w-full" testID={CardHomeSelectors.CARD_ART}>
+            <Box
+              // Dimmed: the card is not live yet, so the art reads as pending.
+              twClassName="w-full opacity-50"
+              testID={CardHomeSelectors.CARD_ART}
+            >
               <CardImage
                 type={data?.card?.type ?? CardType.VIRTUAL}
                 status={CardStatus.ACTIVE}
               />
             </Box>
           }
-          title={strings('card.card_home.setup_pending_title')}
-          description={strings('card.card_home.setup_pending_description')}
+          title={strings(waitingCopy.titleKey)}
+          description={strings(waitingCopy.descriptionKey)}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}

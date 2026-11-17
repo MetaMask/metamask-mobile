@@ -384,6 +384,7 @@ let mockProvisioningView:
   | 'hidden'
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
+const mockRecheckProvisioning = jest.fn();
 let mockIsSignedOutKycPending = false;
 jest.mock('./hooks/useSignedOutKycPending', () => ({
   __esModule: true,
@@ -396,6 +397,7 @@ jest.mock('./hooks/useCardEnableCard', () => ({
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
     isEnableCardPending: mockIsEnableCardPending,
+    recheck: mockRecheckProvisioning,
   })),
 }));
 
@@ -1385,15 +1387,15 @@ function openMoreSheet() {
   fireEvent.press(screen.getByTestId(CardHomeSelectors.MORE_BUTTON));
 }
 
-const authTransitionListeners = new Set<() => void>();
+const updateProbeListeners = new Set<() => void>();
 
-const CardHomeAuthTransitionProbe = () => {
+const CardHomeUpdateProbe = () => {
   const [, setTick] = React.useState(1);
   React.useEffect(() => {
     const listener = () => setTick((tick) => tick + 1);
-    authTransitionListeners.add(listener);
+    updateProbeListeners.add(listener);
     return () => {
-      authTransitionListeners.delete(listener);
+      updateProbeListeners.delete(listener);
     };
   }, []);
   return (
@@ -1403,9 +1405,11 @@ const CardHomeAuthTransitionProbe = () => {
   );
 };
 
-function renderAuthTransition() {
+// Renders CardHome with a probe that re-renders it on `update()`, so tests
+// can flip the module-level mocks and assert the transition between states.
+function renderWithUpdateProbe() {
   const view = renderScreen(
-    withCardSDK(CardHomeAuthTransitionProbe),
+    withCardSDK(CardHomeUpdateProbe),
     { name: Routes.CARD.HOME },
     {
       state: {
@@ -1419,7 +1423,7 @@ function renderAuthTransition() {
     ...view,
     update() {
       act(() => {
-        authTransitionListeners.forEach((listener) => listener());
+        updateProbeListeners.forEach((listener) => listener());
       });
     },
   };
@@ -1427,7 +1431,7 @@ function renderAuthTransition() {
 
 describe('CardHome Component', () => {
   beforeEach(() => {
-    authTransitionListeners.clear();
+    updateProbeListeners.clear();
     mockIsFocused = true;
     mockCanEnableCard = false;
     mockIsEnableCardPending = false;
@@ -1435,6 +1439,7 @@ describe('CardHome Component', () => {
     mockUseCardRecentTransactions.mockReturnValue([]);
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
+    mockRecheckProvisioning.mockClear();
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -1681,7 +1686,7 @@ describe('CardHome Component', () => {
   it('replaces with authentication when the user logs out while Card Home is focused', () => {
     mockIsFocused = true;
     setupMockSelectors({ isAuthenticated: true });
-    const view = renderAuthTransition();
+    const view = renderWithUpdateProbe();
     jest.mocked(StackActions.replace).mockClear();
     mockNavigationDispatch.mockClear();
 
@@ -1700,7 +1705,7 @@ describe('CardHome Component', () => {
   it('waits until Card Home is focused before replacing with authentication', () => {
     mockIsFocused = false;
     setupMockSelectors({ isAuthenticated: true });
-    const view = renderAuthTransition();
+    const view = renderWithUpdateProbe();
 
     setupMockSelectors({ isAuthenticated: false });
     jest.mocked(StackActions.replace).mockClear();
@@ -1724,7 +1729,7 @@ describe('CardHome Component', () => {
   it('does not replace with authentication when auth returns before Card Home refocuses', () => {
     mockIsFocused = false;
     setupMockSelectors({ isAuthenticated: true });
-    const view = renderAuthTransition();
+    const view = renderWithUpdateProbe();
 
     setupMockSelectors({ isAuthenticated: false });
     view.update();
@@ -2948,7 +2953,7 @@ describe('CardHome Component', () => {
     render();
 
     expect(
-      screen.getByText('card.card_home.setup_pending_title'),
+      screen.getByText('card.card_home.setup_pending.identity_review.title'),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(CardHomeSelectors.BALANCE_HEADER),
@@ -2957,6 +2962,32 @@ describe('CardHome Component', () => {
   });
 
   describe('card setup pending (A07, A08, A09)', () => {
+    // Per-state waiting copy keys (the i18n mock renders keys as text).
+    const IDENTITY_REVIEW_COPY = {
+      titleKey: 'card.card_home.setup_pending.identity_review.title',
+      descriptionKey:
+        'card.card_home.setup_pending.identity_review.description',
+    };
+    const CREATING_CARD_COPY = {
+      titleKey: 'card.card_home.setup_pending.creating_card.title',
+      descriptionKey: 'card.card_home.setup_pending.creating_card.description',
+    };
+    const IMMERSVE_REVIEW_COPY = {
+      titleKey: 'card.card_home.setup_pending.immersve_review.title',
+      descriptionKey:
+        'card.card_home.setup_pending.immersve_review.description',
+    };
+    const IMMERSVE_RECONCILING_COPY = {
+      titleKey: 'card.card_home.setup_pending.immersve_reconciling.title',
+      descriptionKey:
+        'card.card_home.setup_pending.immersve_reconciling.description',
+    };
+    const SIGNED_OUT_COPY = {
+      titleKey: 'card.card_home.setup_pending.signed_out_pending.title',
+      descriptionKey:
+        'card.card_home.setup_pending.signed_out_pending.description',
+    };
+
     // Server shape for A07: kyc_pending alert, no card, no actions.
     const setupSignedInKycPending = () => {
       setupMockSelectors({ isAuthenticated: true });
@@ -2969,17 +3000,25 @@ describe('CardHome Component', () => {
       });
     };
 
-    const expectSetupPendingView = () => {
+    const expectSetupPendingView = (
+      copy: { titleKey: string; descriptionKey: string } = {
+        titleKey: 'card.card_home.setup_pending.identity_review.title',
+        descriptionKey:
+          'card.card_home.setup_pending.identity_review.description',
+      },
+    ) => {
       expect(
         screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
       ).toBeOnTheScreen();
       expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toBeOnTheScreen();
-      expect(
-        screen.getByText('card.card_home.setup_pending_title'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('card.card_home.setup_pending_description'),
-      ).toBeOnTheScreen();
+      // The card is not live yet: the art renders dimmed.
+      expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
+        opacity: 0.5,
+      });
+      expect(screen.getByText(copy.titleKey)).toBeOnTheScreen();
+      expect(screen.getByText(copy.descriptionKey)).toBeOnTheScreen();
+      // The waiting view carries the centred "Card" header title.
+      expect(screen.getByText('card.card_home.title')).toBeOnTheScreen();
       expect(screen.queryByTestId('card-message-box')).toBeNull();
       expect(screen.queryByTestId(CardHomeSelectors.BALANCE_HEADER)).toBeNull();
       expect(
@@ -3052,7 +3091,7 @@ describe('CardHome Component', () => {
 
       render();
 
-      expectSetupPendingView();
+      expectSetupPendingView(IMMERSVE_REVIEW_COPY);
     });
 
     it('shows the status view while the card is being created (A08)', () => {
@@ -3071,13 +3110,13 @@ describe('CardHome Component', () => {
 
       render();
 
-      expectSetupPendingView();
+      expectSetupPendingView(CREATING_CARD_COPY);
       expect(
         screen.getByTestId(CardHomeSelectors.SETUP_PENDING_DONE_BUTTON),
       ).toBeOnTheScreen();
     });
 
-    it('keeps the skeleton banner while Immersve is reconciling', () => {
+    it('stays on the waiting view while Immersve is reconciling', () => {
       mockProvisioningView = 'reconciling';
       setupMockSelectors({
         isAuthenticated: true,
@@ -3093,12 +3132,13 @@ describe('CardHome Component', () => {
 
       render();
 
+      // The reconcile check owns the screen until it resolves — the
+      // half-built home never flashes while it is in flight.
+      expectSetupPendingView(IMMERSVE_RECONCILING_COPY);
       expect(
-        screen.queryByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+        screen.queryByTestId(CardHomeSelectors.LOADING_SKELETON),
       ).toBeNull();
-      expect(
-        screen.getByTestId('card-provisioning-alert-skeleton'),
-      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(CardHomeSelectors.BALANCE_HEADER)).toBeNull();
     });
 
     it('shows the status view with Log in when signed out during review (A09)', () => {
@@ -3107,7 +3147,7 @@ describe('CardHome Component', () => {
 
       render();
 
-      expectSetupPendingView();
+      expectSetupPendingView(SIGNED_OUT_COPY);
       expect(
         screen.queryByTestId(CardHomeSelectors.SETUP_PENDING_DONE_BUTTON),
       ).toBeNull();
@@ -3177,6 +3217,145 @@ describe('CardHome Component', () => {
       });
 
       expect(mockRefreshRegistrationStatus).toHaveBeenCalledTimes(1);
+    });
+
+    describe('waiting transitions', () => {
+      it('leaves the waiting view only when the card home is ready', () => {
+        setupSignedInKycPending();
+        const view = renderWithUpdateProbe();
+        expectSetupPendingView(IDENTITY_REVIEW_COPY);
+
+        // The next card home data clears the review: a live card and Add
+        // funds. Only now does the waiting view give way to the card home.
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({ isAuthenticated: true });
+        view.update();
+
+        expect(
+          screen.queryByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+        ).toBeNull();
+        expect(
+          screen.getByTestId(CardHomeSelectors.BALANCE_HEADER),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+        ).toBeOnTheScreen();
+        expect(screen.queryByText(IDENTITY_REVIEW_COPY.titleKey)).toBeNull();
+      });
+
+      it('stays on the waiting view while a reconcile re-check is in flight', () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'kyc_under_review';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+        const view = renderWithUpdateProbe();
+        expectSetupPendingView(IMMERSVE_REVIEW_COPY);
+
+        // A refocus re-check drops the resolved status; the half-built home
+        // must not flash while the check runs.
+        mockProvisioningView = 'reconciling';
+        view.update();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.BALANCE_HEADER),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.LOADING_SKELETON),
+        ).toBeNull();
+        expect(
+          screen.getByText(IMMERSVE_RECONCILING_COPY.titleKey),
+        ).toBeOnTheScreen();
+      });
+
+      it('re-checks the Immersve review on pull-to-refresh', async () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'kyc_under_review';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+        const refreshControl = screen.UNSAFE_getByProps({
+          testID: CardHomeSelectors.SETUP_PENDING_REFRESH_CONTROL,
+        });
+        await act(async () => {
+          await refreshControl.props.onRefresh();
+        });
+
+        // Both things the review waits on: the provisioning reconcile and
+        // fresh card home data.
+        expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
+        expect(mockRefetchAllData).toHaveBeenCalled();
+      });
+
+      it('does not re-check the reconcile on pull-to-refresh while it is reconciling', async () => {
+        mockProvisioningView = 'reconciling';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+        const refreshControl = screen.UNSAFE_getByProps({
+          testID: CardHomeSelectors.SETUP_PENDING_REFRESH_CONTROL,
+        });
+        await act(async () => {
+          await refreshControl.props.onRefresh();
+        });
+
+        // The check is already in flight; only the data refresh runs.
+        expect(mockRecheckProvisioning).not.toHaveBeenCalled();
+        expect(mockRefetchAllData).toHaveBeenCalled();
+      });
+
+      it('keeps the waiting view after a re-check that did not change anything', async () => {
+        setupSignedInKycPending();
+
+        render();
+        const refreshControl = screen.UNSAFE_getByProps({
+          testID: CardHomeSelectors.SETUP_PENDING_REFRESH_CONTROL,
+        });
+        // A failed re-check reports through the hook, which keeps the last
+        // data (isError is only for a home with no data at all), so the view
+        // neither flashes the error screen nor the dashboard.
+        await act(async () => {
+          await refreshControl.props.onRefresh();
+        });
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.TRY_AGAIN_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.BALANCE_HEADER),
+        ).toBeNull();
+      });
     });
 
     it('keeps the setup layout when the card still needs enabling (A06)', () => {
@@ -4904,7 +5083,9 @@ describe('CardHome Component', () => {
 
         // Then: KYC warning is displayed
         expect(
-          screen.getByText('card.card_home.setup_pending_title'),
+          screen.getByText(
+            'card.card_home.setup_pending.identity_review.title',
+          ),
         ).toBeOnTheScreen();
       });
 
@@ -4925,7 +5106,9 @@ describe('CardHome Component', () => {
 
         // Then: KYC warning is displayed
         expect(
-          screen.getByText('card.card_home.setup_pending_title'),
+          screen.getByText(
+            'card.card_home.setup_pending.identity_review.title',
+          ),
         ).toBeOnTheScreen();
       });
 
@@ -4945,7 +5128,9 @@ describe('CardHome Component', () => {
 
         // Then: KYC warning is not displayed
         expect(
-          screen.queryByText('card.card_home.setup_pending_title'),
+          screen.queryByText(
+            'card.card_home.setup_pending.identity_review.title',
+          ),
         ).toBeNull();
       });
 
@@ -4973,7 +5158,9 @@ describe('CardHome Component', () => {
         ).toBeNull();
         // KYC warning is shown
         expect(
-          screen.getByText('card.card_home.setup_pending_title'),
+          screen.getByText(
+            'card.card_home.setup_pending.identity_review.title',
+          ),
         ).toBeOnTheScreen();
       });
     });
@@ -4989,7 +5176,9 @@ describe('CardHome Component', () => {
 
         // Then: the pending banner shows and nothing card-ready does
         expect(
-          screen.getByText('card.card_home.setup_pending_title'),
+          screen.getByText(
+            'card.card_home.setup_pending.signed_out_pending.title',
+          ),
         ).toBeOnTheScreen();
         expect(
           screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
@@ -5003,11 +5192,11 @@ describe('CardHome Component', () => {
         expect(
           screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
         ).toBeNull();
-        // The shared setup pending view shows the card at full opacity
+        // The waiting view dims the card art: the card is not live yet.
         expect(
           screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
         ).toBeOnTheScreen();
-        expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).not.toHaveStyle({
+        expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
           opacity: 0.5,
         });
       });
@@ -5021,7 +5210,9 @@ describe('CardHome Component', () => {
 
         // Then: no pending banner
         expect(
-          screen.queryByText('card.card_home.setup_pending_title'),
+          screen.queryByText(
+            'card.card_home.setup_pending.signed_out_pending.title',
+          ),
         ).toBeNull();
         expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).not.toHaveStyle({
           opacity: 0.5,
