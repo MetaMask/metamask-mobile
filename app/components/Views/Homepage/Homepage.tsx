@@ -140,18 +140,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const hasSocialV1Access = useSelector(selectHasSocialV1Access);
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
-    // Decide the Perps position from the initial Homepage layout. Deferred
-    // sections must not move above Tokens after the primary surface renders.
-    const [perpsAboveTokensPlacement] = useState(() =>
-      shouldPlacePerpsAboveTokens({
-        optionalSectionsCanMount:
-          effectiveSectionMountMode === 'immediate' && networkTierResolved,
-        isPerpsEnabled,
-        perpsAboveTokensEligible:
-          perpsSectionPriorityVariant.perpsAboveTokensEligible,
-        isActivePerpsTrader,
-      }),
-    );
+    const perpsAboveTokensPlacement = shouldPlacePerpsAboveTokens({
+      optionalSectionsCanMount: shouldMountOptionalSections,
+      isPerpsEnabled,
+      perpsAboveTokensEligible:
+        perpsSectionPriorityVariant.perpsAboveTokensEligible,
+      isActivePerpsTrader,
+    });
     const showPerpsAboveTokens = perpsAboveTokensPlacement && shouldRenderPerps;
     const isSocialV1PriorityEnabled = isTopTradersEnabled && hasSocialV1Access;
     const shouldHydrateSocialProfile =
