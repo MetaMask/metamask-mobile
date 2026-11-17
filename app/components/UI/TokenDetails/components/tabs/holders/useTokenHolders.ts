@@ -33,6 +33,10 @@ export interface TokenHoldersState {
   rows: TraderFeedRow[];
   /** True during the first fetch only. */
   isLoading: boolean;
+  /** True while any request is in flight, including a refresh. */
+  isFetching: boolean;
+  /** True once a fetch has settled, successfully or not. */
+  hasFetched: boolean;
   /** True while a follow-up page is being fetched. */
   isFetchingNextPage: boolean;
   /** True when another page can be requested. */
@@ -153,6 +157,8 @@ export const useTokenHolders = ({
   return {
     rows,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    hasFetched: query.isFetched,
     isFetchingNextPage,
     hasNextPage: hasNextPage === true && !isError,
     loadMore,

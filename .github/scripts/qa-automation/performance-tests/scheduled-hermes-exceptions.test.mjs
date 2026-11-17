@@ -5,7 +5,7 @@ import {
   BASELINE_CANDIDATE_RUNS,
   BASELINE_PREVIOUS_RUNS,
   MIN_BASELINE_RUNS,
-  buildIssueVerdictDm,
+  buildPerformanceChannelPost,
   buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
@@ -144,22 +144,74 @@ test('an all-clear names the scenarios that have no clean baseline yet', () => {
   assert.match(slack, /1 without 4 clean baseline runs yet/);
 });
 
-test('a finding DM carries the verdict and does not claim an issue was opened', () => {
+test('a finding channel post carries the verdict and the proposal', () => {
   const exception = confirmedFinding();
-  const message = buildIssueVerdictDm(
+  const message = buildPerformanceChannelPost(
     exception,
     'Look at the perps deposit frame.',
   );
 
   assert.match(message, /Possible regression/);
-  assert.match(message, /no issue was opened/);
+  assert.doesNotMatch(message, /no issue was opened/);
   assert.match(message, /AI proposal/);
   assert.match(message, /Look at the perps deposit frame/);
   const clear = buildScheduledException(
     report('8', [scenario(PERPS, 140)]),
     baselineOf(STEADY),
   );
-  assert.equal(buildIssueVerdictDm(clear), '');
+  assert.equal(buildPerformanceChannelPost(clear), '');
+});
+
+test('a newly opened bug posts the team mention instead of the digest', () => {
+  const exception = confirmedFinding();
+  exception.findings[0].issue = {
+    number: 501,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/501',
+    created: true,
+  };
+
+  const message = buildPerformanceChannelPost(exception, null);
+
+  assert.match(message, /\*App profiling: bug opened for review\*/);
+  assert.match(
+    message,
+    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/,
+  );
+  assert.match(message, /#501>/);
+  assert.match(message, /owning team's Jira project/);
+  assert.doesNotMatch(message, /no team is notified/);
+});
+
+test('a mixed run links the already-open issue next to the new bug', () => {
+  const exception = buildScheduledException(
+    report('8', [scenario(PERPS, 200), scenario(MONEY, 350)]),
+    steadyBaseline([
+      [PERPS, 100],
+      [MONEY, 200],
+    ]),
+    {
+      previousReport: report('7', [scenario(PERPS, 200), scenario(MONEY, 350)]),
+    },
+  );
+  exception.findings[0].issue = {
+    number: 600,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/600',
+    created: true,
+  };
+  exception.findings[1].issue = {
+    number: 601,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/601',
+    created: false,
+  };
+
+  const message = buildPerformanceChannelPost(exception, null);
+
+  assert.match(message, /\*App profiling: bug opened for review\*/);
+  assert.match(message, /#600>/);
+  assert.match(message, /\*Also flagged\*/);
+  assert.match(message, /Money Home/);
+  assert.match(message, /#601> already open, referenced/);
+  assert.doesNotMatch(message, /<!subteam\^S052NJFKX6Y/);
 });
 
 test('a scenario at 1.5 times the recent average becomes a finding when the previous run was also over', () => {

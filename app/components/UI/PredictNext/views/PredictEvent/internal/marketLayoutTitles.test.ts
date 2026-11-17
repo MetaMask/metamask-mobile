@@ -7,6 +7,8 @@ import {
 describe('getMarketLayoutTitle', () => {
   it.each([
     ['game_lines', 'predict_next.event.game_lines'],
+    ['outcomes', 'predict_next.event.outcomes'],
+    ['markets', 'predict_next.event.market_layout.markets'],
     ['moneyline', 'predict_next.event.market_layout.moneyline'],
     ['total_points', 'predict_next.event.market_layout.total_points'],
     ['team_total', 'predict_next.event.market_layout.team_total'],

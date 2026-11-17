@@ -1,39 +1,37 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { StyleSheet, View } from 'react-native';
 import type { Position } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfilePositionsTab from './ProfilePositionsTab';
 
-jest.mock('../../../../UI/SocialFeed/utils/perp', () => ({
-  isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
-    position.perpPositionType != null || position.chain === 'hyperliquid',
-}));
-
-jest.mock('../../TraderProfileView/components/PositionRow', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+jest.mock('../../../../UI/SocialFeed/utils/perp', () => {
+  const actual = jest.requireActual('../../../../UI/SocialFeed/utils/perp');
   return {
-    __esModule: true,
-    default: ({
-      position,
-      onPress,
-      flaggedPresentation,
-    }: {
-      position: Position;
-      onPress?: (next: Position) => void;
-      flaggedPresentation?: 'excluded' | 'subline';
-    }) => (
-      <Pressable
-        testID={`position-row-${position.tokenSymbol}`}
-        accessibilityState={{ disabled: !onPress }}
-        accessibilityLabel={flaggedPresentation ?? 'default'}
-        onPress={() => onPress?.(position)}
-      >
-        <Text>{position.tokenSymbol}</Text>
-      </Pressable>
-    ),
+    ...actual,
+    isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
+      position.perpPositionType != null || position.chain === 'hyperliquid',
   };
 });
+
+jest.mock('../../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+const viewOpacities = () =>
+  screen.UNSAFE_getAllByType(View).map((view) => {
+    const style = StyleSheet.flatten(view.props.style) as
+      | { opacity?: number }
+      | undefined;
+    return style?.opacity;
+  });
+
+const rowTestIds = () =>
+  screen
+    .getAllByTestId(/^position-row-(?!subtitle-|flag-|perp-badges-)/)
+    .map((row) => row.props.testID as string);
 
 const openSpot: Position = {
   positionId: 'eth-spot',
@@ -113,11 +111,11 @@ describe('ProfilePositionsTab', () => {
 
     expect(screen.queryByText('Tokens')).toBeNull();
     expect(screen.queryByText('Perpetuals')).toBeNull();
-    const rows = screen.getAllByTestId(/^position-row-/);
-    expect(rows.map((row) => row.props.testID)).toEqual([
-      'position-row-BTC',
-      'position-row-ETH',
-    ]);
+    expect(
+      screen
+        .getAllByTestId(/^position-row-[^-]+$/)
+        .map((row) => row.props.testID),
+    ).toEqual(['position-row-BTC', 'position-row-ETH']);
   });
 
   it('drops perp rows for the Tokens filter', () => {
@@ -213,17 +211,32 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
+    expect(screen.getByText('Not counted in P&L')).toBeOnTheScreen();
     expect(
-      screen.getByRole('header', { name: 'Not counted in P&L' }),
+      screen.getByRole('button', {
+        name: 'Not counted in P&L, 2 positions. Learn why',
+      }),
     ).toBeOnTheScreen();
     expect(
-      screen.getAllByTestId(/position-row-/).map((row) => row.props.testID),
-    ).toEqual([
+      StyleSheet.flatten(
+        screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER)
+          .props.style,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        alignSelf: 'flex-start',
+        minHeight: 44,
+      }),
+    );
+    expect(rowTestIds()).toEqual([
       'position-row-LOW',
       'position-row-MID',
       'position-row-Nigel',
       'position-row-Moodeng',
     ]);
+    expect(screen.getByText(/· Insider/)).toBeOnTheScreen();
+    expect(screen.getByText(/· Creator/)).toBeOnTheScreen();
+    expect(viewOpacities()).not.toContain(0.5);
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
     ).toBeNull();
@@ -252,8 +265,11 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
     ).toBeNull();
-    expect(row.props.accessibilityState).toEqual({ disabled: false });
-    expect(row).toHaveProp('accessibilityLabel', 'default');
+    expect(screen.queryByText(/· Insider/)).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText('Insider allocation - excluded'),
+    ).not.toBeOnTheScreen();
+    expect(viewOpacities()).not.toContain(0.5);
 
     fireEvent.press(row);
 
@@ -290,7 +306,7 @@ describe('ProfilePositionsTab', () => {
     },
   );
 
-  it('does not notify when a flagged row is pressed with showFlaggedState', () => {
+  it('notifies when a flagged row is pressed with showFlaggedState', () => {
     const flagged = { ...openSpot, flags: ['insider'] };
 
     renderTab([flagged], { showFlaggedState: true });
@@ -306,12 +322,60 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
+    expect(screen.getByText(/· Insider/)).toBeOnTheScreen();
+    expect(viewOpacities()).not.toContain(0.5);
 
     fireEvent.press(row);
 
-    expect(row.props.accessibilityState).toEqual({ disabled: true });
-    expect(onPositionPress).not.toHaveBeenCalled();
-    expect(row).toHaveProp('accessibilityLabel', 'subline');
+    expect(onPositionPress).toHaveBeenCalledTimes(1);
+    expect(onPositionPress).toHaveBeenCalledWith(flagged);
+  });
+
+  it('uses a singular accessibility label for one uncounted position', () => {
+    renderTab([{ ...openSpot, flags: ['insider'] }], {
+      showFlaggedState: true,
+    });
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Not counted in P&L, 1 position. Learn why',
+      }),
+    ).toBeOnTheScreen();
+  });
+
+  it('reports a press on the uncounted section header', () => {
+    const onUncountedHeaderPress = jest.fn();
+
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[{ ...openSpot, flags: ['insider'] }]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+        onUncountedHeaderPress={onUncountedHeaderPress}
+      />,
+    );
+
+    const header = screen.getByTestId(
+      MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER,
+    );
+
+    expect(header).toHaveProp('accessibilityRole', 'button');
+    expect(header).toHaveProp(
+      'accessibilityLabel',
+      'Not counted in P&L, 1 position. Learn why',
+    );
+
+    fireEvent.press(header);
+
+    expect(onUncountedHeaderPress).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeNull();
   });
 
   it('retries after a load error', () => {

@@ -553,6 +553,35 @@ const selectEarnTokens = createDeepEqualSelector(
   },
 );
 
+export const selectHighestBalanceAaveOutputToken = createSelector(
+  selectEarnTokens,
+  ({ earnOutputTokens }) =>
+    earnOutputTokens.reduce<EarnTokenDetails | undefined>(
+      (highestBalanceToken, token) => {
+        const isAaveOutputToken = token.experiences.some(
+          ({ market }) => market?.protocol === 'aave',
+        );
+        const hasPositiveFiatBalance =
+          Number.isFinite(token.balanceFiatNumber) &&
+          token.balanceFiatNumber > 0;
+
+        if (!isAaveOutputToken || !hasPositiveFiatBalance) {
+          return highestBalanceToken;
+        }
+
+        if (
+          !highestBalanceToken ||
+          token.balanceFiatNumber > highestBalanceToken.balanceFiatNumber
+        ) {
+          return token;
+        }
+
+        return highestBalanceToken;
+      },
+      undefined,
+    ),
+);
+
 export const selectEarnAssetCatalogueInputs = createSelector(
   [
     selectEarnTokens,
@@ -718,6 +747,7 @@ export const earnSelectors = {
   selectEarnTokens,
   selectEarnAssetCatalogueInputs,
   selectIsAaveOutputToken,
+  selectHighestBalanceAaveOutputToken,
   selectEarnToken,
   selectEarnOutputToken,
   selectEarnTokenPair,

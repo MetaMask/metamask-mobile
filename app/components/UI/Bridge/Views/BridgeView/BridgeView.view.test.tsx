@@ -7,6 +7,7 @@ import {
 } from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { toSentenceCase } from '../../../../../util/string';
 import React from 'react';
 import { Text } from 'react-native';
 import {
@@ -123,6 +124,20 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   });
 };
 
+// The native pager never reports that it stopped scrolling in Jest, and the
+// previous tab stays mounted until it does.
+const settlePager = async (
+  getByTestId: ReturnType<typeof renderBridgeView>['getByTestId'],
+) => {
+  await act(async () => {
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT),
+      'pageScrollStateChanged',
+      { nativeEvent: { pageScrollState: 'idle' } },
+    );
+  });
+};
+
 describeForPlatforms('BridgeView', () => {
   beforeEach(() => {
     setupRecurringOrdersDataServiceMock();
@@ -167,7 +182,7 @@ describeForPlatforms('BridgeView', () => {
   describe('tabs', () => {
     it('opens the Recurring tab with the schedule from route params', async () => {
       const state = initialStateBridge().build();
-      const { getByTestId, store } = renderComponentViewScreen(
+      const { getByTestId, queryByTestId, store } = renderComponentViewScreen(
         BridgeView as unknown as React.ComponentType,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
@@ -205,6 +220,10 @@ describeForPlatforms('BridgeView', () => {
         repeatCount: '8',
         priceRange: undefined,
       });
+      expect(store.getState().user.bridgeRecurringTabSeen).toBe(true);
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
     });
 
     it('falls back to Market when a route requests the disabled Recurring tab', async () => {
@@ -222,7 +241,7 @@ describeForPlatforms('BridgeView', () => {
           },
         } as unknown as DeepPartial<RootState>)
         .build();
-      const { getByTestId, queryByTestId } = renderComponentViewScreen(
+      const { getByTestId, queryByTestId, store } = renderComponentViewScreen(
         BridgeView as unknown as React.ComponentType,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
@@ -242,6 +261,42 @@ describeForPlatforms('BridgeView', () => {
       expect(
         queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
       ).not.toBeOnTheScreen();
+      expect(store.getState().user.bridgeRecurringTabSeen).toBe(false);
+    });
+
+    it('does not record a limit tab visit when a route requests the disabled Limit tab', async () => {
+      const state = initialStateBridge()
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  swapsLimitOrder: { enabled: false },
+                  swapsRecurringBuy: { enabled: false },
+                },
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: MetaMetricsSwapsEventSource.MainView,
+          initialTab: BridgeTabKey.Limit,
+        },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      expect(store.getState().user.bridgeLimitTabSeen).toBe(false);
     });
 
     it('shows the market tab with its label by default, then switches to the limit tab and hides slippage settings on press', async () => {
@@ -265,6 +320,7 @@ describeForPlatforms('BridgeView', () => {
       ).not.toBeOnTheScreen();
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -467,20 +523,95 @@ describeForPlatforms('BridgeView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('hides the limit discovery dot and records the visit after the limit tab is opened', async () => {
+      const { getByTestId, queryByTestId, store } = renderBridgeView();
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT),
+        ).not.toBeOnTheScreen();
+      });
+      expect(store.getState().user.bridgeLimitTabSeen).toBe(true);
+    });
+
+    it('does not show the limit discovery dot once the limit tab has been seen', () => {
+      const { getByTestId, queryByTestId } = renderBridgeView({
+        overrides: { user: { bridgeLimitTabSeen: true } },
+      });
+
+      expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the recurring discovery dot and records the visit after the recurring tab is opened', async () => {
+      const { getByTestId, queryByTestId, store } = renderBridgeView();
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+        ).not.toBeOnTheScreen();
+      });
+      expect(store.getState().user.bridgeRecurringTabSeen).toBe(true);
+      expect(store.getState().user.bridgeLimitTabSeen).toBe(false);
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show the recurring discovery dot once the recurring tab has been seen', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView({
+        overrides: { user: { bridgeRecurringTabSeen: true } },
+      });
+
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
+    });
+
     it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
       const { getByTestId, queryByTestId } = renderBridgeView();
 
       expect(
         getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.limit'));
-      expect(
-        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
-      ).toHaveTextContent(strings('bridge.tabs.new_badge'));
+      expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT)).toHaveProp(
+        'accessibilityLabel',
+        strings('bridge.tabs.new_badge'),
+      );
       expect(
         getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.recurring'));
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).toHaveProp('accessibilityLabel', strings('bridge.tabs.new_badge'));
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -503,6 +634,7 @@ describeForPlatforms('BridgeView', () => {
       });
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -698,16 +830,17 @@ describeForPlatforms('BridgeView', () => {
       const expectedDestToken = store.getState().bridge.destToken;
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await settlePager(getByTestId);
 
       await waitFor(() => {
-        expect(
-          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
-        ).toBeOnTheScreen();
+        expect(store.getState().bridge.destAmount).toBeUndefined();
       });
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeOnTheScreen();
       expect(store.getState().bridge.sourceToken).toEqual(expectedSourceToken);
       expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
       expect(store.getState().bridge.sourceAmount).toBe('1');
-      expect(store.getState().bridge.destAmount).toBeUndefined();
       expect(store.getState().bridge.selectedQuoteRequestId).toBeUndefined();
     });
 
@@ -1467,7 +1600,9 @@ describeForPlatforms('BridgeView', () => {
         },
       } as unknown as Record<string, unknown>);
 
-      expect(await findByText(strings('bridge.included'))).toBeOnTheScreen();
+      expect(
+        await findByText(toSentenceCase(strings('bridge.network_fee'))),
+      ).toBeOnTheScreen();
 
       const confirmButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(confirmButton).toBeOnTheScreen();

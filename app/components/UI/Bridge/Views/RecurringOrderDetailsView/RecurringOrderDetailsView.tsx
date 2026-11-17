@@ -155,7 +155,10 @@ function RecurringOrderDetailsView() {
     isSubmitting,
     reset: resetCancelMutation,
   } = useCancelRecurringOrder();
-  const swapsQuery = useRecurringSwaps({ orderId: order.id });
+  const swapsQuery = useRecurringSwaps({
+    orderId: order.id,
+    accountAddress: order.account,
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -235,7 +238,7 @@ function RecurringOrderDetailsView() {
     order.src.asset.decimals,
   );
   const totalSourceAmount = formatRecurringTokenAmount(
-    (BigInt(order.src.amount) * BigInt(order.schedule.repeatCount)).toString(),
+    order.totalAmount,
     order.src.asset.decimals,
   );
   const sizePerOrder = formatRecurringTokenAmount(
@@ -379,7 +382,7 @@ function RecurringOrderDetailsView() {
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.start_date')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {formatRecurringOrderDate(order.timingData.startsAt)}
+              {formatRecurringOrderDate(order.timingData.createdAt)}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.end_date')}>
@@ -496,7 +499,7 @@ function RecurringOrderDetailsView() {
         </Box>
       </ScrollView>
 
-      {order.state === RecurringOrderState.Open ? (
+      {order.isCancellable ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}

@@ -73,13 +73,18 @@ const getMarketTeam = (
 
 /**
  * "Yes · Chicago", or "Yes · Derrick Henry 60+ yards" for a titled `choice`
- * card. Other group types don't show their label.
+ * card. Other group types don't show their label. When the entry's context
+ * names the Market with `marketLabels`, the title is the entry's name, as on
+ * every other screen: "Yes · Josh Jacobs · 60+".
  */
 const getTitle = (
   position: PredictPosition,
   heldOutcome?: PredictOutcome,
   market?: PredictMarket,
 ): string => {
+  if (position.context?.marketLabels) {
+    return getOutcomeName(position.side, position.context);
+  }
   const outcome =
     position.context?.outcomeLabel ??
     (heldOutcome?.label || getOutcomeName(position.side));

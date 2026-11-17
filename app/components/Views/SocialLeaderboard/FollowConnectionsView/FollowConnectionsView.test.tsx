@@ -106,7 +106,6 @@ const liveFollowers: UseFollowersResult['followers'] = [
   {
     id: 'follower-1',
     username: 'Moon Rabbit',
-    handle: '0x3333...3333',
     address: '0x3333333333333333333333333333333333333333',
     avatarUri: 'https://example.com/moon.png',
   },
@@ -165,6 +164,8 @@ describe('FollowConnectionsView', () => {
     expect(
       screen.getByTestId(getConnectionRowTestId('follower-1')),
     ).toBeOnTheScreen();
+    expect(screen.getByText('Moon Rabbit')).toBeOnTheScreen();
+    expect(screen.queryByText(/0x3333/u)).toBeNull();
   });
 
   it('navigates to trader profile from a follower row', () => {
@@ -363,7 +364,33 @@ describe('FollowConnectionsView', () => {
     expect(
       screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWING_LIST),
     ).toBeOnTheScreen();
+    expect(screen.getByText('Signal Scout')).toBeOnTheScreen();
+    expect(screen.queryByText(/0x1111/u)).toBeNull();
     expect(mockUseTraderFollowing).toHaveBeenCalled();
+  });
+
+  it('hides wallet addresses on the mutuals tab', () => {
+    mockRouteParams = { initialTab: 'mutuals', addressOrId: '0xabc' };
+    mockUseFollowers.mockImplementation((options) => {
+      if (options?.mutuals) {
+        return {
+          followers: liveFollowers,
+          count: 1,
+          isLoading: false,
+          error: null,
+          refresh: mockRefreshMutuals,
+        };
+      }
+      return emptyFollowers;
+    });
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.MUTUALS_LIST),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Moon Rabbit')).toBeOnTheScreen();
+    expect(screen.queryByText(/0x3333/u)).toBeNull();
   });
 
   it('hides Follow on the signed-in viewer row in another trader followers list', () => {
@@ -381,7 +408,6 @@ describe('FollowConnectionsView', () => {
           {
             id: 'me-profile',
             username: 'Me',
-            handle: '0xaaaa...aaaa',
             address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           },
           ...liveFollowers,
@@ -418,7 +444,6 @@ describe('FollowConnectionsView', () => {
           {
             id: 'me-profile',
             username: 'Me',
-            handle: '0xaaaa...aaaa',
             address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           },
         ],

@@ -37,6 +37,11 @@ const NOT_READY: PredictVenueCapabilities[] = [
   { status: 'unavailable', reason: 'error', retry: jest.fn() },
 ];
 
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
+
 describe('resolveVenueCapabilities', () => {
   describe('a client-config Venue (Polymarket)', () => {
     it('resolves the static descriptor synchronously, matching legacy support', () => {
@@ -57,6 +62,7 @@ describe('resolveVenueCapabilities', () => {
             'crypto-up-down-live': 'btc-up-or-down-5m',
             'world-cup': 'fifa-world-cup',
           },
+          categories: [],
           searchSupported: true,
         },
       });
@@ -89,6 +95,27 @@ describe('resolveVenueCapabilities', () => {
         status: 'ready',
         descriptor: {
           ...KALSHI_STATIC_VENUE_CATALOG,
+          displayName: 'Kalshi',
+        },
+      });
+    });
+
+    it('stays ready, with its actions, Feeds and search, when a Category entry is malformed', () => {
+      const result = resolveVenueCapabilities(
+        KALSHI,
+        read({
+          data: {
+            ...KALSHI_STATIC_VENUE_CATALOG,
+            categories: [{ key: 'sports' }, 'politics', 42],
+          },
+        }),
+      );
+
+      expect(result).toEqual({
+        status: 'ready',
+        descriptor: {
+          ...KALSHI_STATIC_VENUE_CATALOG,
+          categories: ['politics'],
           displayName: 'Kalshi',
         },
       });
@@ -213,6 +240,7 @@ describe('resolveSurfaceFeeds', () => {
       displayName: 'Test Venue',
       actions: [],
       feeds: feeds as Record<string, PredictFeedId>,
+      categories: [],
       searchSupported: false,
     },
   });
@@ -244,7 +272,7 @@ describe('resolveSurfaceFeeds', () => {
     expect(result).toEqual([]);
   });
 
-  it('shows Kalshi V1 only its football sections and the Sports tab', () => {
+  it('shows Kalshi V1 its football sections, Politics, and the Sports, Macro and RWAs tabs', () => {
     const kalshi = resolveVenueCapabilities(
       KALSHI,
       read({ data: KALSHI_STATIC_VENUE_CATALOG }),
@@ -260,14 +288,29 @@ describe('resolveSurfaceFeeds', () => {
       'nfl-games',
       'college-football-games',
     ]);
+    // Macro and RWAs read the `politics` key, the Politics Category's Feed.
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.exploreTabs)).toEqual([
+      'macro',
+      'rwas',
       'sports',
     ]);
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.campaignRows)).toEqual([]);
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.nextHomeSections)).toEqual([
       'sports-football-nfl',
       'sports-football-ncaa',
+      'politics',
     ]);
+  });
+
+  it('shows Polymarket no Politics topic Feed, so no Politics section', () => {
+    const polymarket = resolveVenueCapabilities(POLYMARKET, read());
+
+    expect(
+      resolveSurfaceFeeds(
+        polymarket,
+        PREDICT_SURFACE_FEED_KEYS.nextHomeSections,
+      ).map(({ sectionId }) => sectionId),
+    ).toEqual([]);
   });
 
   it('keeps every surface Polymarket shows today', () => {

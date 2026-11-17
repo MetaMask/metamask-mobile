@@ -157,6 +157,68 @@ describe('AgenticCliApprovalService', () => {
       ).toBe(true);
     });
 
+    it('allows link.metamask.io and link.metamask.com origins', () => {
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://link.metamask.io/agentic/approval',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://link.metamask.com/agentic/approval',
+        ),
+      ).toBe(true);
+    });
+
+    it('allows cx.metamask.io and cx.metamask.com subdomain origins', () => {
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://docs.cx.metamask.io/agentic/approval',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://docs.cx.metamask.com/agentic/approval',
+        ),
+      ).toBe(true);
+    });
+
+    it('allows the MetaMask developer (.com) approval page origins', () => {
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://developer.metamask.com/agentic/approval',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://develop-developer.metamask.com/agentic/approval',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://staging-developer.metamask.com/agentic/approval',
+        ),
+      ).toBe(true);
+    });
+
+    it('blocks suffix, Build, and forum .com lookalikes', () => {
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://developer.metamask.com.evil.com/agentic/approval',
+        ),
+      ).toBe(false);
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://build.metamask.com/agentic/approval',
+        ),
+      ).toBe(false);
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://builder.metamask.com/agentic/approval',
+        ),
+      ).toBe(false);
+    });
+
     it('allows the Web3Auth test dashboard approval page origin', () => {
       expect(
         AgenticCliApprovalService.shouldLoadInWebView(

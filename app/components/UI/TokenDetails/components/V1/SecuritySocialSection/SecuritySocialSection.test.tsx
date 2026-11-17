@@ -1,6 +1,7 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import SecuritySocialSection from './SecuritySocialSection';
 import { SecuritySocialSectionSelectors } from './SecuritySocialSection.testIds';
 import { SecurityPillSelectors } from '../SecurityPill/SecurityPill.testIds';
@@ -161,6 +162,38 @@ describe('SecuritySocialSection', () => {
     expect(
       getByLabelText(`Copy contract address ${PEPE_ADDRESS}`),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the links and the copy chip on the secondary button surface', () => {
+    const { getByTestId } = render(
+      <>
+        <SecuritySocialSection
+          securityVerdict="screened"
+          externalLinks={EXTERNAL_LINKS}
+          contractAddress={PEPE_ADDRESS}
+        />
+        <Button variant={ButtonVariant.Secondary} testID="secondary-reference">
+          Reference
+        </Button>
+      </>,
+    );
+    const backgroundOf = (testID: string) =>
+      StyleSheet.flatten(getByTestId(testID).props.style).backgroundColor;
+    const secondaryBackground = backgroundOf('secondary-reference');
+
+    expect(secondaryBackground).toBeDefined();
+    expect(backgroundOf(SecuritySocialSectionSelectors.LINK_X)).toBe(
+      secondaryBackground,
+    );
+    expect(backgroundOf(SecuritySocialSectionSelectors.LINK_WEBSITE)).toBe(
+      secondaryBackground,
+    );
+    expect(backgroundOf(SecuritySocialSectionSelectors.LINK_TELEGRAM)).toBe(
+      secondaryBackground,
+    );
+    expect(backgroundOf(SecuritySocialSectionSelectors.COPY_ADDRESS)).toBe(
+      secondaryBackground,
+    );
   });
 
   it('hides the copy chip when the token has no contract address', () => {

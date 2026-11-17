@@ -17,8 +17,8 @@ export interface PredictHomeSectionProps {
 /**
  * The Homepage Predictions section. The legacy branch renders the existing
  * Polymarket section unchanged. The next branch renders the Active Venue's
- * open Positions and PnL; its sports mode, and discovery for a Predict User
- * without open Positions, render nothing until PRED-1406 builds them.
+ * open Positions and PnL, or, without open Positions and in sports mode,
+ * Predictions discovery for the slots the Venue supports.
  * Homepage refreshes the mounted branch through the forwarded
  * `SectionRefreshHandle`, which is empty while no branch renders.
  *
@@ -32,13 +32,12 @@ export const PredictHomeSection = forwardRef<
   <PredictImplementationSwitch
     legacy={<PredictionsSection {...props} ref={ref} />}
     next={
-      props.mode === 'sports' ? null : (
-        <NextPredictHomeSection
-          sectionIndex={props.sectionIndex}
-          totalSectionsLoaded={props.totalSectionsLoaded}
-          ref={ref}
-        />
-      )
+      <NextPredictHomeSection
+        sectionIndex={props.sectionIndex}
+        totalSectionsLoaded={props.totalSectionsLoaded}
+        mode={props.mode}
+        ref={ref}
+      />
     }
     resolving={null}
   />

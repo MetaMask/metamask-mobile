@@ -12,15 +12,15 @@ import {
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
 import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
+import {
+  useExploreSearchPerformance,
+  type ExploreSearchFeedId,
+  type ExploreSearchPerformance,
+} from './useExploreSearchPerformance';
+import type { SearchEntryPoint } from './analytics';
 
 /** Feeds that participate in the omni-search across the Explore page. */
-export type SearchFeedId =
-  | 'tokens'
-  | 'perps'
-  | 'earn'
-  | 'stocks'
-  | 'predictions'
-  | 'sites';
+export type SearchFeedId = ExploreSearchFeedId;
 
 const DEBOUNCE_MS = 200;
 
@@ -32,27 +32,39 @@ export interface SearchFeedSection<T = unknown> {
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
+  /** Server-reported total; it may be larger than the loaded item count. */
   total?: number;
 }
 
 export interface ExploreSearchResult {
   sections: SearchFeedSection[];
+  performanceLifecycle: Pick<ExploreSearchPerformance, 'onFocus' | 'onBlur'>;
 }
 
 export interface UseExploreSearchOptions {
   /** Forward fetchMore / hasMore / total on sections that support it. */
   exposePagination?: boolean;
+  entryPoint?: SearchEntryPoint;
+  /** Enables performance measurement for the focused Explore Search screen. */
+  isFocused?: boolean;
+  /** Rechecks cached feed readiness after a navigation focus event. */
+  focusCount?: number;
 }
 export const useExploreSearch = (
   query: string,
   options: UseExploreSearchOptions = {},
 ): ExploreSearchResult => {
-  const { exposePagination = false } = options;
+  const {
+    exposePagination = false,
+    entryPoint,
+    isFocused = false,
+    focusCount = 0,
+  } = options;
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isExploreEarnEnabled = useSelector(selectIsExploreEarnSectionVisible);
-  const isPredictionsSupported = usePredictTrendingSupported();
+  const isPredictionsSupported = usePredictTrendingSupported('search');
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
@@ -61,12 +73,40 @@ export const useExploreSearch = (
 
   const isDebouncing = query !== debouncedQuery;
 
-  const tokens = useTokensFeed({ query: debouncedQuery });
-  const perps = usePerpsFeed({ query: debouncedQuery });
-  const stocks = useStocksFeed({ query: debouncedQuery });
-  const predictions = usePredictTrendingFeed({
-    variant: 'trending',
+  const enabledFeeds = useMemo<ExploreSearchFeedId[]>(
+    () => [
+      'tokens',
+      ...(isPerpsEnabled ? (['perps'] as const) : []),
+      ...(isExploreEarnEnabled ? (['earn'] as const) : []),
+      'stocks',
+      ...(isPredictionsSupported ? (['predictions'] as const) : []),
+      'sites',
+    ],
+    [isExploreEarnEnabled, isPerpsEnabled, isPredictionsSupported],
+  );
+  const searchPerformance = useExploreSearchPerformance({
+    query,
+    isDebouncing,
+    enabledFeeds,
+    configuredDebounceMs: DEBOUNCE_MS,
+    entryPoint,
+    isFocused,
+  });
+
+  const tokens = useTokensFeed({
     query: debouncedQuery,
+    performance: debouncedQuery.trim() ? searchPerformance.tokens : undefined,
+  });
+  const perps = usePerpsFeed({ query: debouncedQuery });
+  const stocks = useStocksFeed({
+    query: debouncedQuery,
+    performance: debouncedQuery.trim() ? searchPerformance.stocks : undefined,
+  });
+  const predictions = usePredictTrendingFeed({
+    query: debouncedQuery,
+    performance: debouncedQuery.trim()
+      ? searchPerformance.predictions
+      : undefined,
   });
   const sites = useSitesFeed({ query: debouncedQuery });
   const earn = useEarnSearchFeed({
@@ -74,7 +114,7 @@ export const useExploreSearch = (
     enabled: isExploreEarnEnabled,
   });
 
-  return useMemo<ExploreSearchResult>(() => {
+  const result = useMemo<ExploreSearchResult>(() => {
     const sections: SearchFeedSection[] = [
       {
         feedId: 'tokens',
@@ -146,7 +186,7 @@ export const useExploreSearch = (
       },
     );
 
-    return { sections };
+    return { sections, performanceLifecycle: searchPerformance };
   }, [
     isDebouncing,
     isPerpsEnabled,
@@ -177,5 +217,28 @@ export const useExploreSearch = (
     sites.isLoading,
     earn.data,
     earn.isLoading,
+    searchPerformance,
   ]);
+
+  useEffect(() => {
+    result.sections.forEach((section) => {
+      if (query.trim() && !section.isLoading) {
+        if (section.feedId === 'tokens') {
+          searchPerformance.tokens.markCachedResult?.(query);
+        } else if (section.feedId === 'stocks') {
+          searchPerformance.stocks.markCachedResult?.(query);
+        } else if (section.feedId === 'predictions') {
+          searchPerformance.predictions.markCachedResult?.(query);
+        }
+      }
+
+      searchPerformance.markFeedReady(
+        section.feedId,
+        !section.isLoading,
+        section.items.length,
+      );
+    });
+  }, [focusCount, isFocused, query, result.sections, searchPerformance]);
+
+  return result;
 };

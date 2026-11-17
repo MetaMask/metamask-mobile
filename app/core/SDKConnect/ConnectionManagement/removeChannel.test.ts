@@ -1,10 +1,14 @@
 import AppConstants from '../../../core/AppConstants';
+import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
+import { revokeChannelPermissions } from '../utils/revokeChannelPermissions.util';
 import removeChannel from './removeChannel';
 
 jest.mock('../../../core/AppConstants');
+jest.mock('../../Engine', () => ({ context: {} }));
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
+jest.mock('../utils/revokeChannelPermissions.util');
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue([]),
   getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
@@ -126,5 +130,24 @@ describe('removeChannel', () => {
     });
 
     expect(mockInstance.state.connecting[mockChannelId]).toBeUndefined();
+  });
+
+  it('revokes the channel permissions when an engine is provided', async () => {
+    await removeChannel({
+      channelId: 'mockChannelId',
+      engine: Engine,
+      instance: mockInstance,
+    });
+
+    expect(revokeChannelPermissions).toHaveBeenCalledWith('mockChannelId');
+  });
+
+  it('does not revoke permissions without an engine', async () => {
+    await removeChannel({
+      channelId: 'mockChannelId',
+      instance: mockInstance,
+    });
+
+    expect(revokeChannelPermissions).not.toHaveBeenCalled();
   });
 });

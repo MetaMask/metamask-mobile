@@ -9,6 +9,7 @@ import {
 import React, { useCallback } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { fireImpact, ImpactMoment } from '../../../../util/haptics';
+import { useIsCopyTradeAllowed } from '../hooks/useIsCopyTradeAllowed';
 
 export interface CopyTradeButtonProps {
   testID?: string;
@@ -19,10 +20,15 @@ const CopyTradeButton: React.FC<CopyTradeButtonProps> = ({
   testID,
   onPress,
 }) => {
+  const copyTradeAllowed = useIsCopyTradeAllowed();
   const handlePress = useCallback(() => {
     fireImpact(ImpactMoment.SecondaryCTA);
     onPress?.();
   }, [onPress]);
+
+  if (!copyTradeAllowed) {
+    return null;
+  }
 
   return (
     <Button

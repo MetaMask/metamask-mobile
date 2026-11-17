@@ -1,98 +1,166 @@
-import React, { useMemo } from 'react';
-import { ActivityIndicator } from 'react-native';
-import AddCustomToken from '../../components/AddCustomToken/AddCustomToken';
-import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';
-import ScrollableTabView, {
-  TabBarProps,
-} from '@tommasini/react-native-scrollable-tab-view';
-import { strings } from '../../../../../../locales/i18n';
+import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-
-import { Hex } from '@metamask/utils';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import {
-  MultichainNetworkConfiguration,
-  SupportedCaipChainId,
-} from '@metamask/multichain-network-controller';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
-import { useTheme } from '../../../../../util/theme';
-import { Box } from '@metamask/design-system-react-native';
-import SearchTokenAutocomplete from '../../components/SearchTokenAutoComplete/SearchTokenAutocomplete';
-import NetworkSelector from '../../components/NetworkSelector/NetworkSelector';
-import { useSearchRequest } from '../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest';
+  AvatarNetwork,
+  AvatarNetworkSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  ContentVariant,
+  ListItem,
+  SelectButton,
+  SelectButtonVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Hex } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import ExploreSearchBar from '../../../TrendingView/components/ExploreSearchBar/ExploreSearchBar';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import { useNetworkName } from '../../../../UI/Trending/hooks/useNetworkName/useNetworkName';
+import { useHiddenAssetIds } from '../../hooks/useHiddenAssetIds';
+import SearchTokenAutocomplete from '../../components/SearchTokenAutoComplete/SearchTokenAutocomplete';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 
+/**
+ * Import tokens: search, network filter, a Hidden tokens shortcut (only when
+ * there are hidden tokens) and the importable token list.
+ */
 interface TokenViewProps {
+  /** `null` means all networks. */
   selectedNetwork: SupportedCaipChainId | Hex | null;
   openNetworkSelector: () => void;
-  networkConfigurations: Record<string, MultichainNetworkConfiguration>;
 }
 
 const TokenView = ({
   selectedNetwork,
   openNetworkSelector,
-  networkConfigurations,
 }: TokenViewProps) => {
-  const { colors } = useTheme();
+  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const renderTabBar = (props: typeof TabBarProps) => <TabBar {...props} />;
 
-  // Probe the search API with a test query to check if the selected network supports token search.
-  // If the API returns an error (e.g. 400 Bad Request), the network is unsupported.
-  const { error: searchProbeError, isLoading: isLoadingSearchSupported } =
-    useSearchRequest({
-      chainIds: selectedNetwork ? [formatChainIdToCaip(selectedNetwork)] : [],
-      query: 'USD',
-      limit: 1,
-      includeMarketData: false,
-    });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const selectedChainId = selectedNetwork
+    ? formatChainIdToCaip(selectedNetwork)
+    : null;
+  const selectedNetworkName = useNetworkName(
+    selectedChainId ? [selectedChainId] : null,
+  );
+  const hasHiddenTokens = useHiddenAssetIds().length > 0;
 
-  const chainSupportsSearch = useMemo(() => {
-    if (!selectedNetwork) return false;
-    // Non-EVM chains (Solana, etc.) are always supported via search
-    if (isNonEvmChainId(selectedNetwork)) return true;
-    // If the probe request returned an error, the chain is unsupported
-    return !searchProbeError;
-  }, [selectedNetwork, searchProbeError]);
+  const placeholder = strings('token.search_tokens_placeholder');
+  const handleCancel = useCallback(() => {
+    setSearchQuery('');
+    setIsSearchActive(false);
+  }, []);
 
   return (
     <Box twClassName="flex-1">
-      <NetworkSelector
-        selectedNetwork={selectedNetwork}
-        openNetworkSelector={openNetworkSelector}
-        networkConfigurations={networkConfigurations}
-      />
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="px-4 pt-2"
+        testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
+      >
+        <Box twClassName="h-12 flex-1">
+          {isSearchActive ? (
+            <ExploreSearchBar
+              type="interactive"
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onCancel={handleCancel}
+              placeholder={placeholder}
+            />
+          ) : (
+            <ExploreSearchBar
+              type="button"
+              onPress={() => setIsSearchActive(true)}
+              placeholder={placeholder}
+            />
+          )}
+        </Box>
+      </Box>
 
-      {isLoadingSearchSupported ? (
-        <Box
-          twClassName="flex-1 justify-center items-center px-4"
-          testID="add-asset-loading-indicator"
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 py-3">
+        <SelectButton
+          testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
+          variant={SelectButtonVariant.Primary}
+          placeholder={selectedNetworkName}
+          value={selectedNetworkName}
+          startAccessory={
+            selectedNetwork ? (
+              <AvatarNetwork
+                src={getNetworkImageSource({ chainId: selectedNetwork })}
+                size={AvatarNetworkSize.Xs}
+                name={selectedNetworkName}
+              />
+            ) : undefined
+          }
+          textProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
+          twClassName="shrink-0"
+          onPress={openNetworkSelector}
+        />
+      </Box>
+
+      {!isSearchActive && hasHiddenTokens ? (
+        <Animated.View
+          key="shortcuts"
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
         >
-          <ActivityIndicator size="large" color={colors.primary.default} />
-        </Box>
-      ) : (
-        <Box twClassName="flex-1" testID="add-asset-tabs-container">
-          <ScrollableTabView key={selectedNetwork} renderTabBar={renderTabBar}>
-            {/* Show search tab when the chain is supported by the token search API */}
-            {chainSupportsSearch && (
-              <SearchTokenAutocomplete
-                navigation={navigation}
-                tabLabel={strings('add_asset.search_token')}
-                selectedChainId={selectedNetwork}
+          <ListItem
+            isInteractive
+            variant={ContentVariant.OneLine}
+            title={strings('add_asset.hidden_tokens')}
+            startAccessory={
+              <Icon name={IconName.EyeSlash} size={IconSize.Md} />
+            }
+            endAccessory={
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
               />
-            )}
+            }
+            accessoryGap={3}
+            onPress={() => navigation.navigate(Routes.WALLET.HIDDEN_TOKENS)}
+            accessibilityRole="button"
+            testID={ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON}
+          />
+        </Animated.View>
+      ) : null}
 
-            {/* Custom tokens are not supported on non-evm chains */}
-            {selectedNetwork && !isNonEvmChainId(selectedNetwork) && (
-              <AddCustomToken
-                chainId={selectedNetwork}
-                tabLabel={strings('add_asset.custom_token')}
-                isTokenDetectionSupported={chainSupportsSearch}
-              />
-            )}
-          </ScrollableTabView>
-        </Box>
-      )}
+      <Animated.View
+        style={tw.style('flex-1')}
+        layout={LinearTransition.duration(200)}
+      >
+        <SearchTokenAutocomplete
+          // Remount on network change so picks from another filter are dropped.
+          key={selectedChainId ?? 'all'}
+          navigation={navigation}
+          selectedChainId={selectedChainId}
+          searchQuery={searchQuery}
+          isSearching={isSearchActive}
+          onAddCustomToken={() =>
+            navigation.navigate(Routes.WALLET.ADD_CUSTOM_TOKEN)
+          }
+        />
+      </Animated.View>
     </Box>
   );
 };

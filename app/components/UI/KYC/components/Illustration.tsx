@@ -1,21 +1,19 @@
 import React from 'react';
 import { Image, type ImageSourcePropType } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import vbaCheckmark from '../../../../images/money-vba-account-ready-art.png';
-import vbaHazard from './assets/vba-hazard.png';
-import vbaScanner from './assets/vba-scanner.png';
+import kycCheckmark from './assets/kyc-identity-verified-art.png';
+import kycScanner from './assets/kyc-scanner.png';
 
-export const VbaIllustrationSource = {
-  checkmark: vbaCheckmark,
-  hazard: vbaHazard,
-  scanner: vbaScanner,
+export const KycIllustrationSource = {
+  checkmark: kycCheckmark,
+  scanner: kycScanner,
 } as const;
 
 /**
- * VBA header graphic at the 1x size of the exported PNG.
+ * KYC header graphic at the 1x size of the exported PNG.
  * Density variants (`@2x`, `@3x`) resolve from the base filename.
  */
-const VbaIllustration = ({
+const KycIllustration = ({
   source,
   twClassName = 'h-[88px] w-[127px]',
 }: {
@@ -34,4 +32,4 @@ const VbaIllustration = ({
   );
 };
 
-export default VbaIllustration;
+export default KycIllustration;

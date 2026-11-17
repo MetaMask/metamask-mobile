@@ -36,6 +36,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+  selectPrimaryHDKeyring: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/accountsController', () => ({
@@ -196,7 +197,29 @@ describe('useTopTraders', () => {
         pnlPerChain: first.pnlPerChain ?? {},
         followerCount: first.followerCount,
         isFollowing: false,
+        xHandle: null,
       });
+    });
+
+    it('copies an X handle and drops a blank one', () => {
+      const connected = {
+        ...mockTraders[0],
+        socialHandles: { twitter: ' @alpha ' },
+      };
+      const blank = {
+        ...mockTraders[1],
+        socialHandles: { twitter: '  ' },
+      };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({
+          data: { traders: [connected, blank] } as never,
+        }),
+      );
+
+      const { result } = renderHook(() => useTopTraders());
+
+      expect(result.current.traders[0].xHandle).toBe('alpha');
+      expect(result.current.traders[1].xHandle).toBeNull();
     });
 
     it('converts the API win-rate fraction to a whole percent', () => {

@@ -112,6 +112,56 @@ describe('handleSocialPostUrl', () => {
     expect(mockNavigateToProfile).not.toHaveBeenCalled();
   });
 
+  it('fetches the author in parallel with the post', () => {
+    mockQuery.mockReturnValue(new Promise(() => undefined));
+
+    handleSocialPostUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+
+    expect(mockQuery).toHaveBeenCalledWith({
+      queryKey: [
+        'SocialService:fetchTraderProfile',
+        { addressOrId: 'trader-1' },
+      ],
+    });
+  });
+
+  it('attributes the post to its real owner when the link trader does not own it', async () => {
+    const ownedPosition = {
+      ...POSITION,
+      profileId: 'owner-1',
+    };
+    mockQuery.mockImplementation(async ({ queryKey }) => {
+      if (queryKey[0] === 'SocialService:fetchPositionById') {
+        return ownedPosition;
+      }
+      return queryKey[1].addressOrId === 'owner-1'
+        ? {
+            ...PROFILE_RESPONSE,
+            profile: {
+              profileId: 'owner-1',
+              address: '0xowner',
+              name: 'bob',
+              imageUrl: null,
+            },
+          }
+        : PROFILE_RESPONSE;
+    });
+
+    handleSocialPostUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+    await flushAsync();
+    await flushAsync();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'position-1',
+      position: ownedPosition,
+      author: expect.objectContaining({ id: 'owner-1', username: 'bob' }),
+    });
+  });
+
   it('falls back to the profile when the post is hidden or removed', async () => {
     mockQuery.mockRejectedValue(new Error('404'));
 
@@ -166,6 +216,19 @@ describe('handleSocialPostUrl', () => {
     });
   });
 
+  it('forwards deduplication_id onto the notification click', async () => {
+    handleSocialPostUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=your_trader_was_copied',
+    });
+    await flushAsync();
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      notification_subtype: 'your_trader_was_copied',
+      deduplication_id: 'dedup-1',
+    });
+  });
+
   it('tracks the notification click with its subtype', async () => {
     handleSocialPostUrl({
       actionPath:
@@ -188,6 +251,26 @@ describe('handleSocialPostUrl', () => {
     await flushAsync();
 
     expect(mockAddProperties).not.toHaveBeenCalled();
+  });
+
+  it('opens the post once the Social terms are accepted', async () => {
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
+
+    handleSocialPostUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+    await flushAsync();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
+      .calls[0]?.[1];
+    expect(onAccepted).toEqual(expect.any(Function));
+    onAccepted?.();
+    await flushAsync();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION_SHEET,
+      expect.objectContaining({ positionId: 'position-1' }),
+    );
   });
 
   it('does not open the post when the Social terms are not accepted', async () => {

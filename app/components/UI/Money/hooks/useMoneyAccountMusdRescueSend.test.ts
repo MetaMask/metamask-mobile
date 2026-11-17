@@ -67,9 +67,11 @@ jest.mock('./useMoneyToasts', () => ({
   }),
 }));
 
-jest.mock('./useMoneyNavigation', () => ({
+jest.mock('./useMoneyHomeNavigation', () => ({
   __esModule: true,
-  useMoneyNavigation: () => ({ navigateToMoneyHome: mockNavigateToMoneyHome }),
+  useMoneyHomeNavigation: () => ({
+    navigateToMoneyHome: mockNavigateToMoneyHome,
+  }),
 }));
 
 jest.mock('./useMoneyAccountAvailability', () => ({

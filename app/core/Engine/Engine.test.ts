@@ -496,8 +496,16 @@ describe('Engine', () => {
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
 
+    // SamplePetnamesController is only registered when
+    // INCLUDE_SAMPLE_FEATURE=true (unset in this test run), so `Engine.state`
+    // omits it entirely even though the fixture has a default value for it.
+    const {
+      SamplePetnamesController: _unusedSamplePetnamesController,
+      ...restBackgroundState
+    } = backgroundState;
+
     const expectedState = {
-      ...backgroundState,
+      ...restBackgroundState,
       // Update application version here, so that we don't have to update
       // `initial-background-state.json` every release
       AppMetadataController: {
@@ -1299,6 +1307,15 @@ describe('Engine', () => {
     );
   });
 
+  describe('when the sample feature is disabled', () => {
+    it('omits SamplePetnamesController from the context and state', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(Engine.context).not.toHaveProperty('SamplePetnamesController');
+      expect(Engine.state).not.toHaveProperty('SamplePetnamesController');
+    });
+  });
+
   describe('Engine.state', () => {
     it('throws error when accessing state before Engine exists', () => {
       expect(() => Engine.state).toThrow('Engine does not exist');
@@ -1426,12 +1443,33 @@ describe('Engine', () => {
 
       await engine.resetState();
 
-      expect(abandonSpy).toHaveBeenCalledTimes(1);
+      // reset() abandons commits before the journal clear and again after it.
+      // The first one still precedes the account-data purge.
+      expect(abandonSpy).toHaveBeenCalledTimes(2);
       expect(clearSpy).toHaveBeenCalledTimes(1);
       // Abandoning first is what stops a receipt from refilling the cache the
       // purge is about to drop.
       expect(abandonSpy.mock.invocationCallOrder[0]).toBeLessThan(
         clearSpy.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('purges PredictNext account data when the order journal cannot be cleared', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const loggerSpy = jest.spyOn(Logger, 'error');
+      jest
+        .spyOn(engine.context.PredictOrderService, 'reset')
+        .mockRejectedValue(new Error('journal clear failed'));
+      const clearSpy = jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(clearSpy).toHaveBeenCalledTimes(1);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'journal clear failed' }),
+        'Engine: failed to clear the PredictNext order dispatch journal',
       );
     });
 

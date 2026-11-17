@@ -37,6 +37,7 @@ describe('traderProfileResponseToMySocialProfile', () => {
       profileId: 'trader-1',
       displayName: 'alpha.eth',
       handle: 'alpha',
+      bio: null,
       imageUrl: 'https://example.com/a.png',
       rankingTag: 'dolphin',
       xHandle: 'alpha',
@@ -45,6 +46,7 @@ describe('traderProfileResponseToMySocialProfile', () => {
       winRatePercent: 50,
       pnlUsd: 100,
       linkedAccountAddress: '0xabc',
+      shareTradingActivity: null,
       joinedAt: null,
     });
   });
@@ -59,5 +61,62 @@ describe('traderProfileResponseToMySocialProfile', () => {
     );
 
     expect(result.imageUrl).toBe('https://example.com/list.png');
+  });
+
+  it('shows the Profile API display name, bio and creation date', () => {
+    const profile = {
+      ...live.profile,
+      displayName: 'Alpha',
+      bio: 'gm',
+      createdAt: '2026-11-04T10:00:00.000Z',
+    };
+
+    const result = traderProfileResponseToMySocialProfile({ ...live, profile });
+
+    expect(result).toMatchObject({
+      displayName: 'Alpha',
+      handle: 'alpha.eth',
+      bio: 'gm',
+      joinedAt: '2026-11-04T10:00:00.000Z',
+    });
+  });
+
+  it.each([null, '', '   '])(
+    'falls back to the username when the display name is %j',
+    (displayName) => {
+      const profile = { ...live.profile, displayName };
+
+      const result = traderProfileResponseToMySocialProfile({
+        ...live,
+        profile,
+      });
+
+      expect(result.displayName).toBe('alpha.eth');
+    },
+  );
+
+  it.each([
+    ['public', true],
+    ['private', false],
+  ] as const)(
+    'maps a %s trading privacy to shareTradingActivity %s',
+    (tradingPrivacy, expected) => {
+      const profile = { ...live.profile, tradingPrivacy };
+
+      const result = traderProfileResponseToMySocialProfile({
+        ...live,
+        profile,
+      });
+
+      expect(result.shareTradingActivity).toBe(expected);
+    },
+  );
+
+  it('leaves the bio empty when social-api sends an empty one', () => {
+    const profile = { ...live.profile, bio: '' };
+
+    const result = traderProfileResponseToMySocialProfile({ ...live, profile });
+
+    expect(result.bio).toBeNull();
   });
 });

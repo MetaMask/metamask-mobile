@@ -57,6 +57,36 @@ describe('MyProfileHeader', () => {
     jest.restoreAllMocks();
   });
 
+  // Narrow accessibility contract. Redux-driven badge updates are covered in
+  // MyProfileView.view.test.tsx, not by supplying props here.
+  it('exposes an accessible verified indicator without an X account', () => {
+    renderHeader({ ...PROFILE, verified: true, xHandle: null });
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.VERIFIED_BADGE),
+    ).toHaveProp(
+      'accessibilityLabel',
+      strings('social_leaderboard.shell.filters.verification.verified'),
+    );
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.VERIFIED_BADGE),
+    ).toHaveProp('accessibilityRole', 'image');
+  });
+
+  it.each([false, undefined])(
+    'omits the badge with verified=%s even when X is linked',
+    (verified) => {
+      renderHeader({ ...PROFILE, verified, connectedToX: true });
+
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.VERIFIED_BADGE),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
   it('shows the X link before the joined date', () => {
     renderHeader(PROFILE);
 

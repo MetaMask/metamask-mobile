@@ -268,6 +268,8 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     setupRecurringOrdersDataServiceMock({
       recurringSwaps: async () => ({
         swaps: [successfulSwapAfter, insufficientBalanceSwap],
+        hasNextPage: false,
+        total: 2,
       }),
     });
 

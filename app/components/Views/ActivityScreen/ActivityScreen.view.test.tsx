@@ -1,5 +1,6 @@
 import '../../../../tests/component-view/mocks';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../__mocks__/@react-native-community/netinfo';
 
@@ -1853,18 +1854,20 @@ describeForPlatforms('ActivityScreen — limit orders', () => {
       view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
     );
     fireEvent.press(await view.findByTestId(networkOptionTestId('eip155:1')));
+    // The closing sheet's "All networks" row shares the chip's label, so
+    // assert on the chip.
     await waitFor(() => {
       expect(
-        view.queryByText(strings('activity_view.filter_all_networks')),
-      ).toBeNull();
+        view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      ).not.toHaveTextContent(strings('activity_view.filter_all_networks'));
     });
 
     await selectLimitOrdersFilter(view);
 
     await waitFor(() => {
       expect(
-        view.getAllByText(strings('activity_view.filter_all_networks')).length,
-      ).toBeGreaterThan(0);
+        view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      ).toHaveTextContent(strings('activity_view.filter_all_networks'));
     });
     await waitFor(() => {
       expect(requests.length).toBeGreaterThan(0);
@@ -2343,6 +2346,96 @@ describe('ActivityScreen — glass header', () => {
       expect(
         await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET),
       ).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms('keeps both glass filter bars at the list inset', async () => {
+    const { getByTestId } = renderWithGlassHeaders(true);
+
+    const inList = getByTestId(ActivityScreenSelectorsIDs.FILTER_BAR_IN_LIST, {
+      includeHiddenElements: true,
+    });
+    const pinned = getByTestId(ActivityScreenSelectorsIDs.FILTER_BAR_PINNED, {
+      includeHiddenElements: true,
+    });
+
+    const inListPadding = StyleSheet.flatten(
+      inList.props.contentContainerStyle,
+    );
+    const pinnedPadding = StyleSheet.flatten(
+      pinned.props.contentContainerStyle,
+    );
+
+    expect(inListPadding?.paddingLeft).toBe(16);
+    expect(inListPadding?.paddingRight).toBe(16);
+    expect(pinnedPadding?.paddingLeft).toBe(16);
+    expect(pinnedPadding?.paddingRight).toBe(16);
+  });
+
+  itForPlatforms(
+    'pads only the pinned glass filter bar to clear the back button',
+    async () => {
+      const { getByTestId } = renderWithGlassHeaders(true);
+
+      const inList = getByTestId(
+        ActivityScreenSelectorsIDs.FILTER_BAR_IN_LIST,
+        {
+          includeHiddenElements: true,
+        },
+      );
+      const pinned = getByTestId(ActivityScreenSelectorsIDs.FILTER_BAR_PINNED, {
+        includeHiddenElements: true,
+      });
+
+      const inListPadding = StyleSheet.flatten(
+        inList.props.contentContainerStyle,
+      );
+      const pinnedPadding = StyleSheet.flatten(
+        pinned.props.contentContainerStyle,
+      );
+
+      expect(inListPadding?.paddingTop ?? 0).toBe(0);
+      expect(pinnedPadding?.paddingTop).toBe(4);
+    },
+  );
+
+  itForPlatforms(
+    'keeps 24px between the filter pills and the list below',
+    async () => {
+      const { getByTestId } = renderWithGlassHeaders(true);
+
+      const inList = getByTestId(
+        ActivityScreenSelectorsIDs.FILTER_BAR_IN_LIST,
+        {
+          includeHiddenElements: true,
+        },
+      );
+
+      // 8px under the pills + 16px above the date header.
+      expect(
+        StyleSheet.flatten(inList.props.contentContainerStyle)?.paddingBottom,
+      ).toBe(8);
+    },
+  );
+
+  itForPlatforms(
+    'keeps the solid filter bar at the list inset when glass headers are off',
+    async () => {
+      const { getByTestId } = renderWithGlassHeaders(false);
+
+      const inList = getByTestId(
+        ActivityScreenSelectorsIDs.FILTER_BAR_IN_LIST,
+        {
+          includeHiddenElements: true,
+        },
+      );
+
+      const solidPadding = StyleSheet.flatten(
+        inList.props.contentContainerStyle,
+      );
+
+      expect(solidPadding?.paddingLeft).toBe(16);
+      expect(solidPadding?.paddingRight).toBe(16);
     },
   );
 });

@@ -212,6 +212,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
     expect(mockEnableNetwork).toHaveBeenCalledWith(CHAIN_IDS.MAINNET);
@@ -362,6 +363,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -487,7 +489,7 @@ describe('handleSwapUrl', () => {
   );
 
   it.each([
-    ['every=2&unit=week&repeatCount=8', undefined],
+    ['every=2&unit=week&repeatCount=8', BridgeTabKey.Market],
     ['tab=limit&every=2&unit=week&repeatCount=8', BridgeTabKey.Limit],
   ])(
     'ignores Recurring schedule parameters outside the Recurring tab',
@@ -503,13 +505,13 @@ describe('handleSwapUrl', () => {
           sourcePage: 'deeplink',
           bridgeViewMode: BridgeViewMode.Unified,
           location: 'Main View',
-          ...(initialTab && { initialTab }),
+          initialTab,
         },
       });
     },
   );
 
-  it('ignores unknown tab parameters', async () => {
+  it('opens the Market tab for unknown tab parameters', async () => {
     const swapPath = 'tab=dca';
 
     await handleSwapUrl({ swapPath });
@@ -523,6 +525,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -542,6 +545,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -619,6 +623,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -653,12 +658,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -685,12 +688,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -736,6 +737,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -755,6 +757,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -774,6 +777,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -796,6 +800,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -821,12 +826,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -842,12 +845,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -913,6 +914,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -929,12 +931,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });

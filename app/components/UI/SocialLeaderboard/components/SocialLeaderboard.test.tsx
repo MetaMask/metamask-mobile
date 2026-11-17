@@ -1,5 +1,9 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import type { FeedItem } from '@metamask/social-controllers';
+import { Text } from 'react-native';
+import { mockPerpFeedItem } from '../../SocialFeed/mocks/coreFeed.mock';
+import { formatAbbreviatedUsd } from '../../SocialFeed/utils/formatters';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -30,6 +34,12 @@ jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
 jest.mock('../../../Views/Homepage/Sections/TopTraders/hooks', () => ({
   useTopTraders: (options: unknown) => mockUseTopTraders(options),
+}));
+
+const mockUseTokenHolders = jest.fn();
+const mockRefreshHolders = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../TokenDetails/components/tabs/holders/useTokenHolders', () => ({
+  useTokenHolders: (options: unknown) => mockUseTokenHolders(options),
 }));
 
 jest.mock('../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
@@ -142,6 +152,39 @@ const mockQueryResult = (overrides: Record<string, unknown> = {}) => {
   });
 };
 
+const mockHoldersResult = (
+  holders: FeedItem[] = [],
+  overrides: Record<string, unknown> = {},
+) => {
+  mockUseTokenHolders.mockReturnValue({
+    rows: holders.map((core) => ({ item: {}, core })),
+    isLoading: false,
+    isFetching: false,
+    hasFetched: true,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: mockRefreshHolders,
+    ...overrides,
+  });
+};
+
+const buildHolder = (profileId: string, positionValueUSD: number) =>
+  mockPerpFeedItem({
+    positionId: `pos-${profileId}`,
+    isOpen: true,
+    positionValueUSD,
+    pnlValueUsd: -40,
+    pnlPercent: -1,
+    actor: {
+      profileId,
+      address: `0x${profileId}`,
+      name: profileId,
+      imageUrl: null,
+    },
+  });
+
 const renderLeaderboard = (props: Partial<SocialLeaderboardProps> = {}) =>
   renderWithProvider(
     <SocialLeaderboard
@@ -169,6 +212,7 @@ describe('SocialLeaderboard', () => {
     mockIsUnlocked = true;
     mockProfile = null;
     mockQueryResult();
+    mockHoldersResult();
     mockRefetchViewerProfile.mockReset();
     mockRefetchViewerProfile.mockResolvedValue(undefined);
     mockUseQuery.mockReturnValue({
@@ -191,6 +235,25 @@ describe('SocialLeaderboard', () => {
         enabled: true,
       }),
     );
+    expect(rowIds()).toEqual([
+      'trader-row-high',
+      'trader-row-mid',
+      'trader-row-low',
+    ]);
+  });
+
+  it('renders the Social V1 rows through FlashList when it owns scrolling', () => {
+    renderLeaderboard({
+      virtualizedListProps: {
+        testID: 'social-leaderboard-flash-list',
+        listHeaderComponent: <Text>Leaderboard filters</Text>,
+      },
+    });
+
+    expect(
+      screen.getByTestId('social-leaderboard-flash-list'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Leaderboard filters')).toBeOnTheScreen();
     expect(rowIds()).toEqual([
       'trader-row-high',
       'trader-row-mid',
@@ -258,6 +321,79 @@ describe('SocialLeaderboard', () => {
       expect.objectContaining({ enabled: false }),
     );
     expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
+  });
+
+  it('lists the holders of a perp market in the server order, with their position size', () => {
+    mockHoldersResult([buildHolder('big', 40_000), buildHolder('small', 900)]);
+
+    renderLeaderboard({ source: { kind: 'perp', symbol: 'xyz:NVDA' } });
+
+    expect(mockUseTokenHolders).toHaveBeenCalledWith({
+      assetId: 'eip155:999/perp:xyz.NVDA',
+      enabled: true,
+    });
+    expect(mockUseTopTraders).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(rowIds()).toEqual(['trader-row-big', 'trader-row-small']);
+    expect(
+      screen
+        .getAllByTestId(SocialV1TraderRowSelectorsIDs.METRIC)
+        .map((node) => node.props.children),
+    ).toEqual([formatAbbreviatedUsd(40_000), formatAbbreviatedUsd(900)]);
+  });
+
+  it('renders rows without positions or medals when showRank is off', () => {
+    renderLeaderboard({ showRank: false });
+
+    expect(rowIds()).toHaveLength(3);
+    expect(
+      screen.queryAllByTestId(SocialV1TraderRowSelectorsIDs.RANK),
+    ).toHaveLength(0);
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+  });
+
+  it('renders the skeleton without the rank placeholder when showRank is off', () => {
+    mockQueryResult({ traders: [], isLoading: true, hasFetched: false });
+
+    renderLeaderboard({ showRank: false });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.SKELETON),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the holders empty state when a perp market has no holders', () => {
+    renderLeaderboard({ source: { kind: 'perp', symbol: 'BTC' } });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('token_details_v1.holders_tab.empty'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the skeleton while the holders load', () => {
+    mockHoldersResult([], { isLoading: true, hasFetched: false });
+
+    renderLeaderboard({ source: { kind: 'perp', symbol: 'BTC' } });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.SKELETON),
+    ).toBeOnTheScreen();
+  });
+
+  it('refreshes the holders, not the ranking, for a perp market', async () => {
+    const ref = React.createRef<SocialLeaderboardHandle>();
+
+    renderLeaderboard({ ref, source: { kind: 'perp', symbol: 'BTC' } });
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockRefreshHolders).toHaveBeenCalledTimes(1);
+    expect(mockRefresh).not.toHaveBeenCalled();
   });
 
   it('renders nothing for a perps source when perps are off', () => {
@@ -411,7 +547,7 @@ describe('SocialLeaderboard', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Me')).toBeOnTheScreen();
     expect(screen.getByText('+$12.00')).toBeOnTheScreen();
-    expect(screen.queryByText('-')).toBeNull();
+    expect(screen.getByText('-')).toBeOnTheScreen();
     expect(rowIds()).toHaveLength(3);
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({

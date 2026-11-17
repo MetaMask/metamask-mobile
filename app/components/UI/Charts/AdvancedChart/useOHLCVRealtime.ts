@@ -164,7 +164,7 @@ export function useOHLCVRealtime({
   const pollingAbortRef = useRef<AbortController | null>(null);
 
   const buildChannel = useCallback(
-    () => `market-data.v1.${assetId}.${interval}.${currency}`,
+    () => `ohlcv.v1.${assetId}.${interval}.${currency}`,
     [assetId, interval, currency],
   );
 

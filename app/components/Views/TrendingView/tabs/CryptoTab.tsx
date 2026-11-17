@@ -148,7 +148,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
 
   const tokens = useTokensFeed({ refresh });
   const cryptoPredictions = usePredictTrendingFeed({
-    variant: 'crypto',
+    tab: 'crypto',
     refresh,
   });
   const cryptoPerps = usePerpsFeed({

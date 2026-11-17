@@ -58,12 +58,15 @@ import {
   selectMoneyVbaPendingActivityEnabled,
 } from '../../selectors/featureFlags';
 import { useNeobankAutorampActivity } from '../../hooks/useNeobankAutorampActivity';
+import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import MoneyIcon from '../../../../../images/money.png';
 import { getMerchantCategoryLabel } from '../../../Card/utils/merchantCategoryLabel';
 import {
   cardTransactionDisplayInfo,
   formatCardTransactionStatus,
+  getCardTransactionStatusColor,
+  isUnsuccessfulCardTransactionStatus,
 } from '../../../Card/utils/cardTransactionDisplayInfo';
 import { getCardDeclineReasonLabel } from '../../../Card/utils/moneyAccountCardTransaction';
 import { formatNetworkFeeLabel } from '../../../Card/utils/cardTransactionAmount';
@@ -107,7 +110,21 @@ type ActivityDetailsRoute = RouteProp<
 export function MoneyApiActivityDetailsView() {
   const navigation = useNavigation<AppNavigationProp>();
   const params = useRoute<ActivityDetailsRoute>().params;
-  const activity = params?.activity;
+  const routeActivity = params?.activity;
+  const { activity: liveActivities } = useMoneyAccountApiActivity({
+    enabled: Boolean(routeActivity),
+  });
+  // The route snapshot can predate a valuation that resolves while this screen is open.
+  const activity =
+    routeActivity &&
+    liveActivities.find(
+      (candidate) =>
+        candidate.kind === routeActivity.kind &&
+        candidate.hash.toLowerCase() === routeActivity.hash.toLowerCase() &&
+        candidate.token.address.toLowerCase() ===
+          routeActivity.token.address.toLowerCase(),
+    );
+  const resolvedActivity = activity ?? routeActivity;
   const enrichment = params?.enrichment;
   const cardTransaction = params?.cardTransaction;
   const routeNeobankActivity = params?.neobankActivity;
@@ -134,11 +151,11 @@ export function MoneyApiActivityDetailsView() {
       navigation.goBack();
       return;
     }
-    if (!activity && !cardTransaction && !neobankActivity) {
+    if (!resolvedActivity && !cardTransaction && !neobankActivity) {
       navigation.goBack();
     }
   }, [
-    activity,
+    resolvedActivity,
     cardTransaction,
     neobankActivity,
     navigation,
@@ -154,20 +171,20 @@ export function MoneyApiActivityDetailsView() {
     return <NeobankBankTransferDetailsContent activity={neobankActivity} />;
   }
 
-  if (!activity) {
+  if (!resolvedActivity) {
     return null;
   }
 
-  if (activity.kind === 'card') {
+  if (resolvedActivity.kind === 'card') {
     return (
       <MoneySettledCardDetailsContent
-        activity={activity}
+        activity={resolvedActivity}
         enrichment={enrichment}
       />
     );
   }
 
-  return <MoneyApiActivityDetailsContent activity={activity} />;
+  return <MoneyApiActivityDetailsContent activity={resolvedActivity} />;
 }
 
 function formatActivityDate(timestamp: number): string {
@@ -453,6 +470,14 @@ function MoneySettledCardDetailsContent({
     [activity, enrichment],
   );
 
+  // The on-chain transfer settled, so the Accounts-API row alone always reads
+  // as completed. When the card provider reports the purchase as declined or
+  // reversed, its outcome is the truthful one.
+  const unsuccessfulStatus =
+    enrichment && isUnsuccessfulCardTransactionStatus(enrichment.status)
+      ? enrichment.status
+      : undefined;
+
   return (
     <MoneyCardDetailsContent
       display={display}
@@ -465,10 +490,22 @@ function MoneySettledCardDetailsContent({
         enrichment?.feeAmount,
         MONEY_ACCOUNT_DISPLAY_SYMBOL,
       )}
-      statusLabel={strings('money.api_activity_details.completed')}
-      statusColor={TextColor.SuccessDefault}
+      statusLabel={
+        unsuccessfulStatus
+          ? formatCardTransactionStatus(unsuccessfulStatus)
+          : strings('money.api_activity_details.completed')
+      }
+      statusColor={
+        unsuccessfulStatus
+          ? getCardTransactionStatusColor(unsuccessfulStatus)
+          : TextColor.SuccessDefault
+      }
       amountColor={
-        display.isIncoming ? TextColor.SuccessDefault : TextColor.TextDefault
+        unsuccessfulStatus
+          ? getCardTransactionStatusColor(unsuccessfulStatus)
+          : display.isIncoming
+            ? TextColor.SuccessDefault
+            : TextColor.TextDefault
       }
       explorerChainId={activity.chainId}
       explorerTxHash={activity.hash}

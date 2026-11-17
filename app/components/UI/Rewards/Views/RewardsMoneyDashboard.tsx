@@ -53,7 +53,11 @@ import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkele
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { canClaimEarnings } from '../utils/claimEarnings';
+import {
+  claimRouteOptions,
+  showEarningsIndicator,
+} from '../utils/claimEarnings';
+import { useClaimMechanisms } from '../hooks/useFollowTradeClaimOpen';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -150,11 +154,17 @@ const RewardsMoneyDashboard: React.FC = () => {
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
   const referralMe = referralMeEntry?.data;
-  const showEarningsDot = canClaimEarnings(
-    earningsSummaryEntry?.data,
-    moneyDashboardPersona(referralMe),
-  );
+  const { followTradeClaimOpen, revShareClaimOpen } =
+    useClaimMechanisms(profileId);
   const localizedText = referralMe?.localized_text;
+  const showEarningsDot = showEarningsIndicator(
+    earningsSummaryEntry?.data,
+    claimRouteOptions(
+      localizedText?.taxFormUrl,
+      followTradeClaimOpen,
+      revShareClaimOpen,
+    ),
+  );
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   // The three panels share this scroller. A tab press returns to the top so a
   // long Ways to earn page cannot leave Performance opened mid-list. Pressing
@@ -348,10 +358,7 @@ const RewardsMoneyDashboard: React.FC = () => {
               }}
               titleProps={{ accessibilityRole: 'header' }}
             />
-            <Box
-              twClassName="border-b border-muted"
-              testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TABS}
-            >
+            <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TABS}>
               <TabsBar
                 tabs={tabs}
                 activeIndex={TAB_ORDER.indexOf(activeTab)}
