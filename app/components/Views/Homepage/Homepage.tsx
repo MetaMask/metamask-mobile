@@ -29,6 +29,7 @@ import {
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
+import { selectHasSocialV1Access } from '../../../selectors/featureFlagController/socialV1';
 import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
@@ -54,10 +55,6 @@ import {
   PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
   PERPS_SECTION_PRIORITY_VARIANTS,
 } from './abTestConfig';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_VARIANTS,
-} from '../../../constants/socialV1';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -140,11 +137,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       PERPS_SECTION_PRIORITY_VARIANTS,
       PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
     );
-    const { variant: socialV1Variant } = useABTest(
-      SOCIAL_V1_AB_KEY,
-      SOCIAL_V1_VARIANTS,
-      { trackExposure: false },
-    );
+    const hasSocialV1Access = useSelector(selectHasSocialV1Access);
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
     // Decide the Perps position from the initial Homepage layout. Deferred
@@ -160,8 +153,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }),
     );
     const showPerpsAboveTokens = perpsAboveTokensPlacement && shouldRenderPerps;
-    const isSocialV1PriorityEnabled =
-      isTopTradersEnabled && socialV1Variant.useSocialV1;
+    const isSocialV1PriorityEnabled = isTopTradersEnabled && hasSocialV1Access;
     const shouldHydrateSocialProfile =
       isSocialV1PriorityEnabled &&
       networkTierResolved &&
