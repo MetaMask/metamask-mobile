@@ -635,6 +635,7 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SDK_CONNECT;
     case ACTIONS.MMSDK:
       return DeepLinkRoute.SDK_MMSDK;
+    case ACTIONS.KYC:
     case ACTIONS.MONEY:
       return DeepLinkRoute.MONEY;
     case ACTIONS.MONEY_ACCOUNT_DEPOSIT:
@@ -724,6 +725,7 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.NFT;
       case 'agentic-cli':
         return DeepLinkRoute.AGENTIC_CLI;
+      case 'kyc':
       case 'money':
         return DeepLinkRoute.MONEY;
       case 'money-account-deposit':
