@@ -444,7 +444,7 @@
     "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch",
     "@metamask/remote-feature-flag-controller": "^7.0.0",
     "@metamask/rpc-errors": "^7.0.2",
-    "@metamask/sample-controllers": "^3.0.0",
+    "@metamask/sample-controllers": "^6.1.0",
     "@metamask/scure-bip39": "^2.1.1",
     "@metamask/sdk-communication-layer": "0.33.1",
     "@metamask/seedless-onboarding-controller": "^12.0.0",
