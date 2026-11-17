@@ -11,11 +11,9 @@ export {
   computeKeyBoundNonce,
   createOidcIdentifierAuthProvider,
   loginWithNonceAndSeedlessAuthViaHandlers,
-  loginWithNonceViaHandlers,
   OIDC_ISSUERS,
 } from './identifierAuthProvider';
 export type {
-  LoginWithNonce,
   LoginWithNonceAndSeedlessAuth,
   OidcIdentifierAuthProviderOptions,
 } from './identifierAuthProvider';

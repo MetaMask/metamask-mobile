@@ -53,6 +53,45 @@ export function isPreOAuthSocialLoginFailure(error: OAuthError): boolean {
   );
 }
 
+const MFA_PROVIDER_LOGIN_ERROR_CODES: ReadonlySet<OAuthErrorType> = new Set([
+  OAuthErrorType.UserCancelled,
+  OAuthErrorType.UserDismissed,
+  OAuthErrorType.InvalidProvider,
+  OAuthErrorType.UnsupportedPlatform,
+  OAuthErrorType.GoogleLoginError,
+  OAuthErrorType.AppleLoginError,
+  OAuthErrorType.TelegramLoginError,
+  OAuthErrorType.GoogleLoginNoCredential,
+  OAuthErrorType.GoogleLoginNoMatchingCredential,
+  OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
+  OAuthErrorType.GoogleLoginOneTapFailure,
+  OAuthErrorType.GoogleLoginNoProviderDependencies,
+]);
+
+const MFA_GET_AUTH_TOKENS_ERROR_CODES: ReadonlySet<OAuthErrorType> = new Set([
+  OAuthErrorType.AuthServerError,
+  OAuthErrorType.InvalidGetAuthTokenParams,
+]);
+
+/**
+ * Classifies failures from {@link OAuthService.handleMfaSeedlessPasswordUnlock}.
+ * Provider cancel / login and auth-token exchange happen inside
+ * `authenticateIdentifier`, so they must not all be labeled `seedless_auth`.
+ */
+export function getMfaSeedlessPasswordUnlockErrorCategory(
+  error: unknown,
+): SocialLoginFailureErrorCategory {
+  if (error instanceof OAuthError) {
+    if (MFA_PROVIDER_LOGIN_ERROR_CODES.has(error.code)) {
+      return 'provider_login';
+    }
+    if (MFA_GET_AUTH_TOKENS_ERROR_CODES.has(error.code)) {
+      return 'get_auth_tokens';
+    }
+  }
+  return 'seedless_auth';
+}
+
 /**
  * Tracks the Social Login Failed analytics event.
  */

@@ -693,7 +693,11 @@ export class Engine {
       KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
-      MfaRecoveryController: messengerClientsByName.MfaRecoveryController,
+      // Omitted when init fails so Engine still starts; Onboarding falls back
+      // to classic OAuth when the controller is absent.
+      ...(messengerClientsByName.MfaRecoveryController && {
+        MfaRecoveryController: messengerClientsByName.MfaRecoveryController,
+      }),
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1687,7 +1691,9 @@ export default {
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
-      MfaRecoveryController: MfaRecoveryController.state,
+      ...(MfaRecoveryController && {
+        MfaRecoveryController: MfaRecoveryController.state,
+      }),
       QrSyncController: QrSyncController.state,
     };
   },
@@ -1717,17 +1723,6 @@ export default {
     state: Partial<EngineState> | undefined = {},
     keyringState?: KeyringControllerState,
   ) {
-    // Dev: Fast Refresh can keep a pre-MFA Engine singleton. Rebuild if the
-    // left-hand social unlock controller is missing from context.
-    if (
-      typeof __DEV__ !== 'undefined' &&
-      __DEV__ &&
-      Engine.instance &&
-      !Engine.instance.context?.MfaRecoveryController
-    ) {
-      Engine.instance = null;
-      instance = null;
-    }
     instance = Engine.instance || new Engine(analyticsId, state, keyringState);
     Object.freeze(instance);
     return instance;

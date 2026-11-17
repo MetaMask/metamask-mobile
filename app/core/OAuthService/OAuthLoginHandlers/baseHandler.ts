@@ -1,5 +1,4 @@
 import {
-  AuthAccessType,
   AuthConnection,
   OAuthLoginUserInfo,
   AuthRequestParams,
@@ -37,14 +36,13 @@ export async function getAuthTokens(
   params: AuthRequestParams,
   pathname: string,
   authServerUrl: string,
-  accessType: AuthAccessType = 'offline',
 ): Promise<AuthResponse> {
   const res = await fetch(`${authServerUrl}/${pathname}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ ...params, access_type: accessType }),
+    body: JSON.stringify({ ...params, access_type: 'offline' }),
   });
 
   if (res.status === 200 || res.status === 201) {
@@ -121,25 +119,14 @@ export abstract class BaseLoginHandler {
    *
    * @param params - The params from the login handler
    * @param authServerUrl - The url of the auth server
-   * @param accessType - `online` skips issuing a refresh token
    * @returns Promise resolving to the auth response
    */
-  getAuthTokens(
-    params: HandleFlowParams,
-    authServerUrl: string,
-    accessType: AuthAccessType = 'offline',
-  ) {
+  getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
     const requestData = this.getAuthTokenRequestData(params);
     const authConnection = this.authConnection;
 
     return retryWithDelay(
-      () =>
-        getAuthTokens(
-          requestData,
-          this.authServerPath,
-          authServerUrl,
-          accessType,
-        ),
+      () => getAuthTokens(requestData, this.authServerPath, authServerUrl),
       {
         maxRetries: 3,
         baseDelayMs: 500,

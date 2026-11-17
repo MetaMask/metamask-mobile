@@ -1165,18 +1165,19 @@ const Onboarding = () => {
             is_rehydration: (!createWallet).toString(),
           });
 
-          // Money MFA password unlock (left-hand social unlock plan): one
+          // Money MFA password unlock (left-hand social unlock): one
           // authenticateIdentifier login → seedless authenticate, routed
           // through OAuthService so loginInProgress / rehydration / TOPRF /
           // Sentry spans match handleOAuthLogin. Keep the existing OAuth start
-          // when the flag is off, for create-wallet, or when Engine has no
-          // MfaRecoveryController (preview wire is local-only until the
-          // package is published — see .local-mfa-preview-testing/).
+          // when the Money MFA flag is off, for create-wallet, when local
+          // seedless state does not match this provider, or when
+          // MfaRecoveryController failed to init (optional on Engine).
+          // Intended for the 2FA rollout: with the flag on and a matching
+          // existing seedless wallet, every social rehydration uses this path.
           const seedlessState =
             Engine.context.SeedlessOnboardingController?.state;
           const hasMfaRecoveryController = Boolean(
-            (Engine.context as { MfaRecoveryController?: unknown })
-              .MfaRecoveryController,
+            Engine.context.MfaRecoveryController,
           );
           const canUseMfaPasswordUnlock = evaluateCanUseMfaPasswordUnlock({
             isMoneyMfaEnabled: isMoneyMfaEnabledFlag,

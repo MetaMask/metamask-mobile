@@ -109,14 +109,14 @@ describe('mfaRecoveryControllerInit', () => {
     );
   });
 
-  it('logs and rethrows when controller construction fails', () => {
+  it('logs and skips registering when controller construction fails', () => {
     controllerMock.mockImplementation(() => {
       throw new Error('construct failed');
     });
 
-    expect(() => mfaRecoveryControllerInit(getInitRequestMock())).toThrow(
-      'construct failed',
-    );
+    const result = mfaRecoveryControllerInit(getInitRequestMock());
+
+    expect(result.controller).toBeUndefined();
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({

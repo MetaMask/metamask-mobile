@@ -82,8 +82,6 @@ export type AuthRequestParams =
 
 // return type for auth request with
 // grant type : authorization_code, access_type: offline
-export type AuthAccessType = 'online' | 'offline';
-
 export interface AuthResponse {
   id_token: string;
   /**

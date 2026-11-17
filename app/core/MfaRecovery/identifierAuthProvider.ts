@@ -55,11 +55,6 @@ export const AUTH_CONNECTION_OIDC_ISSUERS: Record<AuthConnection, string> = {
   [AuthConnection.Telegram]: 'https://oauth.telegram.org',
 };
 
-export type LoginWithNonce = (params: {
-  authConnection: AuthConnection;
-  nonce: string;
-}) => Promise<string>;
-
 export type LoginWithNonceAndSeedlessAuth = (params: {
   authConnection: AuthConnection;
   nonce: string;
@@ -184,7 +179,7 @@ export const loginWithNonceAndSeedlessAuthViaHandlers: LoginWithNonceAndSeedless
     const useBrowserFallback =
       Platform.OS === 'android' && authConnection === AuthConnection.Google;
 
-    // Pass the remote flag through — do not hardcode true (Tyler).
+    // Pass the remote flag through — do not hardcode true.
     const telegramLoginEnabled =
       authConnection === AuthConnection.Telegram
         ? selectTelegramLoginEnabled(ReduxService.store.getState())
@@ -248,25 +243,6 @@ export const loginWithNonceAndSeedlessAuthViaHandlers: LoginWithNonceAndSeedless
 
     return { providerIdToken, seedlessAuthData };
   };
-
-/**
- * Login with a caller nonce. Native flows return the raw ID token directly;
- * code flows (iOS Google, Android Apple, Telegram) exchange the code with the
- * auth server, which returns the original token as `provider_id_token`.
- *
- * Prefer {@link loginWithNonceAndSeedlessAuthViaHandlers} when seedless auth
- * tokens are also required from the same login.
- */
-export const loginWithNonceViaHandlers: LoginWithNonce = async ({
-  authConnection,
-  nonce,
-}) => {
-  const { providerIdToken } = await loginWithNonceAndSeedlessAuthViaHandlers({
-    authConnection,
-    nonce,
-  });
-  return providerIdToken;
-};
 
 const assertEnabledAndResolveConnection = (
   isEnabled: () => boolean,

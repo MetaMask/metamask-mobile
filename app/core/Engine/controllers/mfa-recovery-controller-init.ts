@@ -60,6 +60,8 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
 
     return { controller };
   } catch (error) {
+    // Do not abort Engine startup — fall back to classic OAuth rehydration
+    // when Money MFA gating sees no MfaRecoveryController on context.
     Logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: {
         feature: 'mfa',
@@ -67,7 +69,7 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
         previewVersion,
       },
     });
-    throw error;
+    return { controller: undefined };
   }
 };
 

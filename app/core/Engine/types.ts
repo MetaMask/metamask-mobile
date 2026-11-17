@@ -1028,7 +1028,8 @@ export type MessengerClients = {
   NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
-  MfaRecoveryController: MfaRecoveryController;
+  // Optional: omitted when mfa-recovery-controller init fails so Engine starts.
+  MfaRecoveryController?: MfaRecoveryController;
 };
 
 /**
@@ -1113,7 +1114,8 @@ export type EngineState = {
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
-  MfaRecoveryController: MfaRecoveryControllerState;
+  // Optional: omitted when mfa-recovery-controller init fails so Engine starts.
+  MfaRecoveryController?: MfaRecoveryControllerState;
 };
 
 /** Messenger client names */

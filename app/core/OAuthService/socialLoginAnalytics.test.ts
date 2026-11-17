@@ -4,6 +4,7 @@ import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { AuthConnection } from './OAuthInterface';
 import { OAuthError, OAuthErrorType } from './error';
 import {
+  getMfaSeedlessPasswordUnlockErrorCategory,
   isPreOAuthSocialLoginFailure,
   shouldAttemptAndroidGoogleBrowserFallback,
   trackSocialLoginFailed,
@@ -20,6 +21,40 @@ jest.mock('../../util/analytics/analytics', () => ({
 describe('socialLoginAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('getMfaSeedlessPasswordUnlockErrorCategory', () => {
+    it('classifies provider cancel and login errors as provider_login', () => {
+      expect(
+        getMfaSeedlessPasswordUnlockErrorCategory(
+          new OAuthError('cancelled', OAuthErrorType.UserCancelled),
+        ),
+      ).toBe('provider_login');
+      expect(
+        getMfaSeedlessPasswordUnlockErrorCategory(
+          new OAuthError('telegram', OAuthErrorType.TelegramLoginError),
+        ),
+      ).toBe('provider_login');
+    });
+
+    it('classifies auth-server token errors as get_auth_tokens', () => {
+      expect(
+        getMfaSeedlessPasswordUnlockErrorCategory(
+          new OAuthError('auth server', OAuthErrorType.AuthServerError),
+        ),
+      ).toBe('get_auth_tokens');
+    });
+
+    it('classifies other failures as seedless_auth', () => {
+      expect(
+        getMfaSeedlessPasswordUnlockErrorCategory(new Error('seedless failed')),
+      ).toBe('seedless_auth');
+      expect(
+        getMfaSeedlessPasswordUnlockErrorCategory(
+          new OAuthError('login', OAuthErrorType.LoginError),
+        ),
+      ).toBe('seedless_auth');
+    });
   });
 
   describe('isPreOAuthSocialLoginFailure', () => {

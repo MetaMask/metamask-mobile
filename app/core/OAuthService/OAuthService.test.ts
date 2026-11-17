@@ -1126,7 +1126,7 @@ describe('OAuth login service', () => {
       expect(mockAuthenticateSeedlessViaMfaIdentifier).toHaveBeenCalled();
     });
 
-    it('rethrows OAuthError after dispatching post-login error state', async () => {
+    it('rethrows provider cancel without labeling it as seedless_auth', async () => {
       const oauthError = new OAuthError(
         'user cancelled',
         OAuthErrorType.UserCancelled,
@@ -1142,7 +1142,7 @@ describe('OAuth login service', () => {
         oauthLoginSuccess: false,
         oauthLoginError: oauthError.message,
       });
-      expect(mockTrace).toHaveBeenCalledWith(
+      expect(mockTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
         }),
@@ -1153,6 +1153,24 @@ describe('OAuth login service', () => {
           data: { success: false },
         }),
       );
+    });
+
+    it('traces seedless_auth failures for non-provider MFA errors', async () => {
+      mockAuthenticateSeedlessViaMfaIdentifier.mockRejectedValue(
+        new Error('seedless failed'),
+      );
+
+      await expectOAuthError(
+        OAuthLoginService.handleMfaSeedlessPasswordUnlock(mfaParams, false),
+        OAuthErrorType.LoginError,
+      );
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+        }),
+      );
+      expect(OAuthLoginService.localState.oauthLoginSuccess).toBe(false);
     });
 
     it('wraps non-OAuth errors as LoginError', async () => {

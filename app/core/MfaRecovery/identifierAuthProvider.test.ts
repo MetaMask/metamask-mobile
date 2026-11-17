@@ -9,7 +9,6 @@ import {
   computeKeyBoundNonce,
   createOidcIdentifierAuthProvider,
   loginWithNonceAndSeedlessAuthViaHandlers,
-  loginWithNonceViaHandlers,
   matchesKeyBoundClientNonce,
   type LoginWithNonceAndSeedlessAuth,
 } from './identifierAuthProvider';
@@ -558,34 +557,6 @@ describe('loginWithNonceAndSeedlessAuthViaHandlers', () => {
         'MFA recovery: auth server response missing user id',
       ),
     });
-  });
-});
-
-describe('loginWithNonceViaHandlers', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns the provider ID token from the shared seedless login', async () => {
-    const providerIdToken = 'raw-id-token';
-    mockCreateLoginHandler.mockReturnValue({
-      login: jest.fn().mockResolvedValue({ idToken: providerIdToken }),
-      getAuthTokens: jest
-        .fn()
-        .mockResolvedValue(authServerResponse(providerIdToken)),
-      getUserInfo: jest.fn().mockReturnValue({
-        userId: 'auth-sub',
-        accountName: 'a@b.com',
-      }),
-      options: { clientId: 'ios-apple-client' },
-    } as never);
-
-    const idToken = await loginWithNonceViaHandlers({
-      authConnection: AuthConnection.Apple,
-      nonce: '0xabc',
-    });
-
-    expect(idToken).toBe(providerIdToken);
   });
 });
 

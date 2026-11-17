@@ -48,6 +48,7 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import {
   shouldAttemptAndroidGoogleBrowserFallback,
+  getMfaSeedlessPasswordUnlockErrorCategory,
   trackSocialLoginFailed,
 } from './socialLoginAnalytics';
 import {
@@ -662,21 +663,52 @@ export class OAuthService {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
+      const errorCategory = getMfaSeedlessPasswordUnlockErrorCategory(error);
 
-      trace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
-        op: TraceOperation.OnboardingError,
-        tags: { errorMessage },
-        parentContext: parentTraceContext,
-      });
-      endTrace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
-      });
+      // Provider cancel/login and auth-token failures happen inside
+      // authenticateIdentifier — do not label them all as seedless_auth.
+      if (errorCategory === 'seedless_auth') {
+        trace({
+          name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+          parentContext: parentTraceContext,
+        });
+        endTrace({
+          name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+        });
+      } else if (errorCategory === 'provider_login') {
+        if (
+          !(
+            error instanceof OAuthError &&
+            (error.code === OAuthErrorType.UserCancelled ||
+              error.code === OAuthErrorType.UserDismissed)
+          )
+        ) {
+          trace({
+            name: TraceName.OnboardingOAuthProviderLoginError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+            parentContext: parentTraceContext,
+          });
+          endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+        }
+      } else {
+        trace({
+          name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+          parentContext: parentTraceContext,
+        });
+        endTrace({
+          name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
+        });
+      }
 
       trackSocialLoginFailed({
         authConnection: params.authConnection,
         isRehydration: this.localState.userClickedRehydration,
-        errorCategory: 'seedless_auth',
+        errorCategory,
         error,
       });
 
