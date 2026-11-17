@@ -178,7 +178,10 @@ import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarni
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
-import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -1035,6 +1038,9 @@ const MainNavigator = () => {
 
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
+  );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1358,11 +1364,13 @@ const MainNavigator = () => {
               name={Routes.MONEY.POTENTIAL_EARNINGS}
               component={MoneyPotentialEarningsView}
             />
-            <NativeStack.Screen
-              name={Routes.MONEY.EARNINGS}
-              component={MoneyEarningsView}
-              options={{ gestureEnabled: false }}
-            />
+            {isEarningsHistoryEnabled && (
+              <NativeStack.Screen
+                name={Routes.MONEY.EARNINGS}
+                component={MoneyEarningsView}
+                options={{ gestureEnabled: false }}
+              />
+            )}
             <NativeStack.Screen
               name={Routes.MONEY.MUSD_RESCUE_SEND}
               component={MusdRescueSendScreen}

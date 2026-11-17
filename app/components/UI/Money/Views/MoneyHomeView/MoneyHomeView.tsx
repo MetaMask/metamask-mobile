@@ -108,6 +108,7 @@ import {
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
 } from '../../selectors/featureFlags';
@@ -317,6 +318,9 @@ const MoneyHomeView = () => {
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
+  );
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
@@ -1095,7 +1099,9 @@ const MoneyHomeView = () => {
           last30DaysEarnings={last30DaysInterest}
           sinceInceptionEarnings={sinceInceptionInterest}
           isLoading={isEarningsLoading}
-          onHeaderPress={handleEarningsHeaderPress}
+          onHeaderPress={
+            isEarningsHistoryEnabled ? handleEarningsHeaderPress : undefined
+          }
           onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
           onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}
