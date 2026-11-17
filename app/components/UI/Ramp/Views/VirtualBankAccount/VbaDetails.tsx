@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { AccessibilityInfo, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -103,6 +109,7 @@ export const VbaDetailsSelectorsIDs = {
   RISK_DISCLOSURE: 'vba-details-risk-disclosure',
   RISK_DISCLOSURE_LINK: 'vba-details-risk-disclosure-link',
   LOADING: 'vba-details-loading',
+  LOADING_ROW: 'vba-details-loading-row',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
   DONE_BUTTON: 'vba-details-done-button',
@@ -772,10 +779,6 @@ const VbaDetails = () => {
   const rows = buildDetailRows(instructions);
   const handleShareDetails = useCallback(() => {
     const message = formatBankDetailsForCopy(rows);
-    Clipboard.setString(message);
-    AccessibilityInfo.announceForAccessibility(
-      strings('virtual_bank_account.vba_details.copied_all_label'),
-    );
     Share.open({ message, failOnCancel: false }).catch((error) => {
       Logger.error(error as Error, {
         message: 'VbaDetails: failed to open the share sheet',
@@ -828,6 +831,25 @@ const VbaDetails = () => {
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');
+  // Share lives in the header, and only for a US bank transfer with rows;
+  // Pix has no share action.
+  const showShareButton = instructions?.type === 'UsBank' && rows.length > 0;
+  const endButtonIconProps = useMemo(
+    () =>
+      showShareButton
+        ? [
+            {
+              iconName: IconName.Share,
+              onPress: handleShareDetails,
+              testID: VbaDetailsSelectorsIDs.SHARE_BUTTON,
+              accessibilityLabel: strings(
+                'virtual_bank_account.vba_details.copy_all_button',
+              ),
+            },
+          ]
+        : undefined,
+    [showShareButton, handleShareDetails],
+  );
   // MoonPay's legal line names Brazil, so it follows the Pix (BRL) rail, not
   // the user's country. The US bank transfer layout never shows it.
   const showProviderDisclosure = instructions
@@ -860,6 +882,7 @@ const VbaDetails = () => {
         isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
+        endButtonIconProps={endButtonIconProps}
         includesTopInset
         testID={VbaDetailsSelectorsIDs.HEADER}
       />
@@ -945,10 +968,20 @@ const VbaDetails = () => {
                 and min height as a loaded two-line row, so the card doesn't
                 jump when the details land. Both bars sit in the title slot
                 because it is the only full-width slot, so the 85% bar has a
-                width to resolve against. */}
-            {['pix-key', 'copia-cola'].map((id) => (
+                width to resolve against. The row count mirrors the rail's
+                real rows: four for a US bank transfer, two for Pix. */}
+            {(isBankTransfer
+              ? [
+                  'account-holder',
+                  'routing-number',
+                  'account-number',
+                  'bank-name',
+                ]
+              : ['pix-key', 'copia-cola']
+            ).map((id) => (
               <ListItem
                 key={id}
+                testID={`${VbaDetailsSelectorsIDs.LOADING_ROW}-${id}`}
                 title={
                   <Box gap={2} twClassName="flex-1">
                     <Skeleton
@@ -1019,18 +1052,6 @@ const VbaDetails = () => {
               ).replace(/ /g, '\u00A0')}
             </TextButton>
           </Text>
-        ) : null}
-        {instructions?.type === 'UsBank' && rows.length > 0 ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            startIconName={IconName.Share}
-            onPress={handleShareDetails}
-            testID={VbaDetailsSelectorsIDs.SHARE_BUTTON}
-          >
-            {strings('virtual_bank_account.vba_details.copy_all_button')}
-          </Button>
         ) : null}
         {debugEnabled ? (
           <Button

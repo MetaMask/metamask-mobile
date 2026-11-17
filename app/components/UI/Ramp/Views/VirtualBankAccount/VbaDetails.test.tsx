@@ -789,17 +789,23 @@ describe('VbaDetails', () => {
       });
     });
 
-    it('copies every US bank row and opens the share sheet', async () => {
+    it('opens the share sheet with the formatted US bank rows', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
 
-      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+      const { getByTestId, getByLabelText } = renderWithProvider(
+        <VbaDetails />,
+      );
 
       await waitFor(() => {
         expect(
           getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON),
         ).toBeOnTheScreen();
       });
-      expect(getByText('Share details')).toBeOnTheScreen();
+      expect(
+        getByLabelText(
+          strings('virtual_bank_account.vba_details.copy_all_button'),
+        ),
+      ).toBeOnTheScreen();
       expect(
         within(
           getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON),
@@ -823,11 +829,11 @@ describe('VbaDetails', () => {
         'Bank name',
         'Lead Bank',
       ].join('\n');
-      expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
       expect(Share.open).toHaveBeenCalledWith({
         message: bankDetails,
         failOnCancel: false,
       });
+      expect(Clipboard.setString).not.toHaveBeenCalled();
     });
 
     it('renders cached US bank details immediately for a USD account', () => {
