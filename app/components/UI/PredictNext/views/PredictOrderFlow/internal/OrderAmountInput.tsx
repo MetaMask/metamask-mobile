@@ -23,6 +23,8 @@ interface OrderAmountInputProps {
   prefix?: string;
   /** Overrides the default accessibility label for the figure. */
   accessibilityLabel?: string;
+  /** Defaults to the Order Flow's amount test ID. */
+  testID?: string;
 }
 
 /** Legacy PredictAmountDisplay sizing: shrink as the figure grows. */
@@ -47,6 +49,7 @@ export const OrderAmountInput = ({
   isDisabled = false,
   prefix = '$',
   accessibilityLabel = strings('predict_next.order_preview.amount'),
+  testID = PredictOrderFlowTestIds.AMOUNT_INPUT,
 }: OrderAmountInputProps) => {
   const tw = useTailwind();
 
@@ -57,7 +60,7 @@ export const OrderAmountInput = ({
     <Pressable
       onPress={isDisabled ? undefined : onAmountPress}
       disabled={isDisabled}
-      testID={PredictOrderFlowTestIds.AMOUNT_INPUT}
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
     >

@@ -30,6 +30,9 @@ interface OrderKeypadProps {
   /** Puts the period and delete keys on the same filled tile as the digits
    * (the buy sheet); otherwise they sit on a transparent tile. */
   hasFilledActionKeys?: boolean;
+  /** The keypad's test ID; each key's is `${testID}-key-${key}`. Defaults to
+   * the Order Flow's. */
+  testID?: string;
 }
 
 interface KeyProps {
@@ -78,14 +81,15 @@ export const OrderKeypad = ({
   onDelete,
   showsDecimalKey = true,
   hasFilledActionKeys = false,
+  testID = PredictOrderFlowTestIds.KEYPAD,
 }: OrderKeypadProps) => (
-  <Box testID={PredictOrderFlowTestIds.KEYPAD} twClassName="gap-3 px-4 py-4">
+  <Box testID={testID} twClassName="gap-3 px-4 py-4">
     {DIGIT_ROWS.map((row) => (
       <Box key={row.join('')} twClassName="flex-row gap-3">
         {row.map((digit) => (
           <Key
             key={digit}
-            testID={PredictOrderFlowTestIds.KEYPAD_KEY(digit)}
+            testID={`${testID}-key-${digit}`}
             onPress={() => onKeyPress(digit)}
           >
             <Text
@@ -102,7 +106,7 @@ export const OrderKeypad = ({
       {showsDecimalKey ? (
         <Key
           isPlain={!hasFilledActionKeys}
-          testID={PredictOrderFlowTestIds.KEYPAD_KEY('.')}
+          testID={`${testID}-key-.`}
           onPress={() => onKeyPress('.')}
         >
           <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
@@ -113,17 +117,14 @@ export const OrderKeypad = ({
         // Keeps the grid positions of the remaining keys unchanged.
         <Box twClassName="h-12 flex-1" />
       )}
-      <Key
-        testID={PredictOrderFlowTestIds.KEYPAD_KEY('0')}
-        onPress={() => onKeyPress('0')}
-      >
+      <Key testID={`${testID}-key-0`} onPress={() => onKeyPress('0')}>
         <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
           0
         </Text>
       </Key>
       <Key
         isPlain={!hasFilledActionKeys}
-        testID={PredictOrderFlowTestIds.KEYPAD_KEY('delete')}
+        testID={`${testID}-key-delete`}
         onPress={onDelete}
         accessibilityLabel={strings('predict_next.order_preview.delete')}
       >
