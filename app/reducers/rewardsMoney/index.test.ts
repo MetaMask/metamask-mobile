@@ -7,6 +7,7 @@ import type {
 import initialRootState from '../../util/test/initial-root-state';
 import rewardsMoneyReducer, {
   clearPendingReferralCode,
+  releaseAnsweredReferralCode,
   resetRewardsMoneyState,
   setPendingReferralCode,
   setReferralLinkPending,
@@ -601,6 +602,39 @@ describe('rewardsMoneyReducer', () => {
       );
 
       const state = rewardsMoneyReducer(answered, clearPendingReferralCode());
+
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('lets a released code be stored again', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const released = rewardsMoneyReducer(
+        answered,
+        releaseAnsweredReferralCode('KOL1'),
+      );
+      const state = rewardsMoneyReducer(
+        released,
+        setPendingReferralCode('KOL1'),
+      );
+
+      expect(released.answeredReferralCode).toBeNull();
+      expect(state.pendingReferralCode).toBe('KOL1');
+    });
+
+    it('keeps a different answered code when releasing', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(
+        answered,
+        releaseAnsweredReferralCode('KOL2'),
+      );
 
       expect(state.answeredReferralCode).toBe('KOL1');
     });
