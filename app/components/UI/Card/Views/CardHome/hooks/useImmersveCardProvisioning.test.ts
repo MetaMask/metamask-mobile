@@ -12,6 +12,7 @@ jest.mock('react-native', () => {
   };
 });
 import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
+import { CARD_SETUP_PENDING_POLL_MS } from './useCardSetupPendingRefresh';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -1221,6 +1222,239 @@ describe('useImmersveCardProvisioning', () => {
           type: 'expected_spend',
         }),
       );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+    });
+
+    it('rechecks an identity review on its own while the waiting view is up', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      jest.useFakeTimers();
+      // A focus cycle re-creates the self-check interval under fake timers
+      // (same pattern as the card home data poll tests above).
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS - 1);
+      });
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+      // The re-run reconcile awaits before it asks for prerequisites.
+      await act(async () => {
+        await Promise.resolve();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+      jest.useRealTimers();
+    });
+
+    it('quietly retries after a failed reconcile instead of stalling the waiting view', async () => {
+      let rejectPrerequisites!: (error: Error) => void;
+      controller.getSpendingPrerequisites.mockImplementationOnce(
+        () =>
+          new Promise((_, reject) => {
+            rejectPrerequisites = reject;
+          }),
+      );
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1),
+      );
+      // Enable fake timers before the check fails, so the quiet retry timer
+      // it schedules is a fake one.
+      jest.useFakeTimers();
+      await act(async () => {
+        rejectPrerequisites(new Error('network down'));
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      // The failed check still resolves, so the waiting view stays up.
+      expect(result.current.isReconciling).toBe(false);
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+      jest.useRealTimers();
+    });
+
+    it('quietly retries after a failed createCard instead of stalling the waiting view', async () => {
+      let rejectCreateCard!: (error: Error) => void;
+      controller.createCard.mockImplementationOnce(
+        () =>
+          new Promise((_, reject) => {
+            rejectCreateCard = reject;
+          }),
+      );
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(controller.createCard).toHaveBeenCalledTimes(1),
+      );
+
+      jest.useFakeTimers();
+      await act(async () => {
+        rejectCreateCard(new Error('provider 500'));
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(controller.createCard).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(controller.createCard).toHaveBeenCalledTimes(2);
+      jest.useRealTimers();
+    });
+
+    it('rechecks the review when pull to refresh asks', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        result.current.recheck();
+      });
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2),
+      );
+      expect(result.current.pendingAction).toEqual({ type: 'pending' });
+    });
+
+    it('stops self-checking while the screen is not focused', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      mockIsFocused = false;
+      rerender(undefined);
+      jest.useFakeTimers();
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS * 3);
+      });
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+
+    it('stops self-checking and retrying after unmount', async () => {
+      let rejectPrerequisites!: (error: Error) => void;
+      controller.getSpendingPrerequisites.mockImplementationOnce(
+        () =>
+          new Promise((_, reject) => {
+            rejectPrerequisites = reject;
+          }),
+      );
+
+      const { unmount } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1),
+      );
+      // Enable fake timers before the check fails, so the quiet retry timer
+      // it schedules is a fake one.
+      jest.useFakeTimers();
+      await act(async () => {
+        rejectPrerequisites(new Error('network down'));
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      unmount();
+
+      // Neither the quiet retry timer nor any self-check keeps asking after
+      // the screen is gone.
+      jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS * 3);
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+
+    it('does not restart the reconcile while it is already reconciling', async () => {
+      controller.getSpendingPrerequisites
+        .mockResolvedValueOnce({
+          prerequisites: [{ stage: 'kyc', status: 'pending' }],
+        })
+        .mockImplementation(() => new Promise(() => undefined));
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        result.current.recheck();
+      });
+      // The recheck drops the resolved flag, so the screen reads reconciling
+      // while the check runs, and a second recheck must not restart it.
+      await waitFor(() => expect(result.current.isReconciling).toBe(true));
+      act(() => {
+        result.current.recheck();
+      });
       expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
     });
 
