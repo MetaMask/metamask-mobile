@@ -15,17 +15,19 @@ describe('CardHomeLoadingSkeleton', () => {
     ).toBeOnTheScreen();
     expect(getByTestId(CardHomeSelectors.CARD_ART_SKELETON)).toBeOnTheScreen();
 
-    for (const index of [0, 1, 2]) {
+    for (const index of [0, 1, 2, 3]) {
       expect(
         getByTestId(`${CardHomeSelectors.ACTION_TILE_SKELETON}-${index}`),
       ).toBeOnTheScreen();
+    }
+    for (const index of [0, 1, 2]) {
       expect(
         getByTestId(`${CardHomeSelectors.LIST_ROW_SKELETON}-${index}`),
       ).toBeOnTheScreen();
     }
 
     expect(
-      queryByTestId(`${CardHomeSelectors.ACTION_TILE_SKELETON}-3`),
+      queryByTestId(`${CardHomeSelectors.ACTION_TILE_SKELETON}-4`),
     ).toBeNull();
     expect(
       queryByTestId(`${CardHomeSelectors.LIST_ROW_SKELETON}-3`),

@@ -14,12 +14,12 @@ const CARD_ART_ASPECT_RATIO = 851 / 540;
 
 /**
  * MainActionButton is Icon Lg (24) + BodySm + py-3 + mt-0.5, which lands at
- * about 73pt. The tiles use this height so they match
+ * about 73pt. The four tiles use this height so they match
  * `CardHomeActionButtonRow`.
  */
 const ACTION_TILE_HEIGHT_CLASS = 'h-[73px]';
 
-const ACTION_TILE_INDEXES = [0, 1, 2];
+const ACTION_TILE_INDEXES = [0, 1, 2, 3];
 const LIST_ROW_INDEXES = [0, 1, 2];
 
 /**
