@@ -14,7 +14,6 @@ import {
   IconName,
   IconSize,
   Text,
-  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -52,10 +51,6 @@ export interface WalletRecoveryVerifyProps {
    */
   error?: string | null;
   onBack: () => void;
-  /**
-   * "Can't use any of these?" → return to social login (MFA-882).
-   */
-  onCantUseThese: () => void;
   onSelectMethod: (method: WalletRecoveryMethod) => void;
 }
 
@@ -122,7 +117,6 @@ const WalletRecoveryVerify = ({
   isOffline = false,
   error = null,
   onBack,
-  onCantUseThese,
   onSelectMethod,
 }: WalletRecoveryVerifyProps) => {
   const insets = useSafeAreaInsets();
@@ -236,17 +230,6 @@ const WalletRecoveryVerify = ({
             </Box>
           ) : null}
         </Box>
-      </Box>
-
-      <Box twClassName="px-4 items-center">
-        <TextButton
-          variant={TextVariant.BodyMd}
-          onPress={isBusy ? undefined : onCantUseThese}
-          twClassName={isBusy ? 'opacity-50' : undefined}
-          testID={WalletRecoverySelectorsIDs.CANT_USE_THESE}
-        >
-          {strings('wallet_recovery_mfa.cant_use_these')}
-        </TextButton>
       </Box>
     </Box>
   );
