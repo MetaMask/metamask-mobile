@@ -281,6 +281,34 @@ export const useSectionPerformance = ({
     ttcStarted.current = true;
   }, [enabled, generationKey, sectionId, ttcStartReady, cacheState]);
 
+  // Time to Content — abort when demand ends before content resolves
+  useEffect(() => {
+    if (enabled && !ttcStartReady && ttcStarted.current && !ttcEnded.current) {
+      pendingTtcCompletion.current?.();
+      pendingTtcCompletion.current = null;
+      annotateLatestTags(
+        TraceName.HomepageSectionTimeToContent,
+        ttcTraceId.current,
+      );
+      endTrace({
+        name: TraceName.HomepageSectionTimeToContent,
+        id: ttcTraceId.current,
+        data: {
+          ...tagsRef.current,
+          ...dataRef.current,
+          demand_started: true,
+          cache_state: ttcCacheState.current,
+          success: false,
+          reason: 'unfocused',
+          section_id: sectionId,
+        },
+      });
+      ttcStarted.current = false;
+      hasStartedTtcGeneration.current = false;
+      ttcReadyForCompletion.current = true;
+    }
+  }, [enabled, sectionId, ttcStartReady]);
+
   // Time to Content — end span when content is ready
   useEffect(() => {
     if (!contentReady) {
