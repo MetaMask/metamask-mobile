@@ -199,14 +199,7 @@ const PlanSelectorCard = ({
 
   return (
     <TouchableOpacity
-      // A touch that started before `disabled` flipped still releases into
-      // onPress. Pressability only checks `disabled` when taking the responder.
-      onPress={() => {
-        if (isDisabled) {
-          return;
-        }
-        onPress(plan.id);
-      }}
+      onPress={() => onPress(plan.id)}
       disabled={isDisabled}
       style={tw.style(isDisabled && 'opacity-50')}
       accessibilityRole="radio"
