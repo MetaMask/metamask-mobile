@@ -15,6 +15,13 @@ let mockPreferences = {
   mutedTraderProfileIds: [] as string[],
 };
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
   useRoute: () => ({ params: mockRouteParams }),

@@ -14,6 +14,7 @@ import {
   type PerpsProviderType,
   type TriggerOrderType,
   type PositionModifyPreviewResult,
+  type AccountState,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -221,6 +222,10 @@ let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
+let mockLiveAccount: Pick<
+  AccountState,
+  'crossMarginSummary' | 'spotCollateral'
+> | null = null;
 let mockLiveMarkPrice = '90000';
 let mockSizeDecimals = 3;
 let mockSelectedAddress = '0xaccount-a';
@@ -411,6 +416,10 @@ jest.mock('../../../../hooks/stream', () => ({
     },
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
+  usePerpsLiveAccount: () => ({
+    account: mockLiveAccount,
+    isInitialLoading: false,
+  }),
 }));
 
 let mockIsInitialized = true;
@@ -758,6 +767,7 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
+    mockLiveAccount = null;
     mockLiveMarkPrice = '90000';
     mockTotalFee = 5;
     mockTakerFeeRate = undefined;
@@ -3995,6 +4005,103 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it('shows no liquidation estimate for a Cross order', () => {
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    // 0.002 BTC at $90,000 with a 40x max leverage (1/80 maintenance):
+    // 50 collateral - 20 existing - 2.25 new maintenance leaves 27.75.
+    it.each([
+      ['long', '$75,949'],
+      ['short', '$103,704'],
+    ] as const)(
+      'estimates a Cross %s liquidation price from the cross account',
+      (direction, expected) => {
+        mockOrderForm.direction = direction;
+        mockLiveAccount = {
+          spotCollateral: '0',
+          crossMarginSummary: {
+            accountValue: '50',
+            maintenanceMargin: '20',
+            marginUsed: '40',
+            notional: '1600',
+          },
+        };
+        const { result } = renderWithCrossMargin();
+
+        act(() => {
+          result.current.onMarginModeSelect('cross');
+        });
+
+        expect(result.current.summary.liquidationPrice).toBe(expected);
+      },
+    );
+
+    it('shows no Cross liquidation estimate on a venue other than Hyperliquid', () => {
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, providerId: 'lighter' },
+        {},
+        undefined,
+        true,
+      );
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('waits for market max leverage before estimating a Cross liquidation price', () => {
+      mockMarketData = null;
+      mockMarketDataLoading = true;
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('keeps the Cross liquidation price unknown until the account publishes spot collateral', () => {
+      mockLiveAccount = {
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
       const { result } = renderWithCrossMargin();
 
       act(() => {

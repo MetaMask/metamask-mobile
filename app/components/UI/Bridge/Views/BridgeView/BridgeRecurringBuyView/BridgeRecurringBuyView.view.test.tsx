@@ -23,6 +23,7 @@ import {
   setSourceAmount,
 } from '../../../../../../core/redux/slices/bridge';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import { BridgeTabKey } from '../BridgeView.constants';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
 import { RecurringIntervalSheetSelectorsIDs } from '../../../components/RecurringIntervalSheet';
 import { RecurringRepeatInfoSheetSelectorsIDs } from '../../../components/RecurringRepeatInfoSheet';
@@ -137,6 +138,11 @@ function renderRecurringPriceRangeView({
   });
 }
 
+// The pressed page mounts as a preview before the tab commits, and the
+// Recurring token defaults are only applied once it does. Without an `idle`
+// event the commit waits on a real-time fallback that a slow runner can push
+// past a `waitFor` timeout, so settle the pager and wait for the previous
+// page to be swapped out.
 async function openRecurringTab(
   renderResult: ReturnType<typeof renderBridgeView>,
 ) {
@@ -147,6 +153,14 @@ async function openRecurringTab(
   await waitFor(() => {
     expect(
       renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+    ).toBeOnTheScreen();
+  });
+  await settlePager(renderResult);
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(
+        `${BridgeViewSelectorsIDs.TAB_PAGE_SKELETON}-${BridgeTabKey.Market}`,
+      ),
     ).toBeOnTheScreen();
   });
 }
@@ -206,9 +220,7 @@ function assertRecurringOrderSummary(
       order.fillData.src.amount,
       order.src.asset.decimals,
     )} / ${formatRecurringTokenAmount(
-      (
-        BigInt(order.src.amount) * BigInt(order.schedule.repeatCount)
-      ).toString(),
+      order.totalAmount,
       order.src.asset.decimals,
     )} ${order.src.asset.symbol} (${filledPercent}%)`,
   );
@@ -317,9 +329,7 @@ function assertRecurringOrderRow(
     row.queryByText(strings('bridge.limit.expired')),
   ).not.toBeOnTheScreen();
 
-  const isClosedUnfilled =
-    order.state === RecurringOrderState.Cancelled ||
-    order.state === RecurringOrderState.Expired;
+  const isClosedUnfilled = order.state === RecurringOrderState.Cancelled;
   expect(row.getByTestId(OpenOrderRowSelectorsIDs.TITLE)).toHaveStyle({
     color: isClosedUnfilled
       ? lightTheme.colors.text.alternative
@@ -1155,6 +1165,40 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
     });
 
+    it('shows the recurring minimum until the source amount reaches it', async () => {
+      const renderResult = renderRecurringPriceRangeView({
+        currentCurrency: 'eur',
+      });
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      act(() => {
+        renderResult.store.dispatch(setSourceAmount('0.01'));
+      });
+
+      await waitFor(() => {
+        const confirmButton = renderResult.getByTestId(
+          BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+        );
+        expect(confirmButton).toHaveTextContent(
+          strings('bridge.recurring.min_order_amount', { amount: '€90.00' }),
+        );
+        expect(confirmButton.props.accessibilityState.disabled).toBe(true);
+      });
+
+      act(() => {
+        renderResult.store.dispatch(setSourceAmount('0.05'));
+      });
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+          ),
+        ).toHaveTextContent(strings('bridge.recurring.preview_order'));
+      });
+    });
+
     it('hides amount quick picks when the every field uses the shared keypad', async () => {
       const renderResult = renderBridgeView();
 
@@ -1362,7 +1406,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         orderStates: [
           RecurringOrderState.Completed,
           RecurringOrderState.Cancelled,
-          RecurringOrderState.Expired,
         ],
       }),
     );
@@ -1399,7 +1442,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toBe(true);
 
     await act(async () => {
-      resolveRequest({ orders: [], hasNextPage: false });
+      resolveRequest({ orders: [], hasNextPage: false, total: 0 });
       await refreshPromise;
     });
 
@@ -1660,11 +1703,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
   });
 
   describe('price range', () => {
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('opens the unset price range sheet with market price placeholders', async () => {
+    it('opens the unset price range sheet with market price placeholders', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -1703,11 +1742,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveProp('placeholder', 'Market price');
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('discards pending min and max when the sheet is closed', async () => {
+    it('discards pending min and max when the sheet is closed', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -1740,11 +1775,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveDisplayValue('');
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('clears min and max independently without closing the sheet', async () => {
+    it('clears min and max independently without closing the sheet', async () => {
       const renderResult = renderRecurringPriceRangeView();
       const expectedMax = applyPercentToPrice(MUSD_USD_RATE, 10);
 
@@ -1799,11 +1830,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(confirmButton.props.accessibilityState.disabled).toBe(false);
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('saves EUR percentage values when EUR is selected', async () => {
+    it('saves EUR percentage values when EUR is selected', async () => {
       const renderResult = renderRecurringPriceRangeView({
         currentCurrency: 'eur',
       });
@@ -1857,11 +1884,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('updates titles and clears fields when the token segment changes', async () => {
+    it('updates titles and clears fields when the token segment changes', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -1888,11 +1911,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveDisplayValue('');
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('keeps confirm enabled when min and max are empty', async () => {
+    it('keeps confirm enabled when min and max are empty', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -1907,11 +1926,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip.each([
+    it.each([
       {
         bound: 'min' as const,
         percent: -10,
@@ -1967,11 +1982,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       },
     );
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('keeps confirm disabled when min is not less than max', async () => {
+    it('keeps confirm disabled when min is not less than max', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -2002,11 +2013,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('shows the inverted range error when min equals max', async () => {
+    it('shows the inverted range error when min equals max', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -2028,11 +2035,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBe(true);
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('hides the inverted range error when max is cleared', async () => {
+    it('hides the inverted range error when max is cleared', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -2058,11 +2061,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    // Temporarily skipped: flakes on the 'Min mUSD price' label in
-    // component-view shard 4.
-    // https://github.com/MetaMask/metamask-mobile/issues/39863 (MCWP-1216)
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('keeps the max field on screen while the keypad is open', async () => {
+    it('keeps the max field on screen while the keypad is open', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -2077,11 +2076,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeOnTheScreen();
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('closes the keypad when the sheet is pressed outside it', async () => {
+    it('closes the keypad when the sheet is pressed outside it', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -2101,11 +2096,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeOnTheScreen();
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('writes the confirmed range onto the row', async () => {
+    it('writes the confirmed range onto the row', async () => {
       const renderResult = renderRecurringPriceRangeView();
       const min = applyPercentToPrice(MUSD_USD_RATE, -10);
       const max = applyPercentToPrice(MUSD_USD_RATE, 10);
@@ -2152,11 +2143,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('clears the stored range when empty min and max are confirmed', async () => {
+    it('clears the stored range when empty min and max are confirmed', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -2188,11 +2175,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeUndefined();
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('labels a stored USD range and starts a fresh EUR draft', async () => {
+    it('labels a stored USD range and starts a fresh EUR draft', async () => {
       const renderResult = renderRecurringPriceRangeView({
         currentCurrency: 'eur',
       });
@@ -2229,11 +2212,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
     });
 
-    // Temporarily skipped: openPriceRangeSheet times out waiting for the
-    // 'Min mUSD price' label in component-view shard 4.
-    // Refs: MCWP-1178
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('shows the stored range when USD is selected', async () => {
+    it('shows the stored range when USD is selected', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
