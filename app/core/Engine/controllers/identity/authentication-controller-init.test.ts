@@ -10,6 +10,7 @@ import {
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { getVersion } from 'react-native-device-info';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { RootState } from '../../../../reducers';
 
 jest.mock('@metamask/profile-sync-controller/auth');
@@ -22,10 +23,14 @@ jest.mock(
     selectIsBasicFunctionalityConsolidationEnabled: jest.fn(() => false),
   }),
 );
+jest.mock('../../../../selectors/featureFlagController/mfaUiKit', () => ({
+  selectMfaUiKitEnabled: jest.fn(() => false),
+}));
 
 const mockedSelectIsBasicFunctionalityConsolidationEnabled = jest.mocked(
   selectIsBasicFunctionalityConsolidationEnabled,
 );
+const mockedSelectMfaUiKitEnabled = jest.mocked(selectMfaUiKitEnabled);
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<AuthenticationControllerMessenger>
@@ -52,6 +57,7 @@ describe('AuthenticationControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
+    mockedSelectMfaUiKitEnabled.mockReturnValue(false);
   });
 
   it('initializes the controller', () => {
@@ -107,6 +113,19 @@ describe('AuthenticationControllerInit', () => {
     mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
 
     expect(getIsSocialPairingEnabled()?.()).toBe(false);
+  });
+
+  it('enables social pairing when the MFA UI kit is on', () => {
+    const rootState = {} as RootState;
+    const requestMock = getInitRequestMock();
+    requestMock.getState.mockReturnValue(rootState);
+    mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
+    mockedSelectMfaUiKitEnabled.mockReturnValue(true);
+
+    authenticationControllerInit(requestMock);
+
+    expect(getIsSocialPairingEnabled()?.()).toBe(true);
+    expect(selectMfaUiKitEnabled).toHaveBeenCalledWith(rootState);
   });
 
   it('wires getAppVersion to react-native-device-info getVersion()', () => {

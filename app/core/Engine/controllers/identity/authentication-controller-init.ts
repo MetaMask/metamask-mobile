@@ -6,6 +6,7 @@ import {
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { getVersion } from 'react-native-device-info';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { authEnv } from '../../../apiEnv';
 import { trace } from '../../../../util/trace';
 
@@ -29,8 +30,16 @@ export const authenticationControllerInit: MessengerClientInitFunction<
 
     config: {
       env: authEnv(),
-      isSocialPairingEnabled: () =>
-        selectIsBasicFunctionalityConsolidationEnabled(getState()),
+      // Locked social MFA (`exchangeSocialAccessToken`) needs the Google/Apple/
+      // Telegram identifier paired to the profile. Pairing was BFTC-only; MFA
+      // recovery also needs it or post-login passkey fails with Auth 404.
+      isSocialPairingEnabled: () => {
+        const state = getState();
+        return (
+          selectIsBasicFunctionalityConsolidationEnabled(state) ||
+          selectMfaUiKitEnabled(state)
+        );
+      },
     },
 
     metametrics: {
