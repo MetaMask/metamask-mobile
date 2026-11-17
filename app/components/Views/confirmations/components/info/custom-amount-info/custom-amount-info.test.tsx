@@ -64,7 +64,6 @@ import { ConfirmationFirstFrameProvider } from '../../../context/confirmation-fi
 import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
-import { useEnsureTransakApiKey } from '../../../../../UI/Ramp/hooks/useEnsureTransakApiKey';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 
@@ -83,7 +82,6 @@ jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
 jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/pay/useTransactionPayPostQuote');
-jest.mock('../../../../../UI/Ramp/hooks/useEnsureTransakApiKey');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
   usePredictAccountState: () => ({
@@ -361,7 +359,6 @@ describe('CustomAmountInfo', () => {
   const useTransactionPayPostQuoteMock = jest.mocked(
     useTransactionPayPostQuote,
   );
-  const useEnsureTransakApiKeyMock = jest.mocked(useEnsureTransakApiKey);
   type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount>;
   const createCustomAmountMock = (
     overrides: Partial<CustomAmountMock> = {},
@@ -551,7 +548,6 @@ describe('CustomAmountInfo', () => {
 
       expect(useAutomaticTransactionPayToken).toHaveBeenCalled();
       expect(useTransactionPayMetrics).toHaveBeenCalled();
-      expect(useEnsureTransakApiKey).toHaveBeenCalled();
       expect(useTransactionPayPostQuote).toHaveBeenCalled();
       expect(requestAnimationFrame).not.toHaveBeenCalled();
     });
@@ -564,7 +560,6 @@ describe('CustomAmountInfo', () => {
       expect(getByRole('button', { name: '$123.45' })).toBeOnTheScreen();
       expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
       expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
-      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
       expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
       expect(useTransactionCustomAmountMock).toHaveBeenCalled();
       expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalled();
@@ -573,14 +568,12 @@ describe('CustomAmountInfo', () => {
     it('defers automatic pay token selection and metrics until after the first frame', () => {
       renderDeferred({ disablePay: true });
 
-      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
       expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
 
       act(() => frames[0](16));
 
       expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
       expect(useTransactionPayMetrics).not.toHaveBeenCalled();
-      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
       expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
 
       act(() => frames[1](32));
@@ -589,7 +582,6 @@ describe('CustomAmountInfo', () => {
         expect.objectContaining({ disable: true }),
       );
       expect(useTransactionPayMetrics).toHaveBeenCalled();
-      expect(useEnsureTransakApiKey).toHaveBeenCalled();
       expect(useTransactionPayPostQuote).toHaveBeenCalled();
     });
 
