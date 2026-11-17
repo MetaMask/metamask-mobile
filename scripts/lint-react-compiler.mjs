@@ -84,9 +84,9 @@ function main(args) {
       ],
       { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'] },
     );
-    if (cli.status !== 0 && cli.status !== 1)
+    if ((cli.status !== 0 && cli.status !== 1) || !fs.existsSync(output))
       throw new Error(
-        `react-compiler-marker exited with ${cli.status ?? cli.signal}`,
+        `react-compiler-marker exited with ${cli.status ?? cli.signal} without a report. See its output above.`,
       );
     report = JSON.parse(fs.readFileSync(output, 'utf8'));
   } finally {
@@ -122,7 +122,7 @@ function main(args) {
     );
     console.log(`Updated ${BASELINE}.`);
     ok = true;
-  } else if (improvements.length) {
+  } else if (improvements.length && regressions.length === 0) {
     for (const { file, before, after } of improvements)
       console.error(`✔ ${file}: ${before} → ${after}`);
     console.error(
