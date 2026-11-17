@@ -22,6 +22,7 @@ import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
 import { getLinkedAccountUpdateError } from './linkedAccountUpdateError';
+import { getProfileSaveErrorCopy } from '../errors/profileApiErrorMessageKeys';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
@@ -78,6 +79,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       } catch (error) {
         setErrorMessage(
           getLinkedAccountUpdateError(error) ??
+            getProfileSaveErrorCopy(error) ??
             strings('social_leaderboard.manage_profile.save_error'),
         );
       } finally {

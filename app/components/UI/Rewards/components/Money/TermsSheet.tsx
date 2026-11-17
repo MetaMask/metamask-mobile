@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   Button,
@@ -19,6 +18,8 @@ import type { RootState } from '../../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../../reducers/rewardsMoney/selectors';
 import { selectSessionProfileId } from '../../../../../selectors/identity';
 import Routes from '../../../../../constants/navigation/Routes';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const TERMS_SHEET_TEST_IDS = {
   CONTAINER: 'rewards-money-terms-sheet',
@@ -29,6 +30,7 @@ export const TERMS_SHEET_TEST_IDS = {
 } as const;
 
 const TermsSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const profileId = useSelector(selectSessionProfileId);
@@ -76,13 +78,14 @@ const TermsSheet: React.FC = () => {
       goBack={navigation.goBack}
       testID={TERMS_SHEET_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: TERMS_SHEET_TEST_IDS.CLOSE }}
         testID={TERMS_SHEET_TEST_IDS.TITLE}
       >
         {termsTitle}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4">
         <Text
           variant={TextVariant.BodyMd}

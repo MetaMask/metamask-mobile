@@ -101,7 +101,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
-  selectIsCardholder,
+  selectHasCard,
   selectIsCardHomeDataResolved,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
@@ -304,7 +304,7 @@ const MoneyHomeView = () => {
     }
   }, [refetchBalance, refetchInterest, refreshMusdFiatRate, refetchActivity]);
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectHasCard);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
   const isCardHomeDataResolved = useSelector(selectIsCardHomeDataResolved);

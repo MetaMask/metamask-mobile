@@ -1,7 +1,6 @@
 import {
   ActionListItem,
   BottomSheetDialog,
-  BottomSheetHeader,
   Box,
   IconName,
 } from '@metamask/design-system-react-native';
@@ -30,6 +29,9 @@ import { isViewerSocialAuthor } from '../utils/isViewerSocialAuthor';
 import SocialImpersonationSupport from './SocialImpersonationSupport';
 import SocialReportReasonPicker from './SocialReportReasonPicker';
 import { SocialEntryOptionsBottomSheetSelectorsIDs } from './SocialEntryOptionsBottomSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export { SocialEntryReportReason };
 
@@ -68,6 +70,7 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
   canReport = true,
   canBlockUser = true,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors } = useTheme();
   const [step, setStep] = useState<'options' | 'reasons' | 'support'>(
@@ -125,7 +128,8 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
                   : SocialEntryOptionsBottomSheetSelectorsIDs.SHEET
             }
           >
-            <BottomSheetHeader
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
               onClose={onClose}
               closeButtonProps={{
                 testID:
@@ -141,7 +145,7 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
                     ? 'social_leaderboard.entry_options.report_reason_title'
                     : 'social_leaderboard.entry_options.title',
               )}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             {step === 'support' ? (
               <SocialImpersonationSupport onDismiss={onClose} />
             ) : step === 'reasons' ? (

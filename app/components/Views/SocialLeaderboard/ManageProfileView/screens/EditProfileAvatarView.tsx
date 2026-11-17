@@ -14,6 +14,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { getProfileSaveErrorCopy } from '../errors/profileApiErrorMessageKeys';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
   DEFAULT_PROFILE_AVATAR_PRESET_ID,
@@ -87,8 +88,11 @@ const EditProfileAvatarView: React.FC = () => {
         avatar_url: toFoxiconAvatarUrl(avatarPresetId, avatarBackgroundId),
       });
       navigation.goBack();
-    } catch {
-      setErrorMessage(strings('social_leaderboard.manage_profile.save_error'));
+    } catch (error) {
+      setErrorMessage(
+        getProfileSaveErrorCopy(error) ??
+          strings('social_leaderboard.manage_profile.save_error'),
+      );
     } finally {
       setIsSaving(false);
     }
