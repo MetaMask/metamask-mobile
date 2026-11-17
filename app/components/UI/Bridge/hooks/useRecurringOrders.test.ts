@@ -31,6 +31,7 @@ function createPage(
     orders: [{ ...MOCK_RECURRING_OPEN_ORDER, id: orderId }],
     endCursor,
     hasNextPage: Boolean(endCursor),
+    total: 1,
   };
 }
 

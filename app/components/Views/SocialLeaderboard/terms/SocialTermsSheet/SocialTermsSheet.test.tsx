@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { Linking, ScrollView, StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import { darkTheme } from '@metamask/design-tokens';
@@ -82,6 +82,10 @@ const renderSheet = () => {
 describe('SocialTermsSheet', () => {
   beforeEach(() => {
     mockInjectJavaScript.mockClear();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('pads the footer 16px on the top and sides with an 8px gap and no extra bottom padding', () => {
@@ -177,7 +181,7 @@ describe('SocialTermsSheet', () => {
   });
 
   it('paints hosted terms with the sheet background before the document loads', () => {
-    const sheetBackground = darkTheme.colors.background.default;
+    const sheetBackground = darkTheme.colors.background.elevated1;
     const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
         html={
@@ -350,7 +354,8 @@ describe('SocialTermsSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('allows only same-origin navigation for the bundled terms page', () => {
+  it('opens allowed MetaMask links externally for the bundled terms page', () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
         html="<html><body>Terms</body></html>"
@@ -365,6 +370,25 @@ describe('SocialTermsSheet', () => {
     expect(
       onShouldStartLoadWithRequest({ url: 'https://metamask.com/privacy' }),
     ).toBe(true);
+
+    getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW).props.onLoadEnd();
+
+    expect(
+      onShouldStartLoadWithRequest({ url: 'https://metamask.com/privacy' }),
+    ).toBe(false);
+    expect(openURL).toHaveBeenCalledWith('https://metamask.com/privacy');
+    expect(
+      onShouldStartLoadWithRequest({
+        url: 'https://metamask.io/privacy-notice',
+      }),
+    ).toBe(false);
+    expect(openURL).toHaveBeenCalledWith('https://metamask.io/privacy-notice');
+    expect(
+      onShouldStartLoadWithRequest({ url: 'https://support.metamask.io/' }),
+    ).toBe(false);
+    expect(openURL).toHaveBeenCalledWith('https://support.metamask.io/');
+
+    openURL.mockClear();
     expect(
       onShouldStartLoadWithRequest({
         url: 'https://metamask.com.evil.example/terms',
@@ -373,9 +397,11 @@ describe('SocialTermsSheet', () => {
     expect(
       onShouldStartLoadWithRequest({ url: 'http://metamask.com/terms' }),
     ).toBe(false);
+    expect(openURL).not.toHaveBeenCalled();
   });
 
-  it('allows same-origin navigation for a hosted terms page', () => {
+  it('opens same-origin links externally for a hosted terms page', () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
         uri="https://metamask.com/social-tos"
@@ -390,6 +416,13 @@ describe('SocialTermsSheet', () => {
     expect(
       onShouldStartLoadWithRequest({ url: 'https://metamask.com/privacy' }),
     ).toBe(true);
+
+    getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW).props.onLoadEnd();
+
+    expect(
+      onShouldStartLoadWithRequest({ url: 'https://metamask.com/privacy' }),
+    ).toBe(false);
+    expect(openURL).toHaveBeenCalledWith('https://metamask.com/privacy');
     expect(
       onShouldStartLoadWithRequest({ url: 'https://evil.example/terms' }),
     ).toBe(false);
