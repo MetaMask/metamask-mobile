@@ -10,6 +10,10 @@ import {
   PERPS_TILE_CONSTRAINED_LIVE_PRICE_THROTTLE_MS,
   PERPS_TILE_LIVE_PRICE_THROTTLE_MS,
 } from './PerpsMarketTileCard.utils';
+import {
+  HomepagePerpsSelectorsIDs,
+  homepagePerpsMarketTileCardPriceTestId,
+} from '../../../../Homepage.testIds';
 
 const { TouchableOpacity } = jest.requireActual('react-native');
 const { mockTheme } = jest.requireActual('../../../../../../../util/theme');
@@ -131,6 +135,11 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => false),
 }));
 
+const BTC_PRICE_TEST_ID = homepagePerpsMarketTileCardPriceTestId(
+  HomepagePerpsSelectorsIDs.MARKET_TILE_CARD,
+  'BTC',
+);
+
 describe('PerpsMarketTileCard', () => {
   const mockMarketData: PerpsMarketData = {
     symbol: 'BTC',
@@ -208,7 +217,9 @@ describe('PerpsMarketTileCard', () => {
   it('renders the card on the muted background', () => {
     render(<PerpsMarketTileCard market={mockMarketData} />);
 
-    expect(screen.getByTestId('perps-market-tile-card')).toHaveStyle({
+    expect(
+      screen.getByTestId(HomepagePerpsSelectorsIDs.MARKET_TILE_CARD),
+    ).toHaveStyle({
       backgroundColor: mockTheme.colors.background.muted,
     });
   });
@@ -248,7 +259,9 @@ describe('PerpsMarketTileCard', () => {
       <PerpsMarketTileCard market={mockMarketData} onPress={mockOnPress} />,
     );
 
-    const touchable = screen.getByTestId('perps-market-tile-card');
+    const touchable = screen.getByTestId(
+      HomepagePerpsSelectorsIDs.MARKET_TILE_CARD,
+    );
     fireEvent.press(touchable);
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
@@ -258,16 +271,14 @@ describe('PerpsMarketTileCard', () => {
   it('renders the snapshot price on first render', () => {
     render(<PerpsMarketTileCard market={mockMarketData} />);
 
-    expect(
-      screen.getByTestId('perps-market-tile-card-price-BTC'),
-    ).toHaveTextContent('$52,000');
+    expect(screen.getByTestId(BTC_PRICE_TEST_ID)).toHaveTextContent('$52,000');
     expect(screen.getByText('+4.00%')).toBeOnTheScreen();
   });
 
   it('shrinks a long price to fit instead of truncating it', () => {
     render(<PerpsMarketTileCard market={mockMarketData} />);
 
-    const price = screen.getByTestId('perps-market-tile-card-price-BTC');
+    const price = screen.getByTestId(BTC_PRICE_TEST_ID);
 
     expect(price).toHaveProp('adjustsFontSizeToFit', true);
     expect(price).toHaveProp('minimumFontScale', 0.8);
@@ -280,9 +291,7 @@ describe('PerpsMarketTileCard', () => {
       emitLivePrices({ BTC: buildLivePrice() });
     });
 
-    expect(
-      screen.getByTestId('perps-market-tile-card-price-BTC'),
-    ).toHaveTextContent('$55,000');
+    expect(screen.getByTestId(BTC_PRICE_TEST_ID)).toHaveTextContent('$55,000');
     expect(screen.getByText('+5.50%')).toBeOnTheScreen();
     expect(screen.queryByText('+4.00%')).toBeNull();
   });
@@ -350,17 +359,13 @@ describe('PerpsMarketTileCard', () => {
     expect(mockUsePerpsLivePrices).not.toHaveBeenCalledWith(
       expect.objectContaining({ symbols: ['BTC'] }),
     );
-    expect(
-      screen.getByTestId('perps-market-tile-card-price-BTC'),
-    ).toHaveTextContent('$52,000');
+    expect(screen.getByTestId(BTC_PRICE_TEST_ID)).toHaveTextContent('$52,000');
   });
 
   it('renders the fallback price display when the price is unavailable', () => {
     render(<PerpsMarketTileCard market={{ ...mockMarketData, price: '' }} />);
 
-    expect(
-      screen.getByTestId('perps-market-tile-card-price-BTC'),
-    ).toHaveTextContent('$---');
+    expect(screen.getByTestId(BTC_PRICE_TEST_ID)).toHaveTextContent('$---');
   });
 
   it('keeps the snapshot price when a live tick has no usable price', () => {
@@ -370,9 +375,83 @@ describe('PerpsMarketTileCard', () => {
       emitLivePrices({ BTC: buildLivePrice({ price: '0' }) });
     });
 
+    expect(screen.getByTestId(BTC_PRICE_TEST_ID)).toHaveTextContent('$52,000');
+  });
+
+  it('prefixes the price test ID with the card test ID', () => {
+    const cardTestId = 'crypto-tab-perps-market-tile-card-BTC';
+
+    render(<PerpsMarketTileCard market={mockMarketData} testID={cardTestId} />);
+
     expect(
-      screen.getByTestId('perps-market-tile-card-price-BTC'),
+      screen.getByTestId(
+        homepagePerpsMarketTileCardPriceTestId(cardTestId, 'BTC'),
+      ),
     ).toHaveTextContent('$52,000');
+  });
+
+  describe('when the snapshot has no 24h change', () => {
+    const missingChangeMarket = {
+      ...mockMarketData,
+      change24hPercent: '--%',
+    };
+
+    it('shows the fallback change and sparkline in a neutral colour', () => {
+      render(
+        <PerpsMarketTileCard
+          market={missingChangeMarket}
+          sparklineData={mockSparklineData}
+        />,
+      );
+
+      expect(screen.getByText('--%')).toHaveStyle({
+        color: mockTheme.colors.text.alternative,
+      });
+      expect(screen.queryByText('0.00%')).toBeNull();
+      expect(screen.getByTestId('sparkline-chart').props['data-color']).toBe(
+        mockTheme.colors.text.alternative,
+      );
+    });
+
+    it('keeps the fallback change when a live tick has no change percent', () => {
+      render(<PerpsMarketTileCard market={missingChangeMarket} />);
+
+      act(() => {
+        emitLivePrices({
+          BTC: buildLivePrice({ percentChange24h: undefined }),
+        });
+      });
+
+      expect(screen.getByTestId(BTC_PRICE_TEST_ID)).toHaveTextContent(
+        '$55,000',
+      );
+      expect(screen.getByText('--%')).toHaveStyle({
+        color: mockTheme.colors.text.alternative,
+      });
+    });
+
+    it('shows the live change percent and its colour once a tick has one', () => {
+      render(
+        <PerpsMarketTileCard
+          market={missingChangeMarket}
+          sparklineData={mockSparklineData}
+        />,
+      );
+
+      act(() => {
+        emitLivePrices({
+          BTC: buildLivePrice({ percentChange24h: '-0.42' }),
+        });
+      });
+
+      expect(screen.getByText('-0.42%')).toHaveStyle({
+        color: mockTheme.colors.error.default,
+      });
+      expect(screen.queryByText('--%')).toBeNull();
+      expect(screen.getByTestId('sparkline-chart').props['data-color']).toBe(
+        mockTheme.colors.error.default,
+      );
+    });
   });
 
   it('renders the favorite badge when showFavoriteTag is true', () => {

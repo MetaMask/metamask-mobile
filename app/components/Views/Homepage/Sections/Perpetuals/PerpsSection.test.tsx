@@ -244,29 +244,31 @@ jest.mock('./hooks/useHomepageSparklines', () => ({
   })),
 }));
 
+const mockPerpsMarketTileCard = jest.fn();
 jest.mock('./components/PerpsMarketTileCard', () => {
   const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      market,
-      testID,
-      onPress,
-      showFavoriteTag,
-    }: {
+    default: (props: {
       market: { symbol: string };
       testID?: string;
       onPress?: (m: { symbol: string }) => void;
       showFavoriteTag?: boolean;
-    }) => (
-      <TouchableOpacity
-        testID={testID ?? `perps-market-tile-${market.symbol}`}
-        onPress={() => onPress?.(market)}
-      >
-        <Text>{market.symbol}</Text>
-        {showFavoriteTag && <View testID={`favorite-badge-${market.symbol}`} />}
-      </TouchableOpacity>
-    ),
+    }) => {
+      mockPerpsMarketTileCard(props);
+      const { market, testID, onPress, showFavoriteTag } = props;
+      return (
+        <TouchableOpacity
+          testID={testID ?? `perps-market-tile-${market.symbol}`}
+          onPress={() => onPress?.(market)}
+        >
+          <Text>{market.symbol}</Text>
+          {showFavoriteTag && (
+            <View testID={`favorite-badge-${market.symbol}`} />
+          )}
+        </TouchableOpacity>
+      );
+    },
   };
 });
 
@@ -1059,6 +1061,41 @@ describe('PerpsSection', () => {
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(screen.getByText('SOL')).toBeOnTheScreen();
+    });
+
+    it('passes the device tiers to each trending tile', () => {
+      const deviceCapability = {
+        hardwareTier: 'LOW' as const,
+        networkTier: 'SLOW_CELLULAR' as const,
+        networkTierResolved: true,
+      };
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+          makeTrendingMarket({ symbol: 'ETH', volumeNumber: 3000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          deviceCapability={deviceCapability}
+        />,
+      );
+
+      for (const symbol of ['BTC', 'ETH']) {
+        expect(mockPerpsMarketTileCard).toHaveBeenCalledWith(
+          expect.objectContaining({
+            market: expect.objectContaining({ symbol }),
+            deviceCapability,
+          }),
+        );
+      }
     });
 
     it('refreshes the market list on pull-to-refresh when the trending carousel is showing', async () => {

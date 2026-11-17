@@ -5,6 +5,7 @@ import {
   BoxAlignItems,
   Skeleton,
 } from '@metamask/design-system-react-native';
+import { HomepagePerpsSelectorsIDs } from '../../../Homepage.testIds';
 
 const CARD_WIDTH = 188;
 const CARD_HEIGHT = 188;
@@ -18,7 +19,7 @@ const PerpsMarketTileCardSkeleton: React.FC = () => (
       <Box
         key={i}
         twClassName={`w-[${CARD_WIDTH}px] h-[${CARD_HEIGHT}px] bg-muted rounded-xl p-4 justify-between`}
-        testID="perps-market-tile-card-skeleton"
+        testID={HomepagePerpsSelectorsIDs.MARKET_TILE_CARD_SKELETON}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}

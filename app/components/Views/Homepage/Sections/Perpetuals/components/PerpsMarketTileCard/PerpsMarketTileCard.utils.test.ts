@@ -73,13 +73,21 @@ describe('getPerpsTileDisplayValues', () => {
   it('returns the snapshot values when no live price is available', () => {
     const result = getPerpsTileDisplayValues(market);
 
-    expect(result).toEqual({ price: '$78,000', changePercent: '+1.20%' });
+    expect(result).toEqual({
+      price: '$78,000',
+      changePercent: '+1.20%',
+      changeDirection: 'up',
+    });
   });
 
   it('returns the live price and change percent when a tick is available', () => {
     const result = getPerpsTileDisplayValues(market, buildLivePrice());
 
-    expect(result).toEqual({ price: '$78,343', changePercent: '+1.50%' });
+    expect(result).toEqual({
+      price: '$78,343',
+      changePercent: '+1.50%',
+      changeDirection: 'up',
+    });
   });
 
   it('formats a negative live change percent', () => {
@@ -89,6 +97,7 @@ describe('getPerpsTileDisplayValues', () => {
     );
 
     expect(result.changePercent).toBe('-2.88%');
+    expect(result.changeDirection).toBe('down');
   });
 
   it('keeps the snapshot change percent when the tick has no change percent', () => {
@@ -97,7 +106,11 @@ describe('getPerpsTileDisplayValues', () => {
       buildLivePrice({ percentChange24h: undefined }),
     );
 
-    expect(result).toEqual({ price: '$78,343', changePercent: '+1.20%' });
+    expect(result).toEqual({
+      price: '$78,343',
+      changePercent: '+1.20%',
+      changeDirection: 'up',
+    });
   });
 
   it.each(['0', '-1', 'NaN', ''])(
@@ -125,26 +138,64 @@ describe('getPerpsTileDisplayValues', () => {
   });
 
   it.each([
-    ['0.00%', '+0.00%'],
-    ['+1,234.56%', '+1234.56%'],
-    ['-2.88%', '-2.88%'],
-    ['+0.07%', '+0.07%'],
-  ])(
-    'formats snapshot change %p the same way as a live tick (%p)',
-    (snapshotPercent, expected) => {
-      const snapshot = getPerpsTileDisplayValues({
+    ['+1.20%', 'up'],
+    ['0.00%', 'up'],
+    ['-0.00%', 'down'],
+    ['-2.88%', 'down'],
+  ] as const)(
+    'returns snapshot change %p unchanged with direction %p',
+    (change24hPercent, changeDirection) => {
+      const result = getPerpsTileDisplayValues({
         ...market,
-        change24hPercent: snapshotPercent,
+        change24hPercent,
       });
-      const live = getPerpsTileDisplayValues(
-        market,
-        buildLivePrice({
-          percentChange24h: expected.replace(/[+%]/g, ''),
-        }),
-      );
 
-      expect(snapshot.changePercent).toBe(expected);
-      expect(live.changePercent).toBe(expected);
+      expect(result.changePercent).toBe(change24hPercent);
+      expect(result.changeDirection).toBe(changeDirection);
     },
   );
+
+  describe('when the snapshot change is the fallback display', () => {
+    const missingChangeMarket = { ...market, change24hPercent: '--%' };
+
+    it('keeps the fallback with an unknown direction when there is no live tick', () => {
+      const result = getPerpsTileDisplayValues(missingChangeMarket);
+
+      expect(result.changePercent).toBe('--%');
+      expect(result.changeDirection).toBe('unknown');
+    });
+
+    it('keeps the fallback with an unknown direction when the tick has no change percent', () => {
+      const result = getPerpsTileDisplayValues(
+        missingChangeMarket,
+        buildLivePrice({ percentChange24h: undefined }),
+      );
+
+      expect(result).toEqual({
+        price: '$78,343',
+        changePercent: '--%',
+        changeDirection: 'unknown',
+      });
+    });
+
+    it('uses the live change percent once a tick has one', () => {
+      const result = getPerpsTileDisplayValues(
+        missingChangeMarket,
+        buildLivePrice({ percentChange24h: '-0.42' }),
+      );
+
+      expect(result.changePercent).toBe('-0.42%');
+      expect(result.changeDirection).toBe('down');
+    });
+  });
+
+  it('returns the fallback change display when the snapshot change is empty', () => {
+    const result = getPerpsTileDisplayValues({
+      ...market,
+      change24hPercent: '',
+    });
+
+    expect(result.changePercent).toBe('--%');
+    expect(result.changeDirection).toBe('unknown');
+  });
 });

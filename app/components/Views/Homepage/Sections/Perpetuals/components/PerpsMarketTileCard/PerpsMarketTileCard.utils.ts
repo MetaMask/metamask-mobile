@@ -21,9 +21,12 @@ export interface PerpsTileDeviceTiers {
   networkTier: NetworkTier | null;
 }
 
+export type PerpsTileChangeDirection = 'up' | 'down' | 'unknown';
+
 export interface PerpsTileDisplayValues {
   price: string;
   changePercent: string;
+  changeDirection: PerpsTileChangeDirection;
 }
 
 export const getPerpsTileLivePriceThrottleMs = (
@@ -46,6 +49,15 @@ export const getPerpsTileLivePriceThrottleMs = (
 const parseDisplayedPercent = (value: string): number =>
   parseFloat(value.replace(/[+,%]/g, ''));
 
+const getChangeDirection = (
+  changePercent: string,
+): PerpsTileChangeDirection => {
+  if (!Number.isFinite(parseDisplayedPercent(changePercent))) {
+    return 'unknown';
+  }
+  return changePercent.startsWith('-') ? 'down' : 'up';
+};
+
 export const getPerpsTileDisplayValues = (
   market: Pick<PerpsMarketData, 'price' | 'change24hPercent'>,
   livePrice?: PriceUpdate,
@@ -61,11 +73,13 @@ export const getPerpsTileDisplayValues = (
       ? formatPerpsFiat(livePriceValue, { ranges: PRICE_RANGES_UNIVERSAL })
       : market.price || PERPS_CONSTANTS.FallbackPriceDisplay;
 
-  const changePercent = formatPercentage(
-    Number.isFinite(livePercentValue)
-      ? livePercentValue
-      : parseDisplayedPercent(market.change24hPercent),
-  );
+  const changePercent = Number.isFinite(livePercentValue)
+    ? formatPercentage(livePercentValue)
+    : market.change24hPercent || PERPS_CONSTANTS.FallbackPercentageDisplay;
 
-  return { price, changePercent };
+  return {
+    price,
+    changePercent,
+    changeDirection: getChangeDirection(changePercent),
+  };
 };

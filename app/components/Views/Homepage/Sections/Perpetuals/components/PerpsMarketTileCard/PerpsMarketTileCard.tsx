@@ -24,8 +24,13 @@ import type { PerpsMarketTileCardProps } from './PerpsMarketTileCard.types';
 import {
   getPerpsTileDisplayValues,
   getPerpsTileLivePriceThrottleMs,
+  type PerpsTileChangeDirection,
   type PerpsTileDisplayValues,
 } from './PerpsMarketTileCard.utils';
+import {
+  HomepagePerpsSelectorsIDs,
+  homepagePerpsMarketTileCardPriceTestId,
+} from '../../../../Homepage.testIds';
 
 const DEFAULT_CARD_WIDTH = 188;
 const DEFAULT_CARD_HEIGHT = 188;
@@ -37,6 +42,12 @@ const SPARKLINE_MARGIN = 16;
 
 const NO_LIVE_PRICE_SYMBOLS: string[] = [];
 
+const CHANGE_TEXT_COLORS: Record<PerpsTileChangeDirection, TextColor> = {
+  up: TextColor.SuccessDefault,
+  down: TextColor.ErrorDefault,
+  unknown: TextColor.TextAlternative,
+};
+
 type PerpsMarketTileCardContentProps = Omit<
   PerpsMarketTileCardProps,
   'deviceCapability'
@@ -47,20 +58,22 @@ const PerpsMarketTileCardContent: React.FC<PerpsMarketTileCardContentProps> = ({
   market,
   price,
   changePercent,
+  changeDirection,
   sparklineData,
   onPress,
   cardWidth = DEFAULT_CARD_WIDTH,
   cardHeight = DEFAULT_CARD_HEIGHT,
   showFavoriteTag = false,
-  testID = 'perps-market-tile-card',
+  testID = HomepagePerpsSelectorsIDs.MARKET_TILE_CARD,
 }) => {
   const { styles, theme } = useStyles(styleSheet, { cardWidth, cardHeight });
 
-  const isPositive = !changePercent.startsWith('-');
-
-  const sparklineColor = isPositive
-    ? theme.colors.success.default
-    : theme.colors.error.default;
+  const sparklineColors: Record<PerpsTileChangeDirection, string> = {
+    up: theme.colors.success.default,
+    down: theme.colors.error.default,
+    unknown: theme.colors.text.alternative,
+  };
+  const sparklineColor = sparklineColors[changeDirection];
 
   const sparklineWidth = cardWidth - SPARKLINE_MARGIN * 2;
   const hasSparkline = sparklineData && sparklineData.length >= 2;
@@ -165,16 +178,17 @@ const PerpsMarketTileCardContent: React.FC<PerpsMarketTileCardContentProps> = ({
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
                 twClassName="shrink"
-                testID={`perps-market-tile-card-price-${market.symbol}`}
+                testID={homepagePerpsMarketTileCardPriceTestId(
+                  testID,
+                  market.symbol,
+                )}
               >
                 {price}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                color={
-                  isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
-                }
+                color={CHANGE_TEXT_COLORS[changeDirection]}
                 numberOfLines={1}
               >
                 {changePercent}
@@ -235,7 +249,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
       throttleMs === null ? NO_LIVE_PRICE_SYMBOLS : [props.market.symbol],
     throttleMs: throttleMs ?? undefined,
   });
-  const { price, changePercent } = getPerpsTileDisplayValues(
+  const { price, changePercent, changeDirection } = getPerpsTileDisplayValues(
     props.market,
     livePrices[props.market.symbol],
   );
@@ -245,6 +259,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
       {...props}
       price={price}
       changePercent={changePercent}
+      changeDirection={changeDirection}
     />
   );
 };
