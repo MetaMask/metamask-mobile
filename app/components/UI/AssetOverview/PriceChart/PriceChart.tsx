@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
+import { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import React, {
   useCallback,
   useContext,
