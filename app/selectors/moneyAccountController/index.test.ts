@@ -19,7 +19,7 @@ jest.mock('../../constants/featureFlags', () => ({
   isMpcMoneyKeyringBuildEnabled: jest.fn(() => false),
 }));
 
-const SFA_ADDRESS = '0xabc123';
+const SFA_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 const MFA_ADDRESS = '0x0fa0000000000000000000000000000000000002';
 
 const MOCK_MONEY_ACCOUNT: MoneyAccount = {
@@ -177,6 +177,16 @@ describe('MoneyAccountController selectors', () => {
       );
 
       expect(result).toBe(MOCK_MONEY_ACCOUNT.address);
+    });
+
+    it('returns the SFA address while the account is an SFA', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        lifecycleState({ type: 'sfa', identity: identity(SFA_ADDRESS) }),
+        MOCK_MONEY_ACCOUNT,
+      );
+
+      expect(result).toBe(SFA_ADDRESS);
     });
 
     it('returns the current address while the account is migrating', () => {
