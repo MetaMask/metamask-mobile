@@ -667,7 +667,9 @@ export function getNavIntegration(): ReturnType<
 }
 
 /**
- * Per-platform sample rates for root transactions, keyed by trace name; add an entry to raise or lower a trace's rate (this changes Sentry volume and cost).
+ * Per-platform sample rates for root transactions, keyed by trace name.
+ * Add an entry to raise or lower a trace's rate (this changes Sentry volume
+ * and cost).
  */
 const TRACE_SAMPLE_RATE_OVERRIDES: Partial<
   Record<TraceName, { android?: number; ios?: number }>
@@ -707,9 +709,10 @@ export async function setupSentry(
       METAMASK_BUILD_TYPE,
     );
 
+    // Dev and E2E/exp builds send every transaction to Sentry.
     const isFullSampling = isDev || isE2EOrExpEnvironment;
-    // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
     const tracesSampleRate = isFullSampling ? 1.0 : 0.03;
+    const platform = Device.isAndroid() ? 'android' : 'ios';
 
     Sentry.init({
       dsn,
@@ -724,12 +727,10 @@ export async function setupSentry(
           return parentSampled;
         }
         if (isFullSampling) {
-          return tracesSampleRate;
+          return 1;
         }
         const override = TRACE_SAMPLE_RATE_OVERRIDES[name as TraceName];
-        return (
-          override?.[Device.isAndroid() ? 'android' : 'ios'] ?? tracesSampleRate
-        );
+        return override?.[platform] ?? tracesSampleRate;
       },
       profilesSampleRate: 1.0,
       beforeSend: (report) => {

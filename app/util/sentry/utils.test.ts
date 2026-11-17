@@ -1545,7 +1545,7 @@ describe('setupSentry', () => {
     const mockIsAndroid = jest.mocked(Device.isAndroid);
     const globalWithDev = global as typeof global & { __DEV__: boolean };
 
-    const getTracesSampler = async () => {
+    const getInitOptions = async () => {
       await setupSentry();
       const initOptions = mockedInit.mock.calls[0][0] as {
         tracesSampleRate: number;
@@ -1564,14 +1564,14 @@ describe('setupSentry', () => {
 
     it('uses the override rate for a listed trace on its platform (Swap Quote Fetch on Android)', async () => {
       mockIsAndroid.mockReturnValue(true);
-      const { tracesSampler } = await getTracesSampler();
+      const { tracesSampler } = await getInitOptions();
 
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
     });
 
     it('falls back to tracesSampleRate when the override has no rate for the platform (Swap Quote Fetch on iOS)', async () => {
       mockIsAndroid.mockReturnValue(false);
-      const { tracesSampler, tracesSampleRate } = await getTracesSampler();
+      const { tracesSampler, tracesSampleRate } = await getInitOptions();
 
       expect(tracesSampleRate).toBe(0.03);
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
@@ -1581,7 +1581,7 @@ describe('setupSentry', () => {
       'falls back to tracesSampleRate for traces without an override (isAndroid: %s)',
       async (isAndroid) => {
         mockIsAndroid.mockReturnValue(isAndroid);
-        const { tracesSampler } = await getTracesSampler();
+        const { tracesSampler } = await getInitOptions();
 
         expect(tracesSampler({ name: 'SomeRoute' })).toBe(0.03);
       },
@@ -1591,7 +1591,7 @@ describe('setupSentry', () => {
       'inherits the parent sampling decision (%s)',
       async (parentSampled) => {
         mockIsAndroid.mockReturnValue(true);
-        const { tracesSampler } = await getTracesSampler();
+        const { tracesSampler } = await getInitOptions();
 
         expect(
           tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled }),
@@ -1605,7 +1605,7 @@ describe('setupSentry', () => {
     it('keeps full sampling for Swap Quote Fetch in dev builds', async () => {
       globalWithDev.__DEV__ = true;
       mockIsAndroid.mockReturnValue(true);
-      const { tracesSampler } = await getTracesSampler();
+      const { tracesSampler } = await getInitOptions();
 
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(1);
     });
