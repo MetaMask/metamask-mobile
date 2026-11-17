@@ -155,21 +155,34 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       isTokenPrimary && tokenSymbol
         ? getPerpsDisplaySymbol(tokenSymbol)
         : undefined;
-    // An explicit label replaces the visible amount and unit for assistive
-    // tech, so the asset (for example ETH) has to stay in the button name.
-    const primaryAccessibilityLabel = `${accessibilityLabel ?? primaryDisplayValue}${
-      primaryDisplayUnit ? ` ${primaryDisplayUnit}` : ''
-    }`;
+    // Caller labels are the USD amount or a generic action. The unit is a
+    // separate text node, so announce the token size on screen instead of
+    // appending the symbol to that label.
+    const displayedPrimaryLabel = primaryDisplayUnit
+      ? `${primaryDisplayValue} ${primaryDisplayUnit}`
+      : primaryDisplayValue;
+    const primaryAccessibilityLabel = primaryDisplayUnit
+      ? displayedPrimaryLabel
+      : (accessibilityLabel ?? displayedPrimaryLabel);
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
+    // The amount sits inside the toggle, which hides its text from the
+    // accessibility tree. Keep the value in the button name.
+    const secondaryToggleAccessibilityLabel = secondaryDisplayValue
+      ? [secondaryDisplayValue, displayToggleAccessibilityLabel]
+          .filter(Boolean)
+          .join(', ')
+      : undefined;
     const primaryColor = hasError
       ? TextColor.ErrorDefault
       : TextColor.TextDefault;
 
     const primaryAmount = (
       <Box
-        accessible={false}
+        accessible={!onPress}
+        accessibilityLabel={onPress ? undefined : primaryAccessibilityLabel}
+        accessibilityRole={onPress ? undefined : 'text'}
         testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_ROW}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -177,10 +190,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         {isLoading ? (
           <Skeleton width={80} height={40} />
         ) : (
-          // Hidden from assistive tech while this row is a button, so the
-          // button name, including the asset unit, is the only announcement.
           <Text
-            accessible={!onPress}
+            accessible={false}
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
@@ -195,7 +206,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         ) : null}
         {!isLoading && primaryDisplayUnit ? (
           <Text
-            accessible={!onPress}
+            accessible={false}
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
@@ -243,7 +254,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               // as one button.
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={displayToggleAccessibilityLabel}
+                accessibilityLabel={secondaryToggleAccessibilityLabel}
                 testID={displayToggleTestID}
                 onPress={onDisplayToggle}
                 hitSlop={8}
@@ -256,6 +267,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               >
                 <Text
                   accessible={false}
+                  testID={PerpsAmountDisplaySelectorsIDs.SECONDARY_LABEL}
                   variant={TextVariant.BodySm}
                   color={TextColor.TextDefault}
                   fontWeight={FontWeight.Medium}
@@ -271,6 +283,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
                   <Box accessible={false} twClassName="h-6 w-6" />
                 ) : null}
                 <Text
+                  testID={PerpsAmountDisplaySelectorsIDs.SECONDARY_LABEL}
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}

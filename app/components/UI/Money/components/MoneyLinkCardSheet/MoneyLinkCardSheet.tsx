@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
@@ -42,6 +41,8 @@ import {
   CardScreens,
   withCardProvider,
 } from '../../../Card/util/metrics';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface MoneyLinkCardSheetRouteParams {
   entrypoint?: CardEntryPoint | string;
@@ -69,6 +70,7 @@ const fullWidthStyle: ViewStyle = { width: '100%' };
  * gesture / overlay tap) does nothing on-chain.
  */
 const MoneyLinkCardSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedViewRef = useRef(false);
   const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -220,7 +222,8 @@ const MoneyLinkCardSheet = () => {
       testID={MoneyLinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: MoneyLinkCardSheetTestIds.CLOSE_BUTTON }}
       />

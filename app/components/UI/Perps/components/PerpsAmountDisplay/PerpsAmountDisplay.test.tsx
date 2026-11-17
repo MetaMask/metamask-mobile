@@ -101,7 +101,7 @@ describe('PerpsAmountDisplay', () => {
       );
 
       // Assert
-      // There will be 2 elements: one in the main display and one in the token amount section
+      // The amount and the max row are separate nodes that show the same value.
       expect(
         screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
       ).toHaveTextContent(`${tokenAmount} ${tokenSymbol}`);
@@ -179,23 +179,59 @@ describe('PerpsAmountDisplay', () => {
       ).toBeOnTheScreen();
     });
 
-    it('includes the asset unit in the accessible trade sheet button label', () => {
+    it('announces the displayed token size instead of the caller label', () => {
       render(
         <PerpsAmountDisplay
-          amount="1000"
+          amount="10"
           tokenAmount="0.5"
           tokenSymbol="ETH"
           showTokenAmount
           variant="tradeSheet"
           onPress={jest.fn()}
-          accessibilityLabel="Order amount, 0.5"
+          accessibilityLabel="Order amount, 10"
+        />,
+      );
+
+      expect(screen.getByRole('button', { name: '0.5 ETH' })).toBeOnTheScreen();
+      expect(
+        screen.queryByRole('button', { name: 'Order amount, 10 ETH' }),
+      ).toBeNull();
+      expect(screen.queryByRole('text', { name: '0.5' })).toBeNull();
+    });
+
+    it('announces the displayed token size for a generic amount action', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="4500"
+          tokenAmount="1.5"
+          tokenSymbol="ETH"
+          showTokenAmount
+          variant="tradeSheet"
+          accessibilityLabel="Select amount to close"
+        />,
+      );
+
+      expect(screen.getByRole('text', { name: '1.5 ETH' })).toBeOnTheScreen();
+      expect(
+        screen.queryByRole('text', { name: 'Select amount to close ETH' }),
+      ).toBeNull();
+    });
+
+    it('keeps the caller label when the trade sheet shows fiat', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          variant="tradeSheet"
+          onPress={jest.fn()}
+          accessibilityLabel="Order amount, 1000"
         />,
       );
 
       expect(
-        screen.getByRole('button', { name: 'Order amount, 0.5 ETH' }),
+        screen.getByRole('button', { name: 'Order amount, 1000' }),
       ).toBeOnTheScreen();
-      expect(screen.queryByRole('text', { name: '0.5' })).toBeNull();
     });
 
     it('switches between fiat and asset values in the trade sheet', () => {
@@ -371,10 +407,12 @@ describe('PerpsAmountDisplay', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        within(screen.getByTestId('amount-toggle')).getByText('0.5 ETH'),
-      ).toBeOnTheScreen();
+        within(screen.getByTestId('amount-toggle')).getByTestId(
+          PerpsAmountDisplaySelectorsIDs.SECONDARY_LABEL,
+        ),
+      ).toHaveTextContent('0.5 ETH');
       expect(
-        screen.getByRole('button', { name: 'Show asset value' }),
+        screen.getByRole('button', { name: '0.5 ETH, Show asset value' }),
       ).toBeOnTheScreen();
     });
 
