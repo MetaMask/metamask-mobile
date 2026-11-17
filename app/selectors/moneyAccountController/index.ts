@@ -42,8 +42,7 @@ const findSfaMoneyAccount = (
   if (!primaryKeyringId) {
     return undefined;
   }
-  // MPC-backed money accounts have no entropy source ID, so they can never
-  // be the primary (SRP-derived) money account.
+  // MPC-backed money accounts have no entropy source ID.
   return Object.values(moneyAccounts).find(
     (account) =>
       isMnemonicMoneyAccount(account) &&
