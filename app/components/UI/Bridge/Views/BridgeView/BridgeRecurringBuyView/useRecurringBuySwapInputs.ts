@@ -21,10 +21,12 @@ import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../../../hooks/useIsNetworkGasSponsored';
+import { useLiveTokenFiatRate } from '../../../hooks/useLiveTokenFiatRate';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { useEnsureSameChainDestToken } from '../../../hooks/useEnsureSameChainDestToken';
 
 export const useRecurringBuySwapInputs = () => {
   const dispatch = useDispatch();
@@ -43,6 +45,8 @@ export const useRecurringBuySwapInputs = () => {
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
   );
 
+  useEnsureSameChainDestToken({ sourceToken, destToken });
+
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
       dispatch(setSourceAmount(value));
@@ -50,10 +54,14 @@ export const useRecurringBuySwapInputs = () => {
     [dispatch],
   );
 
+  // The API checks the order minimum at the live rate, so a fiat amount is
+  // converted at that same rate for the amount entered to be the one checked.
+  const sourceTokenFiatRate = useLiveTokenFiatRate(sourceToken);
   const sourceAmountInput = useSourceAmountInput({
     isFiatToggleEnabled,
     sourceAmount,
     sourceToken,
+    tokenFiatRate: sourceTokenFiatRate,
     onSourceAmountChange: handleSourceAmountChange,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;

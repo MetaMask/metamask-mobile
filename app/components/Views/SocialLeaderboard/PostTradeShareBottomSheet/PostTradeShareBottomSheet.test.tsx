@@ -112,6 +112,32 @@ describe('PostTradeShareBottomSheet', () => {
     );
   });
 
+  it.each([
+    ['pending', 'social_leaderboard.post_trade_share.close_in_progress'],
+    ['complete', 'social_leaderboard.post_trade_share.position_closed'],
+    ['failed', 'social_leaderboard.post_trade_share.close_failed'],
+  ] as const)('shows the %s title for a perps close', (status, title) => {
+    beginPostTradeShareSession({
+      product: 'perps',
+      status,
+      orderId: status === 'complete' ? '42' : undefined,
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+        action: 'close',
+      },
+    });
+
+    renderWithProvider(<PostTradeShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent(title);
+  });
+
   describe('View activity', () => {
     it('opens wallet activity for a swap', () => {
       beginPostTradeShareSession({

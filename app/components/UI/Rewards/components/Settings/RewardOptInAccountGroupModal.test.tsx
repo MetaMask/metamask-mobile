@@ -11,6 +11,13 @@ import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selec
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 // Mock dependencies
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),

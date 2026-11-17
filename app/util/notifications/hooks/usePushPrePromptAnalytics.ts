@@ -47,7 +47,8 @@ const osPromptButtonTypeByResponse: Record<
 };
 
 export function usePushPrePromptAnalytics() {
-  const { createEventBuilder, identify, trackEvent } = useAnalytics();
+  const { createEventBuilder, identify, trackEvent, isEnabled } =
+    useAnalytics();
 
   const trackPrePromptViewed = useCallback(
     (_variant: PushPrePromptAnalyticsVariant) => {
@@ -107,11 +108,15 @@ export function usePushPrePromptAnalytics() {
 
   const identifyMarketingConsent = useCallback(
     async (enabled: boolean) => {
+      if (!isEnabled()) {
+        return;
+      }
+
       await identify({
         [UserProfileProperty.HAS_MARKETING_CONSENT]: enabled,
       });
     },
-    [identify],
+    [identify, isEnabled],
   );
 
   const identifyPushNotificationsEnabled = useCallback(

@@ -72,6 +72,7 @@ const propertySetters = new Map<string, jest.Mock>();
 const propertyValues = new Map<string, unknown>();
 const propertyListeners = new Map<string, Set<(value: unknown) => void>>();
 const triggerCallbacks = new Map<string, Set<() => void>>();
+const unavailableProperties = new Set<string>();
 
 export const __getLastRiveViewMethods = (): RiveViewMethodsMock | undefined =>
   lastRiveViewMethods;
@@ -83,6 +84,31 @@ export const __getRivePropertySetter = (path: string): jest.Mock => {
     propertySetters.set(path, setter);
   }
   return setter;
+};
+
+const createMockViewModelProperty = (path: string) => ({
+  set: __getRivePropertySetter(path),
+  addListener: (listener: (value: unknown) => void) => {
+    let listeners = propertyListeners.get(path);
+    if (!listeners) {
+      listeners = new Set();
+      propertyListeners.set(path, listeners);
+    }
+    listeners.add(listener);
+    return () => listeners?.delete(listener);
+  },
+  removeListeners: () => propertyListeners.delete(path),
+});
+
+export const __setRivePropertyAvailability = (
+  path: string,
+  available: boolean,
+): void => {
+  if (available) {
+    unavailableProperties.delete(path);
+  } else {
+    unavailableProperties.add(path);
+  }
 };
 
 export const __setRivePropertyValue = <T,>(path: string, value: T): void => {
@@ -110,6 +136,7 @@ export const __resetRiveMocks = (): void => {
   propertyValues.clear();
   propertyListeners.clear();
   triggerCallbacks.clear();
+  unavailableProperties.clear();
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
@@ -161,8 +188,16 @@ const MOCK_VIEW_MODEL_INSTANCE = {
   imageProperty: () => ({ set: __mockRiveImagePropertySet }),
   // Money home tilt and reveal bind these on mount. A missing method throws
   // before the screen can render in component-view tests.
-  numberProperty: () => ({ value: 0, set: jest.fn() }),
-  triggerProperty: () => ({ trigger: jest.fn() }),
+  // numberProperty: () => ({ value: 0, set: jest.fn() }),
+  // triggerProperty: () => ({ trigger: jest.fn() }),
+  numberProperty: (path: string) =>
+    unavailableProperties.has(path)
+      ? undefined
+      : createMockViewModelProperty(path),
+  booleanProperty: (path: string) =>
+    unavailableProperties.has(path)
+      ? undefined
+      : createMockViewModelProperty(path),
 };
 
 const MOCK_RIVE_IMAGE = { byteSize: 1 };

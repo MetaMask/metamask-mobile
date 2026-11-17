@@ -308,7 +308,7 @@ describe('PushNotificationOnboarding', () => {
     expect(mockOnComplete).not.toHaveBeenCalled();
   });
 
-  it('requests OS permission, grants marketing consent, and starts background setup with push when Yes is pressed', async () => {
+  it('requests OS permission, leaves marketing consent untouched, and starts background setup with push when Yes is pressed', async () => {
     mockRequestPushPermission.mockResolvedValue(true);
     const { getByTestId } = renderPushNotificationOnboarding();
 
@@ -318,7 +318,7 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
-    expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+    expect(mockEnableMarketingConsent).not.toHaveBeenCalled();
     expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
     expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
@@ -336,7 +336,7 @@ describe('PushNotificationOnboarding', () => {
       mockEnableNotificationsInBackground.mock.invocationCallOrder[0],
     );
     expect(mockOnUserAnswered.mock.invocationCallOrder[0]).toBeLessThan(
-      mockEnableMarketingConsent.mock.invocationCallOrder[0],
+      mockEnableNotificationsInBackground.mock.invocationCallOrder[0],
     );
   });
 
@@ -349,7 +349,7 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
-    expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+    expect(mockEnableMarketingConsent).not.toHaveBeenCalled();
     expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false);
     expect(mockTrackOsPromptResponse).toHaveBeenCalledWith(
       'push_permission',
@@ -371,7 +371,7 @@ describe('PushNotificationOnboarding', () => {
       await waitFor(() => {
         expect(mockOnComplete).toHaveBeenCalledWith('engage');
       });
-      expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+      expect(mockEnableMarketingConsent).not.toHaveBeenCalled();
       expect(mockRequestPushPermission).not.toHaveBeenCalled();
       expect(mockTrackOsPromptShown).not.toHaveBeenCalled();
       expect(mockTrackOsPromptResponse).not.toHaveBeenCalled();
@@ -412,7 +412,7 @@ describe('PushNotificationOnboarding', () => {
       expect(mockTrackOsPromptResponse).not.toHaveBeenCalled();
     });
 
-    it('still grants marketing consent and initializes preferences without push', async () => {
+    it('initializes preferences without push and leaves marketing consent untouched', async () => {
       const { getByTestId } = renderPushNotificationOnboarding();
 
       fireEvent.press(getByTestId('mock-push-permission-yes'));
@@ -420,7 +420,7 @@ describe('PushNotificationOnboarding', () => {
       await waitFor(() => {
         expect(mockOnComplete).toHaveBeenCalledWith('engage');
       });
-      expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+      expect(mockEnableMarketingConsent).not.toHaveBeenCalled();
       expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false);
       expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(false);
     });
@@ -553,7 +553,7 @@ describe('PushNotificationOnboarding', () => {
     expect(mockTrackOsPromptShown).not.toHaveBeenCalled();
     expect(mockTrackOsPromptResponse).not.toHaveBeenCalled();
     expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(true);
-    expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+    expect(mockEnableMarketingConsent).not.toHaveBeenCalled();
     expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
     expectNotificationsOnToast();
   });

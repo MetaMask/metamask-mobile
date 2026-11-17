@@ -465,7 +465,7 @@ const RewardsDashboard: React.FC = () => {
                     strings('rewards.onboarding.description'),
                   invitedOptInAction:
                     referralMe?.localized_text.invitedOptInAction ||
-                    strings('rewards.campaign.opt_in'),
+                    strings('rewards.campaign.opt_in_cta'),
                   invitedOptInLegal:
                     referralMe?.localized_text.invitedOptInLegal,
                 }}

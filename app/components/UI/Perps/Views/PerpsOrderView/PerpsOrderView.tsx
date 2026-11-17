@@ -12,7 +12,6 @@ import type {
 import React, {
   useCallback,
   useEffect,
-  useEffectEvent,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -247,7 +246,10 @@ import {
   openPerpsPostTradeShareSession,
 } from '../../utils/perpsPostTradeShare';
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
-import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import {
+  useCanShareCopyTrade,
+  usePostTradePromptResolver,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { getSocialEventSource } from '../../../../Views/SocialLeaderboard/analytics/socialEvents';
 import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import {
@@ -541,6 +543,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     undefined,
   );
   const resolvePostTradePrompt = usePostTradePromptResolver();
+  const canShareCopyTrade = useCanShareCopyTrade();
   const isPerpsProModeActive = useIsPerpsProModeActive();
   // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
   // stay-on-screen submit that already `goBack`'d is not popped again.
@@ -1803,28 +1806,32 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     track,
   ]);
 
-  // Clamp amount to the maximum allowed once the keypad/input is dismissed
-  // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
-  // Reads the latest amount and max without re-running on them: re-clamping on
-  // every WebSocket update would overwrite the user's input.
-  const clampKeypadAmount = useEffectEvent(() => {
+  // Clamp amount to the maximum allowed once the keypad/input is dismissed.
+  // maxPossibleAmount from context respects selected token amount in USD when paying with custom token.
+  // Only clamp on the focused -> unfocused transition: re-clamping on every
+  // WebSocket update would overwrite the user's input.
+  // Note: this intentionally does not use `useEffectEvent`. This component is
+  // wrapped in `React.memo`, and the React Native renderer only refreshes
+  // effect-event callbacks for plain function components, so the callback kept
+  // the mount-time closure (amount and max = 0 before the account loaded) and
+  // reset any typed amount to 0 on keypad Done.
+  const wasInputFocusedRef = useRef(isInputFocused);
+  useEffect(() => {
+    const didCloseInput = wasInputFocusedRef.current && !isInputFocused;
+    wasInputFocusedRef.current = isInputFocused;
     // Only clamp if input was from keypad (not from percentage/slider/max)
     // This prevents overwriting intentional user selections from other input methods
-    if (inputMethodRef.current === 'keypad') {
-      const currentAmount = parseFloat(orderForm.amount || '0');
+    if (!didCloseInput || inputMethodRef.current !== 'keypad') {
+      return;
+    }
+    const currentAmount = parseFloat(orderForm.amount || '0');
 
-      // If user-entered amount exceeds the max purchasable with current balance/leverage,
-      // snap it down to the maximum once input is closed.
-      if (currentAmount > maxPossibleAmount) {
-        commitAmount(String(maxPossibleAmount));
-      }
+    // If user-entered amount exceeds the max purchasable with current balance/leverage,
+    // snap it down to the maximum once input is closed.
+    if (currentAmount > maxPossibleAmount) {
+      commitAmount(String(maxPossibleAmount));
     }
-  });
-  useEffect(() => {
-    if (!isInputFocused) {
-      clampKeypadAmount();
-    }
-  }, [isInputFocused]);
+  }, [isInputFocused, orderForm.amount, maxPossibleAmount, commitAmount]);
 
   const { handleDepositConfirm } = usePerpsOrderDepositTracking();
 
@@ -2140,6 +2147,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // dismisses back to the presenting screen. A Social V1 copy-trade that
         // can return an order id shows the share sheet instead of these toasts.
         perpsShareSessionIdRef.current = beginPerpsPostTradeShare({
+          canShare: canShareCopyTrade(),
           copyTradeOrigin,
           orderType: orderForm.type,
           activeProvider: activePerpsProvider,
@@ -2309,6 +2317,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       activePerpsProvider,
       isPerpsProModeActive,
       resolvePostTradePrompt,
+      canShareCopyTrade,
       positionSize,
       effectivePrice,
       assetData.price,
