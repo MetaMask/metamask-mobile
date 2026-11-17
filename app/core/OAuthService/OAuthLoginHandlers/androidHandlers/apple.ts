@@ -13,6 +13,20 @@ import {
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
 
+/**
+ * Successful Android Apple browser result.
+ * expo-auth-session types success and error as one member
+ * (`type: 'error' | 'success'`), so Extract on `{ type: 'success' }` is `never`.
+ */
+type AppleAuthorizationSuccess = Extract<
+  AuthSessionResult,
+  { params: Record<string, string> }
+> & { type: 'success' };
+
+const isAppleAuthorizationSuccess = (
+  result: AuthSessionResult,
+): result is AppleAuthorizationSuccess => result.type === 'success';
+
 export interface AndroidAppleLoginHandlerParams extends BaseHandlerOptions {
   clientId: string;
   appRedirectUri: string;
@@ -113,7 +127,7 @@ export class AndroidAppleLoginHandler
    */
   async #promptAppleAuthorization(
     challenge: string,
-  ): Promise<Extract<AuthSessionResult, { type: 'success' }>> {
+  ): Promise<AppleAuthorizationSuccess> {
     const state = JSON.stringify({
       provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
@@ -138,7 +152,7 @@ export class AndroidAppleLoginHandler
       authorizationEndpoint: this.OAUTH_SERVER_URL,
     });
 
-    if (result.type === 'success') {
+    if (isAppleAuthorizationSuccess(result)) {
       return result;
     }
     if (result.type === 'error') {
