@@ -43,7 +43,7 @@ import type {
   RootExtendedMessenger,
 } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
-import * as predictClusterUrls from '../../../components/UI/PredictNext/config/predictClusterUrls';
+import { getPredictApiUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import { store } from '../../../store';
 import {
   predictFundingServiceInit,
@@ -52,6 +52,16 @@ import {
   predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
+
+jest.mock(
+  '../../../components/UI/PredictNext/config/predictClusterUrls',
+  () => {
+    const actual = jest.requireActual(
+      '../../../components/UI/PredictNext/config/predictClusterUrls',
+    );
+    return { ...actual, getPredictApiUrl: jest.fn(actual.getPredictApiUrl) };
+  },
+);
 
 jest.mock('../../../store', () => ({
   store: { subscribe: jest.fn() },
@@ -230,8 +240,8 @@ describe('Predict service initialization', () => {
 
   it('sends deposit calls to the cluster-aware Predict API URL', async () => {
     jest
-      .spyOn(predictClusterUrls, 'getPredictApiUrl')
-      .mockReturnValue('https://predict.example');
+      .mocked(getPredictApiUrl)
+      .mockReturnValueOnce('https://predict.example');
     const fetchSpy = jest
       .spyOn(global, 'fetch')
       .mockRejectedValue(new Error('offline'));
