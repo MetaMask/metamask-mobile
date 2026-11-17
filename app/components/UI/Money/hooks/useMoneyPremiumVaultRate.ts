@@ -52,8 +52,8 @@ interface UseMoneyPremiumVaultRateResult {
  * address comes from the primary Money account.
  *
  * @param options - Optional enable flag and fallback vault. `enabled` defaults
- * to true. When false the positions query does not run, even if an account and
- * vault address exist.
+ * to true. When false the positions query does not run, even if an account
+ * exists.
  * @returns The positions query, the raw APY decimal, and the APY as a percentage.
  */
 const useMoneyPremiumVaultRate = ({
@@ -66,7 +66,7 @@ const useMoneyPremiumVaultRate = ({
   const address = primaryMoneyAccount?.address?.toLowerCase();
   const vaultAddress =
     readVaultAddress(plusSubscription?.paymentMethod) ?? fallbackVaultAddress;
-  const isEnabled = Boolean(enabled && address && vaultAddress);
+  const isEnabled = Boolean(enabled && address);
 
   const vaultRateQuery = useQuery({
     queryKey: [

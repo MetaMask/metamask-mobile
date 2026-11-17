@@ -111,22 +111,15 @@ describe('useMoneyPremiumVaultRate', () => {
     });
   });
 
-  it.each([
-    ['money account address', { address: '' }],
-    ['subscription token address', { tokenAddress: '' }],
-    ['crypto payment method', { paymentType: 'card' as const }],
-  ])(
-    'disables the positions query without a %s',
-    (_label, selectorOverrides) => {
-      setSelectors(selectorOverrides);
+  it('disables the positions query without a money account address', () => {
+    setSelectors({ address: '' });
 
-      renderHook(() => useMoneyPremiumVaultRate());
+    renderHook(() => useMoneyPremiumVaultRate());
 
-      expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
-      );
-    },
-  );
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
 
   it('returns the premium position APY as a one-decimal percentage', () => {
     mockPositions([
@@ -223,7 +216,7 @@ describe('useMoneyPremiumVaultRate', () => {
     const { result } = renderHook(() => useMoneyPremiumVaultRate());
 
     expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
+      expect.objectContaining({ enabled: true }),
     );
     expect(result.current.rate).toBe('0.08');
     expect(result.current.ratePercentFormatted).toBe('8%');
