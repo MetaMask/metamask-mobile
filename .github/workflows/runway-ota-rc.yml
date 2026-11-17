@@ -54,6 +54,7 @@ jobs:
     needs: [resolve-context, validate-ota-pr]
     permissions:
       contents: read
+      pull-requests: read # requested by the production-only approval job in push-eas-update.yml
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
       attestations: write # OTA bundle attestation in eas-update-platform.yml
     uses: ./.github/workflows/push-eas-update.yml

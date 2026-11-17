@@ -25,7 +25,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useMfa } from '../../../../util/identity/mfa';
 import { useTheme } from '../../../../util/theme';
 import { getActivePasskeys } from '../credentials';
-import { getAddedOn, getPasskeyName } from '../labels';
+import { getLastUsedLine, getPasskeyName } from '../labels';
 import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
@@ -81,7 +81,7 @@ const MfaPasskeys = () => {
             isInteractive
             avatar={<AvatarIcon iconName={IconName.Key} />}
             title={getPasskeyName(passkey, index)}
-            description={getAddedOn(passkey)}
+            description={getLastUsedLine(passkey)}
             endAccessory={
               <Icon
                 name={IconName.ArrowRight}

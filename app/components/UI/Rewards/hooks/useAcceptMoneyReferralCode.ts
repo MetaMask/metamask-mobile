@@ -1,16 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
-import { useReferralMe, type FetchReferralMeResult } from './useReferralMe';
-import {
-  MONEY_REFERRAL_CODE_UNKNOWN_ERROR,
-  useValidateMoneyReferralCode,
-} from './useValidateMoneyReferralCode';
-import { normalizeMoneyReferralCode } from '../utils/moneyReferralCode';
+import { useRegisterMoneyReferee } from './useRegisterMoneyReferee';
+
+export { MAX_REFERRAL_ME_REFRESH_ATTEMPTS } from './useRegisterMoneyReferee';
 
 /**
  * Substrings the API uses on the refusals a 403 can carry. The status alone
@@ -35,13 +31,6 @@ export type ReferralRefusalReason =
   | 'restricted_country'
   | 'rate_limited'
   | 'registration_failed';
-
-/**
- * A refresh discarded because the session changed is retried under the new
- * identity rather than reported: the registration itself already succeeded.
- * Bounded so a session flipping repeatedly cannot spin here.
- */
-export const MAX_REFERRAL_ME_REFRESH_ATTEMPTS = 3;
 
 /** Maps a refused registration onto the analytics reason for that failure. */
 export function getRegisterRefereeRefusalReason(
@@ -116,30 +105,6 @@ function rateLimitWaitSeconds(error: unknown): number | undefined {
   return error.retryAfterSeconds;
 }
 
-/**
- * Reads referral me back with `forceFresh`, retrying while the session
- * changes mid-read. The caller does not act on the result — a failed or
- * discarded read still lets the accepted splash open — so this reports
- * nothing back; it only drives `fetchReferralMe` enough times to land one
- * settled read under whichever identity is current when it stops retrying.
- */
-async function refreshReferralMeWithRetries(
-  fetchReferralMe: (options?: {
-    forceFresh?: boolean;
-  }) => Promise<FetchReferralMeResult>,
-): Promise<void> {
-  for (
-    let attempt = 0;
-    attempt < MAX_REFERRAL_ME_REFRESH_ATTEMPTS;
-    attempt += 1
-  ) {
-    const result = await fetchReferralMe({ forceFresh: true });
-    if (result.status === 'settled') {
-      return;
-    }
-  }
-}
-
 function acceptAlreadyRunning(
   isAccepting: boolean,
   rateLimitUntil: number | null,
@@ -154,31 +119,6 @@ function runIfMounted(isMounted: boolean, update: () => void): void {
   if (isMounted) {
     update();
   }
-}
-
-type ValidationOutcome =
-  | { kind: 'thrown'; error: unknown }
-  | { kind: 'invalid'; message: string }
-  | { kind: 'unknown' }
-  | { kind: 'ok' };
-
-async function validationOutcome(
-  validateCode: (code: string) => Promise<string>,
-  code: string,
-): Promise<ValidationOutcome> {
-  let validationError: string;
-  try {
-    validationError = await validateCode(code);
-  } catch (error) {
-    return { kind: 'thrown', error };
-  }
-  if (!validationError) {
-    return { kind: 'ok' };
-  }
-  if (validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR) {
-    return { kind: 'unknown' };
-  }
-  return { kind: 'invalid', message: validationError };
 }
 
 function openAcceptedSplash(
@@ -245,8 +185,7 @@ export interface UseAcceptMoneyReferralCodeResult {
 /**
  * Accepts a Rewards Money referral invite.
  *
- * Validation runs first so a malformed or unknown code never reaches
- * `POST /wr/referral/referee`. A refusal keeps the sheet open and writes the
+ * Registration is {@link useRegisterMoneyReferee}. A refusal keeps the sheet open and writes the
  * reason onto {@link UseAcceptMoneyReferralCodeResult.errorMessage}; a
  * successful registration opens the accepted splash. When the sheet is still
  * mounted it is dismissed first. When it has already closed, the splash is
@@ -257,8 +196,7 @@ export interface UseAcceptMoneyReferralCodeResult {
 export const useAcceptMoneyReferralCode =
   (): UseAcceptMoneyReferralCodeResult => {
     const navigation = useNavigation<AppNavigationProp>();
-    const { validateCode } = useValidateMoneyReferralCode();
-    const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
+    const registerReferee = useRegisterMoneyReferee();
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [refusalReason, setRefusalReason] =
@@ -326,11 +264,6 @@ export const useAcceptMoneyReferralCode =
       return () => clearTimeout(timer);
     }, [acceptBlockedUntil]);
 
-    const refreshReferralMe = useCallback(
-      () => refreshReferralMeWithRetries(fetchReferralMe),
-      [fetchReferralMe],
-    );
-
     const acceptReferralCode = useCallback(
       async (
         code: string,
@@ -352,39 +285,19 @@ export const useAcceptMoneyReferralCode =
             setErrorMessage('');
             setRefusalReason(null);
           });
-          const validation = await validationOutcome(validateCode, code);
-          if (validation.kind === 'thrown') {
-            const refusal = isMountedRef.current
-              ? noteRefusal(validation.error)
-              : getRegisterRefereeRefusalReason(validation.error);
-            return { accepted: false, refusalReason: refusal };
-          }
-          if (validation.kind === 'invalid') {
+          const result = await registerReferee(code);
+          if (result.status === 'invalid') {
             runIfMounted(isMountedRef.current, () => {
-              setErrorMessage(validation.message);
+              setErrorMessage(result.message);
               setRefusalReason('invalid_code');
             });
             return { accepted: false, refusalReason: 'invalid_code' };
           }
-
-          // An unknown validate result could not reach the server. Register is
-          // the authority, matching extension.
-          try {
-            await Engine.controllerMessenger.call(
-              'RewardsMoneyController:registerReferee',
-              { code: normalizeMoneyReferralCode(code) },
-            );
-          } catch (error) {
+          if (result.status === 'refused') {
             const refusal = isMountedRef.current
-              ? noteRefusal(error)
-              : getRegisterRefereeRefusalReason(error);
+              ? noteRefusal(result.error)
+              : getRegisterRefereeRefusalReason(result.error);
             return { accepted: false, refusalReason: refusal };
-          }
-
-          try {
-            await refreshReferralMe();
-          } catch {
-            // A failed read does not block the splash.
           }
 
           // Registration already succeeded. Open the splash either way: a
@@ -400,7 +313,7 @@ export const useAcceptMoneyReferralCode =
           runIfMounted(isMountedRef.current, () => setIsLoading(false));
         }
       },
-      [navigation, noteRefusal, refreshReferralMe, validateCode],
+      [navigation, noteRefusal, registerReferee],
     );
 
     return {

@@ -9,8 +9,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
-  CURRENT_APP_VERSION,
-  LAST_APP_VERSION,
 } from '../../../constants/storage';
 import {
   NavigationContainer,
@@ -21,6 +19,8 @@ import configureMockStore from 'redux-mock-store';
 import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import { UIMessengerProvider } from '../../../contexts/ui-messenger';
+import { createMockUIMessenger } from '../../../util/test/mock-ui-messenger';
 import { View as MockView } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
@@ -753,72 +753,6 @@ describe('App', () => {
     });
   });
 
-  describe('App version handling', () => {
-    it('should handle version storage operations', async () => {
-      const getItemSpy = jest
-        .spyOn(StorageWrapper, 'getItem')
-        .mockResolvedValue(null);
-
-      const mockStore = configureMockStore();
-      const store = mockStore(initialState);
-
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      render(<App />, { wrapper: Providers });
-
-      // Flush startApp's microtasks. Avoid waitFor here: this suite uses fake
-      // timers and testSetup freezes Date.now, so waitFor's timeout never
-      // elapses and a delayed getItem call hangs until Jest's test timeout.
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(getItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION);
-      getItemSpy.mockRestore();
-    });
-  });
-
-  describe('App version handling branches', () => {
-    const renderAppForVersionTest = (state: DeepPartial<RootState>) => {
-      const mockStoreCreator = configureMockStore();
-      const store = mockStoreCreator(state);
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-      return render(<App />, { wrapper: Providers });
-    };
-
-    it('handles errors in startApp gracefully', async () => {
-      const getItemSpy = jest
-        .spyOn(StorageWrapper, 'getItem')
-        .mockRejectedValue(new Error('Storage error'));
-
-      renderAppForVersionTest(initialState);
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(getItemSpy).toHaveBeenCalled();
-
-      getItemSpy.mockRestore();
-    });
-  });
-
   describe('AppFlow navigation structure', () => {
     const renderAppWithDefaultState = (
       routeState: PartialState<NavigationState>,
@@ -1501,138 +1435,6 @@ describe('App', () => {
     });
   });
 
-  describe('Version handling - detailed branches', () => {
-    const renderAppWithExistingUser = (existingUser: boolean) => {
-      const mockStore = configureMockStore();
-      const state: DeepPartial<RootState> = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser,
-        },
-      };
-      const store = mockStore(state);
-
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      return render(<App />, { wrapper: Providers });
-    };
-
-    it('saves last and current version when currentVersion differs from savedVersion', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return '0.9.0';
-        if (key === LAST_APP_VERSION) return '0.8.0';
-        return null;
-      });
-
-      renderAppWithExistingUser(false);
-
-      await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '0.9.0');
-        expect(setItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
-      });
-
-      setItemSpy.mockRestore();
-    });
-
-    it('saves only current version when savedVersion is null', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return null;
-        if (key === LAST_APP_VERSION) return null;
-        return null;
-      });
-
-      renderAppWithExistingUser(false);
-
-      await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
-        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '1.0.0');
-      });
-
-      setItemSpy.mockRestore();
-    });
-
-    it('sets lastVersion to 0.0.1 when existingUser is true and lastVersion is missing', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return '1.0.0';
-        if (key === LAST_APP_VERSION) return null;
-        return null;
-      });
-
-      renderAppWithExistingUser(true);
-
-      await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '0.0.1');
-      });
-
-      setItemSpy.mockRestore();
-    });
-
-    it('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return '1.0.0';
-        if (key === LAST_APP_VERSION) return null;
-        return null;
-      });
-
-      renderAppWithExistingUser(false);
-
-      await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '1.0.0');
-      });
-
-      setItemSpy.mockRestore();
-    });
-
-    it('does not overwrite versions when currentVersion matches savedVersion', async () => {
-      const setItemSpy = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === CURRENT_APP_VERSION) return '1.0.0';
-        if (key === LAST_APP_VERSION) return '0.9.0';
-        return null;
-      });
-
-      renderAppWithExistingUser(false);
-
-      await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalled();
-      });
-
-      expect(setItemSpy).not.toHaveBeenCalledWith(
-        CURRENT_APP_VERSION,
-        expect.anything(),
-      );
-      expect(setItemSpy).not.toHaveBeenCalledWith(
-        LAST_APP_VERSION,
-        expect.anything(),
-      );
-
-      setItemSpy.mockRestore();
-    });
-  });
-
   describe('Seedless password check interval', () => {
     beforeEach(() => {
       mockCheckIsSeedlessPasswordOutdated
@@ -2161,16 +1963,77 @@ describe('App', () => {
       });
     });
 
-    it('renders the RevealPrivateCredential screen', async () => {
+    it('presents RevealPrivateCredential above AppFlow sheets', async () => {
       const routeState = {
-        index: 0,
-        routes: [{ name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL }],
+        index: 1,
+        routes: [
+          { name: Routes.FOX_LOADER },
+          { name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL },
+        ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { UNSAFE_root } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(
+          UNSAFE_root.findAll(
+            (node) =>
+              node.props.stackPresentation === 'fullScreenModal' &&
+              node.props.stackAnimation === 'slide_from_right',
+          ),
+        ).not.toHaveLength(0);
+      });
+    });
+
+    it('registers the simple webview on AppFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.WEBVIEW.MAIN,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.WEBVIEW.SIMPLE }],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-webview')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers the QR tab switcher on AppFlow', async () => {
+      const routeState = {
+        index: 1,
+        routes: [{ name: Routes.FOX_LOADER }, { name: Routes.QR_TAB_SWITCHER }],
+      };
+      const store = configureMockStore()(initialState);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <UIMessengerProvider value={createMockUIMessenger()}>
+              <ThemeContext.Provider value={mockTheme}>
+                {children}
+              </ThemeContext.Provider>
+            </UIMessengerProvider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      const { UNSAFE_root } = render(<App />, { wrapper: Providers });
+
+      await waitFor(() => {
+        expect(
+          UNSAFE_root.findAll(
+            (node) =>
+              node.props.stackPresentation === 'push' &&
+              node.props.stackAnimation === 'slide_from_bottom',
+          ),
+        ).not.toHaveLength(0);
       });
     });
 

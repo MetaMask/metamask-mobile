@@ -1,6 +1,7 @@
 import type { PerpsFeeDiscountKind } from '../../../../utils/feeDiscount';
 import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
+import type { TagSeverity } from '@metamask/design-system-react-native';
 import type { View } from 'react-native';
 
 export interface ScaleOrderRung {
@@ -144,6 +145,8 @@ export interface PerpsProOrderFormProps {
   isOrderBookCollapsed?: boolean;
   onExpandOrderBook?: () => void;
   marginModeLabel: string;
+  /** Optional tag next to the margin mode label, e.g. the cross margin ratio. */
+  marginModeTag?: { label: string; severity: TagSeverity };
   /** Called when the user taps the Isolated margin-mode chip. */
   onMarginModePress?: () => void;
   leverageLabel: string;

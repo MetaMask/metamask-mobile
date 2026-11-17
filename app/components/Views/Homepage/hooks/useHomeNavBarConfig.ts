@@ -2,10 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useABTest } from '../../../../hooks';
 import { selectInterimHeaderNavBarEnabled } from '../../../../selectors/featureFlagController/interimHeaderNavBar';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_VARIANTS,
-} from '../../../../constants/socialV1';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
 import {
   HEADER_NAV_BAR_AB_KEY,
   HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
@@ -55,12 +52,7 @@ export const useHomeNavBarConfig = ({
   trackExposure = false,
 }: { trackExposure?: boolean } = {}): HomeNavBarConfig => {
   const isInterim = useSelector(selectInterimHeaderNavBarEnabled);
-  const { variant: socialV1Variant } = useABTest(
-    SOCIAL_V1_AB_KEY,
-    SOCIAL_V1_VARIANTS,
-    { trackExposure: false },
-  );
-  const isSocialV1Enabled = socialV1Variant.useSocialV1;
+  const isSocialV1Enabled = useSelector(selectHasSocialV1Access);
   const { variant } = useABTest(
     HEADER_NAV_BAR_AB_KEY,
     HEADER_NAV_BAR_VARIANTS,

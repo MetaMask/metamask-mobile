@@ -329,21 +329,21 @@ export const selectIsCardHomeDataResolved = createSelector(
   selectCardHomeDataStatus,
   selectCardHomeData,
   selectIsCardAuthenticated,
-  selectIsCardholder,
-  (status, cardHomeData, isAuthenticated, isCardholder) =>
+  selectHasCard,
+  (status, cardHomeData, isAuthenticated, hasCard) =>
     status === 'success' ||
     cardHomeData !== null ||
-    (!isAuthenticated && !isCardholder),
+    (!isAuthenticated && !hasCard),
 );
 
 export const selectIsCardStateResolved = createSelector(
   selectIsCardHomeDataResolved,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
-  selectIsCardholder,
-  (homeDataResolved, verificationStatus, isAuthenticated, isCardholder) =>
+  selectHasCard,
+  (homeDataResolved, verificationStatus, isAuthenticated, hasCard) =>
     (homeDataResolved && (!isAuthenticated || verificationStatus !== null)) ||
-    (!isAuthenticated && !isCardholder),
+    (!isAuthenticated && !hasCard),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(

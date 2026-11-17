@@ -411,6 +411,20 @@ describe('KycPartnerTerms', () => {
     expect(openUrlSpy).toHaveBeenCalledWith('https://idos.example/terms');
   });
 
+  it('falls back to the idOS user agreement URL when the catalog has no terms document', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getByTestId } = renderScreen([IDOS_PRIVACY, SUMSUB_NOTICE]);
+
+    fireEvent.press(
+      getByTestId(KycPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK),
+    );
+    expect(openUrlSpy).toHaveBeenCalledWith(
+      'https://www.idos.network/legal/user-agreement',
+    );
+  });
+
   it('names the next step from whether the consent is on screen', () => {
     const { getByTestId } = renderScreen();
     const button = () => getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON);

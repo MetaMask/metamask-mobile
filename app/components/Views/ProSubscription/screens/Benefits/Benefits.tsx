@@ -43,6 +43,7 @@ import {
   type SelectedPlusPlan,
 } from './utils/getSelectedPlusPlan';
 import { useStartProSubscription } from '../../hooks/useStartProSubscription';
+import { isSubscriptionAlreadyStartingError } from '../../hooks/isSubscriptionAlreadyStartingError';
 import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
 import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
 
@@ -105,7 +106,7 @@ const Benefits = ({
 
   const canSelectPlans =
     !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
-  const isCtaDisabled = !canSelectPlans;
+  const isCtaDisabled = !canSelectPlans || isSubmitting;
 
   const handleBenefitPress = useCallback((id: string) => {
     setIsBenefitDetailSheetOpen(true);
@@ -139,7 +140,12 @@ const Benefits = ({
         return;
       }
       onSuccess(checkoutPlan);
-    } catch {
+    } catch (error) {
+      // A second tap rejects while the first checkout is still running.
+      // Treating that as a failure clears checkout and skips Success.
+      if (isSubscriptionAlreadyStartingError(error)) {
+        return;
+      }
       // The hook logs the failure and exposes localized error state.
       onCheckoutError();
     }
@@ -168,36 +174,41 @@ const Benefits = ({
       twClassName="flex-1 bg-background-default"
       testID={BenefitsTestIds.CONTAINER}
     >
-      {/* Header */}
-      <Box twClassName="px-4 py-2">
-        <Text
-          variant={TextVariant.HeadingLg}
-          twClassName="mb-2"
-          testID={BenefitsTestIds.TITLE}
-        >
-          {strings('pro_subscription.title')}
-        </Text>
-        {priceLine ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 flex-wrap"
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style('w-full')}
+      >
+        {/* Header */}
+        <Box twClassName="w-full px-4 py-2">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="mb-2 w-full"
+            testID={BenefitsTestIds.TITLE}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              testID={BenefitsTestIds.PRICE_LINE}
+            {strings('pro_subscription.title')}
+          </Text>
+          {priceLine ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="w-full gap-2 flex-wrap"
             >
-              {priceLine}
-            </Text>
-          </Box>
-        ) : null}
-      </Box>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="w-full"
+                testID={BenefitsTestIds.PRICE_LINE}
+              >
+                {priceLine}
+              </Text>
+            </Box>
+          ) : null}
+        </Box>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Benefits list */}
-        <Box twClassName="px-4 pb-2">
+        <Box twClassName="w-full px-4 pb-2">
           {BENEFITS.map((item) => (
             <BenefitRow
               key={item.id}
@@ -209,7 +220,6 @@ const Benefits = ({
         </Box>
       </ScrollView>
 
-      {/* Plan selector */}
       <Box twClassName="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
         {isLoading ? (
           <Box
@@ -297,6 +307,7 @@ const Benefits = ({
                 plan={plan}
                 copy={copy}
                 isSelected={resolvedPlan === plan.id}
+                isDisabled={isSubmitting}
                 onPress={handlePlanPress}
               />
             ))
