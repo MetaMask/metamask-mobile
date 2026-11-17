@@ -34,6 +34,7 @@ import {
 import {
   countSignificantFigures,
   hasExceededSignificantFigures,
+  PERPS_CONSTANTS,
   roundToSignificantFigures,
 } from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
@@ -72,26 +73,26 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 describe('formatUtils', () => {
   describe('formatFundingRate', () => {
-    it('displays zero display value when input is undefined', () => {
+    it('displays the missing-rate placeholder when input is undefined', () => {
       // Given an undefined funding rate value
       const value = undefined;
 
       // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      // Then it shows that the rate is unavailable
+      expect(result).toBe(PERPS_CONSTANTS.FallbackPercentageDisplay);
     });
 
-    it('displays zero display value when input is null', () => {
+    it('displays the missing-rate placeholder when input is null', () => {
       // Given a null funding rate value
       const value = null;
 
       // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      // Then it shows that the rate is unavailable
+      expect(result).toBe(PERPS_CONSTANTS.FallbackPercentageDisplay);
     });
 
     it('formats positive funding rate correctly', () => {
@@ -1346,10 +1347,10 @@ describe('formatUtils', () => {
       expect(formatPnl(-987654.32)).toBe('-$987,654.32');
     });
 
-    it('should handle invalid inputs', () => {
-      expect(formatPnl('invalid')).toBe('$0.00');
-      expect(formatPnl(NaN)).toBe('$0.00');
-      expect(formatPnl('')).toBe('$0.00');
+    it('returns the missing-value placeholder for non-numeric PnL', () => {
+      expect(formatPnl('invalid')).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+      expect(formatPnl(NaN)).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+      expect(formatPnl('')).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
     });
 
     it('should round to 2 decimal places', () => {
@@ -1375,10 +1376,16 @@ describe('formatUtils', () => {
       expect(formatPercentage(-99.999)).toBe('-100.00%');
     });
 
-    it('should handle invalid inputs', () => {
-      expect(formatPercentage('invalid')).toBe('0.00%');
-      expect(formatPercentage(NaN)).toBe('0.00%');
-      expect(formatPercentage('')).toBe('0.00%');
+    it('returns the missing-value placeholder for non-numeric percentages', () => {
+      expect(formatPercentage('invalid')).toBe(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
+      expect(formatPercentage(NaN)).toBe(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
+      expect(formatPercentage('')).toBe(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
     });
 
     it('should round to 2 decimal places', () => {
@@ -1554,10 +1561,12 @@ describe('formatUtils', () => {
       expect(formatPositionSize(1)).toBe('1'); // exactly at threshold
     });
 
-    it('should handle invalid inputs', () => {
-      expect(formatPositionSize('invalid')).toBe('0');
-      expect(formatPositionSize(NaN)).toBe('0');
-      expect(formatPositionSize('')).toBe('0');
+    it('returns the missing-value placeholder for non-numeric sizes', () => {
+      expect(formatPositionSize('invalid')).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
+      expect(formatPositionSize(NaN)).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
+      expect(formatPositionSize('')).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
     });
 
     it('should handle zero', () => {

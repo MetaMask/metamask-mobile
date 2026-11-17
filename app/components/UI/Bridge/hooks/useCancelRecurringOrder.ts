@@ -1,15 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { assetIdsMatch } from '@metamask/bridge-controller';
 import {
-  createProjectLogger,
   isCaipAccountId,
   isCaipAssetType,
   parseCaipAccountId,
   parseCaipAssetType,
 } from '@metamask/utils';
 import type { InfiniteData } from '@tanstack/query-core';
-import Engine from '../../../../core/Engine';
-import { cancelRecurringOrder as cancelRecurringOrderRequest } from '../api/recurringOrders';
+import { recurringOrdersApiClient } from '../api/recurringOrders.client';
 import {
   RecurringOrderState,
   type CancelRecurringOrderResponse,
@@ -22,18 +20,11 @@ import {
   RECURRING_ORDERS_QUERY_KEY,
   type RecurringOrdersQueryKey,
 } from '../queries/recurringOrders';
-
-const log = createProjectLogger('bridge-recurring-cancellation-history');
-const RECURRING_ORDER_QUERY_INVALIDATIONS = [
-  {
-    queryKey: RECURRING_ORDERS_QUERY_KEY,
-    refetchType: 'none',
-  },
-  {
-    queryKey: RECURRING_ORDERS_BY_ASSET_QUERY_KEY,
-    refetchType: 'active',
-  },
-] as const;
+import {
+  finishRecurringOrderTrace,
+  startRecurringOrderCancelTrace,
+} from '../utils/recurringOrderTrace';
+import { invalidateRecurringOrderQueries } from './invalidateRecurringOrderQueries';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -87,9 +78,9 @@ function updateRecurringOrdersCaches(
   const sourceChainId = isCaipAssetType(sourceAssetId)
     ? parseCaipAssetType(sourceAssetId).chainId
     : undefined;
-  const orderWalletAddress = isCaipAccountId(cancelledOrder.accountAddress)
-    ? parseCaipAccountId(cancelledOrder.accountAddress).address
-    : cancelledOrder.accountAddress;
+  const orderWalletAddress = isCaipAccountId(cancelledOrder.account)
+    ? parseCaipAccountId(cancelledOrder.account).address
+    : cancelledOrder.account;
 
   queryClient
     .getQueryCache()
@@ -179,44 +170,32 @@ export function useCancelRecurringOrder() {
     RecurringOrder
   >({
     mutationFn: (order) =>
-      cancelRecurringOrderRequest(order.id, {
-        accountAddress: order.accountAddress,
+      recurringOrdersApiClient.cancelRecurringOrder(order.id, {
+        accountAddress: order.account,
       }),
     onSuccess: async ({ order }) => {
       updateRecurringOrdersCaches(queryClient, order);
-
-      await Promise.all(
-        RECURRING_ORDER_QUERY_INVALIDATIONS.map(async ({ queryKey }) => {
-          try {
-            await Engine.controllerMessenger.call(
-              'RecurringOrdersDataService:invalidateQueries',
-              { queryKey: [queryKey] },
-            );
-          } catch (error) {
-            log('Recurring-order service cache invalidation failed', error);
-          }
-        }),
-      );
-
-      await Promise.all(
-        RECURRING_ORDER_QUERY_INVALIDATIONS.map(
-          async ({ queryKey, refetchType }) => {
-            try {
-              await queryClient.invalidateQueries({
-                queryKey: [queryKey],
-                refetchType,
-              });
-            } catch (error) {
-              log('Recurring-order UI cache invalidation failed', error);
-            }
-          },
-        ),
-      );
+      await invalidateRecurringOrderQueries(queryClient);
     },
   });
 
+  async function cancelRecurringOrder(
+    order: RecurringOrder,
+  ): Promise<CancelRecurringOrderResponse> {
+    const traceHandle = startRecurringOrderCancelTrace();
+
+    try {
+      const response = await mutation.mutateAsync(order);
+      finishRecurringOrderTrace(traceHandle, { result: 'success' });
+      return response;
+    } catch (error) {
+      finishRecurringOrderTrace(traceHandle, { result: 'error' });
+      throw error;
+    }
+  }
+
   return {
-    cancelRecurringOrder: mutation.mutateAsync,
+    cancelRecurringOrder,
     isSubmitting: mutation.isPending,
     error: mutation.error,
     reset: mutation.reset,

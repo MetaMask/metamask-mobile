@@ -40,7 +40,7 @@ import { useSocialFeed } from '../../SocialFeed';
 import { mapFeedItem } from '../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from '../components/tabs/holders/tokenHolders.fixture';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -90,7 +90,7 @@ const mockSelectors = ({
   };
 
   useSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectSocialLeaderboardEnabled) {
+    if (selector === selectIsSocialV1Enabled) {
       return socialEnabled;
     }
     if (selector === selectMemecoinTdpV1TabConfigOrder) {
