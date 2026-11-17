@@ -23,7 +23,6 @@ import {
 import { OAuthError, OAuthErrorType } from '../OAuthService/error';
 import { getAuthConnectionIdFromClientId } from '../OAuthService/OAuthService';
 import { fromByteArray, toByteArray } from 'react-native-quick-base64';
-import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 import { selectTelegramLoginEnabled } from '../../selectors/featureFlagController/seedlessTelegramLogin';
 import type {
@@ -347,7 +346,7 @@ export const matchesKeyBoundClientNonce = (
  *
  * Note: if Apple hashes the *full* combined authorize string and the JWT only
  * carries that digest (no plaintext `<server>.<client>`), Mobile cannot verify
- * without the server nonce; Hung's agreed claim format is the plaintext form.
+ * without the server nonce. Auth-server MFA uses the plaintext combined claim.
  */
 const isMatchingProviderNonce = (
   claimNonce: unknown,
@@ -379,23 +378,7 @@ const validateProviderIdToken = (
 ): string => {
   const issuer = trimTrailingSlash(identifier.namespace);
   const claims = decodeJwtPayload(idToken);
-  const claimNonce = claims.nonce;
-  const claimIss =
-    typeof claims.iss === 'string' ? trimTrailingSlash(claims.iss) : claims.iss;
-  const nonceMatches = isMatchingProviderNonce(claimNonce, nonce, issuer);
-
-  // TEMP (remove after BE nonce investigation): proof for Auth — no raw JWT.
-  Logger.log('MFA recovery ID token nonce check', {
-    expectedNamespace: issuer,
-    expectedNonce: nonce,
-    claimIss,
-    claimNonce: typeof claimNonce === 'string' ? claimNonce : claimNonce,
-    claimNonceType: typeof claimNonce,
-    nonceMatches,
-    hasSub: typeof claims.sub === 'string' && Boolean(claims.sub),
-  });
-
-  if (!nonceMatches) {
+  if (!isMatchingProviderNonce(claims.nonce, nonce, issuer)) {
     throw new Error('MFA recovery: ID token nonce does not match the request');
   }
   if (typeof claims.sub !== 'string' || !claims.sub) {
