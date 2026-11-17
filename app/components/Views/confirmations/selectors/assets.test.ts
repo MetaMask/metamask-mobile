@@ -41,7 +41,9 @@ function buildNetworkConfiguration(chainId: string): Record<string, unknown> {
 
 // Assets on unconfigured chains are dropped, so the chains seeded by the
 // tests below must be configured on top of the default background state.
-const NETWORK_CONTROLLER_STATE = {
+const NETWORK_CONTROLLER_STATE: {
+  networkConfigurationsByChainId: Record<string, unknown>;
+} = {
   ...backgroundState.NetworkController,
   networkConfigurationsByChainId: {
     ...backgroundState.NetworkController.networkConfigurationsByChainId,
