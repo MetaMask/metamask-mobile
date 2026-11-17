@@ -246,13 +246,22 @@ export const payDeposit = async (
   }
 };
 
-/** The open deposit to show, oldest first. */
+/** The open deposit to show: the one the refusal named, or the oldest. */
 const readOpenDeposit = async (
   deps: DepositWorkflowDeps,
+  operationId?: string,
 ): Promise<PredictDepositOperation | null> => {
   try {
-    const [open] = await deps.funding.listOpenDeposits();
-    return open ?? null;
+    const open = await deps.funding.listOpenDeposits();
+    if (operationId !== undefined) {
+      const blocked = open.find(
+        (deposit) => deposit.operationId === operationId,
+      );
+      if (blocked) {
+        return blocked;
+      }
+    }
+    return open[0] ?? null;
   } catch (error) {
     deps.logError(error, 'PredictNext: failed to read open deposits');
     return null;
@@ -276,7 +285,14 @@ export const startDeposit = async (
       error instanceof PredictError &&
       error.code === PredictErrorCode.DEPOSIT_IN_PROGRESS
     ) {
-      return { kind: 'in_progress', deposit: await readOpenDeposit(deps) };
+      const operationId = error.metadata?.depositOperationId;
+      return {
+        kind: 'in_progress',
+        deposit: await readOpenDeposit(
+          deps,
+          typeof operationId === 'string' ? operationId : undefined,
+        ),
+      };
     }
     return { kind: 'failed', stage: 'prepare', error: toPredictError(error) };
   }

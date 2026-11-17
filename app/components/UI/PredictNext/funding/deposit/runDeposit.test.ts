@@ -166,6 +166,37 @@ describe('startDeposit', () => {
     expect(funding.cancelDeposit).not.toHaveBeenCalled();
   });
 
+  it('opens the deposit the refusal names, not the oldest open one', async () => {
+    const reviewed = {
+      ...awaitingTransfer({ amount: '5.00' }),
+      operationId: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e60' as PredictEntityId,
+      status: 'under_review' as const,
+      planExpiresAt: null,
+      next: {
+        kind: 'review' as const,
+        supportReference: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e60',
+      },
+    };
+    const blocked = awaitingTransfer({ amount: '2.00' });
+    const { deps, funding, executor } = setup({
+      funding: {
+        prepareDeposit: jest.fn(async () => {
+          throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS, {
+            metadata: { depositOperationId: blocked.operationId },
+          });
+        }),
+        listOpenDeposits: jest.fn(async () => [reviewed, blocked]),
+      },
+    });
+
+    await expect(start(deps)).resolves.toStrictEqual({
+      kind: 'in_progress',
+      deposit: blocked,
+    });
+    expect(funding.listOpenDeposits).toHaveBeenCalled();
+    expect(executor.send).not.toHaveBeenCalled();
+  });
+
   it('answers in_progress without a deposit when the open list cannot be read', async () => {
     const { deps } = setup({
       funding: {

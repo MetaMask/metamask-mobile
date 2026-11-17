@@ -168,9 +168,25 @@ const isSameAmount = (left: string, right: string): boolean =>
   left.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '') ===
   right.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '');
 
+/** The operation id a `deposit_in_progress` refusal names, when its body
+ * carries one. The rest of the body is never kept. */
+const blockedDepositOperationId = (
+  error: PredictHttpError,
+): string | undefined => {
+  if (error.bodyCode !== 'deposit_in_progress') {
+    return undefined;
+  }
+  if (typeof error.deposit !== 'object' || error.deposit === null) {
+    return undefined;
+  }
+  const operationId = (error.deposit as { operationId?: unknown }).operationId;
+  return typeof operationId === 'string' ? operationId : undefined;
+};
+
 /**
  * Keeps the HTTP status and the backend's canonical code for diagnosis.
- * Never the response body.
+ * Never the response body: the one value a route needs comes from
+ * `blockedDepositOperationId` instead.
  */
 const toHttpErrorMetadata = (
   error: PredictHttpError,
@@ -227,11 +243,11 @@ const mapError = (
   }
 
   if (error instanceof PredictHttpError) {
-    const metadata = toHttpErrorMetadata(
-      error,
-      phase,
-      route.refusedBeforeRelay,
-    );
+    const depositOperationId = blockedDepositOperationId(error);
+    const metadata = {
+      ...toHttpErrorMetadata(error, phase, route.refusedBeforeRelay),
+      ...(depositOperationId === undefined ? {} : { depositOperationId }),
+    };
     const mapped = error.bodyCode
       ? (route.codes[error.bodyCode] ??
         ERROR_CODE_BY_BACKEND_CODE[error.bodyCode])
