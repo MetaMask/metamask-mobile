@@ -46,7 +46,7 @@ describe('PerpsFeeDiscountLabel', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders VIP treatment for subscription attribution when a VIP tier is set', () => {
+  it('renders member treatment for subscription attribution when a VIP tier is set', () => {
     render(
       <PerpsFeeDiscountLabel
         feeDiscountPercentage={75}
@@ -55,10 +55,10 @@ describe('PerpsFeeDiscountLabel', () => {
     );
 
     expect(
-      screen.getByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+      screen.getByTestId(MembershipVipBadgeSelectorsIDs.MEMBER_BADGE),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.MEMBER_BADGE),
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();
   });
 

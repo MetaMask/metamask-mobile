@@ -26,7 +26,7 @@ const PredictFeeTotal = ({
   <Box twClassName="flex-row items-center gap-2">
     {Boolean(feePolicy?.builderCode) && originalTotal !== undefined && (
       <>
-        <MembershipVipBadge hasProEntitlement />
+        <MembershipVipBadge discountKind="member" />
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={fontWeight}

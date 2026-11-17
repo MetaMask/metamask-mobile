@@ -28,48 +28,59 @@ const styles = StyleSheet.create({
   },
 });
 
+export type MembershipVipDiscountKind = 'vip' | 'member';
+
+/**
+ * VIP chip. Only this component reads the tier, so member chips never fetch it.
+ * Renders nothing when the account has no VIP tier.
+ */
+const VipBadge: React.FC = () => {
+  const vipTier = useVipTier();
+
+  if (!vipTier) {
+    return null;
+  }
+
+  return (
+    <RewardsDiscountBadge
+      testID={MembershipVipBadgeSelectorsIDs.VIP_BADGE}
+      startIcon={<VipIcon name="VipIcon" width={14} height={14} />}
+      label={strings('rewards.vip.badge_label', {
+        tier: vipTier.toString(),
+      })}
+    />
+  );
+};
+
+const MemberBadge: React.FC = () => (
+  <RewardsDiscountBadge
+    testID={MembershipVipBadgeSelectorsIDs.MEMBER_BADGE}
+    startIcon={
+      <Image source={foxIcon} style={styles.foxIcon} resizeMode="contain" />
+    }
+    label={strings('rewards.pro_member_badge_label')}
+    borderColors={MEMBER_BORDER_COLORS}
+    labelStyle={styles.memberLabel}
+  />
+);
+
 interface MembershipVipBadgeProps {
   /**
-   * True when this fee was priced from a Plus entitlement.
-   * A VIP tier wins over membership, so an account that has both shows the
-   * VIP chip. The Member chip appears only when there is no VIP tier.
-   * Omitted means only the VIP badge can appear.
+   * Discount actually applied to this fee.
+   * `vip` shows the VIP chip when the account has a tier.
+   * `member` always shows the Member chip, even when the account also has a VIP tier.
    */
-  hasProEntitlement?: boolean;
+  discountKind: MembershipVipDiscountKind;
 }
 
 const MembershipVipBadge: React.FC<MembershipVipBadgeProps> = ({
-  hasProEntitlement = false,
+  discountKind,
 }) => {
-  const vipTier = useVipTier();
-
-  if (vipTier) {
-    return (
-      <RewardsDiscountBadge
-        testID={MembershipVipBadgeSelectorsIDs.VIP_BADGE}
-        startIcon={<VipIcon name="VipIcon" width={14} height={14} />}
-        label={strings('rewards.vip.badge_label', {
-          tier: vipTier.toString(),
-        })}
-      />
-    );
+  if (discountKind === 'member') {
+    return <MemberBadge />;
   }
 
-  if (hasProEntitlement) {
-    return (
-      <RewardsDiscountBadge
-        testID={MembershipVipBadgeSelectorsIDs.MEMBER_BADGE}
-        startIcon={
-          <Image source={foxIcon} style={styles.foxIcon} resizeMode="contain" />
-        }
-        label={strings('rewards.pro_member_badge_label')}
-        borderColors={MEMBER_BORDER_COLORS}
-        labelStyle={styles.memberLabel}
-      />
-    );
-  }
-
-  return null;
+  return <VipBadge />;
 };
 
 export default MembershipVipBadge;

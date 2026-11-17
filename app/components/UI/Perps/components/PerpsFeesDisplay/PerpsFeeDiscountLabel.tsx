@@ -34,9 +34,7 @@ const PerpsFeeDiscountLabel = ({
   }
 
   if (feeDiscountKind === 'member' || feeDiscountKind === 'vip') {
-    return (
-      <MembershipVipBadge hasProEntitlement={feeDiscountKind === 'member'} />
-    );
+    return <MembershipVipBadge discountKind={feeDiscountKind} />;
   }
 
   if (feeDiscountKind === 'promotional') {

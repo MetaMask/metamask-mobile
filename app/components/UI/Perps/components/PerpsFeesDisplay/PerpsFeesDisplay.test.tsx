@@ -18,11 +18,12 @@ jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   return {
     ...actual,
     __esModule: true,
-    default: ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+    default: ({ discountKind }: { discountKind: 'vip' | 'member' }) =>
       MockReact.createElement(View, {
-        testID: hasProEntitlement
-          ? actual.MembershipVipBadgeSelectorsIDs.MEMBER_BADGE
-          : actual.MembershipVipBadgeSelectorsIDs.VIP_BADGE,
+        testID:
+          discountKind === 'member'
+            ? actual.MembershipVipBadgeSelectorsIDs.MEMBER_BADGE
+            : actual.MembershipVipBadgeSelectorsIDs.VIP_BADGE,
       }),
   };
 });

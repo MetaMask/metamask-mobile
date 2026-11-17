@@ -117,8 +117,8 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
 jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
-  return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
-    hasProEntitlement
+  return ({ discountKind }: { discountKind?: 'vip' | 'member' }) =>
+    discountKind === 'member'
       ? ReactActual.createElement(
           Text,
           { testID: 'rewards-member-badge' },

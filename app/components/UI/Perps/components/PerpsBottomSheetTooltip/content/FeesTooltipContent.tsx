@@ -102,7 +102,9 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
         </Text>
         <View style={styles.feeValueContainer}>
           {(isMemberDiscount || isVipDiscount) && (
-            <MembershipVipBadge hasProEntitlement={isMemberDiscount} />
+            <MembershipVipBadge
+              discountKind={isVipDiscount ? 'vip' : 'member'}
+            />
           )}
           {hasDiscount && (
             <Text

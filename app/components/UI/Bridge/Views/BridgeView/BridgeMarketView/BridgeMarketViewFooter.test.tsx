@@ -95,8 +95,13 @@ jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+    default: ({ discountKind }: { discountKind: 'vip' | 'member' }) =>
+      MockReact.createElement(View, {
+        testID:
+          discountKind === 'member'
+            ? 'rewards-member-badge'
+            : 'rewards-vip-badge',
+      }),
   };
 });
 
@@ -473,7 +478,7 @@ describe('BridgeMarketViewFooter', () => {
       const { getByTestId } = renderFooter(buildActiveQuoteState());
 
       await waitFor(() => {
-        expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+        expect(getByTestId('rewards-member-badge')).toBeTruthy();
         expect(
           getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
         ).toHaveTextContent(`0.875%${strings('bridge.no_fees_with_orange')}`);

@@ -203,8 +203,10 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                 {discountBadge ? (
                   isRewardsTierBadge ? (
                     <MembershipVipBadge
-                      hasProEntitlement={
-                        discountBadge.type === DiscountType.SUBSCRIPTION
+                      discountKind={
+                        discountBadge.type === DiscountType.VIP
+                          ? 'vip'
+                          : 'member'
                       }
                     />
                   ) : (
