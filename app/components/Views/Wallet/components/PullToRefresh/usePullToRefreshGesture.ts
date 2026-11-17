@@ -3,6 +3,7 @@ import { Gesture } from 'react-native-gesture-handler';
 import { type SharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
+  getResistedPullDistance,
   PULL_MOVE_ACTIVATION,
   PULL_REFRESH_THRESHOLD,
   SCROLL_TOP_THRESHOLD,
@@ -123,7 +124,9 @@ export const usePullToRefreshGesture = ({
         Math.max((event.translationY / PULL_REFRESH_THRESHOLD) * 100, 0),
         100,
       );
-      gestureState.pullDistance.value = event.translationY;
+      gestureState.pullDistance.value = getResistedPullDistance(
+        event.translationY,
+      );
       gestureState.pullProgress.value = nextProgress;
       if (nextProgress >= 100 && !gestureState.thresholdHapticSent.value) {
         gestureState.thresholdHapticSent.value = true;

@@ -11,6 +11,7 @@ import PullToRefresh, {
   PULL_REFRESH_THRESHOLD,
   PullToRefreshTestIds,
 } from './PullToRefresh';
+import { getResistedPullDistance } from './pullToRefreshConstants';
 import {
   __fireRiveViewError,
   __getRivePropertySetter,
@@ -286,6 +287,14 @@ describe('PullToRefresh', () => {
 
     expect(__getRivePropertySetter('pullProgress')).toHaveBeenLastCalledWith(
       100,
+    );
+  });
+
+  it('applies resistance after the pull threshold', () => {
+    const translationY = PULL_REFRESH_THRESHOLD * 2;
+
+    expect(getResistedPullDistance(translationY)).toBe(
+      PULL_REFRESH_THRESHOLD * 1.2,
     );
   });
 

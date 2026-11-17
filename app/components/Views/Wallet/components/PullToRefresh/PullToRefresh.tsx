@@ -19,6 +19,7 @@ import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -32,6 +33,8 @@ import { useTheme } from '../../../../../util/theme';
 import PullToRefreshIndicator from './PullToRefreshIndicator';
 import { PullToRefreshTestIds } from './PullToRefresh.testIds';
 import {
+  REFRESH_OUTRO_LEAD_IN_DURATION_MS,
+  PULL_REFRESH_OUTRO_SPRING,
   PULL_REFRESH_THRESHOLD,
   REFRESH_OUTRO_DURATION_MS,
 } from './pullToRefreshConstants';
@@ -172,16 +175,16 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       refreshLock.value = true;
       indicatorOutroActive.value = true;
       refreshCommitRequested.value = false;
-      pullDistance.value = withTiming(0, {
-        duration: REFRESH_OUTRO_DURATION_MS,
-      });
       cancelOutroTimer();
       outroTimerRef.current = setTimeout(() => {
-        refreshLock.value = false;
-        indicatorOutroActive.value = false;
-        pullDistance.value = 0;
-        outroTimerRef.current = null;
-      }, REFRESH_OUTRO_DURATION_MS);
+        pullDistance.value = withSpring(0, PULL_REFRESH_OUTRO_SPRING);
+        outroTimerRef.current = setTimeout(() => {
+          refreshLock.value = false;
+          indicatorOutroActive.value = false;
+          pullDistance.value = 0;
+          outroTimerRef.current = null;
+        }, REFRESH_OUTRO_DURATION_MS);
+      }, REFRESH_OUTRO_LEAD_IN_DURATION_MS);
     }, [
       cancelOutroTimer,
       indicatorOutroActive,
@@ -342,10 +345,7 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
     const contentAnimatedStyle = useAnimatedStyle(() => ({
       transform: [
         {
-          translateY: Math.min(
-            Math.max(pullDistance.value, 0),
-            PULL_REFRESH_THRESHOLD,
-          ),
+          translateY: Math.max(pullDistance.value, 0),
         },
       ],
     }));
