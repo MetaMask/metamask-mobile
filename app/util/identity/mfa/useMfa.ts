@@ -1,4 +1,8 @@
 import { useSelector } from 'react-redux';
+import {
+  getMfaErrorCode,
+  type EnrolledCredential,
+} from '@metamask/profile-sync-controller/sdk';
 import { selectEnrolledCredentials } from '../../../selectors/identity';
 import {
   createSocialLoginControllerAdapter,
@@ -19,9 +23,22 @@ import type {
   EnrollOptions,
   MfaFlowOptions,
   MfaFlowResult,
+  MfaMethod,
   MfaReason,
   VerifyOrEnrollOptions,
 } from './engine/types';
+
+/** Active social MFA factors in kit cost order (passkey → totp → email). */
+const activeSocialMethods = (
+  credentials: EnrolledCredential[],
+): MfaMethod[] => {
+  const active = new Set(
+    credentials
+      .filter((credential) => credential.status === 'active')
+      .map((credential) => credential.type),
+  );
+  return METHOD_COST_RANKING.filter((method) => active.has(method));
+};
 
 const EVENTS: Record<MfaEvent, IMetaMetricsEvent> = {
   'MFA Flow Status Updated': MetaMetricsEvents.MFA_FLOW_STATUS_UPDATED,
@@ -52,7 +69,11 @@ const clientOptions: Pick<
     ),
 };
 
-const verifyOrEnroll = ({
+/**
+ * Non-hook entry for features that must prove or enroll MFA outside React
+ * (for example automatic passwordless recovery setup after unlock).
+ */
+export const verifyOrEnroll = ({
   reason,
   ...request
 }: VerifyOrEnrollOptions): Promise<MfaFlowResult> =>
@@ -70,32 +91,72 @@ const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
   });
 
 /**
+ * Lists active MFA factors for social-login recovery while the wallet is
+ * locked (`refreshSocialLoginCredentials`). Empty when none are enrolled.
+ */
+const listActiveSocialLoginMethods = async (): Promise<MfaMethod[]> => {
+  const controller = createSocialLoginControllerAdapter();
+  const credentials = await controller.refreshEnrolledCredentials();
+  return activeSocialMethods(credentials);
+};
+
+/**
  * Proves it's the user during social-login wallet recovery, while the wallet
- * is still locked. Never enrolls: the flow fetches the credentials the
- * profile already has and verifies with one of the active ones that this
- * platform supports. Resolves with the flow's result, rejects with
- * `credential_not_enrolled` when there is none to verify with, or with the
+ * is still locked. Never enrolls. When `method` is set, verifies only that
+ * factor (custom picker). Otherwise tries `methods`, or cost order
+ * (passkey → totp → email) when `methods` is omitted, one at a time.
+ * Rejects with `credential_not_enrolled` when none is active, or with the
  * code of an error the kit has already shown.
  */
-const verifyForSocialLogin = ({
+const verifyForSocialLogin = async ({
   reason,
+  method,
+  methods,
 }: {
   reason: MfaReason;
-}): Promise<MfaFlowResult> =>
-  startMfaFlow({
-    // Every method may verify: the flow keeps the active ones this platform
-    // runs, and never plans a setup.
-    request: {
-      kind: 'verifyOrEnroll',
-      methods: [...METHOD_COST_RANKING],
-      verifyWith: [...METHOD_COST_RANKING],
-      verifyOnly: true,
-    },
-    reason,
-    ...clientOptions,
-    // One adapter per flow: it keeps the flow's own verification token.
-    controller: createSocialLoginControllerAdapter(),
-  });
+  /** When set, verify only this enrolled factor (no cost-order loop). */
+  method?: MfaMethod;
+  /**
+   * Factors to try, in order, when `method` is omitted. Defaults to
+   * passkey → totp → email. Google/Apple arrival passes a list without
+   * email, because that inbox is the sign-in factor.
+   */
+  methods?: readonly MfaMethod[];
+}): Promise<MfaFlowResult & { verifiedMethod: MfaMethod }> => {
+  // One adapter for every attempt: it keeps the flow's verification token.
+  const controller = createSocialLoginControllerAdapter();
+  const methodsToTry = method
+    ? [method]
+    : [...(methods ?? METHOD_COST_RANKING)];
+  let lastError: unknown;
+
+  for (const next of methodsToTry) {
+    try {
+      // A single-method verifyOnly plan auto-starts that method. Passing
+      // every method at once would show the picker when several are active.
+      const flowResult = await startMfaFlow({
+        request: {
+          kind: 'verifyOrEnroll',
+          methods: [next],
+          verifyWith: [next],
+          verifyOnly: true,
+        },
+        reason,
+        ...clientOptions,
+        controller,
+      });
+      return { ...flowResult, verifiedMethod: next };
+    } catch (error) {
+      lastError = error;
+      if (getMfaErrorCode(error) === 'credential_not_enrolled') {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw lastError;
+};
 
 /**
  * The MFA kit for features and settings.
@@ -109,14 +170,21 @@ const verifyForSocialLogin = ({
  * the screens), and lint rejects it outside this folder.
  * - `enroll`: sets up one method, for example from settings. No intro, no
  * verification after.
- * - `verifyForSocialLogin`: social-login wallet recovery, before the wallet
- * is unlocked. Verifies with a method the profile already has; never
- * enrolls.
+ * - `listActiveSocialLoginMethods`: locked recovery — which factors to show
+ * on the custom picker (`refreshSocialLoginCredentials`).
+ * - `verifyForSocialLogin`: locked recovery verify. Optional `method` for the
+ * custom picker; otherwise cost-order fallback. Never enrolls.
  * - `credentials`: the profile's methods, as last fetched from the server.
  *
  * @returns The kit's entry points and the credential list.
  */
 export const useMfa = () => {
   const credentials = useSelector(selectEnrolledCredentials);
-  return { credentials, verifyOrEnroll, enroll, verifyForSocialLogin };
+  return {
+    credentials,
+    verifyOrEnroll,
+    enroll,
+    listActiveSocialLoginMethods,
+    verifyForSocialLogin,
+  };
 };

@@ -1,4 +1,7 @@
-import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
+import {
+  MfaError,
+  type EnrolledCredential,
+} from '@metamask/profile-sync-controller/sdk';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import {
   createSocialLoginControllerAdapter,
@@ -146,6 +149,23 @@ describe('useMfa', () => {
     );
   });
 
+  describe('listActiveSocialLoginMethods', () => {
+    it('returns active methods in cost order from social credentials', async () => {
+      const refreshEnrolledCredentials = jest.fn().mockResolvedValue([
+        { id: 'email', type: 'email_otp', status: 'active' },
+        { id: 'pk', type: 'passkey', status: 'active' },
+        { id: 'old', type: 'totp', status: 'disabled' },
+      ]);
+      jest.mocked(createSocialLoginControllerAdapter).mockReturnValue({
+        refreshEnrolledCredentials,
+      } as unknown as MfaControllerAdapter);
+
+      expect(await renderUseMfa().listActiveSocialLoginMethods()).toStrictEqual(
+        ['passkey', 'email_otp'],
+      );
+    });
+  });
+
   describe('verifyForSocialLogin', () => {
     beforeEach(() => {
       mockStartMfaFlow.mockClear();
@@ -153,14 +173,15 @@ describe('useMfa', () => {
 
     const reason: MfaReason = { operation: 'qa.verifyForSocialLogin' };
 
-    it('starts a verify-only flow that may verify with every method', async () => {
+    it('starts with passkey so the highest enrolled method opens directly', async () => {
       await renderUseMfa().verifyForSocialLogin({ reason });
 
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(1);
       expect(mockStartMfaFlow).toHaveBeenCalledWith({
         request: {
           kind: 'verifyOrEnroll',
-          methods: ['passkey', 'totp', 'email_otp'],
-          verifyWith: ['passkey', 'totp', 'email_otp'],
+          methods: ['passkey'],
+          verifyWith: ['passkey'],
           verifyOnly: true,
         },
         reason,
@@ -172,12 +193,61 @@ describe('useMfa', () => {
       });
     });
 
+    it('verifies only the requested method from the custom picker', async () => {
+      await renderUseMfa().verifyForSocialLogin({
+        reason,
+        method: 'totp',
+      });
+
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(1);
+      expect(mockStartMfaFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['totp'],
+            verifyWith: ['totp'],
+            verifyOnly: true,
+          },
+        }),
+      );
+    });
+
+    it('tries the next method when the higher one is not enrolled', async () => {
+      mockStartMfaFlow
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no passkey'),
+        )
+        .mockResolvedValueOnce({ credentials: enrolledCredentials });
+
+      expect(
+        await renderUseMfa().verifyForSocialLogin({ reason }),
+      ).toStrictEqual({
+        credentials: enrolledCredentials,
+        verifiedMethod: 'totp',
+      });
+
+      expect(mockStartMfaFlow).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['totp'],
+            verifyWith: ['totp'],
+            verifyOnly: true,
+          },
+        }),
+      );
+    });
+
     it('resolves with the flow result', async () => {
       mockStartMfaFlow.mockResolvedValue({ credentials: enrolledCredentials });
 
       expect(
         await renderUseMfa().verifyForSocialLogin({ reason }),
-      ).toStrictEqual({ credentials: enrolledCredentials });
+      ).toStrictEqual({
+        credentials: enrolledCredentials,
+        verifiedMethod: 'passkey',
+      });
     });
 
     it('uses a new adapter for each verification', async () => {
@@ -185,6 +255,107 @@ describe('useMfa', () => {
       await renderUseMfa().verifyForSocialLogin({ reason });
 
       expect(createSocialLoginControllerAdapter).toHaveBeenCalledTimes(2);
+    });
+
+    it('rethrows a non-enrollment MFA error without trying later methods', async () => {
+      const flowError = new MfaError('flow_cancelled', 'user backed out');
+      mockStartMfaFlow.mockRejectedValueOnce(flowError);
+
+      await expect(
+        renderUseMfa().verifyForSocialLogin({ reason }),
+      ).rejects.toBe(flowError);
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(1);
+    });
+
+    it('tries email OTP after passkey and totp are not enrolled', async () => {
+      mockStartMfaFlow
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no passkey'),
+        )
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no totp'),
+        )
+        .mockResolvedValueOnce({ credentials: enrolledCredentials });
+
+      expect(
+        await renderUseMfa().verifyForSocialLogin({ reason }),
+      ).toStrictEqual({
+        credentials: enrolledCredentials,
+        verifiedMethod: 'email_otp',
+      });
+
+      expect(mockStartMfaFlow).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['email_otp'],
+            verifyWith: ['email_otp'],
+            verifyOnly: true,
+          },
+        }),
+      );
+    });
+
+    it('throws the last enrollment error when no method is enrolled', async () => {
+      const lastError = new MfaError('credential_not_enrolled', 'no email otp');
+      mockStartMfaFlow
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no passkey'),
+        )
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no totp'),
+        )
+        .mockRejectedValueOnce(lastError);
+
+      await expect(
+        renderUseMfa().verifyForSocialLogin({ reason }),
+      ).rejects.toBe(lastError);
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not try email when the caller omits it', async () => {
+      const lastError = new MfaError('credential_not_enrolled', 'no totp');
+      mockStartMfaFlow
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no passkey'),
+        )
+        .mockRejectedValueOnce(lastError);
+
+      await expect(
+        renderUseMfa().verifyForSocialLogin({
+          reason,
+          methods: ['passkey', 'totp'],
+        }),
+      ).rejects.toBe(lastError);
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(2);
+      expect(mockStartMfaFlow).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          request: expect.objectContaining({
+            methods: ['email_otp'],
+          }),
+        }),
+      );
+    });
+
+    it('prefers an explicit method over the methods list', async () => {
+      await renderUseMfa().verifyForSocialLogin({
+        reason,
+        method: 'totp',
+        methods: ['passkey'],
+      });
+
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(1);
+      expect(mockStartMfaFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['totp'],
+            verifyWith: ['totp'],
+            verifyOnly: true,
+          },
+        }),
+      );
     });
   });
 });
