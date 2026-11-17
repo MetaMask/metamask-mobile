@@ -78,18 +78,29 @@ export const ControllerStorage = {
   // Use the consolidated storage without AsyncStorage fallback
   ...createStorage(false),
 
-  async getAllPersistedState(): Promise<Record<string, unknown>> {
+  /**
+   * Loads every persisted controller file into a `backgroundState` object.
+   *
+   * @param additionalControllerNames - Controllers to load on top of the
+   * runtime ones (derived from the Engine change event names), e.g. removed
+   * controllers whose files are still read by migrations.
+   * @returns The persisted state, keyed under `backgroundState`.
+   */
+  async getAllPersistedState(
+    additionalControllerNames: readonly string[] = [],
+  ): Promise<Record<string, unknown>> {
     try {
       const backgroundState: Record<string, unknown> = {};
 
       await Promise.all(
         // Build runtime controller list from engine change event names
         Array.from(
-          new Set(
-            Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES).map(
+          new Set([
+            ...Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES).map(
               (eventName) => eventName.split(':')[0],
             ),
-          ),
+            ...additionalControllerNames,
+          ]),
         ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
