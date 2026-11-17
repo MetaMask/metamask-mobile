@@ -63,7 +63,9 @@ const formatFiat = (
     }).format(value as unknown as number);
 
     if (currency?.toUpperCase() === 'USD') {
-      result = result.replace(/US\$|\$US|\bUSD\b/gu, '$');
+      result = result
+        .replace(/US\$|\$US|\bUSD\b/gu, '$')
+        .replace(/\$\s+(?=[-\d])/gu, '$');
     }
   } catch (error) {
     // Fallback for unknown or unsupported currencies

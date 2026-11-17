@@ -218,17 +218,13 @@ describe('BalanceProjection', () => {
     });
 
     const valueNode = getByTestId('balance-projection-value-pressable');
-    expect(valueNode).toHaveTextContent(/1\.040,00/u);
-    expect(valueNode).toHaveTextContent(/\$/u);
-    expect(valueNode).not.toHaveTextContent('US$');
+    expect(valueNode).toHaveTextContent('$1.040,00');
 
     fireEvent.press(valueNode);
 
     const navParams = mockNavigate.mock.calls[0][1].params;
-    expect(navParams.depositAmountFiat).not.toContain('US$');
-    expect(navParams.projectedAmountFiat).not.toContain('US$');
-    expect(navParams.depositAmountFiat).toContain('1.000');
-    expect(navParams.projectedAmountFiat).toContain('1.040,00');
+    expect(navParams.depositAmountFiat).toBe('$1.000');
+    expect(navParams.projectedAmountFiat).toBe('$1.040,00');
   });
 
   it('renders no pressables while APY is loading', () => {

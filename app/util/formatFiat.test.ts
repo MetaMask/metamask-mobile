@@ -124,13 +124,47 @@ describe('formatFiat', () => {
         );
 
       I18n.locale = 'pt-BR-fallback-1';
-      expect(formatFiat(new BigNumber(100), 'usd')).toBe('$ 100');
+      expect(formatFiat(new BigNumber(100), 'usd')).toBe('$100');
 
       I18n.locale = 'fr-FR-fallback-2';
       expect(formatFiat(new BigNumber(100.5), 'usd')).toBe('100,50 $');
 
       I18n.locale = 'en-AU-fallback-3';
-      expect(formatFiat(new BigNumber(104), 'usd', 2)).toBe('$ 104,00');
+      expect(formatFiat(new BigNumber(104), 'usd', 2)).toBe('$104,00');
+
+      intlSpy.mockRestore();
+    });
+
+    it('strips spaces, non-breaking spaces, and narrow spaces after "$" for USD', () => {
+      const intlSpy = jest
+        .spyOn(Intl, 'NumberFormat')
+        .mockImplementationOnce(
+          () =>
+            ({
+              format: () => '$\u00a0104,00',
+            }) as unknown as Intl.NumberFormat,
+        )
+        .mockImplementationOnce(
+          () =>
+            ({
+              format: () => 'US$\u202f0,52',
+            }) as unknown as Intl.NumberFormat,
+        )
+        .mockImplementationOnce(
+          () =>
+            ({
+              format: () => 'US$ 100',
+            }) as unknown as Intl.NumberFormat,
+        );
+
+      I18n.locale = 'en-NL-nbsp';
+      expect(formatFiat(new BigNumber(104), 'usd', 2)).toBe('$104,00');
+
+      I18n.locale = 'en-NL-nnbsp';
+      expect(formatFiat(new BigNumber(0.52), 'usd', 2)).toBe('$0,52');
+
+      I18n.locale = 'en-NL-space';
+      expect(formatFiat(new BigNumber(100), 'usd')).toBe('$100');
 
       intlSpy.mockRestore();
     });

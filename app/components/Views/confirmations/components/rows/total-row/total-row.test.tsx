@@ -391,16 +391,12 @@ describe('TotalRow', () => {
         });
 
         const receiveText = getByTestId('receive');
-        expect(receiveText).toHaveTextContent(/1\.000,00/u);
-        expect(receiveText).toHaveTextContent(/\$/u);
-        expect(receiveText).not.toHaveTextContent('US$');
+        expect(receiveText).toHaveTextContent('$1.000,00');
 
         fireEvent.press(getByTestId('receive-pressable'));
 
         const navParams = mockNavigate.mock.calls[0][1].params;
-        expect(navParams.receiveAmountFiat).toContain('1.000');
-        expect(navParams.receiveAmountFiat).toContain('$');
-        expect(navParams.receiveAmountFiat).not.toContain('US$');
+        expect(navParams.receiveAmountFiat).toBe('$1.000');
       } finally {
         I18n.locale = originalLocale;
       }
