@@ -88,7 +88,6 @@ export const bridgeControllerInit: MessengerClientInitFunction<
       // (the legacy TokenRatesController/CurrencyRateController have been
       // removed).
       getUseAssetsControllerForRates: () => true,
-      // @ts-expect-error Added in unreleased core #11541 and #11465; remove on bridge-controller bump
       getShouldFetchFirstQuoteImmediately: () =>
         selectFirstQuoteAbTestVariant(
           ReduxService.store.getState(),
