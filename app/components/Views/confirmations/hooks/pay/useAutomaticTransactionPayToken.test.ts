@@ -1169,6 +1169,51 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
+  it('re-selects pay token once tokens load for a newly selected accountOverride', () => {
+    const fundedTokens = {
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+          fiat: { balance: 10 },
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    };
+
+    useTransactionPayAvailableTokensMock.mockReturnValue(fundedTokens);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xAddress1' },
+    } as never);
+
+    const { rerender } = runHook();
+
+    setPayTokenMock.mockClear();
+
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+
+    useTransactionPayAvailableTokensMock.mockReturnValue(fundedTokens);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
+    });
+  });
+
   it('does not re-select pay token when accountOverride changes for post-quote withdraws', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [

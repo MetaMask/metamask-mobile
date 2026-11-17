@@ -294,19 +294,27 @@ export function useAutomaticTransactionPayToken({
     ) {
       return;
     }
-    prevAccountKeyRef.current = accountKey;
 
     if (autoSelectFiatPayment && !payTokenEverSelectedRef.current) {
+      prevAccountKeyRef.current = accountKey;
       return;
     }
 
-    if (automaticToken) {
-      setPayToken({
-        address: automaticToken.address,
-        chainId: automaticToken.chainId,
-      });
-      log('Re-selected pay token after account change', automaticToken);
+    // An override account that was never selected globally has no assets in
+    // state until its on-demand load completes, so no token can be picked yet.
+    // Leave the account change unhandled so this effect re-runs once the
+    // tokens arrive; otherwise the pay token stays cleared indefinitely.
+    if (!automaticToken) {
+      return;
     }
+
+    prevAccountKeyRef.current = accountKey;
+
+    setPayToken({
+      address: automaticToken.address,
+      chainId: automaticToken.chainId,
+    });
+    log('Re-selected pay token after account change', automaticToken);
   }, [
     accountOverride,
     autoSelectFiatPayment,
