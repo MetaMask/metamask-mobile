@@ -12,5 +12,4 @@ export const WalletRecoverySelectorsIDs = {
   METHOD_TOTP: 'wallet-recovery-method-totp',
   VERIFY_ERROR: 'wallet-recovery-verify-error',
   VERIFY_OFFLINE: 'wallet-recovery-verify-offline',
-  CANT_USE_THESE: 'wallet-recovery-cant-use-these',
 } as const;
