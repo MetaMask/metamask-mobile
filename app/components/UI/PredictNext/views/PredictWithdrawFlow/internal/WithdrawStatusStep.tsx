@@ -87,6 +87,7 @@ const STATUS_COPY: Record<
   },
   settled: {
     title: strings('predict_next.withdraw.status.settled.title'),
+    body: strings('predict_next.withdraw.status.settled.body'),
     tone: TextColor.SuccessDefault,
     icon: IconName.CheckBold,
     iconColor: IconColor.SuccessDefault,

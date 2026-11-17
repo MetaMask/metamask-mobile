@@ -4144,7 +4144,8 @@
           "body": "This can take a few minutes. You can close this and check your balance later."
         },
         "settled": {
-          "title": "Withdrawal complete"
+          "title": "Withdrawal sent",
+          "body": "The venue transferred the funds. Your destination wallet may take a few minutes to show them."
         },
         "sweep_remainder": "Any amount above the per-withdrawal limit stays in your balance.",
         "manual_review": {

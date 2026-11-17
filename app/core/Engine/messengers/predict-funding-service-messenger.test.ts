@@ -22,25 +22,6 @@ const getRootMessenger = (): RootMessenger =>
   new Messenger({ namespace: MOCK_ANY_NAMESPACE });
 
 describe('getPredictFundingServiceMessenger', () => {
-  it('exposes the Withdraw actions to the root messenger', async () => {
-    const rootMessenger = getRootMessenger();
-    const serviceMessenger = getPredictFundingServiceMessenger(rootMessenger);
-    const handler = jest.fn().mockResolvedValue({ previewId: 'preview-1' });
-    rootMessenger.registerActionHandler(
-      'PredictFundingService:requestWithdrawPreview',
-      handler,
-    );
-
-    await rootMessenger.call(
-      'PredictFundingService:requestWithdrawPreview',
-      KALSHI_VENUE_ID,
-      { sweepAll: true },
-    );
-
-    expect(handler).toHaveBeenCalledWith(KALSHI_VENUE_ID, { sweepAll: true });
-    expect(serviceMessenger).toBeDefined();
-  });
-
   it('delegates only the balance-family invalidation action it consumes', async () => {
     const rootMessenger = getRootMessenger();
     const invalidateQueries = jest.fn().mockResolvedValue(undefined);
@@ -105,9 +86,11 @@ describe('getPredictFundingServiceInitMessenger', () => {
   });
 
   it('exposes the service state actions a session change needs', () => {
-    const rootMessenger = new Messenger<MockAnyNamespace, GlobalActions, never>({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
+    const rootMessenger = new Messenger<MockAnyNamespace, GlobalActions, never>(
+      {
+        namespace: MOCK_ANY_NAMESPACE,
+      },
+    );
     const signedIn = { isSignedIn: true } as never;
     rootMessenger.registerActionHandler(
       'AuthenticationController:getState',

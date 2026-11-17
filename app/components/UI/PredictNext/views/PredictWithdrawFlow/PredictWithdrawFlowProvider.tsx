@@ -2,7 +2,6 @@ import React, { createContext, useCallback, useContext, useState } from 'react';
 
 import Engine from '../../../../../core/Engine';
 import { useNextVenueId } from '../../implementation';
-import { usePredictWithdrawAvailable } from '../../funding';
 
 import { PredictWithdrawFlowSheet } from './internal/PredictWithdrawFlowSheet';
 
@@ -14,30 +13,6 @@ interface OpenWithdrawFlow {
 interface PredictWithdrawFlowContextValue {
   openWithdrawFlow: () => void;
 }
-
-/**
- * Opens the sheet only for a Venue that advertises Withdraw and whose
- * implementation this client can run. Support is checked when the sheet
- * opens and then held, so a catalog refresh cannot tear down a Withdrawal
- * while it is committing; the backend authorizes the Commit anyway.
- */
-const SupportedWithdrawFlowSheet = ({ onClose }: { onClose: () => void }) => {
-  const venueId = useNextVenueId();
-  const resolution = usePredictWithdrawAvailable();
-  const supported = resolution.status === 'ready';
-  const [admitted, setAdmitted] = useState(supported);
-  if (supported && !admitted) {
-    setAdmitted(true);
-  }
-
-  return admitted ? (
-    <PredictWithdrawFlowSheet
-      venueId={venueId}
-      service={Engine.context.PredictFundingService}
-      onClose={onClose}
-    />
-  ) : null;
-};
 
 const PredictWithdrawFlowContext =
   createContext<PredictWithdrawFlowContextValue | null>(null);
@@ -58,6 +33,7 @@ export const PredictWithdrawFlowProvider = ({
   children: React.ReactNode;
 }) => {
   const [open, setOpen] = useState<OpenWithdrawFlow | null>(null);
+  const venueId = useNextVenueId();
 
   const openWithdrawFlow = useCallback(() => {
     setOpen((current) => ({ id: (current?.id ?? 0) + 1 }));
@@ -73,7 +49,12 @@ export const PredictWithdrawFlowProvider = ({
     <PredictWithdrawFlowContext.Provider value={contextValue}>
       {children}
       {open ? (
-        <SupportedWithdrawFlowSheet key={open.id} onClose={closeWithdrawFlow} />
+        <PredictWithdrawFlowSheet
+          key={open.id}
+          venueId={venueId}
+          service={Engine.context.PredictFundingService}
+          onClose={closeWithdrawFlow}
+        />
       ) : null}
     </PredictWithdrawFlowContext.Provider>
   );

@@ -238,11 +238,12 @@ describe('Predict service initialization', () => {
         PredictFundingServiceActions,
         never
       >({ namespace: MOCK_ANY_NAMESPACE });
-      const controllerMessenger: PredictFundingServiceMessenger =
-        new Messenger({
+      const controllerMessenger: PredictFundingServiceMessenger = new Messenger(
+        {
           namespace: 'PredictFundingService',
           parent: rootMessenger,
-        });
+        },
+      );
       const handlers = new Map<string, () => void>();
       const call = jest.fn((action: string) => {
         if (action === 'AuthenticationController:getState') {
@@ -272,26 +273,9 @@ describe('Predict service initialization', () => {
       return { rootMessenger, controller, handlers, session };
     };
 
-    it('registers Withdraw actions on the Engine root messenger', async () => {
-      const { rootMessenger, controller } = buildFundingInit();
-
-      const result = rootMessenger.call(
-        'PredictFundingService:requestWithdrawPreview',
-        'kalshi' as never,
-        { sweepAll: true },
-      );
-
-      // No fetch is stubbed here, so the bearer-only transport fails closed
-      // as an unavailable Venue rather than pretending the quote succeeded.
-      await expect(result).rejects.toMatchObject({
-        code: 'VENUE_UNAVAILABLE',
-      });
-      controller.destroy();
-    });
-
-    it('abandons observation when the keyring locks or the profile changes', () => {
+    it('abandons reported Withdrawals when the keyring locks or the profile changes', () => {
       const { controller, handlers } = buildFundingInit();
-      const abandon = jest.spyOn(controller, 'abandonObservation');
+      const abandon = jest.spyOn(controller, 'abandon');
 
       handlers.get('KeyringController:lock')?.();
       handlers.get('AuthenticationController:profileSignIn')?.();
@@ -300,11 +284,12 @@ describe('Predict service initialization', () => {
       controller.destroy();
     });
 
-    it('abandons observation when the session signs out, not when it refreshes', () => {
+    it('abandons reported Withdrawals when the session signs out, not when it refreshes', () => {
       const { controller, handlers, session } = buildFundingInit();
-      const abandon = jest.spyOn(controller, 'abandonObservation');
-      const authenticationChanged =
-        handlers.get('AuthenticationController:stateChange');
+      const abandon = jest.spyOn(controller, 'abandon');
+      const authenticationChanged = handlers.get(
+        'AuthenticationController:stateChange',
+      );
 
       session.isSignedIn = true;
       authenticationChanged?.();
@@ -316,7 +301,7 @@ describe('Predict service initialization', () => {
       controller.destroy();
     });
 
-    it('abandons observation when the Active Venue changes', () => {
+    it('abandons reported Withdrawals when the Active Venue changes', () => {
       let state = activeVenueState('kalshi');
       const rootMessenger = new Messenger<
         MockAnyNamespace,
@@ -339,7 +324,7 @@ describe('Predict service initialization', () => {
         } as never,
         getState: jest.fn(() => state) as never,
       });
-      const abandon = jest.spyOn(controller, 'abandonObservation');
+      const abandon = jest.spyOn(controller, 'abandon');
       const onStoreChange = jest.mocked(store.subscribe).mock.calls[0][0];
 
       onStoreChange();

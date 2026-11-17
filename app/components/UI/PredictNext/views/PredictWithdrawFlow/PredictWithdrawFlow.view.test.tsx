@@ -1,11 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import {
-  act,
-  fireEvent,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import { AppState } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
@@ -249,6 +243,20 @@ describe('PredictWithdrawFlow', () => {
     expect(previewBodies()).toEqual([]);
   });
 
+  it('sends a trailing-dot amount without the dot', async () => {
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.');
+
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.AMOUNT_ERROR),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+
+    await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
+    expect(previewBodies()).toEqual([{ amount: '5' }]);
+  });
+
   it('sweeps with Max and shows the amount the venue actually withdrew', async () => {
     stubWithdrawals({
       preview: () => ({
@@ -363,12 +371,17 @@ describe('PredictWithdrawFlow', () => {
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
 
-    // The sheet hands its tier to the service, which reads the receipt back.
-    // The step length is a unit-level concern
-    // (`PredictFundingService.test.ts`); here the tier must simply not stop
-    // observation short of a terminal status.
+    // The sheet hands its tier to the polling hook, which reads the receipt
+    // back. The step length is a hook-level concern
+    // (`useWithdrawReceipt.test.ts`); here the tier must simply not stop
+    // observation short of a terminal status. Slow cellular doubles the first
+    // step, so wait past the production 4s.
     expect(
-      await screen.findByTestId(PredictWithdrawFlowTestIds.status('settled')),
+      await screen.findByTestId(
+        PredictWithdrawFlowTestIds.status('settled'),
+        {},
+        { timeout: 6_000 },
+      ),
     ).toBeOnTheScreen();
     expect(
       fetchMock.mock.calls.filter(

@@ -6,15 +6,14 @@ import {
 } from '@metamask/messenger';
 import {
   PREDICT_FUNDING_SERVICE_NAME,
-  type PredictFundingServiceActions,
   type PredictFundingServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictFundingService';
 import type { GlobalActions, GlobalEvents, RootMessenger } from '../types';
 
 /**
  * Get the messenger for the Predict Funding service. It is scoped to the
- * Withdraw actions the service handles plus the portfolio invalidation it
- * consumes after a Withdrawal moves the balance.
+ * portfolio invalidation the service consumes after a Withdrawal moves the
+ * balance.
  *
  * @param rootMessenger - The root messenger.
  * @returns The PredictFundingServiceMessenger.
@@ -44,7 +43,11 @@ export type PredictFundingServiceInitMessenger = Messenger<
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | Extract<
       GlobalActions,
-      { type: 'AuthenticationController:getState' | 'KeyringController:getState' }
+      {
+        type:
+          | 'AuthenticationController:getState'
+          | 'KeyringController:getState';
+      }
     >,
   Extract<
     GlobalEvents,

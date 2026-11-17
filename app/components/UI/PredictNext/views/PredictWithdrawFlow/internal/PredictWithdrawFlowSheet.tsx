@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useReducer, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -13,13 +12,14 @@ import { useSelector } from 'react-redux';
 // Android only scrolls inside a BottomSheet through this one.
 import { ScrollView } from 'react-native-gesture-handler';
 
-import ModalSafeAreaProvider from '../../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import Logger from '../../../../../../util/Logger';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { PredictFlowSheetHost } from '../../../components/PredictFlowSheetHost';
 import { useBalance } from '../../../hooks/useBalance';
+import { useWithdrawReceipt } from '../../../hooks/useWithdrawReceipt';
 import { PredictError, PredictErrorCode } from '../../../errors';
 import type {
   PredictAmount,
@@ -35,17 +35,140 @@ import { WithdrawAmountStep } from './WithdrawAmountStep';
 import { WithdrawConfirmStep } from './WithdrawConfirmStep';
 import { WithdrawStatusStep } from './WithdrawStatusStep';
 import {
+  normalizeWithdrawAmount,
   sanitizeWithdrawAmount,
   sweepWithdrawAmountIssue,
   withdrawAmountIssue,
 } from './withdrawAmount';
 
-type WithdrawPhase = 'input' | 'confirm' | 'status';
+/** The amount the person is entering, carried through every phase so a failed
+ * Commit returns to a confirmation that still knows what it was confirming. */
+interface WithdrawAmountInput {
+  amount: string;
+  isSweeping: boolean;
+}
 
-const styles = StyleSheet.create({
-  // The one raw View this flow needs: the host the Modal renders into.
-  modalHost: { ...StyleSheet.absoluteFill },
-});
+/**
+ * The sheet's phases are a state machine: an amount can be edited, a quoted
+ * Preview can be committed, and a committed Withdrawal reports its receipt.
+ * Each phase carries exactly the fields it can use, so an unreachable
+ * combination (a receipt in the amount step, a quote in the status step) has
+ * no representation.
+ */
+export type WithdrawFlowState =
+  | {
+      phase: 'input';
+      input: WithdrawAmountInput;
+      isRequesting: boolean;
+      error: PredictError | null;
+    }
+  | {
+      phase: 'confirm';
+      input: WithdrawAmountInput;
+      preview: PredictWithdrawPreview;
+      error: PredictError | null;
+    }
+  | {
+      phase: 'status';
+      input: WithdrawAmountInput;
+      preview: PredictWithdrawPreview;
+      receipt: PredictWithdrawReceipt | null;
+    };
+
+export type WithdrawFlowAction =
+  | { type: 'editAmount'; amount: string }
+  | { type: 'sweep' }
+  | { type: 'request' }
+  | { type: 'quoted'; preview: PredictWithdrawPreview }
+  | { type: 'requestFailed'; error: PredictError }
+  | { type: 'confirm' }
+  | { type: 'committed'; receipt: PredictWithdrawReceipt }
+  | { type: 'commitFailed'; error: PredictError }
+  | { type: 'back' }
+  | { type: 'receipt'; receipt: PredictWithdrawReceipt };
+
+export const initialWithdrawFlowState: WithdrawFlowState = {
+  phase: 'input',
+  input: { amount: '', isSweeping: false },
+  isRequesting: false,
+  error: null,
+};
+
+export const withdrawFlowReducer = (
+  state: WithdrawFlowState,
+  action: WithdrawFlowAction,
+): WithdrawFlowState => {
+  switch (action.type) {
+    case 'editAmount':
+      return state.phase === 'input'
+        ? {
+            ...state,
+            input: { amount: action.amount, isSweeping: false },
+            error: null,
+          }
+        : state;
+    case 'sweep':
+      return state.phase === 'input'
+        ? {
+            ...state,
+            input: { amount: '', isSweeping: true },
+            error: null,
+          }
+        : state;
+    case 'request':
+      return state.phase === 'input'
+        ? { ...state, isRequesting: true, error: null }
+        : state;
+    case 'quoted':
+      return state.phase === 'input'
+        ? {
+            phase: 'confirm',
+            input: state.input,
+            preview: action.preview,
+            error: null,
+          }
+        : state;
+    case 'requestFailed':
+      return state.phase === 'input'
+        ? { ...state, isRequesting: false, error: action.error }
+        : state;
+    case 'confirm':
+      return state.phase === 'confirm'
+        ? {
+            phase: 'status',
+            input: state.input,
+            preview: state.preview,
+            receipt: null,
+          }
+        : state;
+    case 'committed':
+      return state.phase === 'status'
+        ? { ...state, receipt: action.receipt }
+        : state;
+    case 'commitFailed':
+      return state.phase === 'status'
+        ? {
+            phase: 'confirm',
+            input: state.input,
+            preview: state.preview,
+            error: action.error,
+          }
+        : state;
+    case 'back':
+      return state.phase === 'confirm'
+        ? {
+            phase: 'input',
+            input: state.input,
+            isRequesting: false,
+            error: null,
+          }
+        : state;
+    case 'receipt':
+      return state.phase === 'status'
+        ? { ...state, receipt: action.receipt }
+        : state;
+  }
+};
 
 /** The locale key for a Preview or Commit failure. The named codes are the
  * ones whose remedy differs; everything else retries with one generic line. */
@@ -89,126 +212,105 @@ export const PredictWithdrawFlowSheet = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const balanceQuery = useBalance(venueId);
   const networkTier = useNetworkTier();
+  const [state, dispatch] = useReducer(
+    withdrawFlowReducer,
+    initialWithdrawFlowState,
+  );
 
-  const [phase, setPhase] = useState<WithdrawPhase>('input');
-  const [amount, setAmount] = useState('');
-  const [isSweeping, setIsSweeping] = useState(false);
-  const [preview, setPreview] = useState<PredictWithdrawPreview | null>(null);
-  const [receipt, setReceipt] = useState<PredictWithdrawReceipt | null>(null);
-  const [error, setError] = useState<PredictError | null>(null);
-  const [isRequesting, setIsRequesting] = useState(false);
-  const [isCommitting, setIsCommitting] = useState(false);
-  // Fences the async work of one sheet opening: a late Preview response must
-  // not rewrite a flow the person has already moved past.
-  const requestIdRef = useRef(0);
-
+  const { input } = state;
   const availableBalance = balanceQuery.data?.available;
   const isOffline = networkTier === 'NONE';
   const isLowHardware = getHardwareTier() === 'LOW';
   // A sweep asks for everything, so only the Venue's floor applies to it; a
   // typed amount is also checked against the cached balance.
   const sweepIssue = sweepWithdrawAmountIssue(availableBalance);
-  const amountIssue = isSweeping
+  const amountIssue = input.isSweeping
     ? sweepIssue
-    : withdrawAmountIssue(amount, availableBalance);
+    : withdrawAmountIssue(input.amount, availableBalance);
   const canSweep = availableBalance !== undefined && sweepIssue === null;
   const canReview =
+    state.phase === 'input' &&
     !isOffline &&
-    !isRequesting &&
-    (isSweeping ? canSweep : amountIssue === null && amount.length > 0);
+    !state.isRequesting &&
+    (input.isSweeping
+      ? canSweep
+      : amountIssue === null && input.amount.length > 0);
 
   useEffect(() => {
     sheetRef.current?.onOpenBottomSheet();
   }, []);
 
-  const previewId = receipt?.previewId;
-  /** Once the receipt exists this sheet is one of its observers: the service
-   * owns the backoff schedule and replays the last receipt it holds. */
-  useEffect(() => {
-    if (!previewId) {
-      return undefined;
-    }
-    return service.followOperation(previewId, {
-      onReceipt: setReceipt,
-      getNetworkTier: () => networkTier,
-    });
-  }, [service, previewId, networkTier]);
+  const handleReceipt = useCallback(
+    (receipt: PredictWithdrawReceipt) => dispatch({ type: 'receipt', receipt }),
+    [],
+  );
+  /** Once the Commit returns, this sheet is the surface observing the
+   * Withdrawal: the hook owns the backoff schedule and stops on a terminal
+   * receipt, on manual review, or when the sheet unmounts. */
+  useWithdrawReceipt({
+    service,
+    venueId,
+    receipt: state.phase === 'status' ? state.receipt : null,
+    networkTier,
+    onReceipt: handleReceipt,
+  });
 
-  const handleAmountChange = useCallback((next: string) => {
-    setError(null);
-    setIsSweeping(false);
-    setAmount(sanitizeWithdrawAmount(next));
-  }, []);
+  const handleAmountChange = useCallback(
+    (next: string) =>
+      dispatch({ type: 'editAmount', amount: sanitizeWithdrawAmount(next) }),
+    [],
+  );
 
-  const handleMax = useCallback(() => {
-    setError(null);
-    setAmount('');
-    setIsSweeping(true);
-  }, []);
+  const handleMax = useCallback(() => dispatch({ type: 'sweep' }), []);
 
   const handleReview = useCallback(async () => {
     if (!canReview) {
       return;
     }
-    const requestId = requestIdRef.current + 1;
-    requestIdRef.current = requestId;
-    setError(null);
-    setIsRequesting(true);
-    const params: PredictWithdrawPreviewParams = isSweeping
+    dispatch({ type: 'request' });
+    const params: PredictWithdrawPreviewParams = input.isSweeping
       ? { sweepAll: true }
-      : { amount: amount as PredictAmount };
+      : { amount: normalizeWithdrawAmount(input.amount) as PredictAmount };
     try {
-      const quoted = await service.requestWithdrawPreview(venueId, params);
-      if (requestIdRef.current !== requestId) {
-        return;
-      }
-      setPreview(quoted);
-      setPhase('confirm');
+      dispatch({
+        type: 'quoted',
+        preview: await service.requestWithdrawPreview(venueId, params),
+      });
     } catch (caught) {
-      if (requestIdRef.current !== requestId) {
-        return;
-      }
       Logger.log('PredictNext: the Withdraw Preview failed', caught);
-      setError(toPredictError(caught));
-    } finally {
-      if (requestIdRef.current === requestId) {
-        setIsRequesting(false);
-      }
+      dispatch({ type: 'requestFailed', error: toPredictError(caught) });
     }
-  }, [amount, canReview, isSweeping, service, venueId]);
+  }, [canReview, input, service, venueId]);
 
   /** Commits by reference: the phone sends the Preview id and nothing else,
    * and the receipt it returns is the operation's state from now on. */
   const handleConfirm = useCallback(async () => {
-    if (!preview || isCommitting || isOffline) {
+    if (state.phase !== 'confirm' || isOffline) {
       return;
     }
-    setError(null);
-    setPhase('status');
-    setIsCommitting(true);
+    const { preview } = state;
+    dispatch({ type: 'confirm' });
     try {
-      setReceipt(
-        await service.commitWithdrawPreview(venueId, preview.previewId),
-      );
+      dispatch({
+        type: 'committed',
+        receipt: await service.commitWithdrawPreview(
+          venueId,
+          preview.previewId,
+        ),
+      });
     } catch (caught) {
       Logger.log('PredictNext: the Withdraw Commit failed', caught);
-      setError(toPredictError(caught));
-      setPhase('confirm');
-    } finally {
-      setIsCommitting(false);
+      dispatch({ type: 'commitFailed', error: toPredictError(caught) });
     }
-  }, [isCommitting, isOffline, preview, service, venueId]);
+  }, [isOffline, service, state, venueId]);
 
-  const handleBack = useCallback(() => {
-    setError(null);
-    setPhase('input');
-  }, []);
+  const handleBack = useCallback(() => dispatch({ type: 'back' }), []);
 
   const renderBody = () => {
-    if (phase === 'status') {
-      return receipt ? (
+    if (state.phase === 'status') {
+      return state.receipt ? (
         <WithdrawStatusStep
-          receipt={receipt}
+          receipt={state.receipt}
           isPrivacyMode={Boolean(privacyMode)}
         />
       ) : (
@@ -222,23 +324,23 @@ export const PredictWithdrawFlowSheet = ({
         </Box>
       );
     }
-    if (phase === 'confirm' && preview) {
+    if (state.phase === 'confirm') {
       return (
         <WithdrawConfirmStep
-          preview={preview}
+          preview={state.preview}
           isPrivacyMode={Boolean(privacyMode)}
         />
       );
     }
     return (
       <WithdrawAmountStep
-        amount={amount}
+        amount={input.amount}
         availableBalance={availableBalance}
-        isSweeping={isSweeping}
+        isSweeping={input.isSweeping}
         amountIssue={amountIssue}
         canSweep={canSweep}
         isOffline={isOffline}
-        isRequesting={isRequesting}
+        isRequesting={state.isRequesting}
         onAmountChange={handleAmountChange}
         onMax={handleMax}
       />
@@ -246,7 +348,7 @@ export const PredictWithdrawFlowSheet = ({
   };
 
   const renderFooter = () => {
-    if (phase === 'status') {
+    if (state.phase === 'status') {
       return (
         <BottomSheetFooter
           primaryButtonProps={{
@@ -257,15 +359,13 @@ export const PredictWithdrawFlowSheet = ({
         />
       );
     }
-    if (phase === 'confirm') {
+    if (state.phase === 'confirm') {
       return (
         <BottomSheetFooter
           primaryButtonProps={{
             children: strings('predict_next.withdraw.confirm'),
             onPress: handleConfirm,
             isDisabled: isOffline,
-            isLoading: isCommitting && !isLowHardware,
-            loadingText: strings('predict_next.withdraw.confirming'),
             testID: PredictWithdrawFlowTestIds.CONFIRM,
           }}
           secondaryButtonProps={{
@@ -281,12 +381,12 @@ export const PredictWithdrawFlowSheet = ({
         primaryButtonProps={{
           // LOW hardware renders no spinner: the label alone says the request
           // is running, without non-essential animation.
-          children: isRequesting
+          children: state.isRequesting
             ? strings('predict_next.withdraw.submitting')
             : strings('predict_next.withdraw.review'),
           onPress: handleReview,
           isDisabled: !canReview,
-          isLoading: isRequesting && !isLowHardware,
+          isLoading: state.isRequesting && !isLowHardware,
           loadingText: strings('predict_next.withdraw.submitting'),
           testID: PredictWithdrawFlowTestIds.REVIEW,
         }}
@@ -295,45 +395,35 @@ export const PredictWithdrawFlowSheet = ({
   };
 
   return (
-    <View pointerEvents="box-none" style={styles.modalHost}>
-      <Modal
-        visible
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={onClose}
+    <PredictFlowSheetHost onClose={onClose}>
+      <BottomSheet
+        ref={sheetRef}
+        onClose={onClose}
+        testID={PredictWithdrawFlowTestIds.SHEET}
       >
-        <ModalSafeAreaProvider>
-          <BottomSheet
-            ref={sheetRef}
-            onClose={onClose}
-            testID={PredictWithdrawFlowTestIds.SHEET}
-          >
-            <BottomSheetHeader
-              onClose={onClose}
-              onBack={phase === 'confirm' ? handleBack : undefined}
-              testID={PredictWithdrawFlowTestIds.HEADER}
-            >
-              {strings('predict_next.withdraw.title')}
-            </BottomSheetHeader>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <Box twClassName="gap-3 px-4 py-3">
-                {renderBody()}
-                {error === null ? null : (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.ErrorDefault}
-                    testID={PredictWithdrawFlowTestIds.ERROR}
-                  >
-                    {strings(errorCopyKey(error))}
-                  </Text>
-                )}
-              </Box>
-            </ScrollView>
-            {renderFooter()}
-          </BottomSheet>
-        </ModalSafeAreaProvider>
-      </Modal>
-    </View>
+        <BottomSheetHeader
+          onClose={onClose}
+          onBack={state.phase === 'confirm' ? handleBack : undefined}
+          testID={PredictWithdrawFlowTestIds.HEADER}
+        >
+          {strings('predict_next.withdraw.title')}
+        </BottomSheetHeader>
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <Box twClassName="gap-3 px-4 py-3">
+            {renderBody()}
+            {state.phase !== 'status' && state.error !== null ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.ErrorDefault}
+                testID={PredictWithdrawFlowTestIds.ERROR}
+              >
+                {strings(errorCopyKey(state.error))}
+              </Text>
+            ) : null}
+          </Box>
+        </ScrollView>
+        {renderFooter()}
+      </BottomSheet>
+    </PredictFlowSheetHost>
   );
 };

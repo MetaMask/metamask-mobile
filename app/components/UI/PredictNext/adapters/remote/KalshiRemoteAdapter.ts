@@ -31,6 +31,7 @@ import type {
   FetchOrderPreviewParams,
   PredictOrderReview,
   PredictVenueId,
+  PredictWithdrawReceipt,
 } from '../../types';
 import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
 import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
@@ -167,6 +168,22 @@ const mapError = (
  * every other caller takes the Venue from the Active Venue, a route, or an
  * intent. */
 export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
+
+/** Parses a receipt and re-checks the ownership the parser cannot know: a
+ * response must describe the Preview this session asked about, in this
+ * Venue. Both the Commit and the receipt read go through it, so the two can
+ * never drift apart. */
+const parseOwnWithdrawReceipt = (
+  value: unknown,
+  venueId: PredictVenueId,
+  previewId: string,
+): PredictWithdrawReceipt => {
+  const receipt = parsePredictWithdrawReceipt(value);
+  if (receipt.venueId !== venueId || receipt.previewId !== previewId) {
+    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+  }
+  return receipt;
+};
 
 export interface KalshiOrderSigningDependencies {
   getApprovalGeneration: () => number | undefined;
@@ -461,14 +478,7 @@ export class KalshiRemoteAdapter {
             previewId,
             options,
           );
-          const result = parsePredictWithdrawReceipt(value);
-          if (
-            result.venueId !== this.venueId ||
-            result.previewId !== previewId
-          ) {
-            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
-          }
-          return result;
+          return parseOwnWithdrawReceipt(value, this.venueId, previewId);
         } catch (error) {
           return mapError(error, 'commit');
         }
@@ -480,14 +490,7 @@ export class KalshiRemoteAdapter {
             previewId,
             options,
           );
-          const result = parsePredictWithdrawReceipt(value);
-          if (
-            result.venueId !== this.venueId ||
-            result.previewId !== previewId
-          ) {
-            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
-          }
-          return result;
+          return parseOwnWithdrawReceipt(value, this.venueId, previewId);
         } catch (error) {
           return mapError(error, 'observe');
         }

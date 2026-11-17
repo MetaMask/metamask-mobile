@@ -11,8 +11,6 @@ import {
   type PredictFundingServiceActions,
   type PredictFundingServiceEvents,
   type PredictFundingServiceMessenger,
-  type PredictFundingServiceOptions,
-  type PredictWithdrawObserver,
 } from './PredictFundingService';
 import {
   type PredictAmount,
@@ -23,7 +21,7 @@ import {
   type PredictWithdrawReceiptStatus,
 } from '../types';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
-import type { NetworkTier } from '../../../../hooks/useNetworkTier';
+import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 
 const preview: PredictWithdrawPreview = {
   previewId: 'preview-1',
@@ -85,21 +83,9 @@ const invalidateQueries = jest.fn<Promise<void>, [unknown]>();
 
 const funding = { previewWithdraw, commitWithdraw, observeWithdraw };
 
-/** Every service a test builds; destroyed after each test so no observation
- * timer survives into the next one. */
 const services: PredictFundingService[] = [];
 
-/** Drives the AppState the service listens to. */
-let appStateListener: ((state: string) => void) | undefined;
-
-const serviceWith = (
-  options: Partial<
-    Pick<
-      PredictFundingServiceOptions,
-      'observationDelaysMs' | 'slowCellularMultiplier' | 'venueId'
-    >
-  > = {},
-): PredictFundingService => {
+const serviceWith = (): PredictFundingService => {
   const rootMessenger = new Messenger<
     MockAnyNamespace,
     PredictFundingServiceActions,
@@ -118,111 +104,70 @@ const serviceWith = (
     events: [],
     messenger,
   });
-  const created = new PredictFundingService({
+  const service = new PredictFundingService({
     messenger,
     funding,
     venueId: KALSHI_VENUE_ID,
-    AppState: {
-      currentState: 'active',
-      addEventListener: (
-        _type: string,
-        listener: (state: string) => void,
-      ) => {
-        appStateListener = listener;
-        return {
-          remove: () => {
-            appStateListener = undefined;
-          },
-        };
-      },
-    } as unknown as PredictFundingServiceOptions['AppState'],
-    ...options,
   });
-  services.push(created);
-  return created;
+  services.push(service);
+  return service;
 };
 
+const invalidations = () =>
+  portfolioQueryFamilies(KALSHI_VENUE_ID).map((queryKey) => [{ queryKey }]);
+
 beforeEach(() => {
-  previewWithdraw.mockReset();
-  previewWithdraw.mockResolvedValue(preview);
-  commitWithdraw.mockReset();
-  commitWithdraw.mockResolvedValue(receipt('processing'));
-  observeWithdraw.mockReset();
-  invalidateQueries.mockReset();
-  invalidateQueries.mockResolvedValue(undefined);
-  appStateListener = undefined;
+  previewWithdraw.mockReset().mockResolvedValue(preview);
+  commitWithdraw.mockReset().mockResolvedValue(receipt('processing'));
+  observeWithdraw.mockReset().mockResolvedValue(receipt('processing'));
+  invalidateQueries.mockReset().mockResolvedValue(undefined);
 });
 
 afterEach(() => {
-  services.splice(0).forEach((created) => created.destroy());
-  jest.useRealTimers();
-});
-
-interface MockObserver extends PredictWithdrawObserver {
-  onReceipt: jest.Mock;
-  getNetworkTier: jest.Mock<NetworkTier | null, []>;
-}
-
-const observerWith = (overrides: Partial<MockObserver> = {}): MockObserver => ({
-  onReceipt: jest.fn(),
-  getNetworkTier: jest.fn<NetworkTier | null, []>(() => 'WIFI'),
-  ...overrides,
+  services.splice(0).forEach((service) => service.destroy());
 });
 
 describe('PredictFundingService', () => {
   describe('requestWithdrawPreview', () => {
     it('quotes a fixed amount without caching or transforming it', async () => {
       const service = serviceWith();
+      const params = { amount: '5.00' as PredictAmount };
 
-      const quoted = await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
-        amount: '5.00' as PredictAmount,
-      });
+      const quoted = await service.requestWithdrawPreview(
+        KALSHI_VENUE_ID,
+        params,
+      );
 
       expect(quoted).toBe(preview);
-      expect(previewWithdraw).toHaveBeenCalledWith(
-        { amount: '5.00' },
-        undefined,
-      );
+      expect(previewWithdraw).toHaveBeenCalledWith(params, undefined);
     });
 
     it('quotes a sweep with the whole-balance intent', async () => {
       const service = serviceWith();
+      const sweep = { ...preview, mode: 'sweep_all' as const };
+      previewWithdraw.mockResolvedValueOnce(sweep);
 
-      await service.requestWithdrawPreview(KALSHI_VENUE_ID, { sweepAll: true });
+      const quoted = await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        sweepAll: true,
+      });
 
-      expect(previewWithdraw).toHaveBeenCalledWith({ sweepAll: true }, undefined);
-    });
-
-    it('refuses a Venue this service does not serve', async () => {
-      const service = serviceWith();
-
-      await expect(
-        service.requestWithdrawPreview('other-venue' as PredictVenueId, {
-          sweepAll: true,
-        }),
-      ).rejects.toMatchObject({ code: PredictErrorCode.UNSUPPORTED_VENUE });
-      expect(previewWithdraw).not.toHaveBeenCalled();
-    });
-
-    it('surfaces the backend error unchanged', async () => {
-      const service = serviceWith();
-      const failure = PredictError.from(PredictErrorCode.AMOUNT_BELOW_MINIMUM);
-      previewWithdraw.mockRejectedValueOnce(failure);
-
-      await expect(
-        service.requestWithdrawPreview(KALSHI_VENUE_ID, {
-          amount: '0.50' as PredictAmount,
-        }),
-      ).rejects.toBe(failure);
+      expect(quoted).toBe(sweep);
+      expect(previewWithdraw).toHaveBeenCalledWith(
+        { sweepAll: true },
+        undefined,
+      );
     });
 
     it('discards a quote that lands after the Predict User was replaced', async () => {
       const service = serviceWith();
+      const gate = deferred<PredictWithdrawPreview>();
+      previewWithdraw.mockReturnValueOnce(gate.promise);
+
       const pending = service.requestWithdrawPreview(KALSHI_VENUE_ID, {
         sweepAll: true,
       });
-
-      service.abandonObservation();
+      service.abandon();
+      gate.resolve(preview);
 
       await expect(pending).rejects.toMatchObject({
         code: PredictErrorCode.UNAUTHENTICATED,
@@ -233,362 +178,235 @@ describe('PredictFundingService', () => {
   describe('commitWithdrawPreview', () => {
     it('commits by reference and returns the canonical receipt', async () => {
       const service = serviceWith();
+      const canonical = receipt('processing');
+      commitWithdraw.mockResolvedValueOnce(canonical);
 
       const result = await service.commitWithdrawPreview(
         KALSHI_VENUE_ID,
         'preview-1',
       );
 
-      expect(result.status).toBe('processing');
-      expect(commitWithdraw).toHaveBeenCalledWith('preview-1');
+      expect(result).toBe(canonical);
+      expect(commitWithdraw.mock.calls).toEqual([['preview-1', undefined]]);
     });
 
-    it('coalesces concurrent commits of one Preview into a single request', async () => {
+    it('returns the persisted refusal as an outcome rather than throwing', async () => {
       const service = serviceWith();
-      const gate = deferred<PredictWithdrawReceipt>();
-      commitWithdraw.mockImplementationOnce(() => gate.promise);
+      const refusal = receipt('rejected', {
+        rejectionCode: 'insufficient_balance',
+      });
+      commitWithdraw.mockResolvedValueOnce(refusal);
+      observeWithdraw.mockResolvedValueOnce(refusal);
 
-      const first = service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
-      const second = service.commitWithdrawPreview(
+      const committed = await service.commitWithdrawPreview(
         KALSHI_VENUE_ID,
         'preview-1',
       );
-      gate.resolve(receipt('processing'));
-
-      await expect(first).resolves.toMatchObject({ status: 'processing' });
-      await expect(second).resolves.toMatchObject({ status: 'processing' });
-      expect(commitWithdraw).toHaveBeenCalledTimes(1);
-    });
-
-    it('allows a later commit of the same Preview after the first settles', async () => {
-      const service = serviceWith();
-
-      await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
-      await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
-
-      expect(commitWithdraw).toHaveBeenCalledTimes(2);
-    });
-
-    it('refuses to commit against another Venue', () => {
-      const service = serviceWith();
-
-      // A Commit returns its coalesced promise, so a Venue mismatch throws
-      // before one is created.
-      expect(() =>
-        service.commitWithdrawPreview(
-          'other-venue' as PredictVenueId,
-          'preview-1',
-        ),
-      ).toThrow(
-        expect.objectContaining({ code: PredictErrorCode.UNSUPPORTED_VENUE }),
+      const observed = await service.observeWithdraw(
+        KALSHI_VENUE_ID,
+        'preview-1',
       );
-      expect(commitWithdraw).not.toHaveBeenCalled();
+
+      expect(committed).toBe(refusal);
+      expect(observed).toBe(refusal);
+      expect(invalidateQueries).not.toHaveBeenCalled();
     });
   });
 
   describe('observeWithdraw', () => {
     it('reads the receipt without submitting', async () => {
       const service = serviceWith();
-      observeWithdraw.mockResolvedValueOnce(receipt('settled'));
+      const canonical = receipt('settled');
+      observeWithdraw.mockResolvedValueOnce(canonical);
 
-      const result = await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+      const result = await service.observeWithdraw(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
 
-      expect(result.status).toBe('settled');
-      expect(observeWithdraw).toHaveBeenCalledWith('preview-1');
+      expect(result).toBe(canonical);
+      expect(observeWithdraw.mock.calls).toEqual([['preview-1', undefined]]);
       expect(commitWithdraw).not.toHaveBeenCalled();
     });
   });
 
+  describe.each(['preview', 'commit', 'observe'] as const)(
+    '%s contract',
+    (method) => {
+      const invoke = (
+        service: PredictFundingService,
+        venueId = KALSHI_VENUE_ID,
+      ) => {
+        if (method === 'preview') {
+          return service.requestWithdrawPreview(venueId, { sweepAll: true });
+        }
+        return method === 'commit'
+          ? service.commitWithdrawPreview(venueId, 'preview-1')
+          : service.observeWithdraw(venueId, 'preview-1');
+      };
+
+      it('refuses a Venue this service does not serve', async () => {
+        const service = serviceWith();
+
+        const result = invoke(service, 'other-venue' as PredictVenueId);
+
+        await expect(result).rejects.toMatchObject({
+          code: PredictErrorCode.UNSUPPORTED_VENUE,
+        });
+        expect(previewWithdraw).not.toHaveBeenCalled();
+        expect(commitWithdraw).not.toHaveBeenCalled();
+        expect(observeWithdraw).not.toHaveBeenCalled();
+      });
+
+      it('surfaces the backend error unchanged', async () => {
+        const service = serviceWith();
+        const failure = PredictError.from(
+          PredictErrorCode.AMOUNT_BELOW_MINIMUM,
+        );
+        previewWithdraw.mockRejectedValueOnce(failure);
+        commitWithdraw.mockRejectedValueOnce(failure);
+        observeWithdraw.mockRejectedValueOnce(failure);
+
+        const result = invoke(service);
+
+        await expect(result).rejects.toBe(failure);
+        expect(invalidateQueries).not.toHaveBeenCalled();
+      });
+    },
+  );
+
   describe('portfolio invalidation', () => {
-    it('invalidates every portfolio read when a commit lands in processing', async () => {
+    it('invalidates every portfolio read once per status transition', async () => {
       const service = serviceWith();
+      observeWithdraw
+        .mockResolvedValueOnce(receipt('processing'))
+        .mockResolvedValueOnce(receipt('settled'))
+        .mockResolvedValueOnce(receipt('settled'));
 
       await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+      expect(invalidateQueries.mock.calls).toEqual(invalidations());
+      await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+      expect(invalidateQueries.mock.calls).toEqual(invalidations());
+      await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+      await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
 
-      expect(invalidateQueries.mock.calls.map(([request]) => request)).toEqual([
-        { queryKey: ['PredictPortfolioService:getBalance', KALSHI_VENUE_ID] },
-        { queryKey: ['PredictPortfolioService:getPositions', KALSHI_VENUE_ID] },
-        { queryKey: ['PredictPortfolioService:getActivity', KALSHI_VENUE_ID] },
-        {
-          queryKey: [
-            'PredictPortfolioService:getPortfolioSummary',
-            KALSHI_VENUE_ID,
-          ],
-        },
+      expect(invalidateQueries.mock.calls).toEqual([
+        ...invalidations(),
+        ...invalidations(),
       ]);
     });
 
-    it('invalidates once per status transition, not once per read', async () => {
-      const service = serviceWith();
-      commitWithdraw.mockResolvedValueOnce(receipt('processing'));
-      observeWithdraw.mockResolvedValue(receipt('processing'));
+    it.each(['settled', 'failed', 'returned'] as const)(
+      'invalidates all portfolio reads for %s',
+      async (status) => {
+        const service = serviceWith();
+        observeWithdraw.mockResolvedValueOnce(receipt(status));
 
+        await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+
+        expect(invalidateQueries.mock.calls).toEqual(invalidations());
+      },
+    );
+
+    it.each(['pending', 'rejected'] as const)(
+      'does not invalidate for %s receipts',
+      async (status) => {
+        const service = serviceWith();
+        commitWithdraw.mockResolvedValueOnce(receipt(status));
+        observeWithdraw.mockResolvedValueOnce(receipt(status));
+
+        await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+        await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+
+        expect(invalidateQueries).not.toHaveBeenCalled();
+      },
+    );
+
+    it('tracks status separately for each preview', async () => {
+      const service = serviceWith();
+      observeWithdraw.mockResolvedValueOnce(
+        receipt('processing', { previewId: 'preview-2' }),
+      );
+
+      await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+      await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-2');
+
+      expect(invalidateQueries.mock.calls).toEqual([
+        ...invalidations(),
+        ...invalidations(),
+      ]);
+    });
+
+    it.each(['commit', 'observe'] as const)(
+      'keeps %s successful when invalidation fails',
+      async (method) => {
+        const service = serviceWith();
+        invalidateQueries.mockRejectedValue(new Error('invalidate failed'));
+
+        const result =
+          method === 'commit'
+            ? await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1')
+            : await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+
+        expect(result.status).toBe('processing');
+        expect(invalidateQueries.mock.calls).toEqual(invalidations());
+      },
+    );
+  });
+
+  describe('abandon', () => {
+    it('forgets receipt statuses so the next processing receipt invalidates again', async () => {
+      const service = serviceWith();
       await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
       invalidateQueries.mockClear();
+
+      service.abandon();
       await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
-      expect(invalidateQueries).not.toHaveBeenCalled();
 
-      observeWithdraw.mockResolvedValueOnce(receipt('settled'));
-      await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
-      expect(invalidateQueries).toHaveBeenCalledTimes(4);
+      expect(invalidateQueries.mock.calls).toEqual(invalidations());
     });
 
-    it('does not invalidate for a rejected receipt, which moved no money', async () => {
-      const service = serviceWith();
-      commitWithdraw.mockResolvedValueOnce(
-        receipt('rejected', {
-          rejectionCode: 'insufficient_balance',
-          withdrawnAmount: null,
-        }),
-      );
+    it.each(['commit', 'observe'] as const)(
+      'discards an in-flight %s after the Predict User changes',
+      async (method) => {
+        const service = serviceWith();
+        const gate = deferred<PredictWithdrawReceipt>();
+        commitWithdraw.mockReturnValueOnce(gate.promise);
+        observeWithdraw.mockReturnValueOnce(gate.promise);
 
-      await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+        const pending =
+          method === 'commit'
+            ? service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1')
+            : service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+        service.abandon();
+        gate.resolve(receipt('settled'));
 
-      expect(invalidateQueries).not.toHaveBeenCalled();
-    });
-
-    it('keeps the commit successful when the invalidation fails', async () => {
-      const service = serviceWith();
-      invalidateQueries.mockRejectedValue(new Error('invalidate failed'));
-
-      await expect(
-        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
-      ).resolves.toMatchObject({ status: 'processing' });
-    });
-  });
-
-  describe('followOperation', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
-
-    it('reads the receipt on each backoff step until it settles', async () => {
-      const service = serviceWith({ observationDelaysMs: [10, 20] });
-      const observer = observerWith();
-      observeWithdraw
-        .mockResolvedValueOnce(receipt('processing'))
-        .mockResolvedValueOnce(receipt('settled'));
-
-      const unsubscribe = service.followOperation('preview-1', observer);
-
-      await jest.advanceTimersByTimeAsync(10);
-      expect(observeWithdraw).toHaveBeenCalledTimes(1);
-      expect(observer.onReceipt).toHaveBeenLastCalledWith(
-        expect.objectContaining({ status: 'processing' }),
-      );
-
-      await jest.advanceTimersByTimeAsync(20);
-      expect(observeWithdraw).toHaveBeenCalledTimes(2);
-      expect(observer.onReceipt).toHaveBeenLastCalledWith(
-        expect.objectContaining({ status: 'settled' }),
-      );
-
-      await jest.advanceTimersByTimeAsync(1_000);
-      expect(observeWithdraw).toHaveBeenCalledTimes(2);
-      unsubscribe();
-    });
-
-    it('repeats the last delay once the schedule runs out', async () => {
-      const service = serviceWith({ observationDelaysMs: [10] });
-      observeWithdraw.mockResolvedValue(receipt('processing'));
-      const unsubscribe = service.followOperation(
-        'preview-1',
-        observerWith(),
-      );
-
-      await jest.advanceTimersByTimeAsync(10);
-      await jest.advanceTimersByTimeAsync(10);
-      await jest.advanceTimersByTimeAsync(10);
-
-      expect(observeWithdraw).toHaveBeenCalledTimes(3);
-      unsubscribe();
-    });
-
-    it('doubles each step on a slow cellular connection', async () => {
-      const service = serviceWith({
-        observationDelaysMs: [10],
-        slowCellularMultiplier: 2,
-      });
-      observeWithdraw.mockResolvedValue(receipt('processing'));
-      const unsubscribe = service.followOperation(
-        'preview-1',
-        observerWith({
-          getNetworkTier: jest.fn<NetworkTier | null, []>(
-            () => 'SLOW_CELLULAR',
-          ),
-        }),
-      );
-
-      await jest.advanceTimersByTimeAsync(19);
-      expect(observeWithdraw).not.toHaveBeenCalled();
-
-      await jest.advanceTimersByTimeAsync(1);
-      expect(observeWithdraw).toHaveBeenCalledTimes(1);
-      unsubscribe();
-    });
-
-    it('skips a read with no connection and re-arms at the same step', async () => {
-      const service = serviceWith({ observationDelaysMs: [10, 100] });
-      const getNetworkTier = jest.fn<NetworkTier | null, []>(() => 'NONE');
-      observeWithdraw.mockResolvedValue(receipt('processing'));
-      const unsubscribe = service.followOperation(
-        'preview-1',
-        observerWith({ getNetworkTier }),
-      );
-
-      await jest.advanceTimersByTimeAsync(10);
-      expect(observeWithdraw).not.toHaveBeenCalled();
-
-      getNetworkTier.mockReturnValue('WIFI');
-      await jest.advanceTimersByTimeAsync(10);
-      expect(observeWithdraw).toHaveBeenCalledTimes(1);
-      unsubscribe();
-    });
-
-    it('stops polling when the backend asks for manual review', async () => {
-      const service = serviceWith({ observationDelaysMs: [10] });
-      observeWithdraw.mockResolvedValue(
-        receipt('processing', { needsManualReview: true }),
-      );
-      const observer = observerWith();
-      const unsubscribe = service.followOperation('preview-1', observer);
-
-      await jest.advanceTimersByTimeAsync(10);
-      await jest.advanceTimersByTimeAsync(1_000);
-
-      expect(observeWithdraw).toHaveBeenCalledTimes(1);
-      expect(observer.onReceipt).toHaveBeenCalledWith(
-        expect.objectContaining({ needsManualReview: true }),
-      );
-      unsubscribe();
-    });
-
-    it('keeps the last receipt and tries again when a read fails', async () => {
-      const service = serviceWith({ observationDelaysMs: [10] });
-      const observer = observerWith();
-      const unsubscribe = service.followOperation('preview-1', observer);
-      observeWithdraw
-        .mockResolvedValueOnce(receipt('processing'))
-        .mockRejectedValueOnce(new Error('network down'))
-        .mockResolvedValueOnce(receipt('settled'));
-
-      await jest.advanceTimersByTimeAsync(10);
-      await jest.advanceTimersByTimeAsync(10);
-      expect(observer.onReceipt).toHaveBeenLastCalledWith(
-        expect.objectContaining({ status: 'processing' }),
-      );
-
-      await jest.advanceTimersByTimeAsync(10);
-      expect(observer.onReceipt).toHaveBeenLastCalledWith(
-        expect.objectContaining({ status: 'settled' }),
-      );
-      unsubscribe();
-    });
-
-    it('stops reading once the last surface unsubscribes', async () => {
-      const service = serviceWith({ observationDelaysMs: [10] });
-      const unsubscribe = service.followOperation(
-        'preview-1',
-        observerWith(),
-      );
-
-      unsubscribe();
-      await jest.advanceTimersByTimeAsync(1_000);
-
-      expect(observeWithdraw).not.toHaveBeenCalled();
-    });
-
-    it('hands the known receipt to a surface that subscribes later', async () => {
-      const service = serviceWith({ observationDelaysMs: [10] });
-      observeWithdraw.mockResolvedValue(receipt('processing'));
-      const first = service.followOperation('preview-1', observerWith());
-      await jest.advanceTimersByTimeAsync(10);
-      first();
-
-      const late = observerWith();
-      const unsubscribe = service.followOperation('preview-1', late);
-
-      expect(late.onReceipt).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'processing' }),
-      );
-      unsubscribe();
-    });
-
-    it('pauses while the app is not active and resumes when it returns', async () => {
-      const service = serviceWith({ observationDelaysMs: [10] });
-      observeWithdraw.mockResolvedValue(receipt('processing'));
-      const unsubscribe = service.followOperation(
-        'preview-1',
-        observerWith(),
-      );
-
-      appStateListener?.('background');
-      await jest.advanceTimersByTimeAsync(1_000);
-      expect(observeWithdraw).not.toHaveBeenCalled();
-
-      appStateListener?.('active');
-      await jest.advanceTimersByTimeAsync(10);
-      expect(observeWithdraw).toHaveBeenCalledTimes(1);
-      unsubscribe();
-    });
-  });
-
-  describe('abandonObservation', () => {
-    it('stops every observation and forgets the receipts', async () => {
-      jest.useFakeTimers();
-      const service = serviceWith({ observationDelaysMs: [10] });
-      observeWithdraw.mockResolvedValue(receipt('processing'));
-      const observer = observerWith();
-      service.followOperation('preview-1', observer);
-      await jest.advanceTimersByTimeAsync(10);
-      expect(service.getDestination('preview-1')).toEqual(preview.destination);
-
-      service.abandonObservation();
-      await jest.advanceTimersByTimeAsync(1_000);
-
-      expect(observeWithdraw).toHaveBeenCalledTimes(1);
-      expect(service.getDestination('preview-1')).toBeUndefined();
-    });
-
-    it('does not let an in-flight read land after the Predict User changed', async () => {
-      jest.useFakeTimers();
-      const service = serviceWith({ observationDelaysMs: [10] });
-      const observer = observerWith();
-      const gate = deferred<PredictWithdrawReceipt>();
-      observeWithdraw.mockImplementationOnce(() => gate.promise);
-      service.followOperation('preview-1', observer);
-      await jest.advanceTimersByTimeAsync(10);
-
-      service.abandonObservation();
-      gate.resolve(receipt('settled'));
-      await jest.advanceTimersByTimeAsync(0);
-
-      expect(observer.onReceipt).not.toHaveBeenCalled();
-      expect(invalidateQueries).not.toHaveBeenCalled();
-    });
+        await expect(pending).rejects.toMatchObject({
+          code: PredictErrorCode.UNAUTHENTICATED,
+        });
+        expect(invalidateQueries).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('lifecycle', () => {
-    it('runs the registered cleanup on destroy', () => {
+    it('runs registered cleanup exactly once and abandons in-flight receipts', async () => {
       const service = serviceWith();
       const cleanup = jest.fn();
+      const gate = deferred<PredictWithdrawReceipt>();
+      observeWithdraw.mockReturnValueOnce(gate.promise);
       service.setLifecycleCleanup(cleanup);
+      const pending = service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
 
       service.destroy();
+      service.destroy();
+      gate.resolve(receipt('settled'));
 
       expect(cleanup).toHaveBeenCalledTimes(1);
-    });
-
-    it('stops observing after destroy', async () => {
-      jest.useFakeTimers();
-      const service = serviceWith({ observationDelaysMs: [10] });
-      observeWithdraw.mockResolvedValue(receipt('processing'));
-      service.followOperation('preview-1', observerWith());
-
-      service.destroy();
-      await jest.advanceTimersByTimeAsync(1_000);
-
-      expect(observeWithdraw).not.toHaveBeenCalled();
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(invalidateQueries).not.toHaveBeenCalled();
     });
   });
 });

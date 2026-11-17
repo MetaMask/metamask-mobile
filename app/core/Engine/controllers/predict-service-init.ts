@@ -272,13 +272,15 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
     venueId: adapter.venueId,
   });
 
-  // A replaced Predict User must not have their Withdrawals observed with
-  // the next person's bearer token. This is watched here, not on a screen,
-  // so it applies whether or not the Withdraw sheet is mounted.
-  const abandon = () => controller.abandonObservation();
+  // A replaced Predict User must not have their Withdrawal receipts observed
+  // with the next person's bearer token. This is watched here, not on a
+  // screen, so it applies whether or not the Withdraw sheet is mounted.
+  const abandon = () => controller.abandon();
   initMessenger.subscribe('KeyringController:lock', abandon);
   initMessenger.subscribe('AuthenticationController:profileSignIn', abandon);
-  let signedIn = initMessenger.call('AuthenticationController:getState').isSignedIn;
+  let signedIn = initMessenger.call(
+    'AuthenticationController:getState',
+  ).isSignedIn;
   const authenticationChanged = () => {
     const next = initMessenger.call(
       'AuthenticationController:getState',

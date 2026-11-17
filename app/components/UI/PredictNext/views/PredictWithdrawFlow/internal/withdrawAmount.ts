@@ -7,15 +7,35 @@ import type { PredictAmount } from '../../../types';
  */
 export const MINIMUM_WITHDRAW_AMOUNT = 1;
 
+/** One dollar in cents: every judgement below is integer arithmetic. */
+const MINIMUM_WITHDRAW_CENTS = MINIMUM_WITHDRAW_AMOUNT * 100;
+
 /** Digits with at most two decimals and at most nine whole digits: the shape
- * the API accepts for a `fixed` amount. */
-const AMOUNT_PATTERN = /^\d{1,9}(\.\d{1,2})?$/u;
+ * the API accepts for a `fixed` amount. A trailing dot is a valid in-progress
+ * entry (`10.`), so it is allowed here and removed by
+ * {@link normalizeWithdrawAmount} before the amount leaves the phone. */
+const AMOUNT_PATTERN = /^\d{1,9}(\.\d{0,2})?$/u;
 
 /**
  * Why a typed amount cannot be withdrawn. `null` when it can, including while
  * the field is empty: an empty field is not yet an error.
  */
-export type PredictWithdrawAmountIssue = 'below_minimum' | 'over_balance' | null;
+export type PredictWithdrawAmountIssue =
+  | 'below_minimum'
+  | 'over_balance'
+  | null;
+
+/**
+ * Money as integer cents. `null` when the value is not a decimal money
+ * amount, so an unparseable input is never silently rounded into a judgement.
+ */
+const parseCents = (amount: string): number | null => {
+  if (!AMOUNT_PATTERN.test(amount)) {
+    return null;
+  }
+  const [whole, decimals = ''] = amount.split('.');
+  return Number(whole) * 100 + Number(decimals.padEnd(2, '0'));
+};
 
 /**
  * Judges a typed amount against the minimum and the available balance. A
@@ -28,18 +48,18 @@ export const withdrawAmountIssue = (
   if (amount.length === 0) {
     return null;
   }
-  if (!AMOUNT_PATTERN.test(amount)) {
+  const cents = parseCents(amount);
+  if (cents === null) {
     return Number(amount) < MINIMUM_WITHDRAW_AMOUNT
       ? 'below_minimum'
       : 'over_balance';
   }
-  if (Number(amount) < MINIMUM_WITHDRAW_AMOUNT) {
+  if (cents < MINIMUM_WITHDRAW_CENTS) {
     return 'below_minimum';
   }
-  if (
-    availableBalance !== undefined &&
-    Number(amount) > Number(availableBalance)
-  ) {
+  const balanceCents =
+    availableBalance === undefined ? null : parseCents(availableBalance);
+  if (balanceCents !== null && cents > balanceCents) {
     return 'over_balance';
   }
   return null;
@@ -53,18 +73,26 @@ export const withdrawAmountIssue = (
 export const sweepWithdrawAmountIssue = (
   availableBalance?: PredictAmount,
 ): PredictWithdrawAmountIssue => {
-  if (
-    availableBalance !== undefined &&
-    Number(availableBalance) < MINIMUM_WITHDRAW_AMOUNT
-  ) {
+  const balanceCents =
+    availableBalance === undefined ? null : parseCents(availableBalance);
+  if (balanceCents !== null && balanceCents < MINIMUM_WITHDRAW_CENTS) {
     return 'below_minimum';
   }
   return null;
 };
 
 /**
+ * The amount in the shape the API accepts. A trailing dot is still a valid
+ * entry while the person types decimals, so it is only removed when the value
+ * is sent.
+ */
+export const normalizeWithdrawAmount = (amount: string): string =>
+  amount.endsWith('.') ? amount.slice(0, -1) : amount;
+
+/**
  * Keeps the field to a withdrawable shape while it is typed: digits, one
- * decimal point, at most two decimals, no leading zeros.
+ * decimal point, at most two decimals, no leading zeros. A trailing dot is
+ * kept so the next digit types a decimal.
  */
 export const sanitizeWithdrawAmount = (next: string): string => {
   const cleaned = next.replace(/[^0-9.]/gu, '');

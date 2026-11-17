@@ -892,9 +892,6 @@ export const composePredictNextFundingService = (
     ),
     funding: adapter.funding,
     venueId: adapter.venueId,
-    // One fixed short step keeps the observation loop synchronous with fake
-    // timers instead of waiting the production backoff out.
-    observationDelaysMs: [10],
   });
 };
 
