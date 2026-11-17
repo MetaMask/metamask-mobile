@@ -38,7 +38,7 @@ function printReport(report: RouteCoverageReport, onlyUncovered: boolean): void 
   );
   console.log('');
 
-  const routeColumn = 60;
+  const routeColumn = 48;
   const statusColumn = 16;
   const header = [
     'Route'.padEnd(routeColumn),
