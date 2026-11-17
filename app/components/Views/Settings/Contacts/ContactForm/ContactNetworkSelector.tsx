@@ -32,7 +32,6 @@ export const ContactNetworkSelector = ({
       size={SelectButtonSize.Lg}
       twClassName="px-4"
       value={networkName}
-      placeholder={networkName}
       contentWrapperProps={{ twClassName: 'w-full justify-between' }}
       textProps={{ twClassName: 'text-left grow px-1' }}
       startAccessory={

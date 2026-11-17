@@ -40,7 +40,6 @@ export const CohortFilterSelector: React.FC<CohortFilterSelectorProps> = ({
 }) => (
   <SelectButton
     size={SelectButtonSize.Md}
-    placeholder={getCohortLabel(value)}
     value={getCohortLabel(value)}
     onPress={onPress}
     testID={testID}

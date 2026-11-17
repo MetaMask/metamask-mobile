@@ -63,7 +63,6 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
       accessibilityRole="button"
       twClassName="shrink min-w-0"
       textProps={{
-        numberOfLines: 1,
         ellipsizeMode: 'middle',
       }}
       startAccessory={
