@@ -1,6 +1,6 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { BackHandler, Pressable, Text } from 'react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
@@ -1720,7 +1720,14 @@ describe('BuildQuote View', () => {
   });
 
   describe('Tron Max quick amount race condition', () => {
+    let savedBalanceBN: bigint | undefined;
+    let savedOffRampNonEvmEnabled: boolean;
+
     beforeEach(() => {
+      // Save state
+      savedBalanceBN = mockUseBalanceValues.balanceBN;
+      savedOffRampNonEvmEnabled = mockUseOffRampNonEvmEnabled();
+
       mockUseRampSDKValues.rampType = RampType.SELL;
       mockUseRampSDKValues.isBuy = false;
       mockUseRampSDKValues.isSell = true;
@@ -1731,6 +1738,12 @@ describe('BuildQuote View', () => {
         '5.36385',
         mockTronAsset.decimals,
       );
+    });
+
+    afterEach(() => {
+      // Restore state
+      mockUseBalanceValues.balanceBN = savedBalanceBN;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(savedOffRampNonEvmEnabled);
     });
 
     it('discards Max result when user presses another quick amount during Max request', async () => {
@@ -1756,11 +1769,6 @@ describe('BuildQuote View', () => {
       // Resolve Max with a value
       maxResolve({ amount: '1000' });
 
-      // Wait for any state updates
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
       // Amount should be 75% of balance, not the Max result
       const balanceBN = mockUseBalanceValues.balanceBN as bigint;
       const expected75 = (balanceBN * 75n) / 100n;
@@ -1769,9 +1777,11 @@ describe('BuildQuote View', () => {
         mockTronAsset.decimals,
       );
 
-      expect(
-        getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
-      ).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('discards Max result when user inputs keypad value during Max request', async () => {
@@ -1797,14 +1807,11 @@ describe('BuildQuote View', () => {
       // Resolve Max with a different value
       maxResolve({ amount: '1000' });
 
-      // Wait for any state updates
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
       // Amount should be the user's input (5), not the Max result
       // Use exact match to ensure it's the typed value, not the fallback 5.36385
-      expect(getByRoleButton(`5 ${symbol}`)).toBeTruthy();
+      await waitFor(() => {
+        expect(getByRoleButton(`5 ${symbol}`)).toBeOnTheScreen();
+      });
     });
 
     it('falls back to balance-based calculation when Snap returns undefined', async () => {
@@ -1819,11 +1826,6 @@ describe('BuildQuote View', () => {
       // Press Max (100%)
       fireEvent.press(getByRoleButton('Max'));
 
-      // Wait for the request to complete
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
       // Amount should be 100% of balance (balance-based fallback)
       const balanceBN = mockUseBalanceValues.balanceBN as bigint;
       const expectedAmount = fromTokenMinimalUnitString(
@@ -1831,9 +1833,11 @@ describe('BuildQuote View', () => {
         mockTronAsset.decimals,
       );
 
-      expect(
-        getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
-      ).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('falls back to balance-based calculation when Snap returns empty result', async () => {
@@ -1848,11 +1852,6 @@ describe('BuildQuote View', () => {
       // Press Max (100%)
       fireEvent.press(getByRoleButton('Max'));
 
-      // Wait for the request to complete
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
       // Amount should be 100% of balance (balance-based fallback)
       const balanceBN = mockUseBalanceValues.balanceBN as bigint;
       const expectedAmount = fromTokenMinimalUnitString(
@@ -1860,9 +1859,11 @@ describe('BuildQuote View', () => {
         mockTronAsset.decimals,
       );
 
-      expect(
-        getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
-      ).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
     });
   });
 });

@@ -9,7 +9,8 @@ const mockValidateTronTransferAmount = jest.fn();
 
 jest.mock('../../../../../core/Multichain/tron', () => ({
   ...jest.requireActual('../../../../../core/Multichain/tron'),
-  validateTronTransferAmount: mockValidateTronTransferAmount,
+  validateTronTransferAmount: (...args: unknown[]) =>
+    mockValidateTronTransferAmount(...args),
 }));
 
 const mockStore = configureMockStore();
