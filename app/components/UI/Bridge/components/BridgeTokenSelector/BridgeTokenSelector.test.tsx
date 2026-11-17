@@ -375,7 +375,8 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) =>
+    key === 'money.splash.eyebrow' ? 'MetaMask Money' : key,
 }));
 
 const mockTrackEvent = jest.fn();
@@ -661,6 +662,23 @@ jest.mock(
   },
 );
 
+const mockUseMoneyToken = jest.fn(
+  (): ReturnType<typeof createMockToken> | undefined => undefined,
+);
+
+jest.mock('../../hooks/useBridgeMoneyToken', () => ({
+  useMoneyToken: () => mockUseMoneyToken(),
+}));
+
+jest.mock('../TokenSelectorMoneyItem', () => ({
+  TokenSelectorMoneyItem: () => {
+    const { createElement } = jest.requireActual('react');
+    const { Text } = jest.requireActual('react-native');
+
+    return createElement(Text, { testID: 'money-token-row' }, 'Money');
+  },
+}));
+
 jest.mock('../TokenSelectorItem', () => ({
   TokenSelectorItem: ({
     token,
@@ -770,6 +788,8 @@ const resetMocks = () => {
   mockIsNonEvmChainId.mockReturnValue(false);
   mockNavigationDispatch.mockReset();
   mockGoBack.mockReset();
+  mockUseMoneyToken.mockReset();
+  mockUseMoneyToken.mockReturnValue(undefined);
   mockUsePopularTokens.mockClear();
   mockUseSearchTokens.mockClear();
   mockUseBalancesByAssetId.mockClear();
@@ -3027,6 +3047,55 @@ describe('BridgeTokenSelectorContent', () => {
 
       await waitFor(() => expect(getByTestId('token-PEPE2')).toBeOnTheScreen());
       expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('money token row', () => {
+    const moneyToken = createMockToken({
+      symbol: 'MUSD',
+      name: 'MetaMask Money',
+      address: '0xmoney',
+      chainId: MOCK_CHAIN_IDS.polygon,
+      isMoneyToken: true,
+    });
+
+    beforeEach(() => {
+      mockUseMoneyToken.mockReturnValue(moneyToken);
+    });
+
+    it('shows Money for All, a selected network, and searches that match its name, symbol, or address', () => {
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('select-polygon-network'));
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('select-all-networks'));
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'zzz');
+      expect(queryByTestId('money-token-row')).toBeNull();
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'stable');
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'money');
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+
+      fireEvent.changeText(
+        getByTestId('bridge-token-search-input'),
+        'metamask',
+      );
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'musd');
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), '0xmoney');
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
     });
   });
 
