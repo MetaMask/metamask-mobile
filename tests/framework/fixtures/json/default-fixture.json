@@ -451,8 +451,13 @@
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
           "cachedUserDataByProvider": {},
+          "defaultProvider": "hyperliquid",
           "depositInProgress": false,
           "depositRequests": [],
+          "effectiveProvider": null,
+          "hasExplicitDefaultProviderSelection": false,
+          "hasExplicitProviderSelection": false,
+          "hasMigratedToMultiProvider": false,
           "hasPlacedFirstOrder": {
             "mainnet": false,
             "testnet": false
