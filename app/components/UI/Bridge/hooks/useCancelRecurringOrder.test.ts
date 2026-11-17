@@ -8,7 +8,7 @@ import {
   MOCK_RECURRING_OPEN_ORDER_2,
   MOCK_RECURRING_WALLET_ADDRESS,
 } from '../api/recurringOrders.mock';
-import { cancelRecurringOrder } from '../api/recurringOrders';
+import { recurringOrdersApiClient } from '../api/recurringOrders.client';
 import {
   type GetRecurringOrdersByAssetResponse,
   type ListRecurringOrdersResponse,
@@ -22,8 +22,10 @@ import {
 } from '../queries/recurringOrders';
 import { useCancelRecurringOrder } from './useCancelRecurringOrder';
 
-jest.mock('../api/recurringOrders', () => ({
-  cancelRecurringOrder: jest.fn(),
+jest.mock('../api/recurringOrders.client', () => ({
+  recurringOrdersApiClient: {
+    cancelRecurringOrder: jest.fn(),
+  },
 }));
 
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -44,6 +46,7 @@ function createInfiniteData(
       {
         orders,
         hasNextPage: Boolean(endCursor),
+        total: orders.length,
         ...(endCursor ? { endCursor } : {}),
       },
     ],
@@ -85,7 +88,9 @@ function getByAssetQueryKey(
 
 describe('useCancelRecurringOrder', () => {
   const messengerCall = Engine.controllerMessenger.call as jest.Mock;
-  const mockCancelRecurringOrder = jest.mocked(cancelRecurringOrder);
+  const mockCancelRecurringOrder = jest.mocked(
+    recurringOrdersApiClient.cancelRecurringOrder,
+  );
   const queryClients = new Set<QueryClient>();
   const cancelledOrder = {
     ...MOCK_RECURRING_OPEN_ORDER,
@@ -221,7 +226,7 @@ describe('useCancelRecurringOrder', () => {
     ).toStrictEqual([MOCK_RECURRING_OPEN_ORDER_2]);
     expect(mockCancelRecurringOrder).toHaveBeenCalledWith(
       MOCK_RECURRING_OPEN_ORDER.id,
-      { accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress },
+      { accountAddress: MOCK_RECURRING_OPEN_ORDER.account },
     );
     expect(messengerCall).toHaveBeenCalledWith(
       'RecurringOrdersDataService:invalidateQueries',

@@ -72,7 +72,6 @@ const OPEN_ORDER_STATES = [RecurringOrderState.Open];
 const HISTORY_ORDER_STATES = [
   RecurringOrderState.Completed,
   RecurringOrderState.Cancelled,
-  RecurringOrderState.Expired,
 ];
 const LOAD_MORE_SCROLL_THRESHOLD = 200;
 const FEE_TOKEN_ERROR_BANNER_TEST_IDS = {

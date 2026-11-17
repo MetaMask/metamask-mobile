@@ -8,8 +8,12 @@ import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702A
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { createRecurringOrder } from '../../api/recurringOrders';
-import { MOCK_RECURRING_OPEN_ORDER } from '../../api/recurringOrders.mock';
+import { recurringOrdersApiClient } from '../../api/recurringOrders.client';
+import {
+  createMockPrepareRecurringDelegationResponse,
+  MOCK_RECURRING_OPEN_ORDER,
+  MOCK_RECURRING_PREPARE_QUERY,
+} from '../../api/recurringOrders.mock';
 import {
   showRecurringAutoUpgradeError,
   showRecurringOrderCreatedToast,
@@ -24,6 +28,9 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { OrderType } from '../../types/advancedOrders';
+import { useCreateRecurringOrder } from '../../hooks/useCreateRecurringOrder';
+import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
+import { getRecurringOrderDelegationParams } from '../../utils/recurringOrders/getRecurringOrderDelegationParams';
 
 const expectAdvancedOrderProperties = (
   event: { category: string },
@@ -53,6 +60,7 @@ const expectAdvancedOrderProperties = (
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockAutoUpgradeEIP7702Account = jest.fn();
+const mockCreateRecurringOrder = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -106,9 +114,26 @@ jest.mock('../../hooks/useFiatToUsdRate', () => ({
   useFiatToUsdRate: jest.fn(),
 }));
 
-jest.mock('../../api/recurringOrders', () => ({
-  createRecurringOrder: jest.fn(),
+jest.mock('../../api/recurringOrders.client', () => ({
+  recurringOrdersApiClient: {
+    prepareRecurringDelegation: jest.fn(),
+  },
 }));
+
+jest.mock('../../hooks/useCreateRecurringOrder', () => ({
+  useCreateRecurringOrder: jest.fn(),
+}));
+
+jest.mock('../../utils/limitOrders/signLimitOrderDelegations', () => ({
+  signLimitOrderDelegations: jest.fn(),
+}));
+
+jest.mock(
+  '../../utils/recurringOrders/getRecurringOrderDelegationParams',
+  () => ({
+    getRecurringOrderDelegationParams: jest.fn(),
+  }),
+);
 
 jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
   showRecurringAutoUpgradeError: jest.fn(),
@@ -284,8 +309,26 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       activeQuote: mockActiveQuote,
     } as never);
     jest
-      .mocked(createRecurringOrder)
-      .mockResolvedValue({ order: MOCK_RECURRING_OPEN_ORDER });
+      .mocked(getRecurringOrderDelegationParams)
+      .mockReturnValue(MOCK_RECURRING_PREPARE_QUERY);
+    const prepareResponse = createMockPrepareRecurringDelegationResponse(
+      MOCK_RECURRING_PREPARE_QUERY,
+    );
+    jest
+      .mocked(recurringOrdersApiClient.prepareRecurringDelegation)
+      .mockResolvedValue(prepareResponse);
+    jest
+      .mocked(signLimitOrderDelegations)
+      .mockResolvedValue(prepareResponse.delegations);
+    mockCreateRecurringOrder.mockResolvedValue({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+    jest.mocked(useCreateRecurringOrder).mockReturnValue({
+      createRecurringOrder: mockCreateRecurringOrder,
+      isSubmitting: false,
+      error: null,
+      reset: jest.fn(),
+    });
   });
 
   it('opens the shared slippage modal above the confirmation modal', () => {
@@ -346,15 +389,92 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('confirm-order'));
 
     expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledWith();
-    expect(createRecurringOrder).not.toHaveBeenCalled();
+    expect(mockCreateRecurringOrder).not.toHaveBeenCalled();
     expect(getByTestId('confirm-order')).toHaveTextContent('Submitting');
 
     resolveUpgrade();
 
     await waitFor(() => {
-      expect(createRecurringOrder).toHaveBeenCalledTimes(1);
+      expect(mockCreateRecurringOrder).toHaveBeenCalledTimes(1);
       expect(showRecurringOrderCreatedToast).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('prepares, signs, and creates the live order in sequence', async () => {
+    const { getByTestId } = renderScreen({
+      recurring: configuredRecurringState,
+      sourceAmount: '1',
+    });
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(mockCreateRecurringOrder).toHaveBeenCalledTimes(1);
+    });
+    const prepareResponse = createMockPrepareRecurringDelegationResponse(
+      MOCK_RECURRING_PREPARE_QUERY,
+    );
+    expect(
+      recurringOrdersApiClient.prepareRecurringDelegation,
+    ).toHaveBeenCalledWith(MOCK_RECURRING_PREPARE_QUERY);
+    expect(signLimitOrderDelegations).toHaveBeenCalledWith(
+      prepareResponse.delegations,
+    );
+    expect(mockCreateRecurringOrder).toHaveBeenCalledWith({
+      accountAddress: MOCK_RECURRING_PREPARE_QUERY.accountAddress,
+      clientOrderId: MOCK_RECURRING_PREPARE_QUERY.clientOrderId,
+      src: {
+        assetId: MOCK_RECURRING_PREPARE_QUERY.srcAssetId,
+        amount: MOCK_RECURRING_PREPARE_QUERY.srcAmount,
+      },
+      dest: {
+        assetId: MOCK_RECURRING_PREPARE_QUERY.destAssetId,
+      },
+      schedule: {
+        every: MOCK_RECURRING_PREPARE_QUERY.every,
+        unit: MOCK_RECURRING_PREPARE_QUERY.unit,
+        repeatCount: MOCK_RECURRING_PREPARE_QUERY.repeatCount,
+      },
+      priceRange: {
+        side: 'src',
+        currency: 'USD',
+        min: '1000',
+        max: '2000',
+      },
+      delegations: prepareResponse.delegations,
+    });
+    expect(
+      mockAutoUpgradeEIP7702Account.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(recurringOrdersApiClient.prepareRecurringDelegation).mock
+        .invocationCallOrder[0],
+    );
+    expect(
+      jest.mocked(recurringOrdersApiClient.prepareRecurringDelegation).mock
+        .invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(signLimitOrderDelegations).mock.invocationCallOrder[0],
+    );
+    expect(
+      jest.mocked(signLimitOrderDelegations).mock.invocationCallOrder[0],
+    ).toBeLessThan(mockCreateRecurringOrder.mock.invocationCallOrder[0]);
+  });
+
+  it('includes only a user-overridden slippage value', async () => {
+    const { getByTestId } = renderScreen({
+      recurring: configuredRecurringState,
+      sourceAmount: '1',
+      slippage: '0.75',
+      isSlippageUserOverride: true,
+    });
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(mockCreateRecurringOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ slippage: 0.75 }),
+      );
     });
   });
 
@@ -378,7 +498,16 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('confirm-order'));
 
     await waitFor(() => {
-      expect(createRecurringOrder).toHaveBeenCalledWith();
+      expect(mockCreateRecurringOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          priceRange: {
+            side: 'src',
+            currency: 'USD',
+            min: '1080',
+            max: '2160',
+          },
+        }),
+      );
     });
   });
 
@@ -404,7 +533,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
 
     expect(confirmButton.props.accessibilityState.disabled).toBe(true);
     expect(mockAutoUpgradeEIP7702Account).not.toHaveBeenCalled();
-    expect(createRecurringOrder).not.toHaveBeenCalled();
+    expect(mockCreateRecurringOrder).not.toHaveBeenCalled();
   });
 
   it('resets shared market inputs while preserving recurring fields', async () => {
@@ -447,7 +576,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     await waitFor(() => {
       expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
     });
-    expect(createRecurringOrder).not.toHaveBeenCalled();
+    expect(mockCreateRecurringOrder).not.toHaveBeenCalled();
     expect(showRecurringOrderCreatedToast).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(store.getState().bridge.recurring).toEqual(configuredRecurringState);
@@ -457,7 +586,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
 
   it('preserves recurring inputs when order submission fails', async () => {
     const error = new Error('Order submission failed');
-    jest.mocked(createRecurringOrder).mockRejectedValue(error);
+    mockCreateRecurringOrder.mockRejectedValue(error);
     const { getByTestId, store } = renderScreen({
       recurring: configuredRecurringState,
       sourceAmount: '1',
@@ -492,7 +621,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('confirm-order'));
 
     await waitFor(() => {
-      expect(createRecurringOrder).toHaveBeenCalledTimes(1);
+      expect(mockCreateRecurringOrder).toHaveBeenCalledTimes(1);
     });
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.CONFIRMATION_REQUEST_MODAL,
@@ -508,7 +637,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       fireEvent.press(getByTestId('confirm-order'));
 
       await waitFor(() => {
-        expect(createRecurringOrder).toHaveBeenCalledTimes(1);
+        expect(mockCreateRecurringOrder).toHaveBeenCalledTimes(1);
       });
       expectAdvancedOrderProperties(
         MetaMetricsEvents.ADVANCED_ORDER_COMPLETED,
@@ -545,7 +674,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
 
     it('tracks ADVANCED_ORDER_FAILED with an order_type key when the order cannot be submitted', async () => {
       jest
-        .mocked(createRecurringOrder)
+        .mocked(mockCreateRecurringOrder)
         .mockRejectedValue(new Error('Order submission failed'));
       const { getByTestId } = renderScreen({
         recurring: configuredRecurringState,
