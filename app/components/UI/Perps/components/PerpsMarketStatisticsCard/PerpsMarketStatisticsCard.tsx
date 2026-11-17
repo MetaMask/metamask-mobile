@@ -15,6 +15,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -56,22 +57,33 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     let fundingValue: number;
     let displayText: string;
 
+    const isMissingFundingRate =
+      marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay;
+
     if (liveFunding !== undefined) {
       fundingValue = liveFunding;
       displayText = formatFundingRate(liveFunding);
     } else if (
       marketStats.fundingRate &&
-      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
+      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay &&
+      !isMissingFundingRate
     ) {
       fundingValue = marketStats.fundingRate.startsWith('-') ? -1 : 1;
       displayText = marketStats.fundingRate;
+    } else if (isMissingFundingRate) {
+      fundingValue = 0;
+      displayText = PERPS_CONSTANTS.FallbackPercentageDisplay;
     } else {
       fundingValue = 0;
       displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
     }
 
     const color =
-      fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+      displayText === PERPS_CONSTANTS.FallbackPercentageDisplay
+        ? TextColor.TextDefault
+        : fundingValue >= 0
+          ? TextColor.SuccessDefault
+          : TextColor.ErrorDefault;
 
     return {
       value: fundingValue,
