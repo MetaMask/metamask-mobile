@@ -80,8 +80,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleDonePress,
     confirmButtonProps,
     feeResults,
-    summaryMargin,
     summaryPnl,
+    summaryRoePercentage,
     receiveAmount,
     filteredErrors,
     isClosing,
@@ -169,10 +169,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     feeResults.metamaskFeeRate,
     feeResults.originalMetamaskFeeRate,
   );
-  const summaryPnlPercentage =
-    summaryMargin !== 0
-      ? (summaryPnl / Math.abs(summaryMargin)) * 100
-      : undefined;
 
   const displayedErrors = useMemo(
     () =>
@@ -256,7 +252,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       {!isEditingLimitPrice && !isInputFocused && (
         <PerpsCloseTotals
           pnl={summaryPnl}
-          pnlPercentage={summaryPnlPercentage}
+          roePercentage={summaryRoePercentage}
           receiveAmount={receiveAmount}
         />
       )}

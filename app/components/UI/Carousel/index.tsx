@@ -30,7 +30,6 @@ import {
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
-import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import {
   BANNER_EVENT_DISPLAY,
   BANNER_EVENT_DISMISSED,
@@ -110,15 +109,8 @@ export function useFetchCarouselSlides() {
   }, [isContentfulCarouselEnabled]);
 
   useEffect(() => {
-    // initial fetch
     fetchCallback();
-
-    // refetch from preview token
-    const unsubscribe = subscribeToContentPreviewToken(fetchCallback);
-    return () => {
-      unsubscribe();
-    };
-  }, [fetchCallback, isContentfulCarouselEnabled]);
+  }, [fetchCallback]);
 
   return {
     priorityContentfulSlides,

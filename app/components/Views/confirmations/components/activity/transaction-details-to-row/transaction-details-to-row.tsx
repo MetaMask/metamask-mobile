@@ -105,7 +105,17 @@ function useRecipient(): Hex | undefined {
       return undefined;
     }
     const parsed = parseStandardTokenTransactionData(data);
-    return parsed?.args?._to?.toString() as Hex | undefined;
+    const recipient = parsed?.args?._to?.toString() as Hex | undefined;
+
+    // Quoted withdrawals transfer to the money account, not the destination.
+    const isTransferToMoneyAccount =
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountWithdraw,
+      ]) &&
+      recipient?.toLowerCase() ===
+        transactionMeta?.txParams?.from?.toLowerCase();
+
+    return isTransferToMoneyAccount ? undefined : recipient;
   }, [transactionMeta]);
 }
 

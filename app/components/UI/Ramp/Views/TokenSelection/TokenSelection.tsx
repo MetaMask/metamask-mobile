@@ -417,7 +417,7 @@ function TokenSelection() {
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}
           includesTopInset
         />
-        <Box twClassName="px-4 pb-3">
+        <Box twClassName="px-4 pt-1 pb-3">
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}

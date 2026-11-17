@@ -10,7 +10,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   ButtonIcon,
-  HeaderStandard,
   IconName,
   IconSize,
   FontWeight,
@@ -32,6 +31,10 @@ import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { getBetaSupportUrl } from '../../utils';
+import { openContactSupportWebview } from '../../utils/openContactSupportWebview';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   list: {
@@ -66,6 +69,7 @@ interface LinkedOffDeviceAccountsSheetProps {
 const LinkedOffDeviceAccountsSheet: React.FC<
   LinkedOffDeviceAccountsSheetProps
 > = ({ accounts, onClose }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { openSupportWithConsent } = useSupportConsent();
 
@@ -73,13 +77,7 @@ const LinkedOffDeviceAccountsSheet: React.FC<
     const betaSupportUrl = getBetaSupportUrl();
 
     const openWebview = (url: string) =>
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url,
-          title: strings('app_settings.contact_support'),
-        },
-      });
+      openContactSupportWebview(navigation, url);
 
     if (betaSupportUrl) {
       openWebview(betaSupportUrl);
@@ -153,7 +151,9 @@ const LinkedOffDeviceAccountsSheet: React.FC<
 
   return (
     <BottomSheet shouldNavigateBack={false} onClose={onClose}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         testID="header-compact-standard"
         title={strings('rewards.settings.off_device_accounts_sheet_title')}
         onClose={onClose}

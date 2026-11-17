@@ -17,6 +17,7 @@ const descriptor = (
     venueId: venueId as PredictVenueId,
     actions,
     feeds: {},
+    categories: [],
     searchSupported: false,
     displayName: venueId,
   },

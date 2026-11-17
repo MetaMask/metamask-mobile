@@ -57,8 +57,20 @@ describe('claimButtonState', () => {
       claimButtonState('1000000', '50', true, '100000000', '12000000'),
     ).toBe('claim');
     expect(claimButtonState('0', '0', false, '100000000')).toBe('paused');
+    expect(claimButtonState('0', '0', false, '100000000', '0', true)).toBe(
+      'claim',
+    );
     expect(claimButtonState('0', '50', false, '0', '12000000')).toBe('paused');
     expect(claimButtonState('0', '50', false, '0', '0')).toBe('claimed');
+  });
+
+  it('keeps Claim for a tax hold even when another balance is blocked', () => {
+    expect(claimButtonState('0', '0', false, '120000', '130000', true)).toBe(
+      'claim',
+    );
+    expect(claimButtonState('0', '0', false, '120000', '130000')).toBe(
+      'paused',
+    );
   });
 });
 
@@ -187,6 +199,78 @@ describe('ClaimableRewardsCard', () => {
 
     fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON));
     expect(onPaused).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the held balance and Claim when tax documentation is the only hold', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={{
+          ...LOCALIZED_TEXT,
+          held: 'Held',
+        }}
+        claimable="0"
+        claimed="0"
+        held="2000000"
+        heldAmount="$2.00"
+        taxHeld
+        claimableAmount="$0.00"
+        recordedAmount="$2.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the held balance and Claim when tax is held beside a blocked balance', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={{
+          ...LOCALIZED_TEXT,
+          held: 'Held',
+        }}
+        claimable="0"
+        claimed="0"
+        held="120000"
+        blocked="130000"
+        heldAmount="$0.12"
+        taxHeld
+        claimableAmount="$0.00"
+        recordedAmount="$0.25"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$0.12');
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
   });
 
   it('keeps Claim when cashback is claimable and some money is held or blocked', () => {

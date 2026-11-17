@@ -138,6 +138,7 @@ export function renderScreenWithRoutes(
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
   queryClient?: QueryClient,
+  frame?: (children: React.ReactNode) => React.ReactElement,
 ) {
   const Stack = createNativeStackNavigator();
 
@@ -164,5 +165,8 @@ export function renderScreenWithRoutes(
     </QueryClientBoundary>
   );
 
-  return renderWithProvider(stackTree, providerValues);
+  return renderWithProvider(
+    frame ? frame(stackTree) : stackTree,
+    providerValues,
+  );
 }

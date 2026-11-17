@@ -59,6 +59,24 @@ export interface RewardsMoneyState {
    * killed session cannot leave Claim disabled.
    */
   claimLocks: Record<string, ClaimLock>;
+  /**
+   * Referral code from the `ref` param of the last deeplink the user
+   * continued past the interstitial, waiting for the invite sheet. A newer
+   * link replaces it. Dropped on rehydrate: the code belongs to the session
+   * that opened the link.
+   */
+  pendingReferralCode: string | null;
+  /**
+   * Last pending code that was cleared, so the same link parsed again later
+   * in the session cannot prompt twice. Dropped on rehydrate.
+   */
+  answeredReferralCode: string | null;
+  /**
+   * True while a deeplink carrying `ref` is still being handled (waiting for
+   * the navigator or the interstitial). The invite sheet and the push
+   * pre-prompt both wait for it. Dropped on rehydrate.
+   */
+  isReferralLinkPending: boolean;
 }
 
 export type ClaimLockStatus = 'in_progress' | 'awaiting_fresh_summary';
@@ -79,6 +97,9 @@ export const initialState: RewardsMoneyState = {
   inFlightClaims: {},
   claimWaitingUntil: {},
   claimLocks: {},
+  pendingReferralCode: null,
+  answeredReferralCode: null,
+  isReferralLinkPending: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -289,6 +310,31 @@ const rewardsMoneySlice = createSlice({
       }
       state.claimLocks[action.payload.profileId] = action.payload.lock;
     },
+    setPendingReferralCode: (state, action: PayloadAction<string>) => {
+      if (action.payload === state.answeredReferralCode) {
+        return;
+      }
+      state.pendingReferralCode = action.payload;
+    },
+    /**
+     * Answers `code`, or whatever is pending without one. A newer code that
+     * replaced `code` stays pending, since its link was never offered.
+     */
+    clearPendingReferralCode: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      const code = action.payload ?? state.pendingReferralCode;
+      if (code) {
+        state.answeredReferralCode = code;
+      }
+      if (code === state.pendingReferralCode) {
+        state.pendingReferralCode = null;
+      }
+    },
+    setReferralLinkPending: (state, action: PayloadAction<boolean>) => {
+      state.isReferralLinkPending = action.payload;
+    },
     resetRewardsMoneyState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -314,6 +360,9 @@ const rewardsMoneySlice = createSlice({
           // A lock belongs to the running session. Restoring one would leave
           // Claim disabled after the process that owned the claim was gone.
           claimLocks: {},
+          pendingReferralCode: null,
+          answeredReferralCode: null,
+          isReferralLinkPending: false,
         };
       },
     );
@@ -337,6 +386,9 @@ export const {
   setInFlightClaims,
   setClaimWaitingUntil,
   setClaimLock,
+  setPendingReferralCode,
+  clearPendingReferralCode,
+  setReferralLinkPending,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 

@@ -1,10 +1,17 @@
 import {
+  estimateCloseReceive,
   getPerpsDisplaySymbol,
   type OrderType,
+  type PerpsActiveProviderMode,
+  type CloseReceiveEstimateParams,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
+import { strings } from '../../../../../locales/i18n';
 import {
+  formatPercent,
+  formatSignedUsd,
   formatTradeUnitPrice,
   formatUsd,
 } from '../../SocialFeed/utils/formatters';
@@ -26,25 +33,31 @@ import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 export const orderTypeHasExchangeOrderId = (orderType: OrderType): boolean =>
   orderType !== 'scale' && orderType !== 'twap' && orderType !== 'chase';
 
-const resolveProviderId = (activeProvider: string | undefined): string =>
+/**
+ * Provider a single-venue action runs on: the active provider, or the default
+ * one under aggregation, where no single provider is active.
+ *
+ * @param activeProvider - `PerpsController` active provider.
+ * @returns The provider id.
+ */
+export const resolveProviderId = (
+  activeProvider: PerpsActiveProviderMode | undefined,
+): PerpsProviderType =>
   activeProvider && activeProvider !== PROVIDER_CONFIG.AggregatedProvider
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
 
-/** Returns whether the entered Perps amount reaches the sharing threshold. */
+/**
+ * Returns whether the Perps order's position size reaches the sharing
+ * threshold. `amountUsd` is position size (notional), not margin.
+ */
 export const isPerpsPostTradeShareEligible = ({
   amountUsd,
-  leverage,
 }: {
   amountUsd?: string;
-  leverage?: number;
 }): boolean => {
-  const amount = Number(amountUsd);
-  const leveragedAmount = amount * (leverage ?? 0);
-  return (
-    Number.isFinite(leveragedAmount) &&
-    leveragedAmount >= MIN_POST_TRADE_SHARE_USD
-  );
+  const notional = Number(amountUsd);
+  return Number.isFinite(notional) && notional >= MIN_POST_TRADE_SHARE_USD;
 };
 
 export const canBeginPerpsPostTradeShare = ({
@@ -54,7 +67,7 @@ export const canBeginPerpsPostTradeShare = ({
 }: {
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
-  activeProvider: string | undefined;
+  activeProvider: PerpsActiveProviderMode | undefined;
 }): boolean =>
   Boolean(copyTradeOrigin) &&
   orderTypeHasExchangeOrderId(orderType) &&
@@ -69,7 +82,7 @@ export const canPromptPerpsPostTrade = ({
   activeProvider,
 }: {
   orderType: OrderType;
-  activeProvider: string | undefined;
+  activeProvider: PerpsActiveProviderMode | undefined;
 }): boolean =>
   orderType === 'market' && resolveProviderId(activeProvider) === 'hyperliquid';
 
@@ -112,12 +125,103 @@ export const buildPerpsPostTradePreview = ({
   entryPriceLabel: priceLabel(entryPrice),
 });
 
-/** Opens the pending perps share sheet without the copy-trade checks. */
+/**
+ * Preview for an order that fully closes a position. The exit price and P&L
+ * are unknown until the close fills; {@link withPerpsCloseFill} adds them.
+ */
+export const buildPerpsClosePostTradePreview = ({
+  asset,
+  direction,
+  leverage,
+  amountUsd,
+  entryPrice,
+}: {
+  asset: string;
+  direction: 'long' | 'short';
+  leverage?: number;
+  /** Closed notional. */
+  amountUsd?: string;
+  /** Position's average entry price. */
+  entryPrice?: string;
+}): SocialPostPerpsPreview => ({
+  ...buildPerpsPostTradePreview({
+    asset,
+    direction,
+    leverage,
+    amountUsd,
+    entryPrice,
+  }),
+  action: 'close',
+});
+
+/**
+ * Applies a filled close to its preview: the exit price, and the P&L realized
+ * on the filled size at that price as a share of the margin backing it. Uses
+ * Core's close calculation, so the backing margin follows the margin mode.
+ * Without a usable fill price the preview is returned without exit or P&L.
+ */
+export const withPerpsCloseFill = (
+  preview: SocialPostPerpsPreview,
+  {
+    position,
+    providerId,
+    averagePrice,
+    filledSize,
+  }: {
+    position: CloseReceiveEstimateParams['position'];
+    providerId: PerpsProviderType;
+    averagePrice: string | undefined;
+    filledSize: string | undefined;
+  },
+): SocialPostPerpsPreview => {
+  const exitPriceLabel = priceLabel(averagePrice);
+  if (!exitPriceLabel) {
+    return preview;
+  }
+  const { realizedPnl, marginReturned } = estimateCloseReceive({
+    position,
+    providerId,
+    closeSize: filledSize || Math.abs(Number(position.size)),
+    price: averagePrice,
+    feeRate: undefined,
+  });
+  if (realizedPnl === undefined || !Number.isFinite(realizedPnl)) {
+    return { ...preview, exitPriceLabel };
+  }
+  return {
+    ...preview,
+    exitPriceLabel,
+    pnlValueLabel: formatSignedUsd(realizedPnl),
+    pnlLabel:
+      marginReturned !== undefined && marginReturned > 0
+        ? formatPercent((realizedPnl / marginReturned) * 100)
+        : undefined,
+    isPnlPositive: realizedPnl >= 0,
+  };
+};
+
+const formatPerpsPairLabel = (preview: SocialPostPerpsPreview): string => {
+  const directionLabel = preview.direction === 'long' ? 'Long' : 'Short';
+  const position = preview.leverageLabel
+    ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
+    : `${directionLabel} ${preview.tokenSymbol}`;
+  return preview.action === 'close'
+    ? strings('social_leaderboard.post_trade_share.close_pair_label', {
+        position,
+      })
+    : position;
+};
+
+/**
+ * Opens the pending perps share sheet without the copy-trade checks. Pass
+ * `preview` for a close; an open builds its preview from the order fields.
+ */
 export const openPerpsPostTradeShareSession = ({
   asset,
   direction,
   leverage,
   amountUsd,
+  preview: closePreview,
   variant = 'share',
   analyticsSource,
 }: {
@@ -125,23 +229,23 @@ export const openPerpsPostTradeShareSession = ({
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
+  preview?: SocialPostPerpsPreview;
   variant?: PostTradeShareVariant;
   analyticsSource?: SocialEventSource;
 }): string => {
-  const preview = buildPerpsPostTradePreview({
-    asset,
-    direction,
-    leverage,
-    amountUsd,
-  });
-  const directionLabel = direction === 'long' ? 'Long' : 'Short';
+  const preview =
+    closePreview ??
+    buildPerpsPostTradePreview({
+      asset,
+      direction,
+      leverage,
+      amountUsd,
+    });
   return beginPostTradeShareSession({
     product: 'perps',
     status: 'pending',
     variant,
-    pairLabel: preview.leverageLabel
-      ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
-      : `${directionLabel} ${preview.tokenSymbol}`,
+    pairLabel: formatPerpsPairLabel(preview),
     tradeInFlightChain: 'hyperliquid',
     preview,
     ...(analyticsSource ? { analyticsSource } : {}),
@@ -151,9 +255,11 @@ export const openPerpsPostTradeShareSession = ({
 /**
  * Opens the share sheet as pending for a Social V1 perps copy-trade that can
  * return an order id. Returns the session id, or undefined when this order
- * should keep the normal perps toasts.
+ * should keep the normal perps toasts. `canShare` is false when the account
+ * trading is not the one linked to the social profile, so it cannot post.
  */
 export const beginPerpsPostTradeShare = ({
+  canShare,
   copyTradeOrigin,
   orderType,
   activeProvider,
@@ -163,9 +269,10 @@ export const beginPerpsPostTradeShare = ({
   amountUsd,
   analyticsSource,
 }: {
+  canShare: boolean;
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
-  activeProvider: string | undefined;
+  activeProvider: PerpsActiveProviderMode | undefined;
   asset: string;
   direction: 'long' | 'short';
   leverage?: number;
@@ -173,12 +280,13 @@ export const beginPerpsPostTradeShare = ({
   analyticsSource?: SocialEventSource;
 }): string | undefined => {
   if (
+    !canShare ||
     !canBeginPerpsPostTradeShare({
       copyTradeOrigin,
       orderType,
       activeProvider,
     }) ||
-    !isPerpsPostTradeShareEligible({ amountUsd, leverage })
+    !isPerpsPostTradeShareEligible({ amountUsd })
   ) {
     return undefined;
   }
@@ -204,16 +312,19 @@ export const failPerpsPostTradeShare = (
  * Moves a pending perps share to complete when the exchange returned an oid.
  * A missing oid clears the open session and returns false, so the sheet does
  * not show Order failed and the caller can fall back to the perps toast. A
- * session the user already closed also returns false.
+ * session the user already closed also returns false. A close passes its
+ * `preview` from {@link withPerpsCloseFill}; an open passes its `entryPrice`.
  */
 export const completePerpsPostTradeShare = (
   sessionId: string | undefined,
   {
     orderId,
     entryPrice,
+    preview,
   }: {
     orderId: string | undefined;
     entryPrice?: string;
+    preview?: SocialPostPerpsPreview;
   },
 ): boolean => {
   if (!sessionId) {
@@ -238,8 +349,10 @@ export const completePerpsPostTradeShare = (
   return patchPostTradeShareSession(sessionId, {
     status: 'complete',
     orderId,
-    preview: entryPriceLabel
-      ? { ...session.preview, entryPriceLabel }
-      : session.preview,
+    preview:
+      preview ??
+      (entryPriceLabel
+        ? { ...session.preview, entryPriceLabel }
+        : session.preview),
   });
 };

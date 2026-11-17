@@ -21,12 +21,17 @@ import {
   initialStateActivityWithLocalTransactions,
 } from '../../../../tests/component-view/presets/activity';
 import {
+  makePredictNextPlayerPropsEvent,
   makePredictNextSettlement,
+  makePredictNextThresholdEntry,
   makePredictNextTrade,
   messengerCall,
   mockPredictNextMessenger,
 } from '../../../../tests/component-view/fixtures/predictNext';
-import { setupAccountsTransactionsApiMock } from '../../../../tests/component-view/api-mocking/accounts-transactions';
+import {
+  clearAccountsTransactionsApiMocks,
+  setupAccountsTransactionsApiMock,
+} from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import { ActivityTypeFilter } from './types';
 
 // Details testIDs mirrored locally so this route suite does not import from
@@ -208,6 +213,9 @@ describeForPlatforms('ActivityScreen — PredictNext (Kalshi) Activity', () => {
   });
 
   afterEach(() => {
+    // Setup disables net connect; without teardown a later suite in the same
+    // Jest worker has its axios requests refused by this file's nock.
+    clearAccountsTransactionsApiMocks();
     messengerCall.mockImplementation(defaultMessengerCall);
     legacyGetActivity()
       .mockReset()
@@ -337,6 +345,51 @@ describeForPlatforms('ActivityScreen — PredictNext (Kalshi) Activity', () => {
     expect(screen.queryByTestId(DETAILS_NOT_FOUND)).toBeNull();
 
     await expectPlaceAnotherPrediction(screen);
+  });
+
+  describe('threshold lines', () => {
+    const event = makePredictNextPlayerPropsEvent();
+    const thresholdTrade = makePredictNextTrade({
+      ...makePredictNextThresholdEntry(event, 'Rhamondre Stevenson', 60, 'yes'),
+      id: BUY_ID,
+    });
+    const thresholdSettlement = makePredictNextSettlement(
+      makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'no'),
+    );
+
+    beforeEach(() => {
+      mockPredictNextMessenger((action: string) => {
+        if (action === 'PredictPortfolioService:getActivity') {
+          return Promise.resolve({
+            venueId: 'kalshi',
+            activity: [thresholdTrade, thresholdSettlement],
+          });
+        }
+        return Promise.resolve(undefined);
+      });
+    });
+
+    it("names a threshold Trade's Outcome by its Market labels in its details", async () => {
+      const screen = renderPredictions(KALSHI_CONFIG);
+
+      fireEvent.press(await screen.findByTestId(rowTitle(BUY_ID)));
+
+      const details = await screen.findByTestId(DETAILS_SCREEN);
+      expect(
+        await within(details).findByText('Yes · Rhamondre Stevenson · 60+'),
+      ).toBeOnTheScreen();
+    });
+
+    it("names a threshold Settlement's Outcome by its Market labels in its details", async () => {
+      const screen = renderPredictions(KALSHI_CONFIG);
+
+      fireEvent.press(await screen.findByTestId(rowTitle(SETTLEMENT_ID)));
+
+      const details = await screen.findByTestId(DETAILS_SCREEN);
+      expect(
+        await within(details).findByText('No · Kenneth Walker · 50+'),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('pages without repeating a row, and renders entries with absent fields with neutral copy', async () => {

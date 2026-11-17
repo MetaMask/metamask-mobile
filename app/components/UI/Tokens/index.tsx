@@ -205,7 +205,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     useFocusEffect(
       useCallback(() => {
         forceUpdate((n) => n + 1);
-      }, []),
+      }, [forceUpdate]),
     );
 
     // Mark as loaded once we have data (even if empty)
@@ -252,19 +252,16 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
 
-      try {
-        // Wait for interactions to complete first for better performance
-        await new Promise<void>((resolve) => {
-          InteractionManager.runAfterInteractions(() => {
-            resolve();
-          });
+      // Wait for interactions to complete first for better performance
+      await new Promise<void>((resolve) => {
+        InteractionManager.runAfterInteractions(() => {
+          resolve();
         });
-
-        // Then await the actual refresh
-        await refreshTokensForGroup();
-      } finally {
-        setRefreshing(false);
-      }
+      })
+        .then(() => refreshTokensForGroup())
+        .finally(() => {
+          setRefreshing(false);
+        });
     }, [refreshTokensForGroup]);
 
     // One event per settled, non-empty query (never per keystroke).
@@ -398,7 +395,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
         {isFullView && !showOnlyMusd && (
-          <Box twClassName="px-4 pb-2">
+          <Box twClassName="px-4 pt-1 pb-2">
             <TextFieldSearch
               value={searchQuery}
               onChangeText={setSearchQuery}

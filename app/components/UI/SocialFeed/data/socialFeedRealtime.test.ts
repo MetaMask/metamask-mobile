@@ -5,15 +5,24 @@ import type {
 } from '@metamask/social-controllers';
 import { mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
+import {
+  buildSocialFeedListItems,
+  getSocialFeedListItemKey,
+} from '../utils/buildSocialFeedListItems';
+import { getFeedItemId } from '../utils/feedItemId';
 import { mapFeedItem } from '../utils/mapFeedItem';
+import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 import {
   SOCIAL_FEED_REALTIME_BUFFER_SIZE,
   applyRealtimeEventToRow,
   countPendingNewPosts,
   foldRealtimeRows,
+  getRowFeedItemId,
+  getRowSortTimestamp,
   getVisiblePendingNewCount,
   mergeRealtimeFeedItem,
   mergeRealtimeRows,
+  pinRealtimeRows,
   rememberEvictedRevision,
   shouldDeferPendingNewRow,
   toRealtimeEventPost,
@@ -98,6 +107,34 @@ describe('socialFeedRealtime', () => {
       });
     });
 
+    it('carries the envelope feed item id onto the merged item', () => {
+      const event = buildEvent({
+        feedItemId: 'item-comment',
+        data: { positionId: 'pos-spot-1' },
+      });
+
+      const merged = mergeRealtimeFeedItem(undefined, event);
+
+      expect(getFeedItemId(merged)).toBe('item-comment');
+    });
+
+    it('keys socket-only cards of one position apart in the list', () => {
+      const data = { positionId: 'pos-spot-1' };
+      const posts = [
+        buildEvent({ feedItemId: 'item-trade', eventId: 'event-1', data }),
+        buildEvent({ feedItemId: 'item-comment', eventId: 'event-2', data }),
+      ].map((event) => {
+        const [post] = toSocialFeedPosts([buildSocketRow(event)], 0);
+        return post;
+      });
+
+      const keys = buildSocialFeedListItems(posts, []).map(
+        getSocialFeedListItemKey,
+      );
+
+      expect(keys).toEqual(['item-trade', 'item-comment']);
+    });
+
     it('normalizes a full event without an HTTP row', () => {
       const event = buildEvent({ eventId: 'event-2', revision: 2 });
 
@@ -168,6 +205,81 @@ describe('socialFeedRealtime', () => {
     });
   });
 
+  describe('toSocialFeedRow', () => {
+    it('keys a row on the feed item id the HTTP feed returns', () => {
+      const row = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-a',
+      } as Partial<CoreFeedItem>);
+
+      const live = toSocialFeedRow(row);
+
+      expect(live.feedItemId).toBe('item-a');
+      expect(live.stableId).toBe('item-a');
+    });
+
+    it('keys a row on its position when the feed returns no item id', () => {
+      const row = buildRow({ positionId: 'pos-a' });
+
+      const live = toSocialFeedRow(row);
+
+      expect(live.feedItemId).toBe('pos-a');
+      expect(live.stableId).toBe(row.item.id);
+    });
+
+    it('gives two items of one position distinct identities', () => {
+      const comment = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-comment',
+      } as Partial<CoreFeedItem>);
+      const trade = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-trade',
+      } as Partial<CoreFeedItem>);
+
+      const merged = mergeRealtimeRows({
+        serverRows: [comment, trade],
+        socketRows: [],
+        revisedRows: new Map(),
+        pending: new Map(),
+      });
+
+      expect(merged.map((row) => row.stableId)).toEqual([
+        'item-comment',
+        'item-trade',
+      ]);
+    });
+  });
+
+  describe('getRowFeedItemId', () => {
+    it('prefers the feed item id over the position id', () => {
+      expect(
+        getRowFeedItemId(
+          buildRow({ feedItemId: 'item-a' } as Partial<CoreFeedItem>),
+        ),
+      ).toBe('item-a');
+    });
+  });
+
+  describe('getRowSortTimestamp', () => {
+    it('places a row at the time the server placed it', () => {
+      const row = buildRow({
+        timestamp: 1_700_000_000,
+        occurredAt: '2026-01-01T00:00:00.000Z',
+      });
+
+      expect(getRowSortTimestamp(row)).toBe(
+        Date.parse('2026-01-01T00:00:00.000Z'),
+      );
+    });
+
+    it('falls back to the latest trade when the row has no placement', () => {
+      const row = buildRow({ timestamp: 1_700_000_000 });
+
+      expect(getRowSortTimestamp(row)).toBe(row.item.timestamp);
+    });
+  });
+
   describe('applyRealtimeEventToRow', () => {
     it('preserves identity and ordering while revising a loaded row', () => {
       const row = buildRow();
@@ -195,6 +307,13 @@ describe('socialFeedRealtime', () => {
       const row = applyRealtimeEventToRow(buildRow(), event, undefined, true);
 
       expect(row?.realtimeEventId).toBe('event-2');
+    });
+
+    it('identifies a socket-only row by its feed item id', () => {
+      const row = buildSocketRow(buildEvent({ feedItemId: 'item-new' }));
+
+      expect(row.stableId).toBe('item-new');
+      expect(row.item.id).toBe('item-new');
     });
 
     it('keeps the entrance event ID across later revisions', () => {
@@ -550,6 +669,202 @@ describe('socialFeedRealtime', () => {
 
       expect(merged).toHaveLength(1);
       expect(merged[0]?.revision).toBe(2);
+    });
+  });
+
+  describe('pinRealtimeRows', () => {
+    const NO_SERVER_ROWS = new Set<string>();
+    const rowAt = (
+      feedItemId: string,
+      sortTimestamp: number,
+    ): SocialFeedRow => ({
+      ...buildSocketRow(buildEvent({ feedItemId })),
+      sortTimestamp,
+    });
+    const order = (rows: SocialFeedRow[]): [string, number][] =>
+      rows.map((row) => [row.feedItemId, row.sortTimestamp]);
+
+    it('keeps own keys on the first placement', () => {
+      const rows = [rowAt('pos-b', 200), rowAt('pos-a', 100)];
+
+      const pinned = pinRealtimeRows(rows, new Map(), NO_SERVER_ROWS);
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-b', 200],
+        ['pos-a', 100],
+      ]);
+      expect([...pinned.placed]).toEqual([
+        ['pos-b', 200],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('keeps a shown row in place when its key moves forward', () => {
+      const placed = new Map([
+        ['pos-b', 200],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-a', 300), rowAt('pos-b', 200)],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-b', 200],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('raises a late row that would land between shown rows above the top', () => {
+      const placed = new Map([
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-c', 300), rowAt('pos-b', 200), rowAt('pos-a', 100)],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-b', 301],
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+      expect(pinned.placed.get('pos-b')).toBe(301);
+    });
+
+    it('raises several late rows above the top in their own order', () => {
+      const placed = new Map([['pos-top', 500]]);
+
+      const pinned = pinRealtimeRows(
+        [
+          rowAt('pos-newer', 520),
+          rowAt('pos-top', 500),
+          rowAt('pos-late', 500),
+          rowAt('pos-later', 510),
+        ],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-newer', 520],
+        ['pos-later', 510],
+        ['pos-late', 501],
+        ['pos-top', 500],
+      ]);
+    });
+
+    it('keeps own keys for rows older than everything shown', () => {
+      const placed = new Map([['pos-shown', 500]]);
+      const older = rowAt('pos-older', 100);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-shown', 500), older],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect(pinned.rows[1]).toBe(older);
+    });
+
+    it('puts a next-page server row newer than shown rows below the bottom', () => {
+      const placed = new Map([
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [
+          rowAt('pos-c', 300),
+          rowAt('pos-page-new', 200),
+          rowAt('pos-a', 100),
+          rowAt('pos-page-old', 50),
+        ],
+        placed,
+        new Set(['pos-c', 'pos-a', 'pos-page-new', 'pos-page-old']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-c', 300],
+        ['pos-a', 100],
+        ['pos-page-new', 99],
+        ['pos-page-old', 50],
+      ]);
+    });
+
+    it('raises a server row newer than every shown row above the top', () => {
+      const placed = new Map([['pos-a', 100]]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-fresh', 400), rowAt('pos-a', 100)],
+        placed,
+        new Set(['pos-fresh', 'pos-a']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-fresh', 400],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('raises a late socket row above the top beside server rows', () => {
+      const placed = new Map([
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-c', 300), rowAt('pos-socket', 200), rowAt('pos-a', 100)],
+        placed,
+        new Set(['pos-c', 'pos-a']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-socket', 301],
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('forgets rows no longer present', () => {
+      const placed = new Map([
+        ['pos-gone', 900],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-a', 100)],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect([...pinned.placed]).toEqual([['pos-a', 100]]);
+    });
+
+    it('returns the same placement when pinned again', () => {
+      const rows = [
+        rowAt('pos-c', 300),
+        rowAt('pos-b', 200),
+        rowAt('pos-a', 100),
+      ];
+      const first = pinRealtimeRows(
+        rows,
+        new Map([
+          ['pos-c', 300],
+          ['pos-a', 100],
+        ]),
+        NO_SERVER_ROWS,
+      );
+
+      const second = pinRealtimeRows(rows, first.placed, NO_SERVER_ROWS);
+
+      expect(order(second.rows)).toEqual(order(first.rows));
+      expect(second.placed).toEqual(first.placed);
     });
   });
 

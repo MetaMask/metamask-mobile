@@ -72,6 +72,15 @@ describe('useSocialLivePrice', () => {
     expect(result.current.figures).toBeNull();
   });
 
+  it('holds the last live price while the page is inactive', () => {
+    const { result, store, setPageActive } = renderLivePrice(true);
+    act(() => store.publish('perp:BTC', 110));
+
+    setPageActive(false);
+
+    expect(result.current.figures?.price).toBe(110);
+  });
+
   it('updates the subscription across page activity changes', () => {
     const { result, store, context, unregister, setPageActive } =
       renderLivePrice(true);
@@ -81,14 +90,14 @@ describe('useSocialLivePrice', () => {
     setPageActive(false);
 
     expect(unregister).toHaveBeenCalledTimes(1);
-    expect(result.current.figures).toBeNull();
 
     act(() => store.publish('perp:BTC', 120));
-    expect(result.current.figures).toBeNull();
+    expect(result.current.figures?.price).toBe(110);
 
     setPageActive(true);
 
     expect(context.register).toHaveBeenCalledTimes(2);
+    expect(result.current.figures?.price).toBe(120);
 
     act(() => store.publish('perp:BTC', 130));
     expect(result.current.figures?.price).toBe(130);

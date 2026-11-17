@@ -6,7 +6,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   ButtonsAlignment,
@@ -15,6 +14,9 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsCrossMarginWarningBottomSheetProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -24,6 +26,7 @@ interface PerpsCrossMarginWarningBottomSheetProps {
 const PerpsCrossMarginWarningBottomSheet: React.FC<
   PerpsCrossMarginWarningBottomSheetProps
 > = ({ sheetRef: externalSheetRef, onClose: onExternalClose }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
@@ -51,12 +54,13 @@ const PerpsCrossMarginWarningBottomSheet: React.FC<
 
   return (
     <BottomSheet ref={sheetRef} onClose={handleClose}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: 'header-close-button' }}
       >
         {strings('perps.crossMargin.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 py-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.crossMargin.message')}

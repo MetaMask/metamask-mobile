@@ -3,15 +3,15 @@ import { useSelector } from 'react-redux';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
-import {
-  selectIsProfileTradingActivityPrivate,
-  selectProfileControllerLinkedEvmAddress,
-} from '../../../../selectors/profileController';
+import { selectProfileControllerLinkedEvmAddress } from '../../../../selectors/profileController';
 import {
   getShareSheetCount,
   hasSeenClaimSheet,
 } from '../../../../util/social/postTradePromptStorage';
-import { usePostTradePromptResolver } from './usePostTradePromptResolver';
+import {
+  useCanShareCopyTrade,
+  usePostTradePromptResolver,
+} from './usePostTradePromptResolver';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -30,7 +30,6 @@ jest.mock(
   }),
 );
 jest.mock('../../../../selectors/profileController', () => ({
-  selectIsProfileTradingActivityPrivate: jest.fn(),
   selectProfileControllerLinkedEvmAddress: jest.fn(),
 }));
 jest.mock('../../../../util/social/postTradePromptStorage', () => ({
@@ -47,18 +46,15 @@ const otherAccount = { id: 'other-id', address: OTHER };
 const mockSelectors = ({
   enabled = true,
   linkedEvmAddress = LINKED as string | null,
-  isProfileTradingActivityPrivate = false,
   selectedGroup = [linkedAccount],
 }: {
   enabled?: boolean;
   linkedEvmAddress?: string | null;
-  isProfileTradingActivityPrivate?: boolean;
   selectedGroup?: { id: string; address: string }[];
 } = {}) => {
   const values = new Map<unknown, unknown>([
     [selectIsSocialV1Enabled, enabled],
     [selectProfileControllerLinkedEvmAddress, linkedEvmAddress],
-    [selectIsProfileTradingActivityPrivate, isProfileTradingActivityPrivate],
     [selectInternalAccounts, [linkedAccount, otherAccount]],
     [selectSelectedAccountGroupInternalAccounts, selectedGroup],
   ]);
@@ -130,5 +126,62 @@ describe('usePostTradePromptResolver', () => {
     const { result } = renderHook(() => usePostTradePromptResolver());
 
     expect(result.current('swap')).toEqual({ kind: 'none' });
+  });
+});
+
+describe('useCanShareCopyTrade', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when the linked account is in the selected group', () => {
+    mockSelectors();
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(true);
+  });
+
+  it('returns false when the linked account is not in the selected group', () => {
+    mockSelectors({ selectedGroup: [otherAccount] });
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(false);
+  });
+
+  it('returns false when the linked wallet is not in this wallet', () => {
+    mockSelectors({
+      linkedEvmAddress: '0x3333333333333333333333333333333333333333',
+    });
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(false);
+  });
+
+  it('returns false when there is no linked address', () => {
+    mockSelectors({ linkedEvmAddress: null });
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(false);
+  });
+
+  it('returns false when Social V1 is off', () => {
+    mockSelectors({ enabled: false });
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(false);
+  });
+
+  it('does not read the share-sheet count', () => {
+    mockSelectors();
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+    result.current();
+
+    expect(getShareSheetCount).not.toHaveBeenCalled();
   });
 });

@@ -19,9 +19,11 @@ import { CardProviderIds } from './provider-types';
 import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
+  findImmersveFundingChannelById,
   readCardFeatureFlag,
   readCardImmersveMfaEnabled,
   readCardProviderConfig,
+  resolveImmersveFundingChannel,
   type CardFeatureFlag,
   type ImmersveProgramConfig,
 } from '../../../../selectors/featureFlagController/card';
@@ -69,6 +71,7 @@ export const cardControllerInit: MessengerClientInitFunction<
     getCardFeatureFlag,
   });
 
+  let readSelectedCountry: () => string | null = () => null;
   const immersveConfig = resolveImmersveConfig();
   const immersveProvider = new ImmersveProvider({
     service: new ImmersveService({
@@ -77,6 +80,14 @@ export const cardControllerInit: MessengerClientInitFunction<
     }),
     config: immersveConfig,
     getProgramConfig: getImmersveConfig,
+    getSelectedCountry: () => readSelectedCountry(),
+    getFundingChannel: () =>
+      resolveImmersveFundingChannel(
+        getRemoteFeatureFlags(),
+        readSelectedCountry(),
+      ),
+    findFundingChannelById: (channelId) =>
+      findImmersveFundingChannelById(getRemoteFeatureFlags(), channelId),
     isMfaEnabled: () => readCardImmersveMfaEnabled(getRemoteFeatureFlags()),
   });
 
@@ -100,6 +111,8 @@ export const cardControllerInit: MessengerClientInitFunction<
     isBasicFunctionalityEnabled: () =>
       selectBasicFunctionalityEnabled(getState()),
   });
+
+  readSelectedCountry = () => controller.state.selectedCountry;
 
   return { controller };
 };

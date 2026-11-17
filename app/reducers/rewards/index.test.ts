@@ -8,8 +8,6 @@ import rewardsReducer, {
   setReferralDetailsLoading,
   setReferralDetailsError,
   resetRewardsState,
-  setOnboardingActiveStep,
-  resetOnboarding,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
@@ -85,7 +83,6 @@ import rewardsReducer, {
   subscribeCampaignReminder,
   RewardsState,
 } from '.';
-import { OnboardingStep } from './types';
 import {
   SeasonStatusState,
   RewardClaimStatus,
@@ -498,102 +495,6 @@ describe('rewardsReducer', () => {
     });
   });
 
-  describe('setOnboardingActiveStep', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
-    it.each([
-      OnboardingStep.INTRO,
-      OnboardingStep.STEP_1,
-      OnboardingStep.STEP_2,
-      OnboardingStep.STEP_3,
-      OnboardingStep.STEP_4,
-    ])('should set onboarding active step to %s', (step) => {
-      // Arrange
-      const action = setOnboardingActiveStep(step);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(step);
-    });
-
-    it('should update from different onboarding step', () => {
-      // Arrange
-      const stateWithStep = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_2,
-      };
-      const action = setOnboardingActiveStep(OnboardingStep.STEP_4);
-
-      // Act
-      const state = rewardsReducer(stateWithStep, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_4);
-    });
-
-    it('should call logger even when step is the same', () => {
-      // Arrange
-      const stateWithStep = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_1,
-      };
-      const action = setOnboardingActiveStep(OnboardingStep.STEP_1);
-
-      // Act
-      const state = rewardsReducer(stateWithStep, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_1);
-    });
-  });
-
-  describe('resetOnboarding', () => {
-    it('should reset onboarding to INTRO step', () => {
-      // Arrange
-      const stateWithStep = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_3,
-      };
-      const action = resetOnboarding();
-
-      // Act
-      const state = rewardsReducer(stateWithStep, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
-    });
-
-    it('should not affect other state properties', () => {
-      // Arrange
-      const stateWithData = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_4,
-        referralDetails: preservedReferralDetails('KEEP123'),
-        seasonUserStatuses: preservedSeasonUserStatuses(1500),
-      };
-      const action = resetOnboarding();
-
-      // Act
-      const state = rewardsReducer(stateWithData, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
-      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
-        'KEEP123',
-      );
-      expect(
-        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
-      ).toBe(1500);
-    });
-  });
   describe('setGeoRewardsMetadata', () => {
     it('should update geo metadata when payload is provided', () => {
       // Arrange
@@ -905,7 +806,6 @@ describe('rewardsReducer', () => {
           },
           campaigns,
           campaignsHasLoaded: true,
-          onboardingActiveStep: OnboardingStep.STEP_2,
         };
         const action = setCandidateSubscriptionId('new-subscription-id');
 
@@ -924,7 +824,6 @@ describe('rewardsReducer', () => {
         expect(state.referralDetails['old-subscription-id']?.referralCode).toBe(
           'REF123',
         );
-        expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_2);
       });
 
       it('preserves keyed maps when changing from valid ID to pending', () => {

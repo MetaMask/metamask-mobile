@@ -49,6 +49,7 @@ function CardProviderActivityRow({
     <CardTransactionRow
       transaction={transaction}
       privacyMode={privacyMode}
+      usdBillingOnly
       onPress={activityDetailsEnabled ? handlePress : undefined}
     />
   );

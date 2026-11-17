@@ -17,6 +17,7 @@ import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
 import { resolveSocialDeeplinkTarget } from './socialDeeplinkPath';
+import { parseMoneyReferralCode } from '../../../../components/UI/Rewards/utils/moneyReferralCode';
 
 /**
  * Type for URL parameters that can contain string or boolean values
@@ -254,23 +255,6 @@ const extractSellProperties = (
 };
 
 /**
- * Extract properties specific to HOME route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractHomeProperties = (
-  urlParams: UrlParamValues,
-  sensitiveProps: Record<string, string>,
-): void => {
-  // HOME route only extracts previewToken, not common transaction properties
-  addPropertyIfExists(
-    sensitiveProps,
-    'previewToken',
-    getStringValue(urlParams, 'previewToken'),
-  );
-};
-
-/**
  * Extract properties specific to ASSET route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -320,8 +304,8 @@ const extractRewardsProperties = (
   _urlParams: UrlParamValues,
   _sensitiveProps: Record<string, string>,
 ): void => {
-  // REWARDS route may have referral or other non-sensitive parameters
-  // Currently no specific properties to extract
+  // REWARDS route has no sensitive query parameters to extract.
+  // Money referral codes use `ref` → `referral_code` on the main event.
 };
 
 /**
@@ -467,7 +451,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
   [DeepLinkRoute.SELL]: extractSellProperties,
-  [DeepLinkRoute.HOME]: extractHomeProperties,
+  [DeepLinkRoute.HOME]: extractInvalidProperties,
   [DeepLinkRoute.ASSET]: extractAssetProperties,
   [DeepLinkRoute.DAPP]: extractDappProperties,
   [DeepLinkRoute.WC]: extractWcProperties,
@@ -809,7 +793,7 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_campaign: context.urlParams.utm_campaign,
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
-      referral: context.urlParams.referral,
+      referral_code: parseMoneyReferralCode(context.urlParams.ref) ?? undefined,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
     })
     .addSensitiveProperties(sensitiveProperties);

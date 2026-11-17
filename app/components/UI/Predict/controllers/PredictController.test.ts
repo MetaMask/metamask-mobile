@@ -641,6 +641,16 @@ describe('PredictController', () => {
       });
     });
 
+    it('gives the provider the selected EVM account address', () => {
+      withController(() => {
+        const [{ getSelectedAddress }] = (
+          PolymarketProvider as unknown as jest.Mock
+        ).mock.calls.at(-1) as [{ getSelectedAddress: () => string }];
+
+        expect(getSelectedAddress()).toBe(MOCK_ADDRESS);
+      });
+    });
+
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
         lastError: 'custom-error',
@@ -11594,7 +11604,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('sets withdraw transaction status to error when gas estimation fails', async () => {
+    it('fails the withdraw before signing when gas estimation fails', async () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
@@ -11613,12 +11623,11 @@ describe('PredictController', () => {
               amount: 0,
             };
           });
-
-          const result = await controller.beforeSign({
-            transactionMeta: mockTransactionMeta as any,
-          });
-
-          expect(result).toBeUndefined();
+          await expect(
+            controller.beforeSign({
+              transactionMeta: mockTransactionMeta as any,
+            }),
+          ).rejects.toThrow('Gas estimation failed');
           expect(controller.state.withdrawTransaction?.status).toBe(
             PredictWithdrawStatus.ERROR,
           );

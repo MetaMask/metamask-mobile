@@ -90,7 +90,9 @@ export interface TrendingViewProps {
  * Social V1 Trending: the trending feed, streamed while the tab is open, under
  * a hot-token rail. A chip narrows the feed to that asset on the server, which
  * pauses the stream; Custom filters narrow it further on the client. Popular
- * traders sits after the third post while no chip is selected.
+ * traders sits after the third post while no chip is selected. With no chip,
+ * the viewer's just-written post is pinned on top, pending, until the stream
+ * or a refresh brings in Trending's copy.
  */
 const TrendingView: React.FC<TrendingViewProps> = ({
   isActive = true,
@@ -230,6 +232,7 @@ const TrendingView: React.FC<TrendingViewProps> = ({
           isActive={isActive}
           scrollMode="virtualized"
           realtime={isActive}
+          pendingPostsSurface={selectedToken ? undefined : 'trending'}
           renderHeader={renderHeader}
           filterPost={filterPost}
           inlineRows={selectedToken ? undefined : TRENDING_INLINE_ROWS}

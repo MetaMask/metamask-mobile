@@ -189,7 +189,7 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
       <ExplorePill
         testID={getSocialV1HotTokenSelectedChipTestId(token.id)}
         accessibilityState={{ selected: true }}
-        twClassName="bg-icon-default border-transparent"
+        twClassName="bg-icon-default border-transparent pl-2"
         leading={avatar}
         title={token.label}
         titleTextColor={TextColor.InfoInverse}
@@ -210,6 +210,7 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
       >
         <ExplorePill
           testID={`${getSocialV1HotTokenSelectedChipTestId(token.id)}-fill`}
+          twClassName="pl-2"
           leading={avatar}
           title={token.label}
           onPress={noop}

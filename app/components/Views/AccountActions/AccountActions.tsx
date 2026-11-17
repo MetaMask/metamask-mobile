@@ -36,9 +36,7 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import {
   isHardwareAccount,
   isHDOrFirstPartySnapAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
-  ///: END:ONLY_INCLUDE_IF
 } from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import ExtendedKeyringTypes, {
@@ -178,11 +176,8 @@ const AccountActions = () => {
   };
 
   const goToExportSRP = () => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        keyringId: keyringId as string,
-        popToTopOnDone: true,
-      });
+    navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      keyringId: keyringId as string,
     });
   };
 
@@ -204,8 +199,6 @@ const AccountActions = () => {
       ],
     );
   }, []);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
   /**
    * Remove the snap account from the keyring
@@ -252,7 +245,6 @@ const AccountActions = () => {
       ],
     );
   }, [removeSnapAccount]);
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Trigger the remove hardware account action when user click on the remove account button
@@ -371,18 +363,14 @@ const AccountActions = () => {
             }
           />
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          selectedAddress && isSnapAccount(selectedAddress) && (
-            <AccountAction
-              actionTitle={strings('accounts.remove_snap_account')}
-              iconName={IconName.Close}
-              onPress={showRemoveSnapAccountAlert}
-              testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
-            />
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {selectedAddress && isSnapAccount(selectedAddress) && (
+          <AccountAction
+            actionTitle={strings('accounts.remove_snap_account')}
+            iconName={IconName.Close}
+            onPress={showRemoveSnapAccountAlert}
+            testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
+          />
+        )}
         {networkSupporting7702Present &&
           !isHardwareAccount(selectedAddress) && (
             <AccountAction

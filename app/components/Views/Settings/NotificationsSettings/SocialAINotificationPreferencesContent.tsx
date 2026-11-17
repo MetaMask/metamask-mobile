@@ -91,6 +91,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
         <TraderAvatar
           imageUrl={avatarUri}
           address={address}
+          profileId={traderId}
           size={AVATAR_SIZE}
           recyclingKey={traderId}
         />

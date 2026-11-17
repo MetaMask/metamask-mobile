@@ -15,7 +15,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import Engine from '../../../../../core/Engine';
 import {
   selectOptinAllowedForGeo,
@@ -35,12 +34,20 @@ export const REWARDS_OPT_IN_SECTION_TEST_IDS = {
   ACTION: 'rewards-opt-in-section-action',
 } as const;
 
+export interface RewardsOptInCopy {
+  invitedOptInDescription: string;
+  invitedOptInAction: string;
+  invitedOptInLegal?: string;
+}
+
 export interface RewardsOptInSectionProps {
-  localizedText: ReferralLocalizedText;
+  localizedText: RewardsOptInCopy;
+  showDivider?: boolean;
 }
 
 const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
   localizedText,
+  showDivider = true,
 }) => {
   const accountGroupAccounts = useSelector(
     selectSelectedAccountGroupInternalAccounts,
@@ -116,7 +123,9 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
 
   return (
     <Box testID={REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER}>
-      <SectionDivider marginVertical={0} twClassName="mt-8 mb-8" />
+      {showDivider ? (
+        <SectionDivider marginVertical={0} twClassName="mt-8 mb-8" />
+      ) : null}
       <TabEmptyState
         icon={
           <AvatarIcon

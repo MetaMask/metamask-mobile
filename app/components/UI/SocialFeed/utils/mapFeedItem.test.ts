@@ -48,6 +48,22 @@ describe('mapFeedItem', () => {
     });
   });
 
+  it('ids a spot item by its feed item id when the feed sends one', () => {
+    const coreItem = { ...mockSpotFeedItem(), feedItemId: 'comment-1' };
+
+    const result = mapFeedItem(coreItem);
+
+    expect(result?.id).toBe('comment-1');
+  });
+
+  it('ids a perp item by its feed item id when the feed sends one', () => {
+    const coreItem = { ...mockPerpFeedItem(), feedItemId: 'comment-1' };
+
+    const result = mapFeedItem(coreItem);
+
+    expect(result?.id).toBe('comment-1');
+  });
+
   it('converts the Unix-seconds timestamp to milliseconds', () => {
     const result = mapFeedItem(mockSpotFeedItem());
 

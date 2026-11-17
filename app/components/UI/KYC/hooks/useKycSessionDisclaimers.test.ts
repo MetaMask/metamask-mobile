@@ -4,10 +4,14 @@ import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
 const mockFetchSessionDisclaimers = jest.fn();
 const mockGetGeoCountry = jest.fn();
+const mockKycState: { geoCountry: string | null } = { geoCountry: null };
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
+      get state() {
+        return mockKycState;
+      },
       fetchSessionDisclaimers: (...args: unknown[]) =>
         mockFetchSessionDisclaimers(...args),
     },
@@ -41,6 +45,19 @@ describe('useKycSessionDisclaimers', () => {
     jest.clearAllMocks();
     mockFetchSessionDisclaimers.mockResolvedValue(catalog);
     mockGetGeoCountry.mockResolvedValue('BRA');
+    mockKycState.geoCountry = null;
+  });
+
+  it('loads the catalog for the stored KYC geoCountry instead of the detected one', async () => {
+    mockKycState.geoCountry = 'ARG';
+
+    const { result } = renderHook(() => useKycSessionDisclaimers());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockGetGeoCountry).not.toHaveBeenCalled();
+    expect(mockFetchSessionDisclaimers).toHaveBeenCalledWith({
+      country: 'ARG',
+    });
   });
 
   it('loads idOS and SumSub catalog documents for the geo country via KycController', async () => {
