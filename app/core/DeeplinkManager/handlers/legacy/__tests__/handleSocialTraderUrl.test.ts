@@ -56,9 +56,44 @@ describe('handleSocialTraderUrl', () => {
 
     handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });
 
-    expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(
+      mockNavigate,
+      expect.any(Function),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(navigateToSocialV1Profile).not.toHaveBeenCalled();
+  });
+
+  describe('after the Social terms are accepted', () => {
+    const acceptTermsAndContinue = () => {
+      const onAccepted = mockEnsureSocialTermsAccepted.mock.calls[0]?.[1];
+      expect(onAccepted).toEqual(expect.any(Function));
+      onAccepted?.();
+    };
+
+    beforeEach(() => {
+      mockIsSocialV1Treatment.mockReturnValue(true);
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+    });
+
+    it('opens the trader profile', () => {
+      handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });
+      expect(navigateToSocialV1Profile).not.toHaveBeenCalled();
+      acceptTermsAndContinue();
+
+      expect(navigateToSocialV1Profile).toHaveBeenCalledWith(
+        NavigationService.navigation,
+        { traderId: 'trader-1', source: 'deep_link' },
+      );
+    });
+
+    it('opens Social home when the link has no trader', () => {
+      handleSocialTraderUrl({ actionPath: '' });
+      expect(popToSocialTab).not.toHaveBeenCalled();
+      acceptTermsAndContinue();
+
+      expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
+    });
   });
 
   it('opens the V0 trader profile when the Social V1 flag is control', () => {

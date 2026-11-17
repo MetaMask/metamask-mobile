@@ -23,6 +23,7 @@ import {
   useKalshiDemoOnboarding,
   type KalshiOnboardingApi,
 } from './internal/useKalshiDemoOnboarding';
+import { useVenueAccountNotEnabled } from './internal/useVenueAccountNotEnabled';
 
 const POLL_INTERVAL_MS = 2_000;
 /** Slow or absent links poll less. Unknown (`null`) keeps the default. */
@@ -100,6 +101,7 @@ export const KalshiDemoOnboardingGate = ({
   const signedIn = useSelector(selectIsSignedIn);
   const walletUnlocked = useSelector(selectIsUnlocked);
   const evmAddress = useSelector(selectEvmAddress);
+  const accountNotEnabled = useVenueAccountNotEnabled(KALSHI_VENUE_ID);
   const enabled =
     resolveVenueAuthProfile(config) !== undefined && signedIn && walletUnlocked;
   const client = useMemo(
@@ -112,6 +114,7 @@ export const KalshiDemoOnboardingGate = ({
       {children}
       {client ? (
         <KalshiDemoOnboardingFlow
+          key={accountNotEnabled ? 'account-not-enabled' : 'initial'}
           client={client}
           walletAddress={walletAddress}
         />

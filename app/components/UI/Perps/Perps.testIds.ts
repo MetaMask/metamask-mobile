@@ -276,6 +276,7 @@ export const PerpsAmountDisplaySelectorsIDs = {
   AMOUNT_ROW: 'perps-amount-display-amount-row',
   AMOUNT_LABEL: 'perps-amount-display-amount',
   AMOUNT_UNIT_LABEL: 'perps-amount-display-amount-unit',
+  SECONDARY_LABEL: 'perps-amount-display-secondary',
   MAX_LABEL: 'perps-amount-display-max',
   TOUCHABLE: 'perps-amount-display-touchable',
 };

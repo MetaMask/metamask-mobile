@@ -53,6 +53,11 @@ import {
 } from '../../../app/components/UI/PredictNext/services/PredictDeviceAuthService';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../../../app/components/UI/PredictNext/auth/venueAuthProfiles';
 import {
+  loadVenueProfile,
+  VENUE_AUTHORIZATION_HEADER,
+} from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
+import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
+import {
   getPredictLiveDataServiceInitMessenger,
   getPredictLiveDataServiceMessenger,
 } from '../../../app/core/Engine/messengers/predict-live-data-service-messenger';
@@ -219,6 +224,7 @@ const jsonResponse = ({ status = 200, body }: PredictFetchResult): Response =>
   ({
     ok: status >= 200 && status < 300,
     status,
+    clone: () => jsonResponse({ status, body }),
     json: async () => body,
   }) as Response;
 
@@ -263,7 +269,71 @@ export const buildPredictNextIntegrationHarness = (
       clientVersion: '1.0.0',
       fetch: fetchMock,
       getBearerToken: getBearerTokenMock,
+      signRead: async ({ method, path, query }) => ({
+        name: VENUE_AUTHORIZATION_HEADER,
+        value: JSON.stringify({ method, path, query }),
+      }),
+      signOperation: async (operation, input) => {
+        const profile = await loadVenueProfile();
+        const payloadName = profile?.intents.find(
+          (intent) => intent.id === operation,
+        )?.payloads[0];
+        const payload = payloadName && profile?.payloads[payloadName];
+        if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+          throw new Error(`Missing harness signing payload for ${operation}`);
+        }
+        const rendered = renderRequest(
+          payloadName,
+          {
+            class: 'mutation',
+            method: payload.method,
+            path: payload.path,
+            body: payload.body,
+            idempotencyKey: payload.idempotencyKey,
+            invariants: payload.invariants,
+          },
+          {
+            inputs: input?.inputs ?? {},
+            values: input?.values ?? {},
+            nowMs: Date.now(),
+          },
+        );
+        return {
+          header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
+          body: rendered.body,
+          idempotencyKey: rendered.idempotencyKey,
+        };
+      },
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: async (operation, input) => {
+        const profile = await loadVenueProfile();
+        const payloadName = profile?.intents.find(({ id }) => id === operation)
+          ?.payloads[0];
+        const payload = payloadName && profile?.payloads[payloadName];
+        if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+          throw new Error(`Missing harness review payload for ${operation}`);
+        }
+        return renderRequest(
+          payloadName,
+          {
+            class: 'mutation',
+            method: payload.method,
+            path: payload.path,
+            body: payload.body,
+            idempotencyKey: payload.idempotencyKey,
+            invariants: payload.invariants,
+          },
+          {
+            inputs: input.inputs ?? {},
+            values: input.values ?? {},
+            nowMs: Date.now(),
+          },
+        ).display;
+      },
+    },
   );
   const policyOptions = {
     backoff: new ConstantBackoff(0),
