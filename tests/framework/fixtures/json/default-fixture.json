@@ -454,7 +454,7 @@
           "defaultProvider": "hyperliquid",
           "depositInProgress": false,
           "depositRequests": [],
-          "effectiveProvider": null,
+          "effectiveProvider": "hyperliquid",
           "hasExplicitDefaultProviderSelection": false,
           "hasExplicitProviderSelection": false,
           "hasMigratedToMultiProvider": false,
