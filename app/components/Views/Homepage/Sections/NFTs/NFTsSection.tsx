@@ -198,7 +198,8 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       contentReady:
         hasNfts || (hasDetected && !isDetecting && !isDetectionInFlight),
       demandStarted:
-        hasNfts || hasDetected || isDetecting || isDetectionInFlight,
+        isVisible &&
+        (hasNfts || hasDetected || isDetecting || isDetectionInFlight),
       cacheState: hasNfts ? 'warm' : 'cold',
       isEmpty: !hasNfts,
       isLoading: isDetecting || isDetectionInFlight,

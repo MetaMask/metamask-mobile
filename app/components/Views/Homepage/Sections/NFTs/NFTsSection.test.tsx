@@ -52,6 +52,11 @@ jest.mock('../../hooks/useSectionViewportVisible', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useSectionPerformance', () => ({
+  __esModule: true,
+  useSectionPerformance: jest.fn(),
+}));
+
 let mockVisitId = 0;
 jest.mock('../../context/HomepageScrollContext', () => ({
   useHomepageScrollContext: () => ({
@@ -128,6 +133,10 @@ const stateWhileDetecting = {
   ...stateWithNftPreferences,
   collectibles: { isNftFetchingProgress: true },
 };
+
+const mockUseSectionPerformance = jest.requireMock(
+  '../../hooks/useSectionPerformance',
+).useSectionPerformance as jest.Mock;
 
 describe('NFTsSection', () => {
   beforeEach(() => {
@@ -206,6 +215,37 @@ describe('NFTsSection', () => {
     );
 
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
+  });
+
+  it('waits for visibility before starting TTC for cached NFTs', async () => {
+    jest
+      .requireMock('./hooks')
+      .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
+
+    const { rerender } = renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      { state: stateWithNftPreferences },
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: false,
+      }),
+    );
+
+    await act(async () => {
+      mockIsVisible = true;
+      rerender(<NFTsSection sectionIndex={0} totalSectionsLoaded={1} />);
+      await Promise.resolve();
+    });
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: true,
+      }),
+    );
   });
 
   it('navigates to NFTs full view on title press', () => {

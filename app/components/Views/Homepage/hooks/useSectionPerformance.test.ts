@@ -141,6 +141,45 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('ends TTC when demand stops before content is ready', () => {
+      const { rerender } = renderHook(
+        ({ contentReady, demandStarted }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            demandStarted,
+          }),
+        { initialProps: { contentReady: false, demandStarted: true } },
+      );
+
+      rerender({ contentReady: false, demandStarted: false });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            success: false,
+            reason: 'unfocused',
+          }),
+        }),
+      );
+
+      jest.clearAllMocks();
+      rerender({ contentReady: true, demandStarted: true });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
+    });
+
     it('ends the trace when contentReady flips to true', () => {
       const { rerender } = renderHook(
         ({ contentReady }) =>
