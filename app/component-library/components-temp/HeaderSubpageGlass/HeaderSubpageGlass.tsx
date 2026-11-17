@@ -33,7 +33,7 @@ const HeaderSubpageGlass = ({
   ...props
 }: HeaderSubpageGlassProps) => {
   if (!isGlass) {
-    return <HeaderSubpage {...props} onLayout={onLayout} />;
+    return <HeaderSubpage {...props} onLayout={onLayout} twClassName="px-4" />;
   }
 
   return (
@@ -46,6 +46,7 @@ const HeaderSubpageGlass = ({
     >
       <HeaderSubpage
         {...props}
+        twClassName="px-4"
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />
