@@ -118,6 +118,7 @@ const QrSyncImportSummary = ({ summary }: QrSyncImportSummaryProps) => {
                 <ButtonBase
                   accessibilityLabel={walletTitle}
                   accessibilityState={{ expanded: isExpanded }}
+                  contentWrapperProps={{ twClassName: 'w-full' }}
                   isFullWidth
                   onPress={() => toggleWallet(wallet.id)}
                   testID={`${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_WALLET_ID}-${walletIndex}`}
@@ -127,7 +128,7 @@ const QrSyncImportSummary = ({ summary }: QrSyncImportSummaryProps) => {
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
                     justifyContent={BoxJustifyContent.Between}
-                    twClassName="py-2"
+                    twClassName="w-full py-2"
                   >
                     <Text
                       variant={TextVariant.HeadingSm}
