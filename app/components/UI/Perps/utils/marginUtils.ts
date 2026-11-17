@@ -93,7 +93,7 @@ export function assessMarginRemovalRisk(
  *
  * HyperLiquid enforces: transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
  * See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
- * See also: docs/perps/hyperliquid/margining.md
+ * See also: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margining
  *
  * Key insight from Hyperliquid support (Xulian, Dec 6, 2025):
  * "you need to account for initial margin for withdrawal, maintenance is what is needed to not be liquidated"

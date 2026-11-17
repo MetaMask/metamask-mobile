@@ -9,6 +9,7 @@ import type {
   PredictOrderServiceEvents,
 } from '../../../components/UI/PredictNext/services/PredictOrderService';
 import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
+import type { PredictDeviceAuthServiceActions } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
@@ -86,5 +87,35 @@ describe('getPredictOrderServiceInitMessenger', () => {
     await expect(
       initMessenger.call('AuthenticationController:getBearerToken'),
     ).resolves.toBe('bearer-token');
+  });
+
+  it('delegates only the Engine review and approval-generation actions used by the trading adapter', async () => {
+    const root = new Messenger<
+      MockAnyNamespace,
+      PredictDeviceAuthServiceActions,
+      never
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const review = jest.fn().mockResolvedValue({ maxCost: '4.20' });
+    root.registerActionHandler(
+      'PredictDeviceAuthService:previewOperation',
+      review,
+    );
+    root.registerActionHandler(
+      'PredictDeviceAuthService:getApprovalGeneration',
+      () => 7,
+    );
+    const messenger = getPredictOrderServiceInitMessenger(root as never);
+    const input = { inputs: { marketId: 'MKT-1' }, approvalGeneration: 7 };
+
+    expect(
+      messenger.call('PredictDeviceAuthService:getApprovalGeneration'),
+    ).toBe(7);
+    await messenger.call(
+      'PredictDeviceAuthService:previewOperation',
+      'order.place',
+      input,
+    );
+
+    expect(review).toHaveBeenCalledWith('order.place', input);
   });
 });

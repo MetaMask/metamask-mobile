@@ -13,6 +13,13 @@ import { OnboardingState } from '../../../../../core/redux/slices/card';
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,

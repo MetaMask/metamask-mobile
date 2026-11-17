@@ -11604,7 +11604,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('sets withdraw transaction status to error when gas estimation fails', async () => {
+    it('fails the withdraw before signing when gas estimation fails', async () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
@@ -11623,12 +11623,11 @@ describe('PredictController', () => {
               amount: 0,
             };
           });
-
-          const result = await controller.beforeSign({
-            transactionMeta: mockTransactionMeta as any,
-          });
-
-          expect(result).toBeUndefined();
+          await expect(
+            controller.beforeSign({
+              transactionMeta: mockTransactionMeta as any,
+            }),
+          ).rejects.toThrow('Gas estimation failed');
           expect(controller.state.withdrawTransaction?.status).toBe(
             PredictWithdrawStatus.ERROR,
           );

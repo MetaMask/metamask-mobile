@@ -5,7 +5,19 @@ import type {
   PredictMarketHistoryRange,
   PredictVenueId,
 } from '../../types';
-import { PredictApiReadClient, PredictHttpError } from './PredictApiReadClient';
+import { TemplateError } from '../../auth/signing/profileTemplates';
+import {
+  PredictApiReadClient,
+  PredictHttpError,
+  PredictReadBudgetExhaustedError,
+  PredictRequestNotSentError,
+  PredictSigningError,
+} from './PredictApiReadClient';
+import {
+  VenueSigningRefusedError,
+  VenueSigningUnavailableError,
+  type ProposedRead,
+} from './signedVenueCall';
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -33,6 +45,58 @@ const createResponse = ({
     json: jest.fn().mockResolvedValue(json),
   }) as unknown as Response;
 
+/** A response whose `clone()` yields the same status and error code. */
+const errorResponse = (status: number, code: string): Response => {
+  const response = createResponse({ status, json: { code } });
+  (response as unknown as { clone: () => Response }).clone = () =>
+    createResponse({ status, json: { code } });
+  return response;
+};
+
+/**
+ * A 200 `sign_required` proposal body. `clone()` must work: the client
+ * describes the proposal from a clone so the caller can still parse the
+ * original body.
+ */
+const signRequired = (
+  path: string,
+  query = '',
+  requestId?: string,
+): Response => {
+  const body = {
+    kind: 'sign_required',
+    request: {
+      method: 'GET',
+      path,
+      query,
+      ...(requestId !== undefined && { requestId }),
+    },
+  };
+  const response = createResponse({ status: 200, json: body });
+  (response as unknown as { clone: () => Response }).clone = () =>
+    createResponse({ status: 200, json: body });
+  return response;
+};
+
+const SIGNED_READ_HEADER = {
+  name: 'Venue-Authorization',
+  value: 'envelope',
+};
+
+/** Signer whose returned header records the proposal it signed. */
+const makeSignRead = () =>
+  jest.fn().mockImplementation(async (proposed: ProposedRead) => ({
+    ...SIGNED_READ_HEADER,
+    signedPath: proposed.path,
+    signedQuery: proposed.query,
+  }));
+
+const SIGNED_OPERATION = {
+  header: SIGNED_READ_HEADER,
+  body: '{"ticker":"MKT-1"}',
+  idempotencyKey: 'op-key',
+};
+
 describe('PredictApiReadClient', () => {
   let fetchMock: jest.MockedFunction<typeof fetch>;
   let client: PredictApiReadClient;
@@ -45,6 +109,7 @@ describe('PredictApiReadClient', () => {
       clientVersion: '7.0.0',
       fetch: fetchMock,
       getBearerToken: async () => 'secret-token',
+      signOperation: async () => SIGNED_OPERATION,
     });
   });
 
@@ -103,22 +168,54 @@ describe('PredictApiReadClient', () => {
     );
   });
 
-  it('authenticates Balance requests without retaining identity in the URL', async () => {
-    fetchMock.mockResolvedValue(createResponse());
-
-    await client.fetchBalance(venueId);
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/api/v1/venues/kalshi/balance',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer secret-token',
+  it('sends the two-phase signed read for Balance and parses the result', async () => {
+    const signRead = makeSignRead();
+    fetchMock
+      .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
+      .mockResolvedValueOnce(
+        createResponse({
+          json: { kind: 'result', balance: { available: '1.0000' } },
         }),
-      }),
+      );
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signRead,
+    });
+
+    await expect(client.fetchBalance(venueId)).resolves.toEqual({
+      kind: 'result',
+      balance: { available: '1.0000' },
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const url = 'https://predict.example/api/v1/venues/kalshi/balance';
+    // Phase one: bearer-only.
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      url,
+      expect.objectContaining({ method: 'GET' }),
     );
+    const firstHeaders = (fetchMock.mock.calls[0][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(firstHeaders['Venue-Authorization']).toBeUndefined();
+    // Phase two: the SAME URL with the envelope and the signed venue GET.
+    expect(fetchMock).toHaveBeenNthCalledWith(2, url, expect.anything());
+    const secondHeaders = (fetchMock.mock.calls[1][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(secondHeaders['Venue-Authorization']).toBe('envelope');
+    expect(secondHeaders['venue-read']).toBe('/trade-api/v2/portfolio/balance');
+    // The phone signed exactly the bytes the server proposed.
+    expect(signRead).toHaveBeenCalledWith({
+      method: 'GET',
+      path: '/trade-api/v2/portfolio/balance',
+      query: '',
+    });
   });
 
-  it('fails requests before HTTP when no bearer token is available', async () => {
+  it('fails before HTTP when no bearer token is available', async () => {
     client = new PredictApiReadClient({
       baseUrl: 'https://predict.example/api/',
       clientVersion: '7.0.0',
@@ -172,23 +269,20 @@ describe('PredictApiReadClient', () => {
     );
   });
 
-  it('authenticates Positions requests with encoded page parameters', async () => {
-    fetchMock.mockResolvedValue(createResponse());
-
-    await client.fetchPositions(venueId, { cursor: 'next page', limit: 20 });
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/api/v1/venues/kalshi/positions?cursor=next+page&limit=20',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer secret-token',
-        }),
-      }),
-    );
-  });
-
   it('sends the Positions status filter as a comma-separated list', async () => {
-    fetchMock.mockResolvedValue(createResponse());
+    const signRead = makeSignRead();
+    fetchMock
+      .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/positions'))
+      .mockResolvedValueOnce(
+        createResponse({ json: { kind: 'result', positions: [] } }),
+      );
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signRead,
+    });
 
     await client.fetchPositions(venueId, {
       limit: 3,
@@ -198,27 +292,59 @@ describe('PredictApiReadClient', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://predict.example/api/v1/venues/kalshi/positions?limit=3&sort=value&status=open%2Cclaimable',
-      expect.anything(),
+      expect.objectContaining({ method: 'GET' }),
     );
   });
 
-  it('authenticates Portfolio Summary requests', async () => {
-    fetchMock.mockResolvedValue(createResponse());
+  it('pages with the route cursor: every page is its own signed read', async () => {
+    const signRead = makeSignRead();
+    const query = 'count_filter=position&limit=1000';
+    fetchMock
+      .mockResolvedValueOnce(
+        signRequired('/trade-api/v2/portfolio/positions', query),
+      )
+      .mockResolvedValueOnce(
+        createResponse({ json: { kind: 'result', positions: [] } }),
+      );
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signRead,
+    });
 
-    await client.fetchPortfolioSummary(venueId);
+    await client.fetchPositions(venueId, { limit: 20, cursor: 'c-2' });
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/api/v1/venues/kalshi/portfolio/summary',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer secret-token',
-        }),
-      }),
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'https://predict.example/api/v1/venues/kalshi/positions?limit=20&cursor=c-2',
+      expect.anything(),
+    );
+    const headers = (fetchMock.mock.calls[1][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(headers['venue-read']).toBe(
+      `/trade-api/v2/portfolio/positions?${query}`,
     );
   });
 
   it('authenticates Activity requests with encoded page parameters', async () => {
-    fetchMock.mockResolvedValue(createResponse());
+    const signRead = makeSignRead();
+    fetchMock
+      .mockResolvedValueOnce(
+        signRequired('/trade-api/v2/portfolio/settlements'),
+      )
+      .mockResolvedValueOnce(
+        createResponse({ json: { kind: 'result', activity: [] } }),
+      );
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signRead,
+    });
 
     await client.fetchActivity(venueId, { limit: 20 });
 
@@ -342,29 +468,457 @@ describe('PredictApiReadClient', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  describe('commitOrder', () => {
+  describe('device-signed reads', () => {
+    let signRead: jest.Mock;
+
+    beforeEach(() => {
+      signRead = makeSignRead();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRead,
+      });
+    });
+
+    it('sends nothing more when the Engine refuses the proposed read', async () => {
+      // The Engine's signer is the allowlist boundary; its refusal is a
+      // TemplateError and the signed call never goes out.
+      signRead.mockRejectedValueOnce(new TemplateError('class'));
+      fetchMock.mockResolvedValueOnce(
+        signRequired('/trade-api/v2/admin/secret'),
+      );
+
+      const failed = client.fetchBalance(venueId);
+      await expect(failed).rejects.toBeInstanceOf(PredictSigningError);
+      await expect(failed).rejects.not.toBeInstanceOf(
+        PredictRequestNotSentError,
+      );
+      await expect(failed).rejects.toMatchObject({
+        status: 400,
+        bodyCode: 'venue_signing_refused',
+        requestSent: true,
+        cause: expect.objectContaining({ rule: 'class' }),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails before HTTP when the client has no read signer', async () => {
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+      });
+
+      await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+        bodyCode: 'venue_signing_unavailable',
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('preserves dispatch when signing is unavailable after the bearer GET', async () => {
+      signRead.mockResolvedValueOnce(undefined);
+      fetchMock.mockResolvedValueOnce(
+        signRequired('/trade-api/v2/portfolio/balance'),
+      );
+
+      const failed = client.fetchBalance(venueId);
+      await expect(failed).rejects.toBeInstanceOf(PredictSigningError);
+      await expect(failed).rejects.not.toBeInstanceOf(
+        PredictRequestNotSentError,
+      );
+      await expect(failed).rejects.toMatchObject({
+        bodyCode: 'venue_signing_unavailable',
+        requestSent: true,
+        cause: expect.any(VenueSigningUnavailableError),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(signRead).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns the raw response body when the proposal flow does not describe it', async () => {
+      // A 200 body that is not `sign_required` comes back as-is.
+      fetchMock.mockResolvedValueOnce(
+        createResponse({ json: { unexpected: 'shape' } }),
+      );
+
+      await expect(client.fetchBalance(venueId)).resolves.toEqual({
+        unexpected: 'shape',
+      });
+      expect(signRead).not.toHaveBeenCalled();
+    });
+
+    it('surfaces a non-renewable venue error from the signed re-call', async () => {
+      fetchMock
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
+        .mockResolvedValueOnce(errorResponse(403, 'venue_account_not_enabled'));
+
+      await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+        status: 403,
+        bodyCode: 'venue_account_not_enabled',
+      });
+      expect(signRead).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-signs the proposed read once when the signature expired in flight', async () => {
+      // The renewal repeats the WHOLE two-phase exchange: the second attempt
+      // proposes again (phase one) before signing again (phase two).
+      fetchMock
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
+        .mockResolvedValueOnce(errorResponse(409, 'venue_signature_expired'))
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
+        .mockResolvedValueOnce(
+          createResponse({
+            json: { kind: 'result', balance: { available: '2' } },
+          }),
+        );
+
+      await expect(client.fetchBalance(venueId)).resolves.toEqual({
+        kind: 'result',
+        balance: { available: '2' },
+      });
+      expect(signRead).toHaveBeenCalledTimes(2);
+    });
+
+    it('preserves dispatched reads when auth renewal is refused', async () => {
+      const invalidateSigningSession = jest.fn();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRead,
+        invalidateSigningSession,
+      });
+      // The first signature succeeds; the renewed proposal is refused.
+      signRead
+        .mockReset()
+        .mockResolvedValueOnce(SIGNED_READ_HEADER)
+        .mockRejectedValueOnce(new TemplateError('class'));
+      fetchMock
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
+        .mockResolvedValueOnce(
+          errorResponse(403, 'venue_authorization_invalid'),
+        )
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'));
+
+      const failed = client.fetchBalance(venueId);
+      await expect(failed).rejects.toBeInstanceOf(PredictSigningError);
+      await expect(failed).rejects.not.toBeInstanceOf(
+        PredictRequestNotSentError,
+      );
+      await expect(failed).rejects.toMatchObject({
+        bodyCode: 'venue_signing_refused',
+        requestSent: true,
+        cause: expect.any(VenueSigningRefusedError),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(signRead).toHaveBeenCalledTimes(2);
+      expect(invalidateSigningSession).toHaveBeenCalledTimes(1);
+    });
+
+    it('surfaces the second renewal failure instead of looping', async () => {
+      fetchMock
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
+        .mockResolvedValueOnce(errorResponse(409, 'venue_signature_expired'))
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
+        .mockResolvedValueOnce(errorResponse(409, 'venue_signature_expired'));
+
+      await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+        status: 409,
+        bodyCode: 'venue_signature_expired',
+      });
+      expect(signRead).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('does not sign reads that are not device-signed', async () => {
+    const signOperation = jest.fn();
+    fetchMock.mockResolvedValueOnce(createResponse({ json: { ok: true } }));
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signOperation,
+    });
+
+    await client.fetchVenueStatus(venueId);
+
+    expect(signOperation).not.toHaveBeenCalled();
+    const headers = (fetchMock.mock.calls[0][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(headers['Venue-Authorization']).toBeUndefined();
+  });
+
+  describe('observeOrder', () => {
     const previewId = 'b3c2a1d0-1111-4222-8333-444455556666';
 
-    it('posts the Preview reference only, authenticated', async () => {
-      fetchMock.mockResolvedValue(createResponse());
+    it('reads the receipt bearer-only while nothing needs a signature', async () => {
+      const signRead = makeSignRead();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRead,
+      });
+      fetchMock.mockResolvedValueOnce(
+        createResponse({ json: { previewId, status: 'filled' } }),
+      );
 
-      await client.commitOrder(venueId, { previewId });
-
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      await expect(
+        client.observeOrder(venueId, { previewId }),
+      ).resolves.toEqual({ previewId, status: 'filled' });
       expect(fetchMock).toHaveBeenCalledWith(
-        'https://predict.example/api/v1/venues/kalshi/orders/commit',
-        {
+        `https://predict.example/api/v1/venues/kalshi/orders/${previewId}`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(signRead).not.toHaveBeenCalled();
+    });
+
+    it('signs the venue order scan the backend proposes while it reconciles', async () => {
+      const signRead = makeSignRead();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRead,
+      });
+      const scan = 'limit=200&min_ts=1&ticker=MKT-1';
+      const requestId = 'a1b2c3d4-1111-4222-8333-444455556666';
+      fetchMock
+        .mockResolvedValueOnce(
+          signRequired('/trade-api/v2/portfolio/orders', scan, requestId),
+        )
+        .mockResolvedValueOnce(
+          createResponse({ json: { previewId, status: 'filled' } }),
+        );
+
+      await client.observeOrder(venueId, { previewId });
+
+      expect(signRead).toHaveBeenCalledWith({
+        method: 'GET',
+        path: '/trade-api/v2/portfolio/orders',
+        query: scan,
+        requestId,
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(
+        fetchMock.mock.calls.every(([, init]) => init?.method === 'GET'),
+      ).toBe(true);
+    });
+
+    it('defers after two signed scan pages and resumes the server cursor on a later observe', async () => {
+      const signRead = makeSignRead();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRead,
+      });
+      const path = '/trade-api/v2/portfolio/orders';
+      const challenges = [
+        'a1b2c3d4-1111-4222-8333-444455556660',
+        'a1b2c3d4-1111-4222-8333-444455556661',
+        'a1b2c3d4-1111-4222-8333-444455556662',
+        'a1b2c3d4-1111-4222-8333-444455556663',
+      ];
+      // The backend owns this progress. Bearer-only observation reads it;
+      // only the expected signed page advances it, never restarting at 0.
+      let serverPage = 0;
+      const acceptedPages: number[] = [];
+      fetchMock.mockImplementation(async (_url, init) => {
+        expect(init?.method).toBe('GET');
+        const headers = init?.headers as Record<string, string>;
+        if (headers['Venue-Authorization']) {
+          expect(headers['venue-read']).toBe(
+            `${path}?cursor=page-${serverPage}`,
+          );
+          acceptedPages.push(serverPage);
+          serverPage += 1;
+        }
+        return serverPage === 4
+          ? createResponse({ json: { previewId, status: 'filled' } })
+          : signRequired(
+              path,
+              `cursor=page-${serverPage}`,
+              challenges[serverPage],
+            );
+      });
+
+      const deferred = client.observeOrder(venueId, { previewId });
+      await expect(deferred).rejects.toBeInstanceOf(
+        PredictReadBudgetExhaustedError,
+      );
+      await expect(deferred).rejects.not.toBeInstanceOf(
+        PredictRequestNotSentError,
+      );
+      await expect(deferred).rejects.toMatchObject({
+        bodyCode: 'venue_read_budget_exhausted',
+        requestSent: true,
+      });
+      expect(serverPage).toBe(2);
+      expect(signRead).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      await expect(
+        client.observeOrder(venueId, { previewId }),
+      ).resolves.toEqual({
+        previewId,
+        status: 'filled',
+      });
+      expect(signRead.mock.calls.map(([proposal]) => proposal)).toEqual(
+        challenges.map((requestId, page) => ({
+          method: 'GET',
+          path,
+          query: `cursor=page-${page}`,
+          requestId,
+        })),
+      );
+      expect(acceptedPages).toEqual([0, 1, 2, 3]);
+      expect(fetchMock).toHaveBeenCalledTimes(6);
+      expect(
+        fetchMock.mock.calls.every(
+          ([url, init]) =>
+            url ===
+              `https://predict.example/api/v1/venues/kalshi/orders/${previewId}` &&
+            init?.method === 'GET',
+        ),
+      ).toBe(true);
+    });
+
+    it('does not sign a malformed reconciliation challenge', async () => {
+      const signRead = makeSignRead();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRead,
+      });
+      fetchMock.mockResolvedValueOnce(
+        signRequired('/trade-api/v2/portfolio/orders', '', 'not-a-uuid'),
+      );
+
+      await client.observeOrder(venueId, { previewId });
+
+      expect(signRead).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('commitOrder', () => {
+    const previewId = 'b3c2a1d0-1111-4222-8333-444455556666';
+    const signing = {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy',
+        outcome: 'yes',
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+    };
+
+    it('throws before HTTP when called without signing inputs', async () => {
+      const failed = client.commitOrder(venueId, { previewId });
+      await expect(failed).rejects.toBeInstanceOf(PredictRequestNotSentError);
+      await expect(failed).rejects.toMatchObject({
+        status: 400,
+        bodyCode: 'venue_signing_unavailable',
+        requestSent: false,
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('marks the mutation unsent when no operation signer is installed', async () => {
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+      });
+
+      const failed = client.commitOrder(
+        venueId,
+        { previewId },
+        undefined,
+        signing,
+      );
+      await expect(failed).rejects.toBeInstanceOf(PredictRequestNotSentError);
+      await expect(failed).rejects.toMatchObject({
+        bodyCode: 'venue_signing_unavailable',
+        requestSent: false,
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('marks a signer returning unavailable before dispatch as unsent', async () => {
+      const signOperation = jest.fn().mockResolvedValue(undefined);
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
+
+      const failed = client.commitOrder(
+        venueId,
+        { previewId },
+        undefined,
+        signing,
+      );
+      await expect(failed).rejects.toBeInstanceOf(PredictRequestNotSentError);
+      await expect(failed).rejects.toMatchObject({
+        bodyCode: 'venue_signing_unavailable',
+        requestSent: false,
+        cause: expect.any(VenueSigningUnavailableError),
+      });
+      expect(signOperation).toHaveBeenCalledTimes(1);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('sends the signed body bytes verbatim with the envelope header', async () => {
+      const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
+      fetchMock.mockResolvedValueOnce(
+        createResponse({ json: { ok: true, orderId: 'o-1' } }),
+      );
+
+      await expect(
+        client.commitOrder(venueId, { previewId }, undefined, signing),
+      ).resolves.toEqual({ ok: true, orderId: 'o-1' });
+
+      expect(signOperation).toHaveBeenCalledTimes(1);
+      expect(signOperation).toHaveBeenCalledWith('order.place', signing);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      // The Preview reference rides in the path; the body is the signed
+      // create_order bytes alone.
+      expect(fetchMock).toHaveBeenCalledWith(
+        `https://predict.example/api/v1/venues/kalshi/orders/${previewId}/commit`,
+        expect.objectContaining({
           method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'x-metamask-clientproduct': 'metamask-mobile',
-            'x-metamask-clientversion': '7.0.0',
-            Authorization: 'Bearer secret-token',
-          },
-          body: JSON.stringify({ previewId }),
-          signal: undefined,
-        },
+          // The envelope's content-digest pins these bytes: never re-stringified.
+          body: SIGNED_OPERATION.body,
+        }),
+      );
+      const headers = (fetchMock.mock.calls[0][1] as RequestInit)
+        .headers as Record<string, string>;
+      expect(headers['Venue-Authorization']).toBe(
+        SIGNED_OPERATION.header.value,
       );
     });
 
@@ -374,19 +928,28 @@ describe('PredictApiReadClient', () => {
         clientVersion: '7.0.0',
         fetch: fetchMock,
         getBearerToken: async () => undefined,
+        signOperation: async () => SIGNED_OPERATION,
       });
 
       await expect(
-        client.commitOrder(venueId, { previewId }),
+        client.commitOrder(venueId, { previewId }, undefined, signing),
       ).rejects.toMatchObject({ status: 401 });
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it('forwards an AbortSignal without retrying', async () => {
+      const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
       fetchMock.mockResolvedValue(createResponse());
       const signal = new AbortController().signal;
 
-      await client.commitOrder(venueId, { previewId }, { signal });
+      await client.commitOrder(venueId, { previewId }, { signal }, signing);
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(fetchMock).toHaveBeenCalledWith(
@@ -395,17 +958,231 @@ describe('PredictApiReadClient', () => {
       );
     });
 
-    it('surfaces the canonical backend code from an error body', async () => {
-      fetchMock.mockResolvedValue(
-        createResponse({ status: 410, json: { code: 'preview_expired' } }),
-      );
+    it('drops the A2T and signs again once on venue_authorization_invalid', async () => {
+      const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
+      const invalidateSigningSession = jest.fn();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+        invalidateSigningSession,
+      });
+      fetchMock
+        .mockResolvedValueOnce(
+          errorResponse(403, 'venue_authorization_invalid'),
+        )
+        .mockResolvedValueOnce(createResponse({ json: { ok: true } }));
 
-      await expect(client.commitOrder(venueId, { previewId })).rejects.toEqual(
+      await expect(
+        client.commitOrder(venueId, { previewId }, undefined, signing),
+      ).resolves.toEqual({ ok: true });
+      expect(invalidateSigningSession).toHaveBeenCalledTimes(1);
+      expect(signOperation).toHaveBeenCalledTimes(2);
+      // The re-sign does not ask the user to confirm again.
+      expect(signOperation).toHaveBeenLastCalledWith(
+        'order.place',
+        expect.objectContaining({ confirmed: false }),
+      );
+    });
+
+    it('signs again once, keeping the A2T, on venue_signature_expired', async () => {
+      const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
+      const invalidateSigningSession = jest.fn();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+        invalidateSigningSession,
+      });
+      fetchMock
+        .mockResolvedValueOnce(errorResponse(409, 'venue_signature_expired'))
+        .mockResolvedValueOnce(createResponse({ json: { ok: true } }));
+
+      await expect(
+        client.commitOrder(venueId, { previewId }, undefined, signing),
+      ).resolves.toEqual({ ok: true });
+      expect(invalidateSigningSession).not.toHaveBeenCalled();
+      expect(signOperation).toHaveBeenCalledTimes(2);
+    });
+
+    it.each([
+      {
+        status: 403,
+        code: 'venue_authorization_invalid',
+        failure: 'unavailable',
+      },
+      { status: 403, code: 'venue_authorization_invalid', failure: 'refused' },
+      {
+        status: 409,
+        code: 'venue_signature_expired',
+        failure: 'unavailable',
+      },
+      { status: 409, code: 'venue_signature_expired', failure: 'refused' },
+    ])(
+      'never marks the mutation unsent when $code renewal is $failure',
+      async ({ status, code, failure }) => {
+        const signOperation = jest.fn().mockResolvedValueOnce(SIGNED_OPERATION);
+        if (failure === 'refused') {
+          signOperation.mockRejectedValueOnce(new TemplateError('intent'));
+        } else {
+          signOperation.mockResolvedValueOnce(undefined);
+        }
+        const invalidateSigningSession = jest.fn();
+        client = new PredictApiReadClient({
+          baseUrl: 'https://predict.example/api/',
+          clientVersion: '7.0.0',
+          fetch: fetchMock,
+          getBearerToken: async () => 'secret-token',
+          signOperation,
+          invalidateSigningSession,
+        });
+        fetchMock.mockResolvedValueOnce(errorResponse(status, code));
+
+        const failed = client.commitOrder(
+          venueId,
+          { previewId },
+          undefined,
+          signing,
+        );
+        await expect(failed).rejects.toBeInstanceOf(PredictSigningError);
+        await expect(failed).rejects.not.toBeInstanceOf(
+          PredictRequestNotSentError,
+        );
+        await expect(failed).rejects.toMatchObject({
+          bodyCode: `venue_signing_${failure}`,
+          requestSent: true,
+        });
+        expect(signOperation).toHaveBeenCalledTimes(2);
+        expect(signOperation).toHaveBeenLastCalledWith(
+          'order.place',
+          expect.objectContaining({ confirmed: false }),
+        );
+        expect(invalidateSigningSession).toHaveBeenCalledTimes(
+          status === 403 ? 1 : 0,
+        );
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith(
+          `https://predict.example/api/v1/venues/kalshi/orders/${previewId}/commit`,
+          expect.objectContaining({
+            method: 'POST',
+            body: SIGNED_OPERATION.body,
+          }),
+        );
+      },
+    );
+
+    it('never re-posts a mutation after an ambiguous fetch failure', async () => {
+      const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
+      const networkFailure = new TypeError('connection closed before response');
+      fetchMock.mockRejectedValueOnce(networkFailure);
+
+      const failed = client.commitOrder(
+        venueId,
+        { previewId },
+        undefined,
+        signing,
+      );
+      await expect(failed).rejects.toBe(networkFailure);
+      await expect(failed).rejects.not.toBeInstanceOf(
+        PredictRequestNotSentError,
+      );
+      expect(signOperation).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('surfaces the canonical backend code from an error body', async () => {
+      const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
+      fetchMock.mockResolvedValueOnce(errorResponse(410, 'preview_expired'));
+
+      await expect(
+        client.commitOrder(venueId, { previewId }, undefined, signing),
+      ).rejects.toEqual(
         expect.objectContaining({
           status: 410,
           bodyCode: 'preview_expired',
         }),
       );
+      expect(signOperation).toHaveBeenCalledTimes(1);
     });
+
+    it('does not send a call the profile refused', async () => {
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation: jest.fn().mockRejectedValue(new TemplateError('intent')),
+      });
+
+      await expect(
+        client.commitOrder(venueId, { previewId }, undefined, signing),
+      ).rejects.toMatchObject({
+        status: 400,
+        bodyCode: 'venue_signing_refused',
+        requestSent: false,
+        cause: expect.objectContaining({ rule: 'intent' }),
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+  it('discovers unresolved orders with owner bearer auth and opaque pagination only', async () => {
+    const signRead = jest.fn();
+    const signOperation = jest.fn();
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signRead,
+      signOperation,
+    });
+    const signal = new AbortController().signal;
+    fetchMock.mockResolvedValueOnce(
+      createResponse({
+        json: { operations: [], nextCursor: 'next-page' },
+      }),
+    );
+
+    await expect(
+      client.listUnresolvedOrders(
+        venueId,
+        { cursor: 'opaque/page+one', limit: 25 },
+        { signal },
+      ),
+    ).resolves.toEqual({ operations: [], nextCursor: 'next-page' });
+    const [url, init] = fetchMock.mock.calls[0];
+    const parsed = new URL(url as string);
+    expect(parsed.pathname).toBe('/api/v1/venues/kalshi/orders');
+    expect(Object.fromEntries(parsed.searchParams)).toEqual({
+      cursor: 'opaque/page+one',
+      limit: '25',
+      state: 'unresolved',
+    });
+    expect(init).toMatchObject({
+      method: 'GET',
+      signal,
+      headers: { Authorization: 'Bearer secret-token' },
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(signRead).not.toHaveBeenCalled();
+    expect(signOperation).not.toHaveBeenCalled();
   });
 });

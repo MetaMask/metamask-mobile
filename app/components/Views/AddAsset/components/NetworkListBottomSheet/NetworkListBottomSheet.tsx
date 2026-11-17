@@ -10,7 +10,6 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandard,
   Icon,
   IconName as DsIconName,
   IconSize,
@@ -33,6 +32,8 @@ import {
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -92,6 +93,7 @@ export default function NetworkListBottomSheet({
   onSelectAll?: () => void;
   allNetworksLabel?: string;
 }) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
@@ -174,7 +176,9 @@ export default function NetworkListBottomSheet({
       onClose={() => setOpenNetworkSelector(false)}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('networks.select_network')}
         onClose={() => {
           sheetRef.current?.onCloseBottomSheet(() => {

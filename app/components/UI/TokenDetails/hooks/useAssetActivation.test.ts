@@ -213,6 +213,65 @@ describe('useAssetActivation', () => {
 
       expect(actionResult).toEqual({ success: false, errorMessage: null });
     });
+
+    it('keeps the activating flag set until the trustline request settles', async () => {
+      getIsAssetRequireActivateMock.mockReturnValue(true);
+      let resolveAdd: (value: { status: boolean }) => void = () => undefined;
+      requestAddMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveAdd = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() =>
+        useAssetActivation(DEFAULT_HOOK_PARAMS),
+      );
+
+      let pending: Promise<unknown> = Promise.resolve();
+      act(() => {
+        pending = result.current.activateAsset();
+      });
+
+      expect(result.current.isActivating).toBe(true);
+
+      await act(async () => {
+        resolveAdd({ status: true });
+        await pending;
+      });
+
+      expect(result.current.isActivating).toBe(false);
+    });
+
+    it('clears the activating flag when the funding prompt cancels activation', async () => {
+      getIsAssetRequireActivateMock.mockReturnValue(true);
+      requestAddMock.mockResolvedValue({ status: false });
+
+      const { result } = renderHook(() =>
+        useAssetActivation(DEFAULT_HOOK_PARAMS),
+      );
+
+      await act(async () => {
+        await result.current.activateAsset();
+      });
+
+      expect(result.current.isActivating).toBe(false);
+    });
+
+    it('clears the activating flag when activation fails', async () => {
+      getIsAssetRequireActivateMock.mockReturnValue(true);
+      requestAddMock.mockRejectedValue(new Error('activation failed'));
+
+      const { result } = renderHook(() =>
+        useAssetActivation(DEFAULT_HOOK_PARAMS),
+      );
+
+      await act(async () => {
+        await result.current.activateAsset();
+      });
+
+      expect(result.current.isActivating).toBe(false);
+    });
   });
 
   describe('deactivateAsset', () => {
@@ -307,6 +366,67 @@ describe('useAssetActivation', () => {
       });
 
       expect(actionResult).toEqual({ success: false, errorMessage: null });
+    });
+
+    it('keeps the deactivating flag set until the trustline delete settles', async () => {
+      let resolveDelete: (value: void) => void = () => undefined;
+      requestDeleteMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveDelete = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() =>
+        useAssetActivation(DEFAULT_HOOK_PARAMS),
+      );
+
+      let pending: Promise<unknown> = Promise.resolve();
+      act(() => {
+        pending = result.current.deactivateAsset();
+      });
+
+      expect(result.current.isDeactivating).toBe(true);
+
+      await act(async () => {
+        resolveDelete();
+        await pending;
+      });
+
+      expect(result.current.isDeactivating).toBe(false);
+    });
+
+    it('clears the deactivating flag when the balance is not zero', async () => {
+      selectMultichainBalancesMock.mockReturnValue({
+        [ACCOUNT_ID]: {
+          [PUBNET_USDC_ASSET]: { amount: '5.5', unit: 'USDC' },
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useAssetActivation(DEFAULT_HOOK_PARAMS),
+      );
+
+      await act(async () => {
+        await result.current.deactivateAsset();
+      });
+
+      expect(requestDeleteMock).not.toHaveBeenCalled();
+      expect(result.current.isDeactivating).toBe(false);
+    });
+
+    it('clears the deactivating flag when deactivation fails', async () => {
+      requestDeleteMock.mockRejectedValue(new Error('deactivation failed'));
+
+      const { result } = renderHook(() =>
+        useAssetActivation(DEFAULT_HOOK_PARAMS),
+      );
+
+      await act(async () => {
+        await result.current.deactivateAsset();
+      });
+
+      expect(result.current.isDeactivating).toBe(false);
     });
   });
 });

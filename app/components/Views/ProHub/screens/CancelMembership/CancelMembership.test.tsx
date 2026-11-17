@@ -2,6 +2,7 @@ import React from 'react';
 import { BackHandler } from 'react-native';
 import { Provider } from 'react-redux';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
   CANCELLATION_REASONS,
   CANCEL_TYPES,
@@ -65,6 +66,18 @@ jest.mock('../../../../../util/Logger', () => ({
     error: (...args: unknown[]) => mockLoggerError(...args),
   },
 }));
+
+const getOnPress = (button: ReactTestInstance): (() => void) => {
+  let current: ReactTestInstance | null = button;
+  while (current) {
+    const { onPress } = current.props as { onPress?: () => void };
+    if (typeof onPress === 'function') {
+      return onPress;
+    }
+    current = current.parent;
+  }
+  throw new Error('onPress handler not found');
+};
 
 const CURRENT_PERIOD_END = '2027-07-20T12:00:00.000Z';
 const PLUS_SUBSCRIPTION: Subscription = {
@@ -378,6 +391,30 @@ describe('CancelMembership', () => {
     });
   });
 
+  it('cancels once when confirm is pressed twice before the request settles', async () => {
+    let resolveCancel: (() => void) | undefined;
+    mockCancelSubscription.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveCancel = () => resolve();
+      }),
+    );
+    const { getByTestId } = renderScreen();
+    const cancelButton = getByTestId(CancelMembershipTestIds.CANCEL_BUTTON);
+    const pressCancel = getOnPress(cancelButton);
+
+    act(() => {
+      pressCancel();
+      pressCancel();
+    });
+
+    expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveCancel?.();
+    });
+    await waitFor(() => expect(mockDispatch).toHaveBeenCalledTimes(1));
+  });
+
   it('cancels at period end without a reason when the survey is skipped', async () => {
     const { getByTestId } = renderScreen();
 
@@ -402,7 +439,7 @@ describe('CancelMembership', () => {
     expectPostCancellationReset();
   });
 
-  it('includes the selected reason code and omits free-text feedback', async () => {
+  it('includes the selected reason code and trimmed stay feedback', async () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(
@@ -410,7 +447,7 @@ describe('CancelMembership', () => {
     );
     fireEvent.changeText(
       getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
-      'Lower the price',
+      '  Lower the price  ',
     );
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
@@ -419,10 +456,8 @@ describe('CancelMembership', () => {
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
         cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
+        cancellationFeedback: 'Lower the price',
       }),
-    );
-    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
-      'cancellationFeedback',
     );
   });
 
@@ -439,6 +474,30 @@ describe('CancelMembership', () => {
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
         cancellationReason: CANCELLATION_REASONS.OTHER,
+      }),
+    );
+    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
+      'cancellationFeedback',
+    );
+  });
+
+  it('omits stay feedback that is only whitespace', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(
+      getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+    );
+    fireEvent.changeText(
+      getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      '   ',
+    );
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    await waitFor(() =>
+      expect(mockCancelSubscription).toHaveBeenCalledWith({
+        subscriptionId: PLUS_SUBSCRIPTION.id,
+        cancelAtPeriodEnd: true,
+        cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
       }),
     );
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
