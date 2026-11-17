@@ -265,6 +265,12 @@ function BuildQuote() {
 
   // When no provider is selected (e.g. first-time user in a region without
   // Transak), pick the first provider that supports the selected token.
+  // 
+  // TRAM-4119 NOTE: This initial selection is asset-based (not quote-based).
+  // After quotes are fetched, @metamask/ramps-controller v30+ will handle
+  // quote-based provider switching automatically when the auto-selected provider
+  // has no quote. This effect runs before quotes are fetched, so it only sets
+  // the initial provider for the quotes request.
   useEffect(() => {
     if (
       !isOnBuildQuoteScreen ||
@@ -291,6 +297,15 @@ function BuildQuote() {
   // When the selected token is unavailable for the current provider, silently
   // switch to any other provider that supports the token. Only fall through to
   // the "Token Not Available" modal when no provider supports the token.
+  //
+  // TRAM-4119 NOTE: This is asset-support-based switching (checks payment methods
+  // and supportedCryptoCurrencies), which runs before quotes are fetched.
+  // It is distinct from quote-based switching (which @metamask/ramps-controller
+  // v30+ will handle). This effect remains necessary for cases where a provider
+  // lists an asset but has no payment methods for it (token truly unavailable).
+  //
+  // The quote-based switching (when an auto-selected provider returns no quote)
+  // will be handled by the controller in v30+, not by this UI logic.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
@@ -698,6 +713,20 @@ function BuildQuote() {
   const isEmbeddedCheckoutVisible = embeddedCheckout.phase === 'ready';
   const isEmbeddedCheckoutActive = embeddedCheckout.phase !== 'inactive';
 
+  // TRAM-4119: When an auto-selected provider returns no quote while other
+  // providers have quotes, the controller (in v30+) will automatically switch
+  // to the best available quote. Until then, the UI shows a provider-specific
+  // error and keeps Continue disabled. A user-picked provider with no quote
+  // stays selected and shows the error (manual selection is preserved).
+  // 
+  // Current behavior (v29): selectedQuote is null when the selected provider
+  // has no quote, even if other providers returned quotes. This causes Continue
+  // to stay disabled and shows "no quotes from Provider" error.
+  //
+  // Expected behavior (v30+): When autoSelected provider has no quote, the
+  // controller will automatically switch selectedProvider to another provider
+  // that has a quote, so selectedQuote will not be null and Continue becomes
+  // enabled. Manual provider selection is preserved.
   const hasNoQuotes =
     hasAmount &&
     hasSettledQuoteAmount &&

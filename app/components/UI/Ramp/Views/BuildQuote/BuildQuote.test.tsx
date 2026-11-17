@@ -2184,6 +2184,85 @@ describe('BuildQuote', () => {
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
       expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
+
+    // TRAM-4119: Test for v30 quote-based provider switching behavior.
+    // TODO: Enable this test after upgrading to @metamask/ramps-controller@^30.0.0
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('should auto-switch provider when autoSelected provider has no quote but others do (v30+)', () => {
+      // Scenario: Banxa was auto-selected but returns no quote.
+      // MoonPay has a quote. Controller v30+ should auto-switch to MoonPay.
+      const banxaProvider = { ...WIDGET_PROVIDER, id: 'banxa', name: 'Banxa' };
+      
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [banxaProvider, NATIVE_PROVIDER],
+          // In v30+, controller will auto-switch selectedProvider to NATIVE_PROVIDER
+          // because banxa had no quote (autoSelected=true preserved)
+          selectedProvider: NATIVE_PROVIDER,
+        }),
+      );
+
+      // Banxa requested but has no quote, MoonPay has a quote
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [
+            { ...WIDGET_PROVIDER_QUOTE, provider: NATIVE_PROVIDER.id },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, queryByText, getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      // After v30 upgrade, controller switches selectedProvider automatically
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+      
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).not.toBe(true);
+    });
+
+    // TRAM-4119: Manual provider selection should be preserved even with no quote
+    // TODO: Enable this test after upgrading to @metamask/ramps-controller@^30.0.0
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('should NOT auto-switch when user manually selected provider with no quote (v30+)', () => {
+      // Scenario: User explicitly chose Banxa, but it has no quote.
+      // MoonPay has a quote. Controller v30+ should NOT auto-switch
+      // because autoSelected=false (manual selection).
+      const banxaProvider = { ...WIDGET_PROVIDER, id: 'banxa', name: 'Banxa' };
+      
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [banxaProvider, NATIVE_PROVIDER],
+          // User manually selected Banxa, so it stays selected
+          selectedProvider: banxaProvider,
+        }),
+      );
+
+      // Banxa has no quote, MoonPay has a quote, but Banxa stays selected
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [
+            { ...WIDGET_PROVIDER_QUOTE, provider: NATIVE_PROVIDER.id },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      // Manual selection preserved: shows Banxa's no-quote error
+      expect(getByText(/We encountered a problem fetching quotes from Banxa/i)).toBeOnTheScreen();
+      
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+    });
   });
 
   describe('embedded checkout', () => {
