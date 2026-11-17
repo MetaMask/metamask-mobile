@@ -680,7 +680,7 @@ describe('OptinMetrics', () => {
   });
 
   describe('Combined checkbox scenarios', () => {
-    it('should handle both checkboxes independently', async () => {
+    it('handles both checkboxes independently', async () => {
       const { store } = renderScreen(
         OptinMetrics,
         { name: 'OptinMetrics' },
@@ -1133,7 +1133,7 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('should not track marketing state in analytics when basic usage is unchecked', async () => {
+    it('does not track marketing state in analytics when basic usage is unchecked', async () => {
       const { store } = renderScreen(
         OptinMetrics,
         { name: 'OptinMetrics' },
@@ -1166,45 +1166,6 @@ describe('OptinMetrics', () => {
         }),
       );
       expect(mockAnalytics.identify).not.toHaveBeenCalled();
-    });
-
-    it('should test isMarketingDisabled getter directly', () => {
-      const { getByTestId } = renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: {} },
-      );
-
-      const component = getByTestId(
-        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
-      );
-      expect(component).toBeTruthy();
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-
-      fireEvent.press(basicUsageCheckbox);
-      expect(basicUsageCheckbox).toBeTruthy();
-    });
-
-    it('should apply disabled styling when marketing is disabled', () => {
-      const { getByTestId } = renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: {} },
-      );
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-
-      fireEvent.press(basicUsageCheckbox);
-
-      const component = getByTestId(
-        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
-      );
-      expect(component).toBeTruthy();
     });
 
     it('should preserve marketing state when basic usage is re-enabled', () => {
