@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { Position } from '@metamask/perps-controller';
+import { type Position, parseAssetName } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -169,9 +169,14 @@ export const usePerpsPositionForAsset = (
         return;
       }
 
-      // Find position matching the symbol
+      // Find position matching the symbol.
+      // Match on the parsed base symbol so HIP-3 dex-prefixed position symbols
+      // (e.g. `xyz:MSFT`) resolve against the bare spot ticker (`MSFT`).
+      // For non-HIP-3 names parseAssetName('BTC').symbol === 'BTC', so behavior
+      // is unchanged for bare tickers.
       const matchedPosition = positions.find(
-        (pos) => pos.symbol.toUpperCase() === lookupSymbol,
+        (pos) =>
+          parseAssetName(pos.symbol).symbol.toUpperCase() === lookupSymbol,
       );
 
       const hasFundsInPerps = positions.length > 0;

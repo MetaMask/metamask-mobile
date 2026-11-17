@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import { type PerpsMarketData, parseAssetName } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
@@ -56,7 +56,7 @@ export const _clearMarketExistenceCache = (): void => {
  *
  * Key Features:
  * - Module-level caching to avoid repeated API calls
- * - Single lightweight API call: `getMarkets({ symbols: [symbol], standalone: true })`
+ * - Single lightweight API call: `getMarkets({ standalone: true })`
  * - Uses standalone mode - works without full perps initialization (no wallet/WebSocket)
  * - Handles symbol normalization (ETH on any chain maps to ETH perp)
  *
@@ -147,10 +147,14 @@ export const usePerpsMarketForAsset = (
     }
 
     try {
-      // Single lightweight API call with standalone mode
-      // standalone: true bypasses full initialization (no wallet/WebSocket needed)
+      // Fetch all markets in standalone mode.
+      // standalone: true bypasses full initialization (no wallet/WebSocket needed).
+      //
+      // We intentionally do NOT pass `symbols` here: the provider's `symbols`
+      // filter matches the FULL venue name, so for HIP-3 (RWA/equities) markets
+      // which are named with a dex prefix (e.g. `xyz:MSFT`), passing the bare
+      // spot ticker (`MSFT`) would match nothing and return 0 markets.
       const markets = await getMarkets({
-        symbols: [lookupSymbol],
         standalone: true,
       });
 
@@ -159,9 +163,13 @@ export const usePerpsMarketForAsset = (
         return;
       }
 
-      // Find exact match by symbol
+      // Match on the parsed base symbol so HIP-3 dex-prefixed names resolve:
+      // parseAssetName('xyz:MSFT') -> { dex: 'xyz', symbol: 'MSFT' }.
+      // For non-HIP-3 names parseAssetName('BTC').symbol === 'BTC', so bare
+      // tickers are still matched exactly (e.g. LINK matches LINK, not LINKCOIN).
       const matchedMarket = markets.find(
-        (market) => market.name.toUpperCase() === lookupSymbol,
+        (market) =>
+          parseAssetName(market.name).symbol.toUpperCase() === lookupSymbol,
       );
 
       const exists = matchedMarket !== undefined;

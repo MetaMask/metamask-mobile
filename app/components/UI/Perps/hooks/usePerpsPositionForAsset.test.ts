@@ -453,6 +453,28 @@ describe('usePerpsPositionForAsset', () => {
       expect(result.current.position).toEqual(mockPosition);
       expect(result.current.position?.symbol).toBe('ETH');
     });
+
+    it('matches HIP-3 dex-prefixed position symbols by parsed base symbol', async () => {
+      const rwaPosition: Position = {
+        ...mockPosition,
+        symbol: 'xyz:MSFT',
+      };
+
+      mockGetPositions.mockResolvedValue([rwaPosition]);
+
+      const { result } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('MSFT'),
+        { state: createMockState() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Returned position keeps its full dex-prefixed symbol unchanged
+      expect(result.current.position).toEqual(rwaPosition);
+      expect(result.current.position?.symbol).toBe('xyz:MSFT');
+    });
   });
 
   describe('Network awareness', () => {

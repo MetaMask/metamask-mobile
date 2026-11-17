@@ -89,7 +89,6 @@ describe('usePerpsMarketForAsset', () => {
     });
 
     expect(mockGetMarkets).toHaveBeenCalledWith({
-      symbols: ['BTC'],
       standalone: true,
     });
   });
@@ -101,7 +100,6 @@ describe('usePerpsMarketForAsset', () => {
 
     await waitFor(() => {
       expect(mockGetMarkets).toHaveBeenCalledWith({
-        symbols: ['DOGE'],
         standalone: true,
       });
     });
@@ -144,6 +142,23 @@ describe('usePerpsMarketForAsset', () => {
     });
 
     expect(result.current.marketData?.name).toBe('LINK');
+  });
+
+  it('matches HIP-3 dex-prefixed markets by parsed base symbol', async () => {
+    mockGetMarkets.mockResolvedValue([
+      { name: 'BTC', maxLeverage: 40 },
+      { name: 'xyz:MSFT', maxLeverage: 20 },
+    ]);
+
+    const { result } = renderHook(() => usePerpsMarketForAsset('MSFT'));
+
+    await waitFor(() => {
+      expect(result.current.hasPerpsMarket).toBe(true);
+    });
+
+    // Full dex-prefixed name is preserved for downstream order routing/navigation
+    expect(result.current.marketData?.name).toBe('xyz:MSFT');
+    expect(result.current.marketData?.symbol).toBe('xyz:MSFT');
   });
 
   it('discards stale responses when symbol changes rapidly', async () => {
