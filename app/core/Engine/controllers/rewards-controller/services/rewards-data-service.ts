@@ -2094,7 +2094,8 @@ export class RewardsDataService {
   }
 
   /**
-   * Get the Perps Trading Campaign leaderboard (top 20 entries, no tiers).
+   * Get the Perps Trading Campaign leaderboard (no tiers). The entry depth is
+   * the campaign's winner count, with a floor of 20 entries.
    * Public endpoint — no authentication required.
    * @param campaignId - The campaign ID.
    */
