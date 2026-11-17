@@ -1,6 +1,7 @@
 /* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
+import { Platform } from 'react-native';
 import {
   updateId,
   manifest,
@@ -672,7 +673,7 @@ export function getNavIntegration(): ReturnType<
  * and cost).
  */
 const TRACE_SAMPLE_RATE_OVERRIDES: Partial<
-  Record<TraceName, { android?: number; ios?: number }>
+  Record<TraceName, Partial<Record<typeof Platform.OS, number>>>
 > = {
   [TraceName.SwapQuoteFetch]: { android: 0.25 },
 };
@@ -712,7 +713,6 @@ export async function setupSentry(
     // Dev and E2E/exp builds send every transaction to Sentry.
     const isFullSampling = isDev || isE2EOrExpEnvironment;
     const tracesSampleRate = isFullSampling ? 1.0 : 0.03;
-    const platform = Device.isAndroid() ? 'android' : 'ios';
 
     Sentry.init({
       dsn,
@@ -729,8 +729,10 @@ export async function setupSentry(
         if (isFullSampling) {
           return 1;
         }
-        const override = TRACE_SAMPLE_RATE_OVERRIDES[name as TraceName];
-        return override?.[platform] ?? tracesSampleRate;
+        return (
+          TRACE_SAMPLE_RATE_OVERRIDES[name as TraceName]?.[Platform.OS] ??
+          tracesSampleRate
+        );
       },
       profilesSampleRate: 1.0,
       beforeSend: (report) => {

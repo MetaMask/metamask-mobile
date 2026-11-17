@@ -34,6 +34,7 @@ import { store } from '../../store';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
+import { Platform } from 'react-native';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
@@ -1542,7 +1543,10 @@ describe('setupSentry', () => {
   });
 
   describe('tracesSampler', () => {
-    const mockIsAndroid = jest.mocked(Device.isAndroid);
+    let replacedOS: jest.ReplaceProperty<typeof Platform.OS> | undefined;
+    const setPlatformOS = (os: typeof Platform.OS) => {
+      replacedOS = jest.replaceProperty(Platform, 'OS', os);
+    };
     const globalWithDev = global as typeof global & { __DEV__: boolean };
 
     const getInitOptions = async () => {
@@ -1558,29 +1562,29 @@ describe('setupSentry', () => {
     };
 
     afterEach(() => {
-      mockIsAndroid.mockReturnValue(true);
+      replacedOS?.restore();
       globalWithDev.__DEV__ = false;
     });
 
     it('uses the override rate for a listed trace on its platform (Swap Quote Fetch on Android)', async () => {
-      mockIsAndroid.mockReturnValue(true);
+      setPlatformOS('android');
       const { tracesSampler } = await getInitOptions();
 
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
     });
 
     it('falls back to tracesSampleRate when the override has no rate for the platform (Swap Quote Fetch on iOS)', async () => {
-      mockIsAndroid.mockReturnValue(false);
+      setPlatformOS('ios');
       const { tracesSampler, tracesSampleRate } = await getInitOptions();
 
       expect(tracesSampleRate).toBe(0.03);
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
     });
 
-    it.each([true, false])(
-      'falls back to tracesSampleRate for traces without an override (isAndroid: %s)',
-      async (isAndroid) => {
-        mockIsAndroid.mockReturnValue(isAndroid);
+    it.each(['android', 'ios'] as const)(
+      'falls back to tracesSampleRate for traces without an override (%s)',
+      async (os) => {
+        setPlatformOS(os);
         const { tracesSampler } = await getInitOptions();
 
         expect(tracesSampler({ name: 'SomeRoute' })).toBe(0.03);
@@ -1590,7 +1594,7 @@ describe('setupSentry', () => {
     it.each([true, false])(
       'inherits the parent sampling decision (%s)',
       async (parentSampled) => {
-        mockIsAndroid.mockReturnValue(true);
+        setPlatformOS('android');
         const { tracesSampler } = await getInitOptions();
 
         expect(
@@ -1604,7 +1608,7 @@ describe('setupSentry', () => {
 
     it('keeps full sampling for Swap Quote Fetch in dev builds', async () => {
       globalWithDev.__DEV__ = true;
-      mockIsAndroid.mockReturnValue(true);
+      setPlatformOS('android');
       const { tracesSampler } = await getInitOptions();
 
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(1);
