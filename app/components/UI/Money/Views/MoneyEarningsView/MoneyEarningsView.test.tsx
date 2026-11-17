@@ -342,7 +342,7 @@ describe('MoneyEarningsView', () => {
     ).toHaveTextContent('▲ $300.00');
     expect(
       getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
-    ).toHaveTextContent('· Jan – Nov');
+    ).toHaveTextContent('· Jan 2026 – Nov 2026');
     expect(getByText('+$300.00')).toBeOnTheScreen();
   });
 
