@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated the copy on the Add funds from your bank screen to align with the content guidelines
 - Updated the MetaMask Money FAQ wording to align with the content guidelines
 - Updated the identity verification partner terms wording to align with the content guidelines
 
