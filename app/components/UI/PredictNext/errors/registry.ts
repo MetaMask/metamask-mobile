@@ -44,6 +44,11 @@ export enum PredictErrorCode {
    * another deposit holds, or a deposit that takes no transfer. The backend
    * stored nothing. */
   DEPOSIT_TRANSFER_MISMATCH = 'DEPOSIT_TRANSFER_MISMATCH',
+  /** The app refused the deposit's Funding Plan before any wallet call: it
+   * does not pay exactly what the user typed, in the known USDC on the
+   * expected chain, to a safe address, with time to spare. Nothing was
+   * sent; the deposit is cancelled. */
+  DEPOSIT_PLAN_MISMATCH = 'DEPOSIT_PLAN_MISMATCH',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -223,6 +228,12 @@ export const predictErrorRegistry: Record<
     category: 'action_failed',
     message: 'The transfer does not match this deposit. Contact support.',
     recoverable: false,
+  },
+  [PredictErrorCode.DEPOSIT_PLAN_MISMATCH]: {
+    category: 'action_failed',
+    message:
+      "This deposit couldn't be verified, so nothing was sent. Try again.",
+    recoverable: true,
   },
   [PredictErrorCode.UNKNOWN]: {
     category: 'action_failed',
