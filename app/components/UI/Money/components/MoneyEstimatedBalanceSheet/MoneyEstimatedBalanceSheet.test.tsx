@@ -94,7 +94,7 @@ describe('MoneyEstimatedBalanceSheet', () => {
     expect(
       getByTestId(MoneyEstimatedBalanceSheetTestIds.SUBTITLE),
     ).toHaveTextContent(
-      'Estimated balance after one year in your MetaMask Money account at 6.2% APY',
+      'Estimated balance after one year in MetaMask Money at 6.2% APY.',
     );
     expect(
       getByText(strings('money.estimated_balance_sheet.bullet_compound_title')),

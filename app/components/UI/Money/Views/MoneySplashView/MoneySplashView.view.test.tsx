@@ -258,6 +258,12 @@ describeForPlatforms('MoneySplashView', () => {
     expect(
       getByTestId(MoneySplashViewTestIds.BENEFIT_ROW(1)),
     ).toBeOnTheScreen();
+    expect(strings('money.splash.benefit_withdraw_title')).toBe('No lockups');
+    expect(
+      getByTestId(MoneySplashViewTestIds.BENEFIT_ROW(4)),
+    ).toHaveTextContent(
+      `${strings('money.splash.benefit_withdraw_title')}${strings('money.splash.benefit_withdraw_body')}`,
+    );
     expect(
       getByTestId(MoneySplashViewTestIds.BENEFIT_ROW(5)),
     ).toBeOnTheScreen();

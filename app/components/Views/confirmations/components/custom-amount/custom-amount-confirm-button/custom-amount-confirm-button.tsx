@@ -25,6 +25,9 @@ import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountS
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { usePredictWithdrawGasFeeToken } from '../../../hooks/gas/usePredictWithdrawGasFeeToken';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useIsMoneyAccountPaymentOverride } from '../../../hooks/pay/useIsMoneyAccountPaymentOverride';
+import { CONVERT_DEPOSIT_TYPES } from '../../../constants/confirmations';
 
 export function CustomAmountConfirmButton({
   isDisabled,
@@ -104,26 +107,12 @@ function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
   const { payWithOption } = useParams<ConfirmationParams>({});
   const { payToken } = useTransactionPayToken();
+  const selectedFiatPaymentMethod =
+    useTransactionPaySelectedFiatPaymentMethod();
+  const isMoneyAccountOverride = useIsMoneyAccountPaymentOverride();
 
   if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
     return strings('confirm.deposit_edit_amount_money_account_send');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
-    if (payToken?.symbol) {
-      return strings('confirm.deposit_edit_amount_convert_token', {
-        symbol: payToken.symbol,
-      });
-    }
-  }
-
-  if (
-    hasTransactionType(transaction, [
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-  ) {
-    return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 
   if (
@@ -134,6 +123,26 @@ function useButtonLabel() {
     ])
   ) {
     return strings('confirm.deposit_edit_amount_money_account_send');
+  }
+
+  if (
+    hasTransactionType(transaction, CONVERT_DEPOSIT_TYPES) &&
+    !selectedFiatPaymentMethod &&
+    !isMoneyAccountOverride &&
+    payToken?.symbol
+  ) {
+    return strings('confirm.deposit_edit_amount_convert_token', {
+      symbol: payToken.symbol,
+    });
+  }
+
+  if (
+    hasTransactionType(transaction, [
+      TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
+    ])
+  ) {
+    return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 
   return strings('confirm.deposit_edit_amount_done');

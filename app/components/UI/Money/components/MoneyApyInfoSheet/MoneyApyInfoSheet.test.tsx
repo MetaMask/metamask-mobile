@@ -98,26 +98,35 @@ describe('MoneyApyInfoSheet', () => {
     expect(getByText(strings('money.apy_tooltip.lead'))).toBeOnTheScreen();
   });
 
-  it('renders How it works, Why is changes, and Where it comes from sections', () => {
+  it('renders How it works, Why it changes, and Where it comes from sections with exact copy', () => {
     const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
 
+    expect(
+      getByText(
+        'This is the rate your MetaMask Money balance is earning right now.',
+      ),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('money.apy_tooltip.how_it_works_title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('money.apy_tooltip.how_it_works_body')),
+      getByText(
+        'Earnings are added to your balance in real time and compound, so your earnings earn too.',
+      ),
     ).toBeOnTheScreen();
+    expect(getByText('Why it changes')).toBeOnTheScreen();
     expect(
-      getByText(strings('money.apy_tooltip.why_it_changes_title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.apy_tooltip.why_it_changes_body')),
+      getByText(
+        "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
+      ),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('money.apy_tooltip.where_it_comes_from_title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('money.apy_tooltip.where_it_comes_from_body')),
+      getByText(
+        'Your funds go into a DeFi vault that lends across established markets. Veda manages the vault, and Steakhouse Financial oversees its risk.',
+      ),
     ).toBeOnTheScreen();
   });
 
