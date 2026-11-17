@@ -958,6 +958,47 @@ describe('VbaDetails', () => {
       ).toBeOnTheScreen();
     });
 
+    it('copies every SEPA row, including the payment reference', async () => {
+      mockGetDepositInstructions.mockResolvedValue({
+        ...sepaInstructions,
+        paymentReference: 'IR-K7M2QX',
+      });
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
+      });
+
+      const bankDetails = [
+        'Account holder',
+        'Jane Doe',
+        '',
+        'IBAN',
+        'DE89370400440532013000',
+        '',
+        'Payment reference',
+        'IR-K7M2QX',
+        '',
+        'BIC',
+        'DEUTDEFF',
+        '',
+        'Bank name',
+        'Banking Circle S.A.',
+      ].join('\n');
+      expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
+      expect(Share.open).toHaveBeenCalledWith({
+        message: bankDetails,
+        failOnCancel: false,
+      });
+    });
+
     it('does not show the Brazil provider disclosure on the SEPA layout', async () => {
       mockGetDepositInstructions.mockResolvedValue(sepaInstructions);
 

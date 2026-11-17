@@ -271,11 +271,11 @@ const buildDetailRows = (
 
 /** Notes-friendly block: each label on its own line, a blank line between fields. */
 export const formatBankDetailsForCopy = (
-  rows: readonly { label: string; value: string }[],
+  rows: readonly { label: string; value: string; copyValue?: string }[],
 ): string =>
   rows
     .filter((row) => row.value.length > 0)
-    .map((row) => `${row.label}\n${row.value}`)
+    .map((row) => `${row.label}\n${row.copyValue ?? row.value}`)
     .join('\n\n');
 
 /**
@@ -1060,7 +1060,7 @@ const VbaDetails = () => {
             </TextButton>
           </Text>
         ) : null}
-        {instructions?.type === 'UsBank' && rows.length > 0 ? (
+        {isBankTransfer && rows.length > 0 ? (
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
