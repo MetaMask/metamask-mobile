@@ -220,9 +220,7 @@ function assertRecurringOrderSummary(
       order.fillData.src.amount,
       order.src.asset.decimals,
     )} / ${formatRecurringTokenAmount(
-      (
-        BigInt(order.src.amount) * BigInt(order.schedule.repeatCount)
-      ).toString(),
+      order.totalAmount,
       order.src.asset.decimals,
     )} ${order.src.asset.symbol} (${filledPercent}%)`,
   );
@@ -331,9 +329,7 @@ function assertRecurringOrderRow(
     row.queryByText(strings('bridge.limit.expired')),
   ).not.toBeOnTheScreen();
 
-  const isClosedUnfilled =
-    order.state === RecurringOrderState.Cancelled ||
-    order.state === RecurringOrderState.Expired;
+  const isClosedUnfilled = order.state === RecurringOrderState.Cancelled;
   expect(row.getByTestId(OpenOrderRowSelectorsIDs.TITLE)).toHaveStyle({
     color: isClosedUnfilled
       ? lightTheme.colors.text.alternative
@@ -1410,7 +1406,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         orderStates: [
           RecurringOrderState.Completed,
           RecurringOrderState.Cancelled,
-          RecurringOrderState.Expired,
         ],
       }),
     );
@@ -1447,7 +1442,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toBe(true);
 
     await act(async () => {
-      resolveRequest({ orders: [], hasNextPage: false });
+      resolveRequest({ orders: [], hasNextPage: false, total: 0 });
       await refreshPromise;
     });
 

@@ -22,6 +22,7 @@ import {
 import { RecurringOrderState } from '../../../api/recurringOrders.types';
 import { OrderType } from '../../../types/advancedOrders';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
+import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
@@ -53,6 +54,10 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
 
 jest.mock('../../../hooks/useRecurringOrders', () => ({
   useRecurringOrders: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useRecurringOrdersListTrace', () => ({
+  useRecurringOrdersListTrace: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
@@ -206,9 +211,13 @@ describe('BridgeRecurringBuyView', () => {
       isLoading: false,
     } as never);
     jest.mocked(useRecurringOrders).mockReturnValue({
-      data: { pages: [] },
+      orders: [],
       isLoading: false,
+      isError: false,
+      isFetchingNextPage: false,
+      fetchNextPage: jest.fn(),
       refetch: jest.fn(),
+      refresh: jest.fn(),
     } as never);
     jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
       isValid: true,
@@ -354,6 +363,11 @@ describe('BridgeRecurringBuyView', () => {
     );
     expect(useRecurringOrders).not.toHaveBeenCalledWith(
       expect.objectContaining({ walletAddress: solanaAccountAddress }),
+    );
+    expect(useRecurringOrdersListTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        listType: 'open',
+      }),
     );
   });
 

@@ -1390,9 +1390,20 @@ export class Engine {
     // Order observation and the deposits the funding service remembers must
     // not outlive it. Commits are abandoned before the
     // reads are dropped, so no receipt can refill the cache afterwards. The
+    // reset then clears the durable dispatch journal, so the previous person's
+    // unresolved references cannot be rediscovered by a later session. The
     // Venue-scoped market-data and live-data caches carry public data and stay.
     try {
-      PredictOrderService.abandonCommits();
+      await PredictOrderService.reset();
+    } catch (error) {
+      // reset() fences observation before it rethrows, so a journal that cannot
+      // be cleared must never skip dropping the account reads below.
+      Logger.error(
+        ensureError(error, 'Engine.resetState'),
+        'Engine: failed to clear the PredictNext order dispatch journal',
+      );
+    }
+    try {
       PredictFundingService.clearState();
       await PredictPortfolioService.clearAccountData();
     } catch (error) {

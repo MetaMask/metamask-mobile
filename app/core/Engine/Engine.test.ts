@@ -1443,7 +1443,9 @@ describe('Engine', () => {
 
       await engine.resetState();
 
-      expect(abandonSpy).toHaveBeenCalledTimes(1);
+      // reset() abandons commits before the journal clear and again after it.
+      // The first one still precedes the account-data purge.
+      expect(abandonSpy).toHaveBeenCalledTimes(2);
       expect(clearSpy).toHaveBeenCalledTimes(1);
       // Abandoning first is what stops a receipt from refilling the cache the
       // purge is about to drop.
@@ -1465,6 +1467,25 @@ describe('Engine', () => {
       await engine.resetState();
 
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('purges PredictNext account data when the order journal cannot be cleared', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const loggerSpy = jest.spyOn(Logger, 'error');
+      jest
+        .spyOn(engine.context.PredictOrderService, 'reset')
+        .mockRejectedValue(new Error('journal clear failed'));
+      const clearSpy = jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(clearSpy).toHaveBeenCalledTimes(1);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'journal clear failed' }),
+        'Engine: failed to clear the PredictNext order dispatch journal',
+      );
     });
 
     it('waits for the PredictNext account-data purge before resolving', async () => {
