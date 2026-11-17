@@ -23,6 +23,7 @@ import {
 import { OAuthError, OAuthErrorType } from '../OAuthService/error';
 import { getAuthConnectionIdFromClientId } from '../OAuthService/OAuthService';
 import { fromByteArray, toByteArray } from 'react-native-quick-base64';
+import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 import { selectTelegramLoginEnabled } from '../../selectors/featureFlagController/seedlessTelegramLogin';
 import type {
@@ -318,23 +319,48 @@ export const appleNonceClaimCandidates = (nonce: string): string[] => {
 };
 
 /**
+ * Auth-server may put the initiate client nonce in the ID-token claim as-is, or
+ * as `<server-nonce>.<client-nonce>` (Telegram + Apple MFA). The key-bound value
+ * Mobile sent on initiate is always the client suffix.
+ */
+export const matchesKeyBoundClientNonce = (
+  claimNonce: string,
+  clientNonce: string,
+): boolean => {
+  if (!clientNonce) {
+    return false;
+  }
+  if (claimNonce === clientNonce) {
+    return true;
+  }
+  const separator = claimNonce.lastIndexOf('.');
+  // Require a non-empty server prefix: "<server-nonce>.<client-nonce>".
+  return separator > 0 && claimNonce.slice(separator + 1) === clientNonce;
+};
+
+/**
  * Apple hashes the authorize/request nonce with SHA-256 before writing it into
  * the ID token `nonce` claim (expo-apple-authentication does the same). Google
- * and Telegram echo the raw nonce. Accept Apple encodings so MFA key-binding
- * works once auth-server returns a real Apple ID token.
+ * and Telegram echo the raw nonce. Auth-server MFA may set the claim to
+ * `<server-nonce>.<client-nonce>` for Telegram/Apple — accept that suffix.
+ * Apple digests of the initiate client nonce remain accepted.
+ *
+ * Note: if Apple hashes the *full* combined authorize string and the JWT only
+ * carries that digest (no plaintext `<server>.<client>`), Mobile cannot verify
+ * without the server nonce; Hung's agreed claim format is the plaintext form.
  */
 const isMatchingProviderNonce = (
   claimNonce: unknown,
   nonce: string,
   issuer: string,
 ): boolean => {
-  if (typeof claimNonce === 'string' && claimNonce === nonce) {
+  if (typeof claimNonce !== 'string' || !claimNonce) {
+    return false;
+  }
+  if (matchesKeyBoundClientNonce(claimNonce, nonce)) {
     return true;
   }
   if (OIDC_ISSUERS[issuer] !== AuthConnection.Apple) {
-    return false;
-  }
-  if (typeof claimNonce !== 'string' || !claimNonce) {
     return false;
   }
   return appleNonceClaimCandidates(nonce).includes(claimNonce);
@@ -353,7 +379,23 @@ const validateProviderIdToken = (
 ): string => {
   const issuer = trimTrailingSlash(identifier.namespace);
   const claims = decodeJwtPayload(idToken);
-  if (!isMatchingProviderNonce(claims.nonce, nonce, issuer)) {
+  const claimNonce = claims.nonce;
+  const claimIss =
+    typeof claims.iss === 'string' ? trimTrailingSlash(claims.iss) : claims.iss;
+  const nonceMatches = isMatchingProviderNonce(claimNonce, nonce, issuer);
+
+  // TEMP (remove after BE nonce investigation): proof for Auth — no raw JWT.
+  Logger.log('MFA recovery ID token nonce check', {
+    expectedNamespace: issuer,
+    expectedNonce: nonce,
+    claimIss,
+    claimNonce: typeof claimNonce === 'string' ? claimNonce : claimNonce,
+    claimNonceType: typeof claimNonce,
+    nonceMatches,
+    hasSub: typeof claims.sub === 'string' && Boolean(claims.sub),
+  });
+
+  if (!nonceMatches) {
     throw new Error('MFA recovery: ID token nonce does not match the request');
   }
   if (typeof claims.sub !== 'string' || !claims.sub) {

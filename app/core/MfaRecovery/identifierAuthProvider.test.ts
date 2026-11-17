@@ -10,6 +10,7 @@ import {
   createOidcIdentifierAuthProvider,
   loginWithNonceAndSeedlessAuthViaHandlers,
   loginWithNonceViaHandlers,
+  matchesKeyBoundClientNonce,
   type LoginWithNonceAndSeedlessAuth,
 } from './identifierAuthProvider';
 import type { Identifier } from './types';
@@ -764,6 +765,127 @@ describe('createOidcIdentifierAuthProvider', () => {
     await expect(
       provider.getKeyBoundIdentifierLogin({
         identifier: googleIdentifier,
+        proofPublicKey: PROOF_PUBLIC_KEY,
+        requestHash: REQUEST_HASH,
+      }),
+    ).rejects.toThrow(
+      'MFA recovery: ID token nonce does not match the request',
+    );
+  });
+
+  describe('matchesKeyBoundClientNonce (auth-server combined claim)', () => {
+    it('accepts exact client nonce and <server>.<client> suffix', () => {
+      expect(matchesKeyBoundClientNonce(expectedNonce, expectedNonce)).toBe(
+        true,
+      );
+      expect(
+        matchesKeyBoundClientNonce(
+          `server-nonce.${expectedNonce}`,
+          expectedNonce,
+        ),
+      ).toBe(true);
+      expect(
+        matchesKeyBoundClientNonce(`a.b.${expectedNonce}`, expectedNonce),
+      ).toBe(true);
+    });
+
+    it('rejects missing separator, empty server prefix, or wrong client', () => {
+      expect(
+        matchesKeyBoundClientNonce(`.${expectedNonce}`, expectedNonce),
+      ).toBe(false);
+      expect(
+        matchesKeyBoundClientNonce(`prefix${expectedNonce}`, expectedNonce),
+      ).toBe(false);
+      expect(
+        matchesKeyBoundClientNonce(
+          `server-nonce.wrong-${expectedNonce}`,
+          expectedNonce,
+        ),
+      ).toBe(false);
+      expect(matchesKeyBoundClientNonce(expectedNonce, '')).toBe(false);
+    });
+  });
+
+  it('accepts Telegram ID tokens with <server-nonce>.<client-nonce> claim', async () => {
+    const combinedNonce = `tg-server.${expectedNonce}`;
+    const providerIdToken = tokenFor(combinedNonce, {
+      iss: 'https://oauth.telegram.org',
+      sub: 'telegram-sub-1',
+    });
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(providerIdToken, {
+        authConnection: AuthConnection.Telegram,
+        authConnectionId: 'ios-telegram',
+      }),
+    });
+
+    const login = await provider.getKeyBoundIdentifierLogin({
+      identifier: {
+        type: 'social',
+        namespace: 'https://oauth.telegram.org',
+        value: 'telegram-sub-1',
+        verifier: { auds: ['client-id'] },
+      },
+      proofPublicKey: PROOF_PUBLIC_KEY,
+      requestHash: REQUEST_HASH,
+    });
+
+    expect(login.token.providerAssertion).toBe(providerIdToken);
+    expect(login.token.identifier.value).toBe('telegram-sub-1');
+  });
+
+  it('accepts Apple ID tokens with plaintext <server-nonce>.<client-nonce> claim', async () => {
+    const combinedNonce = `apple-server.${expectedNonce}`;
+    const providerIdToken = tokenFor(combinedNonce, {
+      iss: 'https://appleid.apple.com',
+      sub: 'apple-sub-1',
+    });
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(providerIdToken, {
+        authConnection: AuthConnection.Apple,
+        authConnectionId: 'ios-apple',
+      }),
+    });
+
+    const login = await provider.getKeyBoundIdentifierLogin({
+      identifier: {
+        type: 'social',
+        namespace: 'https://appleid.apple.com',
+        value: 'apple-sub-1',
+        verifier: { auds: ['client-id'] },
+      },
+      proofPublicKey: PROOF_PUBLIC_KEY,
+      requestHash: REQUEST_HASH,
+    });
+
+    expect(login.token.identifier.value).toBe('apple-sub-1');
+  });
+
+  it('rejects combined claims whose client suffix does not match', async () => {
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(
+        tokenFor(`server-nonce.not-${expectedNonce}`, {
+          iss: 'https://oauth.telegram.org',
+          sub: 'telegram-sub-1',
+        }),
+        {
+          authConnection: AuthConnection.Telegram,
+          authConnectionId: 'ios-telegram',
+        },
+      ),
+    });
+
+    await expect(
+      provider.getKeyBoundIdentifierLogin({
+        identifier: {
+          type: 'social',
+          namespace: 'https://oauth.telegram.org',
+          value: 'telegram-sub-1',
+          verifier: null,
+        },
         proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: REQUEST_HASH,
       }),
