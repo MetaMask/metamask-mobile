@@ -75,7 +75,6 @@ const setMigration = (status: MoneyAccountMigrationStatus) =>
     ).setStatusForTest(status);
   });
 
-// Resolves the migration on demand, like the real one finishing.
 const deferMigration = () => {
   let finish: (ok: boolean) => void = () => undefined;
   mockStart.mockImplementation(

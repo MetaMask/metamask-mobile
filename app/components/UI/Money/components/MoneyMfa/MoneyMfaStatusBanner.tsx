@@ -20,17 +20,6 @@ interface MoneyMfaStatusBannerProps {
   onRetry: () => void;
 }
 
-/**
- * Top-of-Money-home banner while 2-step verification is set up, and when that
- * setup fails. Only the setting-up banner can be closed; the failed one stays
- * until a retry succeeds.
- *
- * @param props - The banner's props.
- * @param props.status - Money 2-step verification status.
- * @param props.isSettingUpDismissed - The user closed the setting-up banner.
- * @param props.onDismissSettingUp - Closes the setting-up banner.
- * @param props.onRetry - Retries the setup.
- */
 const MoneyMfaStatusBanner = ({
   status,
   isSettingUpDismissed,

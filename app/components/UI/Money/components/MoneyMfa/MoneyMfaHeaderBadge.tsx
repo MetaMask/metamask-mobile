@@ -26,14 +26,6 @@ const PULSE_MS = 1300;
 const PULSE_GAP_MS = 80;
 const PULSE_EASING = Easing.inOut(Easing.cubic);
 
-/**
- * Props for the green shield shown in the Money header when 2-step
- * verification is on. Header bars that take button props instead of an
- * element use these directly.
- *
- * @param onPress - Opens the 2-step verification sheet.
- * @returns The shield's button props.
- */
 export const getMoneyMfaHeaderBadgeProps = (onPress?: () => void) => ({
   iconName: IconName.SecurityTick,
   iconProps: { color: IconColor.SuccessDefault },
@@ -47,13 +39,6 @@ interface MoneyMfaHeaderBadgeProps {
   isHighlighted?: boolean;
 }
 
-/**
- * The green shield next to the Money title when 2-step verification is on.
- *
- * @param props - The badge's props.
- * @param props.onPress - Opens the 2-step verification sheet.
- * @param props.isHighlighted - Pulses the shield twice.
- */
 const MoneyMfaHeaderBadge = ({
   onPress,
   isHighlighted = false,

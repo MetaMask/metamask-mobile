@@ -15,7 +15,6 @@ import MoneyMfaInfoSheet from './MoneyMfaInfoSheet';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
-/** Confirms that 2-step verification now protects the Money account. */
 const MoneyMfaEnabledSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();

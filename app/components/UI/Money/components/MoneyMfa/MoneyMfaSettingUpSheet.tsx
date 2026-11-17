@@ -13,7 +13,6 @@ import MoneyMfaInfoSheet from './MoneyMfaInfoSheet';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
-/** Shown instead of Send while the Money account is still being set up. */
 const MoneyMfaSettingUpSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
