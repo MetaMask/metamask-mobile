@@ -204,6 +204,8 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     [onTypeChange],
   );
 
+  const listTopPadding = 16 + contentTopInset;
+
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
       {hasBeenActive && (
@@ -227,7 +229,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 contentContainerStyle: [
                   tw.style(`pt-4 pb-[${24 + floatingTabBarInset}px]`),
                   contentTopInset > 0
-                    ? { paddingTop: 16 + contentTopInset }
+                    ? { paddingTop: listTopPadding }
                     : undefined,
                 ],
                 onScroll,
@@ -239,7 +241,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                     tintColor={colors.icon.default}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
-                    progressViewOffset={contentTopInset}
+                    progressViewOffset={listTopPadding}
                   />
                 ),
                 listHeaderComponent: (

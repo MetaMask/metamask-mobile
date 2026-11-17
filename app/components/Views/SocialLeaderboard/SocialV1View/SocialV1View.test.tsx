@@ -523,7 +523,7 @@ describe('SocialV1View', () => {
   });
 
   it('syncs the incoming tab scroll offset when switching tabs past the tabs bar', () => {
-    renderWithProvider(<SocialV1View />);
+    const { rerender } = renderWithProvider(<SocialV1View />);
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
     );
@@ -539,12 +539,18 @@ describe('SocialV1View', () => {
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
     );
+    rerender(<SocialV1View />);
 
     expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
       'social_following',
       48,
       false,
     );
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY,
+    ).toBe(-48);
   });
 
   it('keeps the tabs bar visible when switching to an unmounted lazy tab', () => {

@@ -463,21 +463,6 @@ const SocialV1ViewContent: React.FC = () => {
         return;
       }
 
-      // Reset to 0 eagerly so returning to top never flickers; for non-zero
-      // targets let the incoming list's `onScroll` report the actual offset so
-      // a lazy or short/empty page never hides the tabs over a blank gap.
-      if (target === 0) {
-        if (nextIndex === trendingIndex) {
-          trendingScrollY.value = 0;
-        } else if (nextIndex === followingIndex) {
-          followingScrollY.value = 0;
-        } else if (nextIndex === liveIndex) {
-          liveScrollY.value = 0;
-        } else {
-          leaderboardScrollY.value = 0;
-        }
-      }
-
       const incomingPage =
         nextIndex === trendingIndex
           ? trendingPageRef
@@ -486,7 +471,25 @@ const SocialV1ViewContent: React.FC = () => {
             : nextIndex === liveIndex
               ? livePageRef
               : leaderboardPageRef;
-      incomingPage.current?.scrollToOffset(target);
+      if (!incomingPage.current) {
+        return;
+      }
+
+      // Write the shared value up front: `scrollY` switches to the incoming page
+      // the moment `activeIndexSv` flips, and the native scroll only reports back
+      // a frame later — without this the tabs bar and backdrop would flicker for
+      // that frame before settling.
+      if (nextIndex === trendingIndex) {
+        trendingScrollY.value = target;
+      } else if (nextIndex === followingIndex) {
+        followingScrollY.value = target;
+      } else if (nextIndex === liveIndex) {
+        liveScrollY.value = target;
+      } else {
+        leaderboardScrollY.value = target;
+      }
+
+      incomingPage.current.scrollToOffset(target);
     },
     [
       activeIndex,

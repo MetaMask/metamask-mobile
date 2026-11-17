@@ -279,6 +279,6 @@ describe('LeaderboardShellTabPage', () => {
     expect(StyleSheet.flatten(scroll.props.contentContainerStyle)).toEqual(
       expect.objectContaining({ paddingTop: 148 }),
     );
-    expect(scroll.props.refreshControl.props.progressViewOffset).toBe(132);
+    expect(scroll.props.refreshControl.props.progressViewOffset).toBe(148);
   });
 });

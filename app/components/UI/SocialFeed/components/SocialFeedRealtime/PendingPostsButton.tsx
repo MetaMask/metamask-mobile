@@ -11,7 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { Laminar } from 'react-native-laminar';
 import Animated, {
@@ -19,6 +19,7 @@ import Animated, {
   FadeOut,
   useAnimatedStyle,
   useReducedMotion,
+  useSharedValue,
   withSpring,
   ZoomIn,
   ZoomOut,
@@ -270,16 +271,15 @@ const MaterialPendingPostsButton = ({
     lastVisibleCountRef.current = pendingNewCount;
   }
 
-  const zoomStyle = useAnimatedStyle(
-    () => ({
-      transform: [
-        {
-          scale: withSpring(isVisible ? 1 : 0, PENDING_POSTS_ZOOM_SPRING),
-        },
-      ],
-    }),
-    [isVisible],
-  );
+  const scale = useSharedValue(isVisible ? 1 : 0);
+
+  useEffect(() => {
+    scale.value = withSpring(isVisible ? 1 : 0, PENDING_POSTS_ZOOM_SPRING);
+  }, [isVisible, scale]);
+
+  const zoomStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <Animated.View
