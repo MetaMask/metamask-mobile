@@ -106,6 +106,9 @@ export const getPerpsCrossLiquidationInfoSelector = (
 export const getPerpsMarketDetailsTabSelector = (tab: string) =>
   `perps-market-details-tab-${tab}`;
 
+export const getPerpsLiveTradeRowSelector = (postId: string) =>
+  `perps-home-live-trade-${postId}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -333,9 +336,11 @@ export const PerpsHomeViewSelectorsIDs = {
   TOP_MOVERS_LIST: 'perps-home-top-movers-list',
   SOCIAL_FEED_SECTION: 'perps-home-social-feed-section',
   SOCIAL_FEED_HEADER: 'perps-home-social-feed-header',
+  SOCIAL_FEED_LIVE_TRADES_PILL: 'perps-home-social-feed-live-trades',
   SOCIAL_FEED_TRENDING_PILL: 'perps-home-social-feed-trending',
   SOCIAL_FEED_TOP_TRADERS_PILL: 'perps-home-social-feed-top-traders',
   SOCIAL_FEED_SEE_MORE: 'perps-home-social-feed-see-more',
+  LIVE_TRADES_LIST: 'perps-home-live-trades-list',
   RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
   RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
   RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',

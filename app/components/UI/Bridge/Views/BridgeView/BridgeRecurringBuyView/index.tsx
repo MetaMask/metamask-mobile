@@ -44,6 +44,7 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
+import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
@@ -179,13 +180,29 @@ const BridgeRecurringBuyViewContent = ({
   }, []);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const {
+    formattedMinAmountInSelectedCurrency,
+    hasError: hasMinAmountError,
+    isBelowMinAmount,
+  } = useRecurringOrderMinAmount({
+    sourceToken,
+    sourceAmount,
+  });
   const canPreviewOrder =
     Boolean(activeQuote) &&
     scheduleValidation.isValid &&
-    feeTokenValidation.isValid;
+    feeTokenValidation.isValid &&
+    !hasMinAmountError &&
+    !isBelowMinAmount;
+  const previewOrderLabel =
+    isBelowMinAmount && formattedMinAmountInSelectedCurrency !== undefined
+      ? strings('bridge.recurring.min_order_amount', {
+          amount: formattedMinAmountInSelectedCurrency,
+        })
+      : strings('bridge.recurring.preview_order');
 
   const handlePreviewOrder = useCallback(() => {
-    if (!feeTokenValidation.isValid) {
+    if (!feeTokenValidation.isValid || hasMinAmountError || isBelowMinAmount) {
       return;
     }
 
@@ -215,6 +232,8 @@ const BridgeRecurringBuyViewContent = ({
     trackEvent,
     createEventBuilder,
     feeTokenValidation.isValid,
+    hasMinAmountError,
+    isBelowMinAmount,
     location,
   ]);
 
@@ -424,8 +443,12 @@ const BridgeRecurringBuyViewContent = ({
 
         <BridgeRecurringBuyFooterView
           onPreviewOrder={handlePreviewOrder}
+          label={previewOrderLabel}
           isPreviewDisabled={
-            !scheduleValidation.isValid || !feeTokenValidation.isValid
+            !scheduleValidation.isValid ||
+            !feeTokenValidation.isValid ||
+            hasMinAmountError ||
+            isBelowMinAmount
           }
         />
 
@@ -437,7 +460,7 @@ const BridgeRecurringBuyViewContent = ({
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsRecurringBuyConfirmButton
               onPress={handlePreviewOrder}
-              label={strings('bridge.recurring.preview_order')}
+              label={previewOrderLabel}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={!canPreviewOrder}
               loading={isLoading}

@@ -8,7 +8,7 @@ import {
   selectCardAvailableTokens,
   selectCardFundingTokens,
   selectIsCardAuthenticated,
-  selectIsCardholder,
+  selectHasCard,
   selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
@@ -23,7 +23,7 @@ export const useCardHomeData = () => {
   const primaryTokenRaw = useSelector(selectCardPrimaryToken);
   const availableTokensRaw = useSelector(selectCardAvailableTokens);
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
-  const isCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectHasCard);
   const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
   const fetchedThisSession = useSelector(selectCardHomeDataFetchedThisSession);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
