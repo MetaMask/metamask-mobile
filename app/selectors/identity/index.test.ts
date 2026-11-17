@@ -213,6 +213,20 @@ describe('Notification Selectors', () => {
       ]);
     });
 
+    it('keeps an SRP whose entropy source id is listed on the primary', () => {
+      const state = buildState({
+        primary: session('primary-identifier', [
+          { id: 'paired-srp', type: 'SRP' },
+        ]),
+        'paired-srp': session('different-identifier'),
+      });
+
+      expect(selectProfileEntropySourceIds(state)).toEqual([
+        'primary',
+        'paired-srp',
+      ]);
+    });
+
     it('excludes SRPs that share the canonical profile ID but are not paired', () => {
       const state = buildState({
         primary: session('primary-identifier', [

@@ -9,6 +9,7 @@ import { createDeepEqualSelector } from '../util';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
+
 type UserStorageState = UserStorageController.UserStorageControllerState;
 
 const selectAuthenticationControllerState = (state: RootState) =>
@@ -59,15 +60,23 @@ export const selectCanonicalProfileId = createSelector(
   },
 );
 
+/** True when the primary session lists this SRP's entropy source id or identifier id. */
+const isSrpPairedToPrimary = (
+  entropySourceId: string,
+  identifierId: string | undefined,
+  pairedIdentifierIds: Set<string>,
+): boolean =>
+  pairedIdentifierIds.has(entropySourceId) ||
+  (identifierId !== undefined && pairedIdentifierIds.has(identifierId));
+
 /**
  * Selector that returns the entropy source IDs of the SRPs that belong to the
- * wallet's profile: the primary SRP (the one carrying `canonicalProfileId`)
- * first, followed by every SRP paired to it.
+ * wallet's profile: the primary SRP first, followed by every SRP whose id is
+ * listed in the primary session's `pairedIdentifierIds`.
  *
- * A secondary SRP is paired when its session `identifierId` appears in the
- * primary session's `pairedIdentifierIds`. `canonicalProfileId` is not used
- * for this: the AuthenticationController propagates it to every session,
- * including SRPs the server skipped while pairing.
+ * `canonicalProfileId` is not used for this: the AuthenticationController
+ * propagates it to every session, including SRPs the server skipped while
+ * pairing.
  *
  * Falls back to the primary SRP alone when it has no session yet (signed out
  * or not paired). Returns an empty array when the wallet is locked, because
@@ -97,7 +106,11 @@ export const selectProfileEntropySourceIds = createDeepEqualSelector(
       .filter(
         ([entropySourceId, session]) =>
           entropySourceId !== primaryEntropySourceId &&
-          pairedIdentifierIds.has(session?.profile?.identifierId),
+          isSrpPairedToPrimary(
+            entropySourceId,
+            session?.profile?.identifierId,
+            pairedIdentifierIds,
+          ),
       )
       .map(([entropySourceId]) => entropySourceId);
 

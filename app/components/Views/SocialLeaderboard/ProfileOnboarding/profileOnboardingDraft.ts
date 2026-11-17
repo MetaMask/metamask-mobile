@@ -243,6 +243,43 @@ export const onboardingProfileFingerprint = (
   });
 };
 
+/**
+ * Keeps a draft account only while it is still in `accounts`.
+ *
+ * A selection that has left the eligible set is cleared, including when that
+ * set is empty. A draft with no selection takes the first eligible account.
+ * Returns the same draft when nothing changes.
+ */
+export const withEligibleLinkedAccount = (
+  draft: ProfileOnboardingDraft,
+  accounts: readonly { id: string; address: string }[],
+): ProfileOnboardingDraft => {
+  const selected = draft.linkedAccountId
+    ? accounts.find((account) => account.id === draft.linkedAccountId)
+    : undefined;
+  if (selected) {
+    return selected.address === draft.linkedAccountAddress
+      ? draft
+      : { ...draft, linkedAccountAddress: selected.address };
+  }
+  if (draft.linkedAccountId || draft.linkedAccountAddress) {
+    return {
+      ...draft,
+      linkedAccountId: null,
+      linkedAccountAddress: null,
+    };
+  }
+  const firstAccount = accounts[0];
+  if (!firstAccount) {
+    return draft;
+  }
+  return {
+    ...draft,
+    linkedAccountId: firstAccount.id,
+    linkedAccountAddress: firstAccount.address,
+  };
+};
+
 export const canContinueUsernameStep = (
   draft: ProfileOnboardingDraft,
 ): boolean => {

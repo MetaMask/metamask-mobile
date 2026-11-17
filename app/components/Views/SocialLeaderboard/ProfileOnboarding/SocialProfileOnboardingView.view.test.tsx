@@ -81,6 +81,42 @@ const letsGoDisabled = (): boolean =>
   screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON).props
     .accessibilityState?.disabled === true;
 
+const continueDisabled = (): boolean =>
+  screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON).props
+    .accessibilityState?.disabled === true;
+
+const leaveProfileMembership = (store: {
+  dispatch: (action: ReturnType<typeof updateBgState>) => void;
+}) => {
+  engineWithState.state = {
+    ...Engine.state,
+    KeyringController: {
+      isUnlocked: true,
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [],
+          metadata: { id: 'outside-profile', name: '' },
+        },
+      ],
+    },
+  };
+  store.dispatch(updateBgState({ key: 'KeyringController' }));
+};
+
+const openAccountStep = async () => {
+  fireEvent.press(
+    screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+    ),
+  );
+  await continueFromUsername();
+  fireEvent.press(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+  );
+  expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+};
+
 const leaveReadyStep = async () => {
   await waitFor(() => {
     expect(letsGoDisabled()).toBe(false);
@@ -2050,6 +2086,101 @@ describe('SocialProfileOnboardingView', () => {
         linked_addresses: [`eip155:1:${SECOND_ONBOARDING_EVM_ACCOUNT.address}`],
       }),
     );
+  });
+
+  it('disables continue when the linked account leaves the profile', async () => {
+    const { store } = await renderOnboarding();
+    await openAccountStep();
+
+    await act(async () => {
+      leaveProfileMembership(store);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Account 1')).not.toBeOnTheScreen();
+    });
+    expect(continueDisabled()).toBe(true);
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).not.toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not create a profile when the linked account leaves the profile before the id resolves', async () => {
+    let releaseSession: (session: typeof SIGNED_IN_SESSION) => void = () =>
+      undefined;
+    let holdSession = false;
+    jest
+      .mocked(Engine.context.AuthenticationController.getSessionProfile)
+      .mockImplementation(() => {
+        if (!holdSession) {
+          return Promise.resolve(SIGNED_IN_SESSION);
+        }
+        return new Promise((resolve) => {
+          releaseSession = resolve;
+        });
+      });
+    const { store } = await renderOnboarding();
+    await openAccountStep();
+    holdSession = true;
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      leaveProfileMembership(store);
+    });
+    await act(async () => {
+      releaseSession(SIGNED_IN_SESSION);
+    });
+
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+    expect(letsGoDisabled()).toBe(true);
+  });
+
+  it('does not create a profile when the linked account leaves the profile during the existing-profile lookup', async () => {
+    signOut();
+    let releaseLookup: (profile: Profile) => void = () => undefined;
+    const { store } = await renderOnboarding();
+    await openAccountStep();
+    signIn();
+    jest
+      .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            releaseLookup = resolve;
+          }),
+      );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      leaveProfileMembership(store);
+    });
+    await act(async () => {
+      releaseLookup(NO_PROFILE);
+    });
+
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+    expect(letsGoDisabled()).toBe(true);
   });
 
   it('shows only the numbered username when the shuffled handle is taken', async () => {

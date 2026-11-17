@@ -85,6 +85,7 @@ import {
   isUneditedXUsername,
   normalizeUsername,
   onboardingProfileFingerprint,
+  withEligibleLinkedAccount,
   type ProfileOnboardingDraft,
   type ProfileOnboardingPath,
   type ProfileOnboardingStep,
@@ -97,7 +98,10 @@ import OnboardingProgress from './OnboardingProgress';
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
-import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
+import {
+  useLinkableSocialAccounts,
+  type LinkableSocialAccount,
+} from '../hooks/useLinkableSocialAccounts';
 import { lookUpExistingSocialProfile } from '../hooks/lookUpExistingSocialProfile';
 import ProfileAvatarPicker from './ProfileAvatarPicker';
 import {
@@ -656,19 +660,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, [existingProfileLookupResult, openExistingProfile]);
 
   useEffect(() => {
-    if (accounts.length === 0) {
-      return;
-    }
-    setDraft((current) => {
-      if (current.linkedAccountId) {
-        return current;
-      }
-      return {
-        ...current,
-        linkedAccountId: accounts[0].id,
-        linkedAccountAddress: accounts[0].address,
-      };
-    });
+    setDraft((current) => withEligibleLinkedAccount(current, accounts));
   }, [accounts]);
 
   const cancelConnectX = useCallback(() => {
@@ -1087,36 +1079,43 @@ const SocialProfileOnboardingView: React.FC = () => {
     step,
   ]);
 
+  const eligibleLinkedAccount = (
+    current: ProfileOnboardingDraft,
+  ): LinkableSocialAccount | undefined =>
+    accountsRef.current.find(
+      (account) => account.id === current.linkedAccountId,
+    );
+
   const fingerprintForDraft = (
     current: ProfileOnboardingDraft,
   ): string | null => {
-    const linkedAccount = accountsRef.current.find(
-      (account) => account.id === current.linkedAccountId,
-    );
-    return onboardingProfileFingerprint(
-      current,
-      linkedAccount?.linkedAddresses,
-    );
+    const linkedAccount = eligibleLinkedAccount(current);
+    if (!linkedAccount) {
+      return null;
+    }
+    return onboardingProfileFingerprint(current, linkedAccount.linkedAddresses);
   };
 
   /**
    * @returns `existing` when the session already owns a profile, so nothing
-   * was written.
+   * was written. `ineligible` when the draft account is no longer in the
+   * profile, so the stale selection is not saved.
    */
   const writeOnboardingProfile = async (
     current: ProfileOnboardingDraft,
-  ): Promise<'saved' | 'existing'> => {
-    const linkedAccount = accountsRef.current.find(
-      (account) => account.id === current.linkedAccountId,
-    );
+  ): Promise<'saved' | 'existing' | 'ineligible'> => {
     const profileId = await getSocialProfileId();
     if (!profileId) {
       throw new Error('Social profile id is not available');
     }
+    const linkedAccount = eligibleLinkedAccount(current);
+    if (!linkedAccount) {
+      return 'ineligible';
+    }
     const params = buildCreateProfileParams(
       current,
       profileId,
-      linkedAccount?.linkedAddresses,
+      linkedAccount.linkedAddresses,
     );
     // createProfile has no abort signal. Keep a successful in-flight create
     // and patch it when the draft changes, instead of issuing a second create
@@ -1144,7 +1143,17 @@ const SocialProfileOnboardingView: React.FC = () => {
     ) {
       return 'existing';
     }
-    await createProfileRef.current(params);
+    const linkedAccountBeforeCreate = eligibleLinkedAccount(current);
+    if (!linkedAccountBeforeCreate) {
+      return 'ineligible';
+    }
+    await createProfileRef.current(
+      buildCreateProfileParams(
+        current,
+        profileId,
+        linkedAccountBeforeCreate.linkedAddresses,
+      ),
+    );
     return 'saved';
   };
 
@@ -1172,7 +1181,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       setFinishError(null);
       setIsSubmitting(true);
       const hadProfile = serverProfileFingerprintRef.current !== null;
-      let writeResult: 'saved' | 'existing';
+      let writeResult: 'saved' | 'existing' | 'ineligible';
       try {
         writeResult = await writeOnboardingProfile(currentDraft);
       } catch {
@@ -1189,6 +1198,10 @@ const SocialProfileOnboardingView: React.FC = () => {
         if (navigation.isFocused()) {
           openExistingProfile();
         }
+        return;
+      }
+      if (writeResult === 'ineligible') {
+        setIsSubmitting(false);
         return;
       }
       serverProfileFingerprintRef.current = fingerprint;
@@ -1244,12 +1257,18 @@ const SocialProfileOnboardingView: React.FC = () => {
   };
   startSyncRef.current = startSync;
 
+  const selectedLinkedAccount = accounts.find(
+    (account) => account.id === draft.linkedAccountId,
+  );
   const profileFingerprint = useMemo(() => {
-    const linkedAccount = accounts.find(
-      (account) => account.id === draft.linkedAccountId,
+    if (!selectedLinkedAccount) {
+      return null;
+    }
+    return onboardingProfileFingerprint(
+      draft,
+      selectedLinkedAccount.linkedAddresses,
     );
-    return onboardingProfileFingerprint(draft, linkedAccount?.linkedAddresses);
-  }, [accounts, draft]);
+  }, [draft, selectedLinkedAccount]);
 
   useEffect(() => {
     const previousStep = previousStepRef.current;
@@ -1328,7 +1347,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   const continueDisabled =
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
-    (step === 'account' && !draft.linkedAccountId);
+    (step === 'account' && !selectedLinkedAccount);
   // The first step of either path has no earlier step to return to, so it hides back.
   const hasBackStep =
     step !== 'intro' && step !== 'username' && step !== 'x-identity';
