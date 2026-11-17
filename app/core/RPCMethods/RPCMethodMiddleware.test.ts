@@ -37,7 +37,7 @@ import {
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../reducers';
 import { addTransaction } from '../../util/transaction-controller';
 import {
   Messenger,
