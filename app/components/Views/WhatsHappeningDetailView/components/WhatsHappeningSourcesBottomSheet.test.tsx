@@ -137,12 +137,9 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'BrowserTabHome',
       expect.objectContaining({
-        screen: 'BrowserView',
-        params: expect.objectContaining({
-          newTabUrl: 'https://coindesk.com/fed-pauses',
-          fromTrending: true,
-          fromWhatsHappening: true,
-        }),
+        newTabUrl: 'https://coindesk.com/fed-pauses',
+        fromTrending: true,
+        fromWhatsHappening: true,
       }),
     );
   });

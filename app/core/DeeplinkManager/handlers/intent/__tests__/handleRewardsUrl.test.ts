@@ -303,7 +303,7 @@ describe('handleRewardsUrl', () => {
   });
 
   describe('error handling', () => {
-    it('falls back to wallet view when navigation fails', async () => {
+    it('falls back to the wallet tab when navigation fails', async () => {
       mockNavigate.mockImplementationOnce(() => {
         throw new Error('Navigation error');
       });
@@ -311,21 +311,17 @@ describe('handleRewardsUrl', () => {
       await handleRewardsUrl({ rewardsPath: '?page=campaigns' });
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
-      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET_VIEW, {
-        screen: Routes.WALLET_VIEW,
-      });
+      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET.HOME);
     });
 
-    it('falls back to wallet view when dispatch fails', async () => {
+    it('falls back to the wallet tab when dispatch fails', async () => {
       mockDispatch.mockImplementationOnce(() => {
         throw new Error('Dispatch error');
       });
 
       await handleRewardsUrl({ rewardsPath: '?page=campaigns' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW, {
-        screen: Routes.WALLET_VIEW,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('logs error details when handling fails', async () => {
