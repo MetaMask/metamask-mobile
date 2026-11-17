@@ -926,7 +926,15 @@ describe('PerpsClosePositionBottomSheet', () => {
           strings('perps.order.limit_price_modal.limit_price_below'),
         ),
       ).toBeOnTheScreen();
+      expect(
+        utils.getByText(strings('perps.order.limit_price')),
+      ).toBeOnTheScreen();
       expect(closeAmountColor(utils)).toBe(TextColor.TextDefault);
+      expect(
+        utils.queryByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER,
+        ),
+      ).toBeNull();
     });
   });
 

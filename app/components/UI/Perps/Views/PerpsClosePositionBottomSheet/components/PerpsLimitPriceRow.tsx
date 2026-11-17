@@ -83,7 +83,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
       >
         <Box twClassName="flex-row items-center justify-between px-4 h-8">
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyMd}
             color={error ? TextColor.ErrorDefault : TextColor.TextAlternative}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
@@ -100,7 +100,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             {isEmptyInReview ? (
               <>
                 <Text
-                  variant={TextVariant.BodySm}
+                  variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}
                   fontWeight={FontWeight.Medium}
                   testID={
@@ -119,7 +119,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             ) : (
               <>
                 <Text
-                  variant={TextVariant.BodySm}
+                  variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}
                   fontWeight={FontWeight.Medium}
                 >
@@ -127,7 +127,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
                 </Text>
                 {!hasValue ? cursor : null}
                 <Text
-                  variant={TextVariant.BodySm}
+                  variant={TextVariant.BodyMd}
                   color={priceColor}
                   fontWeight={FontWeight.Medium}
                   testID={
