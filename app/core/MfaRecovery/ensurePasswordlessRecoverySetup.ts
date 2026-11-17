@@ -57,6 +57,18 @@ export async function ensurePasswordlessRecoverySetup(): Promise<EnsurePasswordl
 }
 
 async function runEnsurePasswordlessRecoverySetup(): Promise<EnsurePasswordlessRecoverySetupResult> {
+  try {
+    return await runEnsurePasswordlessRecoverySetupOnce();
+  } catch (error) {
+    // Setup is best-effort. A missing store or controller must not fail
+    // wallet creation or unlock.
+    const code = getMfaRecoveryErrorCode(error);
+    Logger.log('Passwordless recovery setup failed', { code });
+    return { status: 'failed', code };
+  }
+}
+
+async function runEnsurePasswordlessRecoverySetupOnce(): Promise<EnsurePasswordlessRecoverySetupResult> {
   const state = ReduxService.store.getState();
 
   if (!selectMfaRecoveryEnabled(state)) {

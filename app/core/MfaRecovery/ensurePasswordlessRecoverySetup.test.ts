@@ -160,6 +160,18 @@ describe('ensurePasswordlessRecoverySetup', () => {
     expect(deps.cubistAuthAudience).toBe('cubist-aud');
   });
 
+  it('returns failed without throwing when the Redux store is unavailable', async () => {
+    jest.mocked(ReduxService.store.getState).mockImplementation(() => {
+      throw new Error('Redux store does not exist!');
+    });
+
+    await expect(ensurePasswordlessRecoverySetup()).resolves.toEqual({
+      status: 'failed',
+      code: 'unknown',
+    });
+    expect(setupPasswordlessRecovery).not.toHaveBeenCalled();
+  });
+
   it('returns failed without throwing when setup rejects', async () => {
     const { PasswordlessRecoverySetupError } = jest.requireMock(
       './setupPasswordlessRecovery',
