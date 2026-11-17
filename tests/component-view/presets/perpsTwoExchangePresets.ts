@@ -14,15 +14,23 @@ import {
   createLongPositionForViews,
 } from '../fixtures/perpsViewFixtures';
 
+// These are synthetic two-exchange fixtures, not snapshots of what the
+// installed controller emits, and they carry no per-exchange availability yet.
 // TAT-4392: core#11461 adds `AccountState.providerStates`. Once perps-controller
-// ships it, tsc fails on this line. Then give each scenario per-exchange
+// ships it, tsc fails on the next line. Then give each scenario per-exchange
 // account states (Lighter down = Lighter 'unavailable') and delete the alias.
 // @ts-expect-error TAT-4392: remove once perps-controller ships providerStates.
 export type PerpsAccountProviderStates = AccountState['providerStates'];
 
+interface ExchangeAccount {
+  total: string;
+  marginUsed?: string;
+  unrealizedPnl?: string;
+}
+
 interface Scenario {
-  /** Total balance per exchange. A missing exchange has no data. */
-  balances: Partial<Record<PerpsProviderType, string>>;
+  /** Account per exchange. A missing exchange has no data. */
+  balances: Partial<Record<PerpsProviderType, ExchangeAccount>>;
   markets: PerpsMarketData[];
   positions?: Position[];
 }
@@ -32,26 +40,37 @@ const eth = (providerId: PerpsProviderType): PerpsMarketData =>
 
 const SCENARIOS = {
   bothFunded: {
-    balances: { hyperliquid: '100', lighter: '50' },
+    balances: { hyperliquid: { total: '100' }, lighter: { total: '50' } },
     markets: [
       eth('hyperliquid'),
       createBtcMarketForViews({ providerId: 'lighter' }),
     ],
   },
   oneFunded: {
-    balances: { hyperliquid: '100', lighter: '0' },
+    balances: { hyperliquid: { total: '100' }, lighter: { total: '0' } },
     markets: [
       eth('hyperliquid'),
       createBtcMarketForViews({ providerId: 'lighter' }),
     ],
   },
   sameMarketOnBoth: {
-    balances: { hyperliquid: '100', lighter: '50' },
+    balances: {
+      hyperliquid: { total: '100' },
+      lighter: { total: '50', marginUsed: '8.33', unrealizedPnl: '1' },
+    },
     markets: [eth('hyperliquid'), eth('lighter')],
-    positions: [createLongPositionForViews({ providerId: 'lighter' })],
+    positions: [
+      createLongPositionForViews({
+        providerId: 'lighter',
+        size: '0.01',
+        positionValue: '25',
+        marginUsed: '8.33',
+        unrealizedPnl: '1',
+      }),
+    ],
   },
   lighterDown: {
-    balances: { hyperliquid: '100' },
+    balances: { hyperliquid: { total: '100' } },
     markets: [eth('hyperliquid')],
   },
 } satisfies Record<string, Scenario>;
@@ -71,7 +90,13 @@ export const perpsTwoExchangeState = (
 } => {
   const { balances, markets, positions = [] }: Scenario = SCENARIOS[name];
   const entries = Object.entries(balances);
-  const total = entries.reduce((sum, [, balance]) => sum + Number(balance), 0);
+  const sum = (
+    pick: (account: ExchangeAccount) => string | undefined,
+  ): number =>
+    entries.reduce((acc, [, account]) => acc + Number(pick(account) ?? 0), 0);
+  const total = sum((account) => account.total);
+  const marginUsed = sum((account) => account.marginUsed);
+  const unrealizedPnl = sum((account) => account.unrealizedPnl);
 
   return {
     overrides: {
@@ -82,12 +107,12 @@ export const perpsTwoExchangeState = (
             isEligible: true,
             isFirstTimeUser: { mainnet: false, testnet: false },
             perpsBalances: Object.fromEntries(
-              entries.map(([provider, totalBalance]) => [
+              entries.map(([provider, account]) => [
                 provider,
                 {
-                  totalBalance,
-                  unrealizedPnl: '0',
-                  accountValue1dAgo: totalBalance,
+                  totalBalance: account.total,
+                  unrealizedPnl: account.unrealizedPnl ?? '0',
+                  accountValue1dAgo: account.total,
                   lastUpdated: 0,
                 },
               ]),
@@ -105,7 +130,13 @@ export const perpsTwoExchangeState = (
       },
     },
     streamOverrides: {
-      account: createFundedAccountForViews(String(total)),
+      account: {
+        ...createFundedAccountForViews(String(total)),
+        spendableBalance: String(Number((total - marginUsed).toFixed(2))),
+        withdrawableBalance: String(Number((total - marginUsed).toFixed(2))),
+        marginUsed: String(marginUsed),
+        unrealizedPnl: String(unrealizedPnl),
+      },
       positions,
       orders: [],
       marketData: markets,

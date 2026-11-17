@@ -1,3 +1,4 @@
+import { withLighterBuildEnabled } from '../helpers/perpsViewTestHelpers';
 import {
   perpsTwoExchangeState,
   type PerpsTwoExchangeScenario,
@@ -65,5 +66,56 @@ describe('perpsTwoExchangeState', () => {
     expect(streamOverrides.positions).toMatchObject([
       { symbol: 'ETH', providerId: 'lighter' },
     ]);
+  });
+
+  it('keeps the combined account consistent with the Lighter position', () => {
+    const { streamOverrides } = perpsTwoExchangeState('sameMarketOnBoth');
+
+    expect(streamOverrides.account).toMatchObject({
+      totalBalance: '150',
+      marginUsed: '8.33',
+      unrealizedPnl: '1',
+      spendableBalance: '141.67',
+    });
+    expect(streamOverrides.positions).toMatchObject([
+      { marginUsed: '8.33', unrealizedPnl: '1' },
+    ]);
+  });
+});
+
+describe.each<[string, string | undefined]>([
+  ['unset', undefined],
+  ['false', 'false'],
+])('withLighterBuildEnabled when the flag starts %s', (_label, start) => {
+  const original = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+
+  beforeAll(() => {
+    if (start === undefined) {
+      delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    } else {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = start;
+    }
+  });
+
+  afterAll(() => {
+    if (original === undefined) {
+      delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    } else {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = original;
+    }
+  });
+
+  describe('inside the helper block', () => {
+    withLighterBuildEnabled();
+
+    it('turns the flag on', () => {
+      expect(process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED).toBe('true');
+    });
+  });
+
+  describe('after the helper block', () => {
+    it('restores the starting value', () => {
+      expect(process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED).toBe(start);
+    });
   });
 });

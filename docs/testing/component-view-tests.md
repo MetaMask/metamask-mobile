@@ -498,7 +498,7 @@ describe('my two-exchange view', () => {
 - `sameMarketOnBoth`: both funded, ETH listed on both exchanges, ETH position on Lighter.
 - `lighterDown`: Hyperliquid 100, no Lighter balance or markets.
 
-The presets use today's `perps-controller` state. When the package ships per-exchange account state (core#11461, TAT-4392), `yarn lint:tsc` fails on a marked line in the preset file so they get updated.
+The scenarios are synthetic two-exchange fixtures, not snapshots of what the installed `perps-controller` emits. They use fields it supports (per-exchange `perpsBalances` plus a combined account) and have no per-exchange availability metadata yet. When the package ships it (core#11461, TAT-4392), `yarn lint:tsc` fails on a marked line in the preset file so the scenarios get updated.
 
 #### When no renderer exists for the view yet
 

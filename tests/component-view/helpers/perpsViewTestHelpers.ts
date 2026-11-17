@@ -18,13 +18,14 @@ import type { ReduxStore } from '../../../app/core/redux/types';
 
 /**
  * Sets the Lighter build flag for a describe block and restores the previous
- * value after each test. Lighter only shows up when both this env var and the
- * `perpsLighterProviderEnabled` remote flag are on (see usePerpsProvider);
- * `perpsTwoExchangeState` presets already set the remote flag.
+ * value after each test. The `perpsTwoExchangeState` presets also enable the
+ * remote flag. When no remote flag is configured, the selector falls back to
+ * the build flag.
  */
-export const withLighterBuildEnabled = () => {
-  const previous = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+export const withLighterBuildEnabled = (): void => {
+  let previous: string | undefined;
   beforeEach(() => {
+    previous = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
   });
   afterEach(() => {
