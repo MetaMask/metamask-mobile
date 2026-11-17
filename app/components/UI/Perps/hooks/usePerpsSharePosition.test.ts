@@ -160,12 +160,10 @@ const createDeferred = <T>() => {
 const renderWithGates = (
   {
     perpsSocialEnabled = true,
-    socialLeaderboardEnabled = true,
     hasSocialProfile = true,
     isSignedIn = true,
   }: {
     perpsSocialEnabled?: boolean;
-    socialLeaderboardEnabled?: boolean;
     hasSocialProfile?: boolean;
     isSignedIn?: boolean;
   } = {},
@@ -173,14 +171,12 @@ const renderWithGates = (
 ) => {
   const remoteFeatureFlags: Record<string, Json> = {
     [PERPS_SOCIAL_ENABLED_FLAG_KEY]: {
-      enabled: perpsSocialEnabled,
+      enabled: true,
       minimumVersion: '0.0.0',
     },
-    [SOCIAL_V1_AB_KEY]: SocialV1Variant.Treatment,
-    aiSocialLeaderboardEnabled: {
-      enabled: socialLeaderboardEnabled,
-      minimumVersion: '0.0.0',
-    },
+    [SOCIAL_V1_AB_KEY]: perpsSocialEnabled
+      ? SocialV1Variant.Treatment
+      : SocialV1Variant.Control,
   };
   const state = {
     engine: {
@@ -239,10 +235,6 @@ describe('usePerpsSharePosition', () => {
     [
       'Perps social is off',
       { perpsSocialEnabled: false, hasSocialProfile: false },
-    ],
-    [
-      'the Social leaderboard is off',
-      { socialLeaderboardEnabled: false, hasSocialProfile: false },
     ],
     ['the user is signed out', { isSignedIn: false, hasSocialProfile: false }],
   ])('opens the PnL hero card directly when %s', (_, gates) => {
@@ -452,10 +444,6 @@ describe('usePerpsSharePosition', () => {
     [
       'Perps social is off',
       { perpsSocialEnabled: false, hasSocialProfile: false },
-    ],
-    [
-      'the Social leaderboard is off',
-      { socialLeaderboardEnabled: false, hasSocialProfile: false },
     ],
     ['the user is signed out', { isSignedIn: false, hasSocialProfile: false }],
     ['the profile has already loaded', {}],

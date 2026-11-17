@@ -22,6 +22,7 @@ import {
 import React from 'react';
 import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
+import { AccountCellIds } from '../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
 import Engine from '../../../../core/Engine';
@@ -560,6 +561,8 @@ describe('SocialProfileOnboardingView', () => {
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(1);
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(AccountCellIds.MENU)).not.toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
     fireEvent.press(
@@ -1165,6 +1168,108 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the reserved copy, which reads as unavailable', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [{ code: 'RESERVED', message: 'This username is reserved' }],
+      });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_reserved'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the character rule when the server refuses the format with valid true', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [
+          {
+            code: 'USERNAME_INVALID_FORMAT',
+            message: 'This username has invalid characters',
+          },
+        ],
+      });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_unavailable'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.AVATAR_STEP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the character rule for the short INVALID_FORMAT code with valid true', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [{ code: 'INVALID_FORMAT', message: 'Bad format' }],
+      });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_unavailable'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('checks the display name only when continue is pressed', async () => {
     await openManualUsernameStep();
     fireEvent.changeText(
@@ -1466,7 +1571,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that username. Check your connection and try again.",
+        "Couldn't check that handle. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(
@@ -2022,6 +2127,8 @@ describe('SocialProfileOnboardingView', () => {
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(2);
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(AccountCellIds.MENU)).not.toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
     fireEvent.press(
@@ -2202,7 +2309,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that username. Check your connection and try again.",
+        "Couldn't check that handle. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(

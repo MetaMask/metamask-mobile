@@ -41,6 +41,7 @@ export enum UserActionType {
   SET_PENDING_APP_INSTALL = 'SET_PENDING_APP_INSTALL',
   CLEAR_PENDING_APP_INSTALL = 'CLEAR_PENDING_APP_INSTALL',
   SET_BRIDGE_LIMIT_TAB_SEEN = 'SET_BRIDGE_LIMIT_TAB_SEEN',
+  SET_BRIDGE_RECURRING_TAB_SEEN = 'SET_BRIDGE_RECURRING_TAB_SEEN',
 }
 
 // User actions
@@ -174,6 +175,9 @@ export type ClearPendingAppInstallAction =
 export type SetBridgeLimitTabSeenAction =
   Action<UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN>;
 
+export type SetBridgeRecurringTabSeenAction =
+  Action<UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN>;
+
 /**
  * User actions union type
  */
@@ -213,4 +217,5 @@ export type UserAction =
   | SetAppInstallEventFiredAction
   | SetPendingAppInstallAction
   | ClearPendingAppInstallAction
-  | SetBridgeLimitTabSeenAction;
+  | SetBridgeLimitTabSeenAction
+  | SetBridgeRecurringTabSeenAction;
