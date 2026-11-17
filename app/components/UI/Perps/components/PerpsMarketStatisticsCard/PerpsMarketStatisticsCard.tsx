@@ -53,44 +53,39 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
   const liveOraclePrice = symbol ? livePrices[symbol]?.markPrice : undefined;
 
+  const { fundingRate } = marketStats;
+
+  // A missing rate has no numeric value, so only text and color are derived.
   const fundingRateData = useMemo(() => {
-    let fundingValue: number;
-    let displayText: string;
-
-    const isMissingFundingRate =
-      marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay;
-
     if (liveFunding !== undefined) {
-      fundingValue = liveFunding;
-      displayText = formatFundingRate(liveFunding);
-    } else if (
-      marketStats.fundingRate &&
-      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay &&
-      !isMissingFundingRate
-    ) {
-      fundingValue = marketStats.fundingRate.startsWith('-') ? -1 : 1;
-      displayText = marketStats.fundingRate;
-    } else if (isMissingFundingRate) {
-      fundingValue = 0;
-      displayText = PERPS_CONSTANTS.FallbackPercentageDisplay;
-    } else {
-      fundingValue = 0;
-      displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
+      return {
+        displayText: formatFundingRate(liveFunding),
+        color:
+          liveFunding >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault,
+      };
     }
 
-    const color =
-      displayText === PERPS_CONSTANTS.FallbackPercentageDisplay
-        ? TextColor.TextDefault
-        : fundingValue >= 0
-          ? TextColor.SuccessDefault
-          : TextColor.ErrorDefault;
+    if (fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay) {
+      return {
+        displayText: PERPS_CONSTANTS.FallbackPercentageDisplay,
+        color: TextColor.TextDefault,
+      };
+    }
+
+    if (fundingRate && fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay) {
+      return {
+        displayText: fundingRate,
+        color: fundingRate.startsWith('-')
+          ? TextColor.ErrorDefault
+          : TextColor.SuccessDefault,
+      };
+    }
 
     return {
-      value: fundingValue,
-      displayText,
-      color,
+      displayText: FUNDING_RATE_CONFIG.ZeroDisplay,
+      color: TextColor.SuccessDefault,
     };
-  }, [liveFunding, marketStats.fundingRate]);
+  }, [liveFunding, fundingRate]);
 
   const fundingValueContent = useMemo(
     () => (

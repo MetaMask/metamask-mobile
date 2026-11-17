@@ -183,6 +183,45 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
   });
 
+  it('keeps an actual zero funding rate apart from a missing one', () => {
+    const { getByText, queryByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{
+          ...mockMarketStats,
+          fundingRate: FUNDING_RATE_CONFIG.ZeroDisplay,
+        }}
+      />,
+    );
+
+    expect(getByText(FUNDING_RATE_CONFIG.ZeroDisplay)).toBeOnTheScreen();
+    expect(
+      queryByText(PERPS_CONSTANTS.FallbackPercentageDisplay),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the live funding rate when the stats funding rate is missing', () => {
+    mockUsePerpsLivePrices.mockReturnValue({ BTC: { funding: -0.0002 } });
+
+    const { UNSAFE_getAllByType, queryByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{
+          ...mockMarketStats,
+          fundingRate: PERPS_CONSTANTS.FallbackPercentageDisplay,
+        }}
+      />,
+    );
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '-0.0200%',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.ErrorDefault);
+    expect(
+      queryByText(PERPS_CONSTANTS.FallbackPercentageDisplay),
+    ).not.toBeOnTheScreen();
+  });
+
   it('displays a positive threshold funding rate in success color', () => {
     const { UNSAFE_getAllByType } = render(
       <PerpsMarketStatisticsCard
