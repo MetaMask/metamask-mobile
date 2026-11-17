@@ -3,21 +3,14 @@ import { Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import ManageCardOptions from './ManageCardOptions';
 import { CardHomeSelectors } from '../CardHome.testIds';
-import { CardType } from '../../../types';
+import { CardType, type CardFundingToken } from '../../../types';
+import { strings } from '../../../../../../../locales/i18n';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import {
   CardStatus,
   type CardDetails,
   type CardProviderCapabilities,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
-
-jest.mock('../../../components/ManageCardListItem', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
-  return (props: { testID?: string; title?: string; onPress?: () => void }) => (
-    <Pressable testID={props.testID} onPress={props.onPress}>
-      <Text>{props.title}</Text>
-    </Pressable>
-  );
-});
 
 const CARD: CardDetails = {
   id: 'card-1',
@@ -43,7 +36,6 @@ const buildCapabilities = (
 
 interface RenderOverrides {
   card?: CardDetails | null;
-  isFrozen?: boolean;
   hasSetupActions?: boolean;
   hasAlertOnlyState?: boolean;
   hasSetupAlerts?: boolean;
@@ -54,17 +46,14 @@ interface RenderOverrides {
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
   hasPriorityTokenBalance?: boolean;
-  cardDetailsVisible?: boolean;
 }
 
 const renderComponent = (
   capabilities: CardProviderCapabilities,
   overrides: {
     card?: CardDetails;
-    isFrozen?: boolean;
     hasSetupActions?: boolean;
     hasSetupAlerts?: boolean;
-    cardDetailsVisible?: boolean;
     showUnlinkMoneyAccount?: boolean;
     showRevokeAllowance?: boolean;
     onRevokeAllowance?: () => void;
@@ -75,6 +64,14 @@ const renderComponent = (
     hasAlertOnlyState?: boolean;
     isAuthenticated?: boolean;
     showHowToUseApplePay?: boolean;
+    currentFundingToken?: Partial<CardFundingToken> | null;
+    onChangeAsset?: () => void;
+    isSpendingLimitActive?: boolean;
+    showLimitedSpendingAmounts?: boolean;
+    spendingLimitRemaining?: string;
+    spendingLimitTotal?: string;
+    spendingLimitSymbol?: string;
+    privacyMode?: boolean;
   } = {},
 ) =>
   render(
@@ -89,14 +86,7 @@ const renderComponent = (
       hasAlertOnlyState={overrides.hasAlertOnlyState ?? false}
       hasSetupAlerts={overrides.hasSetupAlerts ?? false}
       userLocation="gb"
-      isFrozen={overrides.isFrozen ?? false}
-      isFreezeLoading={false}
-      isPinLoading={false}
-      cardDetailsVisible={overrides.cardDetailsVisible ?? false}
-      onViewCardDetails={jest.fn()}
-      onViewPin={jest.fn()}
       onSetPin={jest.fn()}
-      onToggleFreeze={jest.fn()}
       onManageSpendingLimit={jest.fn()}
       onContactDetails={jest.fn()}
       showDigitalWalletInstructions={false}
@@ -108,8 +98,14 @@ const renderComponent = (
       onRevokeAllowance={overrides.onRevokeAllowance}
       fundingAccountName={overrides.fundingAccountName}
       onOrderMetalCard={jest.fn()}
-      isSpendingLimitActive
-      onChangeAsset={jest.fn()}
+      isSpendingLimitActive={overrides.isSpendingLimitActive ?? true}
+      showLimitedSpendingAmounts={overrides.showLimitedSpendingAmounts}
+      spendingLimitRemaining={overrides.spendingLimitRemaining}
+      spendingLimitTotal={overrides.spendingLimitTotal}
+      spendingLimitSymbol={overrides.spendingLimitSymbol}
+      privacyMode={overrides.privacyMode}
+      onChangeAsset={overrides.onChangeAsset ?? jest.fn()}
+      currentFundingToken={overrides.currentFundingToken as never}
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
       onCashback={jest.fn()}
       onTravel={jest.fn()}
@@ -217,7 +213,7 @@ describe('ManageCardOptions funding-limit gating', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(CardHomeSelectors.REVOKE_ALLOWANCE_ITEM),
-    ).toHaveTextContent('Unlink card');
+    ).toHaveTextContent(/^Unlink card/);
   });
 
   it('hides revoke allowance when showRevokeAllowance is false', () => {
@@ -261,14 +257,7 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
         hasAlertOnlyState={false}
         hasSetupAlerts={false}
         userLocation="international"
-        isFrozen={false}
-        isFreezeLoading={false}
-        isPinLoading={false}
-        cardDetailsVisible={false}
-        onViewCardDetails={jest.fn()}
-        onViewPin={jest.fn()}
         onSetPin={jest.fn()}
-        onToggleFreeze={jest.fn()}
         onManageSpendingLimit={jest.fn()}
         showDigitalWalletInstructions
         onDigitalWalletInstructions={jest.fn()}
@@ -315,14 +304,7 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
         hasAlertOnlyState={false}
         hasSetupAlerts={false}
         userLocation="international"
-        isFrozen={false}
-        isFreezeLoading={false}
-        isPinLoading={false}
-        cardDetailsVisible={false}
-        onViewCardDetails={jest.fn()}
-        onViewPin={jest.fn()}
         onSetPin={jest.fn()}
-        onToggleFreeze={jest.fn()}
         onManageSpendingLimit={jest.fn()}
         showDigitalWalletInstructions={false}
         onDigitalWalletInstructions={jest.fn()}
@@ -404,30 +386,6 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
   });
 });
 
-describe('ManageCardOptions view/hide card details label', () => {
-  it('shows "View card details" when details are not visible', () => {
-    const { getByTestId } = renderComponent(
-      buildCapabilities({ supportsSensitiveDetailsView: true }),
-      { cardDetailsVisible: false },
-    );
-
-    expect(
-      getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-    ).toHaveTextContent('View card details');
-  });
-
-  it('shows "Hide card details" when details are visible', () => {
-    const { getByTestId } = renderComponent(
-      buildCapabilities({ supportsSensitiveDetailsView: true }),
-      { cardDetailsVisible: true },
-    );
-
-    expect(
-      getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-    ).toHaveTextContent('Hide card details');
-  });
-});
-
 describe('ManageCardOptions set PIN gating', () => {
   it('shows set PIN when supportsPinSet is true and card is ACTIVE', () => {
     const { getByTestId } = renderComponent(
@@ -467,53 +425,25 @@ describe('ManageCardOptions set PIN gating', () => {
     const frozenCard = { ...CARD, status: CardStatus.FROZEN };
     const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsPinSet: true }),
-      { card: frozenCard, isFrozen: true },
+      { card: frozenCard },
     );
 
     expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
   });
 });
 
-describe('ManageCardOptions view PIN gating', () => {
-  it('hides view PIN when hasPin is false', () => {
-    const { queryByTestId } = renderComponent(
-      buildCapabilities({ supportsPinView: true }),
-      { card: { ...CARD, hasPin: false } },
-    );
-
-    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
-  });
-
-  it('shows view PIN when hasPin is true', () => {
-    const { getByTestId } = renderComponent(
-      buildCapabilities({ supportsPinView: true }),
-      { card: { ...CARD, hasPin: true } },
-    );
-
-    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
-  });
-
-  it('shows view PIN when hasPin is absent', () => {
-    const { getByTestId } = renderComponent(
-      buildCapabilities({ supportsPinView: true }),
-    );
-
-    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
-  });
-});
-
 describe('ManageCardOptions transaction history gating', () => {
-  it('shows transaction history when fully set up and a destination is available', () => {
+  it('hides transaction history when fully set up because history lives in the Activity segment', () => {
     const onTransactionHistory = jest.fn();
 
-    const { getByTestId } = renderComponent(
+    const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsFundingLimits: false }),
       { onTransactionHistory },
     );
 
     expect(
-      getByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
-    ).toBeOnTheScreen();
+      queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+    ).toBeNull();
   });
 
   it('hides transaction history during setup without the Immersve override', () => {
@@ -575,5 +505,354 @@ describe('ManageCardOptions transaction history gating', () => {
     expect(
       queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
     ).toBeNull();
+  });
+});
+
+describe('ManageCardOptions change asset row', () => {
+  const capabilities = buildCapabilities({ supportsFundingLimits: true });
+
+  it('shows the current funding asset and chain with its token icon', () => {
+    const { getByText, getByTestId } = renderComponent(capabilities, {
+      currentFundingToken: {
+        symbol: 'USDC',
+        address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+        caipChainId: 'eip155:59144',
+      },
+    });
+
+    expect(
+      getByText(strings('card.card_home.manage_card_options.paying_with')),
+    ).toBeOnTheScreen();
+    expect(getByText('USDC on Linea')).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.CHANGE_ASSET_TOKEN_AVATAR),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the asset picker from both the row and the Change button', () => {
+    const onChangeAsset = jest.fn();
+    const { getByTestId, getByText } = renderComponent(capabilities, {
+      onChangeAsset,
+      currentFundingToken: {
+        symbol: 'USDC',
+        address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+        caipChainId: 'eip155:59144',
+      },
+    });
+
+    expect(
+      getByText(
+        strings('card.card_home.manage_card_options.change_asset_action'),
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_ACTION_BUTTON));
+    fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
+
+    expect(onChangeAsset).toHaveBeenCalledTimes(2);
+  });
+
+  it('labels a Money account funding source as the Money account', () => {
+    const { getByText, getByTestId } = renderComponent(capabilities, {
+      currentFundingToken: {
+        symbol: 'mUSD',
+        caipChainId: 'eip155:59144',
+        isMoneyAccountEntry: true,
+      },
+    });
+
+    expect(
+      getByText(strings('card.card_spending_limit.money_account_label')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.CHANGE_ASSET_TOKEN_AVATAR),
+    ).toBeOnTheScreen();
+  });
+
+  it('falls back to the generic description when there is no funding asset', () => {
+    const { getByText, queryByText, queryByTestId } = renderComponent(
+      capabilities,
+      {
+        currentFundingToken: null,
+      },
+    );
+
+    expect(
+      getByText(
+        strings('card.card_home.manage_card_options.change_asset_description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CardHomeSelectors.CHANGE_ASSET_TOKEN_AVATAR),
+    ).toBeNull();
+    expect(
+      getByText(strings('card.card_home.manage_card_options.change_asset')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('card.card_home.manage_card_options.paying_with')),
+    ).toBeNull();
+  });
+});
+
+describe('ManageCardOptions row icons', () => {
+  it('renders a leading icon for each list row', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true, supportsTravel: true }),
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM).findByProps({
+        name: IconName.Speedometer,
+      }),
+    ).toBeTruthy();
+    expect(
+      getByTestId(CardHomeSelectors.TRAVEL_ITEM).findByProps({
+        name: IconName.Global,
+      }),
+    ).toBeTruthy();
+  });
+
+  it('shows a trailing chevron on navigation rows but not on Change asset', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      {
+        currentFundingToken: {
+          symbol: 'USDC',
+          address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+          caipChainId: 'eip155:59144',
+        },
+      },
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM).findAllByProps({
+        name: IconName.ArrowRight,
+      }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON).findAllByProps({
+        name: IconName.ArrowRight,
+      }),
+    ).toHaveLength(0);
+  });
+});
+
+describe('ManageCardOptions digital wallet instructions copy', () => {
+  const originalPlatform = Platform.OS;
+
+  afterEach(() => {
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
+
+  const renderInstructions = (): ReturnType<typeof render> =>
+    render(
+      <ManageCardOptions
+        card={CARD}
+        account={{ verificationStatus: 'VERIFIED' } as never}
+        capabilities={buildCapabilities({ supportsFundingLimits: false })}
+        isMetalCardCheckoutEnabled={false}
+        isAuthenticated
+        isLoading={false}
+        hasSetupActions={false}
+        hasAlertOnlyState={false}
+        hasSetupAlerts={false}
+        userLocation="international"
+        onSetPin={jest.fn()}
+        onManageSpendingLimit={jest.fn()}
+        showDigitalWalletInstructions
+        onDigitalWalletInstructions={jest.fn()}
+        onContactDetails={jest.fn()}
+        showUnlinkMoneyAccount={false}
+        onUnlinkMoneyAccount={jest.fn()}
+        onOrderMetalCard={jest.fn()}
+        isSpendingLimitActive
+        onChangeAsset={jest.fn()}
+        hasPriorityTokenBalance={false}
+        onCashback={jest.fn()}
+        onTravel={jest.fn()}
+      />,
+    );
+
+  it('shows Add to Apple Wallet copy and the Apple logo on iOS', () => {
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+    const { getByTestId, getByText } = renderInstructions();
+
+    expect(
+      getByText(
+        strings('card.card_home.manage_card_options.add_to_apple_wallet'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('card.card_home.manage_card_options.add_to_wallet_description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+      ).findByProps({
+        name: IconName.AppleLogo,
+      }),
+    ).toBeTruthy();
+  });
+
+  it('shows Add to Google Wallet copy and the wallet icon on Android', () => {
+    Object.defineProperty(Platform, 'OS', { value: 'android', writable: true });
+
+    const { getByTestId, getByText } = renderInstructions();
+
+    expect(
+      getByText(
+        strings('card.card_home.manage_card_options.add_to_google_wallet'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('card.card_home.manage_card_options.add_to_wallet_description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+      ).findByProps({
+        name: IconName.Wallet,
+      }),
+    ).toBeTruthy();
+  });
+});
+
+describe('ManageCardOptions spending limit description', () => {
+  const remainingDescription = (
+    remaining: string,
+    total = '100',
+    symbol = 'USDC',
+  ) =>
+    strings(
+      'card.card_home.manage_card_options.manage_spending_limit_description_remaining',
+      { remaining, total, symbol },
+    );
+
+  const renderLimited = (
+    overrides: {
+      spendingLimitRemaining?: string;
+      spendingLimitTotal?: string;
+      spendingLimitSymbol?: string;
+      privacyMode?: boolean;
+      showLimitedSpendingAmounts?: boolean;
+    } = {},
+  ) =>
+    renderComponent(buildCapabilities({ supportsFundingLimits: true }), {
+      isSpendingLimitActive: false,
+      showLimitedSpendingAmounts: true,
+      spendingLimitRemaining: '75',
+      spendingLimitTotal: '100',
+      spendingLimitSymbol: 'USDC',
+      ...overrides,
+    });
+
+  it('shows Full access is on when spending is unrestricted', () => {
+    const { getByTestId, getByText } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      { isSpendingLimitActive: true },
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings(
+          'card.card_home.manage_card_options.manage_spending_limit_description_full',
+        ),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('uses the neutral sublabel colour when less than 80% is consumed', () => {
+    const { getByTestId, getByText } = renderLimited({
+      spendingLimitRemaining: '75',
+    });
+
+    expect(getByText(remainingDescription('75'))).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM).findByProps({
+        color: TextColor.TextAlternative,
+      }),
+    ).toBeTruthy();
+  });
+
+  it('uses the warning colour when 15 of 100 is left', () => {
+    const { getByTestId, getByText } = renderLimited({
+      spendingLimitRemaining: '15',
+    });
+
+    expect(getByText(remainingDescription('15'))).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM).findByProps({
+        color: TextColor.WarningDefault,
+      }),
+    ).toBeTruthy();
+  });
+
+  it('uses the error colour when 5 of 100 is left', () => {
+    const { getByTestId, getByText } = renderLimited({
+      spendingLimitRemaining: '5',
+    });
+
+    expect(getByText(remainingDescription('5'))).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM).findByProps({
+        color: TextColor.ErrorDefault,
+      }),
+    ).toBeTruthy();
+  });
+
+  it('uses the error colour and remaining string when nothing is left', () => {
+    const { getByTestId, getByText } = renderLimited({
+      spendingLimitRemaining: '0',
+    });
+
+    expect(getByText(remainingDescription('0'))).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM).findByProps({
+        color: TextColor.ErrorDefault,
+      }),
+    ).toBeTruthy();
+  });
+
+  it('keeps the neutral colour when the remaining amount is hidden', () => {
+    const { getByTestId, queryByText } = renderLimited({
+      spendingLimitRemaining: '5',
+      privacyMode: true,
+    });
+
+    expect(queryByText(remainingDescription('5'))).toBeNull();
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM).findByProps({
+        isHidden: true,
+        color: TextColor.TextAlternative,
+      }),
+    ).toBeTruthy();
+  });
+
+  it('falls back to Limited spending is on when limited amounts are missing', () => {
+    const { getByText, queryByText } = renderLimited({
+      spendingLimitRemaining: undefined,
+      spendingLimitTotal: undefined,
+      spendingLimitSymbol: undefined,
+    });
+
+    expect(
+      getByText(
+        strings(
+          'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText(remainingDescription('75'))).toBeNull();
   });
 });

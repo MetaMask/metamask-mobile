@@ -3,7 +3,8 @@ import { render } from '@testing-library/react-native';
 import CardBalanceDisplay from './CardBalanceDisplay';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string): string => key,
+  strings: (key: string): string =>
+    key === 'money.balance_unavailable_value' ? '—' : key,
 }));
 
 jest.mock('../../../components/CardAssetItem', () => {
@@ -17,7 +18,6 @@ const baseProps = {
   isLoading: false,
   balanceAmount: undefined,
   privacyMode: false,
-  assetBalance: undefined,
   onTogglePrivacy: jest.fn(),
 };
 

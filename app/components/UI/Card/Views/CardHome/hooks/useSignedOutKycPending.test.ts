@@ -65,6 +65,17 @@ describe('useSignedOutKycPending', () => {
     expect(result.current).toBe(false);
   });
 
+  it.each(['VERIFIED', 'REJECTED', 'UNVERIFIED'])(
+    'ignores a sticky pending route param once verification is %s',
+    (verificationState) => {
+      setup({ onboardingId: 'onboarding-1', verificationState });
+
+      const { result } = renderHook(() => useSignedOutKycPending(true));
+
+      expect(result.current).toBe(false);
+    },
+  );
+
   it('is false when signed out with no onboarding session', () => {
     setup({ verificationState: 'PENDING' });
 

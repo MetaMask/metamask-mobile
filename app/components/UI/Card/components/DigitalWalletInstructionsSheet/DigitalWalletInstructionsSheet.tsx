@@ -162,7 +162,11 @@ const DigitalWalletInstructionsSheet = () => {
           variant={TextVariant.HeadingSm}
           testID={DigitalWalletInstructionsSheetSelectors.TITLE}
         >
-          {strings('card.digital_wallet_instructions.title')}
+          {strings(
+            walletType === 'apple_wallet'
+              ? 'card.digital_wallet_instructions.title_apple_wallet'
+              : 'card.digital_wallet_instructions.title_google_wallet',
+          )}
         </Text>
       </BottomSheetHeaderGlass>
 

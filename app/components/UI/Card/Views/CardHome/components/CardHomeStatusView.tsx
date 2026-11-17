@@ -1,0 +1,219 @@
+import React, { useEffect, useState } from 'react';
+import { ScrollView, type ScrollViewProps } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
+import { AnimationDuration } from '@metamask/design-tokens';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+  TitleStandard,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import MarketingMomentTitle from '../../../../MarketingMomentTitle';
+import { useReduceMotionState } from '../../../../Money/hooks/useReduceMotion';
+
+export const CardHomeStatusViewSelectors = {
+  CONTAINER: 'card-home-status-view',
+  ASSET: 'card-home-status-view-asset',
+  TITLE: 'card-home-status-view-title',
+  DESCRIPTION: 'card-home-status-view-description',
+  FOOTER: 'card-home-status-view-footer',
+  PRIMARY_BUTTON: 'card-home-status-view-primary-button',
+};
+
+// -- Content cascade ---------------------------------------------------------
+// Same entrance as the Card "You're in!" screen (Onboarding/Complete): the
+// asset, title, description and button each fade in and rise into place, one
+// after another. Under Reduce Motion they show at once.
+
+/** How far each item rises into place. */
+const CASCADE_RISE_PX = 10;
+/** Gap between each item starting. */
+const CASCADE_STAGGER_MS = 80;
+/** How long each item takes to enter. */
+const CASCADE_DURATION_MS = AnimationDuration.Regularly;
+/** Cascade step of the footer button (asset 0, title 1, description 2). */
+const BUTTON_STEP = 3;
+
+type CascadeState = 'pending' | 'play' | 'static';
+
+const useCascadeStyle = (step: number, state: CascadeState) => {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    if (state === 'static') {
+      progress.value = 1;
+      return;
+    }
+    if (state === 'play') {
+      progress.value = withDelay(
+        step * CASCADE_STAGGER_MS,
+        withTiming(1, {
+          duration: CASCADE_DURATION_MS,
+          easing: Easing.out(Easing.cubic),
+        }),
+      );
+    }
+  }, [progress, state, step]);
+
+  return useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ translateY: (1 - progress.value) * CASCADE_RISE_PX }],
+  }));
+};
+
+export interface CardHomeStatusViewButton {
+  label: string;
+  onPress: () => void;
+  testID?: string;
+}
+
+export interface CardHomeStatusViewProps {
+  /** Centred visual above the title, e.g. the card art. */
+  asset: React.ReactNode;
+  title: string;
+  description: string;
+  /** Full-width primary Lg button pinned to the bottom. */
+  primaryButton: CardHomeStatusViewButton;
+  /** Optional pull-to-refresh, e.g. to re-check a pending card. */
+  refreshControl?: ScrollViewProps['refreshControl'];
+  testID?: string;
+}
+
+/**
+ * Focused Card home status layout for states with nothing to manage yet
+ * (identity in review, card being created, card not turned on). Mirrors the
+ * Card "You're in!" / VBA Identity verified pattern: centred asset, title and
+ * description, with one primary button pinned at the bottom. The parent
+ * screen owns the header and the safe-area edges.
+ */
+const CardHomeStatusView = ({
+  asset,
+  title,
+  description,
+  primaryButton,
+  refreshControl,
+  testID = CardHomeStatusViewSelectors.CONTAINER,
+}: CardHomeStatusViewProps) => {
+  const tw = useTailwind();
+  // `null` while the Reduce Motion check is in flight; nothing shows until it
+  // resolves, so the first paint never flashes.
+  const reduceMotion = useReduceMotionState();
+
+  let cascadeState: CascadeState = 'pending';
+  if (reduceMotion === true) {
+    cascadeState = 'static';
+  } else if (reduceMotion === false) {
+    cascadeState = 'play';
+  }
+  const assetStyle = useCascadeStyle(0, cascadeState);
+  const titleStyle = useCascadeStyle(1, cascadeState);
+  const descriptionStyle = useCascadeStyle(2, cascadeState);
+  const buttonStyle = useCascadeStyle(BUTTON_STEP, cascadeState);
+
+  // A view at zero opacity still takes taps, so the button only becomes
+  // pressable once its fade-in starts (straight away under Reduce Motion).
+  const [isButtonInteractive, setIsButtonInteractive] = useState(false);
+  useEffect(() => {
+    if (cascadeState === 'static') {
+      setIsButtonInteractive(true);
+      return undefined;
+    }
+    if (cascadeState !== 'play') {
+      return undefined;
+    }
+    const timeout = setTimeout(
+      () => setIsButtonInteractive(true),
+      BUTTON_STEP * CASCADE_STAGGER_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [cascadeState]);
+
+  return (
+    <Box twClassName="flex-1" testID={testID}>
+      <ScrollView
+        contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
+        showsVerticalScrollIndicator={false}
+        // Bounce is needed for pull-to-refresh to be reachable.
+        alwaysBounceVertical={Boolean(refreshControl)}
+        refreshControl={refreshControl}
+      >
+        <TitleStandard
+          title={
+            <Animated.View style={[tw.style('w-full'), titleStyle]}>
+              <MarketingMomentTitle
+                twClassName="w-full text-center"
+                testID={CardHomeStatusViewSelectors.TITLE}
+              >
+                {title}
+              </MarketingMomentTitle>
+            </Animated.View>
+          }
+          bottomLabel={
+            <Animated.View style={[tw.style('w-full'), descriptionStyle]}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+                testID={CardHomeStatusViewSelectors.DESCRIPTION}
+              >
+                {description}
+              </Text>
+            </Animated.View>
+          }
+          titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
+          bottomLabelWrapperProps={{
+            justifyContent: BoxJustifyContent.Center,
+          }}
+          topAccessory={
+            <Animated.View style={[tw.style('w-full'), assetStyle]}>
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.End}
+                twClassName="mb-6 w-full"
+                testID={CardHomeStatusViewSelectors.ASSET}
+              >
+                {asset}
+              </Box>
+            </Animated.View>
+          }
+        />
+      </ScrollView>
+      <Animated.View
+        style={buttonStyle}
+        pointerEvents={isButtonInteractive ? 'auto' : 'none'}
+        testID={CardHomeStatusViewSelectors.FOOTER}
+      >
+        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={primaryButton.onPress}
+            testID={
+              primaryButton.testID ?? CardHomeStatusViewSelectors.PRIMARY_BUTTON
+            }
+          >
+            {primaryButton.label}
+          </Button>
+        </Box>
+      </Animated.View>
+    </Box>
+  );
+};
+
+export default CardHomeStatusView;

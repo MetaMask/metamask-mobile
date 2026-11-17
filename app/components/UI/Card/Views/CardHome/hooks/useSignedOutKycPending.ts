@@ -24,6 +24,14 @@ export const useSignedOutKycPending = (fromKycPending?: boolean): boolean => {
     return false;
   }
 
+  // Once the onboarding session knows verification has left PENDING
+  // (verified, rejected or unverified), a sticky `fromKycPending` route param
+  // must not keep them on the waiting screen.
+  const verificationState = user?.verificationState;
+  if (verificationState && verificationState !== 'PENDING') {
+    return false;
+  }
+
   if (fromKycPending) {
     return true;
   }

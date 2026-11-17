@@ -157,6 +157,9 @@ describe('DigitalWalletInstructionsSheet', () => {
     });
 
     expect(
+      getByTestId(DigitalWalletInstructionsSheetSelectors.TITLE),
+    ).toHaveTextContent('Add card to Apple Wallet');
+    expect(
       getByTestId(DigitalWalletInstructionsSheetSelectors.WALLET_HEADING),
     ).toHaveTextContent('Apple Wallet');
     expect(
@@ -179,6 +182,9 @@ describe('DigitalWalletInstructionsSheet', () => {
       expect(mockRevealCardDetails).toHaveBeenCalled();
     });
 
+    expect(
+      getByTestId(DigitalWalletInstructionsSheetSelectors.TITLE),
+    ).toHaveTextContent('Add card to Google Wallet');
     expect(
       getByTestId(DigitalWalletInstructionsSheetSelectors.WALLET_HEADING),
     ).toHaveTextContent('Google Wallet');

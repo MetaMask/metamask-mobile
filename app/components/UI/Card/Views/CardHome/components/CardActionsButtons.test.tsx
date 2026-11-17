@@ -10,8 +10,6 @@ describe('CardActionsButtons', () => {
       <CardActionsButtons
         actions={[{ type: 'enable_card' }]}
         isLoading={false}
-        isSwapEnabled
-        onAddFunds={jest.fn()}
         onEnableCard={onEnableCard}
         isEnableCardDisabled
       />,
@@ -29,8 +27,6 @@ describe('CardActionsButtons', () => {
       <CardActionsButtons
         actions={[{ type: 'enable_card' }]}
         isLoading={false}
-        isSwapEnabled
-        onAddFunds={jest.fn()}
         onEnableCard={onEnableCard}
       />,
     );

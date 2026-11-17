@@ -11932,6 +11932,9 @@
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Check your connection or try refreshing the page.",
       "try_again": "Try again",
+      "done": "Done",
+      "setup_pending_title": "Setting up your card",
+      "setup_pending_description": "We’ll update this screen when it’s ready. You can leave and come back anytime.",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
@@ -11940,6 +11943,7 @@
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "spending_limit_available": "available",
       "contact_support": "Contact support",
+      "logout": "Log out",
       "logout_confirmation_title": "Log out of Card?",
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
@@ -12021,6 +12025,27 @@
         },
         "ok_button": "OK"
       },
+      "action_buttons": {
+        "add": "Add",
+        "details": "Details",
+        "hide_details": "Hide",
+        "view_pin": "View PIN",
+        "freeze": "Freeze",
+        "unfreeze": "Unfreeze"
+      },
+      "more_button_label": "More options",
+      "segments": {
+        "activity": "Activity",
+        "manage": "Manage"
+      },
+      "recent_activity": {
+        "see_all": "See all"
+      },
+      "activity_empty_title": "No transactions yet",
+      "activity_empty_description": "Your card purchases will show here.",
+      "more_sheet": {
+        "title": "More"
+      },
       "manage_card_options": {
         "view_card_details": "View card details",
         "hide_card_details": "Hide card details",
@@ -12032,6 +12057,7 @@
         "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_remaining": "{{remaining}} {{symbol}} of {{total}} {{symbol}} left",
         "manage_spending_limit_description_full": "Full access is on",
         "unlink_money_account": "Unlink Money account",
         "unlink_money_account_description": "Change your Card funding source",
@@ -12054,10 +12080,14 @@
         "unfreeze_success": "Card successfully unfrozen",
         "change_asset": "Change asset",
         "change_asset_description": "Select a different token",
+        "change_asset_current": "{{symbol}} on {{network}}",
+        "paying_with": "Paying with",
+        "change_asset_action": "Change",
         "contact_details": "Contact details",
         "contact_details_description": "Update your email and phone number",
-        "add_to_digital_wallet": "Add to digital wallet",
-        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
+        "add_to_apple_wallet": "Add to Apple Wallet",
+        "add_to_google_wallet": "Add to Google Wallet",
+        "add_to_wallet_description": "Pay in stores and online"
       }
     },
     "contact_details": {
@@ -12074,7 +12104,8 @@
       "success_message": "Contact details updated"
     },
     "digital_wallet_instructions": {
-      "title": "Add card to digital wallet",
+      "title_apple_wallet": "Add card to Apple Wallet",
+      "title_google_wallet": "Add card to Google Wallet",
       "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
       "apple_wallet": "Apple Wallet",
       "google_wallet": "Google Wallet",

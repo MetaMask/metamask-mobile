@@ -1,0 +1,210 @@
+import React, { useMemo } from 'react';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  ListItem,
+  ListItemVariant,
+  SensitiveText,
+  SensitiveTextLength,
+  TabEmptyState,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import type { CardTransaction } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+import { strings } from '../../../../../../../locales/i18n';
+import { cardTransactionDisplayInfo } from '../../../utils/cardTransactionDisplayInfo';
+import { CARD_RECENT_TRANSACTIONS_LIMIT } from '../../../hooks/useCardRecentTransactions';
+import { CardHomeSelectors } from '../CardHome.testIds';
+
+interface CardHomeRecentActivityProps {
+  transactions: CardTransaction[];
+  /**
+   * Opens the full Transaction history (same destination as the old row).
+   * When absent (no history destination), See all is hidden.
+   */
+  onSeeAll?: () => void;
+  onTransactionPress?: (transaction: CardTransaction) => void;
+  privacyMode?: boolean;
+}
+
+/** Same 40pt muted circle as the Manage rows, so the first row lines up. */
+const ActivityRowIcon = ({ name }: { name: IconName }) => (
+  <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+    <Icon name={name} size={IconSize.Md} color={IconColor.IconDefault} />
+  </Box>
+);
+
+interface ActivityListItemProps {
+  transaction: CardTransaction;
+  onPress?: (transaction: CardTransaction) => void;
+  privacyMode?: boolean;
+}
+
+const ActivityListItem = ({
+  transaction,
+  onPress,
+  privacyMode = false,
+}: ActivityListItemProps) => {
+  const display = useMemo(
+    () => cardTransactionDisplayInfo(transaction),
+    [transaction],
+  );
+
+  const isFailed = display.status === 'failed';
+  const isPending = display.status === 'pending';
+  const amountColor = isFailed
+    ? TextColor.TextAlternative
+    : display.isIncoming
+      ? TextColor.SuccessDefault
+      : TextColor.TextDefault;
+
+  const title = isFailed ? (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.ErrorDefault}
+      numberOfLines={1}
+    >
+      {display.label}
+    </Text>
+  ) : (
+    display.label
+  );
+
+  const primaryAmount = display.showPrimaryAmount ? (
+    <SensitiveText
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={amountColor}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Short}
+      twClassName="text-right"
+    >
+      {display.primaryAmount}
+    </SensitiveText>
+  ) : undefined;
+
+  const secondaryLabel = isPending
+    ? strings('card.transactions.pending')
+    : display.fiatAmount;
+  const subvalue = secondaryLabel ? (
+    <SensitiveText
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={
+        isPending
+          ? TextColor.TextAlternative
+          : display.isFiatAmountMuted
+            ? TextColor.TextAlternative
+            : amountColor
+      }
+      isHidden={privacyMode && !isPending}
+      length={SensitiveTextLength.Short}
+      twClassName="text-right"
+    >
+      {secondaryLabel}
+    </SensitiveText>
+  ) : undefined;
+
+  return (
+    <ListItem
+      isInteractive={Boolean(onPress)}
+      variant={ListItemVariant.TwoLines}
+      accessoryGap={4}
+      title={title}
+      description={display.description}
+      value={primaryAmount}
+      subvalue={subvalue}
+      startAccessory={<ActivityRowIcon name={display.icon} />}
+      onPress={onPress ? () => onPress(transaction) : undefined}
+      testID={`card-home-tx-${transaction.id}`}
+    />
+  );
+};
+
+/**
+ * Card home Activity segment: the latest card transactions as MMDS
+ * `ListItem` rows (same padding, 40pt leading icon and top spacing as
+ * the Manage rows), plus a "See all" button that opens the full history.
+ * There is no section title — the segment label already names this list.
+ * With no transactions it shows a top-aligned MMDS TabEmptyState so the
+ * segment control does not jump when switching to Manage.
+ */
+const CardHomeRecentActivity = ({
+  transactions,
+  onSeeAll,
+  onTransactionPress,
+  privacyMode,
+}: CardHomeRecentActivityProps) => {
+  const recent = transactions.slice(0, CARD_RECENT_TRANSACTIONS_LIMIT);
+  const hasTransactions = recent.length > 0;
+  const canSeeAll = hasTransactions && Boolean(onSeeAll);
+
+  return (
+    <Box
+      testID={CardHomeSelectors.RECENT_ACTIVITY}
+      twClassName={hasTransactions ? undefined : 'flex-1'}
+    >
+      {hasTransactions ? (
+        <>
+          {recent.map((transaction) => (
+            <ActivityListItem
+              key={transaction.id}
+              transaction={transaction}
+              onPress={onTransactionPress}
+              privacyMode={privacyMode}
+            />
+          ))}
+          {canSeeAll ? (
+            <Box twClassName="px-4 pt-2 pb-2">
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Md}
+                isFullWidth
+                onPress={onSeeAll}
+                testID={CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL}
+              >
+                {strings('card.card_home.recent_activity.see_all')}
+              </Button>
+            </Box>
+          ) : null}
+        </>
+      ) : (
+        <Box
+          twClassName="flex-1 items-center justify-center px-4"
+          testID={CardHomeSelectors.RECENT_ACTIVITY_EMPTY}
+        >
+          <TabEmptyState
+            icon={
+              <Icon
+                name={IconName.Card}
+                size={IconSize.Xl}
+                color={IconColor.IconMuted}
+              />
+            }
+            description={strings('card.card_home.activity_empty_title')}
+            descriptionProps={{ color: TextColor.TextDefault }}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings('card.card_home.activity_empty_description')}
+            </Text>
+          </TabEmptyState>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+export default CardHomeRecentActivity;

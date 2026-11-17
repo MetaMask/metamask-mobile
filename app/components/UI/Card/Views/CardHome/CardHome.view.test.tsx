@@ -545,16 +545,15 @@ describe('CardHome', () => {
       });
     });
 
-    it('does not show logout on Card home after the footer loads', async () => {
-      const { findByTestId, queryByTestId } = renderCardHomeView();
+    it('shows log out in the More sheet when signed in', async () => {
+      const { findByTestId, getByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
 
       expect(
-        await findByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+        getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
       ).toBeOnTheScreen();
-
-      expect(
-        queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
-      ).not.toBeOnTheScreen();
+      expect(getByTestId(CardHomeSelectors.LOGOUT_ITEM)).toBeOnTheScreen();
     });
   });
 
