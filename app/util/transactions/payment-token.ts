@@ -1,7 +1,7 @@
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
+import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import {
   KnownCaipNamespace,
@@ -14,12 +14,7 @@ import {
   type Hex,
 } from '@metamask/utils';
 
-/** SLIP-44 coin type of a native token, by chain, where it is not 60 (ETH). */
-const SLIP44_COIN_TYPE_BY_CHAIN: Partial<Record<Hex, number>> = {
-  [CHAIN_IDS.POLYGON]: 966,
-};
-
-const DEFAULT_SLIP44_COIN_TYPE = 60;
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 /** EVM token identified by its Hex chain ID and token address. */
 export interface EvmTokenReference {
@@ -140,8 +135,11 @@ export function buildAssetIdIndex(
  * state, which identifies the payment token in `updatePaymentToken`.
  *
  * A native token is the chain's asset of type `native`, since natives are
- * keyed as `slip44` assets. An ERC-20 key is matched case-insensitively,
- * preferring a checksummed key over a lowercase duplicate. A token absent from
+ * keyed as `slip44` assets. When state has no native asset for the chain, it
+ * falls back to the native asset registry, then to the zero-address ERC-20
+ * asset ID `AssetsController` uses for unregistered EVM chains. An ERC-20 key
+ * is matched case-insensitively, preferring a checksummed key over a lowercase
+ * duplicate. A token absent from
  * state falls back to its derived asset ID with a checksummed address, which
  * is how `AssetsController` keys it once added (e.g. by `addCustomAsset`).
  *
@@ -163,11 +161,14 @@ export function encodeEvmAssetId(
   if (isNative) {
     return (
       index.nativeByChain.get(caipChainId) ??
+      getRegisteredNativeAssetId(chainId) ??
+      // `AssetsController` keys the native asset of an unregistered EVM chain
+      // by the zero-address ERC-20 encoding.
       toCaipAssetType(
         KnownCaipNamespace.Eip155,
         chainReference,
-        'slip44',
-        String(SLIP44_COIN_TYPE_BY_CHAIN[chainId] ?? DEFAULT_SLIP44_COIN_TYPE),
+        'erc20',
+        ZERO_ADDRESS,
       )
     );
   }
@@ -182,4 +183,18 @@ export function encodeEvmAssetId(
   return (
     index.byLowercaseAssetId.get(derivedAssetId.toLowerCase()) ?? derivedAssetId
   );
+}
+
+/**
+ * Get the native asset ID of an EVM chain from the native asset registry.
+ *
+ * @param chainId - Hex chain ID.
+ * @returns The native asset ID, or undefined if the chain is not registered.
+ */
+function getRegisteredNativeAssetId(chainId: Hex): CaipAssetType | undefined {
+  try {
+    return getNativeAssetForChainId(chainId).assetId;
+  } catch {
+    return undefined;
+  }
 }

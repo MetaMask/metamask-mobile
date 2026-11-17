@@ -392,6 +392,72 @@ describe('local activity call-site mapping', () => {
     });
   });
 
+  it('uses the Polygon native payment token for a cross-token Money Account deposit', () => {
+    const moneyAccountAddress = '0x3333333333333333333333333333333333333333';
+    const polygonChainId = '0x89';
+    const sourceTransaction = buildGroup({
+      id: 'source-transfer',
+      chainId: polygonChainId,
+      type: TransactionType.simpleSend,
+      txParams: {
+        from,
+        to: moneyAccountAddress,
+        value: '0xde0b6b3a7640000',
+        data: '0x',
+      },
+    }).initialTransaction;
+    const item = mapLocalActivity(
+      buildGroup(
+        {
+          chainId: '0x8f',
+          type: TransactionType.batch,
+          txParams: {
+            from: moneyAccountAddress,
+            to,
+            value: '0x0',
+            data: '0x',
+          },
+          nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+          requiredAssets: [
+            {
+              address: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+              amount: '0x2625a0',
+              standard: 'erc20',
+            },
+          ],
+        },
+        {
+          activityAccountAddress: from,
+          relatedTransactions: [sourceTransaction],
+          transactionPayData: {
+            paymentToken: {
+              assetId: 'eip155:137/slip44:966',
+              balanceFiat: '10',
+              balanceHuman: '10',
+              balanceRaw: '10000000000000000000',
+              balanceUsd: '10',
+              decimals: 18,
+              symbol: 'POL',
+            },
+          },
+        },
+      ),
+    );
+
+    expect(item).toMatchObject({
+      type: 'send',
+      data: {
+        token: {
+          amount: '0xde0b6b3a7640000',
+          assetId: 'eip155:137/slip44:966',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'POL',
+        },
+      },
+    });
+  });
+
   it('maps a Money Account withdrawal to an EOA receive with the transferred mUSD amount', () => {
     const moneyAccountAddress = '0x3333333333333333333333333333333333333333';
     const moneyChainId = '0x8f';
