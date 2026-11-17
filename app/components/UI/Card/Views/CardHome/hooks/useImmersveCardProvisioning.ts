@@ -38,6 +38,7 @@ import { resolveImmersveFundingSourceId } from '../../../util/immersveResume';
 import { CardActions, withCardProvider } from '../../../util/metrics';
 import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardingRouter';
 import { useImmersveKycOutcome } from '../../../hooks/useImmersveKycOutcome';
+import { CARD_SETUP_PENDING_POLL_MS } from './useCardSetupPendingRefresh';
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -282,6 +283,25 @@ export function useImmersveCardProvisioning(
     return () => subscription.remove();
   }, [recheckOnFocus, isProvisioning, hasResolvedStatus, pendingAction?.type]);
 
+  // The waiting view self-checks a manual KYC review on the same slow cadence
+  // the waiting view polls card home data, so an approval moves the screen on
+  // by itself without the user having to background the app. Refocus and
+  // app-foreground rechecks stay immediate; pull to refresh rechecks too.
+  useEffect(() => {
+    if (
+      !isProvisioning ||
+      !isFocused ||
+      isReconciling ||
+      pendingAction?.type !== 'pending'
+    ) {
+      return undefined;
+    }
+    const interval = setInterval(() => {
+      setRecheckCount((count) => count + 1);
+    }, CARD_SETUP_PENDING_POLL_MS);
+    return () => clearInterval(interval);
+  }, [isProvisioning, isFocused, isReconciling, pendingAction?.type]);
+
   useEffect(() => {
     if (!isProvisioning || handled.current) {
       return undefined;
@@ -293,9 +313,10 @@ export function useImmersveCardProvisioning(
     handled.current = true;
     let cancelled = false;
     const existingId = reduxFundingSourceIdRef.current;
-    // Shared by the funding-still-pending path and a failed recheck. A throw
-    // used to leave "Card being created" with nothing scheduled to try again.
-    const scheduleSettlingRecheck = () => {
+    // Shared by the funding-still-pending path, a failed createCard and a
+    // failed reconcile: a throw must never leave the waiting view stuck with
+    // nothing scheduled to try again.
+    const scheduleQuietRecheck = () => {
       if (settleTimerRef.current) {
         clearTimeout(settleTimerRef.current);
       }
@@ -417,12 +438,15 @@ export function useImmersveCardProvisioning(
                 data: { method: 'createCard' },
               },
             });
+            // The card was not created. Ask again shortly instead of leaving
+            // the waiting view up with nothing scheduled to move it on.
+            scheduleQuietRecheck();
           }
         } else if (isFundingSettlingRef.current && action.type === 'funding') {
           // The allowance is submitted. Stay on "Card being created" and ask
           // again once Immersve has had time to observe it. One reconcile at
           // a time: the next run starts only after this one has finished.
-          scheduleSettlingRecheck();
+          scheduleQuietRecheck();
         } else {
           clearFundingSettling();
           // Mid-onboarding — no Funding Process STARTED (avoids orphan starts).
@@ -479,9 +503,10 @@ export function useImmersveCardProvisioning(
           return;
         }
         handled.current = false;
-        if (isFundingSettlingRef.current) {
-          scheduleSettlingRecheck();
-        }
+        // Quiet retry: a failed status check must not leave the waiting view
+        // stuck. Ask again on the next quiet cadence unless the device is
+        // offline (a null interval means "stop asking").
+        scheduleQuietRecheck();
         trackEventRef.current(
           createEventBuilderRef
             .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -554,11 +579,25 @@ export function useImmersveCardProvisioning(
     navigateFromOutsideCard,
   ]);
 
+  // Re-runs the reconcile check. The waiting view uses it so a pull to
+  // refresh re-checks the review it is waiting on. Mirrors the focus
+  // recheck: the resolved flag drops first so the screen reads reconciling
+  // until the new check lands, and a recheck while one is already running
+  // (from the focus path) is a no-op.
+  const recheck = useCallback(() => {
+    if (isReconciling) {
+      return;
+    }
+    setHasResolvedStatus(false);
+    setRecheckCount((count) => count + 1);
+  }, [isReconciling]);
+
   return {
     isProvisioning,
     isReconciling,
     pendingAction,
     resumePendingAction,
+    recheck,
     markCardFlowOpened,
     isProvisioningPollActive,
   };

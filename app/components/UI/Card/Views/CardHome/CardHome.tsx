@@ -285,6 +285,7 @@ const CardHome = () => {
     provisioningView,
     isEnableCardPending,
     isProvisioningPollActive,
+    recheck: recheckProvisioning,
   } = useCardEnableCard(data, { recheckOnFocus: true });
   const isSetupReconciling = provisioningView === 'reconciling';
 
@@ -416,11 +417,17 @@ const CardHome = () => {
     setIsRefreshing(true);
     refreshUkMigrationState();
     try {
-      if (waitingState.kind === 'waiting' && !isAuthenticated) {
-        // Re-check the thing being waited on: the onboarding registration
-        // status. Everything else waits on card home data itself.
-        await refreshRegistrationStatus();
-        return;
+      if (waitingState.kind === 'waiting') {
+        // Re-check the thing being waited on: the Immersve reconcile for an
+        // under-review status, and the onboarding registration status when
+        // signed out. Everything else waits on card home data itself.
+        if (waitingState.step === 'immersve-review') {
+          recheckProvisioning();
+        }
+        if (!isAuthenticated) {
+          await refreshRegistrationStatus();
+          return;
+        }
       }
       await refetch();
     } finally {
@@ -430,6 +437,7 @@ const CardHome = () => {
     refetch,
     refreshUkMigrationState,
     refreshRegistrationStatus,
+    recheckProvisioning,
     waitingState,
     isAuthenticated,
   ]);

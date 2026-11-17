@@ -80,6 +80,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
@@ -91,6 +92,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
@@ -134,6 +136,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
@@ -178,6 +181,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: true,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
@@ -214,6 +218,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
@@ -289,6 +294,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
@@ -320,6 +326,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'pending' },
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
@@ -473,6 +480,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: true,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
@@ -493,6 +501,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
       isProvisioningPollActive: false,
     });
