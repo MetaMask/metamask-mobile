@@ -10,7 +10,6 @@ import type {
 } from '../../../components/UI/Bridge/services/RecurringOrdersDataService';
 import { RecurringOrderState } from '../../../components/UI/Bridge/api/recurringOrders.types';
 import {
-  cancelRecurringOrder,
   getRecurringOrders,
   getRecurringOrdersByAsset,
 } from '../../../components/UI/Bridge/api/recurringOrders';
@@ -20,7 +19,6 @@ import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { recurringOrdersDataServiceInit } from './recurring-orders-data-service-init';
 
 jest.mock('../../../components/UI/Bridge/api/recurringOrders', () => ({
-  cancelRecurringOrder: jest.fn(),
   getRecurringOrders: jest.fn(),
   getRecurringOrdersByAsset: jest.fn(),
   getRecurringSwaps: jest.fn(),
@@ -28,13 +26,6 @@ jest.mock('../../../components/UI/Bridge/api/recurringOrders', () => ({
 
 describe('recurringOrdersDataServiceInit', () => {
   it('registers recurring-orders actions on the Engine root messenger', async () => {
-    jest.mocked(cancelRecurringOrder).mockResolvedValue({
-      order: {
-        ...MOCK_RECURRING_OPEN_ORDER,
-        state: RecurringOrderState.Cancelled,
-        isCancellable: false,
-      },
-    });
     jest
       .mocked(getRecurringOrders)
       .mockResolvedValue({ orders: [], hasNextPage: false });
@@ -59,11 +50,6 @@ describe('recurringOrdersDataServiceInit', () => {
     };
 
     const { controller } = recurringOrdersDataServiceInit(request);
-    await rootMessenger.call(
-      'RecurringOrdersDataService:cancelRecurringOrder',
-      'mock-recurring-order-open',
-      MOCK_RECURRING_OPEN_ORDER.accountAddress,
-    );
     const result = await rootMessenger.call(
       'RecurringOrdersDataService:getRecurringOrders',
       {

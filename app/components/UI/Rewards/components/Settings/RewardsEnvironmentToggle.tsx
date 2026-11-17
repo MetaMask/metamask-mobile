@@ -7,13 +7,12 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   SectionDivider,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import AppConstants from '../../../../../core/AppConstants';
@@ -28,6 +27,8 @@ import {
   setCandidateSubscriptionId,
 } from '../../../../../reducers/rewards';
 import { resetRewardsMoneyState } from '../../../../../reducers/rewardsMoney';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 
 const REWARDS_ENV_OPTIONS: string[] = [
   AppConstants.REWARDS_API_URL.DEV,
@@ -70,6 +71,7 @@ interface EnvironmentUrlFieldProps {
   onClose: () => void;
   onSelect: (env: string) => void;
   sheetRef: React.RefObject<BottomSheetRef | null>;
+  isGlassHeader: boolean;
 }
 
 const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
@@ -85,6 +87,7 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
   onClose,
   onSelect,
   sheetRef,
+  isGlassHeader,
 }) => (
   <Box twClassName="gap-2">
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -102,7 +105,9 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
     </Button>
     {isSheetOpen ? (
       <BottomSheet shouldNavigateBack={false} ref={sheetRef} onClose={onClose}>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
           title={label}
           onClose={() => sheetRef.current?.onCloseBottomSheet()}
           closeButtonProps={{ testID: closeButtonTestID }}
@@ -158,6 +163,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
 
   const dispatch = useDispatch();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const rewardsSheetRef = useRef<BottomSheetRef>(null);
   const moneySheetRef = useRef<BottomSheetRef>(null);
 
@@ -264,6 +270,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
             onClose={() => setOpenSheet(null)}
             onSelect={handleRewardsEnvSelect}
             sheetRef={rewardsSheetRef}
+            isGlassHeader={isGlassHeader}
           />
         ) : null}
         {canChangeMoney ? (
@@ -280,6 +287,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
             onClose={() => setOpenSheet(null)}
             onSelect={handleMoneyEnvSelect}
             sheetRef={moneySheetRef}
+            isGlassHeader={isGlassHeader}
           />
         ) : null}
       </Box>
