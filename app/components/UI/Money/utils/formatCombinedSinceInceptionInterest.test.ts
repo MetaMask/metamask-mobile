@@ -17,7 +17,7 @@ describe('formatCombinedSinceInceptionInterest', () => {
       base: base('2.5'),
     });
 
-    expect(result).toBe('+$15.00');
+    expect(result).toBe('$15.00');
   });
 
   it('counts a missing amount that did not fail as zero', () => {
@@ -26,7 +26,7 @@ describe('formatCombinedSinceInceptionInterest', () => {
       base: base(undefined),
     });
 
-    expect(result).toBe('+$12.50');
+    expect(result).toBe('$12.50');
   });
 
   it('returns $0.00 when both amounts are missing and neither query failed', () => {
@@ -62,7 +62,7 @@ describe('formatCombinedSinceInceptionInterest', () => {
       base: base('2.5'),
     });
 
-    expect(result).toBe('+$15.00');
+    expect(result).toBe('$15.00');
   });
 
   it('counts a non-finite amount that did not fail as zero', () => {
@@ -71,7 +71,7 @@ describe('formatCombinedSinceInceptionInterest', () => {
       base: base('2.5'),
     });
 
-    expect(result).toBe('+$2.50');
+    expect(result).toBe('$2.50');
   });
 
   it('returns an em dash when a failed query has a non-finite amount', () => {
