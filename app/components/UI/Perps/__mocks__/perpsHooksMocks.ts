@@ -153,7 +153,6 @@ export const defaultPerpsCrossMarginSummaryMock: UsePerpsCrossMarginSummaryRetur
   {
     isCrossMarginEnabled: false,
     hasCrossExposure: false,
-    isInitialLoading: false,
     accountRatio: undefined,
     maintenanceMargin: undefined,
     accountLeverage: undefined,

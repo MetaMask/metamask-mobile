@@ -2134,8 +2134,9 @@ export const usePerpsProOrderForm = ({
       maxLeverage: marketMaxLeverage,
       crossMarginSummary: liveAccount?.crossMarginSummary,
       spotCollateral: liveAccount?.spotCollateral,
+      providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
     });
-    return estimate === undefined ? '' : String(estimate);
+    return estimate === undefined ? '' : new BigNumber(estimate).toFixed();
   }, [
     marginMode,
     isScaleOrder,
@@ -2146,6 +2147,7 @@ export const usePerpsProOrderForm = ({
     marketData?.maxLeverage,
     liveAccount?.crossMarginSummary,
     liveAccount?.spotCollateral,
+    market.providerId,
   ]);
   const liquidationPrice =
     marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;

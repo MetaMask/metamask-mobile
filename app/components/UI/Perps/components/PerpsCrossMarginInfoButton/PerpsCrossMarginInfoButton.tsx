@@ -42,7 +42,7 @@ const PerpsCrossMarginInfoButton = ({
           <PerpsBottomSheetTooltip
             isVisible
             onClose={handleClose}
-            titleTag={strings('perps.cross_position.badge')}
+            titleMarginMode="cross"
             contentKey={
               hasLiquidationPrice
                 ? 'cross_liquidation_price'

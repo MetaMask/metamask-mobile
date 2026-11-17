@@ -3053,4 +3053,28 @@ describe('Perps home cross margin risk', () => {
       ),
     ).not.toBeOnTheScreen();
   });
+
+  it('shows the available balance as plain text when the Cross margin flag is off', async () => {
+    renderPerpsHomeView({
+      overrides: eligibleOverrides,
+      streamOverrides: {
+        account: fundedCrossAccount('610', '730', '3200'),
+        positions: [],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_ROW,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+    ).not.toBeOnTheScreen();
+  });
 });

@@ -1,18 +1,26 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { PerpsAccountSummary } from '@metamask/perps-controller';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { selectPerpsCrossMarginEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsLiveAccount, usePerpsLivePositions } from './stream';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
   getCrossMarginRatioTone,
+  getCrossMarginSummaryThrottleMs,
   type CrossMarginRatioTone,
 } from '../utils/crossMarginSummary';
+import { CROSS_MARGIN_SUMMARY_THROTTLE_MS } from '../constants/perpsConfig';
 
 export interface UsePerpsCrossMarginSummaryOptions {
   /** Whether to subscribe to account and position updates. */
   enabled?: boolean;
-  /** Throttle for account updates (default: 1000ms). */
+  /**
+   * Throttle for account and position updates on a product-default
+   * connection (default: `CROSS_MARGIN_SUMMARY_THROTTLE_MS`). A 2G or 3G
+   * connection raises it.
+   */
   throttleMs?: number;
 }
 
@@ -23,8 +31,6 @@ export interface UsePerpsCrossMarginSummaryReturn extends PerpsAccountSummary {
   hasCrossExposure: boolean;
   /** Color tone for the account ratio. */
   tone?: CrossMarginRatioTone;
-  /** Whether we're waiting for the first account update. */
-  isInitialLoading: boolean;
 }
 
 /**
@@ -34,17 +40,26 @@ export interface UsePerpsCrossMarginSummaryReturn extends PerpsAccountSummary {
 export const usePerpsCrossMarginSummary = (
   options: UsePerpsCrossMarginSummaryOptions = {},
 ): UsePerpsCrossMarginSummaryReturn => {
-  const { enabled = true, throttleMs = 1000 } = options;
+  const { enabled = true, throttleMs = CROSS_MARGIN_SUMMARY_THROTTLE_MS } =
+    options;
   const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isActive = enabled && isCrossMarginEnabled;
-
-  const { account, isInitialLoading } = usePerpsLiveAccount({
-    enabled: isActive,
+  // UX matrix (app/util/deviceCapability/README.md): the tiers are read
+  // separately, and a `null` tier keeps the product default.
+  const networkTier = useNetworkTier();
+  const streamThrottleMs = getCrossMarginSummaryThrottleMs({
     throttleMs,
+    hardwareTier: getHardwareTier(),
+    networkTier,
+  });
+
+  const { account } = usePerpsLiveAccount({
+    enabled: isActive,
+    throttleMs: streamThrottleMs,
   });
   const { positions } = usePerpsLivePositions({
     enabled: isActive,
-    throttleMs,
+    throttleMs: streamThrottleMs,
   });
 
   const hasCrossPosition = useMemo(
@@ -66,13 +81,6 @@ export const usePerpsCrossMarginSummary = (
       isCrossMarginEnabled,
       hasCrossExposure,
       tone: getCrossMarginRatioTone(summary.accountRatio),
-      isInitialLoading,
     };
-  }, [
-    account,
-    hasCrossPosition,
-    isActive,
-    isCrossMarginEnabled,
-    isInitialLoading,
-  ]);
+  }, [account, hasCrossPosition, isActive, isCrossMarginEnabled]);
 };

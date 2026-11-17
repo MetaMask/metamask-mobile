@@ -1,4 +1,5 @@
 import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
@@ -683,7 +684,36 @@ describe('PerpsSection', () => {
       expect(
         screen.getByTestId(HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Cross margin ratio is 63%.')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.crossMarginRatio.description', { ratio: '63%' }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the banner from the account ratio when the position list is empty', () => {
+      mockUsePerpsCrossMarginSummary.mockReturnValue({
+        ...noCrossMarginSummary,
+        isCrossMarginEnabled: true,
+        hasCrossExposure: true,
+        accountRatio: 0.8,
+        tone: 'danger',
+      });
+      usePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(
+        screen.getByTestId(HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+      ).toBeOnTheScreen();
+      expect(mockUsePerpsCrossMarginSummary).toHaveBeenCalledWith({
+        throttleMs: expect.any(Number),
+      });
     });
 
     it('hides the banner when the cross margin ratio is safe', () => {

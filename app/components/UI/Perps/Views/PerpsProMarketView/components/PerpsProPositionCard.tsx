@@ -13,7 +13,6 @@ import {
   SensitiveText,
   SensitiveTextLength,
   Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -29,6 +28,7 @@ import PerpsLiquidationPriceValue from '../../../components/PerpsLiquidationPric
 import {
   getPerpsCrossLiquidationInfoSelector,
   getPerpsCrossMarginTagSelector,
+  getPerpsIsolatedMarginTagSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
@@ -393,19 +393,17 @@ const PerpsProPositionCard = ({
                 value={marginDisplay}
                 isHidden={privacyMode}
                 labelAccessory={
-                  isCrossMarginEnabled ? (
-                    <PerpsMarginModeTag
-                      marginMode={isCross ? 'cross' : 'isolated'}
-                      testID={
-                        isCross
-                          ? getPerpsCrossMarginTagSelector(
-                              'pro',
-                              position.symbol,
-                            )
-                          : undefined
-                      }
-                    />
-                  ) : undefined
+                  <PerpsMarginModeTag
+                    marginMode={position.leverage.type}
+                    testID={
+                      position.leverage.type === 'cross'
+                        ? getPerpsCrossMarginTagSelector('pro', position.symbol)
+                        : getPerpsIsolatedMarginTagSelector(
+                            'pro',
+                            position.symbol,
+                          )
+                    }
+                  />
                 }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined

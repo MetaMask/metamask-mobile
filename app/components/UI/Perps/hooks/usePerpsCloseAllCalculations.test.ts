@@ -396,8 +396,9 @@ describe('usePerpsCloseAllCalculations', () => {
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
-      // Margin without P&L does not depend on the close price.
-      expect(result.current.totalMargin).toBe(1270);
+      // Margin shows the placeholder with the other totals, so the summary
+      // never pairs a figure with unknown P&L.
+      expect(result.current.totalMargin).toBeUndefined();
       expect(result.current.totalPnl).toBeUndefined();
       expect(result.current.totalFees).toBeUndefined();
       expect(result.current.receiveAmount).toBeUndefined();

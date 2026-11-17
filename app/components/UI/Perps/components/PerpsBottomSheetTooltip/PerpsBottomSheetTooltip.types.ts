@@ -1,4 +1,5 @@
 import type { BottomSheetFooterButtonProps } from '@metamask/design-system-react-native';
+import type { MarginMode } from '@metamask/perps-controller';
 
 export interface PerpsBottomSheetTooltipProps {
   /**
@@ -33,9 +34,9 @@ export interface PerpsBottomSheetTooltipProps {
   buttonConfig?: BottomSheetFooterButtonProps[];
 
   /**
-   * Optional tag rendered beside the title, e.g. the margin mode.
+   * Margin mode tag rendered beside the title.
    */
-  titleTag?: string;
+  titleMarginMode?: MarginMode;
 
   /**
    * Analytics: screen context for button_location tracking.

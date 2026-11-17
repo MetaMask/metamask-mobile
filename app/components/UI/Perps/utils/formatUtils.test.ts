@@ -11,6 +11,7 @@ import {
   formatVolume,
   formatCoinVolume,
   formatPositionSize,
+  formatAccountLeverage,
   formatLeverage,
   formatCrossMarginRatio,
   formatLiquidationDistance,
@@ -1653,6 +1654,17 @@ describe('formatUtils', () => {
 
     it('follows the locale decimal separator', () => {
       expect(formatCrossMarginRatio(0.174, 'de-DE')).toMatch(/^17,4\s?%$/u);
+    });
+  });
+
+  describe('formatAccountLeverage', () => {
+    it('formats one decimal with an x suffix', () => {
+      expect(formatAccountLeverage(2, 'en-US')).toBe('2.0x');
+      expect(formatAccountLeverage(1.04, 'en-US')).toBe('1.0x');
+    });
+
+    it('uses the locale decimal separator', () => {
+      expect(formatAccountLeverage(2.5, 'de-DE')).toBe('2,5x');
     });
   });
 

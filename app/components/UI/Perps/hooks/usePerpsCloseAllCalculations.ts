@@ -596,14 +596,15 @@ export function usePerpsCloseAllCalculations({
       // Any cross position switches the summary to a separate P&L row, so
       // every position's margin must then exclude its P&L for Margin + P&L -
       // fees to equal Receive. With the flag off, the isolated presentation
-      // (margin includes P&L) stays.
+      // (margin includes P&L) stays. Margin stays unknown with the P&L so the
+      // totals never mix a figure with a placeholder.
       totalMargin: sum(
         estimates.map(({ marginReturned, realizedPnl }) => {
-          if (hasSummaryCrossMargin) {
-            return marginReturned;
+          if (marginReturned === undefined || realizedPnl === undefined) {
+            return undefined;
           }
-          return marginReturned === undefined || realizedPnl === undefined
-            ? undefined
+          return hasSummaryCrossMargin
+            ? marginReturned
             : marginReturned + realizedPnl;
         }),
       ),

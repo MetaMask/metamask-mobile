@@ -271,13 +271,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
       usePerpsCrossMarginSummary({
-        enabled: hasFilledPositions,
         throttleMs: HOMEPAGE_ACCOUNT_THROTTLE_MS,
       });
-    const crossMarginBannerSeverity =
-      !showSkeleton && hasFilledPositions
-        ? getCrossMarginRatioAlert(crossMarginTone)
-        : undefined;
+    const crossMarginBannerSeverity = showSkeleton
+      ? undefined
+      : getCrossMarginRatioAlert(crossMarginTone);
 
     // Aggregated over every live-enriched position, not just the MAX_ITEMS the rows
     // below display, so this stays the account-wide total it has always been. It

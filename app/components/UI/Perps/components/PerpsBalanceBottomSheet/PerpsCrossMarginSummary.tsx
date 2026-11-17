@@ -22,14 +22,12 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  formatAccountLeverage,
   formatCrossMarginRatio,
-  formatLeverage,
   formatPerpsFiat,
 } from '../../utils/formatUtils';
-import {
-  getCrossMarginRatioTone,
-  type CrossMarginRatioTone,
-} from '../../utils/crossMarginSummary';
+import type { CrossMarginRatioTone } from '../../utils/crossMarginSummary';
+import { PERPS_INFO_BUTTON_HIT_SLOP } from '../../constants/perpsConfig';
 import {
   getPerpsCrossMarginSummaryLabelSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
@@ -45,6 +43,8 @@ export type PerpsCrossMarginSummaryTooltipKey = Extract<
 >;
 
 interface PerpsCrossMarginSummaryProps extends PerpsAccountSummary {
+  /** Risk tone of the account ratio, from `usePerpsCrossMarginSummary`. */
+  accountRatioTone?: CrossMarginRatioTone;
   privacyMode: boolean;
   onInfoPress: (key: PerpsCrossMarginSummaryTooltipKey) => void;
 }
@@ -79,8 +79,6 @@ const TONE_ICON: Partial<
 // `textDecorationStyle: 'dashed'` is iOS-only, so use the plain underline to
 // render the same tappable affordance on both platforms.
 const labelStyle = { textDecorationLine: 'underline' } as const;
-
-const LABEL_HIT_SLOP = 8;
 
 interface RowProps {
   tooltipKey: PerpsCrossMarginSummaryTooltipKey;
@@ -122,7 +120,7 @@ const SummaryRow: React.FC<RowProps> = ({
         onPress={() => onInfoPress(tooltipKey)}
         accessibilityRole="button"
         accessibilityLabel={label}
-        hitSlop={LABEL_HIT_SLOP}
+        hitSlop={PERPS_INFO_BUTTON_HIT_SLOP}
         testID={getPerpsCrossMarginSummaryLabelSelector(tooltipKey)}
       >
         <Text
@@ -178,6 +176,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
   maintenanceMargin,
   accountLeverage,
   crossMarginUsage,
+  accountRatioTone,
   privacyMode,
   onInfoPress,
 }) => (
@@ -193,7 +192,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
           ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatCrossMarginRatio(accountRatio)
       }
-      tone={getCrossMarginRatioTone(accountRatio)}
+      tone={accountRatioTone}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}
       onInfoPress={onInfoPress}
@@ -214,7 +213,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
       value={
         accountLeverage === undefined
           ? PERPS_CONSTANTS.FallbackDataDisplay
-          : formatLeverage(accountLeverage)
+          : formatAccountLeverage(accountLeverage)
       }
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_LEVERAGE_VALUE}

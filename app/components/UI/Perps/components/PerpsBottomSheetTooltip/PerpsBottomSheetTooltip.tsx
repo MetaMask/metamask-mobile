@@ -10,8 +10,6 @@ import {
   BoxJustifyContent,
   ButtonSize,
   ButtonsAlignment,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -25,6 +23,7 @@ import {
   PERPS_EVENT_PROPERTY,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
@@ -56,7 +55,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     buttonConfig: buttonConfigProps,
     data,
     buttonLocation,
-    titleTag,
+    titleMarginMode,
   }) => {
     const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
     const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -138,7 +137,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
             onClose={handleClose}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
           >
-            {titleTag ? (
+            {titleMarginMode ? (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
@@ -147,12 +146,10 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
                 accessible={false}
               >
                 <Text variant={TextVariant.HeadingSm}>{title}</Text>
-                <Tag
-                  severity={TagSeverity.Neutral}
+                <PerpsMarginModeTag
+                  marginMode={titleMarginMode}
                   testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE_TAG}
-                >
-                  {titleTag}
-                </Tag>
+                />
               </Box>
             ) : (
               title

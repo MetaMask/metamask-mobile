@@ -68,6 +68,7 @@ import {
 } from '../../../SocialFeed/utils/formatters';
 import {
   getPerpsCrossMarginTagSelector,
+  getPerpsIsolatedMarginTagSelector,
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
@@ -2377,7 +2378,7 @@ describe('Perps market details margin mode', () => {
 
     expect(
       within(margin).getByTestId(
-        PerpsPositionCardSelectorsIDs.ISOLATED_MARGIN_TAG,
+        getPerpsIsolatedMarginTagSelector('lite', 'ETH'),
       ),
     ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
 

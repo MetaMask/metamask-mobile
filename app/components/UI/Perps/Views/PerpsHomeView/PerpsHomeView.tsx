@@ -434,6 +434,28 @@ const PerpsHomeView = () => {
   );
   const crossMarginBannerSeverity = getCrossMarginRatioAlert(crossMarginTone);
 
+  let availableBalance: React.ReactNode;
+  if (!isBalanceEmpty) {
+    const availableBalanceLabel = (
+      <PerpsAvailableBalanceLabel
+        spendableBalance={spendableBalance}
+        isHidden={privacyMode}
+        variant={TextVariant.BodySm}
+      />
+    );
+    availableBalance = isCrossMarginEnabled ? (
+      <Pressable
+        onPress={openBalanceSheet}
+        accessibilityRole="button"
+        testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
+      >
+        {availableBalanceLabel}
+      </Pressable>
+    ) : (
+      availableBalanceLabel
+    );
+  }
+
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
@@ -1402,24 +1424,7 @@ const PerpsHomeView = () => {
                 </SensitiveText>
               ) : undefined
             }
-            bottomLabel={
-              !isBalanceEmpty ? (
-                <Pressable
-                  onPress={openBalanceSheet}
-                  disabled={!isCrossMarginEnabled}
-                  accessibilityRole={
-                    isCrossMarginEnabled ? 'button' : undefined
-                  }
-                  testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
-                >
-                  <PerpsAvailableBalanceLabel
-                    spendableBalance={spendableBalance}
-                    isHidden={privacyMode}
-                    variant={TextVariant.BodySm}
-                  />
-                </Pressable>
-              ) : undefined
-            }
+            bottomLabel={availableBalance}
             twClassName="px-4 pb-3"
           />
         </PerpsMarketBalanceActions>

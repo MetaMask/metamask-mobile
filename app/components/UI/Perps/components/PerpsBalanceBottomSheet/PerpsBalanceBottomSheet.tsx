@@ -64,6 +64,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     maintenanceMargin,
     accountLeverage,
     crossMarginUsage,
+    tone,
   } = usePerpsCrossMarginSummary({ enabled: isVisible });
   const [activeTooltip, setActiveTooltip] =
     useState<PerpsCrossMarginSummaryTooltipKey | null>(null);
@@ -217,6 +218,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
             maintenanceMargin={maintenanceMargin}
             accountLeverage={accountLeverage}
             crossMarginUsage={crossMarginUsage}
+            accountRatioTone={tone}
             privacyMode={privacyMode}
             onInfoPress={setActiveTooltip}
           />
@@ -263,6 +265,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
             isVisible
             onClose={closeTooltip}
             contentKey={activeTooltip}
+            buttonLocation={buttonLocation}
             testID={PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_TOOLTIP}
           />
         </PerpsProModalPortal>

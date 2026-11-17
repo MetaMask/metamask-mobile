@@ -1254,6 +1254,23 @@ export const formatLeverage = (leverage: string | number): string => {
 };
 
 /**
+ * Formats cross account leverage with one decimal in the user's locale,
+ * e.g. `"2.5x"`, or `"2,5x"` where the decimal separator is a comma.
+ *
+ * @param leverage - Account notional divided by cross collateral.
+ * @param locale - Optional locale override.
+ * @returns The leverage with an `x` suffix.
+ */
+export const formatAccountLeverage = (
+  leverage: number,
+  locale?: string,
+): string =>
+  `${getPerpsNumberFormatter(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(leverage)}x`;
+
+/**
  * Formats how far (in %) the price must move from `entryPrice` to reach
  * `liquidationPrice`, e.g. `"30.05%"`.
  *

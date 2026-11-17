@@ -84,7 +84,7 @@ describe('PerpsProPositionCard', () => {
     },
   );
 
-  it('falls back to the isolated presentation when the Cross margin flag is off', () => {
+  it('keeps the venue margin tag but drops the Cross liquidation info when the Cross margin flag is off', () => {
     // Arrange - every selector false, including the Cross margin flag
     (useSelector as jest.Mock).mockReturnValue(false);
     const onEditMargin = jest.fn();
@@ -101,13 +101,11 @@ describe('PerpsProPositionCard', () => {
       />,
     );
 
-    // Assert - the flag-off position has no margin-mode tag, and its margin
-    // stays read-only because the venue only adjusts isolated margin.
-    expect(
-      screen.queryByTestId('cross-margin-tag-pro-ETH'),
-    ).not.toBeOnTheScreen();
-    expect(screen.queryByText('Cross')).not.toBeOnTheScreen();
-    expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
+    // Assert - the tag shows the venue's margin mode, and the margin stays
+    // read-only because the venue only adjusts isolated margin.
+    expect(screen.getByTestId('cross-margin-tag-pro-ETH')).toHaveTextContent(
+      'Cross',
+    );
     expect(
       screen.queryByTestId('cross-liquidation-info-pro-ETH'),
     ).not.toBeOnTheScreen();
@@ -298,6 +296,14 @@ describe('PerpsProPositionCard', () => {
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL),
     ).toBeOnTheScreen();
+  });
+
+  it('tags an isolated position with its symbol-scoped Isolated tag', () => {
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(screen.getByTestId('isolated-margin-tag-pro-ETH')).toHaveTextContent(
+      'Isolated',
+    );
   });
 
   it('renders margin edit control for isolated positions when handler is provided', () => {

@@ -208,6 +208,18 @@ export const CROSS_MARGIN_RATIO_WARNING_THRESHOLD = 0.5;
 /** Cross margin account ratio above which the account is critical risk. */
 export const CROSS_MARGIN_RATIO_DANGER_THRESHOLD = 0.75;
 
+/** Throttle for the cross margin summary's account and position streams. */
+export const CROSS_MARGIN_SUMMARY_THROTTLE_MS = 1000;
+
+/** Cross margin summary throttle on a 2G or 3G connection. */
+export const CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS = 3000;
+
+/**
+ * Cross margin summary throttle on a 2G or 3G connection with low-end
+ * hardware, the UX matrix's "rare poll" cell.
+ */
+export const CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS = 5000;
+
 /**
  * Hit slop for `ButtonIconSize.Xs` info buttons. The icon is a 20pt box, so
  * 12pt on each side restores a 44pt target without growing the icon.

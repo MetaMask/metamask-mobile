@@ -2469,8 +2469,6 @@
         "tp_sl": "TP / SL",
         "liq_price": "Liq. price",
         "funding": "Funding",
-        "isolated": "Isolated",
-        "cross": "Cross",
         "close": "Close",
         "reverse": "Reverse",
         "share": "Share"
@@ -3325,7 +3323,7 @@
       },
       "account_ratio": {
         "title": "Account ratio",
-        "content": "Represents the risk of your portfolio liquidation. When the value is greater than 95%, your portfolio may be liquidated."
+        "content": "Your maintenance margin as a share of your cross collateral. Below 50%, risk is low. From 50% to 75%, risk is elevated. Above 75%, risk is high. At 100%, your cross positions may be liquidated."
       },
       "maintenance_margin": {
         "title": "Maintenance margin",
@@ -3594,7 +3592,7 @@
       "cross_title": "Cross",
       "cross_description": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs. Coming soon.",
       "cross_description_available": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs.",
-      "locked_by_position": "Cannot switch margin mode with open position.",
+      "locked_by_position": "Cannot switch margin mode with an open position.",
       "locked_by_open_order": "Cannot switch margin mode with open orders."
     },
     "cross_margin_confirm": {

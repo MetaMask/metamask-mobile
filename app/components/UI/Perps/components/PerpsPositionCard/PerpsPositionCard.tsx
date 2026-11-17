@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   getPerpsCrossLiquidationInfoSelector,
   getPerpsCrossMarginTagSelector,
+  getPerpsIsolatedMarginTagSelector,
   PerpsPositionCardSelectorsIDs,
 } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -442,7 +443,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                               'lite',
                               position.symbol,
                             )
-                          : PerpsPositionCardSelectorsIDs.ISOLATED_MARGIN_TAG
+                          : getPerpsIsolatedMarginTagSelector(
+                              'lite',
+                              position.symbol,
+                            )
                       }
                     />
                   )}

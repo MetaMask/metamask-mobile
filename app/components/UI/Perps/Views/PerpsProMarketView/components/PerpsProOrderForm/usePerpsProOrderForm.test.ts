@@ -4042,6 +4042,36 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
+    it('shows no Cross liquidation estimate on a venue other than Hyperliquid', () => {
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, providerId: 'lighter' },
+        {},
+        undefined,
+        true,
+      );
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
     it('waits for market max leverage before estimating a Cross liquidation price', () => {
       mockMarketData = null;
       mockMarketDataLoading = true;

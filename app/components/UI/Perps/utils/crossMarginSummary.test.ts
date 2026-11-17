@@ -6,7 +6,12 @@ import {
   getCrossMarginRatioAlert,
   getCrossMarginRatioAlertLabel,
   getCrossMarginRatioTone,
+  getCrossMarginSummaryThrottleMs,
 } from './crossMarginSummary';
+import {
+  CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
+  CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS,
+} from '../constants/perpsConfig';
 
 const crossMarginSummary = {
   accountValue: '1000',
@@ -114,6 +119,7 @@ describe('crossMarginSummary', () => {
       maxLeverage: 50,
       crossMarginSummary,
       spotCollateral: '0',
+      providerId: 'hyperliquid' as const,
     };
 
     it.each([
@@ -127,6 +133,16 @@ describe('crossMarginSummary', () => {
         ).toBeCloseTo(expected, 4);
       },
     );
+
+    it('returns undefined on a venue other than Hyperliquid', () => {
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: false,
+          providerId: 'lighter',
+        }),
+      ).toBeUndefined();
+    });
 
     it('returns undefined when the long cannot be liquidated', () => {
       expect(
@@ -174,6 +190,42 @@ describe('crossMarginSummary', () => {
           maxLeverage: 0,
         }),
       ).toBeUndefined();
+    });
+  });
+
+  describe('getCrossMarginSummaryThrottleMs', () => {
+    it.each([
+      [
+        'LOW',
+        'SLOW_CELLULAR',
+        CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
+      ],
+      ['MID', 'SLOW_CELLULAR', CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS],
+      [null, 'SLOW_CELLULAR', CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS],
+      ['LOW', 'WIFI', 1000],
+      ['LOW', null, 1000],
+      [null, null, 1000],
+    ] as const)(
+      'uses the matrix throttle for %s hardware on a %s network',
+      (hardwareTier, networkTier, expected) => {
+        expect(
+          getCrossMarginSummaryThrottleMs({
+            throttleMs: 1000,
+            hardwareTier,
+            networkTier,
+          }),
+        ).toBe(expected);
+      },
+    );
+
+    it('keeps a caller throttle that is already slower than the matrix', () => {
+      expect(
+        getCrossMarginSummaryThrottleMs({
+          throttleMs: 10000,
+          hardwareTier: 'LOW',
+          networkTier: 'SLOW_CELLULAR',
+        }),
+      ).toBe(10000);
     });
   });
 });

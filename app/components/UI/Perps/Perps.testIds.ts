@@ -82,7 +82,6 @@ export const PerpsPositionCardSelectorsIDs = {
   FLIP_ICON: 'position-card-flip-icon',
   MARGIN_CONTAINER: 'position-card-margin',
   MARGIN_VALUE: 'position-card-margin-value',
-  ISOLATED_MARGIN_TAG: 'position-card-isolated-margin-tag',
   MARGIN_CHEVRON: 'position-card-margin-chevron',
   AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
   AUTO_CLOSE_VALUE: 'position-card-auto-close-value',
@@ -98,6 +97,11 @@ export const getPerpsCrossMarginTagSelector = (
   mode: 'lite' | 'pro',
   symbol: string,
 ) => `cross-margin-tag-${mode}-${symbol}`;
+
+export const getPerpsIsolatedMarginTagSelector = (
+  mode: 'lite' | 'pro',
+  symbol: string,
+) => `isolated-margin-tag-${mode}-${symbol}`;
 
 export const getPerpsCrossLiquidationInfoSelector = (
   mode: 'lite' | 'pro',

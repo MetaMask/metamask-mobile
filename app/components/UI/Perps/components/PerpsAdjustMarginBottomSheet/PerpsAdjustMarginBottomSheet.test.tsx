@@ -7,17 +7,26 @@ import {
 } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   PerpsAdjustMarginBottomSheetSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsAdjustMarginBottomSheet from './PerpsAdjustMarginBottomSheet';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 
 let mockCrossMarginEnabled = false;
 
 jest.mock('react-redux', () => ({
-  useSelector: () => mockCrossMarginEnabled,
+  useSelector: jest.fn(),
 }));
+
+jest.mocked(useSelector).mockImplementation((selector: unknown) => {
+  if (selector === selectPerpsCrossMarginEnabledFlag) {
+    return mockCrossMarginEnabled;
+  }
+  throw new Error('Unexpected selector in PerpsAdjustMarginBottomSheet');
+});
 
 const mockGoBack = jest.fn();
 const mockHandleAddMargin = jest.fn();

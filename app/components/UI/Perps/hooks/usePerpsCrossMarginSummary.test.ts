@@ -4,6 +4,12 @@ import type { AccountState, Position } from '@metamask/perps-controller';
 import { usePerpsCrossMarginSummary } from './usePerpsCrossMarginSummary';
 import { usePerpsLiveAccount, usePerpsLivePositions } from './stream';
 import { selectPerpsCrossMarginEnabledFlag } from '../selectors/featureFlags';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import {
+  CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
+  CROSS_MARGIN_SUMMARY_THROTTLE_MS,
+} from '../constants/perpsConfig';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -15,9 +21,19 @@ jest.mock('./stream', () => ({
   usePerpsLivePositions: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(),
+}));
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.Mock;
 const mockUsePerpsLiveAccount = usePerpsLiveAccount as jest.Mock;
 const mockUsePerpsLivePositions = usePerpsLivePositions as jest.Mock;
+const mockUseNetworkTier = useNetworkTier as jest.Mock;
+const mockGetHardwareTier = getHardwareTier as jest.Mock;
 
 const crossAccount = {
   totalBalance: '1000',
@@ -45,6 +61,8 @@ describe('usePerpsCrossMarginSummary', () => {
       isInitialLoading: false,
     });
     mockUsePerpsLivePositions.mockReturnValue({ positions: [] });
+    mockUseNetworkTier.mockReturnValue(null);
+    mockGetHardwareTier.mockReturnValue(null);
   });
 
   it('returns cross margin metrics and tone for a cross account', () => {
@@ -146,5 +164,28 @@ describe('usePerpsCrossMarginSummary', () => {
     expect(mockUsePerpsLivePositions).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
+  });
+
+  it('streams at the product default while the device tiers are unknown', () => {
+    renderHook(() => usePerpsCrossMarginSummary());
+
+    expect(mockUsePerpsLiveAccount).toHaveBeenCalledWith({
+      enabled: true,
+      throttleMs: CROSS_MARGIN_SUMMARY_THROTTLE_MS,
+    });
+  });
+
+  it('slows both streams on a slow network with low-end hardware', () => {
+    mockUseNetworkTier.mockReturnValue('SLOW_CELLULAR');
+    mockGetHardwareTier.mockReturnValue('LOW');
+
+    renderHook(() => usePerpsCrossMarginSummary());
+
+    const expected = {
+      enabled: true,
+      throttleMs: CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
+    };
+    expect(mockUsePerpsLiveAccount).toHaveBeenCalledWith(expected);
+    expect(mockUsePerpsLivePositions).toHaveBeenCalledWith(expected);
   });
 });

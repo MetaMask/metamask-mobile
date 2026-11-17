@@ -4,12 +4,19 @@ import {
   type AccountState,
   type CrossMarginSummary,
   type PerpsAccountSummary,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
+import type {
+  HardwareTier,
+  NetworkTier,
+} from '../../../../util/deviceCapability/types';
 import { formatCrossMarginRatio } from './formatUtils';
 import {
   CROSS_MARGIN_RATIO_DANGER_THRESHOLD,
   CROSS_MARGIN_RATIO_WARNING_THRESHOLD,
+  CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
+  CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS,
 } from '../constants/perpsConfig';
 
 export type CrossMarginRatioTone = 'safe' | 'warning' | 'danger';
@@ -52,10 +59,38 @@ const toFiniteNumber = (value: string | undefined): number | undefined => {
 };
 
 /**
+ * Stream throttle for the cross margin summary from the UX matrix in
+ * `app/util/deviceCapability/README.md`. Only a 2G or 3G connection changes
+ * it: low-end hardware polls rarely, other hardware debounces. A `null` tier
+ * keeps the product default.
+ */
+export const getCrossMarginSummaryThrottleMs = ({
+  throttleMs,
+  hardwareTier,
+  networkTier,
+}: {
+  throttleMs: number;
+  hardwareTier: HardwareTier | null;
+  networkTier: NetworkTier | null;
+}): number => {
+  if (networkTier !== 'SLOW_CELLULAR') {
+    return throttleMs;
+  }
+  return Math.max(
+    throttleMs,
+    hardwareTier === 'LOW'
+      ? CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS
+      : CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS,
+  );
+};
+
+/**
  * Estimates where a new cross position liquidates: the price at which the
  * cross collateral, after the position's P&L, falls to the maintenance margin
  * of the existing cross positions plus the new one. Maintenance margin is half
- * the initial margin at the market's max leverage.
+ * the initial margin at the market's max leverage, which is Hyperliquid's
+ * rule, so other venues get no estimate. TAT-4668 moves this to
+ * perps-controller.
  *
  * @returns The liquidation price, or undefined when an input is missing (the
  * spot collateral included) or the position cannot be liquidated at a
@@ -68,6 +103,7 @@ export const estimateCrossLiquidationPrice = ({
   maxLeverage,
   crossMarginSummary,
   spotCollateral,
+  providerId,
 }: {
   entryPrice: number;
   /** Unsigned order size in base units. */
@@ -77,7 +113,12 @@ export const estimateCrossLiquidationPrice = ({
   crossMarginSummary: CrossMarginSummary | undefined;
   /** `AccountState.spotCollateral`: undefined while it is not known yet. */
   spotCollateral: string | undefined;
+  /** Venue that takes the order. */
+  providerId: PerpsProviderType;
 }): number | undefined => {
+  if (providerId !== 'hyperliquid') {
+    return undefined;
+  }
   const collateral = getCrossCollateral(crossMarginSummary, spotCollateral);
   const maintenanceMargin = toFiniteNumber(
     crossMarginSummary?.maintenanceMargin,
