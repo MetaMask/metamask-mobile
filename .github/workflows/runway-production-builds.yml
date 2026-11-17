@@ -54,7 +54,8 @@ jobs:
           fi
 
           PR_JSON=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base stable --state open \
-            --json number,url,reviewDecision --jq '.[0] // empty')
+            --json number,url,reviewDecision,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)] | .[0] // empty')
           if [[ -z "$PR_JSON" ]]; then
             echo "::error::No open release PR from ${BRANCH} into stable."
             exit 1
