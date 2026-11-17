@@ -1334,6 +1334,7 @@ export class Engine {
       SnapController,
       LoggingController,
       MoneyAccountController,
+      MoneyAccountLifecycleController,
       SubscriptionController,
       ShieldController,
       ClaimsController,
@@ -1371,6 +1372,7 @@ export class Engine {
 
     // Accounts:
     MoneyAccountController.clearState();
+    MoneyAccountLifecycleController.clearState();
 
     // Subscriptions:
     SubscriptionController.stopAllPolling();
