@@ -87,8 +87,14 @@ describe('parsePredictWithdrawPreview', () => {
   });
 
   it.each([
-    ['a fixed quote without an amount', { ...validFixedPreview, requestedAmount: undefined }],
-    ['a sweep quote with an amount', { ...validSweepPreview, requestedAmount: '5.00' }],
+    [
+      'a fixed quote without an amount',
+      { ...validFixedPreview, requestedAmount: undefined },
+    ],
+    [
+      'a sweep quote with an amount',
+      { ...validSweepPreview, requestedAmount: '5.00' },
+    ],
     [
       'a sweep quote with a null amount',
       { ...validSweepPreview, requestedAmount: null },
@@ -102,10 +108,19 @@ describe('parsePredictWithdrawPreview', () => {
     ],
     [
       'an unsupported network',
-      { ...validFixedPreview, destination: { ...destination, network: 'ethereum' } },
+      {
+        ...validFixedPreview,
+        destination: { ...destination, network: 'ethereum' },
+      },
     ],
-    ['a non-UTC expiry', { ...validFixedPreview, expiresAt: '2026-03-01T12:00:30+00:00' }],
-    ['a zero-padded amount', { ...validFixedPreview, requestedAmount: '05.00' }],
+    [
+      'a non-UTC expiry',
+      { ...validFixedPreview, expiresAt: '2026-03-01T12:00:30+00:00' },
+    ],
+    [
+      'a zero-padded amount',
+      { ...validFixedPreview, requestedAmount: '05.00' },
+    ],
     ['an unknown mode', { ...validFixedPreview, mode: 'partial' }],
     ['a missing destination', { ...validFixedPreview, destination: undefined }],
   ])('rejects %s', (_label, value) => {
@@ -141,10 +156,17 @@ describe('parsePredictWithdrawReceipt', () => {
   });
 
   it.each([
-    ['a rejected receipt without a rejectionCode', { ...validRejectedReceipt, rejectionCode: undefined }],
+    [
+      'a rejected receipt without a rejectionCode',
+      { ...validRejectedReceipt, rejectionCode: undefined },
+    ],
     [
       'a settled receipt carrying a rejectionCode',
-      { ...validProcessingReceipt, status: 'settled', rejectionCode: 'venue_rejected' },
+      {
+        ...validProcessingReceipt,
+        status: 'settled',
+        rejectionCode: 'venue_rejected',
+      },
     ],
     [
       'an unknown rejectionCode',
@@ -167,7 +189,10 @@ describe('parsePredictWithdrawReceipt', () => {
       'a missing needsManualReview',
       { ...validProcessingReceipt, needsManualReview: undefined },
     ],
-    ['a receipt without a venueId match', { ...validProcessingReceipt, venueId: 'other-venue' }],
+    [
+      'a receipt without a venueId match',
+      { ...validProcessingReceipt, venueId: 'other-venue' },
+    ],
     [
       'a receipt resolved by a non-UTC instant',
       { ...validProcessingReceipt, resolvedAt: '2026-03-01T12:00:20+00:00' },
