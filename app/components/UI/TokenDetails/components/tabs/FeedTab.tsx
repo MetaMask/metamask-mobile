@@ -2,13 +2,12 @@ import { Box } from '@metamask/design-system-react-native';
 import { parseCaipAssetType, type CaipAssetType } from '@metamask/utils';
 import React, { useCallback, useMemo } from 'react';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { SocialEntryOptionsProvider, SocialFeed } from '../../../SocialFeed';
 import type { SocialFeedPostShellProps } from '../../../SocialFeed/components/SocialFeedPostShell';
 import type { SocialFeedListState } from '../../../SocialFeed/utils/getSocialFeedListState';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
-
-const NATIVE_ASSET_NAMESPACE = 'slip44';
 
 interface TokenDetailsFeedTabProps {
   assetId: CaipAssetType;
@@ -33,13 +32,12 @@ const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
 }) => {
   const { onAuthorPress, onPositionPress } =
     useSocialFeedPostNavigation('token_details');
-  // A native asset has no contract, so the feed is every trader on its chain.
-  // A token is the global feed narrowed to that one asset.
+  // Streams new posts unless the network is known to be offline. `null` is
+  // unknown, so it keeps the product default (on).
+  const networkTier = useNetworkTier();
+  const realtime = networkTier !== 'NONE';
   const query = useMemo(() => {
-    const { chainId, assetNamespace } = parseCaipAssetType(assetId);
-    if (assetNamespace === NATIVE_ASSET_NAMESPACE) {
-      return { scope: 'leaderboard' as const, chains: [chainId] };
-    }
+    const { chainId } = parseCaipAssetType(assetId);
     return {
       scope: 'all' as const,
       chains: [chainId],
@@ -64,6 +62,7 @@ const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
           {...query}
           location="token_details"
           isActive={isActive}
+          realtime={realtime}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={onPositionPress}
