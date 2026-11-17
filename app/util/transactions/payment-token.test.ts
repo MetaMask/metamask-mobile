@@ -11,6 +11,7 @@ import {
 
 const NON_EVM_ASSET_ID =
   'bip122:000000000019d6689c085ae165831e93/slip44:0' as const;
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const USDC_ASSET_ID = `eip155:1/erc20:${USDC_ADDRESS}` as const;
 
@@ -164,25 +165,35 @@ describe('payment-token', () => {
       ).toBe('eip155:137/slip44:966');
     });
 
-    it('falls back to the SLIP-44 native asset ID when native metadata is missing', () => {
+    it.each([
+      ['Base', '0x2105', ZERO_ADDRESS, 'eip155:8453/slip44:60'],
+      [
+        'Polygon',
+        '0x89',
+        '0x0000000000000000000000000000000000001010',
+        'eip155:137/slip44:966',
+      ],
+      ['BSC', '0x38', ZERO_ADDRESS, 'eip155:56/slip44:714'],
+      ['Monad', '0x8f', ZERO_ADDRESS, 'eip155:143/slip44:268435779'],
+    ] as const)(
+      'falls back to the registered native asset ID on %s when native metadata is missing',
+      (_name, chainId, address, expected) => {
+        expect(
+          encodeEvmAssetId(
+            { address, chainId },
+            buildAssetIdIndex(buildAssetsInfo({})),
+          ),
+        ).toBe(expected);
+      },
+    );
+
+    it('falls back to the zero-address ERC-20 asset ID for the native token of an unregistered chain', () => {
       expect(
         encodeEvmAssetId(
-          {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x2105',
-          },
+          { address: ZERO_ADDRESS, chainId: '0x64' },
           buildAssetIdIndex(buildAssetsInfo({})),
         ),
-      ).toBe('eip155:8453/slip44:60');
-      expect(
-        encodeEvmAssetId(
-          {
-            address: '0x0000000000000000000000000000000000001010',
-            chainId: '0x89',
-          },
-          buildAssetIdIndex(buildAssetsInfo({})),
-        ),
-      ).toBe('eip155:137/slip44:966');
+      ).toBe(`eip155:100/erc20:${ZERO_ADDRESS}`);
     });
 
     it('falls back to the checksummed derived asset ID when the token is not in state', () => {
