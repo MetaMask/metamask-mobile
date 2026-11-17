@@ -634,7 +634,7 @@ describe('deepLinkAnalytics', () => {
 
     it('extracts a KYC session link as the Money route', () => {
       const result = extractRouteFromUrl(
-        'https://link.metamask.io/kyc/fd45a61a-0795-454b-98ed-24d005dba30d',
+        'https://link.metamask.io/kyc?sessionId=fd45a61a-0795-454b-98ed-24d005dba30d',
       );
       expect(result).toBe(DeepLinkRoute.MONEY);
     });

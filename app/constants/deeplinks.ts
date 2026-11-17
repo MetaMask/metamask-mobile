@@ -65,8 +65,9 @@ export enum ACTIONS {
   MONEY = 'money',
   MONEY_ACCOUNT_DEPOSIT = 'money-account-deposit',
   /**
-   * `https://link.metamask.io/kyc/:sessionId`. Opens the Money account screen
-   * until that path has its own KYC screen.
+   * `https://link.metamask.io/kyc?sessionId=:sessionId`. Opens the Money
+   * account screen until that link has its own KYC screen. The session id is
+   * not read yet; the Money account screen resumes the latest Iron KYC session.
    */
   KYC = 'kyc',
 }

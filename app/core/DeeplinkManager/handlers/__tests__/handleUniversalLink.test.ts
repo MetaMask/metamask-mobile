@@ -682,11 +682,11 @@ describe('handleUniversalLink', () => {
   });
 
   describe('ACTIONS.KYC', () => {
-    it('opens the Money account screen and ignores the session id', async () => {
-      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.KYC}/fd45a61a-0795-454b-98ed-24d005dba30d`;
+    it('opens the Money account screen and ignores the session id query param', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.KYC}?sessionId=fd45a61a-0795-454b-98ed-24d005dba30d`;
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        pathname: `/${ACTIONS.KYC}/fd45a61a-0795-454b-98ed-24d005dba30d`,
+        pathname: `/${ACTIONS.KYC}`,
         href: url,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
