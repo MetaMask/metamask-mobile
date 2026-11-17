@@ -38646,6 +38646,7 @@ __metadata:
     query-string: "npm:^6.12.1"
     randomfill: "npm:^1.0.4"
     react: "npm:19.2.3"
+    react-compiler-marker: "npm:0.2.0"
     react-compiler-runtime: "npm:^19.1.0-rc.2"
     react-dom: "npm:19.2.3"
     react-native: "patch:react-native@npm%3A0.86.3#~/.yarn/patches/react-native-npm-0.86.3-2292697f2f.patch"
@@ -44047,6 +44048,15 @@ __metadata:
   version: 1.1.1
   resolution: "react-clone-referenced-element@npm:1.1.1"
   checksum: 10/aa2432be46f99f50b4b611b93a333a6300699f8b53fd41b66f76a354fce8c512fd3432cdf919f06fba49987d64bc243d219204f879bd25c58b9f57a1b0e6b260
+  languageName: node
+  linkType: hard
+
+"react-compiler-marker@npm:0.2.0":
+  version: 0.2.0
+  resolution: "react-compiler-marker@npm:0.2.0"
+  bin:
+    react-compiler-marker: bin/cli.js
+  checksum: 10/1a52112f3eb0308d0d25d5212158938211d7050362cb116c2e16f41e7a7e3cc276f535e78867d594267f15a1a714610ba3b3eda9afa16271143640a43f74eede
   languageName: node
   linkType: hard
 
