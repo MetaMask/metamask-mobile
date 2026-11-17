@@ -65,6 +65,7 @@ import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import {
   clearPerpsOutreachApiMocks,
   setupPerpsOutreachApiMock,
+  waitForPerpsOutreachQuery,
 } from '../../../../../../tests/component-view/api-mocking/perpsOutreach';
 import {
   clearLeaderboardApiMock,
@@ -138,26 +139,21 @@ describe('PerpsHomeView', () => {
     clearPerpsOutreachApiMocks();
   });
 
-  // Temporarily skipped: flaky on CI when run first/cold in shard 1
-  // (`Unable to find an element with testID: perps-outreach-banner`).
-  // https://github.com/MetaMask/metamask-mobile/issues/39860 (MCWP-1192)
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('shows and dismisses an eligible Terminal outreach campaign', async () => {
+  it('shows and dismisses an eligible Terminal outreach campaign', async () => {
     // The fixture's selected account enables the outreach query on the first
     // render. Leave the session profile unset: a profile that resolves after
     // mount changes the query key, aborts the in-flight request, and makes the
     // banner wait on a second round trip.
-    renderPerpsHomeView({
+    const { queryClient } = renderPerpsHomeView({
       overrides: eligibleOverrides,
     });
 
-    // Waits on the single Terminal outreach request keyed by the account.
+    // On CI this case runs first in a fresh worker, where cold post-mount work
+    // can outlast any `findBy*` budget. Wait for the answer, not a deadline.
+    await act(() => waitForPerpsOutreachQuery(queryClient));
+
     expect(
-      await screen.findByTestId(
-        PerpsOutreachBannerSelectorsIDs.BANNER,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      screen.getByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
     ).toBeOnTheScreen();
 
     fireEvent.press(
