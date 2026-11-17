@@ -5,11 +5,6 @@ import { render } from '@testing-library/react-native';
 import AnimatedSpinner from '../../../../../UI/AnimatedSpinner';
 import { StaticSimulationLayout } from './static-simulation-layout';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false),
-}));
-
 jest.mock('../../../../../UI/AnimatedSpinner');
 
 describe('StaticSimulationLayout', () => {

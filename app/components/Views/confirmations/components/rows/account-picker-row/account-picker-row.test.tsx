@@ -3,9 +3,8 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { mockTheme } from '../../../../../../util/theme';
 import { AccountPickerRowContent } from './account-picker-row';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false),
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({

@@ -4,9 +4,8 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import Tooltip from './Tooltip';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false),
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
 }));
 
 describe('Tooltip', () => {

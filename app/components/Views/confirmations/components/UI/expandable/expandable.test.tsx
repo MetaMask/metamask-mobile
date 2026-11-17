@@ -6,9 +6,8 @@ import InfoSection from '../info-row/info-section';
 import InfoRow from '../info-row/info-row';
 import Expandable from './expandable';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false),
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
 }));
 
 describe('Expandable', () => {
