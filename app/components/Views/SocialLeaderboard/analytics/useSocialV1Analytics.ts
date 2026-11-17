@@ -54,10 +54,9 @@ export const useSocialAnalytics = () => {
   const trackInteraction = useCallback(
     (properties: SocialUIInteractionProperties) => {
       if (isSocialV1Enabled) {
-        track(
-          MetaMetricsEvents.SOCIAL_UI_INTERACTION,
-          { ...withSocialAppBuild(properties) },
-        );
+        track(MetaMetricsEvents.SOCIAL_UI_INTERACTION, {
+          ...withSocialAppBuild(properties),
+        });
       }
     },
     [isSocialV1Enabled, track],
@@ -65,10 +64,9 @@ export const useSocialAnalytics = () => {
   const trackScreenViewed = useCallback(
     (properties: SocialScreenViewedProperties) => {
       if (isSocialV1Enabled) {
-        track(
-          MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
-          { ...withSocialAppBuild(properties) },
-        );
+        track(MetaMetricsEvents.SOCIAL_SCREEN_VIEWED, {
+          ...withSocialAppBuild(properties),
+        });
       }
     },
     [isSocialV1Enabled, track],
