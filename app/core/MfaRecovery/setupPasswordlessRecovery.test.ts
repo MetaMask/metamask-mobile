@@ -4,7 +4,7 @@ import {
   MfaRecoveryService,
   type MfaRecoveryRunIdentifiers,
 } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
-import { LinkSocialLoginError } from './linkSocialLogin';
+import { LinkSocialLoginError } from '../Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
 import {
   PASSWORDLESS_RECOVERY_SETUP_OPERATION,
   PasswordlessRecoverySetupError,

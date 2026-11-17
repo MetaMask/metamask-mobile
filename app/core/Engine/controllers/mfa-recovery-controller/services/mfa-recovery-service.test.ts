@@ -1,6 +1,6 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
-import { linkSocialLogin } from '../../../../MfaRecovery/linkSocialLogin';
 import { createSiweIdentifier } from '../auth/identifiers';
+import { linkSocialLogin } from '../social-login/link-social-login';
 import { MfaRecoveryService } from './mfa-recovery-service';
 
 const ADDRESS = '0xAbC';
@@ -58,7 +58,7 @@ jest.mock('../config', () => ({
   getCubistConfig: () => ({ authAudience: mockCubistAuthAudience }),
 }));
 
-jest.mock('../../../../MfaRecovery/linkSocialLogin', () => ({
+jest.mock('../social-login/link-social-login', () => ({
   linkSocialLogin: jest.fn(),
 }));
 
@@ -124,11 +124,13 @@ function createService({
   seedless = createSeedless(),
   authIdentifiers = [AUTH_PASSKEY, AUTH_SOCIAL],
   address = ADDRESS,
+  getSocialLinkEmail,
 }: {
   controller?: ReturnType<typeof createController>;
   seedless?: ReturnType<typeof createSeedless>;
   authIdentifiers?: Identifier[];
   address?: string;
+  getSocialLinkEmail?: () => Promise<string | undefined>;
 } = {}) {
   const auth = { identifiers: authIdentifiers };
   const verifyMfa = jest.fn().mockResolvedValue(undefined);
@@ -152,6 +154,7 @@ function createService({
   const service = new MfaRecoveryService({
     verifyMfa,
     approvalOperation: OPERATION,
+    getSocialLinkEmail,
   });
   return {
     service,
@@ -438,6 +441,38 @@ describe('MfaRecoveryService', () => {
     });
   });
 
+  describe('linkSocialLogin', () => {
+    it('verifies before linking with the given email', async () => {
+      const { service, verifyMfa, seedless } = createService();
+      const order: string[] = [];
+      verifyMfa.mockImplementation(async () => {
+        order.push('verify');
+      });
+      mockLinkSocialLogin.mockImplementation(async () => {
+        order.push('link');
+      });
+
+      await service.linkSocialLogin('dev@example.com');
+
+      expect(order).toStrictEqual(['verify', 'link']);
+      expect(mockLinkSocialLogin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          env: AUTH_ENV,
+          seedlessState: seedless.state,
+          verifierId: 'dev@example.com',
+        }),
+      );
+    });
+
+    it('does not link when verification fails', async () => {
+      const { service, verifyMfa } = createService();
+      verifyMfa.mockRejectedValue(new Error('cancelled'));
+
+      await expect(service.linkSocialLogin()).rejects.toThrow('cancelled');
+      expect(mockLinkSocialLogin).not.toHaveBeenCalled();
+    });
+  });
+
   describe('setUp', () => {
     function createSetUpService(
       options: Parameters<typeof createService>[0] = {},
@@ -514,6 +549,7 @@ describe('MfaRecoveryService', () => {
         seedlessState: seedless.state,
         getSocialAccessToken: expect.any(Function),
         getVerifiedAccessToken: expect.any(Function),
+        verifierId: undefined,
       });
       await expect(dependencies.getSocialAccessToken()).resolves.toBe(
         'social-token',
@@ -529,6 +565,35 @@ describe('MfaRecoveryService', () => {
         AUTH_SOCIAL,
         AUTH_PASSKEY,
       ]);
+    });
+
+    it('links with the trimmed email from getSocialLinkEmail', async () => {
+      const getSocialLinkEmail = jest
+        .fn()
+        .mockResolvedValue('  dev@example.com ');
+      const { service, auth } = createSetUpService({
+        authIdentifiers: [AUTH_PASSKEY],
+        getSocialLinkEmail,
+      });
+      mockLinkSocialLogin.mockImplementation(async () => {
+        auth.identifiers = [AUTH_PASSKEY, AUTH_SOCIAL];
+      });
+
+      await service.setUp([AUTH_PASSKEY]);
+
+      expect(mockLinkSocialLogin).toHaveBeenCalledWith(
+        expect.objectContaining({ verifierId: 'dev@example.com' }),
+      );
+    });
+
+    it('does not ask for the link email when Auth already lists the social identifier', async () => {
+      const getSocialLinkEmail = jest.fn();
+      const { service } = createSetUpService({ getSocialLinkEmail });
+
+      await service.setUp([AUTH_PASSKEY]);
+
+      expect(getSocialLinkEmail).not.toHaveBeenCalled();
+      expect(mockLinkSocialLogin).not.toHaveBeenCalled();
     });
 
     it('throws social_identifier_not_approved when linking does not add it', async () => {

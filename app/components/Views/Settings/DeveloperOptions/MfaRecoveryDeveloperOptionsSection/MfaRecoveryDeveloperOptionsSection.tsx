@@ -22,11 +22,7 @@ import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagCo
 import { useMfa } from '../../../../../util/identity/mfa/useMfa';
 import { clearPendingOperationForDev } from './clearPendingOperation';
 import { createSocialIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
-import { authEnv } from '../../../../../core/apiEnv';
-import {
-  linkSocialLogin,
-  LinkSocialLoginError,
-} from '../../../../../core/MfaRecovery/linkSocialLogin';
+import { LinkSocialLoginError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
 import { redactForDisplay } from '../../../../../core/MfaRecovery/redactForDisplay';
 import CubistIdentifiersBottomSheet from './CubistIdentifiersBottomSheet';
 import MfaRecoveryOptionsBottomSheet, {
@@ -544,8 +540,6 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     setIsRunning(true);
     setError(null);
     setResult(null);
-    const { AuthenticationController, SeedlessOnboardingController } =
-      Engine.context;
     let status: string;
     try {
       // Asked first: the verification below opens its own modal.
@@ -553,18 +547,10 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       if (verifierId === null) {
         status = 'cancelled';
       } else {
-        // Auth requires an aal:2 token to attach an identifier once the
-        // profile has an MFA factor; the verification session holds that token.
-        await verifyMfa();
-        await linkSocialLogin({
-          env: authEnv(),
-          seedlessState: SeedlessOnboardingController.state,
-          getSocialAccessToken: () =>
-            SeedlessOnboardingController.getAccessToken(),
-          getVerifiedAccessToken: () =>
-            AuthenticationController.getVerificationToken()?.accessToken,
-          verifierId,
-        });
+        await new MfaRecoveryService({
+          verifyMfa,
+          approvalOperation: AAL2_APPROVAL_OPERATION,
+        }).linkSocialLogin(verifierId);
         status = 'linked';
       }
     } catch (linkError) {

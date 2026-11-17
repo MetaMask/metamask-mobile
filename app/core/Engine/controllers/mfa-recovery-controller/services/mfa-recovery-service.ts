@@ -7,7 +7,6 @@ import type { MfaApproval } from '@metamask/profile-sync-controller/sdk';
 import { bytesToHex } from '@metamask/utils';
 import { authEnv } from '../../../../apiEnv';
 import Engine from '../../../../Engine';
-import { linkSocialLogin } from '../../../../MfaRecovery/linkSocialLogin';
 import { createSiweIdentifier } from '../auth/identifiers';
 import {
   isProvablePasskeyIdentifier,
@@ -16,6 +15,7 @@ import {
 import { getCubistConfig, getToprfRecoveryConfig } from '../config';
 import { RECOVERY_SECRET_LENGTH } from '../constants';
 import { MfaRecoveryControllerError } from '../errors';
+import { linkSocialLogin } from '../social-login/link-social-login';
 import {
   getCandidateIdentifiers,
   isSameIdentifier,
@@ -39,6 +39,11 @@ export interface MfaRecoveryServiceOptions {
   verifyMfa: () => Promise<void>;
   /** The MFA reason the recovery approvals are requested for. */
   approvalOperation: string;
+  /**
+   * Asks for the email to link the social login with during setup.
+   * `undefined` links with the social token's own email.
+   */
+  getSocialLinkEmail?: () => Promise<string | undefined>;
 }
 
 /** The identifiers a run reads and writes with. */
@@ -273,6 +278,27 @@ export class MfaRecoveryService {
   }
 
   /**
+   * Attaches the seedless social login to the Auth profile, so Auth lists it
+   * as a recovery identifier. Verifies first: Auth needs an aal2 token to add
+   * a login once the profile has a factor.
+   *
+   * @param verifierId - Email to link instead of the token's own.
+   */
+  async linkSocialLogin(verifierId?: string): Promise<void> {
+    await this.verifyMfa();
+    const { seedlessOnboardingController } = this;
+    await linkSocialLogin({
+      env: authEnv(),
+      seedlessState: seedlessOnboardingController.state,
+      getSocialAccessToken: () => seedlessOnboardingController.getAccessToken(),
+      getVerifiedAccessToken: () =>
+        Engine.context.AuthenticationController.getVerificationToken()
+          ?.accessToken,
+      verifierId,
+    });
+  }
+
+  /**
    * Returns the identifier each type would be added with. Auth's identifiers
    * win, with fallbacks to the primary account and the seedless login.
    */
@@ -368,17 +394,10 @@ export class MfaRecoveryService {
     return { address, authIdentifiers: await this.getAuthIdentifiers() };
   }
 
-  /** Runs after `verifyMfa`, which provides the token linking needs. */
   async #linkSocialLogin(): Promise<void> {
-    const { seedlessOnboardingController } = this;
-    await linkSocialLogin({
-      env: authEnv(),
-      seedlessState: seedlessOnboardingController.state,
-      getSocialAccessToken: () => seedlessOnboardingController.getAccessToken(),
-      getVerifiedAccessToken: () =>
-        Engine.context.AuthenticationController.getVerificationToken()
-          ?.accessToken,
-    });
+    const email =
+      (await this.#options.getSocialLinkEmail?.())?.trim() || undefined;
+    await this.linkSocialLogin(email);
   }
 
   async #requestApproval(

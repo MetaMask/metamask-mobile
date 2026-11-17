@@ -1,6 +1,6 @@
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
 import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
-import { LinkSocialLoginError } from './linkSocialLogin';
+import { LinkSocialLoginError } from '../Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
 import { redactForDisplay } from './redactForDisplay';
 
 /** Operation named on the Auth approvals this setup requests. */

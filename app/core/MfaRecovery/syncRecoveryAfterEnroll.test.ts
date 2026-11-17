@@ -1,6 +1,5 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
-import { ensureSocialLoginLinked } from './ensureSocialLoginLinked';
 import { PASSWORDLESS_RECOVERY_SETUP_OPERATION } from './setupPasswordlessRecovery';
 import { syncRecoveryAfterEnroll } from './syncRecoveryAfterEnroll';
 
@@ -8,12 +7,6 @@ jest.mock(
   '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
   () => ({ MfaRecoveryService: jest.fn() }),
 );
-
-jest.mock('./ensureSocialLoginLinked', () => ({
-  ensureSocialLoginLinked: jest.fn(),
-}));
-
-const mockEnsureLinked = jest.mocked(ensureSocialLoginLinked);
 
 const PASSKEY: Identifier = {
   type: 'passkey',
@@ -62,49 +55,17 @@ function createService({
 describe('syncRecoveryAfterEnroll', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockEnsureLinked.mockResolvedValue('already_linked');
   });
 
-  it('links the social login with the given email before setting recovery up', async () => {
-    const service = createService({
-      status: 'NotEnabled',
-      candidates: { siwe: SIWE },
-    });
+  it('gives the service the social link email prompt for setup', async () => {
+    createService({ status: 'NotEnabled', candidates: { siwe: SIWE } });
     const getSocialLinkEmail = jest.fn();
-    const order: string[] = [];
-    mockEnsureLinked.mockImplementation(async () => {
-      order.push('link');
-      return 'linked';
-    });
-    service.setUp.mockImplementation(async () => {
-      order.push('setUp');
-      return 'enabled';
-    });
 
     await syncRecoveryAfterEnroll('totp', { verifyMfa, getSocialLinkEmail });
 
-    expect(mockEnsureLinked).toHaveBeenCalledWith(service, {
-      getVerifierId: getSocialLinkEmail,
-    });
-    expect(order).toStrictEqual(['link', 'setUp']);
-  });
-
-  it('does not set recovery up when linking fails', async () => {
-    const service = createService({ status: 'NotEnabled' });
-    mockEnsureLinked.mockRejectedValue(new Error('link failed'));
-
-    await expect(
-      syncRecoveryAfterEnroll('totp', { verifyMfa }),
-    ).rejects.toThrow('link failed');
-    expect(service.setUp).not.toHaveBeenCalled();
-  });
-
-  it('does not check the social link once recovery is set up', async () => {
-    createService({ cubist: [SIWE], candidates: { passkey: PASSKEY } });
-
-    await syncRecoveryAfterEnroll('passkey', { verifyMfa });
-
-    expect(mockEnsureLinked).not.toHaveBeenCalled();
+    expect(MfaRecoveryService).toHaveBeenCalledWith(
+      expect.objectContaining({ getSocialLinkEmail }),
+    );
   });
 
   it("builds the service with the caller's verifyMfa and the setup approval operation", async () => {

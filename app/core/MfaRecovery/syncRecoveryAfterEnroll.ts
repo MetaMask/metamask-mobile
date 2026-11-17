@@ -1,7 +1,6 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import type { MfaMethod } from '../../util/identity/mfa/engine/types';
 import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
-import { ensureSocialLoginLinked } from './ensureSocialLoginLinked';
 import { PASSWORDLESS_RECOVERY_SETUP_OPERATION } from './setupPasswordlessRecovery';
 
 export interface SyncRecoveryAfterEnrollOptions {
@@ -30,13 +29,10 @@ export async function syncRecoveryAfterEnroll(
   const service = new MfaRecoveryService({
     verifyMfa,
     approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
+    getSocialLinkEmail,
   });
 
   if (service.getStatus() === 'NotEnabled') {
-    // Setup registers Auth's social identifier, which exists only once linked.
-    await ensureSocialLoginLinked(service, {
-      getVerifierId: getSocialLinkEmail,
-    });
     const candidates = await service.getCandidateIdentifiers();
     const identifiers = Object.values(candidates).filter(
       (identifier): identifier is Identifier => identifier !== undefined,

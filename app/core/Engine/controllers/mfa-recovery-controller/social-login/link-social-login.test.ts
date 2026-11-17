@@ -1,7 +1,7 @@
 import { keccak_256 as keccak256 } from '@noble/hashes/sha3';
 import { Env } from '@metamask/profile-sync-controller/sdk';
 import { bytesToHex } from '@metamask/utils';
-import { LinkSocialLoginError, linkSocialLogin } from './linkSocialLogin';
+import { LinkSocialLoginError, linkSocialLogin } from './link-social-login';
 
 const encode = (value: object): string =>
   Buffer.from(JSON.stringify(value))

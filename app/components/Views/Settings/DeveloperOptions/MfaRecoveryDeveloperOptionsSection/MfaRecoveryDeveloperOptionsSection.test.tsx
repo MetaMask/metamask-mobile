@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import { isMfaRecoveryConfigured } from '../../../../../core/Engine/controllers/mfa-recovery-controller/config';
 import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagController/mfaRecovery';
-import { LinkSocialLoginError } from '../../../../../core/MfaRecovery/linkSocialLogin';
+import { LinkSocialLoginError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
 import { SOCIAL_LINK_EMAIL_TEST_IDS } from '../../../shared/SocialLinkEmailBottomSheet';
 import MfaRecoveryDeveloperOptionsSection from './MfaRecoveryDeveloperOptionsSection';
 
@@ -58,10 +58,16 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../../core/MfaRecovery/linkSocialLogin', () => ({
-  ...jest.requireActual('../../../../../core/MfaRecovery/linkSocialLogin'),
-  linkSocialLogin: (dependencies: unknown) => mockLinkSocialLogin(dependencies),
-}));
+jest.mock(
+  '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login',
+    ),
+    linkSocialLogin: (dependencies: unknown) =>
+      mockLinkSocialLogin(dependencies),
+  }),
+);
 
 jest.mock('../../../../../core/apiEnv', () => ({
   authEnv: () => 'test-env',
