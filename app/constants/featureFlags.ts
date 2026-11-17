@@ -55,6 +55,7 @@ export enum FeatureFlagNames {
   exploreBrandRefresh = 'exploreBrandRefresh',
   glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
+  mfaRecovery = 'mfaRecovery',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

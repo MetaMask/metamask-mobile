@@ -241,6 +241,9 @@
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
         },
+        "MfaRecoveryController": {
+          "pendingOperation": null
+        },
         "MultichainNetworkController": {
           "isEvmSelected": true,
           "multichainNetworkConfigurationsByChainId": {

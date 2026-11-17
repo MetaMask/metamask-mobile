@@ -1,4 +1,8 @@
-import { ResponseType, AuthRequest } from 'expo-auth-session';
+import {
+  ResponseType,
+  AuthRequest,
+  type AuthSessionResult,
+} from 'expo-auth-session';
 import {
   AuthConnection,
   AuthRequestParams,
@@ -8,6 +12,20 @@ import {
 } from '../../OAuthInterface';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
+
+/**
+ * Successful Android Apple browser result.
+ * expo-auth-session types success and error as one member
+ * (`type: 'error' | 'success'`), so Extract on `{ type: 'success' }` is `never`.
+ */
+type AppleAuthorizationSuccess = Extract<
+  AuthSessionResult,
+  { params: Record<string, string> }
+> & { type: 'success' };
+
+const isAppleAuthorizationSuccess = (
+  result: AuthSessionResult,
+): result is AppleAuthorizationSuccess => result.type === 'success';
 
 export interface AndroidAppleLoginHandlerParams extends BaseHandlerOptions {
   clientId: string;
@@ -57,6 +75,26 @@ export class AndroidAppleLoginHandler
   }
 
   /**
+   * Returns the Apple identity token from the auth-server redirect.
+   * The caller nonce is sent in the same state `login()` uses, and the token
+   * is the provider `id_token` on the redirect, not the auth-server code.
+   *
+   * @returns The Apple identity token.
+   */
+  async getProviderIdToken(): Promise<string> {
+    const { challenge } = this.generateCodeVerifierChallenge();
+    const result = await this.#promptAppleAuthorization(challenge);
+    const idToken = result.params.id_token;
+    if (typeof idToken !== 'string' || idToken.length === 0) {
+      throw new OAuthError(
+        'handleAndroidAppleLogin: Missing identity token',
+        OAuthErrorType.AppleLoginError,
+      );
+    }
+    return idToken;
+  }
+
+  /**
    * This method is used to login with apple via customChromeTab via expo-auth-session.
    * It generates the auth url with server redirect uri and state.
    * It creates a client auth request instance so that the auth-session can return result on appRedirectUrl.
@@ -69,7 +107,27 @@ export class AndroidAppleLoginHandler
    */
   async login(): Promise<LoginHandlerCodeResult> {
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
+    await this.#promptAppleAuthorization(challenge);
 
+    return {
+      authConnection: AuthConnection.Apple,
+      code: challenge,
+      clientId: this.clientId,
+      redirectUri: this.redirectUri,
+      codeVerifier,
+    };
+  }
+
+  /**
+   * Runs the Android Apple browser prompt. Cancel, dismiss, and error results
+   * throw the same OAuthError values as before.
+   *
+   * @param challenge - PKCE challenge embedded in the auth-server state.
+   * @returns The successful auth-session result.
+   */
+  async #promptAppleAuthorization(
+    challenge: string,
+  ): Promise<AppleAuthorizationSuccess> {
     const state = JSON.stringify({
       provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
@@ -94,14 +152,8 @@ export class AndroidAppleLoginHandler
       authorizationEndpoint: this.OAUTH_SERVER_URL,
     });
 
-    if (result.type === 'success') {
-      return {
-        authConnection: AuthConnection.Apple,
-        code: challenge,
-        clientId: this.clientId,
-        redirectUri: this.redirectUri,
-        codeVerifier,
-      };
+    if (isAppleAuthorizationSuccess(result)) {
+      return result;
     }
     if (result.type === 'error') {
       if (result.error) {
