@@ -107,7 +107,6 @@ import { HYPERLIQUID_CAIP2_CHAIN_ID, toFeedAssetId } from '../../../SocialFeed';
 import { HYPERLIQUID_CHAIN_NAME } from '../../../SocialFeed/utils/perp';
 import type { SocialFeedPageHandle } from '../../../SocialFeed/types';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
-import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPostToFeedButton from '../../components/PerpsPostToFeedButton';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
@@ -1937,9 +1936,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   );
 
   // Social tabs: the Feed tab's posts are rows of the screen's own list.
-  const isSocialLeaderboardEnabled = useSelector(
-    selectSocialLeaderboardEnabled,
-  );
   const [activeSocialTab, setActiveSocialTab] =
     useState<PerpsMarketSocialTab>('overview');
   const feedAssetIds = useMemo(() => {
@@ -2319,7 +2315,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             onLayout={handleScrollLayout}
           >
             <PerpsFeedScroller
-              enabled={activeSocialTab === 'feed' && isSocialLeaderboardEnabled}
+              enabled={activeSocialTab === 'feed'}
               isActive={activeSocialTab === 'feed'}
               refreshProgressViewOffset={isScrollLaidOut ? headerInset : 0}
               scope="all"

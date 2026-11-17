@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import {
+  act,
   render,
   fireEvent,
   within,
@@ -22,6 +23,7 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
 import { useMoneyAccountPlusTrialEligibility } from './hooks/useMoneyAccountPlusTrialEligibility';
 import { useStartProSubscription } from '../../hooks/useStartProSubscription';
+import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from '../../hooks/isSubscriptionAlreadyStartingError';
 import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
 import { formatSubscriptionFiat } from './utils/formatSubscriptionFiat';
 import type {
@@ -121,13 +123,17 @@ const mockStartSubscriptionState = ({
   });
 };
 
-const renderBenefits = (initialPlan?: PlanId) =>
+const renderBenefits = (
+  initialPlan?: PlanId,
+  onPlanChange?: (planId: PlanId) => void,
+) =>
   render(
     <Benefits
       onSuccess={mockOnSuccess}
       onProcessing={mockOnProcessing}
       onCheckoutStart={mockOnCheckoutStart}
       onCheckoutError={mockOnCheckoutError}
+      onPlanChange={onPlanChange}
       initialPlan={initialPlan}
     />,
   );
@@ -405,6 +411,42 @@ describe('Benefits', () => {
       expect(mockOnSuccess).not.toHaveBeenCalled();
     });
 
+    it('does not treat an overlapping start as a checkout failure', async () => {
+      let resolveFirst: (value: {
+        outcome: StartProSubscriptionOutcome;
+      }) => void = () => undefined;
+      mockStartSubscription
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveFirst = resolve;
+            }),
+        )
+        .mockRejectedValueOnce(
+          new Error(SUBSCRIPTION_ALREADY_STARTING_MESSAGE),
+        );
+      const { getByTestId } = renderBenefits();
+      const cta = getByTestId(BenefitsTestIds.CTA_BUTTON);
+
+      fireEvent.press(cta);
+      fireEvent.press(cta);
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockOnCheckoutStart).toHaveBeenCalledTimes(2);
+      expect(mockStartSubscription).toHaveBeenCalledTimes(2);
+      expect(mockOnCheckoutError).not.toHaveBeenCalled();
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveFirst({ outcome: StartProSubscriptionOutcome.Ready });
+      });
+
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+      expect(mockOnCheckoutError).not.toHaveBeenCalled();
+    });
+
     it('starts the subscription and calls onSuccess with the annual checkout plan by default', async () => {
       const { getByTestId } = renderBenefits();
 
@@ -520,6 +562,31 @@ describe('Benefits', () => {
         'accessibilityState',
         expect.objectContaining({ busy: true, disabled: true }),
       );
+    });
+
+    it('keeps the selected plan locked while the subscription is submitting', () => {
+      mockStartSubscriptionState({ isSubmitting: true });
+      const onPlanChange = jest.fn();
+      const { getByTestId, getByText, queryByText } = renderBenefits(
+        undefined,
+        onPlanChange,
+      );
+
+      fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
+
+      expect(getByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeChecked();
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
+      ).not.toBeChecked();
+      expect(
+        getByText(strings('pro_subscription.benefits.atm_fees.subtitle')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(
+          strings('pro_subscription.benefits.atm_fees.subtitle_monthly'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(onPlanChange).not.toHaveBeenCalled();
     });
 
     it('pressing a benefit row opens the detail sheet', () => {

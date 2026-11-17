@@ -5,7 +5,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonsAlignment,
   ButtonSize,
@@ -49,6 +48,9 @@ import type {
   SocialTraderCohort,
 } from './types';
 import type { SocialShellTab } from '../types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   root: {
@@ -108,6 +110,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   onReset,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
 
   const showType = tab !== 'leaderboard';
@@ -250,14 +253,15 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
               onClose={onClose}
               testID={SocialFiltersBottomSheetSelectorsIDs.SHEET}
             >
-              <BottomSheetHeader
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
                 onClose={onClose}
                 closeButtonProps={{
                   testID: SocialFiltersBottomSheetSelectorsIDs.CLOSE_BUTTON,
                 }}
               >
                 {strings('social_leaderboard.shell.filters.title')}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
 
               <ScrollView>
                 <Box twClassName="px-4 pb-4 mb-4">

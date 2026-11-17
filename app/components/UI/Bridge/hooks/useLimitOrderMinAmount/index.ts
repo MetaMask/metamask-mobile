@@ -1,11 +1,6 @@
-import { useMemo } from 'react';
-import { BigNumber } from 'bignumber.js';
 import type { BridgeToken } from '../../types';
-import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
-import { useFiatToUsdRate } from '../useFiatToUsdRate';
 import { getLimitOrderMinAmountUsd } from '../../utils/limitOrders/getLimitOrderMinAmountUsd';
-
-const USD_CENT_DECIMALS = 2;
+import { useOrderMinAmount } from '../useOrderMinAmount';
 
 interface UseLimitOrderMinAmountParams {
   sourceToken?: BridgeToken;
@@ -18,6 +13,10 @@ interface UseLimitOrderMinAmountResult {
    * `undefined` when no minimum is configured for it.
    */
   minAmountUsd: number | undefined;
+  /** Minimum formatted in the user's selected currency. */
+  formattedMinAmountInSelectedCurrency: string | undefined;
+  /** Whether the minimum cannot be validated with the available rates. */
+  hasError: boolean;
   /**
    * Whether the source amount is worth less than {@link minAmountUsd}.
    */
@@ -31,37 +30,14 @@ interface UseLimitOrderMinAmountResult {
  * The amount is valued at the live market rate, which is what the API checks
  * the minimum against when the order is created.
  *
- * Without a USD price for the source token the amount cannot be checked, so it
- * is not reported as below the minimum; the missing price banner blocks the
- * order in that case instead.
+ * Without the rates required to validate the minimum, the hook returns an
+ * error so the order can fail closed.
  */
 export const useLimitOrderMinAmount = ({
   sourceToken,
   sourceAmount,
 }: UseLimitOrderMinAmountParams): UseLimitOrderMinAmountResult => {
-  const sourceTokenFiatRate = useLiveTokenFiatRate(sourceToken);
-  const fiatToUsdRate = useFiatToUsdRate(sourceToken?.chainId);
   const minAmountUsd = getLimitOrderMinAmountUsd(sourceToken?.chainId);
 
-  const isBelowMinAmount = useMemo(() => {
-    if (
-      minAmountUsd === undefined ||
-      sourceTokenFiatRate === undefined ||
-      fiatToUsdRate === undefined
-    ) {
-      return false;
-    }
-
-    // Fiat input is converted to a token amount rounded down to the token's
-    // decimals, so entering exactly the minimum lands a fraction of a cent
-    // below it. Comparing whole cents keeps that amount at the minimum.
-    const sourceAmountUsd = new BigNumber(sourceAmount || 0)
-      .times(sourceTokenFiatRate)
-      .times(fiatToUsdRate)
-      .decimalPlaces(USD_CENT_DECIMALS, BigNumber.ROUND_HALF_UP);
-
-    return sourceAmountUsd.isFinite() && sourceAmountUsd.lt(minAmountUsd);
-  }, [fiatToUsdRate, minAmountUsd, sourceAmount, sourceTokenFiatRate]);
-
-  return { minAmountUsd, isBelowMinAmount };
+  return useOrderMinAmount({ minAmountUsd, sourceAmount, sourceToken });
 };

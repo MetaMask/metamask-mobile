@@ -519,6 +519,19 @@ describe('fixture-validation', () => {
       expect(a).not.toBe(b);
       expect(a).toEqual(b);
     });
+
+    it('ignores the socialEarlyAccess profile id when it becomes a string after sign-in', () => {
+      const baseline = {
+        socialEarlyAccess: { profileId: null, hasAccess: false },
+      };
+      const candidate = {
+        socialEarlyAccess: { profileId: 'profile-1', hasAccess: false },
+      };
+
+      const diff = computeSchemaDiff(baseline, candidate);
+
+      expect(diff.typeMismatches).toEqual([]);
+    });
   });
 
   describe('normalizeExportedState', () => {

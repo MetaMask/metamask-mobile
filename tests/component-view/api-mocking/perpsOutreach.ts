@@ -1,4 +1,8 @@
-import { onlineManager } from '@tanstack/react-query';
+import {
+  notifyManager,
+  onlineManager,
+  type QueryClient,
+} from '@tanstack/react-query';
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock, { type Scope } from 'nock';
 import { getTerminalOutreachUrl } from '../../../app/components/UI/Perps/constants/terminalApi';
@@ -60,6 +64,49 @@ export function setupPerpsOutreachApiMock(
   }
 
   return scope;
+}
+
+const PERPS_OUTREACH_QUERY_KEY_PREFIX = ['perps', 'outreach'] as const;
+
+/**
+ * Resolves once the outreach query has answered (campaign or none) and React
+ * Query has handed that answer to the mounted observers. Await it inside
+ * `act` so the resulting render is committed when `act` returns.
+ *
+ * Nothing here has a wall-clock deadline. A `findBy*` budget starts once the
+ * first render returns; in a cold Jest worker on a slow runner, post-mount work
+ * and the re-render that mounts the banner can hold the JS thread past that
+ * budget, and the wait rejects although the answer is already in the cache.
+ */
+export function waitForPerpsOutreachQuery(
+  queryClient: QueryClient,
+): Promise<void> {
+  const queryCache = queryClient.getQueryCache();
+  const hasAnswered = (): boolean =>
+    queryCache
+      .findAll({ queryKey: PERPS_OUTREACH_QUERY_KEY_PREFIX })
+      .some(
+        ({ state }) =>
+          state.status !== 'pending' && state.fetchStatus === 'idle',
+      );
+
+  return new Promise((resolve) => {
+    // `Query#dispatch` queues observer notifications before it notifies cache
+    // listeners, so a callback scheduled here runs after the mounted
+    // observers have been told about the answer.
+    const resolveAfterObservers = (): void => notifyManager.schedule(resolve);
+
+    if (hasAnswered()) {
+      resolveAfterObservers();
+      return;
+    }
+    const unsubscribe = queryCache.subscribe(() => {
+      if (hasAnswered()) {
+        unsubscribe();
+        resolveAfterObservers();
+      }
+    });
+  });
 }
 
 export function clearPerpsOutreachApiMocks(): void {

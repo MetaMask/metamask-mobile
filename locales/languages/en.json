@@ -1556,6 +1556,10 @@
       "order_in_progress": "Order in progress",
       "order_complete": "Order complete",
       "order_failed": "Order failed",
+      "close_in_progress": "Closing position",
+      "position_closed": "Position closed",
+      "close_failed": "Close failed",
+      "close_pair_label": "Close {{position}}",
       "post_and_earn_title": "Post and earn",
       "post_and_earn_body": "You earn 15% on fees every time someone copies your trade",
       "create_post": "Create post",
@@ -1870,7 +1874,8 @@
       "username_too_long": "Use at most {{max}} characters.",
       "username_invalid": "Use letters, numbers, and underscores.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
-      "username_check_error": "Couldn't check that username. Check your connection and try again.",
+      "username_reserved": "This handle is unavailable. Choose another one.",
+      "username_check_error": "Couldn't check that handle. Check your connection and try again.",
       "connect_x_error": "Couldn't connect X. Check your connection and try again.",
       "save_error": "Couldn't create your profile. Check your connection and try again.",
       "try_again": "Try again",
@@ -1924,8 +1929,27 @@
       "save_error": "Couldn't save changes. Check your connection and try again.",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown_default": "You can only change your linked account once every 30 days.",
       "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
+      "x_account_already_linked": "This X account is already linked to another profile. Use a different X account.",
+      "x_profile_already_linked": "Your profile is already linked to a different X account. Disconnect it to continue.",
+      "x_connection_expired": "The X connection expired. Reconnect X and try again.",
+      "x_account_link_conflict": "This X account couldn't be linked. Try again.",
+      "session_expired": "Your session expired. Sign back in and try again.",
+      "rate_limited": "Too many attempts. Try again in a moment.",
+      "social_profiles_unavailable": "Social profiles aren’t available for your account yet.",
+      "save_retry": "Couldn’t save changes. Try again.",
+      "create_retry": "Couldn’t create your profile. Try again.",
+      "connect_x_retry": "Couldn’t connect X. Try again.",
+      "profile_not_found": "We couldn’t find your profile.",
+      "profile_already_exists": "This profile already exists.",
+      "profile_changed": "Your profile changed while you were saving. Try again.",
+      "username_immutable": "Your handle can't be changed.",
+      "handle_check_unavailable": "Couldn't check that handle. Try again in a moment.",
+      "server_error": "Something went wrong on our end. Try again in a moment.",
+      "input_rejected": "Some of what you entered wasn't accepted. Edit and try again.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_reserved": "This handle is unavailable. Choose another one.",
       "username_too_short": "Use at least {{min}} characters.",
       "username_too_long": "Use at most {{max}} characters.",
       "username_invalid": "Use letters, numbers, and underscores.",
@@ -3462,6 +3486,9 @@
       "losers": "Losers",
       "recently_added": "Recently added",
       "social_feed": "Social",
+      "live_trades": "Live trades",
+      "live_trades_subtitle": "Top traders latest moves",
+      "win_rate": "Win rate",
       "trending": "Trending",
       "top_traders": "Top traders"
     },
@@ -3601,6 +3628,11 @@
     },
     "selection_sheet": {
       "save": "Save"
+    },
+    "exchange_filter": {
+      "title": "Filter by exchange",
+      "tagline_lighter": "Low fee, high leverage",
+      "tagline_hyperliquid": "High volume, low slippage"
     },
     "market_type": {
       "filter_by": "Filter by"
@@ -4743,14 +4775,12 @@
   },
   "experience_enhancer_modal": {
     "title": "Help us enhance your experience",
-    "paragraph1a": "In addition to ",
-    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
-    "link": "MetaMetrics",
+    "paragraph1b": "We’d like to use data (like information from cookies) to learn how you interact with our marketing communications.",
     "paragraph2": "This helps us personalize what we share with you, like:",
     "bullet1": "Latest developments",
     "bullet2": "Product features",
     "bullet3": "Other relevant promotional materials",
-    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
+    "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "I agree",
     "cancel": "No thanks"
   },
@@ -5110,15 +5140,15 @@
     "agree": "I Agree",
     "decline": "No thanks",
     "description_title": "Help us improve MetaMask",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data anytime.",
     "description_content_2": "When we gather metrics, it will always be...",
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
-    "gather_basic_usage_title": "Gather basic usage data",
+    "gather_basic_usage_title": "Basic usage data",
     "gather_basic_usage_description": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "Learn more",
     "stay_informed": "Stay informed",
-    "checkbox_marketing": "Marketing updates",
-    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
+    "checkbox_marketing": "Marketing data",
+    "checkbox": "We’ll collect data to learn how you interact with our marketing communications. We may use this data to share relevant news (like product updates).",
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
     "action_description_3_prefix": "Optional:",
@@ -5687,7 +5717,7 @@
     "metametrics_title": "Participate in MetaMetrics",
     "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
     "data_collection_title": "Data collection for marketing",
-    "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
+    "data_collection_description": "We’ll collect data on how you interact with our marketing communications to personalize the updates we send you.",
     "batch_balance_requests_title": "Batch account balance requests",
     "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Get incoming transactions",
@@ -5741,10 +5771,10 @@
     "delete_metrics_description_part_one": "This will delete historical",
     "delete_metrics_description_part_two": "MetaMetrics",
     "delete_metrics_description_part_three": "data associated with your wallet.",
-    "delete_metrics_description_before_delete": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 30 days. View our",
+    "delete_metrics_description_before_delete": "Your wallet and accounts will remain exactly as they are now. This process may take up to 30 days. View our",
     "delete_metrics_description_after_delete_part_one": "You initiated this action on",
     "delete_metrics_description_after_delete_part_two": ". This process can take up to 30 days. View our",
-    "delete_metrics_description_privacy_policy": "Privacy Policy.",
+    "delete_metrics_description_privacy_policy": "Privacy Notice.",
     "delete_metrics_button": "Delete MetaMetrics data",
     "check_status_button": "Check status",
     "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
@@ -8985,7 +9015,9 @@
       "support_title": "We couldn't verify your details",
       "support_description": "Contact support to continue.",
       "contact_support": "Contact support",
-      "done": "Done"
+      "done": "Done",
+      "passkey_exists_title": "Can't create passkey",
+      "passkey_exists_description": "A passkey already exists on this device. Try using a different password manager."
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
@@ -9011,6 +9043,7 @@
       "description": "Adds protection to Money account transactions.",
       "manage": "Manage",
       "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
+      "notice_social_login": "These methods add protection to Money account transactions and to recovering your wallet.",
       "add": "Add",
       "passkeys": "Passkeys",
       "passkey_count": {
@@ -9021,8 +9054,13 @@
       "passkey_name": "Passkey #{{number}}",
       "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
       "added_on": "Added {{date}}",
+      "created": "Created",
+      "last_used": "Last used",
+      "last_used_on": "Last used {{date}}",
+      "not_used_yet": "Not used yet",
       "used_for": "Used for",
       "used_for_money": "Verifying Money transactions",
+      "used_for_wallet_recovery": "Wallet recovery",
       "remove_passkey": "Remove passkey",
       "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
       "remove_email": "Remove email",
@@ -9722,6 +9760,9 @@
     "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
+    "apy_premium_tag": "Premium",
+    "apy_upgrading_pill": "Upgrading to Premium APY",
+    "apy_downgrading_pill": "Moving to standard APY",
     "apy_info_label": "APY info",
     "balance_unavailable": "Balance unavailable",
     "balance_unavailable_value": "$—",
@@ -10016,6 +10057,9 @@
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
+      "paragraph_1_premium": "Your Money account earns up to {{percentage}}% with MetaMask Pro Premium APY.",
+      "migration_upgrading": "Your funds are moving to the Premium vault. The APY shown is for the vault your funds are in right now.",
+      "migration_downgrading": "Your funds are moving to the standard vault. The APY shown is for the vault your funds are in right now.",
       "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
       "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
       "paragraph_4": "Money account is powered by Monad.",
@@ -10129,9 +10173,9 @@
       "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_a1_no_apy": "An account that earns variable APY. You deposit funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_q2": "Is MetaMask Money account safe?",
-      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Secret Recovery Phrase.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
       "faq_q3": "Who controls my MetaMask Money account?",
-      "faq_a3": "You! MetaMask is a self-custodial wallet, meaning only the account holder's Private Keys control it. MetaMask can't access, freeze, or move your funds. This is what distinguishes us from traditional bank accounts and custodial crypto platforms—there's no third party holding your funds.",
+      "faq_a3": "You do. MetaMask is self-custodial, so MetaMask can't access, freeze, or move your funds. That's what sets us apart from banks and custodial crypto platforms: no third party holds your funds. Your Money account is tied to your Secret Recovery Phrase, so back it up and keep it somewhere safe. Importing an account with a private key won't restore your Money account. If you lose your Secret Recovery Phrase, you lose access to the funds in it.",
       "faq_q4": "What are MetaMask Money account fees?",
       "faq_a4": "There's no fee to open a Money account and no fee to deposit stablecoins. You will get charged fees when depositing non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
       "faq_a4_link": "See the full Card fee breakdown here.",
@@ -10558,6 +10602,13 @@
       "default": "Default",
       "available": "{{amount}} available"
     },
+    "perps_withdraw_from": {
+      "section": "Perps",
+      "hyperliquid": "Hyperliquid balance",
+      "lighter": "Lighter balance",
+      "default": "Default",
+      "available": "{{amount}} available"
+    },
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
@@ -10693,11 +10744,13 @@
   "confirm_membership": {
     "title": "Confirm membership",
     "plan_name": "Orange (Monthly)",
+    "plan_name_annual": "Orange (Annual)",
     "confirm_and_pay": "Confirm and pay",
     "start_trial": "Start your free trial",
     "billed_on": "Billed on",
     "disclaimer": {
       "part1": "By clicking \"{{confirmAndPay}}\", you authorize MetaMask to charge {{monthlyAmount}}/month. Renews on {{renewDate}}. Cancel anytime. You also accept the ",
+      "part1_annual": "By clicking \"{{confirmAndPay}}\", you authorize MetaMask to charge {{amount}}/year. Renews on {{renewDate}}. Cancel anytime. You also accept the ",
       "terms_of_use": "Terms of Use",
       "part2": " and ",
       "privacy_policy": "Privacy Policy",
@@ -10790,7 +10843,7 @@
       "metamask_fee_info_body": "MetaMask's standard fee is {{feePercentage}}%. You may be eligible for fee discounts or rebates, so we calculate your final fee at order execution.",
       "metamask_fee_info_learn_more": "Learn more",
       "create_order": "Create Order",
-      "min_order_amount": "Min. order amount is ${{amount}}",
+      "min_order_amount": "Min. order amount is {{amount}}",
       "paying": "Paying",
       "est_receiving": "Est. receiving",
       "trigger_condition": "Trigger condition",
@@ -10838,6 +10891,7 @@
       "times": "times",
       "confirm": "Confirm",
       "preview_order": "Preview Order",
+      "min_order_amount": "Min. order amount is {{amount}}",
       "confirm_title": "Confirm recurring order",
       "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
       "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
@@ -13681,6 +13735,7 @@
       "invoices": "Invoices",
       "contact_support": "Contact support",
       "cancel_membership": "Cancel membership",
+      "cancel_not_allowed": "Cancellation isn't available right now.",
       "resume_membership": "Resume membership",
       "resume_in_progress": "Resuming membership",
       "resume_failed": "We couldn't resume your membership. Please try again."
@@ -13707,17 +13762,17 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Upgrade",
-    "join_error": "We couldn't start your Pro membership. Try again.",
+    "join_error": "We couldn't start your Orange membership. Try again.",
     "join_orange": "Join Orange",
     "start_free_trial": "Start free trial",
     "free_trial_description": "No commitment, cancel anytime",
-    "insufficient_balance": "Your Money account doesn't have enough balance to start Pro.",
+    "insufficient_balance": "Your Money account doesn't have enough balance to start Orange membership.",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Orange",
     "pricing": {
       "loading": "Loading plans...",
       "error": "We couldn't load plan prices. Try again.",
-      "unavailable": "Pro plans aren't available right now. Try again later.",
+      "unavailable": "MetaMask Orange isn't available right now. Try again later.",
       "malformed": "We couldn't read plan prices. Try again.",
       "retry": "Retry"
     },
@@ -13766,7 +13821,7 @@
     },
     "benefits_description": {
       "apy": {
-        "description": "As a Pro member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
+        "description": "As an Orange member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
         "description2": "APY is variable and not guaranteed."
       },
       "cashback": {
@@ -13815,7 +13870,8 @@
     "success": {
       "title": "You just leveled up",
       "description": "Time to start earning.",
-      "cta": "Continue"
+      "cta": "Continue",
+      "continue_error": "We couldn't confirm your membership. Try again."
     }
   }
 }
