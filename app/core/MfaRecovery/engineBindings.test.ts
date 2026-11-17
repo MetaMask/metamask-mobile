@@ -1,30 +1,16 @@
-jest.mock('../Engine', () => ({
-  context: {
-    MfaRecoveryController: { name: 'MfaRecoveryController' },
-    SeedlessOnboardingController: { name: 'SeedlessOnboardingController' },
-    AuthenticationController: {
-      requestMfaApproval: jest.fn(),
-    },
-  },
-}));
-jest.mock('react-native-quick-crypto', () => ({
-  randomBytes: jest.fn((length: number) => Buffer.alloc(length, 7)),
-}));
-jest.mock('../Engine/controllers/mfa-recovery-controller/config', () => ({
-  getToprfRecoveryConfig: jest.fn(() => ({
-    aal2Audience: 'aal2',
-    authConnectionId: 'auth',
-    groupedAuthConnectionId: 'grouped',
-  })),
-}));
+jest.mock(
+  '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
+  () => ({
+    MfaRecoveryService: jest.fn(),
+  }),
+);
 
-import QuickCrypto from 'react-native-quick-crypto';
-import Engine from '../Engine';
-import { getToprfRecoveryConfig } from '../Engine/controllers/mfa-recovery-controller/config';
+import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import {
   canProveSocialIdentifier,
-  createPasswordlessRecoveryDependencies,
+  createPasswordlessRecoveryService,
 } from './engineBindings';
+import { PASSWORDLESS_RECOVERY_OPERATION } from './passwordlessSocialRecovery';
 
 describe('canProveSocialIdentifier', () => {
   it('allows Google on iOS and Android', () => {
@@ -48,42 +34,25 @@ describe('canProveSocialIdentifier', () => {
   });
 });
 
-describe('createPasswordlessRecoveryDependencies', () => {
-  it('binds Engine controllers and TOPRF config', () => {
-    const dependencies = createPasswordlessRecoveryDependencies();
+describe('createPasswordlessRecoveryService', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    expect(dependencies.mfaRecovery).toBe(Engine.context.MfaRecoveryController);
-    expect(dependencies.seedless).toBe(
-      Engine.context.SeedlessOnboardingController,
-    );
-    expect(dependencies.toprf).toEqual({
-      aal2Audience: 'aal2',
-      authConnectionId: 'auth',
-      groupedAuthConnectionId: 'grouped',
+  it('builds the service for the passwordless recovery operation', () => {
+    const service = createPasswordlessRecoveryService();
+
+    expect(service).toBeInstanceOf(MfaRecoveryService);
+    expect(MfaRecoveryService).toHaveBeenCalledWith({
+      verifyMfa: expect.any(Function),
+      approvalOperation: PASSWORDLESS_RECOVERY_OPERATION,
     });
-    expect(getToprfRecoveryConfig).toHaveBeenCalledTimes(1);
   });
 
-  it('forwards MFA approval requests to AuthenticationController', async () => {
-    const request = { requestHash: '0x1' };
-    jest
-      .mocked(Engine.context.AuthenticationController.requestMfaApproval)
-      .mockResolvedValue({ approval: 'token' } as never);
+  it('gives the service a verification that does not prompt', async () => {
+    createPasswordlessRecoveryService();
+    const [{ verifyMfa }] = jest.mocked(MfaRecoveryService).mock.calls[0];
 
-    const dependencies = createPasswordlessRecoveryDependencies();
-    await dependencies.requestMfaApproval(request as never);
-
-    expect(
-      Engine.context.AuthenticationController.requestMfaApproval,
-    ).toHaveBeenCalledWith(request);
-  });
-
-  it('fills random bytes through QuickCrypto', () => {
-    const dependencies = createPasswordlessRecoveryDependencies();
-
-    const bytes = dependencies.randomBytes(4);
-
-    expect(QuickCrypto.randomBytes).toHaveBeenCalledWith(4);
-    expect(bytes).toEqual(new Uint8Array([7, 7, 7, 7]));
+    await expect(verifyMfa()).resolves.toBeUndefined();
   });
 });

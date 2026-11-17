@@ -5,7 +5,7 @@ import { usePasswordlessRecovery } from './usePasswordlessRecovery';
 import { isMfaRecoveryConfigured } from '../Engine/controllers/mfa-recovery-controller/config';
 import {
   canProveSocialIdentifier,
-  createPasswordlessRecoveryDependencies,
+  createPasswordlessRecoveryService,
 } from './engineBindings';
 import {
   clearPasswordlessRecoveryHold,
@@ -31,7 +31,7 @@ jest.mock('../Engine/controllers/mfa-recovery-controller/config', () => ({
 
 jest.mock('./engineBindings', () => ({
   canProveSocialIdentifier: jest.fn(),
-  createPasswordlessRecoveryDependencies: jest.fn(() => ({ deps: true })),
+  createPasswordlessRecoveryService: jest.fn(() => ({ service: true })),
 }));
 
 jest.mock('./passwordlessSocialRecovery', () => ({
@@ -104,10 +104,10 @@ describe('usePasswordlessRecovery', () => {
       'google',
     );
     expect(findRecoveryIdentifier).toHaveBeenCalledWith(
-      { deps: true },
+      { service: true },
       { canProveSocialIdentifier: true },
     );
-    expect(createPasswordlessRecoveryDependencies).toHaveBeenCalled();
+    expect(createPasswordlessRecoveryService).toHaveBeenCalled();
   });
 
   it('returns false and logs when prepare cannot find an identifier', async () => {
@@ -134,7 +134,10 @@ describe('usePasswordlessRecovery', () => {
       expect(await result.current.prefetchForChoosePassword()).toBe(true);
     });
 
-    expect(fetchRecoverySecret).toHaveBeenCalledWith({ deps: true }, PASSKEY);
+    expect(fetchRecoverySecret).toHaveBeenCalledWith(
+      { service: true },
+      PASSKEY,
+    );
     expect(hasPasswordlessRecoveryHold()).toBe(true);
   });
 
@@ -158,7 +161,7 @@ describe('usePasswordlessRecovery', () => {
     });
 
     expect(recoverWalletWithoutPassword).toHaveBeenCalledWith(
-      { deps: true },
+      { service: true },
       {
         identifier: PASSKEY,
         newPassword: 'new-password',
@@ -199,7 +202,7 @@ describe('usePasswordlessRecovery', () => {
     });
 
     expect(recoverWalletWithoutPassword).toHaveBeenCalledWith(
-      { deps: true },
+      { service: true },
       {
         identifier: PASSKEY,
         newPassword: 'new-password',

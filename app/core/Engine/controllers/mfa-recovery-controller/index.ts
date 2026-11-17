@@ -61,6 +61,11 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
         'AuthenticationController:exchangeSocialAccessToken',
       ),
     getPasskeyAssertion: mobilePasskeyAdapter.get,
+    getAddress: () =>
+      initMessenger.call('KeyringController:getState').keyrings[0]
+        ?.accounts?.[0] ?? '',
+    signPersonalMessage: async (params) =>
+      await initMessenger.call('KeyringController:signPersonalMessage', params),
     getSocialIdToken: async (nonce) => {
       // Dynamic import: OAuthService imports Engine, which imports this module.
       const { default: OAuthService } = await import(

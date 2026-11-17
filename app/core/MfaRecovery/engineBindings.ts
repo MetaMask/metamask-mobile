@@ -1,23 +1,15 @@
-import QuickCrypto from 'react-native-quick-crypto';
-import Engine from '../Engine';
-import { getToprfRecoveryConfig } from '../Engine/controllers/mfa-recovery-controller/config';
-import type { PasswordlessRecoveryDependencies } from './passwordlessSocialRecovery';
+import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import { PASSWORDLESS_RECOVERY_OPERATION } from './passwordlessSocialRecovery';
 
-/** Binds the passwordless recovery flow to the Engine controllers. */
-export function createPasswordlessRecoveryDependencies(): PasswordlessRecoveryDependencies {
-  const {
-    MfaRecoveryController,
-    SeedlessOnboardingController,
-    AuthenticationController,
-  } = Engine.context;
-  return {
-    mfaRecovery: MfaRecoveryController,
-    seedless: SeedlessOnboardingController,
-    requestMfaApproval: (request) =>
-      AuthenticationController.requestMfaApproval(request),
-    toprf: getToprfRecoveryConfig(),
-    randomBytes: (length) => new Uint8Array(QuickCrypto.randomBytes(length)),
-  };
+/**
+ * Builds the service the locked passwordless recovery flow runs on. The user
+ * verifies before recovery starts, so the service must not prompt again.
+ */
+export function createPasswordlessRecoveryService(): MfaRecoveryService {
+  return new MfaRecoveryService({
+    verifyMfa: async () => undefined,
+    approvalOperation: PASSWORDLESS_RECOVERY_OPERATION,
+  });
 }
 
 /**

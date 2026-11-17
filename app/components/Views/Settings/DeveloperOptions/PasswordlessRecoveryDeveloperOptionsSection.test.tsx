@@ -12,30 +12,9 @@ import {
   setupPasswordlessRecovery,
 } from '../../../../core/MfaRecovery/setupPasswordlessRecovery';
 
-jest.mock('react-native-quick-crypto', () => ({
-  randomBytes: jest.fn(),
-}));
-
 jest.mock('../../../../core', () => ({
   Authentication: {
     lockApp: jest.fn().mockResolvedValue(undefined),
-  },
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      MfaRecoveryController: {},
-      SeedlessOnboardingController: {
-        state: {},
-        getAccessToken: jest.fn(),
-      },
-      AuthenticationController: {
-        requestMfaApproval: jest.fn(),
-        getVerificationToken: jest.fn(),
-      },
-    },
   },
 }));
 
@@ -45,11 +24,8 @@ jest.mock('../../../../core/NavigationService', () => ({
 }));
 
 jest.mock(
-  '../../../../core/Engine/controllers/mfa-recovery-controller/config',
-  () => ({
-    getCubistConfig: jest.fn(() => ({ authAudience: 'aud' })),
-    getToprfRecoveryConfig: jest.fn(() => ({})),
-  }),
+  '../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
+  () => ({ MfaRecoveryService: jest.fn() }),
 );
 
 jest.mock('../../../../core/MfaRecovery/setupPasswordlessRecovery', () => {
@@ -62,18 +38,11 @@ jest.mock('../../../../core/MfaRecovery/setupPasswordlessRecovery', () => {
   };
 });
 
-jest.mock('../../../../core/MfaRecovery/linkSocialLogin', () => ({
-  linkSocialLogin: jest.fn(),
-}));
-
-jest.mock('../../../../core/apiEnv', () => ({
-  authEnv: jest.fn(() => 'dev'),
-}));
-
+const mockVerifyOrEnroll = jest.fn();
 jest.mock('../../../../util/identity/mfa/useMfa', () => ({
   useMfa: () => ({
     credentials: [],
-    verifyOrEnroll: jest.fn().mockResolvedValue(undefined),
+    verifyOrEnroll: mockVerifyOrEnroll,
   }),
 }));
 
@@ -89,6 +58,7 @@ describe('PasswordlessRecoveryDeveloperOptionsSection', () => {
     jest.clearAllMocks();
     mockLockApp.mockResolvedValue(undefined);
     mockSetup.mockResolvedValue('enabled');
+    mockVerifyOrEnroll.mockResolvedValue({ token: 'tok' });
     Object.assign(NavigationService, {
       navigation: { reset: mockReset },
     });
@@ -173,6 +143,23 @@ describe('PasswordlessRecoveryDeveloperOptionsSection', () => {
       'Recovery is set up. Tap Recover with a new password. That does not reset the wallet.',
     );
     expect(mockSetup).toHaveBeenCalledTimes(1);
+  });
+
+  it('verifies with the passkey when setup asks for verification', async () => {
+    const { getByTestId } = renderWithProvider(
+      <PasswordlessRecoveryDeveloperOptionsSection />,
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(SETUP_BUTTON_TEST_ID));
+    });
+    const verifyMfa = mockSetup.mock.calls[0][0];
+
+    await expect(verifyMfa()).resolves.toBeUndefined();
+    expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
+      methods: ['passkey'],
+      verifyWith: 'passkey',
+      reason: { operation: 'settings.passwordless_recovery_setup' },
+    });
   });
 
   it('shows the already-enabled message when setup is a no-op', async () => {

@@ -1,18 +1,11 @@
-import QuickCrypto from 'react-native-quick-crypto';
-import { authEnv } from '../apiEnv';
 import Engine from '../Engine';
-import {
-  getCubistConfig,
-  getToprfRecoveryConfig,
-  isMfaRecoveryConfigured,
-} from '../Engine/controllers/mfa-recovery-controller/config';
+import { isMfaRecoveryConfigured } from '../Engine/controllers/mfa-recovery-controller/config';
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
 import ReduxService from '../redux';
 import { selectMfaRecoveryEnabled } from '../../selectors/featureFlagController/mfaRecovery';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { verifyOrEnroll } from '../../util/identity/mfa/useMfa';
 import Logger from '../../util/Logger';
-import { linkSocialLogin } from './linkSocialLogin';
 import {
   PasswordlessRecoverySetupError,
   setupPasswordlessRecovery,
@@ -90,33 +83,13 @@ async function runEnsurePasswordlessRecoverySetup(): Promise<EnsurePasswordlessR
 
   try {
     const result: PasswordlessRecoverySetupResult =
-      await setupPasswordlessRecovery({
-        mfaRecovery: Engine.context.MfaRecoveryController,
-        seedless: SeedlessOnboardingController,
-        requestMfaApproval: (request) =>
-          Engine.context.AuthenticationController.requestMfaApproval(request),
-        verifyMfa: () =>
-          verifyOrEnroll({
-            methods: ['passkey'],
-            verifyWith: 'passkey',
-            reason: MFA_SETUP_REASON,
-          }).then(() => undefined),
-        linkSocialLogin: () =>
-          linkSocialLogin({
-            env: authEnv(),
-            seedlessState: SeedlessOnboardingController.state,
-            getSocialAccessToken: () =>
-              SeedlessOnboardingController.getAccessToken(),
-            getVerifiedAccessToken: () =>
-              Engine.context.AuthenticationController.getVerificationToken()
-                ?.accessToken,
-            // Product auto-setup: never pass a mapped verifier override.
-          }),
-        toprf: getToprfRecoveryConfig(),
-        cubistAuthAudience: getCubistConfig().authAudience,
-        randomBytes: (length) =>
-          new Uint8Array(QuickCrypto.randomBytes(length)),
-      });
+      await setupPasswordlessRecovery(() =>
+        verifyOrEnroll({
+          methods: ['passkey'],
+          verifyWith: 'passkey',
+          reason: MFA_SETUP_REASON,
+        }).then(() => undefined),
+      );
 
     Logger.log('Passwordless recovery setup finished', { status: result });
     return { status: result };

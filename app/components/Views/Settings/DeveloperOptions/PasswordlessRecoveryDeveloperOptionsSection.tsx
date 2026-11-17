@@ -1,6 +1,4 @@
 import React, { useCallback, useState } from 'react';
-import { TextInput } from 'react-native';
-import QuickCrypto from 'react-native-quick-crypto';
 import {
   Button,
   ButtonSize,
@@ -13,15 +11,8 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../component-library/hooks';
 import { Authentication } from '../../../../core';
-import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService';
-import {
-  getCubistConfig,
-  getToprfRecoveryConfig,
-} from '../../../../core/Engine/controllers/mfa-recovery-controller/config';
 import { getMfaRecoveryErrorCode } from '../../../../core/Engine/controllers/mfa-recovery-controller/errors';
-import { authEnv } from '../../../../core/apiEnv';
-import { linkSocialLogin } from '../../../../core/MfaRecovery/linkSocialLogin';
 import {
   PasswordlessRecoverySetupError,
   setupPasswordlessRecovery,
@@ -31,7 +22,6 @@ import { useTheme } from '../../../../util/theme';
 import { useMfa } from '../../../../util/identity/mfa/useMfa';
 import styleSheet from './DeveloperOptions.styles';
 
-const VERIFIER_ID_TEST_ID = 'passwordless-recovery-dev-verifier-id';
 const SETUP_BUTTON_TEST_ID = 'passwordless-recovery-dev-setup-button';
 export const TRY_RECOVERY_BUTTON_TEST_ID =
   'passwordless-recovery-dev-try-button';
@@ -54,39 +44,18 @@ const PasswordlessRecoveryDeveloperOptionsSection = () => {
   const { verifyOrEnroll } = useMfa();
   const [isRunning, setIsRunning] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [verifierId, setVerifierId] = useState('');
 
   const handleSetup = useCallback(async () => {
     setIsRunning(true);
     setMessage(null);
     try {
-      const result = await setupPasswordlessRecovery({
-        mfaRecovery: Engine.context.MfaRecoveryController,
-        seedless: Engine.context.SeedlessOnboardingController,
-        requestMfaApproval: (request) =>
-          Engine.context.AuthenticationController.requestMfaApproval(request),
-        verifyMfa: () =>
-          verifyOrEnroll({
-            methods: ['passkey'],
-            verifyWith: 'passkey',
-            reason: { operation: 'settings.passwordless_recovery_setup' },
-          }).then(() => undefined),
-        linkSocialLogin: () =>
-          linkSocialLogin({
-            env: authEnv(),
-            seedlessState: Engine.context.SeedlessOnboardingController.state,
-            getSocialAccessToken: () =>
-              Engine.context.SeedlessOnboardingController.getAccessToken(),
-            getVerifiedAccessToken: () =>
-              Engine.context.AuthenticationController.getVerificationToken()
-                ?.accessToken,
-            verifierId,
-          }),
-        toprf: getToprfRecoveryConfig(),
-        cubistAuthAudience: getCubistConfig().authAudience,
-        randomBytes: (length) =>
-          new Uint8Array(QuickCrypto.randomBytes(length)),
-      });
+      const result = await setupPasswordlessRecovery(() =>
+        verifyOrEnroll({
+          methods: ['passkey'],
+          verifyWith: 'passkey',
+          reason: { operation: 'settings.passwordless_recovery_setup' },
+        }).then(() => undefined),
+      );
       setMessage(resultMessage(result));
     } catch (error) {
       setMessage(
@@ -100,7 +69,7 @@ const PasswordlessRecoveryDeveloperOptionsSection = () => {
     } finally {
       setIsRunning(false);
     }
-  }, [verifierId, verifyOrEnroll]);
+  }, [verifyOrEnroll]);
 
   /**
    * Opens the same recovery screen a real outdated password would open.
@@ -164,20 +133,6 @@ const PasswordlessRecoveryDeveloperOptionsSection = () => {
           'app_settings.developer_options.passwordless_recovery.description',
         )}
       </Text>
-      <TextInput
-        value={verifierId}
-        onChangeText={setVerifierId}
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="email-address"
-        editable={!isRunning}
-        placeholder={strings(
-          'app_settings.developer_options.passwordless_recovery.verifier_id_placeholder',
-        )}
-        placeholderTextColor={theme.colors.text.muted}
-        style={styles.input}
-        testID={VERIFIER_ID_TEST_ID}
-      />
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}

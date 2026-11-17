@@ -13,6 +13,7 @@ import { tryGetCubistEscrowConfig } from './config';
 import { RecoveryIdentifierRouter } from './auth/identifier-auth-provider';
 import type { SocialIdTokenProvider } from './auth/social-identifier-auth-provider';
 import type { PasskeyAssertionGetter } from './auth/passkey-identifier-auth-provider';
+import type { SignPersonalMessage } from './auth/identifiers';
 import {
   createPendingOperationEncryptor,
   createPendingOperationKeyGetter,
@@ -27,6 +28,10 @@ export interface CreateMfaRecoveryControllerOptions
   getSocialIdToken: SocialIdTokenProvider;
   /** Runs the platform passkey assertion ceremony, for passkey identifiers. */
   getPasskeyAssertion: PasskeyAssertionGetter;
+  /** Returns the primary account address, for SIWE identifiers. */
+  getAddress: () => string;
+  /** Signs a personal message with the keyring, for SIWE identifiers. */
+  signPersonalMessage: SignPersonalMessage;
 }
 
 /**
@@ -39,6 +44,8 @@ export function createMfaRecoveryController({
   isEnabled,
   getSocialIdToken,
   getPasskeyAssertion,
+  getAddress,
+  signPersonalMessage,
   ...sessionTokenOptions
 }: CreateMfaRecoveryControllerOptions): MfaRecoveryController {
   const getClient = createCubistClientGetter({
@@ -56,6 +63,8 @@ export function createMfaRecoveryController({
     identifierAuthProvider: new RecoveryIdentifierRouter({
       getPasskeyAssertion,
       getSocialIdToken,
+      getAddress,
+      signPersonalMessage,
     }),
     escrows: [escrow],
     encryptor: createPendingOperationEncryptor(),

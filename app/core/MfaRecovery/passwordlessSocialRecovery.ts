@@ -1,56 +1,16 @@
-import type {
-  Identifier,
-  MfaRecoveryController,
-} from '@metamask/mfa-recovery-controller';
-import type {
-  MfaApproval,
-  RequestMfaApprovalRequest,
-} from '@metamask/profile-sync-controller/sdk';
-import type {
-  SecretMetadata,
-  SeedlessOnboardingController,
-} from '@metamask/seedless-onboarding-controller';
-import { bytesToHex } from '@metamask/utils';
-import {
-  isProvablePasskeyIdentifier,
-  withPasskeyVerifier,
-} from '../Engine/controllers/mfa-recovery-controller/auth/passkey-identifier-auth-provider';
-import type { ToprfRecoveryConfig } from '../Engine/controllers/mfa-recovery-controller/config';
-import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/constants';
+import type { Identifier } from '@metamask/mfa-recovery-controller';
+import type { SecretMetadata } from '@metamask/seedless-onboarding-controller';
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
+import type {
+  FindRecoveryIdentifierOptions,
+  MfaRecoveryService,
+} from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import { redactForDisplay } from './redactForDisplay';
+
+export type { FindRecoveryIdentifierOptions };
 
 /** Operation named on the Auth approvals this flow requests. */
 export const PASSWORDLESS_RECOVERY_OPERATION = 'wallet.passwordless_recovery';
-
-export type PasswordlessRecoveryMfa = Pick<
-  MfaRecoveryController,
-  'getIdentifiers' | 'authenticateIdentifier' | 'getRecoverySecret'
->;
-
-export type PasswordlessRecoverySeedless = Pick<
-  SeedlessOnboardingController,
-  | 'authenticateForRecovery'
-  | 'recoverWithRecoverySecret'
-  | 'setLocalPassword'
-  | 'resetPasswordWithVaultKeys'
->;
-
-export interface PasswordlessRecoveryDependencies {
-  mfaRecovery: PasswordlessRecoveryMfa;
-  seedless: PasswordlessRecoverySeedless;
-  /** Auth approval; locked, it proves the factor verified before recovery. */
-  requestMfaApproval: (
-    request: RequestMfaApprovalRequest,
-  ) => Promise<MfaApproval>;
-  toprf: ToprfRecoveryConfig;
-  randomBytes: (length: number) => Uint8Array;
-}
-
-export interface FindRecoveryIdentifierOptions {
-  /** Whether the social provider can issue a nonce-bound ID token. */
-  canProveSocialIdentifier: boolean;
-}
 
 /**
  * Where a failed recovery stopped. From `restoring_vault` on, the new
@@ -83,40 +43,19 @@ export class PasswordlessRecoveryError extends Error {
   }
 }
 
-const sameIdentifier = (a: Identifier, b: Identifier): boolean =>
-  a.type === b.type && a.namespace === b.namespace && a.value === b.value;
-
 /**
  * Picks the identifier to read the Recovery Secret with: an enrolled passkey
  * Auth approved, else the enrolled social login when it can be proven.
  *
- * @param dependencies - The flow's dependencies.
+ * @param service - The recovery service for this flow.
  * @param options - What the wallet can prove.
  * @returns The identifier, or `null` when recovery is not set up for one.
  */
 export async function findRecoveryIdentifier(
-  { mfaRecovery }: Pick<PasswordlessRecoveryDependencies, 'mfaRecovery'>,
-  { canProveSocialIdentifier }: FindRecoveryIdentifierOptions,
+  service: MfaRecoveryService,
+  options: FindRecoveryIdentifierOptions,
 ): Promise<Identifier | null> {
-  const { identifiers, authIdentifiers } = await mfaRecovery.getIdentifiers();
-  // Auth's copy carries the verifier (RP ID, credential ID) the proof needs.
-  const approved = identifiers.flatMap((enrolled) => {
-    const authIdentifier = authIdentifiers.find((candidate) =>
-      sameIdentifier(candidate, enrolled),
-    );
-    return authIdentifier ? [authIdentifier] : [];
-  });
-
-  const passkey = approved
-    .map(withPasskeyVerifier)
-    .find(isProvablePasskeyIdentifier);
-  if (passkey) {
-    return passkey;
-  }
-  if (canProveSocialIdentifier) {
-    return approved.find((identifier) => identifier.type === 'social') ?? null;
-  }
-  return null;
+  return await service.findRecoveryIdentifier(options);
 }
 
 /**
@@ -124,15 +63,15 @@ export async function findRecoveryIdentifier(
  * May show a passkey / social sheet — call before Create password UI so submit
  * does not prompt again. Caller owns the returned bytes and must zero them.
  *
- * @param dependencies - The flow's dependencies.
+ * @param service - The recovery service for this flow.
  * @param identifier - From {@link findRecoveryIdentifier}.
- * @returns Recovery secret bytes (length {@link RECOVERY_SECRET_LENGTH}).
+ * @returns Recovery secret bytes (length `RECOVERY_SECRET_LENGTH`).
  */
 export async function fetchRecoverySecret(
-  dependencies: PasswordlessRecoveryDependencies,
+  service: MfaRecoveryService,
   identifier: Identifier,
 ): Promise<Uint8Array> {
-  return await readRecoverySecret(dependencies, identifier);
+  return (await service.readRecoverySecret(identifier)).recoverySecret;
 }
 
 /**
@@ -144,7 +83,7 @@ export async function fetchRecoverySecret(
  * {@link fetchRecoverySecret} or read here (may prompt passkey). Then sets
  * the local/global password and restores the keyring vault.
  *
- * @param dependencies - The flow's dependencies.
+ * @param service - The recovery service for this flow.
  * @param params - The parameters.
  * @param params.identifier - From {@link findRecoveryIdentifier}.
  * @param params.newPassword - The new wallet password. Never logged.
@@ -154,7 +93,7 @@ export async function fetchRecoverySecret(
  * @throws {PasswordlessRecoveryError} With the stage that failed.
  */
 export async function recoverWalletWithoutPassword(
-  dependencies: PasswordlessRecoveryDependencies,
+  service: MfaRecoveryService,
   {
     identifier,
     newPassword,
@@ -170,17 +109,17 @@ export async function recoverWalletWithoutPassword(
     recoverySecret?: Uint8Array;
   },
 ): Promise<void> {
-  const { seedless } = dependencies;
+  const { seedlessOnboardingController: seedless } = service;
 
   let secrets: SecretMetadata[];
   let step = 'reading_secret';
   try {
     const secretPromise = prefetchedRecoverySecret
       ? Promise.resolve(prefetchedRecoverySecret)
-      : readRecoverySecret(dependencies, identifier);
+      : fetchRecoverySecret(service, identifier);
     const [secretResult, sessionResult] = await Promise.allSettled([
       secretPromise,
-      openRecoverySession(dependencies),
+      service.openRecoverySession(),
     ]);
     if (secretResult.status === 'rejected') {
       throw secretResult.reason;
@@ -214,40 +153,4 @@ export async function recoverWalletWithoutPassword(
   } catch (error) {
     throw new PasswordlessRecoveryError('restoring_vault', error);
   }
-}
-
-async function readRecoverySecret(
-  { mfaRecovery }: PasswordlessRecoveryDependencies,
-  identifier: Identifier,
-): Promise<Uint8Array> {
-  const session = await mfaRecovery.authenticateIdentifier(identifier);
-  const { recoverySecret } = await mfaRecovery.getRecoverySecret(session);
-  try {
-    if (recoverySecret.length !== RECOVERY_SECRET_LENGTH) {
-      throw new Error('Escrow returned a Recovery Secret of the wrong length');
-    }
-    return new Uint8Array(recoverySecret);
-  } finally {
-    recoverySecret.fill(0);
-  }
-}
-
-async function openRecoverySession({
-  requestMfaApproval,
-  seedless,
-  toprf,
-  randomBytes,
-}: PasswordlessRecoveryDependencies): Promise<void> {
-  const { approval: aal2Token } = await requestMfaApproval({
-    requestHash: bytesToHex(randomBytes(32)),
-    audiences: [toprf.aal2Audience],
-    requireVerification: true,
-    includeIdentifiers: false,
-    reason: { operation: PASSWORDLESS_RECOVERY_OPERATION },
-  });
-  await seedless.authenticateForRecovery({
-    aal2Token,
-    authConnectionId: toprf.authConnectionId,
-    groupedAuthConnectionId: toprf.groupedAuthConnectionId,
-  });
 }

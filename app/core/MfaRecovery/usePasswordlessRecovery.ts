@@ -8,7 +8,7 @@ import { isMfaRecoveryConfigured } from '../Engine/controllers/mfa-recovery-cont
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
 import {
   canProveSocialIdentifier,
-  createPasswordlessRecoveryDependencies,
+  createPasswordlessRecoveryService,
 } from './engineBindings';
 import {
   clearPasswordlessRecoveryHold,
@@ -72,7 +72,7 @@ export function usePasswordlessRecovery(authConnection: string) {
         authConnection,
       );
       identifierRef.current = await findRecoveryIdentifier(
-        createPasswordlessRecoveryDependencies(),
+        createPasswordlessRecoveryService(),
         {
           canProveSocialIdentifier: canProveSocial,
         },
@@ -116,7 +116,7 @@ export function usePasswordlessRecovery(authConnection: string) {
         identifierType: identifier.type,
       });
       const recoverySecret = await fetchRecoverySecret(
-        createPasswordlessRecoveryDependencies(),
+        createPasswordlessRecoveryService(),
         identifier,
       );
       setPasswordlessRecoveryHold(identifier, recoverySecret);
@@ -140,7 +140,7 @@ export function usePasswordlessRecovery(authConnection: string) {
       const held = takePasswordlessRecoveryHold();
       if (held) {
         await recoverWalletWithoutPassword(
-          createPasswordlessRecoveryDependencies(),
+          createPasswordlessRecoveryService(),
           {
             identifier: held.identifier,
             newPassword,
@@ -155,14 +155,11 @@ export function usePasswordlessRecovery(authConnection: string) {
       if (!identifier) {
         throw new Error('Passwordless recovery is not prepared');
       }
-      await recoverWalletWithoutPassword(
-        createPasswordlessRecoveryDependencies(),
-        {
-          identifier,
-          newPassword,
-          restoreVault,
-        },
-      );
+      await recoverWalletWithoutPassword(createPasswordlessRecoveryService(), {
+        identifier,
+        newPassword,
+        restoreVault,
+      });
     },
     [],
   );

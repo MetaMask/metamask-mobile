@@ -5958,7 +5958,6 @@
       "passwordless_recovery": {
         "title": "Passwordless recovery",
         "description": "While this wallet is unlocked, store a recovery secret for the enrolled passkey and social login, then seal the seed phrases so that secret can open them. Recover with a new password locks this wallet and opens recovery. It does not reset the wallet. Developer only.",
-        "verifier_id_placeholder": "Mapped verifier ID",
         "button": "Set up recovery",
         "try_button": "Recover with a new password",
         "enabled": "Recovery is set up. Tap Recover with a new password. That does not reset the wallet.",

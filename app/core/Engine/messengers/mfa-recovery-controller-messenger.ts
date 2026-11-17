@@ -5,7 +5,10 @@ import {
 } from '@metamask/messenger';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
-import type { KeyringControllerGetStateAction } from '@metamask/keyring-controller';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerSignPersonalMessageAction,
+} from '@metamask/keyring-controller';
 import type { MfaRecoveryControllerMessenger } from '@metamask/mfa-recovery-controller';
 import type { RootMessenger } from '../types';
 
@@ -35,6 +38,7 @@ type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
   | AuthenticationController.AuthenticationControllerExchangeSocialAccessTokenAction
   | KeyringControllerGetStateAction
+  | KeyringControllerSignPersonalMessageAction
   | RemoteFeatureFlagControllerGetStateAction;
 
 export type MfaRecoveryControllerInitMessenger = Messenger<
@@ -60,6 +64,7 @@ export function getMfaRecoveryControllerInitMessenger(
       'AuthenticationController:refreshCanonicalProfileId',
       'AuthenticationController:exchangeSocialAccessToken',
       'KeyringController:getState',
+      'KeyringController:signPersonalMessage',
       'RemoteFeatureFlagController:getState',
     ],
     messenger,

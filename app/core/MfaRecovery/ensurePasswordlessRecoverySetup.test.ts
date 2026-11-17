@@ -3,12 +3,6 @@ jest.mock('../Engine', () => ({
     KeyringController: { isUnlocked: jest.fn(() => true) },
     SeedlessOnboardingController: {
       state: { envelope: null, vault: 'vault', authConnection: 'google' },
-      getAccessToken: jest.fn(),
-    },
-    MfaRecoveryController: { name: 'mfaRecovery' },
-    AuthenticationController: {
-      requestMfaApproval: jest.fn(),
-      getVerificationToken: jest.fn(),
     },
   },
 }));
@@ -27,32 +21,14 @@ jest.mock('../../selectors/seedlessOnboardingController', () => ({
 
 jest.mock('../Engine/controllers/mfa-recovery-controller/config', () => ({
   isMfaRecoveryConfigured: jest.fn(() => true),
-  getCubistConfig: jest.fn(() => ({ authAudience: 'cubist-aud' })),
-  getToprfRecoveryConfig: jest.fn(() => ({
-    aal2Audience: 'aal2',
-    authConnectionId: 'auth',
-    groupedAuthConnectionId: 'grouped',
-  })),
 }));
 
 jest.mock('../Engine/controllers/mfa-recovery-controller/errors', () => ({
   getMfaRecoveryErrorCode: jest.fn(() => 'unknown'),
 }));
 
-jest.mock('../apiEnv', () => ({
-  authEnv: jest.fn(() => 'dev'),
-}));
-
-jest.mock('react-native-quick-crypto', () => ({
-  randomBytes: jest.fn((length: number) => Buffer.alloc(length, 1)),
-}));
-
 jest.mock('../../util/identity/mfa/useMfa', () => ({
   verifyOrEnroll: jest.fn().mockResolvedValue({ token: 'tok' }),
-}));
-
-jest.mock('./linkSocialLogin', () => ({
-  linkSocialLogin: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('./setupPasswordlessRecovery', () => ({
@@ -78,6 +54,7 @@ import { selectMfaRecoveryEnabled } from '../../selectors/featureFlagController/
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { isMfaRecoveryConfigured } from '../Engine/controllers/mfa-recovery-controller/config';
 import { setupPasswordlessRecovery } from './setupPasswordlessRecovery';
+import { verifyOrEnroll } from '../../util/identity/mfa/useMfa';
 import { ensurePasswordlessRecoverySetup } from './ensurePasswordlessRecoverySetup';
 
 describe('ensurePasswordlessRecoverySetup', () => {
@@ -95,7 +72,7 @@ describe('ensurePasswordlessRecoverySetup', () => {
       authConnection: 'google',
     } as never;
     jest.mocked(setupPasswordlessRecovery).mockResolvedValue('enabled');
-    jest.mocked(ReduxService.store.getState).mockReturnValue({ mock: true });
+    (ReduxService.store.getState as jest.Mock).mockReturnValue({ mock: true });
   });
 
   it('skips when the mfaRecovery flag is off', async () => {
@@ -154,8 +131,21 @@ describe('ensurePasswordlessRecoverySetup', () => {
       status: 'enabled',
     });
     expect(setupPasswordlessRecovery).toHaveBeenCalledTimes(1);
-    const deps = jest.mocked(setupPasswordlessRecovery).mock.calls[0][0];
-    expect(deps.cubistAuthAudience).toBe('cubist-aud');
+  });
+
+  it('verifies with the passkey through the settings setup reason', async () => {
+    await ensurePasswordlessRecoverySetup();
+    const verifyMfa = jest.mocked(setupPasswordlessRecovery).mock.calls[0][0];
+
+    await expect(verifyMfa()).resolves.toBeUndefined();
+    expect(verifyOrEnroll).toHaveBeenCalledWith({
+      methods: ['passkey'],
+      verifyWith: 'passkey',
+      reason: {
+        operation: 'settings.passwordless_recovery_setup',
+        presentation: 'modal',
+      },
+    });
   });
 
   it('returns failed without throwing when setup rejects', async () => {

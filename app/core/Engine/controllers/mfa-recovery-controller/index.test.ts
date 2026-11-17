@@ -122,4 +122,32 @@ describe('mfaRecoveryControllerInit', () => {
       token: 'social',
     });
   });
+
+  it('wires SIWE address and signing through the keyring', async () => {
+    mfaRecoveryControllerInit({
+      controllerMessenger,
+      initMessenger,
+      persistedState: {},
+    } as never);
+    const options = mockCreate.mock.calls[0][0];
+
+    initMessenger.call.mockReturnValueOnce({
+      keyrings: [{ accounts: ['0xprimary', '0xother'] }],
+    });
+    expect(options.getAddress()).toBe('0xprimary');
+    expect(initMessenger.call).toHaveBeenLastCalledWith(
+      'KeyringController:getState',
+    );
+
+    initMessenger.call.mockReturnValueOnce({ keyrings: [] });
+    expect(options.getAddress()).toBe('');
+
+    const params = { data: '0x68656c6c6f', from: '0xprimary' };
+    initMessenger.call.mockResolvedValueOnce('0xsig');
+    await expect(options.signPersonalMessage(params)).resolves.toBe('0xsig');
+    expect(initMessenger.call).toHaveBeenLastCalledWith(
+      'KeyringController:signPersonalMessage',
+      params,
+    );
+  });
 });
