@@ -132,10 +132,7 @@ import {
 } from './WalletRecovery';
 import type { WalletRecoveryMethod } from './WalletRecovery/WalletRecoveryVerify';
 
-type WalletRecoveryStep =
-  | 'loading'
-  | 'verify'
-  | 'password'; // existing password — only from custom picker (or no-MFA fallback)
+type WalletRecoveryStep = 'loading' | 'verify' | 'password'; // existing password — only from custom picker (or no-MFA fallback)
 
 interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
@@ -612,6 +609,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const lastVerifiedMfaMethodRef = useRef<MfaMethod | null>(null);
   /** Prevent overlapping post-MFA biometric prompts. */
   const continueAfterVerifiedInFlightRef = useRef(false);
+  /** Arrival verify (OS sheet) is in flight. Hardware back must not leave it. */
+  const lockedVerifyInFlightRef = useRef(false);
   const { listActiveSocialLoginMethods, verifyForSocialLogin } = useMfa();
 
   const lockedMfaReason = useMemo(
@@ -751,8 +750,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [componentAuthenticationType, requestBiometricsAccessControlForIOS]);
 
   /**
-   * Pre-password locked social MFA via Account kit `verifyForSocialLogin`
-   * (cost order: passkey → totp → email).
+   * Pre-password locked social MFA via Account kit `verifyForSocialLogin`.
+   * Arrival tries passkey then totp. Email is included only for Telegram,
+   * where that inbox is not the sign-in factor.
    *
    * Needs the social identifier paired (`exchangeSocialAccessToken`). Pairing
    * runs after unlock via `performSignIn` when MFA UI kit / BFTC is on — that
@@ -768,6 +768,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setError(null);
     setVerifyError(null);
     setPasswordFromVerify(false);
+    lockedVerifyInFlightRef.current = true;
     try {
       // Surface Auth pairing failures in Metro (kit may show "Something went wrong").
       try {
@@ -783,10 +784,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         // Still attempt MFA — if exchange failed, kit will fail similarly.
       }
 
-      await verifyForSocialLogin({ reason: lockedMfaReason });
+      // Google/Apple sign-in email is the first factor, so it is not a
+      // recovery factor. Telegram's inbox is separate, so email stays.
+      const arrivalMethods: MfaMethod[] | undefined =
+        authConnection === 'telegram' ? undefined : ['passkey', 'totp'];
+      const verification = await verifyForSocialLogin({
+        reason: lockedMfaReason,
+        methods: arrivalMethods,
+      });
       Logger.log('OAuthRehydration: locked social MFA', {
         status: 'verified',
+        method: verification?.verifiedMethod,
       });
+      lastVerifiedMfaMethodRef.current = verification?.verifiedMethod ?? null;
       await continueAfterVerified();
     } catch (error) {
       // Cancel / fail highest factor (e.g. passkey) → full-page "Verify it's you"
@@ -810,10 +820,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setWalletRecoveryStep('password');
       }
     } finally {
+      lockedVerifyInFlightRef.current = false;
       setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
   }, [
     canOfferSocialMfaVerify,
+    authConnection,
     lockedMfaReason,
     verifyForSocialLogin,
     listActiveSocialLoginMethods,
@@ -867,7 +879,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setVerifyBusy(false);
       }
     },
-    [authConnection, lockedMfaReason, verifyForSocialLogin, continueAfterVerified],
+    [
+      authConnection,
+      lockedMfaReason,
+      verifyForSocialLogin,
+      continueAfterVerified,
+    ],
   );
 
   const onRehydrateLogin = useCallback(async () => {
@@ -1142,6 +1159,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return true;
       }
       handleUseOtherMethod();
+      return true;
+    }
+    // Loading covers the arrival OS sheet and the post-MFA biometrics sheet.
+    // Leaving now would keep that prompt running after navigation.
+    if (
+      walletRecoveryStep === 'loading' &&
+      (lockedVerifyInFlightRef.current ||
+        continueAfterVerifiedInFlightRef.current)
+    ) {
       return true;
     }
     handleUseOtherMethod();

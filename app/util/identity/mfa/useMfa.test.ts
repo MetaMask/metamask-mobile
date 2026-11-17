@@ -221,7 +221,10 @@ describe('useMfa', () => {
 
       expect(
         await renderUseMfa().verifyForSocialLogin({ reason }),
-      ).toStrictEqual({ credentials: enrolledCredentials });
+      ).toStrictEqual({
+        credentials: enrolledCredentials,
+        verifiedMethod: 'totp',
+      });
 
       expect(mockStartMfaFlow).toHaveBeenNthCalledWith(
         2,
@@ -241,7 +244,10 @@ describe('useMfa', () => {
 
       expect(
         await renderUseMfa().verifyForSocialLogin({ reason }),
-      ).toStrictEqual({ credentials: enrolledCredentials });
+      ).toStrictEqual({
+        credentials: enrolledCredentials,
+        verifiedMethod: 'passkey',
+      });
     });
 
     it('uses a new adapter for each verification', async () => {
@@ -273,7 +279,10 @@ describe('useMfa', () => {
 
       expect(
         await renderUseMfa().verifyForSocialLogin({ reason }),
-      ).toStrictEqual({ credentials: enrolledCredentials });
+      ).toStrictEqual({
+        credentials: enrolledCredentials,
+        verifiedMethod: 'email_otp',
+      });
 
       expect(mockStartMfaFlow).toHaveBeenNthCalledWith(
         3,
@@ -303,6 +312,50 @@ describe('useMfa', () => {
         renderUseMfa().verifyForSocialLogin({ reason }),
       ).rejects.toBe(lastError);
       expect(mockStartMfaFlow).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not try email when the caller omits it', async () => {
+      const lastError = new MfaError('credential_not_enrolled', 'no totp');
+      mockStartMfaFlow
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no passkey'),
+        )
+        .mockRejectedValueOnce(lastError);
+
+      await expect(
+        renderUseMfa().verifyForSocialLogin({
+          reason,
+          methods: ['passkey', 'totp'],
+        }),
+      ).rejects.toBe(lastError);
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(2);
+      expect(mockStartMfaFlow).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          request: expect.objectContaining({
+            methods: ['email_otp'],
+          }),
+        }),
+      );
+    });
+
+    it('prefers an explicit method over the methods list', async () => {
+      await renderUseMfa().verifyForSocialLogin({
+        reason,
+        method: 'totp',
+        methods: ['passkey'],
+      });
+
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(1);
+      expect(mockStartMfaFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['totp'],
+            verifyWith: ['totp'],
+            verifyOnly: true,
+          },
+        }),
+      );
     });
   });
 });
