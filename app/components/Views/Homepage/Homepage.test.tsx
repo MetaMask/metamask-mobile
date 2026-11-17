@@ -1045,7 +1045,7 @@ describe('Homepage', () => {
       expect(sectionIndexOf('tokens')).toBe(1);
     });
 
-    it('keeps Tokens first when NetInfo resolves after the initial render', () => {
+    it('moves Perps above Tokens when NetInfo resolves after the initial render', () => {
       mockNetworkTier = null;
       setVariant(PerpsSectionPriorityVariant.Treatment);
       perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
@@ -1059,8 +1059,8 @@ describe('Homepage', () => {
       mockNetworkTier = 'WIFI';
       rendered.rerender(<Homepage />);
 
-      expect(latestSectionIndexOf('tokens')).toBe(0);
-      expect(latestSectionIndexOf('perps')).toBe(1);
+      expect(latestSectionIndexOf('perps')).toBe(0);
+      expect(latestSectionIndexOf('tokens')).toBe(1);
     });
 
     it('does not mount Perps before primary content is ready after offline recovery', () => {
