@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import {
   useNavigation,
@@ -64,6 +64,10 @@ const MoneyEarningsView = (): React.ReactElement => {
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const [selectedRange, setSelectedRange] = useState<EarningsRange>('30D');
+  const scrollViewRef = useRef<ScrollView>(null);
+  const setScrollEnabled = useCallback((enabled: boolean): void => {
+    scrollViewRef.current?.setNativeProps({ scrollEnabled: enabled });
+  }, []);
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
   const hasMalformedHistory =
@@ -182,6 +186,7 @@ const MoneyEarningsView = (): React.ReactElement => {
       </Box>
       {activeTab === 'earnings' ? (
         <ScrollView
+          ref={scrollViewRef}
           style={tw.style('flex-1')}
           contentContainerStyle={tw.style('gap-6 px-4 py-6')}
           showsVerticalScrollIndicator={false}
@@ -202,6 +207,7 @@ const MoneyEarningsView = (): React.ReactElement => {
             onRetry={handleRetry}
             selectedRange={selectedRange}
             onRangeChange={setSelectedRange}
+            setScrollEnabled={setScrollEnabled}
           />
           {hasHistoricalEarnings ? (
             <Box twClassName="py-4">
