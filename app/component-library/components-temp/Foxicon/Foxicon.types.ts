@@ -21,9 +21,9 @@ export type FoxiconVariant =
   (typeof FoxiconVariant)[keyof typeof FoxiconVariant];
 
 /**
- * Variants from the first Foxicon artwork that have no counterpart in the
- * current set. They stay valid so saved avatars keep rendering, and draw
- * {@link FOXICON_FALLBACK_VARIANT} instead.
+ * Looks with no artwork in the current set, including ones dropped after an
+ * earlier build shipped them. They stay valid so saved avatars keep rendering,
+ * and draw {@link FOXICON_FALLBACK_VARIANT} instead.
  */
 export const RetiredFoxiconVariant = {
   Angel: 'angel',
