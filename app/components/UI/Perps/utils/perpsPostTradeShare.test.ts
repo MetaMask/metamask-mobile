@@ -1,5 +1,6 @@
 import {
   beginPerpsPostTradeShare,
+  buildPerpsPostTradePreview,
   canBeginPerpsPostTradeShare,
   canPromptPerpsPostTrade,
   completePerpsPostTradeShare,
@@ -257,5 +258,86 @@ describe('perpsPostTradeShare', () => {
 
     expect(failPerpsPostTradeShare(sessionId)).toBe(true);
     expect(getPostTradeShareSession()?.status).toBe('failed');
+  });
+
+  describe('executed cost', () => {
+    it('takes the cost from the fill: filled size times average price', () => {
+      const preview = buildPerpsPostTradePreview({
+        asset: 'ETH',
+        direction: 'long',
+        leverage: 1,
+        amountUsd: '11',
+        entryPrice: '1815',
+        filledSize: '0.0061',
+      });
+
+      expect(preview.costLabel).toBe('$11.07');
+      expect(preview.entryPriceLabel).toBe('$1,815');
+    });
+
+    it('uses the same fill cost for a short', () => {
+      const preview = buildPerpsPostTradePreview({
+        asset: 'ETH',
+        direction: 'short',
+        leverage: 1,
+        amountUsd: '11',
+        entryPrice: '1815',
+        filledSize: '0.0061',
+      });
+
+      expect(preview.direction).toBe('short');
+      expect(preview.costLabel).toBe('$11.07');
+    });
+
+    it('falls back to the typed amount when the result has no fill size', () => {
+      const preview = buildPerpsPostTradePreview({
+        asset: 'ETH',
+        direction: 'long',
+        amountUsd: '11',
+        entryPrice: '1815',
+      });
+
+      expect(preview.costLabel).toBe('$11.00');
+    });
+
+    it('replaces the pending typed cost with the fill when the order completes', () => {
+      const sessionId = openPerpsPostTradeShareSession({
+        asset: 'ETH',
+        direction: 'long',
+        leverage: 1,
+        amountUsd: '11',
+      });
+      expect(getPostTradeShareSession()?.preview.costLabel).toBe('$11.00');
+
+      completePerpsPostTradeShare(sessionId, {
+        orderId: '42',
+        entryPrice: '1815',
+        filledSize: '0.0061',
+      });
+
+      expect(getPostTradeShareSession()?.preview.costLabel).toBe('$11.07');
+      expect(getPostTradeShareSession()?.preview.entryPriceLabel).toBe(
+        '$1,815',
+      );
+    });
+
+    it('keeps the typed cost when the completed order has no fill size', () => {
+      const sessionId = openPerpsPostTradeShareSession({
+        asset: 'ETH',
+        direction: 'long',
+        leverage: 1,
+        amountUsd: '11',
+      });
+
+      completePerpsPostTradeShare(sessionId, {
+        orderId: '42',
+        entryPrice: '1815',
+      });
+
+      expect(getPostTradeShareSession()?.preview.costLabel).toBe('$11.00');
+      expect(getPostTradeShareSession()?.preview.entryPriceLabel).toBe(
+        '$1,815',
+      );
+    });
   });
 });

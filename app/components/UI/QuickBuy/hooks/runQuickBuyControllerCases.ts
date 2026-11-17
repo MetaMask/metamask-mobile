@@ -4099,7 +4099,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       describe('stay-on-screen swap toasts', () => {
-        const mockUsableQuote = (amount = '20') => {
+        const mockUsableQuote = (amount = '20', destAmount?: string) => {
           setupQuoteSourceMock(
             createQuoteState({
               activeQuote: createActiveQuote({
@@ -4109,6 +4109,9 @@ export const runQuickBuyControllerCases = ({
                       .mul('1000000000000000')
                       .toString(),
                   },
+                  ...(destAmount === undefined
+                    ? {}
+                    : { dest: { normalizedAmount: destAmount } }),
                 },
               }),
               destTokenAmount: '1',
@@ -4376,8 +4379,9 @@ export const runQuickBuyControllerCases = ({
           const submitWithPostTradeShare = async (
             tradeMode: 'buy' | 'sell',
             analyticsContext: QuickBuyAnalyticsContext,
+            destAmount?: string,
           ) => {
-            mockUsableQuote();
+            mockUsableQuote('20', destAmount);
             (
               Engine.context.BridgeStatusController.submitTx as jest.Mock
             ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
@@ -4398,7 +4402,49 @@ export const runQuickBuyControllerCases = ({
             return result;
           };
 
-          it('uses the token USD market price as the buy preview entry', async () => {
+          it('uses the quoted USD cost per bought token as the buy preview entry', async () => {
+            await submitWithPostTradeShare(
+              'buy',
+              { source: 'profile_position', tokenPriceFiat: 0.006235 },
+              '0.004',
+            );
+
+            // $20 buys 0.004 tokens: $5,000 each. The $0.006235 market price is
+            // not what this trade paid, so it does not feed the preview.
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  side: 'buy',
+                  costLabel: '$20.00',
+                  entryPriceLabel: '$5,000',
+                }),
+              }),
+            );
+          });
+
+          it('converts the typed buy amount from the user currency to USD', async () => {
+            (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+              ETH: { conversionRate: 1000, usdConversionRate: 1200 },
+            });
+
+            await submitWithPostTradeShare(
+              'buy',
+              { source: 'profile_position' },
+              '0.004',
+            );
+
+            // 20 in the user currency is $24 USD at this rate, so $6,000 each.
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  costLabel: '$24.00',
+                  entryPriceLabel: '$6,000',
+                }),
+              }),
+            );
+          });
+
+          it('leaves the buy preview entry empty without a quoted destination amount', async () => {
             await submitWithPostTradeShare('buy', {
               source: 'profile_position',
               tokenPriceFiat: 0.006235,
@@ -4408,39 +4454,8 @@ export const runQuickBuyControllerCases = ({
               expect.objectContaining({
                 preview: expect.objectContaining({
                   side: 'buy',
-                  entryPriceLabel: '$0.006235',
+                  costLabel: '$20.00',
                 }),
-              }),
-            );
-          });
-
-          it('converts the buy token price from the user currency to USD', async () => {
-            (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
-              ETH: { conversionRate: 1000, usdConversionRate: 1200 },
-            });
-
-            await submitWithPostTradeShare('buy', {
-              source: 'profile_position',
-              tokenPriceFiat: 0.006235,
-            });
-
-            expect(getPostTradeShareSession()).toEqual(
-              expect.objectContaining({
-                preview: expect.objectContaining({
-                  entryPriceLabel: '$0.007482',
-                }),
-              }),
-            );
-          });
-
-          it('leaves the buy preview entry empty without a token price', async () => {
-            await submitWithPostTradeShare('buy', {
-              source: 'profile_position',
-            });
-
-            expect(getPostTradeShareSession()).toEqual(
-              expect.objectContaining({
-                preview: expect.objectContaining({ side: 'buy' }),
               }),
             );
             expect(
@@ -4448,7 +4463,7 @@ export const runQuickBuyControllerCases = ({
             ).toBeUndefined();
           });
 
-          it('keeps the swap rate as the sell preview entry', async () => {
+          it('uses the quoted USD value per token sold as the sell preview entry', async () => {
             (usePositionTokenBalance as jest.Mock).mockReturnValue(
               createSourceToken({
                 address: '0xDEST',
@@ -4467,14 +4482,20 @@ export const runQuickBuyControllerCases = ({
               displayBalance: '1.0',
               atomicBalance: '1000000000000000000',
             });
-            const result = await submitWithPostTradeShare('sell', {
+            await submitWithPostTradeShare('sell', {
               source: 'profile_position',
             });
-            const swapRate = result.current.formattedRate;
 
-            expect(swapRate).toBeDefined();
-            expect(getPostTradeShareSession()?.preview.entryPriceLabel).toBe(
-              swapRate,
+            // $20 sold from the quoted 0.01 tokens: $2,000 each, not the swap
+            // rate between the two tokens.
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  side: 'sell',
+                  costLabel: '$20.00',
+                  entryPriceLabel: '$2,000',
+                }),
+              }),
             );
           });
         });
