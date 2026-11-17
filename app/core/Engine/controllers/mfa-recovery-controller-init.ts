@@ -22,13 +22,12 @@ const getMfaRecoveryPreviewVersion = (): string => {
   }
 };
 
-const leftPathNotWired =
-  (surface: string, method: string) =>
-  (..._args: unknown[]): never => {
-    throw new Error(
+const leftPathNotWired = (surface: string, method: string): Promise<never> =>
+  Promise.reject(
+    new Error(
       `MfaRecoveryController ${surface}.${method} is not wired on the left-hand social unlock path`,
-    );
-  };
+    ),
+  );
 
 /**
  * Minimal Engine wiring for left-hand social unlock only:
@@ -74,10 +73,10 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
 
 function createLeftPathAuthProviderStub(): RecoveryAuthProvider {
   return {
-    getAuthenticatedProfileId: async () =>
-      leftPathNotWired('authProvider', 'getAuthenticatedProfileId')(),
-    authorizeRecoveryRequest: async () =>
-      leftPathNotWired('authProvider', 'authorizeRecoveryRequest')(),
+    getAuthenticatedProfileId: () =>
+      leftPathNotWired('authProvider', 'getAuthenticatedProfileId'),
+    authorizeRecoveryRequest: () =>
+      leftPathNotWired('authProvider', 'authorizeRecoveryRequest'),
   };
 }
 
@@ -86,25 +85,18 @@ function createLeftPathEscrowStub(): RecoveryEscrowProvider {
     id: 'left-path-stub',
     authAudience: 'left-path-stub',
     wrapPublicKey: new Uint8Array(32),
-    isAvailable: async () => false,
-    generateChallenge: async () =>
-      leftPathNotWired('escrow', 'generateChallenge')(),
-    getIdentifiers: async (...args) =>
-      leftPathNotWired('escrow', 'getIdentifiers')(...args),
-    getSecret: async (...args) =>
-      leftPathNotWired('escrow', 'getSecret')(...args),
-    applyMutation: async (...args) =>
-      leftPathNotWired('escrow', 'applyMutation')(...args),
-    verifyReceipt: async (...args) =>
-      leftPathNotWired('escrow', 'verifyReceipt')(...args),
+    isAvailable: () => Promise.resolve(false),
+    generateChallenge: () => leftPathNotWired('escrow', 'generateChallenge'),
+    getIdentifiers: () => leftPathNotWired('escrow', 'getIdentifiers'),
+    getSecret: () => leftPathNotWired('escrow', 'getSecret'),
+    applyMutation: () => leftPathNotWired('escrow', 'applyMutation'),
+    verifyReceipt: () => leftPathNotWired('escrow', 'verifyReceipt'),
   };
 }
 
 function createLeftPathPendingEncryptorStub(): PendingOperationEncryptor {
   return {
-    encrypt: async (...args) =>
-      leftPathNotWired('pendingEncryptor', 'encrypt')(...args),
-    decrypt: async (...args) =>
-      leftPathNotWired('pendingEncryptor', 'decrypt')(...args),
+    encrypt: () => leftPathNotWired('pendingEncryptor', 'encrypt'),
+    decrypt: () => leftPathNotWired('pendingEncryptor', 'decrypt'),
   };
 }
