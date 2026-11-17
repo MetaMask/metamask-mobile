@@ -428,6 +428,31 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     return null;
   }
 
+  let footer: React.ReactNode = null;
+  if (isLoadingOlderPages) {
+    footer = (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        twClassName="pt-2 px-4"
+        testID={TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID}
+      >
+        <ActivityIndicator size="small" />
+      </Box>
+    );
+  } else if (hasMore) {
+    footer = (
+      <Box alignItems={BoxAlignItems.Center} twClassName="pt-2 px-4">
+        <Button
+          variant={ButtonVariant.Tertiary}
+          onPress={handleShowMore}
+          testID={TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID}
+        >
+          {strings('homepage.sections.view_more')}
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <>
       <Box
@@ -491,25 +516,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
           );
         })}
 
-        {isLoadingOlderPages ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            twClassName="pt-2 px-4"
-            testID={TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID}
-          >
-            <ActivityIndicator size="small" />
-          </Box>
-        ) : hasMore ? (
-          <Box alignItems={BoxAlignItems.Center} twClassName="pt-2 px-4">
-            <Button
-              variant={ButtonVariant.Tertiary}
-              onPress={handleShowMore}
-              testID={TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID}
-            >
-              {strings('homepage.sections.view_more')}
-            </Button>
-          </Box>
-        ) : null}
+        {footer}
       </Box>
     </>
   );
