@@ -61,7 +61,10 @@ import {
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import { getSocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { resolveQuickBuySubmittedTxHash } from '../resolveQuickBuySubmittedTxHash';
-import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import {
+  useCanShareCopyTrade,
+  usePostTradePromptResolver,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
@@ -322,6 +325,7 @@ export function useQuickBuyController(
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
+  const canShareCopyTrade = useCanShareCopyTrade();
 
   const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
@@ -1781,14 +1785,16 @@ export function useQuickBuyController(
           ? formatTradeUnitPrice(previewEntryUsd)
           : undefined,
     };
-    // Copy-trades always share. Other swaps get the prompt chosen from the
-    // linked profile and how many share sheets it has already completed.
+    // Copy-trades share whenever the linked account is the one trading; from
+    // any other account the post could never land. Other swaps get the prompt
+    // chosen from the linked profile and how many share sheets it has already
+    // completed.
     const canPostTradeShare =
       isSpotPostTradeShareEligible(amountUsdValue) &&
       !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
     const isForcedPostTradeShare = postTradeShare;
     const shouldForcePostTradeShare =
-      isForcedPostTradeShare && canPostTradeShare;
+      isForcedPostTradeShare && canPostTradeShare && canShareCopyTrade();
     const prompt = isForcedPostTradeShare
       ? undefined
       : resolvePostTradePrompt('swap');
@@ -2051,6 +2057,7 @@ export function useQuickBuyController(
     navigation,
     postTradeShare,
     resolvePostTradePrompt,
+    canShareCopyTrade,
     copyTradeOrigin,
     postTradeShareOwner,
     sourceTokenAmount,

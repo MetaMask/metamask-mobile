@@ -13,7 +13,8 @@ export interface NetworkTierState {
 }
 
 /**
- * Current network tier derived from `useNetInfo()`.
+ * Current network tier derived from `useNetInfo()`. Transport / generation
+ * only; measured slowness is `useNetworkLatency()`.
  *
  * Adds no extra NetInfo listener beyond the calling component's subscription.
  */

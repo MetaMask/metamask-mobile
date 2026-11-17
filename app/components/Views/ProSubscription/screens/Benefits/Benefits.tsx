@@ -43,6 +43,7 @@ import {
   type SelectedPlusPlan,
 } from './utils/getSelectedPlusPlan';
 import { useStartProSubscription } from '../../hooks/useStartProSubscription';
+import { isSubscriptionAlreadyStartingError } from '../../hooks/isSubscriptionAlreadyStartingError';
 import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
 import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
 
@@ -105,7 +106,7 @@ const Benefits = ({
 
   const canSelectPlans =
     !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
-  const isCtaDisabled = !canSelectPlans;
+  const isCtaDisabled = !canSelectPlans || isSubmitting;
 
   const handleBenefitPress = useCallback((id: string) => {
     setIsBenefitDetailSheetOpen(true);
@@ -139,7 +140,12 @@ const Benefits = ({
         return;
       }
       onSuccess(checkoutPlan);
-    } catch {
+    } catch (error) {
+      // A second tap rejects while the first checkout is still running.
+      // Treating that as a failure clears checkout and skips Success.
+      if (isSubscriptionAlreadyStartingError(error)) {
+        return;
+      }
       // The hook logs the failure and exposes localized error state.
       onCheckoutError();
     }
