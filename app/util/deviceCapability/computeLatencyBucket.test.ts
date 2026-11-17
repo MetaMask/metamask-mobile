@@ -1,7 +1,4 @@
-import {
-  computeLatencyBucket,
-  summarizeLatencySamples,
-} from './computeLatencyBucket';
+import { computeLatencyBucket } from './computeLatencyBucket';
 import { LATENCY_THRESHOLDS } from './thresholds';
 import type { LatencyBucket } from './types';
 
@@ -24,6 +21,18 @@ describe('computeLatencyBucket', () => {
 
     it('enters slow on three 2600 ms samples', () => {
       expect(bucketFor([2600, 2600, 2600])).toBe('SLOW');
+    });
+
+    it('enters slow when the mean of the two middle of four samples is above slowMs', () => {
+      expect(bucketFor([3100, 2000, 3100, 2000])).toBe('SLOW');
+    });
+
+    it('gives ok when the mean of the two middle of four samples is at slowMs', () => {
+      expect(bucketFor([3000, 2000, 3000, 2000])).toBe('OK');
+    });
+
+    it('sorts samples before taking the median of five', () => {
+      expect(bucketFor([2600, 300, 300, 2600, 2600])).toBe('SLOW');
     });
 
     it('gives ok on three 2400 ms samples', () => {
@@ -71,36 +80,5 @@ describe('computeLatencyBucket', () => {
 
   it('stays unknown with fewer than three samples from unknown', () => {
     expect(bucketFor([300, 300])).toBe('UNKNOWN');
-  });
-});
-
-describe('summarizeLatencySamples', () => {
-  it('returns the median of an odd count', () => {
-    const result = summarizeLatencySamples({
-      samples: [900, 100, 500],
-      thresholds: LATENCY_THRESHOLDS.HIGH,
-    });
-
-    expect(result.medianMs).toBe(500);
-  });
-
-  it('returns the mean of the two middle values for an even count', () => {
-    const result = summarizeLatencySamples({
-      samples: [100, 400, 600, 9000],
-      thresholds: LATENCY_THRESHOLDS.HIGH,
-    });
-
-    expect(result).toEqual(
-      expect.objectContaining({ medianMs: 500, hungCount: 1 }),
-    );
-  });
-
-  it('returns a null median without samples', () => {
-    const result = summarizeLatencySamples({
-      samples: [],
-      thresholds: LATENCY_THRESHOLDS.HIGH,
-    });
-
-    expect(result.medianMs).toBeNull();
   });
 });

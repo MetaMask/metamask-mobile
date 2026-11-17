@@ -12,10 +12,10 @@ export interface RevealPrivateCredentialParams {
   /** When true, skip quiz and show password/action view (e.g. when coming from SRPQuiz modal) */
   skipQuiz?: boolean;
   /**
-   * When true, Done pops to the first screen in the current stack (e.g. wallet home),
-   * dismissing all overlays (e.g. Accounts sheet, Wallet Details, etc.). Use when returning to home.
+   * When true, Done returns to wallet home and dismisses AppFlow overlays such
+   * as Accounts and Wallet Details.
    */
-  popToTopOnDone?: boolean;
+  returnToWalletHomeOnDone?: boolean;
 }
 
 /** Reveal SRP credential parameters */

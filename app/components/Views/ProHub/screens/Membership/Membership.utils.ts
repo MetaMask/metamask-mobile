@@ -6,8 +6,8 @@ import {
   type Subscription,
 } from '@metamask/subscription-controller';
 import { strings } from '../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { formatSubscriptionFiat } from '../../../../../util/subscription/formatSubscriptionFiat';
+import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
 import { MEMBERSHIP_UNAVAILABLE_VALUE } from './Membership.constants';
 
 export interface MembershipPricing {
@@ -28,25 +28,12 @@ export interface MembershipDetails {
   renewsOn: string;
 }
 
-const formatRenewalDate = (date: string | undefined): string => {
-  if (!date) {
-    return MEMBERSHIP_UNAVAILABLE_VALUE;
-  }
-
-  const renewalDate = new Date(date);
-  if (Number.isNaN(renewalDate.getTime())) {
-    return MEMBERSHIP_UNAVAILABLE_VALUE;
-  }
-
+const formatRenewalDate = (date: string | undefined): string =>
   // Pinned to en-US so the row keeps the designed "Oct 8, 2026" order rather
-  // than following the device locale.
-  return getIntlDateTimeFormatter('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(renewalDate);
-};
+  // than following the device locale. The day matches Pro Hub: the last
+  // included UTC day of currentPeriodEnd.
+  formatSubscriptionPeriodEnd(date, { locale: 'en-US' }) ??
+  MEMBERSHIP_UNAVAILABLE_VALUE;
 
 const formatPaymentMethod = (
   subscription: Subscription,

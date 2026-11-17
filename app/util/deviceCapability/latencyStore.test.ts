@@ -3,6 +3,9 @@ import {
   addEventListener as addNetInfoEventListener,
   type NetInfoState,
 } from '@react-native-community/netinfo';
+import Logger from '../Logger';
+
+jest.mock('../Logger');
 
 jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(),
@@ -93,6 +96,26 @@ describe('latencyStore', () => {
     expect(store.getLatencySnapshot()).toBe('OK');
   });
 
+  it('logs a throwing listener and still notifies the others', () => {
+    const failure = new Error('subscriber failed');
+    const throwing = jest.fn(() => {
+      throw failure;
+    });
+    const healthy = jest.fn();
+    store.subscribeLatency(throwing);
+    store.subscribeLatency(healthy);
+
+    expect(() =>
+      [8000, 8000].forEach((duration) => record(duration)),
+    ).not.toThrow();
+
+    expect(healthy).toHaveBeenCalledTimes(1);
+    expect(Logger.error).toHaveBeenCalledWith(
+      failure,
+      'latencyStore: listener threw',
+    );
+  });
+
   it('stops notifying after unsubscribe', () => {
     const listener = jest.fn();
     const unsubscribe = store.subscribeLatency(listener);
@@ -139,6 +162,48 @@ describe('latencyStore', () => {
     record(8000);
 
     expect(store.getLatencySnapshot()).toBe('SLOW');
+  });
+
+  it('re-reads a background import once monitoring starts in the foreground', () => {
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'background',
+    });
+    jest.isolateModules(() => {
+      store = jest.requireActual('./latencyStore');
+    });
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+
+    store.startLatencyMonitoring('HIGH');
+    emitNetInfo(netInfoState('wifi'));
+    record(8000);
+    record(8000);
+
+    expect(store.getLatencySnapshot()).toBe('SLOW');
+  });
+
+  it('re-reads a foreground import once monitoring starts in the background', () => {
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+    jest.isolateModules(() => {
+      store = jest.requireActual('./latencyStore');
+    });
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'background',
+    });
+
+    store.startLatencyMonitoring('HIGH');
+    emitNetInfo(netInfoState('wifi'));
+    record(8000);
+    record(8000);
+
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });
 
   it('drops a fetch that starts in background and settles after resume', () => {
@@ -231,6 +296,32 @@ describe('latencyStore', () => {
     emitNetInfo(netInfoState('none', false));
 
     [8000, 8000].forEach((duration) => record(duration));
+
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+  });
+
+  it('clears samples when the hardware row changes', () => {
+    [8000, 8000].forEach((duration) => record(duration));
+
+    store.startLatencyMonitoring('LOW');
+
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+  });
+
+  it('keeps samples when the same hardware row is selected again', () => {
+    [8000, 8000].forEach((duration) => record(duration));
+
+    store.startLatencyMonitoring('HIGH');
+
+    expect(store.getLatencySnapshot()).toBe('SLOW');
+  });
+
+  it('drops an in-flight sample that spans a hardware row change', () => {
+    const epochAtStart = store.getLatencySampleEpoch();
+
+    store.startLatencyMonitoring('LOW');
+    store.recordFetchSample(30000, epochAtStart);
+    store.recordFetchSample(30000, epochAtStart);
 
     expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });

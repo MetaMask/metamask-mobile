@@ -61,7 +61,13 @@ import {
   formatCloseAmountUSD,
   validateCloseAmountLimits,
 } from '../utils/positionCalculations';
-import { resolveProviderId } from '../utils/perpsPostTradeShare';
+import {
+  buildPerpsClosePostTradePreview,
+  isPerpsPostTradeShareEligible,
+  resolveProviderId,
+} from '../utils/perpsPostTradeShare';
+import { useIsPerpsProModeActive } from '../utils/perpsModeSwitch';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { parsePositionRoePercentage } from '../utils/positionDisplay';
 
 /**
@@ -658,6 +664,8 @@ export function usePerpsClosePositionForm(
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
+  const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isPerpsProModeActive = useIsPerpsProModeActive();
   const unrealizedPnlPercent = useMemo(() => {
     const initialMargin = marginUsed - pnl; // Back-calculate initial margin
     return initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
@@ -776,10 +784,39 @@ export function usePerpsClosePositionForm(
     // Mark confirmed so the focus-effect cleanup does not emit an abandon event
     hasConfirmedCloseRef.current = true;
 
+    // A full Hyperliquid market close fills with one order id, so it can be
+    // shared like an open. Partial closes leave the position open.
+    const closeProviderId =
+      livePosition.providerId ?? resolveProviderId(activeProvider);
+    const canPromptPostTrade =
+      isFullClose &&
+      effectiveOrderType === 'market' &&
+      !isPerpsProModeActive &&
+      closeProviderId === 'hyperliquid' &&
+      isPerpsPostTradeShareEligible({ amountUsd: closingValueString });
+    const postTradePrompt = canPromptPostTrade
+      ? resolvePostTradePrompt('perps')
+      : undefined;
+    const postTradeShare =
+      postTradePrompt && postTradePrompt.kind !== 'none'
+        ? {
+            prompt: postTradePrompt,
+            providerId: closeProviderId,
+            preview: buildPerpsClosePostTradePreview({
+              asset: livePosition.symbol,
+              direction: isLong ? 'long' : 'short',
+              leverage: livePosition.leverage?.value,
+              amountUsd: closingValueString,
+              entryPrice: livePosition.entryPrice,
+            }),
+          }
+        : undefined;
+
     // Go back immediately to close the position screen
     dismissRef.current();
 
     await handleClosePosition({
+      postTradeShare,
       position: livePosition,
       size: sizeToClose || '',
       orderType: effectiveOrderType,
@@ -849,6 +886,10 @@ export function usePerpsClosePositionForm(
     isDraggingSlider,
     commitClosePercentage,
     liveDragClosePercentage,
+    isPerpsProModeActive,
+    activeProvider,
+    resolvePostTradePrompt,
+    isLong,
   ]);
 
   const handleAmountPress = useCallback(() => {

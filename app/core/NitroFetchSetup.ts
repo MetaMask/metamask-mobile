@@ -148,15 +148,38 @@ function recordFetchOutcome(
   startMs: number,
   epochAtStart: number,
 ): void {
-  const durationMs = classifyFetchSample({
-    outcome,
-    startMs,
-    endMs: Date.now(),
-    thresholds: getLatencyThresholds(),
-  });
-  if (durationMs !== null) {
-    recordFetchSample(durationMs, epochAtStart);
+  // Sampling is telemetry: a failure here must never change the fetch result.
+  try {
+    const durationMs = classifyFetchSample({
+      outcome,
+      startMs,
+      endMs: performance.now(),
+      thresholds: getLatencyThresholds(),
+    });
+    if (durationMs !== null) {
+      recordFetchSample(durationMs, epochAtStart);
+    }
+  } catch {
+    // Swallowed on purpose.
   }
+}
+
+// Monotonic clock: `Date.now()` jumps with NTP or a manual clock change.
+async function fetchWithLatencySample(
+  input: RequestInfo | URL,
+  nitroInit: RequestInit | undefined,
+): Promise<Awaited<ReturnType<typeof nitroFetch>>> {
+  const startMs = performance.now();
+  const epochAtStart = getLatencySampleEpoch();
+  let response: Awaited<ReturnType<typeof nitroFetch>>;
+  try {
+    response = await nitroFetch(input, nitroInit);
+  } catch (error) {
+    recordFetchOutcome({ error }, startMs, epochAtStart);
+    throw error;
+  }
+  recordFetchOutcome({ response }, startMs, epochAtStart);
+  return response;
 }
 
 function installProductionNitroFetch(): void {
@@ -167,22 +190,12 @@ function installProductionNitroFetch(): void {
   //   - `{ stream: true }` in fetch options (nitro-fetch Cronet streaming transport)
   //   - import `fetch` from 'expo/fetch' directly (see bridge-controller-init.ts)
   startLatencyMonitoring(getHardwareTier());
-  global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  global.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
     const nitroInit = withPrefetchKey(input, normalizeBodyForNitroFetch(init));
     if (isStreamInit(init) || !isHttpInput(input)) {
       return nitroFetch(input, nitroInit);
     }
-    const startMs = Date.now();
-    const epochAtStart = getLatencySampleEpoch();
-    let response: Awaited<ReturnType<typeof nitroFetch>>;
-    try {
-      response = await nitroFetch(input, nitroInit);
-    } catch (error) {
-      recordFetchOutcome({ error }, startMs, epochAtStart);
-      throw error;
-    }
-    recordFetchOutcome({ response }, startMs, epochAtStart);
-    return response;
+    return fetchWithLatencySample(input, nitroInit);
   };
   const _g = globalThis as unknown as {
     Headers: typeof NitroHeaders;

@@ -66,6 +66,11 @@ jest.mock('../../components/PerpsRebateBanner', () => ({
   default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
 }));
 
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: () => () => ({ kind: 'none' }) }),
+);
+
 jest.mock('../../hooks/usePerpsClosePosition', () => ({
   usePerpsCloseInFlight: jest.fn(() => false),
 }));

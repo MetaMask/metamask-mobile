@@ -24,9 +24,10 @@ export const INDEX_VERSION = 1;
 export const RETENTION_DAYS = 90;
 
 /**
- * What one run can rebuild from nothing. GITHUB_TOKEN allows 1000 GraphQL
- * points per hour per repository and a 14-day window costs roughly 460, so a
- * cold start fits while a full-window rebuild never would.
+ * What one run can rebuild from nothing. A heavy weekday costs a few hundred
+ * REST requests and GITHUB_TOKEN allows about 1000 per hour, so a cold start
+ * walks this window across several nights rather than in one hour. A
+ * full-retention rebuild would not fit either way.
  */
 export const MAX_BACKFILL_DAYS = 14;
 

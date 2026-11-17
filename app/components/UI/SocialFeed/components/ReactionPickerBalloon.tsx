@@ -25,6 +25,11 @@ import { playSelection } from '../../../../util/haptics';
 import { FEED_REACTION_EMOJIS } from '../reactions';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 
+/**
+ * Window-space frame of the reaction chip row. The tray's left edge pins to
+ * `x` and it opens rightward from there, so its position does not depend on
+ * where the add button lands after the chips wrap.
+ */
 export interface ReactionPickerAnchor {
   x: number;
   y: number;
@@ -34,6 +39,7 @@ export interface ReactionPickerAnchor {
 
 export interface ReactionPickerBalloonProps {
   visible: boolean;
+  /** Frame of the reaction chip row. See `ReactionPickerAnchor`. */
   anchor: ReactionPickerAnchor | null;
   onClose: () => void;
   onPick: (emotion: string) => void;

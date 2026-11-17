@@ -96,9 +96,9 @@ Latency cutoffs per hardware tier (`LATENCY_THRESHOLDS`, from 90 days of product
 | `MID` (and `null`) | 15000    | 5500     |
 | `LOW`              | 30000    | 12500    |
 
-A call of about 3 s is above `slowMs` on `HIGH` only. On `MID` the median cutoff is 5.5 s, and on `LOW` it is 12.5 s. `global.fetch` records the real duration. It does not add delay. Enter `SLOW` with 2 samples at or above `hungMs` among the newest 5, or with at least 3 samples whose median is above `slowMs`. Leave `SLOW` only when the newest 3 are all at or below `slowMs`.
+A call of about 3 s is above `slowMs` on `HIGH` only. On `MID` the median cutoff is 5.5 s, and on `LOW` it is 12.5 s. `global.fetch` records the real duration (monotonic `performance.now()`). It does not add delay. Enter `SLOW` with 2 samples at or above `hungMs` among the newest 5, or with at least 3 samples whose median is above `slowMs`. Leave `SLOW` only when the newest 3 are all at or below `slowMs`.
 
-Not sampled: non-HTTP URLs (`data:`, `file:`, `content:`), `stream: true` fetches, `nitroPrefetched` cache hits, a rejection shorter than the hardware row's `hungMs`, fetches while the transport is `NONE` or the app is backgrounded, a fetch still in flight when samples are cleared, XHR, axios, and WebSocket. A connection failure at or above that `hungMs`, and an `AbortError` at or above that `hungMs`, record the elapsed time.
+Not sampled: non-HTTP URLs (`data:`, `file:`, `content:`), `stream: true` fetches, `nitroPrefetched` cache hits, a rejection shorter than the hardware row's `hungMs`, fetches while the transport is `NONE` or the app is backgrounded, a fetch still in flight when samples are cleared, XHR, axios, and WebSocket. A connection failure at or above that `hungMs`, and an `AbortError` at or above that `hungMs`, record the elapsed time. A user cancel or an app timeout past `hungMs` therefore counts as a hung sample. This is kept on purpose, so real timeouts still signal `SLOW`.
 
 ## Files
 

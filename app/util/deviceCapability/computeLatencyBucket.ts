@@ -6,41 +6,11 @@ import {
 } from './thresholds';
 import type { LatencyBucket, LatencyThresholds } from './types';
 
-interface LatencySamplesInput {
+interface ComputeLatencyBucketInput {
+  previous: LatencyBucket;
+  /** Oldest first. Only the newest `LATENCY_SAMPLE_SIZE` are used. */
   samples: readonly number[];
   thresholds: LatencyThresholds;
-}
-
-export interface LatencySummary {
-  recent: number[];
-  hungCount: number;
-  medianMs: number | null;
-}
-
-/**
- * Newest `LATENCY_SAMPLE_SIZE` samples, with their hung count and median.
- * `samples` must be oldest first.
- */
-export function summarizeLatencySamples({
-  samples,
-  thresholds,
-}: LatencySamplesInput): LatencySummary {
-  const recent = samples.slice(-LATENCY_SAMPLE_SIZE);
-  const hungCount = recent.filter(
-    (durationMs) => durationMs >= thresholds.hungMs,
-  ).length;
-
-  const sorted = [...recent].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  let medianMs: number | null = null;
-  if (sorted.length > 0) {
-    medianMs =
-      sorted.length % 2 === 1
-        ? sorted[mid]
-        : (sorted[mid - 1] + sorted[mid]) / 2;
-  }
-
-  return { recent, hungCount, medianMs };
 }
 
 /**
@@ -49,11 +19,10 @@ export function summarizeLatencySamples({
  */
 export function computeLatencyBucket({
   previous,
-  ...latencySamples
-}: LatencySamplesInput & { previous: LatencyBucket }): LatencyBucket {
-  const { recent, hungCount, medianMs } =
-    summarizeLatencySamples(latencySamples);
-  const { slowMs } = latencySamples.thresholds;
+  samples,
+  thresholds: { hungMs, slowMs },
+}: ComputeLatencyBucketInput): LatencyBucket {
+  const recent = samples.slice(-LATENCY_SAMPLE_SIZE);
 
   if (previous === 'SLOW') {
     const newest = recent.slice(-LATENCY_GOOD_TO_EXIT);
@@ -63,11 +32,19 @@ export function computeLatencyBucket({
     return released ? 'OK' : 'SLOW';
   }
 
-  if (hungCount >= LATENCY_HUNG_TO_ENTER) {
+  if (
+    recent.filter((durationMs) => durationMs >= hungMs).length >=
+    LATENCY_HUNG_TO_ENTER
+  ) {
     return 'SLOW';
   }
   if (recent.length < LATENCY_MIN_SAMPLES) {
     return 'UNKNOWN';
   }
-  return medianMs !== null && medianMs > slowMs ? 'SLOW' : 'OK';
+
+  const sorted = [...recent].sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  const medianMs =
+    sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  return medianMs > slowMs ? 'SLOW' : 'OK';
 }

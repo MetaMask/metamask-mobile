@@ -44,6 +44,8 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
+import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
+import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
@@ -71,7 +73,6 @@ const OPEN_ORDER_STATES = [RecurringOrderState.Open];
 const HISTORY_ORDER_STATES = [
   RecurringOrderState.Completed,
   RecurringOrderState.Cancelled,
-  RecurringOrderState.Expired,
 ];
 const LOAD_MORE_SCROLL_THRESHOLD = 200;
 const FEE_TOKEN_ERROR_BANNER_TEST_IDS = {
@@ -154,6 +155,20 @@ const BridgeRecurringBuyViewContent = ({
     chainId: ordersNetworkFilter,
     enabled: isRemoteDataEnabled && recurringOrdersTab === OrdersTabKey.History,
   });
+  const activeOrdersQuery =
+    recurringOrdersTab === OrdersTabKey.OpenOrders
+      ? openOrdersQuery
+      : historyQuery;
+
+  useRecurringOrdersListTrace({
+    enabled: isRemoteDataEnabled && Boolean(walletAddress),
+    listType:
+      recurringOrdersTab === OrdersTabKey.OpenOrders ? 'open' : 'history',
+    hasNetworkFilter: Boolean(ordersNetworkFilter),
+    isLoading: activeOrdersQuery.isLoading,
+    isError: activeOrdersQuery.isError,
+    resultCount: activeOrdersQuery.orders.length,
+  });
 
   const {
     close: closeKeypad,
@@ -179,13 +194,29 @@ const BridgeRecurringBuyViewContent = ({
   }, []);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const {
+    formattedMinAmountInSelectedCurrency,
+    hasError: hasMinAmountError,
+    isBelowMinAmount,
+  } = useRecurringOrderMinAmount({
+    sourceToken,
+    sourceAmount,
+  });
   const canPreviewOrder =
     Boolean(activeQuote) &&
     scheduleValidation.isValid &&
-    feeTokenValidation.isValid;
+    feeTokenValidation.isValid &&
+    !hasMinAmountError &&
+    !isBelowMinAmount;
+  const previewOrderLabel =
+    isBelowMinAmount && formattedMinAmountInSelectedCurrency !== undefined
+      ? strings('bridge.recurring.min_order_amount', {
+          amount: formattedMinAmountInSelectedCurrency,
+        })
+      : strings('bridge.recurring.preview_order');
 
   const handlePreviewOrder = useCallback(() => {
-    if (!feeTokenValidation.isValid) {
+    if (!feeTokenValidation.isValid || hasMinAmountError || isBelowMinAmount) {
       return;
     }
 
@@ -215,6 +246,8 @@ const BridgeRecurringBuyViewContent = ({
     trackEvent,
     createEventBuilder,
     feeTokenValidation.isValid,
+    hasMinAmountError,
+    isBelowMinAmount,
     location,
   ]);
 
@@ -264,18 +297,13 @@ const BridgeRecurringBuyViewContent = ({
   );
 
   const handleOrdersRefresh = useCallback(async () => {
-    const activeOrdersQuery =
-      recurringOrdersTab === OrdersTabKey.OpenOrders
-        ? openOrdersQuery
-        : historyQuery;
-
     setIsRefreshingOrders(true);
     try {
       await activeOrdersQuery.refresh();
     } finally {
       setIsRefreshingOrders(false);
     }
-  }, [recurringOrdersTab, historyQuery, openOrdersQuery]);
+  }, [activeOrdersQuery]);
 
   const priceRangeToken =
     priceRange?.tokenSide === 'source' ? sourceToken : destToken;
@@ -424,8 +452,12 @@ const BridgeRecurringBuyViewContent = ({
 
         <BridgeRecurringBuyFooterView
           onPreviewOrder={handlePreviewOrder}
+          label={previewOrderLabel}
           isPreviewDisabled={
-            !scheduleValidation.isValid || !feeTokenValidation.isValid
+            !scheduleValidation.isValid ||
+            !feeTokenValidation.isValid ||
+            hasMinAmountError ||
+            isBelowMinAmount
           }
         />
 
@@ -437,7 +469,7 @@ const BridgeRecurringBuyViewContent = ({
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsRecurringBuyConfirmButton
               onPress={handlePreviewOrder}
-              label={strings('bridge.recurring.preview_order')}
+              label={previewOrderLabel}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={!canPreviewOrder}
               loading={isLoading}

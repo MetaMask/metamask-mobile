@@ -81,6 +81,8 @@ export interface SocialFeedContentProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Lets a host refresh the feed from its own pull-to-refresh control. */
   refreshRef?: React.Ref<SocialFeedRefreshHandle>;
+  /** Lets the host react to skeleton, empty, and retry, for example padding. */
+  onListStateChange?: (state: SocialFeedListState) => void;
 }
 
 export interface SocialFeedRefreshHandle {
