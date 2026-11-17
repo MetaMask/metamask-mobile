@@ -108,7 +108,13 @@ import { formatWithThreshold } from '../../../../../util/assets';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
 import ManageCardOptions from './components/ManageCardOptions';
+import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
+import CardHomeActionButtonRow, {
+  getCardHomeActionVisibility,
+} from './components/CardHomeActionButtonRow';
 import CardHomeFooter from './components/CardHomeFooter';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
@@ -656,6 +662,30 @@ const CardHome = () => {
 
   const headerHandlers = useCardHeaderHandlers('back');
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  // Same flag and tiles as the Money home action row, so both read alike.
+  const isGlassSurface = useIsGlassSurfaceEnabled(
+    selectMoneyBrandRefreshEnabled,
+  );
+
+  // Quick actions under the card art. Each keeps the gating of the list row
+  // or button it replaced.
+  const actionVisibility = getCardHomeActionVisibility({
+    card: data?.card,
+    capabilities,
+    isAuthenticated,
+    isLoading,
+    hasSetupActions,
+    hasAlertOnlyState,
+    isManageHidden: isBlocked || isUkMigrationForced,
+  });
+  const showAddFundsAction =
+    !isLoading &&
+    !isUkMigrationForced &&
+    !hasSetupActions &&
+    effectiveActions.some((a) => a.type === 'add_funds');
+  const isCardDetailsVisible =
+    (!!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails) &&
+    isAuthenticated;
 
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
@@ -711,6 +741,34 @@ const CardHome = () => {
     );
   }
 
+  // Ready-dashboard status banners (alerts, UK migration, blocked, Apple
+  // Wallet verification pending). Shown under the header and above the
+  // balance.
+  const dashboardAlerts = alerts.filter(
+    (a) =>
+      !(
+        a.type === 'close_to_spending_limit' &&
+        (isSpendingLimitWarningDismissed || isUkMigrationForced)
+      ),
+  );
+  const hasAlertSectionBanners = dashboardAlerts.some((a) => {
+    if (a.type === 'close_to_spending_limit' || a.type === 'kyc_pending') {
+      return true;
+    }
+    if (a.type === 'card_provisioning') {
+      return provisioningView !== 'hidden';
+    }
+    return false;
+  });
+  const showVerificationPendingBanner =
+    !isLoading && pendingDevicesLabel.length > 0 && !isUkMigrationForced;
+  const hasDashboardBanners =
+    hasAlertSectionBanners ||
+    showUkMigrationSoftBanner ||
+    isUkMigrationForced ||
+    isBlocked ||
+    showVerificationPendingBanner;
+
   // --- Main render ---
   return (
     <Box twClassName="flex-1 bg-background-default">
@@ -736,338 +794,374 @@ const CardHome = () => {
           />
         }
       >
-        <Text style={tw.style('px-4 pt-4')} variant={TextVariant.HeadingLg}>
-          {strings('card.card_home.title')}
-        </Text>
+        {isLoading ? (
+          <CardHomeLoadingSkeleton />
+        ) : (
+          <>
+            {/* Status banners sit under the header and above the balance. */}
+            {hasDashboardBanners ? (
+              <Box
+                twClassName="px-4 pt-2 mb-4 gap-2"
+                testID={CardHomeSelectors.DASHBOARD_BANNERS}
+              >
+                {hasAlertSectionBanners ? (
+                  <CardAlertSection
+                    alerts={dashboardAlerts}
+                    onNavigateToSpendingLimit={
+                      actions.manageSpendingLimitAction
+                    }
+                    onDismissSpendingLimitWarning={() =>
+                      setIsSpendingLimitWarningDismissed(true)
+                    }
+                    provisioningView={provisioningView}
+                  />
+                ) : null}
+                {showUkMigrationSoftBanner ? (
+                  <Box testID={CardHomeSelectors.UK_MIGRATION_SOFT_BANNER}>
+                    <CardMessageBox
+                      messageType={CardMessageBoxType.UkMigrationSoft}
+                      values={
+                        ukMigrationSoftDeadlineLabel
+                          ? { deadline: ukMigrationSoftDeadlineLabel }
+                          : undefined
+                      }
+                      onConfirm={handleUkMigrationBannerConfirm}
+                      onClose={() => setIsUkMigrationSoftBannerDismissed(true)}
+                    />
+                  </Box>
+                ) : null}
+                {isUkMigrationForced ? (
+                  <Box testID={CardHomeSelectors.UK_MIGRATION_REQUIRED_BANNER}>
+                    <CardMessageBox
+                      messageType={CardMessageBoxType.UkMigrationRequired}
+                      onConfirm={handleUkMigrationBannerConfirm}
+                    />
+                  </Box>
+                ) : null}
+                {isBlocked ? (
+                  <Box>
+                    <CardMessageBox messageType={CardMessageBoxType.Blocked} />
+                  </Box>
+                ) : null}
+                {showVerificationPendingBanner ? (
+                  <Box testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}>
+                    <CardMessageBox
+                      messageType={CardMessageBoxType.WalletVerificationPending}
+                      values={{ devices: pendingDevicesLabel }}
+                      onConfirm={
+                        canOpenInWallet ? handleOpenInWallet : undefined
+                      }
+                    />
+                  </Box>
+                ) : null}
+              </Box>
+            ) : null}
 
-        <Box twClassName="mx-4 mt-2">
-          <CardAlertSection
-            alerts={alerts.filter(
-              (a) =>
-                !(
-                  a.type === 'close_to_spending_limit' &&
-                  (isSpendingLimitWarningDismissed || isUkMigrationForced)
-                ),
-            )}
-            onNavigateToSpendingLimit={actions.manageSpendingLimitAction}
-            onDismissSpendingLimitWarning={() =>
-              setIsSpendingLimitWarningDismissed(true)
-            }
-            provisioningView={provisioningView}
-          />
-        </Box>
-
-        {showUkMigrationSoftBanner && (
-          <Box
-            twClassName="mx-4 mt-2"
-            testID={CardHomeSelectors.UK_MIGRATION_SOFT_BANNER}
-          >
-            <CardMessageBox
-              messageType={CardMessageBoxType.UkMigrationSoft}
-              values={
-                ukMigrationSoftDeadlineLabel
-                  ? { deadline: ukMigrationSoftDeadlineLabel }
-                  : undefined
-              }
-              onConfirm={handleUkMigrationBannerConfirm}
-              onClose={() => setIsUkMigrationSoftBannerDismissed(true)}
-            />
-          </Box>
-        )}
-
-        {isUkMigrationForced && (
-          <Box
-            twClassName="mx-4 mt-2"
-            testID={CardHomeSelectors.UK_MIGRATION_REQUIRED_BANNER}
-          >
-            <CardMessageBox
-              messageType={CardMessageBoxType.UkMigrationRequired}
-              onConfirm={handleUkMigrationBannerConfirm}
-            />
-          </Box>
-        )}
-
-        {isBlocked && (
-          <Box twClassName="mx-4 mt-2">
-            <CardMessageBox messageType={CardMessageBoxType.Blocked} />
-          </Box>
-        )}
-
-        {!isLoading &&
-          pendingDevicesLabel.length > 0 &&
-          !isUkMigrationForced && (
-            <Box
-              twClassName="mx-4 mt-2"
-              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
-            >
-              <CardMessageBox
-                messageType={CardMessageBoxType.WalletVerificationPending}
-                values={{ devices: pendingDevicesLabel }}
-                onConfirm={canOpenInWallet ? handleOpenInWallet : undefined}
+            {/* The available balance leads in place of the old "Card" title, using
+            the Money home balance header. States that hide the balance today
+            (setup actions or alert-only) show no header at all. */}
+            {!hasSetupActions && !hasAlertOnlyState && (
+              <CardBalanceDisplay
+                isLoading={isLoading}
+                balanceAmount={balanceAmount}
+                privacyMode={privacyMode}
+                currentCurrency={currentCurrency}
+                onTogglePrivacy={handleTogglePrivacy}
+                showInfoBadge={creditIncludedInBalance}
+                onInfoPress={handleOpenCreditBalanceTooltip}
+                infoBadgeTestID={CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON}
+                isUnavailable={primaryToken?.isUnavailable}
               />
-            </Box>
-          )}
+            )}
 
-        <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
-          <Animated.View
-            style={[tw.style('w-full relative'), arrival.cardStyle]}
-          >
-            {/* Muted while identity is in review, so the card doesn't look ready. */}
-            <Box
-              twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
-              testID={CardHomeSelectors.CARD_ART}
-            >
-              {arrival.usesRiveCard ? (
-                <MoneyCardTiltAnimation
-                  key={arrival.revealKey}
-                  isMetalCard={hasMetalCard}
-                  fillWidth
-                  playRevealOnMount={arrival.playReveal}
-                  revealDelayMs={arrival.revealDelayMs}
-                  testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
-                />
-              ) : (
-                <CardImageSection
-                  isLoading={isLoading || isSetupReconciling}
-                  isCardDetailsLoading={
-                    actions.isCardDetailsLoading ||
-                    actions.isSensitiveDetailsLoading
-                  }
-                  cardDetailsImageUrl={actions.cardDetailsImageUrl}
-                  isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
-                  onImageLoad={actions.onCardDetailsImageLoad}
-                  onImageError={actions.onCardDetailsImageError}
-                  cardSensitiveDetails={actions.cardSensitiveDetails}
-                  onCopyDetail={actions.copyCardDetail}
-                  cardType={data?.card?.type}
-                  cardStatus={data?.card?.status}
-                />
+            {showSpendingLimitProgress &&
+              !isUkMigrationForced &&
+              data?.primaryFundingAsset && (
+                <Box twClassName="mx-4 mt-4">
+                  <SpendingLimitProgressBar
+                    isLoading={isLoading}
+                    decimals={data.primaryFundingAsset.decimals ?? 6}
+                    totalAllowance={
+                      data.primaryFundingAsset.originalSpendingCap ??
+                      data.primaryFundingAsset.spendingCap ??
+                      '0'
+                    }
+                    remainingAllowance={
+                      data.primaryFundingAsset.spendingCap ?? '0'
+                    }
+                    symbol={
+                      primaryToken?.displaySymbol ??
+                      data.primaryFundingAsset.symbol ??
+                      ''
+                    }
+                    privacyMode={privacyMode}
+                    hasOriginalAllowance={
+                      !!data.primaryFundingAsset.originalSpendingCap
+                    }
+                  />
+                </Box>
+              )}
+
+            {/* Card art sits on the page at full content width (no panel). */}
+            <Box twClassName="mt-4 mx-4">
+              <Animated.View
+                style={[tw.style('w-full relative'), arrival.cardStyle]}
+              >
+                {/* Muted while identity is in review, so the card doesn't look ready. */}
+                <Box
+                  twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
+                  testID={CardHomeSelectors.CARD_ART}
+                >
+                  {arrival.usesRiveCard ? (
+                    <MoneyCardTiltAnimation
+                      key={arrival.revealKey}
+                      isMetalCard={hasMetalCard}
+                      fillWidth
+                      playRevealOnMount={arrival.playReveal}
+                      revealDelayMs={arrival.revealDelayMs}
+                      testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
+                    />
+                  ) : (
+                    <CardImageSection
+                      isLoading={isLoading || isSetupReconciling}
+                      isCardDetailsLoading={
+                        actions.isCardDetailsLoading ||
+                        actions.isSensitiveDetailsLoading
+                      }
+                      cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                      isCardDetailsImageLoading={
+                        actions.isCardDetailsImageLoading
+                      }
+                      onImageLoad={actions.onCardDetailsImageLoad}
+                      onImageError={actions.onCardDetailsImageError}
+                      cardSensitiveDetails={actions.cardSensitiveDetails}
+                      onCopyDetail={actions.copyCardDetail}
+                      cardType={data?.card?.type}
+                      cardStatus={data?.card?.status}
+                    />
+                  )}
+                </Box>
+              </Animated.View>
+
+              {!isUkMigrationForced && hasSetupActions && (
+                <Box twClassName="w-full mt-4">
+                  <CardActionsButtons
+                    actions={effectiveActions}
+                    isLoading={isLoading}
+                    onEnableCard={enableCard ?? actions.enableCardAction}
+                    isEnableCardDisabled={
+                      isEnableCardPending || isSetupReconciling
+                    }
+                  />
+                </Box>
               )}
             </Box>
-          </Animated.View>
 
-          {!hasSetupActions && !hasAlertOnlyState && (
-            <CardBalanceDisplay
-              isLoading={isLoading}
-              balanceAmount={balanceAmount}
-              privacyMode={privacyMode}
-              assetBalance={primaryToken ?? undefined}
-              onTogglePrivacy={handleTogglePrivacy}
-              showInfoBadge={creditIncludedInBalance}
-              onInfoPress={handleOpenCreditBalanceTooltip}
-              infoBadgeTestID={CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON}
-              isUnavailable={primaryToken?.isUnavailable}
+            {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
+              <Box twClassName="w-full px-4 pt-4 items-center justify-center">
+                {isProvisioning ? (
+                  <Box twClassName="py-3">
+                    <Spinner
+                      testID="push-provisioning-spinner"
+                      spinnerIconProps={{ size: IconSize.Xl }}
+                    />
+                  </Box>
+                ) : (
+                  <AddToWalletButton
+                    onPress={isProvisioning ? undefined : initiateProvisioning}
+                    buttonStyle="blackOutline"
+                    buttonType="basic"
+                    borderRadius={4}
+                  />
+                )}
+                {Platform.OS === 'ios' && !isCardInWallet && (
+                  <TextButton
+                    variant={TextVariant.BodySm}
+                    twClassName="mt-2"
+                    onPress={handleLearnMoreAboutApplePay}
+                    testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+                  >
+                    {strings('card.apple_pay_usage.learn_more')}
+                  </TextButton>
+                )}
+              </Box>
+            )}
+
+            <CardHomeActionButtonRow
+              isGlass={isGlassSurface}
+              isTightTop={
+                !isLoading && walletEntry === 'push' && !isUkMigrationForced
+              }
+              add={
+                showAddFundsAction
+                  ? {
+                      onPress: actions.addFundsAction,
+                      disabled:
+                        !isSwapEnabled && !primaryToken?.isMoneyAccountEntry,
+                    }
+                  : undefined
+              }
+              details={
+                actionVisibility.details
+                  ? {
+                      onPress: actions.viewCardDetailsAction,
+                      isShowingDetails: isCardDetailsVisible,
+                    }
+                  : undefined
+              }
+              pin={
+                actionVisibility.pin
+                  ? {
+                      onPress: actions.viewPinAction,
+                      disabled: actions.isPinLoading,
+                    }
+                  : undefined
+              }
             />
-          )}
 
-          {showSpendingLimitProgress &&
-            !isUkMigrationForced &&
-            data?.primaryFundingAsset && (
-              <SpendingLimitProgressBar
+            {credit.hasCredit &&
+              !hasSetupActions &&
+              !hasAlertOnlyState &&
+              !isUkMigrationForced && (
+                <Box
+                  twClassName="mx-4 mt-4"
+                  testID={CardHomeSelectors.CREDIT_BANNER}
+                >
+                  <CardMessageBox
+                    messageType={
+                      redeemsToMoneyAccount
+                        ? CardMessageBoxType.CreditAvailable
+                        : CardMessageBoxType.CreditAvailableNoMoneyAccount
+                    }
+                    values={{ amount: refundFiatLabel }}
+                    onConfirm={actions.redeemCreditAction}
+                  />
+                </Box>
+              )}
+
+            {showLinkMoneyAccountCta && (
+              <>
+                <Box twClassName="mb-6 mt-7">
+                  <MoneyMetaMaskCard
+                    mode="link"
+                    hideCardImage
+                    apy={moneyAccountApyPercent}
+                    showMetalCard={hasMetalCard}
+                    isLinkDisabled={isMoneyAccountLinkInProgress}
+                    onGetNowPress={handleLinkMoneyAccountCard}
+                    onLinkPress={handleLinkMoneyAccountCard}
+                    analyticsScreen={CardScreens.HOME}
+                    analyticsEntryPoint={
+                      CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
+                    }
+                    analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+                    analyticsCardState="unlinked_card"
+                    analyticsReady={isCardAnalyticsReady}
+                  />
+                </Box>
+                <Box
+                  twClassName="h-px bg-border-muted"
+                  testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM}
+                />
+              </>
+            )}
+
+            {!isBlocked && !isUkMigrationForced && (
+              <ManageCardOptions
+                card={data?.card}
+                account={data?.account}
+                capabilities={capabilities}
+                isSpendingLimitActive={isSpendingLimitActive}
+                isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
+                isAuthenticated={isAuthenticated}
                 isLoading={isLoading}
-                decimals={data.primaryFundingAsset.decimals ?? 6}
-                totalAllowance={
-                  data.primaryFundingAsset.originalSpendingCap ??
-                  data.primaryFundingAsset.spendingCap ??
-                  '0'
+                hasSetupActions={hasSetupActions}
+                hasAlertOnlyState={hasAlertOnlyState}
+                hasSetupAlerts={hasSetupAlerts}
+                userLocation={userLocation}
+                isFrozen={isFrozen}
+                isFreezeLoading={
+                  actions.freeze.isPending || actions.unfreeze.isPending
                 }
-                remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
-                symbol={
-                  primaryToken?.displaySymbol ??
-                  data.primaryFundingAsset.symbol ??
-                  ''
+                isPinLoading={actions.isPinLoading}
+                cardDetailsVisible={
+                  (!!actions.cardDetailsImageUrl ||
+                    !!actions.cardSensitiveDetails) &&
+                  isAuthenticated
                 }
-                privacyMode={privacyMode}
-                hasOriginalAllowance={
-                  !!data.primaryFundingAsset.originalSpendingCap
+                onViewCardDetails={actions.viewCardDetailsAction}
+                onViewPin={actions.viewPinAction}
+                onSetPin={actions.setPinAction}
+                onToggleFreeze={actions.handleToggleFreeze}
+                onManageSpendingLimit={actions.manageSpendingLimitAction}
+                onContactDetails={actions.contactDetailsAction}
+                showDigitalWalletInstructions={walletEntry === 'instructions'}
+                onDigitalWalletInstructions={
+                  actions.digitalWalletInstructionsAction
+                }
+                showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+                onHowToUseApplePay={actions.howToUseApplePayAction}
+                showUnlinkMoneyAccount={canUnlinkMoneyAccount}
+                onUnlinkMoneyAccount={() =>
+                  actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
+                }
+                showRevokeAllowance={canRevokeAllowance}
+                onRevokeAllowance={actions.revokeAllowanceAction}
+                fundingAccountName={fundingAccountName}
+                onOrderMetalCard={actions.orderMetalCardAction}
+                onChangeAsset={actions.changeAssetAction}
+                hasPriorityTokenBalance={hasPriorityTokenBalance}
+                hideDetailsAndPinRows={
+                  actionVisibility.details || actionVisibility.pin
+                }
+                onCashback={actions.cashbackAction}
+                onTravel={actions.navigateToTravelPage}
+                onTransactionHistory={
+                  transactionHistoryDestination
+                    ? () =>
+                        actions.transactionHistoryAction(
+                          transactionHistoryDestination,
+                        )
+                    : undefined
+                }
+                showTransactionHistoryDuringSetup={
+                  isImmersve && hasSetupActions
                 }
               />
             )}
 
-          {!isUkMigrationForced &&
-            (effectiveActions.length > 0 || isLoading) && (
-              <Box twClassName="w-full mt-4">
-                <CardActionsButtons
-                  actions={effectiveActions}
-                  isLoading={isLoading}
-                  isSwapEnabled={isSwapEnabled}
-                  isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
-                  onAddFunds={actions.addFundsAction}
-                  onEnableCard={enableCard ?? actions.enableCardAction}
-                  isEnableCardDisabled={
-                    isEnableCardPending || isSetupReconciling
-                  }
-                />
-              </Box>
-            )}
-        </Box>
+            <CardHomeFooter
+              isLoading={isLoading}
+              hasAlerts={hasAlertOnlyState}
+              hasSetupActions={hasSetupActions}
+              supportEmail={supportEmail}
+              onContactSupport={handleContactIntercomSupport}
+              legalDocuments={
+                isImmersve && immersveLegalDocuments.length > 0
+                  ? immersveLegalDocuments
+                  : undefined
+              }
+              hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
+              showLegalDocumentsError={immersveLegalDocsUnavailable}
+              onRetryLegalDocuments={
+                immersveLegalDocsUnavailable
+                  ? () => {
+                      refetchImmersveLegalDocs().catch(() => {
+                        // Error surfaces via hook state / footer retry UI.
+                      });
+                    }
+                  : undefined
+              }
+              onNavigateToCardTos={actions.navigateToCardTosPage}
+            />
 
-        {credit.hasCredit &&
-          !hasSetupActions &&
-          !hasAlertOnlyState &&
-          !isUkMigrationForced && (
-            <Box
-              twClassName="mx-4 mt-4"
-              testID={CardHomeSelectors.CREDIT_BANNER}
-            >
-              <CardMessageBox
-                messageType={
-                  redeemsToMoneyAccount
-                    ? CardMessageBoxType.CreditAvailable
-                    : CardMessageBoxType.CreditAvailableNoMoneyAccount
-                }
-                values={{ amount: refundFiatLabel }}
-                onConfirm={actions.redeemCreditAction}
-              />
-            </Box>
-          )}
-
-        {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
-          <Box twClassName="w-full px-4 pt-4 items-center justify-center">
-            {isProvisioning ? (
-              <Box twClassName="py-3">
-                <Spinner
-                  testID="push-provisioning-spinner"
-                  spinnerIconProps={{ size: IconSize.Xl }}
-                />
-              </Box>
-            ) : (
-              <AddToWalletButton
-                onPress={isProvisioning ? undefined : initiateProvisioning}
-                buttonStyle="blackOutline"
-                buttonType="basic"
-                borderRadius={4}
-              />
-            )}
-            {Platform.OS === 'ios' && !isCardInWallet && (
-              <TextButton
-                variant={TextVariant.BodySm}
-                twClassName="mt-2"
-                onPress={handleLearnMoreAboutApplePay}
-                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
-              >
-                {strings('card.apple_pay_usage.learn_more')}
-              </TextButton>
-            )}
-          </Box>
-        )}
-
-        {showLinkMoneyAccountCta && (
-          <>
-            <Box twClassName="mb-6 mt-7">
-              <MoneyMetaMaskCard
-                mode="link"
-                hideCardImage
-                apy={moneyAccountApyPercent}
-                showMetalCard={hasMetalCard}
-                isLinkDisabled={isMoneyAccountLinkInProgress}
-                onGetNowPress={handleLinkMoneyAccountCard}
-                onLinkPress={handleLinkMoneyAccountCard}
-                analyticsScreen={CardScreens.HOME}
-                analyticsEntryPoint={
-                  CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
-                }
-                analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
-                analyticsCardState="unlinked_card"
-                analyticsReady={isCardAnalyticsReady}
-              />
-            </Box>
-            <Box
-              twClassName="h-px bg-border-muted"
-              testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM}
+            <CardScreenshotDeterrent
+              enabled={
+                !!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails
+              }
             />
           </>
         )}
-
-        {!isBlocked && !isUkMigrationForced && (
-          <ManageCardOptions
-            card={data?.card}
-            account={data?.account}
-            capabilities={capabilities}
-            isSpendingLimitActive={isSpendingLimitActive}
-            isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
-            isAuthenticated={isAuthenticated}
-            isLoading={isLoading}
-            hasSetupActions={hasSetupActions}
-            hasAlertOnlyState={hasAlertOnlyState}
-            hasSetupAlerts={hasSetupAlerts}
-            userLocation={userLocation}
-            isFrozen={isFrozen}
-            isFreezeLoading={
-              actions.freeze.isPending || actions.unfreeze.isPending
-            }
-            isPinLoading={actions.isPinLoading}
-            cardDetailsVisible={
-              (!!actions.cardDetailsImageUrl ||
-                !!actions.cardSensitiveDetails) &&
-              isAuthenticated
-            }
-            onViewCardDetails={actions.viewCardDetailsAction}
-            onViewPin={actions.viewPinAction}
-            onSetPin={actions.setPinAction}
-            onToggleFreeze={actions.handleToggleFreeze}
-            onManageSpendingLimit={actions.manageSpendingLimitAction}
-            onContactDetails={actions.contactDetailsAction}
-            showDigitalWalletInstructions={walletEntry === 'instructions'}
-            onDigitalWalletInstructions={
-              actions.digitalWalletInstructionsAction
-            }
-            showHowToUseApplePay={isCardInWallet && !canAddToWallet}
-            onHowToUseApplePay={actions.howToUseApplePayAction}
-            showUnlinkMoneyAccount={canUnlinkMoneyAccount}
-            onUnlinkMoneyAccount={() =>
-              actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
-            }
-            showRevokeAllowance={canRevokeAllowance}
-            onRevokeAllowance={actions.revokeAllowanceAction}
-            fundingAccountName={fundingAccountName}
-            onOrderMetalCard={actions.orderMetalCardAction}
-            onChangeAsset={actions.changeAssetAction}
-            hasPriorityTokenBalance={hasPriorityTokenBalance}
-            onCashback={actions.cashbackAction}
-            onTravel={actions.navigateToTravelPage}
-            onTransactionHistory={
-              transactionHistoryDestination
-                ? () =>
-                    actions.transactionHistoryAction(
-                      transactionHistoryDestination,
-                    )
-                : undefined
-            }
-            showTransactionHistoryDuringSetup={isImmersve && hasSetupActions}
-          />
-        )}
-
-        <CardHomeFooter
-          isLoading={isLoading}
-          hasAlerts={hasAlertOnlyState}
-          hasSetupActions={hasSetupActions}
-          supportEmail={supportEmail}
-          onContactSupport={handleContactIntercomSupport}
-          legalDocuments={
-            isImmersve && immersveLegalDocuments.length > 0
-              ? immersveLegalDocuments
-              : undefined
-          }
-          hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
-          showLegalDocumentsError={immersveLegalDocsUnavailable}
-          onRetryLegalDocuments={
-            immersveLegalDocsUnavailable
-              ? () => {
-                  refetchImmersveLegalDocs().catch(() => {
-                    // Error surfaces via hook state / footer retry UI.
-                  });
-                }
-              : undefined
-          }
-          onNavigateToCardTos={actions.navigateToCardTosPage}
-        />
-
-        <CardScreenshotDeterrent
-          enabled={
-            !!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails
-          }
-        />
       </ScrollView>
     </Box>
   );

@@ -100,6 +100,7 @@ import { ToastContext } from '../../../../../component-library/components/Toast'
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
@@ -359,6 +360,10 @@ jest.mock('./hooks/useCardEnableCard', () => ({
   })),
 }));
 
+jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => false,
+}));
+
 jest.mock('../../hooks/useCreditBalance', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -539,6 +544,8 @@ jest.mock(
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '1.0.0'),
+  // Read by useLiquidGlass inside the action row's MainActionButtonGlass.
+  getTotalMemorySync: jest.fn(() => 8 * 1024 * 1024 * 1024),
 }));
 
 // Mock deposit feature flag selectors
@@ -662,6 +669,7 @@ jest.mock('../../../../../core/Engine', () => ({
 // Import the Engine to get typed references to the mocked functions
 import Engine from '../../../../../core/Engine';
 import { CardHomeSelectors } from './CardHome.testIds';
+import { MoneyBalanceSummaryTestIds } from '../../../Money/components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { CARD_SUPPORT_EMAIL } from '../../constants';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CardEntryPoint } from '../../util/metrics';
@@ -924,6 +932,7 @@ function setupMockSelectors(
     cardHomeDataStatus: 'success' as const,
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
+    currentCurrency: 'usd',
     activeProviderId: 'baanx',
     selectedCountry: null,
     isCardIntercomSupportEnabled: false,
@@ -937,6 +946,7 @@ function setupMockSelectors(
     if (!selector) return [];
 
     if (selector === selectPrivacyMode) return config.privacyMode;
+    if (selector === selectCurrentCurrency) return config.currentCurrency;
     if (selector === selectDepositActiveFlag) return config.depositActive;
     if (selector === selectDepositMinimumVersionFlag)
       return config.depositMinVersion;
@@ -1545,7 +1555,7 @@ describe('CardHome Component', () => {
 
     // Then: should show privacy indicators
     expect(
-      screen.getByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON),
+      screen.getByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
     ).toBeOnTheScreen();
     expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
     expect(screen.getByTestId('card-view-title')).toBeOnTheScreen();
@@ -2811,7 +2821,7 @@ describe('CardHome Component', () => {
     render();
 
     const privacyToggleButton = screen.getByTestId(
-      CardHomeSelectors.PRIVACY_TOGGLE_BUTTON,
+      MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE,
     );
     fireEvent.press(privacyToggleButton);
 
@@ -3851,9 +3861,9 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON),
       ).toBeOnTheScreen();
 
-      // Add funds button should also show skeleton
+      // The full-screen skeleton also shows the card art placeholder
       expect(
-        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+        screen.getByTestId(CardHomeSelectors.CARD_ART_SKELETON),
       ).toBeOnTheScreen();
     });
 
@@ -3873,7 +3883,7 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+        screen.getByTestId(CardHomeSelectors.CARD_ART_SKELETON),
       ).toBeOnTheScreen();
     });
 
@@ -4270,9 +4280,9 @@ describe('CardHome Component', () => {
 
         render();
 
-        // When loading, the button skeleton is shown instead
+        // When loading, the full-screen skeleton is shown instead
         expect(
-          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+          screen.getByTestId(CardHomeSelectors.CARD_ART_SKELETON),
         ).toBeOnTheScreen();
         expect(
           screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
@@ -4462,7 +4472,7 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+          screen.getByTestId(CardHomeSelectors.CARD_ART_SKELETON),
         ).toBeOnTheScreen();
       });
     });
@@ -7418,12 +7428,11 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
       ).toBeOnTheScreen();
 
+      // The quick actions show for a signed-in cardholder even at zero
+      // balance; the balance-gated rows are the Manage list ones below.
       expect(
-        screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-      ).toBeNull();
-      expect(
-        screen.queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
-      ).toBeNull();
+        screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
       ).toBeNull();

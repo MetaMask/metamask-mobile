@@ -57,6 +57,12 @@ interface ManageCardOptionsProps {
   isSpendingLimitActive: boolean;
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
+  /**
+   * The Card home action row now carries the View card details and View PIN
+   * actions; when it is showing them, hide these rows so the same action
+   * does not appear twice. Defaults to false (rows unchanged).
+   */
+  hideDetailsAndPinRows?: boolean;
   onCashback: () => void;
   onTravel: () => void;
   onTransactionHistory?: () => void;
@@ -97,6 +103,7 @@ const ManageCardOptions = ({
   isSpendingLimitActive,
   onChangeAsset,
   hasPriorityTokenBalance,
+  hideDetailsAndPinRows = false,
   onCashback,
   onTravel,
   onTransactionHistory,
@@ -206,21 +213,22 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CASHBACK_ITEM}
             />
           )}
-        {((isAuthenticated && !isLoading && card && !hideManageOptions) ||
-          showTeaserOptions) && (
-          <ManageCardListItem
-            title={strings(
-              cardDetailsVisible
-                ? 'card.card_home.manage_card_options.hide_card_details'
-                : 'card.card_home.manage_card_options.view_card_details',
-            )}
-            description={strings(
-              'card.card_home.manage_card_options.view_card_details_description',
-            )}
-            onPress={onViewCardDetails}
-            testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
-          />
-        )}
+        {!hideDetailsAndPinRows &&
+          ((isAuthenticated && !isLoading && card && !hideManageOptions) ||
+            showTeaserOptions) && (
+            <ManageCardListItem
+              title={strings(
+                cardDetailsVisible
+                  ? 'card.card_home.manage_card_options.hide_card_details'
+                  : 'card.card_home.manage_card_options.view_card_details',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.view_card_details_description',
+              )}
+              onPress={onViewCardDetails}
+              testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
+            />
+          )}
         {isFullySetUp &&
           !hideManageOptions &&
           showDigitalWalletInstructions && (
@@ -236,23 +244,24 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM}
             />
           )}
-        {((isAuthenticated &&
-          !isLoading &&
-          card &&
-          capabilities?.supportsPinView &&
-          cardHasPin &&
-          !hideManageOptions) ||
-          (showTeaserOptions && capabilities?.supportsPinView)) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.view_pin')}
-            description={strings(
-              'card.card_home.manage_card_options.view_pin_description',
-            )}
-            onPress={onViewPin}
-            isLoading={isPinLoading}
-            testID={CardHomeSelectors.VIEW_PIN_BUTTON}
-          />
-        )}
+        {!hideDetailsAndPinRows &&
+          ((isAuthenticated &&
+            !isLoading &&
+            card &&
+            capabilities?.supportsPinView &&
+            cardHasPin &&
+            !hideManageOptions) ||
+            (showTeaserOptions && capabilities?.supportsPinView)) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.view_pin')}
+              description={strings(
+                'card.card_home.manage_card_options.view_pin_description',
+              )}
+              onPress={onViewPin}
+              isLoading={isPinLoading}
+              testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+            />
+          )}
         {((isAuthenticated &&
           !isLoading &&
           card &&
