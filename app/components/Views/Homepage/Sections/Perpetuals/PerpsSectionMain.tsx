@@ -116,6 +116,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       totalSectionsLoaded,
       emptyStateContent = 'tiles',
       emptyStateTitleOverride,
+      deviceCapability,
     },
     ref,
   ) => {
@@ -587,6 +588,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               sparklines={sparklines}
               onPressMarket={handleTrendingMarketPress}
               onPressViewMore={handleViewMorePerps}
+              deviceCapability={deviceCapability}
             />
           )}
         </Box>

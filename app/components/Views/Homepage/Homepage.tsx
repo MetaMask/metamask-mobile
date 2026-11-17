@@ -306,6 +306,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       <HomepagePerpsHomeSlot
         key="perps"
         ref={perpsSectionRef}
+        deviceCapability={homepageDeviceCapability}
         sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />

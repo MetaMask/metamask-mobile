@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -51,6 +51,8 @@ import {
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../search/abTestConfig';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -70,6 +72,12 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
     refresh,
     withTileExtras: true,
   });
+  const [hardwareTier] = useState(() => getHardwareTier());
+  const networkTier = useNetworkTier();
+  const deviceCapability = useMemo(
+    () => ({ hardwareTier, networkTier }),
+    [hardwareTier, networkTier],
+  );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
@@ -90,6 +98,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
             item={item}
             testIdPrefix="crypto-tab-perps-market-tile-card"
             sourceSection="perps_crypto"
+            deviceCapability={deviceCapability}
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, TouchableOpacity, View } from 'react-native';
 import {
   Box,
@@ -15,26 +15,38 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { usePerpsLivePrices } from '../../../../../../UI/Perps/hooks/stream';
 import PerpsLeverage from '../../../../../../UI/Perps/components/PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../../../../../../UI/Perps/components/PerpsTokenLogo';
 import SparklineChart from '../SparklineChart';
 import styleSheet from './PerpsMarketTileCard.styles';
 import type { PerpsMarketTileCardProps } from './PerpsMarketTileCard.types';
+import {
+  getPerpsTileDisplayValues,
+  getPerpsTileLivePriceThrottleMs,
+  type PerpsTileDisplayValues,
+} from './PerpsMarketTileCard.utils';
 
-const DEFAULT_CARD_WIDTH = 180;
-const DEFAULT_CARD_HEIGHT = 180;
-const SPARKLINE_HEIGHT = 80;
+const DEFAULT_CARD_WIDTH = 188;
+const DEFAULT_CARD_HEIGHT = 188;
+const SPARKLINE_HEIGHT = 86;
 const SPARKLINE_STROKE_WIDTH = 2;
-const TOKEN_LOGO_SIZE = 40;
+const TOKEN_LOGO_SIZE = 32;
 const SHIMMER_PULSE_DURATION = 900;
 const SPARKLINE_MARGIN = 16;
 
-/**
- * PerpsMarketTileCard — compact card for horizontal carousels.
- * Uses static market data only (no live price subscription).
- */
-const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
+const NO_LIVE_PRICE_SYMBOLS: string[] = [];
+
+type PerpsMarketTileCardContentProps = Omit<
+  PerpsMarketTileCardProps,
+  'deviceCapability'
+> &
+  PerpsTileDisplayValues;
+
+const PerpsMarketTileCardContent: React.FC<PerpsMarketTileCardContentProps> = ({
   market,
+  price,
+  changePercent,
   sparklineData,
   onPress,
   cardWidth = DEFAULT_CARD_WIDTH,
@@ -44,13 +56,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
 }) => {
   const { styles, theme } = useStyles(styleSheet, { cardWidth, cardHeight });
 
-  const { changePercent, isPositive } = useMemo(
-    () => ({
-      changePercent: market.change24hPercent,
-      isPositive: !market.change24hPercent.startsWith('-'),
-    }),
-    [market.change24hPercent],
-  );
+  const isPositive = !changePercent.startsWith('-');
 
   const sparklineColor = isPositive
     ? theme.colors.success.default
@@ -109,34 +115,6 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
           alignItems={BoxAlignItems.Start}
           gap={2}
         >
-          <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {getPerpsDisplaySymbol(market.symbol)}
-            </Text>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
-                }
-                numberOfLines={1}
-                twClassName="shrink"
-              >
-                {changePercent}
-              </Text>
-              <PerpsLeverage maxLeverage={market.maxLeverage} />
-            </Box>
-          </Box>
-
           <View style={styles.tokenLogoWrapper}>
             <PerpsTokenLogo
               symbol={market.symbol}
@@ -156,6 +134,53 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
               </View>
             )}
           </View>
+
+          <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {getPerpsDisplaySymbol(market.symbol)}
+              </Text>
+              <PerpsLeverage maxLeverage={market.maxLeverage} />
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+                twClassName="shrink"
+                testID={`perps-market-tile-card-price-${market.symbol}`}
+              >
+                {price}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={
+                  isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
+                }
+                numberOfLines={1}
+              >
+                {changePercent}
+              </Text>
+            </Box>
+          </Box>
         </Box>
       </View>
 
@@ -190,6 +215,37 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
         />
       )}
     </TouchableOpacity>
+  );
+};
+
+const MemoizedPerpsMarketTileCardContent = React.memo(
+  PerpsMarketTileCardContent,
+);
+
+/**
+ * PerpsMarketTileCard — compact card for horizontal carousels.
+ */
+const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
+  deviceCapability,
+  ...props
+}) => {
+  const throttleMs = getPerpsTileLivePriceThrottleMs(deviceCapability);
+  const livePrices = usePerpsLivePrices({
+    symbols:
+      throttleMs === null ? NO_LIVE_PRICE_SYMBOLS : [props.market.symbol],
+    throttleMs: throttleMs ?? undefined,
+  });
+  const { price, changePercent } = getPerpsTileDisplayValues(
+    props.market,
+    livePrices[props.market.symbol],
+  );
+
+  return (
+    <MemoizedPerpsMarketTileCardContent
+      {...props}
+      price={price}
+      changePercent={changePercent}
+    />
   );
 };
 
