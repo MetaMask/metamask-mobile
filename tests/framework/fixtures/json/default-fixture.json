@@ -733,11 +733,6 @@
           "subscriptions": [],
           "trialedProducts": []
         },
-        "TokensController": {
-          "allDetectedTokens": {},
-          "allIgnoredTokens": {},
-          "allTokens": {}
-        },
         "TransactionController": {
           "methodData": {},
           "transactions": []

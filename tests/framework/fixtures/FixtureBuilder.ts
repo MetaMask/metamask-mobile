@@ -158,6 +158,11 @@ const LEGACY_ASSET_CONTROLLERS_STATE = {
   MultichainAssetsRatesController: { conversionRates: {} },
   TokenBalancesController: { tokenBalances: {} },
   TokenRatesController: { marketData: {} },
+  TokensController: {
+    allDetectedTokens: {},
+    allIgnoredTokens: {},
+    allTokens: {},
+  },
 };
 
 /**
