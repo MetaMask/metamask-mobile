@@ -118,6 +118,9 @@ interface PredictOrderFlowSheetProps {
   intent: PredictOrderFlowIntent;
   service: PredictOrderService;
   onClose: () => void;
+  /** Leaves for the deposit. Offered under an `insufficient_balance` quote
+   * only when given, which is when deposits are ready for the Venue. */
+  onAddFunds?: () => void;
 }
 
 /** The explicit Order Flow phases: enter the amount, approve the exact
@@ -136,6 +139,7 @@ export const PredictOrderFlowSheet = ({
   intent,
   service,
   onClose,
+  onAddFunds,
 }: PredictOrderFlowSheetProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -730,7 +734,7 @@ export const PredictOrderFlowSheet = ({
       return null;
     }
     if (quoteError) {
-      return (
+      const message = (
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
@@ -739,6 +743,22 @@ export const PredictOrderFlowSheet = ({
         >
           {quoteError.message}
         </Text>
+      );
+      return onAddFunds &&
+        quoteError.code === PredictErrorCode.INSUFFICIENT_BALANCE ? (
+        <Box twClassName="items-center">
+          {message}
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Sm}
+            onPress={onAddFunds}
+            testID={PredictOrderFlowTestIds.ADD_FUNDS}
+          >
+            {strings('predict_next.portfolio.add_funds')}
+          </Button>
+        </Box>
+      ) : (
+        message
       );
     }
     if (preview && isExpired) {
@@ -765,6 +785,7 @@ export const PredictOrderFlowSheet = ({
     isQuoting,
     isStale,
     maxContracts,
+    onAddFunds,
     preview,
     quoteError,
   ]);

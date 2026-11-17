@@ -3,6 +3,7 @@ import React from 'react';
 import type { QueryClient } from '@tanstack/react-query';
 import { Text } from 'react-native';
 import {
+  getRouteParamsProbeTestId,
   getRouteProbeTestId,
   renderComponentViewScreen,
   renderScreenWithRoutes,
@@ -12,7 +13,7 @@ import { initialStatePredict } from '../presets/predict';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import { PredictRoot } from '../../../app/components/UI/PredictNext';
@@ -78,12 +79,41 @@ const SearchScreen = withOrderFlow(
   PredictSearchScreen as unknown as React.ComponentType<object>,
 );
 
-export const renderPredictOrderFlow = (Component: React.ComponentType) =>
-  renderComponentViewScreen(
-    withOrderFlow(Component),
-    { name: PredictNextRoutes.HOME },
-    { state: initialStatePredictNext().build() },
+/** Shows the params the Predict root route was opened with. */
+const PredictRootParamsProbe = () => {
+  const route = useRoute();
+  return (
+    <Text testID={getRouteParamsProbeTestId(Routes.PREDICT.ROOT)}>
+      {JSON.stringify(route.params)}
+    </Text>
   );
+};
+
+/**
+ * The Order Flow over a probe screen. With `remoteFeatureFlags`, the
+ * Predict root route is registered as a params probe, for the sheet's ways
+ * out of the PredictNext stack.
+ */
+export const renderPredictOrderFlow = (
+  Component: React.ComponentType,
+  { remoteFeatureFlags }: { remoteFeatureFlags?: Record<string, unknown> } = {},
+) =>
+  remoteFeatureFlags
+    ? renderScreenWithRoutes(
+        withOrderFlow(Component),
+        { name: PredictNextRoutes.HOME },
+        [{ name: Routes.PREDICT.ROOT, Component: PredictRootParamsProbe }],
+        {
+          state: initialStatePredictNext()
+            .withRemoteFeatureFlags(remoteFeatureFlags)
+            .build(),
+        },
+      )
+    : renderComponentViewScreen(
+        withOrderFlow(Component),
+        { name: PredictNextRoutes.HOME },
+        { state: initialStatePredictNext().build() },
+      );
 
 export const renderPredictNext = (
   privacyMode = false,

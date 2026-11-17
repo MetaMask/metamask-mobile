@@ -12,6 +12,7 @@ import { Text, Button } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
+import Routes from '../../../../../constants/navigation/Routes';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import {
   composePredictNextOrderService,
@@ -1155,6 +1156,64 @@ describe('PredictOrderFlow', () => {
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
     ).toBeOnTheScreen();
+  });
+
+  it('offers Add funds under an insufficient_balance quote when Kalshi deposits are on', async () => {
+    stubFetch(() => ({
+      status: 422,
+      body: {
+        code: 'insufficient_balance',
+        message: 'Estimated total debit exceeds the available balance.',
+      },
+    }));
+    renderPredictOrderFlow(BuyProbe, {
+      remoteFeatureFlags: {
+        predictConfig: {
+          enabled: true,
+          venues: {
+            polymarket: { enabled: false },
+            kalshi: { enabled: true },
+          },
+          venueSelection: { enabled: false },
+          kalshiDepositsEnabled: true,
+        },
+      },
+    });
+    fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+    await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
+    typeAmount('20');
+    await flushDebounce();
+
+    fireEvent.press(
+      await screen.findByTestId(PredictOrderFlowTestIds.ADD_FUNDS),
+    );
+
+    expect(
+      await screen.findByTestId(`route-${Routes.PREDICT.ROOT}-params`),
+    ).toHaveTextContent(
+      JSON.stringify({
+        screen: 'PredictNextDeposit',
+        params: { venueId: 'kalshi' },
+      }),
+    );
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.SHEET)).toBeNull();
+  });
+
+  it('offers no Add funds under an insufficient_balance quote while Kalshi deposits are off', async () => {
+    stubFetch(() => ({
+      status: 422,
+      body: {
+        code: 'insufficient_balance',
+        message: 'Estimated total debit exceeds the available balance.',
+      },
+    }));
+
+    await openSheet();
+    typeAmount('20');
+    await flushDebounce();
+
+    expect(screen.getByTestId(PredictOrderFlowTestIds.ERROR)).toBeOnTheScreen();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.ADD_FUNDS)).toBeNull();
   });
 
   it('presents the exact quoted values for approval before committing', async () => {
