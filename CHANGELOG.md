@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated the MetaMask Money FAQ wording to align with the content guidelines
+- Updated the copy on the identity verification screen to align with the content guidelines
 
 ### Fixed
 
