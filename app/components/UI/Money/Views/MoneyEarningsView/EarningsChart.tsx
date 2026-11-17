@@ -42,6 +42,10 @@ interface EarningsChartProps {
   onRetry: () => void;
   selectedRange: EarningsRange;
   onRangeChange: (range: EarningsRange) => void;
+  // Allows the chart to pause the parent ScrollView while the user touches the
+  // plot area, so a slightly vertical scrub doesn't get hijacked by native
+  // scroll gesture recognizers.
+  setScrollEnabled?: (enabled: boolean) => void;
 }
 
 const RANGE_LABEL_KEYS: Record<EarningsRange, string> = {
@@ -172,6 +176,7 @@ const EarningsChart = ({
   onRetry,
   selectedRange,
   onRangeChange,
+  setScrollEnabled,
 }: EarningsChartProps): React.ReactElement => {
   const tw = useTailwind();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -260,20 +265,20 @@ const EarningsChart = ({
   const clearActiveSelection = useCallback((): void => {
     isScrubbing.current = false;
     setActiveIndex(null);
-  }, [setActiveIndex]);
+    setScrollEnabled?.(true);
+  }, [setActiveIndex, setScrollEnabled]);
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onMoveShouldSetPanResponderCapture: (_event, gestureState) => {
-          const isHorizontal =
-            Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-
-          if (isHorizontal) {
-            isScrubbing.current = true;
-          }
-
-          return isHorizontal;
+        onMoveShouldSetPanResponderCapture: () => {
+          // Parent ScrollView is paused while the finger is on the plot, so
+          // any movement here is a scrub.
+          isScrubbing.current = true;
+          return true;
         },
+        // Once we're scrubbing, don't let an ancestor ScrollView reclaim the
+        // gesture mid-drag on small vertical drift.
+        onPanResponderTerminationRequest: () => !isScrubbing.current,
         onPanResponderGrant: (_event, gestureState) =>
           selectPointAtX(
             scrubOriginX.current + gestureState.moveX - gestureState.x0,
@@ -355,6 +360,9 @@ const EarningsChart = ({
           testID={MoneyEarningsViewTestIds.CHART_PLOT}
           style={tw.style('absolute left-0 right-12 top-0 h-[160px]')}
           onLayout={({ nativeEvent: { layout } }) => setPlotWidth(layout.width)}
+          onTouchStart={() => setScrollEnabled?.(false)}
+          onTouchEnd={() => setScrollEnabled?.(true)}
+          onTouchCancel={() => setScrollEnabled?.(true)}
         >
           {yAxisValues.map((_, index) => (
             <Box
