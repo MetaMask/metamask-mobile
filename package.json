@@ -309,7 +309,6 @@
     "react-native-blob-util@npm:^0.18.0": "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch",
     "@ledgerhq/device-signer-kit-ethereum@npm:^1.16.0": "patch:@ledgerhq/device-signer-kit-ethereum@npm%3A1.16.0#~/.yarn/patches/@ledgerhq-device-signer-kit-ethereum-npm-1.16.0-df4b883905.patch",
     "@metamask/profile-sync-controller": "^36.1.2",
-    "@metamask/account-tree-controller": "^11.1.0",
     "expo@npm:^57.0.0": "57.0.22",
     "expo-modules-core@npm:~57.0.18": "57.0.18",
     "expo-updates@npm:~57.0.22": "57.0.22",

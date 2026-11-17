@@ -9328,7 +9328,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^11.1.0":
+"@metamask/account-tree-controller@npm:^11.2.0":
   version: 11.2.0
   resolution: "@metamask/account-tree-controller@npm:11.2.0"
   dependencies:
