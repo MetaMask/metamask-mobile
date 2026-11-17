@@ -85,8 +85,6 @@ const createService = (): PredictDeviceAuthService =>
       getIssuerUrl: () => 'https://issuer.example',
       getAccessToken: async () => 'access-token',
       getCanonicalProfileId: () => 'profile-1',
-      getSrpIdentifier: async () => 'srp-id',
-      signSrpMessage: async () => 'signature',
       isEnabled: () => true,
       isUnlocked: () => true,
       isSignedIn: () => true,
