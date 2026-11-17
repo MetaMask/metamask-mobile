@@ -71,11 +71,11 @@ const CancelMembership = () => {
       if (isNavigatingRef.current) return;
       isNavigatingRef.current = true;
       // Reset instead of navigate so the stale cancel and membership screens are
-      // removed. Period-end lands on Pro Hub; immediate lands on the origin screen.
+      // removed. Period-end lands on Pro Hub; immediate lands on Wallet home.
       navigation.dispatch((state) =>
         CommonActions.reset(
           destination === POST_CANCELLATION_DESTINATIONS.HOME
-            ? buildPostCancellationHomeResetState(state)
+            ? buildPostCancellationHomeResetState()
             : buildPostCancellationResetState(state),
         ),
       );

@@ -144,7 +144,7 @@ const expectHomeCancellationReset = () => {
       type: 'RESET',
       payload: expect.objectContaining({
         index: 0,
-        routes: [{ key: 'home', name: 'Home' }],
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       }),
     }),
   );

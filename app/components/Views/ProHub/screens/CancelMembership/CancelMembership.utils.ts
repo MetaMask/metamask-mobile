@@ -170,17 +170,14 @@ export const buildPostCancellationResetState = (
 };
 
 /**
- * Builds the stack shown after an immediate cancellation: the origin screen
- * on top, with no Pro Hub route. A fully canceled membership is not shown on
- * Pro Hub, so pushing it would close itself.
+ * Builds the stack shown after an immediate cancellation.
+ *
+ * Benefits have ended, so Pro Hub is not in the stack. The origin screen is
+ * dropped too: a fresh HomeNav mounts Main on Home and the home tabs on
+ * Wallet. Keeping HomeNav's nested state would reopen Money or Accounts.
  */
-export const buildPostCancellationHomeResetState = (
-  state: NavigationState,
-): PartialState<NavigationState> => {
-  const routes = getPostCancellationOriginRoutes(state);
-
-  return {
-    index: routes.length - 1,
-    routes,
-  };
-};
+export const buildPostCancellationHomeResetState =
+  (): PartialState<NavigationState> => ({
+    index: 0,
+    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+  });

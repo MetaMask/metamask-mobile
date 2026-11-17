@@ -243,43 +243,13 @@ describe('buildPostCancellationResetState', () => {
 });
 
 describe('buildPostCancellationHomeResetState', () => {
-  it('leaves the origin screen on top with no Pro Hub route', () => {
-    const state = createStackState([
-      'Home',
-      Routes.PRO_HUB.ROOT,
-      Routes.PRO_HUB.MEMBERSHIP,
-      Routes.PRO_HUB.CANCEL_MEMBERSHIP,
-    ]);
+  it('resets Home, Money, Accounts, and a Pro-only stack to HomeNav', () => {
+    const nextState = buildPostCancellationHomeResetState();
 
-    const nextState = buildPostCancellationHomeResetState(state);
-
-    expect(nextState.index).toBe(0);
-    expect(nextState.routes).toEqual([{ key: 'Home-0', name: 'Home' }]);
-  });
-
-  it('drops the Join Pro benefits modal and keeps the origin under it', () => {
-    const state = createStackState([
-      'Money',
-      Routes.PRO_SUBSCRIPTION.ROOT,
-      Routes.PRO_HUB.ROOT,
-      Routes.PRO_HUB.CANCEL_MEMBERSHIP,
-    ]);
-
-    const nextState = buildPostCancellationHomeResetState(state);
-
-    expect(nextState.routes).toEqual([{ key: 'Money-0', name: 'Money' }]);
-  });
-
-  it('inserts HomeNav when the stack has no non-Pro origin screen', () => {
-    const state = createStackState([
-      Routes.PRO_HUB.ROOT,
-      Routes.PRO_HUB.CANCEL_MEMBERSHIP,
-    ]);
-
-    const nextState = buildPostCancellationHomeResetState(state);
-
-    expect(nextState.index).toBe(0);
-    expect(nextState.routes).toEqual([{ name: Routes.ONBOARDING.HOME_NAV }]);
+    expect(nextState).toEqual({
+      index: 0,
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
   });
 });
 
