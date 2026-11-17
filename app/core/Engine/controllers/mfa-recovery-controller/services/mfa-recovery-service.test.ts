@@ -1,7 +1,10 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { createSiweIdentifier } from '../auth/identifiers';
 import { linkSocialLogin } from '../social-login/link-social-login';
-import { MfaRecoveryService } from './mfa-recovery-service';
+import {
+  IdentifierNotApprovedError,
+  MfaRecoveryService,
+} from './mfa-recovery-service';
 import { createMfaRecoveryServiceTestMessenger } from './mfa-recovery-service-test-messenger';
 
 const ADDRESS = '0xAbC';
@@ -378,6 +381,9 @@ describe('MfaRecoveryService', () => {
       expect(() => identifiers.passkeyIdentifier).toThrow(
         expect.objectContaining({ code: 'identifier_not_approved' }),
       );
+      expect(() => identifiers.passkeyIdentifier).toThrow(
+        IdentifierNotApprovedError,
+      );
     });
   });
 
@@ -647,7 +653,6 @@ describe('MfaRecoveryService', () => {
       await expect(service.setUp()).rejects.toMatchObject({
         code: 'social_identifier_not_approved',
       });
-      expect(controller.abort).not.toHaveBeenCalled();
       expect(controller.register).not.toHaveBeenCalled();
       expect(seedless.migrateToEnvelope).not.toHaveBeenCalled();
     });
@@ -663,12 +668,9 @@ describe('MfaRecoveryService', () => {
       expect(controller.register).not.toHaveBeenCalled();
     });
 
-    it('aborts, registers, authenticates, migrates data types, then seals the vault', async () => {
+    it('registers, authenticates, migrates data types, then seals the vault', async () => {
       const order: string[] = [];
       const { service, controller, seedless } = createSetUpService();
-      controller.abort.mockImplementation(async () => {
-        order.push('abort');
-      });
       controller.register.mockImplementation(async () => {
         order.push('register');
       });
@@ -686,7 +688,6 @@ describe('MfaRecoveryService', () => {
       await service.setUp();
 
       expect(order).toStrictEqual([
-        'abort',
         'register',
         'authenticate',
         'runMigrations',

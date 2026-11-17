@@ -59,7 +59,6 @@ type AllowedActions =
   | AuthenticationController.AuthenticationControllerGetVerificationTokenAction
   | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | KeyringControllerGetStateAction
-  | MfaRecoveryControllerAbortAction
   | MfaRecoveryControllerAuthenticateIdentifierAction
   | MfaRecoveryControllerGetIdentifiersAction
   | MfaRecoveryControllerGetPhaseAction
@@ -121,6 +120,8 @@ export class MfaRecoveryService {
   readonly #options: MfaRecoveryServiceOptions;
 
   #verification?: Promise<void>;
+
+  #prepared?: Promise<PreparedRun>;
 
   constructor(options: MfaRecoveryServiceOptions) {
     this.#messenger = options.messenger;
@@ -322,9 +323,6 @@ export class MfaRecoveryService {
       this.#seedlessState(),
     );
 
-    // A failed attempt leaves an authorizing mutation. Drop it before retrying.
-    await messenger.call('MfaRecoveryController:abort');
-
     let recoverySecret = new Uint8Array(0);
     try {
       const { epoch } = await messenger.call(
@@ -474,10 +472,20 @@ export class MfaRecoveryService {
     return { identifierType: target.type, change: 'removed', epoch: newEpoch };
   }
 
-  async #prepare(): Promise<{
-    address: string;
-    authIdentifiers: Identifier[];
-  }> {
+  /**
+   * Resolves the run's account and Auth identifiers once per instance, so
+   * `prepareRun` followed by `setUp` resumes and reads only once. A failed
+   * attempt is not cached, so a retry runs again.
+   */
+  #prepare(): Promise<PreparedRun> {
+    this.#prepared ??= this.#runPrepare().catch((error: unknown) => {
+      this.#prepared = undefined;
+      throw error;
+    });
+    return this.#prepared;
+  }
+
+  async #runPrepare(): Promise<PreparedRun> {
     const { address } = this;
     if (!address) {
       throw new MfaRecoveryControllerError(
@@ -552,6 +560,26 @@ function toRunIdentifiers(
   };
 }
 
+/** The run's account and the identifiers Auth approved for it. */
+type PreparedRun = {
+  address: string;
+  authIdentifiers: Identifier[];
+};
+
+/** Auth approved no identifier of the requested type for this profile. */
+export class IdentifierNotApprovedError extends MfaRecoveryControllerError {
+  readonly identifierType: Identifier['type'];
+
+  constructor(identifierType: Identifier['type']) {
+    super(
+      `Auth has no approved ${identifierType} identifier for this profile`,
+      'identifier_not_approved',
+    );
+    this.name = 'IdentifierNotApprovedError';
+    this.identifierType = identifierType;
+  }
+}
+
 /** Picks the identifier of the given type that Auth approved for this profile. */
 function findAuthIdentifier(
   identifiers: readonly Identifier[],
@@ -559,10 +587,7 @@ function findAuthIdentifier(
 ): Identifier {
   const identifier = identifiers.find((candidate) => candidate.type === type);
   if (identifier === undefined) {
-    throw new MfaRecoveryControllerError(
-      `Auth has no approved ${type} identifier for this profile`,
-      'identifier_not_approved',
-    );
+    throw new IdentifierNotApprovedError(type);
   }
   return identifier;
 }

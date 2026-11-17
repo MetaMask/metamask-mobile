@@ -1,4 +1,5 @@
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
+import { IdentifierNotApprovedError } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import { LinkSocialLoginError } from '../Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
 import { createMfaRecoveryService } from './engineBindings';
 import { redactForDisplay } from './redactForDisplay';
@@ -59,9 +60,13 @@ function toSetupError(error: unknown): PasswordlessRecoverySetupError {
   if (error instanceof PasswordlessRecoverySetupError) {
     return error;
   }
-  const code = getMfaRecoveryErrorCode(error);
+  const passkeyNotApproved =
+    error instanceof IdentifierNotApprovedError &&
+    error.identifierType === 'passkey';
   return new PasswordlessRecoverySetupError(
-    code === 'identifier_not_approved' ? 'passkey_not_enrolled' : code,
+    passkeyNotApproved
+      ? 'passkey_not_enrolled'
+      : getMfaRecoveryErrorCode(error),
     error instanceof LinkSocialLoginError
       ? error.detail
       : describeFailure(error),

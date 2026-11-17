@@ -1,8 +1,9 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { MfaRecoveryControllerError } from '../Engine/controllers/mfa-recovery-controller/errors';
-import type {
-  MfaRecoveryService,
-  MfaRecoveryRunIdentifiers,
+import {
+  IdentifierNotApprovedError,
+  type MfaRecoveryService,
+  type MfaRecoveryRunIdentifiers,
 } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import { LinkSocialLoginError } from '../Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
 import { createMfaRecoveryService } from './engineBindings';
@@ -104,10 +105,7 @@ describe('setupPasswordlessRecovery', () => {
   it('reports passkey_not_enrolled when Auth approved no passkey', async () => {
     mockService.prepareRun.mockResolvedValue(
       runIdentifiers(() => {
-        throw new MfaRecoveryControllerError(
-          'Auth has no approved passkey identifier for this profile',
-          'identifier_not_approved',
-        );
+        throw new IdentifierNotApprovedError('passkey');
       }),
     );
 
