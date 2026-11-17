@@ -59,9 +59,17 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 const mockUseMoneyAccountPlusAccess = jest.fn();
+let mockSubscriptionsSettled: boolean | undefined;
 jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
+  useMoneyAccountPlusAccessState: () => {
+    const access = mockUseMoneyAccountPlusAccess();
+    return {
+      access,
+      isSubscriptionsSettled: mockSubscriptionsSettled ?? access !== 'unknown',
+    };
+  },
 }));
 
 const mockUseHasProMembership = jest.fn(() => false);
@@ -146,6 +154,7 @@ describe('ProSubscription', () => {
     jest.clearAllMocks();
     mockRoute.params = {};
     mockGetSubscriptions.mockResolvedValue([]);
+    mockSubscriptionsSettled = undefined;
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Eligible,
     );
@@ -197,6 +206,19 @@ describe('ProSubscription', () => {
       rerender(<ProSubscription />);
 
       expectProHubReplacesSubscriptionModal();
+    });
+
+    it('keeps Benefits open while an entitlement refetch has not settled', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+      mockSubscriptionsSettled = false;
+
+      const { getByTestId } = render(<ProSubscription />);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(getByTestId('mock-benefits')).toBeOnTheScreen();
     });
 
     it('shows Benefits while Plus access is unresolved', () => {

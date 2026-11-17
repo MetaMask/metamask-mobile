@@ -35,10 +35,9 @@ import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import { useResumeMembership } from './hooks/useResumeMembership';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
-  MoneyAccountPlusAccess,
   MoneyAccountPlusEntry,
   resolveMoneyAccountPlusEntry,
-  useMoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
@@ -124,7 +123,8 @@ const ProHub = () => {
     isResuming,
     errorMessage: resumeErrorMessage,
   } = useResumeMembership();
-  const proAccess = useMoneyAccountPlusAccess();
+  const { access: proAccess, isSubscriptionsSettled } =
+    useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
   const { sinceInceptionQuery: premiumSinceInceptionQuery } =
@@ -151,12 +151,12 @@ const ProHub = () => {
     ],
   );
   const moneyBalanceApy = ratePercentFormatted ?? '—';
-  // Same rule as the Orange row. Resolved access means the subscriptions
-  // query has produced a result, so it stands in for a settled list here.
+  // Same settled flag as the Orange row. Access can already be Subscriber
+  // from a leftover entitlement while the subscriptions refetch is in flight.
   const entry = resolveMoneyAccountPlusEntry({
     access: proAccess,
     hasMembership,
-    isSubscriptionsSettled: proAccess !== MoneyAccountPlusAccess.Unknown,
+    isSubscriptionsSettled,
   });
   // A cached membership is enough to render the hub. Access stays Unknown
   // for past-due, awaiting-funds, and unpaid plans until the subscriptions

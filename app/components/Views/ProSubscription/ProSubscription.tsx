@@ -15,10 +15,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
-  MoneyAccountPlusAccess,
   MoneyAccountPlusEntry,
   resolveMoneyAccountPlusEntry,
-  useMoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -60,7 +59,8 @@ const ProSubscription = () => {
       >
     >();
 
-  const proAccess = useMoneyAccountPlusAccess();
+  const { access: proAccess, isSubscriptionsSettled } =
+    useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
   const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
     ProSubscriptionScreen.Benefits,
@@ -76,12 +76,12 @@ const ProSubscription = () => {
 
   // Dismiss when the Pro flag is off. A Plus status the hub can show already
   // owns a membership, so send them to the hub instead of Benefits.
-  // Same rule as the Orange row and Pro Hub. Resolved access stands in for a
-  // settled subscriptions list.
+  // Same settled flag as the Orange row and Pro Hub. Access can already be
+  // Subscriber from a leftover entitlement while the refetch is in flight.
   const entry = resolveMoneyAccountPlusEntry({
     access: proAccess,
     hasMembership,
-    isSubscriptionsSettled: proAccess !== MoneyAccountPlusAccess.Unknown,
+    isSubscriptionsSettled,
   });
 
   useEffect(() => {

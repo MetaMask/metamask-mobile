@@ -60,9 +60,17 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 // ─── Plus access ──────────────────────────────────────────────────────────────
 
 const mockUseMoneyAccountPlusAccess = jest.fn();
+let mockSubscriptionsSettled: boolean | undefined;
 jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
+  useMoneyAccountPlusAccessState: () => {
+    const access = mockUseMoneyAccountPlusAccess();
+    return {
+      access,
+      isSubscriptionsSettled: mockSubscriptionsSettled ?? access !== 'unknown',
+    };
+  },
 }));
 
 const mockUseMoneyAccountPlusBenefits = jest.mocked(
@@ -210,6 +218,7 @@ describe('ProHub', () => {
     mockResumeMembership = jest.fn();
     mockIsResuming = false;
     mockResumeErrorMessage = null;
+    mockSubscriptionsSettled = undefined;
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Subscriber,
     );
@@ -264,6 +273,18 @@ describe('ProHub', () => {
       renderProHub({ subscriptions: [] });
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays open while an entitlement refetch has not settled', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+      mockSubscriptionsSettled = false;
+
+      const { queryByTestId } = renderProHub({ subscriptions: [] });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
     it('stays open while Plus access is unresolved', () => {
