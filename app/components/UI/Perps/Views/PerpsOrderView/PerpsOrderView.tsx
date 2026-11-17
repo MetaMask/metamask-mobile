@@ -1447,6 +1447,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               asset: orderForm.asset,
               direction: orderForm.direction,
               ...(Number.isFinite(amountUsd) ? { amountUsd } : {}),
+              ...(orderId ? { orderId } : {}),
               metamaskFeeUsd: feeResults.metamaskFee,
             }),
           );

@@ -26,6 +26,7 @@ export function buildCopyTradeSubmittedProperties(input: {
   direction: 'long' | 'short';
   amountUsd?: number;
   metamaskFeeUsd?: number;
+  orderId?: string;
 }): SocialUIInteractionProperties {
   const source = getSocialEventSource(input.source);
   return {
@@ -42,5 +43,6 @@ export function buildCopyTradeSubmittedProperties(input: {
     ...(input.metamaskFeeUsd !== undefined
       ? { metamask_fee: input.metamaskFeeUsd }
       : {}),
+    ...(input.orderId ? { order_id: input.orderId } : {}),
   };
 }

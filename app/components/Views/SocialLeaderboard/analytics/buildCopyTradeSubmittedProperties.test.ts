@@ -14,6 +14,7 @@ describe('buildCopyTradeSubmittedProperties', () => {
         direction: 'long',
         amountUsd: 50,
         metamaskFeeUsd: 0.05,
+        orderId: '12345',
       }),
     ).toEqual({
       ...base,
@@ -22,6 +23,7 @@ describe('buildCopyTradeSubmittedProperties', () => {
       direction: SocialEvent.Direction.LONG,
       amount_usd: 50,
       metamask_fee: 0.05,
+      order_id: '12345',
     });
   });
   it('keeps a copy that has no known source', () => {
