@@ -71,8 +71,10 @@ jest.mock('./tags', () => ({
 
 jest.mock('../trace', () => ({
   hasMetricsConsent: jest.fn().mockResolvedValue(true),
-  // Only TraceName.UIStartup is used in utils.ts (excludeEvents filter)
-  TraceName: { UIStartup: 'UIStartup' },
+  TraceName: {
+    UIStartup: 'UIStartup',
+    SwapQuoteFetch: 'Swap Quote Fetch',
+  },
 }));
 
 jest.mock('./navigationInitializationAppStart', () => ({
@@ -1537,5 +1539,72 @@ describe('setupSentry', () => {
       true,
     );
     expect(beginNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
+  });
+
+  describe('tracesSampler', () => {
+    const mockIsAndroid = jest.mocked(Device.isAndroid);
+    const globalWithDev = global as typeof global & { __DEV__: boolean };
+
+    const getTracesSampler = async () => {
+      await setupSentry();
+      const initOptions = mockedInit.mock.calls[0][0] as {
+        tracesSampleRate: number;
+        tracesSampler: (context: {
+          name: string;
+          parentSampled?: boolean;
+        }) => number | boolean;
+      };
+      return initOptions;
+    };
+
+    afterEach(() => {
+      mockIsAndroid.mockReturnValue(true);
+      globalWithDev.__DEV__ = false;
+    });
+
+    it('samples Swap Quote Fetch at 25% on Android', async () => {
+      mockIsAndroid.mockReturnValue(true);
+      const { tracesSampler } = await getTracesSampler();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
+    });
+
+    it('keeps the default rate for Swap Quote Fetch on iOS', async () => {
+      mockIsAndroid.mockReturnValue(false);
+      const { tracesSampler, tracesSampleRate } = await getTracesSampler();
+
+      expect(tracesSampleRate).toBe(0.03);
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+    });
+
+    it('keeps the default rate for other transactions on Android', async () => {
+      mockIsAndroid.mockReturnValue(true);
+      const { tracesSampler } = await getTracesSampler();
+
+      expect(tracesSampler({ name: 'SomeRoute' })).toBe(0.03);
+    });
+
+    it.each([true, false])(
+      'inherits the parent sampling decision (%s)',
+      async (parentSampled) => {
+        mockIsAndroid.mockReturnValue(true);
+        const { tracesSampler } = await getTracesSampler();
+
+        expect(
+          tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled }),
+        ).toBe(parentSampled);
+        expect(tracesSampler({ name: 'SomeRoute', parentSampled })).toBe(
+          parentSampled,
+        );
+      },
+    );
+
+    it('keeps full sampling for Swap Quote Fetch in dev builds', async () => {
+      globalWithDev.__DEV__ = true;
+      mockIsAndroid.mockReturnValue(true);
+      const { tracesSampler } = await getTracesSampler();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(1);
+    });
   });
 });

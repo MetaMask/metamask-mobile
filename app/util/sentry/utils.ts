@@ -698,13 +698,31 @@ export async function setupSentry(
       METAMASK_BUILD_TYPE,
     );
 
+    const isFullSampling = isDev || isE2EOrExpEnvironment;
+    // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
+    const tracesSampleRate = isFullSampling ? 1.0 : 0.03;
+
     Sentry.init({
       dsn,
       debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
       integrations: integrations as Sentry.ReactNativeOptions['integrations'],
-      // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isE2EOrExpEnvironment ? 1.0 : 0.03,
+      tracesSampleRate,
+      // Takes precedence over tracesSampleRate, so it must reproduce the
+      // default: inherit the parent decision, otherwise use tracesSampleRate.
+      tracesSampler: ({ name, parentSampled }) => {
+        if (parentSampled !== undefined) {
+          return parentSampled;
+        }
+        if (
+          !isFullSampling &&
+          name === TraceName.SwapQuoteFetch &&
+          Device.isAndroid()
+        ) {
+          return 0.25;
+        }
+        return tracesSampleRate;
+      },
       profilesSampleRate: 1.0,
       beforeSend: (report) => {
         const rewritten = rewriteReport(report as SentryEvent);
