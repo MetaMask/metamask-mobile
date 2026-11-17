@@ -3,6 +3,10 @@ interface LighterFeatureEnvironment {
   MM_PERPS_LIGHTER_PROVIDER_ENABLED?: string;
 }
 
+interface LighterConfirmationEnvironment {
+  MM_PERPS_LIGHTER_CONFIRMATION_ENABLED?: string;
+}
+
 /**
  * Enables the experimental Lighter infrastructure only with an explicit
  * build-time opt-in, matching the gate that keeps the embedded signer out of
@@ -16,4 +20,18 @@ export function isLighterProviderEnabled(
   },
 ): boolean {
   return environment.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true';
+}
+
+/**
+ * Shows the deposit confirmation "Receive to" row. Separate from the provider
+ * build gate: both this env and the provider flag must be on.
+ */
+export function isPerpsLighterConfirmationEnabled(
+  environment?: LighterConfirmationEnvironment,
+): boolean {
+  const resolvedEnvironment = environment ?? {
+    MM_PERPS_LIGHTER_CONFIRMATION_ENABLED:
+      process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED,
+  };
+  return resolvedEnvironment.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED === 'true';
 }
