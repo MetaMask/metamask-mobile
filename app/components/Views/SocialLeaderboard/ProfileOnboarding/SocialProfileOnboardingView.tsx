@@ -68,6 +68,9 @@ import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderbo
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
+import { getProfileCreateErrorCopy } from '../ManageProfileView/errors/profileApiErrorMessageKeys';
+import { getHandleAvailabilityRejection } from '../ManageProfileView/screens/handleAvailabilityError';
+import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
 import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
@@ -115,6 +118,8 @@ import {
   hasAcceptedSocialTerms,
   takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
+import { useOpenPendingSocialPreviewTarget } from '../TraderPreviewSheet/useOpenPendingSocialPreviewTarget';
+import { takePendingSocialPreviewTarget } from '../TraderPreviewSheet/pendingSocialPreviewTarget';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
@@ -514,6 +519,15 @@ const SocialProfileOnboardingView: React.FC = () => {
     fetchAndUpdateProfile,
   } = useProfileController();
   const isTermsOnlyRoute = route.params?.termsOnly === true;
+  const openPendingSocialPreviewTarget = useOpenPendingSocialPreviewTarget();
+  // A trader preview link is only opened by this onboarding run. Leaving
+  // without finishing drops it, so a later onboarding is not redirected.
+  useEffect(
+    () => () => {
+      takePendingSocialPreviewTarget('onboarding');
+    },
+    [],
+  );
   // The entry gates only read ProfileController, which is empty on a fresh
   // install until the profile is fetched. Ask the server before offering to
   // create one, so an existing profile is never replaced.
@@ -715,23 +729,31 @@ const SocialProfileOnboardingView: React.FC = () => {
     async (username: string): Promise<UsernameAvailability> => {
       try {
         const availability = await checkUsernameAvailability(username);
-        if (!availability.valid) {
-          return {
-            status: 'invalid',
-            claimError: strings(
-              'social_leaderboard.profile_onboarding.username_invalid',
-            ),
-          };
+        switch (getHandleAvailabilityRejection(availability)) {
+          case null:
+            return { status: 'available', claimError: null };
+          case 'invalidFormat':
+            return {
+              status: 'invalid',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_invalid',
+              ),
+            };
+          case 'reserved':
+            return {
+              status: 'taken',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_reserved',
+              ),
+            };
+          default:
+            return {
+              status: 'taken',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_unavailable',
+              ),
+            };
         }
-        if (!availability.available) {
-          return {
-            status: 'taken',
-            claimError: strings(
-              'social_leaderboard.profile_onboarding.username_unavailable',
-            ),
-          };
-        }
-        return { status: 'available', claimError: null };
       } catch {
         return {
           status: 'error',
@@ -890,7 +912,9 @@ const SocialProfileOnboardingView: React.FC = () => {
           return;
         }
         setConnectXError(
-          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+          error instanceof XAuthError
+            ? getXConnectError(error)
+            : strings('social_leaderboard.profile_onboarding.connect_x_error'),
         );
       } finally {
         if (connectAbortRef.current === controller) {
@@ -943,6 +967,9 @@ const SocialProfileOnboardingView: React.FC = () => {
       // The termsOnly route is pushed by a Social entry gate that expects to
       // return to its caller. An existing profile found on open has no caller
       // to return to, so it opens the Social tab instead.
+      if (openPendingSocialPreviewTarget(navigation)) {
+        return;
+      }
       if (isTermsOnlyRoute) {
         const openPendingEntry = takePendingSocialEntry();
         navigation.goBack();
@@ -963,6 +990,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     beginConnectX,
     isTermsOnlyRoute,
     navigation,
+    openPendingSocialPreviewTarget,
     pendingTermsOnly,
     pendingTermsPath,
     startManualPath,
@@ -1160,10 +1188,11 @@ const SocialProfileOnboardingView: React.FC = () => {
       let writeResult: 'saved' | 'existing';
       try {
         writeResult = await writeOnboardingProfile(currentDraft);
-      } catch {
+      } catch (error) {
         if (stepRef.current === 'ready') {
           setFinishError(
-            strings('social_leaderboard.profile_onboarding.save_error'),
+            getProfileCreateErrorCopy(error) ??
+              strings('social_leaderboard.profile_onboarding.save_error'),
           );
         }
         setIsSubmitting(false);
@@ -1283,6 +1312,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
+    if (openPendingSocialPreviewTarget(navigation)) {
+      return;
+    }
     if (draft.path === 'x') {
       // Replace drops onboarding from the stack. My Profile's replace is a pop,
       // so this screen's slide_from_left plays and it leaves toward the left.
@@ -1296,7 +1328,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       return;
     }
     finishProfileOnboardingToSocialTab(navigation);
-  }, [draft.path, navigation]);
+  }, [draft.path, navigation, openPendingSocialPreviewTarget]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
