@@ -28,8 +28,10 @@ import {
 } from '../../../component-library/components/Toast';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectSlowNetworkBannerEnabled } from '../../../selectors/featureFlagController/slowNetworkBanner';
-import { getHardwareTier } from '../../../util/deviceCapability';
-import { getNetworkTierSnapshot } from '../../../util/deviceCapability/latencyStore';
+import {
+  getHardwareTier,
+  getNetworkTierSnapshot,
+} from '../../../util/deviceCapability';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 
 jest.mock('@react-navigation/native');
@@ -39,8 +41,6 @@ jest.mock('../../../hooks/useNetworkLatency');
 jest.mock('../../../selectors/featureFlagController/slowNetworkBanner');
 jest.mock('../../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(),
-}));
-jest.mock('../../../util/deviceCapability/latencyStore', () => ({
   getNetworkTierSnapshot: jest.fn(),
 }));
 jest.mock('../../../core/AppStateEventListener', () => ({

@@ -34,8 +34,10 @@ import { useSettledNetworkLatency } from '../../../hooks/useNetworkLatency';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SLOW_NETWORK_BANNER_DISMISSED_AT } from '../../../constants/storage';
 import { selectSlowNetworkBannerEnabled } from '../../../selectors/featureFlagController/slowNetworkBanner';
-import { getHardwareTier } from '../../../util/deviceCapability';
-import { getNetworkTierSnapshot } from '../../../util/deviceCapability/latencyStore';
+import {
+  getHardwareTier,
+  getNetworkTierSnapshot,
+} from '../../../util/deviceCapability';
 
 const infuraProjectId = INFURA_PROJECT_ID ?? '';
 
