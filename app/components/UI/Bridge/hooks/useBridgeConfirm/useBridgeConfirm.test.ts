@@ -621,6 +621,34 @@ describe('useBridgeConfirm', () => {
       });
     });
 
+    it('passes the received token USD price from the quote as the entry', async () => {
+      mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
+      const quote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          src: { ...mockQuoteWithMetadata.quote.src, usd: '25' },
+          dest: {
+            ...mockQuoteWithMetadata.quote.dest,
+            usd: '25',
+            normalizedAmount: '10',
+          },
+        },
+      } as typeof mockQuoteWithMetadata;
+      const { result } = renderHook(
+        { ...defaultParams, activeQuote: quote },
+        stateWithTokens(ETH_ON_ETHEREUM, PEPE_ON_ETHEREUM),
+      );
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        getPostTradeModalParams()?.socialPostTrade?.preview.entryPriceLabel,
+      ).toBe('$2.5');
+    });
+
     it('uses the destination hash for a bridged buy', async () => {
       mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
       const { result } = renderHook(

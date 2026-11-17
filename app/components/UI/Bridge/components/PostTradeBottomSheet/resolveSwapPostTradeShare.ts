@@ -8,6 +8,7 @@ import {
   type PostTradePrompt,
 } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import { caipChainIdToTradeInFlightChain } from '../../../SocialFeed/utils/chainMapping';
+import { formatTradeUnitPrice } from '../../../SocialFeed/utils/formatters';
 import { formatCurrency } from '../../utils/currencyUtils';
 import type { BridgeToken } from '../../types';
 import type { SwapSocialPostTrade } from './PostTradeBottomSheet.types';
@@ -19,7 +20,27 @@ export interface ResolveSwapSocialPostTradeParams {
   destToken?: BridgeToken;
   /** USD value of the sold amount, from `quote.src.usd`. */
   sourceUsd?: string;
+  /** Sold amount in token units, from `quote.src.normalizedAmount`. */
+  sourceAmount?: string;
+  /** USD value of the received amount, from `quote.dest.usd`. */
+  destUsd?: string;
+  /** Received amount in token units, from `quote.dest.normalizedAmount`. */
+  destAmount?: string;
 }
+
+/**
+ * USD price of one position token at trade time, or `undefined` when the
+ * quote lacks the value or amount.
+ */
+const getUnitPriceLabel = (
+  usd: string | undefined,
+  amount: string | undefined,
+): string | undefined => {
+  const unitPrice = Number(usd) / Number(amount);
+  return Number.isFinite(unitPrice) && unitPrice > 0
+    ? formatTradeUnitPrice(unitPrice)
+    : undefined;
+};
 
 /**
  * Quote assets are natives and stables. Social-api does not build positions
@@ -59,6 +80,9 @@ export const resolveSwapSocialPostTrade = ({
   sourceToken,
   destToken,
   sourceUsd,
+  sourceAmount,
+  destUsd,
+  destAmount,
 }: ResolveSwapSocialPostTradeParams): SwapSocialPostTrade | undefined => {
   if (prompt.kind !== 'share_sheet' || !sourceToken || !destToken) {
     return undefined;
@@ -99,6 +123,10 @@ export const resolveSwapSocialPostTrade = ({
       chain: target.tradeInFlightChain,
       side: target.side,
       costLabel: formatCurrency(Number(sourceUsd), 'USD'),
+      entryPriceLabel:
+        target.side === 'buy'
+          ? getUnitPriceLabel(destUsd, destAmount)
+          : getUnitPriceLabel(sourceUsd, sourceAmount),
     },
   };
 };

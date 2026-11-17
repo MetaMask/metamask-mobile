@@ -75,6 +75,9 @@ const resolve = (
     sourceToken: USDC_ETH,
     destToken: PEPE_ETH,
     sourceUsd: '25',
+    sourceAmount: '25',
+    destUsd: '25',
+    destAmount: '10',
     ...overrides,
   });
 
@@ -99,8 +102,33 @@ describe('resolveSwapSocialPostTrade', () => {
         chain: 'ethereum',
         side: 'buy',
         costLabel: '$10.00',
+        entryPriceLabel: '$2.5',
       },
     });
+  });
+
+  it('uses the sold token USD price as the entry for a sell', () => {
+    expect(
+      resolve({
+        sourceToken: PEPE_ETH,
+        destToken: USDC_ETH,
+        sourceUsd: '13.7',
+        sourceAmount: '52',
+        destUsd: '13.6',
+        destAmount: '13.6',
+      })?.preview.entryPriceLabel,
+    ).toBe('$0.26346');
+  });
+
+  it.each<[string, Partial<Parameters<typeof resolveSwapSocialPostTrade>[0]>]>([
+    ['the received USD value is missing', { destUsd: undefined }],
+    ['the received amount is missing', { destAmount: undefined }],
+    ['the received amount is zero', { destAmount: '0' }],
+  ])('leaves the entry empty when %s', (_label, overrides) => {
+    const result = resolve(overrides);
+
+    expect(result).toBeDefined();
+    expect(result?.preview.entryPriceLabel).toBeUndefined();
   });
 
   it('accepts exactly $10 and rejects anything below it', () => {

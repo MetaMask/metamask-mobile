@@ -123,6 +123,9 @@ export const useBridgeConfirm = ({
       sourceToken,
       destToken,
       sourceUsd: activeQuote.quote.src.usd,
+      sourceAmount: activeQuote.quote.src.normalizedAmount,
+      destUsd: activeQuote.quote.dest.usd,
+      destAmount: activeQuote.quote.dest.normalizedAmount,
     });
 
     try {
