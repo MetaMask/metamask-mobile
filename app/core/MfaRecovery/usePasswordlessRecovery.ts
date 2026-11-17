@@ -15,11 +15,7 @@ import {
   setPasswordlessRecoveryHold,
   takePasswordlessRecoveryHold,
 } from './passwordlessRecoveryHold';
-import {
-  fetchRecoverySecret,
-  findRecoveryIdentifier,
-  recoverWalletWithoutPassword,
-} from './passwordlessSocialRecovery';
+import { recoverWalletWithoutPassword } from './passwordlessSocialRecovery';
 import Logger from '../../util/Logger';
 
 export type RestoreRecoveredVault = (
@@ -71,12 +67,10 @@ export function usePasswordlessRecovery(authConnection: string) {
         Platform.OS,
         authConnection,
       );
-      identifierRef.current = await findRecoveryIdentifier(
-        createPasswordlessRecoveryService(),
-        {
+      identifierRef.current =
+        await createPasswordlessRecoveryService().findRecoveryIdentifier({
           canProveSocialIdentifier: canProveSocial,
-        },
-      );
+        });
       if (!identifierRef.current) {
         Logger.log('OAuthRehydration: passwordless recovery unavailable', {
           reason: 'no_recovery_identifier',
@@ -115,10 +109,10 @@ export function usePasswordlessRecovery(authConnection: string) {
       Logger.log('OAuthRehydration: recovery secret prefetch start', {
         identifierType: identifier.type,
       });
-      const recoverySecret = await fetchRecoverySecret(
-        createPasswordlessRecoveryService(),
-        identifier,
-      );
+      const { recoverySecret } =
+        await createPasswordlessRecoveryService().readRecoverySecret(
+          identifier,
+        );
       setPasswordlessRecoveryHold(identifier, recoverySecret);
       Logger.log('OAuthRehydration: recovery secret prefetch ok', {
         identifierType: identifier.type,

@@ -1,13 +1,8 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import type { SecretMetadata } from '@metamask/seedless-onboarding-controller';
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
-import type {
-  FindRecoveryIdentifierOptions,
-  MfaRecoveryService,
-} from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import { redactForDisplay } from './redactForDisplay';
-
-export type { FindRecoveryIdentifierOptions };
 
 /** Operation named on the Auth approvals this flow requests. */
 export const PASSWORDLESS_RECOVERY_OPERATION = 'wallet.passwordless_recovery';
@@ -44,51 +39,20 @@ export class PasswordlessRecoveryError extends Error {
 }
 
 /**
- * Picks the identifier to read the Recovery Secret with: an enrolled passkey
- * Auth approved, else the enrolled social login when it can be proven.
- *
- * @param service - The recovery service for this flow.
- * @param options - What the wallet can prove.
- * @returns The identifier, or `null` when recovery is not set up for one.
- */
-export async function findRecoveryIdentifier(
-  service: MfaRecoveryService,
-  options: FindRecoveryIdentifierOptions,
-): Promise<Identifier | null> {
-  return await service.findRecoveryIdentifier(options);
-}
-
-/**
- * Proves `identifier` to escrow and returns the Recovery Secret.
- * May show a passkey / social sheet — call before Create password UI so submit
- * does not prompt again. Caller owns the returned bytes and must zero them.
- *
- * @param service - The recovery service for this flow.
- * @param identifier - From {@link findRecoveryIdentifier}.
- * @returns Recovery secret bytes (length `RECOVERY_SECRET_LENGTH`).
- */
-export async function fetchRecoverySecret(
-  service: MfaRecoveryService,
-  identifier: Identifier,
-): Promise<Uint8Array> {
-  return (await service.readRecoverySecret(identifier)).recoverySecret;
-}
-
-/**
  * Recovers the social wallet without its old password and makes
  * `newPassword` the wallet password.
  *
  * Runs after the locked MFA verification. Opens the TOPRF recovery session
  * (held AAL2, no UI) and uses the Recovery Secret — either prefetched via
- * {@link fetchRecoverySecret} or read here (may prompt passkey). Then sets
+ * `service.readRecoverySecret` or read here (may prompt passkey). Then sets
  * the local/global password and restores the keyring vault.
  *
  * @param service - The recovery service for this flow.
  * @param params - The parameters.
- * @param params.identifier - From {@link findRecoveryIdentifier}.
+ * @param params.identifier - From `service.findRecoveryIdentifier`.
  * @param params.newPassword - The new wallet password. Never logged.
  * @param params.restoreVault - Creates the keyring vault from the secrets.
- * @param params.recoverySecret - Optional secret from {@link fetchRecoverySecret}
+ * @param params.recoverySecret - Optional secret from `service.readRecoverySecret`
  * so Create password submit skips the escrow passkey sheet.
  * @throws {PasswordlessRecoveryError} With the stage that failed.
  */
@@ -114,7 +78,9 @@ export async function recoverWalletWithoutPassword(
   try {
     const secretPromise = prefetchedRecoverySecret
       ? Promise.resolve(prefetchedRecoverySecret)
-      : fetchRecoverySecret(service, identifier);
+      : service
+          .readRecoverySecret(identifier)
+          .then((result) => result.recoverySecret);
     const [secretResult, sessionResult] = await Promise.allSettled([
       secretPromise,
       service.openRecoverySession(),

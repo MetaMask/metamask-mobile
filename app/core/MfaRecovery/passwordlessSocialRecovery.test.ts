@@ -6,8 +6,6 @@ import {
 import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/constants';
 import type { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import {
-  fetchRecoverySecret,
-  findRecoveryIdentifier,
   PasswordlessRecoveryError,
   recoverWalletWithoutPassword,
 } from './passwordlessSocialRecovery';
@@ -62,45 +60,6 @@ function createService() {
 const asService = (
   fake: ReturnType<typeof createService>,
 ): MfaRecoveryService => fake as unknown as MfaRecoveryService;
-
-describe('findRecoveryIdentifier', () => {
-  it('delegates to the service with the given options', async () => {
-    const fake = createService();
-
-    const identifier = await findRecoveryIdentifier(asService(fake), {
-      canProveSocialIdentifier: true,
-    });
-
-    expect(identifier).toBe(PASSKEY);
-    expect(fake.findRecoveryIdentifier).toHaveBeenCalledWith({
-      canProveSocialIdentifier: true,
-    });
-  });
-
-  it('returns null when the service finds no identifier', async () => {
-    const fake = createService();
-    fake.findRecoveryIdentifier.mockResolvedValue(null as never);
-
-    const identifier = await findRecoveryIdentifier(asService(fake), {
-      canProveSocialIdentifier: false,
-    });
-
-    expect(identifier).toBeNull();
-  });
-});
-
-describe('fetchRecoverySecret', () => {
-  it('returns the Recovery Secret the service reads for the identifier', async () => {
-    const fake = createService();
-
-    const secret = await fetchRecoverySecret(asService(fake), PASSKEY);
-
-    expect(fake.readRecoverySecret).toHaveBeenCalledWith(PASSKEY);
-    expect(secret).toStrictEqual(
-      new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9),
-    );
-  });
-});
 
 describe('recoverWalletWithoutPassword', () => {
   it('recovers the secrets, sets the new password, then restores the vault', async () => {

@@ -12,14 +12,15 @@ import {
   hasPasswordlessRecoveryHold,
   takePasswordlessRecoveryHold,
 } from './passwordlessRecoveryHold';
-import {
-  fetchRecoverySecret,
-  findRecoveryIdentifier,
-  recoverWalletWithoutPassword,
-} from './passwordlessSocialRecovery';
+import { recoverWalletWithoutPassword } from './passwordlessSocialRecovery';
 import Logger from '../../util/Logger';
 
 let mockIsFlagEnabled = true;
+
+const mockPasswordlessService = {
+  findRecoveryIdentifier: jest.fn(),
+  readRecoverySecret: jest.fn(),
+};
 
 jest.mock('react-redux', () => ({
   useSelector: () => mockIsFlagEnabled,
@@ -31,12 +32,10 @@ jest.mock('../Engine/controllers/mfa-recovery-controller/config', () => ({
 
 jest.mock('./engineBindings', () => ({
   canProveSocialIdentifier: jest.fn(),
-  createPasswordlessRecoveryService: jest.fn(() => ({ service: true })),
+  createPasswordlessRecoveryService: jest.fn(() => mockPasswordlessService),
 }));
 
 jest.mock('./passwordlessSocialRecovery', () => ({
-  findRecoveryIdentifier: jest.fn(),
-  fetchRecoverySecret: jest.fn(),
   recoverWalletWithoutPassword: jest.fn(),
 }));
 
@@ -59,8 +58,11 @@ describe('usePasswordlessRecovery', () => {
     mockIsFlagEnabled = true;
     jest.mocked(isMfaRecoveryConfigured).mockReturnValue(true);
     jest.mocked(canProveSocialIdentifier).mockReturnValue(true);
-    jest.mocked(findRecoveryIdentifier).mockResolvedValue(PASSKEY);
-    jest.mocked(fetchRecoverySecret).mockResolvedValue(new Uint8Array(SECRET));
+    mockPasswordlessService.findRecoveryIdentifier.mockResolvedValue(PASSKEY);
+    mockPasswordlessService.readRecoverySecret.mockResolvedValue({
+      epoch: 1,
+      recoverySecret: new Uint8Array(SECRET),
+    });
     jest.mocked(recoverWalletWithoutPassword).mockResolvedValue(undefined);
   });
 
@@ -77,7 +79,9 @@ describe('usePasswordlessRecovery', () => {
       expect(await result.current.prepare()).toBe(false);
     });
 
-    expect(findRecoveryIdentifier).not.toHaveBeenCalled();
+    expect(
+      mockPasswordlessService.findRecoveryIdentifier,
+    ).not.toHaveBeenCalled();
   });
 
   it('returns false from prepare when recovery is not configured', async () => {
@@ -89,7 +93,9 @@ describe('usePasswordlessRecovery', () => {
       expect(await result.current.prepare()).toBe(false);
     });
 
-    expect(findRecoveryIdentifier).not.toHaveBeenCalled();
+    expect(
+      mockPasswordlessService.findRecoveryIdentifier,
+    ).not.toHaveBeenCalled();
   });
 
   it('returns true from prepare when an identifier is found', async () => {
@@ -103,17 +109,16 @@ describe('usePasswordlessRecovery', () => {
       Platform.OS,
       'google',
     );
-    expect(findRecoveryIdentifier).toHaveBeenCalledWith(
-      { service: true },
+    expect(mockPasswordlessService.findRecoveryIdentifier).toHaveBeenCalledWith(
       { canProveSocialIdentifier: true },
     );
     expect(createPasswordlessRecoveryService).toHaveBeenCalled();
   });
 
   it('returns false and logs when prepare cannot find an identifier', async () => {
-    jest
-      .mocked(findRecoveryIdentifier)
-      .mockRejectedValue(Object.assign(new Error('missing'), { code: 'gone' }));
+    mockPasswordlessService.findRecoveryIdentifier.mockRejectedValue(
+      Object.assign(new Error('missing'), { code: 'gone' }),
+    );
 
     const { result } = renderHook(() => usePasswordlessRecovery('google'));
 
@@ -134,8 +139,7 @@ describe('usePasswordlessRecovery', () => {
       expect(await result.current.prefetchForChoosePassword()).toBe(true);
     });
 
-    expect(fetchRecoverySecret).toHaveBeenCalledWith(
-      { service: true },
+    expect(mockPasswordlessService.readRecoverySecret).toHaveBeenCalledWith(
       PASSKEY,
     );
     expect(hasPasswordlessRecoveryHold()).toBe(true);
@@ -161,7 +165,7 @@ describe('usePasswordlessRecovery', () => {
     });
 
     expect(recoverWalletWithoutPassword).toHaveBeenCalledWith(
-      { service: true },
+      mockPasswordlessService,
       {
         identifier: PASSKEY,
         newPassword: 'new-password',
@@ -173,7 +177,9 @@ describe('usePasswordlessRecovery', () => {
   });
 
   it('throws from recover when neither hold nor prepare is ready', async () => {
-    jest.mocked(findRecoveryIdentifier).mockResolvedValue(null as never);
+    mockPasswordlessService.findRecoveryIdentifier.mockResolvedValue(
+      null as never,
+    );
 
     const { result } = renderHook(() => usePasswordlessRecovery('google'));
 
@@ -202,7 +208,7 @@ describe('usePasswordlessRecovery', () => {
     });
 
     expect(recoverWalletWithoutPassword).toHaveBeenCalledWith(
-      { service: true },
+      mockPasswordlessService,
       {
         identifier: PASSKEY,
         newPassword: 'new-password',
