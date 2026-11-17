@@ -691,7 +691,6 @@
   "app/components/hooks/usePolling.ts": 2,
   "app/components/hooks/usePrevious.ts": 1,
   "app/components/hooks/useSyncSRPs.ts": 1,
-  "app/components/hooks/useTokenBalance.tsx": 1,
   "app/components/product-safety/scam-questionnaire/security-check-header.tsx": 4,
   "app/contexts/route-messenger.tsx": 2,
   "app/core/Authentication/hooks/useAuthCapabilities.ts": 1,
