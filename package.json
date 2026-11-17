@@ -303,7 +303,6 @@
     "@metamask/accounts-controller": "^40.2.0",
     "@metamask/permission-controller": "^14.1.0",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
-    "@metamask/keyring-controller": "^28.2.2",
     "@ledgerhq/context-module/ethers": "^6.16.0",
     "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0",
     "react-native-blob-util@npm:^0.18.0": "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch",
