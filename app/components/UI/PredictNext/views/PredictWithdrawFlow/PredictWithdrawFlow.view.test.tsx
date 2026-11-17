@@ -260,47 +260,6 @@ describe('PredictWithdrawFlow', () => {
     expect(previewBodies()).toEqual([{ amount: '5' }]);
   });
 
-  it('sweeps with Max and shows the amount the venue actually withdrew', async () => {
-    stubWithdrawals({
-      preview: () => ({
-        body: previewOf({ mode: 'sweep_all', requestedAmount: undefined }),
-      }),
-      commit: () => ({
-        status: 201,
-        body: receiptOf({
-          mode: 'sweep_all',
-          requestedAmount: undefined,
-          status: 'settled',
-          // The venue swept less than the balance shown before the commit.
-          withdrawnAmount: '10.00',
-          resolvedAt: new Date().toISOString(),
-        }),
-      }),
-    });
-
-    renderPredictNext();
-    await openWithdrawFlow();
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.MAX));
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
-
-    await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
-    expect(previewBodies()).toEqual([{ sweepAll: true }]);
-    expect(
-      screen.getByTestId(PredictWithdrawFlowTestIds.AMOUNT_VALUE),
-    ).toHaveTextContent('Full available balance');
-
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
-
-    expect(
-      await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
-    ).toHaveTextContent('$10.00');
-    expect(
-      screen.getByText(
-        'Any amount above the per-withdrawal limit stays in your balance.',
-      ),
-    ).toBeOnTheScreen();
-  });
-
   it('shows the destination read-only with the sandbox wallet notice', async () => {
     renderPredictNext();
     await openWithdrawFlow();

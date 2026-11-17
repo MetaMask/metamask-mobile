@@ -1,3 +1,5 @@
+import BigNumber from 'bignumber.js';
+
 import type { PredictAmount } from '../../../types';
 
 /**
@@ -57,26 +59,14 @@ export const withdrawAmountIssue = (
   if (cents < MINIMUM_WITHDRAW_CENTS) {
     return 'below_minimum';
   }
-  const balanceCents =
-    availableBalance === undefined ? null : parseCents(availableBalance);
-  if (balanceCents !== null && cents > balanceCents) {
+  // The balance is not constrained to the typed amount's shape: the Venue
+  // reports sub-cent dust (`493.5900`), which still caps a whole-dollar
+  // withdrawal. Comparing cents keeps the judgement exact.
+  if (
+    availableBalance !== undefined &&
+    new BigNumber(availableBalance).times(100).isLessThan(cents)
+  ) {
     return 'over_balance';
-  }
-  return null;
-};
-
-/**
- * Why the whole available balance cannot be swept. A sweep is refused only by
- * the Venue's own floor, since the amount is the balance itself; an unknown
- * balance is not a judgement (the button that sweeps stays disabled).
- */
-export const sweepWithdrawAmountIssue = (
-  availableBalance?: PredictAmount,
-): PredictWithdrawAmountIssue => {
-  const balanceCents =
-    availableBalance === undefined ? null : parseCents(availableBalance);
-  if (balanceCents !== null && balanceCents < MINIMUM_WITHDRAW_CENTS) {
-    return 'below_minimum';
   }
   return null;
 };

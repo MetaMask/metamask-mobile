@@ -1,13 +1,7 @@
 import React from 'react';
+import BigNumber from 'bignumber.js';
 import {
-  BannerAlert,
-  BannerAlertSeverity,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -24,20 +18,16 @@ import {
 } from './withdrawAmount';
 
 interface WithdrawAmountStepProps {
-  /** The amount as keyed in, or `''` when the whole balance is swept. */
+  /** The amount as keyed in, or `''` before the first key. */
   amount: string;
   availableBalance?: PredictAmount;
-  /** True when `Max` selected a sweep of the whole available balance. */
-  isSweeping: boolean;
   amountIssue: PredictWithdrawAmountIssue;
-  /** False when `Max` cannot be offered: no balance read yet, or a balance
-   * below the Venue's floor. */
-  canSweep: boolean;
-  isOffline: boolean;
-  /** True while a Withdraw Preview is in flight. */
-  isRequesting: boolean;
-  onMax: () => void;
 }
+
+/** Cents, because the venue reports sub-cent dust the person cannot
+ * withdraw: `493.5900` is `$493.59`, never `$493.5900`. */
+const balanceLabel = (balance: PredictAmount): string =>
+  formatUsd(new BigNumber(balance).toFixed(2, BigNumber.ROUND_DOWN));
 
 const amountIssueCopy = (issue: Exclude<PredictWithdrawAmountIssue, null>) =>
   issue === 'below_minimum'
@@ -46,119 +36,47 @@ const amountIssueCopy = (issue: Exclude<PredictWithdrawAmountIssue, null>) =>
       })
     : strings('predict_next.withdraw.over_balance');
 
-/** The figure the display shows: the keyed amount, or the whole balance a
- * sweep withdraws. `Max` is not an amount the person keyed in, so it shows
- * the balance the venue will sweep rather than a figure to edit. */
-const displayAmount = (
-  amount: string,
-  availableBalance: PredictAmount | undefined,
-  isSweeping: boolean,
-): string => {
-  if (!isSweeping) {
-    return amount;
-  }
-  // `availableBalance` is canonical (no symbol); the display adds the prefix.
-  return availableBalance ?? '';
-};
-
 /**
- * Entry step: the amount to withdraw, validated against the Venue minimum and
- * the cached balance before a Preview is requested. `Max` sweeps the whole
- * available balance; the Venue caps a sweep itself, so no maximum is invented
- * here.
+ * Entry step: the amount to withdraw and the balance it is judged against.
+ * The keypad is permanent, so the figure is an output rather than a field,
+ * and the block sits in the middle of the space the keypad leaves.
  *
  * The payout account is the Venue's: the backend resolves it on the Preview,
- * so the Receive row names the one this build pays and offers nothing to
- * change. The exact address is on the review step.
+ * so the screen names it next to Continue and offers nothing to change. The
+ * exact address is on the review step.
  */
 export const WithdrawAmountStep = ({
   amount,
   availableBalance,
-  isSweeping,
   amountIssue,
-  canSweep,
-  isOffline,
-  isRequesting,
-  onMax,
-}: WithdrawAmountStepProps) => {
-  const hasBalance = availableBalance !== undefined;
-
-  return (
-    <Box>
-      <Box twClassName="items-center pb-1 pt-6">
-        <PredictAmountDisplay
-          amount={displayAmount(amount, availableBalance, isSweeping)}
-          // The keypad is always on screen here, so the figure is an output,
-          // not a control: no caret and nothing to tap.
-          isActive={false}
-          accessibilityLabel={strings('predict_next.withdraw.amount_label')}
-        />
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="justify-between gap-3 px-4 pt-1"
+}: WithdrawAmountStepProps) => (
+  <Box twClassName="flex-1 items-center justify-center px-6">
+    <PredictAmountDisplay
+      amount={amount}
+      isActive={false}
+      accessibilityLabel={strings('predict_next.withdraw.amount_label')}
+    />
+    <Text
+      variant={TextVariant.BodySm}
+      color={TextColor.TextAlternative}
+      twClassName="pt-1 text-center"
+      testID={PredictWithdrawFlowTestIds.AVAILABLE_BALANCE}
+    >
+      {availableBalance === undefined
+        ? strings('predict_next.withdraw.zero_balance')
+        : strings('predict_next.withdraw.available_balance', {
+            amount: balanceLabel(availableBalance),
+          })}
+    </Text>
+    {amountIssue === null ? null : (
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.ErrorDefault}
+        twClassName="pt-2 text-center"
+        testID={PredictWithdrawFlowTestIds.AMOUNT_ERROR}
       >
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          twClassName="shrink"
-          testID={PredictWithdrawFlowTestIds.AVAILABLE_BALANCE}
-        >
-          {hasBalance
-            ? strings('predict_next.withdraw.available_balance', {
-                amount: formatUsd(availableBalance),
-              })
-            : strings('predict_next.withdraw.zero_balance')}
-        </Text>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          onPress={onMax}
-          isDisabled={!canSweep || isSweeping || isRequesting || isOffline}
-          testID={PredictWithdrawFlowTestIds.MAX}
-        >
-          {strings('predict_next.withdraw.max')}
-        </Button>
-      </Box>
-      {amountIssue === null ? null : (
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.ErrorDefault}
-          twClassName="px-4 pt-2"
-          testID={PredictWithdrawFlowTestIds.AMOUNT_ERROR}
-        >
-          {amountIssueCopy(amountIssue)}
-        </Text>
-      )}
-      <Box twClassName="px-4 pt-6">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="justify-between gap-3"
-          testID={PredictWithdrawFlowTestIds.RECEIVE}
-        >
-          <Text variant={TextVariant.BodyMd}>
-            {strings('predict_next.withdraw.receive_row')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={PredictWithdrawFlowTestIds.RECEIVE_VALUE}
-          >
-            {strings('predict_next.withdraw.receive_sandbox_wallet')}
-          </Text>
-        </Box>
-      </Box>
-      {isOffline ? (
-        <Box twClassName="px-4 pt-3">
-          <BannerAlert
-            severity={BannerAlertSeverity.Warning}
-            description={strings('predict_next.withdraw.offline')}
-            testID={PredictWithdrawFlowTestIds.OFFLINE_BANNER}
-          />
-        </Box>
-      ) : null}
-    </Box>
-  );
-};
+        {amountIssueCopy(amountIssue)}
+      </Text>
+    )}
+  </Box>
+);

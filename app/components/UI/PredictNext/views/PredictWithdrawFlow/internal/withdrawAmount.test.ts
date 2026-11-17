@@ -2,7 +2,6 @@ import type { PredictAmount } from '../../../types';
 import {
   normalizeWithdrawAmount,
   sanitizeWithdrawAmount,
-  sweepWithdrawAmountIssue,
   withdrawAmountIssue,
 } from './withdrawAmount';
 
@@ -35,22 +34,15 @@ describe('withdrawAmountIssue', () => {
     expect(withdrawAmountIssue('1.30', balance('1.29'))).toBe('over_balance');
   });
 
+  it('judges a balance the venue reports with sub-cent dust', () => {
+    expect(withdrawAmountIssue('493.59', balance('493.5900'))).toBeNull();
+    expect(withdrawAmountIssue('493.60', balance('493.5900'))).toBe(
+      'over_balance',
+    );
+  });
+
   it('treats an empty field as not yet an error', () => {
     expect(withdrawAmountIssue('', balance('0'))).toBeNull();
-  });
-});
-
-describe('sweepWithdrawAmountIssue', () => {
-  it('refuses a sweep below the venue floor', () => {
-    expect(sweepWithdrawAmountIssue(balance('0.99'))).toBe('below_minimum');
-  });
-
-  it('accepts a sweep at the venue floor', () => {
-    expect(sweepWithdrawAmountIssue(balance('1.00'))).toBeNull();
-  });
-
-  it('does not judge an unknown balance', () => {
-    expect(sweepWithdrawAmountIssue(undefined)).toBeNull();
   });
 });
 

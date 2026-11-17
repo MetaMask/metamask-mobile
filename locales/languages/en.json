@@ -4120,7 +4120,6 @@
       "amount_label": "Amount",
       "available_balance": "Available balance: {{amount}}",
       "zero_balance": "Nothing is available to withdraw yet.",
-      "max": "Max",
       "below_minimum": "The minimum withdrawal is {{amount}}.",
       "over_balance": "Enter an amount within your available balance.",
       "offline": "You're offline. Reconnect to withdraw.",

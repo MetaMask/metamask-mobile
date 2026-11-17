@@ -2,7 +2,6 @@ export const PredictWithdrawFlowTestIds = {
   SCREEN: 'predict-withdraw-screen',
   HEADER: 'predict-withdraw-header',
   AVAILABLE_BALANCE: 'predict-withdraw-available-balance',
-  MAX: 'predict-withdraw-max',
   RECEIVE: 'predict-withdraw-receive',
   RECEIVE_VALUE: 'predict-withdraw-receive-value',
   AMOUNT_ERROR: 'predict-withdraw-amount-error',

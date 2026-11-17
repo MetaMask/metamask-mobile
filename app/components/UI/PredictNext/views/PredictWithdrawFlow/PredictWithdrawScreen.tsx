@@ -8,7 +8,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -47,7 +51,6 @@ import { WithdrawStatusStep } from './internal/WithdrawStatusStep';
 import {
   normalizeWithdrawAmount,
   sanitizeWithdrawAmount,
-  sweepWithdrawAmountIssue,
   withdrawAmountIssue,
 } from './internal/withdrawAmount';
 
@@ -55,7 +58,6 @@ import {
  * Commit returns to a confirmation that still knows what it was confirming. */
 interface WithdrawAmountInput {
   amount: string;
-  isSweeping: boolean;
 }
 
 /**
@@ -87,7 +89,6 @@ type WithdrawFlowState =
 
 type WithdrawFlowAction =
   | { type: 'editAmount'; amount: string }
-  | { type: 'sweep' }
   | { type: 'request' }
   | { type: 'quoted'; preview: PredictWithdrawPreview }
   | { type: 'requestFailed'; error: PredictError }
@@ -99,7 +100,7 @@ type WithdrawFlowAction =
 
 const initialWithdrawFlowState: WithdrawFlowState = {
   phase: 'input',
-  input: { amount: '', isSweeping: false },
+  input: { amount: '' },
   isRequesting: false,
   error: null,
 };
@@ -113,15 +114,7 @@ const withdrawFlowReducer = (
       return state.phase === 'input'
         ? {
             ...state,
-            input: { amount: action.amount, isSweeping: false },
-            error: null,
-          }
-        : state;
-    case 'sweep':
-      return state.phase === 'input'
-        ? {
-            ...state,
-            input: { amount: '', isSweeping: true },
+            input: { amount: action.amount },
             error: null,
           }
         : state;
@@ -228,20 +221,13 @@ export const PredictWithdrawScreen = () => {
   const availableBalance = balanceQuery.data?.available;
   const isOffline = networkTier === 'NONE';
   const isLowHardware = getHardwareTier() === 'LOW';
-  // A sweep asks for everything, so only the Venue's floor applies to it; a
-  // keyed amount is also checked against the cached balance.
-  const sweepIssue = sweepWithdrawAmountIssue(availableBalance);
-  const amountIssue = input.isSweeping
-    ? sweepIssue
-    : withdrawAmountIssue(input.amount, availableBalance);
-  const canSweep = availableBalance !== undefined && sweepIssue === null;
+  const amountIssue = withdrawAmountIssue(input.amount, availableBalance);
   const canContinue =
     state.phase === 'input' &&
     !isOffline &&
     !state.isRequesting &&
-    (input.isSweeping
-      ? canSweep
-      : amountIssue === null && input.amount.length > 0);
+    amountIssue === null &&
+    input.amount.length > 0;
   const isKeypadLocked =
     state.phase !== 'input' || state.isRequesting || isOffline;
 
@@ -285,16 +271,14 @@ export const PredictWithdrawScreen = () => {
     });
   }, [input.amount, isKeypadLocked]);
 
-  const handleMax = useCallback(() => dispatch({ type: 'sweep' }), []);
-
   const handleContinue = useCallback(async () => {
     if (!canContinue) {
       return;
     }
     dispatch({ type: 'request' });
-    const params: PredictWithdrawPreviewParams = input.isSweeping
-      ? { sweepAll: true }
-      : { amount: normalizeWithdrawAmount(input.amount) as PredictAmount };
+    const params: PredictWithdrawPreviewParams = {
+      amount: normalizeWithdrawAmount(input.amount) as PredictAmount,
+    };
     try {
       dispatch({
         type: 'quoted',
@@ -340,25 +324,43 @@ export const PredictWithdrawScreen = () => {
           <WithdrawAmountStep
             amount={input.amount}
             availableBalance={availableBalance}
-            isSweeping={input.isSweeping}
             amountIssue={amountIssue}
-            canSweep={canSweep}
-            isOffline={isOffline}
-            isRequesting={state.isRequesting}
-            onMax={handleMax}
           />
+        </Box>
+        <Box twClassName="gap-3 px-4 pb-2">
           {state.error !== null ? (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
-              twClassName="px-4 pt-2"
               testID={PredictWithdrawFlowTestIds.ERROR}
             >
               {strings(errorCopyKey(state.error))}
             </Text>
           ) : null}
-        </Box>
-        <Box twClassName="px-4 pb-2">
+          {isOffline ? (
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              description={strings('predict_next.withdraw.offline')}
+              testID={PredictWithdrawFlowTestIds.OFFLINE_BANNER}
+            />
+          ) : null}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="justify-between gap-3"
+            testID={PredictWithdrawFlowTestIds.RECEIVE}
+          >
+            <Text variant={TextVariant.BodyMd}>
+              {strings('predict_next.withdraw.receive_row')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              testID={PredictWithdrawFlowTestIds.RECEIVE_VALUE}
+            >
+              {strings('predict_next.withdraw.receive_sandbox_wallet')}
+            </Text>
+          </Box>
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
