@@ -1,20 +1,18 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { MfaRecoveryControllerError } from '../Engine/controllers/mfa-recovery-controller/errors';
-import {
+import type {
   MfaRecoveryService,
-  type MfaRecoveryRunIdentifiers,
+  MfaRecoveryRunIdentifiers,
 } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import { LinkSocialLoginError } from '../Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
+import { createMfaRecoveryService } from './engineBindings';
 import {
   PASSWORDLESS_RECOVERY_SETUP_OPERATION,
   PasswordlessRecoverySetupError,
   setupPasswordlessRecovery,
 } from './setupPasswordlessRecovery';
 
-jest.mock(
-  '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
-  () => ({ MfaRecoveryService: jest.fn() }),
-);
+jest.mock('./engineBindings', () => ({ createMfaRecoveryService: jest.fn() }));
 
 const PASSKEY: Identifier = {
   type: 'passkey',
@@ -57,8 +55,8 @@ describe('setupPasswordlessRecovery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
-      .mocked(MfaRecoveryService)
-      .mockImplementation(() => mockService as unknown as MfaRecoveryService);
+      .mocked(createMfaRecoveryService)
+      .mockReturnValue(mockService as unknown as MfaRecoveryService);
     mockService.getStatus.mockReturnValue('NotEnabled');
     mockService.prepareRun.mockResolvedValue(runIdentifiers());
     mockService.setUp.mockResolvedValue('enabled');
@@ -69,7 +67,7 @@ describe('setupPasswordlessRecovery', () => {
 
     await setupPasswordlessRecovery(verifyMfa);
 
-    expect(MfaRecoveryService).toHaveBeenCalledWith({
+    expect(createMfaRecoveryService).toHaveBeenCalledWith({
       verifyMfa,
       approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
     });

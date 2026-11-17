@@ -3,6 +3,7 @@ import type {
   MfaRecoveryController,
 } from '@metamask/mfa-recovery-controller';
 import { MfaRecoveryService } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import { createMfaRecoveryServiceTestMessenger } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service-test-messenger';
 import {
   getMfaRecoveryErrorDetail,
   runMfaRecoveryCubistRecover,
@@ -105,6 +106,7 @@ function createService(controller: MfaRecoveryController, address = '0xabc') {
     },
   });
   const service = new MfaRecoveryService({
+    messenger: createMfaRecoveryServiceTestMessenger(() => mockEngineContext),
     verifyMfa,
     approvalOperation: 'test',
   });

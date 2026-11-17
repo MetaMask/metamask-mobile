@@ -58,6 +58,32 @@ jest.mock(
   },
 );
 
+jest.mock('../../../../../core/MfaRecovery/engineBindings', () => ({
+  createMfaRecoveryService: (options: object) => {
+    const { MfaRecoveryService } = jest.requireMock<
+      typeof import('../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service')
+    >(
+      '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
+    );
+    const { createMfaRecoveryServiceTestMessenger } = jest.requireActual<
+      typeof import('../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service-test-messenger')
+    >(
+      '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service-test-messenger',
+    );
+    const { default: MockEngine } = jest.requireMock<{
+      default: { context: Record<string, unknown> };
+    }>('../../../../../core/Engine');
+    return new MfaRecoveryService({
+      verifyMfa: () => Promise.resolve(),
+      approvalOperation: 'test',
+      ...options,
+      messenger: createMfaRecoveryServiceTestMessenger(
+        () => MockEngine.context,
+      ),
+    });
+  },
+}));
+
 jest.mock(
   '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login',
   () => ({
@@ -425,9 +451,6 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       expect(mockRunMfaRecoverySetup).toHaveBeenCalledTimes(1);
     });
     const [service] = mockRunMfaRecoverySetup.mock.calls[0];
-    expect(service.seedlessOnboardingController).toBe(
-      Engine.context.SeedlessOnboardingController,
-    );
     await service.verifyMfa();
     expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
     expect(mockRequestMfaApproval).not.toHaveBeenCalled();

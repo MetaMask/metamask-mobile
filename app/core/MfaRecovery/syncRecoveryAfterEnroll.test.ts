@@ -1,12 +1,10 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
-import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import { createMfaRecoveryService } from './engineBindings';
 import { PASSWORDLESS_RECOVERY_SETUP_OPERATION } from './setupPasswordlessRecovery';
 import { syncRecoveryAfterEnroll } from './syncRecoveryAfterEnroll';
 
-jest.mock(
-  '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
-  () => ({ MfaRecoveryService: jest.fn() }),
-);
+jest.mock('./engineBindings', () => ({ createMfaRecoveryService: jest.fn() }));
 
 const PASSKEY: Identifier = {
   type: 'passkey',
@@ -40,15 +38,13 @@ function createService({
     getCandidateIdentifiers: jest.fn().mockResolvedValue(candidates),
     setUp: jest.fn().mockResolvedValue('enabled'),
     addIdentifier: jest.fn().mockResolvedValue({}),
-    mfaRecoveryController: {
-      getIdentifiers: jest
-        .fn()
-        .mockResolvedValue({ identifiers: cubist, epoch: 1 }),
-    },
+    hasEnrolledIdentifier: jest.fn(async (type: string) =>
+      cubist.some((identifier) => identifier.type === type),
+    ),
   };
   jest
-    .mocked(MfaRecoveryService)
-    .mockImplementation(() => service as unknown as MfaRecoveryService);
+    .mocked(createMfaRecoveryService)
+    .mockReturnValue(service as unknown as MfaRecoveryService);
   return service;
 }
 
@@ -63,7 +59,7 @@ describe('syncRecoveryAfterEnroll', () => {
 
     await syncRecoveryAfterEnroll('totp', { verifyMfa, getSocialLinkEmail });
 
-    expect(MfaRecoveryService).toHaveBeenCalledWith(
+    expect(createMfaRecoveryService).toHaveBeenCalledWith(
       expect.objectContaining({ getSocialLinkEmail }),
     );
   });
@@ -73,7 +69,7 @@ describe('syncRecoveryAfterEnroll', () => {
 
     await syncRecoveryAfterEnroll('totp', { verifyMfa });
 
-    expect(MfaRecoveryService).toHaveBeenCalledWith({
+    expect(createMfaRecoveryService).toHaveBeenCalledWith({
       verifyMfa,
       approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
     });
@@ -87,11 +83,11 @@ describe('syncRecoveryAfterEnroll', () => {
     await syncRecoveryAfterEnroll('passkey', { verifyMfa: verifyPasskey });
     await syncRecoveryAfterEnroll('totp', { verifyMfa: verifyTotp });
 
-    expect(MfaRecoveryService).toHaveBeenNthCalledWith(1, {
+    expect(createMfaRecoveryService).toHaveBeenNthCalledWith(1, {
       verifyMfa: verifyPasskey,
       approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
     });
-    expect(MfaRecoveryService).toHaveBeenNthCalledWith(2, {
+    expect(createMfaRecoveryService).toHaveBeenNthCalledWith(2, {
       verifyMfa: verifyTotp,
       approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
     });

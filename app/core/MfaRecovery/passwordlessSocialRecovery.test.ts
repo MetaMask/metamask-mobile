@@ -45,23 +45,17 @@ function createService() {
     openRecoverySession: jest.fn(async () => {
       calls.push('openRecoverySession');
     }),
-    seedlessOnboardingController: {
-      recoverWithRecoverySecret: jest.fn(
-        async ({ recoverySecret }: { recoverySecret: Uint8Array }) => {
-          calls.push('recoverWithRecoverySecret');
-          secrets.seen = new Uint8Array(recoverySecret);
-          return recoveredSecrets();
-        },
-      ),
-      setLocalPassword: jest.fn(async (_params: { password: string }) => {
-        calls.push('setLocalPassword');
-      }),
-      resetPasswordWithVaultKeys: jest.fn(
-        async (_params: { newPassword: string }) => {
-          calls.push('resetPasswordWithVaultKeys');
-        },
-      ),
-    },
+    recoverWithRecoverySecret: jest.fn(async (recoverySecret: Uint8Array) => {
+      calls.push('recoverWithRecoverySecret');
+      secrets.seen = new Uint8Array(recoverySecret);
+      return recoveredSecrets();
+    }),
+    setLocalPassword: jest.fn(async (_password: string) => {
+      calls.push('setLocalPassword');
+    }),
+    resetGlobalPassword: jest.fn(async (_newPassword: string) => {
+      calls.push('resetPasswordWithVaultKeys');
+    }),
   };
 }
 
@@ -124,12 +118,8 @@ describe('recoverWalletWithoutPassword', () => {
     expect(fake.secrets.seen).toStrictEqual(
       new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9),
     );
-    expect(
-      fake.seedlessOnboardingController.setLocalPassword,
-    ).toHaveBeenCalledWith({ password: NEW_PASSWORD });
-    expect(
-      fake.seedlessOnboardingController.resetPasswordWithVaultKeys,
-    ).toHaveBeenCalledWith({ newPassword: NEW_PASSWORD });
+    expect(fake.setLocalPassword).toHaveBeenCalledWith(NEW_PASSWORD);
+    expect(fake.resetGlobalPassword).toHaveBeenCalledWith(NEW_PASSWORD);
     expect(restoreVault).toHaveBeenCalledWith(NEW_PASSWORD, [
       expect.objectContaining({ type: SecretType.Mnemonic }),
     ]);
@@ -198,9 +188,7 @@ describe('recoverWalletWithoutPassword', () => {
       code: 'read_failed',
       detail: 'reading_secret; Error: read failed',
     });
-    expect(
-      fake.seedlessOnboardingController.setLocalPassword,
-    ).not.toHaveBeenCalled();
+    expect(fake.setLocalPassword).not.toHaveBeenCalled();
     expect(restoreVault).not.toHaveBeenCalled();
   });
 
@@ -218,9 +206,7 @@ describe('recoverWalletWithoutPassword', () => {
       stage: 'recovering_secrets',
       detail: 'opening_session; Error: session failed',
     });
-    expect(
-      fake.seedlessOnboardingController.recoverWithRecoverySecret,
-    ).not.toHaveBeenCalled();
+    expect(fake.recoverWithRecoverySecret).not.toHaveBeenCalled();
     expect(fake.secrets.read).toStrictEqual(
       new Uint8Array(RECOVERY_SECRET_LENGTH).fill(0),
     );
@@ -228,7 +214,7 @@ describe('recoverWalletWithoutPassword', () => {
 
   it('reports recovering_vault when the TOPRF recovery fails', async () => {
     const fake = createService();
-    fake.seedlessOnboardingController.recoverWithRecoverySecret.mockRejectedValue(
+    fake.recoverWithRecoverySecret.mockRejectedValue(
       new Error('recover failed'),
     );
 
@@ -249,9 +235,7 @@ describe('recoverWalletWithoutPassword', () => {
 
   it('reports setting_password at setting_local_password and skips the vault', async () => {
     const fake = createService();
-    fake.seedlessOnboardingController.setLocalPassword.mockRejectedValue(
-      new Error('password rejected'),
-    );
+    fake.setLocalPassword.mockRejectedValue(new Error('password rejected'));
     const restoreVault = jest.fn();
 
     const error = await recoverWalletWithoutPassword(asService(fake), {
@@ -264,17 +248,13 @@ describe('recoverWalletWithoutPassword', () => {
       stage: 'setting_password',
       detail: 'setting_local_password; Error: password rejected',
     });
-    expect(
-      fake.seedlessOnboardingController.resetPasswordWithVaultKeys,
-    ).not.toHaveBeenCalled();
+    expect(fake.resetGlobalPassword).not.toHaveBeenCalled();
     expect(restoreVault).not.toHaveBeenCalled();
   });
 
   it('reports setting_password at resetting_global_password', async () => {
     const fake = createService();
-    fake.seedlessOnboardingController.resetPasswordWithVaultKeys.mockRejectedValue(
-      new Error('reset failed'),
-    );
+    fake.resetGlobalPassword.mockRejectedValue(new Error('reset failed'));
     const restoreVault = jest.fn();
 
     const error = await recoverWalletWithoutPassword(asService(fake), {
@@ -304,8 +284,6 @@ describe('recoverWalletWithoutPassword', () => {
       stage: 'restoring_vault',
       detail: 'restoring_vault; Error: vault failed',
     });
-    expect(
-      fake.seedlessOnboardingController.resetPasswordWithVaultKeys,
-    ).toHaveBeenCalled();
+    expect(fake.resetGlobalPassword).toHaveBeenCalled();
   });
 });

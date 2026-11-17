@@ -1,6 +1,6 @@
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
-import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import { LinkSocialLoginError } from '../Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
+import { createMfaRecoveryService } from './engineBindings';
 import { redactForDisplay } from './redactForDisplay';
 
 /** Operation named on the Auth approvals this setup requests. */
@@ -39,7 +39,7 @@ export class PasswordlessRecoverySetupError extends Error {
 export async function setupPasswordlessRecovery(
   verifyMfa: () => Promise<void>,
 ): Promise<PasswordlessRecoverySetupResult> {
-  const service = new MfaRecoveryService({
+  const service = createMfaRecoveryService({
     verifyMfa,
     approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
   });

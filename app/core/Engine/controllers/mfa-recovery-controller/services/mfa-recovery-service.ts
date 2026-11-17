@@ -1,12 +1,32 @@
+import type { KeyringControllerGetStateAction } from '@metamask/keyring-controller';
+import type { Messenger } from '@metamask/messenger';
 import type {
   Identifier,
-  MfaRecoveryController,
+  MfaRecoveryControllerAbortAction,
+  MfaRecoveryControllerAuthenticateIdentifierAction,
+  MfaRecoveryControllerGetIdentifiersAction,
+  MfaRecoveryControllerGetPhaseAction,
+  MfaRecoveryControllerGetRecoverySecretAction,
+  MfaRecoveryControllerRegisterAction,
+  MfaRecoveryControllerResumeAction,
+  MfaRecoveryControllerUpdateIdentifiersAction,
   RecoveryIdentifiers,
 } from '@metamask/mfa-recovery-controller';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { MfaApproval } from '@metamask/profile-sync-controller/sdk';
+import type {
+  SecretMetadata,
+  SeedlessOnboardingControllerAuthenticateForRecoveryAction,
+  SeedlessOnboardingControllerGetAccessTokenAction,
+  SeedlessOnboardingControllerGetStateAction,
+  SeedlessOnboardingControllerMigrateToEnvelopeAction,
+  SeedlessOnboardingControllerRecoverWithRecoverySecretAction,
+  SeedlessOnboardingControllerResetPasswordWithVaultKeysAction,
+  SeedlessOnboardingControllerRunMigrationsAction,
+  SeedlessOnboardingControllerSetLocalPasswordAction,
+} from '@metamask/seedless-onboarding-controller';
 import { bytesToHex } from '@metamask/utils';
 import { authEnv } from '../../../../apiEnv';
-import Engine from '../../../../Engine';
 import { createSiweIdentifier } from '../auth/identifiers';
 import {
   isProvablePasskeyIdentifier,
@@ -27,14 +47,45 @@ import {
   findSocialIdentifier,
   getMfaRecoveryStatus,
   getRegistrationIdentifiers,
-  type MfaRecoverySeedless,
   type MfaRecoveryStatus,
   type MfaRecoverySetupResult,
 } from './recovery-setup';
 
+const SERVICE_NAME = 'MfaRecoveryService';
+
 const APPROVAL_REQUEST_HASH_LENGTH = 32;
 
+type AllowedActions =
+  | AuthenticationController.AuthenticationControllerGetVerificationTokenAction
+  | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
+  | KeyringControllerGetStateAction
+  | MfaRecoveryControllerAbortAction
+  | MfaRecoveryControllerAuthenticateIdentifierAction
+  | MfaRecoveryControllerGetIdentifiersAction
+  | MfaRecoveryControllerGetPhaseAction
+  | MfaRecoveryControllerGetRecoverySecretAction
+  | MfaRecoveryControllerRegisterAction
+  | MfaRecoveryControllerResumeAction
+  | MfaRecoveryControllerUpdateIdentifiersAction
+  | SeedlessOnboardingControllerAuthenticateForRecoveryAction
+  | SeedlessOnboardingControllerGetAccessTokenAction
+  | SeedlessOnboardingControllerGetStateAction
+  | SeedlessOnboardingControllerMigrateToEnvelopeAction
+  | SeedlessOnboardingControllerRecoverWithRecoverySecretAction
+  | SeedlessOnboardingControllerResetPasswordWithVaultKeysAction
+  | SeedlessOnboardingControllerRunMigrationsAction
+  | SeedlessOnboardingControllerSetLocalPasswordAction;
+
+/** The controller actions the recovery flows call. */
+export type MfaRecoveryServiceMessenger = Messenger<
+  typeof SERVICE_NAME,
+  AllowedActions,
+  never
+>;
+
 export interface MfaRecoveryServiceOptions {
+  /** Reaches the MFA recovery, seedless, keyring, and Auth controllers. */
+  messenger: MfaRecoveryServiceMessenger;
   /** Starts the verification session recovery approvals require. */
   verifyMfa: () => Promise<void>;
   /** The MFA reason the recovery approvals are requested for. */
@@ -65,32 +116,64 @@ export interface FindRecoveryIdentifierOptions {
  * instance.
  */
 export class MfaRecoveryService {
+  readonly #messenger: MfaRecoveryServiceMessenger;
+
   readonly #options: MfaRecoveryServiceOptions;
 
   #verification?: Promise<void>;
 
   constructor(options: MfaRecoveryServiceOptions) {
+    this.#messenger = options.messenger;
     this.#options = options;
-  }
-
-  get mfaRecoveryController(): MfaRecoveryController {
-    return Engine.context.MfaRecoveryController;
-  }
-
-  get seedlessOnboardingController(): MfaRecoverySeedless {
-    return Engine.context.SeedlessOnboardingController;
   }
 
   /** The primary account; recovery proves SIWE with it. */
   get address(): string {
     return (
-      Engine.context.KeyringController.state.keyrings[0]?.accounts?.[0] ?? ''
+      this.#messenger.call('KeyringController:getState').keyrings[0]
+        ?.accounts?.[0] ?? ''
     );
   }
 
   /** Recovery is set up once the vault is envelope-managed. */
   getStatus(): MfaRecoveryStatus {
-    return getMfaRecoveryStatus(this.seedlessOnboardingController.state);
+    return getMfaRecoveryStatus(this.#seedlessState());
+  }
+
+  /** Whether Cubist already has an identifier of `type` enrolled. */
+  async hasEnrolledIdentifier(type: Identifier['type']): Promise<boolean> {
+    const { identifiers } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
+    return identifiers.some((identifier) => identifier.type === type);
+  }
+
+  /** Decrypts the seed phrases with the Recovery Secret. */
+  async recoverWithRecoverySecret(
+    recoverySecret: Uint8Array,
+  ): Promise<SecretMetadata[]> {
+    return await this.#messenger.call(
+      'SeedlessOnboardingController:recoverWithRecoverySecret',
+      { recoverySecret },
+    );
+  }
+
+  /** Sets the password that unlocks the wallet on this device. */
+  async setLocalPassword(password: string): Promise<void> {
+    await this.#messenger.call(
+      'SeedlessOnboardingController:setLocalPassword',
+      {
+        password,
+      },
+    );
+  }
+
+  /** Makes `newPassword` the global password, using the recovered vault keys. */
+  async resetGlobalPassword(newPassword: string): Promise<void> {
+    await this.#messenger.call(
+      'SeedlessOnboardingController:resetPasswordWithVaultKeys',
+      { newPassword },
+    );
   }
 
   /** Returns a fresh random Recovery Secret. */
@@ -144,10 +227,14 @@ export class MfaRecoveryService {
   async readRecoverySecret(
     identifier: Identifier,
   ): Promise<{ epoch: number; recoverySecret: Uint8Array }> {
-    const identifierSession =
-      await this.mfaRecoveryController.authenticateIdentifier(identifier);
-    const { epoch, recoverySecret } =
-      await this.mfaRecoveryController.getRecoverySecret(identifierSession);
+    const identifierSession = await this.#messenger.call(
+      'MfaRecoveryController:authenticateIdentifier',
+      identifier,
+    );
+    const { epoch, recoverySecret } = await this.#messenger.call(
+      'MfaRecoveryController:getRecoverySecret',
+      identifierSession,
+    );
     try {
       if (recoverySecret.length !== RECOVERY_SECRET_LENGTH) {
         throw new MfaRecoveryControllerError(
@@ -166,11 +253,10 @@ export class MfaRecoveryService {
     const aal2Token = await this.mintAal2Token();
     const { authConnectionId, groupedAuthConnectionId } =
       getToprfRecoveryConfig();
-    await this.seedlessOnboardingController.authenticateForRecovery({
-      aal2Token,
-      authConnectionId,
-      groupedAuthConnectionId,
-    });
+    await this.#messenger.call(
+      'SeedlessOnboardingController:authenticateForRecovery',
+      { aal2Token, authConnectionId, groupedAuthConnectionId },
+    );
   }
 
   /**
@@ -183,8 +269,9 @@ export class MfaRecoveryService {
   async findRecoveryIdentifier({
     canProveSocialIdentifier,
   }: FindRecoveryIdentifierOptions): Promise<Identifier | null> {
-    const { identifiers, authIdentifiers } =
-      await this.mfaRecoveryController.getIdentifiers();
+    const { identifiers, authIdentifiers } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
     // Auth's copy carries the verifier (RP ID, credential ID) the proof needs.
     const approved = identifiers.flatMap((enrolled) => {
       const authIdentifier = authIdentifiers.find((candidate) =>
@@ -216,16 +303,14 @@ export class MfaRecoveryService {
   async setUp(
     identifiers: readonly Identifier[] = [],
   ): Promise<MfaRecoverySetupResult> {
-    const { seedlessOnboardingController, mfaRecoveryController } = this;
-    if (seedlessOnboardingController.state.envelope) {
+    const messenger = this.#messenger;
+    if (this.#seedlessState().envelope) {
       return 'already_enabled';
     }
 
     const { address, authIdentifiers: approved } = await this.#prepare();
     let authIdentifiers = approved;
-    if (
-      !findSocialIdentifier(authIdentifiers, seedlessOnboardingController.state)
-    ) {
+    if (!findSocialIdentifier(authIdentifiers, this.#seedlessState())) {
       await this.#linkSocialLogin();
       authIdentifiers = await this.getAuthIdentifiers();
     }
@@ -234,15 +319,17 @@ export class MfaRecoveryService {
       authIdentifiers,
       siweIdentifier,
       identifiers,
-      seedlessOnboardingController.state,
+      this.#seedlessState(),
     );
 
     // A failed attempt leaves an authorizing mutation. Drop it before retrying.
-    await mfaRecoveryController.abort();
+    await messenger.call('MfaRecoveryController:abort');
 
     let recoverySecret = new Uint8Array(0);
     try {
-      const { epoch } = await mfaRecoveryController.getIdentifiers();
+      const { epoch } = await messenger.call(
+        'MfaRecoveryController:getIdentifiers',
+      );
       if (epoch > 0) {
         // A previous attempt already stored the secret. Registering again asks
         // for version 1, which Cubist rejects.
@@ -260,7 +347,8 @@ export class MfaRecoveryService {
         ));
       } else {
         recoverySecret = this.createRecoverySecret();
-        await mfaRecoveryController.register(
+        await messenger.call(
+          'MfaRecoveryController:register',
           recoverySecret,
           registrationIdentifiers,
         );
@@ -269,8 +357,10 @@ export class MfaRecoveryService {
       await this.openRecoverySession();
       // migrateToEnvelope rejects vaults whose data types are not migrated yet.
       // runMigrations is a no-op once they are.
-      await seedlessOnboardingController.runMigrations();
-      await seedlessOnboardingController.migrateToEnvelope({ recoverySecret });
+      await messenger.call('SeedlessOnboardingController:runMigrations');
+      await messenger.call('SeedlessOnboardingController:migrateToEnvelope', {
+        recoverySecret,
+      });
       return 'enabled';
     } finally {
       recoverySecret.fill(0);
@@ -286,13 +376,14 @@ export class MfaRecoveryService {
    */
   async linkSocialLogin(verifierId?: string): Promise<void> {
     await this.verifyMfa();
-    const { seedlessOnboardingController } = this;
+    const messenger = this.#messenger;
     await linkSocialLogin({
       env: authEnv(),
-      seedlessState: seedlessOnboardingController.state,
-      getSocialAccessToken: () => seedlessOnboardingController.getAccessToken(),
+      seedlessState: this.#seedlessState(),
+      getSocialAccessToken: () =>
+        messenger.call('SeedlessOnboardingController:getAccessToken'),
       getVerifiedAccessToken: () =>
-        Engine.context.AuthenticationController.getVerificationToken()
+        messenger.call('AuthenticationController:getVerificationToken')
           ?.accessToken,
       verifierId,
     });
@@ -305,12 +396,13 @@ export class MfaRecoveryService {
   async getCandidateIdentifiers(): Promise<
     Partial<Record<CubistIdentifierType, Identifier>>
   > {
-    const { authIdentifiers } =
-      await this.mfaRecoveryController.getIdentifiers();
+    const { authIdentifiers } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
     return getCandidateIdentifiers(
       authIdentifiers,
       this.address,
-      this.seedlessOnboardingController.state,
+      this.#seedlessState(),
     );
   }
 
@@ -331,13 +423,15 @@ export class MfaRecoveryService {
     }
 
     const current = withAuthCopies(identifiers, authIdentifiers);
-    await this.mfaRecoveryController.updateIdentifiers(
+    await this.#messenger.call(
+      'MfaRecoveryController:updateIdentifiers',
       pickAuthorizingIdentifier(current),
       [...current, identifier],
       epoch,
     );
-    const { epoch: newEpoch } =
-      await this.mfaRecoveryController.getIdentifiers();
+    const { epoch: newEpoch } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
     return {
       identifierType: identifier.type,
       change: 'added',
@@ -368,13 +462,15 @@ export class MfaRecoveryService {
       );
     }
 
-    await this.mfaRecoveryController.updateIdentifiers(
+    await this.#messenger.call(
+      'MfaRecoveryController:updateIdentifiers',
       pickAuthorizingIdentifier(remaining),
       remaining,
       epoch,
     );
-    const { epoch: newEpoch } =
-      await this.mfaRecoveryController.getIdentifiers();
+    const { epoch: newEpoch } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
     return { identifierType: target.type, change: 'removed', epoch: newEpoch };
   }
 
@@ -404,25 +500,34 @@ export class MfaRecoveryService {
     audiences: string[],
     includeIdentifiers: boolean,
   ): Promise<MfaApproval> {
-    return await Engine.context.AuthenticationController.requestMfaApproval({
-      requestHash: bytesToHex(randomBytes(APPROVAL_REQUEST_HASH_LENGTH)),
-      audiences,
-      requireVerification: true,
-      includeIdentifiers,
-      reason: { operation: this.#options.approvalOperation },
-    });
+    return await this.#messenger.call(
+      'AuthenticationController:requestMfaApproval',
+      {
+        requestHash: bytesToHex(randomBytes(APPROVAL_REQUEST_HASH_LENGTH)),
+        audiences,
+        requireVerification: true,
+        includeIdentifiers,
+        reason: { operation: this.#options.approvalOperation },
+      },
+    );
   }
 
   async #resumePendingOperation(): Promise<void> {
-    if ((await this.mfaRecoveryController.getPhase()) !== 'idle') {
-      await this.mfaRecoveryController.resume();
+    if (
+      (await this.#messenger.call('MfaRecoveryController:getPhase')) !== 'idle'
+    ) {
+      await this.#messenger.call('MfaRecoveryController:resume');
     }
   }
 
   async #loadForMutation(): Promise<RecoveryIdentifiers> {
     await this.verifyMfa();
     await this.#resumePendingOperation();
-    return await this.mfaRecoveryController.getIdentifiers();
+    return await this.#messenger.call('MfaRecoveryController:getIdentifiers');
+  }
+
+  #seedlessState() {
+    return this.#messenger.call('SeedlessOnboardingController:getState');
   }
 }
 

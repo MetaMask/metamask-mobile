@@ -3,6 +3,7 @@ import type {
   MfaRecoveryController,
 } from '@metamask/mfa-recovery-controller';
 import { bytesToHex, sha256 } from '@metamask/utils';
+import Engine from '../../../../../core/Engine';
 import { MfaRecoveryControllerError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
 import type {
   MfaRecoveryRunIdentifiers,
@@ -78,7 +79,7 @@ export async function runMfaRecoveryCubistTest(
   onStep: (step: MfaRecoveryTestStep) => void = () => undefined,
 ): Promise<MfaRecoveryTestResult> {
   const identifiers = await prepareTestRun(service);
-  const { mfaRecoveryController } = service;
+  const mfaRecoveryController = Engine.context.MfaRecoveryController;
   const readAndCompare = async (identifier: Identifier, secret: Uint8Array) => {
     const recovered = await service.readRecoverySecret(identifier);
     return {

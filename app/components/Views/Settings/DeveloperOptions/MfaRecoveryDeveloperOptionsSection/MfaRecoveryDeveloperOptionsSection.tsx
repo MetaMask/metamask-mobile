@@ -42,7 +42,8 @@ import {
   type MfaRecoveryRecoverResult,
   type MfaRecoveryTestStep,
 } from './runMfaRecoveryCubistTest';
-import { MfaRecoveryService } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import { createMfaRecoveryService } from '../../../../../core/MfaRecovery/engineBindings';
 import {
   runMfaRecoveryFullRetrieval,
   type MfaRecoveryFullRetrievalIdentifierType,
@@ -400,7 +401,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
 
       try {
         const runResult = await runner(
-          new MfaRecoveryService({
+          createMfaRecoveryService({
             verifyMfa,
             approvalOperation: AAL2_APPROVAL_OPERATION,
           }),
@@ -547,7 +548,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       if (verifierId === null) {
         status = 'cancelled';
       } else {
-        await new MfaRecoveryService({
+        await createMfaRecoveryService({
           verifyMfa,
           approvalOperation: AAL2_APPROVAL_OPERATION,
         }).linkSocialLogin(verifierId);
@@ -613,7 +614,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             address: service.address,
             signPersonalMessage: (params) =>
               Engine.context.KeyringController.signPersonalMessage(params),
-            seedless: service.seedlessOnboardingController,
+            seedless: Engine.context.SeedlessOnboardingController,
             openRecoverySession: async () => {
               await service.verifyMfa();
               await service.openRecoverySession();

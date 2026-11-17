@@ -1,6 +1,6 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import type { MfaMethod } from '../../util/identity/mfa/engine/types';
-import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import { createMfaRecoveryService } from './engineBindings';
 import { PASSWORDLESS_RECOVERY_SETUP_OPERATION } from './setupPasswordlessRecovery';
 
 export interface SyncRecoveryAfterEnrollOptions {
@@ -26,7 +26,7 @@ export async function syncRecoveryAfterEnroll(
   method: MfaMethod,
   { verifyMfa, getSocialLinkEmail }: SyncRecoveryAfterEnrollOptions,
 ): Promise<void> {
-  const service = new MfaRecoveryService({
+  const service = createMfaRecoveryService({
     verifyMfa,
     approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
     getSocialLinkEmail,
@@ -45,8 +45,7 @@ export async function syncRecoveryAfterEnroll(
     return;
   }
 
-  const { identifiers } = await service.mfaRecoveryController.getIdentifiers();
-  if (identifiers.some((identifier) => identifier.type === 'passkey')) {
+  if (await service.hasEnrolledIdentifier('passkey')) {
     return;
   }
 

@@ -10,6 +10,7 @@ import type {
   KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
 import type { MfaRecoveryControllerMessenger } from '@metamask/mfa-recovery-controller';
+import type { MfaRecoveryServiceMessenger } from '../controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import type { RootMessenger } from '../types';
 
 type AllowedActions = MessengerActions<MfaRecoveryControllerMessenger>;
@@ -67,6 +68,47 @@ export function getMfaRecoveryControllerInitMessenger(
       'KeyringController:signPersonalMessage',
       'RemoteFeatureFlagController:getState',
     ],
+    messenger,
+  });
+  return messenger;
+}
+
+/** The controller actions the MFA recovery service may call. */
+export const MFA_RECOVERY_SERVICE_ACTIONS = [
+  'AuthenticationController:getVerificationToken',
+  'AuthenticationController:requestMfaApproval',
+  'KeyringController:getState',
+  'MfaRecoveryController:abort',
+  'MfaRecoveryController:authenticateIdentifier',
+  'MfaRecoveryController:getIdentifiers',
+  'MfaRecoveryController:getPhase',
+  'MfaRecoveryController:getRecoverySecret',
+  'MfaRecoveryController:register',
+  'MfaRecoveryController:resume',
+  'MfaRecoveryController:updateIdentifiers',
+  'SeedlessOnboardingController:authenticateForRecovery',
+  'SeedlessOnboardingController:getAccessToken',
+  'SeedlessOnboardingController:getState',
+  'SeedlessOnboardingController:migrateToEnvelope',
+  'SeedlessOnboardingController:recoverWithRecoverySecret',
+  'SeedlessOnboardingController:resetPasswordWithVaultKeys',
+  'SeedlessOnboardingController:runMigrations',
+  'SeedlessOnboardingController:setLocalPassword',
+] as const satisfies readonly MessengerActions<MfaRecoveryServiceMessenger>['type'][];
+
+/** Returns the messenger the MFA recovery service reaches controllers with. */
+export function getMfaRecoveryServiceMessenger(
+  rootMessenger: RootMessenger<
+    MessengerActions<MfaRecoveryServiceMessenger>,
+    MessengerEvents<MfaRecoveryServiceMessenger>
+  >,
+): MfaRecoveryServiceMessenger {
+  const messenger: MfaRecoveryServiceMessenger = new Messenger({
+    namespace: 'MfaRecoveryService',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [...MFA_RECOVERY_SERVICE_ACTIONS],
     messenger,
   });
   return messenger;

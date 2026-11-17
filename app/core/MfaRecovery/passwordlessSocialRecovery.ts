@@ -109,8 +109,6 @@ export async function recoverWalletWithoutPassword(
     recoverySecret?: Uint8Array;
   },
 ): Promise<void> {
-  const { seedlessOnboardingController: seedless } = service;
-
   let secrets: SecretMetadata[];
   let step = 'reading_secret';
   try {
@@ -131,7 +129,7 @@ export async function recoverWalletWithoutPassword(
         throw sessionResult.reason;
       }
       step = 'recovering_vault';
-      secrets = await seedless.recoverWithRecoverySecret({ recoverySecret });
+      secrets = await service.recoverWithRecoverySecret(recoverySecret);
     } finally {
       recoverySecret.fill(0);
     }
@@ -141,9 +139,9 @@ export async function recoverWalletWithoutPassword(
 
   try {
     step = 'setting_local_password';
-    await seedless.setLocalPassword({ password: newPassword });
+    await service.setLocalPassword(newPassword);
     step = 'resetting_global_password';
-    await seedless.resetPasswordWithVaultKeys({ newPassword });
+    await service.resetGlobalPassword(newPassword);
   } catch (error) {
     throw new PasswordlessRecoveryError('setting_password', error, step);
   }

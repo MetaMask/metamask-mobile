@@ -2,6 +2,7 @@ import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { createSiweIdentifier } from '../auth/identifiers';
 import { linkSocialLogin } from '../social-login/link-social-login';
 import { MfaRecoveryService } from './mfa-recovery-service';
+import { createMfaRecoveryServiceTestMessenger } from './mfa-recovery-service-test-messenger';
 
 const ADDRESS = '0xAbC';
 const SIWE = createSiweIdentifier(ADDRESS);
@@ -42,16 +43,7 @@ const mockToprfConfig = {
   groupedAuthConnectionId: 'toprf-grouped-auth-connection',
 };
 const mockCubistAuthAudience = 'cubist-auth-audience';
-const mockEngineContext: Record<string, unknown> = {};
-
-jest.mock('../../../../Engine', () => ({
-  __esModule: true,
-  default: {
-    get context() {
-      return mockEngineContext;
-    },
-  },
-}));
+const controllers: Record<string, unknown> = {};
 
 jest.mock('../config', () => ({
   getToprfRecoveryConfig: () => mockToprfConfig,
@@ -143,7 +135,7 @@ function createService({
   const getVerificationToken = jest.fn(() => ({
     accessToken: 'verified-token',
   }));
-  Object.assign(mockEngineContext, {
+  Object.assign(controllers, {
     MfaRecoveryController: controller,
     SeedlessOnboardingController: seedless,
     KeyringController: {
@@ -152,6 +144,7 @@ function createService({
     AuthenticationController: { requestMfaApproval, getVerificationToken },
   });
   const service = new MfaRecoveryService({
+    messenger: createMfaRecoveryServiceTestMessenger(() => controllers),
     verifyMfa,
     approvalOperation: OPERATION,
     getSocialLinkEmail,
@@ -198,14 +191,63 @@ describe('MfaRecoveryService', () => {
     mockLinkSocialLogin.mockReset();
   });
 
-  it('reads the controllers and primary account from Engine', () => {
-    const controller = createController();
+  it('reads the primary account and status through the messenger', () => {
     const seedless = createSeedless();
-    const { service } = createService({ controller, seedless });
+    const { service } = createService({ seedless });
 
-    expect(service.mfaRecoveryController).toBe(controller);
-    expect(service.seedlessOnboardingController).toBe(seedless);
     expect(service.address).toBe(ADDRESS);
+    expect(service.getStatus()).toBe('NotEnabled');
+    seedless.state.envelope = { v: 1, vaultAuthPubKey: 'pk' };
+    expect(service.getStatus()).toBe('Enabled');
+  });
+
+  describe('hasEnrolledIdentifier', () => {
+    it('reports whether Cubist has an identifier of the type', async () => {
+      const { service } = createService({
+        controller: createController({ identifiers: [SIWE, PASSKEY] }),
+      });
+
+      await expect(service.hasEnrolledIdentifier('passkey')).resolves.toBe(
+        true,
+      );
+    });
+
+    it('returns false when Cubist has none of the type', async () => {
+      const { service } = createService({
+        controller: createController({ identifiers: [SIWE] }),
+      });
+
+      await expect(service.hasEnrolledIdentifier('passkey')).resolves.toBe(
+        false,
+      );
+    });
+  });
+
+  describe('vault password methods', () => {
+    it('forwards recovery and password calls to the seedless controller', async () => {
+      const seedless = Object.assign(createSeedless(), {
+        recoverWithRecoverySecret: jest.fn().mockResolvedValue(['secret']),
+        setLocalPassword: jest.fn().mockResolvedValue(undefined),
+        resetPasswordWithVaultKeys: jest.fn().mockResolvedValue(undefined),
+      });
+      const { service } = createService({ seedless });
+
+      await expect(
+        service.recoverWithRecoverySecret(RECOVERY_SECRET),
+      ).resolves.toStrictEqual(['secret']);
+      await service.setLocalPassword('new-password');
+      await service.resetGlobalPassword('new-password');
+
+      expect(seedless.recoverWithRecoverySecret).toHaveBeenCalledWith({
+        recoverySecret: RECOVERY_SECRET,
+      });
+      expect(seedless.setLocalPassword).toHaveBeenCalledWith({
+        password: 'new-password',
+      });
+      expect(seedless.resetPasswordWithVaultKeys).toHaveBeenCalledWith({
+        newPassword: 'new-password',
+      });
+    });
   });
 
   it('creates a random Recovery Secret', () => {
