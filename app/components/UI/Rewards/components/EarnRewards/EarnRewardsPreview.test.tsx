@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Dimensions } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import EarnRewardsPreview from './EarnRewardsPreview';
@@ -181,6 +181,37 @@ describe('EarnRewardsPreview', () => {
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeOnTheScreen();
+    });
+
+    it('sizes the only tile to the full section width', () => {
+      setupSelectors({ geoLocation: 'US' });
+      const { getByTestId } = render(<EarnRewardsPreview />);
+      const tile = getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD);
+      const sectionWidth = Dimensions.get('window').width - 32;
+      let node: { props?: { style?: unknown }; parent?: typeof node } | null =
+        tile;
+      let width: number | undefined;
+      for (
+        let depth = 0;
+        depth < 8 && node && width === undefined;
+        depth += 1
+      ) {
+        const style = node.props?.style;
+        const entries = Array.isArray(style) ? style : [style];
+        for (const entry of entries) {
+          if (
+            entry &&
+            typeof entry === 'object' &&
+            'width' in entry &&
+            typeof entry.width === 'number'
+          ) {
+            width = entry.width;
+          }
+        }
+        node = node.parent ?? null;
+      }
+
+      expect(width).toBe(sectionWidth);
     });
 
     it('does not render Earn rewards when the location is unknown', () => {

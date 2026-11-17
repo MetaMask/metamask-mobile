@@ -125,10 +125,6 @@ const EarnRewardsPreview: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
-  // Only the left padding consumes viewport space at scroll position 0.
-  // The right side is filled by CARD_GAP + the next card's peek, so only one
-  // HORIZONTAL_PADDING is subtracted.
-  const cardWidth = screenWidth - HORIZONTAL_PADDING - CARD_GAP - PEEK_WIDTH;
 
   // mUSD geo check - hide for UK users, require positive geo confirmation to avoid flash
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -175,6 +171,11 @@ const EarnRewardsPreview: React.FC = () => {
     items.push('musd');
   }
   const itemCount = items.length;
+  // One tile fills the section. Extra tiles keep a gap and a peek of the next one.
+  const cardWidth =
+    itemCount > 1
+      ? screenWidth - HORIZONTAL_PADDING - CARD_GAP - PEEK_WIDTH
+      : screenWidth - HORIZONTAL_PADDING * 2;
 
   // Explicit snap offsets give the first card a flush-left snap (peek on right)
   // and the last card a flush-right snap (peek on left). With symmetric
