@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProviderBase from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import SocialFeedPositionCard, {
@@ -38,6 +38,46 @@ import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeT
 import { SocialLivePricesContext } from '../live/SocialLivePricesContext';
 import { SocialLivePriceStore } from '../live/SocialLivePriceStore';
 import type { SocialLivePriceSource } from '../live/types';
+
+const resolvedCopyTradeGeolocation = {
+  engine: {
+    backgroundState: {
+      GeolocationController: { location: 'US', status: 'complete' as const },
+    },
+  },
+};
+
+/** Existing card cases assume a resolved non-UK viewer, which is when Copy trade renders. */
+const renderWithProvider: typeof renderWithProviderBase = (
+  component,
+  providerValues,
+  ...rest
+) =>
+  renderWithProviderBase(
+    component,
+    {
+      ...providerValues,
+      state: {
+        ...resolvedCopyTradeGeolocation,
+        ...providerValues?.state,
+        engine: {
+          ...resolvedCopyTradeGeolocation.engine,
+          ...providerValues?.state?.engine,
+          backgroundState: {
+            ...resolvedCopyTradeGeolocation.engine.backgroundState,
+            ...providerValues?.state?.engine?.backgroundState,
+            GeolocationController: {
+              ...resolvedCopyTradeGeolocation.engine.backgroundState
+                .GeolocationController,
+              ...providerValues?.state?.engine?.backgroundState
+                ?.GeolocationController,
+            },
+          },
+        },
+      },
+    },
+    ...rest,
+  );
 
 const mockNavigate = jest.fn();
 const mockGate = jest.fn((action: () => Promise<void> | void) =>

@@ -11,20 +11,25 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { CaipAssetType } from '@metamask/utils';
-import React from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
-import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
-import { useLoadMoreOnScroll } from '../tokenDetailsScroll';
-import TokenHolderRow from './holders/TokenHolderRow';
-import { useTokenHolders } from './holders/useTokenHolders';
-import { useSocialOnboardingPress } from './useSocialOnboardingPress';
+import { playSelection } from '../../../../../util/haptics';
 import {
   SocialEvent,
   useSocialScreenAnalytics,
 } from '../../../../Views/SocialLeaderboard/analytics';
+import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
+import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
+import type { TraderFeedRow } from '../../../SocialFeed/types';
+import { useLoadMoreOnScroll } from '../tokenDetailsScroll';
+import TokenHolderRow from './holders/TokenHolderRow';
+import { useTokenHolders } from './holders/useTokenHolders';
 
 export const TokenDetailsHoldersTabSelectorsIDs = {
   CONTAINER: 'token-details-v1-holders-list',
@@ -67,8 +72,23 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
     error,
     refresh,
   } = useTokenHolders({ assetId, enabled: socialEnabled });
-  // Set only before Social terms are accepted: a row tap opens onboarding.
-  const onRowPress = useSocialOnboardingPress();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { profile: myProfile } = useMyProfile();
+  const openHolderProfile = useCallback(
+    (row: TraderFeedRow) => {
+      playSelection().catch(() => undefined);
+      navigateToSocialV1Profile(navigation, {
+        traderId: row.item.traderId,
+        traderName: row.item.username,
+        traderAddress: row.item.traderAddress,
+        traderAvatarUri: row.item.avatarUri,
+        source: 'trader_feed',
+        viewerProfileId: myProfile?.profileId ?? undefined,
+        viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
+      });
+    },
+    [myProfile, navigation],
+  );
 
   useLoadMoreOnScroll({
     enabled: isActive && hasNextPage && !isFetchingNextPage,
@@ -85,7 +105,11 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
     >
       {showSkeleton ? <SocialFeedSkeleton /> : null}
       {rows.map((row) => (
-        <TokenHolderRow key={row.item.id} row={row} onPress={onRowPress} />
+        <TokenHolderRow
+          key={row.item.id}
+          row={row}
+          onPress={() => openHolderProfile(row)}
+        />
       ))}
       {showEmpty ? (
         <Box

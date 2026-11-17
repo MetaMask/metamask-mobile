@@ -13,7 +13,6 @@ describe('socialAppBuild', () => {
       screen_name: 'trending',
     });
   });
-
   it('attaches the formatted version and reads it once', async () => {
     const getVersion = jest.fn(() => '7.57.0');
     jest.doMock('react-native-device-info', () => ({ getVersion }));

@@ -1,5 +1,4 @@
 import { trackPostToFeedToast } from './trackPostToFeedToast';
-
 const mockTrackEvent = jest.fn();
 const mockIsSocialV1Enabled = jest.fn(() => true);
 

@@ -1,6 +1,5 @@
 import { getVersion } from 'react-native-device-info';
 import { formatAnalyticsAppVersion } from '../../../../util/metrics/getAnalyticsAppVersion';
-
 let socialAppBuild: string | undefined;
 let socialAppBuildRead = false;
 
@@ -25,7 +24,6 @@ export const readSocialAppBuild = (): string | undefined => {
   }
   return socialAppBuild;
 };
-
 export const withSocialAppBuild = <T extends object>(properties: T): T => {
   const app_build = readSocialAppBuild();
   return app_build ? { ...properties, app_build } : properties;

@@ -88,11 +88,13 @@ const CancelMembership = () => {
 
     try {
       const cancellationReason = toCancellationReason(selectedReasonId);
+      const cancellationFeedback = stayFeedback.trim();
 
       await controller.cancelSubscription({
         subscriptionId: subscription.id,
         cancelAtPeriodEnd: timing === CANCELLATION_TIMINGS.PERIOD_END,
         ...(cancellationReason ? { cancellationReason } : {}),
+        ...(cancellationFeedback ? { cancellationFeedback } : {}),
       });
 
       navigateToProHub();
@@ -106,7 +108,7 @@ const CancelMembership = () => {
       setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
       setIsSubmitting(false);
     }
-  }, [isSubmitting, selectedReasonId, navigateToProHub]);
+  }, [isSubmitting, selectedReasonId, stayFeedback, navigateToProHub]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
