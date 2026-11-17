@@ -7,10 +7,15 @@ import OAuthService from '../../../core/OAuthService/OAuthService';
 import ExperienceEnhancerModal from './';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 
+const mockTrackEvent = jest.fn();
+const mockIdentify = jest.fn();
+const mockIsEnabled = jest.fn();
+
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    identify: jest.fn(),
+    trackEvent: mockTrackEvent,
+    identify: mockIdentify,
+    isEnabled: mockIsEnabled,
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),
@@ -54,6 +59,7 @@ describe('ExperienceEnhancerModal', () => {
       (selector: (state: unknown) => unknown) => selector({}),
     );
     updateMarketingOptInStatusMock.mockResolvedValue(undefined);
+    mockIsEnabled.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -124,6 +130,42 @@ describe('ExperienceEnhancerModal', () => {
     expect(dispatchMock).not.toHaveBeenCalledWith(
       setDataCollectionForMarketing(true),
     );
+  });
+
+  it('sends marketing consent signals when MetaMetrics is on', () => {
+    useSelectorMock.mockReturnValue(false);
+    const { getByTestId } = render(<ExperienceEnhancerModal />);
+
+    fireEvent.press(
+      getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON),
+    );
+
+    expect(mockIdentify).toHaveBeenCalledWith({
+      has_marketing_consent: true,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the marketing choice without sending signals when MetaMetrics is off', () => {
+    mockIsEnabled.mockReturnValue(false);
+    useSelectorMock.mockReturnValue(false);
+    const { getByTestId } = render(<ExperienceEnhancerModal />);
+
+    fireEvent.press(
+      getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON),
+    );
+    fireEvent.press(
+      getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON),
+    );
+
+    expect(dispatchMock).toHaveBeenCalledWith(
+      setDataCollectionForMarketing(true),
+    );
+    expect(dispatchMock).toHaveBeenCalledWith(
+      setDataCollectionForMarketing(false),
+    );
+    expect(mockIdentify).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('renders the marketing paragraph and footer without a MetaMetrics link', () => {

@@ -130,7 +130,7 @@ describe('recurring order formatting', () => {
     const result = formatRecurringPriceRange({
       priceRange: {
         side: 'dest',
-        currency: 'usd',
+        currency: 'USD',
         min: '1800',
       },
       currentCurrency: 'EUR',

@@ -157,7 +157,7 @@ function RecurringOrderDetailsView() {
   } = useCancelRecurringOrder();
   const swapsQuery = useRecurringSwaps({
     orderId: order.id,
-    accountAddress: order.accountAddress,
+    accountAddress: order.account,
   });
 
   const handleBack = useCallback(() => {
@@ -238,7 +238,7 @@ function RecurringOrderDetailsView() {
     order.src.asset.decimals,
   );
   const totalSourceAmount = formatRecurringTokenAmount(
-    (BigInt(order.src.amount) * BigInt(order.schedule.repeatCount)).toString(),
+    order.totalAmount,
     order.src.asset.decimals,
   );
   const sizePerOrder = formatRecurringTokenAmount(

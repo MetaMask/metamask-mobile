@@ -223,6 +223,7 @@ describeForPlatforms('Wallet', () => {
       overrides: {
         security: {
           dataCollectionForMarketing: null,
+          isNFTAutoDetectionModalViewed: true,
         },
         engine: {
           backgroundState: {
@@ -231,6 +232,36 @@ describeForPlatforms('Wallet', () => {
             },
             SeedlessOnboardingController: {
               vault: 'restored-social-login-vault',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      await findByTestId(
+        getRouteParamsProbeTestId(Routes.SHEET.EXPERIENCE_ENHANCER),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('prompts for marketing consent when no choice is saved, even with MetaMetrics off', async () => {
+    const { findByTestId } = renderWalletViewWithRoutes({
+      extraRoutes: [
+        {
+          name: Routes.MODAL.ROOT_MODAL_FLOW,
+          Component: RootModalFlowStack,
+        },
+      ],
+      overrides: {
+        security: {
+          dataCollectionForMarketing: null,
+          isNFTAutoDetectionModalViewed: true,
+        },
+        engine: {
+          backgroundState: {
+            AnalyticsController: {
+              optedIn: false,
             },
           },
         },
