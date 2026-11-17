@@ -19,7 +19,10 @@ import type {
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import { formatSignedUsd, formatUsd } from '../../utils/formatUtils';
-import { PERPS_QUALIFICATION_NOTIONAL_USD } from '../../utils/perpsCampaignConstants';
+import {
+  PERPS_QUALIFICATION_NOTIONAL_USD,
+  PERPS_TRADING_MAX_WINNERS,
+} from '../../utils/perpsCampaignConstants';
 import { PendingTag, StatCell } from './OndoCampaignStatsSummary';
 import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
 
@@ -47,7 +50,7 @@ export interface PerpsCampaignStatsSummaryProps {
 
 const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
   leaderboardPosition,
-  leaderboard: _leaderboard,
+  leaderboard,
   isCampaignComplete = false,
   outcomeStatus,
   winnerVerificationCode,
@@ -89,6 +92,22 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
 
   const volumeGap =
     volume != null ? Math.max(0, minVolumeForEligibility - volume) : 0;
+
+  const prizeCutoffRank =
+    leaderboard?.numberOfWinners ?? PERPS_TRADING_MAX_WINNERS;
+  const cutoffWinnerPnl = [
+    ...(leaderboard?.entries ?? []),
+    ...(leaderboardPosition?.neighbors ?? []),
+  ].find((entry) => entry.rank === prizeCutoffRank)?.pnl;
+  const pnlGapToPrize =
+    isQualified &&
+    rank != null &&
+    rank > prizeCutoffRank &&
+    pnl != null &&
+    cutoffWinnerPnl != null &&
+    Number.isFinite(cutoffWinnerPnl)
+      ? Math.max(0, cutoffWinnerPnl - pnl)
+      : null;
 
   const showQualifiedCard =
     !isCampaignComplete && isQualified && leaderboardPosition != null;
@@ -148,7 +167,29 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
           testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_CARD}
         >
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('rewards.perps_trading_campaign.stats_qualified_title')}
+            {pnlGapToPrize != null ? (
+              <>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.SuccessDefault}
+                >
+                  {strings(
+                    'rewards.perps_trading_campaign.stats_pnl_gap_amount',
+                    {
+                      pnlGap: formatUsd(Math.round(pnlGapToPrize), {
+                        maximumFractionDigits: 0,
+                      }),
+                    },
+                  )}
+                </Text>
+                {` ${strings(
+                  'rewards.perps_trading_campaign.stats_pnl_gap_to_prize_suffix',
+                )}`}
+              </>
+            ) : (
+              strings('rewards.perps_trading_campaign.stats_qualified_title')
+            )}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings(
