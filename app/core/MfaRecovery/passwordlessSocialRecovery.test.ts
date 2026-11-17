@@ -276,6 +276,43 @@ describe('recoverWalletWithoutPassword', () => {
     expect(restoreVault).toHaveBeenCalled();
   });
 
+  it('keeps a prefetched secret when setting the password fails', async () => {
+    const dependencies = createDependencies();
+    jest
+      .mocked(dependencies.seedless.setLocalPassword)
+      .mockRejectedValue(new Error('password rejected'));
+    const prefetched = new Uint8Array(RECOVERY_SECRET_LENGTH).fill(3);
+
+    const error = await recoverWalletWithoutPassword(dependencies, {
+      identifier: PASSKEY,
+      newPassword: NEW_PASSWORD,
+      restoreVault: jest.fn(),
+      recoverySecret: prefetched,
+    }).catch((caught: unknown) => caught);
+
+    expect(error).toMatchObject({ stage: 'setting_password' });
+    expect(prefetched).toStrictEqual(
+      new Uint8Array(RECOVERY_SECRET_LENGTH).fill(3),
+    );
+  });
+
+  it('wipes a prefetched secret once the new password is global', async () => {
+    const dependencies = createDependencies();
+    const prefetched = new Uint8Array(RECOVERY_SECRET_LENGTH).fill(3);
+
+    const error = await recoverWalletWithoutPassword(dependencies, {
+      identifier: PASSKEY,
+      newPassword: NEW_PASSWORD,
+      restoreVault: jest.fn().mockRejectedValue(new Error('vault failed')),
+      recoverySecret: prefetched,
+    }).catch((caught: unknown) => caught);
+
+    expect(error).toMatchObject({ stage: 'restoring_vault' });
+    expect(prefetched).toStrictEqual(
+      new Uint8Array(RECOVERY_SECRET_LENGTH).fill(0),
+    );
+  });
+
   it('reports recovering_secrets when the escrow read fails', async () => {
     const dependencies = createDependencies();
     jest

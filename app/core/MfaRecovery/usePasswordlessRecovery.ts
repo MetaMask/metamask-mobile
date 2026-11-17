@@ -12,12 +12,14 @@ import {
 } from './engineBindings';
 import {
   clearPasswordlessRecoveryHold,
+  hasPasswordlessRecoveryHold,
   setPasswordlessRecoveryHold,
   takePasswordlessRecoveryHold,
 } from './passwordlessRecoveryHold';
 import {
   fetchRecoverySecret,
   findRecoveryIdentifier,
+  PasswordlessRecoveryError,
   recoverWalletWithoutPassword,
 } from './passwordlessSocialRecovery';
 import Logger from '../../util/Logger';
@@ -135,34 +137,53 @@ export function usePasswordlessRecovery(authConnection: string) {
     }
   }, [prepare]);
 
+  const hasPreparedSecret = useCallback(
+    () => hasPasswordlessRecoveryHold(),
+    [],
+  );
+
   const recover = useCallback(
     async (newPassword: string, restoreVault: RestoreRecoveredVault) => {
       const held = takePasswordlessRecoveryHold();
-      if (held) {
+      try {
+        if (held) {
+          await recoverWalletWithoutPassword(
+            createPasswordlessRecoveryDependencies(),
+            {
+              identifier: held.identifier,
+              newPassword,
+              restoreVault,
+              recoverySecret: held.recoverySecret,
+            },
+          );
+          return;
+        }
+
+        const identifier = identifierRef.current;
+        if (!identifier) {
+          throw new Error('Passwordless recovery is not prepared');
+        }
         await recoverWalletWithoutPassword(
           createPasswordlessRecoveryDependencies(),
           {
-            identifier: held.identifier,
+            identifier,
             newPassword,
             restoreVault,
-            recoverySecret: held.recoverySecret,
           },
         );
-        return;
+      } catch (error) {
+        // restoring_vault means resetPasswordWithVaultKeys already returned,
+        // so the new password is global and the secret must not be reused.
+        const passwordAlreadySet =
+          error instanceof PasswordlessRecoveryError &&
+          error.stage === 'restoring_vault';
+        if (held && !passwordAlreadySet) {
+          setPasswordlessRecoveryHold(held.identifier, held.recoverySecret);
+        } else {
+          held?.recoverySecret.fill(0);
+        }
+        throw error;
       }
-
-      const identifier = identifierRef.current;
-      if (!identifier) {
-        throw new Error('Passwordless recovery is not prepared');
-      }
-      await recoverWalletWithoutPassword(
-        createPasswordlessRecoveryDependencies(),
-        {
-          identifier,
-          newPassword,
-          restoreVault,
-        },
-      );
     },
     [],
   );
@@ -170,6 +191,7 @@ export function usePasswordlessRecovery(authConnection: string) {
   return {
     prepare,
     prefetchForChoosePassword,
+    hasPreparedSecret,
     recover,
     clear,
   };

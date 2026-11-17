@@ -666,11 +666,17 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
    * bottomsheet, no post-MFA biometrics / enter-password further flow.
    */
   const forgotPasswordFlowRef = useRef(false);
+  /** Screen to show under Choose password, so back is not a spinner. */
+  const forgotPasswordReturnStepRef = useRef<'password' | 'enterPassword'>(
+    'password',
+  );
   /** Biometry name for the reject → Enter password screen copy. */
   const [rejectedBiometryLabel, setRejectedBiometryLabel] = useState(
     strings('authentication.labels.device_authentication'),
   );
   const passwordlessRecovery = usePasswordlessRecovery(authConnection);
+  /** Arrival verify (OS sheet) is in flight. Hardware back must not leave it. */
+  const lockedVerifyInFlightRef = useRef(false);
   const { listActiveSocialLoginMethods, verifyForSocialLogin } = useMfa();
 
   const rememberHeldAal2 = useCallback((token?: VerificationToken) => {
@@ -689,6 +695,23 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
    */
   const navigateToPasswordlessChoosePassword = useCallback(async () => {
     forgotPasswordFlowRef.current = false;
+    const openChoosePassword = () => {
+      setWalletRecoveryLoadingMessage(null);
+      navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: authConnection || undefined,
+        passwordlessSocialRecovery: true,
+      });
+      // Leave a real screen under Create password. Back must not land on
+      // the loading gate, which never times out once social auth exists.
+      setWalletRecoveryStep(forgotPasswordReturnStepRef.current);
+    };
+    if (passwordlessRecovery.hasPreparedSecret()) {
+      Logger.log('OAuthRehydration: forgot → ChoosePassword reuse secret');
+      openChoosePassword();
+      return;
+    }
     setWalletRecoveryLoadingMessage(
       strings('wallet_recovery_mfa.confirm_passkey_to_recover'),
     );
@@ -709,13 +732,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setWalletRecoveryStep('enterPassword');
         return;
       }
-      setWalletRecoveryLoadingMessage(null);
-      navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-        provider: authConnection || undefined,
-        passwordlessSocialRecovery: true,
-      });
+      openChoosePassword();
     } catch (prefetchError) {
       Logger.log(
         'OAuthRehydration: passwordless ChoosePassword prefetch failed',
@@ -903,6 +920,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
    */
   const handleForgotPassword = useCallback(async () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
+    forgotPasswordReturnStepRef.current =
+      walletRecoveryStep === 'enterPassword' ? 'enterPassword' : 'password';
     setError(null);
     setVerifyError(null);
     setPassword('');
@@ -958,6 +977,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [
     track,
+    walletRecoveryStep,
     navigateToPasswordlessChoosePassword,
     listActiveSocialLoginMethods,
     verifyForSocialLogin,
@@ -967,8 +987,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   ]);
 
   /**
-   * Pre-password locked social MFA via Account kit `verifyForSocialLogin`
-   * (cost order: passkey → totp → email).
+   * Pre-password locked social MFA via Account kit `verifyForSocialLogin`.
+   * Arrival tries passkey then totp. Email is included only for Telegram,
+   * where that inbox is not the sign-in factor.
    *
    * Needs the social identifier paired (`exchangeSocialAccessToken`). Pairing
    * runs after unlock via `performSignIn` when MFA UI kit / BFTC is on — that
@@ -984,6 +1005,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setError(null);
     setVerifyError(null);
     setPasswordFromVerify(false);
+    lockedVerifyInFlightRef.current = true;
     try {
       // Surface Auth pairing failures in Metro (kit may show "Something went wrong").
       try {
@@ -999,11 +1021,20 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         // Still attempt MFA — if exchange failed, kit will fail similarly.
       }
 
-      const result = await verifyForSocialLogin({ reason: lockedMfaReason });
+      // Google/Apple sign-in email is the first factor, so it is not a
+      // recovery factor. Telegram's inbox is separate, so email stays.
+      const arrivalMethods: MfaMethod[] | undefined =
+        authConnection === 'telegram' ? undefined : ['passkey', 'totp'];
+      const verification = await verifyForSocialLogin({
+        reason: lockedMfaReason,
+        methods: arrivalMethods,
+      });
       Logger.log('OAuthRehydration: locked social MFA', {
         status: 'verified',
+        method: verification?.verifiedMethod,
       });
-      rememberHeldAal2(result.token);
+      rememberHeldAal2(verification?.token);
+      lastVerifiedMfaMethodRef.current = verification?.verifiedMethod ?? null;
       await continueAfterVerified();
     } catch (error) {
       // Cancel / fail highest factor (e.g. passkey) → full-page "Verify it's you"
@@ -1028,10 +1059,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setWalletRecoveryStep('password');
       }
     } finally {
+      lockedVerifyInFlightRef.current = false;
       setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
   }, [
     canOfferSocialMfaVerify,
+    authConnection,
     lockedMfaReason,
     verifyForSocialLogin,
     listActiveSocialLoginMethods,
@@ -1252,6 +1285,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         failed_attempts: rehydrationFailedAttempts,
       });
 
+      passwordlessRecovery.clear();
       setLoading(false);
       setError(null);
     } catch (loginErr) {
@@ -1279,6 +1313,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     upgradeKeychainAuthAfterSuccessfulUnlock,
     accountType,
     walletRecoveryStep,
+    passwordlessRecovery,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -1321,6 +1356,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
       }
 
+      passwordlessRecovery.clear();
       setLoading(false);
       setError(null);
     } catch (loginErr) {
@@ -1338,6 +1374,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     promptBiometricFailedAlert,
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
+    passwordlessRecovery,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -1404,12 +1441,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const handleUseOtherMethod = useCallback(() => {
     forgotPasswordFlowRef.current = false;
+    passwordlessRecovery.clear();
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
       account_type: accountType,
     });
     navigation.goBack();
     OAuthService.resetOauthState();
-  }, [accountType, navigation, track]);
+  }, [accountType, navigation, passwordlessRecovery, track]);
 
   const handlePasswordBack = useCallback(() => {
     // Existing-password unlock opened from the picker → return to picker.
@@ -1461,6 +1499,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return true;
       }
       handleUseOtherMethod();
+      return true;
+    }
+    // Loading covers the arrival OS sheet and the post-MFA biometrics sheet.
+    // Leaving now would keep that prompt running after navigation.
+    if (
+      walletRecoveryStep === 'loading' &&
+      (lockedVerifyInFlightRef.current ||
+        continueAfterVerifiedInFlightRef.current)
+    ) {
       return true;
     }
     handleUseOtherMethod();
@@ -1696,6 +1743,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         onChangePassword={handlePasswordChange}
         onSubmit={handleLogin}
         onBack={handlePasswordBack}
+        onForgotPassword={
+          walletRecoveryStep === 'createPassword'
+            ? undefined
+            : () => {
+                void handleForgotPassword();
+              }
+        }
       />
     );
   };

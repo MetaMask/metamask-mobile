@@ -175,8 +175,13 @@ export async function recoverWalletWithoutPassword(
   let secrets: SecretMetadata[];
   let step = 'reading_secret';
   try {
-    const secretPromise = prefetchedRecoverySecret
-      ? Promise.resolve(prefetchedRecoverySecret)
+    // Copy a prefetched secret so a failed attempt can retry with the
+    // caller's buffer. The copy is wiped as soon as the vault is read.
+    const prefetchedCopy = prefetchedRecoverySecret
+      ? new Uint8Array(prefetchedRecoverySecret)
+      : undefined;
+    const secretPromise = prefetchedCopy
+      ? Promise.resolve(prefetchedCopy)
       : readRecoverySecret(dependencies, identifier);
     const [secretResult, sessionResult] = await Promise.allSettled([
       secretPromise,
@@ -205,6 +210,8 @@ export async function recoverWalletWithoutPassword(
     await seedless.setLocalPassword({ password: newPassword });
     step = 'resetting_global_password';
     await seedless.resetPasswordWithVaultKeys({ newPassword });
+    // The new password is global from here. The secret cannot be reused.
+    prefetchedRecoverySecret?.fill(0);
   } catch (error) {
     throw new PasswordlessRecoveryError('setting_password', error, step);
   }

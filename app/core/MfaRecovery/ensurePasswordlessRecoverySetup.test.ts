@@ -95,7 +95,9 @@ describe('ensurePasswordlessRecoverySetup', () => {
       authConnection: 'google',
     } as never;
     jest.mocked(setupPasswordlessRecovery).mockResolvedValue('enabled');
-    jest.mocked(ReduxService.store.getState).mockReturnValue({ mock: true } as never);
+    jest
+      .mocked(ReduxService.store.getState)
+      .mockReturnValue({ mock: true } as never);
   });
 
   it('skips when the mfaRecovery flag is off', async () => {

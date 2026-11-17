@@ -39,6 +39,8 @@ export interface WalletRecoveryPasswordProps {
   onChangePassword: (password: string) => void;
   onSubmit: () => void;
   onBack: () => void;
+  /** Unlock only. Create password is already the forgot-password destination. */
+  onForgotPassword?: () => void;
 }
 
 /**
@@ -56,6 +58,7 @@ const WalletRecoveryPassword = ({
   onChangePassword,
   onSubmit,
   onBack,
+  onForgotPassword,
 }: WalletRecoveryPasswordProps) => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
@@ -92,7 +95,10 @@ const WalletRecoveryPassword = ({
         title=""
         onBack={onBack}
         includesTopInset
-        backButtonProps={{ isDisabled: isLoading }}
+        backButtonProps={{
+          testID: WalletRecoverySelectorsIDs.PASSWORD_BACK,
+          isDisabled: isLoading,
+        }}
       />
 
       <KeyboardAwareScrollView
@@ -173,6 +179,17 @@ const WalletRecoveryPassword = ({
                 size: ButtonSize.Lg,
                 testID: LoginViewSelectors.LOGIN_BUTTON_ID,
               }}
+              {...(mode === 'unlock' && onForgotPassword
+                ? {
+                    tertiaryButtonProps: {
+                      children: strings('login.forgot_password'),
+                      onPress: onForgotPassword,
+                      isDisabled: isLoading,
+                      size: ButtonSize.Lg,
+                      testID: LoginViewSelectors.RESET_WALLET,
+                    },
+                  }
+                : {})}
             />
           </Box>
         </Box>

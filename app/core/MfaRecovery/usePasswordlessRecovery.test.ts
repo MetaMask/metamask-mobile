@@ -15,6 +15,7 @@ import {
 import {
   fetchRecoverySecret,
   findRecoveryIdentifier,
+  PasswordlessRecoveryError,
   recoverWalletWithoutPassword,
 } from './passwordlessSocialRecovery';
 import Logger from '../../util/Logger';
@@ -35,6 +36,15 @@ jest.mock('./engineBindings', () => ({
 }));
 
 jest.mock('./passwordlessSocialRecovery', () => ({
+  PasswordlessRecoveryError: class MockPasswordlessRecoveryError extends Error {
+    stage: string;
+
+    constructor(stage: string, _cause?: unknown, _step?: string) {
+      super(stage);
+      this.name = 'PasswordlessRecoveryError';
+      this.stage = stage;
+    }
+  },
   findRecoveryIdentifier: jest.fn(),
   fetchRecoverySecret: jest.fn(),
   recoverWalletWithoutPassword: jest.fn(),
@@ -166,6 +176,49 @@ describe('usePasswordlessRecovery', () => {
         recoverySecret: expect.any(Uint8Array),
       },
     );
+    expect(hasPasswordlessRecoveryHold()).toBe(false);
+  });
+
+  it('restores the held secret when recovery fails before the password is global', async () => {
+    jest
+      .mocked(recoverWalletWithoutPassword)
+      .mockRejectedValueOnce(
+        new PasswordlessRecoveryError('setting_password', new Error('failed')),
+      );
+    const prefetchHook = renderHook(() => usePasswordlessRecovery('google'));
+    await act(async () => {
+      await prefetchHook.result.current.prefetchForChoosePassword();
+    });
+
+    const choosePasswordHook = renderHook(() =>
+      usePasswordlessRecovery('google'),
+    );
+
+    await expect(
+      choosePasswordHook.result.current.recover('new-password', jest.fn()),
+    ).rejects.toMatchObject({ stage: 'setting_password' });
+    expect(hasPasswordlessRecoveryHold()).toBe(true);
+    clearPasswordlessRecoveryHold();
+  });
+
+  it('drops the held secret once the new password is already global', async () => {
+    jest
+      .mocked(recoverWalletWithoutPassword)
+      .mockRejectedValueOnce(
+        new PasswordlessRecoveryError('restoring_vault', new Error('failed')),
+      );
+    const prefetchHook = renderHook(() => usePasswordlessRecovery('google'));
+    await act(async () => {
+      await prefetchHook.result.current.prefetchForChoosePassword();
+    });
+
+    const choosePasswordHook = renderHook(() =>
+      usePasswordlessRecovery('google'),
+    );
+
+    await expect(
+      choosePasswordHook.result.current.recover('new-password', jest.fn()),
+    ).rejects.toMatchObject({ stage: 'restoring_vault' });
     expect(hasPasswordlessRecoveryHold()).toBe(false);
   });
 

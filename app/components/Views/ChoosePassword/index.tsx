@@ -107,7 +107,6 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { usePasswordlessRecovery } from '../../../core/MfaRecovery/usePasswordlessRecovery';
-import { clearPasswordlessRecoveryHold } from '../../../core/MfaRecovery/passwordlessRecoveryHold';
 import { ensurePasswordlessRecoverySetup } from '../../../core/MfaRecovery/ensurePasswordlessRecoverySetup';
 import { PasswordlessRecoveryError } from '../../../core/MfaRecovery/passwordlessSocialRecovery';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -265,15 +264,10 @@ const ChoosePassword = () => {
   const passwordlessRecovery = usePasswordlessRecovery(
     route.params?.provider ?? '',
   );
-  // Drop unused Recovery Secret if user leaves Create password without submit.
-  useEffect(() => {
-    if (!isPasswordlessSocialRecovery) {
-      return undefined;
-    }
-    return () => {
-      clearPasswordlessRecoveryHold();
-    };
-  }, [isPasswordlessSocialRecovery]);
+  // Leaving Create password must not wipe the Recovery Secret. Back returns
+  // to the unlock screen, and Forgot password reuses the secret while it is
+  // still held. The secret is wiped when recovery changes the password, when
+  // the user leaves recovery, or when a new prefetch replaces it.
   const geoLocation = useSelector(selectGeolocationLocation);
   const hasKnownGeolocation =
     geoLocation != null && geoLocation !== UNKNOWN_LOCATION;
@@ -826,13 +820,21 @@ const ChoosePassword = () => {
         err instanceof Error ? err : new Error(String(err)),
         'ChoosePassword: passwordless social recovery failed',
       );
+      const passwordAlreadySet =
+        err instanceof PasswordlessRecoveryError &&
+        err.stage === 'restoring_vault';
       const detail =
         __DEV__ && err instanceof PasswordlessRecoveryError
           ? ` (${err.code}: ${err.detail})`
           : '';
       // Do not recreateVault/unset password — recovery is not new-wallet create.
+      // After the global password changes, the old password no longer works.
       Alert.alert(
-        strings('wallet_recovery_mfa.recovery_failed'),
+        strings(
+          passwordAlreadySet
+            ? 'wallet_recovery_mfa.recovery_password_already_set'
+            : 'wallet_recovery_mfa.recovery_failed',
+        ),
         detail || undefined,
       );
     } finally {
