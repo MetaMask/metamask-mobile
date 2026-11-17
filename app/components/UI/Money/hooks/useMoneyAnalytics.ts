@@ -7,7 +7,7 @@ import {
   selectIsCardAuthenticated,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
-import useMoneyAccountInfo from '../hooks/useMoneyAccountInfo';
+import { selectMoneyAccountBalanceAddress } from '../../../../selectors/moneyAccountController';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import { MUSD_DECIMALS } from '../../Earn/constants/musd';
@@ -93,8 +93,7 @@ export const useMoneyAnalytics = ({
     selectIsMoneyAccountDelegatedForCard,
   );
   const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
-  const { primaryMoneyAccount } = useMoneyAccountInfo();
-  const moneyAccountAddress = primaryMoneyAccount?.address;
+  const moneyAccountAddress = useSelector(selectMoneyAccountBalanceAddress);
 
   const getBaseProperties = useCallback((): MoneyBaseEventProperties => {
     // Events fire on user actions, so the balance is read from the shared
