@@ -642,6 +642,7 @@ describe('MainNavigator', () => {
           headerShown?: boolean;
           animation?: string;
           contentStyle?: unknown;
+          gestureEnabled?: boolean;
         };
       }
       return container.root
@@ -963,6 +964,7 @@ describe('MainNavigator', () => {
         Routes.MONEY.ROOT,
         Routes.MONEY.CONFIRMATIONS_ROOT,
         Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.EARNINGS,
         Routes.MONEY.MUSD_RESCUE_SEND,
         Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
@@ -975,6 +977,21 @@ describe('MainNavigator', () => {
       );
       expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.MODALS.ROOT);
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('disables the back gesture on the Earnings chart screen', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const earningsScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.MONEY.EARNINGS,
+      );
+
+      expect(earningsScreen?.options).toEqual(
+        expect.objectContaining({ gestureEnabled: false }),
+      );
     });
 
     it('registers one feature-level VBA onboarding route', () => {

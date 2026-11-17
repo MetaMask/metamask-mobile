@@ -13,9 +13,6 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -31,6 +28,7 @@ import type { MoneyNavigationParamList } from '../../types/navigation';
 import EarningsChart from './EarningsChart';
 import EarningsHero from './EarningsHero';
 import EarningsSummary from './EarningsSummary';
+import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
 import {
   getAuthoritativeRangeTotal,
   getBucketPoints,
@@ -62,11 +60,6 @@ const MoneyEarningsView = (): React.ReactElement => {
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const [selectedRange, setSelectedRange] = useState<EarningsRange>('30D');
-
-  // TODO: Remove after earnings API integration debugging is complete.
-  // eslint-disable-next-line no-console
-  console.log('data', JSON.stringify(data, null, 2));
-
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
   const hasMalformedHistory =
@@ -99,6 +92,7 @@ const MoneyEarningsView = (): React.ReactElement => {
     () => getSelectedRange(entries, selectedRange),
     [entries, selectedRange],
   );
+
   const chartPoints = useMemo(
     () => getBucketPoints(selectedRangeData),
     [selectedRangeData],
@@ -118,11 +112,8 @@ const MoneyEarningsView = (): React.ReactElement => {
     () => getAuthoritativeRangeTotal(selectedRangeData) ?? Number.NaN,
     [selectedRangeData],
   );
-  const projectedOneYear = useMemo(
-    () => Math.max(0, thirtyDayTotal) * 12,
-    [thirtyDayTotal],
-  );
-  const hasInvalidProjection = !Number.isFinite(projectedOneYear);
+  const { projectedAmount: projectedOneYear } =
+    useMoneyAccountProjectedEarnings();
   const hasUnavailableRange =
     selectedRangeData !== undefined &&
     (selectedRangeData.availability.earnings !== 'available' ||
@@ -131,7 +122,6 @@ const MoneyEarningsView = (): React.ReactElement => {
     !isLoading &&
     !isError &&
     !hasMalformedHistory &&
-    !hasInvalidProjection &&
     Number.isFinite(thirtyDayTotal) &&
     Number.isFinite(oneYearTotal) &&
     Number.isFinite(selectedRangeTotal) &&
@@ -202,23 +192,19 @@ const MoneyEarningsView = (): React.ReactElement => {
           <EarningsChart
             entries={entries}
             isLoading={isLoading}
-            isError={
-              isError ||
-              hasMalformedHistory ||
-              hasInvalidProjection ||
-              hasUnavailableRange
-            }
+            isError={isError || hasMalformedHistory || hasUnavailableRange}
             onRetry={handleRetry}
             selectedRange={selectedRange}
             onRangeChange={setSelectedRange}
           />
           {hasHistoricalEarnings ? (
-            <EarningsSummary
-              thisMonth={thirtyDayTotal}
-              lifetime={oneYearTotal}
-              projectedOneYear={projectedOneYear}
-              dataThrough={selectedRangeData?.range_end}
-            />
+            <Box twClassName="py-4">
+              <EarningsSummary
+                thisMonth={thirtyDayTotal}
+                lifetime={oneYearTotal}
+                projectedOneYear={projectedOneYear}
+              />
+            </Box>
           ) : null}
         </ScrollView>
       ) : null}
@@ -246,13 +232,6 @@ const MoneyEarningsView = (): React.ReactElement => {
             {strings('money.earnings.add')}
           </Button>
         </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {strings('money.earnings.no_lockups')}
-        </Text>
       </Box>
     </Box>
   );
