@@ -3323,7 +3323,7 @@
       },
       "account_ratio": {
         "title": "Account ratio",
-        "content": "Your maintenance margin as a share of your cross collateral. Below 50%, risk is low. From 50% to 75%, risk is elevated. Above 75%, risk is high. At 100%, your cross positions may be liquidated."
+        "content": "Represent the risk of your portfolio liquidation. When the value is greater than 95%, your portfolio may be liquidated."
       },
       "maintenance_margin": {
         "title": "Maintenance margin",
@@ -3618,18 +3618,13 @@
       "dismiss": "Got it"
     },
     "crossMarginRatio": {
-      "description": "Cross margin ratio is {{ratio}}.",
-      "description_hidden_warning": "Cross margin ratio is elevated.",
-      "description_hidden_danger": "Cross margin ratio is high."
+      "description": "Cross margin ratio is {{ratio}}."
     },
     "crossMarginSummary": {
       "account_ratio": "Account ratio",
       "maintenance_margin": "Maintenance margin",
       "account_leverage": "Account leverage",
-      "cross_margin_usage": "Cross margin usage",
-      "tone_safe": "Low risk",
-      "tone_warning": "Elevated risk",
-      "tone_danger": "High risk"
+      "cross_margin_usage": "Cross margin usage"
     },
     "sort": {
       "volume": "Volume (24h)",

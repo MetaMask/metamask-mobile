@@ -1,6 +1,7 @@
 import React from 'react';
 import { BannerAlert } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { CROSS_MARGIN_HIDDEN_VALUE } from '../../utils/crossMarginSummary';
 import type { PerpsCrossMarginRatioBannerProps } from './PerpsCrossMarginRatioBanner.types';
 import { PerpsCrossMarginRatioBannerSelectorsIDs } from './PerpsCrossMarginRatioBanner.testIds';
 
@@ -14,11 +15,9 @@ const PerpsCrossMarginRatioBanner: React.FC<
 }) => (
   <BannerAlert
     severity={severity}
-    description={
-      isRatioHidden
-        ? strings(`perps.crossMarginRatio.description_hidden_${severity}`)
-        : strings('perps.crossMarginRatio.description', { ratio })
-    }
+    description={strings('perps.crossMarginRatio.description', {
+      ratio: isRatioHidden ? CROSS_MARGIN_HIDDEN_VALUE : ratio,
+    })}
     testID={testID}
   />
 );

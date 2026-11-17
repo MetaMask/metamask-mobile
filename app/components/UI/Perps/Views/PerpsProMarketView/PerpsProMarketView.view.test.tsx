@@ -4718,7 +4718,7 @@ describe('PerpsProMarketView header actions', () => {
     expect(walletButton).toHaveProp(
       'accessibilityLabel',
       `${strings('perps.market_details.wallet')}, ${strings(
-        'perps.crossMarginSummary.tone_danger',
+        'perps.crossMarginSummary.account_ratio',
       )}`,
     );
     expect(

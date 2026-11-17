@@ -46,17 +46,15 @@ import {
 export { PERPS_MARKET_HEADER_HEIGHT };
 
 /**
- * Cross margin risk badge on the wallet button. The "!" is the non-colour cue
- * and the spoken label carries the level for screen readers.
+ * Cross margin risk badge on the wallet button. The "!" is the non-colour cue.
+ * The spoken name is the Figma label for the metric.
  */
 const WALLET_RISK_BADGE = {
   warning: {
     backgroundClassName: 'bg-warning-default',
-    labelKey: 'perps.crossMarginSummary.tone_warning',
   },
   danger: {
     backgroundClassName: 'bg-error-default',
-    labelKey: 'perps.crossMarginSummary.tone_danger',
   },
 } as const;
 
@@ -314,7 +312,7 @@ const PerpsMarketHeader = ({
           accessibilityLabel={
             walletRiskBadge
               ? `${strings('perps.market_details.wallet')}, ${strings(
-                  walletRiskBadge.labelKey,
+                  'perps.crossMarginSummary.account_ratio',
                 )}`
               : strings('perps.market_details.wallet')
           }

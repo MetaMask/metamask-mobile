@@ -134,7 +134,7 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
     );
   });
 
-  it('names the risk level instead of the ratio while privacy mode is on', async () => {
+  it('masks the ratio while privacy mode is on', async () => {
     renderPerpsCrossMarginOrderFormPanel({
       overrides: {
         engine: {
@@ -155,12 +155,10 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
     await openMarginModeSheet();
 
     const option = within(screen.getByTestId(marginIds.CROSS_OPTION));
-    expect(
-      option.getByText(strings('perps.crossMarginSummary.tone_danger')),
-    ).toBeOnTheScreen();
+    expect(option.getByText('••••••')).toBeOnTheScreen();
     expect(option.queryByText('80%')).not.toBeOnTheScreen();
     expect(screen.getByTestId(marginIds.RATIO_BANNER)).toHaveTextContent(
-      strings('perps.crossMarginRatio.description_hidden_danger'),
+      strings('perps.crossMarginRatio.description', { ratio: '••••••' }),
     );
   });
 

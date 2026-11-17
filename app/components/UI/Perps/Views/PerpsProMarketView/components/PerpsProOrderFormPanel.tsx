@@ -356,11 +356,7 @@ const PerpsProOrderFormPanel = ({
       crossMarginRatio !== undefined &&
       crossMarginAlert
         ? {
-            label: getCrossMarginRatioAlertLabel(
-              crossMarginRatio,
-              crossMarginAlert,
-              privacyMode,
-            ),
+            label: getCrossMarginRatioAlertLabel(crossMarginRatio, privacyMode),
             severity:
               crossMarginAlert === 'danger'
                 ? TagSeverity.Danger

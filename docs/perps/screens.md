@@ -352,7 +352,7 @@ Behind `selectPerpsCrossMarginEnabledFlag`. With the flag off, cross positions k
 - The Pro order form estimates the liquidation price of a new Cross order with `estimateCrossLiquidationPrice`, on Hyperliquid only. TAT-4668 moves it to Core.
 - Position cards (Lite and Pro) tag the margin mode and explain the cross liquidation price through `PerpsCrossMarginInfoButton`. The venue only adjusts isolated margin, so a cross position's margin is read-only.
 - Close position and close all show P&L on its own row when any position is cross. Margin then excludes P&L, so Margin + P&L - fees equals Receive.
-- An unknown value (spot collateral not published, max leverage loading, no live price) shows `--`, never `0`. Privacy mode hides the ratio figure but keeps the risk word in banners and accessibility labels.
+- An unknown value (spot collateral not published, max leverage loading, no live price) shows `--`, never `0`. Privacy mode masks the ratio figure with the same dots used for other balances.
 
 Code: `app/components/UI/Perps/hooks/usePerpsCrossMarginSummary.ts`; `app/components/UI/Perps/utils/crossMarginSummary.ts`; `app/components/UI/Perps/components/PerpsBalanceBottomSheet/`; `app/components/UI/Perps/components/PerpsCrossMarginRatioBanner/`
 

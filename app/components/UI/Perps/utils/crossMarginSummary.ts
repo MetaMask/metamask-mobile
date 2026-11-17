@@ -6,7 +6,6 @@ import {
   type PerpsAccountSummary,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
-import { strings } from '../../../../../locales/i18n';
 import type {
   HardwareTier,
   NetworkTier,
@@ -162,15 +161,15 @@ export const getCrossMarginRatioAlert = (
 ): CrossMarginRatioAlert | undefined =>
   tone === 'warning' || tone === 'danger' ? tone : undefined;
 
+/** Same mask `SensitiveText` uses for a short hidden value. */
+export const CROSS_MARGIN_HIDDEN_VALUE = '•'.repeat(6);
+
 /**
- * Label for a ratio alert: the risk level while privacy mode hides the
- * figure, otherwise the formatted ratio.
+ * Label for a ratio alert: the formatted ratio, or the privacy mask while
+ * privacy mode hides the figure.
  */
 export const getCrossMarginRatioAlertLabel = (
   ratio: number,
-  alert: CrossMarginRatioAlert,
   privacyMode: boolean,
 ): string =>
-  privacyMode
-    ? strings(`perps.crossMarginSummary.tone_${alert}`)
-    : formatCrossMarginRatio(ratio);
+  privacyMode ? CROSS_MARGIN_HIDDEN_VALUE : formatCrossMarginRatio(ratio);

@@ -58,13 +58,6 @@ const TONE_COLOR: Record<CrossMarginRatioTone, TextColor> = {
 const getToneColor = (tone: CrossMarginRatioTone | undefined): TextColor =>
   tone ? TONE_COLOR[tone] : TextColor.TextDefault;
 
-/** Spoken risk level. The visible cue is an icon, matching the design. */
-const TONE_LABEL_KEY: Record<CrossMarginRatioTone, string> = {
-  safe: 'perps.crossMarginSummary.tone_safe',
-  warning: 'perps.crossMarginSummary.tone_warning',
-  danger: 'perps.crossMarginSummary.tone_danger',
-};
-
 /**
  * Non-color cue for elevated risk. A safe value has no icon, which keeps it
  * as plain as the design shows it.
@@ -83,7 +76,7 @@ const labelStyle = { textDecorationLine: 'underline' } as const;
 interface RowProps {
   tooltipKey: PerpsCrossMarginSummaryTooltipKey;
   value: string;
-  /** Risk level, shown as color, an icon, and spoken so color is not the only signal. */
+  /** Risk level, shown as color and an icon. */
   tone?: CrossMarginRatioTone;
   privacyMode: boolean;
   testID: string;
@@ -99,16 +92,7 @@ const SummaryRow: React.FC<RowProps> = ({
   onInfoPress,
 }) => {
   const label = strings(`perps.crossMarginSummary.${tooltipKey}`);
-  const toneLabel = tone ? strings(TONE_LABEL_KEY[tone]) : undefined;
   const toneIcon = tone ? TONE_ICON[tone] : undefined;
-  // Privacy mode must not put the figure into the accessible name. The risk
-  // word is not the balance, so it stays available to the screen reader.
-  let valueAccessibilityLabel: string | undefined;
-  if (toneLabel) {
-    valueAccessibilityLabel = privacyMode
-      ? toneLabel
-      : `${value}, ${toneLabel}`;
-  }
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -135,8 +119,7 @@ const SummaryRow: React.FC<RowProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={1}
-        accessible={Boolean(toneLabel)}
-        accessibilityLabel={valueAccessibilityLabel}
+        accessible={false}
       >
         {toneIcon ? (
           <Icon
@@ -152,7 +135,6 @@ const SummaryRow: React.FC<RowProps> = ({
           color={getToneColor(tone)}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
-          accessible={toneLabel ? false : undefined}
           testID={testID}
         >
           {value}

@@ -34,8 +34,6 @@ import {
 } from '../../../selectors/featureFlags';
 import { selectPerpsProvider } from '../../../selectors/perpsController';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
-import { strings } from '../../../../../../../locales/i18n';
-
 const mockUseSelector = jest.fn();
 const selectorValues = new Map<unknown, unknown>();
 const mockUsePerpsProvider = jest.fn();
@@ -338,14 +336,12 @@ describe('PerpsProOrderFormPanel', () => {
       expect(screen.getByText('80%')).toBeOnTheScreen();
     });
 
-    it('names the risk level instead of the ratio while privacy mode is on', () => {
+    it('masks the ratio while privacy mode is on', () => {
       selectorValues.set(selectPrivacyMode, true);
 
       renderPanel();
 
-      expect(
-        screen.getByText(strings('perps.crossMarginSummary.tone_danger')),
-      ).toBeOnTheScreen();
+      expect(screen.getByText('••••••')).toBeOnTheScreen();
       expect(screen.queryByText('80%')).not.toBeOnTheScreen();
     });
   });

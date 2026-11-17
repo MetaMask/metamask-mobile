@@ -381,12 +381,9 @@ describe('PerpsMarketHeader', () => {
     ).toBeOnTheScreen();
   });
 
-  it.each([
-    ['warning', 'perps.crossMarginSummary.tone_warning'],
-    ['danger', 'perps.crossMarginSummary.tone_danger'],
-  ] as const)(
-    'badges the wallet button and names the %s risk level',
-    (walletRiskTone, labelKey) => {
+  it.each(['warning', 'danger'] as const)(
+    'badges the wallet button and names the account ratio for %s',
+    (walletRiskTone) => {
       const { getByTestId, getByLabelText } = renderHeader({
         onWalletPress: jest.fn(),
         walletRiskTone,
@@ -399,7 +396,9 @@ describe('PerpsMarketHeader', () => {
       ).toBeOnTheScreen();
       expect(
         getByLabelText(
-          `${strings('perps.market_details.wallet')}, ${strings(labelKey)}`,
+          `${strings('perps.market_details.wallet')}, ${strings(
+            'perps.crossMarginSummary.account_ratio',
+          )}`,
         ),
       ).toBeOnTheScreen();
     },

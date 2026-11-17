@@ -2931,10 +2931,10 @@ describe('Perps home cross margin risk', () => {
     );
 
     expect(
-      await screen.findByLabelText(
-        `61%, ${strings('perps.crossMarginSummary.tone_warning')}`,
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
       ),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('61%');
     expect(
       screen.getByTestId(
         `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
@@ -2975,10 +2975,10 @@ describe('Perps home cross margin risk', () => {
     );
 
     expect(
-      await screen.findByLabelText(
-        `17.4%, ${strings('perps.crossMarginSummary.tone_safe')}`,
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
       ),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('17.4%');
     expect(
       screen.queryByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
     ).not.toBeOnTheScreen();
@@ -3002,10 +3002,10 @@ describe('Perps home cross margin risk', () => {
     );
 
     expect(
-      await screen.findByLabelText(
-        `10%, ${strings('perps.crossMarginSummary.tone_safe')}`,
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
       ),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('10%');
     expect(
       screen.getByTestId(
         PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE,
@@ -3017,14 +3017,9 @@ describe('Perps home cross margin risk', () => {
         { includeHiddenElements: true },
       ),
     ).not.toBeOnTheScreen();
-    expect(
-      screen.queryByLabelText(
-        `80%, ${strings('perps.crossMarginSummary.tone_danger')}`,
-      ),
-    ).not.toBeOnTheScreen();
   });
 
-  it('announces the risk level without the figure while privacy mode is on', async () => {
+  it('masks the ratio while privacy mode is on', async () => {
     renderCrossHome(fundedCrossAccount('800', '800', '2000'), true);
 
     expect(
@@ -3032,7 +3027,7 @@ describe('Perps home cross margin risk', () => {
         PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER,
       ),
     ).toHaveTextContent(
-      strings('perps.crossMarginRatio.description_hidden_danger'),
+      strings('perps.crossMarginRatio.description', { ratio: '••••••' }),
     );
 
     fireEvent.press(
@@ -3041,17 +3036,12 @@ describe('Perps home cross margin risk', () => {
       ),
     );
 
-    // Only the account ratio announces a risk level, not cross margin usage.
     expect(
-      await screen.findAllByLabelText(
-        strings('perps.crossMarginSummary.tone_danger'),
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
       ),
-    ).toHaveLength(1);
-    expect(
-      screen.queryByLabelText(
-        `80%, ${strings('perps.crossMarginSummary.tone_danger')}`,
-      ),
-    ).not.toBeOnTheScreen();
+    ).toHaveTextContent('••••••');
+    expect(screen.queryByText('80%')).not.toBeOnTheScreen();
   });
 
   it('shows the available balance as plain text when the Cross margin flag is off', async () => {
