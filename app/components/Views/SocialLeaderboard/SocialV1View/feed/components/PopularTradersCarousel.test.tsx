@@ -64,6 +64,7 @@ const loadedResult = (): UsePopularTradersResult => ({
   isLoading: false,
   isFetching: false,
   hasFetched: true,
+  cacheState: 'warm',
   error: null,
   refresh: mockRefresh,
   toggleFollow: mockToggleFollow,
