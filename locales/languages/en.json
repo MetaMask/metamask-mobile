@@ -1840,12 +1840,9 @@
     },
     "trader_preview": {
       "join": "Join Social",
-      "referral_code": "Referral code",
-      "not_now": "Not now",
-      "terms_note": "You'll set up your Social profile and review the terms first.",
+      "referral_code": "Referral code: {{code}}",
       "referral_accepted": "Referral accepted",
-      "referral_failed": "Couldn't accept the referral",
-      "referral_failed_description": "You can enter the code later in Rewards settings."
+      "referral_failed": "Couldn't accept the referral"
     },
     "profile_onboarding": {
       "intro_title": "See trades in real time",
