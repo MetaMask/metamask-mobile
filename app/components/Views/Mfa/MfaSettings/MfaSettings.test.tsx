@@ -98,6 +98,19 @@ describe('MfaSettings', () => {
     expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).toBeOnTheScreen();
   });
 
+  it('says what the methods protect for each kind of wallet', () => {
+    expect(
+      renderSettings([]).getByText(
+        'These methods add protection to Money account transactions. They can’t recover your wallet.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderSettings([], 'vault').getByText(
+        'These methods add protection to Money account transactions and to recovering your wallet.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('refreshes the methods and offers to add email', async () => {
     const { getByTestId } = renderSettings();
     await act(async () => undefined);
