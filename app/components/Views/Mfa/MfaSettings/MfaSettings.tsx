@@ -1,5 +1,5 @@
-import React, { useContext, useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -23,6 +23,8 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
+import { verifyOrEnroll } from '../../../../util/identity/mfa/useMfa';
+import Logger from '../../../../util/Logger';
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { selectMfaUiKitMethods } from '../../../../selectors/featureFlagController/mfaUiKit';
@@ -35,8 +37,10 @@ import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import { getMethodLabel } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
+import SocialLinkEmailBottomSheet from '../../shared/SocialLinkEmailBottomSheet';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { syncRecoveryAfterEnroll } from '../../../../core/MfaRecovery/syncRecoveryAfterEnroll';
 
 const ROW_TEST_IDS: Record<MfaMethod, string> = {
   passkey: MfaSettingsSelectorsIDs.PASSKEY_ROW,
@@ -75,6 +79,15 @@ const MfaSettings = () => {
   const activeTypes = new Set(
     getActiveCredentials(credentials).map(({ type }) => type),
   );
+  const [pendingMethod, setPendingMethod] = useState<MfaMethod>();
+  const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
+    resolve: (email?: string) => void;
+  }>();
+
+  const closeSocialLinkPrompt = (email?: string) => {
+    socialLinkPrompt?.resolve(email);
+    setSocialLinkPrompt(undefined);
+  };
 
   useEffect(() => {
     mobileMfaControllerAdapter
@@ -82,21 +95,57 @@ const MfaSettings = () => {
       .catch(() => undefined);
   }, []);
 
-  const add = (method: MfaMethod) => {
-    enroll({
-      method,
-      reason: { operation: ADD_OPERATIONS[method] },
-    })
-      .then(() => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [{ label: strings(ADD_SUCCESS_MESSAGE_KEYS[method]) }],
-          iconName: ToastIconName.Confirmation,
-          iconColor: theme.colors.success.default,
-          hasNoTimeout: false,
-        });
-      })
-      .catch(() => undefined);
+  const addMethod = async (method: MfaMethod) => {
+    try {
+      await enroll({
+        method,
+        reason: { operation: ADD_OPERATIONS[method] },
+      });
+    } catch {
+      return;
+    }
+
+    try {
+      await syncRecoveryAfterEnroll(method, {
+        verifyMfa: () =>
+          verifyOrEnroll({
+            methods: [method],
+            verifyWith: [method],
+            reason: { operation: ADD_OPERATIONS[method] },
+          }).then(() => undefined),
+        getSocialLinkEmail: isMfaDevBuild()
+          ? () =>
+              new Promise<string | undefined>((resolve) =>
+                setSocialLinkPrompt({ resolve }),
+              )
+          : undefined,
+      });
+    } catch (error) {
+      Logger.error(
+        error instanceof Error ? error : new Error('Recovery sync failed'),
+        { tags: { feature: 'mfa', operation: ADD_OPERATIONS[method] } },
+      );
+    }
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings(ADD_SUCCESS_MESSAGE_KEYS[method]) }],
+      iconName: ToastIconName.Confirmation,
+      iconColor: theme.colors.success.default,
+      hasNoTimeout: false,
+    });
+  };
+
+  const add = async (method: MfaMethod) => {
+    if (pendingMethod !== undefined) {
+      return;
+    }
+    setPendingMethod(method);
+    try {
+      await addMethod(method);
+    } finally {
+      setPendingMethod(undefined);
+    }
   };
 
   const rows: {
@@ -170,11 +219,18 @@ const MfaSettings = () => {
             value={isSetUp ? summary : strings('mfa.settings.add')}
             valueProps={{ color: TextColor.TextAlternative }}
             endAccessory={
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
+              pendingMethod === method ? (
+                <ActivityIndicator
+                  size="small"
+                  testID={MfaSettingsSelectorsIDs.ADD_LOADING}
+                />
+              ) : (
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+              )
             }
             accessoryGap={2}
             onPress={() => open(method, isSetUp)}
@@ -183,6 +239,12 @@ const MfaSettings = () => {
         ))}
         {isMfaDevBuild() ? <MfaQaPresets /> : null}
       </ScrollView>
+      {socialLinkPrompt ? (
+        <SocialLinkEmailBottomSheet
+          onSubmit={closeSocialLinkPrompt}
+          onClose={() => closeSocialLinkPrompt(undefined)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

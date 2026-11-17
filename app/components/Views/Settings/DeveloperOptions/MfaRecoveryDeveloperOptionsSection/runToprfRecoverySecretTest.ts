@@ -1,9 +1,5 @@
 import { extractPublicKey } from '@metamask/eth-sig-util';
 import { bytesToHex, hexToBytes, sha256, stringToBytes } from '@metamask/utils';
-import {
-  TOPRF_RECOVERY_AUTH_CONNECTION_ID,
-  TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID,
-} from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import { MfaRecoveryControllerError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
 import type { SignPersonalMessage } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
@@ -18,13 +14,13 @@ export interface ToprfRecoverySecretTestDependencies {
   address: string;
   signPersonalMessage: SignPersonalMessage;
   seedless: MfaRecoverySeedless;
-  mintAal2Token: () => Promise<string>;
+  /** Authenticates the seedless controller with the TOPRF nodes at aal2. */
+  openRecoverySession: () => Promise<void>;
 }
 
 export type ToprfRecoverySecretTestStep =
   | 'deriving_recovery_secret'
   | 'checking_recovery_status'
-  | 'minting_aal2_token'
   | 'authenticating_aal2'
   | 'running_data_type_migration'
   | 'migrating_vault_to_envelope'
@@ -77,15 +73,8 @@ export async function runToprfRecoverySecretTest(
     dependencies.signPersonalMessage,
   );
 
-  onStepCallback('minting_aal2_token');
-  const aal2Token = await dependencies.mintAal2Token();
-
   onStepCallback('authenticating_aal2');
-  await seedless.authenticateForRecovery({
-    aal2Token,
-    authConnectionId: TOPRF_RECOVERY_AUTH_CONNECTION_ID,
-    groupedAuthConnectionId: TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID,
-  });
+  await dependencies.openRecoverySession();
 
   // hasRecoveryShare is only reported once an aal2 session exists.
   onStepCallback('checking_recovery_status');

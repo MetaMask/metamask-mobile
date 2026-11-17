@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   Identifier,
   RecoveryIdentifiers,
@@ -23,14 +17,17 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 import styleSheet from '../DeveloperOptions.styles';
-import { isMfaRecoveryConfigured } from '../../../../../core/Engine/controllers/mfa-recovery-controller';
+import { isMfaRecoveryConfigured } from '../../../../../core/Engine/controllers/mfa-recovery-controller/config';
 import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagController/mfaRecovery';
 import { useMfa } from '../../../../../util/identity/mfa/useMfa';
-import { clearPendingOperationForDev } from '../../../../../core/Engine/controllers/mfa-recovery-controller/dev/clear-pending-operation';
-import { getLastApplyMutationFailure } from '../../../../../core/Engine/controllers/mfa-recovery-controller/dev/apply-mutation-diagnostics';
+import { clearPendingOperationForDev } from './clearPendingOperation';
 import { createSocialIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import { authEnv } from '../../../../../core/apiEnv';
-import { linkSocialLogin } from './linkSocialLogin';
+import {
+  linkSocialLogin,
+  LinkSocialLoginError,
+} from '../../../../../core/MfaRecovery/linkSocialLogin';
+import { redactForDisplay } from '../../../../../core/MfaRecovery/redactForDisplay';
 import CubistIdentifiersBottomSheet from './CubistIdentifiersBottomSheet';
 import MfaRecoveryOptionsBottomSheet, {
   type MfaRecoveryOption,
@@ -47,10 +44,8 @@ import {
   runMfaRecoveryCubistTest,
   type RecoveryReadIdentifierType,
   type MfaRecoveryRecoverResult,
-  type MfaRecoveryTestResult,
   type MfaRecoveryTestStep,
 } from './runMfaRecoveryCubistTest';
-import type { MfaRecoverySetupResult } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/recovery-setup';
 import { MfaRecoveryService } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 import {
   runMfaRecoveryFullRetrieval,
@@ -58,9 +53,6 @@ import {
   type MfaRecoveryFullRetrievalResult,
   type MfaRecoveryFullRetrievalStep,
 } from './runMfaRecoveryFullRetrieval';
-import OAuthService, {
-  type SocialRecoveryLogin,
-} from '../../../../../core/OAuthService/OAuthService';
 import {
   runResetPassword,
   runSetLocalPassword,
@@ -68,11 +60,13 @@ import {
   type MfaRecoveryPasswordStep,
 } from './runMfaRecoveryPasswords';
 import PasswordPromptBottomSheet from './PasswordPromptBottomSheet';
+import SocialLinkEmailBottomSheet from '../../../shared/SocialLinkEmailBottomSheet';
 import {
   runToprfRecoverySecretTest,
-  type ToprfRecoverySecretTestResult,
   type ToprfRecoverySecretTestStep,
 } from './runToprfRecoverySecretTest';
+
+const STRINGS_PREFIX = 'app_settings.developer_options.mfa_recovery';
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
 const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button';
 const RECOVER_SHEET_TEST_ID = 'mfa-recovery-dev-recover-sheet';
@@ -83,28 +77,23 @@ const RECOVER_BUTTONS: readonly {
 }[] = [
   {
     identifierType: 'siwe',
-    labelKey:
-      'app_settings.developer_options.mfa_recovery.recover_secret_button_siwe',
+    labelKey: `${STRINGS_PREFIX}.recover_secret_button_siwe`,
   },
   {
     identifierType: 'passkey',
-    labelKey:
-      'app_settings.developer_options.mfa_recovery.recover_secret_button_passkey',
+    labelKey: `${STRINGS_PREFIX}.recover_secret_button_passkey`,
   },
   {
     identifierType: 'social',
-    labelKey:
-      'app_settings.developer_options.mfa_recovery.recover_secret_button_social',
+    labelKey: `${STRINGS_PREFIX}.recover_secret_button_social`,
   },
 ];
 const SETUP_BUTTON_TEST_ID = 'mfa-recovery-dev-setup-recovery-button';
 /** Setup always registers SIWE and social; passkey is optional. */
 type MfaRecoverySetupOption = 'siwe_social' | 'siwe_social_passkey';
 const SETUP_BUTTON_LABEL_KEYS: Record<MfaRecoverySetupOption, string> = {
-  siwe_social:
-    'app_settings.developer_options.mfa_recovery.setup_recovery_button_siwe_social',
-  siwe_social_passkey:
-    'app_settings.developer_options.mfa_recovery.setup_recovery_button_siwe_social_passkey',
+  siwe_social: `${STRINGS_PREFIX}.setup_recovery_button_siwe_social`,
+  siwe_social_passkey: `${STRINGS_PREFIX}.setup_recovery_button_siwe_social_passkey`,
 };
 const SETUP_SHEET_TEST_ID = 'mfa-recovery-dev-setup-sheet';
 const SETUP_OPTION_TEST_ID_PREFIX = 'mfa-recovery-dev-setup-option';
@@ -118,20 +107,17 @@ const FULL_RETRIEVAL_BUTTON_TEST_ID = 'mfa-recovery-dev-full-retrieval-button';
 const FULL_RETRIEVAL_SHEET_TEST_ID = 'mfa-recovery-dev-full-retrieval-sheet';
 const FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX =
   'mfa-recovery-dev-full-retrieval-option';
-/** Identifiers the user can continue the full retrieval with after social login. */
 const FULL_RETRIEVAL_OPTIONS: readonly {
   identifierType: MfaRecoveryFullRetrievalIdentifierType;
   labelKey: string;
 }[] = [
   {
     identifierType: 'siwe',
-    labelKey:
-      'app_settings.developer_options.mfa_recovery.recover_secret_button_siwe',
+    labelKey: `${STRINGS_PREFIX}.recover_secret_button_siwe`,
   },
   {
     identifierType: 'passkey',
-    labelKey:
-      'app_settings.developer_options.mfa_recovery.recover_secret_button_passkey',
+    labelKey: `${STRINGS_PREFIX}.recover_secret_button_passkey`,
   },
 ];
 const SET_LOCAL_PASSWORD_BUTTON_TEST_ID =
@@ -149,61 +135,73 @@ const REMOVE_CUBIST_IDENTIFIER_BUTTON_TEST_ID =
   'mfa-recovery-dev-remove-cubist-identifier-button';
 const RESUME_BUTTON_TEST_ID = 'mfa-recovery-dev-resume-button';
 const ABORT_BUTTON_TEST_ID = 'mfa-recovery-dev-abort-button';
-const AAL2_APPROVAL_OPERATION = 'mfaRecovery.devOptions';
-
-/** The social login step of the full retrieval: provider sign-in, kept in memory. */
-type MfaRecoverySocialLoginStep = 'social_login';
-interface MfaRecoverySocialLoginResult {
-  socialLoginSucceeded: true;
-}
+const AAL2_APPROVAL_OPERATION = 'qa.mfaRecoveryDevOptions';
 
 type MfaRecoveryStep =
   | MfaRecoveryTestStep
   | ToprfRecoverySecretTestStep
   | MfaRecoveryFullRetrievalStep
-  | MfaRecoverySocialLoginStep
   | MfaRecoveryPasswordStep;
-type MfaRecoveryRunResult =
-  | MfaRecoveryTestResult
-  | MfaRecoveryRecoverResult
-  | MfaRecoverySetupResult
-  | ToprfRecoverySecretTestResult
-  | MfaRecoveryFullRetrievalResult
-  | MfaRecoverySocialLoginResult
-  | CubistIdentifierChangeResult
-  | MfaRecoveryPasswordResult;
-type MfaRecoveryRunner = (
-  service: MfaRecoveryService,
-  onStep: (step: MfaRecoveryStep) => void,
-) => Promise<MfaRecoveryRunResult>;
-type MfaRecoveryResultFormatter = (result: MfaRecoveryRunResult) => string;
 
 function formatFailureCode(runError: unknown): string {
   const code = getMfaRecoveryErrorCode(runError);
   const detail = getMfaRecoveryErrorDetail(runError);
-  const escrowFailure =
-    code === 'incomplete_mutation' ? getLastApplyMutationFailure() : undefined;
-  return [code, detail, escrowFailure]
+  return [code, detail]
     .filter((part) => part !== undefined)
     .map((part, index) => (index === 0 ? part : `(${part})`))
     .join(' ');
 }
 
-function formatPasswordResult(recoveryResult: MfaRecoveryRunResult): string {
-  if (!('action' in recoveryResult)) {
-    throw new Error('Unexpected recovery result');
-  }
+function formatPasswordResult({ action }: MfaRecoveryPasswordResult): string {
   return strings(
-    recoveryResult.action === 'set_local'
-      ? 'app_settings.developer_options.mfa_recovery.set_local_password_success'
-      : 'app_settings.developer_options.mfa_recovery.reset_password_success',
+    action === 'set_local'
+      ? `${STRINGS_PREFIX}.set_local_password_success`
+      : `${STRINGS_PREFIX}.reset_password_success`,
   );
+}
+
+function formatCubistIdentifierChange({
+  change,
+  identifierType,
+  epoch,
+}: CubistIdentifierChangeResult): string {
+  return strings(`${STRINGS_PREFIX}.cubist_identifier_${change}`, {
+    type: identifierType,
+    epoch,
+  });
+}
+
+function formatRecoverResult({
+  epoch,
+  matches,
+  fingerprint,
+}: MfaRecoveryRecoverResult): string {
+  if (matches === undefined) {
+    return strings(`${STRINGS_PREFIX}.recover_success_no_reference`, {
+      epoch,
+      fingerprint,
+    });
+  }
+  return strings(`${STRINGS_PREFIX}.recover_success`, {
+    epoch,
+    matches: matches ? 'yes' : 'no',
+  });
+}
+
+function formatFullRetrievalResult(
+  retrievalResult: MfaRecoveryFullRetrievalResult,
+): string {
+  return strings(`${STRINGS_PREFIX}.full_retrieval_success`, {
+    expected: retrievalResult.expectedSrpCount,
+    recovered: retrievalResult.recoveredSrpCount,
+    matched: retrievalResult.matchedSrpCount,
+    allRecovered: retrievalResult.allSrpsRecovered ? 'yes' : 'no',
+  });
 }
 
 const MfaRecoveryDeveloperOptionsSection = () => {
   const isMfaRecoveryEnabled = useSelector(selectMfaRecoveryEnabled);
-  const isMfaRecoveryConfiguredForEnvironment = isMfaRecoveryConfigured();
-  const isMfaRecoveryAvailable = isMfaRecoveryConfiguredForEnvironment;
+  const isMfaRecoveryAvailable = isMfaRecoveryConfigured();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const [isRunning, setIsRunning] = useState(false);
@@ -218,13 +216,31 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     'set_local' | 'reset' | null
   >(null);
   const { verifyOrEnroll } = useMfa();
+  const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
+    resolve: (email: string | null) => void;
+  } | null>(null);
+
+  /** Resolves with the override email, or `null` when the sheet is closed. */
+  const askSocialLinkEmail = useCallback(
+    () =>
+      new Promise<string | null>((resolve) => setSocialLinkPrompt({ resolve })),
+    [],
+  );
+
+  const closeSocialLinkPrompt = useCallback(
+    (email: string | null) => {
+      socialLinkPrompt?.resolve(email);
+      setSocialLinkPrompt(null);
+    },
+    [socialLinkPrompt],
+  );
 
   // requestMfaApproval with requireVerification needs a live verification
   // session, otherwise it throws aal2_required without calling the server.
   const verifyMfa = useCallback(async () => {
     await verifyOrEnroll({
-      methods: ['passkey'],
-      verifyWith: ['passkey'],
+      methods: ['passkey', 'totp'],
+      verifyWith: ['passkey', 'totp'],
       reason: { operation: AAL2_APPROVAL_OPERATION },
     });
   }, [verifyOrEnroll]);
@@ -250,9 +266,6 @@ const MfaRecoveryDeveloperOptionsSection = () => {
   const [isRecoverSheetOpen, setIsRecoverSheetOpen] = useState(false);
   const [isFullRetrievalSheetOpen, setIsFullRetrievalSheetOpen] =
     useState(false);
-  // The social login from the full retrieval's first step. Memory only:
-  // cleared when the sheet closes or the retrieval finishes.
-  const socialLoginRef = useRef<SocialRecoveryLogin | null>(null);
 
   const refreshCubistIdentifiers = useCallback(async () => {
     try {
@@ -292,88 +305,92 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     cubistIdentifiers === null && !isCubistIdentifiersUnavailable;
   const isCubistRegistered = (cubistIdentifiers?.identifiers.length ?? 0) > 0;
   const isSetupBlockedByCubist = isCubistCheckPending || isCubistRegistered;
-
-  const setupRecoveryLabel = (() => {
-    const prefix = 'app_settings.developer_options.mfa_recovery';
-    if (isCubistRegistered) {
-      return strings(`${prefix}.setup_recovery_button_registered`);
-    }
-    if (isCubistCheckPending && isMfaRecoveryAvailable) {
-      return strings(`${prefix}.setup_recovery_button_checking`);
-    }
-    return strings(`${prefix}.setup_recovery_button`);
-  })();
-
   const isCubistNotRegistered =
     cubistIdentifiers !== null && cubistIdentifiers.identifiers.length === 0;
   const isRecoverBlockedByCubist =
     isCubistCheckPending || isCubistNotRegistered;
+  const isChecking = isCubistCheckPending && isMfaRecoveryAvailable;
+
+  const setupRecoveryLabel = (() => {
+    if (isCubistRegistered) {
+      return strings(`${STRINGS_PREFIX}.setup_recovery_button_registered`);
+    }
+    if (isChecking) {
+      return strings(`${STRINGS_PREFIX}.setup_recovery_button_checking`);
+    }
+    return strings(`${STRINGS_PREFIX}.setup_recovery_button`);
+  })();
 
   const runCubistTestLabel = (() => {
-    const prefix = 'app_settings.developer_options.mfa_recovery';
     if (isCubistNotRegistered) {
-      return strings(`${prefix}.run_cubist_test_button_not_registered`);
+      return strings(`${STRINGS_PREFIX}.run_cubist_test_button_not_registered`);
     }
-    if (isCubistCheckPending && isMfaRecoveryAvailable) {
-      return strings(`${prefix}.run_cubist_test_button_checking`);
+    if (isChecking) {
+      return strings(`${STRINGS_PREFIX}.run_cubist_test_button_checking`);
     }
-    return strings(`${prefix}.run_cubist_test_button`);
+    return strings(`${STRINGS_PREFIX}.run_cubist_test_button`);
   })();
 
   const recoverSecretLabel = (() => {
-    const prefix = 'app_settings.developer_options.mfa_recovery';
     if (isCubistNotRegistered) {
-      return strings(`${prefix}.recover_secret_button_not_registered`);
+      return strings(`${STRINGS_PREFIX}.recover_secret_button_not_registered`);
     }
-    if (isCubistCheckPending && isMfaRecoveryAvailable) {
-      return strings(`${prefix}.recover_secret_button_checking`);
+    if (isChecking) {
+      return strings(`${STRINGS_PREFIX}.recover_secret_button_checking`);
     }
-    return strings(`${prefix}.recover_secret_button`);
+    return strings(`${STRINGS_PREFIX}.recover_secret_button`);
   })();
+
+  const isNotEnrolled = useCallback(
+    (identifierType: string) =>
+      cubistIdentifiers !== null &&
+      !cubistIdentifiers.identifiers.some(
+        (identifier) => identifier.type === identifierType,
+      ),
+    [cubistIdentifiers],
+  );
 
   const recoverSheetOptions: readonly MfaRecoveryOption<RecoveryReadIdentifierType>[] =
     RECOVER_BUTTONS.map(({ identifierType, labelKey }) => ({
       id: identifierType,
       labelKey,
-      isDisabled:
-        cubistIdentifiers !== null &&
-        !cubistIdentifiers.identifiers.some(
-          (identifier) => identifier.type === identifierType,
-        ),
+      isDisabled: isNotEnrolled(identifierType),
     }));
 
   const fullRetrievalSheetOptions: readonly MfaRecoveryOption<MfaRecoveryFullRetrievalIdentifierType>[] =
     FULL_RETRIEVAL_OPTIONS.map(({ identifierType, labelKey }) => ({
       id: identifierType,
       labelKey,
-      isDisabled:
-        cubistIdentifiers !== null &&
-        !cubistIdentifiers.identifiers.some(
-          (identifier) => identifier.type === identifierType,
-        ),
+      isDisabled: isNotEnrolled(identifierType),
     }));
 
   const addCubistIdentifierLabel = (() => {
-    const prefix = 'app_settings.developer_options.mfa_recovery';
     if (isCubistIdentifiersUnavailable) {
-      return strings(`${prefix}.add_cubist_identifier_button_unavailable`);
+      return strings(
+        `${STRINGS_PREFIX}.add_cubist_identifier_button_unavailable`,
+      );
     }
     if (cubistIdentifiers === null) {
-      return strings(`${prefix}.add_cubist_identifier_button_checking`);
+      return strings(`${STRINGS_PREFIX}.add_cubist_identifier_button_checking`);
     }
     if (missingCubistIdentifier === undefined) {
-      return strings(`${prefix}.add_cubist_identifier_button_all_added`);
+      return strings(
+        `${STRINGS_PREFIX}.add_cubist_identifier_button_all_added`,
+      );
     }
-    return strings(`${prefix}.add_cubist_identifier_button`, {
+    return strings(`${STRINGS_PREFIX}.add_cubist_identifier_button`, {
       type: missingCubistIdentifier.type,
     });
   })();
 
   const handleRun = useCallback(
-    async (
-      runner: MfaRecoveryRunner,
-      formatResult: MfaRecoveryResultFormatter,
-    ) => {
+    async <Result,>(
+      runner: (
+        service: MfaRecoveryService,
+        onStep: (step: MfaRecoveryStep) => void,
+      ) => Promise<Result>,
+      formatResult: (result: Result) => string,
+    ): Promise<boolean> => {
       if (isRunning) {
         return false;
       }
@@ -386,7 +403,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       let currentStep: MfaRecoveryStep | null = null;
 
       try {
-        const recoveryResult = await runner(
+        const runResult = await runner(
           new MfaRecoveryService({
             verifyMfa,
             approvalOperation: AAL2_APPROVAL_OPERATION,
@@ -396,18 +413,16 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             setStep(nextStep);
           },
         );
-        setResult(formatResult(recoveryResult));
+        setResult(formatResult(runResult));
         return true;
       } catch (runError) {
-        const code = getMfaRecoveryErrorCode(runError);
-        const detail = getMfaRecoveryErrorDetail(runError);
         console.error('MFA recovery test failed', {
-          code,
-          detail,
+          code: getMfaRecoveryErrorCode(runError),
+          detail: getMfaRecoveryErrorDetail(runError),
           step: currentStep,
         });
         setError(
-          strings('app_settings.developer_options.mfa_recovery.failure', {
+          strings(`${STRINGS_PREFIX}.failure`, {
             code: formatFailureCode(runError),
           }),
         );
@@ -436,26 +451,13 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         await refreshPhase();
       } catch (runError) {
         setError(
-          strings('app_settings.developer_options.mfa_recovery.failure', {
+          strings(`${STRINGS_PREFIX}.failure`, {
             code: formatFailureCode(runError),
           }),
         );
       }
     },
     [isRunning, refreshPhase],
-  );
-
-  const formatCubistIdentifierChange = useCallback(
-    (changeResult: MfaRecoveryRunResult) => {
-      if (!('identifierType' in changeResult)) {
-        throw new Error('Unexpected recovery result');
-      }
-      return strings(
-        `app_settings.developer_options.mfa_recovery.cubist_identifier_${changeResult.change}`,
-        { type: changeResult.identifierType, epoch: changeResult.epoch },
-      );
-    },
-    [],
   );
 
   const handleAddCubistIdentifier = useCallback(async () => {
@@ -468,12 +470,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       formatCubistIdentifierChange,
     );
     await refreshCubistIdentifiers();
-  }, [
-    formatCubistIdentifierChange,
-    handleRun,
-    missingCubistIdentifier,
-    refreshCubistIdentifiers,
-  ]);
+  }, [handleRun, missingCubistIdentifier, refreshCubistIdentifiers]);
 
   const handleRemoveCubistIdentifier = useCallback(
     async (identifier: Identifier) => {
@@ -484,7 +481,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       );
       await refreshCubistIdentifiers();
     },
-    [formatCubistIdentifierChange, handleRun, refreshCubistIdentifiers],
+    [handleRun, refreshCubistIdentifiers],
   );
 
   const handleResetPendingOperation = useCallback(async () => {
@@ -518,8 +515,9 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           : 'linked_to_other_profile';
     } catch (checkError) {
       const errorName = checkError instanceof Error ? checkError.name : '';
-      const errorMessage =
-        checkError instanceof Error ? checkError.message : String(checkError);
+      const errorMessage = redactForDisplay(
+        checkError instanceof Error ? checkError.message : String(checkError),
+      );
       if (errorName === 'SocialIdentifierNotPairedError') {
         status = 'not_linked';
       } else if (errorMessage.startsWith('exchangeSocialAccessToken -')) {
@@ -535,16 +533,13 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       })}`,
     );
     setResult(
-      strings(
-        'app_settings.developer_options.mfa_recovery.check_social_link_result',
-        { status },
-      ),
+      strings(`${STRINGS_PREFIX}.check_social_link_result`, { status }),
     );
     setIsRunning(false);
   }, []);
 
-  // TEMPORARY DIAGNOSTIC: logs the outcome and identifier types only, never
-  // the tokens, email, or identifier IDs.
+  // TEMPORARY DIAGNOSTIC: logs the outcome only, never the tokens, email, or
+  // identifier IDs.
   const handleLinkSocialLogin = useCallback(async () => {
     setIsRunning(true);
     setError(null);
@@ -553,45 +548,40 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       Engine.context;
     let status: string;
     try {
-      // Auth requires an aal:2 token to attach an identifier once the profile
-      // has an MFA factor; the verification session holds that token.
-      await verifyMfa();
-      const aal2AccessToken =
-        AuthenticationController.getVerificationToken()?.accessToken;
-      if (!aal2AccessToken) {
-        throw new Error('no MFA verification token after verification');
+      // Asked first: the verification below opens its own modal.
+      const verifierId = await askSocialLinkEmail();
+      if (verifierId === null) {
+        status = 'cancelled';
+      } else {
+        // Auth requires an aal:2 token to attach an identifier once the
+        // profile has an MFA factor; the verification session holds that token.
+        await verifyMfa();
+        await linkSocialLogin({
+          env: authEnv(),
+          seedlessState: SeedlessOnboardingController.state,
+          getSocialAccessToken: () =>
+            SeedlessOnboardingController.getAccessToken(),
+          getVerifiedAccessToken: () =>
+            AuthenticationController.getVerificationToken()?.accessToken,
+          verifierId,
+        });
+        status = 'linked';
       }
-      const linkResult = await linkSocialLogin({
-        env: authEnv(),
-        seedlessState: SeedlessOnboardingController.state,
-        getSocialAccessToken: () =>
-          SeedlessOnboardingController.getAccessToken(),
-        getBearerToken: async () => aal2AccessToken,
-      });
-      console.warn(`MFA social link ${JSON.stringify(linkResult)}`);
-      status = [
-        linkResult.status,
-        linkResult.httpStatus,
-        linkResult.pairedIdentifierTypes?.join(','),
-      ]
-        .filter((part) => part !== undefined && part !== '')
-        .join(' ');
     } catch (linkError) {
-      const errorMessage =
-        linkError instanceof Error ? linkError.message : String(linkError);
-      console.warn(
-        `MFA social link ${JSON.stringify({ error: errorMessage })}`,
-      );
-      status = `failed (${errorMessage})`;
+      status =
+        linkError instanceof LinkSocialLoginError
+          ? [linkError.code, linkError.detail]
+              .filter((part) => part !== undefined)
+              .join(': ')
+          : getMfaRecoveryErrorCode(linkError);
+      status = `failed (${status})`;
     }
+    console.warn(`MFA social link ${JSON.stringify({ status })}`);
     setResult(
-      strings(
-        'app_settings.developer_options.mfa_recovery.link_social_login_result',
-        { status },
-      ),
+      strings(`${STRINGS_PREFIX}.link_social_login_result`, { status }),
     );
     setIsRunning(false);
-  }, [verifyMfa]);
+  }, [askSocialLinkEmail, verifyMfa]);
 
   const handleEnableFlagOverride = useCallback(() => {
     Engine.context.RemoteFeatureFlagController.setFlagOverride('mfaRecovery', {
@@ -601,22 +591,12 @@ const MfaRecoveryDeveloperOptionsSection = () => {
   }, []);
 
   const handleRunCubistTest = useCallback(async () => {
-    await handleRun(runMfaRecoveryCubistTest, (recoveryResult) => {
-      if (
-        'fingerprint' in recoveryResult ||
-        'after' in recoveryResult ||
-        'allSrpsRecovered' in recoveryResult ||
-        'identifierType' in recoveryResult ||
-        'action' in recoveryResult ||
-        'socialLoginSucceeded' in recoveryResult
-      ) {
-        throw new Error('Unexpected recovery result');
-      }
-      return strings('app_settings.developer_options.mfa_recovery.success', {
-        epoch: recoveryResult.epoch,
-        matches: recoveryResult.matches ? 'yes' : 'no',
-      });
-    });
+    await handleRun(runMfaRecoveryCubistTest, ({ epoch, matches }) =>
+      strings(`${STRINGS_PREFIX}.success`, {
+        epoch,
+        matches: matches ? 'yes' : 'no',
+      }),
+    );
     await refreshCubistIdentifiers();
   }, [handleRun, refreshCubistIdentifiers]);
 
@@ -631,15 +611,8 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           const { passkeyIdentifier } = await service.prepareRun();
           return await service.setUp([passkeyIdentifier]);
         },
-        (recoveryResult) => {
-          if (!('after' in recoveryResult) || 'fingerprint' in recoveryResult) {
-            throw new Error('Unexpected recovery result');
-          }
-          return strings(
-            'app_settings.developer_options.mfa_recovery.setup_success',
-            { before: recoveryResult.before, after: recoveryResult.after },
-          );
-        },
+        (setupResult) =>
+          strings(`${STRINGS_PREFIX}.setup_success`, { result: setupResult }),
       );
       await refreshCubistIdentifiers();
     },
@@ -655,100 +628,44 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             signPersonalMessage: (params) =>
               Engine.context.KeyringController.signPersonalMessage(params),
             seedless: service.seedlessOnboardingController,
-            mintAal2Token: async () => {
+            openRecoverySession: async () => {
               await service.verifyMfa();
-              return await service.mintAal2Token();
+              await service.openRecoverySession();
             },
           },
           onStep,
         ),
-      (recoveryResult) => {
-        if (!('shareExisted' in recoveryResult)) {
-          throw new Error('Unexpected recovery result');
-        }
-        return strings(
-          'app_settings.developer_options.mfa_recovery.toprf_test_success',
-          {
-            before: recoveryResult.before,
-            after: recoveryResult.after,
-            shareExisted: recoveryResult.shareExisted ? 'yes' : 'no',
-            fingerprint: recoveryResult.fingerprint,
-          },
-        );
-      },
+      (testResult) =>
+        strings(`${STRINGS_PREFIX}.toprf_test_success`, {
+          before: testResult.before,
+          after: testResult.after,
+          shareExisted: testResult.shareExisted ? 'yes' : 'no',
+          fingerprint: testResult.fingerprint,
+        }),
     );
   }, [handleRun]);
 
-  // Step 1 of the full retrieval: provider login, kept in memory. On success,
-  // the sheet asks for the identifier to read the Recovery Secret with.
-  const handleFullRetrieval = useCallback(async () => {
-    const loggedIn = await handleRun(
-      async (_service, onStep) => {
-        onStep('social_login');
-        socialLoginRef.current = await OAuthService.loginForRecovery();
-        return { socialLoginSucceeded: true };
-      },
-      () =>
-        strings(
-          'app_settings.developer_options.mfa_recovery.full_retrieval_social_login_success',
-        ),
-    );
-    if (loggedIn) {
-      setIsFullRetrievalSheetOpen(true);
-    }
-  }, [handleRun]);
-
-  // Steps 2-4: read the Recovery Secret with the chosen identifier, then
-  // authenticate seedless with the in-memory social login and recover TOPRF.
   const handleFullRetrievalIdentifier = useCallback(
     async (identifierType: MfaRecoveryFullRetrievalIdentifierType) => {
       setIsFullRetrievalSheetOpen(false);
-      const login = socialLoginRef.current;
-      if (login === null) {
-        return;
-      }
-      try {
-        const succeeded = await handleRun(
-          (service, onStep) =>
-            runMfaRecoveryFullRetrieval(
-              service,
-              {
-                seedless: Engine.context.SeedlessOnboardingController,
-                identifierType,
-                authenticateSeedless: () =>
-                  OAuthService.authenticateSeedlessForRecovery(login),
-              },
-              onStep,
-            ),
-          (recoveryResult) => {
-            if (!('allSrpsRecovered' in recoveryResult)) {
-              throw new Error('Unexpected recovery result');
-            }
-            return strings(
-              'app_settings.developer_options.mfa_recovery.full_retrieval_success',
-              {
-                expected: recoveryResult.expectedSrpCount,
-                recovered: recoveryResult.recoveredSrpCount,
-                matched: recoveryResult.matchedSrpCount,
-                allRecovered: recoveryResult.allSrpsRecovered ? 'yes' : 'no',
-              },
-            );
-          },
-        );
-        if (succeeded) {
-          setRecoveredVaultStage('recovered');
-        }
-      } finally {
-        socialLoginRef.current = null;
+      const succeeded = await handleRun(
+        (service, onStep) =>
+          runMfaRecoveryFullRetrieval(
+            service,
+            {
+              seedless: Engine.context.SeedlessOnboardingController,
+              identifierType,
+            },
+            onStep,
+          ),
+        formatFullRetrievalResult,
+      );
+      if (succeeded) {
+        setRecoveredVaultStage('recovered');
       }
     },
     [handleRun],
   );
-
-  const handleFullRetrievalSheetClose = useCallback(() => {
-    setIsFullRetrievalSheetOpen(false);
-    socialLoginRef.current = null;
-  }, []);
 
   const handleSetLocalPassword = useCallback(
     async (password: string) => {
@@ -803,30 +720,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
                 )
               : undefined,
           ),
-        (recoveryResult) => {
-          if (
-            !('fingerprint' in recoveryResult) ||
-            !('epoch' in recoveryResult)
-          ) {
-            throw new Error('Unexpected recovery result');
-          }
-          if (recoveryResult.matches === undefined) {
-            return strings(
-              'app_settings.developer_options.mfa_recovery.recover_success_no_reference',
-              {
-                epoch: recoveryResult.epoch,
-                fingerprint: recoveryResult.fingerprint,
-              },
-            );
-          }
-          return strings(
-            'app_settings.developer_options.mfa_recovery.recover_success',
-            {
-              epoch: recoveryResult.epoch,
-              matches: recoveryResult.matches ? 'yes' : 'no',
-            },
-          );
-        },
+        formatRecoverResult,
       );
     },
     [handleRun],
@@ -839,23 +733,23 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         variant={TextVariant.HeadingLg}
         style={styles.heading}
       >
-        {strings('app_settings.developer_options.mfa_recovery.title')}
+        {strings(`${STRINGS_PREFIX}.title`)}
       </Text>
       <Text
         color={TextColor.TextAlternative}
         variant={TextVariant.BodyMd}
         style={styles.desc}
       >
-        {strings('app_settings.developer_options.mfa_recovery.description')}
+        {strings(`${STRINGS_PREFIX}.description`)}
       </Text>
       <Text
         color={TextColor.TextAlternative}
         variant={TextVariant.BodyMd}
         style={styles.desc}
       >
-        {strings('app_settings.developer_options.mfa_recovery.status', {
+        {strings(`${STRINGS_PREFIX}.status`, {
           enabled: isMfaRecoveryEnabled ? 'yes' : 'no',
-          configured: isMfaRecoveryConfiguredForEnvironment ? 'yes' : 'no',
+          configured: isMfaRecoveryAvailable ? 'yes' : 'no',
           phase: phase ?? 'unknown',
         })}
       </Text>
@@ -889,7 +783,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         <MfaRecoveryOptionsBottomSheet
           testID={RECOVER_SHEET_TEST_ID}
           optionTestIdPrefix={RECOVER_OPTION_TEST_ID_PREFIX}
-          titleKey="app_settings.developer_options.mfa_recovery.recover_secret_sheet_title"
+          titleKey={`${STRINGS_PREFIX}.recover_secret_sheet_title`}
           options={recoverSheetOptions}
           onSelect={handleRecoverSecret}
           onClose={() => setIsRecoverSheetOpen(false)}
@@ -912,7 +806,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         <MfaRecoveryOptionsBottomSheet
           testID={SETUP_SHEET_TEST_ID}
           optionTestIdPrefix={SETUP_OPTION_TEST_ID_PREFIX}
-          titleKey="app_settings.developer_options.mfa_recovery.setup_recovery_sheet_title"
+          titleKey={`${STRINGS_PREFIX}.setup_recovery_sheet_title`}
           options={SETUP_SHEET_OPTIONS}
           onSelect={handleSetupRecovery}
           onClose={() => setIsSetupSheetOpen(false)}
@@ -944,9 +838,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         style={styles.accessory}
         testID={REMOVE_CUBIST_IDENTIFIER_BUTTON_TEST_ID}
       >
-        {strings(
-          'app_settings.developer_options.mfa_recovery.remove_cubist_identifier_button',
-        )}
+        {strings(`${STRINGS_PREFIX}.remove_cubist_identifier_button`)}
       </Button>
       {isIdentifierSheetOpen && cubistIdentifiers !== null && (
         <CubistIdentifiersBottomSheet
@@ -959,36 +851,32 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         onPress={handleToprfRecoverySecretTest}
-        isDisabled={isRunning || !__DEV__}
+        isDisabled={isRunning || !__DEV__ || !isMfaRecoveryAvailable}
         isFullWidth
         style={styles.accessory}
         testID={TOPRF_TEST_BUTTON_TEST_ID}
       >
-        {strings(
-          'app_settings.developer_options.mfa_recovery.toprf_test_button',
-        )}
+        {strings(`${STRINGS_PREFIX}.toprf_test_button`)}
       </Button>
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        onPress={handleFullRetrieval}
+        onPress={() => setIsFullRetrievalSheetOpen(true)}
         isDisabled={isRunning || !__DEV__ || !isMfaRecoveryAvailable}
         isFullWidth
         style={styles.accessory}
         testID={FULL_RETRIEVAL_BUTTON_TEST_ID}
       >
-        {strings(
-          'app_settings.developer_options.mfa_recovery.full_retrieval_button',
-        )}
+        {strings(`${STRINGS_PREFIX}.full_retrieval_button`)}
       </Button>
       {isFullRetrievalSheetOpen && (
         <MfaRecoveryOptionsBottomSheet
           testID={FULL_RETRIEVAL_SHEET_TEST_ID}
           optionTestIdPrefix={FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX}
-          titleKey="app_settings.developer_options.mfa_recovery.full_retrieval_sheet_title"
+          titleKey={`${STRINGS_PREFIX}.full_retrieval_sheet_title`}
           options={fullRetrievalSheetOptions}
           onSelect={handleFullRetrievalIdentifier}
-          onClose={handleFullRetrievalSheetClose}
+          onClose={() => setIsFullRetrievalSheetOpen(false)}
         />
       )}
       {recoveredVaultStage !== 'none' && (
@@ -1004,9 +892,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             style={styles.accessory}
             testID={SET_LOCAL_PASSWORD_BUTTON_TEST_ID}
           >
-            {strings(
-              'app_settings.developer_options.mfa_recovery.set_local_password_button',
-            )}
+            {strings(`${STRINGS_PREFIX}.set_local_password_button`)}
           </Button>
           <Button
             variant={ButtonVariant.Secondary}
@@ -1021,19 +907,23 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             style={styles.accessory}
             testID={RESET_PASSWORD_BUTTON_TEST_ID}
           >
-            {strings(
-              'app_settings.developer_options.mfa_recovery.reset_password_button',
-            )}
+            {strings(`${STRINGS_PREFIX}.reset_password_button`)}
           </Button>
         </>
+      )}
+      {socialLinkPrompt !== null && (
+        <SocialLinkEmailBottomSheet
+          onSubmit={(email) => closeSocialLinkPrompt(email)}
+          onClose={() => closeSocialLinkPrompt(null)}
+        />
       )}
       {passwordPrompt !== null && (
         <PasswordPromptBottomSheet
           testID={PASSWORD_PROMPT_SHEET_TEST_ID}
           titleKey={
             passwordPrompt === 'set_local'
-              ? 'app_settings.developer_options.mfa_recovery.set_local_password_prompt_title'
-              : 'app_settings.developer_options.mfa_recovery.reset_password_prompt_title'
+              ? `${STRINGS_PREFIX}.set_local_password_prompt_title`
+              : `${STRINGS_PREFIX}.reset_password_prompt_title`
           }
           onSubmit={
             passwordPrompt === 'set_local'
@@ -1052,9 +942,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         style={styles.accessory}
         testID={RESET_PENDING_BUTTON_TEST_ID}
       >
-        {strings(
-          'app_settings.developer_options.mfa_recovery.reset_pending_button',
-        )}
+        {strings(`${STRINGS_PREFIX}.reset_pending_button`)}
       </Button>
       <Button
         variant={ButtonVariant.Secondary}
@@ -1065,9 +953,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         style={styles.accessory}
         testID={CHECK_SOCIAL_LINK_BUTTON_TEST_ID}
       >
-        {strings(
-          'app_settings.developer_options.mfa_recovery.check_social_link_button',
-        )}
+        {strings(`${STRINGS_PREFIX}.check_social_link_button`)}
       </Button>
       <Button
         variant={ButtonVariant.Secondary}
@@ -1078,9 +964,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         style={styles.accessory}
         testID={LINK_SOCIAL_LOGIN_BUTTON_TEST_ID}
       >
-        {strings(
-          'app_settings.developer_options.mfa_recovery.link_social_login_button',
-        )}
+        {strings(`${STRINGS_PREFIX}.link_social_login_button`)}
       </Button>
       {__DEV__ && !isMfaRecoveryEnabled && (
         <Button
@@ -1091,9 +975,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           isFullWidth
           style={styles.accessory}
         >
-          {strings(
-            'app_settings.developer_options.mfa_recovery.enable_flag_override_button',
-          )}
+          {strings(`${STRINGS_PREFIX}.enable_flag_override_button`)}
         </Button>
       )}
       {phase !== null && phase !== 'idle' && (
@@ -1107,9 +989,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             style={styles.accessory}
             testID={RESUME_BUTTON_TEST_ID}
           >
-            {strings(
-              'app_settings.developer_options.mfa_recovery.resume_button',
-            )}
+            {strings(`${STRINGS_PREFIX}.resume_button`)}
           </Button>
           <Button
             variant={ButtonVariant.Secondary}
@@ -1120,9 +1000,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             style={styles.accessory}
             testID={ABORT_BUTTON_TEST_ID}
           >
-            {strings(
-              'app_settings.developer_options.mfa_recovery.abort_button',
-            )}
+            {strings(`${STRINGS_PREFIX}.abort_button`)}
           </Button>
         </>
       )}
@@ -1132,10 +1010,8 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           variant={TextVariant.BodyMd}
           style={styles.desc}
         >
-          {strings('app_settings.developer_options.mfa_recovery.running', {
-            step: strings(
-              `app_settings.developer_options.mfa_recovery.steps.${step}`,
-            ),
+          {strings(`${STRINGS_PREFIX}.running`, {
+            step: strings(`${STRINGS_PREFIX}.steps.${step}`),
           })}
         </Text>
       )}

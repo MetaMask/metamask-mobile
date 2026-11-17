@@ -9,10 +9,37 @@ import type {
   MfaRecoveryService,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
 
-export {
-  getMfaRecoveryErrorCode,
-  getMfaRecoveryErrorDetail,
-} from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
+import { redactForDisplay } from '../../../../../core/MfaRecovery/redactForDisplay';
+
+export { getMfaRecoveryErrorCode } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
+
+/** Returns short diagnostic detail for the developer UI. */
+export function getMfaRecoveryErrorDetail(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) {
+    return undefined;
+  }
+  const { message, statusText, errorCode, requestId, url } = error as Record<
+    string,
+    unknown
+  >;
+  const parts: string[] = [];
+  if (typeof message === 'string' && message.trim().length > 0) {
+    parts.push(message.trim());
+  }
+  if (typeof statusText === 'string' && statusText.length > 0) {
+    parts.push(statusText);
+  }
+  if (typeof errorCode === 'string') {
+    parts.push(`errorCode=${errorCode}`);
+  }
+  if (typeof requestId === 'string') {
+    parts.push(`requestId=${requestId}`);
+  }
+  if (typeof url === 'string') {
+    parts.push(url);
+  }
+  return parts.length === 0 ? undefined : redactForDisplay(parts.join(' | '));
+}
 
 export type MfaRecoveryTestStep =
   | 'updating_recovery_secret'

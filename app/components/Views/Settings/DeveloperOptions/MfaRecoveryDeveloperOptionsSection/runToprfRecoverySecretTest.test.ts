@@ -67,7 +67,7 @@ function createDependencies(
     signPersonalMessage: signWithTestKey,
     seedless:
       seedless as unknown as ToprfRecoverySecretTestDependencies['seedless'],
-    mintAal2Token: jest.fn().mockResolvedValue('aal2-token'),
+    openRecoverySession: jest.fn(() => seedless.authenticateForRecovery()),
     ...overrides,
   };
 }
@@ -119,31 +119,22 @@ describe('deriveTestRecoverySecret', () => {
 });
 
 describe('runToprfRecoverySecretTest', () => {
-  it('mints an aal2 token and authenticates it before migrating the vault', async () => {
+  it('opens the aal2 recovery session before migrating the vault', async () => {
     const order: string[] = [];
     const seedless = createSeedless(false);
-    seedless.authenticateForRecovery.mockImplementation(async () => {
-      order.push('authenticate');
-    });
     seedless.migrateToEnvelope.mockImplementation(async () => {
       order.push('migrate');
     });
     const dependencies = createDependencies(seedless, {
-      mintAal2Token: jest.fn(async () => {
-        order.push('mint');
-        return 'aal2-token';
+      openRecoverySession: jest.fn(async () => {
+        order.push('open_session');
       }),
     });
 
     await runToprfRecoverySecretTest(dependencies);
 
-    expect(dependencies.mintAal2Token).toHaveBeenCalledTimes(1);
-    expect(seedless.authenticateForRecovery).toHaveBeenCalledWith({
-      aal2Token: 'aal2-token',
-      authConnectionId: 'mm-recovery-dev-aal2-common',
-      groupedAuthConnectionId: 'mm-recovery-aal2-dev',
-    });
-    expect(order).toStrictEqual(['mint', 'authenticate', 'migrate']);
+    expect(dependencies.openRecoverySession).toHaveBeenCalledTimes(1);
+    expect(order).toStrictEqual(['open_session', 'migrate']);
     expect(seedless.runMigrations).toHaveBeenCalledTimes(1);
   });
 
@@ -168,7 +159,6 @@ describe('runToprfRecoverySecretTest', () => {
 
     expect(onStep.mock.calls.map(([step]) => step)).toStrictEqual([
       'deriving_recovery_secret',
-      'minting_aal2_token',
       'authenticating_aal2',
       'checking_recovery_status',
       'running_data_type_migration',

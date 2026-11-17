@@ -8,6 +8,7 @@ import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import Routes from '../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../component-library/components/Toast';
+import { syncRecoveryAfterEnroll } from '../../../../core/MfaRecovery/syncRecoveryAfterEnroll';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaSettings from './MfaSettings';
 
@@ -28,6 +29,16 @@ jest.mock('../../../../util/identity/mfa/bindings', () => ({
   },
 }));
 
+jest.mock('../../../../core/MfaRecovery/syncRecoveryAfterEnroll', () => ({
+  syncRecoveryAfterEnroll: jest.fn(),
+}));
+
+const mockIsMfaDevBuild = jest.fn(() => true);
+jest.mock('../../../../util/identity/mfa/isMfaDevBuild', () => ({
+  isMfaDevBuild: () => mockIsMfaDevBuild(),
+}));
+
+const mockSyncRecovery = jest.mocked(syncRecoveryAfterEnroll);
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 const mockAdapter = jest.mocked(mobileMfaControllerAdapter);
 const mockShowToast = jest.fn();
@@ -78,6 +89,72 @@ describe('MfaSettings', () => {
     jest.clearAllMocks();
     mockAdapter.refreshEnrolledCredentials.mockResolvedValue([]);
     mockStartMfaFlow.mockResolvedValue({ credentials: [] });
+    mockSyncRecovery.mockResolvedValue(undefined);
+    mockIsMfaDevBuild.mockReturnValue(true);
+  });
+
+  it('asks for the social link email in dev builds and passes it on', async () => {
+    let emailPromise: Promise<string | undefined> | undefined;
+    mockSyncRecovery.mockImplementation(async (_method, options) => {
+      emailPromise = options.getSocialLinkEmail?.();
+      await emailPromise;
+    });
+    const { getByTestId } = renderSettings();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+    });
+    expect(
+      getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_SHEET),
+    ).toBeOnTheScreen();
+    fireEvent.changeText(
+      getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_INPUT),
+      '  qa@example.com ',
+    );
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_CONFIRM),
+      );
+    });
+
+    await expect(emailPromise).resolves.toBe('qa@example.com');
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Authenticator app added' }],
+      }),
+    );
+  });
+
+  it('shows a loading indicator on the row while an add is in progress', async () => {
+    let finishSync: () => void = () => undefined;
+    mockSyncRecovery.mockImplementation(
+      () => new Promise<void>((resolve) => (finishSync = resolve)),
+    );
+    const { getByTestId, queryByTestId } = renderSettings();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+    });
+    expect(getByTestId(MfaSettingsSelectorsIDs.ADD_LOADING)).toBeOnTheScreen();
+
+    await act(async () => {
+      finishSync();
+    });
+    expect(queryByTestId(MfaSettingsSelectorsIDs.ADD_LOADING)).toBeNull();
+  });
+
+  it('does not offer the social link email outside dev builds', async () => {
+    mockIsMfaDevBuild.mockReturnValue(false);
+    const { getByTestId } = renderSettings();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+    });
+
+    expect(mockSyncRecovery).toHaveBeenCalledWith(
+      'totp',
+      expect.objectContaining({ getSocialLinkEmail: undefined }),
+    );
   });
 
   it('hides email and keeps the authenticator app for social login users', () => {

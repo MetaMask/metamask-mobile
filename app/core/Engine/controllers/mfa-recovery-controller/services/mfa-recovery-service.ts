@@ -56,15 +56,34 @@ export interface FindRecoveryIdentifierOptions {
 /**
  * Runs MFA recovery flows against the escrow and the TOPRF nodes. One instance
  * serves one flow: `verifyMfa` and `approvalOperation` tie it to how that flow
- * proves the user.
+ * proves the user. Use `MfaRecoveryService.getInstance` to share the instance
+ * (and its verification session) per flow.
  */
 export class MfaRecoveryService {
+  /** One instance per `approvalOperation`, so each flow keeps its own options. */
+  static readonly #instances = new Map<string, MfaRecoveryService>();
+
   readonly #options: MfaRecoveryServiceOptions;
 
   #verification?: Promise<void>;
 
   constructor(options: MfaRecoveryServiceOptions) {
     this.#options = options;
+  }
+
+  /**
+   * Returns the shared instance for `options.approvalOperation`, creating it on
+   * first use. Later calls reuse the first call's options, including
+   * `verifyMfa`.
+   */
+  static getInstance(options: MfaRecoveryServiceOptions): MfaRecoveryService {
+    const key = options.approvalOperation;
+    let instance = MfaRecoveryService.#instances.get(key);
+    if (!instance) {
+      instance = new MfaRecoveryService(options);
+      MfaRecoveryService.#instances.set(key, instance);
+    }
+    return instance;
   }
 
   get mfaRecoveryController(): MfaRecoveryController {

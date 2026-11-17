@@ -174,6 +174,7 @@ export async function linkSocialLogin({
   if (!socialJwt) {
     throw new LinkSocialLoginError('social_token_unavailable');
   }
+
   const verifiedToken = getVerifiedAccessToken();
   if (!verifiedToken) {
     throw new LinkSocialLoginError('verification_token_unavailable');
