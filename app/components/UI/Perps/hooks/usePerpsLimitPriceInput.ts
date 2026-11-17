@@ -242,7 +242,7 @@ export function usePerpsLimitPriceInput({
   );
 
   const error = exceedsMaxDeviation
-    ? getLimitPriceTooFarMessage(referencePrice)
+    ? getLimitPriceTooFarMessage()
     : directionWarning;
 
   const trackInputMethod = useCallback(() => {

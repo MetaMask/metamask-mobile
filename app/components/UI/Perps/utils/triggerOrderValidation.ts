@@ -190,32 +190,13 @@ export const getTriggerPriceValidationIssue = ({
 };
 
 /**
- * Localized 95% band error, including the live acceptable range when the
- * reference price is usable.
+ * Localized 95% band error. Shows only the constraint; the acceptable range is
+ * no longer rendered.
  *
- * @param referencePrice - Live oracle/mark used for the band.
  * @returns User-facing helper text.
  */
-export const getLimitPriceTooFarMessage = (referencePrice: number): string => {
-  const constraint = strings(
-    'perps.order.limit_price_modal.limit_price_too_far',
-  );
-  const band = getPriceDeviationBand(
-    referencePrice,
-    LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
-  );
-  if (!band) {
-    return constraint;
-  }
-  const range = strings(
-    'perps.order.limit_price_modal.limit_price_too_far_range',
-    {
-      min: formatPerpsFiat(band.min, { ranges: PRICE_RANGES_UNIVERSAL }),
-      max: formatPerpsFiat(band.max, { ranges: PRICE_RANGES_UNIVERSAL }),
-    },
-  );
-  return `${constraint} ${range}`;
-};
+export const getLimitPriceTooFarMessage = (): string =>
+  strings('perps.order.limit_price_modal.limit_price_too_far');
 
 /**
  * Validates the structural price input for limit and trigger-limit placements,
@@ -364,17 +345,7 @@ export const getLimitPriceValidationMessage = (
   if (issue.code === 'positive') {
     return strings('perps.errors.orderValidation.pricePositive');
   }
-  const constraint = strings(
-    'perps.order.limit_price_modal.limit_price_too_far',
-  );
-  const range = strings(
-    'perps.order.limit_price_modal.limit_price_too_far_range',
-    {
-      min: issue.min,
-      max: issue.max,
-    },
-  );
-  return `${constraint} ${range}`;
+  return strings('perps.order.limit_price_modal.limit_price_too_far');
 };
 
 /**

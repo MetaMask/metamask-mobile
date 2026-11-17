@@ -215,7 +215,7 @@ describe('usePerpsLimitPriceInput', () => {
       });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage());
     });
 
     it('blocks an opening price outside the venue deviation band', () => {
@@ -225,7 +225,7 @@ describe('usePerpsLimitPriceInput', () => {
       });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage());
     });
 
     it('warns when a closing long rests below market', () => {

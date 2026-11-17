@@ -49,7 +49,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   <>
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
-      twClassName="h-8"
+      twClassName="h-8 mt-1"
       keyLabel={strings('perps.close_position.total_receive')}
       value={formatCloseSummaryFiat(receiveAmount)}
       valueTextProps={{
@@ -59,7 +59,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
 
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
-      twClassName="h-8"
+      twClassName="h-8 mt-1"
       // One native element carries the label with its value for automation.
       accessible
       testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
