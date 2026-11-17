@@ -60,12 +60,7 @@ import {
   type TabViewRoute,
 } from '../../../../component-library/components-temp/Tabs';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
-import { useABTest } from '../../../../hooks/useABTest';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_EXPOSURE_METADATA,
-  SOCIAL_V1_VARIANTS,
-} from './abTestConfig';
+import { useSocialV1Exposure } from '../../../../hooks/useSocialV1Exposure';
 import FollowingView from '../FollowingView';
 import LeaderboardShellTabPage from '../shell/LeaderboardShellTabPage';
 import {
@@ -221,7 +216,7 @@ const SocialV1ViewContent: React.FC = () => {
   const networkTier = useNetworkTier();
   const [hardwareTier] = useState(() => getHardwareTier());
 
-  useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
+  useSocialV1Exposure();
   useEffect(markSocialTabVisited, []);
   const tabOrder = SOCIAL_V1_TAB_ORDER;
   const trendingIndex = tabOrder.indexOf('trending');
