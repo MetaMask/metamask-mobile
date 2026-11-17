@@ -9828,7 +9828,7 @@
       "body_suffix": "—with trading, sending, and spending built in.",
       "body_no_apy": "MetaMask Money is a stablecoin account with trading, sending, and spending built in.",
       "benefit_convert_title": "Converts to MetaMask USD, 1:1",
-      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, with no fees.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Earn automatically",
       "benefit_earn_body": "Earnings land in your balance in real time, with nothing to claim.",
       "benefit_trade_title": "Trade from the same balance",
@@ -9836,7 +9836,7 @@
       "benefit_withdraw_title": "Withdraw anytime",
       "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
       "benefit_send_title": "Send or spend anywhere",
-      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Start earning",
       "close": "Close"
     },
