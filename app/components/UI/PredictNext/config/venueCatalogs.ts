@@ -5,18 +5,23 @@
  */
 
 /**
- * Kalshi V1: American football discovery, search, and buy and sell, plus the
- * Politics topic Feeds (Trump, Congress, Iran). The Categories are Sports and
- * Politics; `politics` is the Politics Category's Feed, which for V1 is Trump. No Claim (Kalshi settles
- * automatically) and no Deposit or Withdraw until the funding slices
- * (PRED-1161, PRED-1163) ship real implementations. `sports` is the Venue's
- * general sports discovery Feed, which for V1 is NFL Games. Each Politics key
- * maps to the Feed ID of the same name (va-mmcx-predict-api#71). PRED-1403
- * replaces this with the Predict API catalog behind the same adapter method.
+ * Kalshi V1: American football discovery, search, buy and sell, and Withdraw
+ * (PRED-1163, USDC on Base). The Categories are Sports and Politics;
+ * `politics` is the Politics Category's Feed, which for V1 is Trump. No Claim
+ * (Kalshi settles automatically) and no Deposit until PRED-1161 ships.
+ * `sports` is the Venue's general sports discovery Feed, which for V1 is NFL
+ * Games. Each Politics key maps to the Feed ID of the same name
+ * (va-mmcx-predict-api#71).
+ *
+ * This bundled catalog is only what this client can do; the Predict API
+ * catalog behind `KalshiRemoteAdapter.marketData.fetchVenueCatalog` is
+ * authoritative whenever it is read, and there the API adds `withdraw` only
+ * while `KALSHI_WITHDRAWALS_ENABLED` is on. PRED-1403 replaces this with that
+ * catalog.
  */
 export const KALSHI_STATIC_VENUE_CATALOG = {
   venueId: 'kalshi',
-  actions: ['buy', 'sell'],
+  actions: ['buy', 'sell', 'withdraw'],
   feeds: {
     sports: 'sports-football-nfl-games',
     'nfl-games': 'sports-football-nfl-games',

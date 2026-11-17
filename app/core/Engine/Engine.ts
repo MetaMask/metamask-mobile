@@ -117,6 +117,7 @@ import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
 import {
+  predictFundingServiceInit,
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictOrderServiceInit,
@@ -357,6 +358,7 @@ export class Engine {
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         PredictOrderService: predictOrderServiceInit,
+        PredictFundingService: predictFundingServiceInit,
         PredictDeviceAuthService: predictDeviceAuthServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
@@ -656,6 +658,7 @@ export class Engine {
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictFundingService: messengerClientsByName.PredictFundingService,
       PredictDeviceAuthService: messengerClientsByName.PredictDeviceAuthService,
       PredictVenueController: messengerClientsByName.PredictVenueController,
       RecurringOrdersDataService:
@@ -1335,6 +1338,7 @@ export class Engine {
       ClaimsController,
       KycController,
       PredictOrderService,
+      PredictFundingService,
       PredictPortfolioService,
       PredictDeviceAuthService,
       PredictVenueController,
@@ -1388,6 +1392,7 @@ export class Engine {
     // Venue-scoped market-data and live-data caches carry public data and stay.
     try {
       PredictOrderService.abandonCommits();
+      PredictFundingService.abandonObservation();
       await PredictPortfolioService.clearAccountData();
     } catch (error) {
       // Housekeeping a replaced person must never break the reset itself.

@@ -311,6 +311,7 @@ app/core/Engine/controllers/predict-service-init*                       @MetaMas
 app/core/Engine/controllers/predict-venue-controller-init*              @MetaMask/predict
 app/core/Engine/messengers/predict-controller-messenger                 @MetaMask/predict
 app/core/Engine/messengers/predict-device-auth-service-messenger*       @MetaMask/predict
+app/core/Engine/messengers/predict-funding-service-messenger*           @MetaMask/predict
 app/core/Engine/messengers/predict-live-data-service-messenger*         @MetaMask/predict
 app/core/Engine/messengers/predict-market-data-service-messenger*       @MetaMask/predict
 app/core/Engine/messengers/predict-order-service-messenger*             @MetaMask/predict

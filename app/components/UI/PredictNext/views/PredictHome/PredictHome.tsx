@@ -45,6 +45,8 @@ import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
+import { usePredictWithdrawFlow } from '../PredictWithdrawFlow';
+import { usePredictWithdrawAvailable } from '../../funding';
 import type {
   PredictEvent,
   PredictMarket,
@@ -170,6 +172,8 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
+  const { openWithdrawFlow } = usePredictWithdrawFlow();
+  const withdrawResolution = usePredictWithdrawAvailable();
   const openSearch = useCallback(
     () =>
       navigation.navigate(PredictNextRoutes.SEARCH, {
@@ -327,9 +331,16 @@ const PredictHomeView = ({
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
           />
-          {/* Funding actions appear when PRED-1162 ships them and the
-              Venue descriptor lists deposit or withdraw. */}
-          <PortfolioActions onPositionsPress={openPortfolio} />
+          {/* Withdraw appears only when the Venue's descriptor lists it and
+              this client has the flow; deposit awaits PRED-1161. */}
+          <PortfolioActions
+            onPositionsPress={openPortfolio}
+            onWithdrawPress={
+              withdrawResolution.status === 'ready'
+                ? openWithdrawFlow
+                : undefined
+            }
+          />
           <HomeSectionsStatus
             capabilities={capabilities}
             hasSections={sectionCount > 0}

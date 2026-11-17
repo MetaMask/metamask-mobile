@@ -10,6 +10,10 @@ import {
   parsePredictUnresolvedOrdersPage,
 } from '../../contracts/v1/trading';
 import {
+  parsePredictWithdrawPreview,
+  parsePredictWithdrawReceipt,
+} from '../../contracts/v1/funding';
+import {
   parsePredictEvent,
   parsePredictFeed,
   parsePredictMarketHistory,
@@ -36,6 +40,7 @@ import {
   type KalshiOrderSigningInput,
 } from './kalshiOrderSigning';
 import type {
+  VenueFundingAdapter,
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
   VenueTradingAdapter,
@@ -75,6 +80,7 @@ const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> =
     venue_profile_update_required: PredictErrorCode.APP_UPDATE_REQUIRED,
     venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
     geo_blocked: PredictErrorCode.GEO_BLOCKED,
+    amount_below_minimum: PredictErrorCode.AMOUNT_BELOW_MINIMUM,
     invalid_request: PredictErrorCode.INVALID_RESPONSE,
     unauthorized: PredictErrorCode.UNAUTHENTICATED,
     venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
@@ -185,6 +191,7 @@ export class KalshiRemoteAdapter {
   readonly marketData: VenueMarketDataAdapter;
   readonly portfolio: VenuePortfolioAdapter;
   readonly trading: VenueTradingAdapter;
+  readonly funding: VenueFundingAdapter;
   readonly #previews = new Map<string, PinnedOrderPreview>();
   #previewGeneration = 0;
 
@@ -417,6 +424,66 @@ export class KalshiRemoteAdapter {
             result.operations.some(
               ({ receipt }) => receipt.venueId !== this.venueId,
             )
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error, 'observe');
+        }
+      },
+    };
+
+    // Withdrawals are bearer-only and server-pinned: the backend owns the
+    // destination, the expiry, and the idempotency key, so there is nothing
+    // for the adapter to pin locally.
+    this.funding = {
+      previewWithdraw: async (params, options) => {
+        try {
+          const value = await client.fetchWithdrawPreview(
+            this.venueId,
+            params,
+            options,
+          );
+          const result = parsePredictWithdrawPreview(value);
+          if (result.venueId !== this.venueId) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error, 'preview');
+        }
+      },
+      commitWithdraw: async (previewId, options) => {
+        try {
+          const value = await client.commitWithdraw(
+            this.venueId,
+            previewId,
+            options,
+          );
+          const result = parsePredictWithdrawReceipt(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.previewId !== previewId
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error, 'commit');
+        }
+      },
+      observeWithdraw: async (previewId, options) => {
+        try {
+          const value = await client.observeWithdraw(
+            this.venueId,
+            previewId,
+            options,
+          );
+          const result = parsePredictWithdrawReceipt(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.previewId !== previewId
           ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }

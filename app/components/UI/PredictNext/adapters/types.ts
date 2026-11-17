@@ -23,6 +23,9 @@ import type {
   PredictVenueCatalog,
   PredictVenueStatus,
   PredictUnresolvedOrdersPage,
+  PredictWithdrawPreview,
+  PredictWithdrawPreviewParams,
+  PredictWithdrawReceipt,
 } from '../types';
 
 export interface VenuePortfolioAdapter {
@@ -74,6 +77,30 @@ export interface VenueTradingAdapter {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<PredictUnresolvedOrdersPage>;
+}
+
+/**
+ * Funding moves money between the Venue Account and a payout destination.
+ * Like trading it is write-adjacent: the Preview is never cached, the Commit
+ * is never retried, and the phone supplies no identity, destination, or
+ * idempotency key — the backend owns all three.
+ */
+export interface VenueFundingAdapter {
+  previewWithdraw(
+    params: PredictWithdrawPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawPreview>;
+  /** Commits the stored, expiring Preview by reference only. Repeated calls
+   * for the same `previewId` converge on one operation. */
+  commitWithdraw(
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawReceipt>;
+  /** The operation's canonical receipt. Never submits. */
+  observeWithdraw(
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawReceipt>;
 }
 
 export interface VenueMarketDataAdapter {

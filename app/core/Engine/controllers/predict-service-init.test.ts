@@ -23,6 +23,10 @@ import type {
   PredictPortfolioServiceEvents,
   PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
+import type {
+  PredictFundingServiceActions,
+  PredictFundingServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictFundingService';
 import {
   type PredictEntityId,
   type PredictTimestamp,
@@ -40,6 +44,7 @@ import type {
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { store } from '../../../store';
 import {
+  predictFundingServiceInit,
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictOrderServiceInit,
@@ -223,6 +228,139 @@ describe('Predict service initialization', () => {
     onStoreChange();
     expect(cancel).toHaveBeenCalledTimes(1);
     controller.destroy();
+  });
+
+  describe('Predict Funding service', () => {
+    const buildFundingInit = () => {
+      const session = { isSignedIn: true };
+      const rootMessenger = new Messenger<
+        MockAnyNamespace,
+        PredictFundingServiceActions,
+        never
+      >({ namespace: MOCK_ANY_NAMESPACE });
+      const controllerMessenger: PredictFundingServiceMessenger =
+        new Messenger({
+          namespace: 'PredictFundingService',
+          parent: rootMessenger,
+        });
+      const handlers = new Map<string, () => void>();
+      const call = jest.fn((action: string) => {
+        if (action === 'AuthenticationController:getState') {
+          return { isSignedIn: session.isSignedIn };
+        }
+        if (action === 'KeyringController:getState') {
+          return { isUnlocked: true };
+        }
+        return Promise.resolve('test-bearer-token');
+      });
+      const { controller } = predictFundingServiceInit({
+        ...buildMessengerClientInitRequestMock(
+          rootMessenger as unknown as RootExtendedMessenger,
+        ),
+        controllerMessenger,
+        initMessenger: {
+          call,
+          subscribe: (event: string, handler: () => void) => {
+            handlers.set(event, handler);
+          },
+          unsubscribe: (event: string) => {
+            handlers.delete(event);
+          },
+        } as never,
+        getState: jest.fn(() => activeVenueState('kalshi')) as never,
+      });
+      return { rootMessenger, controller, handlers, session };
+    };
+
+    it('registers Withdraw actions on the Engine root messenger', async () => {
+      const { rootMessenger, controller } = buildFundingInit();
+
+      const result = rootMessenger.call(
+        'PredictFundingService:requestWithdrawPreview',
+        'kalshi' as never,
+        { sweepAll: true },
+      );
+
+      // No fetch is stubbed here, so the bearer-only transport fails closed
+      // as an unavailable Venue rather than pretending the quote succeeded.
+      await expect(result).rejects.toMatchObject({
+        code: 'VENUE_UNAVAILABLE',
+      });
+      controller.destroy();
+    });
+
+    it('abandons observation when the keyring locks or the profile changes', () => {
+      const { controller, handlers } = buildFundingInit();
+      const abandon = jest.spyOn(controller, 'abandonObservation');
+
+      handlers.get('KeyringController:lock')?.();
+      handlers.get('AuthenticationController:profileSignIn')?.();
+
+      expect(abandon).toHaveBeenCalledTimes(2);
+      controller.destroy();
+    });
+
+    it('abandons observation when the session signs out, not when it refreshes', () => {
+      const { controller, handlers, session } = buildFundingInit();
+      const abandon = jest.spyOn(controller, 'abandonObservation');
+      const authenticationChanged =
+        handlers.get('AuthenticationController:stateChange');
+
+      session.isSignedIn = true;
+      authenticationChanged?.();
+      expect(abandon).not.toHaveBeenCalled();
+
+      session.isSignedIn = false;
+      authenticationChanged?.();
+      expect(abandon).toHaveBeenCalledTimes(1);
+      controller.destroy();
+    });
+
+    it('abandons observation when the Active Venue changes', () => {
+      let state = activeVenueState('kalshi');
+      const rootMessenger = new Messenger<
+        MockAnyNamespace,
+        PredictFundingServiceActions,
+        never
+      >({ namespace: MOCK_ANY_NAMESPACE });
+      jest.mocked(store.subscribe).mockClear();
+      const { controller } = predictFundingServiceInit({
+        ...buildMessengerClientInitRequestMock(
+          rootMessenger as unknown as RootExtendedMessenger,
+        ),
+        controllerMessenger: new Messenger({
+          namespace: 'PredictFundingService',
+          parent: rootMessenger,
+        }),
+        initMessenger: {
+          call: jest.fn(() => ({ isSignedIn: true, isUnlocked: true })),
+          subscribe: jest.fn(),
+          unsubscribe: jest.fn(),
+        } as never,
+        getState: jest.fn(() => state) as never,
+      });
+      const abandon = jest.spyOn(controller, 'abandonObservation');
+      const onStoreChange = jest.mocked(store.subscribe).mock.calls[0][0];
+
+      onStoreChange();
+      expect(abandon).not.toHaveBeenCalled();
+
+      state = activeVenueState('polymarket');
+      onStoreChange();
+      expect(abandon).toHaveBeenCalledTimes(1);
+      controller.destroy();
+    });
+
+    it('releases every subscription on destroy', () => {
+      jest.mocked(store.subscribe).mockClear();
+      const { controller, handlers } = buildFundingInit();
+      expect(handlers.size).toBe(3);
+      expect(jest.mocked(store.subscribe)).toHaveBeenCalledTimes(1);
+
+      controller.destroy();
+
+      expect(handlers.size).toBe(0);
+    });
   });
 
   it('publishes socket updates on the live-data service messenger', async () => {

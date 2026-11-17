@@ -13,6 +13,7 @@ export const PredictHomeTestIds = {
   BALANCE_GEO_BLOCKED: 'predict-next-home-balance-geo-blocked',
   ACTIONS: 'predict-next-home-portfolio-actions',
   POSITIONS: 'predict-next-home-positions',
+  WITHDRAW: 'predict-next-home-withdraw',
   GET_STARTED_BANNER: 'predict-next-home-get-started-banner',
   GET_STARTED_BANNER_IMAGE: 'predict-next-home-get-started-banner-image',
   GET_STARTED_BANNER_DISMISS: 'predict-next-home-get-started-banner-dismiss',

@@ -52,6 +52,10 @@ import { getRecurringOrdersDataServiceMessenger } from './recurring-orders-data-
 import { getLimitOrdersDataServiceMessenger } from './limit-orders-data-service-messenger';
 import { getSentinelFeeTokensDataServiceMessenger } from './sentinel-fee-tokens-data-service-messenger';
 import {
+  getPredictFundingServiceInitMessenger,
+  getPredictFundingServiceMessenger,
+} from './predict-funding-service-messenger';
+import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
 } from './predict-order-service-messenger';
@@ -318,6 +322,10 @@ export const MESSENGER_FACTORIES = {
   PredictOrderService: {
     getMessenger: getPredictOrderServiceMessenger,
     getInitMessenger: getPredictOrderServiceInitMessenger,
+  },
+  PredictFundingService: {
+    getMessenger: getPredictFundingServiceMessenger,
+    getInitMessenger: getPredictFundingServiceInitMessenger,
   },
   PredictVenueController: {
     getMessenger: getPredictVenueControllerMessenger,

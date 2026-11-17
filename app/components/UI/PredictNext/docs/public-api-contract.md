@@ -94,7 +94,9 @@ Money's Predictions-account transfer, pay-with's Predict source (the Predict bal
 - `isAvailableNow()` re-reads the store. A deposit that runs after a delay checks it when it runs: Money's transfer deferred behind a rejected confirmation, the deposit Money starts once its sheet has closed, and pay-with's Add before it rejects the confirmation. An Active Venue change in between drops the action instead of starting the legacy deposit on the wrong implementation.
 - `usePredictLegacyDepositEligibility()` is Polymarket's region eligibility, which Money also requires before it offers the transfer.
 
-Kalshi funding needs both halves. The descriptor says what a Venue supports, and `PREDICT_FUNDING_IMPLEMENTATIONS` (`funding/fundingImplementations.ts`) says which flows this client can run. The `next` entry is empty until PRED-1161 (deposit) and PRED-1163 (withdraw) ship real flows, so a descriptor that lists `deposit` early still shows nothing. Those tickets add the `next` flow and its own entry points. Because the legacy gate is false on every Venue the `next` implementation serves, a Kalshi deposit can never start the Polymarket one.
+Kalshi funding needs both halves. The descriptor says what a Venue supports, and `PREDICT_FUNDING_IMPLEMENTATIONS` (`funding/fundingImplementations.ts`) says which flows this client can run. The `next` entry lists `withdraw` only: Withdraw shipped with PRED-1163, and Deposit stays absent until PRED-1161 ships a flow, so a descriptor that lists `deposit` early still shows nothing. Because the legacy gate is false on every Venue the `next` implementation serves, a Kalshi deposit can never start the Polymarket one.
+
+Withdraw's public gate is `usePredictWithdrawAvailable()`, which composes `selectPredictAvailability`, the Active Venue, and that Venue's capabilities through `resolvePredictFunding('withdraw', …)`. Surfaces render their entry point only while it returns `ready`; the execution itself lives in `PredictFundingService` (quote, commit by `previewId`, and receipt observation) and never in the entry point.
 
 ## Rules for the Venue switch
 

@@ -14,6 +14,10 @@ import {
   type PredictMarketDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
 import {
+  PredictFundingService,
+  type PredictFundingServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictFundingService';
+import {
   PredictOrderService,
   type PredictOrderServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictOrderService';
@@ -23,6 +27,7 @@ import {
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
 import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-live-data-service-messenger';
 import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
+import type { PredictFundingServiceInitMessenger } from '../messengers/predict-funding-service-messenger';
 import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
 import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
 import { subscribeToActiveVenueChanges } from '../../../components/UI/PredictNext/implementation/subscribeToActiveVenueChanges';
@@ -239,6 +244,71 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
   controller.setLifecycleCleanup(() => {
     unsubscribeVenue();
     cleanupRecovery();
+  });
+  return { controller };
+};
+
+export const predictFundingServiceInit: MessengerClientInitFunction<
+  PredictFundingService,
+  PredictFundingServiceMessenger,
+  PredictFundingServiceInitMessenger
+> = ({ controllerMessenger, initMessenger, getState }) => {
+  // Withdrawals are bearer-only: Kalshi refuses device signatures on
+  // `/isv/withdraw/crypto`, and the backend resolves the user, the
+  // destination, and the idempotency key. So this client needs no signing
+  // hooks and no dispatch journal.
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: process.env.MM_PREDICT_API_URL,
+      clientVersion: packageJSON.version,
+      getBearerToken: () =>
+        initMessenger.call('AuthenticationController:getBearerToken'),
+    }),
+  );
+  const controller = new PredictFundingService({
+    messenger: controllerMessenger,
+    funding: adapter.funding,
+    venueId: adapter.venueId,
+  });
+
+  // A replaced Predict User must not have their Withdrawals observed with
+  // the next person's bearer token. This is watched here, not on a screen,
+  // so it applies whether or not the Withdraw sheet is mounted.
+  const abandon = () => controller.abandonObservation();
+  initMessenger.subscribe('KeyringController:lock', abandon);
+  initMessenger.subscribe('AuthenticationController:profileSignIn', abandon);
+  let signedIn = initMessenger.call('AuthenticationController:getState').isSignedIn;
+  const authenticationChanged = () => {
+    const next = initMessenger.call(
+      'AuthenticationController:getState',
+    ).isSignedIn;
+    if (next !== signedIn) {
+      signedIn = next;
+      abandon();
+    }
+  };
+  initMessenger.subscribe(
+    'AuthenticationController:stateChange',
+    authenticationChanged,
+  );
+  // An Active Venue change means the observed Withdrawals belong to a Venue
+  // this session no longer serves.
+  const unsubscribeVenue = subscribeToActiveVenueChanges(
+    { getState, subscribe: (listener) => store.subscribe(listener) },
+    abandon,
+  );
+
+  controller.setLifecycleCleanup(() => {
+    initMessenger.unsubscribe('KeyringController:lock', abandon);
+    initMessenger.unsubscribe(
+      'AuthenticationController:profileSignIn',
+      abandon,
+    );
+    initMessenger.unsubscribe(
+      'AuthenticationController:stateChange',
+      authenticationChanged,
+    );
+    unsubscribeVenue();
   });
   return { controller };
 };

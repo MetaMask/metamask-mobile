@@ -23,6 +23,7 @@ import { PredictPortfolioScreen } from '../../../app/components/UI/PredictNext/v
 import { PredictSearchScreen } from '../../../app/components/UI/PredictNext/views/PredictSearch/PredictSearchScreen';
 import { PredictNextRoutes } from '../../../app/components/UI/PredictNext/navigation/routes';
 import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictOrderFlow';
+import { PredictWithdrawFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictWithdrawFlow';
 import { NextVenueProvider } from '../../../app/components/UI/PredictNext/implementation';
 import type { PredictVenueId } from '../../../app/components/UI/PredictNext/types';
 import type {
@@ -32,12 +33,24 @@ import type {
   PredictNextSearchParams,
 } from '../../../app/components/UI/PredictNext/navigation/types';
 
-/** Mirrors production wiring: the Order Flow provider wraps the stack. */
+/** The Venue a Kalshi-only rollout resolves, which the fixtures describe. */
+const DEFAULT_VENUE_ID = 'kalshi' as PredictVenueId;
+
+/** Mirrors production wiring: `PredictImplementationSwitch` provides the
+ * Active Venue above the stack, and the Order and Withdraw flow providers wrap
+ * it. */
 const withOrderFlow =
-  (Component: React.ComponentType): React.ComponentType =>
+  (
+    Component: React.ComponentType,
+    venueId: PredictVenueId = DEFAULT_VENUE_ID,
+  ): React.ComponentType =>
   (props) => (
     <PredictOrderFlowProvider>
-      <Component {...props} />
+      <NextVenueProvider venueId={venueId}>
+        <PredictWithdrawFlowProvider>
+          <Component {...props} />
+        </PredictWithdrawFlowProvider>
+      </NextVenueProvider>
     </PredictOrderFlowProvider>
   );
 
@@ -47,17 +60,10 @@ const EventScreen = withOrderFlow(
 const FeedScreen = withOrderFlow(
   PredictFeedScreen as unknown as React.ComponentType<object>,
 );
-/** The Venue a Kalshi-only rollout resolves, which the fixtures describe. */
-const DEFAULT_VENUE_ID = 'kalshi' as PredictVenueId;
-
-/** Mirrors production wiring: the implementation switch provides the
- * resolved Active Venue to the stack's entry screen. */
+/** The implementation switch provides the resolved Active Venue to the
+ * stack's entry screen. */
 const homeScreenFor = (venueId: PredictVenueId) =>
-  withOrderFlow(() => (
-    <NextVenueProvider venueId={venueId}>
-      <PredictHome />
-    </NextVenueProvider>
-  ));
+  withOrderFlow(() => <PredictHome />, venueId);
 
 const HomeScreen = homeScreenFor(DEFAULT_VENUE_ID);
 const PortfolioScreen = withOrderFlow(

@@ -302,6 +302,8 @@ export enum TraceName {
   PredictNextSearchEvents = 'PredictNext Search Events',
   PredictNextOrderPreview = 'PredictNext Order Preview',
   PredictNextOrderCommit = 'PredictNext Order Commit',
+  PredictNextWithdrawPreview = 'PredictNext Withdraw Preview',
+  PredictNextWithdrawCommit = 'PredictNext Withdraw Commit',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
