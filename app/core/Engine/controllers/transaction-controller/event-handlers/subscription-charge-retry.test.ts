@@ -281,22 +281,27 @@ describe('handleTransactionConfirmedForSubscriptionChargeRetry', () => {
     expect(mockGetSubscriptions).not.toHaveBeenCalled();
   });
 
-  it('retries only once when two deposits confirm while a retry is in flight', async () => {
+  it('retries once more with the latest block when deposits confirm while a retry is in flight', async () => {
     let resolveFirstRetry: (() => void) | undefined;
-    mockRetrySubscriptionChargeAfterDeposit.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveFirstRetry = resolve;
-        }),
-    );
+    mockRetrySubscriptionChargeAfterDeposit.mockImplementation(() => {
+      if (mockRetrySubscriptionChargeAfterDeposit.mock.calls.length > 1) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        resolveFirstRetry = resolve;
+      });
+    });
 
     const firstCall = handleTransactionConfirmedForSubscriptionChargeRetry(
-      makeTx({ id: 'tx-1' }),
+      makeTx({ id: 'tx-1', blockNumber: '0x10' }),
     );
     await Promise.resolve();
 
     await handleTransactionConfirmedForSubscriptionChargeRetry(
-      makeTx({ id: 'tx-2' }),
+      makeTx({ id: 'tx-2', blockNumber: '0x30' }),
+    );
+    await handleTransactionConfirmedForSubscriptionChargeRetry(
+      makeTx({ id: 'tx-3', blockNumber: '0x20' }),
     );
 
     expect(mockRetrySubscriptionChargeAfterDeposit).toHaveBeenCalledTimes(1);
@@ -304,7 +309,13 @@ describe('handleTransactionConfirmedForSubscriptionChargeRetry', () => {
     resolveFirstRetry?.();
     await firstCall;
 
-    expect(mockRetrySubscriptionChargeAfterDeposit).toHaveBeenCalledTimes(1);
+    expect(mockRetrySubscriptionChargeAfterDeposit).toHaveBeenCalledTimes(2);
+    expect(mockRetrySubscriptionChargeAfterDeposit).toHaveBeenLastCalledWith(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+      48,
+    );
+    expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
   });
 
   it('retries a later deposit after an earlier retry fails', async () => {

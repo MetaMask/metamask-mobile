@@ -23,8 +23,8 @@ const LOG_OPTIONS = {
 } as const;
 
 let isRetrying = false;
-let hasPendingLockedDeposit = false;
-let pendingLockedDepositMinBlock: number | undefined;
+let hasPendingDeposit = false;
+let pendingDepositMinBlock: number | undefined;
 
 /**
  * Confirmed receipts store `blockNumber` as a 0x-prefixed hex quantity. A
@@ -70,27 +70,29 @@ function isDepositEligibleForSubscriptionRetry(
  *
  * @param minBlock - Confirmed deposit block, when the transaction has one.
  */
-function rememberLockedDeposit(minBlock: number | undefined): void {
+function rememberPendingDeposit(minBlock: number | undefined): void {
   if (
-    !hasPendingLockedDeposit ||
+    !hasPendingDeposit ||
     (minBlock !== undefined &&
-      (pendingLockedDepositMinBlock === undefined ||
-        minBlock > pendingLockedDepositMinBlock))
+      (pendingDepositMinBlock === undefined ||
+        minBlock > pendingDepositMinBlock))
   ) {
-    pendingLockedDepositMinBlock = minBlock;
+    pendingDepositMinBlock = minBlock;
   }
-  hasPendingLockedDeposit = true;
+  hasPendingDeposit = true;
 }
 
-function clearLockedDeposit(): void {
-  hasPendingLockedDeposit = false;
-  pendingLockedDepositMinBlock = undefined;
+function clearPendingDeposit(): void {
+  hasPendingDeposit = false;
+  pendingDepositMinBlock = undefined;
 }
 
 /**
  * Runs the charge retry for the current subscription, then refreshes it.
- * A retry already in flight is ignored. The refresh runs after that flag
- * is cleared, including when the charge is skipped.
+ * A deposit that lands while a retry is in flight is queued and retried
+ * once that call finishes, because the in-flight read may predate it. The
+ * refresh runs after the flag is cleared, including when the charge is
+ * skipped.
  *
  * @param minBlock - Confirmed deposit block, when the transaction has one.
  */
@@ -98,6 +100,7 @@ async function retryCurrentSubscriptionCharge(
   minBlock: number | undefined,
 ): Promise<void> {
   if (isRetrying) {
+    rememberPendingDeposit(minBlock);
     return;
   }
 
@@ -139,7 +142,7 @@ async function retryCurrentSubscriptionCharge(
     );
   }
 
-  if (!hasPendingLockedDeposit) {
+  if (!hasPendingDeposit) {
     return;
   }
 
@@ -148,8 +151,8 @@ async function retryCurrentSubscriptionCharge(
     return;
   }
 
-  const nextMinBlock = pendingLockedDepositMinBlock;
-  clearLockedDeposit();
+  const nextMinBlock = pendingDepositMinBlock;
+  clearPendingDeposit();
   await retryCurrentSubscriptionCharge(nextMinBlock);
 }
 
@@ -158,9 +161,9 @@ async function retryCurrentSubscriptionCharge(
  * top-up confirms.
  *
  * Subscribed from Engine for the life of TransactionController. Signed-out
- * sessions and a retry already in flight are ignored. A deposit that confirms
- * while the wallet is locked is held until unlock, because this event is not
- * replayed. Failures are logged only; the membership banner keeps its Add
+ * sessions are ignored. A deposit that confirms while the wallet is locked is
+ * held until unlock, and one that confirms during an in-flight retry is held
+ * until that retry finishes, because this event is not replayed. Failures are logged only; the membership banner keeps its Add
  * funds action. Every eligible unlocked deposit refreshes subscriptions
  * afterwards, including when the charge is skipped.
  *
@@ -178,7 +181,7 @@ export async function handleTransactionConfirmedForSubscriptionChargeRetry(
 
   if (!selectIsUnlocked(state)) {
     if (selectIsSignedIn(state)) {
-      rememberLockedDeposit(minBlock);
+      rememberPendingDeposit(minBlock);
     }
     return;
   }
@@ -196,19 +199,19 @@ export async function handleTransactionConfirmedForSubscriptionChargeRetry(
  * account. Subscribed from Engine on `KeyringController:unlock`.
  */
 export async function handleUnlockForSubscriptionChargeRetry(): Promise<void> {
-  if (!hasPendingLockedDeposit || isRetrying) {
+  if (!hasPendingDeposit || isRetrying) {
     return;
   }
 
   const state = ReduxService.store.getState();
   if (!selectIsUnlocked(state) || !selectIsSignedIn(state)) {
     if (!selectIsSignedIn(state)) {
-      clearLockedDeposit();
+      clearPendingDeposit();
     }
     return;
   }
 
-  const minBlock = pendingLockedDepositMinBlock;
-  clearLockedDeposit();
+  const minBlock = pendingDepositMinBlock;
+  clearPendingDeposit();
   await retryCurrentSubscriptionCharge(minBlock);
 }
