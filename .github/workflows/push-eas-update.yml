@@ -448,13 +448,33 @@ jobs:
           permissions: |
             members: read
 
-      - name: Await approval from mobile release team
-        uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
-        with:
-          team: release-team
-          approvals: 2
-          pr-number: ${{ needs.validate-pr.outputs.pr_number }}
-          token: ${{ steps.get-token.outputs.token }}
+      # Counts distinct release-team members whose latest review is APPROVED. The reviews API
+      # returns every review, so counting raw APPROVED entries would let one person approve twice.
+      - name: Require approvals from mobile release team
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          PR_NUMBER: ${{ needs.validate-pr.outputs.pr_number }}
+          REQUIRED_APPROVALS: 2
+        run: |
+          set -euo pipefail
+
+          TEAM_MEMBERS=$(gh api "/orgs/${GITHUB_REPOSITORY_OWNER}/teams/release-team/members" \
+            --paginate --jq '.[].login' | jq -R . | jq -s .)
+
+          APPROVERS=$(gh api "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" \
+            --paginate --jq '.[] | select(.state != "COMMENTED" and .state != "PENDING") | {login: .user.login, state, submitted_at}' |
+            jq -s --argjson team "$TEAM_MEMBERS" '
+              group_by(.login)
+              | map(max_by(.submitted_at))
+              | map(select(.state == "APPROVED" and (.login as $login | $team | any(. == $login))))
+              | map(.login)')
+
+          COUNT=$(jq 'length' <<<"$APPROVERS")
+          echo "release-team approvals on PR #${PR_NUMBER}: ${COUNT} ($(jq -r 'join(", ")' <<<"$APPROVERS"))"
+          if (( COUNT < REQUIRED_APPROVALS )); then
+            echo "::error::PR #${PR_NUMBER} needs ${REQUIRED_APPROVALS} approvals from distinct release-team members; found ${COUNT}."
+            exit 1
+          fi
 
   push-update-ios:
     name: Push EAS Update (iOS)
