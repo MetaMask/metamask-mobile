@@ -1,5 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialFeedListState } from '../utils/getSocialFeedListState';
 import {
@@ -9,6 +10,8 @@ import {
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
+  SOCIAL_FEED_ERROR_TEST_ID,
+  SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID,
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
 } from './SocialFeedStates.testIds';
@@ -74,5 +77,45 @@ describe('SocialFeedFooter', () => {
 
     expect(screen.getByTestId(SOCIAL_FEED_NEXT_PAGE_TEST_ID)).toBeOnTheScreen();
     expect(screen.queryByTestId(SOCIAL_FEED_RETRY_TEST_ID)).toBeNull();
+  });
+
+  it('shows the inline paging error under loaded rows and retries that page', () => {
+    const onRetry = jest.fn();
+    const onRetryLoadMore = jest.fn();
+
+    renderWithProvider(
+      <SocialFeedFooter
+        state={NONE}
+        isFetchingNextPage={false}
+        isLoadMoreError
+        onRetry={onRetry}
+        onRetryLoadMore={onRetryLoadMore}
+      />,
+    );
+    fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
+
+    expect(
+      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
+    ).toHaveProp('accessibilityRole', 'alert');
+    expect(screen.queryByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeNull();
+    expect(onRetryLoadMore).toHaveBeenCalledTimes(1);
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+
+  it('hides the paging error while the next page is loading', () => {
+    renderWithProvider(
+      <SocialFeedFooter
+        state={NONE}
+        isFetchingNextPage
+        isLoadMoreError
+        onRetry={jest.fn()}
+        onRetryLoadMore={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId(SOCIAL_FEED_NEXT_PAGE_TEST_ID)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID),
+    ).toBeNull();
   });
 });

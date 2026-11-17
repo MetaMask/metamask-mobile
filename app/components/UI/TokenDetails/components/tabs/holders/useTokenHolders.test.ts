@@ -139,6 +139,7 @@ describe('useTokenHolders', () => {
     await waitFor(() =>
       expect(result.current.error).toBe('holders route exploded'),
     );
+    expect(result.current.isLoadMoreError).toBe(false);
     expect(result.current.rows).toStrictEqual([]);
     expect(mockUseLogSocialQueryError).toHaveBeenCalledWith(
       expect.any(Error),

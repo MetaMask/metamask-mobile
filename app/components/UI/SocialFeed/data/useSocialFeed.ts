@@ -17,6 +17,7 @@ import {
   fetchSocialFeedPage,
   getSocialFeedNextPageParam,
 } from './socialFeedQueries';
+import { useSocialListPaging } from './useSocialListPaging';
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
@@ -83,8 +84,16 @@ export interface SocialFeedState {
   hasNextPage: boolean;
   /** Request the next page; no-op if none remain, one is in flight, or errored. */
   loadMore: () => void;
-  /** Normalised error message, or `null`. */
+  /**
+   * Normalised error for a failed first page or refetch, or `null`.
+   * A failed next page is `isLoadMoreError` so loaded rows stay on screen
+   * without the full-screen feed error.
+   */
   error: string | null;
+  /** True when the latest next-page fetch failed and earlier pages are kept. */
+  isLoadMoreError: boolean;
+  /** Retries the page that failed. No-op unless `isLoadMoreError`. */
+  retryLoadMore: () => void;
   /** Reset to the first page and refetch -- also the recovery path after an error. */
   refresh: () => Promise<void>;
   /** When the loaded pages were fetched, or `undefined` before the first success. */
@@ -282,31 +291,25 @@ export const useSocialFeed = (
     queryParams: toTelemetryQueryParams(request),
   });
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } =
-    query;
-
-  const loadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage().catch(() => undefined);
-    }
-  }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
+  const hasRequest = Boolean(request);
+  const {
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    retryLoadMore,
+    isLoadMoreError,
+    surfacedError,
+    refreshFirstPage,
+  } = useSocialListPaging<FeedResponse>(query, queryKey, hasRequest);
 
   const refresh = useCallback(async () => {
     if (!request) {
       return;
     }
-    // Refetch only the first page (the stale list stays visible meanwhile, so
-    // no skeleton flash), dropping any older pages loaded via pagination.
-    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
-      old
-        ? {
-            pages: old.pages.slice(0, 1),
-            pageParams: old.pageParams.slice(0, 1),
-          }
-        : old,
-    );
-    await refetch();
-  }, [queryClient, queryKey, refetch, request]);
+    // Refetch only the first page. The stale list stays visible, so there is
+    // no skeleton flash, and older pages are dropped.
+    await refreshFirstPage();
+  }, [refreshFirstPage, request]);
 
   const live = useSocialFeedRealtime(
     { rows, dataUpdatedAt, refresh },
@@ -326,15 +329,16 @@ export const useSocialFeed = (
     [filterPost, posts],
   );
 
-  const hasRequest = Boolean(request);
   return {
     posts: live ? live.posts : filteredPosts,
     rows,
     isLoading: hasRequest && query.isLoading,
-    isFetchingNextPage: hasRequest && isFetchingNextPage,
-    hasNextPage: hasRequest && hasNextPage === true && !isError,
+    isFetchingNextPage,
+    hasNextPage,
     loadMore,
-    error: hasRequest ? formatSocialQueryErrorMessage(error) : null,
+    error: formatSocialQueryErrorMessage(surfacedError),
+    isLoadMoreError,
+    retryLoadMore,
     refresh,
     dataUpdatedAt,
     ...(live ? { realtime: live.realtime } : {}),

@@ -16,6 +16,7 @@ import {
   useSocialEntryModeration,
 } from '../../../SocialFeed/components/SocialEntryOptionsBottomSheet';
 import SocialFeedError from '../../../SocialFeed/components/SocialFeedError';
+import SocialFeedLoadMoreError from '../../../SocialFeed/components/SocialFeedLoadMoreError';
 import SocialFeedPostShell, {
   type SocialFeedPostShellProps,
 } from '../../../SocialFeed/components/SocialFeedPostShell';
@@ -93,6 +94,8 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
     hasNextPage,
     loadMore,
     error,
+    isLoadMoreError,
+    retryLoadMore,
     refresh,
   } = useSocialFeed(enabled ? source : null);
   // A hidden post must leave the list. The row keeps its padding and the
@@ -144,6 +147,9 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
           <TokenDetailsFeedEmptyState hasBalance={hasBalance} token={token} />
         ) : null}
         {error ? <SocialFeedError onRetry={() => refresh()} /> : null}
+        {isLoadMoreError && !isFetchingNextPage ? (
+          <SocialFeedLoadMoreError onRetry={retryLoadMore} />
+        ) : null}
         {isFetchingNextPage ? (
           <Box
             alignItems={BoxAlignItems.Center}

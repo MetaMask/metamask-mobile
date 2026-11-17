@@ -155,6 +155,8 @@ jest.mock('../../SocialFeed', () => {
     hasNextPage: false,
     loadMore: jest.fn(),
     error: null,
+    isLoadMoreError: false,
+    retryLoadMore: jest.fn(),
     refresh: jest.fn(),
   }));
   return {
@@ -555,6 +557,8 @@ describe('TokenDetailsV1', () => {
       hasNextPage: false,
       loadMore: jest.fn(),
       error: null,
+      isLoadMoreError: false,
+      retryLoadMore: jest.fn(),
       refresh: jest.fn(),
       dataUpdatedAt: undefined,
     }));
@@ -1395,6 +1399,8 @@ describe('TokenDetailsV1', () => {
       hasNextPage: false,
       loadMore: jest.fn(),
       error: null,
+      isLoadMoreError: false,
+      retryLoadMore: jest.fn(),
       refresh: jest.fn(),
       dataUpdatedAt: undefined,
     });
@@ -1545,6 +1551,8 @@ describe('TokenDetailsV1', () => {
       hasNextPage: false,
       loadMore: jest.fn(),
       error: null,
+      isLoadMoreError: false,
+      retryLoadMore: jest.fn(),
       refresh: jest.fn(),
       dataUpdatedAt: undefined,
     });

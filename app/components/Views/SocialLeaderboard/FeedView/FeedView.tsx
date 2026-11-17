@@ -76,6 +76,7 @@ import { useTraderFeed } from './hooks/useTraderFeed';
 import type { FeedAudience, FeedItem } from '../../../UI/SocialFeed/types';
 import type { FeedSection, FeedTypeFilter } from './types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import SocialFeedLoadMoreError from '../../../UI/SocialFeed/components/SocialFeedLoadMoreError';
 import { FeedViewSelectorsIDs } from './FeedView.testIds';
 
 /**
@@ -259,6 +260,8 @@ const FeedView: React.FC<FeedViewProps> = ({
     hasNextPage,
     loadMore,
     error,
+    isLoadMoreError,
+    retryLoadMore,
     refresh,
     // Bumps the shared wall clock immediately after PTR / load more so labels
     // do not wait for the next 30s tick. Relative ages themselves come from
@@ -463,6 +466,9 @@ const FeedView: React.FC<FeedViewProps> = ({
   const renderFooter = useCallback(() => {
     // When the list is empty, `ListEmptyComponent` owns the loading affordance
     // (e.g. the type-filter empty state's spinner) — skip the footer duplicate.
+    if (isLoadMoreError && !isFetchingNextPage && items.length > 0) {
+      return <SocialFeedLoadMoreError onRetry={retryLoadMore} />;
+    }
     if (!isFetchingNextPage || items.length === 0) {
       return null;
     }
@@ -475,7 +481,13 @@ const FeedView: React.FC<FeedViewProps> = ({
         <ActivityIndicator size="small" color={colors.icon.default} />
       </Box>
     );
-  }, [isFetchingNextPage, items.length, colors.icon.default]);
+  }, [
+    colors.icon.default,
+    isFetchingNextPage,
+    isLoadMoreError,
+    items.length,
+    retryLoadMore,
+  ]);
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage) {

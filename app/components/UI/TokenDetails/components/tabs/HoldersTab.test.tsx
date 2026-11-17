@@ -9,6 +9,7 @@ import TokenDetailsHoldersTab, {
   TokenDetailsHoldersTabSelectorsIDs,
 } from './HoldersTab';
 import { TOKEN_HOLDERS_FIXTURE } from './holders/tokenHolders.fixture';
+import { SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID } from '../../../SocialFeed/components/SocialFeedStates.testIds';
 import { TokenDetailsIds } from '../../testIds';
 
 const TokenHolderRowSelectorsIDs = TokenDetailsIds.holderRow;
@@ -83,6 +84,8 @@ const baseState: TokenHoldersState = {
   hasNextPage: false,
   loadMore: jest.fn(),
   error: null,
+  isLoadMoreError: false,
+  retryLoadMore: jest.fn(),
   refresh: jest.fn(),
 };
 
@@ -243,6 +246,21 @@ describe('TokenDetailsHoldersTab', () => {
     );
 
     expect(state.refresh).toHaveBeenCalled();
+  });
+
+  it('shows the inline paging error under loaded holders and retries that page', () => {
+    const state = mockState({
+      rows: [toRow(0)],
+      isLoadMoreError: true,
+    });
+
+    renderTab();
+    fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
+
+    expect(
+      screen.queryByTestId(TokenDetailsHoldersTabSelectorsIDs.ERROR),
+    ).toBeNull();
+    expect(state.retryLoadMore).toHaveBeenCalledTimes(1);
   });
 
   it('asks for the next page when the page scrolls near its end', () => {

@@ -232,6 +232,7 @@ describe('useTraderFeed', () => {
     });
 
     await waitFor(() => expect(result.current.error).toBe('boom'));
+    expect(result.current.isLoadMoreError).toBe(false);
     expect(result.current.items).toHaveLength(0);
     expect(result.current.hasLoadedItems).toBe(false);
     expect(result.current.hasNextPage).toBe(false);

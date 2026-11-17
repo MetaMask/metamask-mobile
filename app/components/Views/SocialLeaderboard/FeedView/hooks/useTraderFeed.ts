@@ -1,11 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  useInfiniteQuery,
-  useQueryClient,
-  type InfiniteData,
-  type UseInfiniteQueryOptions,
-} from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import type { FeedResponse } from '@metamask/social-controllers';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
@@ -14,6 +9,7 @@ import {
 } from '../../../../../util/social/socialServiceTelemetry';
 import { formatTradeDayLabel } from '../../../../UI/SocialFeed/utils/formatters';
 import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
+import { useSocialListPaging } from '../../../../UI/SocialFeed/data/useSocialListPaging';
 import { mapFeedItem } from '../../../../UI/SocialFeed/utils/mapFeedItem';
 import type {
   FeedAudience,
@@ -60,8 +56,15 @@ export interface UseTraderFeedResult {
   hasNextPage: boolean;
   /** Request the next page; no-op if none remain, one is in flight, or errored. */
   loadMore: () => void;
-  /** Normalised error message, or `null`. */
+  /**
+   * Normalised error for a failed first page or refetch, or `null`.
+   * A failed next page is `isLoadMoreError` so loaded rows stay on screen.
+   */
   error: string | null;
+  /** True when the latest next-page fetch failed and earlier pages are kept. */
+  isLoadMoreError: boolean;
+  /** Retries the page that failed. No-op unless `isLoadMoreError`. */
+  retryLoadMore: () => void;
   /** Reset to the first page and refetch the newest activity. */
   refresh: () => Promise<void>;
   /**
@@ -132,7 +135,6 @@ export const useTraderFeed = (
 
   const scope = toFeedScope(audience);
 
-  const queryClient = useQueryClient();
   const queryKey = useMemo(() => buildTraderFeedQueryKey(scope), [scope]);
 
   const query = useInfiniteQuery({
@@ -188,28 +190,15 @@ export const useTraderFeed = (
     queryParams: { scope, chains: FEED_CAIP2_CHAINS.join(',') },
   });
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } =
-    query;
-  const loadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage().catch(() => undefined);
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
-
-  const refresh = useCallback(async () => {
-    // Reset to the newest activity from the top. Refetch only the first page
-    // (the stale list stays visible meanwhile, so no skeleton flash), then drop
-    // any older pages that were loaded via pagination.
-    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
-      old
-        ? {
-            pages: old.pages.slice(0, 1),
-            pageParams: old.pageParams.slice(0, 1),
-          }
-        : old,
-    );
-    await refetch();
-  }, [queryClient, queryKey, refetch]);
+  const {
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    retryLoadMore,
+    isLoadMoreError,
+    surfacedError,
+    refreshFirstPage: refresh,
+  } = useSocialListPaging<FeedResponse>(query, queryKey);
 
   return {
     sections,
@@ -220,9 +209,11 @@ export const useTraderFeed = (
     // reports loading and a background refetch doesn't flash the skeleton.
     isLoading: query.isLoading,
     isFetchingNextPage,
-    hasNextPage: hasNextPage === true && !isError,
+    hasNextPage,
     loadMore,
-    error: formatSocialQueryErrorMessage(error),
+    error: formatSocialQueryErrorMessage(surfacedError),
+    isLoadMoreError,
+    retryLoadMore,
     refresh,
     // React Query reports `0` until the first success; normalise to `undefined`
     // so consumers fall back to their own render-time clock.

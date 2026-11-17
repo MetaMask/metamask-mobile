@@ -1466,6 +1466,7 @@
         "title": "No trades yet"
       },
       "load_more": "Load more",
+      "load_more_error": "Couldn't load more",
       "error": {
         "title": "The feed didn't load",
         "description": "Give it a moment, then try again.",

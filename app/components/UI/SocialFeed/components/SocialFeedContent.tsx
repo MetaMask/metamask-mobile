@@ -134,6 +134,8 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     hasNextPage,
     loadMore,
     error,
+    isLoadMoreError,
+    retryLoadMore,
     refresh,
   } = useSocialFeed(query, { filterPost, realtime });
   useImperativeHandle(refreshRef, () => ({ refresh }), [refresh]);
@@ -192,7 +194,9 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
         <SocialFeedFooter
           state={state}
           isFetchingNextPage={isFetchingNextPage}
+          isLoadMoreError={isLoadMoreError}
           onRetry={() => refresh()}
+          onRetryLoadMore={retryLoadMore}
         />
         <LoadMoreSentinel
           enabled={hasNextPage && !isFetchingNextPage}
