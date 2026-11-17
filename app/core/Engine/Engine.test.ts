@@ -1454,6 +1454,25 @@ describe('Engine', () => {
       );
     });
 
+    it('purges PredictNext account data when the order journal cannot be cleared', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const loggerSpy = jest.spyOn(Logger, 'error');
+      jest
+        .spyOn(engine.context.PredictOrderService, 'reset')
+        .mockRejectedValue(new Error('journal clear failed'));
+      const clearSpy = jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(clearSpy).toHaveBeenCalledTimes(1);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'journal clear failed' }),
+        'Engine: failed to clear the PredictNext order dispatch journal',
+      );
+    });
+
     it('waits for the PredictNext account-data purge before resolving', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       let finishPurge: () => void = () => undefined;

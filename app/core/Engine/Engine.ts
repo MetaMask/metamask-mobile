@@ -1390,6 +1390,15 @@ export class Engine {
     // Venue-scoped market-data and live-data caches carry public data and stay.
     try {
       await PredictOrderService.reset();
+    } catch (error) {
+      // reset() fences observation before it rethrows, so a journal that cannot
+      // be cleared must never skip dropping the account reads below.
+      Logger.error(
+        ensureError(error, 'Engine.resetState'),
+        'Engine: failed to clear the PredictNext order dispatch journal',
+      );
+    }
+    try {
       await PredictPortfolioService.clearAccountData();
     } catch (error) {
       // Housekeeping a replaced person must never break the reset itself.
