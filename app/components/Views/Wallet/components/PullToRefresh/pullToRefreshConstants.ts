@@ -17,8 +17,8 @@ export const PULL_REFRESH_OUTRO_SPRING = {
   mass: 1,
   overshootClamping: true,
 } as const;
-export const RIVE_WIDTH = 160;
-export const RIVE_HEIGHT = PULL_REFRESH_INDICATOR_HEIGHT;
+export const RIVE_WIDTH = 120;
+export const RIVE_HEIGHT = PULL_REFRESH_INDICATOR_HEIGHT * 0.75;
 
 export const getResistedPullDistance = (translationY: number): number => {
   'worklet';

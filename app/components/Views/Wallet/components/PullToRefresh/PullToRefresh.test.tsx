@@ -11,7 +11,11 @@ import PullToRefresh, {
   PULL_REFRESH_THRESHOLD,
   PullToRefreshTestIds,
 } from './PullToRefresh';
-import { getResistedPullDistance } from './pullToRefreshConstants';
+import {
+  getResistedPullDistance,
+  RIVE_HEIGHT,
+  RIVE_WIDTH,
+} from './pullToRefreshConstants';
 import {
   __fireRiveViewError,
   __getRivePropertySetter,
@@ -201,7 +205,12 @@ describe('PullToRefresh', () => {
     );
     expect(
       StyleSheet.flatten(getByTestId(PullToRefreshTestIds.RIVE).props.style),
-    ).toEqual(expect.objectContaining({ height: PULL_REFRESH_THRESHOLD }));
+    ).toEqual(
+      expect.objectContaining({
+        height: RIVE_HEIGHT,
+        width: RIVE_WIDTH,
+      }),
+    );
   });
 
   it('commits refresh from the accessibility activate action', async () => {
