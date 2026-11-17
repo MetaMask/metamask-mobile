@@ -29,15 +29,17 @@ function printReport(report: RouteCoverageReport, onlyUncovered: boolean): void 
     `  ${'No page object yet:'.padEnd(25)}${summary.withoutPageObject}`,
   );
   console.log(`  ${'Not a screen:'.padEnd(25)}${summary.notAScreen}`);
-  console.log(`  ${'Unregistered:'.padEnd(25)}${summary.unregistered}`);
+  console.log(
+    `  ${'Not in the registry:'.padEnd(25)}${summary.unregistered}`,
+  );
   console.log(`  ${'Stale registry entries:'.padEnd(25)}${summary.staleEntries}`);
   console.log(
     `  ${'Coverage:'.padEnd(25)}${summary.coveragePercentage}% of screen routes have a page object`,
   );
   console.log('');
 
-  const routeColumn = 48;
-  const statusColumn = 18;
+  const routeColumn = 60;
+  const statusColumn = 16;
   const header = [
     'Route'.padEnd(routeColumn),
     'Status'.padEnd(statusColumn),
