@@ -502,6 +502,7 @@ describe('QuickBuyRoot', () => {
         [QuickBuyEventProperties.SOURCE]: 'profile_position',
         [QuickBuyEventProperties.ORIGINAL_ENTRY_POINT]: 'leaderboard',
         [QuickBuyEventProperties.TRADE_TYPE]: 'sell',
+        [QuickBuyEventProperties.IS_COPY_TRADE]: false,
       },
     );
   });

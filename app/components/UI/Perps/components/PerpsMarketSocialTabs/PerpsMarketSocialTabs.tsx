@@ -89,17 +89,14 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
         [PERPS_EVENT_PROPERTY.ASSET]: symbol,
       });
       const tab = TABS[index];
-      if (tab === 'feed' || tab === 'top_traders') {
-        trackScreenViewed({
-          screen_name:
-            tab === 'feed'
-              ? SocialEvent.Screen.PERPS_MARKET_FEED
-              : SocialEvent.Screen.PERPS_MARKET_HOLDERS,
-          source:
-            tab === 'feed'
-              ? SocialEvent.Source.PERPS_MARKET_FEED
-              : SocialEvent.Source.PERPS_MARKET_HOLDERS,
-        });
+      const marketScreen =
+        tab === 'feed'
+          ? SocialEvent.Screen.PERPS_MARKET_FEED
+          : tab === 'top_traders'
+            ? SocialEvent.Screen.PERPS_MARKET_HOLDERS
+            : undefined;
+      if (marketScreen) {
+        trackScreenViewed({ screen_name: marketScreen, source: marketScreen });
       }
     },
     [

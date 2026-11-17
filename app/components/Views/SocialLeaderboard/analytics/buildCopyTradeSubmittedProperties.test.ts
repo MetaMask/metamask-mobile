@@ -1,6 +1,12 @@
 import { buildCopyTradeSubmittedProperties } from './buildCopyTradeSubmittedProperties';
 import { SocialEvent } from './socialEvents';
 
+const base = {
+  interaction_type: SocialEvent.Interaction.COPY_TRADE_SUBMITTED,
+  screen_name: SocialEvent.Screen.TRENDING,
+  trade_type: SocialEvent.Trade.PERPS,
+};
+
 describe('buildCopyTradeSubmittedProperties', () => {
   it('records a trending perps copy with its fee', () => {
     expect(
@@ -12,10 +18,8 @@ describe('buildCopyTradeSubmittedProperties', () => {
         metamaskFeeUsd: 0.05,
       }),
     ).toEqual({
-      interaction_type: SocialEvent.Interaction.COPY_TRADE_SUBMITTED,
-      screen_name: SocialEvent.Screen.TRENDING,
+      ...base,
       source: 'social_trending',
-      trade_type: SocialEvent.Trade.PERPS,
       asset: 'BTC',
       direction: SocialEvent.Direction.LONG,
       amount_usd: 50,
@@ -31,9 +35,7 @@ describe('buildCopyTradeSubmittedProperties', () => {
         direction: 'short',
       }),
     ).toEqual({
-      interaction_type: SocialEvent.Interaction.COPY_TRADE_SUBMITTED,
-      screen_name: SocialEvent.Screen.TRENDING,
-      trade_type: SocialEvent.Trade.PERPS,
+      ...base,
       asset: 'ETH',
       direction: SocialEvent.Direction.SHORT,
     });

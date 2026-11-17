@@ -985,6 +985,7 @@ describe('SocialFeedPostShell', () => {
             source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
+            isCopyTrade: true,
             copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
           },
         });

@@ -5,10 +5,6 @@ import {
   type SocialUIInteractionProperties,
 } from './socialEvents';
 
-/**
- * Screen that matches the copy-trade tap for the same surface. Token and
- * perps detail taps are recorded on the trending screen with their own source.
- */
 export function copyTradeScreenForSource(
   source: string | undefined,
 ): SocialScreenName {
@@ -24,11 +20,6 @@ export function copyTradeScreenForSource(
   }
 }
 
-/**
- * Social UI Interaction payload for a copied perps order that was accepted.
- * Perp Trade Transaction is emitted by the perps controller and drops unknown
- * tracking fields, so the copy flag has to ride on this event.
- */
 export function buildCopyTradeSubmittedProperties(input: {
   source?: string;
   asset: string;

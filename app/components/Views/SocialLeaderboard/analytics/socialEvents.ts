@@ -13,14 +13,9 @@ export const SocialEvent = {
     COPY_TRADE_TAPPED: 'copy_trade_tapped',
     /** Copy trade tap sent to the terms or profile onboarding gate instead. */
     COPY_TRADE_BLOCKED: 'copy_trade_blocked',
-    /**
-     * The copied perps order was accepted. Perp Trade Transaction cannot carry
-     * `is_copy_trade`, so this event is the copy marker for that fill.
-     */
     COPY_TRADE_SUBMITTED: 'copy_trade_submitted',
     POST_SUBMITTED: 'post_submitted',
     POST_FAILED: 'post_failed',
-    /** Client refused the post before the request (empty, too long, no position). */
     SUBMIT_BLOCKED: 'submit_blocked',
     ONBOARDING_COMPLETED: 'onboarding_completed',
     POST_SHARED: 'post_shared',
@@ -241,9 +236,7 @@ export interface SocialUIInteractionProperties
   terms_version?: string;
   /** Only sent with `copy_trade_blocked`. */
   blocked_reason?: SocialBlockedReason;
-  /** `copy_trade_submitted` only. USD notional of the copied order. */
   amount_usd?: number;
-  /** `copy_trade_submitted` only. MetaMask fee in USD. */
   metamask_fee?: number;
   /** Composer interactions only. */
   composer_entry?: SocialComposerEntry;
@@ -252,26 +245,17 @@ export interface SocialUIInteractionProperties
    * a position, so the GIF is the only optional content.
    */
   has_gif?: boolean;
-  /** `post_submitted` only. The created comment id. */
   post_id?: string;
-  /** Author of the post or reaction. The viewer is not this id. */
   author_trader_id?: string;
-  /** `post_submitted` only. True when the caption is non-empty. */
   has_thesis?: boolean;
-  /** `post_submitted` only. True when a position or in-flight trade is attached. */
   has_attached_position?: boolean;
-  /** `post_submitted` only. True when the attached position was already held. */
   is_held_position?: boolean;
-  /** `post_failed` only. */
   failure_reason?: SocialPostFailureReason;
-  /** `submit_blocked` only. */
   blocked_submit_reason?: SocialBlockedSubmitReason;
-  /** V1 onboarding completed only. */
   traders_followed_count?: number;
   share_id?: string;
   order_id?: string;
   transaction_hash?: string;
-  /** Analytics app version, read once per session. */
   app_build?: string;
 }
 export const getSocialReactionType = (

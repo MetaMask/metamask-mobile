@@ -425,6 +425,7 @@ describe('useQuickBuyAnalytics', () => {
         {
           foo: 'bar',
           [QuickBuyEventProperties.SOURCE]: ANALYTICS_CONTEXT.source,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: true,
         },
       );
     });
@@ -443,6 +444,7 @@ describe('useQuickBuyAnalytics', () => {
         {
           tx: '0xhash',
           [QuickBuyEventProperties.SOURCE]: ANALYTICS_CONTEXT.source,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: true,
         },
       );
     });

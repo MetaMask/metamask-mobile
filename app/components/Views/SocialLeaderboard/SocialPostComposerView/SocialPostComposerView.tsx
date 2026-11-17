@@ -590,10 +590,10 @@ const SocialPostComposerEditor: React.FC = () => {
     focusComposer();
   }, [isScreenTransitionComplete, focusComposer]);
 
-  const shareId =
-    routeParams && 'shareId' in routeParams ? routeParams.shareId : undefined;
-  const tradeCorrelation = useMemo(
-    () => ({
+  const tradeCorrelation = useMemo(() => {
+    const shareId =
+      routeParams && 'shareId' in routeParams ? routeParams.shareId : undefined;
+    return {
       ...(shareId ? { share_id: shareId } : {}),
       ...(tradeInFlightParams && 'orderId' in tradeInFlightParams
         ? { order_id: tradeInFlightParams.orderId }
@@ -601,15 +601,8 @@ const SocialPostComposerEditor: React.FC = () => {
       ...(tradeInFlightParams && 'transactionHash' in tradeInFlightParams
         ? { transaction_hash: tradeInFlightParams.transactionHash }
         : {}),
-    }),
-    [shareId, tradeInFlightParams],
-  );
-  const handleBlockedSubmit = useCallback(
-    (blocked_submit_reason: SocialBlockedSubmitReason) => {
-      trackInteraction(Interaction.SUBMIT_BLOCKED, { blocked_submit_reason });
-    },
-    [trackInteraction],
-  );
+    };
+  }, [routeParams, tradeInFlightParams]);
   const handlePost = useCallback(async () => {
     const rawText = textStore.get();
     const caption = rawText.trim();
@@ -825,7 +818,11 @@ const SocialPostComposerEditor: React.FC = () => {
                 hasTarget={hasTarget}
                 isSubmitting={isSubmitting}
                 onPress={handlePost}
-                onBlocked={handleBlockedSubmit}
+                onBlocked={(blocked_submit_reason) =>
+                  trackInteraction(Interaction.SUBMIT_BLOCKED, {
+                    blocked_submit_reason,
+                  })
+                }
               />
             </Box>
           }

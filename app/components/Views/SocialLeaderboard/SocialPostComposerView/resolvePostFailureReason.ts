@@ -5,10 +5,6 @@ import { CreateSwapCommentTimeoutError } from './createSwapCommentTimeout';
 const MIN_BALANCE_MESSAGE =
   /minimum|min(?:imum)? balance|\$10|at least 10|below 10/i;
 
-/**
- * Maps a failed `createSwapComment` to the failure reason on `post_failed`.
- * A 403 is the ban the composer already treats as a moderation block.
- */
 export const resolvePostFailureReason = (
   error: unknown,
 ): SocialPostFailureReason => {

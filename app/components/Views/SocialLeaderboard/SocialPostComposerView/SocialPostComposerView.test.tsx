@@ -411,19 +411,21 @@ describe('SocialPostComposerView', () => {
     ).toBeDisabled();
   });
 
-  it('records a blocked submit when Post is pressed with no position', () => {
-    renderWithProvider(<SocialPostComposerView />);
-
-    fireEvent.changeText(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'this is alpha',
-    );
+  const pressBlockedPost = () =>
     fireEvent.press(
       screen.getByTestId(
         SocialPostComposerViewSelectorsIDs.POST_BUTTON_BLOCKED,
         { includeHiddenElements: true },
       ),
     );
+
+  it('records a blocked submit when Post is pressed with no position', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    pressBlockedPost();
 
     expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
       'submit_blocked',
@@ -438,12 +440,7 @@ describe('SocialPostComposerView', () => {
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
     );
     fireEvent.press(screen.getByTestId('position-row-ETH'));
-    fireEvent.press(
-      screen.getByTestId(
-        SocialPostComposerViewSelectorsIDs.POST_BUTTON_BLOCKED,
-        { includeHiddenElements: true },
-      ),
-    );
+    pressBlockedPost();
 
     expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
       'submit_blocked',

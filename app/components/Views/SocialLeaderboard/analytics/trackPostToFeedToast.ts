@@ -10,10 +10,6 @@ import {
   type SocialEventSource,
 } from './socialEvents';
 
-/**
- * "Post to feed" toast tap. The toast is built outside React, so this uses
- * the non-React analytics helper.
- */
 export const trackPostToFeedToast = ({
   composerEntry,
   source,

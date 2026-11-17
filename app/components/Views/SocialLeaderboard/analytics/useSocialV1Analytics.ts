@@ -54,9 +54,10 @@ export const useSocialAnalytics = () => {
   const trackInteraction = useCallback(
     (properties: SocialUIInteractionProperties) => {
       if (isSocialV1Enabled) {
-        track(MetaMetricsEvents.SOCIAL_UI_INTERACTION, {
-          ...withSocialAppBuild(properties),
-        });
+        track(
+          MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+          withSocialAppBuild(properties),
+        );
       }
     },
     [isSocialV1Enabled, track],
@@ -64,9 +65,10 @@ export const useSocialAnalytics = () => {
   const trackScreenViewed = useCallback(
     (properties: SocialScreenViewedProperties) => {
       if (isSocialV1Enabled) {
-        track(MetaMetricsEvents.SOCIAL_SCREEN_VIEWED, {
-          ...withSocialAppBuild(properties),
-        });
+        track(
+          MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
+          withSocialAppBuild(properties),
+        );
       }
     },
     [isSocialV1Enabled, track],
@@ -159,13 +161,7 @@ export const useSocialFeedInteractions = (
             action === 'added'
               ? Interaction.REACTION_ADDED
               : Interaction.REACTION_REMOVED,
-            {
-              reaction_type,
-              ...(subject?.post_id ? { post_id: subject.post_id } : {}),
-              ...(subject?.author_trader_id
-                ? { author_trader_id: subject.author_trader_id }
-                : {}),
-            },
+            { reaction_type, ...subject },
           );
         }
       },
