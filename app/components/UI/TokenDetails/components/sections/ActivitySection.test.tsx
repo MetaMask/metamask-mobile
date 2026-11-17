@@ -12,6 +12,7 @@ import {
 } from '../../hooks/useTokenTransactions';
 import { type TokenDetailsRouteParams } from '../../constants/constants';
 import ActivitySection, {
+  TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID,
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID,
   TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID,
 } from './ActivitySection';
@@ -145,6 +146,20 @@ const mockUseTokenTransactions = jest.mocked(useTokenTransactions);
 const mockUseTokenCaipAssetId = jest.mocked(
   jest.requireMock('../../hooks/useTokenCaipAssetId').useTokenCaipAssetId,
 );
+const mockUseTransactionsQuery = jest.mocked(
+  jest.requireMock('../../../../Views/ActivityList/useTransactionsQuery')
+    .useTransactionsQuery,
+);
+
+const emptyTransactionsQueryResult = () => ({
+  data: { pages: [] as { data: unknown[] }[] },
+  isLoading: false,
+  isFetchingNextPage: false,
+  isError: false,
+  isFetchNextPageError: false,
+  hasNextPage: false,
+  fetchNextVisiblePage: jest.fn(),
+});
 
 const NOW = 1_700_000_000;
 
@@ -189,6 +204,8 @@ const mockTransactionsResult = (
 describe('ActivitySection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTransactionsQuery.mockReset();
+    mockUseTransactionsQuery.mockImplementation(emptyTransactionsQueryResult);
     mockUseSelector.mockImplementation((selector: unknown) =>
       (selector as (state: undefined) => unknown)(undefined),
     );
@@ -811,6 +828,33 @@ describe('ActivitySection', () => {
     expect(mockFetchNextVisiblePage).toHaveBeenLastCalledWith({
       minVisibleItems: 8,
     });
+  });
+
+  it('shows a loading indicator while the next API page is fetching', () => {
+    mockUseTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [apiReceive('0xOnlyOne')],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isLoading: false,
+      isFetchingNextPage: true,
+      isError: false,
+      fetchNextVisiblePage: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={token} />,
+    );
+
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID)).toBeNull();
+    expect(getByTestId('mock-api-activity-item-0xOnlyOne')).toBeOnTheScreen();
   });
 });
 

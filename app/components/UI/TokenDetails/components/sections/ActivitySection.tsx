@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -53,6 +54,8 @@ export const TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID =
   'token-details-overview-tab-activity';
 export const TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID =
   'token-details-activity-show-more';
+export const TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID =
+  'token-details-activity-loading-more';
 
 /** Transaction rows shown before the first "View more" press. */
 export const DEFAULT_INITIAL_VISIBLE_ROWS = 3;
@@ -82,6 +85,7 @@ interface GroupedTokenActivityResult {
   apiItemCount: number;
   hasNextApiPage: boolean;
   isApiLoading: boolean;
+  isFetchingNextApiPage: boolean;
   isApiError: boolean;
   fetchNextVisiblePage: (options?: {
     minVisibleItems?: number;
@@ -277,6 +281,7 @@ function useGroupedTokenActivity({
     apiItemCount: tokenApiItems.length,
     hasNextApiPage: apiHistoryEnabled && Boolean(hasNextPage),
     isApiLoading: apiHistoryEnabled && (isLoading || isFetchingNextPage),
+    isFetchingNextApiPage: apiHistoryEnabled && isFetchingNextPage,
     isApiError: apiHistoryEnabled && (isError || isFetchNextPageError),
     fetchNextVisiblePage,
   };
@@ -361,6 +366,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     apiItemCount,
     hasNextApiPage,
     isApiLoading,
+    isFetchingNextApiPage,
     isApiError,
     fetchNextVisiblePage,
   } = useGroupedTokenActivity({
@@ -413,7 +419,10 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
       isApiError ||
       hasActivity ||
       hasNextApiPage);
-  const hasMore = hasHiddenLoadedRows || (hasNextApiPage && !isApiLoading);
+  const isInitialApiLoad = isApiLoading && !isFetchingNextApiPage;
+  const hasMore = hasHiddenLoadedRows || (hasNextApiPage && !isInitialApiLoad);
+  const isLoadingOlderPages =
+    isFetchingNextApiPage && hasNextApiPage && !hasHiddenLoadedRows;
 
   if (!showActivitySection) {
     return null;
@@ -482,7 +491,15 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
           );
         })}
 
-        {hasMore ? (
+        {isLoadingOlderPages ? (
+          <Box
+            alignItems={BoxAlignItems.Center}
+            twClassName="pt-2 px-4"
+            testID={TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID}
+          >
+            <ActivityIndicator size="small" />
+          </Box>
+        ) : hasMore ? (
           <Box alignItems={BoxAlignItems.Center} twClassName="pt-2 px-4">
             <Button
               variant={ButtonVariant.Tertiary}
