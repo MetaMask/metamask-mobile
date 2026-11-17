@@ -104,7 +104,14 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       // The idle placeholder is mounted before the viewport-gated request.
       // Rendered positions or a settled fetch represent resolved DeFi content.
       contentReady: displayedPositions.length > 0 || (hasFetched && !isLoading),
-      demandStarted: hasFetched || isLoading || isError,
+      // Cached positions can render without a loading transition. Count them
+      // only when the section enters the viewport so offscreen cache dwell is
+      // not reported as user-demanded time.
+      demandStarted:
+        hasFetched ||
+        isLoading ||
+        isError ||
+        (isVisible && displayedPositions.length > 0),
       cacheState: isLoading
         ? 'cold'
         : displayedPositions.length > 0
