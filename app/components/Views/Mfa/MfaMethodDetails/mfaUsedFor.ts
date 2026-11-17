@@ -24,6 +24,14 @@ export interface MfaUsedFor {
  */
 export const MFA_USED_FOR: MfaUsedFor[] = [
   {
+    key: 'wallet_recovery',
+    icon: IconName.Lock,
+    label: 'mfa.settings.used_for_wallet_recovery',
+    methods: ['passkey', 'email_otp', 'totp'],
+    // Social login wallets are recovered with these methods.
+    isShown: ({ isSocialLogin }) => isSocialLogin,
+  },
+  {
     key: 'money',
     icon: IconName.SecurityTick,
     label: 'mfa.settings.used_for_money',

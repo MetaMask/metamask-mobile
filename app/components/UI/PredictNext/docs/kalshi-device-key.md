@@ -1,6 +1,6 @@
 # Kalshi device key
 
-Phase 1 of the Kalshi ISV flow, after the existing SRP login. The mobile app holds a P-256 device key and a 16-byte salt. The A2T `nonce` is `base64url(SHA-256(public key || salt))`. `a2tSession.ensureA2T` sends the public key and salt to the A2T issuer, signs `srpMessage` with the SRP key, and signs the proof of possession with this key.
+Phase 1 of the Kalshi ISV flow, after the existing SRP login. The mobile app holds a P-256 device key and a 16-byte salt. The A2T `nonce` is `base64url(SHA-256(public key || salt))`. `a2tSession.ensureA2T` posts that public key and salt once to MetaMask Auth, with the MetaMask JWT in the `Authorization` header. Auth returns `access_token`, `expires_in`, and `token_type`. The session caches `access_token` until shortly before that lifetime elapses.
 
 `auth/p256DeviceKey.ts` implements the allowlisted `device-p256-salt-v1` key
 strategy. It does not choose Kalshi behavior itself. The Engine-owned

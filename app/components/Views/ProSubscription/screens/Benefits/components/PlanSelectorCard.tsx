@@ -100,9 +100,9 @@ const PlanSelectorCard = ({
           twClassName="p-4 flex flex-row items-center justify-between"
         >
           {/* Plan details */}
-          <Box twClassName="flex flex-col gap-y-1">
+          <Box twClassName="flex flex-1 min-w-0 flex-col gap-y-1 pr-2">
             {/* Label + save badge */}
-            <Box twClassName="flex flex-row gap-x-2 items-center">
+            <Box twClassName="flex flex-row flex-wrap gap-x-2 gap-y-1 items-center">
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
                 {strings(plan.label)}
               </Text>
@@ -130,10 +130,11 @@ const PlanSelectorCard = ({
             </Box>
 
             {/* Price row */}
-            <Box twClassName="flex flex-row gap-x-1 items-center">
+            <Box twClassName="flex flex-row flex-wrap gap-x-1 gap-y-1 items-center">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Bold}
+                twClassName="shrink"
                 testID={BenefitsTestIds.PLAN_CARD_PRICE(plan.id)}
               >
                 {copy.price}
@@ -142,6 +143,7 @@ const PlanSelectorCard = ({
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
+                  twClassName="shrink"
                   testID={BenefitsTestIds.PLAN_CARD_SUB_PRICE(plan.id)}
                 >
                   {copy.subPrice}

@@ -301,12 +301,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
 
   useEffect(() => {
-    expandedDetailsProgress.value = withTiming(
-      isTraderPositionExpanded ? 1 : 0,
-      {
+    expandedDetailsProgress.set(
+      withTiming(isTraderPositionExpanded ? 1 : 0, {
         duration: 300,
         easing: Easing.inOut(Easing.cubic),
-      },
+      }),
     );
   }, [expandedDetailsProgress, isTraderPositionExpanded]);
 
