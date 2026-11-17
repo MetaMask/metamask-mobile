@@ -414,7 +414,9 @@ const MoneyHomeView = () => {
     };
   }
 
-  const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
+  // Only a failed fetch is "unavailable"; while loading, the last known amount shows muted.
+  const showBalanceUnavailableBanner =
+    displayState.kind === 'unavailable' && !isBalanceLoading;
 
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =

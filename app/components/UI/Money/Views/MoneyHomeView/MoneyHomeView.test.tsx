@@ -3565,7 +3565,7 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the last known balance with the unavailable banner when one is cached', () => {
+    it('renders the last known balance without the unavailable banner when one is cached', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
@@ -3586,8 +3586,8 @@ describe('MoneyHomeView', () => {
         getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
       ).toHaveTextContent('$2,384.34');
       expect(
-        getByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
-      ).toBeOnTheScreen();
+        queryByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
+      ).not.toBeOnTheScreen();
       expect(
         queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_LOADING),
       ).not.toBeOnTheScreen();
