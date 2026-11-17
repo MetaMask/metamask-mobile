@@ -18,8 +18,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 import useMountEffect from '../../hooks/useMountEffect';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { MoneyModalsNavigationParamList } from '../../types/navigation';
 import {
   selectGeolocationLocation,
   selectGeolocationStatus,
@@ -27,6 +28,9 @@ import {
 
 const MoneyGeoBlockSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<MoneyModalsNavigationParamList, 'MoneyGeoBlockSheet'>>();
+  const isMetaMaskOrange = route.params?.product === 'metamask_orange';
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
 
@@ -36,11 +40,15 @@ const MoneyGeoBlockSheet = () => {
 
   const title = isGeolocationLookupError
     ? strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')
-    : strings('money.geo_block.title');
+    : isMetaMaskOrange
+      ? strings('money.geo_block.metamask_orange_title')
+      : strings('money.geo_block.title');
 
   const description = isGeolocationLookupError
     ? strings('fiat_on_ramp_aggregator.eligibility_failed_modal.description')
-    : strings('money.geo_block.description');
+    : isMetaMaskOrange
+      ? strings('money.geo_block.metamask_orange_description')
+      : strings('money.geo_block.description');
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 

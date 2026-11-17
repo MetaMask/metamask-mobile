@@ -34,6 +34,7 @@ import {
   SCREEN_NAMES,
 } from '../../UI/Money/constants/moneyEvents';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
+import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/visibility';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -259,6 +260,10 @@ describe('AccountsMenu', () => {
 
       if (selector === selectIsMoneyAccountGeoEligible) {
         return mockIsMoneyAccountGeoEligible;
+      }
+
+      if (selector === selectMoneyAccountAccessBlockReason) {
+        return mockIsMoneyAccountGeoEligible ? undefined : 'geo_blocked';
       }
 
       const mockState = {
@@ -853,7 +858,7 @@ describe('AccountsMenu', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('keeps the member row when the country is geo-blocked', () => {
+    it('opens the Money geo sheet when a member in a blocked country taps Orange', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
@@ -862,9 +867,15 @@ describe('AccountsMenu', () => {
 
       const { getByTestId } = render(<AccountsMenu />);
 
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+
       expect(
         getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
       ).toHaveTextContent('accounts_menu.metamask_orange');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        params: { product: 'metamask_orange' },
+      });
     });
 
     it('labels a member MetaMask Orange and opens the hub', () => {

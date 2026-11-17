@@ -14,7 +14,8 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
+import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/visibility';
+import Routes from '../../../constants/navigation/Routes';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
@@ -62,7 +63,7 @@ const ProSubscription = () => {
 
   const proAccess = useMoneyAccountPlusAccess();
   const hasMembership = useHasProMembership();
-  const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
+  const accessBlockReason = useSelector(selectMoneyAccountAccessBlockReason);
   const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
     ProSubscriptionScreen.Benefits,
   );
@@ -75,18 +76,34 @@ const ProSubscription = () => {
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
   const { showProcessingToast } = useProSubscriptionPaymentToasts();
 
-  // Dismiss when the Pro flag is off, or when the country is not eligible
-  // and the user has no membership. Unknown geolocation is not eligible, so
-  // a deep link cannot reach checkout before the country resolves. A Plus
-  // status the hub can show already owns a membership, so send them to the
-  // hub instead of Benefits.
+  // Dismiss when the Pro flag is off, or when Money Account is blocked and
+  // the user has no membership. Unknown access waits so a restored member's
+  // fetch can finish before a blocked country closes checkout. A member in a
+  // blocked country gets the Money geo sheet instead of Pro Hub.
   useEffect(() => {
     if (proAccess === MoneyAccountPlusAccess.Disabled) {
       navigation.goBack();
       return;
     }
 
-    if (!isGeoEligible && !hasMembership) {
+    if (
+      proAccess !== MoneyAccountPlusAccess.Unknown &&
+      accessBlockReason === 'geo_blocked' &&
+      hasMembership
+    ) {
+      navigation.goBack();
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        params: { product: 'metamask_orange' },
+      });
+      return;
+    }
+
+    if (
+      proAccess !== MoneyAccountPlusAccess.Unknown &&
+      accessBlockReason !== undefined &&
+      !hasMembership
+    ) {
       navigation.goBack();
       return;
     }
@@ -104,7 +121,7 @@ const ProSubscription = () => {
   }, [
     proAccess,
     hasMembership,
-    isGeoEligible,
+    accessBlockReason,
     currentScreen,
     isCheckoutInProgress,
     navigation,

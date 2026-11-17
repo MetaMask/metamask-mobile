@@ -4,8 +4,7 @@ import type { NavigationState } from '@react-navigation/native';
 import ProSubscription from './ProSubscription';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
-import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
-import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/visibility';
 import Routes from '../../../constants/navigation/Routes';
 
 const mockUseSelector = jest.fn();
@@ -17,9 +16,11 @@ jest.mock('react-redux', () => ({
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
 const mockSetParams = jest.fn();
+const mockNavigate = jest.fn();
 const mockNavigation = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
+  navigate: mockNavigate,
   setParams: mockSetParams,
 };
 
@@ -154,15 +155,7 @@ describe('ProSubscription', () => {
     jest.clearAllMocks();
     mockRoute.params = {};
     mockGetSubscriptions.mockResolvedValue([]);
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectIsMoneyAccountGeoEligible) {
-        return true;
-      }
-      if (selector === getDetectedGeolocation) {
-        return 'US';
-      }
-      return undefined;
-    });
+    mockUseSelector.mockReturnValue(undefined);
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Eligible,
     );
@@ -187,48 +180,51 @@ describe('ProSubscription', () => {
     });
 
     it('navigates back when a resolved country is geo-blocked', () => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectIsMoneyAccountGeoEligible) {
-          return false;
-        }
-        if (selector === getDetectedGeolocation) {
-          return 'GB';
-        }
-        return undefined;
-      });
+      mockUseSelector.mockImplementation((selector: unknown) =>
+        selector === selectMoneyAccountAccessBlockReason
+          ? 'geo_blocked'
+          : undefined,
+      );
 
       render(<ProSubscription />);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates back while geolocation is still unknown', () => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectIsMoneyAccountGeoEligible) {
-          return false;
-        }
-        if (selector === getDetectedGeolocation) {
-          return undefined;
-        }
-        return undefined;
-      });
+    it('stays on checkout while membership access is still unknown', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+      mockUseSelector.mockImplementation((selector: unknown) =>
+        selector === selectMoneyAccountAccessBlockReason
+          ? 'geo_blocked'
+          : undefined,
+      );
+
+      render(<ProSubscription />);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('navigates back when Money Account is turned off', () => {
+      mockUseSelector.mockImplementation((selector: unknown) =>
+        selector === selectMoneyAccountAccessBlockReason
+          ? 'feature_disabled'
+          : undefined,
+      );
 
       render(<ProSubscription />);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('sends a member to the hub while geolocation is still unknown', () => {
+    it('sends a member to the hub when Money Account is turned off', () => {
       mockUseHasProMembership.mockReturnValue(true);
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectIsMoneyAccountGeoEligible) {
-          return false;
-        }
-        if (selector === getDetectedGeolocation) {
-          return undefined;
-        }
-        return undefined;
-      });
+      mockUseSelector.mockImplementation((selector: unknown) =>
+        selector === selectMoneyAccountAccessBlockReason
+          ? 'feature_disabled'
+          : undefined,
+      );
 
       render(<ProSubscription />);
 
@@ -236,22 +232,22 @@ describe('ProSubscription', () => {
       expectProHubReplacesSubscriptionModal();
     });
 
-    it('sends a geo-blocked member to the hub', () => {
+    it('shows the Money geo sheet for a member in a blocked country', () => {
       mockUseHasProMembership.mockReturnValue(true);
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectIsMoneyAccountGeoEligible) {
-          return false;
-        }
-        if (selector === getDetectedGeolocation) {
-          return 'GB';
-        }
-        return undefined;
-      });
+      mockUseSelector.mockImplementation((selector: unknown) =>
+        selector === selectMoneyAccountAccessBlockReason
+          ? 'geo_blocked'
+          : undefined,
+      );
 
       render(<ProSubscription />);
 
-      expect(mockGoBack).not.toHaveBeenCalled();
-      expectProHubReplacesSubscriptionModal();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        params: { product: 'metamask_orange' },
+      });
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
     it('sends an existing member straight to the hub', () => {

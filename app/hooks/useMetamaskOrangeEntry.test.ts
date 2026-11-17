@@ -1,13 +1,14 @@
 import { renderHook } from '@testing-library/react-native';
 
 import {
+  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../components/UI/Money/constants/moneyEvents';
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
-import { selectIsMoneyAccountGeoEligible } from '../components/UI/Money/selectors/eligibility';
+import { selectMoneyAccountAccessBlockReason } from '../components/UI/Money/selectors/visibility';
 import Routes from '../constants/navigation/Routes';
 import { strings } from '../../locales/i18n';
 import useSubscriptions from '../components/hooks/useSubscriptions';
@@ -57,9 +58,7 @@ const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 describe('useMetamaskOrangeEntry', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockImplementation((selector: unknown) =>
-      selector === selectIsMoneyAccountGeoEligible ? true : undefined,
-    );
+    mockUseSelector.mockReturnValue(undefined);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
@@ -129,12 +128,14 @@ describe('useMetamaskOrangeEntry', () => {
     });
   });
 
-  it('fetches subscriptions when the country is not geo-eligible', () => {
+  it('fetches subscriptions when Money Account access is blocked', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
     mockUseSelector.mockImplementation((selector: unknown) =>
-      selector === selectIsMoneyAccountGeoEligible ? false : undefined,
+      selector === selectMoneyAccountAccessBlockReason
+        ? 'geo_blocked'
+        : undefined,
     );
 
     renderHook(() => useMetamaskOrangeEntry());
@@ -142,7 +143,7 @@ describe('useMetamaskOrangeEntry', () => {
     expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: true });
   });
 
-  it('leaves the subscriptions fetch off when the country is geo-eligible', () => {
+  it('leaves the subscriptions fetch off when Money Account access is open', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
@@ -157,7 +158,9 @@ describe('useMetamaskOrangeEntry', () => {
       isProSubscriptionEnabled: true,
     });
     mockUseSelector.mockImplementation((selector: unknown) =>
-      selector === selectIsMoneyAccountGeoEligible ? false : undefined,
+      selector === selectMoneyAccountAccessBlockReason
+        ? 'geo_blocked'
+        : undefined,
     );
 
     const { result } = renderHook(() => useMetamaskOrangeEntry());
@@ -165,13 +168,31 @@ describe('useMetamaskOrangeEntry', () => {
     expect(result.current.showOrangeEntry).toBe(false);
   });
 
-  it('keeps the hub row for a member in a geo-blocked country', () => {
+  it('hides the join row when Money Account is turned off', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseSelector.mockImplementation((selector: unknown) =>
+      selector === selectMoneyAccountAccessBlockReason
+        ? 'feature_disabled'
+        : undefined,
+    );
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    expect(result.current.showOrangeEntry).toBe(false);
+    expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('opens the Money geo sheet for a member in a blocked country', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
     mockUseHasProMembership.mockReturnValue(true);
     mockUseSelector.mockImplementation((selector: unknown) =>
-      selector === selectIsMoneyAccountGeoEligible ? false : undefined,
+      selector === selectMoneyAccountAccessBlockReason
+        ? 'geo_blocked'
+        : undefined,
     );
 
     const { result } = renderHook(() => useMetamaskOrangeEntry());
@@ -180,8 +201,16 @@ describe('useMetamaskOrangeEntry', () => {
 
     expect(result.current.showOrangeEntry).toBe(true);
     expect(result.current.label).toBe(strings('accounts_menu.metamask_orange'));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
-      source: 'accounts_menu',
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+      component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+      label_key: 'accounts_menu.metamask_orange',
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      params: { product: 'metamask_orange' },
     });
   });
 

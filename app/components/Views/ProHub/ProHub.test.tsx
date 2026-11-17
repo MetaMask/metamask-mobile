@@ -26,6 +26,7 @@ import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
+import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/visibility';
 import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
@@ -38,6 +39,10 @@ import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultR
 
 let mockGoBack: jest.Mock;
 let mockNavigate: jest.Mock;
+
+jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -193,6 +198,7 @@ describe('ProHub', () => {
     jest.clearAllMocks();
     mockGoBack = jest.fn();
     mockNavigate = jest.fn();
+    jest.mocked(selectMoneyAccountAccessBlockReason).mockReturnValue(undefined);
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Subscriber,
     );
@@ -274,6 +280,20 @@ describe('ProHub', () => {
 
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
+    });
+
+    it('closes the hub and shows the Money geo sheet in a blocked country', () => {
+      jest
+        .mocked(selectMoneyAccountAccessBlockReason)
+        .mockReturnValue('geo_blocked');
+
+      renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        params: { product: 'metamask_orange' },
+      });
     });
 
     it('stays open for an entitled subscriber', () => {

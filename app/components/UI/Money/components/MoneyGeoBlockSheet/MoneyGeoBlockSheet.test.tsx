@@ -13,6 +13,7 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 const mockNavigate = jest.fn();
 const mockParentGoBack = jest.fn();
 const mockGetParent = jest.fn(() => ({ goBack: mockParentGoBack }));
+let mockRouteParams: { product?: 'metamask_orange' } | undefined;
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -26,6 +27,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       getParent: mockGetParent,
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -65,6 +67,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyGeoBlockSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
     });
@@ -89,6 +92,26 @@ describe('MoneyGeoBlockSheet', () => {
 
     expect(getByTestId(MoneyGeoBlockSheetTestIds.BODY)).toHaveTextContent(
       strings('money.geo_block.description'),
+    );
+  });
+
+  it('renders MetaMask Orange copy when opened from the Orange entry', () => {
+    mockRouteParams = { product: 'metamask_orange' };
+    const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
+
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+      strings('money.geo_block.metamask_orange_title'),
+    );
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.BODY)).toHaveTextContent(
+      strings('money.geo_block.metamask_orange_description'),
+    );
+  });
+
+  it('keeps Money copy when no product param is set', () => {
+    const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
+
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+      strings('money.geo_block.title'),
     );
   });
 
