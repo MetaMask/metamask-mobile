@@ -1,6 +1,5 @@
 import { Messenger } from '@metamask/messenger';
 import {
-  cancelRecurringOrder,
   getRecurringOrders,
   getRecurringOrdersByAsset,
   getRecurringSwaps,
@@ -23,13 +22,11 @@ import {
 } from './RecurringOrdersDataService';
 
 jest.mock('../api/recurringOrders', () => ({
-  cancelRecurringOrder: jest.fn(),
   getRecurringOrders: jest.fn(),
   getRecurringOrdersByAsset: jest.fn(),
   getRecurringSwaps: jest.fn(),
 }));
 
-const mockCancelRecurringOrder = jest.mocked(cancelRecurringOrder);
 const mockGetRecurringOrders = jest.mocked(getRecurringOrders);
 const mockGetRecurringOrdersByAsset = jest.mocked(getRecurringOrdersByAsset);
 const mockGetRecurringSwaps = jest.mocked(getRecurringSwaps);
@@ -98,39 +95,6 @@ describe('RecurringOrdersDataService', () => {
 
     expect(mockGetRecurringOrdersByAsset).toHaveBeenCalledWith(ASSET_PARAMS);
     expect(result).toStrictEqual([MOCK_RECURRING_OPEN_ORDER]);
-  });
-
-  it('forwards cancellation to the recurring-orders transport', async () => {
-    mockCancelRecurringOrder.mockResolvedValue({
-      order: {
-        ...MOCK_RECURRING_OPEN_ORDER,
-        state: RecurringOrderState.Cancelled,
-        isCancellable: false,
-      },
-    });
-    const service = buildService();
-
-    await service.cancelRecurringOrder(
-      MOCK_RECURRING_OPEN_ORDER.id,
-      MOCK_RECURRING_OPEN_ORDER.accountAddress,
-    );
-
-    expect(mockCancelRecurringOrder).toHaveBeenCalledWith(
-      MOCK_RECURRING_OPEN_ORDER.id,
-      { accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress },
-    );
-  });
-
-  it('propagates cancellation transport failures', async () => {
-    mockCancelRecurringOrder.mockRejectedValue(new Error('cancel failed'));
-    const service = buildService();
-
-    await expect(
-      service.cancelRecurringOrder(
-        MOCK_RECURRING_OPEN_ORDER.id,
-        MOCK_RECURRING_OPEN_ORDER.accountAddress,
-      ),
-    ).rejects.toThrow('cancel failed');
   });
 
   it('fetches the page identified by the previous response cursor', async () => {
