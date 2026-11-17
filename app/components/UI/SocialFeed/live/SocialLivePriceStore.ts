@@ -82,7 +82,7 @@ export class SocialLivePriceStore {
     return () => {
       listeners?.delete(listener);
       if (listeners?.size === 0) {
-        this.#listeners.delete(key);
+        this.#releaseKey(key);
       }
     };
   }
@@ -92,6 +92,18 @@ export class SocialLivePriceStore {
     this.#timers.forEach((timer) => clearTimeout(timer));
     this.#timers.clear();
     this.#pending.clear();
+  }
+
+  #releaseKey(key: SocialLivePriceKey): void {
+    const timer = this.#timers.get(key);
+    if (timer) {
+      clearTimeout(timer);
+      this.#timers.delete(key);
+    }
+    this.#pending.delete(key);
+    this.#entries.delete(key);
+    this.#lastEmitAt.delete(key);
+    this.#listeners.delete(key);
   }
 
   #emit(key: SocialLivePriceKey, price: number): void {

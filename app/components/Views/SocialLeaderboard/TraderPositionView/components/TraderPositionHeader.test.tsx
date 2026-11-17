@@ -1,5 +1,5 @@
 import { AvatarAccount } from '@metamask/design-system-react-native';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { Image } from 'expo-image';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -17,6 +17,21 @@ const baseProps = {
 };
 
 describe('TraderPositionHeader', () => {
+  it('shares when the header share button is pressed', () => {
+    const onShare = jest.fn();
+    renderWithProvider(
+      <TraderPositionHeader
+        {...baseProps}
+        onShare={onShare}
+        shareButtonTestID="share-button"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('share-button'));
+
+    expect(onShare).toHaveBeenCalledTimes(1);
+  });
+
   it('renders the trader name', () => {
     renderWithProvider(<TraderPositionHeader {...baseProps} />);
 

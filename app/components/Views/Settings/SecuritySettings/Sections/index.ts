@@ -8,6 +8,8 @@ import MfaSection from './MfaSection/MfaSection';
 import AutoLock from './AutoLock/AutoLock';
 import ClearPrivacy from './ClearPrivacy/ClearPrivacy';
 import BlockaidSettings from './BlockaidSettings';
+import SupportConsentPreferenceSection from './SupportConsentPreferenceSection';
+import DeleteIdentityData from './DeleteIdentityData';
 
 export {
   ClearCookiesSection,
@@ -20,4 +22,6 @@ export {
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
+  SupportConsentPreferenceSection,
+  DeleteIdentityData,
 };

@@ -65,7 +65,6 @@ jest.mock('../../../../../core/Engine', () => ({
         nativeCurrency: 'ETH',
         rpcEndpoints: [
           {
-            failoverUrls: [],
             networkClientId: 'linea-mainnet',
             type: 'infura',
             url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',

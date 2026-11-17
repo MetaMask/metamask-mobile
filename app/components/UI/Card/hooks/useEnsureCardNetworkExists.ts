@@ -19,7 +19,6 @@ const CARD_TEST_NETWORKS: {
   chainId: Hex;
   nickname: string;
   rpcUrl: string;
-  failoverRpcUrls?: string[];
   ticker: string;
   rpcPrefs: { blockExplorerUrl: string };
 }[] = [
@@ -88,7 +87,6 @@ export const useEnsureCardNetworkExists = () => {
         rpcEndpoints: [
           {
             url: popularEntry.rpcUrl,
-            failoverUrls: popularEntry.failoverRpcUrls,
             name: popularEntry.nickname,
             type: RpcEndpointType.Custom,
           },

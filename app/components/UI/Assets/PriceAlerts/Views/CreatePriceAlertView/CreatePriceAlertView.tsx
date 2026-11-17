@@ -12,7 +12,7 @@ import {
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -37,6 +37,8 @@ import { FeatureNotificationsGate } from '../../../../../../components/Views/Set
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { selectPerpsPriceAlertsPercentChangeEnabledFlag } from '../../../../Perps/selectors/featureFlags';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Mounted only in perps mode (inside PerpsStreamProvider). Spot Create lives
@@ -61,6 +63,7 @@ const PerpsAlertLivePrice: React.FC<{
 };
 
 const CreatePriceAlertView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
@@ -182,7 +185,9 @@ const CreatePriceAlertView: React.FC = () => {
       <Box twClassName="flex-1 bg-default">
         {/* The header centers the title block but not the text inside it, so
             longer translations wrap with their trailing line pushed left. */}
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings(
             isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
             { ticker: displayTicker },

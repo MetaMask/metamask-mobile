@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@metamask/react-data-query';
+import { MOCK_RECURRING_OPEN_ORDER } from '../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../api/recurringSwaps.mock';
-import type { GetRecurringSwapsResponse } from '../api/recurringOrders.types';
+import type { ListRecurringSwapsResponse } from '../api/recurringOrders.types';
 import { useRecurringSwaps } from './useRecurringSwaps';
 
 jest.mock('@metamask/react-data-query', () => ({
@@ -8,15 +9,17 @@ jest.mock('@metamask/react-data-query', () => ({
 }));
 
 const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
-const ORDER_ID = MOCK_RECURRING_OPEN_ORDER_SWAPS[0].orderId;
+const ORDER_ID = MOCK_RECURRING_OPEN_ORDER.id;
+const ACCOUNT_ADDRESS = MOCK_RECURRING_OPEN_ORDER.accountAddress;
 
 function createPage(
   swapIndex: number,
-  nextCursor?: string,
-): GetRecurringSwapsResponse {
+  endCursor?: string,
+): ListRecurringSwapsResponse {
   return {
     swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[swapIndex]],
-    nextCursor,
+    endCursor,
+    hasNextPage: Boolean(endCursor),
   };
 }
 
@@ -27,7 +30,7 @@ function createQueryResult({
   hasNextPage = false,
   isFetchingNextPage = false,
 }: {
-  pages?: GetRecurringSwapsResponse[];
+  pages?: ListRecurringSwapsResponse[];
   isLoading?: boolean;
   isError?: boolean;
   hasNextPage?: boolean;
@@ -52,14 +55,14 @@ describe('useRecurringSwaps', () => {
   it('uses the cursor-free recurring-swaps service key', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
 
-    useRecurringSwaps({ orderId: ORDER_ID });
+    useRecurringSwaps({ orderId: ORDER_ID, accountAddress: ACCOUNT_ADDRESS });
 
     expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         queryKey: [
           'RecurringOrdersDataService:getRecurringSwaps',
           ORDER_ID,
-          { limit: 20 },
+          { accountAddress: ACCOUNT_ADDRESS, limit: 20 },
         ],
         enabled: true,
         initialPageParam: undefined,
@@ -69,7 +72,7 @@ describe('useRecurringSwaps', () => {
 
   it('returns the next page cursor from the service response', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
-    useRecurringSwaps({ orderId: ORDER_ID });
+    useRecurringSwaps({ orderId: ORDER_ID, accountAddress: ACCOUNT_ADDRESS });
     const options = mockUseInfiniteQuery.mock.calls[0][0];
 
     const nextCursor = options.getNextPageParam?.(
@@ -89,7 +92,10 @@ describe('useRecurringSwaps', () => {
       }) as never,
     );
 
-    const result = useRecurringSwaps({ orderId: ORDER_ID });
+    const result = useRecurringSwaps({
+      orderId: ORDER_ID,
+      accountAddress: ACCOUNT_ADDRESS,
+    });
 
     expect(result.swaps).toStrictEqual([
       MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
@@ -98,8 +104,9 @@ describe('useRecurringSwaps', () => {
   });
 
   it.each([
-    { orderId: undefined, enabled: true },
-    { orderId: ORDER_ID, enabled: false },
+    { orderId: undefined, accountAddress: ACCOUNT_ADDRESS, enabled: true },
+    { orderId: ORDER_ID, accountAddress: undefined, enabled: true },
+    { orderId: ORDER_ID, accountAddress: ACCOUNT_ADDRESS, enabled: false },
   ])('disables the query for %o', (params) => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
 
@@ -113,7 +120,10 @@ describe('useRecurringSwaps', () => {
   it('requests the next page when one is available', () => {
     const queryResult = createQueryResult({ hasNextPage: true });
     mockUseInfiniteQuery.mockReturnValue(queryResult as never);
-    const result = useRecurringSwaps({ orderId: ORDER_ID });
+    const result = useRecurringSwaps({
+      orderId: ORDER_ID,
+      accountAddress: ACCOUNT_ADDRESS,
+    });
 
     result.fetchNextPage();
 
@@ -131,7 +141,10 @@ describe('useRecurringSwaps', () => {
       isFetchingNextPage,
     });
     mockUseInfiniteQuery.mockReturnValue(queryResult as never);
-    const result = useRecurringSwaps({ orderId: ORDER_ID });
+    const result = useRecurringSwaps({
+      orderId: ORDER_ID,
+      accountAddress: ACCOUNT_ADDRESS,
+    });
 
     result.fetchNextPage();
 
@@ -147,7 +160,10 @@ describe('useRecurringSwaps', () => {
     });
     mockUseInfiniteQuery.mockReturnValue(queryResult as never);
 
-    const result = useRecurringSwaps({ orderId: ORDER_ID });
+    const result = useRecurringSwaps({
+      orderId: ORDER_ID,
+      accountAddress: ACCOUNT_ADDRESS,
+    });
 
     expect(result).toMatchObject({
       isLoading: true,

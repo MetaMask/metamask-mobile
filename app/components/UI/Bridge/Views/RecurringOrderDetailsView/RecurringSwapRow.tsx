@@ -10,7 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 import OpenOrderRow from '../../components/OpenOrderRow';
 import {
   type RecurringSwap,
-  RecurringSwapStatus,
+  RecurringSwapState,
 } from '../../api/recurringOrders.types';
 import type { BridgeToken } from '../../types';
 import { formatRecurringTokenAmount } from '../../utils/recurringOrders';
@@ -24,11 +24,11 @@ interface RecurringSwapRowProps {
 }
 
 function getSwapTitleColor(swap: RecurringSwap) {
-  if (swap.status === RecurringSwapStatus.Skipped) {
+  if (swap.state === RecurringSwapState.Skipped) {
     return TextColor.TextAlternative;
   }
 
-  if (swap.status === RecurringSwapStatus.Failed) {
+  if (swap.state === RecurringSwapState.Failed) {
     return TextColor.ErrorDefault;
   }
 
@@ -43,14 +43,26 @@ function getSkippedSwapLabel(swap: RecurringSwap) {
   return strings(`bridge.recurring.${swap.skipReason}`);
 }
 
+function getSwapSubtitle(swap: RecurringSwap) {
+  if (swap.state === RecurringSwapState.Skipped) {
+    return getSkippedSwapLabel(swap);
+  }
+
+  if (swap.state === RecurringSwapState.Submitted) {
+    return strings('bridge.limit.submitted');
+  }
+
+  return '';
+}
+
 export function RecurringSwapRow({
   swap,
   sourceToken,
   destinationToken,
   onPress,
 }: RecurringSwapRowProps) {
-  const isSkipped = swap.status === RecurringSwapStatus.Skipped;
-  const hasZeroAmounts = swap.status !== RecurringSwapStatus.Filled;
+  const isSkipped = swap.state === RecurringSwapState.Skipped;
+  const hasZeroAmounts = swap.state !== RecurringSwapState.Filled;
   const sourceAmount = formatRecurringTokenAmount(
     hasZeroAmounts ? '0' : swap.src.amount,
     sourceToken.decimals,
@@ -67,7 +79,7 @@ export function RecurringSwapRow({
         source: sourceToken.symbol,
         dest: destinationToken.symbol,
       })}
-      subtitle={isSkipped ? getSkippedSwapLabel(swap) : ''}
+      subtitle={getSwapSubtitle(swap)}
       primaryValue={`+${destinationAmount} ${destinationToken.symbol}`}
       secondaryValue={`-${sourceAmount} ${sourceToken.symbol}`}
       titleColor={getSwapTitleColor(swap)}
@@ -87,7 +99,7 @@ export function RecurringSwapRow({
         hasZeroAmounts ? TextColor.TextAlternative : TextColor.SuccessDefault
       }
       onPress={onPress}
-      testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId)}
+      testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.id)}
     />
   );
 }

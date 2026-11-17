@@ -13,13 +13,12 @@ or a caller `with:` to shrink a suite or all smoke jobs.
 
 ## Golden fingerprint strategy
 
-The prime job and all Android Appium shard jobs use the same 4-core, 10240 MB,
-1440x3120 emulator shape. The fingerprint already hashes the complete prime
-argument list, including cores, memory, and skin. Moving from 8 cores / 12288 MB
-to 4 cores / 10240 MB intentionally invalidates the golden cache once so N=2
-fits a 16 vCPU / 32 GB runner; prime and shard workflows then agree on the
-replacement cache key. N=3 uses the same per-emulator shape (12 cores reserved
-for emulators alone) — watch RAM/CPU and preemptions if runners stay at 16×32.
+The prime job and all Android Appium shard jobs use the same 4-core, 5120 MB,
+1440x3120 emulator shape. The fingerprint hashes the complete prime argument
+list, including cores, memory, and skin, so this memory change invalidates the
+golden cache once and the next prime writes the replacement key. N=3 keeps that
+shape: 12 cores reserved for the guests, and 3 × 5120 MB is 15 GB of guest RAM
+on the 16 vCPU / 32 GB runner.
 
 Each pooled emulator resumes `e2e_golden` with `-read-only`. Console ports are
 fixed so adb serials and Appium auxiliary ports never overlap:
@@ -150,8 +149,9 @@ For each Android smoke job on the PR vs the same job on `main` (historical N=1):
 1. Job wall clock (Actions UI) and Playwright `duration_ms` in the job
    summary.
 2. `Android emulator pool ready in <milliseconds>` — golden resume vs cold.
-3. Namespace peak CPU and RAM. Three 4-core / 10240 MB guests stress a
-   16 vCPU / 32 GB profile more than N=2 did.
+3. Namespace peak CPU and RAM. Three 4-core / 5120 MB guests are 15 GB of
+   guest RAM on a 16 vCPU / 32 GB profile, with 12 cores reserved for the
+   emulators.
 4. Flake rate and retries vs `main`.
 
 N=3 is not 3× throughput: workers share one runner, so overlap is

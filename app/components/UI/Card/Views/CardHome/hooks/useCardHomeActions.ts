@@ -1,5 +1,4 @@
 import { useCallback, useContext } from 'react';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
@@ -455,6 +454,12 @@ export function useCardHomeActions({
     });
   }, [navigation]);
 
+  const howToUseApplePayAction = useCallback(() => {
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.APPLE_PAY_USAGE,
+    });
+  }, [navigation]);
+
   const unlinkMoneyAccountAction = useCallback(
     (fundingSource?: string) => {
       trackEvent(
@@ -494,27 +499,6 @@ export function useCardHomeActions({
       },
     });
   }, [navigation, trackEvent, createEventBuilder, activeProviderId]);
-
-  const logoutAction = useCallback(() => {
-    Alert.alert(
-      strings('card.card_home.logout_confirmation_title'),
-      strings('card.card_home.logout_confirmation_message'),
-      [
-        {
-          text: strings('card.card_home.logout_confirmation_cancel'),
-          style: 'cancel',
-        },
-        {
-          text: strings('card.card_home.logout_confirmation_confirm'),
-          style: 'destructive',
-          onPress: async () => {
-            await Engine.context.CardController.logout();
-            navigation.goBack();
-          },
-        },
-      ],
-    );
-  }, [navigation]);
 
   const orderMetalCardAction = useCallback(() => {
     trackEvent(
@@ -629,9 +613,9 @@ export function useCardHomeActions({
     manageSpendingLimitAction,
     contactDetailsAction,
     digitalWalletInstructionsAction,
+    howToUseApplePayAction,
     unlinkMoneyAccountAction,
     revokeAllowanceAction,
-    logoutAction,
     orderMetalCardAction,
     cashbackAction,
     redeemCreditAction,

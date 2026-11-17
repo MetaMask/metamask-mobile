@@ -3,8 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { MOCK_RECURRING_OPEN_ORDER } from '../api/recurringOrders.mock';
 import {
-  type GetRecurringOrdersResponse,
-  RecurringOrderStatus,
+  type ListRecurringOrdersResponse,
+  RecurringOrderState,
 } from '../api/recurringOrders.types';
 import { useRecurringOrders } from './useRecurringOrders';
 
@@ -21,15 +21,16 @@ const mockUseQueryClient = jest.mocked(useQueryClient);
 const mockInvalidateQueries = jest.fn();
 const messengerCall = Engine.controllerMessenger.call as jest.Mock;
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
-const OPEN_STATUSES = [RecurringOrderStatus.Open];
+const OPEN_STATES = [RecurringOrderState.Open];
 
 function createPage(
   orderId: string,
-  nextCursor?: string,
-): GetRecurringOrdersResponse {
+  endCursor?: string,
+): ListRecurringOrdersResponse {
   return {
-    orders: [{ ...MOCK_RECURRING_OPEN_ORDER, orderId }],
-    nextCursor,
+    orders: [{ ...MOCK_RECURRING_OPEN_ORDER, id: orderId }],
+    endCursor,
+    hasNextPage: Boolean(endCursor),
   };
 }
 
@@ -40,7 +41,7 @@ function createQueryResult({
   hasNextPage = false,
   isFetchingNextPage = false,
 }: {
-  pages?: GetRecurringOrdersResponse[];
+  pages?: ListRecurringOrdersResponse[];
   isLoading?: boolean;
   isError?: boolean;
   hasNextPage?: boolean;
@@ -73,7 +74,7 @@ describe('useRecurringOrders', () => {
 
     useRecurringOrders({
       walletAddress: WALLET_ADDRESS.toUpperCase(),
-      status: OPEN_STATUSES,
+      orderStates: OPEN_STATES,
       chainId: 'eip155:1',
     });
 
@@ -83,7 +84,7 @@ describe('useRecurringOrders', () => {
           'RecurringOrdersDataService:getRecurringOrders',
           {
             walletAddress: WALLET_ADDRESS,
-            status: OPEN_STATUSES,
+            orderStates: OPEN_STATES,
             chainId: 'eip155:1',
             limit: 20,
           },
@@ -102,10 +103,10 @@ describe('useRecurringOrders', () => {
 
     const result = useRecurringOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      orderStates: OPEN_STATES,
     });
 
-    expect(result.orders.map(({ orderId }) => orderId)).toStrictEqual([
+    expect(result.orders.map(({ id }) => id)).toStrictEqual([
       'order-1',
       'order-2',
     ]);
@@ -115,7 +116,7 @@ describe('useRecurringOrders', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
     useRecurringOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      orderStates: OPEN_STATES,
     });
     const options = mockUseInfiniteQuery.mock.calls[0][0];
 
@@ -133,7 +134,7 @@ describe('useRecurringOrders', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
 
     useRecurringOrders({
-      status: OPEN_STATUSES,
+      orderStates: OPEN_STATES,
     });
 
     expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
@@ -146,7 +147,7 @@ describe('useRecurringOrders', () => {
 
     useRecurringOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      orderStates: OPEN_STATES,
       enabled: false,
     });
 
@@ -160,7 +161,7 @@ describe('useRecurringOrders', () => {
     mockUseInfiniteQuery.mockReturnValue(queryResult as never);
     const result = useRecurringOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      orderStates: OPEN_STATES,
     });
 
     result.fetchNextPage();
@@ -184,7 +185,7 @@ describe('useRecurringOrders', () => {
 
     const result = useRecurringOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      orderStates: OPEN_STATES,
       chainId: 'eip155:1',
     });
     const queryKey = mockUseInfiniteQuery.mock.calls[0][0].queryKey;
@@ -227,7 +228,7 @@ describe('useRecurringOrders', () => {
       mockUseInfiniteQuery.mockReturnValue(queryResult as never);
       const result = useRecurringOrders({
         walletAddress: WALLET_ADDRESS,
-        status: OPEN_STATUSES,
+        orderStates: OPEN_STATES,
       });
 
       result.fetchNextPage();
@@ -247,7 +248,7 @@ describe('useRecurringOrders', () => {
 
     const result = useRecurringOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      orderStates: OPEN_STATES,
     });
 
     expect(result).toMatchObject({

@@ -1,5 +1,6 @@
 import React from 'react';
 import { BackHandler } from 'react-native';
+import { Provider } from 'react-redux';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   CANCELLATION_REASONS,
@@ -17,6 +18,8 @@ import {
   getCancelReasonTestId,
 } from './CancelMembership.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import configureStore from '../../../../../util/test/configureStore';
+import initialRootState from '../../../../../util/test/initial-root-state';
 import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -137,7 +140,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const renderScreen = () => render(<CancelMembership />);
+const renderScreen = () =>
+  render(
+    <Provider store={configureStore(initialRootState)}>
+      <CancelMembership />
+    </Provider>,
+  );
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -394,7 +402,7 @@ describe('CancelMembership', () => {
     expectPostCancellationReset();
   });
 
-  it('includes the selected reason code and omits free-text feedback', async () => {
+  it('includes the selected reason code and trimmed stay feedback', async () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(
@@ -402,7 +410,7 @@ describe('CancelMembership', () => {
     );
     fireEvent.changeText(
       getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
-      'Lower the price',
+      '  Lower the price  ',
     );
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
@@ -411,10 +419,8 @@ describe('CancelMembership', () => {
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
         cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
+        cancellationFeedback: 'Lower the price',
       }),
-    );
-    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
-      'cancellationFeedback',
     );
   });
 
@@ -431,6 +437,30 @@ describe('CancelMembership', () => {
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
         cancellationReason: CANCELLATION_REASONS.OTHER,
+      }),
+    );
+    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
+      'cancellationFeedback',
+    );
+  });
+
+  it('omits stay feedback that is only whitespace', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(
+      getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+    );
+    fireEvent.changeText(
+      getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      '   ',
+    );
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    await waitFor(() =>
+      expect(mockCancelSubscription).toHaveBeenCalledWith({
+        subscriptionId: PLUS_SUBSCRIPTION.id,
+        cancelAtPeriodEnd: true,
+        cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
       }),
     );
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(

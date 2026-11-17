@@ -6,6 +6,7 @@
  * every trader row starts with a "Follow" button.
  */
 
+import type { Profile } from '@metamask/profile-controller';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { createStateFixture } from '../stateFixture';
@@ -35,11 +36,45 @@ export interface SocialLeaderboardPresetOptions {
    * Default: true.
    */
   notificationsEnabled?: boolean;
+  /**
+   * Seeds an onboarding-linked social profile. Social V1 copy-trade / Follow
+   * gates need this. Leave off for homepage and V0 so the viewer is not a
+   * leaderboard trader and notification prefs stay on the old path.
+   * Default: false.
+   */
+  linkedSocialProfile?: boolean;
+  /**
+   * Composer GIF picker gate. When on, the picker loads GIFs through the
+   * social API. Default: false, so existing leaderboard tests stay on Klipy.
+   */
+  gifApiEnabled?: boolean;
 }
 
 function makeVersionFlag(enabled: boolean) {
   return { enabled, minimumVersion: '0.0.1' };
 }
+
+/**
+ * Linked EVM wallet for Social V1 copy-trade / Follow gates. Distinct from
+ * `withMinimalAccounts()` and the fixture traders (`0x…0001`–`0003`) so the
+ * homepage carousel does not treat the viewer as alpha.eth.
+ */
+const CV_SOCIAL_LINKED_ADDRESS = '0x00000000000000000000000000000000000000aa';
+
+/** Complete controller profile shared by the preset and owner-profile tests. */
+export const CV_SOCIAL_PROFILE: Profile = {
+  profileId: 'cv-social-profile',
+  username: 'cv_trader',
+  displayName: 'cv_trader',
+  bio: '',
+  linkedAddresses: [`eip155:1:${CV_SOCIAL_LINKED_ADDRESS}`],
+  avatarUrl: '',
+  tradingPrivacy: 'public',
+  connectedToX: false,
+  verified: false,
+  createdAt: '',
+  updatedAt: '',
+};
 
 /**
  * Returns a `StateFixtureBuilder` configured for Social Leaderboard CV tests.
@@ -55,6 +90,8 @@ export function initialStateSocialLeaderboard(
     followingProfileIds = [],
     showAccountOnLeaderboard = true,
     notificationsEnabled = true,
+    linkedSocialProfile = false,
+    gifApiEnabled = false,
   } = options;
 
   return createStateFixture()
@@ -67,6 +104,7 @@ export function initialStateSocialLeaderboard(
       aiSocialLeaderboardOptFlowEnabled: makeVersionFlag(optFlowEnabled),
       // Cache-refresh flag: off by default to avoid extra calls in tests.
       aiSocialAusCacheRefreshEnabled: makeVersionFlag(false),
+      aiSocialGifApi: makeVersionFlag(gifApiEnabled),
     })
     .withOverrides({
       engine: {
@@ -91,6 +129,13 @@ export function initialStateSocialLeaderboard(
           // SocialController.followingProfileIds drives isFollowing() in
           // useFollowToggleMany without any additional API calls.
           SocialController: { followingProfileIds },
+          ...(linkedSocialProfile
+            ? {
+                ProfileController: {
+                  profile: CV_SOCIAL_PROFILE,
+                },
+              }
+            : {}),
         },
       },
       settings: {

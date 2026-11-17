@@ -2,7 +2,11 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import type { Json } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
-import { MONEY_MOVEMENT_NEOBANK_FLAG_KEY } from '../../../../../../selectors/featureFlagController/moneyAccount';
+import {
+  MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
+import type { VbaMarket } from '../../../../../../util/region/getVbaSourceCurrency';
 import { getVbaEligibility, useVbaEligibility } from './useVbaEligibility';
 
 jest.mock('react-native-device-info', () => ({
@@ -16,11 +20,17 @@ jest.mock(
   }),
 );
 
+const brl = { currency: 'BRL', regions: ['BR'] } as const;
+const usd = { currency: 'USD', regions: ['US'] } as const;
+const brlOnlyMarkets = [brl];
+const brAndUsMarkets = [brl, usd];
+const emptyMarkets: VbaMarket[] = [];
+
 const base = {
   isFlagEnabled: true,
   geolocationStatus: 'complete' as const,
   isDevBypassEnabled: false,
-  regions: ['BR'],
+  markets: brlOnlyMarkets,
 };
 
 describe('getVbaEligibility', () => {
@@ -48,7 +58,7 @@ describe('getVbaEligibility', () => {
       location: 'BR',
       geolocationStatus: 'complete',
       isDevBypassEnabled: true,
-      regions: ['BR'],
+      markets: brlOnlyMarkets,
     });
 
     expect(result.isEligible).toBe(false);
@@ -63,42 +73,47 @@ describe('getVbaEligibility', () => {
     expect(result.isLoading).toBe(false);
   });
 
-  it('is eligible in the US when US is in the region list', () => {
+  it('is eligible in the US when the USD market lists the US', () => {
     const result = getVbaEligibility({
       ...base,
       location: 'US-NY',
-      regions: ['BR', 'US'],
+      markets: brAndUsMarkets,
     });
 
     expect(result.isEligible).toBe(true);
     expect(result.isRegionEligible).toBe(true);
   });
 
-  it('is disabled in Brazil when the region list is empty', () => {
-    const result = getVbaEligibility({ ...base, location: 'BR', regions: [] });
+  it('is disabled in Brazil when no market lists any country', () => {
+    const result = getVbaEligibility({
+      ...base,
+      location: 'BR',
+      markets: emptyMarkets,
+    });
+
+    expect(result.isEligible).toBe(false);
+    expect(result.isRegionEligible).toBe(false);
+  });
+
+  it('is not eligible via the dev bypass when no currency flag is open', () => {
+    const result = getVbaEligibility({
+      isFlagEnabled: false,
+      location: 'US',
+      geolocationStatus: 'complete',
+      markets: emptyMarkets,
+      isDevBypassEnabled: true,
+    });
 
     expect(result.isEligible).toBe(false);
     expect(result.isFlagEnabled).toBe(false);
     expect(result.isRegionEligible).toBe(false);
   });
 
-  it('stays disabled when the region list is empty even with the dev bypass', () => {
-    const result = getVbaEligibility({
-      ...base,
-      location: 'US',
-      regions: [],
-      isDevBypassEnabled: true,
-    });
-
-    expect(result.isEligible).toBe(false);
-    expect(result.isFlagEnabled).toBe(false);
-  });
-
-  it('is not eligible in Brazil when only US is listed', () => {
+  it('is not eligible in Brazil when only the US market is open', () => {
     const result = getVbaEligibility({
       ...base,
       location: 'BR',
-      regions: ['US'],
+      markets: [usd],
     });
 
     expect(result.isEligible).toBe(false);
@@ -166,22 +181,32 @@ describe('getVbaEligibility', () => {
 });
 
 describe('useVbaEligibility regionOverride', () => {
-  const enabledFlag = {
+  const globalFlag = {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  };
+  const enabledBrlFlag = {
     enabled: true,
     minimumVersion: '0.0.0',
+    currency: 'BRL',
     regions: ['BR'],
-    regionCurrencies: { BR: 'BRL' },
   };
 
   beforeEach(() => {
     jest.mocked(getVersion).mockReturnValue('99.0.0');
   });
 
-  const renderEligibility = (
-    regionOverride: Json,
-    location: string,
-    flag: Record<string, Json> = enabledFlag,
-  ) =>
+  const renderEligibility = ({
+    regionOverride,
+    location,
+    brlFlag = enabledBrlFlag,
+    neobankFlag = globalFlag,
+  }: {
+    regionOverride?: Json;
+    location: string;
+    brlFlag?: Json;
+    neobankFlag?: Record<string, Json>;
+  }) =>
     renderHookWithProvider(() => useVbaEligibility(), {
       state: {
         engine: {
@@ -189,9 +214,12 @@ describe('useVbaEligibility regionOverride', () => {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
                 [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-                  ...flag,
-                  regionOverride,
+                  ...neobankFlag,
+                  ...(regionOverride !== undefined ? { regionOverride } : {}),
                 },
+                ...(brlFlag !== undefined
+                  ? { [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: brlFlag }
+                  : {}),
               },
             },
             GeolocationController: {
@@ -204,28 +232,59 @@ describe('useVbaEligibility regionOverride', () => {
     });
 
   it('uses the flag regionOverride ahead of the IP location', () => {
-    const { result } = renderEligibility(' br ', 'DE');
+    const { result } = renderEligibility({
+      regionOverride: ' br ',
+      location: 'DE',
+    });
 
     expect(result.current.isEligible).toBe(true);
+    expect(result.current.isFlagEnabled).toBe(true);
     expect(result.current.isRegionEligible).toBe(true);
     expect(result.current.location).toBe('BR');
   });
 
-  it('is not eligible when the override country is outside regions', () => {
-    const { result } = renderEligibility('DE', 'BR');
+  it('is not eligible when the override country is outside every market', () => {
+    const { result } = renderEligibility({
+      regionOverride: 'DE',
+      location: 'BR',
+    });
 
     expect(result.current.isEligible).toBe(false);
+    expect(result.current.isFlagEnabled).toBe(true);
     expect(result.current.isRegionEligible).toBe(false);
     expect(result.current.location).toBe('DE');
   });
 
-  it('uses the IP location when a disabled flag still sends regionOverride', () => {
-    const { result } = renderEligibility('BR', 'DE', {
-      ...enabledFlag,
-      enabled: false,
+  it('reads regionOverride even when moneyMovementNeobank.enabled is false', () => {
+    const { result } = renderEligibility({
+      regionOverride: 'BR',
+      location: 'DE',
+      neobankFlag: { ...globalFlag, enabled: false },
+    });
+
+    expect(result.current.isEligible).toBe(true);
+    expect(result.current.location).toBe('BR');
+  });
+
+  it('is eligible in Brazil when only the BRL currency flag is open', () => {
+    const { result } = renderEligibility({ location: 'BR' });
+
+    expect(result.current.isEligible).toBe(true);
+    expect(result.current.isFlagEnabled).toBe(true);
+  });
+
+  it('is not eligible when no currency flag is open', () => {
+    const { result } = renderEligibility({
+      location: 'BR',
+      brlFlag: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+        currency: 'BRL',
+        regions: ['BR'],
+      },
     });
 
     expect(result.current.isEligible).toBe(false);
-    expect(result.current.location).toBe('DE');
+    expect(result.current.isFlagEnabled).toBe(false);
   });
 });

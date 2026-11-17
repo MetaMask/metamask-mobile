@@ -73,15 +73,18 @@ function renderFooter(
   state: DeepPartial<RootState>,
   {
     onPreviewOrder = jest.fn(),
+    label = strings('bridge.recurring.preview_order'),
     isPreviewDisabled,
   }: {
     onPreviewOrder?: () => void;
+    label?: string;
     isPreviewDisabled?: boolean;
   } = {},
 ) {
   return renderWithProvider(
     <BridgeRecurringBuyFooterView
       onPreviewOrder={onPreviewOrder}
+      label={label}
       isPreviewDisabled={isPreviewDisabled}
     />,
     { state },
@@ -96,16 +99,25 @@ describe('BridgeRecurringBuyFooterView', () => {
       .mockImplementation(() => mockUseBridgeQuoteData);
   });
 
-  it('renders nothing when loading without an active quote', () => {
+  it('renders a disabled loading button while fetching the initial quote', () => {
     jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
       ...mockUseBridgeQuoteData,
       isLoading: true,
       activeQuote: null,
     }));
+    const state = buildActiveQuoteState({
+      bridgeControllerOverrides: {
+        quotes: [],
+        quotesLastFetched: null,
+      },
+    });
 
-    const { queryByTestId } = renderFooter(buildActiveQuoteState());
+    const { getByTestId } = renderFooter(state);
 
-    expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(button).toBeOnTheScreen();
+    expect(button.props.accessibilityState?.busy).toBe(true);
+    expect(button.props.accessibilityState?.disabled).toBe(true);
   });
 
   it('renders nothing when there is no active quote', () => {
@@ -149,6 +161,18 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).toHaveTextContent(strings('bridge.recurring.preview_order'));
+  });
+
+  it('renders the supplied confirm button label', () => {
+    const label = strings('bridge.recurring.min_order_amount', {
+      amount: '€90.00',
+    });
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState(), { label });
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(label);
   });
 
   it('shows the confirm button as loading when the quote is refreshing', () => {

@@ -1,0 +1,103 @@
+# Active Venue and availability
+
+PRED-1377. One resolver, `selectActiveVenue`, decides the Active Venue. Every public API, the root `Predict` route, the legacy market-list route and `selectPredictAvailability` read it, so data, visibility and navigation agree. The resolver picks a Venue. `implementation/venueImplementations.ts` maps that Venue to the code that serves it (`polymarket → legacy`, `kalshi → next` until PRED-1356). The `next` branch receives its Venue through `useNextVenueId` and never branches on a Venue id.
+
+## Resolution order
+
+`resolveActiveVenue` (pure) applies these steps in order:
+
+1. **Rollout.** Only Venues enabled in `predictConfig` are candidates. With `predictConfig.enabled: false`, or no Venue enabled, the legacy lane serves Predict (`source: 'legacyLane'`). If exactly one Venue is a candidate, it wins (`'rollout'`), and nothing waits for geolocation.
+2. **Venue Selection Preference.** A stored preference wins (`'preference'`) while it names a candidate and `predictConfig.venueSelection.enabled` is true. If either condition fails, the preference is ignored, kept as stored, and reported in the result as `ignoredPreference` (`venueNotEnabled` or `venueSelectionDisabled`). `PredictVenueController` logs it once per distinct case, so a stale preference can be diagnosed.
+3. **Known geolocation.** A US location defaults to Kalshi. Any other known location defaults to Polymarket (`'geolocation'`).
+4. **Geolocation loading.** The result is `{ status: 'resolving' }`, for at most `ACTIVE_VENUE_GEOLOCATION_WAIT_MS` (3 s, inside the Home skeleton's budget).
+5. **Geolocation failed, unknown or timed out.** The Active Venue the previous session ended on applies (`'lastActiveVenue'`), or Polymarket if none was recorded (`'fallback'`).
+
+Steps 3 to 5 decide the **session default**. `PredictVenueController` latches it once per app session from `GeolocationController` state. The controller reads the state that the Engine-start fetch produces and never fetches a location itself. A location that arrives after the fallback has been applied takes effect in the next session. Within a session, the Active Venue changes only when the preference or the rollout config changes.
+
+## Persistence
+
+`PredictVenueController` (Engine, device scope) persists only Venue ids:
+
+| Field                      | Persisted | Meaning                                                    |
+| -------------------------- | --------- | ---------------------------------------------------------- |
+| `venueSelectionPreference` | yes       | The Predict User's explicit choice; `null` means automatic |
+| `lastActiveVenue`          | yes       | The Active Venue most recently resolved on this device     |
+| `sessionDefault`           | no        | This session's latched default and its source              |
+
+The controller does not store the location or any other PII. On hydration it drops Venue ids that this build does not know. Its init subscribes to the Redux store and records every Active Venue that `selectActiveVenue` resolves. The record is kept whether or not a Predict screen is open. `Engine.resetState` calls `clearState()`, which clears the preference and the history (consistent with PRED-1381). A session default that came from geolocation is device context, so it stays. A session default taken from the cleared history becomes the no-history fallback.
+
+## Flag semantics during the transition
+
+| Flag                                         | Meaning                                                                                                                                                                              |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `predictConfig.enabled`                      | Chooses between lanes. `false` means the legacy Polymarket lane. It is **not** a kill switch: Predict stays available under `predictTradingEnabled`. This is the production default. |
+| `predictConfig.venues.<venue>.enabled`       | Per-Venue rollout and that Venue's kill switch. Turning a Venue off removes it from the candidates, so its users resolve to another Venue and are not hidden.                        |
+| `predictConfig.venueSelection.enabled`       | Whether a Venue Selection Preference is honored and whether the venue picker shows. Turning it off ignores stored preferences without deleting them.                                 |
+| `predictTradingEnabled`                      | Availability of the **legacy lane**. It is version-gated and defaults to `true` when absent or invalid. It does not gate a `next` Venue.                                             |
+| `selectPredictEnabledFlag` (legacy selector) | Reads `predictTradingEnabled`. Legacy code keeps using it. External gates move to `selectPredictAvailability` in D1 (PRED-1392).                                                     |
+
+`selectPredictAvailability` and `usePredictAvailability()` live in `availability/`. They are venue-aware:
+
+- While Polymarket (legacy) is active, availability equals `selectPredictEnabledFlag`. A test holds this invariant.
+- While a `next` Venue is active, it is available. Its rollout flag is its kill switch and has already made it a candidate.
+- While the Active Venue is `resolving`, availability is true only if every candidate is available. An entry point therefore never appears and then disappears.
+
+To hide Predict for every user, turn off `predictTradingEnabled` and also either set `predictConfig.enabled: false` or disable every `next` Venue.
+
+Availability is the only one of these projections that `selectPredictAvailability` answers:
+
+- Account Readiness and eligibility gate actions, not public browsing.
+- Venue Status (`useVenueStatus`) covers degraded cached browsing.
+- Venue Capabilities (`useVenueCapabilities`) cover feature support.
+
+None of the three is folded into availability.
+
+## Consumers
+
+- `selectActiveVenue` / `useActiveVenue()` return `{ status: 'resolving' }`, or `{ status: 'ready', venue, source, ignoredPreference? }`.
+- `selectVenueSelectionPreference` returns the stored preference, honored or not.
+- `selectSelectableVenues` returns the Venues a preference may name. It is empty unless venue selection is enabled and more than one Venue is rolled out.
+- `PredictVenueController:setVenueSelectionPreference(venue | null)` (messenger action, or `Engine.context.PredictVenueController`) stores a choice; `null` returns to automatic.
+- `PredictVenueController:stateChanged` publishes preference and history changes.
+
+While the Active Venue is `resolving`, the root route and the legacy market-list route render nothing. Venue changes remount the active branch (`PredictImplementationSwitch`). What a change does to money operations is described in [Order operations across a Venue change](#order-operations-across-a-venue-change).
+
+## Venue picker
+
+PRED-1401. `PredictVenueSelectorButton` (`venueSelection/`) sits next to the search icon on the PredictNext home and on both legacy Polymarket homes (`PredictFeed` and the redesigned `PredictHome`, through `PredictHeaderStacked`). It renders nothing unless `selectSelectableVenues` offers a choice. The picker is therefore absent, not disabled, while `predictConfig.venueSelection.enabled` is off or fewer than two Venues are rolled out.
+
+Its bottom sheet lists the selectable Venues and marks the Active Venue. Choosing one does two things, in order:
+
+1. It navigates to the root `Predict` route at its home, without legacy market-list parameters.
+2. It calls `PredictVenueController:setVenueSelectionPreference`. The root route then remounts on the chosen Venue's home.
+
+The picker only writes the preference. Availability, Account Readiness, eligibility, rollout and kill switches keep applying unchanged, and a preference that is no longer honored is ignored as described above. Order handling does not hook the picker: it reacts to the resolved Active Venue, so a rollout change or a kill switch is handled the same way as a selection.
+
+The module imports nothing from legacy `Predict/`. The legacy headers import it from its module boundary (`PredictNext/venueSelection`), not from the PredictNext entry point: the entry point exports `PredictRoot`, which imports the legacy stack, so importing it from a legacy header would close a dependency cycle.
+
+Analytics: until PRED-1273 defines the Predict venue-selection events, a selection fires the generic `SETTINGS_UPDATED` event (`settings_group: 'predict'`, `settings_type: 'venue_selection'`, `old_value`, `new_value`).
+
+## Order operations across a Venue change
+
+PRED-1383. Changing the Active Venue never redirects, loses or duplicates a money operation, for either Venue.
+
+**The submission boundary.** A Kalshi Order Preview crosses it when `PredictOrderService.commitPreview` hands its Commit to the transport. That happens synchronously with the approval, before the bearer token is resolved, so the line is drawn on the conservative side: once the client may have sent the request, the operation counts as submitted or ambiguous. The client cannot tell whether a lost request reached the backend, but it does not need to: the Commit is idempotent by Preview reference and the backend looks up an existing operation before it checks expiry, so re-POSTing the same reference observes the one operation and never places a second.
+
+| Moment of the change               | What happens                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Before the quote returns           | The quote request is aborted, and an answer that lands anyway is refused. Its Preview never becomes approvable.                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| After the Preview, before approval | The Preview is cancelled. Its Commit is refused locally, without a request, even after a switch back.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| During the Commit                  | Nothing is cancelled. The operation keeps its Venue, Predict User, Preview and destination, and is observed by re-POSTing the same reference until it resolves.                                                                                                                                                                                                                                                                                                                                                                         |
+| After a lost response              | The operation is ambiguous, never cancelled. The background waits until the Preview has expired (plus a grace) before it re-POSTs, so an automatic re-POST can observe the operation but never create it. It then resolves as settled, or as "not placed" only when the Commit route itself refuses with a canonical code such as `preview_expired`. A 401 or a Receipt already seen never ends it as "not placed". Only the Predict User's explicit re-approval re-POSTs inside the validity window, and a stale sheet cannot do that. |
+
+A canonical Commit failure code proves that no operation exists. A Preview with no ambiguous history then goes back before the boundary, so the open sheet can approve it again and a later change cancels it.
+
+**Who notices the change.** `predictOrderServiceInit` subscribes to the Redux store through `subscribeToActiveVenueChanges` and calls `cancelUncommittedPreviews()` whenever `selectActiveVenue` resolves a different Venue, whether the picker, a rollout change or a kill switch caused it. It runs whether or not a Predict screen is mounted. The Order sheet also compares its Venue with the Active Venue: a stale sheet drops its quote and uncommitted approval and disables every action except closing, including re-approving an ambiguous Commit.
+
+**Observation and notification.** Unresolved operations are observed in bounded five-minute/12-call sessions, whichever Venue is active and whether or not the sheet is open. Later eligible lifecycle events resume paused work. A newly resolved operation publishes `PredictOrderService:orderResolved`, carrying operation references and canonical Receipt only; presenters suppress the duplicate toast. Persisted terminal cleanup prevents launch-time replay, while manual-review references remain visible. The Funding Wallet takes no part in a person-scoped Kalshi Order, so unrelated Funding Wallet/account changes do not redefine recovery identity.
+
+**Identity replacement.** Recovery uses the authenticated canonical Predict User, never the selected wallet account. Lock/signout/background cancel and generation-fence in-flight observations without deleting unknown outcomes. Wallet reset calls `PredictOrderService.abandonCommits()` to synchronously abandon work; the durable journal is identity-scoped, so another identity cannot observe or display those references.
+
+**Relaunch.** A safe dispatch journal is written before mutation dispatch, closing the gap before the server creates its operation row. Startup, foreground and reconnect merge owner-scoped paginated unresolved discovery with that journal, then observe GETs only in bounded fair sessions. No approval or executable body is persisted and recovery never POSTs. Budget pauses and observation 404 preserve unknown references; the Portfolio panel shows checking/manual-review state and an observation-only refresh affordance.
+
+**Legacy Polymarket.** Unchanged. Its toast registration and observation of submitted operations stay mounted whatever the Active Venue, and the Polymarket withdraw source balance (`get-balance-callback.ts`) never reads the Active Venue. A component-view test pins the toast registration across a switch to Kalshi.

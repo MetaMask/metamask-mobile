@@ -16,7 +16,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconAlertSeverity,
   IconName,
   Text,
@@ -35,16 +34,22 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { useTheme } from '../../../../util/theme';
 import { useMfa } from '../../../../util/identity/mfa';
-import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
-import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../../util/identity/mfa/engine/types';
 import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCredential';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import {
   getAddedOn,
+  getCreatedOn,
+  getLastUsedValue,
   getMethodLabel,
   getPasskeyName,
   maskEmail,
@@ -69,7 +74,7 @@ const COPY: Record<
     lastTitle: string;
     lastDescription: string;
     removed: string;
-    operation: string;
+    operation: MfaReason['operation'];
   }
 > = {
   passkey: {
@@ -107,6 +112,23 @@ const COPY: Record<
   },
 };
 
+const DetailRow = ({
+  label,
+  value,
+  testID,
+}: {
+  label: string;
+  value: string;
+  testID: string;
+}) => (
+  <Box twClassName="flex-row justify-between gap-4" testID={testID}>
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Text variant={TextVariant.BodyMd}>{value}</Text>
+  </Box>
+);
+
 /**
  * One method: when it was added, what it protects, and its removal. Removing
  * the last method is refused; otherwise the user confirms, then proves it's
@@ -120,6 +142,7 @@ const MfaMethodDetails = () => {
     useRoute<RouteProp<RootStackParamList, 'MfaMethodDetails'>>().params;
   const { credentials, verifyOrEnroll } = useMfa();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { toastRef } = useContext(ToastContext);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [sheet, setSheet] = useState<'confirm' | 'lastMethod'>();
@@ -130,7 +153,12 @@ const MfaMethodDetails = () => {
     method === 'passkey'
       ? getActivePasskeys(credentials)[index]
       : active.find(({ type }) => type === method);
-  const others = active.filter((other) => other !== credential);
+  // The server only accepts a verification with another type of method.
+  const others = active.filter(({ type }) => type !== method);
+  // Other passkeys can't prove it's the user for removing a passkey.
+  const hasOtherPasskeys =
+    method === 'passkey' &&
+    active.some((other) => other !== credential && other.type === 'passkey');
   const copy = COPY[method];
 
   if (!credential) {
@@ -138,6 +166,7 @@ const MfaMethodDetails = () => {
   }
 
   const addedOn = getAddedOn(credential);
+  const createdOn = getCreatedOn(credential);
   let name = getMethodLabel(method);
   if (credential.type === 'passkey') {
     name = getPasskeyName(credential, index);
@@ -160,16 +189,14 @@ const MfaMethodDetails = () => {
     const verifyWith = [...new Set(others.map(({ type }) => type))];
     setIsRemoving(true);
     try {
-      const { token } = await verifyOrEnroll({
+      const reason = { operation: copy.operation };
+      await verifyOrEnroll({
         methods: verifyWith,
         verifyWith,
         maxSessionAgeMs: ENROLLMENT_MAX_SESSION_AGE_MS,
-        reason: { operation: copy.operation },
+        reason,
       });
-      await removeMfaCredential(credential, token);
-      await mobileMfaControllerAdapter
-        .refreshEnrolledCredentials()
-        .catch(() => undefined);
+      await removeMfaCredential(credential, reason);
       showToast(strings(copy.removed), true);
       navigation.dispatch(StackActions.popTo(Routes.MFA.SETTINGS));
     } catch (error) {
@@ -182,6 +209,15 @@ const MfaMethodDetails = () => {
     }
   };
 
+  const getSheetDescription = () => {
+    if (sheet === 'confirm') {
+      return copy.removeDescription;
+    }
+    return hasOtherPasskeys
+      ? 'mfa.settings.only_passkeys_description'
+      : copy.lastDescription;
+  };
+
   const closeSheet = (then?: () => void) =>
     sheetRef.current?.onCloseBottomSheet(then);
 
@@ -191,26 +227,46 @@ const MfaMethodDetails = () => {
       style={tw.style('flex-1 bg-default')}
       testID={MfaMethodDetailsSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings(copy.title)}
         onBack={() => navigation.goBack()}
         includesTopInset
       />
       <ScrollView contentContainerStyle={tw.style('p-4 gap-6')}>
-        <Box twClassName="flex-row items-center gap-4 p-4 rounded-2xl border border-muted">
-          <AvatarIcon iconName={copy.icon} />
-          <Box twClassName="flex-1">
-            <Text variant={TextVariant.BodyMd}>{name}</Text>
-            {addedOn ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {addedOn}
-              </Text>
+        {credential.type === 'passkey' ? (
+          <Box twClassName="gap-4 pb-6 border-b border-muted">
+            <Text variant={TextVariant.HeadingLg}>{name}</Text>
+            {createdOn ? (
+              <DetailRow
+                label={strings('mfa.settings.created')}
+                value={createdOn}
+                testID={MfaMethodDetailsSelectorsIDs.CREATED}
+              />
             ) : null}
+            <DetailRow
+              label={strings('mfa.settings.last_used')}
+              value={getLastUsedValue(credential)}
+              testID={MfaMethodDetailsSelectorsIDs.LAST_USED}
+            />
           </Box>
-        </Box>
+        ) : (
+          <Box twClassName="flex-row items-center gap-4 p-4 rounded-2xl border border-muted">
+            <AvatarIcon iconName={copy.icon} />
+            <Box twClassName="flex-1">
+              <Text variant={TextVariant.BodyMd}>{name}</Text>
+              {addedOn ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {addedOn}
+                </Text>
+              ) : null}
+            </Box>
+          </Box>
+        )}
         <Box twClassName="gap-4">
           <Text variant={TextVariant.HeadingSm}>
             {strings('mfa.settings.used_for')}
@@ -255,16 +311,16 @@ const MfaMethodDetails = () => {
               title={strings(
                 sheet === 'confirm' ? copy.remove : copy.lastTitle,
               )}
+              titleProps={{
+                style: { textAlign: 'center' },
+                twClassName: 'flex-1',
+              }}
             />
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
             >
-              {strings(
-                sheet === 'confirm'
-                  ? copy.removeDescription
-                  : copy.lastDescription,
-              )}
+              {strings(getSheetDescription())}
             </Text>
             {sheet === 'confirm' ? (
               <Button

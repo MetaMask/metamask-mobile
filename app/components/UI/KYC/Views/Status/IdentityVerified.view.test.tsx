@@ -4,7 +4,11 @@ import { Text } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { fireEvent } from '@testing-library/react-native';
+import {
+  fireEvent,
+  waitFor,
+  type RenderResult,
+} from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import renderWithProvider, {
@@ -14,7 +18,7 @@ import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
-import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
+import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import VbaDetails, {
   VbaDetailsSelectorsIDs,
@@ -22,9 +26,8 @@ import VbaDetails, {
 import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
 import VbaChooseCurrency from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency';
 import { VbaChooseCurrencySelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency.testIds';
-import VbaIdentityVerified, {
-  VbaIdentityVerifiedSelectorsIDs,
-} from './IdentityVerified';
+import { KycIdentityVerifiedSelectorsIDs } from './IdentityVerified';
+import { VbaIdentityVerifiedAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 
 const Onboarding = createNativeStackNavigator();
 const Root = createNativeStackNavigator();
@@ -39,7 +42,7 @@ const OnboardingNavigator = () => (
   >
     <Onboarding.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
-      component={VbaIdentityVerified}
+      component={VbaIdentityVerifiedAdapter}
     />
     <Onboarding.Screen
       name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
@@ -86,7 +89,20 @@ const engineContext = Engine.context as unknown as {
 };
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
-describeForPlatforms('VbaIdentityVerified view', () => {
+/** Waits for the success cascade so Continue is pressable, then taps it. */
+const pressContinue = async ({
+  getByTestId,
+}: Pick<RenderResult, 'getByTestId'>) => {
+  await waitFor(() => {
+    expect(getByTestId(KycIdentityVerifiedSelectorsIDs.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
+  });
+  fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON));
+};
+
+describeForPlatforms('KycIdentityVerified view', () => {
   afterEach(() => {
     netInfoMock.__resetMockNetInfo();
   });
@@ -112,20 +128,23 @@ describeForPlatforms('VbaIdentityVerified view', () => {
   ) => {
     const Flow = createFlow(DetailsScreen);
     return renderWithProvider(<Flow />, {
-      state: initialStateWallet()
+      state: initialStateVba({ location: 'BR-SP' })
         .withOverrides({
           engine: {
             backgroundState: {
-              GeolocationController: { location: 'BR-SP' },
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
                   moneyMovementNeobank: {
                     enabled: true,
                     minimumVersion: '0.0.0',
-                    regions: ['BR', 'US'],
-                    regionCurrencies: { BR: 'BRL', US: 'USD' },
-                    defaultCurrency: 'USD',
                     chooseCurrency,
+                  },
+                  moneyMovementNeobankBrl: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                    currency: 'BRL',
+                    regions: ['BR'],
+                    layout: 'Pix',
                   },
                 },
               },
@@ -141,9 +160,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       Probe(Routes.RAMP.VBA_DETAILS),
     );
 
-    fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
@@ -180,12 +197,15 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     });
     const { findByTestId, findByText, getByTestId } = render(VbaDetails);
 
-    fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
 
     expect(
       await findByText(strings('virtual_bank_account.creating_account.title')),
+    ).toBeOnTheScreen();
+    expect(
+      await findByText(
+        strings('virtual_bank_account.creating_account.description'),
+      ),
     ).toBeOnTheScreen();
     releaseCreate();
     expect(
@@ -204,9 +224,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       chooseCurrency: true,
     });
 
-    fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
 
     expect(
       await findByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER),
@@ -223,7 +241,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
   });
 
-  it('creates the currency picked on Choose Currency', async () => {
+  it('ignores the currency picked on Choose Currency and creates the country market currency', async () => {
     ramps.createAutoramp?.mockImplementation(
       async (request: { recipient_account: { address: string } }) => {
         const autoramp = {
@@ -240,9 +258,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       chooseCurrency: true,
     });
 
-    fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
     fireEvent.press(
       await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
     );
@@ -252,7 +268,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     ).toBeOnTheScreen();
     expect(ramps.createAutoramp).toHaveBeenCalledWith(
       expect.objectContaining({
-        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+        source_currencies: [{ type: 'Fiat', code: 'BRL' }],
       }),
     );
   });
@@ -263,15 +279,13 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       { chooseCurrency: true },
     );
 
-    fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
     fireEvent.press(
       await findByTestId(VbaChooseCurrencySelectorsIDs.BACK_BUTTON),
     );
 
     expect(
-      await findByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      await findByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     ).toBeOnTheScreen();
   });
 
@@ -280,7 +294,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       Probe(Routes.RAMP.VBA_DETAILS),
     );
 
-    fireEvent.press(getByTestId(VbaIdentityVerifiedSelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.BACK_BUTTON));
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.MONEY.HOME)),

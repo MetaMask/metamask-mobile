@@ -1,16 +1,18 @@
+import { Platform } from 'react-native';
 import {
   CardFeatureFlag,
   SupportedChain,
   SupportedToken,
+  DEFAULT_APPLE_PAY_LEARN_MORE_URL,
+  selectApplePayLearnMoreUrl,
   selectCardFeatureFlag,
   selectMetalCardCheckoutFeatureFlag,
-  selectGalileoAppleWalletProvisioningEnabled,
-  selectGalileoGoogleWalletProvisioningEnabled,
-  selectImmersveAppleWalletProvisioningEnabled,
   selectPushProvisioningEnabled,
   selectCardForgotPasswordFeatureEnabled,
+  selectCardBaanxPasswordlessLoginEnabled,
   selectImmersveOnboardingEnabled,
   selectCardTransactionHistoryEnabled,
+  selectCardImmersveMfaEnabled,
   selectCardIntercomSupportEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
@@ -458,288 +460,6 @@ describe('selectMetalCardCheckoutFeatureFlag', () => {
   });
 });
 
-describe('selectGalileoAppleWalletProvisioningEnabled', () => {
-  const mockedValidatedVersionGatedFeatureFlag =
-    validatedVersionGatedFeatureFlag as jest.MockedFunction<
-      typeof validatedVersionGatedFeatureFlag
-    >;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns false when feature flag state is empty', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectGalileoAppleWalletProvisioningEnabled(
-      mockedEmptyFlagsState,
-    );
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when RemoteFeatureFlagController state is undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectGalileoAppleWalletProvisioningEnabled(
-      mockedUndefinedFlagsState,
-    );
-
-    expect(result).toBe(false);
-  });
-
-  it('returns true when feature flag is enabled and version requirement is met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
-
-    const stateWithAppleWalletProvisioning = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              galileoAppleWalletInAppProvisioningEnabled: {
-                enabled: true,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectGalileoAppleWalletProvisioningEnabled(
-      stateWithAppleWalletProvisioning,
-    );
-
-    expect(result).toBe(true);
-    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
-      enabled: true,
-      minimumVersion: '7.0.0',
-    });
-  });
-
-  it('returns false when feature flag is disabled', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithDisabledFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              galileoAppleWalletInAppProvisioningEnabled: {
-                enabled: false,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectGalileoAppleWalletProvisioningEnabled(
-      stateWithDisabledFlag,
-    );
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when version requirement is not met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithVersionGate = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              galileoAppleWalletInAppProvisioningEnabled: {
-                enabled: true,
-                minimumVersion: '99.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result =
-      selectGalileoAppleWalletProvisioningEnabled(stateWithVersionGate);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const stateWithMalformedFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              galileoAppleWalletInAppProvisioningEnabled: {
-                enabled: 'true', // Invalid type
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectGalileoAppleWalletProvisioningEnabled(
-      stateWithMalformedFlag,
-    );
-
-    expect(result).toBe(false);
-  });
-});
-
-describe('selectGalileoGoogleWalletProvisioningEnabled', () => {
-  const mockedValidatedVersionGatedFeatureFlag =
-    validatedVersionGatedFeatureFlag as jest.MockedFunction<
-      typeof validatedVersionGatedFeatureFlag
-    >;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns false when feature flag state is empty', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectGalileoGoogleWalletProvisioningEnabled(
-      mockedEmptyFlagsState,
-    );
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when RemoteFeatureFlagController state is undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectGalileoGoogleWalletProvisioningEnabled(
-      mockedUndefinedFlagsState,
-    );
-
-    expect(result).toBe(false);
-  });
-
-  it('returns true when feature flag is enabled and version requirement is met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
-
-    const stateWithGoogleWalletProvisioning = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              galileoGoogleWalletInAppProvisioningEnabled: {
-                enabled: true,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectGalileoGoogleWalletProvisioningEnabled(
-      stateWithGoogleWalletProvisioning,
-    );
-
-    expect(result).toBe(true);
-    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
-      enabled: true,
-      minimumVersion: '7.0.0',
-    });
-  });
-
-  it('returns false when feature flag is disabled', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithDisabledFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              galileoGoogleWalletInAppProvisioningEnabled: {
-                enabled: false,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectGalileoGoogleWalletProvisioningEnabled(
-      stateWithDisabledFlag,
-    );
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when version requirement is not met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithVersionGate = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              galileoGoogleWalletInAppProvisioningEnabled: {
-                enabled: true,
-                minimumVersion: '99.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result =
-      selectGalileoGoogleWalletProvisioningEnabled(stateWithVersionGate);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const stateWithMalformedFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              galileoGoogleWalletInAppProvisioningEnabled: {
-                enabled: 'true', // Invalid type
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectGalileoGoogleWalletProvisioningEnabled(
-      stateWithMalformedFlag,
-    );
-
-    expect(result).toBe(false);
-  });
-});
-
 describe('selectCardForgotPasswordFeatureEnabled', () => {
   const mockedValidatedVersionGatedFeatureFlag =
     validatedVersionGatedFeatureFlag as jest.MockedFunction<
@@ -880,6 +600,78 @@ describe('selectCardForgotPasswordFeatureEnabled', () => {
   });
 });
 
+describe('selectCardBaanxPasswordlessLoginEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags,
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    }) as never;
+
+  beforeEach(() => {
+    delete process.env.MM_CARD_BAANX_PASSWORDLESS_LOGIN_ENABLED;
+  });
+
+  it('returns true when the remote flag is enabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    expect(
+      selectCardBaanxPasswordlessLoginEnabled(
+        stateWithFlags({
+          cardBaanxPasswordlessLogin: {
+            enabled: true,
+            minimumVersion: '8.0.0',
+          },
+        }),
+      ),
+    ).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '8.0.0',
+    });
+  });
+
+  it('returns false when the remote flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    expect(
+      selectCardBaanxPasswordlessLoginEnabled(
+        stateWithFlags({
+          cardBaanxPasswordlessLogin: {
+            enabled: false,
+            minimumVersion: '8.0.0',
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when the remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    expect(selectCardBaanxPasswordlessLoginEnabled(mockedEmptyFlagsState)).toBe(
+      false,
+    );
+  });
+
+  it('falls back to env when the remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_BAANX_PASSWORDLESS_LOGIN_ENABLED = 'true';
+
+    expect(selectCardBaanxPasswordlessLoginEnabled.resultFunc({})).toBe(true);
+  });
+});
+
 describe('selectImmersveOnboardingEnabled', () => {
   const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
     ({
@@ -1014,6 +806,70 @@ describe('selectCardTransactionHistoryEnabled', () => {
   });
 });
 
+describe('selectCardImmersveMfaEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags,
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    }) as Parameters<typeof selectCardImmersveMfaEnabled>[0];
+
+  beforeEach(() => {
+    delete process.env.MM_CARD_IMMERSVE_MFA_ENABLED;
+  });
+
+  it('returns true when the flag is enabled and the version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    expect(
+      selectCardImmersveMfaEnabled(
+        stateWithFlags({
+          cardImmersveMfa: { enabled: true, minimumVersion: '7.0.0' },
+        }),
+      ),
+    ).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when the flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    expect(
+      selectCardImmersveMfaEnabled(
+        stateWithFlags({
+          cardImmersveMfa: { enabled: false, minimumVersion: '7.0.0' },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when the flag is absent and env is unset', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    expect(selectCardImmersveMfaEnabled(mockedEmptyFlagsState)).toBe(false);
+  });
+
+  it('falls back to env when the remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_IMMERSVE_MFA_ENABLED = 'true';
+
+    expect(selectCardImmersveMfaEnabled.resultFunc({})).toBe(true);
+  });
+});
+
 describe('selectCardIntercomSupportEnabled', () => {
   const mockedValidatedVersionGatedFeatureFlag =
     validatedVersionGatedFeatureFlag as jest.MockedFunction<
@@ -1114,7 +970,125 @@ describe('selectPushProvisioningEnabled', () => {
     });
   });
 
-  it('uses the Galileo Apple flag for Baanx on Apple Wallet', () => {
+  const usFacts = { countryCode: 'US', cardProcessor: 'galileo' };
+
+  const withPlatform = (os: string, run: () => void) => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: os, writable: true });
+    try {
+      run();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    }
+  };
+
+  it('follows the Baanx flag for Apple Wallet', () => {
+    const state = stateWithFlags({
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            ios: {
+              apple_wallet: { enabled: true, minimumVersion: '0.0.0' },
+            },
+          },
+        },
+      },
+    });
+
+    withPlatform('ios', () => {
+      expect(
+        selectPushProvisioningEnabled(state, 'baanx', 'apple_wallet', usFacts),
+      ).toBe(true);
+    });
+  });
+
+  it('follows the Baanx flag for Google Wallet', () => {
+    const state = stateWithFlags({
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            android: {
+              google_wallet: { enabled: true, minimumVersion: '0.0.0' },
+            },
+          },
+        },
+      },
+    });
+
+    withPlatform('android', () => {
+      expect(
+        selectPushProvisioningEnabled(state, 'baanx', 'google_wallet', usFacts),
+      ).toBe(true);
+    });
+  });
+
+  it('follows the Immersve flag for Apple Wallet and stays off for Google Wallet', () => {
+    const state = stateWithFlags({
+      cardImmersveProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          NZ: {
+            enabled: true,
+            ios: {
+              apple_wallet: { enabled: true, minimumVersion: '0.0.0' },
+            },
+          },
+        },
+      },
+    });
+
+    withPlatform('ios', () => {
+      expect(
+        selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet', {
+          countryCode: 'NZ',
+        }),
+      ).toBe(true);
+      expect(
+        selectPushProvisioningEnabled(state, 'immersve', 'google_wallet', {
+          countryCode: 'NZ',
+        }),
+      ).toBe(false);
+    });
+  });
+
+  it('returns false when the provider has no provisioning flag', () => {
+    const state = stateWithFlags({});
+
+    withPlatform('ios', () => {
+      expect(
+        selectPushProvisioningEnabled(state, null, 'apple_wallet', usFacts),
+      ).toBe(false);
+      expect(
+        selectPushProvisioningEnabled(state, 'baanx', 'apple_wallet', usFacts),
+      ).toBe(false);
+    });
+  });
+
+  it('returns false when the provisioning flag is not a valid shape', () => {
+    const state = stateWithFlags({
+      cardImmersveProvisioning: { enabled: 'yes' },
+    });
+
+    withPlatform('ios', () => {
+      expect(
+        selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet', {
+          countryCode: 'NZ',
+        }),
+      ).toBe(false);
+    });
+  });
+
+  it('returns false when the old wallet flags are the only keys present', () => {
     const state = stateWithFlags({
       galileoAppleWalletInAppProvisioningEnabled: {
         enabled: true,
@@ -1122,66 +1096,70 @@ describe('selectPushProvisioningEnabled', () => {
       },
     });
 
-    expect(selectPushProvisioningEnabled(state, 'baanx', 'apple_wallet')).toBe(
-      true,
+    withPlatform('ios', () => {
+      expect(
+        selectPushProvisioningEnabled(state, 'baanx', 'apple_wallet', usFacts),
+      ).toBe(false);
+      expect(
+        selectPushProvisioningEnabled(state, 'baanx', 'apple_wallet', {
+          countryCode: 'US',
+          cardProcessor: 'monavate',
+        }),
+      ).toBe(false);
+    });
+  });
+});
+
+describe('selectApplePayLearnMoreUrl', () => {
+  it('returns the built-in URL when cardFeature does not set one', () => {
+    expect(selectApplePayLearnMoreUrl(mockedEmptyFlagsState)).toBe(
+      DEFAULT_APPLE_PAY_LEARN_MORE_URL,
     );
-    expect(selectImmersveAppleWalletProvisioningEnabled(state)).toBe(false);
   });
 
-  it('uses the Galileo Google flag for Baanx on Google Wallet', () => {
-    const state = stateWithFlags({
-      galileoGoogleWalletInAppProvisioningEnabled: {
-        enabled: true,
-        minimumVersion: '7.0.0',
+  it('returns the cardFeature constant when it is set', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {
+                constants: {
+                  applePayLearnMoreUrl: 'https://example.com/apple-pay',
+                },
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
       },
-    });
+    };
 
-    expect(selectPushProvisioningEnabled(state, 'baanx', 'google_wallet')).toBe(
-      true,
+    expect(selectApplePayLearnMoreUrl(state as never)).toBe(
+      'https://example.com/apple-pay',
     );
   });
 
-  it('uses the Immersve Apple flag and stays off for Google Wallet', () => {
-    const state = stateWithFlags({
-      immersveAppleWalletInAppProvisioningEnabled: {
-        enabled: true,
-        minimumVersion: '7.0.0',
+  it('returns the built-in URL when the constant is blank', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {
+                constants: {
+                  applePayLearnMoreUrl: '   ',
+                },
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
       },
-    });
+    };
 
-    expect(
-      selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet'),
-    ).toBe(true);
-    expect(
-      selectPushProvisioningEnabled(state, 'immersve', 'google_wallet'),
-    ).toBe(false);
-  });
-
-  it('returns false for a provider and wallet pair that has no flag', () => {
-    const state = stateWithFlags({
-      immersveAppleWalletInAppProvisioningEnabled: {
-        enabled: true,
-        minimumVersion: '7.0.0',
-      },
-    });
-
-    expect(selectPushProvisioningEnabled(state, null, 'apple_wallet')).toBe(
-      false,
+    expect(selectApplePayLearnMoreUrl(state as never)).toBe(
+      DEFAULT_APPLE_PAY_LEARN_MORE_URL,
     );
-    expect(selectPushProvisioningEnabled(state, 'baanx', 'apple_wallet')).toBe(
-      false,
-    );
-  });
-
-  it('returns false when the Immersve flag is invalid', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const state = stateWithFlags({
-      immersveAppleWalletInAppProvisioningEnabled: { enabled: 'yes' },
-    });
-
-    expect(
-      selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet'),
-    ).toBe(false);
   });
 });

@@ -10,11 +10,14 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { Dimensions, Platform } from 'react-native';
+import { getPublicInstanceFromInternalInstanceHandle } from 'react-native/Libraries/ReactNative/RendererProxy';
 import Logger from '../../util/Logger';
 import ReduxService from '../../core/redux';
 import { persistor } from '../../store';
 import Engine from '../../core/Engine';
 import { Engine as EngineClass } from '../../core/Engine/Engine';
+import ReactQueryService from '../../core/ReactQueryService';
+import { MoneyAccountBalanceServiceQueryKeys } from '../../components/UI/Money/queryKeys';
 import {
   passwordSet,
   setExistingUser,
@@ -30,7 +33,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   PERPS_GTM_MODAL_SHOWN,
-  REWARDS_GTM_MODAL_SHOWN,
+  PUSH_PRE_PROMPT_SHOWN,
 } from '../../constants/storage';
 import { analytics } from '../../util/analytics/analytics';
 import {
@@ -130,6 +133,14 @@ interface AgenticBridge {
   navigate: (name: string, params?: object) => void;
   getRoute: () => unknown;
   getState: () => unknown;
+  seedMoneyBalance: (input: {
+    address: string;
+    totalBalance: string;
+    musdBalance?: string;
+    vmusdValueInMusd?: string;
+    source?: 'api' | 'rpc';
+    usedFallback?: boolean;
+  }) => { ok: boolean; queryKey: unknown };
   canGoBack: () => boolean;
   goBack: () => void;
   listAccounts: () => { id: string; address: string; name: string }[];
@@ -241,6 +252,30 @@ interface AgenticBridge {
 }
 
 type WalletFixture = Parameters<AgenticBridge['setupWallet']>[0];
+
+declare module 'react-native/Libraries/ReactNative/RendererProxy' {
+  /**
+   * Fabric renderer export that the published typings omit. Verified on
+   * react-native 0.86.3; re-check on React Native upgrades.
+   */
+  export function getPublicInstanceFromInternalInstanceHandle(
+    internalInstanceHandle: object,
+  ): {
+    measure?: (
+      callback: (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        pageX: number,
+        pageY: number,
+      ) => void,
+    ) => void;
+    measureInWindow?: (
+      callback: (x: number, y: number, width: number, height: number) => void,
+    ) => void;
+  } | null;
+}
 
 interface FixtureKeyringController {
   isUnlocked: () => boolean;
@@ -1046,20 +1081,10 @@ function findMeasurableStateNode(
   }
   const committedTree = tree;
   if (fiber && isFiberInactive(fiber, committedTree)) return null;
-  const resolveMeasurableStateNode = (node: FiberNode) => {
-    if (isFiberInactive(node, committedTree)) return null;
-    const stateNode = node.stateNode;
-    const publicInstance = stateNode?.canonical?.publicInstance ?? stateNode;
-    return publicInstance &&
-      (typeof publicInstance.measureInWindow === 'function' ||
-        typeof publicInstance.measure === 'function')
-      ? publicInstance
-      : null;
-  };
 
-  let result = fiber ? resolveMeasurableStateNode(fiber) : null;
+  let result = fiber ? resolveMeasurable(fiber, committedTree) : null;
   walkFiber(fiber?.child ?? null, (node) => {
-    const descendant = resolveMeasurableStateNode(node);
+    const descendant = resolveMeasurable(node, committedTree);
     if (descendant) {
       result = descendant;
       return true;
@@ -1070,10 +1095,172 @@ function findMeasurableStateNode(
   let ancestor =
     includeAncestors && fiber ? committedTree.parents.get(fiber) : null;
   while (!result && ancestor) {
-    result = resolveMeasurableStateNode(ancestor);
+    result = resolveMeasurable(ancestor, committedTree);
     ancestor = committedTree.parents.get(ancestor);
   }
   return result;
+}
+
+/**
+ * Fabric creates a host's public instance on its first ref access, so hosts
+ * without a ref (most Text) still have `publicInstance: null`. Ask the
+ * renderer for it instead of skipping the host.
+ */
+function resolveMeasurable(
+  node: FiberNode,
+  tree: CommittedFiberTree,
+): FiberNode['stateNode'] | null {
+  if (isFiberInactive(node, tree)) return null;
+  const stateNode = node.stateNode;
+  const publicInstance = stateNode?.canonical
+    ? (stateNode.canonical.publicInstance ??
+      getPublicInstanceFromInternalInstanceHandle(node))
+    : stateNode;
+  return publicInstance &&
+    (typeof publicInstance.measureInWindow === 'function' ||
+      typeof publicInstance.measure === 'function')
+    ? publicInstance
+    : null;
+}
+
+/** The fiber itself or its first measurable descendant; never an ancestor. */
+function findOwnMeasurableFiber(
+  fiber: FiberNode,
+  tree: CommittedFiberTree,
+): FiberNode | null {
+  if (resolveMeasurable(fiber, tree)) return fiber;
+  let result: FiberNode | null = null;
+  walkFiber(fiber.child, (node) => {
+    if (!resolveMeasurable(node, tree)) return false;
+    result = node;
+    return true;
+  });
+  return result;
+}
+
+const HOST_COMPONENT_TAG = 5;
+const HOST_TEXT_TAG = 6;
+const TEXT_HOST_TYPE = 'RCTText';
+const NESTED_TEXT_HOST_TYPE = 'RCTVirtualText';
+const SCROLL_HOST_TYPES = new Set([
+  'RCTScrollView',
+  'AndroidHorizontalScrollView',
+]);
+// Bounds the native measurements one text-only viewport query may request.
+const MAX_VIEWPORT_TEXT_MATCHES = 8;
+
+function isHost(fiber: FiberNode, types: string | Set<string>): boolean {
+  return (
+    fiber.tag === HOST_COMPONENT_TAG &&
+    typeof fiber.type === 'string' &&
+    (typeof types === 'string' ? fiber.type === types : types.has(fiber.type))
+  );
+}
+
+/** The paragraph that draws a text leaf, through nested spans only. */
+function findTextParagraph(
+  leaf: FiberNode,
+  tree: CommittedFiberTree,
+): FiberNode | null {
+  let current = tree.parents.get(leaf) ?? null;
+  while (current) {
+    if (current.tag === HOST_COMPONENT_TAG) {
+      if (isHost(current, TEXT_HOST_TYPE)) return current;
+      if (!isHost(current, NESTED_TEXT_HOST_TYPE)) return null;
+    }
+    current = tree.parents.get(current) ?? null;
+  }
+  return null;
+}
+
+interface ViewportOwner {
+  stateNode: NonNullable<FiberNode['stateNode']>;
+  isText: boolean;
+  clips: NonNullable<FiberNode['stateNode']>[];
+}
+
+/**
+ * The native frame that draws a viewport target and the scroll frames that
+ * clip it. A visible ancestor never stands in for the target: a ScrollView
+ * stays on screen while the content it scrolled away does not.
+ */
+function findViewportOwner(
+  target: FiberNode,
+  tree: CommittedFiberTree,
+  textLeaf: boolean,
+): ViewportOwner | null {
+  // Text leaves and nested spans have no frame of their own; the paragraph
+  // that draws them does.
+  const own =
+    textLeaf && target.tag === HOST_TEXT_TAG
+      ? target
+      : findOwnMeasurableFiber(target, tree);
+  const ownerFiber =
+    own && (own.tag === HOST_TEXT_TAG || isHost(own, NESTED_TEXT_HOST_TYPE))
+      ? findTextParagraph(own, tree)
+      : own;
+  const stateNode = ownerFiber && resolveMeasurable(ownerFiber, tree);
+  if (!ownerFiber || !stateNode) return null;
+  const clips: ViewportOwner['clips'] = [];
+  for (
+    let ancestor = tree.parents.get(ownerFiber);
+    ancestor;
+    ancestor = tree.parents.get(ancestor)
+  ) {
+    if (!isHost(ancestor, SCROLL_HOST_TYPES)) continue;
+    const clip = resolveMeasurable(ancestor, tree);
+    if (!clip) return null;
+    clips.push(clip);
+  }
+  return { stateNode, isText: isHost(ownerFiber, TEXT_HOST_TYPE), clips };
+}
+
+interface ViewportFrame {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+// measureInWindow reports fractional points; allow rounding at frame edges.
+const FRAME_TOLERANCE = 0.5;
+
+function frameContains(bounds: ViewportFrame, rect: ViewportFrame): boolean {
+  return (
+    rect.x >= bounds.x - FRAME_TOLERANCE &&
+    rect.y >= bounds.y - FRAME_TOLERANCE &&
+    rect.x + rect.width <= bounds.x + bounds.width + FRAME_TOLERANCE &&
+    rect.y + rect.height <= bounds.y + bounds.height + FRAME_TOLERANCE
+  );
+}
+
+function frameIntersects(bounds: ViewportFrame, rect: ViewportFrame): boolean {
+  return (
+    rect.x < bounds.x + bounds.width &&
+    rect.x + rect.width > bounds.x &&
+    rect.y < bounds.y + bounds.height &&
+    rect.y + rect.height > bounds.y
+  );
+}
+
+/**
+ * Text must be fully inside the window and every clipping scroll frame;
+ * containers only need to intersect them, as before.
+ */
+async function measureViewportOwner(
+  owner: ViewportOwner,
+  screen: ViewportFrame,
+): Promise<{ rect: ViewportFrame; visible: boolean } | null> {
+  const [rect, ...clips] = await Promise.all(
+    [owner.stateNode, ...owner.clips].map(measureStateNode),
+  );
+  if (!rect || clips.some((clip) => !clip)) return null;
+  const fits = owner.isText ? frameContains : frameIntersects;
+  const visible =
+    rect.width > 0 &&
+    rect.height > 0 &&
+    [screen, ...clips].every((bounds) => bounds && fits(bounds, rect));
+  return { rect, visible };
 }
 
 function measureStateNode(
@@ -1168,18 +1355,31 @@ async function queryUiTarget(options: {
   const base = evidence(target, tree);
   if (!target || visibility === 'tree') return base;
 
-  const stateNode = findMeasurableStateNode(target, true, tree);
-  if (!stateNode) {
+  // Text-only matches are leaves; duplicates are judged by their own frames.
+  const textLeaf = !options.testId;
+  const candidates = textLeaf
+    ? original.targets.slice(0, MAX_VIEWPORT_TEXT_MATCHES)
+    : [target];
+  const owners = candidates.map((candidate) =>
+    findViewportOwner(candidate, tree, textLeaf),
+  );
+  if (owners.every((owner) => !owner)) {
     return {
       ...base,
       visible: false,
       error:
-        'Target exists in fiber tree but no measurable native node was found',
+        'Target exists in fiber tree but its own native frame was not found',
     };
   }
 
-  const ownerPath = getFiberOwnerPath(target, tree);
-  const rect = await measureStateNode(stateNode);
+  const ownerPaths = candidates.map((candidate) =>
+    getFiberOwnerPath(candidate, tree),
+  );
+  const viewport = Dimensions.get('window');
+  const screen = { x: 0, y: 0, width: viewport.width, height: viewport.height };
+  const frames = await Promise.all(
+    owners.map((owner) => (owner ? measureViewportOwner(owner, screen) : null)),
+  );
   const current = select();
   const currentTarget = current.target;
   if (
@@ -1190,11 +1390,19 @@ async function queryUiTarget(options: {
       original.targets.some((originalFiber) => sameFiber(fiber, originalFiber)),
     ) ||
     isFiberInactive(currentTarget, current.tree) ||
-    !sameFiberOwnerPath(
-      ownerPath,
-      getFiberOwnerPath(currentTarget, current.tree),
-    ) ||
-    findMeasurableStateNode(currentTarget, true, current.tree) !== stateNode ||
+    candidates.some((candidate, index) => {
+      const currentCandidate = current.targets[index];
+      return (
+        !currentCandidate ||
+        !sameFiber(currentCandidate, candidate) ||
+        !sameFiberOwnerPath(
+          ownerPaths[index],
+          getFiberOwnerPath(currentCandidate, current.tree),
+        ) ||
+        findViewportOwner(currentCandidate, current.tree, textLeaf)
+          ?.stateNode !== owners[index]?.stateNode
+      );
+    }) ||
     !targetMatches(currentTarget, options, current.tree)
   ) {
     return {
@@ -1204,8 +1412,9 @@ async function queryUiTarget(options: {
     };
   }
   const currentBase = evidence(currentTarget, current.tree);
-  const viewport = Dimensions.get('window');
-  if (!rect) {
+  const measured =
+    frames.find((frame) => frame?.visible) ?? frames.find(Boolean);
+  if (!measured) {
     return {
       ...currentBase,
       visible: false,
@@ -1214,18 +1423,10 @@ async function queryUiTarget(options: {
     };
   }
 
-  const visible =
-    rect.width > 0 &&
-    rect.height > 0 &&
-    rect.x < viewport.width &&
-    rect.y < viewport.height &&
-    rect.x + rect.width > 0 &&
-    rect.y + rect.height > 0;
-
   return {
     ...currentBase,
-    visible,
-    rect,
+    visible: measured.visible,
+    rect: measured.rect,
     viewport: { width: viewport.width, height: viewport.height },
   };
 }
@@ -1409,6 +1610,27 @@ const AgenticService = {
         ).navigate(name, params),
       getRoute: () => navRef.getCurrentRoute(),
       getState: () => navRef.getState(),
+      seedMoneyBalance: ({
+        address,
+        totalBalance,
+        musdBalance,
+        vmusdValueInMusd,
+        source = 'api',
+        usedFallback = false,
+      }) => {
+        const queryKey = [
+          MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
+          address,
+        ];
+        ReactQueryService.queryClient.setQueryData(queryKey, {
+          totalBalance,
+          musdBalance: musdBalance ?? totalBalance,
+          vmusdValueInMusd: vmusdValueInMusd ?? '0',
+          source,
+          usedFallback,
+        });
+        return { ok: true, queryKey };
+      },
       canGoBack: () => navRef.canGoBack(),
       goBack: () => deferredNav.goBack(),
       listAccounts: () =>
@@ -1986,7 +2208,7 @@ const AgenticService = {
           if (settings.skipGtmModals === true) {
             await Promise.all([
               StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true'),
-              StorageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true'),
+              StorageWrapper.setItem(PUSH_PRE_PROMPT_SHOWN, 'true'),
             ]);
             // Suppress ExperienceEnhancer (marketing consent) modal
             store.dispatch(setDataCollectionForMarketing(false));

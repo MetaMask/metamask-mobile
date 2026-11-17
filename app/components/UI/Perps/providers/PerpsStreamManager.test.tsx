@@ -3383,7 +3383,7 @@ describe('PerpsStreamManager', () => {
       mockPerpsConnectionManager.isCurrentlyConnecting.mockReturnValue(true);
       const callback = jest.fn();
       const streamManager = new PerpsStreamManager(
-        'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        'http://127.0.0.1:9332/v4/perpetuals',
       );
 
       const unsubscribe = streamManager.marketData.subscribe({ callback });
@@ -3407,7 +3407,7 @@ describe('PerpsStreamManager', () => {
         isInitialized: false,
       } as never);
       const streamManager = new PerpsStreamManager(
-        'https://terminal.api.cx.metamask.io/v2/perpetuals',
+        'https://terminal.api.cx.metamask.io/v4/perpetuals',
       );
 
       const unsubscribe = streamManager.marketData.subscribe({
@@ -6295,6 +6295,53 @@ describe('PerpsStreamManager', () => {
       expect(positionsCallback).not.toHaveBeenCalled();
       expect(ordersCallback).not.toHaveBeenCalled();
       expect(accountCallback).not.toHaveBeenCalled();
+    });
+
+    it('does not report a context-changed user snapshot to Logger.error', async () => {
+      const getUserDataSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error('User data snapshot context changed'));
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = getUserDataSnapshot;
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(getUserDataSnapshot).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'PerpsStreamManager: User data snapshot aborted because the context changed',
+      );
+      expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports other user snapshot rejections with Logger.error', async () => {
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error('snapshot rejected'));
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'snapshot rejected' }),
+        { context: 'PerpsStreamManager.getUserDataSnapshot' },
+      );
     });
 
     it('discards an in-flight snapshot after account caches are cleared', async () => {

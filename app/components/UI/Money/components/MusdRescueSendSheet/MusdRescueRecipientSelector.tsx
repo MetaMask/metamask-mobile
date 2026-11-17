@@ -9,7 +9,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
-  HeaderStandard,
   ListItemSelect,
   SensitiveText,
   SensitiveTextLength,
@@ -31,6 +30,8 @@ import { selectBalanceByAccountGroup } from '../../../../../selectors/assets/bal
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { MusdRescueRecipientTestIds } from './testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 
 /**
  * Account rows can appear under multiple groups; balance lookups are keyed by
@@ -119,6 +120,7 @@ const RecipientRow = ({
  * withdrawal can never leave the seed phrase.
  */
 const MusdRescueRecipientScreen = () => {
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const insets = useSafeAreaInsets();
   const { params } =
@@ -170,7 +172,9 @@ const MusdRescueRecipientScreen = () => {
       style={{ paddingTop: insets.top }}
       testID={MusdRescueRecipientTestIds.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('money.musd_rescue_send.recipient_label')}
         onBack={handleBack}
         backButtonProps={{ testID: MusdRescueRecipientTestIds.BACK_BUTTON }}
@@ -183,7 +187,9 @@ const MusdRescueRecipientScreen = () => {
           placeholder={strings('money.musd_rescue_send.recipient_placeholder')}
           onPressClearButton={() => setSearchQuery('')}
           testID={MusdRescueRecipientTestIds.SEARCH_FIELD}
-          accessibilityLabel={strings('money.musd_rescue_send.recipient_label')}
+          inputAccessibilityLabel={strings(
+            'money.musd_rescue_send.recipient_label',
+          )}
         />
       </Box>
 

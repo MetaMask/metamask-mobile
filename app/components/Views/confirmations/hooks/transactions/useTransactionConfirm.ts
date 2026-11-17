@@ -20,8 +20,14 @@ import {
   PayWithOption,
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
+import {
+  isTransactionMarkedAsGasFeeSponsored,
+  shouldApplyGasFeeSponsorship,
+} from '../../utils/transaction';
+import { selectIsMoneyKeyringAddress } from '../../../../../selectors/keyringController';
+import type { RootState } from '../../../../../reducers';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
@@ -67,6 +73,14 @@ export function useTransactionConfirm() {
   // Signer of the confirmed transaction; gates signing-related paths.
   const isSignerHardwareWallet = isHardwareAccount(
     transactionMetadata?.txParams?.from ?? '',
+  );
+
+  // Money keyrings implement message signing only, so a Money Account
+  // transaction can never be signed locally. Keyed on the signer (`from`), not
+  // the transaction type, so deposits, withdrawals and any other
+  // Money-account-sourced flow are covered.
+  const isSignerMoneyAccount = useSelector((state: RootState) =>
+    selectIsMoneyKeyringAddress(state, transactionMetadata?.txParams?.from),
   );
 
   // Payer may differ from the signer (MM Pay funding account); a hardware
@@ -227,13 +241,29 @@ export function useTransactionConfirm() {
         transactionMeta: transactionMetadata,
         isGaslessSupported,
       });
-      updatedMetadata.isGasFeeSponsored = isGaslessEligible;
+      // Money Account transactions are sponsored by design: the money account
+      // holds no native gas token and its keyring has no `signTransaction`.
+      // `useIsGaslessSupported` can disagree with the 7702 publish hook — it
+      // resolves asynchronously and reads the *paying* account's atomic-batch
+      // support, which for a deposit is the funding EOA rather than the money
+      // account. Clearing these flags on that disagreement falls back to local
+      // signing, which throws "keyring does not support signTransaction".
+      const isSponsoredMoneyAccountTransaction =
+        isSignerMoneyAccount &&
+        isTransactionMarkedAsGasFeeSponsored(transactionMetadata);
+
+      updatedMetadata.isGasFeeSponsored =
+        isGaslessEligible || isSponsoredMoneyAccountTransaction;
 
       // The controller sets `isExternalSign` from `isGasFeeSponsored` for any
       // account. When gasless isn't eligible, revert it or signing is skipped
-      // and an empty `'0x'` reaches `eth_sendRawTransaction`.
+      // and an empty `'0x'` reaches `eth_sendRawTransaction`. Money Accounts
+      // are exempt: they cannot sign locally, so the flag must stay set for the
+      // 7702 relay to publish them.
       const isExternalSignStale =
-        Boolean(transactionMetadata.isExternalSign) && !isGaslessEligible;
+        Boolean(transactionMetadata.isExternalSign) &&
+        !isGaslessEligible &&
+        !isSignerMoneyAccount;
       if (isExternalSignStale) {
         updatedMetadata.isExternalSign = false;
       }
@@ -286,6 +316,7 @@ export function useTransactionConfirm() {
       transactionMetadata,
       waitForResult,
       isSignerHardwareWallet,
+      isSignerMoneyAccount,
     ],
   );
 

@@ -1,4 +1,9 @@
-import type { Position } from '@metamask/social-controllers';
+import type { Position, TradeInFlight } from '@metamask/social-controllers';
+import type { SocialV1PerpDirection } from '../../../UI/SocialFeed/types';
+import type {
+  SocialComposerEntry,
+  SocialEventSource,
+} from '../analytics/socialEvents';
 
 /**
  * Card shown while a just-submitted swap is still being indexed.
@@ -13,17 +18,48 @@ export interface SocialPostTradePreview {
   entryPriceLabel?: string;
 }
 
+/**
+ * Card shown while a just-accepted Hyperliquid order is still being indexed.
+ * `tokenAddress` is the market id (`BTC`, `xyz:TSLA`), not a contract.
+ */
+export interface SocialPostPerpsPreview {
+  product: 'perps';
+  tokenSymbol: string;
+  tradeSymbol: string;
+  tokenAddress: string;
+  direction: SocialV1PerpDirection;
+  leverageLabel?: string;
+  costLabel?: string;
+  entryPriceLabel?: string;
+}
+
+export type SocialPostComposerPreview =
+  | SocialPostTradePreview
+  | SocialPostPerpsPreview;
+
 /** Where a pre-attached position was shared from. Kept for later analytics. */
 export type SocialPostComposerEntryPoint = 'token_details' | 'perps';
 
 interface SocialPostComposerTradeParams {
-  tradeInFlight: {
-    transactionHash: string;
-    /** Social-api chain slug (`base`), not CAIP. */
-    chain: string;
-    tokenAddress: string;
-  };
-  preview: SocialPostTradePreview;
+  tradeInFlight: TradeInFlight;
+  preview: SocialPostComposerPreview;
+  /** Surface that started the trade. Omitted when it is unknown. */
+  analyticsSource?: SocialEventSource;
+  position?: never;
+  entryPoint?: never;
+  openFeedAfterPost?: never;
+  composerEntry?: never;
+}
+
+/** A blank composer opened from a post button. */
+interface SocialPostComposerBlankParams {
+  composerEntry: Extract<
+    SocialComposerEntry,
+    'social_feed' | 'my_profile' | 'token_details'
+  >;
+  analyticsSource?: SocialEventSource;
+  tradeInFlight?: never;
+  preview?: never;
   position?: never;
   entryPoint?: never;
   openFeedAfterPost?: never;
@@ -33,21 +69,29 @@ interface SocialPostComposerPositionParams {
   /** Fast path: position passed by the host screen. No fetch fires. */
   position: Position;
   entryPoint: SocialPostComposerEntryPoint;
-  /** On success, replace the composer with Social V1 instead of going back. */
+  /**
+   * On success, replace the composer with Social V1 instead of landing on the
+   * viewer's Posts tab. Used by the Perps share screen.
+   */
   openFeedAfterPost?: boolean;
   tradeInFlight?: never;
   preview?: never;
+  composerEntry?: never;
 }
 
 /**
  * Route params for the composer.
  * A swap share passes `tradeInFlight`. Token details passes the open
- * `position` so the card is attached immediately. Both are absent when the
- * user opens the composer from `+`.
+ * `position` so the card is attached immediately. A post button passes only
+ * `composerEntry`.
  *
  * The `never` members keep plain property access (`params?.preview`) compiling
  * on either branch, matching `TraderPositionViewParams`.
  */
 export type SocialPostComposerViewParams =
   | SocialPostComposerTradeParams
-  | SocialPostComposerPositionParams;
+  | SocialPostComposerPositionParams
+  | SocialPostComposerBlankParams;
+
+export type SocialPostComposerBlankEntry =
+  SocialPostComposerBlankParams['composerEntry'];

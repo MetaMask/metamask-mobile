@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Platform } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector from '../../Charts/AdvancedChart/TimeRangeSelector';
@@ -63,7 +62,10 @@ const IntervalBarRow = () => {
  * indicator bar keeps 16px below it, so content underneath can shift when
  * switching modes.
  */
-const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
+const BottomChrome = ({
+  uniformSpacing = false,
+  isGlass = false,
+}: PriceChartSectionProps) => {
   const {
     activeIndicators,
     chartType,
@@ -72,12 +74,9 @@ const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
     handleMAPress,
     handleTimeRangeSelect,
     initialAmbientColor,
-    isInitialChartPending,
     isLineMode,
-    isLoading,
     isTechnicalIndicatorsEnabled,
     maLabel,
-    shouldShowTechnicalIndicators,
     showCandleEmptyState,
     styles,
     timeRange,
@@ -96,7 +95,7 @@ const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
 
   if (isLineMode) {
     if (isTechnicalIndicatorsEnabled) {
-      // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
+      // Match the IndicatorBar height so switching modes doesn't shift buttons
       return (
         <Box
           testID={PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID}
@@ -109,7 +108,6 @@ const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
       <View style={styles.timeRangeContainer}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
-            isChartLoading={isLoading}
             selected={timeRange}
             onSelect={handleLineTimeRangeSelect}
             chartType={chartType}
@@ -122,7 +120,7 @@ const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
   }
 
   if (showCandleEmptyState && isTechnicalIndicatorsEnabled) {
-    // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
+    // Match the IndicatorBar height so switching modes doesn't shift buttons
     return (
       <Box
         testID={PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID}
@@ -132,7 +130,7 @@ const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
     );
   }
 
-  if (shouldShowTechnicalIndicators && chartType === ChartType.Candles) {
+  if (isTechnicalIndicatorsEnabled && chartType === ChartType.Candles) {
     return (
       <Box twClassName={`w-full ${indicatorBarSpacing}`}>
         <IndicatorBar
@@ -140,29 +138,17 @@ const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
           onMAPress={handleMAPress}
           activeIndicators={activeIndicators}
           onIndicatorToggle={handleIndicatorToggle}
+          isGlass={isGlass}
         />
       </Box>
     );
   }
 
-  if (
-    isTechnicalIndicatorsEnabled &&
-    chartType === ChartType.Candles &&
-    !shouldShowTechnicalIndicators
-  ) {
-    return (
-      <Box twClassName={`w-full px-4 ${indicatorBarSpacing}`}>
-        <Skeleton height={37} width="100%" />
-      </Box>
-    );
-  }
-
-  if (!shouldShowTechnicalIndicators && !isTechnicalIndicatorsEnabled) {
+  if (!isTechnicalIndicatorsEnabled) {
     return (
       <View style={styles.timeRangeContainer}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
-            isChartLoading={isInitialChartPending}
             selected={timeRange}
             onSelect={handleTimeRangeSelect}
             chartType={chartType}
@@ -188,10 +174,13 @@ export interface PriceChartSectionProps {
    * the chart chrome and the content below.
    */
   uniformSpacing?: boolean;
+  /** Draws the controls under the chart as glass; the screen passes its flag. */
+  isGlass?: boolean;
 }
 
 export const PriceChartSection = ({
   uniformSpacing = false,
+  isGlass = false,
 }: PriceChartSectionProps) => {
   const {
     activeIndicators,
@@ -214,7 +203,6 @@ export const PriceChartSection = ({
     hasInsufficientCoverage,
     indicatorsArray,
     initialAmbientColor,
-    isInitialChartPending,
     isLineMode,
     isLoading,
     isTechnicalIndicatorsEnabled,
@@ -224,7 +212,6 @@ export const PriceChartSection = ({
     priceDiff,
     realtimeBar,
     selectedMAs,
-    shouldShowTechnicalIndicators,
     showCandleEmptyState,
     showChartIndicators,
     styles,
@@ -247,25 +234,8 @@ export const PriceChartSection = ({
 
   return (
     <>
-      {/* ── Skeleton bar (flag ON, candle mode only) ───────────────────── */}
-      {isTechnicalIndicatorsEnabled &&
-        !isLineMode &&
-        !showCandleEmptyState &&
-        isInitialChartPending && (
-          <View style={styles.intervalBarContainer}>
-            <View style={styles.timeRangeSelectorWrap}>
-              <Box twClassName="w-full px-4">
-                <Skeleton height={29} width="100%" />
-              </Box>
-            </View>
-          </View>
-        )}
-
-      {/* ── IntervalBar (flag ON) ──────────────────────────────────────── */}
-      {isTechnicalIndicatorsEnabled &&
-        (isLineMode ||
-          shouldShowTechnicalIndicators ||
-          showCandleEmptyState) && <IntervalBarRow />}
+      {/* ── IntervalBar (flag ON). Stays visible while the chart skeleton shows. */}
+      {isTechnicalIndicatorsEnabled && <IntervalBarRow />}
 
       {/* ── Chart area ─────────────────────────────────────────────────── */}
       {isLineMode && (
@@ -336,6 +306,7 @@ export const PriceChartSection = ({
                 ? !hasChartBeenRevealed && chartLoading
                 : chartLoading
             }
+            skeletonVariant="candles"
             ohlcvPagination={ohlcvPagination}
             visibleFromMs={visibleFromMs}
             visibleToMs={visibleToMs}
@@ -363,7 +334,7 @@ export const PriceChartSection = ({
       </Box>
 
       {/* ── Bottom chrome ──────────────────────────────────────────────── */}
-      <BottomChrome uniformSpacing={uniformSpacing} />
+      <BottomChrome uniformSpacing={uniformSpacing} isGlass={isGlass} />
     </>
   );
 };

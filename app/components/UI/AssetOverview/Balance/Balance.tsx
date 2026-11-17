@@ -137,10 +137,8 @@ const Balance = ({
     if (isEvmNetworkSelected) {
       return evmPricePercentChange1d;
     }
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     return allMultichainAssetsRates[asset?.address as CaipAssetType]?.marketData
       ?.pricePercentChange?.P1D;
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
   };
 
   // Calculate percentage change and color for secondary balance

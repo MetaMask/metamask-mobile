@@ -8,10 +8,17 @@ export type {
   ActivityListItem,
   ActivityKind,
   PerpsOrderKind,
+  PredictSettlementExtras,
   Status,
   TokenAmount,
 } from './types';
-export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
+export {
+  KALSHI_VENUE_CHAIN_ID,
+  PERPS_ORDER_KINDS,
+  isPerpsOrderKind,
+  isNftAssetType,
+  isNftToken,
+} from './types';
 export { isNftTransferType, isSpendingCapUnlimited } from './adapters/helpers';
 export {
   enrichLocalActivity,
@@ -22,8 +29,7 @@ export {
 export {
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
-} from './adapters/staking-activity';
-export { mapPredictActivity } from './adapters/predict-activity';
+} from './adapters/earn/staking-activity';
 export {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,

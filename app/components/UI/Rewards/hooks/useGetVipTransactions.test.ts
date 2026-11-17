@@ -274,7 +274,7 @@ describe('useGetVipTransactions', () => {
     expect(result.current.transactions).toEqual(cached);
   });
 
-  it('hides cached transactions while an enabled first-page fetch is in flight', async () => {
+  it('keeps cached transactions visible while an enabled first-page fetch is in flight', async () => {
     let resolveFetch: (value: typeof MOCK_PAGE_1) => void = () => undefined;
     mockCall.mockImplementation(
       () =>
@@ -293,8 +293,8 @@ describe('useGetVipTransactions', () => {
       expect(mockCall).toHaveBeenCalled();
     });
 
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.transactions).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.transactions).toEqual([MOCK_TX]);
 
     await act(async () => {
       resolveFetch(MOCK_PAGE_1);
@@ -305,7 +305,7 @@ describe('useGetVipTransactions', () => {
     });
   });
 
-  it('shows cache and suppresses error when first-page fetch fails', async () => {
+  it('keeps cached transactions and reports the error when a first-page fetch fails', async () => {
     mockCall.mockRejectedValueOnce(new Error('Network failure') as never);
     setupSelectors({
       subscriptionId: SUBSCRIPTION_ID,
@@ -319,7 +319,7 @@ describe('useGetVipTransactions', () => {
     });
 
     expect(result.current.transactions).toEqual([MOCK_TX]);
-    expect(result.current.error).toBeNull();
+    expect(result.current.error).toBe('Network failure');
   });
 
   it('refresh resets and re-fetches first page with forceFresh', async () => {

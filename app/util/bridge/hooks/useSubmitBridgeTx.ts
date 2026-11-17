@@ -165,19 +165,18 @@ export default function useSubmitBridgeTx() {
                 quotesReceivedContext,
                 migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
               })
-            : await Engine.context.BridgeStatusController.submitTx(
-                walletAddress,
-                quoteResponse,
-                stxEnabled,
+            : await Engine.context.BridgeStatusController.submitTx({
+                accountAddress: walletAddress,
+                quoteResponses: [quoteResponse],
+                isStxEnabled: stxEnabled,
                 quotesReceivedContext,
                 location,
                 abTests,
-                mergedActiveAbTests,
+                activeAbTests: mergedActiveAbTests,
                 tokenSecurityTypeDestination,
-                undefined, // batchSellTrades
                 inputPrimaryDenomination,
-                BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-              );
+                migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+              });
 
           if (isSocialTradeSource(location)) {
             recordSocialTrade();

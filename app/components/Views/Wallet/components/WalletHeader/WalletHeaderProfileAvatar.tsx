@@ -50,6 +50,7 @@ const WalletHeaderProfileAvatar = ({
         iconName={IconName.UserCircle}
         size={placeholderSize}
         severity={AvatarIconSeverity.Neutral}
+        twClassName="bg-transparent"
         testID={testID}
       />
     );

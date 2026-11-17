@@ -107,7 +107,6 @@ describe('useAddPopularNetwork', () => {
       rpcEndpoints: [
         {
           url: 'https://polygon-rpc.com',
-          failoverUrls: undefined,
           name: 'Polygon',
           type: 'custom',
         },
@@ -236,28 +235,6 @@ describe('useAddPopularNetwork', () => {
       expect.objectContaining({
         blockExplorerUrls: [],
         defaultBlockExplorerUrlIndex: undefined,
-      }),
-    );
-  });
-
-  it('handles network with failover RPC URLs', async () => {
-    const mockNetwork = createMockNetwork({
-      failoverRpcUrls: ['https://polygon-rpc-backup.com'],
-    });
-
-    const { result } = renderHook(() => useAddPopularNetwork());
-
-    await act(async () => {
-      await result.current.addPopularNetwork(mockNetwork);
-    });
-
-    expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalledWith(
-      expect.objectContaining({
-        rpcEndpoints: [
-          expect.objectContaining({
-            failoverUrls: ['https://polygon-rpc-backup.com'],
-          }),
-        ],
       }),
     );
   });

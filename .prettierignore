@@ -13,4 +13,4 @@ scripts
 .detoxrc.js
 .prettierignore
 locales
-.storybook/storybook.requires.js
+.rnstorybook/storybook.requires.ts

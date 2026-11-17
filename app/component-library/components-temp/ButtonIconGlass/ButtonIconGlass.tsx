@@ -21,6 +21,9 @@ const CAPSULE_SIZE_CLASS: Record<ButtonIconSize, string> = {
   [ButtonIconSize.Lg]: 'h-12 w-12',
 };
 
+// Stretches the tap area over the ring, so the whole capsule responds.
+const CAPSULE_HIT_SLOP = 4;
+
 /**
  * A design-system `ButtonIcon` for headers, in a round `CapsuleGlass` when
  * `isCapsule` is set and the plain icon otherwise.
@@ -36,7 +39,7 @@ const ButtonIconGlass = ({
       twClassName={`${CAPSULE_SIZE_CLASS[size]} justify-center`}
       testID={capsuleTestID}
     >
-      <ButtonIcon size={size} {...props} />
+      <ButtonIcon size={size} hitSlop={CAPSULE_HIT_SLOP} {...props} />
     </CapsuleGlass>
   ) : (
     <ButtonIcon size={size} {...props} />

@@ -9,7 +9,6 @@ import {
   TitleAlert,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { strings } from '../../../../locales/i18n';
 import { ManualBackupConfirmErrorSheetSelectorsIDs } from './ManualBackupConfirmErrorSheet.testIds';
@@ -48,21 +47,14 @@ const ManualBackupConfirmErrorSheet = ({
       onClose={onDismiss}
       testID={ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET}
     >
-      <HeaderStandardGlass
-        isFloating={false}
-        onClose={handleClose}
-        closeButtonProps={{
-          testID:
-            ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_CLOSE_BUTTON,
-        }}
-      />
-      <Box twClassName="px-4 pb-6 gap-2">
+      <Box twClassName="px-4 pb-6 gap-4">
         <TitleAlert
           severity={IconAlertSeverity.Danger}
           title={strings('manual_backup_step_2.error-title')}
           titleProps={{
             testID: ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_TITLE,
           }}
+          twClassName="pt-6"
         />
         <Text
           variant={TextVariant.BodyMd}

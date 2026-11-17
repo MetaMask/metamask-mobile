@@ -33,12 +33,14 @@ jest.mock('../../../../util/social/socialActivityStorage', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+  useStore: jest.fn(() => ({ getState: () => ({ bridge: {} }) })),
   shallowEqual: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const navigate = jest.fn();
+  return { useNavigation: () => ({ navigate }) };
+});
 
 jest.mock('../../Bridge/hooks/useAssetMetadata/utils', () => ({
   toAssetId: jest.fn(
@@ -108,6 +110,10 @@ jest.mock('../../Bridge/hooks/useUnifiedSwapBridgeContext', () => ({
 
 jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({ colors: {} })),
+}));
+
+jest.mock('../../Bridge/hooks/useInsufficientNativeReserveError', () => ({
+  useInsufficientNativeReserveError: jest.fn(),
 }));
 
 jest.mock('../../Bridge/hooks/useHasSufficientGas', () => ({
@@ -183,6 +189,13 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   })),
   setDestToken: jest.fn((v) => ({ type: 'bridge/setDestToken', payload: v })),
   resetBridgeState: jest.fn(() => ({ type: 'bridge/resetBridgeState' })),
+  resetHardwareWalletsSwaps: jest.fn(() => ({
+    type: 'bridge/resetHardwareWalletsSwaps',
+  })),
+  updateHardwareWalletsSwaps: jest.fn((v) => ({
+    type: 'bridge/updateHardwareWalletsSwaps',
+    payload: v,
+  })),
   setIsSubmittingTx: jest.fn((v) => ({
     type: 'bridge/setIsSubmittingTx',
     payload: v,
@@ -234,6 +247,8 @@ jest.mock('../../Bridge/hooks/usePriceImpactViewData', () => ({
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 
@@ -273,6 +288,16 @@ jest.mock('../quickBuyToastOptions', () => ({
 jest.mock('../resolveQuickBuyTerminalToast', () => ({
   resolveQuickBuyTerminalToast: jest.fn(),
 }));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: jest.fn() }),
+);
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens',
+  () => ({ isUnsupportedPostTradeAsset: jest.fn(() => false) }),
+);
 
 jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn(),
@@ -320,8 +345,9 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
-    postSwapShare?: boolean,
+    postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
+    postTradeShareOwner?: string,
   ) => {
     const utils = renderHook(
       () =>
@@ -330,8 +356,9 @@ runQuickBuyControllerCases({
           onClose ?? jest.fn(),
           analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
-          postSwapShare,
+          postTradeShare,
           copyTradeOrigin,
+          postTradeShareOwner,
         ),
       { initialProps },
     );
@@ -401,8 +428,9 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
-    postSwapShare?: boolean,
+    postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
+    postTradeShareOwner?: string,
   ) => {
     const utils = renderHook(
       () =>
@@ -411,8 +439,9 @@ runQuickBuyControllerCases({
           onClose ?? jest.fn(),
           analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
-          postSwapShare,
+          postTradeShare,
           copyTradeOrigin,
+          postTradeShareOwner,
         ),
       {
         initialProps,

@@ -5,6 +5,7 @@ import {
   getClient,
   getGlobalScope,
   init as sentryInit,
+  reactNativeTracingIntegration,
   reactNavigationIntegration,
   setTag as sentrySetTag,
 } from '@sentry/react-native';
@@ -27,6 +28,8 @@ import { RootState } from '../../reducers';
 import { NetworkStatus } from '@metamask/network-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { TraceName } from '../trace';
+import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
+import { resetOutgoingRequestAnnotationForTesting } from './outgoingRequestContext';
 import { store } from '../../store';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
@@ -70,6 +73,10 @@ jest.mock('../trace', () => ({
   hasMetricsConsent: jest.fn().mockResolvedValue(true),
   // Only TraceName.UIStartup is used in utils.ts (excludeEvents filter)
   TraceName: { UIStartup: 'UIStartup' },
+}));
+
+jest.mock('./navigationInitializationAppStart', () => ({
+  beginNavigationInitializationAppStart: jest.fn(),
 }));
 
 jest.mock('../../constants/ota', () => ({
@@ -255,6 +262,12 @@ describe('excludeEvents', () => {
     const event = { transaction: 'Login' };
     const eventExcluded = excludeEvents(event);
     expect(eventExcluded).toBe(event);
+  });
+
+  it('drops the NavigationChildren wrapper transaction', async () => {
+    const event = { transaction: 'NavigationChildren' };
+    const eventExcluded = excludeEvents(event);
+    expect(eventExcluded).toBeNull();
   });
 
   it('returns performance event null if empty', async () => {
@@ -1429,11 +1442,13 @@ describe('setupSentry', () => {
   beforeEach(() => {
     mockedInit.mockClear();
     mockedSetTag.mockClear();
+    jest.mocked(beginNavigationInitializationAppStart).mockClear();
     process.env.MM_SENTRY_DSN = 'https://test@sentry.io/1';
   });
 
   afterEach(() => {
     process.env.MM_SENTRY_DSN = originalDsn;
+    resetOutgoingRequestAnnotationForTesting();
   });
 
   it('initialises Sentry with navIntegration (ReactNavigation) in the explicit integrations list', async () => {
@@ -1448,11 +1463,11 @@ describe('setupSentry', () => {
 
     // ReactNavigation (navIntegration) is the explicit addition in this PR.
     expect(integrationNames).toContain('ReactNavigation');
-
-    // ReactNativeTracing is NOT added explicitly — getDefaultIntegrations() pushes it
-    // automatically when tracesSampleRate is set and enableAutoPerformanceTracing is true.
-    // Adding it explicitly here would be a no-op after the SDK's name-deduplication pass.
-    expect(integrationNames).not.toContain('ReactNativeTracing');
+    // Replaces the default tracing integration so nitro-fetch is instrumented.
+    expect(integrationNames).toContain('ReactNativeTracing');
+    expect(reactNativeTracingIntegration).toHaveBeenCalledWith({
+      traceFetch: true,
+    });
   });
 
   it('stamps perf_fix tag on transactions via beforeSendTransaction, not as a global tag', async () => {
@@ -1494,5 +1509,33 @@ describe('setupSentry', () => {
       tags: {},
     });
     expect(result).toBeNull();
+  });
+
+  it('registers outgoing request annotation when a Sentry client exists', async () => {
+    const on = jest.fn();
+    mockedGetClient.mockReturnValue({
+      on,
+    } as unknown as ReturnType<typeof getClient>);
+
+    await setupSentry();
+
+    expect(on).toHaveBeenCalledWith(
+      'beforeOutgoingRequestSpan',
+      expect.any(Function),
+    );
+    mockedGetClient.mockReset();
+  });
+
+  it('enables standalone app start tracing so app start survives the dropped wrapper transaction', async () => {
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      _experiments?: { enableStandaloneAppStartTracing?: boolean };
+    };
+
+    expect(initOptions._experiments?.enableStandaloneAppStartTracing).toBe(
+      true,
+    );
+    expect(beginNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
   });
 });

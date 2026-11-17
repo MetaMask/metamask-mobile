@@ -5,6 +5,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 import {
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
+  SUBSCRIPTION_STATUSES,
   SubscriptionDelegationServiceErrorMessage,
 } from '@metamask/subscription-controller';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -18,6 +19,7 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { StartProSubscriptionOutcome } from '../utils/proSubscriptionPaymentStatus';
 import {
   buildConfirmMembershipRequestData,
   useStartProSubscription,
@@ -182,8 +184,11 @@ describe('useStartProSubscription', () => {
   it('starts the subscription via startSubscriptionWithDelegation after membership consent', async () => {
     const { result } = renderHook(() => useStartProSubscription());
 
+    let outcome:
+      | Awaited<ReturnType<typeof result.current.startSubscription>>
+      | undefined;
     await act(async () => {
-      await result.current.startSubscription(PLAN);
+      outcome = await result.current.startSubscription(PLAN);
     });
 
     expect(mockedCheckBalance).toHaveBeenCalledWith({
@@ -198,6 +203,7 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.17',
         totalAmount: '49.99',
+        isAnnual: true,
         renewDate: formatExpectedMembershipDate(addYears(FIXED_NOW, 1)),
       },
     });
@@ -215,6 +221,7 @@ describe('useStartProSubscription', () => {
     expect(mockedApprovalAdd.mock.invocationCallOrder[0]).toBeLessThan(
       mockedStartSubscription.mock.invocationCallOrder[0],
     );
+    expect(outcome).toEqual({ outcome: StartProSubscriptionOutcome.Ready });
   });
 
   it('does not start delegation, log, or set an error when membership consent is rejected', async () => {
@@ -248,6 +255,7 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.17',
         totalAmount: '49.99',
+        isAnnual: true,
         renewDate: billedOn,
         isTrial: true,
         billedOn,
@@ -269,6 +277,7 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.99',
         totalAmount: '4.99',
+        isAnnual: false,
         renewDate: formatExpectedMembershipDate(addMonths(FIXED_NOW, 1)),
       },
     });
@@ -287,10 +296,15 @@ describe('useStartProSubscription', () => {
       }),
       cancel: mockCancelTopUp,
     });
+    mockedStartSubscription.mockResolvedValue({
+      status: SUBSCRIPTION_STATUSES.provisional,
+    });
 
     const { result } = renderHook(() => useStartProSubscription());
 
-    let startPromise: Promise<void> | undefined;
+    let startPromise:
+      | ReturnType<typeof result.current.startSubscription>
+      | undefined;
     await act(async () => {
       startPromise = result.current.startSubscription(PLAN);
       await Promise.resolve();
@@ -298,7 +312,7 @@ describe('useStartProSubscription', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       batchId: GENERATED_BATCH_ID,
-      amount: '39.99',
+      amount: '40.00',
       transactionType: TransactionType.membershipSubscription,
       forceBottomSheet: true,
     });
@@ -319,6 +333,78 @@ describe('useStartProSubscription', () => {
       chainId: CHAIN_ID,
       payerAddress: PAYER_ADDRESS,
     });
+    await expect(startPromise).resolves.toEqual({
+      outcome: StartProSubscriptionOutcome.Processing,
+    });
+  });
+
+  it('rounds a padded top-up up to the next cent for a fresh account', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '4990000',
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise(() => undefined),
+      cancel: mockCancelTopUp,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      result.current.startSubscription(MONTHLY_PLAN);
+      await Promise.resolve();
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '5.00' }),
+    );
+  });
+
+  it('rounds a fractional shortfall up to the next cent', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '1234567',
+      requiredBalance: '4990000',
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise(() => undefined),
+      cancel: mockCancelTopUp,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      result.current.startSubscription(MONTHLY_PLAN);
+      await Promise.resolve();
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '3.76' }),
+    );
+  });
+
+  it('rounds a sub-cent shortfall up to one cent', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '4989989',
+      requiredBalance: '4990000',
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise(() => undefined),
+      cancel: mockCancelTopUp,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      result.current.startSubscription(MONTHLY_PLAN);
+      await Promise.resolve();
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '0.01' }),
+    );
   });
 
   it('does not start delegation, log, or set an error when the top-up is rejected', async () => {
@@ -403,9 +489,9 @@ describe('useStartProSubscription', () => {
     const { result } = renderHook(() => useStartProSubscription());
 
     await act(async () => {
-      await expect(
-        result.current.startSubscription(PLAN),
-      ).resolves.toBeUndefined();
+      await expect(result.current.startSubscription(PLAN)).resolves.toEqual({
+        outcome: StartProSubscriptionOutcome.Ready,
+      });
     });
 
     expect(mockedStartSubscription).toHaveBeenCalledTimes(1);

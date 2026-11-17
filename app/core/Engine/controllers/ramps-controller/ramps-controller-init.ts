@@ -7,6 +7,10 @@ import {
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
+import {
+  handleAutorampTransactionStatusChangedForMetrics,
+  type AutorampTransactionStatusChangedPayload,
+} from './event-handlers/vbaTransactionAnalytics';
 
 /**
  * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
@@ -33,16 +37,25 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const rampsControllerState =
     persistedState.RampsController ?? getDefaultRampsControllerState();
 
-  const controller = new RampsController({
+  // The all-providers widening is driven by the `moneyHeadlessAllProviders`
+  // remote feature flag, which the controller reads itself. The widened-path
+  // default redirect URL is derived inside core.
+  //
+  // `trackAutorampTransactionStatusChanged` lands with the
+  // @metamask/ramps-controller release that adds it. The installed constructor
+  // type does not include the option yet, so the callback is attached on a
+  // variable rather than an object literal.
+  const options: ConstructorParameters<typeof RampsController>[0] & {
+    trackAutorampTransactionStatusChanged: (
+      payload: AutorampTransactionStatusChangedPayload,
+    ) => void;
+  } = {
     messenger: controllerMessenger,
     state: rampsControllerState,
-    // The all-providers widening is driven by the `moneyHeadlessAllProviders`
-    // remote feature flag, which the controller reads itself through the
-    // `RemoteFeatureFlagController:getState` messenger action per quote call.
-    // The widened-path default redirect URL is now derived inside core via
-    // `RampsService:getDefaultRedirectCallbackUrl` (same environment as the
-    // service). Keep that action delegated in the controller messenger.
-  });
+    trackAutorampTransactionStatusChanged:
+      handleAutorampTransactionStatusChangedForMetrics,
+  };
+  const controller = new RampsController(options);
 
   let orderSubscriptionsRegistered = false;
 

@@ -81,13 +81,13 @@ Local emulator and simulator projects live in `tests/playwright.config.ts`. Clou
 
 ### Available Projects
 
-| Project Name                        | Platform | Environment     | Test Scope            |
-| ----------------------------------- | -------- | --------------- | --------------------- |
-| `android`                           | Android  | Local Emulator  | Demo fixture spec     |
-| `ios`                               | iOS      | Local Simulator | Demo fixture spec     |
-| `testmu-android`                    | Android  | TestMu          | Login tests only      |
-| `testmu-android-onboarding`         | Android  | TestMu          | Onboarding tests      |
-| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding   |
+| Project Name                         | Platform | Environment     | Test Scope          |
+| ------------------------------------ | -------- | --------------- | ------------------- |
+| `android`                            | Android  | Local Emulator  | Demo fixture spec   |
+| `ios`                                | iOS      | Local Simulator | Demo fixture spec   |
+| `testmu-android`                     | Android  | TestMu          | Login tests only    |
+| `testmu-android-onboarding`          | Android  | TestMu          | Onboarding tests    |
+| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding |
 
 ### Configuration Details
 
@@ -682,11 +682,11 @@ ci_build_variant:rc release_version:7.58.0
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                                      | Content                                             |
-| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
+| File Type | Location                                                                      | Content                                       |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                     |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                     |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                              |
 | Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario TestMu app profiling + API calls |
 
 ### HTML Report Contents

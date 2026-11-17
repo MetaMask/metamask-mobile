@@ -1,4 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
+import { StyleSheet } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
@@ -10,6 +11,10 @@ import {
   VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { VbaOnboardingRoutes } from './routes';
@@ -29,6 +34,31 @@ if (!kycService) {
 }
 const mockGetGeoCountry = jest.mocked(kycService.getGeoCountry);
 
+const buildRolloutOverrides = (rollout: Record<string, unknown>) => ({
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            ...rollout,
+          },
+          [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            currency: 'USD',
+            regions: ['US'],
+          },
+        },
+      },
+    },
+  },
+});
+
+const renderUsVendorTerms = (location = 'US') =>
+  renderVbaVendorTerms({ location, overrides: buildRolloutOverrides({}) });
+
 const manualBankTransfer = {
   id: '/payments/bank-transfer',
   paymentType: 'bank-transfer',
@@ -39,10 +69,12 @@ const manualBankTransfer = {
   delay: [2880, 4320],
 };
 
+// Iron sends only the T&C and its `display_name` does not say "MoonPay";
+// the screen rewords the label client-side.
 const disclaimer = {
   id: 'd-1',
   url: 'https://moonpay.example/terms',
-  display_name: "MoonPay's Terms and Conditions",
+  display_name: 'Terms and Conditions',
 };
 
 describeForPlatforms('CreateVirtualBankAccount view', () => {
@@ -69,8 +101,60 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     restoreVbaReduxServiceStore();
   });
 
-  it('shows the live arrival timeframe and queries the catalog for the VBA region', async () => {
-    const { getByText } = renderVbaVendorTerms({ location: 'BR' });
+  it.each(['BR', 'BR-SP'])(
+    'shows the Pix arrival copy without querying the catalog for %s',
+    async (location) => {
+      const { getByText, queryByText } = renderVbaVendorTerms({ location });
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
+            ),
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(
+        queryByText(
+          strings(
+            'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
+          ),
+        ),
+      ).toBeNull();
+      expect(mockGetPaymentMethodsForContext).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does not promise Pix timing before the user picks a currency', async () => {
+    const { getByText, queryByText } = renderVbaVendorTerms({
+      location: 'BR',
+      overrides: buildRolloutOverrides({ chooseCurrency: true }),
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText(
+          strings(
+            'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
+            { timeframe: '2 - 3 business days' },
+          ),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    expect(
+      queryByText(
+        strings(
+          'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
+        ),
+      ),
+    ).toBeNull();
+  });
+
+  it('shows the live arrival timeframe and queries the catalog for a non-Pix VBA region', async () => {
+    const { getByText } = renderUsVendorTerms();
 
     const liveTitle = strings(
       'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
@@ -82,7 +166,7 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
 
     expect(mockGetPaymentMethodsForContext).toHaveBeenCalledWith(
       expect.objectContaining({
-        region: 'br',
+        region: 'us',
         // The query pipeline normalizes the CAIP asset id to lowercase.
         assetId: getMoneyAccountDepositAssetId().toLowerCase(),
         autoSelectProvider: true,
@@ -100,11 +184,11 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
   });
 
   it('queries the country-level region code for a country-state geolocation', async () => {
-    renderVbaVendorTerms({ location: 'BR-SP' });
+    renderUsVendorTerms('US-CA');
 
     await waitFor(() => {
       expect(mockGetPaymentMethodsForContext).toHaveBeenCalledWith(
-        expect.objectContaining({ region: 'br' }),
+        expect.objectContaining({ region: 'us' }),
       );
     });
   });
@@ -126,9 +210,7 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     mockGetPaymentMethodsForContext.mockRejectedValue(
       new Error('catalog unavailable'),
     );
-    const { getByText, queryByText } = renderVbaVendorTerms({
-      location: 'BR',
-    });
+    const { getByText, queryByText } = renderUsVendorTerms();
 
     await waitFor(() => {
       expect(
@@ -148,9 +230,7 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
       selected: null,
       providerIds: [],
     });
-    const { getByText, queryByText } = renderVbaVendorTerms({
-      location: 'BR',
-    });
+    const { getByText, queryByText } = renderUsVendorTerms();
 
     await waitFor(() => {
       expect(mockGetPaymentMethodsForContext).toHaveBeenCalled();
@@ -164,6 +244,18 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
       ),
     ).toBeOnTheScreen();
     expect(queryByText(/timeframe by region/)).toBeNull();
+  });
+
+  it('renders the vendor policy link without an underline', async () => {
+    const { findByTestId } = renderVbaVendorTerms();
+
+    const link = await findByTestId(
+      `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+    );
+
+    expect(StyleSheet.flatten(link.props.style)?.textDecorationLine).not.toBe(
+      'underline',
+    );
   });
 
   it('accepts vendor terms and advances to email', async () => {

@@ -7,11 +7,15 @@ import {
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
-import { ACTIVE_SUBSCRIPTION_STATUSES } from '../../../../../selectors/subscriptionController';
+import {
+  ACTIVE_SUBSCRIPTION_STATUSES,
+  isMoneyAccountPlusFreeTrial,
+} from '../../../../../selectors/subscriptionController';
 import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
 
 export const MembershipStatusKind = {
   Active: 'active',
+  FreeTrial: 'freeTrial',
   Overdue: 'overdue',
   Deactivated: 'deactivated',
   Cancelled: 'cancelled',
@@ -54,6 +58,11 @@ const ACTIVE_MODEL: MembershipBannerModel = {
   statusKey: 'pro_hub.membership_status.active',
 };
 
+const FREE_TRIAL_MODEL: MembershipBannerModel = {
+  statusKind: MembershipStatusKind.FreeTrial,
+  statusKey: 'pro_hub.membership_status.free_trial',
+};
+
 const UNAVAILABLE_MODEL: MembershipBannerModel = {
   statusKind: MembershipStatusKind.Unavailable,
   statusKey: 'pro_hub.membership_status.unavailable',
@@ -75,8 +84,13 @@ const deactivatedAlert = (): MembershipAlert => ({
   action: MembershipAlertAction.AddFunds,
 });
 
-const cancelledAlert = (date: string | undefined): MembershipAlert => {
-  const formattedDate = formatSubscriptionPeriodEnd(date);
+const cancelledAlert = (
+  date: string | undefined,
+  exclusivePeriodEnd = true,
+): MembershipAlert => {
+  const formattedDate = formatSubscriptionPeriodEnd(date, {
+    exclusivePeriodEnd,
+  });
 
   return {
     severity: BannerAlertSeverity.Warning,
@@ -90,8 +104,13 @@ const cancelledAlert = (date: string | undefined): MembershipAlert => {
   };
 };
 
-const addFundsAlert = (date: string | undefined): MembershipAlert => {
-  const formattedDate = formatSubscriptionPeriodEnd(date);
+const addFundsAlert = (
+  date: string | undefined,
+  exclusivePeriodEnd = true,
+): MembershipAlert => {
+  const formattedDate = formatSubscriptionPeriodEnd(date, {
+    exclusivePeriodEnd,
+  });
 
   return {
     severity: BannerAlertSeverity.Info,
@@ -122,6 +141,7 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
       iconColor: IconColor.PrimaryDefault,
       alert: addFundsAlert(
         subscription.currentPeriodEnd || subscription.endDate,
+        Boolean(subscription.currentPeriodEnd),
       ),
     };
   }
@@ -143,10 +163,13 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
 /**
  * Maps a Money Account Plus subscription onto the Pro Hub status labels.
  *
- * `active`, `trialing`, `provisional`, and `awaiting_funds` show Active. A
- * plan waiting for funds, or an active plan whose latest invoice failed, also
- * shows the existing add-funds or renewal-failed alert. `past_due` shows
- * Overdue. `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
+ * `trialing` shows Free trial. A `provisional` plan shows Free trial only
+ * while `trialPeriodDays` is greater than zero, because a free trial stays
+ * provisional until CHOMP moves it to `trialing`. A provisional plan with no
+ * trial shows Active, as do `active` and `awaiting_funds`. A plan waiting
+ * for funds, or an active plan whose latest invoice failed, also shows the
+ * existing add-funds or renewal-failed alert. `past_due` shows Overdue.
+ * `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
  * A missing plan, or a status this screen does not map, shows Unavailable.
  *
  * @param subscription - The displayed Plus subscription. Current wins over the last one.
@@ -159,6 +182,10 @@ export const getMembershipBannerModel = (
     return UNAVAILABLE_MODEL;
   }
 
+  if (isMoneyAccountPlusFreeTrial(subscription)) {
+    return FREE_TRIAL_MODEL;
+  }
+
   if (subscription.status === SUBSCRIPTION_STATUSES.canceled) {
     return {
       statusKind: MembershipStatusKind.Cancelled,
@@ -166,6 +193,7 @@ export const getMembershipBannerModel = (
       iconColor: IconColor.WarningDefault,
       alert: cancelledAlert(
         subscription.currentPeriodEnd || subscription.canceledAt,
+        Boolean(subscription.currentPeriodEnd),
       ),
     };
   }

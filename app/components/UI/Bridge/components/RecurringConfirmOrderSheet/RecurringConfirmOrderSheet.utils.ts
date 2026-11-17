@@ -7,10 +7,6 @@ import ToastService from '../../../../../core/ToastService';
 
 const log = createProjectLogger('bridge-recurring-auto-upgrade');
 
-export async function submitRecurringOrder(): Promise<void> {
-  log('Recurring order backend submission placeholder');
-}
-
 export function showRecurringOrderCreatedToast(): void {
   ToastService.showToast({
     variant: ToastVariants.Icon,

@@ -18,8 +18,6 @@ export interface UseOpenPositionForAssetResult {
   position: OpenPositionPnl | null;
   /** Full list row, used to attach the position card in the post composer. */
   sharePosition: TraderPosition | null;
-  /** Set only when the open route never answered. */
-  earliestTradeAt?: number;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -42,6 +40,8 @@ const isMissingTrader = (error: unknown): boolean =>
   error instanceof TraderPositionHttpError &&
   (error.status === 404 || error.status === 403);
 
+const openPositionRouteId = (value: string | undefined): string => value ?? '';
+
 /**
  * One wallet's open position from `GET /api/v2/traders/{wallet}/{assetId}/open`.
  * `{assetId}` is the CAIP-19 id of the token on screen.
@@ -63,8 +63,8 @@ export const useOpenPositionForAsset = (
     queryFn: async ({ signal }) => {
       try {
         return await getOpenPositionForAsset(
-          traderId ?? '',
-          tokenAddress ?? '',
+          openPositionRouteId(traderId),
+          openPositionRouteId(tokenAddress),
           signal,
         );
       } catch (error) {
@@ -76,7 +76,7 @@ export const useOpenPositionForAsset = (
           try {
             return await getOpenPositionForAsset(
               fallback,
-              tokenAddress ?? '',
+              openPositionRouteId(tokenAddress),
               signal,
             );
           } catch (retryError) {
@@ -115,7 +115,6 @@ export const useOpenPositionForAsset = (
   return {
     position: data?.pnl ?? null,
     sharePosition: data?.position ?? null,
-    earliestTradeAt: data?.earliestTradeAt,
     isLoading: enabled && isLoading,
     error: formatSocialQueryErrorMessage(error),
     refetch: refetchPosition,

@@ -1,7 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDispatch, useStore } from 'react-redux';
+import type { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { resetBridgeState } from '../../../../core/redux/slices/bridge';
+import {
+  type BridgeState,
+  resetBridgeState,
+  setDestToken,
+  setIsDestTokenManuallySet,
+  setSourceAmount,
+  setSourceAmountAsMax,
+  setSourceToken,
+} from '../../../../core/redux/slices/bridge';
 import Engine from '../../../../core/Engine';
 import { useSocialLeaderboardAnalytics } from '../../../Views/SocialLeaderboard/analytics';
 import {
@@ -16,6 +25,29 @@ type QuickBuyDismissStage =
 
 type AmountSelectionMethod =
   (typeof QuickBuyEventValues.AMOUNT_SELECTION_METHOD)[keyof typeof QuickBuyEventValues.AMOUNT_SELECTION_METHOD];
+
+function restoreBridgeInputs(
+  dispatch: ReturnType<typeof useDispatch>,
+  prior: BridgeState,
+) {
+  const {
+    sourceToken,
+    destToken,
+    sourceAmount,
+    isMaxSourceAmount,
+    isDestTokenManuallySet,
+  } = prior;
+  if (sourceToken) dispatch(setSourceToken(sourceToken));
+  if (destToken) dispatch(setDestToken(destToken));
+  if (sourceAmount) {
+    dispatch(
+      isMaxSourceAmount
+        ? setSourceAmountAsMax(sourceAmount)
+        : setSourceAmount(sourceAmount),
+    );
+  }
+  if (isDestTokenManuallySet) dispatch(setIsDestTokenManuallySet(true));
+}
 
 export interface QuickBuyAnalyticsRefs {
   dismissStageRef: React.MutableRefObject<QuickBuyDismissStage>;
@@ -48,6 +80,8 @@ export function useQuickBuyAnalytics(
   trackTradeSubmitted: (props: Record<string, unknown>) => void;
   trackTradeCompleted: (props: Record<string, unknown>) => void;
   markTradeSubmitted: () => void;
+  /** Skips the dismiss-time bridge reset; the receiving screen must reset it. */
+  preserveBridgeStateOnUnmount: () => void;
 } {
   const dispatch = useDispatch();
   const { track } = useSocialLeaderboardAnalytics();
@@ -61,6 +95,12 @@ export function useQuickBuyAnalytics(
     QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
   );
   const submitStartedAtRef = useRef<number | null>(null);
+  const shouldResetBridgeOnUnmountRef = useRef(true);
+  // QuickBuy shares the bridge slice with a possibly still-mounted BridgeView;
+  // capture its inputs before QuickBuy overwrites them so dismiss can restore them.
+  // Read once without subscribing: QuickBuy dispatches these on every amount change.
+  const store = useStore<RootState>();
+  const [priorBridgeState] = useState(() => store.getState().bridge);
 
   const resolvedTraderAddress =
     analyticsContext?.traderAddress ?? traderAddress;
@@ -89,9 +129,12 @@ export function useQuickBuyAnalytics(
 
   useEffect(
     () => () => {
-      dispatch(resetBridgeState());
-      if (Engine.context.BridgeController?.resetState) {
-        Engine.context.BridgeController.resetState();
+      if (shouldResetBridgeOnUnmountRef.current) {
+        dispatch(resetBridgeState());
+        if (Engine.context.BridgeController?.resetState) {
+          Engine.context.BridgeController.resetState();
+        }
+        restoreBridgeInputs(dispatch, priorBridgeState);
       }
       if (!tradeSubmittedRef.current && resolvedTraderAddress && caip19) {
         const numeric = Number(lastTrackedAmountRef.current);
@@ -105,7 +148,7 @@ export function useQuickBuyAnalytics(
         });
       }
     },
-    [dispatch, resolvedTraderAddress, caip19, track],
+    [dispatch, priorBridgeState, resolvedTraderAddress, caip19, track],
   );
 
   const trackAmountSelected = useCallback(
@@ -252,6 +295,10 @@ export function useQuickBuyAnalytics(
     dismissStageRef.current = QuickBuyEventValues.DISMISS_STAGE.CONFIRMATION;
   }, []);
 
+  const preserveBridgeStateOnUnmount = useCallback(() => {
+    shouldResetBridgeOnUnmountRef.current = false;
+  }, []);
+
   return {
     refs: {
       dismissStageRef,
@@ -269,5 +316,6 @@ export function useQuickBuyAnalytics(
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
+    preserveBridgeStateOnUnmount,
   };
 }

@@ -4,6 +4,10 @@ import {
 } from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+export type {
+  PerpsFeeResolverScope,
+  PerpsTradingFeeGrant,
+} from '@metamask/perps-controller';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
 export interface LoginResponseDto {
@@ -269,6 +273,21 @@ export type VipFeesResponseDto = {
   updatedAt: string | null;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TradingFeeGrantDto = {
+  programId: string;
+  hyperliquid: {
+    builderCode: string;
+    builderFeeBips: string;
+  };
+  expiresAt: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TradingFeeGrantResponseDto = {
+  grant: TradingFeeGrantDto | null;
+};
+
 export type VipTransactionType = 'PERPS' | 'SWAP';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -388,20 +407,6 @@ export interface MobileOptinDto {
    * @example '0x...'
    */
   signature: `0x${string}`;
-
-  /**
-   * The referral code of the user
-   * @example '123456'
-   */
-  referralCode?: string;
-}
-
-export interface ApplyReferralDto {
-  /**
-   * The referral code to apply
-   * @example 'ABC123'
-   */
-  referralCode: string;
 }
 
 export interface ApplyBonusCodeDto {
@@ -3208,7 +3213,7 @@ export interface SeasonStateDto {
 export type SeasonWayToEarnButtonActionDto = {
   /**
    * Route for in-app navigation
-   * @example { root: 'RewardsView', screen: 'RewardsReferralView' }
+   * @example { root: 'RewardsView', screen: 'RewardsSettingsView' }
    */
   route?: {
     root: string;

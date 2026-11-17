@@ -24,8 +24,11 @@ export interface TraderPositionQuickBuyProps {
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
   /** `true` when the trader has closed the position (sell); `false` when still open (buy). */
   isTraderPositionClosed?: boolean;
-  postSwapShare?: boolean;
+  postTradeShare?: boolean;
+  postTradeShareOwner?: string;
   initialTradeMode?: QuickBuyTradeMode;
+  /** True when the sheet was opened from Copy trade, not Buy or Sell. */
+  isCopyTrade?: boolean;
 }
 
 /**
@@ -42,8 +45,10 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   source = 'profile_position',
   originalEntryPoint,
   isTraderPositionClosed,
-  postSwapShare,
+  postTradeShare,
+  postTradeShareOwner,
   initialTradeMode,
+  isCopyTrade,
 }) => {
   // Stabilise the derived `target` reference so it doesn't destabilise the
   // `destToken` memo inside `useQuickBuySetup` (which would in turn re-trigger
@@ -71,7 +76,8 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
       tokenPriceFiat !== undefined ||
       source !== undefined ||
       originalEntryPoint !== undefined ||
-      traderTradeType !== undefined;
+      traderTradeType !== undefined ||
+      isCopyTrade === true;
     return hasAny
       ? {
           traderAddress,
@@ -80,6 +86,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
           source,
           originalEntryPoint,
           traderTradeType,
+          ...(isCopyTrade ? { isCopyTrade: true } : {}),
         }
       : { source };
   }, [
@@ -89,6 +96,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
     source,
     originalEntryPoint,
     isTraderPositionClosed,
+    isCopyTrade,
   ]);
 
   return (
@@ -98,7 +106,8 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
       onClose={onClose}
       features={TOP_TRADERS_QUICK_BUY_FEATURES}
       analyticsContext={analyticsContext}
-      postSwapShare={postSwapShare}
+      postTradeShare={postTradeShare}
+      postTradeShareOwner={postTradeShareOwner}
       initialTradeMode={initialTradeMode}
     />
   );

@@ -7,6 +7,8 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
+import composedNflGame from '../../contracts/v1/fixtures/composed-nfl-game.json';
+import { parsePredictEvent } from '../../contracts/v1/marketData';
 import { findGameSelectionQuote } from './findGameSelectionQuote';
 
 const createOutcome = (
@@ -41,6 +43,19 @@ const createEvent = (markets: readonly PredictMarket[]): PredictEvent => ({
 });
 
 describe('findGameSelectionQuote', () => {
+  it('quotes the full-game choice Market when period moneylines claim the same selections', () => {
+    const event = parsePredictEvent(composedNflGame);
+
+    expect(findGameSelectionQuote(event, 'away')?.market.id).toBe(
+      'KXNFLGAME-26NOV02CHISEA-CHI',
+    );
+    expect(findGameSelectionQuote(event, 'home')?.market.id).toBe(
+      'KXNFLGAME-26NOV02CHISEA-SEA',
+    );
+    // Only the first-half moneyline has a tie, so the full game has no draw.
+    expect(findGameSelectionQuote(event, 'draw')).toBeUndefined();
+  });
+
   it('returns the unique Market and Outcome for a Game Selection', () => {
     const awayYes = createOutcome('away-yes', 'yes', 'away');
     const homeYes = createOutcome('home-yes', 'yes', 'home');

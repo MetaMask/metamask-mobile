@@ -21,7 +21,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -53,12 +52,15 @@ import {
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { MUSD_TOKEN } from '../../../Earn/constants/musd';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 
 /**
  * Final-approval screen for the liquid-mUSD rescue send. The amount is always
  * the full liquid mUSD balance — it cannot be edited here.
  */
 const MusdRescueSendScreen = () => {
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { params } =
@@ -217,7 +219,9 @@ const MusdRescueSendScreen = () => {
       style={{ paddingTop: insets.top }}
       testID={MusdRescueSendTestIds.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('money.musd_rescue_send.title')}
         onBack={handleGoBack}
         backButtonProps={{ testID: MusdRescueSendTestIds.BACK_BUTTON }}

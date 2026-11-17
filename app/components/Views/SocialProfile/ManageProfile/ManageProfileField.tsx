@@ -15,7 +15,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Label,
   Text,
   TextArea,
@@ -39,6 +38,9 @@ import {
   type ManageProfileFieldUpdate,
 } from './ManageProfileField.types';
 import ProfileToggleCard from './ProfileToggleCard';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const commitFieldUpdate = (
   navigation: AppNavigationProp,
@@ -71,6 +73,7 @@ const commitFieldUpdate = (
 };
 
 const ManageProfileField = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'ManageProfileField'>>();
@@ -137,7 +140,9 @@ const ManageProfileField = () => {
       style={tw.style('flex-1 bg-default')}
       testID={ManageProfileSelectorsIDs.FIELD_SCREEN}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={title}
         onBack={handleBack}
         includesTopInset

@@ -27,6 +27,11 @@ import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAc
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
+import {
+  resolveProSubscriptionStartOutcome,
+  type StartProSubscriptionOutcome,
+} from '../utils/proSubscriptionPaymentStatus';
+import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
 
 const PAYMENT_UNAVAILABLE_ERROR =
@@ -40,18 +45,21 @@ function isHexAddress(value: string | undefined): value is Hex {
 
 /**
  * Converts an mUSD base-unit shortfall into a USD amount string for MM Pay.
- * Rounds up to cents so the funded balance is never below the required amount.
+ * Pads the shortfall so vault deposit rounding still covers the price, then
+ * rounds that safe amount up to the next cent. The deposit sheet truncates
+ * anything past two decimals, which would drop the pad or show a sub-cent
+ * top-up as $0.00.
  *
  * @param balance - Current mUSD balance in base units (6 decimals).
  * @param requiredBalance - Required mUSD balance in base units (6 decimals).
- * @returns Shortfall in USD as a decimal string with up to 2 fractional digits.
+ * @returns Padded shortfall in USD, rounded up to two decimal places.
  */
 function getTopUpAmountUsd(balance: string, requiredBalance: string): string {
-  return new BigNumber(requiredBalance)
-    .minus(balance)
+  const shortfall = BigInt(requiredBalance) - BigInt(balance);
+  return new BigNumber(getMembershipFundingAmount(shortfall).toString())
     .shiftedBy(-MUSD_DECIMALS)
-    .decimalPlaces(2, BigNumber.ROUND_UP)
-    .toFixed();
+    .decimalPlaces(2, BigNumber.ROUND_CEIL)
+    .toFixed(2);
 }
 
 type InitiateDeposit = ReturnType<
@@ -137,7 +145,8 @@ function addCalendarMonths(date: Date, months: number): Date {
  * Builds the `requestData` payload for a `confirm_membership` approval.
  *
  * Annual plans show an equivalent monthly amount (`amount / 12`, rounded to
- * cents) in the sheet hero; the Total row still shows the full plan amount.
+ * cents) in the sheet hero. The Total row and the authorization disclaimer
+ * use the full plan amount and the plan interval.
  *
  * @param plan - Checkout-ready Plus plan.
  * @param isTrial - Whether Benefits determined this user can start a trial.
@@ -164,6 +173,7 @@ export function buildConfirmMembershipRequestData(
     return {
       monthlyAmount,
       totalAmount,
+      isAnnual,
       renewDate: billedOn,
       isTrial: true,
       billedOn,
@@ -175,6 +185,7 @@ export function buildConfirmMembershipRequestData(
   return {
     monthlyAmount,
     totalAmount,
+    isAnnual,
     renewDate: formatMembershipDate(renewDate),
   };
 }
@@ -334,6 +345,10 @@ function reportStartSubscriptionError(
   throw loggedError;
 }
 
+export interface StartProSubscriptionResult {
+  outcome: StartProSubscriptionOutcome;
+}
+
 export interface StartProSubscriptionOptions {
   isTrial?: boolean;
 }
@@ -342,7 +357,7 @@ export interface UseStartProSubscriptionResult {
   startSubscription: (
     plan: SelectedPlusPlan,
     options?: StartProSubscriptionOptions,
-  ) => Promise<void>;
+  ) => Promise<StartProSubscriptionResult>;
   isSubmitting: boolean;
   errorMessage: string | undefined;
 }
@@ -363,8 +378,11 @@ export interface UseStartProSubscriptionResult {
  * `@metamask/subscription-controller` 13 removed `skipApproval`. The service
  * expects the caller to obtain consent before the call.
  *
- * Resolves after the subscription starts. The caller shows the success screen;
- * this hook does not navigate. The delegation start refreshes subscriptions
+ * Resolves after the subscription starts. A crypto payment (balance already
+ * in the Money Account) returns `ready` and the caller shows the success
+ * screen. An on-ramp or bridge top-up that is still provisional or awaiting
+ * funds returns `processing`; the caller shows a toast and opens Pro Hub.
+ * This hook does not navigate. The delegation start refreshes subscriptions
  * before it resolves.
  *
  * @returns Subscription start callback and its request state.
@@ -389,7 +407,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
     async (
       plan: SelectedPlusPlan,
       options?: StartProSubscriptionOptions,
-    ): Promise<void> => {
+    ): Promise<StartProSubscriptionResult> => {
       if (isSubmittingRef.current) {
         throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
       }
@@ -425,10 +443,18 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
           );
         }
 
-        await SubscriptionDelegationService.startSubscriptionWithDelegation({
-          ...subscriptionParams,
-          chainId,
-        });
+        const startedSubscription =
+          await SubscriptionDelegationService.startSubscriptionWithDelegation({
+            ...subscriptionParams,
+            chainId,
+          });
+
+        return {
+          outcome: resolveProSubscriptionStartOutcome(
+            hasSufficientBalance,
+            startedSubscription.status,
+          ),
+        };
       } catch (error) {
         reportStartSubscriptionError(
           error,

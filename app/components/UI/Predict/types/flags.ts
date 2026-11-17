@@ -179,6 +179,13 @@ export interface PredictFeatureFlags {
   predictHomeRedesignEnabled: boolean;
   predictSportCardLivePricesEnabled: boolean;
   isMembershipFeeWaiverEnabled: boolean;
+  /**
+   * Kill switch for Polymarket Protocol V2 markets (LaunchDarkly
+   * `predict-disable-polymarket-v2-markets`). When true, v2 markets are hidden
+   * from listings, and buy, cash out, and claim on v2 are blocked. Never
+   * affects non-v2 markets.
+   */
+  disablePolymarketV2Markets: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

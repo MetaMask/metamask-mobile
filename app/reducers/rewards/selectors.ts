@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import type { RootState } from '..';
 import { initialState } from '.';
-import { RewardsTab, OnboardingStep } from './types';
+import { RewardsTab } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 import { selectRewardsSubscriptionId } from '../../selectors/rewards';
 import {
@@ -113,16 +113,6 @@ export const selectBalanceTotal = createSelector(
   (entry) => entry?.balanceTotal ?? null,
 );
 
-export const selectReferralCount = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.refereeCount ?? 0,
-);
-
-export const selectReferredByCode = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.referredByCode ?? null,
-);
-
 export const selectIsVipReferee = createSelector(
   [selectCurrentReferralDetails],
   (entry) => entry?.isVipReferee ?? false,
@@ -186,12 +176,6 @@ export const selectSeasonWaysToEarn = (
 ): RootState['rewards']['seasonWaysToEarn'] =>
   state.rewards.seasonWaysToEarn ?? initialState.seasonWaysToEarn;
 
-export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
-  state.rewards.onboardingActiveStep;
-
-export const selectOnboardingReferralCode = (state: RootState) =>
-  state.rewards.onboardingReferralCode;
-
 export const selectGeoLocation = (state: RootState) =>
   state.rewards.geoLocation;
 
@@ -203,16 +187,6 @@ export const selectOptinAllowedForGeoLoading = (state: RootState) =>
 
 export const selectOptinAllowedForGeoError = (state: RootState) =>
   state.rewards.optinAllowedForGeoError;
-
-export const selectReferralDetailsLoading = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.loading ?? false,
-);
-
-export const selectReferralDetailsError = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.error ?? false,
-);
 
 export const selectCandidateSubscriptionId = (state: RootState) =>
   state.rewards.candidateSubscriptionId;

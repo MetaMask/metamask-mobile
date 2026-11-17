@@ -32,6 +32,8 @@ const MemberPricingOnTrades = () => {
   const { status, items, resetsOn, retry } = useMoneyAccountPlusBenefits();
 
   const showError = status === MoneyAccountPlusBenefitsStatus.Failed;
+  const showPending = status === MoneyAccountPlusBenefitsStatus.Pending;
+  const showUnavailable = status === MoneyAccountPlusBenefitsStatus.Unavailable;
   const showLoading = status === MoneyAccountPlusBenefitsStatus.Loading;
   const showRows =
     status === MoneyAccountPlusBenefitsStatus.Ready ||
@@ -67,6 +69,26 @@ const MemberPricingOnTrades = () => {
             {strings('pro_hub.member_pricing.retry')}
           </Button>
         </Box>
+      ) : null}
+
+      {showPending ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={MemberPricingOnTradesTestIds.PENDING}
+        >
+          {strings('pro_hub.member_pricing.pending_confirmation')}
+        </Text>
+      ) : null}
+
+      {showUnavailable ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={MemberPricingOnTradesTestIds.UNAVAILABLE}
+        >
+          {strings('pro_hub.member_pricing.unavailable')}
+        </Text>
       ) : null}
 
       {showRows ? (

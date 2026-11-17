@@ -51,6 +51,7 @@ import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWa
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import PerpsModeSelectionView from '../Views/PerpsModeSelectionView';
 import PerpsOutreachDetailsView from '../Views/PerpsOutreachDetailsView';
+import PerpsSharePositionView from '../Views/PerpsSharePositionView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -379,6 +380,10 @@ const PerpsModalStack = () => {
             options={{
               title: strings('perps.outreach_details.title'),
             }}
+          />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.SHARE_POSITION}
+            component={PerpsSharePositionView}
           />
           {/* Action Selection Modals */}
           <ModalStack.Screen

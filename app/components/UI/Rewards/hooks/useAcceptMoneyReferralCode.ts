@@ -8,9 +8,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useReferralMe, type FetchReferralMeResult } from './useReferralMe';
 import {
   MONEY_REFERRAL_CODE_UNKNOWN_ERROR,
-  normalizeMoneyReferralCode,
   useValidateMoneyReferralCode,
 } from './useValidateMoneyReferralCode';
+import { normalizeMoneyReferralCode } from '../utils/moneyReferralCode';
 
 /**
  * Substrings the API uses on the refusals a 403 can carry. The status alone
@@ -20,6 +20,7 @@ import {
 const SELF_REFERRAL_BODY_SNIPPET = 'own referral code';
 const REFERRER_REFUSAL_BODY_SNIPPET = 'kol cannot register as a referee';
 const ACTIVE_TRADER_BODY_SNIPPET = 'recent trading activity';
+const RESTRICTED_COUNTRY_BODY_SNIPPET = 'restrictedcountrycodeerror';
 
 /**
  * Stable reason a refused Accept was turned away. Sent as Segment
@@ -31,6 +32,7 @@ export type ReferralRefusalReason =
   | 'own_code'
   | 'kol_cannot_register'
   | 'active_trader'
+  | 'restricted_country'
   | 'rate_limited'
   | 'registration_failed';
 
@@ -67,6 +69,12 @@ export function getRegisterRefereeRefusalReason(
     if (body.includes(ACTIVE_TRADER_BODY_SNIPPET)) {
       return 'active_trader';
     }
+    if (
+      body.includes(RESTRICTED_COUNTRY_BODY_SNIPPET) ||
+      body.includes('not available in your country')
+    ) {
+      return 'restricted_country';
+    }
   }
   if (status === 429) {
     return 'rate_limited';
@@ -87,6 +95,8 @@ export function getRegisterRefereeErrorTitle(error: unknown): string {
       return strings('rewards.error_messages.referrer_cannot_be_referred');
     case 'active_trader':
       return strings('rewards.error_messages.active_trader_cannot_be_referred');
+    case 'restricted_country':
+      return strings('rewards.onboarding.not_supported_region_description');
     case 'rate_limited':
       return strings('rewards.error_messages.rate_limited');
     case 'registration_failed':
@@ -149,6 +159,7 @@ function runIfMounted(isMounted: boolean, update: () => void): void {
 type ValidationOutcome =
   | { kind: 'thrown'; error: unknown }
   | { kind: 'invalid'; message: string }
+  | { kind: 'unknown' }
   | { kind: 'ok' };
 
 async function validationOutcome(
@@ -164,13 +175,10 @@ async function validationOutcome(
   if (!validationError) {
     return { kind: 'ok' };
   }
-  return {
-    kind: 'invalid',
-    message:
-      validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR
-        ? strings('rewards.error_messages.something_went_wrong')
-        : validationError,
-  };
+  if (validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR) {
+    return { kind: 'unknown' };
+  }
+  return { kind: 'invalid', message: validationError };
 }
 
 function openAcceptedSplash(
@@ -183,6 +191,14 @@ function openAcceptedSplash(
   navigation.navigate(Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW);
 }
 
+export interface AcceptReferralCodeOptions {
+  /**
+   * Called once registration succeeded, right before the accepted splash
+   * opens.
+   */
+  onAccepted?: () => void;
+}
+
 export interface UseAcceptMoneyReferralCodeResult {
   /**
    * Validates the code, registers the session profile as a referee, then reads
@@ -192,7 +208,10 @@ export interface UseAcceptMoneyReferralCodeResult {
    * splash. A client-side validation miss resolves without a reason: that
    * code never reached register.
    */
-  acceptReferralCode: (code: string) => Promise<AcceptReferralCodeResult>;
+  acceptReferralCode: (
+    code: string,
+    options?: AcceptReferralCodeOptions,
+  ) => Promise<AcceptReferralCodeResult>;
   /**
    * Whether an accept attempt is in progress
    */
@@ -313,7 +332,10 @@ export const useAcceptMoneyReferralCode =
     );
 
     const acceptReferralCode = useCallback(
-      async (code: string): Promise<AcceptReferralCodeResult> => {
+      async (
+        code: string,
+        options: AcceptReferralCodeOptions = {},
+      ): Promise<AcceptReferralCodeResult> => {
         if (
           acceptAlreadyRunning(
             isAcceptingRef.current,
@@ -338,15 +360,15 @@ export const useAcceptMoneyReferralCode =
             return { accepted: false, refusalReason: refusal };
           }
           if (validation.kind === 'invalid') {
-            // A failed validation call is not a code the server rejected, so it
-            // does not claim the code is invalid and does not emit refused.
             runIfMounted(isMountedRef.current, () => {
               setErrorMessage(validation.message);
-              setRefusalReason(null);
+              setRefusalReason('invalid_code');
             });
-            return { accepted: false };
+            return { accepted: false, refusalReason: 'invalid_code' };
           }
 
+          // An unknown validate result could not reach the server. Register is
+          // the authority, matching extension.
           try {
             await Engine.controllerMessenger.call(
               'RewardsMoneyController:registerReferee',
@@ -370,6 +392,7 @@ export const useAcceptMoneyReferralCode =
           // tab refetches referral me the next time it is focused. Skip
           // goBack when the sheet has already left the stack, or that pop
           // would dismiss the screen underneath it.
+          options.onAccepted?.();
           openAcceptedSplash(navigation, isMountedRef.current);
           return { accepted: true };
         } finally {

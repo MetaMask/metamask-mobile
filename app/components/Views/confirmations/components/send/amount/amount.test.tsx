@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
+import { mockTheme } from '../../../../../../util/theme';
 import renderWithProvider, {
   ProviderValues,
 } from '../../../../../../util/test/renderWithProvider';
@@ -21,7 +22,7 @@ import { useSendContext } from '../../../context/send-context';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { InitSendLocation } from '../../../constants/send';
 import { Amount } from './amount';
-import { getFontSizeForInputLength } from './amount.styles';
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 
 jest.mock('../../../context/send-context', () => ({
   useSendContext: jest.fn(),
@@ -193,18 +194,36 @@ describe('Amount', () => {
 
     const { getByRole, getByTestId, getByText } = renderComponent();
 
+    const tokenFontSize = getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2);
+
     expect(getByRole('text', { name: '0 LONGTOKEN' })).toBeOnTheScreen();
     expect(
       StyleSheet.flatten(getByText('LONGTOKEN').props.style),
     ).toMatchObject({
-      fontSize: getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2),
+      fontSize: tokenFontSize,
+      lineHeight: tokenFontSize,
     });
 
     fireEvent.press(getByTestId('fiat_toggle'));
 
+    const fiatFontSize = getFontSizeForInputLength(4 + 'USD'.length + 2);
+
     expect(getByRole('text', { name: '0.00 USD' })).toBeOnTheScreen();
     expect(StyleSheet.flatten(getByText('USD').props.style)).toMatchObject({
-      fontSize: getFontSizeForInputLength(4 + 'USD'.length + 2),
+      fontSize: fiatFontSize,
+      lineHeight: fiatFontSize,
+    });
+  });
+
+  it('sizes the cursor to the Hero amount', () => {
+    const { getByTestId } = renderComponent();
+    const fontSize = getFontSizeForInputLength(1 + 'ETH'.length + 2);
+
+    expect(getByTestId('send-amount-cursor')).toHaveStyle({
+      backgroundColor: mockTheme.colors.text.muted,
+      height: Math.round(fontSize * 0.95),
+      marginHorizontal: 0,
+      width: 1,
     });
   });
 
@@ -517,19 +536,5 @@ describe('Amount', () => {
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerRight: expect.any(Function),
     });
-  });
-});
-
-describe('getFontSizeForInputLength', () => {
-  it('smoothly scales the font size using input and symbol length', () => {
-    expect(getFontSizeForInputLength(1)).toEqual(60);
-    expect(getFontSizeForInputLength(10)).toEqual(60);
-    expect(getFontSizeForInputLength(11)).toEqual(57);
-    expect(getFontSizeForInputLength(12)).toEqual(53);
-    expect(getFontSizeForInputLength(18)).toEqual(32);
-    expect(getFontSizeForInputLength(19)).toEqual(31);
-    expect(getFontSizeForInputLength(24)).toEqual(23);
-    expect(getFontSizeForInputLength(32)).toEqual(12);
-    expect(getFontSizeForInputLength(40)).toEqual(12);
   });
 });

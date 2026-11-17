@@ -204,13 +204,26 @@ describe('QuickBuyActionFooter', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('keeps the Est. receive row height before a quote value is available', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      estimatedReceiveFiat: undefined,
+    });
+
+    render(<QuickBuyActionFooter />);
+
+    expect(screen.getByTestId('quick-buy-est-receive-row')).toHaveStyle({
+      minHeight: 24,
+      marginBottom: 16,
+    });
+  });
+
   it('shows a loading skeleton while the quote is loading', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       estimatedReceiveFiat: undefined,
       hasValidAmount: true,
       isBlockingQuoteLoad: true,
-      gasFeeDeductionLabel: '-$1.19 for gas',
     });
 
     render(<QuickBuyActionFooter />);
@@ -224,7 +237,6 @@ describe('QuickBuyActionFooter', () => {
     expect(
       screen.getByTestId('quick-buy-est-receive-loading'),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('-$1.19 for gas')).not.toBeOnTheScreen();
     expect(screen.queryByTestId('quick-buy-rate-tag')).not.toBeOnTheScreen();
   });
 

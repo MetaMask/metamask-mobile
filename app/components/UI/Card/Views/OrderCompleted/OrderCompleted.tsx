@@ -2,19 +2,15 @@ import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxFlexDirection,
   Text,
+  TextColor,
   TextVariant,
-  FontWeight,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
-import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import MarketingMoment from '../../../MarketingMoment';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -35,7 +31,6 @@ const OrderCompleted: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const headerHandlers = useCardHeaderHandlers('back');
   const { fromUpgrade } = useParams<OrderCompletedParams>();
 
   useEffect(() => {
@@ -74,75 +69,61 @@ const OrderCompleted: React.FC = () => {
     }
   }, [navigation, trackEvent, createEventBuilder, fromUpgrade]);
 
+  const handleNotNow = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const buttonLabel = fromUpgrade
     ? strings('card.order_completed.back_to_card_button')
     : strings('card.order_completed.set_up_card_button');
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+    <MarketingMoment
       testID={OrderCompletedSelectors.CONTAINER}
-    >
-      <HeaderStandard
-        includesTopInset
-        twClassName="bg-background-default"
-        {...headerHandlers}
-      />
-      <Box twClassName="flex-1 px-4">
-        <Box twClassName="flex-1 items-center ">
-          <Image
-            source={MM_METAL_CARD}
-            style={tw.style('w-96 h-96')}
-            resizeMode="contain"
-            testID={OrderCompletedSelectors.CARD_IMAGE}
-          />
-
-          <Text
-            style={tw.style('text-center mt-6', {
-              fontFamily: 'MMPoly-Regular',
-              fontWeight: '400',
-              fontSize: 24,
-              lineHeight: 36,
-              letterSpacing: 0,
-            })}
-            twClassName="text-default"
-            variant={TextVariant.HeadingLg}
-            testID={OrderCompletedSelectors.TITLE}
-          >
-            {strings('card.order_completed.title')}
-          </Text>
+      title={strings('card.order_completed.title')}
+      titleProps={{
+        testID: OrderCompletedSelectors.TITLE,
+        twClassName: 'px-10',
+      }}
+      description={
+        <Box flexDirection={BoxFlexDirection.Column} gap={2}>
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            twClassName="text-alternative text-center mt-3"
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
             testID={OrderCompletedSelectors.SUBTITLE}
           >
             {strings('card.order_completed.subtitle')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            twClassName="text-alternative text-center mt-2 px-4"
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
             testID={OrderCompletedSelectors.DESCRIPTION}
           >
             {strings('card.order_completed.description')}
           </Text>
         </Box>
-
-        <Box twClassName="pb-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            onPress={handleSetUpCard}
-            isFullWidth
-            testID={OrderCompletedSelectors.SET_UP_CARD_BUTTON}
-          >
-            {buttonLabel}
-          </Button>
-        </Box>
-      </Box>
-    </SafeAreaView>
+      }
+      artwork={
+        <Image
+          source={MM_METAL_CARD}
+          style={tw.style('h-full w-full')}
+          resizeMode="contain"
+          testID={OrderCompletedSelectors.CARD_IMAGE}
+        />
+      }
+      primaryAction={{
+        label: buttonLabel,
+        onPress: handleSetUpCard,
+        testID: OrderCompletedSelectors.SET_UP_CARD_BUTTON,
+      }}
+      secondaryAction={{
+        label: strings('card.card_onboarding.not_now_button'),
+        onPress: handleNotNow,
+        testID: OrderCompletedSelectors.NOT_NOW_BUTTON,
+      }}
+    />
   );
 };
 

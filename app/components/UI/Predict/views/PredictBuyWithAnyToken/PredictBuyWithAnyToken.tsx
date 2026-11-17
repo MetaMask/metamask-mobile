@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -18,7 +19,6 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
@@ -155,8 +155,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         entryPoint,
         predictFeedTab,
         predictScreen,
+        outcome,
       ),
-    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen, outcome],
   );
 
   const { availableBalance, isBalanceLoading, isPredictBalanceSelected } =
@@ -318,7 +319,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         params: { autoDeposit: true },
       });
     } else {
-      deposit();
+      deposit(); // NOSONAR
     }
   }, [deposit, isSheetMode, navigation]);
 
@@ -471,7 +472,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       handleAddFunds();
       return;
     }
-    handleConfirm();
+    handleConfirm(); // NOSONAR
   }, [
     isBannerActive,
     isPaymentSelectorNavigationLocked,
@@ -541,7 +542,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
-          twClassName="w-full py-4"
+          twClassName="w-full pt-6 pb-8"
         >
           <PredictBuyAmountSection
             currentValueUSDString={currentValueUSDString}
@@ -555,6 +556,13 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             isPlacingOrder={isPlacingOrder}
             hideAvailableBalance={isSheetMode}
           />
+          {shouldRenderInlineError && (
+            <PredictBuyError
+              errorMessage={
+                shouldSuppressInlineError ? undefined : errorMessage
+              }
+            />
+          )}
         </Box>
       ) : (
         <ScrollView
@@ -589,7 +597,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           </Box>
         </ScrollView>
       )}
-      {shouldRenderInlineError && (
+      {!isSheetMode && shouldRenderInlineError && (
         <PredictBuyError
           errorMessage={shouldSuppressInlineError ? undefined : errorMessage}
         />
@@ -631,7 +639,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             loading={isPayFeesLoading}
             total={total}
             originalTotal={originalFeeBreakdown?.total}
-            feePolicyDiscountType={preview?.feePolicy?.discountType}
+            feePolicy={preview?.feePolicy}
             rewardsFeeAmountUsd={rewardsFeeAmount}
             rewardsLoadingOverride={isUserChangeTriggeringCalculation}
             handleFeesInfoPress={handleFeesInfoPress}
@@ -697,8 +705,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           ref={feeBreakdownSheetRef}
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
-          feePolicyDiscountType={preview?.feePolicy?.discountType}
           originalTotal={originalFeeBreakdown?.total}
+          feePolicy={preview?.feePolicy}
           depositFee={feeBreakdown.depositFee}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0

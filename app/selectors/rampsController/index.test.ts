@@ -18,8 +18,11 @@ import {
   selectRampsControllerState,
   selectRampsOrders,
   selectRampsOrdersForSelectedAccountGroup,
+  selectSelectedVbaWalletAddress,
+  selectUsableVbaAutoramp,
   selectTransak,
 } from './index';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const createDefaultResourceState = <TData, TSelected = null>(
   data: TData,
@@ -511,6 +514,82 @@ describe('RampsController Selectors', () => {
 
       const result = selectTransak(state);
       expect(result.isAuthenticated).toBe(true);
+    });
+  });
+
+  describe('selectSelectedVbaWalletAddress', () => {
+    it('returns the checksummed primary Money account address', () => {
+      const moneyAddress = '0xb1a6e05757757c333909af7243d408de5bf26f89';
+      expect(
+        selectSelectedVbaWalletAddress.resultFunc({
+          address: moneyAddress,
+        } as never),
+      ).toBe(toChecksumHexAddress(moneyAddress));
+    });
+
+    it('returns null when there is no primary Money account', () => {
+      expect(selectSelectedVbaWalletAddress.resultFunc(undefined)).toBeNull();
+    });
+
+    it('returns null when the Money account has no address', () => {
+      expect(selectSelectedVbaWalletAddress.resultFunc({} as never)).toBeNull();
+    });
+  });
+
+  describe('selectUsableVbaAutoramp', () => {
+    const wallet = '0xAbC0000000000000000000000000000000000001';
+    const autoramp = (walletAddress: string, status: string) =>
+      ({ id: status, walletAddress, status }) as never;
+
+    it('matches the Money account address case-insensitively and trimmed', () => {
+      const match = autoramp(` ${wallet.toLowerCase()} `, 'Approved');
+      expect(
+        selectUsableVbaAutoramp.resultFunc(
+          { autoramps: [match] } as never,
+          wallet,
+        ),
+      ).toBe(match);
+    });
+
+    it('counts a failed create but not Rejected or Cancelled', () => {
+      expect(
+        selectUsableVbaAutoramp.resultFunc(
+          {
+            autoramps: [
+              autoramp(wallet, 'Rejected'),
+              autoramp(wallet, 'Cancelled'),
+              autoramp(wallet, 'RegistrationFailed'),
+            ],
+          } as never,
+          wallet,
+        ),
+      ).toEqual(expect.objectContaining({ status: 'RegistrationFailed' }));
+    });
+
+    it('prefers an Approved autoramp over an earlier failed create', () => {
+      expect(
+        selectUsableVbaAutoramp.resultFunc(
+          {
+            autoramps: [
+              autoramp(wallet, 'RegistrationFailed'),
+              autoramp(wallet, 'AuthorizationFailed'),
+              autoramp(wallet, 'Approved'),
+            ],
+          } as never,
+          wallet,
+        ),
+      ).toEqual(expect.objectContaining({ status: 'Approved' }));
+    });
+
+    it('ignores an autoramp on another address and returns undefined without a wallet', () => {
+      const other = { autoramps: [autoramp('0xdef', 'Approved')] } as never;
+      expect(selectUsableVbaAutoramp.resultFunc(other, wallet)).toBeUndefined();
+      expect(
+        selectUsableVbaAutoramp.resultFunc(
+          { autoramps: [autoramp(wallet, 'Approved')] } as never,
+          null,
+        ),
+      ).toBeUndefined();
     });
   });
 });

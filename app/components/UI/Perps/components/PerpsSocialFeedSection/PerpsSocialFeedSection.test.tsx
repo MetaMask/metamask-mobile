@@ -24,7 +24,9 @@ jest.mock('../../hooks/usePerpsSocialEnabled', () => ({
 
 jest.mock('./PerpsSocialTrending', () => () => null);
 
-jest.mock('./PerpsSocialTopTraders', () => () => null);
+jest.mock('../../../SocialLeaderboard', () => ({
+  SocialLeaderboard: () => null,
+}));
 
 const mockNavigateToSocialLeaderboard = jest.mocked(
   navigateToSocialLeaderboard,

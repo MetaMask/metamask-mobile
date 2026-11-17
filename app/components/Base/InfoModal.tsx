@@ -26,7 +26,7 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
     },
     title: {
       width: '100%',
-      paddingVertical: 15,
+      paddingVertical: 16,
       paddingHorizontal: 20,
       flexDirection: 'row',
       alignItems: 'center',
@@ -39,7 +39,7 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
     body: {
       width: '100%',
       paddingBottom: 5,
-      marginBottom: 15,
+      marginBottom: 16,
       paddingHorizontal: 20,
     },
     messageLimit: {

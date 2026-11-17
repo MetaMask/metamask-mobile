@@ -7,13 +7,13 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { TraceName } from '../../../../../util/trace';
 import { useActivity } from '../../hooks/useActivity';
-import { useBalance } from '../../hooks/useBalance';
+import { usePortfolioSummary } from '../../hooks/usePortfolioSummary';
 import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
@@ -27,12 +27,17 @@ import type {
 import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
+import { PortfolioRecoveryPanel } from './internal/PortfolioRecoveryPanel';
 import { PortfolioTabs } from './internal/PortfolioTabs';
+import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
 
 export const PredictPortfolioScreen = () => {
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const route =
@@ -40,7 +45,7 @@ export const PredictPortfolioScreen = () => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const venueId = route.params.venueId;
-  const balanceQuery = useBalance(venueId);
+  const summaryQuery = usePortfolioSummary(venueId);
   const [activeTab, setActiveTab] = useState<PredictPortfolioTab>(
     route.params.initialTab ?? 'positions',
   );
@@ -61,10 +66,10 @@ export const PredictPortfolioScreen = () => {
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextPortfolioView,
-    conditions: [!balanceQuery.isPending, !activeListQuery.isPending],
+    conditions: [!summaryQuery.isPending, !activeListQuery.isPending],
     debugContext: {
-      hasBalance: Boolean(balanceQuery.data),
-      error: balanceQuery.isError || activeListQuery.isError,
+      hasSummary: Boolean(summaryQuery.data),
+      error: summaryQuery.isError || activeListQuery.isError,
       tab: activeTab,
     },
   });
@@ -98,9 +103,9 @@ export const PredictPortfolioScreen = () => {
         venueId,
         marketId: position.marketId,
         side: position.side,
-        outcomeLabel: position.context?.outcomeLabel ?? position.side,
-        eventTitle: position.context?.eventTitle ?? position.marketId,
-        eventImageUrl: position.context?.eventImageUrl,
+        outcomeLabel: getOutcomeName(position.side, position.context),
+        eventTitle: getEntryTitle(position.context),
+        eventImageUrl: position.context?.imageUrl,
         maxContracts: Math.floor(Number(position.shares)),
       });
     },
@@ -114,7 +119,9 @@ export const PredictPortfolioScreen = () => {
       testID={PredictPortfolioScreenTestIds.CONTAINER}
     >
       <Box testID={PredictPortfolioScreenTestIds.HEADER}>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={strings('predict_next.portfolio.title')}
           onBack={() => navigation.goBack()}
@@ -123,11 +130,12 @@ export const PredictPortfolioScreen = () => {
       </Box>
       <Box twClassName="flex-1 px-4">
         <PortfolioSummaryCard
-          balance={balanceQuery.data}
-          isLoading={balanceQuery.isPending}
+          summary={summaryQuery.data}
+          isLoading={summaryQuery.isPending}
           isPrivacyMode={Boolean(privacyMode)}
-          onRetry={() => balanceQuery.refetch()}
+          onRetry={() => summaryQuery.refetch()}
         />
+        <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">
           <Box

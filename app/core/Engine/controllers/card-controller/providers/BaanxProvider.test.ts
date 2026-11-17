@@ -2102,7 +2102,7 @@ describe('BaanxProvider push provisioning', () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it('fills wallet provisioning from an active card issued after the cutoff', async () => {
+  it('fills wallet provisioning from an active card', async () => {
     const get = jest.fn().mockImplementation((path: string) => {
       if (path === '/v1/user') {
         return Promise.resolve({
@@ -2129,7 +2129,111 @@ describe('BaanxProvider push provisioning', () => {
       cardholderName: 'Jose OBrien',
       lastFour: '1234',
       network: 'MASTERCARD',
+      countryCode: 'US',
     });
+  });
+
+  it('keeps an active card eligible when the account predates 2025-11-10', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+          createdAt: '2025-01-01T00:00:00.000Z',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve(activeCard);
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', tokens);
+
+    expect(data.walletProvisioning).toEqual(
+      expect.objectContaining({ eligible: true, countryCode: 'US' }),
+    );
+  });
+
+  it('copies cardProvider onto the provisioning processor', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+          cardProvider: 'galileo',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve(activeCard);
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', tokens);
+
+    expect(data.walletProvisioning).toEqual(
+      expect.objectContaining({ cardProcessor: 'galileo' }),
+    );
+  });
+
+  it('uses the residence country when the account is outside the US', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+          countryOfResidence: 'gb',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve(activeCard);
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', {
+      ...tokens,
+      location: 'international',
+    });
+
+    expect(data.walletProvisioning).toEqual(
+      expect.objectContaining({ countryCode: 'GB' }),
+    );
+    expect(data.walletProvisioning).not.toHaveProperty('cardProcessor');
+  });
+
+  it('hides provisioning eligibility when the card is frozen', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve({ ...activeCard, status: CardStatus.FROZEN });
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', tokens);
+
+    expect(data.walletProvisioning).toEqual(
+      expect.objectContaining({ eligible: false }),
+    );
   });
 
   it('returns null wallet provisioning when the user has no card', async () => {
@@ -2150,5 +2254,96 @@ describe('BaanxProvider push provisioning', () => {
     const data = await provider.getCardHomeData('0xabc', tokens);
 
     expect(data.walletProvisioning).toBeNull();
+  });
+});
+
+describe('BaanxProvider money account link', () => {
+  const tokens: CardAuthTokens = {
+    accessToken: 'at',
+    refreshToken: 'rt',
+    accessTokenExpiresAt: 1,
+    location: 'international',
+  };
+  const delegationSettings = {
+    count: 1,
+    _links: { self: '/v1/delegation/settings' },
+    networks: [
+      {
+        network: 'monad',
+        environment: 'production',
+        chainId: '143',
+        delegationContract: '0x2222222222222222222222222222222222222222',
+        tokens: {
+          veda: {
+            symbol: 'veda',
+            address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+            decimals: 6,
+          },
+        },
+      },
+    ],
+  };
+
+  it('prepareMoneyAccountLink returns the Veda token and a SIWE message', async () => {
+    const get = jest.fn().mockResolvedValue({
+      token: 'delegation-token',
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      nonce: 'nonce-1',
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const preparation = await provider.prepareMoneyAccountLink(
+      {
+        moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+        amountHuman: '1',
+        delegationSettings,
+      },
+      tokens,
+    );
+
+    expect(preparation.tokenAddress).toBe(
+      '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+    );
+    expect(preparation.spender).toBe(
+      '0x2222222222222222222222222222222222222222',
+    );
+    expect(preparation.context.signatureMessage).toContain('nonce-1');
+    expect(preparation.context.delegationToken).toBe('delegation-token');
+  });
+
+  it('completeMoneyAccountLink posts the EVM approval', async () => {
+    const post = jest.fn().mockResolvedValue(undefined);
+    const provider = new BaanxProvider({
+      service: { post, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    await provider.completeMoneyAccountLink(
+      {
+        moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+        amountHuman: '1',
+        txHash: '0xtx',
+        sigHash: '0xsig',
+        context: {
+          signatureMessage: 'siwe',
+          delegationToken: 'delegation-token',
+          network: 'monad',
+          currency: 'veda',
+        },
+      },
+      tokens,
+    );
+
+    expect(post).toHaveBeenCalledWith(
+      '/v1/delegation/evm/post-approval',
+      expect.objectContaining({
+        txHash: '0xtx',
+        sigHash: '0xsig',
+        sigMessage: 'siwe',
+        token: 'delegation-token',
+      }),
+      tokens,
+    );
   });
 });

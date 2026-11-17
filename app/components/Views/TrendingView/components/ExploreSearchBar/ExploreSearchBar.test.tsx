@@ -427,7 +427,7 @@ describe('ExploreSearchBar', () => {
 
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
-      ).toBeOnTheScreen();
+      ).toHaveStyle({ height: 48 });
 
       fireEvent.press(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
@@ -449,7 +449,10 @@ describe('ExploreSearchBar', () => {
       expect(
         queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
       ).not.toBeOnTheScreen();
-      expect(getByTestId('textfieldsearch')).toHaveStyle({ borderWidth: 1 });
+      expect(getByTestId('textfieldsearch')).toHaveStyle({
+        height: 48,
+        borderWidth: 1,
+      });
     });
 
     it('draws the search field on a glass capsule without its own fill or border', () => {
@@ -465,8 +468,9 @@ describe('ExploreSearchBar', () => {
 
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
-      ).toBeOnTheScreen();
+      ).toHaveStyle({ height: 48 });
       expect(getByTestId('textfieldsearch')).toHaveStyle({
+        height: 48,
         borderWidth: 0,
         backgroundColor: 'transparent',
       });

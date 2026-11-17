@@ -690,9 +690,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.delegation_fee_one_time')}$1.23`,
-    );
+    ).toHaveTextContent('Account upgrade fee$1.23');
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN),
     ).toBeOnTheScreen();
@@ -765,9 +763,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.delegation_fee_one_time')}--`,
-    );
+    ).toHaveTextContent('Account upgrade fee--');
     const confirmButton = getByTestId(
       RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
     );

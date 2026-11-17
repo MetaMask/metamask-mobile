@@ -1,9 +1,10 @@
 import {
   TransactionMeta,
-  TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { buildMoneyAccountDepositBatch } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -23,14 +24,7 @@ interface GetAmountDataResponse {
 }
 
 function isMoneyAccountDeposit(transaction: TransactionMeta): boolean {
-  if (transaction.type === TransactionType.moneyAccountDeposit) {
-    return true;
-  }
-  return (
-    transaction.nestedTransactions?.some(
-      (tx) => tx.type === TransactionType.moneyAccountDeposit,
-    ) ?? false
-  );
+  return hasTransactionType(transaction, MONEY_ACCOUNT_DEPOSIT_TYPES);
 }
 
 export async function getAmountData(

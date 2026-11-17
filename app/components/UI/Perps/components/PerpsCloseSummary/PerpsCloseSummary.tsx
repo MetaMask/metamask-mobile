@@ -1,13 +1,16 @@
+import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useCallback } from 'react';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { View, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import { strings } from '../../../../../../locales/i18n';
 import {
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
+  formatCloseSummaryFiat,
+  formatSignedCloseSummaryFiat,
+  getCloseSummaryPnlColor,
+} from './closeSummaryFormat';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import { type PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import RewardsAnimations, {
@@ -18,7 +21,6 @@ import { useStyles } from '../../../../hooks/useStyles';
 import createStyles from './PerpsCloseSummary.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import type { PerpsFeeSource } from '@metamask/perps-controller';
 import {
   FontWeight,
   IconName,
@@ -30,11 +32,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+const UNAVAILABLE_VALUE = PERPS_CONSTANTS.FallbackDataDisplay;
+
 export interface PerpsCloseSummaryProps {
-  /** Total margin including P&L */
-  totalMargin: number;
-  /** Total unrealized P&L (for "includes P&L" breakdown) */
-  totalPnl: number;
+  /** Total margin including P&L (undefined when unavailable) */
+  totalMargin: number | undefined;
+  /** P&L realized by the close (for "includes P&L" breakdown; undefined when unavailable) */
+  totalPnl: number | undefined;
 
   /** Total fees for closing (undefined when unavailable) */
   totalFees?: number;
@@ -42,16 +46,15 @@ export interface PerpsCloseSummaryProps {
   originalTotalFees?: number;
   /** Fee discount percentage (0-100, undefined when unavailable) */
   feeDiscountPercentage?: number;
-  /** Winning fee source for this close (subscription renders a member badge, rewards renders a VIP badge) */
-  feeSource?: PerpsFeeSource;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   /** MetaMask fee rate (as decimal, e.g. 0.01 for 1%) - undefined means unavailable/error state */
   metamaskFeeRate?: number;
   /** Protocol fee rate (as decimal, e.g. 0.00045 for 0.045%) - undefined means unavailable/error state */
   protocolFeeRate?: number;
   /** Original MetaMask fee rate before discounts - undefined means unavailable/error state */
   originalMetamaskFeeRate?: number;
-  /** Amount user will receive after closing */
-  receiveAmount: number;
+  /** Amount user will receive after closing (undefined when unavailable) */
+  receiveAmount: number | undefined;
 
   /** Whether to show rewards section */
   shouldShowRewards: boolean;
@@ -105,7 +108,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   totalFees,
   originalTotalFees,
   feeDiscountPercentage,
-  feeSource,
+  feeDiscountKind,
   metamaskFeeRate,
   protocolFeeRate,
   originalMetamaskFeeRate,
@@ -161,14 +164,14 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   ) : totalFees !== undefined ? (
     <PerpsFeesDisplay
       feeDiscountPercentage={feeDiscountPercentage}
-      feeSource={feeSource}
+      feeDiscountKind={feeDiscountKind}
       fee={totalFees}
       originalFee={originalTotalFees}
       testID={testIDs?.feesValue}
       variant={TextVariant.BodyMd}
     />
   ) : (
-    '--'
+    UNAVAILABLE_VALUE
   );
 
   const pointsValue = accountOptedIn ? (
@@ -202,9 +205,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
           >
-            {formatPerpsFiat(totalMargin, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })}
+            {formatCloseSummaryFiat(totalMargin)}
           </Text>
           <View style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
@@ -212,14 +213,9 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             </Text>
             <Text
               variant={TextVariant.BodySm}
-              color={
-                totalPnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault
-              }
+              color={getCloseSummaryPnlColor(totalPnl)}
             >
-              {totalPnl < 0 ? '-' : '+'}
-              {formatPerpsFiat(Math.abs(totalPnl), {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
+              {formatSignedCloseSummaryFiat(totalPnl)}
             </Text>
           </View>
         </View>
@@ -237,7 +233,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                 protocolFeeRate,
                 originalMetamaskFeeRate,
                 feeDiscountPercentage,
-                feeSource,
+                feeDiscountKind,
               }),
             testID: testIDs?.feesTooltip,
           },
@@ -259,9 +255,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             testID: testIDs?.receiveTooltip,
           },
         })}
-        value={formatPerpsFiat(receiveAmount, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        })}
+        value={formatCloseSummaryFiat(receiveAmount)}
         valueTextProps={{
           testID: testIDs?.receiveValue,
         }}

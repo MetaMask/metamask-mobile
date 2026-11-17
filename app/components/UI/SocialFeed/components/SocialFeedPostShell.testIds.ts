@@ -13,4 +13,13 @@ export const SocialFeedPostShellSelectorsIDs = {
   MOCK_MARKER: 'social-v1-feed-post-mock-marker',
   IDENTITY_PRESS: 'social-v1-feed-post-trader',
   POSITION_PRESS: 'social-v1-feed-post-position',
+  PENDING: 'social-v1-feed-post-pending',
+  TRANSLATE: 'social-v1-feed-post-translate',
+  SEE_ORIGINAL: 'social-v1-feed-post-see-original',
+  COMMENT_MEASURE: 'social-v1-feed-post-comment-measure',
+  SEE_MORE: 'social-v1-feed-post-see-more',
+  TRANSLATING: 'social-v1-feed-post-translating',
+  TRANSLATED: 'social-v1-feed-post-translated',
+  TRANSLATION_FAILED: 'social-v1-feed-post-translation-failed',
+  TRANSLATION_RETRY: 'social-v1-feed-post-translation-retry',
 } as const;

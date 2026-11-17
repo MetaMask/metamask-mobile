@@ -7,7 +7,11 @@ import Engine from '../../../Engine';
 import {
   selectIsCardAuthenticated,
   selectCardholderAccounts,
+  selectCardEntryRouting,
 } from '../../../../selectors/cardController';
+import { trackCardLinkRoutingDisagreement } from '../../../../components/UI/Card/util/trackCardLinkRoutingDisagreement';
+import { switchToLinkedCardAccount } from './switchToLinkedCardAccount';
+import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 
 /**
  * Card onboarding deeplink handler
@@ -37,23 +41,31 @@ export const handleCardOnboarding = () => {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
     const isAuthenticated = selectIsCardAuthenticated(state);
-    const hasCardLinkedAccount = cardholderAccounts.length > 0;
+    const routing = selectCardEntryRouting(state);
+    const hasCardLinkedAccount = routing.hasCard;
+    trackCardLinkRoutingDisagreement(routing, 'deeplink_card_onboarding');
 
     // If user is logged in OR has a card-linked account
     if (isAuthenticated || hasCardLinkedAccount) {
-      if (hasCardLinkedAccount) {
+      if (hasCardLinkedAccount && routing.source === 'legacy') {
         // Switch to the first account that has a linked card
-        const firstCardholderAddress = cardholderAccounts[0];
+        const firstCardholderAddress = cardholderAccounts
+          .map((id) =>
+            isCaipAccountId(id) ? parseCaipAccountId(id).address : null,
+          )
+          .find(Boolean);
         DevLogger.log(
           '[handleCardOnboarding] Switching to first cardholder account:',
           firstCardholderAddress,
         );
 
         try {
-          Engine.setSelectedAddress(firstCardholderAddress);
-          DevLogger.log(
-            '[handleCardOnboarding] Successfully switched to cardholder account',
-          );
+          if (firstCardholderAddress) {
+            Engine.setSelectedAddress(firstCardholderAddress);
+            DevLogger.log(
+              '[handleCardOnboarding] Successfully switched to cardholder account',
+            );
+          }
         } catch (switchError) {
           // Log error but continue with navigation to Card Home
           DevLogger.log(
@@ -68,17 +80,14 @@ export const handleCardOnboarding = () => {
       }
 
       DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
-      setTimeout(() => {
-        NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
-          },
-        });
-      }, 500);
+      if (hasCardLinkedAccount && routing.source === 'card_links') {
+        switchToLinkedCardAccount().then(
+          navigateToCardHomeWithToast,
+          navigateToCardHomeWithToast,
+        );
+      } else {
+        navigateToCardHomeWithToast();
+      }
     } else {
       // User is not logged in AND has no card-linked account
       // Navigate to Card Welcome/onboarding screen
@@ -113,3 +122,17 @@ export const handleCardOnboarding = () => {
     }
   }
 };
+
+function navigateToCardHomeWithToast(): void {
+  setTimeout(() => {
+    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: {
+        screen: Routes.CARD.HOME,
+        params: {
+          showDeeplinkToast: true,
+        },
+      },
+    });
+  }, 500);
+}

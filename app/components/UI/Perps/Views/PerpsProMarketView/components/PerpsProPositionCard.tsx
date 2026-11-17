@@ -4,9 +4,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -478,15 +475,16 @@ const PerpsProPositionCard = ({
           >
             {strings('perps.pro_positions_panel.card.reverse')}
           </Button>
-          <ButtonIcon
-            iconName={IconName.Share}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-            iconProps={{ size: IconSize.Md }}
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            startIconName={IconName.Share}
+            twClassName="flex-1"
             onPress={() => onShare?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
-            accessibilityLabel={strings('perps.pro_positions_panel.card.share')}
-          />
+          >
+            {strings('perps.pro_positions_panel.card.share')}
+          </Button>
         </Box>
       </Box>
     </Pressable>

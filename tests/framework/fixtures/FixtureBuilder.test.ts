@@ -1,4 +1,9 @@
-import FixtureBuilder from './FixtureBuilder';
+import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from './FixtureBuilder';
+import {
+  REWARDS_MONEY_E2E_PROFILE_ID,
+  REWARDS_MONEY_SUBSCRIPTION_ID,
+} from '../../api-mocking/mock-responses/rewards-money';
+import { STATE_LOG_SEEDED_MARKERS } from './state-log-omitted-fields';
 import defaultFixture from './json/default-fixture.json';
 
 /**
@@ -94,5 +99,76 @@ describe('FixtureBuilder legacy asset controllers', () => {
         marketData: {},
       });
     });
+  });
+});
+
+describe('FixtureBuilder state log fields', () => {
+  it('seeds every marker for fields excluded from state logs', () => {
+    const fixture = new FixtureBuilder().withStateLogOmittedFields().build();
+
+    const serialized = JSON.stringify(fixture.state.engine.backgroundState);
+
+    for (const marker of STATE_LOG_SEEDED_MARKERS) {
+      expect(serialized).toContain(marker);
+    }
+  });
+
+  it('keeps existing card controller fields while seeding excluded ones', () => {
+    const fixture = new FixtureBuilder().withStateLogOmittedFields().build();
+    const card = fixture.state.engine.backgroundState.CardController as {
+      activeProviderId: string;
+      providerUserId: string;
+    };
+
+    expect(card.activeProviderId).toBe('baanx');
+    expect(card.providerUserId).toBe('state-export-card-user');
+  });
+
+  it('keeps existing rewards money fields while seeding excluded ones', () => {
+    const builder = new FixtureBuilder();
+    const background = (
+      builder as unknown as {
+        fixture: {
+          state: { engine: { backgroundState: Record<string, unknown> } };
+        };
+      }
+    ).fixture.state.engine.backgroundState;
+    background.RewardsMoneyController = { existingField: 'kept' };
+
+    const fixture = builder.withStateLogOmittedFields().build();
+    const rewardsMoney = fixture.state.engine.backgroundState
+      .RewardsMoneyController as Record<string, unknown>;
+
+    expect(rewardsMoney.existingField).toBe('kept');
+    expect(rewardsMoney.referralMe).toBeDefined();
+  });
+});
+
+describe('FixtureBuilder rewards money referee', () => {
+  it('seeds an opted-in subscription and a referee referral payload', () => {
+    const fixture = new FixtureBuilder().withRewardsMoneyReferee().build();
+    const background = fixture.state.engine.backgroundState;
+    const rewards = background.RewardsController as {
+      activeAccount: { account: string; subscriptionId: string };
+    };
+    const rewardsMoney = background.RewardsMoneyController as {
+      referralMe: Record<string, { payload: { roles: string[] } }>;
+    };
+    const slice = fixture.state.rewardsMoney as {
+      referralMe: Record<string, { data: { roles: string[] } }>;
+    };
+    const payload =
+      rewardsMoney.referralMe[REWARDS_MONEY_E2E_PROFILE_ID].payload;
+
+    expect(rewards.activeAccount.subscriptionId).toBe(
+      REWARDS_MONEY_SUBSCRIPTION_ID,
+    );
+    expect(rewards.activeAccount.account).toBe(
+      `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
+    );
+    expect(payload.roles).toEqual(['REFEREE']);
+    expect(slice.referralMe[REWARDS_MONEY_E2E_PROFILE_ID].data.roles).toEqual([
+      'REFEREE',
+    ]);
   });
 });

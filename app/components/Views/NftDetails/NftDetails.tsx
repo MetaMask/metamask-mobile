@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import {
   NativeSyntheticEvent,
   TextLayoutEventData,
@@ -20,7 +20,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import {
   Button,
   ButtonVariant,
-  HeaderStandard,
   Icon as DesignSystemIcon,
   IconName as DSIconName,
   IconSize as DesignSystemIconSize,
@@ -61,8 +60,11 @@ import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const NftDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { collectible, source } = useParams<NftDetailsParams>();
   const chainId = useSelector(selectChainId);
@@ -97,7 +99,8 @@ const NftDetails = () => {
     });
   }, [collectible, navigation]);
 
-  useEffect(() => {
+  // Listing the analytics helpers re-fires this event when their identity changes.
+  const trackNftDetailsOpened = useEffectEvent(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
         .addProperties({
@@ -106,9 +109,10 @@ const NftDetails = () => {
         })
         .build(),
     );
-    // The linter wants `trackEvent` to be added as a dependency,
-    // But the event fires twice if I do that.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+
+  useEffect(() => {
+    trackNftDetailsOpened();
   }, [chainId, source]);
 
   const viewHighestFloorPriceSource = () => {
@@ -318,7 +322,9 @@ const NftDetails = () => {
 
   return (
     <SafeAreaView style={styles.wrapper} edges={['left', 'right', 'bottom']}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         onBack={() => navigation.goBack()}
         endButtonIconProps={[

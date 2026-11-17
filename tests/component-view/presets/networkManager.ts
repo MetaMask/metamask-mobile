@@ -444,6 +444,7 @@ export const initialStateTokenList = (
           },
           MoneyAccountController: {
             moneyAccounts: {},
+            defaultMoneyAccountId: null,
           },
           EarnController: {
             lastUpdated: 0,

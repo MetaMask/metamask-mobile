@@ -8,7 +8,6 @@ export enum NetworkSwitchErrorType {
 
 // Transaction Errors
 export const NEGATIVE_TOKEN_DECIMALS = 'Token decimals can not be negative';
-export const NETWORK_ERROR_UNKNOWN_CHAIN_ID = 'Unknown chain id';
 
 // QR hardware Errors
 export const KEYSTONE_TX_CANCELED = 'KeystoneError#Tx_canceled';
@@ -30,9 +29,6 @@ export const AUTHENTICATION_RESET_PASSWORD_FAILED =
 
 export const AUTHENTICATION_STORE_PASSWORD_FAILED =
   'Authentication.storePassword failed';
-
-export const AUTHENTICATION_LOGIN_VAULT_CREATION_FAILED =
-  'Authentication.loginVaultCreation was unable to recreate vault';
 
 // EngineService
 export const VAULT_CREATION_ERROR = 'Error creating the vault';

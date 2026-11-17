@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import type { QuickBuyTradeMode } from '../../../../UI/QuickBuy/types';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
@@ -18,6 +19,11 @@ import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testId
 export interface PositionSheetFooterProps {
   isPerp: boolean;
   isClosed: boolean;
+  /**
+   * The viewer's own position. Copy trade would repeat it, so it offers the
+   * same trade actions as a closed position, whether open or closed.
+   */
+  isOwnPost: boolean;
   /** Spot only: the viewer holds the token, so Sell is offered. */
   canSell: boolean;
   onCopyTrade: () => void;
@@ -26,13 +32,15 @@ export interface PositionSheetFooterProps {
 }
 
 /**
- * Open positions offer Copy trade. Closed ones offer a fresh trade in the
- * same market: Long / Short for perps, Sell / Buy for spot (Sell only when the
- * viewer has something to sell).
+ * Another trader's open position offers Copy trade. Every other position, the
+ * viewer's own included, offers a fresh trade in the same market: Long / Short
+ * for perps, Sell / Buy for spot (Sell only when the viewer has something to
+ * sell).
  */
 const PositionSheetFooter = ({
   isPerp,
   isClosed,
+  isOwnPost,
   canSell,
   onCopyTrade,
   onPerpsOrder,
@@ -42,14 +50,17 @@ const PositionSheetFooter = ({
   const halfWidth = tw.style('flex-1');
 
   const renderActions = () => {
-    if (!isClosed) {
+    if (!isClosed && !isOwnPost) {
       return (
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
           startIconName={IconName.SwapHorizontal}
-          onPress={onCopyTrade}
+          onPress={() => {
+            fireImpact(ImpactMoment.SecondaryCTA);
+            onCopyTrade();
+          }}
           testID={PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON}
         >
           {strings('social_leaderboard.feed.position_card.copy_trade')}
@@ -98,7 +109,10 @@ const PositionSheetFooter = ({
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={() => onSpotTrade('buy')}
+          onPress={() => {
+            fireImpact(ImpactMoment.PrimaryCTA);
+            onSpotTrade('buy');
+          }}
           style={halfWidth}
           testID={PositionDetailsSheetSelectorsIDs.BUY_BUTTON}
         >
@@ -112,7 +126,7 @@ const PositionSheetFooter = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       gap={3}
-      twClassName="px-4 pt-2 pb-5"
+      twClassName="px-4 pt-4 pb-5"
     >
       {renderActions()}
     </Box>

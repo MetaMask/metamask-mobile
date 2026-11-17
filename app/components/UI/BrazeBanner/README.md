@@ -49,7 +49,10 @@ Test sends skip the SDK dismiss call so they can be shown again without waiting 
 ## Impression and click logging
 
 - `Braze.logBannerImpression` is called automatically when the banner enters the `visible` state.
-- `Braze.logBannerClick` is called when the user taps the banner surface (not the close button).
+- `Braze.logBannerClick` is called on every tap of the banner surface (not the close button), with or without a `deeplink`.
+- When the banner has a `campaign_name`, a `Banner Select` custom event is logged with the same `campaign_name` and `variant_name` properties as `Banner Display` and `Banner Dismissed`. Growth Marketing binds full-screen in-app message triggers to this event.
+- The `Banner Select` event rides Braze's next scheduled data batch; it is not flushed immediately.
+- A tap whose configured `deeplink` fails the allowlist is logged as an error and does not emit `Banner Select`, since the campaign is misconfigured and no navigation happens.
 
 ## Deduplication
 
@@ -70,10 +73,10 @@ import { BRAZE_BANNER_PLACEMENT_ID } from 'app/core/Braze/constants';
 
 Set these properties on the Braze campaign:
 
-| Property   | Type   | Required | Description                                                                            |
-| ---------- | ------ | -------- | -------------------------------------------------------------------------------------- |
-| `deeplink` | string | No       | URL routed through the app deeplink pipeline on tap. See deeplink allowlist below.     |
-| `height`   | number | No       | Banner height in logical pixels. Clamped to 60–240 px; defaults to 120 px when absent. |
+| Property            | Type    | Required | Description                                                                                                                               |
+| ------------------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `deeplink`          | string  | No       | URL routed through the app deeplink pipeline on tap. See deeplink allowlist below.                                     |
+| `height`            | number  | No       | Banner height in logical pixels. Clamped to 60–240 px; defaults to 120 px when absent.                                 |
 
 ### Interaction model — single CTA per banner
 

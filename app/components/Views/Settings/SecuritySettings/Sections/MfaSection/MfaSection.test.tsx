@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { isMfaKitEnabled } from '../../../../../../util/identity/mfa';
+import { selectMfaUiKitEnabled } from '../../../../../../selectors/featureFlagController/mfaUiKit';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import MfaSection from './MfaSection';
 
@@ -12,11 +12,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../../../../../../util/identity/mfa', () => ({
-  isMfaKitEnabled: jest.fn(),
+jest.mock('../../../../../../selectors/featureFlagController/mfaUiKit', () => ({
+  selectMfaUiKitEnabled: jest.fn(),
 }));
 
-const mockIsMfaKitEnabled = jest.mocked(isMfaKitEnabled);
+const mockIsMfaUiKitEnabled = jest.mocked(selectMfaUiKitEnabled);
 
 describe('MfaSection', () => {
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('MfaSection', () => {
   });
 
   it('opens the MFA settings', () => {
-    mockIsMfaKitEnabled.mockReturnValue(true);
+    mockIsMfaUiKitEnabled.mockReturnValue(true);
     const { getByTestId } = renderWithProvider(<MfaSection />, { state: {} });
 
     fireEvent.press(getByTestId(SecurityPrivacyViewSelectorsIDs.MFA_BUTTON));
@@ -32,8 +32,8 @@ describe('MfaSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA.SETTINGS);
   });
 
-  it('renders nothing when the kit is disabled', () => {
-    mockIsMfaKitEnabled.mockReturnValue(false);
+  it('renders nothing when the flag is off', () => {
+    mockIsMfaUiKitEnabled.mockReturnValue(false);
     const { queryByTestId } = renderWithProvider(<MfaSection />, {
       state: {},
     });

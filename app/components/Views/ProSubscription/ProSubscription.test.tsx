@@ -1,20 +1,54 @@
 import React from 'react';
 import { act, render, fireEvent } from '@testing-library/react-native';
+import type { NavigationState } from '@react-navigation/native';
 import ProSubscription from './ProSubscription';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
+import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
-const mockReplace = jest.fn();
+const mockDispatch = jest.fn();
 const mockSetParams = jest.fn();
 const mockNavigation = {
   goBack: mockGoBack,
-  replace: mockReplace,
+  dispatch: mockDispatch,
   setParams: mockSetParams,
+};
+
+const subscriptionModalState = {
+  key: 'app',
+  index: 1,
+  routeNames: ['Home', Routes.PRO_SUBSCRIPTION.ROOT, Routes.PRO_HUB.ROOT],
+  routes: [
+    { key: 'home', name: 'Home' },
+    { key: 'pro-sub', name: Routes.PRO_SUBSCRIPTION.ROOT },
+  ],
+  type: 'stack',
+  stale: false,
+} as NavigationState;
+
+const expectProHubReplacesSubscriptionModal = () => {
+  expect(mockDispatch).toHaveBeenCalledTimes(1);
+  const update = mockDispatch.mock.calls[0][0] as (state: NavigationState) => {
+    type: string;
+    payload: NavigationState;
+  };
+
+  expect(update(subscriptionModalState)).toEqual(
+    expect.objectContaining({
+      type: 'RESET',
+      payload: expect.objectContaining({
+        index: 1,
+        routes: [{ key: 'home', name: 'Home' }, { name: Routes.PRO_HUB.ROOT }],
+      }),
+    }),
+  );
 };
 const mockRoute = { params: {} };
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
   useRoute: () => mockRoute,
 }));
@@ -31,6 +65,11 @@ jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
+const mockUseHasProMembership = jest.fn(() => false);
+jest.mock('../../../hooks/useHasProMembership', () => ({
+  useHasProMembership: () => mockUseHasProMembership(),
+}));
+
 const mockGetSubscriptions = jest.fn().mockResolvedValue([]);
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -45,12 +84,14 @@ jest.mock('./screens/Benefits', () => {
   const { TouchableOpacity, Text } = require('react-native');
   return ({
     onSuccess,
+    onProcessing,
     onCheckoutStart,
     onCheckoutError,
     onPlanChange,
     initialPlan,
   }: {
     onSuccess: (plan: { planId: string }) => void;
+    onProcessing: () => void;
     onCheckoutStart: () => void;
     onCheckoutError: () => void;
     onPlanChange?: (planId: string) => void;
@@ -63,6 +104,7 @@ jest.mock('./screens/Benefits', () => {
       >
         <Text testID="mock-benefits-plan">{initialPlan ?? 'none'}</Text>
       </TouchableOpacity>
+      <TouchableOpacity testID="mock-processing" onPress={onProcessing} />
       <TouchableOpacity
         testID="mock-checkout-start"
         onPress={onCheckoutStart}
@@ -80,12 +122,41 @@ jest.mock('./screens/Benefits', () => {
 });
 
 jest.mock('./screens/Success', () => {
-  const { TouchableOpacity } = require('react-native');
-  return ({ onSuccess }: { onSuccess: () => void }) => (
-    <TouchableOpacity testID="mock-success" onPress={onSuccess} />
+  const { Text, TouchableOpacity } = require('react-native');
+  return ({
+    onSuccess,
+    isContinuing,
+    continueError,
+  }: {
+    onSuccess: () => void;
+    isContinuing?: boolean;
+    continueError?: string;
+  }) => (
+    <>
+      <TouchableOpacity
+        testID="mock-success"
+        onPress={onSuccess}
+        accessibilityState={{
+          busy: Boolean(isContinuing),
+          disabled: Boolean(isContinuing),
+        }}
+      />
+      {continueError ? (
+        <Text testID="mock-success-error">{continueError}</Text>
+      ) : null}
+    </>
   );
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
+
+const mockShowProcessingToast = jest.fn();
+jest.mock('./hooks/useProSubscriptionPaymentToasts', () => ({
+  useProSubscriptionPaymentToasts: () => ({
+    showProcessingToast: mockShowProcessingToast,
+    showActiveToast: jest.fn(),
+    dismissPaymentToast: jest.fn(),
+  }),
+}));
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
@@ -99,6 +170,7 @@ describe('ProSubscription', () => {
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Eligible,
     );
+    mockUseHasProMembership.mockReturnValue(false);
   });
 
   describe('access guard', () => {
@@ -118,26 +190,22 @@ describe('ProSubscription', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('sends an existing subscriber straight to the hub', () => {
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
+    it('sends an existing member straight to the hub', () => {
+      mockUseHasProMembership.mockReturnValue(true);
 
       render(<ProSubscription />);
 
-      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expectProHubReplacesSubscriptionModal();
     });
 
     it('keeps Benefits visible when the user becomes a subscriber during checkout', () => {
       const { getByTestId, rerender } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-checkout-start'));
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
+      mockUseHasProMembership.mockReturnValue(true);
       rerender(<ProSubscription />);
 
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(getByTestId('mock-benefits')).toBeOnTheScreen();
     });
 
@@ -146,24 +214,46 @@ describe('ProSubscription', () => {
 
       fireEvent.press(getByTestId('mock-checkout-start'));
       fireEvent.press(getByTestId('mock-checkout-error'));
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
+      mockUseHasProMembership.mockReturnValue(true);
       rerender(<ProSubscription />);
 
-      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expectProHubReplacesSubscriptionModal();
     });
 
-    it('does not send an unresolved user to the hub', () => {
+    it('shows Benefits while Plus access is unresolved', () => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
         MoneyAccountPlusAccess.Unknown,
       );
 
-      const { queryByTestId } = render(<ProSubscription />);
+      const { getByTestId } = render(<ProSubscription />);
 
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(queryByTestId('mock-benefits')).toBeNull();
+      expect(getByTestId('mock-benefits')).toBeOnTheScreen();
+    });
+
+    it('sends the user to the hub once unresolved access becomes a membership', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { rerender } = render(<ProSubscription />);
+
+      mockUseHasProMembership.mockReturnValue(true);
+      rerender(<ProSubscription />);
+
+      expectProHubReplacesSubscriptionModal();
+    });
+
+    it('keeps Benefits open for a canceled membership', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+
+      const { getByTestId } = render(<ProSubscription />);
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(getByTestId('mock-benefits')).toBeOnTheScreen();
     });
   });
 
@@ -182,6 +272,16 @@ describe('ProSubscription', () => {
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();
       expect(queryByTestId('mock-benefits')).not.toBeOnTheScreen();
+    });
+
+    it('shows the processing toast and opens Pro Hub when funding is still in progress', () => {
+      const { getByTestId, queryByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-processing'));
+
+      expect(mockShowProcessingToast).toHaveBeenCalledTimes(1);
+      expectProHubReplacesSubscriptionModal();
+      expect(queryByTestId('mock-success')).toBeNull();
     });
   });
 
@@ -211,7 +311,7 @@ describe('ProSubscription', () => {
       });
 
       expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
-      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expectProHubReplacesSubscriptionModal();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
@@ -225,20 +325,96 @@ describe('ProSubscription', () => {
       });
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(getByTestId('mock-success')).toHaveProp('accessibilityState', {
+        busy: false,
+        disabled: false,
+      });
+      expect(getByTestId('mock-success-error')).toHaveTextContent(
+        strings('pro_subscription.success.continue_error'),
+      );
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('retries the refresh after it fails and then opens Pro Hub', async () => {
+      mockGetSubscriptions
+        .mockRejectedValueOnce(new Error('request failed'))
+        .mockResolvedValueOnce([]);
+      const { getByTestId, queryByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      await act(async () => {
+        fireEvent.press(getByTestId('mock-success'));
+      });
+
+      expect(getByTestId('mock-success-error')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('mock-success'));
+      });
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+      expect(queryByTestId('mock-success-error')).toBeNull();
+      expectProHubReplacesSubscriptionModal();
+    });
+
+    it('calls getSubscriptions once when Continue is pressed twice before the refresh settles', async () => {
+      let resolveRefresh: (value: unknown[]) => void = () => undefined;
+      mockGetSubscriptions.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      fireEvent.press(getByTestId('mock-success'));
+      fireEvent.press(getByTestId('mock-success'));
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+      expect(getByTestId('mock-success')).toHaveProp('accessibilityState', {
+        busy: true,
+        disabled: true,
+      });
+
+      await act(async () => {
+        resolveRefresh([]);
+      });
+
+      expectProHubReplacesSubscriptionModal();
+    });
+
+    it('does not open Pro Hub when the screen unmounts before the refresh settles', async () => {
+      let resolveRefresh: (value: unknown[]) => void = () => undefined;
+      mockGetSubscriptions.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
+      const { getByTestId, unmount } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      fireEvent.press(getByTestId('mock-success'));
+      unmount();
+
+      await act(async () => {
+        resolveRefresh([]);
+      });
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
     it('keeps the success screen visible once the user becomes a subscriber', () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
+      mockUseHasProMembership.mockReturnValue(true);
       fireEvent.press(getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON));
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 

@@ -72,13 +72,14 @@ E2E for live data is impractical (timing-dependent, needs real WS); rely on inte
 
 ## Session / config
 
-| Use case                                    |  U  | CV  |   I   |  E2E  | Coverage notes                                                                           |
-| ------------------------------------------- | :-: | :-: | :---: | :---: | ---------------------------------------------------------------------------------------- |
-| Initialize provider on login                |     |     | **✓** |   ✓   | I: real init with mocked SDK, assert ready state. E2E: real keychain read on cold start. |
-| Toggle testnet ↔ mainnet                   |     |     | **✓** | **✓** | I: state transition. E2E: native re-init across SecureKeychain scope change.             |
-| Switch active provider (HyperLiquid ↔ MYX) |     |     | **✓** |       | I: routing logic, both providers exist in harness.                                       |
-| Approve builder fee                         |     |     | **✓** |       | I: one-time approval flow.                                                               |
-| Set referrer code                           |     |     | **✓** |       | I: referrer state update.                                                                |
+| Use case                                    |  U  | CV  |   I   |  E2E  | Coverage notes                                                                                            |
+| ------------------------------------------- | :-: | :-: | :---: | :---: | --------------------------------------------------------------------------------------------------------- |
+| Initialize provider on login                |     |     | **✓** |   ✓   | I: real init with mocked SDK, assert ready state. E2E: real keychain read on cold start.                  |
+| Toggle testnet ↔ mainnet                   |     |     | **✓** | **✓** | I: state transition. E2E: native re-init across SecureKeychain scope change.                              |
+| Switch active provider (HyperLiquid ↔ MYX) |     |     | **✓** |       | I: routing logic, both providers exist in harness.                                                        |
+| Quote a grant-backed Hyperliquid fee        |     |     | **✓** |       | I: real Core fee resolver and provider pricing with the Mobile grant callback mocked at its I/O boundary. |
+| Approve builder fee                         |     |     | **✓** |       | I: one-time approval flow.                                                                                |
+| Set referrer code                           |     |     | **✓** |       | I: referrer state update.                                                                                 |
 
 ## Lighter recovery
 

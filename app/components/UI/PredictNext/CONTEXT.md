@@ -147,8 +147,12 @@ The resolution of an ambiguous Order submission by looking up the stable Venue o
 _Avoid_: Retry, resubmit, duplicate order
 
 **Fill**:
-Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity should be derived from Fills rather than inferring execution from Order creation records.
+Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity reports executions as Trades rather than inferring execution from Order creation records.
 _Avoid_: Order when referring to execution, Bought/Sold as Fill attributes
+
+**Trade**:
+The executed part of one Order: its Fills aggregated, with the Order Action as its authoritative buy or sell direction. The backend takes the Action from its own Order records, never from a Venue Fill side. An Order with no Fills produces no Trade.
+_Avoid_: Fill when the direction matters, Order creation record, Transaction
 
 **Cash Out**:
 Selling an existing Position before Market resolution by quoting and submitting an Immediate sell Order. A Cash Out may reduce the Position or close it entirely.
@@ -163,8 +167,8 @@ A payout or portfolio adjustment produced when a resolved Market is finalized by
 _Avoid_: Claim when no user action is required, payout without context
 
 **Activity**:
-The ordered, paginated projection of a Predict User's Fills and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records. The Portfolio screen presents it under the accepted display label "History", which remains a display label and not a domain term.
-_Avoid_: History as a domain term, Transactions, Trades
+The ordered, paginated projection of a Predict User's Trades and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records. Funding records are not Activity. The Portfolio screen presents it under the accepted display label "History", which remains a display label and not a domain term.
+_Avoid_: History as a domain term, Transactions
 
 ### Financial Terms
 
@@ -304,7 +308,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - A Deposit increases Venue Account Balance.
 - A Withdraw decreases Venue Account Balance.
 - A Settlement records winnings paid after a Market is finalized.
-- Activity contains Fills and Settlements; Order creation records never appear as Activity.
+- Activity contains Trades and Settlements; Order creation records never appear as Activity.
 - A Cash Out reduces or closes a Position; it is not a Withdraw.
 - A crypto up/down Market compares asset prices against a Reference Price.
 - A Live Update refreshes the current understanding of an existing domain object; it is not a separate Event or Order.

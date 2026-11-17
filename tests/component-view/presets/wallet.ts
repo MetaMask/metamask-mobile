@@ -76,6 +76,7 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
           },
           MoneyAccountController: {
             moneyAccounts: {},
+            defaultMoneyAccountId: null,
           },
           NftController: {
             allNfts: {},

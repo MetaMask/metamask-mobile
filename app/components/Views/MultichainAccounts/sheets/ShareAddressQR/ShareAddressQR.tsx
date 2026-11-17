@@ -41,6 +41,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RootState } from '../../../../../reducers';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export interface ShareAddressQRParams {
   address: string;
@@ -73,7 +74,7 @@ export const ShareAddressQR = () => {
 
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { toBlockExplorer, getBlockExplorerUrl, getBlockExplorerName } =
+  const { getBlockExplorerUrl, getBlockExplorerName } =
     useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
   const explorerButtonText = strings(
@@ -105,13 +106,20 @@ export const ShareAddressQR = () => {
       text: explorerButtonText,
       url,
     });
-    toBlockExplorer(address);
+    // Sheet `goBack` pops this route before the callback, so the explorer
+    // pushes onto the address list instead of sitting above the QR sheet.
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW, {
+        url,
+        title: explorerButtonText,
+      });
+    });
   }, [
     address,
     createEventBuilder,
     explorerButtonText,
     getBlockExplorerUrl,
-    toBlockExplorer,
+    navigation,
     trackEvent,
   ]);
 

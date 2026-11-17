@@ -5,9 +5,9 @@ import OptOutSection from './OptOutSection';
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const map: Record<string, string> = {
-      'rewards.optout.title': 'Opt out of Rewards',
+      'rewards.optout.title': 'Opt out of Rewards campaigns',
       'rewards.optout.description':
-        "This will remove your accounts from the Rewards program and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
+        "This removes your accounts from Rewards campaigns and benefits, and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
       'rewards.optout.erase_button': 'Erase progress',
     };
     return map[key] || key;
@@ -70,6 +70,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     FontWeight: { Bold: 'Bold' },
     ButtonVariant: { Secondary: 'Secondary' },
     ButtonSize: { Lg: 'Lg' },
+    SectionDivider: (props: { [key: string]: unknown }) =>
+      ReactActual.createElement(View, props),
   };
 });
 
@@ -85,7 +87,7 @@ describe('OptOutSection', () => {
       <OptOutSection onErasePress={mockOnErasePress} />,
     );
     expect(getByTestId('opt-out-section')).toBeTruthy();
-    expect(getByText('Opt out of Rewards')).toBeTruthy();
+    expect(getByText('Opt out of Rewards campaigns')).toBeTruthy();
     expect(getByTestId('opt-out-section-description')).toBeTruthy();
     expect(getByTestId('opt-out-erase-button')).toBeTruthy();
     expect(getByText('Erase progress')).toBeTruthy();

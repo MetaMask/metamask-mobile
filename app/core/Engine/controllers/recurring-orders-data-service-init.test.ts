@@ -8,14 +8,30 @@ import type {
   RecurringOrdersDataServiceEvents,
   RecurringOrdersDataServiceMessenger,
 } from '../../../components/UI/Bridge/services/RecurringOrdersDataService';
-import { RecurringOrderStatus } from '../../../components/UI/Bridge/api/recurringOrders.types';
-import { resetRecurringOrdersMockState } from '../../../components/UI/Bridge/api/recurringOrders';
+import { RecurringOrderState } from '../../../components/UI/Bridge/api/recurringOrders.types';
+import {
+  getRecurringOrders,
+  getRecurringOrdersByAsset,
+} from '../../../components/UI/Bridge/api/recurringOrders';
+import { MOCK_RECURRING_OPEN_ORDER } from '../../../components/UI/Bridge/api/recurringOrders.mock';
 import type { RootExtendedMessenger } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { recurringOrdersDataServiceInit } from './recurring-orders-data-service-init';
 
+jest.mock('../../../components/UI/Bridge/api/recurringOrders', () => ({
+  getRecurringOrders: jest.fn(),
+  getRecurringOrdersByAsset: jest.fn(),
+  getRecurringSwaps: jest.fn(),
+}));
+
 describe('recurringOrdersDataServiceInit', () => {
   it('registers recurring-orders actions on the Engine root messenger', async () => {
+    jest
+      .mocked(getRecurringOrders)
+      .mockResolvedValue({ orders: [], hasNextPage: false });
+    jest
+      .mocked(getRecurringOrdersByAsset)
+      .mockResolvedValue([MOCK_RECURRING_OPEN_ORDER]);
     const rootMessenger = new Messenger<
       MockAnyNamespace,
       RecurringOrdersDataServiceActions,
@@ -34,15 +50,11 @@ describe('recurringOrdersDataServiceInit', () => {
     };
 
     const { controller } = recurringOrdersDataServiceInit(request);
-    await rootMessenger.call(
-      'RecurringOrdersDataService:cancelRecurringOrder',
-      'mock-recurring-order-open',
-    );
     const result = await rootMessenger.call(
       'RecurringOrdersDataService:getRecurringOrders',
       {
         walletAddress: '0x1234',
-        status: [RecurringOrderStatus.Expired],
+        orderStates: [RecurringOrderState.Expired],
       },
     );
     const assetResult = await rootMessenger.call(
@@ -53,9 +65,8 @@ describe('recurringOrdersDataServiceInit', () => {
       },
     );
 
-    expect(result).toStrictEqual({ orders: [] });
+    expect(result).toStrictEqual({ orders: [], hasNextPage: false });
     expect(assetResult).toHaveLength(1);
     controller.destroy();
-    resetRecurringOrdersMockState();
   });
 });

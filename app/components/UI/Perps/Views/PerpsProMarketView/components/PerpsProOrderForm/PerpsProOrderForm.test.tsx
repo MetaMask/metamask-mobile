@@ -335,6 +335,15 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
     });
 
+    it('forwards Chase max distance focus to onChaseMaxDistanceFocus', () => {
+      const onChaseMaxDistanceFocus = jest.fn();
+      renderForm({ orderType: 'chase', onChaseMaxDistanceFocus });
+
+      fireEvent(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+      expect(onChaseMaxDistanceFocus).toHaveBeenCalledTimes(1);
+    });
+
     it('formats an empty Chase percentage distance with its unit', () => {
       renderForm({
         orderType: 'chase',
@@ -1889,6 +1898,36 @@ describe('PerpsProOrderForm', () => {
       });
 
       expect(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Fee Display Format A/B test', () => {
+    it('passes feeDisplayMode and both rates through to PerpsFeesDisplay for treatment', () => {
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          feeDisplayMode: 'percentage',
+          takerFeeRate: 0.00143,
+          makerFeeRate: 0.00114,
+        },
+      });
+
+      const feesValue = screen.getByTestId(ids.SUMMARY_FEES_VALUE);
+      expect(feesValue).toHaveProp('feeDisplayMode', 'percentage');
+      expect(feesValue).toHaveProp('takerFeeRate', 0.00143);
+      expect(feesValue).toHaveProp('makerFeeRate', 0.00114);
+    });
+
+    it('leaves PerpsFeesDisplay in dollar mode with no rates when feeDisplayMode is omitted', () => {
+      renderForm({
+        summary: { margin: '--', liquidationPrice: '--' },
+      });
+
+      const feesValue = screen.getByTestId(ids.SUMMARY_FEES_VALUE);
+      expect(feesValue).toHaveProp('feeDisplayMode', undefined);
+      expect(feesValue).toHaveProp('takerFeeRate', undefined);
+      expect(feesValue).toHaveProp('makerFeeRate', undefined);
     });
   });
 
