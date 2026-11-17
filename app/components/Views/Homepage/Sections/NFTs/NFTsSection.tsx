@@ -78,7 +78,14 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       sectionViewRef,
       { isLoading: false },
     );
+    const [hasEverBeenVisible, setHasEverBeenVisible] = useState(isVisible);
     const { visitId } = useHomepageScrollContext();
+
+    useEffect(() => {
+      if (isVisible && !hasEverBeenVisible) {
+        setHasEverBeenVisible(true);
+      }
+    }, [hasEverBeenVisible, isVisible]);
 
     const lastDetectionRef = useRef<number | null>(null);
     const prevAddressRef = useRef(selectedAddress);
@@ -198,7 +205,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       contentReady:
         hasNfts || (hasDetected && !isDetecting && !isDetectionInFlight),
       demandStarted:
-        isVisible &&
+        (isVisible || hasEverBeenVisible) &&
         (hasNfts || hasDetected || isDetecting || isDetectionInFlight),
       cacheState: hasNfts ? 'warm' : 'cold',
       isEmpty: !hasNfts,

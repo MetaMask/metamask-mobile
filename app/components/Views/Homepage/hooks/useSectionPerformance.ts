@@ -283,7 +283,13 @@ export const useSectionPerformance = ({
 
   // Time to Content — abort when demand ends before content resolves
   useEffect(() => {
-    if (enabled && !ttcStartReady && ttcStarted.current && !ttcEnded.current) {
+    if (
+      enabled &&
+      !ttcStartReady &&
+      !contentReady &&
+      ttcStarted.current &&
+      !ttcEnded.current
+    ) {
       pendingTtcCompletion.current?.();
       pendingTtcCompletion.current = null;
       annotateLatestTags(
@@ -307,7 +313,7 @@ export const useSectionPerformance = ({
       hasStartedTtcGeneration.current = false;
       ttcReadyForCompletion.current = true;
     }
-  }, [enabled, sectionId, ttcStartReady]);
+  }, [contentReady, enabled, sectionId, ttcStartReady]);
 
   // Time to Content — end span when content is ready
   useEffect(() => {
