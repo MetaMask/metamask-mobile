@@ -7,6 +7,9 @@
 # apply the same number locally at build time (no version-bump commit). Finishes by uploading the
 # iOS IPA to TestFlight.
 #
+# Must be dispatched from a release/X.Y.Z branch whose open release PR into stable is approved;
+# what counts as approved is defined by the repository rulesets, not by this workflow.
+#
 # This workflow only produces fresh native binaries — OTA updates are handled by the separate
 # runway-ota-production.yml workflow.
 #
@@ -30,8 +33,45 @@ permissions:
 cache-mode: none
 
 jobs:
+  verify-release-pr-approval:
+    name: Verify release PR is approved
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Require an approved release PR into stable
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ inputs.source_branch || github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          BRANCH="${SOURCE_REF#refs/heads/}"
+          if ! [[ "$BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Production builds must run from a release/X.Y.Z branch so its release PR can be checked (got: ${BRANCH})."
+            exit 1
+          fi
+
+          PR_JSON=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base stable --state open \
+            --json number,url,reviewDecision --jq '.[0] // empty')
+          if [[ -z "$PR_JSON" ]]; then
+            echo "::error::No open release PR from ${BRANCH} into stable."
+            exit 1
+          fi
+
+          PR_URL=$(jq -r '.url' <<<"$PR_JSON")
+          REVIEW_DECISION=$(jq -r '.reviewDecision // empty' <<<"$PR_JSON")
+          if [[ "$REVIEW_DECISION" != "APPROVED" ]]; then
+            echo "::error::Release PR ${PR_URL} must be approved before a production build (review decision: ${REVIEW_DECISION:-none})."
+            exit 1
+          fi
+
+          echo "Release PR ${PR_URL} is approved."
+
   generate-build-version:
     name: Generate build version
+    needs: verify-release-pr-approval
     permissions:
       id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
