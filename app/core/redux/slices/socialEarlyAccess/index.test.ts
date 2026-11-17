@@ -1,3 +1,4 @@
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import reducer, {
   clearSocialEarlyAccess,
   initialState,
@@ -8,9 +9,50 @@ import reducer, {
 } from '.';
 import { RootState } from '../../../../reducers';
 
-const buildState = (
-  socialEarlyAccess: SocialEarlyAccessSliceState | undefined,
-): RootState => ({ socialEarlyAccess }) as unknown as RootState;
+interface BuildStateOptions {
+  socialEarlyAccess?: SocialEarlyAccessSliceState;
+  isSignedIn?: boolean;
+  canonicalProfileId?: string;
+  sessionProfileId?: string;
+  hasKeyring?: boolean;
+}
+
+const buildState = ({
+  socialEarlyAccess,
+  isSignedIn = true,
+  canonicalProfileId,
+  sessionProfileId,
+  hasKeyring = true,
+}: BuildStateOptions): RootState =>
+  ({
+    socialEarlyAccess,
+    engine: {
+      backgroundState: {
+        AuthenticationController: {
+          isSignedIn,
+          srpSessionData: {
+            'hd-1': {
+              profile: {
+                canonicalProfileId,
+                profileId: sessionProfileId,
+              },
+            },
+          },
+        },
+        KeyringController: {
+          keyrings: hasKeyring
+            ? [
+                {
+                  type: ExtendedKeyringTypes.hd,
+                  accounts: [],
+                  metadata: { id: 'hd-1', name: '' },
+                },
+              ]
+            : [],
+        },
+      },
+    },
+  }) as unknown as RootState;
 
 describe('socialEarlyAccess slice', () => {
   it('returns the initial state', () => {
@@ -39,16 +81,87 @@ describe('socialEarlyAccess slice', () => {
 });
 
 describe('selectHasSocialEarlyAccess', () => {
-  it.each([true, false])('returns the stored answer %s', (hasAccess) => {
-    const state = buildState({ profileId: 'profile-1', hasAccess });
+  it('returns true when signed in and the stored profile matches the canonical profile', () => {
+    const state = buildState({
+      socialEarlyAccess: { profileId: 'profile-a', hasAccess: true },
+      isSignedIn: true,
+      canonicalProfileId: 'profile-a',
+      sessionProfileId: 'session-a',
+    });
 
     const result = selectHasSocialEarlyAccess(state);
 
-    expect(result).toBe(hasAccess);
+    expect(result).toBe(true);
+  });
+
+  it('returns true when signed in and the stored profile matches the session profile while canonical is absent', () => {
+    const state = buildState({
+      socialEarlyAccess: { profileId: 'session-a', hasAccess: true },
+      isSignedIn: true,
+      canonicalProfileId: undefined,
+      sessionProfileId: 'session-a',
+    });
+
+    const result = selectHasSocialEarlyAccess(state);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when signed in to the matching profile with hasAccess false', () => {
+    const state = buildState({
+      socialEarlyAccess: { profileId: 'profile-a', hasAccess: false },
+      isSignedIn: true,
+      canonicalProfileId: 'profile-a',
+    });
+
+    const result = selectHasSocialEarlyAccess(state);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false on cold-start sign-out even when a grant is persisted', () => {
+    const state = buildState({
+      socialEarlyAccess: { profileId: 'profile-a', hasAccess: true },
+      isSignedIn: false,
+      canonicalProfileId: 'profile-a',
+    });
+
+    const result = selectHasSocialEarlyAccess(state);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when identity is pending even when signed in with a persisted grant', () => {
+    const state = buildState({
+      socialEarlyAccess: { profileId: 'profile-a', hasAccess: true },
+      isSignedIn: true,
+      hasKeyring: false,
+    });
+
+    const result = selectHasSocialEarlyAccess(state);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when signed into a different profile than the persisted grant', () => {
+    const state = buildState({
+      socialEarlyAccess: { profileId: 'profile-a', hasAccess: true },
+      isSignedIn: true,
+      canonicalProfileId: 'profile-b',
+      sessionProfileId: 'session-b',
+    });
+
+    const result = selectHasSocialEarlyAccess(state);
+
+    expect(result).toBe(false);
   });
 
   it('returns false when the slice is missing from state', () => {
-    const state = buildState(undefined);
+    const state = buildState({
+      socialEarlyAccess: undefined,
+      isSignedIn: true,
+      canonicalProfileId: 'profile-a',
+    });
 
     const result = selectHasSocialEarlyAccess(state);
 
@@ -58,7 +171,9 @@ describe('selectHasSocialEarlyAccess', () => {
 
 describe('selectSocialEarlyAccessProfileId', () => {
   it('returns the profile the stored answer belongs to', () => {
-    const state = buildState({ profileId: 'profile-1', hasAccess: true });
+    const state = buildState({
+      socialEarlyAccess: { profileId: 'profile-1', hasAccess: true },
+    });
 
     const result = selectSocialEarlyAccessProfileId(state);
 
@@ -66,7 +181,7 @@ describe('selectSocialEarlyAccessProfileId', () => {
   });
 
   it('returns null when the slice is missing from state', () => {
-    const state = buildState(undefined);
+    const state = buildState({ socialEarlyAccess: undefined });
 
     const result = selectSocialEarlyAccessProfileId(state);
 

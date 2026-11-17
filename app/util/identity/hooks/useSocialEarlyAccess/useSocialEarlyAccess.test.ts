@@ -1,11 +1,14 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Engine from '../../../../core/Engine';
 import {
   clearSocialEarlyAccess,
+  selectHasSocialEarlyAccess,
   selectSocialEarlyAccessProfileId,
   setSocialEarlyAccess,
 } from '../../../../core/redux/slices/socialEarlyAccess';
+import type { RootState } from '../../../../reducers';
 import { selectIsSocialV1Treatment } from '../../../../selectors/featureFlagController/socialV1';
 import {
   selectCanonicalProfileId,
@@ -197,11 +200,85 @@ describe('useSocialEarlyAccess', () => {
   });
 
   it('does not clear the stored answer when the app starts signed out', async () => {
-    mockSelectors({ isSignedIn: false });
+    mockSelectors({
+      isSignedIn: false,
+      canonicalProfileId: undefined,
+      sessionProfileId: undefined,
+      storedProfileId: 'canonical-a',
+    });
+    const signedOutState = {
+      socialEarlyAccess: { profileId: 'canonical-a', hasAccess: true },
+      engine: {
+        backgroundState: {
+          AuthenticationController: { isSignedIn: false, srpSessionData: {} },
+          KeyringController: { keyrings: [] },
+        },
+      },
+    } as unknown as RootState;
 
     renderHook(() => useSocialEarlyAccess());
 
     await flushPromises();
     expect(mockDispatch).not.toHaveBeenCalledWith(clearSocialEarlyAccess());
+    expect(selectHasSocialEarlyAccess(signedOutState)).toBe(false);
+  });
+
+  it('denies read access immediately on A -> B switch while the next request is held open', async () => {
+    let resolveNext: (value: { hasAccess: boolean }) => void = () => undefined;
+    mockCheckEarlyAccess.mockResolvedValueOnce({ hasAccess: true });
+    mockSelectors({
+      canonicalProfileId: 'canonical-a',
+      storedProfileId: 'canonical-a',
+    });
+    const { rerender } = renderHook(() => useSocialEarlyAccess());
+    await flushPromises();
+
+    mockCheckEarlyAccess.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveNext = resolve;
+        }),
+    );
+    mockSelectors({
+      canonicalProfileId: 'canonical-b',
+      storedProfileId: 'canonical-a',
+    });
+    const preClearSwitchState = {
+      socialEarlyAccess: { profileId: 'canonical-a', hasAccess: true },
+      engine: {
+        backgroundState: {
+          AuthenticationController: {
+            isSignedIn: true,
+            srpSessionData: {
+              'hd-1': { profile: { canonicalProfileId: 'canonical-b' } },
+            },
+          },
+          KeyringController: {
+            keyrings: [
+              {
+                type: ExtendedKeyringTypes.hd,
+                accounts: [],
+                metadata: { id: 'hd-1', name: '' },
+              },
+            ],
+          },
+        },
+      },
+    } as unknown as RootState;
+    expect(selectHasSocialEarlyAccess(preClearSwitchState)).toBe(false);
+
+    rerender({});
+    await flushPromises();
+    expect(mockDispatch).toHaveBeenCalledWith(clearSocialEarlyAccess());
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setSocialEarlyAccess({ profileId: 'canonical-b', hasAccess: true }),
+    );
+
+    resolveNext({ hasAccess: true });
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSocialEarlyAccess({ profileId: 'canonical-b', hasAccess: true }),
+      );
+    });
   });
 });

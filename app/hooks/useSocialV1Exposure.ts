@@ -10,8 +10,11 @@ import {
 
 /**
  * Emits the TSA-1122 Experiment Viewed event from the surfaces that own the
- * experiment. Early-access users never emit it, so they stay out of the
- * experiment. Read access with `selectHasSocialV1Access`.
+ * experiment. Suppresses exposure once early access is confirmed so
+ * early-access users stay out of the experiment; accepted trade-off: if the
+ * user opens Social V0 before the initial `checkEarlyAccess` response lands,
+ * exposure can fire once for that session. Read access with
+ * `selectHasSocialV1Access`.
  */
 export function useSocialV1Exposure(): void {
   const hasEarlyAccess = useSelector(selectHasSocialEarlyAccess);

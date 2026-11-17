@@ -1,5 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
+import {
+  selectCanonicalProfileId,
+  selectIsSignedIn,
+  selectSessionProfileId,
+} from '../../../../selectors/identity';
 
 export interface SocialEarlyAccessSliceState {
   /** Profile the early-access answer belongs to. */
@@ -38,11 +43,20 @@ const selectSocialEarlyAccessState = (state: RootState) =>
   state[name] ?? initialState;
 
 /**
- * The stored early-access answer. `useSocialEarlyAccess` clears it when the
- * current profile changes, so it always belongs to the current profile.
+ * Whether the currently signed-in profile has Social early access.
+ * Validates sign-in state and matches the stored profile against the current
+ * canonical or session profile at read time so a persisted grant never leaks
+ * when signed out, while identity is pending, or after switching profiles.
  */
-export const selectHasSocialEarlyAccess = (state: RootState): boolean =>
-  selectSocialEarlyAccessState(state).hasAccess;
+export const selectHasSocialEarlyAccess = (state: RootState): boolean => {
+  const { hasAccess, profileId } = selectSocialEarlyAccessState(state);
+  if (!hasAccess || !profileId || !selectIsSignedIn(state)) {
+    return false;
+  }
+  const currentProfileId =
+    selectCanonicalProfileId(state) || selectSessionProfileId(state);
+  return Boolean(currentProfileId && profileId === currentProfileId);
+};
 
 /** Profile the stored early-access answer belongs to. */
 export const selectSocialEarlyAccessProfileId = (
