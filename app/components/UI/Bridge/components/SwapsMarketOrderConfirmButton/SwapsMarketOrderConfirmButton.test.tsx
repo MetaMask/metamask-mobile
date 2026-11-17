@@ -106,6 +106,9 @@ jest.mock(
   }),
 );
 jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual(
+    '../../../../../selectors/featureFlagController/socialV1',
+  ),
   selectIsSocialV1Enabled: () => false,
 }));
 
