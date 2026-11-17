@@ -118,7 +118,7 @@ describe('ProcessingInfoModal', () => {
     expect(screen.getByText('Go to Transak support page')).toBeOnTheScreen();
   });
 
-  it('opens InAppBrowser and closes sheet when support is pressed and browser is available', async () => {
+  it('opens InAppBrowser and then closes sheet when support is pressed and browser is available', async () => {
     (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
     (InAppBrowser.open as jest.Mock).mockResolvedValue(undefined);
 
@@ -142,13 +142,16 @@ describe('ProcessingInfoModal', () => {
     );
 
     await waitFor(() => {
-      expect(mockOnCloseBottomSheet).toHaveBeenCalled();
-    });
-    await waitFor(() => {
       expect(InAppBrowser.open).toHaveBeenCalledWith(
         'https://transak.com/support',
       );
     });
+    await waitFor(() => {
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      (InAppBrowser.open as jest.Mock).mock.invocationCallOrder[0],
+    ).toBeLessThan(mockOnCloseBottomSheet.mock.invocationCallOrder[0]);
   });
 
   it('navigates to SimpleWebview when InAppBrowser is not available', async () => {

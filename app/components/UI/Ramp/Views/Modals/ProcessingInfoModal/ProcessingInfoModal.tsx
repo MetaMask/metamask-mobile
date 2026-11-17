@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {
   BottomSheet,
   Box,
@@ -23,6 +22,7 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { PROCESSING_INFO_MODAL_TEST_IDS } from './ProcessingInfoModal.testIds';
+import { useOpenProviderSupportUrl } from '../../../hooks/useOpenProviderSupportUrl';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
@@ -56,6 +56,11 @@ function ProcessingInfoModal() {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const openSupportUrl = useOpenProviderSupportUrl({
+    sheetRef,
+    logContext: 'ProcessingInfoModal',
+  });
+
   const handleGoToSupport = useCallback(async () => {
     if (!providerSupportUrl) return;
     let urlDomain: string | undefined;
@@ -74,27 +79,11 @@ function ProcessingInfoModal() {
         })
         .build(),
     );
-    if (await InAppBrowser.isAvailable()) {
-      // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
-      handleClose();
-      await InAppBrowser.open(providerSupportUrl);
-    } else {
-      // Navigate without closing the sheet first. If we called handleClose() here,
-      // goBack would run after the close animation and pop the Webview screen off the
-      // stack instead of the modal.
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: providerSupportUrl,
-          title: providerName,
-        },
-      });
-    }
+    await openSupportUrl(providerSupportUrl, providerName);
   }, [
     providerSupportUrl,
     providerName,
-    handleClose,
-    navigation,
+    openSupportUrl,
     trackEvent,
     createEventBuilder,
   ]);
