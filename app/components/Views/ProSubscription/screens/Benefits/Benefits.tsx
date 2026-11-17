@@ -157,13 +157,10 @@ const Benefits = ({
 
   const handlePlanPress = useCallback(
     (planId: PlanId) => {
-      if (isSubmitting) {
-        return;
-      }
       setSelectedPlan(planId);
       onPlanChange?.(planId);
     },
-    [isSubmitting, onPlanChange],
+    [onPlanChange],
   );
 
   return (
