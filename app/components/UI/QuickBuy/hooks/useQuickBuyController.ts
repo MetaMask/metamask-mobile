@@ -51,13 +51,17 @@ import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { formatPostTradePairLabel } from '../utils/formatPostTradePairLabel';
 import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMapping';
+import { formatTradeUnitPrice } from '../../SocialFeed/utils/formatters';
 import {
   beginPostTradeShareSession,
   patchPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import { getSocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { resolveQuickBuySubmittedTxHash } from '../resolveQuickBuySubmittedTxHash';
-import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import {
+  useCanShareCopyTrade,
+  usePostTradePromptResolver,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
@@ -229,8 +233,6 @@ export interface UseQuickBuyControllerResult {
   isGasless: boolean;
   /** Fiat value of the quoted receive amount; undefined until a quote lands. */
   estimatedReceiveFiat: string | undefined;
-  /** Gasless only: "-$x for gas" label shown beside Est. receive. */
-  gasFeeDeductionLabel: string | undefined;
   discountBadge: ReturnType<typeof useFeeDisclaimer>['discountBadge'];
   baseFeePercentage: string | undefined;
   estimatedReceiveAmount: string | undefined;
@@ -320,6 +322,7 @@ export function useQuickBuyController(
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
+  const canShareCopyTrade = useCanShareCopyTrade();
 
   const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
@@ -1195,6 +1198,14 @@ export function useQuickBuyController(
     tradeMode === 'sell'
       ? sourceToken?.currencyExchangeRate
       : destTokenForRate?.currencyExchangeRate;
+  // A buy's Entry is the bought token's USD market price. The swap rate
+  // (`formattedRate`) is a token ratio, not a price, so it never becomes a
+  // buy's Entry. Sells keep the rate until their Entry is defined.
+  const buyEntryPriceLabel = useMemo(() => {
+    if (tradeMode !== 'buy' || !tokenPrice) return undefined;
+    const usdPrice = toAmountUsd(tokenPrice);
+    return usdPrice > 0 ? formatTradeUnitPrice(usdPrice) : undefined;
+  }, [tradeMode, tokenPrice, toAmountUsd]);
 
   const metamaskFeePercent = useMemo(
     () => getMetamaskFeePercent(activeQuote),
@@ -1217,10 +1228,6 @@ export function useQuickBuyController(
   const estimatedReceiveFiat =
     activeQuote && estimatedReceiveAmount
       ? (quoteDestFiat ?? estimatedReceiveFiatValue)
-      : undefined;
-  const gasFeeDeductionLabel =
-    isGasless && formattedNetworkFee !== '-'
-      ? strings('bridge.gas_fee_deduction', { fee: formattedNetworkFee })
       : undefined;
   const { discountBadge, baseFeePercentage } = useFeeDisclaimer({
     activeQuote,
@@ -1762,16 +1769,18 @@ export function useQuickBuyController(
       chain: previewChain,
       side: tradeMode,
       costLabel: tradeToastInfo.fiatAmountLabel,
-      entryPriceLabel: formattedRate,
+      entryPriceLabel: tradeMode === 'buy' ? buyEntryPriceLabel : formattedRate,
     };
-    // Copy-trades always share. Other swaps get the prompt chosen from the
-    // linked profile and how many share sheets it has already completed.
+    // Copy-trades share whenever the linked account is the one trading; from
+    // any other account the post could never land. Other swaps get the prompt
+    // chosen from the linked profile and how many share sheets it has already
+    // completed.
     const canPostTradeShare =
       isSpotPostTradeShareEligible(amountUsdValue) &&
       !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
     const isForcedPostTradeShare = postTradeShare;
     const shouldForcePostTradeShare =
-      isForcedPostTradeShare && canPostTradeShare;
+      isForcedPostTradeShare && canPostTradeShare && canShareCopyTrade();
     const prompt = isForcedPostTradeShare
       ? undefined
       : resolvePostTradePrompt('swap');
@@ -2021,6 +2030,7 @@ export function useQuickBuyController(
     toAmountUsd,
     currentCurrency,
     formattedRate,
+    buyEntryPriceLabel,
     formatters,
     traderAddress,
     caip19,
@@ -2034,6 +2044,7 @@ export function useQuickBuyController(
     navigation,
     postTradeShare,
     resolvePostTradePrompt,
+    canShareCopyTrade,
     copyTradeOrigin,
     postTradeShareOwner,
     sourceTokenAmount,
@@ -2265,7 +2276,6 @@ export function useQuickBuyController(
     metamaskFeePercent,
     isGasless,
     estimatedReceiveFiat,
-    gasFeeDeductionLabel,
     discountBadge,
     baseFeePercentage,
     estimatedReceiveAmount,

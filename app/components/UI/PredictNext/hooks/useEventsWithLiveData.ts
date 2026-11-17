@@ -31,8 +31,35 @@ const uniqueIds = (ids: readonly PredictEntityId[]): PredictEntityId[] => [
 export type LiveMarketWatchScope = PredictLiveMarketScope;
 
 /**
+ * Code-unit order, so the key never depends on the device locale.
+ */
+const compareIds = (a: PredictEntityId, b: PredictEntityId): number => {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
+};
+
+/**
+ * A scope as a string that is equal for equal scopes: `all`, `card`, or the
+ * sorted, de-duplicated `visible` ids as JSON. The service orders a `visible`
+ * list by the Event's own Markets, so order here carries no meaning and a
+ * reorder must not re-issue the watch.
+ */
+const scopeKeyOf = (scope: LiveMarketWatchScope): string =>
+  typeof scope === 'string'
+    ? scope
+    : JSON.stringify([...new Set(scope.marketIds)].sort(compareIds));
+
+const scopeFromKey = (key: string): LiveMarketWatchScope =>
+  key === 'all' || key === 'card'
+    ? key
+    : { type: 'visible', marketIds: JSON.parse(key) as PredictEntityId[] };
+
+/**
  * Market ids present in the given Events that can receive live price patches.
- * `card` narrows each Event to the Markets a list card prices.
+ * `card` narrows each Event to the Markets a list card prices. `visible` keeps
+ * every Market: frames only arrive for the subscribed ones, and a Market that
+ * leaves the screen keeps its last live price instead of falling back to the
+ * REST read.
  */
 export const getPresentMarketIds = (
   events: readonly PredictEvent[],
@@ -130,8 +157,10 @@ const unwatchEvents = (
  * card that stays on screen across re-renders never resubscribes. A retryable
  * resolution failure is retried by the service while these ids stay listed;
  * this effect does not call `watch` again for them. A change of `marketScope`
- * re-issues every watch under the new scope, since the service ref-counts
- * per scope.
+ * (including a new `visible` id list) re-issues every watch under the new
+ * scope before releasing the old one, since the service ref-counts per scope:
+ * the Event never drops to zero watchers, and the service subscribes and
+ * releases only the Markets that differ.
  */
 const useLiveEventWatches = (
   venueId: PredictVenueId,
@@ -139,28 +168,29 @@ const useLiveEventWatches = (
   marketScope: LiveMarketWatchScope,
 ): void => {
   const watchKey = idsKey(eventIds);
+  const scopeKey = scopeKeyOf(marketScope);
   const watchedRef = useRef<{
     ids: PredictEntityId[];
-    marketScope: LiveMarketWatchScope;
-  }>({ ids: [], marketScope });
+    scopeKey: string;
+  }>({ ids: [], scopeKey });
 
   useEffect(() => {
     const ids = JSON.parse(watchKey) as PredictEntityId[];
     const previous = watchedRef.current;
-    const scopeChanged = previous.marketScope !== marketScope;
+    const scopeChanged = previous.scopeKey !== scopeKey;
     const previousSet = new Set(scopeChanged ? [] : previous.ids);
     const nextSet = new Set(scopeChanged ? [] : ids);
     const added = ids.filter((id) => !previousSet.has(id));
     const removed = previous.ids.filter((id) => !nextSet.has(id));
 
     if (added.length > 0) {
-      watchEvents(venueId, added, marketScope);
+      watchEvents(venueId, added, scopeFromKey(scopeKey));
     }
     if (removed.length > 0) {
-      unwatchEvents(venueId, removed, previous.marketScope);
+      unwatchEvents(venueId, removed, scopeFromKey(previous.scopeKey));
     }
-    watchedRef.current = { ids, marketScope };
-  }, [watchKey, venueId, marketScope]);
+    watchedRef.current = { ids, scopeKey };
+  }, [watchKey, venueId, scopeKey]);
 
   // Keyed on venueId only. When the venue changes React runs this cleanup
   // (releasing the old venue's ids and emptying the ref) before re-running the
@@ -169,10 +199,10 @@ const useLiveEventWatches = (
   // ids change would release and reacquire the whole set on each scroll tick.
   useEffect(
     () => () => {
-      const { ids, marketScope: heldScope } = watchedRef.current;
-      watchedRef.current = { ids: [], marketScope: heldScope };
+      const { ids, scopeKey: heldScopeKey } = watchedRef.current;
+      watchedRef.current = { ids: [], scopeKey: heldScopeKey };
       if (ids.length > 0) {
-        unwatchEvents(venueId, ids, heldScope);
+        unwatchEvents(venueId, ids, scopeFromKey(heldScopeKey));
       }
     },
     [venueId],
@@ -330,7 +360,10 @@ export interface UseEventsWithLiveDataOptions {
   isVisible?: boolean;
   /**
    * Which Markets of each visible Event to hold live prices for. Defaults to
-   * `all`. Home and Feed use `card` so hidden lines stay off the wire.
+   * `all`. Home and Feed use `card` so hidden lines stay off the wire; the
+   * Event Screen passes `{ type: 'visible', marketIds }` with the Markets it
+   * renders. Changing the `visible` ids re-scopes without resubscribing the
+   * Markets both lists share.
    */
   marketScope?: LiveMarketWatchScope;
 }
@@ -395,9 +428,10 @@ export const useEventsWithLiveData = (
   }: UseEventsWithLiveDataOptions = {},
 ): readonly PredictEvent[] => {
   const presentEventIds = useMemo(() => events.map(({ id }) => id), [events]);
+  const listsCardMarkets = marketScope === 'card';
   const presentMarketIds = useMemo(
-    () => getPresentMarketIds(events, marketScope),
-    [events, marketScope],
+    () => getPresentMarketIds(events, listsCardMarkets ? 'card' : 'all'),
+    [events, listsCardMarkets],
   );
   const eventIdsToWatch = useMemo(() => {
     if (!isVisible) {

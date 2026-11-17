@@ -26,7 +26,7 @@ export interface OffPageViewerIdentity {
 
 export interface OffPageViewerTrader {
   trader: RankedTrader;
-  /** ROI is absent, so the percent line stays hidden on the pinned card. */
+  /** True only when the percent line should stay hidden. The builder never sets it. */
   omitPercentage: boolean;
 }
 
@@ -159,9 +159,8 @@ export const buildOffPageViewerTrader = ({
       ...synthetic,
       displayMetric: getTraderMetricDisplay(synthetic, sort),
     },
-    // No PnL is represented as zero in the pinned card, so keep the zero
-    // percent visible for the no-trades state. Only hide ROI when a real PnL
-    // exists but the profile did not provide the corresponding ROI.
-    omitPercentage: pnl != null && roi == null,
+    // Always show the percent line on the pinned card. A missing ROI is
+    // shown as 0.0% rather than a blank line under the dollar value.
+    omitPercentage: false,
   };
 };

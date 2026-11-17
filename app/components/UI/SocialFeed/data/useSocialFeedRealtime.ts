@@ -3,7 +3,6 @@ import type {
   SocialFeedEvent,
   SocialFeedRealtimeScope,
 } from '@metamask/social-controllers';
-import isEqual from 'lodash/isEqual';
 import {
   startTransition,
   useCallback,
@@ -15,6 +14,11 @@ import {
 import Engine from '../../../../core/Engine';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
+import {
+  pruneStableFeedPosts,
+  retainStableFeedPost,
+  type StableFeedPostEntry,
+} from './stableFeedPost';
 import {
   createSocialFeedEntrances,
   type SocialFeedEntrances,
@@ -106,13 +110,6 @@ interface RowPlacement {
   placed: ReadonlyMap<string, number>;
 }
 
-interface CachedFeedPost {
-  core: CoreFeedItem;
-  item: TraderFeedRow['item'];
-  now: number;
-  post: SocialV1FeedPost;
-}
-
 const createStore = (): RealtimeStore => ({
   socketRows: [],
   revisedRows: new Map(),
@@ -174,7 +171,7 @@ export const useSocialFeedRealtime = (
   const [revealRequested, setRevealRequested] = useState(false);
   const [catchUpVersion, setCatchUpVersion] = useState(0);
   const [entrances] = useState(createSocialFeedEntrances);
-  const postCache = useRef(new Map<string, CachedFeedPost>());
+  const postCache = useRef(new Map<string, StableFeedPostEntry>());
 
   const serverRowsById = useMemo(
     () =>
@@ -606,45 +603,27 @@ export const useSocialFeedRealtime = (
     if (!realtimeScope) {
       return EMPTY_POSTS;
     }
-    const now = dataUpdatedAt ?? Date.now();
     const activeIds = new Set(mergedRows.map((row) => row.stableId));
-    const nextPosts = mergedRows.map((row) => {
-      const cached = postCache.current.get(row.stableId);
-      if (
-        cached &&
-        cached.core === row.core &&
-        cached.item === row.item &&
-        cached.now === now &&
-        cached.post.realtimeEventId === row.realtimeEventId
-      ) {
-        return cached.post;
-      }
-
-      const [mappedPost] = toSocialFeedPosts([row], now);
-      const rebuilt = row.realtimeEventId
-        ? { ...mappedPost, realtimeEventId: row.realtimeEventId }
-        : mappedPost;
-      // A refresh hands back new objects for rows that did not change, and a
-      // new post object re-renders its whole row.
-      const post =
-        cached && isEqual(cached.post, rebuilt) ? cached.post : rebuilt;
-      postCache.current.set(row.stableId, {
-        core: row.core,
-        item: row.item,
-        now,
-        post,
-      });
-      return post;
-    });
-
-    postCache.current.forEach((_cached, id) => {
-      if (!activeIds.has(id)) {
-        postCache.current.delete(id);
-      }
-    });
+    const nextPosts = mergedRows.map((row) =>
+      retainStableFeedPost(
+        postCache.current,
+        row.stableId,
+        row.core,
+        row.realtimeEventId,
+        () => {
+          const [mappedPost] = toSocialFeedPosts([row]);
+          // A refresh hands back new objects for rows that did not change, and
+          // a new post object re-renders its whole row.
+          return row.realtimeEventId
+            ? { ...mappedPost, realtimeEventId: row.realtimeEventId }
+            : mappedPost;
+        },
+      ),
+    );
+    pruneStableFeedPosts(postCache.current, activeIds);
 
     return filterPost ? nextPosts.filter(filterPost) : nextPosts;
-  }, [dataUpdatedAt, filterPost, mergedRows, realtimeScope]);
+  }, [filterPost, mergedRows, realtimeScope]);
 
   const pendingNewCount = useMemo(
     () =>

@@ -4977,8 +4977,7 @@ export class PredictController extends BaseController<
       to: activeWithdrawTransaction.predictAddress as Hex,
     };
 
-    // Attempt to estimate gas for the updated transaction
-    let updatedGas: Hex | undefined;
+    let updatedGas: Hex;
     try {
       const estimateResult = await this.messenger.call(
         'TransactionController:estimateGas',
@@ -4987,13 +4986,20 @@ export class PredictController extends BaseController<
       );
       updatedGas = estimateResult.gas as Hex;
     } catch (error) {
-      // Log the error but continue - we'll use the original gas values
-      DevLogger.log(
-        'PredictController: Gas estimation failed in beforeSign, using original gas values',
-        {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString(),
-        },
+      // Fail the withdraw before signing. Returning without the swap would
+      // leave the EOA `pUSD.transfer`, which the EOA can't fund, and swapping
+      // without a new estimate would broadcast the Safe call with a gas limit
+      // that was never estimated for it.
+      DevLogger.log('PredictController: Gas estimation failed in beforeSign', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('beforeSignWithdrawIfNeeded', {
+          operation: 'estimate_withdraw_gas',
+          transactionId: request.transactionMeta.id,
+        }),
       );
       this.update((state) => {
         if (state.withdrawTransaction) {
@@ -5001,7 +5007,7 @@ export class PredictController extends BaseController<
         }
       });
 
-      return;
+      throw error;
     }
 
     this.update((state) => {
@@ -5020,13 +5026,10 @@ export class PredictController extends BaseController<
           ...transaction.assetsFiatValues,
           receiving: String(amount),
         };
-        // Only update gas if estimation succeeded
-        if (updatedGas) {
-          transaction.txParams.gas = updatedGas;
-          // Keep the legacy field synchronized for existing transaction consumers.
-          // eslint-disable-next-line @typescript-eslint/no-deprecated
-          transaction.txParams.gasLimit = updatedGas;
-        }
+        transaction.txParams.gas = updatedGas;
+        // Keep the legacy field synchronized for existing transaction consumers.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        transaction.txParams.gasLimit = updatedGas;
       },
     };
   }

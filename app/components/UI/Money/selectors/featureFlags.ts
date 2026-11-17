@@ -140,9 +140,30 @@ export const selectMoneyVbaCompletedActivityEnabled = createSelector(
   },
 );
 
+/**
+ * Selects whether the Money account status debug page is enabled. Typically
+ * targeted at individual users by serving a
+ * threshold array whose entries list `metaMetricsIds`.
+ */
+export const selectMoneyAccountDebugEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyAccountDebugEnabled as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+export const selectMoneyAccountStatusPageEnabled = createSelector(
+  selectMoneyEnableMoneyAccountFlag,
+  selectMoneyAccountDebugEnabledFlag,
+  (isMoneyEnabled, isDebugEnabled) => isMoneyEnabled && isDebugEnabled,
 );
 
 /**
@@ -313,24 +334,6 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyCardTiltAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local = process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED !== 'false';
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
-  },
-);
-
-/**
- * Selects whether the card education screen plays the Rive cards entrance.
- * Defaults to off (opt-in) so the animation stays disabled unless the remote
- * flag or MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED turns it on; the static
- * image is used otherwise, when reduce-motion is enabled, or when Rive fails
- * to load.
- */
-export const selectMoneyCardEducationAnimationEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.earnMoneyCardEducationAnimationEnabled as unknown as VersionGatedFeatureFlag;
-    const local =
-      process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );

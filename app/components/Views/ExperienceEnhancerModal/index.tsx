@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { Linking, View } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
@@ -10,7 +10,7 @@ import createStyles from './styles';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -18,16 +18,30 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
+import OAuthService from '../../../core/OAuthService/OAuthService';
+import Logger from '../../../util/Logger';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const styles = createStyles();
   const { trackEvent, identify, createEventBuilder } = useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  // Social-login wallets also store the choice server-side so the auth
+  // service can create the HubSpot contact for email marketing. A failed
+  // sync keeps the local decision.
+  const syncMarketingConsentToServer = (value: boolean) => {
+    if (isSocialLogin) {
+      OAuthService.updateMarketingOptInStatus(value).catch((error) => {
+        Logger.error(error as Error);
+      });
+    }
+  };
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
@@ -35,6 +49,7 @@ const ExperienceEnhancerModal = () => {
     size: ButtonSize.Lg,
     onPress: () => {
       dispatch(setDataCollectionForMarketing(false));
+      syncMarketingConsentToServer(false);
       bottomSheetRef.current?.onCloseBottomSheet();
 
       identify({
@@ -59,6 +74,7 @@ const ExperienceEnhancerModal = () => {
     size: ButtonSize.Lg,
     onPress: () => {
       dispatch(setDataCollectionForMarketing(true));
+      syncMarketingConsentToServer(true);
       bottomSheetRef.current?.onCloseBottomSheet();
 
       identify({
@@ -94,13 +110,6 @@ const ExperienceEnhancerModal = () => {
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.CONTENT}
       >
         <Text variant={TextVariant.BodyMd}>
-          {strings('experience_enhancer_modal.paragraph1a')}
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('experience_enhancer_modal.link')}
-            onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-            testID={ExperienceEnhancerBottomSheetSelectorsIDs.LINK_BUTTON}
-          />
           {strings('experience_enhancer_modal.paragraph1b')}
         </Text>
 

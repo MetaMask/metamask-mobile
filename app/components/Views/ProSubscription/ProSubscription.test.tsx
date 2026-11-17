@@ -5,6 +5,7 @@ import ProSubscription from './ProSubscription';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
 import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
@@ -121,9 +122,29 @@ jest.mock('./screens/Benefits', () => {
 });
 
 jest.mock('./screens/Success', () => {
-  const { TouchableOpacity } = require('react-native');
-  return ({ onSuccess }: { onSuccess: () => void }) => (
-    <TouchableOpacity testID="mock-success" onPress={onSuccess} />
+  const { Text, TouchableOpacity } = require('react-native');
+  return ({
+    onSuccess,
+    isContinuing,
+    continueError,
+  }: {
+    onSuccess: () => void;
+    isContinuing?: boolean;
+    continueError?: string;
+  }) => (
+    <>
+      <TouchableOpacity
+        testID="mock-success"
+        onPress={onSuccess}
+        accessibilityState={{
+          busy: Boolean(isContinuing),
+          disabled: Boolean(isContinuing),
+        }}
+      />
+      {continueError ? (
+        <Text testID="mock-success-error">{continueError}</Text>
+      ) : null}
+    </>
   );
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -304,6 +325,84 @@ describe('ProSubscription', () => {
       });
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();
+      expect(getByTestId('mock-success')).toHaveProp('accessibilityState', {
+        busy: false,
+        disabled: false,
+      });
+      expect(getByTestId('mock-success-error')).toHaveTextContent(
+        strings('pro_subscription.success.continue_error'),
+      );
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('retries the refresh after it fails and then opens Pro Hub', async () => {
+      mockGetSubscriptions
+        .mockRejectedValueOnce(new Error('request failed'))
+        .mockResolvedValueOnce([]);
+      const { getByTestId, queryByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      await act(async () => {
+        fireEvent.press(getByTestId('mock-success'));
+      });
+
+      expect(getByTestId('mock-success-error')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('mock-success'));
+      });
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+      expect(queryByTestId('mock-success-error')).toBeNull();
+      expectProHubReplacesSubscriptionModal();
+    });
+
+    it('calls getSubscriptions once when Continue is pressed twice before the refresh settles', async () => {
+      let resolveRefresh: (value: unknown[]) => void = () => undefined;
+      mockGetSubscriptions.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      fireEvent.press(getByTestId('mock-success'));
+      fireEvent.press(getByTestId('mock-success'));
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+      expect(getByTestId('mock-success')).toHaveProp('accessibilityState', {
+        busy: true,
+        disabled: true,
+      });
+
+      await act(async () => {
+        resolveRefresh([]);
+      });
+
+      expectProHubReplacesSubscriptionModal();
+    });
+
+    it('does not open Pro Hub when the screen unmounts before the refresh settles', async () => {
+      let resolveRefresh: (value: unknown[]) => void = () => undefined;
+      mockGetSubscriptions.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
+      const { getByTestId, unmount } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      fireEvent.press(getByTestId('mock-success'));
+      unmount();
+
+      await act(async () => {
+        resolveRefresh([]);
+      });
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 

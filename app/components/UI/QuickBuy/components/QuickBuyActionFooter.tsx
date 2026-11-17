@@ -55,7 +55,6 @@ const QuickBuyActionFooter: React.FC = () => {
     isBlockingQuoteLoad,
     isPriceImpactError,
     estimatedReceiveFiat,
-    gasFeeDeductionLabel,
     hasNoPayWithFunds,
     setActiveScreen,
     activeQuote,
@@ -125,19 +124,6 @@ const QuickBuyActionFooter: React.FC = () => {
                     {strings('social_leaderboard.quick_buy.est_receive')}
                   </Text>
                 )}
-                {!isEstReceiveLoading && gasFeeDeductionLabel ? (
-                  <Box
-                    twClassName="rounded-md bg-info-muted px-1.5"
-                    testID={QuickBuySheetSelectorsIDs.GAS_FEE_DEDUCTION}
-                  >
-                    <Text
-                      variant={TextVariant.BodyXs}
-                      color={TextColor.PrimaryDefault}
-                    >
-                      {gasFeeDeductionLabel}
-                    </Text>
-                  </Box>
-                ) : null}
               </Box>
 
               {isEstReceiveLoading ? (

@@ -451,8 +451,13 @@
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
           "cachedUserDataByProvider": {},
+          "defaultProvider": "hyperliquid",
           "depositInProgress": false,
           "depositRequests": [],
+          "effectiveProvider": "hyperliquid",
+          "hasExplicitDefaultProviderSelection": false,
+          "hasExplicitProviderSelection": false,
+          "hasMigratedToMultiProvider": false,
           "hasPlacedFirstOrder": {
             "mainnet": false,
             "testnet": false
@@ -825,6 +830,10 @@
       "lastLocalFlowConfirmedAt": null,
       "redeemable": null
     },
+    "socialEarlyAccess": {
+      "profileId": null,
+      "hasAccess": false
+    },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
       "currentRoute": "AdvancedSettings"
@@ -911,7 +920,6 @@
       "moneyAccountSweepstakesPrizePools": {},
       "moneyAccountSweepstakesStats": {},
       "moneyAccountSweepstakesVolumeStats": {},
-      "onboardingActiveStep": "INTRO",
       "ondoCampaignActivity": {},
       "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},
@@ -1030,6 +1038,7 @@
       "appTheme": "os",
       "backUpSeedphraseVisible": false,
       "bridgeLimitTabSeen": false,
+      "bridgeRecurringTabSeen": false,
       "existingUser": true,
       "gasEducationCarouselSeen": false,
       "initialScreen": "",

@@ -664,10 +664,14 @@ let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 let mockSelectedEvmAccount: { address: string } | undefined;
 let mockIsPerpsProModeActive = false;
 const mockResolvePostTradePrompt = jest.fn();
+const mockCanShareCopyTrade = jest.fn(() => true);
 
 jest.mock(
   '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
-  () => ({ usePostTradePromptResolver: () => mockResolvePostTradePrompt }),
+  () => ({
+    usePostTradePromptResolver: () => mockResolvePostTradePrompt,
+    useCanShareCopyTrade: () => mockCanShareCopyTrade,
+  }),
 );
 
 jest.mock('../../utils/perpsModeSwitch', () => ({
@@ -3479,6 +3483,60 @@ describe('PerpsOrderView', () => {
       // this same tap only flushes and bails, it does not place the order.
       expect(mockSetAmount).toHaveBeenCalledWith('55');
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Keypad Done clamp', () => {
+    it('clamps against the current max, not the max captured at mount', () => {
+      // The view is wrapped in React.memo; the clamp must read the latest
+      // maxPossibleAmount instead of a mount-time closure (max = 0 before the
+      // account loads), which used to reset the typed amount to 0 on Done.
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          maxPossibleAmount: 0,
+        }),
+      );
+      const { rerender } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          maxPossibleAmount: 1000,
+        }),
+      );
+      rerender(<PerpsOrderView />);
+
+      fireEvent.press(screen.getByTestId('perps-amount-display'));
+      fireEvent.press(screen.getByTestId('keypad-key-1'));
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
+      );
+
+      expect(mockSetAmount).not.toHaveBeenCalledWith('0');
+    });
+
+    it('still clamps a typed amount above the current max on Done', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          // orderForm.amount defaults to '11', above this max.
+          maxPossibleAmount: 5,
+        }),
+      );
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-amount-display'));
+      fireEvent.press(screen.getByTestId('keypad-key-1'));
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
+      );
+
+      expect(mockSetAmount).toHaveBeenLastCalledWith('5');
     });
   });
 
@@ -7439,6 +7497,7 @@ describe('PerpsOrderView', () => {
 
     afterEach(() => {
       clearPostTradeShareSession();
+      mockCanShareCopyTrade.mockReturnValue(true);
       applyDefaultHookMocks();
     });
 
@@ -7517,6 +7576,32 @@ describe('PerpsOrderView', () => {
 
     it('keeps the normal toasts for a copied market order below $10 position size', async () => {
       mockOrderSize('9', 10);
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('keeps the normal toasts for a copied market order from an account that cannot post', async () => {
+      mockCanShareCopyTrade.mockReturnValue(false);
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
         ...mockDefaultUsePerpsToasts(),

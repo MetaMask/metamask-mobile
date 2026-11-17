@@ -1,6 +1,5 @@
 import React, { useRef, isValidElement, useCallback } from 'react';
 import {
-  HeaderStandard,
   Box,
   Text,
   TextVariant,
@@ -17,8 +16,12 @@ import { strings } from '../../../../locales/i18n';
 
 import { TooltipModalRouteParams } from './ToolTipModal.types';
 import { useParams } from '../../../util/navigation/navUtils';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const TooltipModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     tooltip,
     title,
@@ -44,7 +47,9 @@ const TooltipModal = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={title}
         onClose={onCloseModal}
         testID="tooltip-modal-header"

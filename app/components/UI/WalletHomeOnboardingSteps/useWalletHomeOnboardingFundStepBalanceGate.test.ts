@@ -2,8 +2,10 @@ import { renderHook, act } from '@testing-library/react-native';
 import {
   useWalletHomeOnboardingFundStepBalanceGate,
   WALLET_HOME_ONBOARDING_FUND_STEP_POSITIVE_BALANCE_DEBOUNCE_MS,
-  WALLET_HOME_ONBOARDING_FUND_STEP_ZERO_BALANCE_GRACE_MS,
 } from './useWalletHomeOnboardingFundStepBalanceGate';
+
+/** Longer than a deposit takes to land after the checklist first reads zero. */
+const LONG_WAIT_MS = 60_000;
 
 describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
   beforeEach(() => {
@@ -47,9 +49,7 @@ describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
     );
 
     act(() => {
-      jest.advanceTimersByTime(
-        WALLET_HOME_ONBOARDING_FUND_STEP_ZERO_BALANCE_GRACE_MS,
-      );
+      jest.advanceTimersByTime(LONG_WAIT_MS);
     });
     expect(result.current).toBe(false);
 
@@ -60,9 +60,7 @@ describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
     });
 
     act(() => {
-      jest.advanceTimersByTime(
-        WALLET_HOME_ONBOARDING_FUND_STEP_ZERO_BALANCE_GRACE_MS,
-      );
+      jest.advanceTimersByTime(LONG_WAIT_MS);
     });
     expect(result.current).toBe(false);
   });
@@ -98,7 +96,7 @@ describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
     expect(result.current).toBe(true);
   });
 
-  it('does not advance when balance becomes positive after the zero-balance grace period', () => {
+  it('advances when funds arrive long after the balance first read zero', () => {
     const { result, rerender } = renderHook(
       (
         props: Parameters<typeof useWalletHomeOnboardingFundStepBalanceGate>[0],
@@ -113,9 +111,7 @@ describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
     );
 
     act(() => {
-      jest.advanceTimersByTime(
-        WALLET_HOME_ONBOARDING_FUND_STEP_ZERO_BALANCE_GRACE_MS,
-      );
+      jest.advanceTimersByTime(LONG_WAIT_MS);
     });
 
     rerender({
@@ -130,7 +126,7 @@ describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
       );
     });
 
-    expect(result.current).toBe(false);
+    expect(result.current).toBe(true);
   });
 
   it('does not advance when a positive reading corrects to zero before debounce', () => {
