@@ -34,4 +34,19 @@ describe('route page object registry', () => {
     expect(report.summary.notAScreen).toBeGreaterThan(0);
     expect(report.summary.coveragePercentage).toBeLessThanOrEqual(100);
   });
+
+  it('does not associate similarly named page objects with unrelated routes', () => {
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.RampVbaOnboarding).toBeNull();
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.RewardsSettingsView).toBeNull();
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.CardOnboardingSignUp).toBeNull();
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.AccountSelector).toBeNull();
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.PerpsTrendingView).toBeNull();
+  });
+
+  it('keeps product root screens eligible for page-object coverage', () => {
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.ProSubscription).toBeNull();
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.ProHub).toBeNull();
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.ProSubscription).not.toBe('NOT_A_SCREEN');
+    expect(ROUTE_PAGE_OBJECT_REGISTRY.ProHub).not.toBe('NOT_A_SCREEN');
+  });
 });

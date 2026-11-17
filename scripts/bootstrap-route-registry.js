@@ -17,6 +17,39 @@ const registryPath = path.join(
   'route-registry',
   'route-registry.ts',
 );
+const NON_SCREEN_KEY_PATHS = new Set([
+  'MAIN_FLOW',
+  'HOME_TABS',
+  'RAMP.ID',
+  'RAMP.MODALS.ID',
+  'DEPOSIT.ID',
+  'DEPOSIT.ROOT',
+  'DEPOSIT.MODALS.ID',
+  'MODAL.ROOT_MODAL_FLOW',
+  'ONBOARDING.ROOT_NAV',
+  'ONBOARDING.SUCCESS_FLOW',
+  'ONBOARDING.HOME_NAV',
+  'ONBOARDING.NAV',
+  'WALLET.TAB_STACK_FLOW',
+  'BRIDGE.ROOT',
+  'BRIDGE.MODALS.ROOT',
+  'PERPS.ROOT',
+  'PERPS.MODALS.ROOT',
+  'MARKET_INSIGHTS.ROOT',
+  'SOCIAL.ROOT',
+  'PREDICT.ROOT',
+  'PREDICT.MODALS.ROOT',
+  'EARN.ROOT',
+  'EARN.MODALS.ROOT',
+  'MONEY.ROOT',
+  'MONEY.MODALS.ROOT',
+  'SET_PASSWORD_FLOW.ROOT',
+  'CARD.ROOT',
+  'CARD.ONBOARDING.ROOT',
+  'CARD.MODALS.ID',
+  'AGENTIC_CLI_DASHBOARD_WEBVIEW.ID',
+  'AGENTIC_CLI_APPROVAL.ID',
+]);
 
 function getPropertyName(propertyName) {
   if (ts.isIdentifier(propertyName) || ts.isStringLiteral(propertyName)) {
@@ -89,6 +122,10 @@ function normalize(value) {
   return value.replace(/[^a-z0-9]/gi, '').toLowerCase();
 }
 
+function normalizeScreenName(value) {
+  return normalize(value).replace(/(?:view|page|screen|modal|sheet)$/, '');
+}
+
 function getPageObjects() {
   return walk(pageObjectsRoot)
     .filter(
@@ -128,19 +165,20 @@ function getPageObjects() {
 function choosePageObject(route, pageObjects) {
   const normalizedRoute = normalize(route.value);
   const directMatches = pageObjects.filter(
-    (pageObject) => pageObject.normalizedBaseName === normalizedRoute,
+    (pageObject) =>
+      pageObject.normalizedBaseName === normalizedRoute,
   );
   if (directMatches.length === 1) {
     return { pageObject: directMatches[0], tier: 1 };
   }
 
-  const partialMatches = pageObjects.filter(
+  const suffixMatches = pageObjects.filter(
     (pageObject) =>
-      pageObject.normalizedBaseName.includes(normalizedRoute) ||
-      normalizedRoute.includes(pageObject.normalizedBaseName),
+      normalizeScreenName(pageObject.baseName) ===
+      normalizeScreenName(route.value),
   );
-  if (partialMatches.length === 1) {
-    return { pageObject: partialMatches[0], tier: 2 };
+  if (suffixMatches.length === 1) {
+    return { pageObject: suffixMatches[0], tier: 2 };
   }
 
   const classMatches = pageObjects.filter(
@@ -167,9 +205,9 @@ function generateRegistry(routes, pageObjects) {
   const entries = [];
 
   for (const route of uniqueRoutes.values()) {
-    const isNavigator =
-      route.keyPaths.some((keyPath) => /(?:^|\.)ID$/.test(keyPath)) ||
-      route.keyPaths.some((keyPath) => /(?:^|\.)ROOT$/.test(keyPath));
+    const isNavigator = route.keyPaths.some((keyPath) =>
+      NON_SCREEN_KEY_PATHS.has(keyPath),
+    );
     const match = choosePageObject(route, pageObjects);
 
     let value = 'null';
