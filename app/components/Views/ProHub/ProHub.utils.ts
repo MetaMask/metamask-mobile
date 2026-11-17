@@ -80,13 +80,14 @@ export interface FormatSubscriptionPeriodEndOptions {
 /**
  * Formats a subscription date as one UTC calendar day.
  *
- * `currentPeriodEnd` is the renewal instant, so the default moves back one
- * UTC day to the last included day. Pro Hub and Membership both use this so
- * the same timestamp cannot render as two dates.
+ * `currentPeriodEnd` is the exclusive renewal instant. Moving back one
+ * millisecond keeps a midnight boundary on the previous UTC day, and keeps
+ * a later time of day on that same day. Pro Hub and Membership both use this
+ * so the same timestamp cannot render as two dates.
  *
  * @param timestamp - ISO 8601 timestamp from the Plus subscription.
  * @param options - Locale and whether the timestamp is an exclusive period end.
- * @returns e.g. `Jul 19, 2027` for `2027-07-20T00:00:00.000Z`, or undefined when missing or unparseable.
+ * @returns e.g. `Jul 19, 2027` for `2027-07-20T00:00:00.000Z`, or `Jul 20, 2027` for `2027-07-20T12:00:00.000Z`. Undefined when missing or unparseable.
  */
 export const formatSubscriptionPeriodEnd = (
   timestamp: string | undefined,
@@ -102,7 +103,7 @@ export const formatSubscriptionPeriodEnd = (
   }
 
   if (options.exclusivePeriodEnd !== false) {
-    date.setUTCDate(date.getUTCDate() - 1);
+    date.setTime(date.getTime() - 1);
   }
 
   return getIntlDateTimeFormatter(options.locale ?? I18n.locale, {
