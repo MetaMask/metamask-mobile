@@ -631,6 +631,26 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
         expect(
           view.getByText(strings('money.add_money_sheet.coming_soon')),
         ).toBeOnTheScreen();
+        // Coming soon stays under Convert crypto when every currency flag is off.
+        const optionTestIds = [
+          MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+          MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        ];
+        const seen = new Set<string>();
+        const order = view.UNSAFE_root.findAll((node) =>
+          optionTestIds.includes(node.props.testID),
+        )
+          .map((node) => node.props.testID as string)
+          .filter((id) => {
+            if (seen.has(id)) {
+              return false;
+            }
+            seen.add(id);
+            return true;
+          });
+        expect(order.indexOf(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW)).toBeGreaterThan(
+          order.indexOf(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+        );
 
         fireEvent.press(row);
 

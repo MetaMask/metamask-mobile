@@ -69,7 +69,14 @@ let restorePublishedKycSession: (() => void) | undefined;
  * store.
  */
 export function restoreVbaReduxServiceStore(): void {
-  restorePublishedKycSession?.();
+  // Each publish links its restore to the previous one. A second publish in
+  // the same test only runs the latest unless the chain is drained.
+  let restore = restorePublishedKycSession;
+  while (restore) {
+    restorePublishedKycSession = undefined;
+    restore();
+    restore = restorePublishedKycSession;
+  }
   restoreVbaReduxStore?.();
 }
 
