@@ -425,18 +425,27 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
     expect(searchMarkets).not.toHaveBeenCalled();
   });
 
-  // Temporarily skipped: could not find route-Predict-params on CI (ios).
-  // Refs: MCWP-1178
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('opens the Kalshi Event on a result press', async () => {
+  it('opens the Kalshi Event on a result press', async () => {
     const view = renderAutocomplete(KALSHI_ONLY);
     typeQuery(view, 'packers');
-    const row = await view.findByTestId(
-      getPredictSearchResultRowTestId(NFL_1.id),
-      HIDDEN,
-    );
 
-    fireEvent.press(row);
+    // Wait for both sections to settle: the Tokens section sits above
+    // Predictions, and the list re-keys a Predictions row whenever a section
+    // above it settles, so a node found while either section is still
+    // settling is unmounted by the time it is pressed.
+    await waitForTokenSearch(view);
+    await waitFor(() => {
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_2.id), HIDDEN),
+      ).toBeOnTheScreen();
+    });
+
+    fireEvent.press(
+      view.getByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
+    );
 
     const params = await view.findByTestId(PREDICT_ROOT_PARAMS_PROBE);
     expect(JSON.parse(String(params.props.children))).toEqual({
