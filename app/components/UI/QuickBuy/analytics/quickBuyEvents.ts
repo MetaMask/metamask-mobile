@@ -16,7 +16,6 @@ export const QuickBuyEventProperties = {
   EXECUTION_TIME_MS: 'execution_time_ms',
   INTERACTION_TYPE: 'interaction_type',
   IS_COPY_TRADE: 'is_copy_trade',
-  /** MetaMask swap fee in USD, from the quote rate applied to `amount_usd`. */
   METAMASK_FEE_USD: 'metamask_fee_usd',
   LATENCY_MS: 'latency_ms',
   MARKET_CAP: 'market_cap',

@@ -23,7 +23,6 @@ export const trackPostToFeedToast = ({
   orderId?: string;
   transactionHash?: string;
 }): void => {
-  // A toast tap still opens the composer when the flag state is unavailable.
   let socialEnabled = false;
   try {
     socialEnabled = selectIsSocialV1Enabled(store.getState());

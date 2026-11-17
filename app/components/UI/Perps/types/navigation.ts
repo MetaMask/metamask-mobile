@@ -118,10 +118,6 @@ export type PerpsOrderRouteParams = {
   stayOnCurrentScreen?: boolean;
   /** Social post being copied; a matching order records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
-  /**
-   * True when the order was opened from Copy trade, including posts that have
-   * no comment id and therefore no `copyTradeOrigin`.
-   */
   isCopyTrade?: boolean;
 };
 
@@ -428,7 +424,6 @@ export type PerpsStackParamList = {
     stayOnCurrentScreen?: boolean;
     /** Social post being copied, forwarded to the order view. */
     copyTradeOrigin?: CopyTradeOrigin;
-    /** Copy trade with no comment id still needs the analytics marker. */
     isCopyTrade?: boolean;
   };
 

@@ -24,7 +24,8 @@ export const readSocialAppBuild = (): string | undefined => {
   }
   return socialAppBuild;
 };
-export const withSocialAppBuild = <T extends object>(properties: T): T => {
+export const withSocialAppBuild = (properties: object) => {
   const app_build = readSocialAppBuild();
-  return app_build ? { ...properties, app_build } : properties;
+  const props = properties as unknown as Record<string, unknown>;
+  return app_build ? { ...props, app_build } : props;
 };

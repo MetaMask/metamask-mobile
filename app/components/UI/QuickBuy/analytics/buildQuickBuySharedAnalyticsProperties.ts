@@ -6,8 +6,7 @@ import type { QuickBuyAnalyticsContext } from '../types';
 /**
  * Shared Quick Buy lifecycle properties from `metamask-mobile-social-quick-buy-globals`.
  * `source` is the surface where the sheet opened; `original_entry_point` is only
- * set for trade-screen flows. `is_copy_trade` is on every event so an opened
- * copy is visible before the trade is submitted.
+ * set for trade-screen flows.
  */
 export function buildQuickBuySharedAnalyticsProperties(
   analyticsContext?: Pick<

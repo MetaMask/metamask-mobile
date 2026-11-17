@@ -73,7 +73,6 @@ export interface QuickBuyQuotesAnalyticsContext {
   source: QuickBuySheetSource;
   /** Trade-screen entry attribution when hosted on TraderPositionView. */
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
-  /** True when the sheet was opened from Copy trade. */
   isCopyTrade?: boolean;
 }
 

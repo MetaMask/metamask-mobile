@@ -23,7 +23,6 @@ export interface OpenPerpsOrderParams {
   leverage?: number;
   /** Social V1 post being copied, when the order should be attributed. */
   copyTradeOrigin?: CopyTradeOrigin;
-  /** Copy trade, including posts that have no comment id. */
   isCopyTrade?: boolean;
 }
 

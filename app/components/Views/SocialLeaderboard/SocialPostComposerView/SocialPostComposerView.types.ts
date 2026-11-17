@@ -45,15 +45,10 @@ interface SocialPostComposerTradeParams {
   preview: SocialPostComposerPreview;
   /** Surface that started the trade. Omitted when it is unknown. */
   analyticsSource?: SocialEventSource;
-  /**
-   * Regular swap shares use `post_trade_swap`. Quick Buy stays
-   * `post_trade_spot`. Omitted means Quick Buy.
-   */
   spotComposerEntry?: Extract<
     SocialComposerEntry,
     'post_trade_spot' | 'post_trade_swap'
   >;
-  /** Links the prompt, the composer, and the submitted post. */
   shareId?: string;
   position?: never;
   entryPoint?: never;
