@@ -15,6 +15,7 @@ import {
   restoreRewardsDashboardStore,
 } from '../../../../../tests/component-view/renderers/rewardsMoney';
 import { referralMeFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
+import { strings } from '../../../../../locales/i18n';
 
 describe('RewardsDashboard copy trading', () => {
   afterEach(() => {
@@ -105,6 +106,25 @@ describe('RewardsDashboard subscription sections', () => {
     expect(
       queryByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SECTION),
     ).not.toBeOnTheScreen();
+  });
+
+  it('uses the campaign opt-in label when referral copy has no action', async () => {
+    const referralMe = referralMeFixture('plain');
+    const { findByTestId } = renderRewardsDashboard({
+      socialV1: false,
+      subscriptionId: null,
+      referralMe: {
+        ...referralMe,
+        localized_text: {
+          ...referralMe.localized_text,
+          invitedOptInAction: '',
+        },
+      },
+    });
+
+    expect(
+      await findByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION),
+    ).toHaveTextContent(strings('rewards.campaign.opt_in_cta'));
   });
 
   it('shows campaigns and benefits when the user has a Rewards subscription', async () => {

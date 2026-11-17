@@ -159,7 +159,11 @@ const MfaSettings = () => {
           color={TextColor.TextAlternative}
           twClassName="px-4 pb-2"
         >
-          {strings('mfa.settings.notice')}
+          {strings(
+            isSocialLogin
+              ? 'mfa.settings.notice_social_login'
+              : 'mfa.settings.notice',
+          )}
         </Text>
         {visibleRows.map(({ method, label, isSetUp, summary }) => (
           <ListItem

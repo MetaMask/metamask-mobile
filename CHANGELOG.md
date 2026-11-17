@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated the MetaMask Money FAQ wording to align with the content guidelines
+
+### Fixed
+
+- Fixed the MetaMask Money FAQ copy to clarify that the Money account is tied to the Secret Recovery Phrase, not a single account's Private Key
+
 ## [8.20.0]
 
 ### Added

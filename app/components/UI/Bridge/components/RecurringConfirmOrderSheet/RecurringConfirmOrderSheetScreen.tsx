@@ -1,26 +1,35 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
+  selectIsSlippageUserOverride,
+  selectRecurring,
   selectDestToken,
   selectRecurringPriceRange,
+  selectSlippage,
+  selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
-import { createRecurringOrder } from '../../api/recurringOrders';
+import { recurringOrdersApiClient } from '../../api/recurringOrders.client';
 import {
   convertPriceRangeToUsd,
   USD_PRICE_RANGE_CURRENCY,
 } from '../../utils/priceRange';
+import { getRecurringOrderDelegationParams } from '../../utils/recurringOrders/getRecurringOrderDelegationParams';
+import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
+import { useCreateRecurringOrder } from '../../hooks/useCreateRecurringOrder';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import type { RecurringConfirmOrderModalParams } from './RecurringConfirmOrderSheet.types';
@@ -37,6 +46,11 @@ import {
   getAdvancedOrderTradeProperties,
 } from '../../utils/advancedOrders';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import {
+  finishRecurringOrderTrace,
+  type RecurringOrderCreateFailurePhase,
+  startRecurringOrderCreateTrace,
+} from '../../utils/recurringOrderTrace';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -44,7 +58,14 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const { location } = useParams<RecurringConfirmOrderModalParams>();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const sourceAmount = useSelector(selectSourceAmount);
+  const recurring = useSelector(selectRecurring);
   const priceRange = useSelector(selectRecurringPriceRange);
+  const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const sourceWalletAddress = useSelector(selectSourceWalletAddress);
   const fiatToUsdRate = useFiatToUsdRate(sourceToken?.chainId);
@@ -53,8 +74,28 @@ export const RecurringConfirmOrderSheetScreen = () => {
     chainId: sourceToken?.chainId,
   });
   const delegationFee = useEIP7702UpgradeFee();
+  const { createRecurringOrder } = useCreateRecurringOrder();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
+  const clientOrderId = useMemo(
+    () => uuidv4(),
+    // Keep the id stable across retries, but replace it when the draft changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      sourceToken?.address,
+      sourceToken?.chainId,
+      sourceToken?.decimals,
+      destToken?.address,
+      destToken?.chainId,
+      sourceAmount,
+      recurring.everyValue,
+      recurring.everyUnit,
+      recurring.repeatCount,
+      priceRange,
+      slippage,
+      isSlippageUserOverride,
+    ],
+  );
   const canConvertStoredCurrency =
     !priceRange ||
     priceRange.currency.toUpperCase() === USD_PRICE_RANGE_CURRENCY ||
@@ -91,11 +132,58 @@ export const RecurringConfirmOrderSheetScreen = () => {
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     let isAccountUpgraded = false;
+    let failurePhase: RecurringOrderCreateFailurePhase = 'account_upgrade';
+    const traceHandle = startRecurringOrderCreateTrace();
 
     try {
       await autoUpgradeEIP7702Account();
       isAccountUpgraded = true;
-      await createRecurringOrder();
+      failurePhase = 'delegation_prepare';
+      const delegationParams = getRecurringOrderDelegationParams({
+        clientOrderId,
+        sourceToken,
+        destToken,
+        sourceAmount,
+        recurring,
+        getSelectedAccountByScope,
+      });
+      const preparedDelegations =
+        await recurringOrdersApiClient.prepareRecurringDelegation(
+          delegationParams,
+        );
+      // The backend currently returns only the delegations needed to execute.
+      // Recurring and limit orders use the same delegation shape, so sign every
+      // delegation returned while the complete recurring set is finalized.
+      failurePhase = 'signing';
+      const signedDelegations = await signLimitOrderDelegations(
+        preparedDelegations.delegations,
+      );
+      const customSlippage =
+        isSlippageUserOverride && slippage !== undefined
+          ? Number(slippage)
+          : undefined;
+
+      failurePhase = 'create';
+      await createRecurringOrder({
+        accountAddress: delegationParams.accountAddress,
+        clientOrderId: preparedDelegations.order.clientOrderId,
+        src: {
+          assetId: delegationParams.srcAssetId,
+          amount: delegationParams.srcAmount,
+        },
+        dest: {
+          assetId: delegationParams.destAssetId,
+        },
+        ...(customSlippage !== undefined ? { slippage: customSlippage } : {}),
+        schedule: {
+          every: delegationParams.every,
+          unit: delegationParams.unit,
+          repeatCount: delegationParams.repeatCount,
+        },
+        ...(usdPriceRange ? { priceRange: usdPriceRange } : {}),
+        delegations: signedDelegations,
+      });
+      finishRecurringOrderTrace(traceHandle, { result: 'success' });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_COMPLETED)
           .addProperties({
@@ -110,6 +198,10 @@ export const RecurringConfirmOrderSheetScreen = () => {
       dispatch(incrementBridgeBalanceRefreshKey());
       navigation.goBack();
     } catch (error) {
+      finishRecurringOrderTrace(traceHandle, {
+        result: 'error',
+        failurePhase,
+      });
       showRecurringAutoUpgradeError(error);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
@@ -128,13 +220,23 @@ export const RecurringConfirmOrderSheetScreen = () => {
     }
   }, [
     autoUpgradeEIP7702Account,
+    clientOrderId,
     createEventBuilder,
+    createRecurringOrder,
+    destToken,
+    getSelectedAccountByScope,
+    isSlippageUserOverride,
     priceRange,
+    recurring,
+    slippage,
+    sourceAmount,
+    sourceToken,
     trackEvent,
     dispatch,
     isPriceRangeConversionReady,
     navigation,
     sharedAdvancedOrderProperties,
+    usdPriceRange,
   ]);
 
   const handleEditSlippagePress = useCallback(() => {

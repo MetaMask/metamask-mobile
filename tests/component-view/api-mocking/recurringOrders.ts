@@ -2,9 +2,9 @@ import Engine from '../../../app/core/Engine';
 import { assetIdsMatch } from '@metamask/bridge-controller';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { MOCK_RECURRING_ORDERS } from '../../../app/components/UI/Bridge/api/recurringOrders.mock';
-// CV exception: the API is hard-disabled, so HTTP mocks cannot exercise pending and failed cancellations.
-// eslint-disable-next-line import-x/no-namespace
-import * as recurringOrdersApi from '../../../app/components/UI/Bridge/api/recurringOrders';
+// CV injects DataService pages and spies cancellation so pending and failed
+// mutation states remain deterministic without live HTTP.
+import { recurringOrdersApiClient } from '../../../app/components/UI/Bridge/api/recurringOrders.client';
 import { MOCK_RECURRING_SWAPS_BY_ORDER_ID } from '../../../app/components/UI/Bridge/api/recurringSwaps.mock';
 import {
   type CancelRecurringOrderQuery,
@@ -26,7 +26,7 @@ const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.MockedFunction<MessengerCall>;
 const defaultImplementation = messengerCall.getMockImplementation();
 let cancelRecurringOrderSpy:
-  | jest.SpiedFunction<typeof recurringOrdersApi.cancelRecurringOrder>
+  | jest.SpiedFunction<typeof recurringOrdersApiClient.cancelRecurringOrder>
   | undefined;
 
 interface RecurringOrdersDataServiceMockOptions {
@@ -96,6 +96,7 @@ export async function getMockRecurringOrders(
     orders: page,
     ...(hasNextPage ? { endCursor: String(nextPageStart) } : {}),
     hasNextPage,
+    total: orders.length,
   };
 }
 
@@ -127,8 +128,8 @@ export async function getMockRecurringSwaps(
 ): Promise<ListRecurringSwapsResponse> {
   const swaps = [...(MOCK_RECURRING_SWAPS_BY_ORDER_ID[orderId] ?? [])].sort(
     (left, right) =>
-      Date.parse(right.timingData.executedAt ?? right.timingData.scheduledAt) -
-      Date.parse(left.timingData.executedAt ?? left.timingData.scheduledAt),
+      Date.parse(right.timingData.executedAt) -
+      Date.parse(left.timingData.executedAt),
   );
   const pageStart = Number(params.cursor ?? 0);
   const limit = params.limit ?? 20;
@@ -140,6 +141,7 @@ export async function getMockRecurringSwaps(
     swaps: page,
     ...(hasNextPage ? { endCursor: String(nextPageStart) } : {}),
     hasNextPage,
+    total: swaps.length,
   };
 }
 
@@ -154,10 +156,7 @@ export async function cancelMockRecurringOrder(
   if (order.state === RecurringOrderState.Cancelled) {
     return { order };
   }
-  if (
-    order.state === RecurringOrderState.Completed ||
-    order.state === RecurringOrderState.Expired
-  ) {
+  if (order.state === RecurringOrderState.Completed) {
     throw new Error('order_not_cancellable');
   }
 
@@ -183,7 +182,7 @@ export function setupRecurringOrdersDataServiceMock({
 }: RecurringOrdersDataServiceMockOptions = {}) {
   cancelRecurringOrderSpy?.mockRestore();
   cancelRecurringOrderSpy = jest
-    .spyOn(recurringOrdersApi, 'cancelRecurringOrder')
+    .spyOn(recurringOrdersApiClient, 'cancelRecurringOrder')
     .mockImplementation(cancelRecurringOrderRequest);
 
   messengerCall.mockImplementation(

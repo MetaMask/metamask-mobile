@@ -579,8 +579,6 @@ module.exports = {
     //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
     //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
     //     handles any formatting delta.
-    //
-    // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
       files: ['app/**/*-method-action-types*.ts'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
