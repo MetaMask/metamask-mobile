@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Platform } from 'react-native';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
@@ -7,6 +8,8 @@ import TimeRangeSelector from '../../Charts/AdvancedChart/TimeRangeSelector';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import LinePriceChart from '../PriceChart/PriceChart';
+import LinePriceChartWithSocialMarkers from '../PriceChart/LinePriceChartWithSocialMarkers';
+import { selectChartSocialMarkersEnabled } from '../../../../selectors/featureFlagController/chartSocialMarkers';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import type { TimePeriod } from '../../../../components/hooks/useTokenHistoricalPrices';
@@ -182,9 +185,11 @@ export const PriceChartSection = ({
   uniformSpacing = false,
   isGlass = false,
 }: PriceChartSectionProps) => {
+  const isSocialMarkersEnabled = useSelector(selectChartSocialMarkersEnabled);
   const {
     activeIndicators,
     ambientSuccessGreen,
+    assetId,
     chartHeight,
     chartLoading,
     chartPresets,
@@ -243,17 +248,34 @@ export const PriceChartSection = ({
           twClassName={`${chartMarginTop}w-full overflow-hidden`}
           style={{ height: chartHeight }}
         >
-          <LinePriceChart
-            prices={distributedRealtimePrices}
-            priceDiff={priceDiff}
-            isLoading={isLoading}
-            onChartIndexChange={handleLineChartInteraction}
-            chartColorOverride={initialAmbientColor ?? undefined}
-            hasInsufficientCoverage={hasInsufficientCoverage}
-            timePeriodMs={
-              TIME_PERIOD_MS[timeRange.toLowerCase() as TimePeriod] ?? undefined
-            }
-          />
+          {isSocialMarkersEnabled ? (
+            <LinePriceChartWithSocialMarkers
+              assetId={assetId}
+              prices={distributedRealtimePrices}
+              priceDiff={priceDiff}
+              isLoading={isLoading}
+              onChartIndexChange={handleLineChartInteraction}
+              chartColorOverride={initialAmbientColor ?? undefined}
+              hasInsufficientCoverage={hasInsufficientCoverage}
+              timePeriodMs={
+                TIME_PERIOD_MS[timeRange.toLowerCase() as TimePeriod] ??
+                undefined
+              }
+            />
+          ) : (
+            <LinePriceChart
+              prices={distributedRealtimePrices}
+              priceDiff={priceDiff}
+              isLoading={isLoading}
+              onChartIndexChange={handleLineChartInteraction}
+              chartColorOverride={initialAmbientColor ?? undefined}
+              hasInsufficientCoverage={hasInsufficientCoverage}
+              timePeriodMs={
+                TIME_PERIOD_MS[timeRange.toLowerCase() as TimePeriod] ??
+                undefined
+              }
+            />
+          )}
         </Box>
       )}
 

@@ -55,6 +55,7 @@ export enum FeatureFlagNames {
   exploreBrandRefresh = 'exploreBrandRefresh',
   glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
+  tokenDetailsChartSocialMarkers = 'tokenDetailsChartSocialMarkers',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -87,6 +88,10 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.moneyVbaCompletedActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
+  [FeatureFlagNames.tokenDetailsChartSocialMarkers]: {
     enabled: false,
     minimumVersion: null,
   },
