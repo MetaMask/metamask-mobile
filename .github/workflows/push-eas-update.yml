@@ -437,9 +437,21 @@ jobs:
       inputs.channel == 'production'
     permissions:
       contents: read
+      checks: read # required CI check in verify-required-ci.sh
       id-token: write # token exchange for the team approval check
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout scripts
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Require green CI on the commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
+        run: .github/scripts/verify-required-ci.sh
+
       - name: Get token
         id: get-token
         uses: MetaMask/github-tools/.github/actions/get-token@v1
