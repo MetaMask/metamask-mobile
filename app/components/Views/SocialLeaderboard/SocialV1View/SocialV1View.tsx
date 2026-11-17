@@ -895,7 +895,7 @@ const SocialV1ViewContent: React.FC = () => {
       >
         <SocialFeedPageProviders
           isActive={isFocused && isPageActive}
-          rotatesTraderStats={isPageActive}
+          rotatesTraderStats={isFocused && isPageActive}
         >
           {renderPage(tab, isPageActive, pageRefs[tab])}
         </SocialFeedPageProviders>

@@ -7,6 +7,7 @@ import {
 } from '@testing-library/react-native';
 import { useIsFocused } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
+import type { FlashListProps } from '@shopify/flash-list';
 import React from 'react';
 import { FlatList, RefreshControl, Text } from 'react-native';
 import {
@@ -30,7 +31,10 @@ import {
 } from '../../../Views/SocialLeaderboard/pendingPosts/pendingPostsStore';
 import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
+  getSocialFeedListItemType,
+  shouldSlideFeedCell,
 } from './SocialFeedVirtualized';
+import type { SocialFeedListItem } from '../utils/buildSocialFeedListItems';
 
 const RealtimeProbe = () => {
   const realtime = useSocialFeedRealtime();
@@ -46,6 +50,27 @@ jest.mock('../../../../util/haptics', () => ({
 }));
 
 let mockViewerProfileId: string | undefined;
+
+jest.mock('@shopify/flash-list', () => {
+  const ReactMock = jest.requireActual<typeof import('react')>('react');
+  const { FlatList: MockFlashList } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    FlashList: ReactMock.forwardRef(
+      (
+        props: FlashListProps<unknown>,
+        ref: React.ForwardedRef<FlatList<unknown>>,
+      ) =>
+        ReactMock.createElement(MockFlashList, {
+          ...props,
+          initialNumToRender: props.data?.length,
+          ref,
+        } as unknown as React.ComponentPropsWithRef<typeof MockFlashList>),
+    ),
+  };
+});
+
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
   useSocialProfileId: () => ({
     profileId: mockViewerProfileId,
@@ -129,6 +154,8 @@ jest.mock('./FeedItemEntryAnimation', () => ({
     <>{children}</>
   )),
   createFeedItemEntryScheduler: () => () => 0,
+  FEED_ITEM_ENTRY_DURATION_MS: 500,
+  FEED_ROW_SLIDE_MS_LOW: 250,
   FEED_ROW_LAYOUT_TRANSITION: 'row-layout-transition',
   FEED_ROW_LAYOUT_TRANSITION_LOW: 'row-layout-transition-low',
 }));
@@ -237,6 +264,20 @@ const renderFeed = (
 const getList = () => screen.UNSAFE_getByType(FlatList);
 
 const lastFeedOptions = () => mockUseSocialFeed.mock.lastCall?.[1];
+
+describe('shouldSlideFeedCell', () => {
+  it('slides a row shifted by one inserted post', () => {
+    expect(shouldSlideFeedCell(1, 180)).toBe(true);
+  });
+
+  it('snaps a recycled cell that jumps several rows', () => {
+    expect(shouldSlideFeedCell(8, 900)).toBe(false);
+  });
+
+  it('snaps when the cell did not move', () => {
+    expect(shouldSlideFeedCell(0, 0)).toBe(false);
+  });
+});
 
 describe('SocialFeedVirtualized', () => {
   beforeEach(() => {
@@ -400,7 +441,7 @@ describe('SocialFeedVirtualized', () => {
     expect(screen.queryByTestId(getSocialFeedPostSkeletonTestId(2))).toBeNull();
   });
 
-  it('uses a smaller window and reduced motion on low-end hardware', () => {
+  it('uses a smaller draw distance and reduced motion on low-end hardware', () => {
     mockGetHardwareTier.mockReturnValue('LOW');
     mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
 
@@ -408,10 +449,8 @@ describe('SocialFeedVirtualized', () => {
 
     expect(getList().props).toEqual(
       expect.objectContaining({
-        initialNumToRender: 4,
-        maxToRenderPerBatch: 1,
-        windowSize: 3,
-        itemLayoutAnimation: 'row-layout-transition-low',
+        drawDistance: 200,
+        maintainVisibleContentPosition: { disabled: true },
       }),
     );
     expect(mockFeedItemEntryAnimation.mock.lastCall?.[0]).toEqual(
@@ -419,17 +458,15 @@ describe('SocialFeedVirtualized', () => {
     );
   });
 
-  it('keeps the default window, skeleton, and motion while tiers are unknown', () => {
+  it('keeps the default draw distance and skeleton while tiers are unknown', () => {
     mockUseSocialFeed.mockReturnValue(feedState({ isLoading: true }));
 
     renderFeed();
 
     expect(getList().props).toEqual(
       expect.objectContaining({
-        initialNumToRender: 6,
-        maxToRenderPerBatch: 1,
-        windowSize: 5,
-        itemLayoutAnimation: 'row-layout-transition',
+        drawDistance: 400,
+        maintainVisibleContentPosition: { disabled: true },
       }),
     );
     expect(
@@ -437,6 +474,36 @@ describe('SocialFeedVirtualized', () => {
     ).toBeOnTheScreen();
     expect(lastFeedOptions()).toEqual(
       expect.objectContaining({ enabled: true, holdNewPosts: false }),
+    );
+  });
+
+  it('uses separate recycling pools for each row shape', () => {
+    const items: SocialFeedListItem[] = [
+      { kind: 'post', post: post('one') },
+      { kind: 'inline', row: inlineRow('rail', 1) },
+      { kind: 'placeholder' },
+    ];
+
+    const itemTypes = items.map(getSocialFeedListItemType);
+
+    expect(itemTypes).toEqual(['post-perpsOpen', 'inline-rail', 'placeholder']);
+  });
+
+  it('does not key a row, so a recycled cell updates in place', () => {
+    renderFeed();
+    const renderItem = getList().props.renderItem as (info: {
+      item: SocialFeedListItem;
+      index: number;
+    }) => React.ReactElement;
+    const items: SocialFeedListItem[] = [
+      { kind: 'post', post: post('one') },
+      { kind: 'post', post: post('two') },
+      { kind: 'inline', row: inlineRow('rail', 1) },
+      { kind: 'placeholder' },
+    ];
+
+    expect(items.map((item, index) => renderItem({ item, index }).key)).toEqual(
+      [null, null, null, null],
     );
   });
 
@@ -654,7 +721,7 @@ describe('SocialFeedVirtualized', () => {
     renderFeed({ realtime: true });
 
     await act(async () => {
-      fireEvent.press(screen.getByLabelText('3 new posts'));
+      fireEvent.press(screen.getByLabelText('3 new updates'));
     });
 
     expect(calls).toEqual(['reveal', 'scroll 0', 'refresh']);
@@ -665,7 +732,7 @@ describe('SocialFeedVirtualized', () => {
     renderFeed({ realtime: true });
 
     await act(async () => {
-      fireEvent.press(screen.getByLabelText('3 new posts'));
+      fireEvent.press(screen.getByLabelText('3 new updates'));
     });
 
     expect(calls).toEqual(['reveal', 'scroll 0']);
@@ -707,7 +774,7 @@ describe('SocialFeedVirtualized', () => {
 
     renderFeed({ realtime: true });
 
-    expect(screen.queryByLabelText(/new post/)).toBeNull();
+    expect(screen.queryByLabelText(/new update/)).toBeNull();
   });
 
   it('reveals held posts when resumed', async () => {

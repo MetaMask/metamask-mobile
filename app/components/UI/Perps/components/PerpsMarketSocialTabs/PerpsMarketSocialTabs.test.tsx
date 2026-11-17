@@ -82,6 +82,20 @@ describe('PerpsMarketSocialTabs', () => {
     );
   });
 
+  it('keeps the footer off Feed and shows it on the other tabs', () => {
+    renderTabs({ footer: <Text>risk disclaimer</Text> });
+
+    expect(screen.getByText('risk disclaimer')).toBeOnTheScreen();
+
+    pressTab('feed');
+
+    expect(screen.queryByText('risk disclaimer')).toBeNull();
+
+    pressTab('top_traders');
+
+    expect(screen.getByText('risk disclaimer')).toBeOnTheScreen();
+  });
+
   it('hides the overview content once another tab is active', () => {
     renderTabs();
 

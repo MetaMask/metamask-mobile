@@ -6,6 +6,7 @@ import {
 import { PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS } from '../adapters/remote/PredictLiveDataClient';
 import { type PredictEntityId } from '../types';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
+import { MARKET_DATA_EVENT_STALE_TIME } from '../queries/marketDataQueries';
 
 const id = (value: string) => value as PredictEntityId;
 
@@ -378,6 +379,80 @@ describe('PredictNext live-data subscriptions', () => {
       ],
     );
     expect(harness.liveDataService.watchedEventIds).toEqual([id('props')]);
+  });
+
+  it('subscribes a Market a REST refresh added while the Event Screen keeps the Event watched', async () => {
+    const growing = {
+      venueId: 'kalshi',
+      id: 'growing',
+      title: 'Growing',
+      markets: [market('g-m1')],
+    };
+    const harness = createPredictNextIntegrationHarness((url) => {
+      if (url.includes('/events/growing')) {
+        return { body: growing };
+      }
+      const match = /\/events\/([^/?]+)/u.exec(url);
+      const event = match
+        ? feedEvents[match[1] as keyof typeof feedEvents]
+        : undefined;
+      return event ? { body: event } : { status: 404 };
+    });
+    harnesses.push(harness);
+    const visible = (...ids: string[]) => ({
+      marketScope: { type: 'visible' as const, marketIds: ids.map(id) },
+    });
+    const watchVisible = (...ids: string[]) =>
+      harness.messenger.call(
+        'PredictLiveDataService:watchEvents',
+        KALSHI_VENUE_ID,
+        [id('growing')],
+        visible(...ids),
+      );
+    const unwatchVisible = (...ids: string[]) =>
+      harness.messenger.call(
+        'PredictLiveDataService:unwatchEvents',
+        KALSHI_VENUE_ID,
+        [id('growing')],
+        visible(...ids),
+      );
+
+    watchVisible('g-m1');
+    const socket = await openAndWelcome(harness);
+    await settle();
+    expect(socket.subscribedIds('market')).toEqual(['g-m1']);
+
+    // The Event goes stale and the screen's REST refresh now lists g-m2.
+    growing.markets = [market('g-m1'), market('g-m2')];
+    jest.advanceTimersByTime(MARKET_DATA_EVENT_STALE_TIME + 1);
+    const refreshed = await harness.messenger.call(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      id('growing'),
+    );
+    expect(refreshed.markets.map(({ id: marketId }) => marketId)).toEqual([
+      'g-m1',
+      'g-m2',
+    ]);
+
+    // The screen re-scopes to show g-m2: the new list is watched before the
+    // old one is released, so the Event never loses its last watcher.
+    watchVisible('g-m1', 'g-m2');
+    unwatchVisible('g-m1');
+    await settle();
+
+    expect(socket.subscribedIds('market')).toEqual(['g-m1', 'g-m2']);
+    expect(socket.sent.filter((frame) => frame.type === 'unsubscribe')).toEqual(
+      [],
+    );
+    expect(harness.liveDataService.watchedEventIds).toEqual([id('growing')]);
+
+    // A Market of another Event is still dropped after the re-read.
+    watchVisible('g-m1', 'g-m2', 'e1-m1');
+    unwatchVisible('g-m1', 'g-m2');
+    await settle();
+
+    expect(socket.subscribedIds('market')).toEqual(['g-m1', 'g-m2']);
   });
 
   it('drops the connection in the background and resubscribes the visible set on foreground', async () => {

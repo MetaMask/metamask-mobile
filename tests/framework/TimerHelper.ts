@@ -129,6 +129,14 @@ class TimerHelper {
   }
 
   /**
+   * Replaces the threshold once the measured transition is known.
+   * @param threshold - Platform-specific thresholds in ms
+   */
+  changeThreshold(threshold?: PlatformThreshold): void {
+    this._baseThreshold = this._resolveThreshold(threshold, this._platform);
+  }
+
+  /**
    * Returns the duration of the timer in seconds.
    * @returns Duration in seconds, or 0 if the timer has no duration
    */

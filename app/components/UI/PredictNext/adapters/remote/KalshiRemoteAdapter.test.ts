@@ -1689,7 +1689,7 @@ describe('KalshiRemoteAdapter', () => {
     it('rejects a quote for another Venue', async () => {
       client.fetchWithdrawPreview.mockResolvedValue({
         ...previewPayload,
-        venueId: 'polymarket',
+        venueId: 'other-venue',
       });
 
       await expect(
@@ -1711,7 +1711,7 @@ describe('KalshiRemoteAdapter', () => {
     it('rejects an observation bound to another Venue', async () => {
       client.observeWithdraw.mockResolvedValue({
         ...receiptPayload,
-        venueId: 'polymarket',
+        venueId: 'other-venue',
       });
 
       await expect(

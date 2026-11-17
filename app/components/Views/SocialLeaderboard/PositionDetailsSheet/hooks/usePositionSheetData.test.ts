@@ -71,7 +71,12 @@ describe('usePositionSheetData', () => {
   beforeEach(() => {
     jest.useFakeTimers({ now: NOW_MS });
     jest.clearAllMocks();
-    mockUsePerpsSheetPrices.mockReturnValue({ prices: [], isLoading: false });
+    mockUsePerpsSheetPrices.mockReturnValue({
+      prices: [],
+      isLoading: false,
+      isError: false,
+      retry: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -241,6 +246,8 @@ describe('usePositionSheetData', () => {
       mockUsePerpsSheetPrices.mockReturnValue({
         prices: hourlyPrices(NOW_MS - 6 * DAY_MS, NOW_MS, [110000, 104000]),
         isLoading: false,
+        isError: false,
+        retry: jest.fn(),
       });
 
       const { result } = renderData(

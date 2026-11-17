@@ -197,7 +197,7 @@ describe('PredictFundingService', () => {
       const service = serviceWith();
 
       await expect(
-        service.requestWithdrawPreview('polymarket' as PredictVenueId, {
+        service.requestWithdrawPreview('other-venue' as PredictVenueId, {
           sweepAll: true,
         }),
       ).rejects.toMatchObject({ code: PredictErrorCode.UNSUPPORTED_VENUE });
@@ -276,7 +276,7 @@ describe('PredictFundingService', () => {
       // before one is created.
       expect(() =>
         service.commitWithdrawPreview(
-          'polymarket' as PredictVenueId,
+          'other-venue' as PredictVenueId,
           'preview-1',
         ),
       ).toThrow(

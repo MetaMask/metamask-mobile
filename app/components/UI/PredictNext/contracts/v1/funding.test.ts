@@ -167,7 +167,7 @@ describe('parsePredictWithdrawReceipt', () => {
       'a missing needsManualReview',
       { ...validProcessingReceipt, needsManualReview: undefined },
     ],
-    ['a receipt without a venueId match', { ...validProcessingReceipt, venueId: 'polymarket' }],
+    ['a receipt without a venueId match', { ...validProcessingReceipt, venueId: 'other-venue' }],
     [
       'a receipt resolved by a non-UTC instant',
       { ...validProcessingReceipt, resolvedAt: '2026-03-01T12:00:20+00:00' },

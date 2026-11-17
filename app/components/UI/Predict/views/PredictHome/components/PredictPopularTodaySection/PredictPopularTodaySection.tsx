@@ -40,7 +40,7 @@ const DEFAULT_CHIP_ROW_COUNT = 2;
  * of firing two. The display cap is applied client-side via
  * `POPULAR_TODAY_FILTER_LIMIT` when slicing the returned options.
  */
-const POPULAR_TODAY_FILTER_PARAMS: PredictFilterOptionsParams = (() => {
+export const POPULAR_TODAY_FILTER_PARAMS: PredictFilterOptionsParams = (() => {
   const dynamicConfig = resolvePredictFeedDynamicFilterConfig('trending');
 
   return {

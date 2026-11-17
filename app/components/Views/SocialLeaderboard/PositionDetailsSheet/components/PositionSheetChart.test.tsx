@@ -10,7 +10,14 @@ import type { SharedValue } from 'react-native-reanimated';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
-import PositionSheetChart from './PositionSheetChart';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
+import PositionSheetChart, { SCRUB_LONG_PRESS_MS } from './PositionSheetChart';
+
+jest.mock('../../../../../util/haptics');
 
 const PRICES: TokenPrice[] = [
   ['1', 100],
@@ -80,6 +87,19 @@ describe('PositionSheetChart', () => {
     ).toBeUndefined();
   });
 
+  it('shows a retry instead of the skeleton when prices fail', () => {
+    const onRetry = jest.fn();
+    renderChart({ isLoading: true, isError: true, onRetry });
+
+    expect(
+      screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CHART_LOADING),
+    ).toBeNull();
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.CHART_RETRY),
+    );
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
   it('shows the skeleton while prices load', () => {
     renderChart({ isLoading: true });
 
@@ -112,6 +132,34 @@ describe('PositionSheetChart', () => {
     expect(onScrub).toHaveBeenCalledWith(PRICES[1]);
     expect(onScrub).toHaveBeenCalledWith(PRICES[2]);
     expect(onScrub).toHaveBeenLastCalledWith(null);
+  });
+
+  it('starts scrubbing only after a brief long press', () => {
+    renderChart();
+
+    const gesture = getByGestureTestId(
+      PositionDetailsSheetSelectorsIDs.CHART_SCRUB,
+    );
+
+    expect(gesture.config.activateAfterLongPress).toBe(SCRUB_LONG_PRESS_MS);
+    expect(SCRUB_LONG_PRESS_MS).toBe(200);
+  });
+
+  it('taps once when scrubbing starts and ticks once per fill crossed', () => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+    renderChart();
+
+    act(() => {
+      fireGestureHandler(
+        getByGestureTestId(PositionDetailsSheetSelectorsIDs.CHART_SCRUB),
+        [{ x: 100 }, { x: 102 }, { x: 200 }],
+      );
+    });
+
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.ChartCrosshair);
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('pins the tooltip on the scrubbed fill and colors an exit amount', () => {

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -38,6 +37,9 @@ import { AppStackNavigationProp } from '../../../../../core/NavigationService/ty
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PoolStakingLearnMoreModalRouteParams {
   chainId: Hex;
@@ -49,6 +51,7 @@ type PoolStakingLearnMoreModalRouteProp = RouteProp<
 >;
 
 const PoolStakingLearnMoreModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
 
@@ -154,7 +157,9 @@ const PoolStakingLearnMoreModal = () => {
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <ScrollView bounces={false}>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
           title={strings('stake.stake_eth_and_earn')}
           onClose={handleClose}
         />

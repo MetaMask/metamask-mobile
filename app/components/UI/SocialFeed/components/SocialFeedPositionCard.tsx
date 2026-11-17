@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
+import { useFeedAgeNow } from '../hooks/useFeedAgeNow';
 import { useLiveCardHeader } from '../live/useLiveCardHeader';
 import type { SocialV1FeedItem } from '../types';
 import { formatFeedPostAge, formatHoldDuration } from '../utils/formatters';
@@ -166,6 +167,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   showCopyTrade = true,
   now,
 }) => {
+  const clock = useFeedAgeNow(now);
   const header = useLiveCardHeader(
     item.id,
     item.variant === 'perpsOpen' ||
@@ -203,7 +205,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
       {
         key: 'holdTime',
         label: strings('social_leaderboard.feed.position_card.hold_time'),
-        value: openHoldTimeLabel(item, now),
+        value: openHoldTimeLabel(item, clock),
         testID: statId(item.id, 'holdTime'),
       },
       {

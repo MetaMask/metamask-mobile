@@ -494,13 +494,13 @@ describeForPlatforms('Predict dual-stack closure: one Venue everywhere', () => {
       view.queryByTestId(PredictMarketListSelectorsIDs.CONTAINER),
     ).toBeNull();
     // Funding entry points follow the Venue: Kalshi's Home offers Withdraw,
-    // and Polymarket's does not, because the legacy lane runs its own.
+    // and the legacy lane's does not, because it runs its own.
     expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
 
     // ── Back to Polymarket: parity with where the journey started.
     await switchVenueInPredict(view, 'polymarket');
-    // The legacy lane runs Polymarket's own withdrawal in its market list
-    // screens: no PredictNext Withdraw entry point appears here.
+    // The legacy lane runs its own withdrawal in its market list screens:
+    // no PredictNext Withdraw entry point appears here.
     expect(view.queryByTestId(PredictHomeTestIds.WITHDRAW, HIDDEN)).toBeNull();
     const kalshiReadsAtSwitch = kalshiReads();
     const polymarketAfter = await readSurfaces(view, 'polymarket');

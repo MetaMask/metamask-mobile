@@ -9,6 +9,7 @@ import type {
   SocialDataFetchTab,
   SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
+import type { SocialFeedListState } from '../utils/getSocialFeedListState';
 import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
 
 /**
@@ -80,6 +81,8 @@ export interface SocialFeedContentProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Lets a host refresh the feed from its own pull-to-refresh control. */
   refreshRef?: React.Ref<SocialFeedRefreshHandle>;
+  /** Lets the host react to skeleton, empty, and retry, for example padding. */
+  onListStateChange?: (state: SocialFeedListState) => void;
 }
 
 export interface SocialFeedRefreshHandle {
@@ -112,6 +115,8 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   inlineRows?: readonly SocialFeedInlineRow[];
   /** Called when the user pulls to refresh, for host analytics. */
   onRefresh?: () => void;
+  /** Lets the host hide chrome that only belongs above posts. */
+  onListStateChange?: (state: SocialFeedListState) => void;
   /** Social V1 tab traces: the initial fetch and the first content. */
   performance?: Readonly<{
     tab: SocialDataFetchTab;

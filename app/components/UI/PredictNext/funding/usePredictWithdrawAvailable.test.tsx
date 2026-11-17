@@ -29,14 +29,7 @@ const KALSHI_ACTIVE: ActiveVenueResolution = {
   venue: 'kalshi',
   source: 'rollout',
 };
-const POLYMARKET_ACTIVE: ActiveVenueResolution = {
-  status: 'ready',
-  venue: 'polymarket',
-  source: 'legacyLane',
-};
-
 const KALSHI_ID = 'kalshi' as PredictVenueId;
-const POLYMARKET_ID = 'polymarket' as PredictVenueId;
 
 const descriptor = (
   venueId: PredictVenueId,
@@ -136,32 +129,6 @@ describe('usePredictWithdrawAvailable', () => {
     expect(result.current).toEqual({
       status: 'unavailable',
       reason: 'resolving',
-    });
-  });
-
-  it('runs the legacy flow on Polymarket, whose descriptor lists withdraw', () => {
-    const { result } = renderWithdrawAvailable({
-      activeVenue: POLYMARKET_ACTIVE,
-      capabilities: descriptor(POLYMARKET_ID, ['buy', 'sell', 'withdraw']),
-      venueId: POLYMARKET_ID,
-    });
-
-    expect(result.current).toEqual({
-      status: 'ready',
-      implementation: 'legacy',
-    });
-  });
-
-  it('stays unsupported on Polymarket when its descriptor omits withdraw', () => {
-    const { result } = renderWithdrawAvailable({
-      activeVenue: POLYMARKET_ACTIVE,
-      capabilities: descriptor(POLYMARKET_ID, ['buy', 'sell']),
-      venueId: POLYMARKET_ID,
-    });
-
-    expect(result.current).toEqual({
-      status: 'unavailable',
-      reason: 'unsupported',
     });
   });
 });

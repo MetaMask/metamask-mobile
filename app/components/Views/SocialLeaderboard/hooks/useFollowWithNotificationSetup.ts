@@ -54,8 +54,17 @@ export const useFollowWithNotificationSetup = ({
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
 
   const followWithSetup = useCallback(
-    async (isFollowing: boolean, performFollow: PerformFollow) => {
-      if (requireSocialTerms && !ensureSocialTermsAccepted()) {
+    async function follow(
+      isFollowing: boolean,
+      performFollow: PerformFollow,
+    ): Promise<void> {
+      // The gate blocked the toggle, so replaying it after Accept runs it once.
+      if (
+        requireSocialTerms &&
+        !ensureSocialTermsAccepted(() => {
+          follow(isFollowing, performFollow).catch(() => undefined);
+        })
+      ) {
         return;
       }
       if (requireSocialProfile && !ensureSocialProfileOnboarding()) {

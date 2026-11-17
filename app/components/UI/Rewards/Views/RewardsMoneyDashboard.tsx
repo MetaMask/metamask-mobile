@@ -358,10 +358,7 @@ const RewardsMoneyDashboard: React.FC = () => {
               }}
               titleProps={{ accessibilityRole: 'header' }}
             />
-            <Box
-              twClassName="border-b border-muted"
-              testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TABS}
-            >
+            <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TABS}>
               <TabsBar
                 tabs={tabs}
                 activeIndex={TAB_ORDER.indexOf(activeTab)}

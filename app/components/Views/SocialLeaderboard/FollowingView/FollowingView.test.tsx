@@ -20,7 +20,10 @@ import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SOCIAL_FILTER_EMPTY_STATE_TEST_ID } from '../shared/SocialFilterEmptyState';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
+import type { UsePopularTradersResult } from '../SocialV1View/feed/hooks/usePopularTraders';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
+import { FOLLOWING_SUGGESTIONS_TEST_ID } from './components/FollowingSuggestions';
+import { FOLLOWING_EMPTY_LOADING_TEST_ID } from './components/FollowingEmptyContent';
 import FollowingView, { FOLLOWING_FEED_QUERY } from './FollowingView';
 
 interface MockSocialFeedProps {
@@ -34,6 +37,11 @@ interface MockSocialFeedProps {
   renderHeader?: () => React.ReactNode;
   emptyState?: React.ReactNode;
   onRefresh?: () => void;
+  onListStateChange?: (state: {
+    showSkeleton: boolean;
+    showEmpty: boolean;
+    showRetry: boolean;
+  }) => void;
   performance?: { tab: string; context: SocialPerformanceContext };
   pageRef?: React.Ref<SocialFeedPageHandle>;
   onCopyTrade?: unknown;
@@ -46,6 +54,21 @@ interface MockSocialFeedProps {
 
 const mockSocialFeed = jest.fn<null, [MockSocialFeedProps]>();
 const mockFeedScrollToOffset = jest.fn();
+const mockFeedListState = {
+  current: { showSkeleton: false, showEmpty: false, showRetry: false },
+};
+const mockUseFollowedTraders = jest.fn();
+const mockUsePopularTraders = jest.fn(
+  (): UsePopularTradersResult => ({
+    traders: [],
+    isLoading: false,
+    isFetching: false,
+    hasFetched: true,
+    error: null,
+    refresh: jest.fn(),
+    toggleFollow: jest.fn(),
+  }),
+);
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
@@ -55,6 +78,9 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
 
   const MockSocialFeed = (props: MockSocialFeedProps) => {
     mockSocialFeed(props);
+    ReactActual.useEffect(() => {
+      props.onListStateChange?.(mockFeedListState.current);
+    }, [props.onListStateChange]);
     ReactActual.useImperativeHandle(props.pageRef, () => ({
       scrollToOffset: mockFeedScrollToOffset,
     }));
@@ -83,6 +109,24 @@ const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../NotificationPreferences/hooks/useFollowedTraders', () => ({
+  useFollowedTraders: () => mockUseFollowedTraders(),
+}));
+
+jest.mock('../SocialV1View/feed/hooks/usePopularTraders', () => ({
+  usePopularTraders: () => mockUsePopularTraders(),
+}));
+
+jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
+  useFollowWithNotificationSetup: () => ({
+    followWithSetup: jest.fn(
+      async (_isFollowing: boolean, performFollow: () => Promise<void>) => {
+        await performFollow();
+      },
+    ),
+  }),
 }));
 
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
@@ -133,6 +177,17 @@ const chooseSort = (sort: 'most_recent' | 'popular') => {
 describe('FollowingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: false,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [{ id: 'followed-1' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
   });
 
   it('renders the following_v1 feed in virtualized mode, without realtime', () => {
@@ -239,6 +294,77 @@ describe('FollowingView', () => {
       screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId(SOCIAL_FILTER_EMPTY_STATE_TEST_ID)).toBeNull();
+  });
+
+  it('shows suggested traders and hides the filter bar when the viewer follows nobody', () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    renderWithProvider(<FollowingView />);
+
+    expect(screen.getByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'social_leaderboard.feed.v1_empty.following_suggestions.title',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR),
+    ).toBeNull();
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+  });
+
+  it('says no one has posted yet when followed traders have no posts', () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+
+    renderWithProvider(<FollowingView />);
+
+    expect(
+      screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'social_leaderboard.feed.v1_empty.following.description',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
+  });
+
+  it('waits to choose an empty state while the follow list loads', () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    renderWithProvider(<FollowingView />);
+
+    expect(
+      screen.getByTestId(FOLLOWING_EMPTY_LOADING_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
   });
 
   it('shows the filter empty state and a selected filter button while filters apply', () => {
