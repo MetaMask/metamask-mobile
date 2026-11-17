@@ -1604,15 +1604,22 @@ export class RewardsDataService {
    * Opt a subscription into a campaign.
    * @param subscriptionId - The subscription ID for authentication.
    * @param campaignId - The campaign ID to opt into.
+   * @param profileUsername - Social profile username captured at opt-in, when the user has one.
    * @returns The participant status after opting in.
    */
   async optInToCampaign(
     subscriptionId: string,
     campaignId: string,
+    profileUsername?: string,
   ): Promise<CampaignParticipantStatusDto> {
     const response = await this.makeRequest(
       `/wr/campaigns/${campaignId}/opt-in`,
-      { method: 'POST' },
+      {
+        method: 'POST',
+        ...(profileUsername
+          ? { body: JSON.stringify({ profileUsername }) }
+          : {}),
+      },
       subscriptionId,
     );
 

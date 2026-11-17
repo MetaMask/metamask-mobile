@@ -12863,6 +12863,7 @@
       "entered": "Entered",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
+      "create_username": "Create a username",
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",
       "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
