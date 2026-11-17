@@ -8,8 +8,6 @@ import type { SocialFeedListState } from '../../../SocialFeed/utils/getSocialFee
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
 
-const NATIVE_ASSET_NAMESPACE = 'slip44';
-
 interface TokenDetailsFeedTabProps {
   assetId: CaipAssetType;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
@@ -33,13 +31,8 @@ const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
 }) => {
   const { onAuthorPress, onPositionPress } =
     useSocialFeedPostNavigation('token_details');
-  // A native asset has no contract, so the feed is every trader on its chain.
-  // A token is the global feed narrowed to that one asset.
   const query = useMemo(() => {
-    const { chainId, assetNamespace } = parseCaipAssetType(assetId);
-    if (assetNamespace === NATIVE_ASSET_NAMESPACE) {
-      return { scope: 'leaderboard' as const, chains: [chainId] };
-    }
+    const { chainId } = parseCaipAssetType(assetId);
     return {
       scope: 'all' as const,
       chains: [chainId],
@@ -64,6 +57,7 @@ const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
           {...query}
           location="token_details"
           isActive={isActive}
+          realtime
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={onPositionPress}

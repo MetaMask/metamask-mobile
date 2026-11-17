@@ -485,6 +485,11 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.MONEY);
     });
 
+    it('maps KYC action to the Money route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.KYC);
+      expect(result).toBe(DeepLinkRoute.MONEY);
+    });
+
     it('maps Money account deposit action to its dedicated route', () => {
       const result = mapSupportedActionToRoute(ACTIONS.MONEY_ACCOUNT_DEPOSIT);
       expect(result).toBe(DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT);
@@ -624,6 +629,13 @@ describe('deepLinkAnalytics', () => {
 
     it('extract money route', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/money');
+      expect(result).toBe(DeepLinkRoute.MONEY);
+    });
+
+    it('extracts a KYC session link as the Money route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/kyc?sessionId=fd45a61a-0795-454b-98ed-24d005dba30d',
+      );
       expect(result).toBe(DeepLinkRoute.MONEY);
     });
 

@@ -45,6 +45,7 @@ import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurri
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
+import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
@@ -72,7 +73,6 @@ const OPEN_ORDER_STATES = [RecurringOrderState.Open];
 const HISTORY_ORDER_STATES = [
   RecurringOrderState.Completed,
   RecurringOrderState.Cancelled,
-  RecurringOrderState.Expired,
 ];
 const LOAD_MORE_SCROLL_THRESHOLD = 200;
 const FEE_TOKEN_ERROR_BANNER_TEST_IDS = {
@@ -154,6 +154,20 @@ const BridgeRecurringBuyViewContent = ({
     orderStates: HISTORY_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: isRemoteDataEnabled && recurringOrdersTab === OrdersTabKey.History,
+  });
+  const activeOrdersQuery =
+    recurringOrdersTab === OrdersTabKey.OpenOrders
+      ? openOrdersQuery
+      : historyQuery;
+
+  useRecurringOrdersListTrace({
+    enabled: isRemoteDataEnabled && Boolean(walletAddress),
+    listType:
+      recurringOrdersTab === OrdersTabKey.OpenOrders ? 'open' : 'history',
+    hasNetworkFilter: Boolean(ordersNetworkFilter),
+    isLoading: activeOrdersQuery.isLoading,
+    isError: activeOrdersQuery.isError,
+    resultCount: activeOrdersQuery.orders.length,
   });
 
   const {
@@ -283,18 +297,13 @@ const BridgeRecurringBuyViewContent = ({
   );
 
   const handleOrdersRefresh = useCallback(async () => {
-    const activeOrdersQuery =
-      recurringOrdersTab === OrdersTabKey.OpenOrders
-        ? openOrdersQuery
-        : historyQuery;
-
     setIsRefreshingOrders(true);
     try {
       await activeOrdersQuery.refresh();
     } finally {
       setIsRefreshingOrders(false);
     }
-  }, [recurringOrdersTab, historyQuery, openOrdersQuery]);
+  }, [activeOrdersQuery]);
 
   const priceRangeToken =
     priceRange?.tokenSide === 'source' ? sourceToken : destToken;

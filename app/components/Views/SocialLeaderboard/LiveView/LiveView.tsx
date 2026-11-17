@@ -7,7 +7,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
@@ -46,6 +49,8 @@ export interface LiveViewProps {
   onClearFilters?: () => void;
   /** Filters committed in the Live filter sheet. */
   appliedFilters?: SocialShellFilters;
+  contentTopInset?: number;
+  pendingPostsTopOffset?: number | SharedValue<number>;
   onCopyTrade?: SocialFeedProps['onCopyTrade'];
 }
 
@@ -58,6 +63,8 @@ const LiveView: React.FC<LiveViewProps> = ({
   isFilterActive = false,
   onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
+  contentTopInset,
+  pendingPostsTopOffset,
   onCopyTrade,
 }) => {
   const { onAuthorPress, onPositionPress } =
@@ -160,6 +167,9 @@ const LiveView: React.FC<LiveViewProps> = ({
         emptyState={liveEmpty}
         renderHeader={renderHeader}
         onScroll={onScroll}
+        contentTopInset={contentTopInset}
+        refreshProgressViewOffset={contentTopInset}
+        pendingPostsTopOffset={pendingPostsTopOffset}
         pageRef={feedPageRef}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}

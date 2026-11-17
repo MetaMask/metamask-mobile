@@ -9,8 +9,6 @@ import {
 } from './socialNotificationDeeplink';
 import { resolveSharedSocialPosition } from './socialPositionSheetDeeplink';
 
-const LOG_PREFIX = '[handleSocialPostUrl]';
-
 interface HandleSocialPostUrlParams {
   actionPath: string;
 }
@@ -27,11 +25,7 @@ const openCopiedPost = async (
   positionId: string,
   traderId: string,
 ): Promise<void> => {
-  const shared = await resolveSharedSocialPosition(
-    positionId,
-    traderId,
-    LOG_PREFIX,
-  );
+  const shared = await resolveSharedSocialPosition(positionId, traderId);
 
   if (!shared) {
     navigateToOwnProfile();
