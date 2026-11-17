@@ -62,20 +62,20 @@ describe('getRouteCoverage', () => {
   it('preserves all key paths when route values are aliases', () => {
     const report = getRouteCoverage(
       [
-        { value: 'SharedScreen', keyPath: 'FIRST.SHARED' },
-        { value: 'SharedScreen', keyPath: 'SECOND.SHARED' },
+        { value: 'WalletView', keyPath: 'FIRST.SHARED' },
+        { value: 'WalletView', keyPath: 'SECOND.SHARED' },
       ],
-      { SharedScreen: 'SharedScreen' },
+      { WalletView: 'WalletView' },
     );
 
     expect(report.routes).toEqual([
       {
-        route: 'SharedScreen',
+        route: 'WalletView',
         keyPaths: ['FIRST.SHARED', 'SECOND.SHARED'],
         status: 'page-object',
-        pageObject: 'SharedScreen',
+        pageObject: 'WalletView',
       },
     ]);
-    expect(report.aliasedRoutes).toEqual(['SharedScreen']);
+    expect(report.aliasedRoutes).toEqual(['WalletView']);
   });
 });

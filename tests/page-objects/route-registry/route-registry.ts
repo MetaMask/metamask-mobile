@@ -165,7 +165,7 @@ const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
   Quotes: 'QuotesView',
   RemoveAccount: 'RemoveAccount',
   RewardsView: 'RewardsView',
-  SettingsView: 'SettingsView',
+  Settings: 'SettingsView',
   ShareAddress: 'ShareAddress',
   SkipAccountSecurityModal: 'SkipAccountSecurityModal',
   SmartAccount: 'SmartAccount',
@@ -235,7 +235,7 @@ const NO_PAGE_OBJECT_ROUTES =
   RewardsTradingCommissionsView RewardsTradingRebatesView RewardsVipRefereeSplashView RewardsVipRefereeView RewardsVipSplashView RewardsVipTiersView RewardsVipTransactionsView RewardsVipView
   RWATokensFullView SampleFeature SDKConnectV2Otp SDKDisconnect SDKFeedback SDKLoading SDKManageConnections SDKSessionsManager
   SecurityBadgeBottomSheet SecuritySettings SecurityTrust SeedphraseModal SelectHardwareWallet SelectSRP Send SendTo
-  SendTransaction Settings SettingsAdvancedFiatOnTestnetsFriction SettingsRegionSelector ShareAddressQR ShowIpfs ShowNftDisplayMedia ShowTokenId SimpleWebview
+  SendTransaction SettingsAdvancedFiatOnTestnetsFriction SettingsRegionSelector ShareAddressQR ShowIpfs ShowNftDisplayMedia ShowTokenId SimpleWebview
   SitesFullView SnapsSettingsList SocialLeaderboardOnboarding SocialLeaderboardTab SocialPositionDetailsSheet SocialPostComposerView SocialTraderPreviewSheet SocialV0View
   SocialV1ProfileView SRPRevealQuiz SRPRevealQuizInMultichainAccountDetails SsnInfoModal StakeConfirmation SuccessErrorSheet SupportConsentSheet SwapCustomSlippageModal
   SwapDefaultSlippageModal SwapsLimitOrderActivity SwapsLimitOrderCustomCostToleranceModal SwapsLimitOrderDefaultCostToleranceModal SwapsLimitOrderExpirationModal TokenSort TokenWarningModal tooltipModal
@@ -249,7 +249,7 @@ const NOT_A_SCREEN_ROUTES =
   `  AgenticCliApproval AgenticCliDashboardWebview Bridge BridgeModals CardModals CardOnboarding CardScreens Deposit
   DepositModals DepositRoot EarnModals EarnScreens Home HomeNav Main MarketInsights
   MoneyModals MoneyScreens OnboardingNav OnboardingRootNav OnboardingSuccessFlow Perps PerpsModals Predict
-  PredictModals Ramp RampModals RootModalFlow SetPasswordFlow Social WalletTabStackFlow`
+  PredictModals Ramp RampModals RootModalFlow SetPasswordFlow SettingsView Social WalletTabStackFlow`
     .trim()
     .split(/\s+/);
 
