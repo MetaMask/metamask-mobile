@@ -1,5 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import type {
   KycProviderFlowStatus,
   KycSessionStatus,
@@ -100,9 +100,9 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
       overrides: withKycSession(session, providerFlowStatus),
     });
 
-    expect(
-      await view.findByTestId(FINISH_VERIFICATION.CONTAINER),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(view.getByTestId(FINISH_VERIFICATION.CONTAINER)).toBeOnTheScreen();
+    });
     expect(view.getByTestId(FINISH_VERIFICATION.TITLE)).toHaveTextContent(
       strings('money.vba_home_card.finish_verification.title'),
     );
@@ -115,9 +115,9 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
 
     fireEvent.press(continueButton);
 
-    expect(
-      await view.findByTestId(identityVerificationProbe),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(view.getByTestId(identityVerificationProbe)).toBeOnTheScreen();
+    });
     expect(view.queryByTestId(kycPendingProbe)).not.toBeOnTheScreen();
   });
 
@@ -128,9 +128,9 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
 
     fireEvent.press(await view.findByTestId(FINISH_VERIFICATION.CTA_BUTTON));
 
-    expect(
-      await view.findByTestId(identityVerificationProbe),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(view.getByTestId(identityVerificationProbe)).toBeOnTheScreen();
+    });
     expect(view.queryByTestId(kycPendingProbe)).not.toBeOnTheScreen();
   });
 
@@ -139,7 +139,9 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
       overrides: withKycSession(kycSession('pending', 'pending'), 'submitted'),
     });
 
-    expect(await view.findByTestId(KYC_PENDING.CONTAINER)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(view.getByTestId(KYC_PENDING.CONTAINER)).toBeOnTheScreen();
+    });
     expect(view.getByTestId(KYC_PENDING.TITLE)).toHaveTextContent(
       strings('money.vba_home_card.kyc_pending.title'),
     );

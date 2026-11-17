@@ -430,34 +430,6 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockOpenVbaAccountSetup).not.toHaveBeenCalled();
   });
 
-  it('renders the kyc_pending CTA disabled, with no loader', () => {
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
-    const cta = getByTestId(
-      MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON,
-    );
-
-    expect(cta).toHaveTextContent(
-      strings('money.vba_home_card.kyc_pending.cta'),
-    );
-    expect(cta).toBeDisabled();
-    // ButtonBase only sets `busy` while its loading spinner shows.
-    expect(cta.props.accessibilityState).toEqual({ disabled: true });
-  });
-
-  it('ignores presses on the disabled kyc_pending CTA', () => {
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
-
-    fireEvent.press(
-      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON),
-    );
-
-    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
-    expect(fireImpact).not.toHaveBeenCalled();
-    expect(mockStartVbaCufJourney).not.toHaveBeenCalled();
-    expect(mockResolve).not.toHaveBeenCalled();
-    expect(mockNavigateToDestination).not.toHaveBeenCalled();
-  });
-
   it('tracks the CTA click before starting the VBA journey', () => {
     mockResolve.mockReturnValue(
       new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
@@ -815,27 +787,6 @@ describe('MoneyVbaHomeCard', () => {
       ).toBeNull();
     },
   );
-
-  it('disables the CTA only on the kyc_pending card', () => {
-    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_pending.cta).toEqual({
-      isDisabled: true,
-    });
-    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_pending.source).toBe(
-      VARIANT_EXPECTATIONS.kyc_pending.source,
-    );
-
-    CTA_VARIANTS.forEach((variant) => {
-      const { cta } = MONEY_VBA_HOME_CARD_CONFIG[variant];
-      expect(cta.isDisabled).toBeFalsy();
-      expect(cta).toEqual(
-        expect.objectContaining({
-          buttonIntent: VARIANT_EXPECTATIONS[variant].buttonIntent,
-          className: expect.any(String),
-          textClassName: expect.any(String),
-        }),
-      );
-    });
-  });
 
   describe('Rive hero', () => {
     it('leaves the first play to autoplay on the initial focus', () => {

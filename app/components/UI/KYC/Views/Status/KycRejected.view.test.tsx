@@ -101,9 +101,11 @@ describeForPlatforms('KycRejected view', () => {
 
     await openVbaBankAccountFromMoney(view.findByTestId);
 
-    expect(
-      await view.findByTestId(KycRejectedSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        view.getByTestId(KycRejectedSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
     const contactSupport = view.getByTestId(
       KycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON,
     );
@@ -141,9 +143,11 @@ describeForPlatforms('KycRejected view', () => {
 
     await openVbaBankAccountFromMoney(view.findByTestId);
 
-    expect(
-      await view.findByTestId(KycRejectedSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        view.getByTestId(KycRejectedSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
     expect(
       view.getByText(strings('kyc.kyc_rejected.retry_description')),
     ).toBeOnTheScreen();
@@ -159,8 +163,10 @@ describeForPlatforms('KycRejected view', () => {
     launchProviderFlow.mockImplementation(() => new Promise(() => undefined));
     fireEvent.press(view.getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON));
 
-    expect(
-      await view.findByTestId(KycSumSubSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        view.getByTestId(KycSumSubSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
   });
 });

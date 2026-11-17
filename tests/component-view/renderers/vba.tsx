@@ -15,9 +15,17 @@ import {
   type RenderResult,
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import {
+  getDefaultKycControllerState,
+  type KycControllerState,
+  type KycSessionStatus,
+} from '@metamask/kyc-controller';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
+import Engine from '../../../app/core/Engine';
+import { updateBgState } from '../../../app/core/redux/slices/engine';
+import { VBA_KYC_VENDOR } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/constants';
 import NavigationService from '../../../app/core/NavigationService';
 import type { RootState } from '../../../app/reducers';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
@@ -52,14 +60,61 @@ export const VbaRendererTestIds = {
 } as const;
 
 let restoreVbaReduxStore: (() => void) | undefined;
+let restorePublishedKycSession: (() => void) | undefined;
 
 /**
  * Puts back the `ReduxService.store` that was current before the last VBA
- * renderer call. Call from `afterEach` so later suites on the same Jest worker
- * do not read this test's store.
+ * renderer call, and any KYC session published for that render. Call from
+ * `afterEach` so later suites on the same Jest worker do not read this test's
+ * store.
  */
 export function restoreVbaReduxServiceStore(): void {
+  restorePublishedKycSession?.();
   restoreVbaReduxStore?.();
+}
+
+/**
+ * Publishes a KYC session the way a background controller update does, so a
+ * mounted onboarding screen can react. Restored by
+ * {@link restoreVbaReduxServiceStore}.
+ */
+export function publishKycSession(
+  store: {
+    dispatch: (action: ReturnType<typeof updateBgState>) => void;
+  },
+  sessionStatus: KycSessionStatus,
+): void {
+  const previousKycState = Engine.context.KycController.state;
+  const previousEngineState = Object.getOwnPropertyDescriptor(Engine, 'state');
+  const kycState: KycControllerState = {
+    ...getDefaultKycControllerState(),
+    email: 'ada@example.com',
+    vendor: VBA_KYC_VENDOR,
+    geoCountry: 'BRA',
+    providerFlowStatus: 'submitted',
+    sessionStatus,
+  };
+  const currentEngineState = (
+    Engine as unknown as { state?: Record<string, unknown> }
+  ).state;
+  Object.defineProperty(Engine, 'state', {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value: { ...currentEngineState, KycController: kycState },
+  });
+  Engine.context.KycController.state = kycState;
+  store.dispatch(updateBgState({ key: 'KycController' }));
+  const previousRestore = restorePublishedKycSession;
+  restorePublishedKycSession = () => {
+    Engine.context.KycController.state = previousKycState;
+    if (previousEngineState) {
+      Object.defineProperty(Engine, 'state', previousEngineState);
+    } else {
+      Reflect.deleteProperty(Engine, 'state');
+    }
+    restorePublishedKycSession = previousRestore;
+  };
 }
 
 /**
@@ -301,6 +356,13 @@ const VbaProbedOnboardingNavigator = () => (
   </ProbedOnboardingStack.Navigator>
 );
 
+/**
+ * Synthetic host. Money home chooses the card inside a larger section, and
+ * these tests only need the VBA card. The flags below are pinned so the host
+ * always asks for a VBA card: card unlinked, KYC decision not dismissed, no
+ * crypto, unfunded, residency open. A change to `getMoneyHomeCard`'s inputs
+ * will not be caught here.
+ */
 const VbaHomeCardHost = () => {
   const vbaCard = useVbaHomeCard();
   const { isEligible, isLoading } = useVbaEligibility();
@@ -378,7 +440,7 @@ const DeleteIdentityStack = createNativeStackNavigator();
 
 /** MFA controls the identity-deletion email check renders. */
 export const VbaDeleteIdentityTestIds = {
-  OTP_SCREEN: `${MfaFlowSelectorsIDs.CONTAINER}-otp`,
+  OTP_SCREEN: MfaFlowSelectorsIDs.OTP_CONTAINER,
   CODE_INPUT: MfaFlowSelectorsIDs.CODE_INPUT,
   BACK_BUTTON: MfaFlowSelectorsIDs.BACK_BUTTON,
 } as const;
