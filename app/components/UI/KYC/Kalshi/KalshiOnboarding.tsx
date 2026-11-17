@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -161,6 +167,9 @@ const KalshiOnboarding = () => {
   const { verifyOrEnroll } = useMfa();
   const flowState = useSelector(selectKalshiFlow);
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
+  const [linkCodeSent, setLinkCodeSent] = useState(false);
+  /** Carried into the field on the next screen change, then forgotten. */
+  const prefill = useRef<string>();
   const [linkedEmail, setLinkedEmail] = useState<string>();
   const [mfaMethod, setMfaMethod] = useState<KycAccountLinkMfaMethod>();
   const [input, setInput] = useState('');
@@ -168,12 +177,20 @@ const KalshiOnboarding = () => {
   const [error, setError] = useState<string>();
   const [terms, setTerms] = useState<KycDisclaimer[]>();
   const step = flowState?.step;
-  const screen = deriveKalshiScreen(step, { phoneCodeSent });
+  const status = flowState?.status ?? 'none';
+  const screen = deriveKalshiScreen(step, status, {
+    linkCodeSent,
+    phoneCodeSent,
+  });
   const { VendorOnboardingController } = Engine.context;
 
   // Each screen starts with an empty field.
+  // The field is per screen, so it starts empty on every change — unless
+  // something deliberately carried a value over, like going back to correct
+  // a mistyped email.
   useEffect(() => {
-    setInput('');
+    setInput(prefill.current ?? '');
+    prefill.current = undefined;
   }, [screen]);
 
   // Ask kyc-api for the step. For opening the screen and for polling.
@@ -272,7 +289,21 @@ const KalshiOnboarding = () => {
         email,
       });
       setLinkedEmail(email);
+      setLinkCodeSent(true);
+      setInput('');
     });
+
+  /**
+   * Goes back to the email screen so a mistyped address can be corrected.
+   *
+   * kyc-api cannot do this: once the link has started it only knows the
+   * account is not linked yet, and Kalshi never tells us the address was
+   * wrong. Without this the user would be stuck on the code screen.
+   */
+  const editLinkEmail = () => {
+    prefill.current = linkedEmail ?? '';
+    setLinkCodeSent(false);
+  };
 
   const submitLinkCode = () =>
     run(async () => {
@@ -406,7 +437,9 @@ const KalshiOnboarding = () => {
             label: 'Use another number',
             onPress: () => setPhoneCodeSent(false),
           }
-        : undefined;
+        : screen === 'link_code'
+          ? { label: 'Use another email', onPress: editLinkEmail }
+          : undefined;
 
   const copy = screen === 'loading' ? undefined : SCREEN_COPY[screen];
 

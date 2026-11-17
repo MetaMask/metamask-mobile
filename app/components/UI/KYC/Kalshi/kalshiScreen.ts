@@ -1,4 +1,4 @@
-import type { KycStep } from '@metamask/kyc-controller';
+import type { KycStep, KycStepStatus } from '@metamask/kyc-controller';
 
 /**
  * The screens of the Kalshi onboarding flow. kyc-api decides which one the
@@ -21,8 +21,14 @@ export type KalshiScreen =
 
 /**
  * What the phone knows beyond the step.
+ *
+ * kyc-api decides steps, not screens. Where a step covers an address and
+ * the code sent to it, only the phone can know which of the two the user is
+ * looking at — and only the phone can take them back to correct a typo.
  */
 export interface KalshiScreenContext {
+  /** The link code was sent, so the code screen follows the email screen. */
+  linkCodeSent: boolean;
   /** The phone code was sent from this screen and is being entered. */
   phoneCodeSent: boolean;
 }
@@ -31,11 +37,13 @@ export interface KalshiScreenContext {
  * Picks the screen for the step kyc-api decided.
  *
  * @param step - The step kyc-api decided, or `undefined` before it answered.
+ * @param status - How verification is going, as kyc-api reported it.
  * @param context - What the phone knows beyond the step.
  * @returns The screen to show.
  */
 export function deriveKalshiScreen(
   step: KycStep | undefined,
+  status: KycStepStatus,
   context: KalshiScreenContext,
 ): KalshiScreen {
   switch (step) {
@@ -44,28 +52,40 @@ export function deriveKalshiScreen(
     case 'vendor_terms':
       return 'terms';
     case 'account_link':
-      return 'email';
-    case 'account_link_code':
-      return 'link_code';
+      // The email and its code are one step. Kalshi has no way to tell us
+      // the address was wrong, so the phone keeps the code screen and the
+      // way back to the email on its own side.
+      return context.linkCodeSent ? 'link_code' : 'email';
     case 'confirm_identity':
       return 'confirm';
     case 'identity_email_code':
       return 'email_code';
     case 'identity_phone':
-      // The number and its code are one step. The code field follows the
-      // number on the same screen once the code was sent.
       return context.phoneCodeSent ? 'phone_code' : 'phone';
     case 'identity_provider':
+      // A retry is the same screen as the first attempt; the status is what
+      // the "we need another look" copy keys off.
       return 'sumsub';
-    case 'kyc_retry':
-      return 'sumsub';
-    case 'kyc_pending':
-      return 'waiting';
-    case 'kyc_rejected':
-      return 'rejected';
-    case 'approved':
-      return 'done';
+    case 'done':
+      return doneScreen(status);
     default:
       return 'error';
+  }
+}
+
+/**
+ * Picks the screen for a finished flow, which the status decides.
+ *
+ * @param status - How verification went.
+ * @returns The screen to show.
+ */
+function doneScreen(status: KycStepStatus): KalshiScreen {
+  switch (status) {
+    case 'approved':
+      return 'done';
+    case 'rejected':
+      return 'rejected';
+    default:
+      return 'waiting';
   }
 }

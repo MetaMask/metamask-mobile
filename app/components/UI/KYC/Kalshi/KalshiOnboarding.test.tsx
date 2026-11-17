@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import type { KycStep } from '@metamask/kyc-controller';
+import type { KycStep, KycStepStatus } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -69,7 +69,7 @@ const TERMS = [
   },
 ];
 
-const render = (step?: KycStep) =>
+const render = (step?: KycStep, status: KycStepStatus = 'none') =>
   renderWithProvider(<KalshiOnboarding />, {
     state: {
       engine: {
@@ -79,6 +79,7 @@ const render = (step?: KycStep) =>
               ? {
                   kalshi: {
                     step,
+                    status,
                     sessionId: 'sid-1',
                   },
                 }
@@ -98,6 +99,24 @@ const typeInto = (screen: ReturnType<typeof render>, value: string) =>
     value,
   );
 
+/**
+ * Walks to the link code screen the way a user reaches it.
+ *
+ * The code screen is the phone's own state, not a step, so it cannot be
+ * rendered directly: the email has to be sent first.
+ *
+ * @returns The rendered screen, showing the code field.
+ */
+async function reachLinkCode() {
+  const screen = render('account_link');
+  typeInto(screen, 'a@b.co');
+  fireEvent.press(primary(screen));
+  // Wait for the code screen itself: the escape hatch back to the email
+  // only exists there, so finding it proves the switch happened.
+  await screen.findByText('Use another email');
+  return screen;
+}
+
 describe('KalshiOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -115,7 +134,7 @@ describe('KalshiOnboarding', () => {
     ]) {
       flow[name].mockResolvedValue('identity_provider');
     }
-    flow.verifyAccountLink.mockResolvedValue({ step: 'account_link_code' });
+    flow.verifyAccountLink.mockResolvedValue({ step: 'confirm_identity' });
     flow.launchProviderFlow.mockResolvedValue('submitted');
     flow.fetchSessionDisclaimers.mockResolvedValue({
       idOS: [{ key: 'idos', version: '1', consented: false }],
@@ -197,7 +216,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('verifies the code', async () => {
-      const screen = render('account_link_code');
+      const screen = await reachLinkCode();
       typeInto(screen, ' 888888 ');
 
       fireEvent.press(primary(screen));
@@ -210,12 +229,29 @@ describe('KalshiOnboarding', () => {
       );
     });
 
+    it('lets a mistyped email be corrected', async () => {
+      const screen = await reachLinkCode();
+
+      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
+
+      // Back on the email screen, prefilled, with the step unchanged. The
+      // server still says `account_link`; only the phone knows which of the
+      // two screens the user is on, so only the phone can go back.
+      expect(
+        await screen.findByText(
+          'Kalshi creates your account with this email and sends you a code.',
+        ),
+      ).toBeOnTheScreen();
+      // Prefilled, so correcting a typo does not mean retyping it all.
+      expect(screen.getByDisplayValue('a@b.co')).toBeOnTheScreen();
+    });
+
     it('asks for the second code when Kalshi wants one', async () => {
       flow.verifyAccountLink.mockResolvedValue({
-        step: 'account_link_code',
+        step: 'account_link',
         mfaMethod: 'sms',
       });
-      const screen = render('account_link_code');
+      const screen = await reachLinkCode();
       typeInto(screen, '888888');
 
       fireEvent.press(primary(screen));
@@ -405,7 +441,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('opens SumSub again after a retry', () => {
-      const screen = render('kyc_retry');
+      const screen = render('identity_provider', 'retry');
 
       expect(screen.getByText('Verify your identity')).toBeOnTheScreen();
     });
@@ -431,8 +467,8 @@ describe('KalshiOnboarding', () => {
 
     it('keeps asking kyc-api while the decision is pending', async () => {
       jest.useFakeTimers();
-      flow.refreshStep.mockResolvedValue('kyc_pending');
-      render('kyc_pending');
+      flow.refreshStep.mockResolvedValue('done');
+      render('done', 'pending');
       await act(async () => undefined);
       flow.refreshStep.mockClear();
 
@@ -448,8 +484,8 @@ describe('KalshiOnboarding', () => {
 
     it('slows the polling down as the wait goes on', async () => {
       jest.useFakeTimers();
-      flow.refreshStep.mockResolvedValue('kyc_pending');
-      render('kyc_pending');
+      flow.refreshStep.mockResolvedValue('done');
+      render('done', 'pending');
       await act(async () => undefined);
       flow.refreshStep.mockClear();
 
@@ -474,8 +510,8 @@ describe('KalshiOnboarding', () => {
 
     it('stops asking once the screen closes', async () => {
       jest.useFakeTimers();
-      flow.refreshStep.mockResolvedValue('kyc_pending');
-      const screen = render('kyc_pending');
+      flow.refreshStep.mockResolvedValue('done');
+      const screen = render('done', 'pending');
       await act(async () => undefined);
       screen.unmount();
       flow.refreshStep.mockClear();
@@ -488,8 +524,8 @@ describe('KalshiOnboarding', () => {
     });
 
     it('checks again on request', async () => {
-      flow.refreshStep.mockResolvedValue('kyc_pending');
-      const screen = render('kyc_pending');
+      flow.refreshStep.mockResolvedValue('done');
+      const screen = render('done', 'pending');
       await waitFor(() => expect(flow.refreshStep).toHaveBeenCalledTimes(1));
 
       fireEvent.press(primary(screen));
@@ -500,13 +536,13 @@ describe('KalshiOnboarding', () => {
 
   describe('end states', () => {
     it.each([
-      ['kyc_rejected', 'Verification failed'],
+      ['rejected', 'Verification failed'],
       ['approved', 'Identity verified'],
     ] as const)(
-      '%s ends on a screen the user can close',
-      async (step, title) => {
-        flow.refreshStep.mockResolvedValue(step);
-        const screen = render(step);
+      'a %s decision ends on a screen the user can close',
+      async (status, title) => {
+        flow.refreshStep.mockResolvedValue('done');
+        const screen = render('done', status);
         expect(screen.getByText(title)).toBeOnTheScreen();
 
         fireEvent.press(primary(screen));
