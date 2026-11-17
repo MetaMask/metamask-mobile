@@ -84,6 +84,7 @@ interface TopTradersSectionProps {
   source?: 'home_carousel' | 'explore_perps';
   /** Whether visible trader profiles are prefetched. Defaults to true. */
   prefetchProfiles?: boolean;
+  chains?: string[];
 }
 
 /**
@@ -102,6 +103,7 @@ const TopTradersSection = forwardRef<
     totalSectionsLoaded,
     source = 'home_carousel',
     prefetchProfiles = true,
+    chains = SPOT_CHAINS,
   } = props;
   const sectionViewRef = useRef<View>(null);
   const { followWithSetup } = useFollowWithNotificationSetup();
@@ -143,7 +145,7 @@ const TopTradersSection = forwardRef<
     toggleFollow,
   } = useTopTraders({
     limit: HOME_TRADER_FETCH_LIMIT,
-    chains: SPOT_CHAINS,
+    chains,
     sort: DEFAULT_LEADERBOARD_SORT,
     timeframe: DEFAULT_TIMEFRAME,
     enabled: isEnabled && hasRequestedTraders,

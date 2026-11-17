@@ -241,10 +241,6 @@ describe('wallet-init/keyrings', () => {
       const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
 
       const legacyMoney = new LegacyMoneyKeyring({
-        cryptographicFunctions: {
-          pbkdf2Sha512: async () => new Uint8Array(),
-          hmacSha512: async () => new Uint8Array(),
-        },
         getMnemonic: async () => [],
       });
       const moneyV2 = byType[LegacyMoneyKeyring.type](legacyMoney as never, {

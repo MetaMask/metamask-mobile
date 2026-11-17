@@ -26,11 +26,11 @@ import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useProfileController } from './hooks/useProfileController';
 import { useXAuth } from '../../../../hooks/useXAuth';
-import { XAuthErrorType } from '../../../../core/XAuthService';
 import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
+import { getXConnectError } from './screens/xAuthError';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const ManageProfileView: React.FC = () => {
@@ -53,10 +53,7 @@ const ManageProfileView: React.FC = () => {
   // `connect` resolves the X profile (or `undefined` on failure), and also
   // records the failure in `connectError`: it is set on failure and cleared
   // when the next connect starts. A user-cancelled OAuth stays silent.
-  const errorMessage =
-    xAuthConnectError && xAuthConnectError.type !== XAuthErrorType.UserCancelled
-      ? strings('social_leaderboard.profile_onboarding.connect_x_error')
-      : null;
+  const errorMessage = getXConnectError(xAuthConnectError);
 
   // The live region on the error line covers TalkBack, but VoiceOver keeps
   // focus on the row that started OAuth and does not re-read a changed
