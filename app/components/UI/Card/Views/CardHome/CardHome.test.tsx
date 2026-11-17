@@ -75,11 +75,15 @@ import {
   within,
 } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking, Platform, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
+import {
+  CARD_SETUP_CREATING_POLL_MS,
+  CARD_SETUP_PENDING_POLL_MS,
+} from './hooks/useCardSetupPendingRefresh';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -357,6 +361,22 @@ jest.mock('./hooks/useSignedOutKycPending', () => ({
   __esModule: true,
   default: () => mockIsSignedOutKycPending,
 }));
+
+const mockRefreshRegistrationStatus = jest.fn().mockResolvedValue(undefined);
+const mockUseCardSetupPendingRefresh = jest.fn((_options: unknown) => ({
+  refreshRegistrationStatus: mockRefreshRegistrationStatus,
+}));
+jest.mock('./hooks/useCardSetupPendingRefresh', () => {
+  const actual = jest.requireActual('./hooks/useCardSetupPendingRefresh');
+  const mockedHook = (options: unknown) =>
+    mockUseCardSetupPendingRefresh(options);
+  return {
+    ...actual,
+    __esModule: true,
+    default: mockedHook,
+    useCardSetupPendingRefresh: mockedHook,
+  };
+});
 
 jest.mock('./hooks/useCardEnableCard', () => ({
   useCardEnableCard: jest.fn(() => ({
@@ -4712,6 +4732,139 @@ describe('CardHome Component', () => {
         expect(StackActions.replace).toHaveBeenCalledWith(
           Routes.CARD.AUTHENTICATION,
         );
+      });
+    });
+
+    describe('Setup pending re-check cadence', () => {
+      // Server shape for A07/A08: alert, no card, no actions.
+      const setupPendingAlert = (
+        alertType: 'kyc_pending' | 'card_provisioning',
+      ) => {
+        setupMockSelectors({ isAuthenticated: true });
+        if (alertType === 'kyc_pending') {
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            warning: CardStateWarning.NoCard,
+            kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+            isLoading: false,
+          });
+          return;
+        }
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+      };
+
+      it('polls faster while the card is being created (A08)', () => {
+        mockProvisioningView = 'provisioning';
+        setupPendingAlert('card_provisioning');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            isAuthenticated: true,
+            pollIntervalMs: CARD_SETUP_CREATING_POLL_MS,
+          }),
+        );
+      });
+
+      it('polls the slow cadence while identity is in review (A07)', () => {
+        setupPendingAlert('kyc_pending');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            isAuthenticated: true,
+            pollIntervalMs: CARD_SETUP_PENDING_POLL_MS,
+          }),
+        );
+      });
+
+      it('polls the slow cadence while the Immersve review is up', () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'kyc_under_review';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupPendingAlert('card_provisioning');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            isAuthenticated: true,
+            pollIntervalMs: CARD_SETUP_PENDING_POLL_MS,
+          }),
+        );
+      });
+
+      it('leaves the refresh off for a ready card', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({ isAuthenticated: true });
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isPending: false }),
+        );
+      });
+
+      it('keeps the refresh off while an actionable step owns the screen (A06)', () => {
+        mockCanEnableCard = true;
+        mockProvisioningView = 'hidden';
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isPending: false }),
+        );
+      });
+    });
+
+    describe('Waiting re-checks on pull to refresh', () => {
+      const pullToRefresh = async () => {
+        const refreshControl = screen.UNSAFE_getByType(RefreshControl);
+        await act(async () => {
+          await refreshControl.props.onRefresh();
+        });
+      };
+
+      it('re-checks registration status instead of card data when signed out and pending', async () => {
+        mockIsSignedOutKycPending = true;
+        setupMockSelectors({ isAuthenticated: false });
+
+        render();
+        await pullToRefresh();
+
+        expect(mockRefreshRegistrationStatus).toHaveBeenCalledTimes(1);
+        expect(mockRefetchAllData).not.toHaveBeenCalled();
+      });
+
+      it('keeps refreshing card data for a ready card', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({ isAuthenticated: true });
+
+        render();
+        await pullToRefresh();
+
+        expect(mockRefetchAllData).toHaveBeenCalled();
+        expect(mockRefreshRegistrationStatus).not.toHaveBeenCalled();
       });
     });
 
