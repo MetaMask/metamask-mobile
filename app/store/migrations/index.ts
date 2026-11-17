@@ -172,6 +172,26 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 import { MIGRATION_ERROR_HAPPENED } from '../../constants/storage';
 
+/**
+ * Controllers removed from the Engine whose `persist:<name>` files are still
+ * inputs to migrations (e.g. 139, 143, 144, 159, 163). They are no longer in
+ * `BACKGROUND_STATE_CHANGE_EVENT_NAMES`, so they would otherwise never be
+ * loaded into `engine.backgroundState` and users upgrading from an older
+ * version would silently lose that data. Never remove an entry while a
+ * migration still reads that controller's state.
+ */
+export const REMOVED_CONTROLLER_NAMES = [
+  'AccountTrackerController',
+  'CurrencyRateController',
+  'MultichainAssetsController',
+  'MultichainAssetsRatesController',
+  'MultichainBalancesController',
+  'TokenBalancesController',
+  'TokenDetectionController',
+  'TokenRatesController',
+  'TokensController',
+] as const;
+
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
 export type MigrationsList = Record<
@@ -372,7 +392,9 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    */
   const inflateFromControllers = async (state: unknown) => {
     try {
-      const fsState = (await ControllerStorage.getAllPersistedState()) as
+      const fsState = (await ControllerStorage.getAllPersistedState(
+        REMOVED_CONTROLLER_NAMES,
+      )) as
         | {
             backgroundState?: Record<string, unknown>;
           }
@@ -471,6 +493,27 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
     }
   };
 
+  /**
+   * Deletes the persisted files of removed controllers whose state was dropped
+   * by a migration. Runs only after `deflateToControllersAndStrip` succeeded,
+   * so the data a migration carried over (e.g. into `AssetsController`) is on
+   * disk before its source is deleted. If the app dies earlier, the files are
+   * still there and the migrations run again on the next launch.
+   *
+   * @param migratedBackgroundState - `engine.backgroundState` after the last migration.
+   */
+  const removeDroppedControllerFiles = async (
+    migratedBackgroundState: Record<string, unknown>,
+  ) => {
+    await Promise.all(
+      REMOVED_CONTROLLER_NAMES.filter(
+        (controllerName) => !(controllerName in migratedBackgroundState),
+      ).map((controllerName) =>
+        ControllerStorage.removeItem(`persist:${controllerName}`),
+      ),
+    );
+  };
+
   return Object.entries(inputMigrations).reduce(
     (newMigrations, [migrationNumber, migrationFunction]) => {
       const asyncMigration = async (
@@ -492,7 +535,12 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
                 Object.keys(s2.engine.backgroundState).length > 0,
             );
             if (hasControllers) {
-              return await deflateToControllersAndStrip(migratedState);
+              const deflatedState =
+                await deflateToControllersAndStrip(migratedState);
+              await removeDroppedControllerFiles(
+                s2.engine?.backgroundState ?? {},
+              );
+              return deflatedState;
             }
           }
 
