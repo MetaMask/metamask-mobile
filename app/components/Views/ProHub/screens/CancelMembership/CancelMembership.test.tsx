@@ -402,7 +402,7 @@ describe('CancelMembership', () => {
     expectPostCancellationReset();
   });
 
-  it('includes the selected reason code and omits free-text feedback', async () => {
+  it('includes the selected reason code and trimmed stay feedback', async () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(
@@ -410,7 +410,7 @@ describe('CancelMembership', () => {
     );
     fireEvent.changeText(
       getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
-      'Lower the price',
+      '  Lower the price  ',
     );
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
@@ -419,10 +419,8 @@ describe('CancelMembership', () => {
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
         cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
+        cancellationFeedback: 'Lower the price',
       }),
-    );
-    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
-      'cancellationFeedback',
     );
   });
 
@@ -439,6 +437,30 @@ describe('CancelMembership', () => {
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
         cancellationReason: CANCELLATION_REASONS.OTHER,
+      }),
+    );
+    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
+      'cancellationFeedback',
+    );
+  });
+
+  it('omits stay feedback that is only whitespace', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(
+      getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+    );
+    fireEvent.changeText(
+      getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      '   ',
+    );
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    await waitFor(() =>
+      expect(mockCancelSubscription).toHaveBeenCalledWith({
+        subscriptionId: PLUS_SUBSCRIPTION.id,
+        cancelAtPeriodEnd: true,
+        cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
       }),
     );
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
