@@ -6,7 +6,6 @@ import { WalletRecoverySelectorsIDs } from './WalletRecovery.testIds';
 
 describe('WalletRecoveryVerify', () => {
   const onBack = jest.fn();
-  const onCantUseThese = jest.fn();
   const onSelectMethod = jest.fn();
 
   beforeEach(() => {
@@ -19,14 +18,13 @@ describe('WalletRecoveryVerify', () => {
     renderWithProvider(
       <WalletRecoveryVerify
         onBack={onBack}
-        onCantUseThese={onCantUseThese}
         onSelectMethod={onSelectMethod}
         {...props}
       />,
     );
 
   it('renders copy without methods until the host opts them in', () => {
-    const { getByText, getByTestId, queryByTestId } = renderVerify();
+    const { getByText, queryByTestId, queryByText } = renderVerify();
 
     expect(getByText("Verify it's you")).toBeOnTheScreen();
     expect(
@@ -40,9 +38,7 @@ describe('WalletRecoveryVerify', () => {
     ).toBeNull();
     expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL)).toBeNull();
     expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP)).toBeNull();
-    expect(
-      getByTestId(WalletRecoverySelectorsIDs.CANT_USE_THESE),
-    ).toBeOnTheScreen();
+    expect(queryByText("Can't use any of these?")).toBeNull();
   });
 
   it('shows only the enrolled methods the host passes', () => {
@@ -62,7 +58,7 @@ describe('WalletRecoveryVerify', () => {
   });
 
   it('renders Figma verify methods when the host opts them all in', () => {
-    const { getByTestId } = renderVerify({
+    const { getByTestId, queryByText } = renderVerify({
       showPasskey: true,
       showPassword: true,
       showEmail: true,
@@ -81,9 +77,7 @@ describe('WalletRecoveryVerify', () => {
     expect(
       getByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(WalletRecoverySelectorsIDs.CANT_USE_THESE),
-    ).toBeOnTheScreen();
+    expect(queryByText("Can't use any of these?")).toBeNull();
   });
 
   it('notifies when the user picks a recovery method', () => {
@@ -138,12 +132,5 @@ describe('WalletRecoveryVerify', () => {
 
     fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD));
     expect(onSelectMethod).toHaveBeenCalledWith('password');
-  });
-
-  it('notifies when the user cannot use any methods', () => {
-    const { getByTestId } = renderVerify();
-
-    fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.CANT_USE_THESE));
-    expect(onCantUseThese).toHaveBeenCalledTimes(1);
   });
 });

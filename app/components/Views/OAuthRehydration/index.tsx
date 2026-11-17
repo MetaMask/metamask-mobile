@@ -1006,27 +1006,38 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       rememberHeldAal2(result.token);
       await continueAfterVerified();
     } catch (error) {
-      // Cancel / fail highest factor (e.g. passkey) → full-page "Verify it's you"
+      const code = getMfaErrorCode(error);
+      // OS passkey cancel, or back from the in-app passkey retry screen →
+      // full-page methods list. Passkey failures stay on retry until then.
+      if (code === 'flow_cancelled') {
+        Logger.log('OAuthRehydration: locked social MFA', {
+          status: 'fallback_verify',
+          code,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        setPasswordlessUnlock(false);
+        try {
+          const methods = await listActiveSocialLoginMethods();
+          if (methods.length === 0) {
+            setWalletRecoveryStep('password');
+            return;
+          }
+          setFallbackMethods(methods);
+          setWalletRecoveryStep('verify');
+        } catch (listError) {
+          Logger.log('OAuthRehydration: locked MFA list failed', {
+            code: getMfaErrorCode(listError),
+          });
+          setWalletRecoveryStep('password');
+        }
+        return;
+      }
       Logger.log('OAuthRehydration: locked social MFA', {
-        status: 'fallback_verify',
-        code: getMfaErrorCode(error),
+        status: 'failed',
+        code,
         message: error instanceof Error ? error.message : String(error),
       });
       setPasswordlessUnlock(false);
-      try {
-        const methods = await listActiveSocialLoginMethods();
-        if (methods.length === 0) {
-          setWalletRecoveryStep('password');
-          return;
-        }
-        setFallbackMethods(methods);
-        setWalletRecoveryStep('verify');
-      } catch (listError) {
-        Logger.log('OAuthRehydration: locked MFA list failed', {
-          code: getMfaErrorCode(listError),
-        });
-        setWalletRecoveryStep('password');
-      }
     } finally {
       setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
@@ -1661,7 +1672,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           isOffline={isRecoveryOffline}
           error={verifyError}
           onBack={handleUseOtherMethod}
-          onCantUseThese={handleUseOtherMethod}
           onSelectMethod={handleRecoveryMethodSelect}
         />
       );
