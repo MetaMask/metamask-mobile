@@ -40,6 +40,8 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+    outputs:
+      head_sha: ${{ steps.verify-pr.outputs.head_sha }}
     steps:
       - name: Checkout scripts
         uses: actions/checkout@v6
@@ -71,6 +73,7 @@ jobs:
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 
       - name: Require the release PR to meet the stable branch rules
+        id: verify-pr
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.resolve-pr.outputs.pr_number }}
@@ -85,7 +88,7 @@ jobs:
 
   build:
     name: Build iOS + Android (main-prod)
-    needs: generate-build-version
+    needs: [verify-release-pr, generate-build-version]
     permissions:
       contents: read
       id-token: write # AWS OIDC for code signing in build.yml
@@ -93,9 +96,9 @@ jobs:
     with:
       build_name: main-prod
       platform: both
-      # Prefer an explicit input; otherwise pin to the dispatch SHA so iOS and
-      # Android do not race a moving branch tip under one build number.
-      source_branch: ${{ inputs.source_branch || github.sha }}
+      # The release PR head that met the stable rules. Pinning it also keeps iOS and Android
+      # from racing a moving branch tip under one build number.
+      source_branch: ${{ needs.verify-release-pr.outputs.head_sha }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: true
     secrets: inherit

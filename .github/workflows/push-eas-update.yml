@@ -449,6 +449,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ needs.validate-pr.outputs.pr_number }}
+          EXPECTED_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
         run: .github/scripts/verify-release-pr-mergeable.sh
 
   push-update-ios:
