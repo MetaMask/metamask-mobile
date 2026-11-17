@@ -1521,6 +1521,78 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
+    it('separates multiple wallets and collapses them independently', async () => {
+      const primaryWallet =
+        qrSyncImportState.engine.backgroundState.QrSyncController
+          .pendingSecretImports.wallets[0];
+      const multiWalletState = {
+        ...qrSyncImportState,
+        engine: {
+          backgroundState: {
+            QrSyncController: {
+              ...qrSyncImportState.engine.backgroundState.QrSyncController,
+              pendingSecretImports: {
+                ...qrSyncImportState.engine.backgroundState.QrSyncController
+                  .pendingSecretImports,
+                wallets: [
+                  primaryWallet,
+                  {
+                    ...primaryWallet,
+                    id: 'wallet:test-secondary' as `wallet:${string}`,
+                    metadata: { name: 'Second Wallet' },
+                    groups: [
+                      {
+                        ...primaryWallet.groups[0],
+                        id: 'wallet:test-secondary/0' as `wallet:${string}/${string}`,
+                        metadata: {
+                          ...primaryWallet.groups[0].metadata,
+                          name: 'Second Account',
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+      const { getAllByTestId, getByTestId, queryByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: multiWalletState },
+        { qrSyncImport: true },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            `${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_WALLET_ID}-1`,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(
+        getAllByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_DIVIDER_ID),
+      ).toHaveLength(1);
+      fireEvent.press(
+        getByTestId(
+          `${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_WALLET_ID}-0`,
+        ),
+      );
+      expect(
+        queryByTestId(
+          `${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ACCOUNT_ID}-0-0`,
+        ),
+      ).toBeNull();
+      expect(
+        getByTestId(
+          `${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ACCOUNT_ID}-1-0`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('returns to the imported account summary from the password step', async () => {
       const mockGoBack = jest.fn();
       const Stack = createNativeStackNavigator();

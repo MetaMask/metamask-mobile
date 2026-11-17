@@ -19,6 +19,7 @@ export const ImportFromSeedSelectorsIDs = {
   QR_SYNC_SUMMARY_ID: 'qr-sync-import-summary',
   QR_SYNC_SUMMARY_LIST_ID: 'qr-sync-import-summary-list',
   QR_SYNC_SUMMARY_WALLET_ID: 'qr-sync-import-summary-wallet',
+  QR_SYNC_SUMMARY_DIVIDER_ID: 'qr-sync-import-summary-divider',
   QR_SYNC_SUMMARY_ACCOUNT_ID: 'qr-sync-import-summary-account',
   QR_SYNC_SUMMARY_CREATE_PASSWORD_ID: 'qr-sync-import-summary-create-password',
 };

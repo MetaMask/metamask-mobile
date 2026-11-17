@@ -6,6 +6,7 @@ import {
   AvatarAccountVariant,
   Box,
   BoxAlignItems,
+  BoxBackgroundColor,
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonBase,
@@ -108,101 +109,120 @@ const QrSyncImportSummary = ({ summary }: QrSyncImportSummaryProps) => {
         showsVerticalScrollIndicator={false}
         testID={ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_LIST_ID}
       >
-        <Box gap={6}>
+        <Box>
           {summary.wallets.map((wallet, walletIndex) => {
             const isExpanded = !collapsedWallets.has(wallet.id);
             const walletTitle = getWalletTitle(wallet, walletIndex);
 
             return (
-              <Box key={wallet.id} gap={3}>
-                <ButtonBase
-                  accessibilityLabel={walletTitle}
-                  accessibilityState={{ expanded: isExpanded }}
-                  contentWrapperProps={{ twClassName: 'w-full' }}
-                  isFullWidth
-                  onPress={() => toggleWallet(wallet.id)}
-                  testID={`${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_WALLET_ID}-${walletIndex}`}
-                  twClassName="h-auto rounded-none bg-transparent p-0"
-                >
+              <React.Fragment key={wallet.id}>
+                {walletIndex > 0 ? (
                   <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                    twClassName="w-full py-2"
+                    paddingHorizontal={4}
+                    paddingVertical={2}
+                    testID={
+                      ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_DIVIDER_ID
+                    }
                   >
-                    <Text
-                      variant={TextVariant.HeadingSm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                    >
-                      {walletTitle}
-                    </Text>
-                    <Icon
-                      name={isExpanded ? IconName.ArrowUp : IconName.ArrowDown}
-                      color={IconColor.IconAlternative}
+                    <Box
+                      backgroundColor={BoxBackgroundColor.BackgroundMuted}
+                      twClassName="h-px"
                     />
                   </Box>
-                </ButtonBase>
+                ) : null}
 
-                {isExpanded ? (
-                  <Box>
-                    {wallet.accounts.map((account, accountIndex) => (
-                      <Box
-                        key={account.id}
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        justifyContent={BoxJustifyContent.Between}
-                        twClassName="py-4"
-                        testID={`${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ACCOUNT_ID}-${walletIndex}-${accountIndex}`}
+                <Box gap={3}>
+                  <ButtonBase
+                    accessibilityLabel={walletTitle}
+                    accessibilityState={{ expanded: isExpanded }}
+                    contentWrapperProps={{ twClassName: 'w-full' }}
+                    isFullWidth
+                    onPress={() => toggleWallet(wallet.id)}
+                    testID={`${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_WALLET_ID}-${walletIndex}`}
+                    twClassName="h-auto rounded-none bg-transparent p-0"
+                  >
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      justifyContent={BoxJustifyContent.Between}
+                      twClassName="w-full py-2"
+                    >
+                      <Text
+                        variant={TextVariant.HeadingSm}
+                        fontWeight={FontWeight.Medium}
+                        color={TextColor.TextAlternative}
                       >
+                        {walletTitle}
+                      </Text>
+                      <Icon
+                        name={
+                          isExpanded ? IconName.ArrowUp : IconName.ArrowDown
+                        }
+                        color={IconColor.IconAlternative}
+                      />
+                    </Box>
+                  </ButtonBase>
+
+                  {isExpanded ? (
+                    <Box>
+                      {wallet.accounts.map((account, accountIndex) => (
                         <Box
+                          key={account.id}
                           flexDirection={BoxFlexDirection.Row}
                           alignItems={BoxAlignItems.Center}
-                          gap={4}
-                          twClassName="min-w-0 flex-1"
+                          justifyContent={BoxJustifyContent.Between}
+                          twClassName="py-4"
+                          testID={`${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ACCOUNT_ID}-${walletIndex}-${accountIndex}`}
                         >
-                          <AvatarAccount
-                            address={account.id}
-                            variant={AvatarAccountVariant.Maskicon}
-                            size={AvatarAccountSize.Md}
-                          />
+                          <Box
+                            flexDirection={BoxFlexDirection.Row}
+                            alignItems={BoxAlignItems.Center}
+                            gap={4}
+                            twClassName="min-w-0 flex-1"
+                          >
+                            <AvatarAccount
+                              address={account.id}
+                              variant={AvatarAccountVariant.Maskicon}
+                              size={AvatarAccountSize.Md}
+                            />
+                            <Text
+                              variant={TextVariant.BodyMd}
+                              fontWeight={FontWeight.Medium}
+                              color={TextColor.TextDefault}
+                              numberOfLines={1}
+                              twClassName="min-w-0 flex-1"
+                            >
+                              {account.name ??
+                                strings(
+                                  'app_settings.add_device.import_summary.account_fallback',
+                                  { count: accountIndex + 1 },
+                                )}
+                            </Text>
+                          </Box>
                           <Text
                             variant={TextVariant.BodyMd}
                             fontWeight={FontWeight.Medium}
                             color={TextColor.TextDefault}
-                            numberOfLines={1}
-                            twClassName="min-w-0 flex-1"
+                            twClassName="ml-4"
                           >
-                            {account.name ??
-                              strings(
-                                'app_settings.add_device.import_summary.account_fallback',
-                                { count: accountIndex + 1 },
-                              )}
+                            {formatWithThreshold(
+                              DEMO_ACCOUNT_BALANCES[
+                                walletIndex * 10 + accountIndex
+                              ] ?? 0,
+                              0.01,
+                              I18n.locale,
+                              {
+                                style: 'currency',
+                                currency: 'USD',
+                              },
+                            )}
                           </Text>
                         </Box>
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextDefault}
-                          twClassName="ml-4"
-                        >
-                          {formatWithThreshold(
-                            DEMO_ACCOUNT_BALANCES[
-                              walletIndex * 10 + accountIndex
-                            ] ?? 0,
-                            0.01,
-                            I18n.locale,
-                            {
-                              style: 'currency',
-                              currency: 'USD',
-                            },
-                          )}
-                        </Text>
-                      </Box>
-                    ))}
-                  </Box>
-                ) : null}
-              </Box>
+                      ))}
+                    </Box>
+                  ) : null}
+                </Box>
+              </React.Fragment>
             );
           })}
         </Box>
