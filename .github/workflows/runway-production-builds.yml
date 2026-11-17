@@ -7,9 +7,9 @@
 # apply the same number locally at build time (no version-bump commit). Finishes by uploading the
 # iOS IPA to TestFlight.
 #
-# Must be dispatched from a release/X.Y.Z branch whose open release PR into stable is approved
-# (as defined by the repository rulesets, not by this workflow) and whose commit passed the
-# required CI check. The build is pinned to that verified commit.
+# Must be dispatched from a release/X.Y.Z branch whose open release PR into stable meets the
+# stable branch rules (configured in the repository rulesets, not in this workflow) and whose
+# commit passed the required CI check. The build is pinned to that verified commit.
 #
 # This workflow only produces fresh native binaries — OTA updates are handled by the separate
 # runway-ota-production.yml workflow.
@@ -49,7 +49,8 @@ jobs:
         with:
           sparse-checkout: .github/scripts
 
-      - name: Require an approved release PR into stable
+      - name: Resolve release PR into stable
+        id: resolve-pr
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_REF: ${{ inputs.source_branch || github.ref_name }}
@@ -62,22 +63,21 @@ jobs:
             exit 1
           fi
 
-          PR_JSON=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base stable --state open \
-            --json number,url,reviewDecision,isCrossRepository \
-            --jq '[.[] | select(.isCrossRepository | not)] | .[0] // empty')
-          if [[ -z "$PR_JSON" ]]; then
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base stable --state open \
+            --json number,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)] | .[0].number // empty')
+          if [[ -z "$PR_NUMBER" ]]; then
             echo "::error::No open release PR from ${BRANCH} into stable."
             exit 1
           fi
 
-          PR_URL=$(jq -r '.url' <<<"$PR_JSON")
-          REVIEW_DECISION=$(jq -r '.reviewDecision // empty' <<<"$PR_JSON")
-          if [[ "$REVIEW_DECISION" != "APPROVED" ]]; then
-            echo "::error::Release PR ${PR_URL} must be approved before a production build (review decision: ${REVIEW_DECISION:-none})."
-            exit 1
-          fi
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 
-          echo "Release PR ${PR_URL} is approved."
+      - name: Require the release PR to meet the stable branch rules
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.resolve-pr.outputs.pr_number }}
+        run: .github/scripts/verify-release-pr-mergeable.sh
 
       - name: Resolve commit to build
         id: resolve-commit

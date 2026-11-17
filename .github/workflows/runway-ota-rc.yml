@@ -55,6 +55,7 @@ jobs:
     permissions:
       contents: read
       checks: read # requested by the production-only approval job in push-eas-update.yml
+      pull-requests: read # requested by the production-only approval job in push-eas-update.yml
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:

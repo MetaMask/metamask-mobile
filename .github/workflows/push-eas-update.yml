@@ -438,7 +438,7 @@ jobs:
     permissions:
       contents: read
       checks: read # required CI check in verify-required-ci.sh
-      id-token: write # token exchange for the team approval check
+      pull-requests: read # release PR review decision
     runs-on: ubuntu-latest
     steps:
       - name: Checkout scripts
@@ -452,41 +452,11 @@ jobs:
           COMMIT_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
         run: .github/scripts/verify-required-ci.sh
 
-      - name: Get token
-        id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
-        with:
-          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
-          permissions: |
-            members: read
-
-      # Counts distinct release-team members whose latest review is APPROVED. The reviews API
-      # returns every review, so counting raw APPROVED entries would let one person approve twice.
-      - name: Require approvals from mobile release team
+      - name: Require the release PR to meet the stable branch rules
         env:
-          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ needs.validate-pr.outputs.pr_number }}
-          REQUIRED_APPROVALS: 2
-        run: |
-          set -euo pipefail
-
-          TEAM_MEMBERS=$(gh api "/orgs/${GITHUB_REPOSITORY_OWNER}/teams/release-team/members" \
-            --paginate --jq '.[].login' | jq -R . | jq -s .)
-
-          APPROVERS=$(gh api "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" \
-            --paginate --jq '.[] | select(.state != "COMMENTED" and .state != "PENDING") | {login: .user.login, state, submitted_at}' |
-            jq -s --argjson team "$TEAM_MEMBERS" '
-              group_by(.login)
-              | map(max_by(.submitted_at))
-              | map(select(.state == "APPROVED" and (.login as $login | $team | any(. == $login))))
-              | map(.login)')
-
-          COUNT=$(jq 'length' <<<"$APPROVERS")
-          echo "release-team approvals on PR #${PR_NUMBER}: ${COUNT} ($(jq -r 'join(", ")' <<<"$APPROVERS"))"
-          if (( COUNT < REQUIRED_APPROVALS )); then
-            echo "::error::PR #${PR_NUMBER} needs ${REQUIRED_APPROVALS} approvals from distinct release-team members; found ${COUNT}."
-            exit 1
-          fi
+        run: .github/scripts/verify-release-pr-mergeable.sh
 
   push-update-ios:
     name: Push EAS Update (iOS)
