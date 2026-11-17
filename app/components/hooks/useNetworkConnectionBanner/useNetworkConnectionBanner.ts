@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { hexToNumber } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import NetInfo from '@react-native-community/netinfo';
+import { AppState } from 'react-native';
 import type {
   FailedNetwork,
   NetworkConnectionBannerStatus,
@@ -20,6 +20,7 @@ import {
   MetaMetricsEvents,
   type IMetaMetricsEvent,
 } from '../../../core/Analytics';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
 import onlyKeepHost from '../../../util/onlyKeepHost';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
@@ -29,16 +30,12 @@ import {
 } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useNetworkLatency } from '../../../hooks/useNetworkLatency';
+import { useSettledNetworkLatency } from '../../../hooks/useNetworkLatency';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SLOW_NETWORK_BANNER_DISMISSED_AT } from '../../../constants/storage';
 import { selectSlowNetworkBannerEnabled } from '../../../selectors/featureFlagController/slowNetworkBanner';
 import { getHardwareTier } from '../../../util/deviceCapability';
-import {
-  computeNetworkTier,
-  readCellularGeneration,
-} from '../../../util/deviceCapability/computeNetworkTier';
-import type { NetworkTier } from '../../../util/deviceCapability/types';
+import { getNetworkTierSnapshot } from '../../../util/deviceCapability/latencyStore';
 
 const infuraProjectId = INFURA_PROJECT_ID ?? '';
 
@@ -49,12 +46,13 @@ function sanitizeRpcUrl(rpcUrl: string) {
     : 'custom';
 }
 
-function getSlowNetworkBannerDismissedAt(): number {
-  return Number(StorageWrapper.getItemSync(SLOW_NETWORK_BANNER_DISMISSED_AT));
+function getStoredDismissedAt(): number {
+  return (
+    Number(StorageWrapper.getItemSync(SLOW_NETWORK_BANNER_DISMISSED_AT)) || 0
+  );
 }
 
-function isSlowNetworkBannerSnoozed(): boolean {
-  const dismissedAt = getSlowNetworkBannerDismissedAt();
+function isSnoozed(dismissedAt: number): boolean {
   const elapsedMs = Date.now() - dismissedAt;
   // A negative elapsed time means the clock was ahead when the user dismissed.
   return (
@@ -64,26 +62,22 @@ function isSlowNetworkBannerSnoozed(): boolean {
   );
 }
 
-/** Time on screen since `shownAtRef` was set, or `null` if not shown. Resets the ref. */
-function takeVisibleDurationMs(shownAtRef: {
-  current: number | null;
-}): number | null {
-  const shownAt = shownAtRef.current;
-  shownAtRef.current = null;
-  return shownAt === null ? null : Date.now() - shownAt;
+interface SlowBannerEpisode {
+  visibleMs: number;
+  visibleSince: number | null;
 }
 
-async function readNetworkTier(): Promise<NetworkTier | null> {
-  try {
-    const { type, details, isInternetReachable } = await NetInfo.fetch();
-    return computeNetworkTier({
-      type,
-      cellularGeneration: readCellularGeneration(details),
-      isInternetReachable,
-    });
-  } catch {
+function takeVisibleDurationMs(episodeRef: {
+  current: SlowBannerEpisode | null;
+}): number | null {
+  const episode = episodeRef.current;
+  episodeRef.current = null;
+  if (!episode) {
     return null;
   }
+  const openStretchMs =
+    episode.visibleSince === null ? 0 : Date.now() - episode.visibleSince;
+  return episode.visibleMs + openStretchMs;
 }
 
 const useNetworkConnectionBanner = (): {
@@ -91,11 +85,7 @@ const useNetworkConnectionBanner = (): {
   network: FailedNetwork | null;
   /** True when either the RPC banner or the slow network banner shows. */
   isVisible: boolean;
-  /**
-   * True when requests are slow across the board. Shows ahead of "Still
-   * connecting" but behind "Unable to connect". Hidden for a week after the
-   * user dismisses it.
-   */
+  /** True when requests are slow, unless "Unable to connect" shows or it was dismissed this week. */
   isSlowNetwork: boolean;
   dismissSlowNetwork: () => void;
   updateRpc: () => void;
@@ -115,58 +105,64 @@ const useNetworkConnectionBanner = (): {
   const isSlowNetworkBannerEnabled = useSelector(
     selectSlowNetworkBannerEnabled,
   );
-  const latency = useNetworkLatency();
-  const [isLatencySlow, setIsLatencySlow] = useState(latency === 'SLOW');
-  const [isSlowNetworkSnoozed, setIsSlowNetworkSnoozed] = useState(
-    isSlowNetworkBannerSnoozed,
+  const settledLatency = useSettledNetworkLatency();
+  const isLatencySlow = settledLatency === 'SLOW';
+  const [isAppInBackground, setIsAppInBackground] = useState(
+    () => AppState.currentState === 'background',
   );
+  // Covers a dismissal whose storage write did not land.
+  const dismissedAtRef = useRef(0);
+  const [isSlowNetworkSnoozed, setIsSlowNetworkSnoozed] = useState(() =>
+    isSnoozed(getStoredDismissedAt()),
+  );
+  const slowEpisodeRef = useRef<SlowBannerEpisode | null>(null);
 
-  // Set while the slow network banner is on screen, for `visible_duration_ms`.
-  const slowNetworkShownAtRef = useRef<number | null>(null);
-
-  // The tiers are read only when an event fires, so tracking adds no
-  // subscriptions or re-renders.
   const trackSlowNetworkEvent = useCallback(
     (
       event: IMetaMetricsEvent,
       properties: Record<string, string | number | boolean>,
     ) => {
-      readNetworkTier()
-        .then((networkTier) => {
-          trackEvent(
-            createEventBuilder(event)
-              .addProperties({
-                banner_type: 'slow',
-                hardware_tier: getHardwareTier() ?? 'UNKNOWN',
-                network_tier: networkTier ?? 'UNKNOWN',
-                ...properties,
-              })
-              .build(),
-          );
-        })
-        .catch(() => undefined);
+      trackEvent(
+        createEventBuilder(event)
+          .addProperties({
+            banner_type: 'slow',
+            hardware_tier: getHardwareTier() ?? 'UNKNOWN',
+            network_tier: getNetworkTierSnapshot() ?? 'UNKNOWN',
+            ...properties,
+          })
+          .build(),
+      );
     },
     [trackEvent, createEventBuilder],
   );
 
-  // Latency resets to `UNKNOWN` on every app resume and network switch, so
-  // only a fresh `OK` reading hides the banner. Re-reading the snooze here lets
-  // it expire mid-session.
   useEffect(() => {
-    if (latency === 'SLOW') {
-      setIsLatencySlow(true);
-      setIsSlowNetworkSnoozed(isSlowNetworkBannerSnoozed());
-    } else if (latency === 'OK') {
-      const visibleDurationMs = takeVisibleDurationMs(slowNetworkShownAtRef);
-      if (visibleDurationMs !== null) {
-        trackSlowNetworkEvent(
-          MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
-          { visible_duration_ms: visibleDurationMs },
-        );
-      }
-      setIsLatencySlow(false);
+    const subscription = AppState.addEventListener('change', (next) => {
+      setIsAppInBackground(next === 'background');
+    });
+    return (): void => subscription.remove();
+  }, []);
+
+  // Must run before the visibility effect so a closed episode is not paused.
+  // `UNKNOWN` (offline) only hides the banner, so it is not counted as a recovery.
+  useEffect(() => {
+    if (settledLatency === 'SLOW') {
+      setIsSlowNetworkSnoozed(
+        isSnoozed(Math.max(getStoredDismissedAt(), dismissedAtRef.current)),
+      );
+      return;
     }
-  }, [latency, trackSlowNetworkEvent]);
+    if (settledLatency !== 'OK') {
+      return;
+    }
+    const visibleDurationMs = takeVisibleDurationMs(slowEpisodeRef);
+    if (visibleDurationMs !== null) {
+      trackSlowNetworkEvent(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
+        { visible_duration_ms: visibleDurationMs },
+      );
+    }
+  }, [settledLatency, trackSlowNetworkEvent]);
 
   // Priority: "Unable to connect", then "Slow connection", then "Still connecting".
   const isRpcUnavailable = status === 'unavailable' && Boolean(network);
@@ -175,72 +171,96 @@ const useNetworkConnectionBanner = (): {
     !isRpcUnavailable &&
     isLatencySlow &&
     !isSlowNetworkSnoozed;
-  const isRpcBannerVisible =
-    !isSlowNetwork &&
-    (status === 'degraded' || status === 'unavailable') &&
-    Boolean(network);
+  const isRpcFailing =
+    (status === 'degraded' || status === 'unavailable') && Boolean(network);
+  const isRpcBannerVisible = !isSlowNetwork && isRpcFailing;
 
+  // The settled reading survives background, so background time must pause the episode too.
+  const isSlowBannerOnScreen = isSlowNetwork && !isAppInBackground;
+
+  // One Shown per slow episode, even if another banner hides this one for a while.
   useEffect(() => {
-    if (!isSlowNetwork) {
-      slowNetworkShownAtRef.current = null;
+    const episode = slowEpisodeRef.current;
+    const now = Date.now();
+    if (!isSlowBannerOnScreen) {
+      if (episode && episode.visibleSince !== null) {
+        episode.visibleMs += now - episode.visibleSince;
+        episode.visibleSince = null;
+      }
       return;
     }
-    if (slowNetworkShownAtRef.current !== null) {
+    if (episode) {
+      episode.visibleSince ??= now;
       return;
     }
-    slowNetworkShownAtRef.current = Date.now();
+    slowEpisodeRef.current = { visibleMs: 0, visibleSince: now };
     trackSlowNetworkEvent(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN, {
       rpc_status: status,
-      seconds_since_app_open: Math.round(performance.now() / 1000),
-      previously_dismissed: getSlowNetworkBannerDismissedAt() > 0,
+      seconds_since_app_open: Math.round(
+        (now - AppStateEventProcessor.getOpenedAt()) / 1000,
+      ),
+      previously_dismissed:
+        Math.max(getStoredDismissedAt(), dismissedAtRef.current) > 0,
     });
-  }, [isSlowNetwork, status, trackSlowNetworkEvent]);
+  }, [isSlowBannerOnScreen, status, trackSlowNetworkEvent]);
 
   const dismissSlowNetwork = useCallback(() => {
-    const visibleDurationMs = takeVisibleDurationMs(slowNetworkShownAtRef);
+    const visibleDurationMs = takeVisibleDurationMs(slowEpisodeRef);
     if (visibleDurationMs !== null) {
       trackSlowNetworkEvent(
         MetaMetricsEvents.NETWORK_CONNECTION_BANNER_DISMISSED,
         { visible_duration_ms: visibleDurationMs },
       );
     }
+    const dismissedAt = Date.now();
+    dismissedAtRef.current = dismissedAt;
     setIsSlowNetworkSnoozed(true);
     StorageWrapper.setItem(
       SLOW_NETWORK_BANNER_DISMISSED_AT,
-      String(Date.now()),
+      String(dismissedAt),
     ).catch(() => undefined);
   }, [trackSlowNetworkEvent]);
 
-  // Fire the "shown" analytics once each time the banner becomes visible for a
-  // given status and network. The banner's show/hide and 5s/30s escalation are
+  // Fire the "shown" analytics once per status and network, even while the
+  // slow banner hides this one. The banner's show/hide and 5s/30s escalation are
   // driven by NetworkConnectionBannerController, which re-saves the failing
   // network on every re-evaluation (e.g. to pick up an RPC URL edit). That
   // changes the `network` reference without the banner actually reappearing, so
   // dedupe on a stable key to avoid double counting.
   const lastShownKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    if (isRpcBannerVisible && network) {
-      const shownKey = `${status}:${network.networkClientId}`;
-      if (lastShownKeyRef.current === shownKey) {
-        return;
-      }
-      lastShownKeyRef.current = shownKey;
-
-      const sanitizedUrl = sanitizeRpcUrl(network.rpcUrl);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN)
-          .addProperties({
-            banner_type: status,
-            chain_id_caip: `eip155:${hexToNumber(network.chainId)}`,
-            rpc_endpoint_url: sanitizedUrl,
-            rpc_domain: sanitizedUrl,
-          })
-          .build(),
-      );
-    } else {
+    if (!isRpcFailing || !network) {
       lastShownKeyRef.current = null;
+      return;
     }
-  }, [isRpcBannerVisible, status, network, trackEvent, createEventBuilder]);
+    if (!isRpcBannerVisible) {
+      return;
+    }
+    const shownKey = `${status}:${network.networkClientId}`;
+    if (lastShownKeyRef.current === shownKey) {
+      return;
+    }
+    lastShownKeyRef.current = shownKey;
+
+    const sanitizedUrl = sanitizeRpcUrl(network.rpcUrl);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN)
+        .addProperties({
+          banner_type: status,
+          chain_id_caip: `eip155:${hexToNumber(network.chainId)}`,
+          rpc_endpoint_url: sanitizedUrl,
+          rpc_domain: sanitizedUrl,
+        })
+        .build(),
+    );
+  }, [
+    isRpcFailing,
+    isRpcBannerVisible,
+    status,
+    network,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const updateRpc = useCallback(() => {
     if ((status !== 'degraded' && status !== 'unavailable') || !network) {
