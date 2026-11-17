@@ -164,6 +164,9 @@ jobs:
   native-build-fingerprint:
     name: Compute native build fingerprint
     runs-on: ubuntu-latest
+    # This token can post any commit status, including the build-source-hash that picks which
+    # native build RC repacks reuse, so the job must not restore a shared cache.
+    cache-mode: none
     if: >-
       ${{
         needs.get_requirements.outputs.skip_everything != 'true' &&
@@ -194,13 +197,8 @@ jobs:
           ref: main
           fetch-depth: 1
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
-        # (contents: read and statuses: write) and no secrets. The token can post any commit status in
-        # this repo, including passing required checks and the build-source-hash that picks which
-        # native build E2E tests and RC repacks reuse.
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
@@ -700,6 +698,10 @@ jobs:
     # to a 2.3% failure rate, so the cheap remedy is already applied. Revisit with
     # MCWP-812 if failures recur; `ci-linux-large` exists for that.
     name: JS bundle size check
+    # This token can post any commit status, including the build-source-hash that picks which
+    # native build RC repacks reuse, so the job must not restore a shared cache. The Namespace
+    # cache is not governed by cache-mode, so this job does not configure it either.
+    cache-mode: none
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -739,24 +741,9 @@ jobs:
           echo "Merge-base pinned (${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
           echo "MERGE_BASE_SHA=${MERGE_BASE_SHA}" >> "$GITHUB_ENV"
           echo "BUNDLE_SIZE_BASE_REF=${BASE_REF}" >> "$GITHUB_ENV"
-      - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
-        # (contents: read and statuses: write) and no secrets. The token can post any commit status in
-        # this repo, including passing required checks, the build-source-hash that picks which native
-        # build E2E tests and RC repacks reuse, and the ci/ios-js-bundle-size baseline that later PRs
-        # compare against.
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
@@ -1717,6 +1704,9 @@ jobs:
         needs.get_requirements.outputs.run_performance == 'true'
       }}
     needs: [get_requirements, native-build-fingerprint]
+    # run-performance-e2e.yml grants statuses: write to every job, so none of them may restore a
+    # shared cache. A caller's cache-mode caps every workflow it calls.
+    cache-mode: none
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.get_requirements.outputs.performance_tags }}

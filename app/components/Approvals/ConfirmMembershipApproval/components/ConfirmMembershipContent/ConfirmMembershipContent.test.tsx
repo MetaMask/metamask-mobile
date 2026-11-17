@@ -43,6 +43,7 @@ const createMoneyAccountBalance = (
 const renderComponent = ({
   monthlyAmount = '9.99',
   totalAmount = '9.99',
+  isAnnual = false,
   renewDate = 'Nov 5, 2026',
   isTrial = false,
   billedOn = '',
@@ -51,6 +52,7 @@ const renderComponent = ({
     <ConfirmMembershipContent
       monthlyAmount={monthlyAmount}
       totalAmount={totalAmount}
+      isAnnual={isAnnual}
       renewDate={renewDate}
       isTrial={isTrial}
       billedOn={billedOn}
@@ -80,12 +82,20 @@ describe('ConfirmMembershipContent', () => {
     ).toHaveTextContent('$9.99');
   });
 
-  it('renders the plan name', () => {
+  it('renders the monthly plan name', () => {
     const { getByTestId } = renderComponent();
 
     expect(
       getByTestId(ConfirmMembershipApprovalTestIds.PLAN_NAME),
     ).toHaveTextContent(strings('confirm_membership.plan_name'));
+  });
+
+  it('renders the annual plan name', () => {
+    const { getByTestId } = renderComponent({ isAnnual: true });
+
+    expect(
+      getByTestId(ConfirmMembershipApprovalTestIds.PLAN_NAME),
+    ).toHaveTextContent(strings('confirm_membership.plan_name_annual'));
   });
 
   it('renders the money account balance in the From row', () => {
@@ -187,6 +197,40 @@ describe('ConfirmMembershipContent', () => {
     ).toHaveTextContent('$9.99/month. Renews on Nov 5, 2026.', {
       exact: false,
     });
+  });
+
+  it('authorizes the annual charge in the disclaimer', () => {
+    const { getByTestId } = renderComponent({
+      monthlyAmount: '4.17',
+      totalAmount: '49.99',
+      isAnnual: true,
+      renewDate: 'Nov 5, 2027',
+    });
+
+    const disclaimer = getByTestId(ConfirmMembershipApprovalTestIds.DISCLAIMER);
+
+    expect(disclaimer).toHaveTextContent(
+      '$49.99/year. Renews on Nov 5, 2027.',
+      { exact: false },
+    );
+    expect(disclaimer).not.toHaveTextContent('$4.17/month');
+  });
+
+  it('authorizes the annual charge on a free trial', () => {
+    const { getByTestId } = renderComponent({
+      monthlyAmount: '4.17',
+      totalAmount: '49.99',
+      isAnnual: true,
+      isTrial: true,
+      renewDate: 'Nov 19, 2026',
+    });
+
+    expect(
+      getByTestId(ConfirmMembershipApprovalTestIds.DISCLAIMER),
+    ).toHaveTextContent(
+      `${strings('confirm_membership.start_trial')}", you authorize MetaMask to charge $49.99/year. Renews on Nov 19, 2026.`,
+      { exact: false },
+    );
   });
 
   it('opens the terms of use link when pressed', () => {

@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonIcon,
@@ -29,6 +28,9 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useTheme } from '../../../../../util/theme';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
 import { themeSocialTermsHtml } from './socialTermsTheme';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /** Distance from the bottom that still counts as "read to the end". */
 const SCROLL_END_THRESHOLD = 20;
@@ -151,6 +153,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   onAgree,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { height: windowHeight } = useWindowDimensions();
   const { colors, themeAppearance } = useTheme();
   const termsBackground = colors.background.default;
@@ -251,7 +254,8 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       onClose={onClose}
       testID={SocialTermsSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={onClose}
         closeButtonProps={{
           testID: SocialTermsSheetSelectorsIDs.CLOSE_BUTTON,
@@ -259,7 +263,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
         }}
       >
         {strings('social_leaderboard.terms.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         style={{
           height: windowHeight * BODY_HEIGHT_RATIO,

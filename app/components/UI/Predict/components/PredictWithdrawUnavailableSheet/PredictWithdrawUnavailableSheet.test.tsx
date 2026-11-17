@@ -11,6 +11,11 @@ const mockGetRefHandlers = jest.fn(() => ({
   onCloseBottomSheet: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../hooks/usePredictBottomSheet', () => ({
   usePredictBottomSheet: () => ({
     sheetRef: { current: null },
