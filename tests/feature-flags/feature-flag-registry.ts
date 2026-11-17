@@ -5830,6 +5830,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictCryptoPriceFeed: {
+    name: 'predictCryptoPriceFeed',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.20.0',
+      chainlinkApiKey: '',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictWithAnyToken: {
     name: 'predictWithAnyToken',
     type: FeatureFlagType.Remote,
