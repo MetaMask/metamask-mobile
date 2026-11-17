@@ -146,4 +146,38 @@ describe('WalletRecoveryVerify', () => {
     fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.CANT_USE_THESE));
     expect(onCantUseThese).toHaveBeenCalledTimes(1);
   });
+
+  it('shows email without a password row', () => {
+    const { getByTestId, queryByTestId } = renderVerify({ showEmail: true });
+
+    expect(
+      getByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
+    ).toBeNull();
+  });
+
+  it('ignores method and cant-use presses while busy', () => {
+    const { getByTestId } = renderVerify({
+      showPassword: true,
+      showEmail: true,
+      showTotp: true,
+      isBusy: true,
+    });
+
+    const passwordRow = getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD);
+    const pressedStyle = passwordRow.props.style;
+    if (typeof pressedStyle === 'function') {
+      pressedStyle({ pressed: true });
+      pressedStyle({ pressed: false });
+    }
+
+    fireEvent.press(passwordRow);
+    fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL));
+    fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.CANT_USE_THESE));
+
+    expect(onSelectMethod).not.toHaveBeenCalled();
+    expect(onCantUseThese).not.toHaveBeenCalled();
+  });
 });

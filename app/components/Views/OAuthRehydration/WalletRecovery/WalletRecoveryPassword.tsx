@@ -64,7 +64,10 @@ const WalletRecoveryPassword = ({
         title=""
         onBack={onBack}
         includesTopInset
-        backButtonProps={{ isDisabled: isLoading }}
+        backButtonProps={{
+          testID: WalletRecoverySelectorsIDs.PASSWORD_BACK,
+          isDisabled: isLoading,
+        }}
       />
 
       <KeyboardAwareScrollView

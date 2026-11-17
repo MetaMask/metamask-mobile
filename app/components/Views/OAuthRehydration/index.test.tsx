@@ -1,5 +1,6 @@
 import React from 'react';
-import { Alert, BackHandler } from 'react-native';
+import { Alert, BackHandler, InteractionManager, Platform } from 'react-native';
+import { authenticateAsync } from 'expo-local-authentication';
 import type { ReactTestInstance } from 'react-test-renderer';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
@@ -175,6 +176,9 @@ jest.mock('../../../core/Engine', () => ({
       verifyPassword: jest.fn(),
       submitPassword: jest.fn(),
     },
+    AuthenticationController: {
+      exchangeSocialAccessToken: jest.fn(),
+    },
   },
 }));
 
@@ -265,6 +269,10 @@ describe('OAuthRehydration', () => {
     mockEngine.context.KeyringController.submitPassword.mockResolvedValue(
       undefined,
     );
+    mockEngine.context.AuthenticationController.exchangeSocialAccessToken.mockRejectedValue(
+      new Error('exchange failed'),
+    );
+    jest.mocked(authenticateAsync).mockResolvedValue({ success: true });
     mockUnlockWallet.mockImplementation(
       async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
         if (options.onBeforeNavigate) {
@@ -1886,6 +1894,698 @@ describe('OAuthRehydration', () => {
           }),
         );
       });
+    });
+
+    const latestHardwareBack = (
+      spy: jest.SpiedFunction<typeof BackHandler.addEventListener>,
+    ) =>
+      spy.mock.calls
+        .filter((call) => call[0] === 'hardwareBackPress')
+        .at(-1)?.[1] as (() => boolean) | undefined;
+
+    it('does not auto-start email OTP for Google or Apple', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'passkey',
+      });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockVerifyForSocialLogin).toHaveBeenCalledWith({
+        reason: expect.objectContaining({
+          operation: 'settings.social_mfa_verify',
+        }),
+        methods: ['passkey', 'totp'],
+      });
+    });
+
+    it('keeps email in the arrival order for Telegram', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'email_otp',
+      });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: {
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                authConnection: AuthConnection.Telegram,
+              },
+            },
+          },
+        },
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockVerifyForSocialLogin).toHaveBeenCalledWith({
+        reason: expect.objectContaining({
+          operation: 'settings.social_mfa_verify',
+        }),
+        methods: undefined,
+      });
+    });
+
+    it('ignores hardware back while arrival MFA is in flight', async () => {
+      enableMfaFlags();
+      let resolveVerify: (value: unknown) => void = () => undefined;
+      mockVerifyForSocialLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveVerify = resolve;
+        }),
+      );
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+      });
+
+      const handled: boolean[] = [];
+      act(() => {
+        addEventListenerSpy.mock.calls
+          .filter((call) => call[0] === 'hardwareBackPress')
+          .forEach((call) => {
+            handled.push((call[1] as () => boolean)());
+          });
+      });
+
+      expect(handled).toContain(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).not.toHaveBeenCalled();
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        resolveVerify({ verifiedMethod: 'passkey' });
+      });
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('exits recovery when hardware back is pressed from verify', async () => {
+      enableMfaFlags();
+      cancelHighestFactorOnce();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        latestHardwareBack(addEventListenerSpy)?.();
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('ignores hardware back while a picker factor is verifying', async () => {
+      enableMfaFlags();
+      cancelHighestFactorOnce();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+      let resolveFactor: (value: unknown) => void = () => undefined;
+      mockVerifyForSocialLogin.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFactor = resolve;
+        }),
+      );
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await completePasskeyVerify(getByTestId);
+      await waitFor(() => {
+        expect(mockVerifyForSocialLogin).toHaveBeenCalledTimes(2);
+      });
+
+      mockGoBack.mockClear();
+      act(() => {
+        latestHardwareBack(addEventListenerSpy)?.();
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).not.toHaveBeenCalled();
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        resolveFactor({ verifiedMethod: 'passkey' });
+      });
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('ignores hardware back while password unlock is in flight', async () => {
+      enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+      let resolveUnlock: (value: unknown) => void = () => undefined;
+      mockUnlockWallet.mockReturnValue(
+        new Promise((resolve) => {
+          resolveUnlock = resolve;
+        }),
+      );
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+      });
+      fireEvent.changeText(
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        'wallet-password',
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+      });
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+
+      mockGoBack.mockClear();
+      act(() => {
+        latestHardwareBack(addEventListenerSpy)?.();
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      await act(async () => {
+        resolveUnlock(undefined);
+      });
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('logs a successful social token exchange and still verifies', async () => {
+      enableMfaFlags();
+      mockEngine.context.AuthenticationController.exchangeSocialAccessToken.mockResolvedValue(
+        undefined,
+      );
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'totp',
+      });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(Logger.log).toHaveBeenCalledWith(
+        'OAuthRehydration: social login exchange ok',
+      );
+    });
+
+    it('opens the password screen when listing fallback methods fails', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
+      );
+      mockListActiveSocialLoginMethods.mockRejectedValueOnce(
+        new Error('list failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(Logger.log).toHaveBeenCalledWith(
+        'OAuthRehydration: locked MFA list failed',
+        expect.objectContaining({ code: undefined }),
+      );
+    });
+
+    it('stays on verify without an error when the picker factor is cancelled', async () => {
+      enableMfaFlags();
+      cancelHighestFactorOnce();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey', 'totp']);
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
+      );
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        { state: mfaState },
+      );
+
+      await completePasskeyVerify(getByTestId);
+
+      await waitFor(() => {
+        expect(mockVerifyForSocialLogin).toHaveBeenCalledTimes(2);
+      });
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(WalletRecoverySelectorsIDs.VERIFY_ERROR)).toBeNull();
+    });
+
+    it('shows a verify error when the picker factor fails', async () => {
+      enableMfaFlags();
+      cancelHighestFactorOnce();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['totp']);
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('no'), { mfaCode: 'verification_failed' }),
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP),
+        ).toBeOnTheScreen();
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP));
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_ERROR),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('returns to the picker from password when password was chosen there', async () => {
+      enableMfaFlags();
+      cancelHighestFactorOnce();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
+        ).toBeOnTheScreen();
+      });
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        latestHardwareBack(addEventListenerSpy)?.();
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+      addEventListenerSpy.mockRestore();
+    });
+
+    const offerDeviceBiometrics = (currentAuthType: string) => {
+      mockComponentAuthenticationType.mockResolvedValue({
+        currentAuthType,
+        availableBiometryType: 'FaceID',
+        oauth2Login: true,
+      });
+    };
+
+    const runInteractionsImmediately = () => {
+      jest
+        .mocked(InteractionManager.runAfterInteractions)
+        .mockImplementation((task) => {
+          if (typeof task === 'function') {
+            task();
+          }
+          return {
+            then: (onFulfilled?: () => void) =>
+              Promise.resolve().then(onFulfilled),
+            cancel: jest.fn(),
+          } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+        });
+    };
+
+    const restoreInteractions = () => {
+      jest.mocked(InteractionManager.runAfterInteractions).mockReset();
+    };
+
+    const finishBiometricDelay = async () => {
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+    };
+
+    it('waits longer after a passkey before the device biometrics prompt', async () => {
+      enableMfaFlags();
+      const originalOS = Platform.OS;
+      Platform.OS = 'ios';
+      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+      mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'passkey',
+      });
+      runInteractionsImmediately();
+      jest.useFakeTimers();
+
+      try {
+        const { getByTestId, queryByTestId } = renderWithProvider(
+          <OAuthRehydration />,
+          { state: mfaState },
+        );
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(999);
+        });
+        expect(
+          queryByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeNull();
+        expect(mockRequestBiometricsAccessControlForIOS).not.toHaveBeenCalled();
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(1);
+        });
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+        expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalledWith(
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        );
+      } finally {
+        jest.useRealTimers();
+        restoreInteractions();
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('uses the shorter delay when arrival MFA was not a passkey', async () => {
+      enableMfaFlags();
+      const originalOS = Platform.OS;
+      Platform.OS = 'ios';
+      offerDeviceBiometrics(AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION);
+      mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'totp',
+      });
+      runInteractionsImmediately();
+      jest.useFakeTimers();
+
+      try {
+        const { getByTestId, queryByTestId } = renderWithProvider(
+          <OAuthRehydration />,
+          { state: mfaState },
+        );
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(399);
+        });
+        expect(
+          queryByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeNull();
+        expect(mockRequestBiometricsAccessControlForIOS).not.toHaveBeenCalled();
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(1);
+        });
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+        expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalledWith(
+          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        );
+      } finally {
+        jest.useRealTimers();
+        restoreInteractions();
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('keeps password unlock when the iOS biometrics prompt throws', async () => {
+      enableMfaFlags();
+      const originalOS = Platform.OS;
+      Platform.OS = 'ios';
+      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+      mockRequestBiometricsAccessControlForIOS.mockRejectedValue(
+        new Error('prompt failed'),
+      );
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'totp',
+      });
+      runInteractionsImmediately();
+      jest.useFakeTimers();
+
+      try {
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+
+        await finishBiometricDelay();
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+        expect(Logger.log).toHaveBeenCalledWith(
+          'OAuthRehydration: post-MFA biometrics',
+          expect.objectContaining({
+            biometricsWereOffered: false,
+            authType: AUTHENTICATION_TYPE.PASSWORD,
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+        restoreInteractions();
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('still reaches password when reading the auth type throws', async () => {
+      enableMfaFlags();
+      mockComponentAuthenticationType.mockRejectedValue(
+        new Error('auth type failed'),
+      );
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'passkey',
+      });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(Logger.log).toHaveBeenCalledWith(
+        'OAuthRehydration: post-MFA biometrics failed',
+        expect.any(Object),
+      );
+    });
+
+    it('stores biometric auth when Android accepts the prompt', async () => {
+      enableMfaFlags();
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+      jest.mocked(authenticateAsync).mockResolvedValue({ success: true });
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'totp',
+      });
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+        },
+      );
+      runInteractionsImmediately();
+      jest.useFakeTimers();
+
+      try {
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+
+        await finishBiometricDelay();
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+        fireEvent.changeText(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+          'wallet-password',
+        );
+        await act(async () => {
+          fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+          await jest.runAllTimersAsync();
+        });
+
+        expect(mockUnlockWallet).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authPreference: expect.objectContaining({
+              currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+            }),
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+        restoreInteractions();
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('keeps password auth when Android biometrics are cancelled', async () => {
+      enableMfaFlags();
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+      jest.mocked(authenticateAsync).mockResolvedValue({
+        success: false,
+        error: 'user_cancel',
+      });
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'totp',
+      });
+      runInteractionsImmediately();
+      jest.useFakeTimers();
+
+      try {
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+
+        await finishBiometricDelay();
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+        expect(Logger.log).toHaveBeenCalledWith(
+          'OAuthRehydration: post-MFA biometrics',
+          expect.objectContaining({
+            biometricsRejected: true,
+            biometricsWereOffered: true,
+            authType: AUTHENTICATION_TYPE.PASSWORD,
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+        restoreInteractions();
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('skips the biometric offer when Android reports biometrics are unavailable', async () => {
+      enableMfaFlags();
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      offerDeviceBiometrics(AUTHENTICATION_TYPE.BIOMETRIC);
+      jest.mocked(authenticateAsync).mockResolvedValue({
+        success: false,
+        error: 'not_enrolled',
+      });
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'totp',
+      });
+      runInteractionsImmediately();
+      jest.useFakeTimers();
+
+      try {
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+
+        await finishBiometricDelay();
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+        expect(Logger.log).toHaveBeenCalledWith(
+          'OAuthRehydration: post-MFA biometrics',
+          expect.objectContaining({
+            biometricsWereOffered: false,
+            biometricsRejected: false,
+            authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+        restoreInteractions();
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('keeps the previous auth type when the Android prompt throws', async () => {
+      enableMfaFlags();
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+      jest.mocked(authenticateAsync).mockRejectedValue(new Error('prompt'));
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'totp',
+      });
+      runInteractionsImmediately();
+      jest.useFakeTimers();
+
+      try {
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+
+        await finishBiometricDelay();
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+        expect(Logger.log).toHaveBeenCalledWith(
+          'OAuthRehydration: post-MFA biometrics',
+          expect.objectContaining({
+            biometricsWereOffered: false,
+            authType: AUTHENTICATION_TYPE.PASSWORD,
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+        restoreInteractions();
+        Platform.OS = originalOS;
+      }
     });
   });
 });

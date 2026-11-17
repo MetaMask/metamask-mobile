@@ -11,29 +11,6 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 20, left: 0, right: 0 }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactNative = jest.requireActual('react-native');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    HeaderStandard: ({
-      onBack,
-      backButtonProps,
-    }: {
-      onBack?: () => void;
-      backButtonProps?: { isDisabled?: boolean };
-    }) => (
-      <ReactNative.View>
-        <ReactNative.Pressable
-          testID="wallet-recovery-password-back"
-          disabled={backButtonProps?.isDisabled}
-          onPress={onBack}
-        />
-      </ReactNative.View>
-    ),
-  };
-});
-
 const renderPassword = (
   overrides: Partial<React.ComponentProps<typeof WalletRecoveryPassword>> = {},
 ) => {
@@ -124,7 +101,7 @@ describe('WalletRecoveryPassword', () => {
   it('calls onBack from the header', () => {
     const { getByTestId, props } = renderPassword();
 
-    fireEvent.press(getByTestId('wallet-recovery-password-back'));
+    fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.PASSWORD_BACK));
 
     expect(props.onBack).toHaveBeenCalledTimes(1);
   });

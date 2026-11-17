@@ -103,29 +103,38 @@ const listActiveSocialLoginMethods = async (): Promise<MfaMethod[]> => {
 /**
  * Proves it's the user during social-login wallet recovery, while the wallet
  * is still locked. Never enrolls. When `method` is set, verifies only that
- * factor (custom picker). Otherwise tries methods in cost order
- * (passkey → totp → email) one at a time. Rejects with
- * `credential_not_enrolled` when none is active, or with the code of an
- * error the kit has already shown.
+ * factor (custom picker). Otherwise tries `methods`, or cost order
+ * (passkey → totp → email) when `methods` is omitted, one at a time.
+ * Rejects with `credential_not_enrolled` when none is active, or with the
+ * code of an error the kit has already shown.
  */
 const verifyForSocialLogin = async ({
   reason,
   method,
+  methods,
 }: {
   reason: MfaReason;
   /** When set, verify only this enrolled factor (no cost-order loop). */
   method?: MfaMethod;
-}): Promise<MfaFlowResult> => {
+  /**
+   * Factors to try, in order, when `method` is omitted. Defaults to
+   * passkey → totp → email. Google/Apple arrival passes a list without
+   * email, because that inbox is the sign-in factor.
+   */
+  methods?: readonly MfaMethod[];
+}): Promise<MfaFlowResult & { verifiedMethod: MfaMethod }> => {
   // One adapter for every attempt: it keeps the flow's verification token.
   const controller = createSocialLoginControllerAdapter();
-  const methodsToTry = method ? [method] : METHOD_COST_RANKING;
+  const methodsToTry = method
+    ? [method]
+    : [...(methods ?? METHOD_COST_RANKING)];
   let lastError: unknown;
 
   for (const next of methodsToTry) {
     try {
       // A single-method verifyOnly plan auto-starts that method. Passing
       // every method at once would show the picker when several are active.
-      return await startMfaFlow({
+      const flowResult = await startMfaFlow({
         request: {
           kind: 'verifyOrEnroll',
           methods: [next],
@@ -136,6 +145,7 @@ const verifyForSocialLogin = async ({
         ...clientOptions,
         controller,
       });
+      return { ...flowResult, verifiedMethod: next };
     } catch (error) {
       lastError = error;
       if (getMfaErrorCode(error) === 'credential_not_enrolled') {
