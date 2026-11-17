@@ -447,6 +447,7 @@ const MoneyHomeView = () => {
       showEarnings: hasBalanceValue && isFunded,
       isActivitySettling,
       activityItems,
+      depositTokens,
     }),
     [
       stableLiveHomeCard,
@@ -455,6 +456,7 @@ const MoneyHomeView = () => {
       isFunded,
       isActivitySettling,
       activityItems,
+      depositTokens,
     ],
   );
   const [settledLayout, setSettledLayout] = useState<
@@ -1172,12 +1174,12 @@ const MoneyHomeView = () => {
     });
   }
 
-  if (depositTokens.length > 0) {
+  if (layout.depositTokens.length > 0) {
     contentSections.push({
       key: 'potential-earnings',
       node: (
         <MoneyPotentialEarnings
-          tokens={depositTokens}
+          tokens={layout.depositTokens}
           apyDecimal={apyDecimal}
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
