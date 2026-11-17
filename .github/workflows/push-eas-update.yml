@@ -437,9 +437,25 @@ jobs:
       inputs.channel == 'production'
     permissions:
       contents: read
+      actions: read # verify-ci-check-run.sh reads the push ci.yml run
+      issues: read # re-reads skip-ci-gate on the OTA PR at approval time
       id-token: write # token exchange for the team approval check
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - name: Require ci.yml "Check all jobs pass" on the shipped SHA
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
+          PR_NUMBER: ${{ needs.validate-pr.outputs.pr_number }}
+        run: .github/scripts/verify-ci-check-run.sh
+
       - name: Get token
         id: get-token
         uses: MetaMask/github-tools/.github/actions/get-token@v1
