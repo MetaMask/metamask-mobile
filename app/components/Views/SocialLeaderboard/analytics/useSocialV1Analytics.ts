@@ -56,7 +56,7 @@ export const useSocialAnalytics = () => {
       if (isSocialV1Enabled) {
         track(
           MetaMetricsEvents.SOCIAL_UI_INTERACTION,
-          withSocialAppBuild(properties),
+          withSocialAppBuild(properties) as Record<string, unknown>,
         );
       }
     },
@@ -67,7 +67,7 @@ export const useSocialAnalytics = () => {
       if (isSocialV1Enabled) {
         track(
           MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
-          withSocialAppBuild(properties),
+          withSocialAppBuild(properties) as Record<string, unknown>,
         );
       }
     },
