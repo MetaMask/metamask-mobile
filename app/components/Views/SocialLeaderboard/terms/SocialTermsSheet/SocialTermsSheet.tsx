@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Linking,
   ScrollView,
   useWindowDimensions,
   type LayoutChangeEvent,
@@ -34,6 +35,7 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 
 /** Distance from the bottom that still counts as "read to the end". */
 const SCROLL_END_THRESHOLD = 20;
+const EXTERNAL_LINK_DEDUPE_WINDOW_MS = 1000;
 /** Body height as a share of the window, matching the design. */
 const BODY_HEIGHT_RATIO = 0.6;
 const WEBVIEW_SCROLL_END_EVENT = 'social-terms-scroll-end';
@@ -156,9 +158,14 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { height: windowHeight } = useWindowDimensions();
   const { colors, themeAppearance } = useTheme();
-  const termsBackground = colors.background.default;
+  const termsBackground = colors.background.elevated1;
   const scrollViewRef = useRef<ScrollView>(null);
   const webViewRef = useRef<WebView>(null);
+  const hasLoadedTermsDocument = useRef(false);
+  const lastOpenedExternalUrl = useRef<{
+    url: string;
+    openedAt: number;
+  } | null>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
@@ -248,6 +255,38 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
     [markReachedEnd],
   );
 
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: { url: string }) => {
+      if (!isAllowedTermsUrl(request.url, allowedOrigin)) {
+        return false;
+      }
+
+      if (hasLoadedTermsDocument.current) {
+        const now = Date.now();
+        const previousOpen = lastOpenedExternalUrl.current;
+        const isDuplicate =
+          previousOpen?.url === request.url &&
+          now - previousOpen.openedAt < EXTERNAL_LINK_DEDUPE_WINDOW_MS;
+
+        if (!isDuplicate) {
+          lastOpenedExternalUrl.current = { url: request.url, openedAt: now };
+          Linking.openURL(request.url).catch(() => {
+            if (
+              lastOpenedExternalUrl.current?.url === request.url &&
+              lastOpenedExternalUrl.current.openedAt === now
+            ) {
+              lastOpenedExternalUrl.current = null;
+            }
+          });
+        }
+        return false;
+      }
+
+      return true;
+    },
+    [allowedOrigin],
+  );
+
   return (
     <BottomSheet
       isFullscreen={false}
@@ -292,9 +331,10 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
             onScroll={handleWebViewScroll}
-            onShouldStartLoadWithRequest={(request) =>
-              isAllowedTermsUrl(request.url, allowedOrigin)
-            }
+            onLoadEnd={() => {
+              hasLoadedTermsDocument.current = true;
+            }}
+            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
             testID={SocialTermsSheetSelectorsIDs.WEBVIEW}
           />
         ) : (
