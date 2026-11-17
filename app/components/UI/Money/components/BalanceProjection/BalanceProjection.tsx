@@ -19,7 +19,6 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { isPositiveNumberOrZero } from '../../utils/number';
-import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -28,7 +27,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import Routes from '../../../../../constants/navigation/Routes';
-import formatFiat from '../../../../../util/formatFiat';
+import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 
 export interface BalanceProjectionProps {
   amountFiat: string;
@@ -43,6 +42,11 @@ export function BalanceProjection({
   const tw = useTailwind();
   const { colors } = useTheme();
   const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyVaultApy();
+  const formatDepositFiat = useFiatFormatter({ currency: 'usd' });
+  const formatProjectedFiat = useFiatFormatter({
+    currency: 'usd',
+    fractionDigits: 2,
+  });
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
   });
@@ -63,13 +67,13 @@ export function BalanceProjection({
   }, [amount, apyDecimal, projectedYears]);
 
   const projectedFormatted = useMemo(
-    () => (projected !== null ? moneyFormatUsd(projected) : null),
-    [projected],
+    () => (projected !== null ? formatProjectedFiat(projected) : null),
+    [formatProjectedFiat, projected],
   );
 
   const depositFormatted = useMemo(
-    () => (amount !== null ? formatFiat(amount, 'usd') : ''),
-    [amount],
+    () => (amount !== null ? formatDepositFiat(amount) : ''),
+    [amount, formatDepositFiat],
   );
 
   const handleApyInfoPress = useCallback(() => {

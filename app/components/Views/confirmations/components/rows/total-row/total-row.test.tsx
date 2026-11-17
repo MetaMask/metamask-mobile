@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TotalRow } from './total-row';
+import I18n from '../../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
@@ -24,6 +24,7 @@ import {
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
 } from '../../../../../UI/Money/constants/moneyEvents';
+import { TotalRow } from './total-row';
 
 const mockNavigate = jest.fn();
 const mockTrackTooltipClicked = jest.fn();
@@ -373,6 +374,36 @@ describe('TotalRow', () => {
       });
 
       expect(queryByTestId('receive-pressable')).toBeNull();
+    });
+
+    it('formats receive row and sheet amounts using locale separators and "$" only on comma-decimal locales', () => {
+      const originalLocale = I18n.locale;
+      I18n.locale = 'pt-BR';
+
+      try {
+        useTransactionPayTotalsMock.mockReturnValue({
+          total: { usd: '1000' },
+          targetAmount: { usd: '1000', fiat: '1000' },
+        } as unknown as TransactionPayTotals);
+
+        const { getByTestId } = render({
+          type: TransactionType.moneyAccountDeposit,
+        });
+
+        const receiveText = getByTestId('receive');
+        expect(receiveText).toHaveTextContent(/1\.000,00/u);
+        expect(receiveText).toHaveTextContent(/\$/u);
+        expect(receiveText).not.toHaveTextContent('US$');
+
+        fireEvent.press(getByTestId('receive-pressable'));
+
+        const navParams = mockNavigate.mock.calls[0][1].params;
+        expect(navParams.receiveAmountFiat).toContain('1.000');
+        expect(navParams.receiveAmountFiat).toContain('$');
+        expect(navParams.receiveAmountFiat).not.toContain('US$');
+      } finally {
+        I18n.locale = originalLocale;
+      }
     });
   });
 });

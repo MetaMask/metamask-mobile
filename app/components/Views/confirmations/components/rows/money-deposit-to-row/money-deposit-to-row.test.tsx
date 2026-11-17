@@ -67,12 +67,15 @@ describe('MoneyDepositToRow', () => {
     expect(queryByTestId(MoneyDepositToRowIDs.ROW)).toBeNull();
   });
 
-  it('renders To row with MetaMask Money, bullet separator, and live APY', () => {
-    const { getByTestId, getByText } = renderWithProvider(
+  it('renders To row with rounded-square MoneyBalanceIcon, MetaMask Money, bullet separator, and live APY', () => {
+    const { getByTestId, getByText, UNSAFE_getByProps } = renderWithProvider(
       <MoneyDepositToRow />,
     );
 
     expect(getByTestId(MoneyDepositToRowIDs.ROW)).toBeOnTheScreen();
+    expect(
+      UNSAFE_getByProps({ name: 'money-balance', width: 24, height: 24 }),
+    ).toBeOnTheScreen();
     expect(getByText(strings('confirm.label.to'))).toBeOnTheScreen();
     expect(getByText('MetaMask Money')).toBeOnTheScreen();
     expect(getByText(' • ', { exact: true })).toBeOnTheScreen();

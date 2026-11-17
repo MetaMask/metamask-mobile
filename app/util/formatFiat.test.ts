@@ -100,6 +100,40 @@ describe('formatFiat', () => {
       expect(result).not.toContain('US$');
       expect(result).toBe('$1,000');
     });
+
+    it('normalizes "US$", "$US", and "USD" to "$" on locales where Intl falls back', () => {
+      const intlSpy = jest
+        .spyOn(Intl, 'NumberFormat')
+        .mockImplementationOnce(
+          () =>
+            ({
+              format: () => 'US$ 100',
+            }) as unknown as Intl.NumberFormat,
+        )
+        .mockImplementationOnce(
+          () =>
+            ({
+              format: () => '100,50 $US',
+            }) as unknown as Intl.NumberFormat,
+        )
+        .mockImplementationOnce(
+          () =>
+            ({
+              format: () => 'USD 104,00',
+            }) as unknown as Intl.NumberFormat,
+        );
+
+      I18n.locale = 'pt-BR-fallback-1';
+      expect(formatFiat(new BigNumber(100), 'usd')).toBe('$ 100');
+
+      I18n.locale = 'fr-FR-fallback-2';
+      expect(formatFiat(new BigNumber(100.5), 'usd')).toBe('100,50 $');
+
+      I18n.locale = 'en-AU-fallback-3';
+      expect(formatFiat(new BigNumber(104), 'usd', 2)).toBe('$ 104,00');
+
+      intlSpy.mockRestore();
+    });
   });
 
   describe('edge cases', () => {

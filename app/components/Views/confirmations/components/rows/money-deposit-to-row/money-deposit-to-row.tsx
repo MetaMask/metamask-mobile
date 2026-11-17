@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   TransactionType,
@@ -17,7 +17,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import MoneyIcon from '../../../../../../images/money.png';
+import MoneyBalanceIcon from '../../../../../../images/money-balance.svg';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../../util/theme';
@@ -96,9 +96,13 @@ function MoneyDepositToRowComponent() {
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2"
       >
-        <Box twClassName="h-6 w-6 items-center justify-center overflow-hidden rounded-md">
-          <Image source={MoneyIcon} style={tw.style('h-8 w-8')} />
-        </Box>
+        <MoneyBalanceIcon
+          width={24}
+          height={24}
+          name="money-balance"
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+        />
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
