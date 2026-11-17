@@ -43,6 +43,7 @@ import type {
   RootExtendedMessenger,
 } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import * as predictClusterUrls from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import { store } from '../../../store';
 import {
   predictFundingServiceInit,
@@ -225,6 +226,44 @@ describe('Predict service initialization', () => {
       'AuthenticationController:getBearerToken',
     );
     controller.destroy();
+  });
+
+  it('sends deposit calls to the cluster-aware Predict API URL', async () => {
+    jest
+      .spyOn(predictClusterUrls, 'getPredictApiUrl')
+      .mockReturnValue('https://predict.example');
+    const fetchSpy = jest
+      .spyOn(global, 'fetch')
+      .mockRejectedValue(new Error('offline'));
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      PredictFundingServiceActions,
+      PredictFundingServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const controllerMessenger: PredictFundingServiceMessenger = new Messenger({
+      namespace: 'PredictFundingService',
+      parent: rootMessenger,
+    });
+    const request = {
+      ...buildMessengerClientInitRequestMock(
+        rootMessenger as unknown as RootExtendedMessenger,
+      ),
+      controllerMessenger,
+      initMessenger: {
+        call: jest.fn().mockResolvedValue('test-bearer-token'),
+      } as never,
+    };
+    const { controller } = predictFundingServiceInit(request);
+
+    await rootMessenger
+      .call('PredictFundingService:listOpenDeposits', 'kalshi' as never)
+      .catch(() => undefined);
+
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toMatch(
+      /^https:\/\/predict\.example\//u,
+    );
+    controller.destroy();
+    fetchSpy.mockRestore();
   });
 
   it('cancels uncommitted Previews when the Active Venue changes', () => {

@@ -259,7 +259,7 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
   // cached reads.
   const adapter = new KalshiRemoteAdapter(
     new PredictApiReadClient({
-      baseUrl: process.env.MM_PREDICT_API_URL,
+      baseUrl: getPredictApiUrl(),
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
