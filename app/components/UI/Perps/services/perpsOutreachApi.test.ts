@@ -1,4 +1,4 @@
-import axios, { CanceledError } from 'axios';
+import axios, { AxiosError, CanceledError } from 'axios';
 import {
   buildPerpsOutreachUrl,
   fetchPerpsOutreachBanner,
@@ -212,15 +212,16 @@ describe('fetchPerpsOutreachBanner', () => {
     expect(result).toEqual({ ...bannerWithoutContact, contact: null });
   });
 
-  it('returns null when the request rejects', async () => {
-    mockAxiosGet.mockRejectedValue(new Error('network unavailable'));
+  it('re-throws transport failures so React Query retries instead of caching an empty campaign', async () => {
+    const networkError = new AxiosError(
+      'network unavailable',
+      AxiosError.ERR_NETWORK,
+    );
+    mockAxiosGet.mockRejectedValue(networkError);
 
-    const result = await fetchPerpsOutreachBanner({
-      endpoint: ENDPOINT,
-      address: '0xabc',
-    });
-
-    expect(result).toBeNull();
+    await expect(
+      fetchPerpsOutreachBanner({ endpoint: ENDPOINT, address: '0xabc' }),
+    ).rejects.toBe(networkError);
   });
 
   it('re-throws cancellations so they are not cached as an empty campaign', async () => {

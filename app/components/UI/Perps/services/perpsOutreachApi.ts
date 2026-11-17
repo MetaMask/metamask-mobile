@@ -145,10 +145,13 @@ export async function fetchPerpsOutreachBanner({
 
     return result.show ? result.banner : null;
   } catch (error) {
-    // Leaving Perps mid-flight aborts the request. Re-throw so React Query
-    // treats it as a cancellation instead of caching an empty campaign for the
-    // query's `staleTime`; only network and validation failures hide the banner.
-    if (isCancel(error)) {
+    // Leaving Perps mid-flight aborts the request, and a transport failure
+    // never produced an answer: re-throw both so React Query retries and
+    // refetches on reconnect instead of caching an empty campaign for the
+    // query's `staleTime`. Only an unusable response (non-2xx, malformed, or
+    // an untrusted link) resolves `null`, the authoritative "no campaign to
+    // render" the backend could also have answered with `show: false`.
+    if (isCancel(error) || axios.isAxiosError(error)) {
       throw error;
     }
     return null;
