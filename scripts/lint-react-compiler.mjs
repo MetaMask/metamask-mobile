@@ -68,29 +68,31 @@ function main(args) {
   const require = createRequire(path.join(ROOT, 'package.json'));
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'react-compiler-'));
   const output = path.join(tmp, 'report.json');
-  const cli = spawnSync(
-    process.execPath,
-    [
-      require.resolve('react-compiler-marker/bin/cli.js'),
-      '--babel-plugin-path',
-      require.resolve('babel-plugin-react-compiler'),
-      '--format',
-      'json',
-      '--output',
-      output,
-      'app',
-    ],
-    { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'] },
-  );
-  if (cli.status !== 0 && cli.status !== 1)
-    throw new Error(
-      `react-compiler-marker exited with ${cli.status ?? cli.signal}`,
+  let report;
+  try {
+    const cli = spawnSync(
+      process.execPath,
+      [
+        require.resolve('react-compiler-marker/bin/cli.js'),
+        '--babel-plugin-path',
+        require.resolve('babel-plugin-react-compiler'),
+        '--format',
+        'json',
+        '--output',
+        output,
+        'app',
+      ],
+      { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'] },
     );
-  const failures = collectFailures(
-    JSON.parse(fs.readFileSync(output, 'utf8')),
-    'app',
-  );
-  fs.rmSync(tmp, { recursive: true, force: true });
+    if (cli.status !== 0 && cli.status !== 1)
+      throw new Error(
+        `react-compiler-marker exited with ${cli.status ?? cli.signal}`,
+      );
+    report = JSON.parse(fs.readFileSync(output, 'utf8'));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+  const failures = collectFailures(report, 'app');
   const counts = Object.fromEntries(
     [...failures]
       .sort(([a], [b]) => (a < b ? -1 : 1))
