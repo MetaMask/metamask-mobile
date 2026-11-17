@@ -18,7 +18,7 @@ import type {
 export const PREDICT_FUNDING_SERVICE_NAME = 'PredictFundingService' as const;
 
 /** Statuses after which a deposit needs nothing more from the app. Only
- * `failed` is final: see {@link RESOLVED_AGAIN}. */
+ * `failed` is final: see {@link stageOf}. */
 const RESOLVED_DEPOSIT_STATUSES: readonly PredictDepositStatus[] = [
   'completed',
   'cancelled',
@@ -30,30 +30,68 @@ const isResolved = (status: PredictDepositStatus): boolean =>
   RESOLVED_DEPOSIT_STATUSES.includes(status);
 
 /**
- * The moves from one resolved status to another that the backend makes
- * (va-mmcx-predict-api `docs/FUNDING.md`, "Stored statuses and transitions"),
- * including the ones whose `processing` step a read can miss. Each is news.
- * A transfer that turns up after a cancel or an expiry moves `cancelled` on.
- * A credited transfer that fails or is returned moves `completed` to
- * `under_review`. Support moves `under_review` to `completed` (it got the
- * funds credited) or `failed` (it closed it without a credit).
+ * Where a deposit is in its lifecycle. It flattens the backend's transition
+ * table (va-mmcx-predict-api `docs/FUNDING.md`, "Stored statuses and
+ * transitions"): the backend only moves a deposit to a later stage, with one
+ * exception. Support can move it between `completed` and `under_review`
+ * either way, so those two share a stage.
+ *
+ * A transfer that turns up after a cancel or an expiry moves `cancelled` on
+ * to `processing`, `under_review`, `completed` or `failed`. A credited
+ * transfer that fails or is returned moves `completed` to `under_review`.
+ * Support moves `under_review` to `completed` (it got the funds credited) or
+ * `failed` (it closed it without a credit).
+ *
+ * `processing` before an address (`requesting_address`) comes before
+ * `awaiting_transfer`; `processing` after a transfer comes after it.
  */
-const RESOLVED_AGAIN: Partial<
-  Record<PredictDepositStatus, readonly PredictDepositStatus[]>
-> = {
-  cancelled: ['under_review', 'completed', 'failed'],
-  completed: ['under_review', 'failed'],
-  under_review: ['completed', 'failed'],
+const stageOf = (deposit: PredictDepositOperation): number => {
+  switch (deposit.status) {
+    case 'processing':
+      return deposit.depositAddress === null ? 0 : 3;
+    case 'awaiting_transfer':
+      return 1;
+    case 'cancelled':
+      return 2;
+    case 'completed':
+    case 'under_review':
+      return 4;
+    case 'failed':
+      return 5;
+  }
 };
 
-const isAnnouncedMove = (
-  previous: PredictDepositStatus,
-  next: PredictDepositStatus,
-): boolean =>
-  previous !== next &&
-  isResolved(next) &&
-  (!isResolved(previous) ||
-    (RESOLVED_AGAIN[previous]?.includes(next) ?? false));
+/** What this process knows about one deposit. Never persisted. */
+interface KnownDeposit {
+  status: PredictDepositStatus;
+  stage: number;
+  /** The clock when the latest answer this service took arrived. */
+  receivedAt: number;
+}
+
+/** When a call was sent, so its answer can be placed against others. */
+interface CallTicket {
+  generation: number;
+  sentAt: number;
+}
+
+/**
+ * Whether an answer can replace what the service knows. A later stage always
+ * can and an earlier one never can. Within a stage, the same status confirms
+ * what the service knows; another status (`completed` against
+ * `under_review`) counts only from a call sent after the known answer
+ * arrived, because a call sent before it may have been served before it.
+ */
+const isNewer = (
+  answer: KnownDeposit,
+  known: KnownDeposit,
+  sentAt: number,
+): boolean => {
+  if (answer.stage !== known.stage) {
+    return answer.stage > known.stage;
+  }
+  return answer.status === known.status || sentAt >= known.receivedAt;
+};
 
 export interface PredictFundingServicePrepareDepositAction {
   type: 'PredictFundingService:prepareDeposit';
@@ -110,7 +148,8 @@ export type PredictFundingServiceActions =
  * `under_review`. Each such move is published once, including a later one
  * after support review (`under_review` to `completed`, say). A deposit first
  * read already resolved is not announced, so an old deposit never shows up
- * as news.
+ * as news, and an answer older than what the service knows is never
+ * announced again.
  */
 export interface PredictFundingServiceDepositResolvedEvent {
   type: 'PredictFundingService:depositResolved';
@@ -144,6 +183,15 @@ export interface PredictFundingServiceOptions {
  * repeated key with the deposit it already created, so a retry after a
  * crash never asks the venue for a second address.
  *
+ * **Order.** Answers can arrive out of order: a read sent before a transfer
+ * report can arrive after the report's answer. Arrival order says nothing
+ * about which is newer, so the service keeps what it knows about each
+ * deposit apart from the last answer. An answer at an earlier
+ * {@link stageOf | stage} is older and is ignored. A move between
+ * `completed` and `under_review`, which can go either way, counts only from
+ * a call sent after the answer the service last took arrived. The caller
+ * still gets every answer as the backend sent it.
+ *
  * **Identity.** {@link PredictFundingService.clearState} forgets every
  * deposit and detaches calls in flight, so nothing the previous person
  * started is announced for the next one.
@@ -152,8 +200,11 @@ export class PredictFundingService {
   readonly #messenger: PredictFundingServiceMessenger;
   readonly #funding: VenueFundingAdapter;
   readonly #venueId: PredictVenueId;
-  /** The last status this process saw per deposit. Never persisted. */
-  readonly #statuses = new Map<string, PredictDepositStatus>();
+  /** What this process knows per deposit, by operation ID. */
+  readonly #known = new Map<string, KnownDeposit>();
+  /** Counts the answers that arrived. A call sent after an answer arrived
+   * holds a count at least as high as that answer's. */
+  #clock = 0;
   /** `prepareDeposit` calls in flight, by `clientOperationId`. */
   readonly #preparing = new Map<string, Promise<PredictDepositOperation>>();
   /** Bumped by `clearState`: answers to older calls are not tracked. */
@@ -216,13 +267,13 @@ export class PredictFundingService {
     if (inFlight) {
       return inFlight;
     }
-    const generation = this.#generation;
+    const ticket = this.#send();
     const prepared = this.#funding
       .prepareDeposit(
         { amount: params.amount, clientOperationId: key },
         approval,
       )
-      .then((deposit) => this.#track(deposit, generation))
+      .then((deposit) => this.#track(deposit, ticket))
       .finally(() => {
         if (this.#preparing.get(key) === prepared) {
           this.#preparing.delete(key);
@@ -237,8 +288,8 @@ export class PredictFundingService {
     operationId: string,
   ): Promise<PredictDepositOperation> {
     this.#assertVenue(venueId);
-    const generation = this.#generation;
-    return this.#track(await this.#funding.getDeposit(operationId), generation);
+    const ticket = this.#send();
+    return this.#track(await this.#funding.getDeposit(operationId), ticket);
   }
 
   /** Deposits that are not final yet, oldest first. */
@@ -246,9 +297,9 @@ export class PredictFundingService {
     venueId: PredictVenueId,
   ): Promise<PredictDepositOperation[]> {
     this.#assertVenue(venueId);
-    const generation = this.#generation;
+    const ticket = this.#send();
     const deposits = await this.#funding.listOpenDeposits();
-    return deposits.map((deposit) => this.#track(deposit, generation));
+    return deposits.map((deposit) => this.#track(deposit, ticket));
   }
 
   async reportDepositTransfer(
@@ -257,13 +308,13 @@ export class PredictFundingService {
     params: PredictDepositTransferParams,
   ): Promise<PredictDepositOperation> {
     this.#assertVenue(venueId);
-    const generation = this.#generation;
+    const ticket = this.#send();
     return this.#track(
       await this.#funding.reportDepositTransfer(operationId, {
         txHash: params.txHash,
         chainId: params.chainId,
       }),
-      generation,
+      ticket,
     );
   }
 
@@ -272,11 +323,8 @@ export class PredictFundingService {
     operationId: string,
   ): Promise<PredictDepositOperation> {
     this.#assertVenue(venueId);
-    const generation = this.#generation;
-    return this.#track(
-      await this.#funding.cancelDeposit(operationId),
-      generation,
-    );
+    const ticket = this.#send();
+    return this.#track(await this.#funding.cancelDeposit(operationId), ticket);
   }
 
   /**
@@ -286,7 +334,7 @@ export class PredictFundingService {
    */
   clearState(): void {
     this.#generation += 1;
-    this.#statuses.clear();
+    this.#known.clear();
     this.#preparing.clear();
   }
 
@@ -307,24 +355,43 @@ export class PredictFundingService {
     );
   }
 
-  /** Records the status and announces a resolution this process watched
-   * happen. Answers from before `clearState` are returned, not recorded. */
+  #send(): CallTicket {
+    return { generation: this.#generation, sentAt: this.#clock };
+  }
+
+  /** Records what an answer says about its deposit and announces a
+   * resolution this process watched happen. Answers from before
+   * `clearState`, and answers older than what the service knows, are
+   * returned, not recorded. */
   #track(
     deposit: PredictDepositOperation,
-    generation: number,
+    ticket: CallTicket,
   ): PredictDepositOperation {
-    if (generation !== this.#generation) {
+    if (ticket.generation !== this.#generation) {
       return deposit;
     }
-    const previous = this.#statuses.get(deposit.operationId);
-    this.#statuses.set(deposit.operationId, deposit.status);
-    if (previous !== undefined && isAnnouncedMove(previous, deposit.status)) {
+    this.#clock += 1;
+    const answer: KnownDeposit = {
+      status: deposit.status,
+      stage: stageOf(deposit),
+      receivedAt: this.#clock,
+    };
+    const known = this.#known.get(deposit.operationId);
+    if (known !== undefined && !isNewer(answer, known, ticket.sentAt)) {
+      return deposit;
+    }
+    this.#known.set(deposit.operationId, answer);
+    if (
+      known !== undefined &&
+      known.status !== deposit.status &&
+      isResolved(deposit.status)
+    ) {
       this.#messenger.publish('PredictFundingService:depositResolved', {
         venueId: this.#venueId,
         deposit,
       });
       // A credit, or a credit going back to review, changes the Balance.
-      if (deposit.status === 'completed' || previous === 'completed') {
+      if (deposit.status === 'completed' || known.status === 'completed') {
         this.#invalidateBalanceReads();
       }
     }

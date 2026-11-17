@@ -31,6 +31,17 @@ const OPERATION_ID = awaitingTransfer.operationId;
 const deposit = (fixture: unknown): PredictDepositOperation =>
   fixture as PredictDepositOperation;
 
+const deferred = <TValue>(): {
+  promise: Promise<TValue>;
+  resolve: (value: TValue) => void;
+} => {
+  let resolve: (value: TValue) => void = () => undefined;
+  const promise = new Promise<TValue>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+};
+
 const createFunding = (): jest.Mocked<VenueFundingAdapter> => ({
   prepareDeposit: jest.fn().mockResolvedValue(deposit(awaitingTransfer)),
   getDeposit: jest.fn(),
@@ -349,6 +360,93 @@ describe('PredictFundingService', () => {
 
         expect(resolvedEvents()).toHaveLength(1);
         expect(invalidatedKeys()).toEqual([BALANCE_KEY, SUMMARY_KEY]);
+      });
+    });
+
+    describe('when an older read arrives late', () => {
+      const TRANSFER = {
+        txHash: transferReported.txHash as PredictHex,
+        chainId: 84532,
+      };
+      const statuses = (): string[] =>
+        resolvedEvents().map(([, { deposit: d }]) => d.status);
+
+      it('does not announce a completion twice', async () => {
+        await service.prepareDeposit(venueId, PARAMS, APPROVAL);
+        const olderDetail = deferred<PredictDepositOperation>();
+        const olderList = deferred<PredictDepositOperation[]>();
+        funding.getDeposit.mockReturnValueOnce(olderDetail.promise);
+        funding.listOpenDeposits.mockReturnValueOnce(olderList.promise);
+        const detail = service.getDeposit(venueId, OPERATION_ID);
+        const list = service.listOpenDeposits(venueId);
+        funding.reportDepositTransfer.mockResolvedValue(deposit(credited));
+        await service.reportDepositTransfer(venueId, OPERATION_ID, TRANSFER);
+
+        olderDetail.resolve(deposit(awaitingTransfer));
+        olderList.resolve([deposit(transferReported)]);
+        await Promise.all([detail, list]);
+        funding.getDeposit.mockResolvedValue(deposit(credited));
+        await service.getDeposit(venueId, OPERATION_ID);
+
+        expect(statuses()).toEqual(['completed']);
+        expect(messenger.mock.call).toHaveBeenCalledTimes(2);
+      });
+
+      it('still answers the caller with what the backend sent', async () => {
+        await service.prepareDeposit(venueId, PARAMS, APPROVAL);
+        const older = deferred<PredictDepositOperation>();
+        funding.getDeposit.mockReturnValueOnce(older.promise);
+        const detail = service.getDeposit(venueId, OPERATION_ID);
+        funding.reportDepositTransfer.mockResolvedValue(deposit(credited));
+        await service.reportDepositTransfer(venueId, OPERATION_ID, TRANSFER);
+
+        older.resolve(deposit(awaitingTransfer));
+
+        await expect(detail).resolves.toBe(awaitingTransfer);
+      });
+
+      it('does not take a review from before a credit for a new review', async () => {
+        await service.prepareDeposit(venueId, PARAMS, APPROVAL);
+        funding.getDeposit.mockResolvedValueOnce(deposit(needsReview));
+        await service.getDeposit(venueId, OPERATION_ID);
+        const older = deferred<PredictDepositOperation>();
+        funding.getDeposit.mockReturnValueOnce(older.promise);
+        const olderRead = service.getDeposit(venueId, OPERATION_ID);
+        funding.getDeposit.mockResolvedValueOnce(deposit(credited));
+        await service.getDeposit(venueId, OPERATION_ID);
+
+        older.resolve(deposit(needsReview));
+        await olderRead;
+        funding.getDeposit.mockResolvedValue(deposit(credited));
+        await service.getDeposit(venueId, OPERATION_ID);
+
+        expect(statuses()).toEqual(['under_review', 'completed']);
+        expect(messenger.mock.call).toHaveBeenCalledTimes(2);
+      });
+
+      it('takes a review that a read sent after the credit reports', async () => {
+        await service.prepareDeposit(venueId, PARAMS, APPROVAL);
+        funding.reportDepositTransfer.mockResolvedValue(deposit(credited));
+        await service.reportDepositTransfer(venueId, OPERATION_ID, TRANSFER);
+        funding.getDeposit.mockResolvedValue(deposit(needsReview));
+
+        await service.getDeposit(venueId, OPERATION_ID);
+
+        expect(statuses()).toEqual(['completed', 'under_review']);
+      });
+
+      it('takes a later stage from a read that overlapped another', async () => {
+        await service.prepareDeposit(venueId, PARAMS, APPROVAL);
+        const cancelling = deferred<PredictDepositOperation>();
+        funding.cancelDeposit.mockReturnValueOnce(cancelling.promise);
+        const cancel = service.cancelDeposit(venueId, OPERATION_ID);
+        funding.listOpenDeposits.mockResolvedValue([deposit(awaitingTransfer)]);
+        await service.listOpenDeposits(venueId);
+
+        cancelling.resolve(deposit(cancelled));
+        await cancel;
+
+        expect(statuses()).toEqual(['cancelled']);
       });
     });
 
