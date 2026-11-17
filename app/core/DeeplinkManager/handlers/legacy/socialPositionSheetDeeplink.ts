@@ -3,22 +3,26 @@ import type {
   TraderProfileResponse,
 } from '@metamask/social-controllers';
 import ReactQueryService from '../../../ReactQueryService';
+import NavigationService from '../../../NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import type { SocialV1FeedAuthor } from '../../../../components/UI/SocialFeed/types';
 import { toWholePercent } from '../../../../components/UI/SocialFeed/utils/feedCardStats';
 import { buildTraderProfileQueryKey } from '../../../../util/social/traderProfileQueries';
 import { resolvePositionAuthorProfileId } from '../../../../util/social/positionOwnership';
 
+const LOG_PREFIX = '[socialPositionSheetDeeplink]';
+
 const fetchSocialTraderProfile = async (
   traderId: string,
-  logPrefix: string,
 ): Promise<TraderProfileResponse | undefined> => {
   try {
     return await ReactQueryService.queryClient.query<TraderProfileResponse>({
       queryKey: buildTraderProfileQueryKey(traderId),
     });
   } catch (error) {
-    DevLogger.log(`${logPrefix} Failed to resolve the post author:`, error);
+    DevLogger.log(`${LOG_PREFIX} Failed to resolve the post author:`, error);
     return undefined;
   }
 };
@@ -50,12 +54,8 @@ const toSocialPositionAuthor = (
 
 const resolveSocialPositionAuthor = async (
   traderId: string,
-  logPrefix: string,
 ): Promise<SocialV1FeedAuthor> =>
-  toSocialPositionAuthor(
-    traderId,
-    await fetchSocialTraderProfile(traderId, logPrefix),
-  );
+  toSocialPositionAuthor(traderId, await fetchSocialTraderProfile(traderId));
 
 /**
  * Fetches the position a link names. A hidden, removed or moderated position
@@ -63,14 +63,13 @@ const resolveSocialPositionAuthor = async (
  */
 const fetchSocialPosition = async (
   positionId: string,
-  logPrefix: string,
 ): Promise<Position | undefined> => {
   try {
     return await ReactQueryService.queryClient.query<Position>({
       queryKey: ['SocialService:fetchPositionById', { positionId }],
     });
   } catch (error) {
-    DevLogger.log(`${logPrefix} Failed to fetch the position:`, error);
+    DevLogger.log(`${LOG_PREFIX} Failed to fetch the position:`, error);
     return undefined;
   }
 };
@@ -90,11 +89,10 @@ export interface SharedSocialPosition {
 export const resolveSharedSocialPosition = async (
   positionId: string,
   traderId: string,
-  logPrefix: string,
 ): Promise<SharedSocialPosition | undefined> => {
   const [position, traderProfile] = await Promise.all([
-    fetchSocialPosition(positionId, logPrefix),
-    fetchSocialTraderProfile(traderId, logPrefix),
+    fetchSocialPosition(positionId),
+    fetchSocialTraderProfile(traderId),
   ]);
   if (!position) {
     return undefined;
@@ -114,11 +112,52 @@ export const resolveSharedSocialPosition = async (
   }
 
   DevLogger.log(
-    `${logPrefix} The link's trader does not own the position; showing its owner`,
+    `${LOG_PREFIX} The link's trader does not own the position; showing its owner`,
   );
   return {
     position,
-    author: await resolveSocialPositionAuthor(authorProfileId, logPrefix),
+    author: await resolveSocialPositionAuthor(authorProfileId),
     isOwnerMismatch: true,
   };
+};
+
+/**
+ * A shared position opens like a profile row tap: the trader's Social V1
+ * profile, with the position sheet over it. A position that can no longer be
+ * fetched leaves the user on the profile. A position the trader doesn't own
+ * opens on its real owner's profile instead.
+ */
+export const openSharedPositionOnProfile = (
+  positionId: string,
+  traderId: string,
+): void => {
+  navigateToSocialV1Profile(NavigationService.navigation, {
+    traderId,
+    source: 'deep_link',
+  });
+  resolveSharedSocialPosition(positionId, traderId)
+    .then((shared) => {
+      if (!shared) {
+        return;
+      }
+      const { position, author, isOwnerMismatch } = shared;
+      if (isOwnerMismatch) {
+        navigateToSocialV1Profile(NavigationService.navigation, {
+          traderId: author.id,
+          traderName: author.username,
+          traderAddress: author.address,
+          traderAvatarUri: author.avatarUri ?? undefined,
+          source: 'deep_link',
+        });
+      }
+      NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId,
+        position,
+        author,
+        shareSource: 'deep_link',
+      });
+    })
+    .catch((error: unknown) => {
+      DevLogger.log(`${LOG_PREFIX} Failed to open the position sheet:`, error);
+    });
 };

@@ -30,7 +30,7 @@ import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
 import {
   type ListRecurringSwapsResponse,
   RecurringOrderState,
-  RecurringSwapState,
+  RecurringSwapStatus,
 } from '../../api/recurringOrders.types';
 import { formatRecurringPriceRange } from '../../utils/recurringOrders';
 import ToastService from '../../../../../core/ToastService';
@@ -555,6 +555,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       recurringSwaps: jest.fn().mockResolvedValue({
         swaps: [malformedSkippedSwap],
         hasNextPage: false,
+        total: 1,
       }),
     });
     const renderResult = renderRecurringOrderDetailsView({
@@ -577,13 +578,15 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     const submittedSwap = {
       ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
       id: `${MOCK_RECURRING_OPEN_ORDER.id}-submitted`,
-      state: RecurringSwapState.Submitted,
+      status: RecurringSwapStatus.Submitted,
     };
     clearRecurringOrdersDataServiceMock();
     setupRecurringOrdersDataServiceMock({
-      recurringSwaps: jest
-        .fn()
-        .mockResolvedValue({ swaps: [submittedSwap], hasNextPage: false }),
+      recurringSwaps: jest.fn().mockResolvedValue({
+        swaps: [submittedSwap],
+        hasNextPage: false,
+        total: 1,
+      }),
     });
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_OPEN_ORDER,
@@ -617,6 +620,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       .mockResolvedValueOnce({
         swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
         hasNextPage: false,
+        total: 1,
       });
     clearRecurringOrdersDataServiceMock();
     setupRecurringOrdersDataServiceMock({ recurringSwaps });
@@ -671,6 +675,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
         endCursor: 'next-page',
         hasNextPage: true,
+        total: 2,
       })
       .mockReturnValueOnce(nextPage);
     clearRecurringOrdersDataServiceMock();
@@ -703,6 +708,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       resolveNextPage({
         swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[1]],
         hasNextPage: false,
+        total: 2,
       });
       await Promise.resolve();
     });
@@ -718,7 +724,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       2,
       MOCK_RECURRING_OPEN_ORDER.id,
       {
-        accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress,
+        accountAddress: MOCK_RECURRING_OPEN_ORDER.account,
         limit: 20,
         cursor: 'next-page',
       },

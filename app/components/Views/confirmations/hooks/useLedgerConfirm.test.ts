@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import {
   TransactionStatus,
   type TransactionMeta,
@@ -477,6 +477,70 @@ describe('useLedgerConfirm', () => {
     expect(mockHideAwaitingConfirmation).toHaveBeenCalledTimes(1);
     expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
     expect(onReject).toHaveBeenCalledTimes(1);
+  });
+
+  describe('frame timing of the reject', () => {
+    let frames: ((time: number) => void)[];
+    let requestAnimationFrameSpy: jest.SpiedFunction<
+      typeof requestAnimationFrame
+    >;
+
+    beforeEach(() => {
+      frames = [];
+      requestAnimationFrameSpy = jest
+        .spyOn(global, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          frames.push(callback);
+          return frames.length;
+        });
+    });
+
+    afterEach(() => {
+      requestAnimationFrameSpy.mockRestore();
+    });
+
+    const runNextFrame = (): void => {
+      const callback = frames.shift();
+      callback?.(0);
+    };
+
+    it('rejects two frames after a signing failure', async () => {
+      executeApproval.mockRejectedValueOnce(new Error('signing failed'));
+      const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
+
+      let confirmation: Promise<void> = Promise.resolve();
+      act(() => {
+        confirmation = result.current.onConfirm();
+      });
+      await waitFor(() => expect(frames).toHaveLength(1));
+
+      expect(mockHideAwaitingConfirmation).toHaveBeenCalledTimes(1);
+      expect(onReject).not.toHaveBeenCalled();
+
+      runNextFrame();
+      expect(frames).toHaveLength(1);
+      expect(onReject).not.toHaveBeenCalled();
+
+      await act(async () => {
+        runNextFrame();
+        await confirmation;
+      });
+
+      expect(onReject).toHaveBeenCalledTimes(1);
+      expect(mockSetPendingOperationAddress).toHaveBeenLastCalledWith(null);
+    });
+
+    it('rejects without waiting when the device is not ready', async () => {
+      mockEnsureDeviceReady.mockResolvedValue(false);
+      const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onReject).toHaveBeenCalledTimes(1);
+      expect(frames).toHaveLength(0);
+    });
   });
 
   it('rejects only once when cancellation callback fires after error', async () => {
