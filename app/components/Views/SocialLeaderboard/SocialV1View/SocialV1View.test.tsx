@@ -522,53 +522,84 @@ describe('SocialV1View', () => {
     expect(Math.abs(translateY ?? 0)).toBe(0);
   });
 
-  it('syncs the incoming tab scroll offset when switching tabs past the tabs bar', () => {
+  it('preserves each tab scroll position when switching by tapping', () => {
     const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 90, x: 0 } } },
+    );
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 30, x: 0 } } },
     );
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
     );
-    mockFeedScrollToOffset.mockClear();
+    rerender(<SocialV1View />);
 
-    fireEvent.scroll(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
-      { nativeEvent: { contentOffset: { y: 120, x: 0 } } },
-    );
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    expect(getTranslateY()).toBe(-90);
+
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
     );
     rerender(<SocialV1View />);
 
-    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
-      'social_following',
-      48,
-      false,
-    );
-    expect(
-      StyleSheet.flatten(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
-      )?.transform?.[0]?.translateY,
-    ).toBe(-48);
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    expect(getTranslateY()).toBe(-30);
   });
 
-  it('keeps the tabs bar visible when switching to an unmounted lazy tab', () => {
+  it('preserves each tab scroll position when switching by swiping', () => {
     const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
 
     fireEvent.scroll(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
-      { nativeEvent: { contentOffset: { y: 120, x: 0 } } },
+      { nativeEvent: { contentOffset: { y: 90, x: 0 } } },
     );
-    fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
-    );
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 1 } });
+    });
     rerender(<SocialV1View />);
 
-    const translateY = StyleSheet.flatten(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
-    )?.transform?.[0]?.translateY;
-    expect(Math.abs(translateY ?? 0)).toBe(0);
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 24, x: 0 } } },
+    );
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 0 } });
+    });
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    expect(getTranslateY()).toBe(-90);
+
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 1 } });
+    });
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    expect(getTranslateY()).toBe(-24);
   });
 
   it('scrolls the active page to the top when its tab is tapped again', () => {

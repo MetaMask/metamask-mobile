@@ -329,10 +329,9 @@ const SocialV1ViewContent: React.FC = () => {
   }, [openSheet]);
 
   // Each page scrolls independently, so keep a scroll offset per tab and let a
-  // derived value expose whichever one is currently visible. Sharing a single
-  // offset would leave the header collapsed after swiping to an unscrolled page.
-  // On tab change the incoming page is scrolled into agreement with the outgoing
-  // one (see `syncIncomingPageScroll`) so the header never flips.
+  // derived value expose whichever one is currently visible. Each tab keeps its
+  // own reading position across swipes and tab taps, and the tabs bar / header
+  // backdrop follow whichever tab is active.
   const trendingScrollY = useSharedValue(0);
   const followingScrollY = useSharedValue(0);
   const leaderboardScrollY = useSharedValue(0);
@@ -421,87 +420,6 @@ const SocialV1ViewContent: React.FC = () => {
     () =>
       floatingHeaderInset +
       Math.max(0, tabsHeight - Math.max(0, scrollY.value)),
-  );
-
-  /**
-   * Brings the incoming page's scroll offset into agreement with the outgoing
-   * one over the tabs bar's collapse range, so switching tabs keeps the tabs
-   * bar aligned instead of jumping between visible and scrolled away.
-   *
-   * Only the first `tabsHeight` pixels hide the tabs bar, so once the outgoing
-   * page is past it the incoming page only has to clear the same threshold,
-   * preserving a deeper reading position instead of yanking it back to the top.
-   */
-  const syncIncomingPageScroll = useCallback(
-    (nextIndex: number) => {
-      const collapseRange = tabsHeight;
-      if (collapseRange <= 0) {
-        return;
-      }
-
-      const getOffset = (index: number) => {
-        if (index === trendingIndex) {
-          return trendingScrollY.value;
-        }
-        if (index === followingIndex) {
-          return followingScrollY.value;
-        }
-        if (index === liveIndex) {
-          return liveScrollY.value;
-        }
-        return leaderboardScrollY.value;
-      };
-      const outgoingOffset = getOffset(activeIndex);
-      const incomingOffset = getOffset(nextIndex);
-
-      const target =
-        outgoingOffset >= collapseRange
-          ? Math.max(incomingOffset, collapseRange)
-          : outgoingOffset;
-
-      if (target === incomingOffset) {
-        return;
-      }
-
-      const incomingPage =
-        nextIndex === trendingIndex
-          ? trendingPageRef
-          : nextIndex === followingIndex
-            ? followingPageRef
-            : nextIndex === liveIndex
-              ? livePageRef
-              : leaderboardPageRef;
-      if (!incomingPage.current) {
-        return;
-      }
-
-      // Write the shared value up front: `scrollY` switches to the incoming page
-      // the moment `activeIndexSv` flips, and the native scroll only reports back
-      // a frame later — without this the tabs bar and backdrop would flicker for
-      // that frame before settling.
-      if (nextIndex === trendingIndex) {
-        trendingScrollY.value = target;
-      } else if (nextIndex === followingIndex) {
-        followingScrollY.value = target;
-      } else if (nextIndex === liveIndex) {
-        liveScrollY.value = target;
-      } else {
-        leaderboardScrollY.value = target;
-      }
-
-      incomingPage.current.scrollToOffset(target);
-    },
-    [
-      activeIndex,
-      followingIndex,
-      followingScrollY,
-      trendingIndex,
-      trendingScrollY,
-      leaderboardScrollY,
-      liveIndex,
-      liveScrollY,
-      tabsHeight,
-    ],
   );
 
   // Floats the tabs bar directly under the header and slides it up 1:1 with
@@ -658,13 +576,12 @@ const SocialV1ViewContent: React.FC = () => {
 
   const selectTab = useCallback(
     (index: number, isTap = false) => {
-      syncIncomingPageScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
       activate(index, isTap);
       livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
-    [activate, activeIndexSv, livePrices, syncIncomingPageScroll],
+    [activate, activeIndexSv, livePrices],
   );
 
   const changeTab = useCallback(
