@@ -27,7 +27,10 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { strings } from '../../../../../../locales/i18n';
-import { getErrorHandling } from '../../../../../util/identity/mfa/engine/errors';
+import {
+  getErrorHandling,
+  isCooldownCountdown,
+} from '../../../../../util/identity/mfa/engine/errors';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 import { maskEmail } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
@@ -42,8 +45,6 @@ const CELL_COUNT = 6;
  */
 const getCodeDigits = (text: string) =>
   text.replace(/\D/g, '').slice(0, CELL_COUNT);
-
-const COOLDOWN_CODES = new Set(['otp_resend_cooldown', 'rate_limited']);
 
 // The clock is state, as the React Compiler caches what render computes:
 // `Date.now()` read during render would never move. Being up to a second
@@ -118,7 +119,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
       resendAvailableAt !== undefined &&
       secondsLeft === 0
     ) {
-      onAction({ type: 'resend' });
+      onAction({ type: 'resend', trigger: 'auto' });
     }
   }, [isTotp, codeSent, resendAvailableAt, secondsLeft, onAction]);
 
@@ -167,9 +168,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
 
   // An email cooldown with a wait time shows as the countdown on the resend
   // button, also once it ended. Authenticator app errors always show.
-  const showError =
-    error !== undefined &&
-    (isTotp || !(resendAvailableAt !== undefined && COOLDOWN_CODES.has(error)));
+  const showError = error !== undefined && !isCooldownCountdown(state);
   // The code on screen can no longer be used: the main action is a new one.
   const needsNewCode =
     showError && error !== undefined && getErrorHandling(error) === 'restart';
@@ -186,6 +185,9 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
 
   const getResendLabel = () => {
     if (isCoolingDown) {
+      if (needsNewCode) {
+        return strings('mfa.otp.get_new_code_in', { seconds: secondsLeft });
+      }
       return strings(codeSent ? 'mfa.otp.resend_in' : 'mfa.otp.send_in', {
         seconds: secondsLeft,
       });
@@ -207,6 +209,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
 
   return (
     <StepLayout
+      onAction={onAction}
       title={strings('mfa.otp.title')}
       description={getDescription()}
       footer={
@@ -219,7 +222,10 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={isCoolingDown}
-            onPress={() => onAction({ type: 'resend' })}
+            onPress={() => {
+              onAction({ type: 'errorCtaClicked', cta: 'try_again' });
+              onAction({ type: 'resend' });
+            }}
             testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
           >
             {isCoolingDown
@@ -236,10 +242,14 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             // A complete code submits itself; the line under the boxes shows
             // it being checked.
             isDisabled={!canResend}
-            onPress={() => onAction({ type: 'resend' })}
+            onPress={() => {
+              onAction({ type: 'resend' });
+            }}
             testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
           >
-            {needsNewCode ? strings('mfa.otp.get_new_code') : getResendLabel()}
+            {needsNewCode && !isCoolingDown
+              ? strings('mfa.otp.get_new_code')
+              : getResendLabel()}
           </Button>
         )
       }
@@ -303,7 +313,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
           </Box>
         ) : null}
         {showErrorState && error ? (
-          <StepError code={error} method={step.method} />
+          <StepError code={error} method={step.method} onAction={onAction} />
         ) : null}
         {codeResent && !error ? (
           <HelpText>{strings('mfa.otp.resent')}</HelpText>

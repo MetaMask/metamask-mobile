@@ -76,7 +76,13 @@ export const renderPredictOrderFlow = (Component: React.ComponentType) =>
 
 export const renderPredictNext = (
   privacyMode = false,
-  { venueId = DEFAULT_VENUE_ID }: { venueId?: PredictVenueId } = {},
+  {
+    venueId = DEFAULT_VENUE_ID,
+    remoteFeatureFlags = {},
+  }: {
+    venueId?: PredictVenueId;
+    remoteFeatureFlags?: Record<string, unknown>;
+  } = {},
 ) =>
   renderScreenWithRoutes(
     venueId === DEFAULT_VENUE_ID ? HomeScreen : homeScreenFor(venueId),
@@ -86,8 +92,14 @@ export const renderPredictNext = (
       { name: PredictNextRoutes.EVENT, Component: EventScreen },
       { name: PredictNextRoutes.PORTFOLIO, Component: PortfolioScreen },
       { name: PredictNextRoutes.SEARCH, Component: SearchScreen },
+      // A probe: Home never leaves Predict for the app's Explore tab.
+      { name: Routes.TRENDING_VIEW },
     ],
-    { state: initialStatePredictNext(privacyMode).build() },
+    {
+      state: initialStatePredictNext(privacyMode)
+        .withRemoteFeatureFlags(remoteFeatureFlags)
+        .build(),
+    },
   );
 
 export const renderPredictSearchScreen = (

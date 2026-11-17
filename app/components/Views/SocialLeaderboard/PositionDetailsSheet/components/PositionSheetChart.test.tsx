@@ -1,5 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet, type TextStyle, type ViewStyle } from 'react-native';
+import { Gesture } from 'react-native-gesture-handler';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -7,11 +9,15 @@ import {
 import type { SharedValue } from 'react-native-reanimated';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
-import type {
-  PositionSheetLevel,
-  PositionSheetMarker,
-} from '../hooks/usePositionSheetData';
-import PositionSheetChart from './PositionSheetChart';
+import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
+import PositionSheetChart, { SCRUB_LONG_PRESS_MS } from './PositionSheetChart';
+
+jest.mock('../../../../../util/haptics');
 
 const PRICES: TokenPrice[] = [
   ['1', 100],
@@ -25,13 +31,10 @@ const MARKER: PositionSheetMarker = {
   index: 1,
   intent: 'enter',
   timestampMs: 2,
-  tooltipLabel: 'Bought @ $110',
+  actionLabel: 'Opened',
+  valueLabel: '+$1,250.00',
+  isValuePositive: true,
 };
-
-const LEVELS: PositionSheetLevel[] = [
-  { kind: 'entry', price: 110, label: 'Entry · 2h ago', valueLabel: '$110' },
-  { kind: 'current', price: 120, label: 'Current', valueLabel: '$120' },
-];
 
 const lineProgress = { value: 1 } as SharedValue<number>;
 
@@ -45,7 +48,6 @@ const renderChart = (
       isLoading={false}
       isTrendPositive
       markers={[MARKER]}
-      levels={LEVELS}
       timeAxisLabels={['Mon', 'Wed', 'Fri', 'Sun']}
       lineProgress={lineProgress}
       overlayStyle={undefined}
@@ -64,7 +66,7 @@ const renderChart = (
 };
 
 describe('PositionSheetChart', () => {
-  it('draws the line with a pill pair per level and a marker per fill', () => {
+  it('draws the line and a marker per fill', () => {
     renderChart();
 
     expect(
@@ -72,20 +74,30 @@ describe('PositionSheetChart', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
-        `${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-entry`,
-      ),
-    ).toHaveTextContent('Entry · 2h ago');
-    expect(
-      screen.getByTestId(
-        `${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-current-value`,
-      ),
-    ).toHaveTextContent('$120');
-    expect(
-      screen.getByTestId(
         `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${MARKER.id}`,
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Wed')).toBeOnTheScreen();
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(
+          `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${MARKER.id}`,
+        ).props.style,
+      ).borderWidth,
+    ).toBeUndefined();
+  });
+
+  it('shows a retry instead of the skeleton when prices fail', () => {
+    const onRetry = jest.fn();
+    renderChart({ isLoading: true, isError: true, onRetry });
+
+    expect(
+      screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CHART_LOADING),
+    ).toBeNull();
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.CHART_RETRY),
+    );
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
   it('shows the skeleton while prices load', () => {
@@ -120,5 +132,161 @@ describe('PositionSheetChart', () => {
     expect(onScrub).toHaveBeenCalledWith(PRICES[1]);
     expect(onScrub).toHaveBeenCalledWith(PRICES[2]);
     expect(onScrub).toHaveBeenLastCalledWith(null);
+  });
+
+  it('starts scrubbing only after a brief long press', () => {
+    renderChart();
+
+    const gesture = getByGestureTestId(
+      PositionDetailsSheetSelectorsIDs.CHART_SCRUB,
+    );
+
+    expect(gesture.config.activateAfterLongPress).toBe(SCRUB_LONG_PRESS_MS);
+    expect(SCRUB_LONG_PRESS_MS).toBe(200);
+  });
+
+  it('taps once when scrubbing starts and ticks once per fill crossed', () => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+    renderChart();
+
+    act(() => {
+      fireGestureHandler(
+        getByGestureTestId(PositionDetailsSheetSelectorsIDs.CHART_SCRUB),
+        [{ x: 100 }, { x: 102 }, { x: 200 }],
+      );
+    });
+
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.ChartCrosshair);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('pins the tooltip on the scrubbed fill and colors an exit amount', () => {
+    const pan = Gesture.Pan.bind(Gesture);
+    const spy = jest.spyOn(Gesture, 'Pan').mockImplementation(((
+      ...args: Parameters<typeof Gesture.Pan>
+    ) => {
+      const gesture = pan(...args);
+      const register = gesture.onFinalize.bind(gesture);
+      gesture.onFinalize = ((...finalizeArgs: unknown[]) => {
+        if (typeof finalizeArgs[0] === 'function') {
+          return register(() => undefined);
+        }
+        return register(...(finalizeArgs as Parameters<typeof register>));
+      }) as typeof gesture.onFinalize;
+      return gesture;
+    }) as typeof Gesture.Pan);
+
+    try {
+      const exitMarker: PositionSheetMarker = {
+        ...MARKER,
+        id: '0xexit-1',
+        index: 2,
+        intent: 'exit',
+        actionLabel: 'Closed',
+        valueLabel: '-$40.00',
+        isValuePositive: false,
+      };
+      renderChart({ markers: [MARKER, exitMarker] });
+
+      const scrubAt = (markerId: string) => {
+        const style = StyleSheet.flatten(
+          screen.getByTestId(
+            `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${markerId}`,
+          ).props.style,
+        );
+        act(() => {
+          fireGestureHandler(
+            getByGestureTestId(PositionDetailsSheetSelectorsIDs.CHART_SCRUB),
+            [{ x: Number(style.left) + Number(style.width) / 2 }],
+          );
+        });
+      };
+
+      const tooltipFrame = { width: 140, height: 52, x: 0, y: 0 };
+      const markerSize = 16;
+      const markerRingSize = 24;
+      const tooltipGap = 8;
+      const tooltipEdgeInset = 8;
+      const chartWidth = 300;
+
+      const expectPinnedTooltip = (markerId: string) => {
+        const markerStyle = StyleSheet.flatten(
+          screen.getByTestId(
+            `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${markerId}`,
+          ).props.style,
+        ) as ViewStyle;
+        const pointX = Number(markerStyle.left) + markerSize / 2;
+        const pointY = Number(markerStyle.top) + markerSize / 2;
+        const unclampedLeft = pointX - tooltipFrame.width / 2;
+        const tooltip = screen.getByTestId(
+          PositionDetailsSheetSelectorsIDs.CHART_TOOLTIP,
+        );
+        const hidden = StyleSheet.flatten(tooltip.props.style) as ViewStyle;
+
+        expect(hidden.opacity).toBe(0);
+
+        fireEvent(tooltip, 'layout', { nativeEvent: { layout: tooltipFrame } });
+
+        const pinned = StyleSheet.flatten(
+          screen.getByTestId(PositionDetailsSheetSelectorsIDs.CHART_TOOLTIP)
+            .props.style,
+        ) as ViewStyle;
+
+        expect(pinned.opacity).toBe(1);
+        expect(pinned.left).toBe(
+          Math.min(
+            Math.max(unclampedLeft, tooltipEdgeInset),
+            Math.max(
+              chartWidth - tooltipFrame.width - tooltipEdgeInset,
+              tooltipEdgeInset,
+            ),
+          ),
+        );
+        expect(pinned.top).toBe(
+          Math.max(
+            pointY - markerRingSize / 2 - tooltipGap - tooltipFrame.height,
+            0,
+          ),
+        );
+      };
+
+      const amountColor = (label: string) =>
+        (StyleSheet.flatten(screen.getByText(label).props.style) as TextStyle)
+          .color;
+      const markerColor = (markerId: string) =>
+        (
+          StyleSheet.flatten(
+            screen.getByTestId(
+              `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${markerId}`,
+            ).props.style,
+          ) as ViewStyle
+        ).backgroundColor;
+
+      scrubAt(MARKER.id);
+      expect(screen.getByText('Opened')).toBeOnTheScreen();
+      expect(screen.getByText('+$1,250.00')).toBeOnTheScreen();
+      expect(amountColor('+$1,250.00')).toBe(markerColor(MARKER.id));
+      expect(
+        screen.getByTestId(
+          `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-ring-${MARKER.id}`,
+        ),
+      ).toBeOnTheScreen();
+      expectPinnedTooltip(MARKER.id);
+
+      scrubAt(exitMarker.id);
+      expect(screen.getByText('Closed')).toBeOnTheScreen();
+      expect(screen.getByText('-$40.00')).toBeOnTheScreen();
+      expect(amountColor('-$40.00')).toBe(markerColor(exitMarker.id));
+      expect(
+        screen.getByTestId(
+          `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-ring-${exitMarker.id}`,
+        ),
+      ).toBeOnTheScreen();
+      expectPinnedTooltip(exitMarker.id);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

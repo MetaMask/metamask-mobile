@@ -11,6 +11,7 @@ import {
   canResumeMembership,
   formatSubscriptionPeriodEnd,
   getMembershipManageAction,
+  isCancelBlocked,
   MembershipManageAction,
 } from './ProHub.utils';
 
@@ -184,5 +185,50 @@ describe('getMembershipManageAction', () => {
     expect(getMembershipManageAction(undefined, now)).toBe(
       MembershipManageAction.Cancel,
     );
+  });
+
+  it.each([CANCEL_TYPES.ALLOWED_AT_PERIOD_END, CANCEL_TYPES.ALLOWED_IMMEDIATE])(
+    'returns cancel when cancelType is %s',
+    (cancelType) => {
+      expect(
+        getMembershipManageAction(createSubscription({ cancelType }), now),
+      ).toBe(MembershipManageAction.Cancel);
+    },
+  );
+
+  it.each([
+    CANCEL_TYPES.NOT_ALLOWED,
+    CANCEL_TYPES.NOT_ALLOWED_PENDING_VERIFICATION,
+  ])('returns cancel blocked when cancelType is %s', (cancelType) => {
+    expect(
+      getMembershipManageAction(createSubscription({ cancelType }), now),
+    ).toBe(MembershipManageAction.CancelBlocked);
+  });
+
+  it('returns hidden for a pending period-end cancellation even when cancel is blocked', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-10-06T00:00:00.000Z',
+      cancelType: CANCEL_TYPES.NOT_ALLOWED,
+    });
+
+    expect(getMembershipManageAction(subscription, now)).toBe(
+      MembershipManageAction.Hidden,
+    );
+  });
+});
+
+describe('isCancelBlocked', () => {
+  it.each([
+    [CANCEL_TYPES.NOT_ALLOWED, true],
+    [CANCEL_TYPES.NOT_ALLOWED_PENDING_VERIFICATION, true],
+    [CANCEL_TYPES.ALLOWED_AT_PERIOD_END, false],
+    [CANCEL_TYPES.ALLOWED_IMMEDIATE, false],
+  ])('is %s -> %s', (cancelType, expected) => {
+    expect(isCancelBlocked(createSubscription({ cancelType }))).toBe(expected);
+  });
+
+  it('is false when there is no subscription', () => {
+    expect(isCancelBlocked(undefined)).toBe(false);
   });
 });

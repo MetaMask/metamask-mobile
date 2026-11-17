@@ -20,7 +20,8 @@ interface VisiblePrePrompt {
 const PushNotificationOnboardingRootContent = () => {
   const {
     dismiss: dismissPrePrompt,
-    markShown: markPrePromptShown,
+    isHomeUnobstructed,
+    markAnswered,
     nativeOsPermissionEnabled,
     variant,
   } = usePushPrePromptVariant();
@@ -34,6 +35,8 @@ const PushNotificationOnboardingRootContent = () => {
     }
   }, [nativeOsPermissionEnabled, variant, visiblePrePrompt]);
 
+  // Preserve the pending session while navigation covers home. Only its
+  // presentation is suspended; answering and async permission work own its end.
   const currentPrePrompt =
     visiblePrePrompt ??
     (variant ? { nativeOsPermissionEnabled, variant } : null);
@@ -52,10 +55,10 @@ const PushNotificationOnboardingRootContent = () => {
   return (
     <PushNotificationOnboarding
       dismissPrePrompt={dismissPrePrompt}
-      isVisible
-      markPrePromptShown={markPrePromptShown}
+      isVisible={isHomeUnobstructed}
       nativeOsPermissionEnabled={currentPrePrompt.nativeOsPermissionEnabled}
       onComplete={handleComplete}
+      onUserAnswered={markAnswered}
       prePromptVariant={currentPrePrompt.variant}
     />
   );

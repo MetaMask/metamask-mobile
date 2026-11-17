@@ -8,6 +8,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarIcon,
   AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   BoxBackgroundColor,
   Button,
@@ -219,9 +220,9 @@ const AddDeviceToWallet = () => {
         includesTopInset
         onBack={handleBack}
       />
-      <Box twClassName="flex-1" style={{ marginTop: headerInset }}>
+      <Box twClassName="flex-1 pt-3" style={{ marginTop: headerInset }}>
         <TitleStandard
-          twClassName="mb-6 px-4"
+          twClassName="mb-2 px-4"
           title={strings('app_settings.add_device.add_device_to_wallet')}
         />
 
@@ -233,6 +234,7 @@ const AddDeviceToWallet = () => {
               <AvatarIcon
                 iconName={instruction.iconName}
                 severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
               />
             }
             title={strings(instruction.titleKey)}
@@ -251,19 +253,21 @@ const AddDeviceToWallet = () => {
             backgroundColor={BoxBackgroundColor.BackgroundSection}
             twClassName="mx-4 mt-4 rounded-xl p-4 gap-3"
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Bold}
-            >
-              Enter QR data manually
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              Paste the QR code payload here when testing on an emulator.
-            </Text>
+            <Box gap={1}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Bold}
+              >
+                Enter QR data manually
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                Paste the QR code payload here when testing on an emulator.
+              </Text>
+            </Box>
             <TextField
               value={manualQrPayload}
               onChangeText={setManualQrPayload}

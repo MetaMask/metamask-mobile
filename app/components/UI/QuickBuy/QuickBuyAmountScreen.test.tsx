@@ -39,6 +39,20 @@ jest.mock('./components/QuickBuyActionFooter', () => {
   };
 });
 
+jest.mock('../Bridge/hooks/useEnsureDestTokenSecurityData', () => ({
+  useEnsureDestTokenSecurityData: jest.fn(),
+}));
+
+jest.mock('../Bridge/components/SwapsBanners', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    SwapsBanners: ({ children }: { children: React.ReactNode }) => children,
+    TokenWarningBanner: () =>
+      ReactMock.createElement(View, { testID: 'mock-token-warning-banner' }),
+  };
+});
+
 describe('QuickBuyAmountScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,6 +67,12 @@ describe('QuickBuyAmountScreen', () => {
     expect(screen.getByTestId('quick-buy-amount-container')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-amount')).toBeOnTheScreen();
     expect(screen.UNSAFE_queryByType(ScrollView)).toBeNull();
+  });
+
+  it('renders the token warning banner', () => {
+    render(<QuickBuyAmountScreen />);
+
+    expect(screen.getByTestId('mock-token-warning-banner')).toBeOnTheScreen();
   });
 
   it('renders unsupported chain message when chain is unsupported', () => {

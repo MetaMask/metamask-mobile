@@ -26,8 +26,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     }) => ReactActual.createElement(Text, { testID }, children),
     Icon: ({ name }: { name: string }) =>
       ReactActual.createElement(View, { testID: `icon-${name}` }),
+    HelpText: ({
+      children,
+      testID,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(Text, { testID }, children),
     Spinner: () => ReactActual.createElement(View, { testID: 'spinner' }),
     TextVariant: { BodyMd: 'BodyMd' },
+    TextColor: {
+      TextDefault: 'text-default',
+      TextAlternative: 'text-alternative',
+    },
+    FontWeight: { Medium: '500' },
+    HelpTextSeverity: { Danger: 'danger' },
     IconName: { ArrowDown: 'arrow-down' },
     IconSize: { Sm: 'sm' },
   };
@@ -117,5 +130,32 @@ describe('CountrySelectField', () => {
     fireEvent.press(screen.getByTestId('country-select'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the placeholder and speaks it when no country is selected', () => {
+    renderField({ placeholder: 'Select your country' });
+
+    expect(screen.getByText('Select your country')).toBeOnTheScreen();
+    expect(screen.getByTestId('country-select')).toHaveProp(
+      'accessibilityLabel',
+      'Country, Select your country',
+    );
+  });
+
+  it('speaks the label and selected country name', () => {
+    renderField({ selectedCountry: unitedKingdom });
+
+    expect(screen.getByTestId('country-select')).toHaveProp(
+      'accessibilityLabel',
+      'Country, United Kingdom',
+    );
+  });
+
+  it('renders helper text under the field', () => {
+    renderField({ helpText: 'Not available', helpTextTestID: 'country-help' });
+
+    expect(screen.getByTestId('country-help')).toHaveTextContent(
+      'Not available',
+    );
   });
 });

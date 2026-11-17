@@ -4,10 +4,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -16,6 +12,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import DottedUnderline from '../../../../../../UI/DottedUnderline';
 import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
 import { IconName as IconNameLegacy } from '../../../../../../../component-library/components/Icons/Icon';
 import Skeleton from '../../../../../../../component-library/components-temp/Skeleton/Skeleton';
@@ -23,6 +20,7 @@ import {
   TextColor as LegacyTextColor,
   TextVariant as LegacyTextVariant,
 } from '../../../../../../../component-library/components/Texts/Text/Text.types';
+import { useTheme } from '../../../../../../../util/theme';
 import AddRewardsAccount from '../../../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -53,6 +51,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   rewardsLoadingOverride = false,
 }) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   const {
     shouldShowRewardsRow,
     accountOptedIn,
@@ -76,14 +75,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       <Box twClassName="pt-4 pb-6 flex-col gap-4">
         <Box twClassName="py-1">
           <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-row items-center gap-1">
-              <Skeleton width={52} height={16} style={tw.style('my-1')} />
-              <Skeleton
-                width={16}
-                height={16}
-                style={tw.style('rounded-full')}
-              />
-            </Box>
+            <Skeleton width={52} height={16} style={tw.style('my-1')} />
             <Skeleton width={60} height={16} style={tw.style('my-1')} />
           </Box>
         </Box>
@@ -106,7 +98,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           style={tw.style('py-1')}
         >
           <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-row items-center gap-1">
+            <DottedUnderline color={colors.text.alternative}>
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -114,12 +106,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
               >
                 {strings('predict.fee_summary.total')}
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </Box>
+            </DottedUnderline>
             <PredictFeeTotal
               total={total}
               originalTotal={originalTotal}

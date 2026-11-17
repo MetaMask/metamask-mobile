@@ -26,6 +26,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import {
@@ -154,6 +155,7 @@ interface RenderTicketOptions {
   positions?: unknown[];
   orders?: unknown[];
   extraRoutes?: PerpsExtraRoute[];
+  includeToasts?: boolean;
 }
 
 const renderTicket = ({
@@ -164,6 +166,7 @@ const renderTicket = ({
   positions = [],
   orders = [],
   extraRoutes,
+  includeToasts,
 }: RenderTicketOptions = {}) => {
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
@@ -200,6 +203,7 @@ const renderTicket = ({
       orders,
     },
     extraRoutes,
+    includeToasts,
     overrides: {
       engine: {
         backgroundState: {
@@ -1004,6 +1008,71 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       expect(
         screen.getByTestId(getPerpsProOrderRowSelector('ETH', 0)),
       ).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'explains a price edit that the venue refused and cancelled the order',
+    async () => {
+      jest.mocked(Engine.context.PerpsController.editOrder).mockResolvedValue({
+        success: false,
+        error:
+          'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.',
+      });
+      renderTicket({
+        orders: [createLimitOrderForViews({ price: '2400' })],
+        includeToasts: true,
+      });
+      await screen.findByTestId(
+        panelIds.POSITIONS_PANEL,
+        {},
+        {
+          timeout: TIMEOUT_MS,
+        },
+      );
+
+      fireEvent.press(screen.getByTestId(panelIds.POSITIONS_PANEL_TAB_ORDERS));
+      const orderRow = await screen.findByTestId(
+        getPerpsProOrderRowSelector('ETH', 0),
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      fireEvent.press(within(orderRow).getByTestId(panelIds.ORDER_PRICE_EDIT));
+      await screen.findByTestId(
+        PerpsLimitPriceBottomSheetSelectorsIDs.PRICE_DISPLAY,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID),
+      );
+      await waitFor(() =>
+        expect(screen.getByDisplayValue(/2,?500/u)).toBeOnTheScreen(),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByText(
+          strings('perps.order.order_update_failed'),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.order.order_update_post_only_would_cross'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(strings('perps.order.order_update_failed_subtitle')),
+      ).toBeNull();
+      expect(
+        screen.queryByText(/bbo|2503\.1|immediately matched/iu),
+      ).toBeNull();
     },
   );
 

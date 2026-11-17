@@ -97,6 +97,7 @@ jest.mock('../../../hooks/gas/usePredictWithdrawGasFeeToken', () => ({
   usePredictWithdrawGasFeeToken: () => ({
     isPending: false,
     isUnavailable: false,
+    recheck: () => Promise.resolve(true),
   }),
 }));
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
@@ -119,6 +120,14 @@ jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
 }));
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
+}));
+jest.mock('../../rows/perps-receive-to-row', () => ({
+  DEFAULT_PERPS_RECEIVE_DESTINATION: 'hyperliquid',
+  PerpsReceiveToRow: () => null,
+}));
+jest.mock('../../rows/perps-withdraw-from-row', () => ({
+  DEFAULT_PERPS_WITHDRAW_SOURCE: 'hyperliquid',
+  PerpsWithdrawFromRow: () => null,
 }));
 jest.mock('../../rows/predict-account-picker-row', () => ({
   PredictAccountPickerRow: () => null,
@@ -446,6 +455,8 @@ describe('CustomAmountInfo', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: noop,
       setIsFooterVisible: noop,
+      setPendingFiatAmount: noop,
+      pendingFiatAmount: undefined,
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
@@ -2418,6 +2429,8 @@ describe('CustomAmountInfo', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: noop,
       setIsFooterVisible: noop,
+      setPendingFiatAmount: noop,
+      pendingFiatAmount: undefined,
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
@@ -2445,6 +2458,8 @@ describe('CustomAmountInfo', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: noop,
       setIsFooterVisible: noop,
+      setPendingFiatAmount: noop,
+      pendingFiatAmount: undefined,
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,

@@ -28,10 +28,12 @@ jest.mock('../../../../Base/TokenIcon', () => {
     __esModule: true,
     default: ({
       icon,
+      style,
       symbol,
       testID,
     }: {
       icon?: string;
+      style?: unknown;
       symbol?: string;
       testID?: string;
     }) =>
@@ -39,10 +41,11 @@ jest.mock('../../../../Base/TokenIcon', () => {
         ? ReactActual.createElement(View, {
             testID,
             accessibilityLabel: icon,
+            style,
           })
         : ReactActual.createElement(
             Text,
-            { testID },
+            { testID, style },
             symbol?.[0]?.toUpperCase(),
           ),
   };
@@ -155,4 +158,19 @@ describe('TokenIcon', () => {
       );
     },
   );
+
+  it('applies custom size to token icon style', () => {
+    const { getByTestId } = render({
+      address: ADDRESS_MOCK,
+      chainId: CHAIN_ID_MOCK,
+      size: 40,
+    });
+
+    expect(getByTestId('token-icon').props.style).toEqual(
+      expect.objectContaining({
+        width: 40,
+        height: 40,
+      }),
+    );
+  });
 });

@@ -105,7 +105,6 @@ export const postPerpsPositionToFeed = ({
   openComposer({
     position: socialPosition,
     entryPoint: 'perps',
-    openFeedAfterPost: true,
   });
 };
 

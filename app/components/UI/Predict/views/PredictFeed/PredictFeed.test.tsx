@@ -155,6 +155,7 @@ jest.mock('../../../PredictNext/venueSelection', () => ({
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
   selectPredictFeaturedCarouselEnabledFlag:
     'selectPredictFeaturedCarouselEnabledFlag',
   selectPredictHotTabFlag: 'selectPredictHotTabFlag',

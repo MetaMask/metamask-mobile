@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
     modalContent: {
       alignSelf: 'stretch',
       marginTop: 8,
-      marginBottom: 30,
+      marginBottom: 32,
       marginHorizontal: 16,
       alignItems: 'center',
       justifyContent: 'center',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -6,7 +7,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictTrendingFeed } from '../../../UI/PredictNext';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
@@ -24,10 +25,11 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseTokensFeed = jest.mocked(useTokensFeed);
-const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
+const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
 const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useIsFocused: () => mockUseIsFocused(),
 }));
@@ -53,8 +55,8 @@ jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: jest.fn(),
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: jest.fn(),
 }));
 
 jest.mock('../feeds/perps/usePerpsFeed', () => ({
@@ -123,7 +125,10 @@ const arrangeMocks = ({
     if (selector === selectIsExploreEarnSectionVisible) {
       return earnSectionVisible;
     }
-    return undefined;
+    // Other selectors, such as Predict's Active Venue, read the default state.
+    return (selector as (state: unknown) => unknown)({
+      engine: { backgroundState },
+    });
   });
 
   mockUseTokensFeed.mockReturnValue({

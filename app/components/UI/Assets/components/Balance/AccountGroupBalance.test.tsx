@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { act } from '@testing-library/react-native';
 
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
@@ -106,6 +107,28 @@ jest.mock(
     }),
   }),
 );
+
+interface BalanceComponentNode {
+  findAll: (
+    predicate: (node: BalanceComponentNode) => boolean,
+  ) => BalanceComponentNode[];
+  props: { animated?: boolean };
+  type: string | { displayName?: string; name?: string };
+}
+
+const findComponent = (
+  root: BalanceComponentNode,
+  displayName: string,
+): BalanceComponentNode | undefined =>
+  root.findAll((node) => {
+    if (typeof node.type === 'string') {
+      return false;
+    }
+
+    return (
+      node.type.displayName === displayName || node.type.name === displayName
+    );
+  })[0];
 
 const testState = {
   engine: {
@@ -247,5 +270,77 @@ describe('AccountGroupBalance', () => {
     rerender(<AccountGroupBalance suspendRiveForCurtain />);
 
     expect(selectUnifiedBalanceBySelectedAccountGroup).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips the balance roll only on the render that leaves privacy mode', () => {
+    const { selectUnifiedBalanceBySelectedAccountGroup } = jest.requireMock(
+      '../../../../../selectors/assets/balances',
+    );
+    jest.mocked(useAccountGroupBalanceFetchState).mockReturnValue(true);
+    (
+      selectUnifiedBalanceBySelectedAccountGroup as jest.Mock
+    ).mockImplementation(() => () => ({
+      walletId: 'wallet-1',
+      groupId: 'wallet-1/group-1',
+      totalBalanceInUserCurrency: 123.45,
+      userCurrency: 'usd',
+    }));
+
+    const hiddenState = {
+      ...testState,
+      engine: {
+        backgroundState: {
+          ...testState.engine.backgroundState,
+          PreferencesController: {
+            ...testState.engine.backgroundState.PreferencesController,
+            privacyMode: true,
+          },
+        },
+      },
+    };
+    const rendered = renderWithProvider(<AccountGroupBalance />, {
+      state: hiddenState,
+    });
+    const { rerender, store } = rendered;
+    const root = rendered.UNSAFE_root as unknown as BalanceComponentNode;
+
+    expect(findComponent(root, 'AnimatedBalanceText')).toBeUndefined();
+
+    // useSelector keeps its cached result until the store snapshot changes.
+    store.replaceReducer((state, action) => {
+      if (!state) {
+        throw new Error('Missing store state');
+      }
+      if (action.type !== 'TEST_SET_PRIVACY_MODE') {
+        return state;
+      }
+
+      return {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            PreferencesController: {
+              ...state.engine.backgroundState.PreferencesController,
+              privacyMode: false,
+            },
+          },
+        },
+      };
+    });
+    act(() => {
+      store.dispatch({ type: 'TEST_SET_PRIVACY_MODE' });
+    });
+
+    expect(findComponent(root, 'AnimatedBalanceText')?.props.animated).toBe(
+      false,
+    );
+
+    rerender(<AccountGroupBalance />);
+
+    expect(findComponent(root, 'AnimatedBalanceText')?.props.animated).toBe(
+      true,
+    );
   });
 });

@@ -39,8 +39,10 @@ import {
   useNotificationPreferences,
   type TxAmountThreshold,
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
+import { isSocialV1Treatment } from '../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { areTradingSignalsChannelsDisabled } from '../../SocialLeaderboard/NotificationPreferences/hooks/tradingSignalsChannels';
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
+import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
 
 const AVATAR_SIZE = 40;
 
@@ -89,6 +91,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
         <TraderAvatar
           imageUrl={avatarUri}
           address={address}
+          profileId={traderId}
           size={AVATAR_SIZE}
           recyclingKey={traderId}
         />
@@ -160,12 +163,22 @@ const SocialAINotificationPreferencesContent = ({
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
+      if (isSocialV1Treatment()) {
+        const trader = followedTraders.find((item) => item.id === traderId);
+        navigateToSocialV1Profile(navigation, {
+          traderId,
+          traderName,
+          traderAddress: trader?.address,
+          traderAvatarUri: trader?.avatarUri,
+        });
+        return;
+      }
       navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
       });
     },
-    [navigation],
+    [followedTraders, navigation],
   );
 
   const showPreferencesSkeleton = isLoadingPreferences;

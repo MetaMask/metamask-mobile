@@ -2,6 +2,7 @@ import useConfirmationAlerts from './useConfirmationAlerts';
 import useBlockaidAlerts from './useBlockaidAlerts';
 import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { Alert, Severity } from '../../types/alerts';
+import { AlertKeys } from '../../constants/alerts';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   getAppStateForConfirmation,
@@ -16,6 +17,7 @@ import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
+import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -44,6 +46,7 @@ jest.mock('./useBatchedUnusedApprovalsAlert');
 jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useFiatBuyLimitAlert');
+jest.mock('./useTransactionDepositLimitAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
@@ -217,6 +220,7 @@ describe('useConfirmationAlerts', () => {
     (useInsufficientPayTokenBalanceAlert as jest.Mock).mockReturnValue([]);
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
     (useFiatBuyLimitAlert as jest.Mock).mockReturnValue([]);
+    (useTransactionDepositLimitAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
@@ -351,5 +355,24 @@ describe('useConfirmationAlerts', () => {
       ...mockOriginTrustSignalAlerts,
       ...mockAddressTrustSignalAlerts,
     ]);
+  });
+
+  it('returns deposit limit alerts so the cap is captured in alert metrics', () => {
+    const mockDepositLimitAlert: Alert[] = [
+      {
+        key: AlertKeys.DepositLimit,
+        title: 'Max deposit: $100,000',
+        message: 'Max deposit: $100,000',
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ];
+    (useTransactionDepositLimitAlert as jest.Mock).mockReturnValue(
+      mockDepositLimitAlert,
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockDepositLimitAlert);
   });
 });

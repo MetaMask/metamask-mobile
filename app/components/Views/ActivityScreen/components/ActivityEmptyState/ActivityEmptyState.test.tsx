@@ -19,6 +19,7 @@ import { BridgeTabKey } from '../../../../UI/Bridge/Views/BridgeView/BridgeView.
 import { getDefaultTokenPairForChains } from '../../../../UI/Bridge/utils/tokenUtils';
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 
@@ -39,11 +40,26 @@ jest.mock('../../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => {
   };
 });
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => true),
-}));
+jest.mock('react-redux', () => {
+  const { backgroundState } = jest.requireActual(
+    '../../../../../util/test/initial-root-state',
+  );
+  const { selectAddressHasTokenBalances } = jest.requireActual(
+    '../../../../../selectors/tokenBalancesController',
+  );
+  return {
+    // The account has funds; other selectors, such as Predict's Active
+    // Venue, read the default state.
+    useSelector: jest.fn((selector: (state: unknown) => unknown) =>
+      selector === selectAddressHasTokenBalances
+        ? true
+        : selector({ engine: { backgroundState } }),
+    ),
+  };
+});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  ...jest.requireActual('@metamask/design-system-twrnc-preset'),
   Theme: { Dark: 'dark', Light: 'light' },
   useTheme: jest.fn(() => 'light'),
 }));
@@ -53,6 +69,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { Text, TouchableOpacity, View } = jest.requireActual('react-native');
 
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
     Box: ({
       children,
       testID,

@@ -100,6 +100,7 @@ import {
   type UnlockTraceTokens,
 } from '../../../core/Performance/unlockTraces';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { checkForDeeplink } from '../../../actions/user';
 import {
   getLoginUnlockFailureErrorType,
   trackAppUnlocked,
@@ -124,7 +125,8 @@ const canDecryptVaultBackup = async (
 };
 
 interface LoginRouteParams {
-  locked: boolean;
+  locked?: boolean;
+  resumeOverlay?: boolean;
 }
 
 interface LoginProps {
@@ -169,7 +171,21 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   } = useAuthentication();
   const { capabilities } = useAuthCapabilities();
   const isLocked = Boolean(route.params?.locked);
+  const resumeOverlay = Boolean(route.params?.resumeOverlay);
   const loginPerformanceTags = useRef(getLoginPerformanceTags(isLocked));
+
+  const dismissResumeOverlay = useCallback(() => {
+    navigation.goBack();
+    ReduxService.store.dispatch(checkForDeeplink());
+  }, [navigation]);
+
+  // Disable gesture on resumeOverlay to prevent the user from swiping back to the previous screen
+  useEffect(() => {
+    if (!resumeOverlay) {
+      return;
+    }
+    navigation.setOptions({ gestureEnabled: false });
+  }, [navigation, resumeOverlay]);
 
   useEffect(() => {
     trace({
@@ -188,6 +204,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        // Disable back gesture on resumeOverlay to prevent the user from pressing back on Android to reveal the previous screen
+        if (resumeOverlay) {
+          return true;
+        }
         void lockApp({ reset: false });
         return false;
       },
@@ -196,7 +216,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     return () => {
       subscription.remove();
     };
-  }, [lockApp]);
+  }, [lockApp, resumeOverlay]);
 
   useEffect(() => {
     if (Platform.OS === 'android' && !hasTestOverrides) {
@@ -380,7 +400,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               skipCache: false,
               captureSentryError: true,
             });
-          await unlockWallet({ password });
+          await unlockWallet(
+            resumeOverlay
+              ? { password, navigationBehavior: 'preserve' }
+              : { password },
+          );
+          if (resumeOverlay) {
+            dismissResumeOverlay();
+          }
           lastSubmittedPasswordRef.current = '';
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
@@ -415,6 +442,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, [
     password,
     loading,
+    resumeOverlay,
+    dismissResumeOverlay,
     handleLoginError,
     unlockWallet,
     getAuthType,
@@ -448,7 +477,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           tags: loginPerformanceTags.current,
         },
         async () => {
-          await unlockWallet();
+          await unlockWallet(
+            resumeOverlay ? { navigationBehavior: 'preserve' } : undefined,
+          );
+          if (resumeOverlay) {
+            dismissResumeOverlay();
+          }
         },
       );
       trackAppUnlocked({
@@ -460,7 +494,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       await handleLoginError(loginerror as Error, UNLOCK_TYPE.BIOMETRIC);
     }
     setLoading(false);
-  }, [unlockWallet, loading, handleLoginError, saveOnboardingEvent]);
+  }, [
+    unlockWallet,
+    loading,
+    resumeOverlay,
+    dismissResumeOverlay,
+    handleLoginError,
+    saveOnboardingEvent,
+  ]);
 
   const toggleWarningModal = async () => {
     if (isProcessingForgotPassword.current) {

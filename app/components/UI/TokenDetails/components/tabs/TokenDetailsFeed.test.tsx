@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
@@ -8,7 +8,27 @@ import {
 } from '../../../SocialFeed/data/useSocialFeed';
 import { mockOpenPerpsFeedItem } from '../../../SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../SocialFeed/types';
+import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
+import { TokenDetailsIds } from '../../testIds';
 import { TokenDetailsFeed } from './TokenDetailsFeed';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+  useIsFocused: () => true,
+}));
+
+const mockHasAcceptedSocialTerms = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn((_navigate: unknown) => false);
+jest.mock(
+  '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({
+    hasAcceptedSocialTerms: () => mockHasAcceptedSocialTerms(),
+    ensureSocialTermsAccepted: (navigate: unknown) =>
+      mockEnsureSocialTermsAccepted(navigate),
+  }),
+);
 
 let mockHiddenPostIds = new Set<string>();
 const mockOptionsProvider = jest.fn();
@@ -29,6 +49,17 @@ jest.mock(
   () => ({
     useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
   }),
+);
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation',
+  () => {
+    const onAuthorPress = jest.fn();
+    const onPositionPress = jest.fn();
+    return {
+      useSocialFeedPostNavigation: () => ({ onAuthorPress, onPositionPress }),
+    };
+  },
 );
 
 jest.mock(
@@ -96,6 +127,7 @@ describe('TokenDetailsFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHiddenPostIds = new Set();
+    mockHasAcceptedSocialTerms.mockReturnValue(true);
     mockSelectEnabled.mockReturnValue(true);
     mockUseSocialFeed.mockReturnValue(feedState());
   });
@@ -128,6 +160,27 @@ describe('TokenDetailsFeed', () => {
     });
   });
 
+  it('opens the author profile and the position sheet from a post', () => {
+    const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
+    const traded = post('one');
+    traded.position = { positionId: 'pos-1' } as SocialV1FeedPost['position'];
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [traded, post('two')] }),
+    );
+
+    renderWithProvider(
+      <TokenDetailsFeed source={source} location="token_details" />,
+    );
+
+    const [withPosition, withoutPosition] = mockShellProps.mock.calls.map(
+      ([props]) => props,
+    );
+    expect(withPosition.onAuthorPress).toBe(onAuthorPress);
+    expect(withPosition.onPositionPress).toBe(onPositionPress);
+    expect(withoutPosition.onAuthorPress).toBe(onAuthorPress);
+    expect(withoutPosition.onPositionPress).toBeUndefined();
+  });
+
   it('drops a hidden post from the list instead of leaving a gap', () => {
     mockHiddenPostIds = new Set(['one']);
     mockUseSocialFeed.mockReturnValue(
@@ -153,5 +206,35 @@ describe('TokenDetailsFeed', () => {
 
     expect(screen.getByText('Post your trade')).toBeOnTheScreen();
     expect(screen.queryByText('Start your first post')).toBeNull();
+  });
+
+  describe('social onboarding', () => {
+    it('opens Social terms / onboarding when a card is tapped before onboarding', () => {
+      mockHasAcceptedSocialTerms.mockReturnValue(false);
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+      renderWithProvider(
+        <TokenDetailsFeed source={source} location="token_details" />,
+      );
+      fireEvent.press(
+        screen.getByTestId(TokenDetailsIds.feedPostOnboardingPress('one')),
+      );
+
+      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    });
+
+    it('keeps cards as they are once the user has onboarded', () => {
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+      renderWithProvider(
+        <TokenDetailsFeed source={source} location="token_details" />,
+      );
+
+      expect(screen.getByTestId('post-one')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TokenDetailsIds.feedPostOnboardingPress('one')),
+      ).toBeNull();
+      expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
+    });
   });
 });

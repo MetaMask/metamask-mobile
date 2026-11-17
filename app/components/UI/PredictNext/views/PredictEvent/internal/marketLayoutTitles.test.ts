@@ -7,11 +7,16 @@ import {
 describe('getMarketLayoutTitle', () => {
   it.each([
     ['game_lines', 'predict_next.event.game_lines'],
+    ['outcomes', 'predict_next.event.outcomes'],
+    ['markets', 'predict_next.event.market_layout.markets'],
     ['moneyline', 'predict_next.event.market_layout.moneyline'],
     ['total_points', 'predict_next.event.market_layout.total_points'],
     ['team_total', 'predict_next.event.market_layout.team_total'],
     ['first_half', 'predict_next.event.market_layout.first_half'],
     ['q4', 'predict_next.event.market_layout.q4'],
+    ['player_props', 'predict_next.event.market_layout.player_props'],
+    ['anytime_touchdown', 'predict_next.event.market_layout.anytime_touchdown'],
+    ['passing_yards', 'predict_next.event.market_layout.passing_yards'],
   ])('translates the known key %s', (key, titleId) => {
     expect(getMarketLayoutTitle(key)).toBe(strings(titleId));
   });

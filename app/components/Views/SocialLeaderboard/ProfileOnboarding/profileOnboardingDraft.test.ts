@@ -1,5 +1,4 @@
 import {
-  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
   applyXOnboardingProfile,
   startManualOnboarding,
   buildCreateProfileParams,
@@ -14,6 +13,8 @@ import {
   type XOnboardingIdentity,
 } from './profileOnboardingDraft';
 
+const PROFILE_ID = 'session-profile-id';
+
 const X_IDENTITY: XOnboardingIdentity = {
   username: 'degangirl',
   displayName: 'Degan Giri',
@@ -26,8 +27,12 @@ describe('profileOnboardingDraft', () => {
     jest.restoreAllMocks();
   });
 
-  it('normalizes a typed handle', () => {
-    expect(normalizeUsername('  @Wen_Cat ')).toBe('wen_cat');
+  it('removes whitespace and leading @ characters without changing casing', () => {
+    const value = '  @@Wen_Cat ';
+
+    const username = normalizeUsername(value);
+
+    expect(username).toBe('Wen_Cat');
   });
 
   it('starts the draft with a generated username and matching display name', () => {
@@ -43,12 +48,21 @@ describe('profileOnboardingDraft', () => {
     expect(displayNameFromUsername('wen_cat')).toBe('Wen Cat');
   });
 
+  it('keeps display name generation unchanged for mixed-case usernames', () => {
+    const username = 'wEN_cAT';
+
+    const displayName = displayNameFromUsername(username);
+
+    expect(displayName).toBe('Wen Cat');
+  });
+
   it('accepts letters, numbers, and underscores between 3 and 16 characters', () => {
     expect(getUsernameStatus('bad-name')).toBe('invalid');
     expect(getUsernameStatus('bad name')).toBe('invalid');
     expect(getUsernameStatus('')).toBe('empty');
     expect(getUsernameStatus('wen_cat')).toBe('available');
     expect(getUsernameStatus('wen_cat_12')).toBe('available');
+    expect(getUsernameStatus('Wen_CAT_12')).toBe('available');
   });
 
   it('reports a handle above the maximum length before the pattern', () => {
@@ -108,6 +122,9 @@ describe('profileOnboardingDraft', () => {
     expect(fingerprint).toBe(onboardingProfileFingerprint(draft));
     expect(
       onboardingProfileFingerprint({ ...draft, username: 'moon_fox' }),
+    ).not.toBe(fingerprint);
+    expect(
+      onboardingProfileFingerprint({ ...draft, username: 'Wen_Cat' }),
     ).not.toBe(fingerprint);
     expect(
       onboardingProfileFingerprint(draft, ['eip155:1:0xabc', 'eip155:1:0xdef']),
@@ -170,10 +187,24 @@ describe('profileOnboardingDraft', () => {
         connectedToX: true,
       }),
     );
-    expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID)
-        .avatar_url,
-    ).toBe(X_IDENTITY.avatarUrl);
+    expect(buildCreateProfileParams(draft, PROFILE_ID).avatar_url).toBe(
+      X_IDENTITY.avatarUrl,
+    );
+  });
+
+  it('preserves the casing of an imported X username in the draft and profile', () => {
+    const identity = { ...X_IDENTITY, username: 'DeganGirl' };
+
+    const draft = applyXOnboardingProfile(
+      createInitialOnboardingDraft(),
+      identity,
+    );
+    const profile = buildOnboardedSocialProfile(draft);
+
+    expect(draft.username).toBe(identity.username);
+    expect(draft.xUsername).toBe(identity.username);
+    expect(profile.handle).toBe(identity.username);
+    expect(profile.xHandle).toBe(identity.username);
   });
 
   it('clears the X path when manual onboarding starts', () => {
@@ -208,17 +239,15 @@ describe('profileOnboardingDraft', () => {
   it('maps a draft onto createProfile parameters', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
-      username: 'wen_cat',
+      username: ' @Wen_Cat ',
       displayName: 'Wen Cat',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
     };
 
-    expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID),
-    ).toEqual({
-      profile_id: 'social-v1-profile',
-      username: 'wen_cat',
+    expect(buildCreateProfileParams(draft, PROFILE_ID)).toEqual({
+      profile_id: PROFILE_ID,
+      username: 'Wen_Cat',
       display_name: 'Wen Cat',
       bio: null,
       linked_addresses: ['eip155:1:0xabc'],
@@ -238,9 +267,8 @@ describe('profileOnboardingDraft', () => {
     ] as const;
 
     expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID, [
-        ...linkedAddresses,
-      ]).linked_addresses,
+      buildCreateProfileParams(draft, PROFILE_ID, [...linkedAddresses])
+        .linked_addresses,
     ).toEqual(linkedAddresses);
   });
 });

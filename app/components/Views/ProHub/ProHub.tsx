@@ -10,12 +10,10 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
   ButtonSize,
   ButtonVariant,
   FontFamily,
   FontWeight,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -40,12 +38,14 @@ import {
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
 import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 import { formatCombinedSinceInceptionInterest } from '../../UI/Money/utils/formatCombinedSinceInceptionInterest';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
+import HeaderBaseGlass from '../../../component-library/components-temp/HeaderBaseGlass';
 
 const formatPercent = (value: number): string => `${value}%`;
 
@@ -114,6 +114,7 @@ const StatRow = ({
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { model: membershipBanner } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
   const hasMembership = useHasProMembership();
@@ -198,28 +199,28 @@ const ProHub = () => {
       edges={['top', 'bottom']}
       testID={ProHubTestIds.CONTAINER}
     >
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID={ProHubTestIds.HEADER_ROOT}
         twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={ProHubTestIds.BACK_BUTTON}
-          />
-        }
-        endAccessory={
-          <ButtonIcon
-            iconName={IconName.Setting}
-            onPress={handleManageMembership}
-            accessibilityLabel={strings('pro_hub.manage')}
-            testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
-          />
-        }
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          onPress: handleBack,
+          accessibilityLabel: strings('navigation.back'),
+          testID: ProHubTestIds.BACK_BUTTON,
+        }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: handleManageMembership,
+            accessibilityLabel: strings('pro_hub.manage'),
+            testID: ProHubTestIds.MANAGE_PLANS_BUTTON,
+          },
+        ]}
       >
         {strings('pro_hub.title')}
-      </HeaderBase>
+      </HeaderBaseGlass>
 
       {showHubContent && (
         <ScrollView

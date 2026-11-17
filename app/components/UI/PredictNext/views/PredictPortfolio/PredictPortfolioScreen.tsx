@@ -27,6 +27,7 @@ import type {
 import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
+import { PortfolioRecoveryPanel } from './internal/PortfolioRecoveryPanel';
 import { PortfolioTabs } from './internal/PortfolioTabs';
 import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
@@ -134,6 +135,7 @@ export const PredictPortfolioScreen = () => {
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => summaryQuery.refetch()}
         />
+        <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">
           <Box

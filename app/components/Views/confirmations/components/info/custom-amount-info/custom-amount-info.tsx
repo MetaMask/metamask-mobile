@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useRef,
+  useState,
 } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -63,6 +64,16 @@ import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import {
+  DEFAULT_PERPS_RECEIVE_DESTINATION,
+  PerpsReceiveToRow,
+  type PerpsReceiveDestination,
+} from '../../rows/perps-receive-to-row';
+import {
+  DEFAULT_PERPS_WITHDRAW_SOURCE,
+  PerpsWithdrawFromRow,
+  type PerpsWithdrawSource,
+} from '../../rows/perps-withdraw-from-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
@@ -130,7 +141,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
     supportAccountSelection,
   }) => {
-    const { headlessBuyError } = useConfirmationContext();
+    const { headlessBuyError, setPendingFiatAmount } = useConfirmationContext();
     const transactionMeta = useTransactionMetadataRequest();
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
@@ -209,6 +220,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         ? CustomAmountStage.NoQuote
         : amountStage;
 
+    const [perpsReceiveDestination, setPerpsReceiveDestination] =
+      useState<PerpsReceiveDestination>(DEFAULT_PERPS_RECEIVE_DESTINATION);
+    const [perpsWithdrawSource, setPerpsWithdrawSource] =
+      useState<PerpsWithdrawSource>(DEFAULT_PERPS_WITHDRAW_SOURCE);
+
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
@@ -229,6 +245,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
     const { toastRef } = useContext(ToastContext);
+
+    // Publish the amount being typed so confirmation-level alerts (and the
+    // alert metrics that read them) can react to an over-cap amount the user
+    // never commits — Done is disabled while the cap blocks the keypad.
+    useEffect(() => {
+      setPendingFiatAmount(amountFiatDebounced);
+    }, [amountFiatDebounced, setPendingFiatAmount]);
+
+    useEffect(
+      () => () => {
+        setPendingFiatAmount(undefined);
+      },
+      [setPendingFiatAmount],
+    );
 
     const { alertContent, alertMessage: alertMessageBase } =
       useTransactionCustomAmountAlerts({
@@ -512,8 +542,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 )}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
+              <PerpsWithdrawFromRow
+                source={perpsWithdrawSource}
+                onSourceChange={setPerpsWithdrawSource}
+              />
               {disablePay !== true &&
                 (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
+              <PerpsReceiveToRow
+                destination={perpsReceiveDestination}
+                onDestinationChange={setPerpsReceiveDestination}
+              />
             </>
           )}
           {stage !== CustomAmountStage.AmountInput && (
@@ -526,9 +564,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !shouldHideAccountSelector && <PayAccountSelector />}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
+              <PerpsWithdrawFromRow
+                source={perpsWithdrawSource}
+                onSourceChange={setPerpsWithdrawSource}
+              />
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
+              <PerpsReceiveToRow
+                destination={perpsReceiveDestination}
+                onDestinationChange={setPerpsReceiveDestination}
+              />
               {!hasAccountNoFunds && <CustomAmountTotals stage={stage} />}
             </View>
           )}

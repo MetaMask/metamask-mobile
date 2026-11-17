@@ -21,9 +21,14 @@ export interface EventMarketSectionProps {
   volume?: string;
   /** The first open state only; later changes are ignored. */
   initialOpen?: boolean;
+  /**
+   * Controls the open state when set; the section then shows what the caller
+   * passes and reports presses through `onToggle`.
+   */
+  open?: boolean;
   /** Called with the new open state after each header press. */
   onToggle?: (open: boolean) => void;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 /**
@@ -35,14 +40,16 @@ export const EventMarketSection = ({
   title,
   volume,
   initialOpen = false,
+  open: controlledOpen,
   onToggle,
   children,
 }: EventMarketSectionProps) => {
-  const [open, setOpen] = useState(initialOpen);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(initialOpen);
+  const open = controlledOpen ?? uncontrolledOpen;
 
   const handlePress = useCallback(() => {
     const nextOpen = !open;
-    setOpen(nextOpen);
+    setUncontrolledOpen(nextOpen);
     onToggle?.(nextOpen);
   }, [onToggle, open]);
 

@@ -10,6 +10,8 @@ import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
 import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import type { PerpDirection } from '../utils/perp';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
+import { socialFeedSurfaceOrderSource } from '../socialFeedOrderSource';
 
 export const SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID =
   'social-v1-feed-copy-trade-geo-block';
@@ -29,6 +31,11 @@ export interface UseOpenPerpsOrderOptions {
    * navigate once it is gone. Defaults to navigating immediately.
    */
   runNavigation?: (navigate: () => void) => void;
+  /**
+   * Feed surface that opened the order. Overrides the surrounding feed
+   * location. Omitted on a non-feed surface stays `trader_feed`.
+   */
+  source?: string;
 }
 
 export interface UseOpenPerpsOrderResult {
@@ -46,8 +53,12 @@ export interface UseOpenPerpsOrderResult {
  */
 export const useOpenPerpsOrder = ({
   runNavigation,
+  source,
 }: UseOpenPerpsOrderOptions = {}): UseOpenPerpsOrderResult => {
   const navigation = useNavigation();
+  const surface = useSocialFeedSurface();
+  const orderSource =
+    source ?? socialFeedSurfaceOrderSource(surface.location) ?? 'trader_feed';
   const isEligible = useSelector(selectPerpsEligibility);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
@@ -70,7 +81,7 @@ export const useOpenPerpsOrder = ({
               direction,
               asset,
               leverage,
-              source: 'trader_feed',
+              source: orderSource,
               useBottomSheet: true,
               stayOnCurrentScreen: true,
               ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
@@ -85,7 +96,7 @@ export const useOpenPerpsOrder = ({
       };
       gate(openOrder).catch(() => undefined);
     },
-    [gate, isEligible, navigation, runNavigation],
+    [gate, isEligible, navigation, orderSource, runNavigation],
   );
 
   const closeGeoBlock = useCallback(() => setIsGeoBlockVisible(false), []);

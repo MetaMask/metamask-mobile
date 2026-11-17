@@ -36,7 +36,7 @@ export const CHECK_OUTCOME_PRESENTATION: Record<
   SecurityCheckOutcome,
   CheckPresentation
 > = {
-  /** Green value, no tick — fail is the only outcome that still draws a glyph. */
+  /** Green value, no tick. */
   pass: {
     valueColor: TextColor.SuccessDefault,
   },
@@ -49,19 +49,34 @@ export const CHECK_OUTCOME_PRESENTATION: Record<
 };
 
 /**
+ * The same presentations with pass and fail exchanged, for the one check whose
+ * pass word is the bad news.
+ *
+ * Typed as a full `Record` for the same reason as the table it inverts.
+ */
+const INVERTED_CHECK_OUTCOME_PRESENTATION: Record<
+  SecurityCheckOutcome,
+  CheckPresentation
+> = {
+  pass: CHECK_OUTCOME_PRESENTATION.fail,
+  fail: CHECK_OUTCOME_PRESENTATION.pass,
+  unknown: CHECK_OUTCOME_PRESENTATION.unknown,
+};
+
+/**
  * How one check's row presents, outcome and tone together.
  *
  * Reads the tone straight off `CONTRACT_CHECKS` so neither render site has to
- * know that a check without a fail glyph or passing colour exists. A `neutral`
- * row answers its question in plain text — see `ContractCheck.tone` for why
- * `is_mintable` is the one check that cannot wear a cross or a passing colour.
+ * know that a check's wording can run opposite its outcomes. An `inverted`
+ * row wears the opposite presentation — see `ContractCheck.tone` for why
+ * `is_mintable` is the one.
  */
 export const resolveCheckPresentation = (
   checkKey: ContractCheckKey,
   outcome: SecurityCheckOutcome,
 ): CheckPresentation =>
-  CONTRACT_CHECKS[checkKey].tone === 'neutral'
-    ? { valueColor: TextColor.TextDefault }
+  CONTRACT_CHECKS[checkKey].tone === 'inverted'
+    ? INVERTED_CHECK_OUTCOME_PRESENTATION[outcome]
     : CHECK_OUTCOME_PRESENTATION[outcome];
 
 /**

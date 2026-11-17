@@ -27,7 +27,6 @@ export interface NetworkPrefill {
 /** Represents a single RPC endpoint in the form's rpcUrls array. */
 export interface RpcEndpoint {
   url: string;
-  failoverUrls?: string[];
   name?: string;
   type: string;
 }
@@ -35,7 +34,6 @@ export interface RpcEndpoint {
 /** Form field values managed by useNetworkForm. */
 export interface NetworkFormState {
   rpcUrl: string | undefined;
-  failoverRpcUrls: string[] | undefined;
   rpcName: string | undefined;
   rpcUrlForm: string;
   rpcNameForm: string;

@@ -4,7 +4,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   FontWeight,
@@ -16,7 +15,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { formatMusdBaseUnits } from '../../utils/formatUtils';
+import {
+  formatMusdBaseUnits,
+  isPositiveBaseUnits,
+} from '../../utils/formatUtils';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS = {
   CONTAINER: 'rewards-money-claims-paused-modal',
@@ -96,19 +101,29 @@ const TOTAL_ROWS: {
     key: 'claimable',
     label: (labels) => labels.availableToClaim,
   },
+  { key: 'pending', label: (labels) => labels.pending },
   { key: 'held', label: (labels) => labels.held },
   { key: 'blocked', label: (labels) => labels.blocked },
   { key: 'voided', label: (labels) => labels.voided },
-  { key: 'pending', label: (labels) => labels.pending },
   { key: 'claimed', label: (labels) => labels.claimed },
 ];
+
+/** Held, blocked, and voided stay off the sheet when they are zero. */
+const HIDE_WHEN_ZERO = new Set<ClaimsPausedAmountKey>([
+  'held',
+  'blocked',
+  'voided',
+]);
 
 const ClaimsPausedTotalsRows: React.FC<{
   totals: ClaimsPausedTotals;
   labels: ClaimsPausedLabels;
 }> = ({ totals, labels }) => (
   <>
-    {TOTAL_ROWS.map((row) => (
+    {TOTAL_ROWS.filter(
+      (row) =>
+        !HIDE_WHEN_ZERO.has(row.key) || isPositiveBaseUnits(totals[row.key]),
+    ).map((row) => (
       <KeyValueRow
         key={row.key}
         variant={KeyValueRowVariant.Summary}
@@ -134,6 +149,7 @@ interface RewardsMoneyClaimsPausedModalProps {
 const RewardsMoneyClaimsPausedModal: React.FC<
   RewardsMoneyClaimsPausedModalProps
 > = ({ route }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     title,
     description,
@@ -153,7 +169,8 @@ const RewardsMoneyClaimsPausedModal: React.FC<
       onClose={handleClose}
       testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.CLOSE,
@@ -161,7 +178,7 @@ const RewardsMoneyClaimsPausedModal: React.FC<
         testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TITLE}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {isBalanceBreakdown ? null : (
         <Box
           twClassName="px-4"

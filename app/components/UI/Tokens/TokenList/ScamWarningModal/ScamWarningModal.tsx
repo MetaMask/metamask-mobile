@@ -34,7 +34,7 @@ const createStyles = (colors: Colors) =>
     },
     boxContent: {
       backgroundColor: colors.background.default,
-      paddingBottom: 21,
+      paddingBottom: 24,
       paddingTop: 0,
       borderWidth: 0,
     },

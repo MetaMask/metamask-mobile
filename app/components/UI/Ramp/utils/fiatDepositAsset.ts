@@ -7,6 +7,7 @@ import {
 import { type Hex, hexToBigInt, toCaipAssetType } from '@metamask/utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { POLYGON_NATIVE_TOKEN } from '../../Bridge/constants/assets';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../Views/confirmations/constants/confirmations';
 
 export interface FiatDepositAsset {
   address: Hex;
@@ -27,8 +28,9 @@ export function isMonadMusdAssetId(assetId: string): boolean {
 
 /**
  * Mirrors `FIAT_ASSET_ID_BY_TX_TYPE`, unexported by TPC. See the TODO below.
- * `moneyAccountDeposit` is intentionally absent: it resolves ahead of both the
- * override and this table. The perps and predict entries stay because TPC's own
+ * Money Account deposit types (`moneyAccountDeposit`, `membershipSubscription`)
+ * are intentionally absent: they resolve ahead of both the override and this
+ * table. The perps and predict entries stay because TPC's own
  * `FIAT_ASSET_ID_BY_TX_TYPE` still carries them, so the mirror must too.
  */
 const DEFAULT_ASSET_BY_TX_TYPE: Partial<
@@ -117,7 +119,7 @@ export function deriveFiatDepositAssetId(
     return '';
   }
 
-  if (txType === TransactionType.moneyAccountDeposit) {
+  if (MONEY_ACCOUNT_DEPOSIT_TYPES.includes(txType)) {
     return MUSD_MONAD_ASSET_ID;
   }
 

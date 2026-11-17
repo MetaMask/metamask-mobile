@@ -43,18 +43,6 @@
     "continue": true
   },
   {
-    "name": "en-locale-change",
-    "description": "Changes to locales/languages/en.json — copy feeds UI and E2E text/label selectors; not cosmetic",
-    "trigger": {
-      "type": "pathMatch",
-      "files": ["locales/languages/en.json"]
-    },
-    "result": {
-      "confidence": 100
-    },
-    "continue": true
-  },
-  {
     "name": "global-infrastructure-change",
     "description": "Changes to globally-mounted hooks, contexts, Redux store, or Engine wiring",
     "trigger": {
@@ -87,6 +75,71 @@
     },
     "result": {
       "confidence": 100
+    },
+    "continue": true
+  },
+  {
+    "name": "state-log-export-change",
+    "description": "In-app state log generation or export changed. Run SmokeWalletPlatform, which contains state-export-sanitization. That spec drives the app through the command queue and does not import generateStateLogs or the export-app-state dispatcher, so the import graph cannot see them.",
+    "trigger": {
+      "type": "pathMatch",
+      "files": [
+        "app/util/test/e2eStateExport.ts",
+        "app/util/test/e2eCommandPolling.ts",
+        "tests/smoke-appium/wallet/state-export-sanitization.helpers.ts"
+      ],
+      "prefixes": ["app/util/logs/"],
+      "excludeRegexes": ["\\.test\\.(ts|tsx|js|jsx)$"]
+    },
+    "result": {
+      "selected_tags": ["SmokeWalletPlatform"],
+      "risk_level": "medium",
+      "confidence": 100
+    },
+    "continue": true
+  },
+  {
+    "name": "en-locale-change",
+    "description": "locales/languages/en.json keys modified or removed — trace each key to its consumers (app code, E2E selectors, hardcoded copy in tests) and run the smoke specs that reach them",
+    "trigger": {
+      "type": "extractTagsFromLocaleKeys",
+      "localeFile": "locales/languages/en.json",
+      "usagePrefixes": ["app/", "tests/"],
+      "copyLiteralPrefixes": ["tests/", "app/features/"],
+      "minCopyLiteralLength": 4,
+      "maxChangedKeys": 150,
+      "importGraph": {
+        "sourcePrefixes": [
+          "app/",
+          "tests/flows/",
+          "tests/page-objects/",
+          "tests/selectors/",
+          "tests/locators/"
+        ],
+        "excludeSourceStems": [
+          "index",
+          "types",
+          "utils",
+          "helpers",
+          "constants",
+          "styles",
+          "theme"
+        ],
+        "intermediatePrefixes": [
+          "tests/flows/",
+          "tests/page-objects/",
+          "tests/selectors/",
+          "tests/locators/"
+        ],
+        "specPrefixes": ["tests/smoke-appium/"],
+        "catalogGroup": "e2e",
+        "hop": 1,
+        "tagsImportRegex": "import\\s*\\{([^}]+)\\}\\s*from\\s*['\"][^'\"]*\\/tags\\.js['\"]"
+      }
+    },
+    "result": {
+      "risk_level": "medium",
+      "confidence": 90
     },
     "continue": true
   },

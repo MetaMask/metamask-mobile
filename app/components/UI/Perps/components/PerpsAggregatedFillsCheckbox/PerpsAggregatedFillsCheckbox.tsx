@@ -14,6 +14,8 @@ export interface PerpsAggregatedFillsCheckboxProps {
   isSelected: boolean;
   onChange: (isSelected: boolean) => void;
   testID?: string;
+  /** Drops the pill background so a glass capsule behind it shows through. */
+  isGlass?: boolean;
 }
 
 /**
@@ -27,7 +29,7 @@ export interface PerpsAggregatedFillsCheckboxProps {
  */
 const PerpsAggregatedFillsCheckbox: React.FC<
   PerpsAggregatedFillsCheckboxProps
-> = ({ isSelected, onChange, testID }) => (
+> = ({ isSelected, onChange, testID, isGlass = false }) => (
   <ButtonBase
     size={ButtonBaseSize.Md}
     startAccessory={
@@ -47,7 +49,7 @@ const PerpsAggregatedFillsCheckbox: React.FC<
       </Box>
     }
     contentWrapperProps={{ style: { gap: 6 } }}
-    twClassName="pl-4"
+    twClassName={isGlass ? 'pl-4 bg-transparent' : 'pl-4'}
     role="checkbox"
     accessibilityState={{ checked: isSelected }}
     onPress={() => onChange(!isSelected)}

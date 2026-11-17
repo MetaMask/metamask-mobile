@@ -1,6 +1,7 @@
 import '../../../../../tests/component-view/mocks';
 import { Linking } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import type { Json } from '@metamask/utils';
 import {
   renderAdvancedSettings,
   renderAdvancedSettingsWithBackRoute,
@@ -112,5 +113,57 @@ describeForPlatforms('Advanced Settings component view', () => {
     await waitFor(() => {
       expect(store.getState().settings.showFiatOnTestnets).toBe(false);
     });
+  });
+
+  describe('Money account status', () => {
+    const enabledFlag = { enabled: true, minimumVersion: '0.0.0' };
+    const disabledFlag = { enabled: false, minimumVersion: '0.0.0' };
+
+    const renderWithFlags = (remoteFeatureFlags: Record<string, Json>) =>
+      renderAdvancedSettings({
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: { remoteFeatureFlags },
+            },
+          },
+        },
+      });
+
+    it('opens the Money account status page when both flags are enabled', async () => {
+      const { findByTestId } = renderWithFlags({
+        moneyEnableMoneyAccount: enabledFlag,
+        moneyAccountDebugEnabled: enabledFlag,
+      });
+
+      fireEvent.press(
+        await findByTestId(
+          AdvancedViewSelectorsIDs.MONEY_ACCOUNT_STATUS_BUTTON,
+        ),
+      );
+
+      expect(
+        await findByTestId(`route-${Routes.MONEY.ACCOUNT_STATUS}`),
+      ).toBeOnTheScreen();
+    });
+
+    it.each([
+      ['the debug flag is disabled', enabledFlag, disabledFlag],
+      ['Money account is disabled', disabledFlag, enabledFlag],
+    ])(
+      'hides the Money account status link when %s',
+      async (_, moneyEnableMoneyAccount, moneyAccountDebugEnabled) => {
+        const { findByTestId, queryByTestId } = renderWithFlags({
+          moneyEnableMoneyAccount,
+          moneyAccountDebugEnabled,
+        });
+
+        await findByTestId(AdvancedViewSelectorsIDs.CONTAINER);
+
+        expect(
+          queryByTestId(AdvancedViewSelectorsIDs.MONEY_ACCOUNT_STATUS_BUTTON),
+        ).not.toBeOnTheScreen();
+      },
+    );
   });
 });

@@ -1,5 +1,7 @@
 import type { CaipAssetType } from '@metamask/utils';
+import { toFeedAssetId } from '../../SocialFeed/data/socialFeedSource';
 import type { SocialAssetClass } from '../../SocialFeed/types';
+import { HYPERLIQUID_CHAIN_NAME } from '../../SocialFeed/utils/perp';
 import {
   ALL_CHAINS,
   PERP_CHAINS,
@@ -22,6 +24,8 @@ export type SocialLeaderboardSource =
 export type SocialLeaderboardResolution =
   /** Fetch `SocialService:fetchLeaderboard` with these chains. */
   | { status: 'ready'; chains: string[] }
+  /** Fetch the holders of this asset, largest position first. */
+  | { status: 'holders'; assetId: CaipAssetType }
   /** The social API has no ranking for this source yet. */
   | { status: 'unavailable' }
   /** The source is perps and perps are switched off; render nothing. */
@@ -56,9 +60,10 @@ export const getLeaderboardAssetClass = (
 /**
  * Resolves a source to the leaderboard request that serves it.
  *
- * `fetchLeaderboard` only filters by chain, so single-asset sources resolve to
- * `unavailable` until social-api ranks traders per token. With perps off the
- * combined ranking falls back to spot chains, as the V0 leaderboard does.
+ * `fetchLeaderboard` only filters by chain, so a perp market ranks its holders
+ * instead, and a spot token stays `unavailable` until social-api ranks traders
+ * per token. With perps off the combined ranking falls back to spot chains, as
+ * the V0 leaderboard does.
  */
 export const resolveSocialLeaderboardSource = (
   source: SocialLeaderboardSource,
@@ -67,6 +72,13 @@ export const resolveSocialLeaderboardSource = (
   const assetClass = getLeaderboardAssetClass(source);
   if (assetClass === 'perps' && !isPerpsEnabled) {
     return { status: 'hidden' };
+  }
+  if (source.kind === 'perp') {
+    const assetId = toFeedAssetId({
+      chain: HYPERLIQUID_CHAIN_NAME,
+      tokenAddress: source.symbol,
+    });
+    return assetId ? { status: 'holders', assetId } : { status: 'unavailable' };
   }
   if (source.kind !== 'all') {
     return { status: 'unavailable' };

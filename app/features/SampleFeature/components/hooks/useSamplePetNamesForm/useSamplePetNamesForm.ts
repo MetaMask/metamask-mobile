@@ -45,7 +45,7 @@ function useSamplePetNamesForm(
       },
       () => {
         const { SamplePetnamesController } = Engine.context;
-        SamplePetnamesController.assignPetname(
+        SamplePetnamesController?.assignPetname(
           chainId as Hex,
           toChecksumAddress(address) as Hex,
           name,

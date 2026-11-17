@@ -10,7 +10,7 @@ import {
 import React from 'react';
 import TraderAvatar from './TraderAvatar';
 import WinRateTag from './WinRateTag';
-import { formatFeedPostAge } from '../utils/formatters';
+import FeedPostAge from './FeedPostAge';
 import type { SocialV1FeedAuthor } from '../types';
 import PositionCardComment from './PositionCardComment';
 import {
@@ -66,6 +66,7 @@ const FeedPost: React.FC<FeedPostProps> = ({
     <TraderAvatar
       imageUrl={author.avatarUri}
       address={author.address}
+      profileId={author.id}
       size={AVATAR_SIZE}
       recyclingKey={id}
       testID={getSocialFeedPostAvatarTestId(id)}
@@ -100,15 +101,15 @@ const FeedPost: React.FC<FeedPostProps> = ({
             testID={getSocialFeedPostWinRateTestId(id)}
           />
         </Box>
-        <Text
+        <FeedPostAge
+          timestampMs={timestamp}
+          now={now}
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
           numberOfLines={1}
           twClassName="shrink-0"
           testID={getSocialFeedPostAgeTestId(id)}
-        >
-          {formatFeedPostAge(timestamp, now)}
-        </Text>
+        />
       </Box>
 
       <PositionCardComment

@@ -1,16 +1,27 @@
 import React, { useCallback, useEffect } from 'react';
 import { Linking } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
 import type { KycSessionStatus } from '@metamask/kyc-controller';
-import VbaKycPending from '../../../../KYC/Views/Status/KycPending';
-import VbaKycRejected from '../../../../KYC/Views/Status/KycRejected';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { selectMoneyMovementNeobank } from '../../../../../../selectors/featureFlagController/moneyAccount';
+import KycPending from '../../../../KYC/Views/Status/KycPending';
+import KycIdentityVerified from '../../../../KYC/Views/Status/IdentityVerified';
+import KycRejected from '../../../../KYC/Views/Status/KycRejected';
+import KycIdentityVerificationModule from '../../../../KYC/Views/SumSub/IdentityVerification';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 import { selectKycSessionStatus } from '../../../../../../selectors/kycController';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
-import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
+import {
+  exitVbaOnboardingToMoneyHome,
+  openVbaAccountSetup,
+  useOpenVbaOnboarding,
+} from '../hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
 import { trackKycVerificationUpdated } from '../../../../KYC/utils/kycVerificationAnalytics';
 import { endVbaCufJourney } from '../vbaCufTrace';
@@ -47,11 +58,51 @@ const VbaStatusAdapter = ({ variant }: VbaStatusAdapterProps) => {
 
 export const VbaKycPendingAdapter = () => {
   const leave = useVbaKycStatusRedirect();
+  const navigation = useNavigation<AppNavigationProp>();
+  const handleLeave = useCallback(() => {
+    leave();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    exitVbaOnboardingToMoneyHome(navigation);
+  }, [leave, navigation]);
   useEffect(() => {
     endVbaCufJourney(false, VBA_CUF_END_REASON.KYC_PENDING);
   }, []);
 
-  return <VbaKycPending onLeave={leave} />;
+  return <KycPending onLeave={handleLeave} />;
+};
+
+export const VbaIdentityVerifiedAdapter = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
+  const handleExit = useCallback(() => {
+    exitVbaOnboardingToMoneyHome(navigation);
+  }, [navigation]);
+  const handleContinue = useCallback(() => {
+    openVbaAccountSetup(navigation, chooseCurrency);
+  }, [chooseCurrency, navigation]);
+
+  return (
+    <KycIdentityVerified onExit={handleExit} onContinue={handleContinue} />
+  );
+};
+
+type VbaIdentityVerificationAdapterProps = NativeStackScreenProps<
+  VbaOnboardingParamList,
+  typeof VbaOnboardingRoutes.IDENTITY_VERIFICATION
+>;
+
+export const VbaIdentityVerificationAdapter = (
+  props: VbaIdentityVerificationAdapterProps,
+) => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const handleExit = useCallback(() => {
+    exitVbaOnboardingToMoneyHome(navigation);
+  }, [navigation]);
+
+  return <KycIdentityVerificationModule {...props} onExit={handleExit} />;
 };
 
 const VbaKycRetryAction = () => {
@@ -64,7 +115,7 @@ const VbaKycRetryAction = () => {
     return openOnboarding({ retryRejectedKyc: true });
   }, [openOnboarding]);
 
-  return <VbaKycRejected action="retry" onAction={handleRetry} />;
+  return <KycRejected action="retry" onAction={handleRetry} />;
 };
 
 const VbaKycRejectedSupportAction = () => {
@@ -74,7 +125,7 @@ const VbaKycRejectedSupportAction = () => {
   }, [openSupportWithConsent]);
 
   return (
-    <VbaKycRejected action="contactSupport" onAction={handleContactSupport} />
+    <KycRejected action="contactSupport" onAction={handleContactSupport} />
   );
 };
 

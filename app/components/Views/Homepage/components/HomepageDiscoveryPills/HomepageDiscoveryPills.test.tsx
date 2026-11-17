@@ -3,6 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import { selectPredictAvailability } from '../../../../UI/PredictNext';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { HomepageDiscoveryPillsTestIds } from './HomepageDiscoveryPills.testIds';
 import { HOMESCREEN_PILL_SOURCE } from './useHomepageDiscoveryPillsNavigation';
 
@@ -57,7 +58,10 @@ const mockSelectorState = ({
     if (selector === selectPredictAvailability) {
       return isPredictEnabled;
     }
-    return undefined;
+    // Other selectors, such as Predict's Active Venue, read the default state.
+    return (selector as (state: unknown) => unknown)({
+      engine: { backgroundState },
+    });
   });
 };
 
