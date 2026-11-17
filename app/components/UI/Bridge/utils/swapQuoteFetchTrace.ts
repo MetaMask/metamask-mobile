@@ -2,6 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
+  formatChainIdToHex,
+  isNonEvmChainId,
   SwapFeatureTag,
   type GenericQuoteRequest,
   type QuoteStreamCompleteReason,
@@ -16,6 +18,7 @@ import {
 import ReduxService from '../../../../core/redux';
 import type { RootState } from '../../../../reducers';
 import { selectFirstQuoteFlushVariant } from './firstQuoteFlushAbTestConfig';
+import { normalizeTokenAddress } from './tokenUtils';
 
 export type SwapQuoteFetchTraceResult =
   | 'success'
@@ -30,6 +33,21 @@ interface StartSwapQuoteFetchTraceParams {
   destTokenAddress?: GenericQuoteRequest['destTokenAddress'];
   isRefresh: boolean;
 }
+
+const toAssetId = (
+  address?: string,
+  chainId?: GenericQuoteRequest['srcChainId'],
+): ReturnType<typeof formatAddressToAssetId> => {
+  if (address === undefined || !chainId) {
+    return undefined;
+  }
+  return formatAddressToAssetId(
+    isNonEvmChainId(chainId)
+      ? address
+      : normalizeTokenAddress(address, formatChainIdToHex(chainId)),
+    chainId,
+  );
+};
 
 let activeTraceId: string | undefined;
 let stopWatchingQuotes: (() => void) | undefined;
@@ -147,14 +165,8 @@ export const swapQuoteFetchTrace = {
     });
     activeTraceId = id;
     try {
-      const srcToken =
-        srcTokenAddress !== undefined && srcChainId
-          ? formatAddressToAssetId(srcTokenAddress, srcChainId)
-          : undefined;
-      const destToken =
-        destTokenAddress !== undefined && destChainId
-          ? formatAddressToAssetId(destTokenAddress, destChainId)
-          : undefined;
+      const srcToken = toAssetId(srcTokenAddress, srcChainId);
+      const destToken = toAssetId(destTokenAddress, destChainId);
       annotateTraceByRequest(
         { name: TraceName.SwapQuoteFetch, id },
         {

@@ -75,7 +75,7 @@ describe('swapQuoteFetchTrace', () => {
       srcChainId: sourceToken.chainId,
       destChainId: crossChainDestinationToken.chainId,
       srcTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      destTokenAddress: '0x0000000000000000000000000000000000000000',
+      destTokenAddress: '0x0000000000000000000000000000000000001010',
       isRefresh: true,
     });
 
