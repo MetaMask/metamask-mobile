@@ -30,26 +30,23 @@ import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../data/socialFeedRealtime';
 
+const PENDING_POSTS_ZOOM_SPRING = { damping: 14, stiffness: 560, mass: 0.4 };
 const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
-  .damping(14)
-  .stiffness(560)
-  .mass(0.4);
+  .damping(PENDING_POSTS_ZOOM_SPRING.damping)
+  .stiffness(PENDING_POSTS_ZOOM_SPRING.stiffness)
+  .mass(PENDING_POSTS_ZOOM_SPRING.mass);
 const PENDING_POSTS_ZOOM_OUT = ZoomOut.springify()
-  .damping(14)
-  .stiffness(560)
-  .mass(0.4);
+  .damping(PENDING_POSTS_ZOOM_SPRING.damping)
+  .stiffness(PENDING_POSTS_ZOOM_SPRING.stiffness)
+  .mass(PENDING_POSTS_ZOOM_SPRING.mass);
 const PENDING_POSTS_FADE_IN = FadeIn.springify()
-  .damping(14)
-  .stiffness(560)
-  .mass(0.4);
+  .damping(PENDING_POSTS_ZOOM_SPRING.damping)
+  .stiffness(PENDING_POSTS_ZOOM_SPRING.stiffness)
+  .mass(PENDING_POSTS_ZOOM_SPRING.mass);
 const PENDING_POSTS_FADE_OUT = FadeOut.springify()
-  .damping(14)
-  .stiffness(560)
-  .mass(0.4);
-
-const PENDING_POSTS_SLIDE_SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
-/** Past the container's top padding and the pill's height and shadow. */
-export const PENDING_POSTS_HIDDEN_OFFSET = 96;
+  .damping(PENDING_POSTS_ZOOM_SPRING.damping)
+  .stiffness(PENDING_POSTS_ZOOM_SPRING.stiffness)
+  .mass(PENDING_POSTS_ZOOM_SPRING.mass);
 
 const LABEL_TEXT_PROPS = {
   color: TextColor.PrimaryDefault,
@@ -261,7 +258,7 @@ const PlainPendingPostsButton = ({
 /**
  * iOS only applies glass and blur when the native view first lays out in a
  * window, and drops them under animated opacity, so this pill stays mounted
- * and slides above the feed's clipped top instead of unmounting or fading.
+ * and springs its scale in place instead of unmounting, fading, or sliding.
  */
 const MaterialPendingPostsButton = ({
   onPress,
@@ -273,14 +270,11 @@ const MaterialPendingPostsButton = ({
     lastVisibleCountRef.current = pendingNewCount;
   }
 
-  const slideStyle = useAnimatedStyle(
+  const zoomStyle = useAnimatedStyle(
     () => ({
       transform: [
         {
-          translateY: withSpring(
-            isVisible ? 0 : -PENDING_POSTS_HIDDEN_OFFSET,
-            PENDING_POSTS_SLIDE_SPRING,
-          ),
+          scale: withSpring(isVisible ? 1 : 0, PENDING_POSTS_ZOOM_SPRING),
         },
       ],
     }),
@@ -292,7 +286,7 @@ const MaterialPendingPostsButton = ({
       accessibilityElementsHidden={!isVisible}
       importantForAccessibility={isVisible ? 'auto' : 'no-hide-descendants'}
       pointerEvents={isVisible ? 'auto' : 'none'}
-      style={slideStyle}
+      style={zoomStyle}
       testID={PENDING_POSTS_PILL_TEST_ID}
     >
       <PendingPostsPill

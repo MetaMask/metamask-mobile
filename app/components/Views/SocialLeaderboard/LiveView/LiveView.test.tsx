@@ -355,4 +355,19 @@ describe('LiveView', () => {
       expect.objectContaining({ isSnapshotLive: true }),
     );
   });
+
+  it('forwards header insets to the virtualized feed', () => {
+    renderWithProvider(
+      <LiveView contentTopInset={144} pendingPostsTopOffset={96} />,
+      { state },
+    );
+
+    expect(lastFeedProps()).toEqual(
+      expect.objectContaining({
+        contentTopInset: 144,
+        refreshProgressViewOffset: 144,
+        pendingPostsTopOffset: 96,
+      }),
+    );
+  });
 });

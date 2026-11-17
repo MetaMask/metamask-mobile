@@ -6,7 +6,6 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandardAnimated,
   IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
@@ -28,7 +27,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  View,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
   useAnimatedScrollHandler,
@@ -37,7 +41,10 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { TabView } from 'react-native-tab-view';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
@@ -80,6 +87,8 @@ import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/Tra
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import Routes from '../../../../constants/navigation/Routes';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
@@ -153,6 +162,12 @@ const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
 /** Lets the pager finish sliding before live prices re-measure visible cards. */
 const TAB_CHANGE_VISIBILITY_DELAY_MS = 400;
+
+/**
+ * Seeded height of the floating tabs bar (`pt-4` + `TabViewBar`) so the first
+ * frame clears it before `onLayout` refines the exact measurement.
+ */
+const DEFAULT_TABS_HEIGHT = 48;
 
 const getTabAnalyticsValue = (tab: SocialShellTab) => {
   switch (tab) {
@@ -373,25 +388,53 @@ const SocialV1ViewContent: React.FC = () => {
     leaderboard: leaderboardScrollHandler,
   };
 
-  // Height of the large title only: the compact header title crossfades in and
-  // the title slides fully behind the header once scrolled past this distance.
-  // The tabs bar stops there so it stays pinned under the header.
+  // No large title on Social V1, so `titleSectionHeight` stays 0 and the
+  // compact header title stays hidden while the floating header backdrop fades
+  // in behind the avatar and action capsules as the page scrolls.
   const titleHeightSv = useSharedValue(0);
-  const titleHeight = 0;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(true, topInset);
+  const [tabsHeight, setTabsHeight] = useState(DEFAULT_TABS_HEIGHT);
+  const handleTabsLayout = useCallback((event: LayoutChangeEvent) => {
+    const nextHeight = event.nativeEvent.layout.height;
+    setTabsHeight((current) =>
+      Math.abs(current - nextHeight) < 1 ? current : nextHeight,
+    );
+  }, []);
+
+  // One-shot nudge shown when onboarding reports the user tapped "Allow
+  // notifications" but the OS denied it. Seeded from the route param so it only
+  // appears on that hand-off, never on normal tab visits.
+  const [showNotificationsBanner, setShowNotificationsBanner] = useState(
+    Boolean(route.params?.showNotificationsBanner),
+  );
+  const effectiveHeaderInset = showNotificationsBanner ? 0 : headerInset;
+  // On iOS, `react-native-pager-view` renders each page inside a SwiftUI
+  // `TabView(.page)` child that starts below the top safe area (`topInset`),
+  // whereas `renderTabBar` is a direct sibling at `y = 0` of `TabView`.
+  const pagerTopInset =
+    Platform.OS === 'ios' && !showNotificationsBanner ? topInset : 0;
+  const floatingHeaderInset = Math.max(0, effectiveHeaderInset - pagerTopInset);
+  const listTopInset = floatingHeaderInset + tabsHeight;
+  const pendingPostsTopOffset = useDerivedValue(
+    () =>
+      floatingHeaderInset +
+      Math.max(0, tabsHeight - Math.max(0, scrollY.value)),
+  );
 
   /**
    * Brings the incoming page's scroll offset into agreement with the outgoing
-   * one over the header's collapse range, so switching tabs never flips the
-   * title between its collapsed and expanded states.
+   * one over the tabs bar's collapse range, so switching tabs keeps the tabs
+   * bar aligned instead of jumping between visible and scrolled away.
    *
-   * Only the first `titleHeight` pixels drive the collapse, so that's all we
-   * sync: once the outgoing page is past it the header is fully collapsed and
-   * the incoming page only has to clear the same threshold, which preserves a
-   * deeper reading position instead of yanking it back to the top.
+   * Only the first `tabsHeight` pixels hide the tabs bar, so once the outgoing
+   * page is past it the incoming page only has to clear the same threshold,
+   * preserving a deeper reading position instead of yanking it back to the top.
    */
   const syncIncomingPageScroll = useCallback(
     (nextIndex: number) => {
-      const collapseRange = titleHeight;
+      const collapseRange = tabsHeight;
       if (collapseRange <= 0) {
         return;
       }
@@ -420,18 +463,19 @@ const SocialV1ViewContent: React.FC = () => {
         return;
       }
 
-      // Write the shared value up front: `scrollY` switches to the incoming page
-      // the moment `activeIndexSv` flips, and the native scroll only reports back
-      // a frame later — without this the header would collapse/expand for that
-      // frame before settling.
-      if (nextIndex === trendingIndex) {
-        trendingScrollY.value = target;
-      } else if (nextIndex === followingIndex) {
-        followingScrollY.value = target;
-      } else if (nextIndex === liveIndex) {
-        liveScrollY.value = target;
-      } else {
-        leaderboardScrollY.value = target;
+      // Reset to 0 eagerly so returning to top never flickers; for non-zero
+      // targets let the incoming list's `onScroll` report the actual offset so
+      // a lazy or short/empty page never hides the tabs over a blank gap.
+      if (target === 0) {
+        if (nextIndex === trendingIndex) {
+          trendingScrollY.value = 0;
+        } else if (nextIndex === followingIndex) {
+          followingScrollY.value = 0;
+        } else if (nextIndex === liveIndex) {
+          liveScrollY.value = 0;
+        } else {
+          leaderboardScrollY.value = 0;
+        }
       }
 
       const incomingPage =
@@ -453,42 +497,19 @@ const SocialV1ViewContent: React.FC = () => {
       leaderboardScrollY,
       liveIndex,
       liveScrollY,
-      titleHeight,
+      tabsHeight,
     ],
   );
 
-  // The title, tabs, and pager form one normal-flow column that slides up as
-  // the active page scrolls, clamped so the tabs settle flush under the header
-  // instead of scrolling off. Because the pages lay out below the title/tabs in
-  // flow, the very first frame is already correct — nothing depends on a
-  // measured inset, so navigating here never flashes mispositioned content.
-  //
-  // `bottom: -titleHeight` overdraws the block below the fold by the collapse
-  // distance so the pager still reaches the bottom of the screen once the block
-  // is translated up. Before the title measures it's 0, which is exactly the
-  // resting layout.
-  //
-  // The lower clamp (>= 0) keeps the block pinned at rest during pull-to-
-  // refresh overscroll: without it a negative scroll offset drives the block
-  // *downward*, so it re-tracks the bounce through this derived value while the
-  // list content springs back natively — the two desync and the return motion
-  // looks erratic. Pinning the block lets only the content bounce.
-  // A hairline along the bottom of the pinned tabs, shown only once the
-  // active page has scrolled. It is absolutely positioned so it does not
-  // change the pager height — an in-flow line left the feed unable to return
-  // to offset 0, which kept this border on. It sits 1px up so the active tab
-  // underline paints on top of it.
-  const tabsScrollDividerStyle = useAnimatedStyle(() => ({
-    opacity: scrollY.value > 0 ? 1 : 0,
-  }));
-
-  const collapsingBlockStyle = useAnimatedStyle(() => {
-    const maxShift = titleHeightSv.value;
-    const shift =
-      maxShift > 0 ? Math.max(0, Math.min(scrollY.value, maxShift)) : 0;
+  // Floats the tabs bar directly under the header and slides it up 1:1 with
+  // the active page's scroll so it passes behind the blurring header and out of
+  // view, freeing the viewport for feed content. Clamped >= 0 so pull-to-
+  // refresh overscroll leaves the tabs pinned instead of bouncing downward.
+  const tabsScrollStyle = useAnimatedStyle(() => {
+    const maxOffset = effectiveHeaderInset + tabsHeight;
+    const offset = Math.max(0, Math.min(scrollY.value, maxOffset));
     return {
-      bottom: -maxShift,
-      transform: [{ translateY: -shift }],
+      transform: [{ translateY: -offset }],
     };
   });
 
@@ -505,13 +526,6 @@ const SocialV1ViewContent: React.FC = () => {
   const handleOpenRewards = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIEW);
   }, [navigation]);
-
-  // One-shot nudge shown when onboarding reports the user tapped "Allow
-  // notifications" but the OS denied it. Seeded from the route param so it only
-  // appears on that hand-off, never on normal tab visits.
-  const [showNotificationsBanner, setShowNotificationsBanner] = useState(
-    Boolean(route.params?.showNotificationsBanner),
-  );
 
   // Rendered outside the tab view, where a page would clip the inline sheet; null inside the home tabs host.
   const { openQuickBuy: showQuickBuy, quickBuySheet } = useQuickBuySheet();
@@ -774,26 +788,29 @@ const SocialV1ViewContent: React.FC = () => {
 
   const renderTabBar = useCallback(
     (props: TabViewBarProps) => (
-      <Box twClassName="relative bg-default mt-4">
-        <Animated.View
-          pointerEvents="none"
-          testID={SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER}
-          style={[
-            tw.style(
-              'absolute bottom-0 left-0 right-0 z-0 h-px bg-border-muted',
-            ),
-            tabsScrollDividerStyle,
-          ]}
-        />
+      <Animated.View
+        onLayout={handleTabsLayout}
+        testID={SocialV1ViewSelectorsIDs.TABS_CONTAINER}
+        style={[
+          tw.style('absolute left-0 right-0 z-10 pt-4'),
+          { top: effectiveHeaderInset },
+          tabsScrollStyle,
+        ]}
+      >
         <TabViewBar
           {...props}
           onTabPress={handleTabPress}
           testID={SocialV1ViewSelectorsIDs.TABS}
-          twClassName="z-10"
         />
-      </Box>
+      </Animated.View>
     ),
-    [handleTabPress, tabsScrollDividerStyle, tw],
+    [
+      effectiveHeaderInset,
+      handleTabPress,
+      handleTabsLayout,
+      tabsScrollStyle,
+      tw,
+    ],
   );
 
   const title = strings('homepage.sections.top_traders');
@@ -818,6 +835,7 @@ const SocialV1ViewContent: React.FC = () => {
             isActive={isPageActive}
             performance={socialPerformanceByTab.leaderboard}
             onScroll={scrollHandlers[tab]}
+            contentTopInset={listTopInset}
             pageRef={pageRef}
             containerTestID={testIds.container}
             appliedFilters={applied.leaderboard}
@@ -833,6 +851,8 @@ const SocialV1ViewContent: React.FC = () => {
             isActive={isPageActive}
             source={analyticsSource}
             onScroll={scrollHandlers[tab]}
+            contentTopInset={listTopInset}
+            pendingPostsTopOffset={pendingPostsTopOffset}
             pageRef={pageRef}
             onCopyTrade={handleLiveCopyTrade}
             onOpenFilters={handleOpenLiveFilters}
@@ -848,6 +868,8 @@ const SocialV1ViewContent: React.FC = () => {
             source={analyticsSource}
             performance={socialPerformanceByTab.trending}
             onScroll={scrollHandlers[tab]}
+            contentTopInset={listTopInset}
+            pendingPostsTopOffset={pendingPostsTopOffset}
             pageRef={pageRef}
             onCopyTrade={handleTrendingCopyTrade}
             onOpenFilters={handleOpenTrendingFilters}
@@ -865,6 +887,8 @@ const SocialV1ViewContent: React.FC = () => {
             source={analyticsSource}
             performance={socialPerformanceByTab.following}
             onScroll={scrollHandlers[tab]}
+            contentTopInset={listTopInset}
+            pendingPostsTopOffset={pendingPostsTopOffset}
             pageRef={pageRef}
             onCopyTrade={handleFollowingCopyTrade}
             onOpenFilters={handleOpenFollowingFilters}
@@ -908,7 +932,8 @@ const SocialV1ViewContent: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={SocialV1ViewSelectorsIDs.CONTAINER}
       >
-        <HeaderStandardAnimated
+        <HeaderStandardAnimatedGlass
+          onLayout={handleHeaderLayout}
           includesTopInset
           scrollY={scrollY}
           titleSectionHeight={titleHeightSv}
@@ -974,45 +999,35 @@ const SocialV1ViewContent: React.FC = () => {
         />
 
         {showNotificationsBanner && (
-          <Box twClassName="px-4 pt-2">
-            <BannerAlert
-              severity={BannerAlertSeverity.Info}
-              description={strings(
-                'social_leaderboard.top_traders_view.notifications_banner.description',
-              )}
-              actionButtonLabel={strings(
-                'social_leaderboard.top_traders_view.notifications_banner.open_settings',
-              )}
-              actionButtonOnPress={handleOpenNotificationSettings}
-              onClose={handleDismissNotificationsBanner}
-              testID={SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER}
-            />
+          <Box style={{ paddingTop: headerInset }}>
+            <Box twClassName="px-4 pt-2">
+              <BannerAlert
+                severity={BannerAlertSeverity.Info}
+                description={strings(
+                  'social_leaderboard.top_traders_view.notifications_banner.description',
+                )}
+                actionButtonLabel={strings(
+                  'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+                )}
+                actionButtonOnPress={handleOpenNotificationSettings}
+                onClose={handleDismissNotificationsBanner}
+                testID={SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER}
+              />
+            </Box>
           </Box>
         )}
 
-        {/* `overflow-hidden` clips the title as the block slides up so it
-          disappears *under* the fixed header (revealing the compact title)
-          instead of scrolling over the header actions. */}
-        <Box twClassName="flex-1 overflow-hidden">
-          <Animated.View
-            style={[
-              tw.style('absolute top-0 left-0 right-0'),
-              collapsingBlockStyle,
-            ]}
-          >
-            {/* Flush with the tab underline. A top margin would clip the
-              pages in a band below the bar instead of at the underline. */}
-            <TabView
-              navigationState={navigationState}
-              renderScene={renderScene}
-              renderTabBar={renderTabBar}
-              onIndexChange={changeTab}
-              onSwipeEnd={onPagerRest}
-              initialLayout={TAB_VIEW_INITIAL_LAYOUT}
-              lazy
-              style={tw.style('flex-1')}
-            />
-          </Animated.View>
+        <Box twClassName="flex-1">
+          <TabView
+            navigationState={navigationState}
+            renderScene={renderScene}
+            renderTabBar={renderTabBar}
+            onIndexChange={changeTab}
+            onSwipeEnd={onPagerRest}
+            initialLayout={TAB_VIEW_INITIAL_LAYOUT}
+            lazy
+            style={tw.style('flex-1')}
+          />
         </Box>
 
         {openTab ? (
