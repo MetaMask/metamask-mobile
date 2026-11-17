@@ -11940,7 +11940,9 @@
         "add": "Add",
         "details": "Details",
         "hide_details": "Hide",
-        "view_pin": "View PIN"
+        "view_pin": "View PIN",
+        "freeze": "Freeze",
+        "unfreeze": "Unfreeze"
       },
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Check your connection or try refreshing the page.",

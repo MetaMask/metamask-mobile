@@ -5,12 +5,17 @@ import CardHomeActionButtonRow, {
   type CardHomeActionVisibilityInput,
 } from './CardHomeActionButtonRow';
 import { CardHomeSelectors } from '../CardHome.testIds';
+import { SNOWFLAKE_ICON_TEST_ID } from '../../../components/SnowflakeIcon';
 import { CardType } from '../../../types';
 import {
   CardStatus,
   type CardDetails,
   type CardProviderCapabilities,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+
+jest.mock('react-native-device-info', () => ({
+  getTotalMemorySync: jest.fn(() => 8 * 1024 * 1024 * 1024),
+}));
 
 const CARD: CardDetails = {
   id: 'card-1',
@@ -39,10 +44,11 @@ const buildInput = (
 });
 
 describe('getCardHomeActionVisibility', () => {
-  it('shows details and PIN for an active, funded card', () => {
+  it('shows details, PIN and freeze for an active, funded card', () => {
     expect(getCardHomeActionVisibility(buildInput())).toEqual({
       details: true,
       pin: true,
+      freeze: true,
     });
   });
 
@@ -55,13 +61,15 @@ describe('getCardHomeActionVisibility', () => {
     expect(getCardHomeActionVisibility(buildInput(overrides))).toEqual({
       details: false,
       pin: false,
+      freeze: false,
     });
   });
 
-  it('keeps the buttons for a funding-limit provider with no balance', () => {
+  it('keeps all the buttons for a funding-limit provider with no balance', () => {
     expect(getCardHomeActionVisibility(buildInput())).toEqual({
       details: true,
       pin: true,
+      freeze: true,
     });
   });
 
@@ -86,12 +94,20 @@ describe('getCardHomeActionVisibility', () => {
     ).toBe(false);
   });
 
+  it('hides freeze when the card is not freezable', () => {
+    expect(
+      getCardHomeActionVisibility(
+        buildInput({ card: { ...CARD, isFreezable: false } }),
+      ).freeze,
+    ).toBe(false);
+  });
+
   it('shows the teaser buttons when signed out', () => {
     expect(
       getCardHomeActionVisibility(
         buildInput({ isAuthenticated: false, card: null }),
       ),
-    ).toEqual({ details: true, pin: true });
+    ).toEqual({ details: true, pin: true, freeze: true });
   });
 });
 
@@ -105,37 +121,45 @@ describe('CardHomeActionButtonRow', () => {
     const onAdd = jest.fn();
     const onDetails = jest.fn();
     const onPin = jest.fn();
+    const onFreeze = jest.fn();
     const { getByTestId } = render(
       <CardHomeActionButtonRow
         add={{ onPress: onAdd }}
         details={{ onPress: onDetails, isShowingDetails: false }}
         pin={{ onPress: onPin }}
+        freeze={{ onPress: onFreeze, isFrozen: false }}
       />,
     );
 
     fireEvent.press(getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON));
     fireEvent.press(getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON));
     fireEvent.press(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
+    fireEvent.press(getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON));
 
     expect(onAdd).toHaveBeenCalledTimes(1);
     expect(onDetails).toHaveBeenCalledTimes(1);
     expect(onPin).toHaveBeenCalledTimes(1);
+    expect(onFreeze).toHaveBeenCalledTimes(1);
   });
 
-  it('labels the details toggle by state', () => {
+  it('labels the toggles by state', () => {
     const { getByText, rerender } = render(
       <CardHomeActionButtonRow
         details={{ onPress: jest.fn(), isShowingDetails: false }}
+        freeze={{ onPress: jest.fn(), isFrozen: false }}
       />,
     );
     expect(getByText('Details')).toBeOnTheScreen();
+    expect(getByText('Freeze')).toBeOnTheScreen();
 
     rerender(
       <CardHomeActionButtonRow
         details={{ onPress: jest.fn(), isShowingDetails: true }}
+        freeze={{ onPress: jest.fn(), isFrozen: true }}
       />,
     );
     expect(getByText('Hide')).toBeOnTheScreen();
+    expect(getByText('Unfreeze')).toBeOnTheScreen();
   });
 
   it('does not call a disabled button', () => {
@@ -145,5 +169,22 @@ describe('CardHomeActionButtonRow', () => {
     );
     fireEvent.press(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
     expect(onPin).not.toHaveBeenCalled();
+  });
+
+  it('uses the temporary snowflake icon for both Freeze and Unfreeze', () => {
+    const { getByTestId, rerender } = render(
+      <CardHomeActionButtonRow
+        freeze={{ onPress: jest.fn(), isFrozen: false }}
+      />,
+    );
+    expect(getByTestId(SNOWFLAKE_ICON_TEST_ID)).toBeOnTheScreen();
+
+    rerender(
+      <CardHomeActionButtonRow
+        freeze={{ onPress: jest.fn(), isFrozen: true }}
+      />,
+    );
+    expect(getByTestId(SNOWFLAKE_ICON_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON)).toBeOnTheScreen();
   });
 });

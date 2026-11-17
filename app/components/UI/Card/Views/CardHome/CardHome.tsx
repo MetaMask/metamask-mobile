@@ -686,6 +686,8 @@ const CardHome = () => {
   const isCardDetailsVisible =
     (!!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails) &&
     isAuthenticated;
+  const isFreezeLoading =
+    actions.freeze.isPending || actions.unfreeze.isPending;
 
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
@@ -1017,6 +1019,15 @@ const CardHome = () => {
                     }
                   : undefined
               }
+              freeze={
+                actionVisibility.freeze
+                  ? {
+                      onPress: actions.handleToggleFreeze,
+                      isFrozen: isFrozen && isAuthenticated,
+                      disabled: isFreezeLoading,
+                    }
+                  : undefined
+              }
             />
 
             {credit.hasCredit &&
@@ -1111,8 +1122,10 @@ const CardHome = () => {
                 onOrderMetalCard={actions.orderMetalCardAction}
                 onChangeAsset={actions.changeAssetAction}
                 hasPriorityTokenBalance={hasPriorityTokenBalance}
-                hideDetailsAndPinRows={
-                  actionVisibility.details || actionVisibility.pin
+                hideQuickActionRows={
+                  actionVisibility.details ||
+                  actionVisibility.pin ||
+                  actionVisibility.freeze
                 }
                 onCashback={actions.cashbackAction}
                 onTravel={actions.navigateToTravelPage}

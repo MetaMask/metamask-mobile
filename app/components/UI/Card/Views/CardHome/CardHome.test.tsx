@@ -778,6 +778,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'See your full card number, expiry date, and CVV',
       'card.card_home.manage_card_options.freeze_card': 'Freeze card',
       'card.card_home.manage_card_options.unfreeze_card': 'Unfreeze card',
+      'card.card_home.action_buttons.freeze': 'Freeze',
+      'card.card_home.action_buttons.unfreeze': 'Unfreeze',
       'card.card_home.manage_card_options.freeze_card_description':
         'Temporarily disable your card',
       'card.card_home.manage_card_options.unfreeze_card_description':
@@ -1242,6 +1244,7 @@ function setupLoadCardDataMock(
 function overrideCardHomeDataBalance(
   assetOverrides: Partial<CardFundingTokenWithBalance>,
   once = false,
+  cardOverrides: Record<string, unknown> = {},
 ) {
   const mockReturn = {
     data: {
@@ -1252,6 +1255,7 @@ function overrideCardHomeDataBalance(
         id: 'card-123',
         status: 'ACTIVE',
         lastFour: '1234',
+        ...cardOverrides,
         type: CardType.VIRTUAL,
       },
       account: null,
@@ -4760,7 +4764,7 @@ describe('CardHome Component', () => {
           screen.queryByTestId(CardHomeSelectors.SET_PIN_BUTTON),
         ).toBeNull();
         expect(
-          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
         ).toBeNull();
         // The card art is muted to 50% opacity
         expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
@@ -5511,7 +5515,7 @@ describe('CardHome Component', () => {
     });
   });
 
-  describe('Freeze Card Toggle', () => {
+  describe('Freeze button', () => {
     const freezableCardDetails = {
       type: CardType.VIRTUAL,
       id: 'card-123',
@@ -5530,7 +5534,7 @@ describe('CardHome Component', () => {
     });
 
     describe('Visibility', () => {
-      it('shows freeze toggle when authenticated with a freezable active card', () => {
+      it('shows freeze button when authenticated with a freezable active card', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -5543,11 +5547,11 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+          screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
         ).toBeOnTheScreen();
       });
 
-      it('shows freeze toggle as teaser when user is not authenticated', () => {
+      it('shows freeze button as teaser when user is not authenticated', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
@@ -5559,11 +5563,11 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+          screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
         ).toBeOnTheScreen();
       });
 
-      it('does not show freeze toggle when card is not freezable', () => {
+      it('does not show freeze button when card is not freezable', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -5576,11 +5580,11 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
         ).toBeNull();
       });
 
-      it('does not show freeze toggle when card is blocked', () => {
+      it('does not show freeze button when card is blocked', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -5596,11 +5600,11 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
         ).toBeNull();
       });
 
-      it('does not show freeze toggle while loading', () => {
+      it('does not show freeze button while loading', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -5612,11 +5616,11 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
         ).toBeNull();
       });
 
-      it('does not show freeze toggle when cardDetails is null', () => {
+      it('does not show freeze button when cardDetails is null', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -5629,7 +5633,7 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
         ).toBeNull();
       });
     });
@@ -5690,8 +5694,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', true);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockFreezeMutate).toHaveBeenCalledTimes(1);
@@ -5734,8 +5738,8 @@ describe('CardHome Component', () => {
         mockEventBuilder.addProperties.mockClear();
         mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', true);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -5782,8 +5786,8 @@ describe('CardHome Component', () => {
         render();
         mockTrackEvent.mockClear();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', true);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockFreezeMutate).toHaveBeenCalledTimes(1);
@@ -5841,8 +5845,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', false);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockReauthenticate).toHaveBeenCalledTimes(1);
@@ -5871,8 +5875,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', false);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockReauthenticate).toHaveBeenCalledTimes(1);
@@ -5901,8 +5905,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', false);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockReauthenticate).toHaveBeenCalledTimes(1);
@@ -5943,8 +5947,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', false);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockReauthenticate).toHaveBeenCalledTimes(1);
@@ -5973,8 +5977,8 @@ describe('CardHome Component', () => {
         mockEventBuilder.addProperties.mockClear();
         mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', false);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -6007,8 +6011,8 @@ describe('CardHome Component', () => {
         render();
         mockTrackEvent.mockClear();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', false);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockUnfreezeMutate).toHaveBeenCalledTimes(1);
@@ -6041,8 +6045,8 @@ describe('CardHome Component', () => {
         mockEventBuilder.addProperties.mockClear();
         mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', false);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockNavigate).toHaveBeenCalledWith(
@@ -6096,8 +6100,8 @@ describe('CardHome Component', () => {
         render();
         mockTrackEvent.mockClear();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        fireEvent(toggle, 'valueChange', false);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
+        fireEvent.press(toggle);
 
         await waitFor(() => {
           expect(mockNavigate).toHaveBeenCalledWith(
@@ -6127,7 +6131,7 @@ describe('CardHome Component', () => {
     });
 
     describe('Display state', () => {
-      it('shows "Freeze card" title and description when card is active', () => {
+      it('shows the Freeze tile when card is active', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -6158,13 +6162,11 @@ describe('CardHome Component', () => {
 
         render();
 
-        expect(screen.getByText('Freeze card')).toBeOnTheScreen();
-        expect(
-          screen.getByText('Temporarily disable your card'),
-        ).toBeOnTheScreen();
+        // The freeze action's label now lives on the quick-action tile.
+        expect(screen.getByText('Freeze')).toBeOnTheScreen();
       });
 
-      it('shows "Unfreeze card" title and description when card is frozen', () => {
+      it('shows the Unfreeze tile when card is frozen', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -6198,10 +6200,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        expect(screen.getByText('Unfreeze card')).toBeOnTheScreen();
-        expect(
-          screen.getByText('Reactivate your card to resume transactions'),
-        ).toBeOnTheScreen();
+        // The unfreeze action's label now lives on the quick-action tile.
+        expect(screen.getByText('Unfreeze')).toBeOnTheScreen();
       });
 
       it('shows switch as disabled while toggling', () => {
@@ -6235,7 +6235,7 @@ describe('CardHome Component', () => {
 
         render();
 
-        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON);
         expect(
           toggle.props.accessibilityState?.disabled ?? toggle.props.disabled,
         ).toBe(true);
@@ -7415,12 +7415,16 @@ describe('CardHome Component', () => {
 
     it('hides all manage options except Change asset when priority token balance is zero', () => {
       setupLoadCardDataMock({ isAuthenticated: true });
-      overrideCardHomeDataBalance({
-        rawTokenBalance: 0,
-        rawFiatNumber: 0,
-        balanceFiat: '$0.00',
-        balanceFormatted: '0.000000 USDC',
-      });
+      overrideCardHomeDataBalance(
+        {
+          rawTokenBalance: 0,
+          rawFiatNumber: 0,
+          balanceFiat: '$0.00',
+          balanceFormatted: '0.000000 USDC',
+        },
+        false,
+        { type: CardType.VIRTUAL, isFreezable: true },
+      );
 
       render();
 
@@ -7429,10 +7433,26 @@ describe('CardHome Component', () => {
       ).toBeOnTheScreen();
 
       // The quick actions show for a signed-in cardholder even at zero
-      // balance; the balance-gated rows are the Manage list ones below.
+      // balance — never hidden or disabled because of it; the balance-gated
+      // rows are the Manage list ones below.
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).not.toBeDisabled();
       expect(
         screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
+      ).not.toBeDisabled();
       expect(
         screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
       ).toBeNull();
@@ -7484,7 +7504,7 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
       ).toBeOnTheScreen();
     });
   });
@@ -7509,10 +7529,10 @@ describe('CardHome Component', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows freeze card as teaser when unauthenticated', () => {
+    it('shows freeze button as teaser when unauthenticated', () => {
       render();
       expect(
-        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -7548,13 +7568,9 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('navigates to authentication when freeze card toggled', () => {
+    it('navigates to authentication when freeze button pressed', () => {
       render();
-      fireEvent(
-        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
-        'valueChange',
-        true,
-      );
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON));
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
         showAuthPrompt: true,
       });

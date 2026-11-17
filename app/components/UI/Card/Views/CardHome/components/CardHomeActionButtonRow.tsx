@@ -7,6 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import MainActionButtonGlass from '../../../../../../component-library/components-temp/MainActionButtonGlass';
+import SnowflakeIcon from '../../../components/SnowflakeIcon';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import {
   CardStatus,
@@ -26,6 +27,8 @@ export interface CardHomeActionButtonRowProps {
   details?: ActionButtonConfig & { isShowingDetails: boolean };
   /** View the card PIN. Omitted when the provider or card has no PIN view. */
   pin?: ActionButtonConfig;
+  /** Freeze or unfreeze the card. Omitted when the card can't be frozen. */
+  freeze?: ActionButtonConfig & { isFrozen: boolean };
   /** Brand refresh Liquid Glass tiles; resolved by the screen. */
   isGlass?: boolean;
   /** Tighter top gap when something (e.g. Add to Apple Wallet) sits directly above. */
@@ -46,13 +49,12 @@ export interface CardHomeActionVisibilityInput {
 export interface CardHomeActionVisibility {
   details: boolean;
   pin: boolean;
+  freeze: boolean;
 }
 
 /**
- * Same gating the View card details and View PIN rows had in
- * `ManageCardOptions`, so each button shows exactly where its row did. The
- * freeze tile is not part of this row yet: it needs the Card snowflake icon
- * (later PR), so freezing keeps its Manage list row for now.
+ * Same gating the View card details, View PIN and Freeze rows had in
+ * `ManageCardOptions`, so each button shows exactly where its row did.
  */
 export const getCardHomeActionVisibility = ({
   card,
@@ -64,7 +66,7 @@ export const getCardHomeActionVisibility = ({
   isManageHidden,
 }: CardHomeActionVisibilityInput): CardHomeActionVisibility => {
   if (isManageHidden || hasSetupActions || hasAlertOnlyState) {
-    return { details: false, pin: false };
+    return { details: false, pin: false, freeze: false };
   }
 
   const showTeaserOptions = !isLoading && !isAuthenticated;
@@ -83,6 +85,11 @@ export const getCardHomeActionVisibility = ({
         Boolean(capabilities?.supportsPinView) &&
         cardHasPin) ||
       (showTeaserOptions && Boolean(capabilities?.supportsPinView)),
+    freeze:
+      (hasManageableCard &&
+        Boolean(card?.isFreezable) &&
+        card?.status !== CardStatus.BLOCKED) ||
+      showTeaserOptions,
   };
 };
 
@@ -94,7 +101,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Card home quick actions under the card art. Same tiles as the Money home
+ * Card home quick actions under the card panel. Same tiles as the Money home
  * action row (`MainActionButtonGlass`); each button is optional so it follows
  * the gating its list row used to have.
  */
@@ -102,10 +109,11 @@ const CardHomeActionButtonRow = ({
   add,
   details,
   pin,
+  freeze,
   isGlass = false,
   isTightTop = false,
 }: CardHomeActionButtonRowProps) => {
-  if (!add && !details && !pin) return null;
+  if (!add && !details && !pin && !freeze) return null;
 
   return (
     <Box
@@ -148,6 +156,22 @@ const CardHomeActionButtonRow = ({
           onPress={pin.onPress}
           isDisabled={pin.disabled}
           testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+          twClassName="py-3"
+          containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
+        />
+      ) : null}
+      {freeze ? (
+        <MainActionButtonGlass
+          customIcon={<SnowflakeIcon />}
+          label={strings(
+            freeze.isFrozen
+              ? 'card.card_home.action_buttons.unfreeze'
+              : 'card.card_home.action_buttons.freeze',
+          )}
+          onPress={freeze.onPress}
+          isDisabled={freeze.disabled}
+          testID={CardHomeSelectors.FREEZE_CARD_BUTTON}
           twClassName="py-3"
           containerStyle={styles.buttonContainer}
           isGlass={isGlass}
