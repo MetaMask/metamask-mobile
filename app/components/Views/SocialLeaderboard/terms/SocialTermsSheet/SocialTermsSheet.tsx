@@ -35,7 +35,6 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 
 /** Distance from the bottom that still counts as "read to the end". */
 const SCROLL_END_THRESHOLD = 20;
-const EXTERNAL_LINK_DEDUPE_WINDOW_MS = 1000;
 /** Body height as a share of the window, matching the design. */
 const BODY_HEIGHT_RATIO = 0.6;
 const WEBVIEW_SCROLL_END_EVENT = 'social-terms-scroll-end';
@@ -162,10 +161,6 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const webViewRef = useRef<WebView>(null);
   const hasLoadedTermsDocument = useRef(false);
-  const lastOpenedExternalUrl = useRef<{
-    url: string;
-    openedAt: number;
-  } | null>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
@@ -262,23 +257,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       }
 
       if (hasLoadedTermsDocument.current) {
-        const now = Date.now();
-        const previousOpen = lastOpenedExternalUrl.current;
-        const isDuplicate =
-          previousOpen?.url === request.url &&
-          now - previousOpen.openedAt < EXTERNAL_LINK_DEDUPE_WINDOW_MS;
-
-        if (!isDuplicate) {
-          lastOpenedExternalUrl.current = { url: request.url, openedAt: now };
-          Linking.openURL(request.url).catch(() => {
-            if (
-              lastOpenedExternalUrl.current?.url === request.url &&
-              lastOpenedExternalUrl.current.openedAt === now
-            ) {
-              lastOpenedExternalUrl.current = null;
-            }
-          });
-        }
+        Linking.openURL(request.url).catch(() => undefined);
         return false;
       }
 

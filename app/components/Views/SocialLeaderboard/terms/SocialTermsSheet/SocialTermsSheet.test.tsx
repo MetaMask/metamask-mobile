@@ -376,11 +376,7 @@ describe('SocialTermsSheet', () => {
     expect(
       onShouldStartLoadWithRequest({ url: 'https://metamask.com/privacy' }),
     ).toBe(false);
-    expect(
-      onShouldStartLoadWithRequest({ url: 'https://metamask.com/privacy' }),
-    ).toBe(false);
     expect(openURL).toHaveBeenCalledWith('https://metamask.com/privacy');
-    expect(openURL).toHaveBeenCalledTimes(1);
     expect(
       onShouldStartLoadWithRequest({
         url: 'https://metamask.com.evil.example/terms',
