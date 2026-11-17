@@ -59,16 +59,20 @@ describe('BalanceProjection', () => {
     jest.clearAllMocks();
   });
 
-  it('renders label and projected balance for $1,000 at apyDecimal 0.04 over 1 year (~$1,040.00)', () => {
+  it('renders Est. 1-year balance label and projected balance without an info icon', () => {
     mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
 
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, queryByTestId } = render(
       <BalanceProjection amountFiat="1000" projectedYears={1} />,
     );
 
+    expect(ONE_YEAR_LABEL).toBe('Est. 1-year balance:');
     expect(getByTestId('balance-projection')).toBeOnTheScreen();
-    expect(getByText(ONE_YEAR_LABEL, { exact: false })).toBeOnTheScreen();
+    expect(
+      getByText('Est. 1-year balance: ', { exact: true }),
+    ).toBeOnTheScreen();
     expect(getByText('$1,040.00')).toBeOnTheScreen();
+    expect(queryByTestId('balance-projection-info-button')).toBeNull();
   });
 
   it('compounds the projection over multiple years', () => {
@@ -81,15 +85,21 @@ describe('BalanceProjection', () => {
     expect(getByText('$1,216.65')).toBeOnTheScreen();
   });
 
-  it('renders the APY pitch when amountFiat is "0"', () => {
+  it('renders the APY pitch with a pressable underline when amountFiat is "0"', () => {
     mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
 
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, queryByTestId } = render(
       <BalanceProjection amountFiat="0" projectedYears={1} />,
     );
 
     expect(getByTestId('balance-projection-apy-pitch')).toBeOnTheScreen();
+    expect(
+      getByTestId('balance-projection-apy-pitch-pressable'),
+    ).toBeOnTheScreen();
     expect(getByText('Earn 4% APY')).toBeOnTheScreen();
+    expect(
+      queryByTestId('balance-projection-apy-pitch-info-button'),
+    ).toBeNull();
   });
 
   it('renders the APY pitch when amountFiat is empty', () => {
@@ -103,41 +113,19 @@ describe('BalanceProjection', () => {
     expect(getByText('Earn 4% APY')).toBeOnTheScreen();
   });
 
-  it('renders the info button on the APY pitch', () => {
-    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
-
-    const { getByTestId } = render(
-      <BalanceProjection amountFiat="0" projectedYears={1} />,
-    );
-
-    expect(
-      getByTestId('balance-projection-apy-pitch-info-button'),
-    ).toBeOnTheScreen();
-  });
-
-  it('tracks the APY tooltip click when the pitch info button is pressed', () => {
+  it('tracks the APY tooltip click and opens the APY info sheet when the pitch is pressed', () => {
     mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
     const { getByTestId } = render(
       <BalanceProjection amountFiat="0" projectedYears={1} />,
     );
 
-    fireEvent.press(getByTestId('balance-projection-apy-pitch-info-button'));
+    fireEvent.press(getByTestId('balance-projection-apy-pitch-pressable'));
 
     expect(mockTrackTooltipClicked).toHaveBeenCalledTimes(1);
     expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
       tooltip_name: MONEY_TOOLTIP_NAMES.APY,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
     });
-  });
-
-  it('opens the APY info sheet with the current APY when the pitch info button is pressed', () => {
-    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
-    const { getByTestId } = render(
-      <BalanceProjection amountFiat="0" projectedYears={1} />,
-    );
-
-    fireEvent.press(getByTestId('balance-projection-apy-pitch-info-button'));
-
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
@@ -145,48 +133,50 @@ describe('BalanceProjection', () => {
     });
   });
 
-  it('renders the info button next to the projected balance', () => {
-    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
-
+  it('tracks the estimated balance tooltip click and opens MoneyEstimatedBalanceSheet when the projected value is pressed', () => {
+    mockBalance({ apyDecimal: 0.062, apyPercent: 6.2 });
     const { getByTestId } = render(
-      <BalanceProjection amountFiat="1000" projectedYears={1} />,
+      <BalanceProjection amountFiat="100" projectedYears={1} />,
     );
 
-    expect(getByTestId('balance-projection-info-button')).toBeOnTheScreen();
-  });
-
-  it('tracks the earn-on-your-crypto tooltip click when the projection info button is pressed', () => {
-    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
-    const { getByTestId } = render(
-      <BalanceProjection amountFiat="1000" projectedYears={1} />,
-    );
-
-    fireEvent.press(getByTestId('balance-projection-info-button'));
+    fireEvent.press(getByTestId('balance-projection-value-pressable'));
 
     expect(mockTrackTooltipClicked).toHaveBeenCalledTimes(1);
     expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
-      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_BALANCE,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
       component_name: COMPONENT_NAMES.MONEY_BALANCE_PROJECTION,
     });
-  });
-
-  it('opens the earn crypto info sheet when the projection info button is pressed', () => {
-    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
-    const { getByTestId } = render(
-      <BalanceProjection amountFiat="1000" projectedYears={1} />,
-    );
-
-    fireEvent.press(getByTestId('balance-projection-info-button'));
-
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
-      params: { variant: 'deposit' },
+      screen: Routes.MONEY.MODALS.ESTIMATED_BALANCE_SHEET,
+      params: {
+        depositAmountFiat: '$100',
+        projectedAmountFiat: '$106.20',
+        apy: 6.2,
+      },
     });
   });
 
-  it('renders no info buttons while APY is loading', () => {
+  it('formats decimal deposit amounts with cents when opening MoneyEstimatedBalanceSheet', () => {
+    mockBalance({ apyDecimal: 0.05, apyPercent: 5 });
+    const { getByTestId } = render(
+      <BalanceProjection amountFiat="100.5" projectedYears={1} />,
+    );
+
+    fireEvent.press(getByTestId('balance-projection-value-pressable'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ESTIMATED_BALANCE_SHEET,
+      params: {
+        depositAmountFiat: '$100.50',
+        projectedAmountFiat: '$105.53',
+        apy: 5,
+      },
+    });
+  });
+
+  it('renders no pressables while APY is loading', () => {
     mockBalance({
       apyDecimal: undefined,
       apyPercent: undefined,
@@ -197,25 +187,8 @@ describe('BalanceProjection', () => {
       <BalanceProjection amountFiat="1000" projectedYears={1} />,
     );
 
-    expect(queryByTestId('balance-projection-info-button')).toBeNull();
-    expect(
-      queryByTestId('balance-projection-apy-pitch-info-button'),
-    ).toBeNull();
-  });
-
-  it('reserves space with a skeleton while APY is loading', () => {
-    mockBalance({
-      apyDecimal: undefined,
-      apyPercent: undefined,
-      isLoading: true,
-    });
-
-    const { queryByTestId } = render(
-      <BalanceProjection amountFiat="1000" projectedYears={1} />,
-    );
-
-    expect(queryByTestId('balance-projection')).toBeNull();
-    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+    expect(queryByTestId('balance-projection-value-pressable')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch-pressable')).toBeNull();
     expect(queryByTestId('balance-projection-skeleton')).toBeOnTheScreen();
   });
 

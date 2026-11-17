@@ -121,6 +121,12 @@ jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
+jest.mock('../../rows/money-deposit-to-row', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    MoneyDepositToRow: () => <View testID="money-deposit-to-row-mock" />,
+  };
+});
 jest.mock('../../rows/perps-receive-to-row', () => ({
   DEFAULT_PERPS_RECEIVE_DESTINATION: 'hyperliquid',
   PerpsReceiveToRow: () => null,
@@ -2151,7 +2157,7 @@ describe('CustomAmountInfo', () => {
   });
 
   describe('PayWithRow visibility for moneyAccountDeposit', () => {
-    it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
+    it('renders PayWithRow and MoneyDepositToRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         txParams: { from: '0x123' },
@@ -2162,6 +2168,7 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(getByTestId('pay-with')).toBeOnTheScreen();
+      expect(getByTestId('money-deposit-to-row-mock')).toBeOnTheScreen();
     });
   });
 

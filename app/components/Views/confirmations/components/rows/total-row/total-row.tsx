@@ -1,8 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import InfoRow from '../../UI/info-row';
 import { strings } from '../../../../../../../locales/i18n';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
@@ -23,14 +29,24 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import DottedUnderline from '../../../../../UI/DottedUnderline';
+import { useTheme } from '../../../../../../util/theme';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { useMoneyAnalytics } from '../../../../../UI/Money/hooks/useMoneyAnalytics';
+import {
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+  SCREEN_NAMES,
+} from '../../../../../UI/Money/constants/moneyEvents';
 
 /**
  * Row component that owns the bottom line of the totals section.
  *
  * For withdrawal flows (when the feature flag allows selecting a withdraw
- * token), input-based quotes, and non-withdraw flows when Max is selected, the
- * "You receive" row is shown so the user can see the authoritative destination
- * amount. Otherwise the total cost row is shown.
+ * token), Money Account deposits, input-based quotes, and non-withdraw flows
+ * when Max is selected, the "You receive" row is shown so the user can see
+ * the authoritative destination amount. Otherwise the total cost row is shown.
  */
 export function TotalRow() {
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
@@ -38,14 +54,18 @@ export function TotalRow() {
   const totals = useTransactionPayTotals();
   const transactionMetadata = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMetadata, [
+    TransactionType.moneyAccountDeposit,
+  ]);
 
   const showReceiveRow =
+    isMoneyAccountDeposit ||
     canSelectWithdrawToken ||
     totals?.isInputBased === true ||
     (Boolean(isMaxAmount) && !isWithdraw);
 
   if (showReceiveRow) {
-    return <ReceiveRow />;
+    return <ReceiveRow isMoneyAccountDeposit={isMoneyAccountDeposit} />;
   }
 
   return <TotalFeesRow />;
@@ -100,20 +120,34 @@ function TotalFeesRow() {
  * from totals and leaves `targetAmount` at 0 — nothing is converted, so the
  * required token amount is what gets received.
  */
-function ReceiveRow() {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
+function ReceiveRow({
+  isMoneyAccountDeposit,
+}: {
+  isMoneyAccountDeposit: boolean;
+}) {
+  const formatFiat = useFiatFormatter({
+    currency: 'usd',
+    fractionDigits: isMoneyAccountDeposit ? 2 : undefined,
+  });
+  const formatSheetFiat = useFiatFormatter({ currency: 'usd' });
+  const navigation = useNavigation<AppNavigationProp>();
+  const tw = useTailwind();
+  const { colors } = useTheme();
+  const { trackTooltipClicked } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
+  });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
   const requiredTokens = useTransactionPayRequiredTokens();
   const rawQuotes = useTransactionPayQuotesRaw();
 
-  const receiveUsd = useMemo(() => {
+  const receiveBn = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount?.usd;
     const targetBn =
       targetAmountUsd == null ? null : new BigNumber(targetAmountUsd);
 
     if (targetBn?.gt(0)) {
-      return formatFiat(targetBn);
+      return targetBn;
     }
 
     const isNoOpRoute = (rawQuotes ?? []).some(isNoOpQuote);
@@ -123,35 +157,86 @@ function ReceiveRow() {
     )?.amountUsd;
 
     if (
-      isNoOpRoute &&
+      (isNoOpRoute || isMoneyAccountDeposit) &&
       requiredAmountUsd &&
       new BigNumber(requiredAmountUsd).gt(0)
     ) {
-      return formatFiat(new BigNumber(requiredAmountUsd));
+      return new BigNumber(requiredAmountUsd);
     }
 
-    if (targetBn == null) return '';
+    return targetBn;
+  }, [
+    isMoneyAccountDeposit,
+    rawQuotes,
+    requiredTokens,
+    totals?.targetAmount?.usd,
+  ]);
 
-    return formatFiat(targetBn);
-  }, [formatFiat, rawQuotes, requiredTokens, totals?.targetAmount?.usd]);
+  const receiveUsd = useMemo(
+    () => (receiveBn == null ? '' : formatFiat(receiveBn)),
+    [formatFiat, receiveBn],
+  );
+
+  const receiveSheetUsd = useMemo(
+    () => (receiveBn == null ? '' : formatSheetFiat(receiveBn)),
+    [formatSheetFiat, receiveBn],
+  );
+
+  const handleReceivePress = useCallback(() => {
+    if (!receiveSheetUsd) {
+      return;
+    }
+
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.METAMASK_USD,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+    });
+
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.MUSD_INFO_SHEET,
+      params: {
+        receiveAmountFiat: receiveSheetUsd,
+      },
+    });
+  }, [navigation, receiveSheetUsd, trackTooltipClicked]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;
   }
 
+  const labelText = strings('confirm.label.you_receive');
+
   return (
     <View testID="receive-row">
-      <InfoRow
-        label={strings('confirm.label.you_receive')}
-        rowVariant={InfoRowVariant.Small}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          testID={ConfirmationRowComponentIDs.RECEIVE}
-        >
-          {receiveUsd}
-        </Text>
+      <InfoRow label={labelText} rowVariant={InfoRowVariant.Small}>
+        {isMoneyAccountDeposit && receiveUsd ? (
+          <Pressable
+            onPress={handleReceivePress}
+            accessibilityRole="button"
+            accessibilityLabel={`${labelText} ${receiveUsd}`}
+            hitSlop={8}
+            style={({ pressed }) => tw.style('pb-px', pressed && 'opacity-50')}
+            testID={ConfirmationRowComponentIDs.RECEIVE_PRESSABLE}
+          >
+            <DottedUnderline color={colors.text.alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                testID={ConfirmationRowComponentIDs.RECEIVE}
+              >
+                {receiveUsd}
+              </Text>
+            </DottedUnderline>
+          </Pressable>
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={ConfirmationRowComponentIDs.RECEIVE}
+          >
+            {receiveUsd}
+          </Text>
+        )}
       </InfoRow>
     </View>
   );

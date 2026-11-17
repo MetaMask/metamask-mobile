@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { TotalRow } from './total-row';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
@@ -18,9 +19,29 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import Routes from '../../../../../../constants/navigation/Routes';
+import {
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+} from '../../../../../UI/Money/constants/moneyEvents';
+
+const mockNavigate = jest.fn();
+const mockTrackTooltipClicked = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(() => ({
+    trackTooltipClicked: mockTrackTooltipClicked,
+  })),
+}));
 
 const TOTAL_FIAT_MOCK = '$123.46';
 const RECEIVE_FIAT_MOCK = '$99.38';
@@ -295,6 +316,63 @@ describe('TotalRow', () => {
 
       expect(getByText(RECEIVE_FIAT_MOCK)).toBeOnTheScreen();
       expect(queryByText('$27.51')).toBeNull();
+    });
+  });
+
+  describe('moneyAccountDeposit receive row', () => {
+    it('renders You’ll receive with two decimals and opens MoneyMusdInfoSheet on press', () => {
+      useTransactionPayTotalsMock.mockReturnValue({
+        total: { usd: '100' },
+        targetAmount: { usd: '100', fiat: '100' },
+      } as unknown as TransactionPayTotals);
+
+      const { getByTestId, getByText, queryByTestId } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('receive-row')).toBeOnTheScreen();
+      expect(queryByTestId('total-row')).toBeNull();
+      expect(getByText('$100.00')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('receive-pressable'));
+
+      expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
+        tooltip_name: MONEY_TOOLTIP_NAMES.METAMASK_USD,
+        tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      });
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MUSD_INFO_SHEET,
+        params: {
+          receiveAmountFiat: '$100',
+        },
+      });
+    });
+
+    it('falls back to requiredTokens amountUsd when targetAmount is zero on moneyAccountDeposit', () => {
+      useTransactionPayTotalsMock.mockReturnValue({
+        total: { usd: '100' },
+        targetAmount: { usd: '0', fiat: '0' },
+      } as unknown as TransactionPayTotals);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { amountUsd: '100', skipIfBalance: false },
+      ] as unknown as ReturnType<typeof useTransactionPayRequiredTokens>);
+
+      const { getByText } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByText('$100.00')).toBeOnTheScreen();
+    });
+
+    it('does not wrap receive value in a pressable for non-moneyAccountDeposit flows', () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      const { queryByTestId } = render({
+        type: TransactionType.perpsDeposit,
+      });
+
+      expect(queryByTestId('receive-pressable')).toBeNull();
     });
   });
 });

@@ -36,6 +36,7 @@ export const ConfirmationRowComponentIDs = {
   GAS_FEES_DETAILS: 'gas-fees-details',
   GAS_FEE_TOKEN_PILL: 'selected-gas-fee-token',
   MESSAGE: 'message',
+  MONEY_DEPOSIT_TO: 'money-deposit-to',
   NETWORK: 'network',
   ORIGIN_INFO: 'origin-info',
   PAID_BY_METAMASK: 'paid-by-metamask',
@@ -46,7 +47,9 @@ export const ConfirmationRowComponentIDs = {
   TOKEN_HERO: 'token-hero',
   TOTAL: 'total',
   RECEIVE: 'receive',
+  RECEIVE_PRESSABLE: 'receive-pressable',
   TRANSACTION_FEE: 'transaction-fee',
+  TRANSACTION_FEE_PRESSABLE: 'transaction-fee-pressable',
   AMOUNT: 'amount',
 } as const;
 

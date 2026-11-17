@@ -4,6 +4,7 @@ export const MoneySplashViewTestIds = {
   EYEBROW: 'money-splash-view-eyebrow',
   TITLE: 'money-splash-view-title',
   BODY: 'money-splash-view-body',
+  APY_PRESSABLE: 'money-splash-view-apy-pressable',
   BENEFIT_ROW: (n: number) => `money-splash-view-benefit-${n}`,
   CTA: 'money-splash-view-cta',
   CLOSE_BUTTON: 'money-splash-view-close',

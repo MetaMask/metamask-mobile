@@ -95,6 +95,10 @@ export function renderMoneySplashView({
       name: Routes.MONEY.CONFIRMATIONS_ROOT,
       Component: createRouteParamsProbe(Routes.MONEY.CONFIRMATIONS_ROOT),
     },
+    {
+      name: Routes.MONEY.MODALS.ROOT,
+      Component: createRouteParamsProbe(Routes.MONEY.MODALS.ROOT),
+    },
     { name: Routes.HOME_TABS },
     { name: Routes.MONEY.ONBOARDING },
   ];

@@ -927,6 +927,8 @@ export type RootStackParamList = {
   MoneyMusdRescueSend: MoneyNavigationParamList['MoneyMusdRescueSend'];
   MoneyMusdRescueRecipient: MoneyNavigationParamList['MoneyMusdRescueRecipient'];
   MoneyApyInfoSheet: MoneyNavigationParamList['MoneyApyInfoSheet'];
+  MoneyEstimatedBalanceSheet: MoneyNavigationParamList['MoneyEstimatedBalanceSheet'];
+  MoneyMusdInfoSheet: MoneyNavigationParamList['MoneyMusdInfoSheet'];
   MoneyEarningsInfoSheet: MoneyNavigationParamList['MoneyEarningsInfoSheet'];
   MoneyBalanceInfoSheet: MoneyNavigationParamList['MoneyBalanceInfoSheet'];
   MoneyLinkCardSheet: MoneyNavigationParamList['MoneyLinkCardSheet'];

@@ -10051,11 +10051,46 @@
     },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
+      "subtitle": "Annual Percentage Yield",
+      "lead": "This is the rate your MetaMask Money balance is earning right now.",
+      "how_it_works_title": "How it works",
+      "how_it_works_body": "Earnings are added to your balance in real time and compound, so your earnings earn too.",
+      "why_it_changes_title": "Why is changes",
+      "why_it_changes_body": "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
+      "where_it_comes_from_title": "Where it comes from",
+      "where_it_comes_from_body": "Your funds go into a DeFi vault that lends across established markets, like Aave and Morpho. Veda manages the vault, and Steakhouse Financial oversees its risk.",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
       "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
       "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
       "paragraph_4": "Money account is powered by Monad.",
       "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
+    },
+    "estimated_balance_sheet": {
+      "title": "Your {{depositAmount}} could grow to {{projectedAmount}}",
+      "subtitle_prefix": "Estimated balance after one year in your MetaMask Money account at ",
+      "subtitle_no_apy": "Estimated balance after one year in your MetaMask Money account",
+      "bullet_compound_title": "Earnings compound automatically",
+      "bullet_compound_body": "Earnings are added to your balance in real time, so they start earning too.",
+      "bullet_no_lockups_title": "No lockups",
+      "bullet_no_lockups_body": "There are no notice periods or penalties to swap or send your funds.",
+      "disclaimer": "This estimate assumes {{percentage}}% APY for a full year. APY is variable and isn't guaranteed."
+    },
+    "musd_info_sheet": {
+      "title": "You'll receive {{amount}} of MetaMask USD",
+      "lead": "MetaMask USD (mUSD) is a dollar stablecoin.",
+      "bullet_worth_title": "Always worth $1",
+      "bullet_worth_body": "It's backed 1:1 by short-term US Treasury bills and cash.",
+      "bullet_backed_title": "Backed by names you know",
+      "bullet_backed_body": "BlackRock manages the reserves and JPMorgan Chase holds them. mUSD is issued by Bridge, a Stripe company.",
+      "bullet_earns_title_prefix": "Earns up to ",
+      "bullet_earns_body": "It starts earning automatically in your MetaMask Money account.",
+      "bullet_no_lockups_title": "No lockups",
+      "bullet_no_lockups_body": "There are no notice periods or penalties to swap or send your funds."
+    },
+    "deposit_confirmation": {
+      "to_metamask_money": "MetaMask Money",
+      "to_separator": " • ",
+      "less_than_one_min": "Less than 1 min"
     },
     "earnings_tooltip": {
       "monthly": {
@@ -10711,7 +10746,7 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_balance": "Projected {{projectedYears}}-year balance:",
+      "projected_balance": "Est. {{projectedYears}}-year balance:",
       "earn_up_to_apy": "Earn {{percentage}}% APY"
     },
     "unlimited": "Unlimited",
