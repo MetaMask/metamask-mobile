@@ -329,9 +329,9 @@ const SocialV1ViewContent: React.FC = () => {
   }, [openSheet]);
 
   // Each page scrolls independently, so keep a scroll offset per tab and let a
-  // derived value expose whichever one is currently visible. Each tab keeps its
-  // own reading position across swipes and tab taps, and the tabs bar / header
-  // backdrop follow whichever tab is active.
+  // derived value expose whichever one is currently visible. Changing tabs
+  // resets the scroll position to the top so each tab opens from rest with the
+  // tabs bar visible and header backdrop clear.
   const trendingScrollY = useSharedValue(0);
   const followingScrollY = useSharedValue(0);
   const leaderboardScrollY = useSharedValue(0);
@@ -574,15 +574,63 @@ const SocialV1ViewContent: React.FC = () => {
     [activeIndex, routes],
   );
 
+  const resetTabScroll = useCallback(
+    (index: number) => {
+      const tabPage = {
+        trending: { ref: trendingPageRef, scrollY: trendingScrollY },
+        following: { ref: followingPageRef, scrollY: followingScrollY },
+        live: { ref: livePageRef, scrollY: liveScrollY },
+        leaderboard: { ref: leaderboardPageRef, scrollY: leaderboardScrollY },
+      }[tabOrder[index]];
+      if (!tabPage) {
+        return;
+      }
+      tabPage.scrollY.value = 0;
+      tabPage.ref.current?.scrollToOffset(0);
+    },
+    [
+      followingScrollY,
+      leaderboardScrollY,
+      liveScrollY,
+      tabOrder,
+      trendingScrollY,
+    ],
+  );
+
   const selectTab = useCallback(
     (index: number, isTap = false) => {
+      resetTabScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
       activate(index, isTap);
       livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
-    [activate, activeIndexSv, livePrices],
+    [activate, activeIndexSv, livePrices, resetTabScroll],
   );
+
+  const handlePagerRest = useCallback(() => {
+    onPagerRest();
+    const scrollValues = {
+      trending: trendingScrollY,
+      following: followingScrollY,
+      live: liveScrollY,
+      leaderboard: leaderboardScrollY,
+    };
+    tabOrder.forEach((tab, index) => {
+      if (index !== activeIndex && scrollValues[tab].value !== 0) {
+        resetTabScroll(index);
+      }
+    });
+  }, [
+    activeIndex,
+    followingScrollY,
+    leaderboardScrollY,
+    liveScrollY,
+    onPagerRest,
+    resetTabScroll,
+    tabOrder,
+    trendingScrollY,
+  ]);
 
   const changeTab = useCallback(
     (index: number) => {
@@ -943,7 +991,7 @@ const SocialV1ViewContent: React.FC = () => {
             renderScene={renderScene}
             renderTabBar={renderTabBar}
             onIndexChange={changeTab}
-            onSwipeEnd={onPagerRest}
+            onSwipeEnd={handlePagerRest}
             initialLayout={TAB_VIEW_INITIAL_LAYOUT}
             lazy
             style={tw.style('flex-1')}
