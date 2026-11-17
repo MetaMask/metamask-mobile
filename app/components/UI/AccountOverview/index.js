@@ -328,10 +328,7 @@ class AccountOverview extends PureComponent {
       ...(existingTabId && { existingTabId, newTabUrl: undefined }),
       timestamp: Date.now(),
     };
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params,
-    });
+    navigation.navigate(Routes.BROWSER.HOME, params);
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PORTFOLIO_LINK_CLICKED,
