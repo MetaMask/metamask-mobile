@@ -20,6 +20,10 @@ import {
   RECURRING_ORDERS_QUERY_KEY,
   type RecurringOrdersQueryKey,
 } from '../queries/recurringOrders';
+import {
+  finishRecurringOrderTrace,
+  startRecurringOrderCancelTrace,
+} from '../utils/recurringOrderTrace';
 import { invalidateRecurringOrderQueries } from './invalidateRecurringOrderQueries';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -175,8 +179,23 @@ export function useCancelRecurringOrder() {
     },
   });
 
+  async function cancelRecurringOrder(
+    order: RecurringOrder,
+  ): Promise<CancelRecurringOrderResponse> {
+    const traceHandle = startRecurringOrderCancelTrace();
+
+    try {
+      const response = await mutation.mutateAsync(order);
+      finishRecurringOrderTrace(traceHandle, { result: 'success' });
+      return response;
+    } catch (error) {
+      finishRecurringOrderTrace(traceHandle, { result: 'error' });
+      throw error;
+    }
+  }
+
   return {
-    cancelRecurringOrder: mutation.mutateAsync,
+    cancelRecurringOrder,
     isSubmitting: mutation.isPending,
     error: mutation.error,
     reset: mutation.reset,

@@ -31,6 +31,11 @@ import { OrderType } from '../../types/advancedOrders';
 import { useCreateRecurringOrder } from '../../hooks/useCreateRecurringOrder';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { getRecurringOrderDelegationParams } from '../../utils/recurringOrders/getRecurringOrderDelegationParams';
+import {
+  finishRecurringOrderTrace,
+  startRecurringOrderCreateTrace,
+} from '../../utils/recurringOrderTrace';
+import { TraceName } from '../../../../../util/trace';
 
 const expectAdvancedOrderProperties = (
   event: { category: string },
@@ -126,6 +131,11 @@ jest.mock('../../hooks/useCreateRecurringOrder', () => ({
 
 jest.mock('../../utils/limitOrders/signLimitOrderDelegations', () => ({
   signLimitOrderDelegations: jest.fn(),
+}));
+
+jest.mock('../../utils/recurringOrderTrace', () => ({
+  finishRecurringOrderTrace: jest.fn(),
+  startRecurringOrderCreateTrace: jest.fn(),
 }));
 
 jest.mock(
@@ -329,6 +339,10 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       error: null,
       reset: jest.fn(),
     });
+    jest.mocked(startRecurringOrderCreateTrace).mockReturnValue({
+      id: 'create-trace-id',
+      name: TraceName.RecurringOrderCreate,
+    });
   });
 
   it('opens the shared slippage modal above the confirmation modal', () => {
@@ -459,6 +473,10 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     expect(
       jest.mocked(signLimitOrderDelegations).mock.invocationCallOrder[0],
     ).toBeLessThan(mockCreateRecurringOrder.mock.invocationCallOrder[0]);
+    expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'create-trace-id' }),
+      { result: 'success' },
+    );
   });
 
   it('includes only a user-overridden slippage value', async () => {
@@ -582,6 +600,51 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     expect(store.getState().bridge.recurring).toEqual(configuredRecurringState);
     expect(store.getState().bridge.sourceAmount).toBe('1');
     expect(getByTestId('confirm-order')).toHaveTextContent('Confirm');
+    expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'create-trace-id' }),
+      {
+        result: 'error',
+        failurePhase: 'account_upgrade',
+      },
+    );
+  });
+
+  it('records delegation preparation failures', async () => {
+    jest
+      .mocked(recurringOrdersApiClient.prepareRecurringDelegation)
+      .mockRejectedValue(new Error('Preparation failed'));
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'create-trace-id' }),
+        {
+          result: 'error',
+          failurePhase: 'delegation_prepare',
+        },
+      );
+    });
+  });
+
+  it('records delegation signing failures', async () => {
+    jest
+      .mocked(signLimitOrderDelegations)
+      .mockRejectedValue(new Error('Signing failed'));
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'create-trace-id' }),
+        {
+          result: 'error',
+          failurePhase: 'signing',
+        },
+      );
+    });
   });
 
   it('preserves recurring inputs when order submission fails', async () => {
@@ -601,6 +664,13 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     expect(store.getState().bridge.sourceAmount).toBe('1');
     expect(showRecurringOrderCreatedToast).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+    expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'create-trace-id' }),
+      {
+        result: 'error',
+        failurePhase: 'create',
+      },
+    );
   });
 
   it('ignores duplicate confirmation presses', async () => {

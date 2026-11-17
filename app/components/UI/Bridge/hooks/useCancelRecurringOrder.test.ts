@@ -20,12 +20,22 @@ import {
   RECURRING_ORDERS_QUERY_KEY,
   recurringOrdersQueries,
 } from '../queries/recurringOrders';
+import {
+  finishRecurringOrderTrace,
+  startRecurringOrderCancelTrace,
+} from '../utils/recurringOrderTrace';
+import { TraceName } from '../../../../util/trace';
 import { useCancelRecurringOrder } from './useCancelRecurringOrder';
 
 jest.mock('../api/recurringOrders.client', () => ({
   recurringOrdersApiClient: {
     cancelRecurringOrder: jest.fn(),
   },
+}));
+
+jest.mock('../utils/recurringOrderTrace', () => ({
+  finishRecurringOrderTrace: jest.fn(),
+  startRecurringOrderCancelTrace: jest.fn(),
 }));
 
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -103,6 +113,10 @@ describe('useCancelRecurringOrder', () => {
     messengerCall.mockResolvedValue(undefined);
     mockCancelRecurringOrder.mockReset();
     mockCancelRecurringOrder.mockResolvedValue({ order: cancelledOrder });
+    jest.mocked(startRecurringOrderCancelTrace).mockReturnValue({
+      id: 'cancel-trace-id',
+      name: TraceName.RecurringOrderCancel,
+    });
   });
 
   afterEach(() => {
@@ -247,6 +261,10 @@ describe('useCancelRecurringOrder', () => {
       queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY],
       refetchType: 'active',
     });
+    expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'cancel-trace-id' }),
+      { result: 'success' },
+    );
   });
 
   it('leaves all caches unchanged when cancellation fails', async () => {
@@ -276,6 +294,10 @@ describe('useCancelRecurringOrder', () => {
     expect(messengerCall).not.toHaveBeenCalled();
     await waitFor(() =>
       expect(result.current.error).toHaveProperty('message', 'cancel failed'),
+    );
+    expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'cancel-trace-id' }),
+      { result: 'error' },
     );
   });
 

@@ -46,6 +46,11 @@ import {
   getAdvancedOrderTradeProperties,
 } from '../../utils/advancedOrders';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import {
+  finishRecurringOrderTrace,
+  type RecurringOrderCreateFailurePhase,
+  startRecurringOrderCreateTrace,
+} from '../../utils/recurringOrderTrace';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -127,10 +132,13 @@ export const RecurringConfirmOrderSheetScreen = () => {
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     let isAccountUpgraded = false;
+    let failurePhase: RecurringOrderCreateFailurePhase = 'account_upgrade';
+    const traceHandle = startRecurringOrderCreateTrace();
 
     try {
       await autoUpgradeEIP7702Account();
       isAccountUpgraded = true;
+      failurePhase = 'delegation_prepare';
       const delegationParams = getRecurringOrderDelegationParams({
         clientOrderId,
         sourceToken,
@@ -146,6 +154,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
       // The backend currently returns only the delegations needed to execute.
       // Recurring and limit orders use the same delegation shape, so sign every
       // delegation returned while the complete recurring set is finalized.
+      failurePhase = 'signing';
       const signedDelegations = await signLimitOrderDelegations(
         preparedDelegations.delegations,
       );
@@ -154,6 +163,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
           ? Number(slippage)
           : undefined;
 
+      failurePhase = 'create';
       await createRecurringOrder({
         accountAddress: delegationParams.accountAddress,
         clientOrderId: preparedDelegations.order.clientOrderId,
@@ -173,6 +183,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
         ...(usdPriceRange ? { priceRange: usdPriceRange } : {}),
         delegations: signedDelegations,
       });
+      finishRecurringOrderTrace(traceHandle, { result: 'success' });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_COMPLETED)
           .addProperties({
@@ -187,6 +198,10 @@ export const RecurringConfirmOrderSheetScreen = () => {
       dispatch(incrementBridgeBalanceRefreshKey());
       navigation.goBack();
     } catch (error) {
+      finishRecurringOrderTrace(traceHandle, {
+        result: 'error',
+        failurePhase,
+      });
       showRecurringAutoUpgradeError(error);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
