@@ -96,7 +96,7 @@ describe('useNetworkOperations — integration', () => {
   });
 
   describe('removeNetwork', () => {
-    it('removes a custom network from NetworkController state', async () => {
+    it('removes a custom network and updates the token network filter', async () => {
       const flow = buildNetworksFlowHarness();
       const { networkController, addCustomNetwork } = flow.controllers;
 
@@ -118,6 +118,9 @@ describe('useNetworkOperations — integration', () => {
           HARNESS_CUSTOM_CHAIN_ID
         ],
       ).toBeUndefined();
+      expect(flow.mocks.setTokenNetworkFilter).toHaveBeenCalledWith({
+        [HARNESS_CUSTOM_CHAIN_ID]: true,
+      });
       expect(flow.mocks.goBack).toHaveBeenCalled();
     });
 
