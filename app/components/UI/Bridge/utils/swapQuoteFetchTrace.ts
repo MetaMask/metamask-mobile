@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
+import type { Hex } from '@metamask/utils';
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
-  formatChainIdToHex,
-  isNonEvmChainId,
   SwapFeatureTag,
   type GenericQuoteRequest,
   type QuoteStreamCompleteReason,
@@ -37,17 +36,13 @@ interface StartSwapQuoteFetchTraceParams {
 const toAssetId = (
   address?: string,
   chainId?: GenericQuoteRequest['srcChainId'],
-): ReturnType<typeof formatAddressToAssetId> => {
-  if (address === undefined || !chainId) {
-    return undefined;
-  }
-  return formatAddressToAssetId(
-    isNonEvmChainId(chainId)
-      ? address
-      : normalizeTokenAddress(address, formatChainIdToHex(chainId)),
-    chainId,
-  );
-};
+): ReturnType<typeof formatAddressToAssetId> =>
+  address === undefined || !chainId
+    ? undefined
+    : formatAddressToAssetId(
+        normalizeTokenAddress(address, chainId as Hex),
+        chainId,
+      );
 
 let activeTraceId: string | undefined;
 let stopWatchingQuotes: (() => void) | undefined;
