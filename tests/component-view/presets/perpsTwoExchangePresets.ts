@@ -16,10 +16,10 @@ import {
 
 // These are synthetic two-exchange fixtures, not snapshots of what the
 // installed controller emits, and they carry no per-exchange availability yet.
-// TAT-4392: core#11461 adds `AccountState.providerStates`. Once perps-controller
-// ships it, tsc fails on the next line. Then give each scenario per-exchange
-// account states (Lighter down = Lighter 'unavailable') and delete the alias.
-// @ts-expect-error TAT-4392: remove once perps-controller ships providerStates.
+// Once perps-controller exposes `AccountState.providerStates`, tsc fails on the
+// next line. Then give each scenario per-exchange account states (Lighter down
+// = Lighter 'unavailable') and delete the alias.
+// @ts-expect-error Remove once AccountState exposes providerStates.
 export type PerpsAccountProviderStates = AccountState['providerStates'];
 
 interface ExchangeAccount {

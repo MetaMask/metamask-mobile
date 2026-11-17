@@ -246,8 +246,6 @@ describe('PerpsBalanceOrderView', () => {
       streamOverrides: {
         ...options.streamOverrides,
         ...twoExchange.streamOverrides,
-        positions: [],
-        prices: options.streamOverrides.prices,
       },
       initialParams: {
         asset: 'ETH',
