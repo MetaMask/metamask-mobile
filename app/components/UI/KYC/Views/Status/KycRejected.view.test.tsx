@@ -74,10 +74,19 @@ describeForPlatforms('KycRejected view', () => {
     openUrlSpy = undefined;
     launchProviderFlow.mockReset();
     launchProviderFlow.mockResolvedValue('abandoned');
+    mockHydrateVbaOnboarding.mockReset();
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      sessionExists: false,
+      vendorDisclaimersComplete: false,
+      sessionDisclaimersComplete: false,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'none',
+      autorampStatus: 'not_ready',
+    });
   });
 
   it('opens the rejected screen with Contact support for a terminal rejection', async () => {
-    mockHydrateVbaOnboarding.mockResolvedValue(
+    mockHydrateVbaOnboarding.mockResolvedValueOnce(
       hydratedSnapshot('rejected', 'submitted'),
     );
     const view = renderVbaMoneyEntry({
