@@ -1368,6 +1368,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           {
             orderId,
             entryPrice: result?.averagePrice,
+            filledSize: result?.filledSize,
           },
         );
         if (orderId && prompt?.kind === 'share_sheet') {
@@ -1402,6 +1403,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                             leverage: orderForm.leverage,
                             amountUsd: orderForm.amount,
                             entryPrice: result?.averagePrice,
+                            filledSize: result?.filledSize,
                           }),
                         }),
                       );
