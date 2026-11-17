@@ -437,20 +437,13 @@ jobs:
       inputs.channel == 'production'
     permissions:
       contents: read
-      checks: read # required CI check in verify-required-ci.sh
-      pull-requests: read # release PR review decision
+      pull-requests: read # release PR merge state
     runs-on: ubuntu-latest
     steps:
       - name: Checkout scripts
         uses: actions/checkout@v6
         with:
           sparse-checkout: .github/scripts
-
-      - name: Require green CI on the commit
-        env:
-          GH_TOKEN: ${{ github.token }}
-          COMMIT_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
-        run: .github/scripts/verify-required-ci.sh
 
       - name: Require the release PR to meet the stable branch rules
         env:

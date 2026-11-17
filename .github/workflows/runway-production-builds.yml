@@ -8,8 +8,8 @@
 # iOS IPA to TestFlight.
 #
 # Must be dispatched from a release/X.Y.Z branch whose open release PR into stable meets the
-# stable branch rules (configured in the repository rulesets, not in this workflow) and whose
-# commit passed the required CI check. The build is pinned to that verified commit.
+# stable branch rules (approvals, required checks). Those rules are configured in the repository
+# rulesets, not in this workflow.
 #
 # This workflow only produces fresh native binaries — OTA updates are handled by the separate
 # runway-ota-production.yml workflow.
@@ -34,15 +34,12 @@ permissions:
 cache-mode: none
 
 jobs:
-  verify-release:
-    name: Verify release PR and required CI
+  verify-release-pr:
+    name: Verify release PR meets the stable branch rules
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
-      checks: read
-    outputs:
-      commit_sha: ${{ steps.resolve-commit.outputs.commit_sha }}
     steps:
       - name: Checkout scripts
         uses: actions/checkout@v6
@@ -79,41 +76,16 @@ jobs:
           PR_NUMBER: ${{ steps.resolve-pr.outputs.pr_number }}
         run: .github/scripts/verify-release-pr-mergeable.sh
 
-      - name: Resolve commit to build
-        id: resolve-commit
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_BRANCH: ${{ inputs.source_branch }}
-          DISPATCH_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-
-          if [[ -z "$SOURCE_BRANCH" ]]; then
-            COMMIT_SHA="$DISPATCH_SHA"
-          else
-            BRANCH="${SOURCE_BRANCH#refs/heads/}"
-            COMMIT_SHA=$(gh api "/repos/${GITHUB_REPOSITORY}/branches/${BRANCH//\//%2F}" --jq '.commit.sha')
-          fi
-
-          echo "Building ${COMMIT_SHA}"
-          echo "commit_sha=${COMMIT_SHA}" >> "$GITHUB_OUTPUT"
-
-      - name: Require green CI on the commit
-        env:
-          GH_TOKEN: ${{ github.token }}
-          COMMIT_SHA: ${{ steps.resolve-commit.outputs.commit_sha }}
-        run: .github/scripts/verify-required-ci.sh
-
   generate-build-version:
     name: Generate build version
-    needs: verify-release
+    needs: verify-release-pr
     permissions:
       id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS + Android (main-prod)
-    needs: [verify-release, generate-build-version]
+    needs: generate-build-version
     permissions:
       contents: read
       id-token: write # AWS OIDC for code signing in build.yml
@@ -121,9 +93,9 @@ jobs:
     with:
       build_name: main-prod
       platform: both
-      # Pinned to the commit whose release PR and CI were verified, so iOS and Android
-      # build exactly that commit under one build number.
-      source_branch: ${{ needs.verify-release.outputs.commit_sha }}
+      # Prefer an explicit input; otherwise pin to the dispatch SHA so iOS and
+      # Android do not race a moving branch tip under one build number.
+      source_branch: ${{ inputs.source_branch || github.sha }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: true
     secrets: inherit
