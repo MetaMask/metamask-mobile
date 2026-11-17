@@ -232,6 +232,9 @@ const SocialV1ViewContent: React.FC = () => {
     getLandingIndex(route.params?.initialTab),
   );
   const [activeIndex, setActiveIndex] = useState(landingIndex);
+  // True while a finger swipe is in progress. The neighbouring page mounts for
+  // the reveal; at rest only the selected page is mounted.
+  const [isSwiping, setIsSwiping] = useState(false);
   const { pageActiveIndex, activate, onPagerRest } =
     usePageActivation(landingIndex);
   const socialPerformanceByTab = useMemo(
@@ -647,13 +650,34 @@ const SocialV1ViewContent: React.FC = () => {
   const selectTab = useCallback(
     (index: number, isTap = false) => {
       syncIncomingPageScroll(index);
+      // Only the selected page stays mounted, so the incoming page starts at
+      // the top. Reset every offset so no stale value is read for the header.
+      trendingScrollY.value = 0;
+      followingScrollY.value = 0;
+      liveScrollY.value = 0;
+      leaderboardScrollY.value = 0;
       activeIndexSv.value = index;
       setActiveIndex(index);
       activate(index, isTap);
       livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
-    [activate, activeIndexSv, livePrices, syncIncomingPageScroll],
+    [
+      activate,
+      activeIndexSv,
+      followingScrollY,
+      leaderboardScrollY,
+      liveScrollY,
+      livePrices,
+      syncIncomingPageScroll,
+      trendingScrollY,
+    ],
   );
+
+  const handleSwipeStart = useCallback(() => setIsSwiping(true), []);
+  const handleSwipeEnd = useCallback(() => {
+    setIsSwiping(false);
+    onPagerRest();
+  }, [onPagerRest]);
 
   const changeTab = useCallback(
     (index: number) => {
@@ -885,7 +909,14 @@ const SocialV1ViewContent: React.FC = () => {
 
   const renderScene = ({ route: sceneRoute }: { route: TabViewRoute }) => {
     const tab = sceneRoute.key as SocialShellTab;
-    const isPageActive = pageActiveIndex === tabOrder.indexOf(tab);
+    const sceneIndex = tabOrder.indexOf(tab);
+    const isNeighbour = Math.abs(sceneIndex - activeIndex) === 1;
+    // Unselected pages unmount, which releases their feed and list. A neighbour
+    // mounts only while a swipe reveals it.
+    if (sceneIndex !== activeIndex && !(isSwiping && isNeighbour)) {
+      return null;
+    }
+    const isPageActive = pageActiveIndex === sceneIndex;
     const testIds = PAGE_TEST_IDS[tab];
     return (
       <View
@@ -1012,7 +1043,8 @@ const SocialV1ViewContent: React.FC = () => {
               renderScene={renderScene}
               renderTabBar={renderTabBar}
               onIndexChange={changeTab}
-              onSwipeEnd={onPagerRest}
+              onSwipeStart={handleSwipeStart}
+              onSwipeEnd={handleSwipeEnd}
               initialLayout={TAB_VIEW_INITIAL_LAYOUT}
               lazy
               style={tw.style('flex-1')}

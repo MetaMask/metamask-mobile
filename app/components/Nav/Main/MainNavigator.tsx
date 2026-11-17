@@ -691,6 +691,9 @@ const SettingsFlow = () => {
 // Replaces `unmountOnBlur` (removed in React Navigation v7).
 const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
+// Social otherwise stays mounted on Home, with its feeds and images in memory.
+const SocialV1TabUnmountOnTabBlur = withUnmountOnTabBlur(SocialV1View);
+const SocialV0TabUnmountOnTabBlur = withUnmountOnTabBlur(SocialV0View);
 
 // `satisfies` keeps each component's own type for `JsTab.Screen` while still
 // requiring an entry for every static tab. Social is chosen at runtime.
@@ -752,8 +755,8 @@ const HomeTabs = () => {
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
   const socialTabComponent = homeNavBarConfig.isSocialHeader
-    ? SocialV1View
-    : SocialV0View;
+    ? SocialV1TabUnmountOnTabBlur
+    : SocialV0TabUnmountOnTabBlur;
 
   const trackMoneyTabPressRef = useRef<(() => void) | null>(null);
 

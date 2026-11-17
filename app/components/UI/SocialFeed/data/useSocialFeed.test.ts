@@ -226,6 +226,22 @@ describe('useSocialFeed', () => {
     expect(observer?.options.refetchOnReconnect).toBe(false);
   });
 
+  it('drops its pages as soon as the feed unmounts', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([]));
+    // No client-level gcTime, so the hook's own setting is what is tested.
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(QueryClientProvider, { client }, children);
+
+    renderHook(() => useSocialFeed(perpSource), { wrapper });
+    await waitFor(() => expect(mockCall).toHaveBeenCalled());
+
+    const observer = client.getQueryCache().getAll()[0]?.observers[0];
+    expect(observer?.options.gcTime).toBe(0);
+  });
+
   it('shares one cache entry between sources that normalise to the same request', async () => {
     mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
     const { client, wrapper } = createWrapper();
