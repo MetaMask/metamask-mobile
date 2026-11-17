@@ -20,6 +20,21 @@ const ConfirmMembershipApproval = () => {
   const hasConfirmedRef = useRef(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
+  // Reset confirm guards per approval. This stays mounted between requests.
+  const pendingMembershipApprovalId =
+    approvalRequest?.type === ApprovalTypes.CONFIRM_MEMBERSHIP
+      ? approvalRequest.id
+      : undefined;
+  const [guardedApprovalId, setGuardedApprovalId] = useState(
+    pendingMembershipApprovalId,
+  );
+
+  if (pendingMembershipApprovalId !== guardedApprovalId) {
+    setGuardedApprovalId(pendingMembershipApprovalId);
+    isConfirmingRef.current = false;
+    hasConfirmedRef.current = false;
+    setIsConfirming(false);
+  }
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
