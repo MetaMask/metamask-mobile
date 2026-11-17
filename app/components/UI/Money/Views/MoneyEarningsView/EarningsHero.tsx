@@ -36,6 +36,7 @@ const formatPeriodDateRange = (
     granularity === 'month'
       ? {
           month: 'short' as const,
+          year: 'numeric' as const,
           timeZone: 'UTC' as const,
         }
       : {
