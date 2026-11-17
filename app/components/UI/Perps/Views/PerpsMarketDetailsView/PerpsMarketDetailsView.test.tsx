@@ -3336,7 +3336,10 @@ describe('PerpsMarketDetailsView', () => {
       }
     });
 
-    it('forwards route source_section into navigateToOrder params', async () => {
+    // Kept synchronous: an async act() resolves via setImmediate, so if the
+    // worker stalls past 5s the overdue Jest timeout timer fires first.
+    // navigateToOrder runs synchronously inside the press handler.
+    it('forwards route source_section into navigateToOrder params', () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
         '../../selectors/perpsController',
@@ -3359,12 +3362,9 @@ describe('PerpsMarketDetailsView', () => {
           },
         );
 
-        const longButton = getByTestId(
-          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        fireEvent.press(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
         );
-        await act(async () => {
-          fireEvent.press(longButton);
-        });
 
         expect(mockNavigateToOrder).toHaveBeenCalledWith(
           expect.objectContaining({

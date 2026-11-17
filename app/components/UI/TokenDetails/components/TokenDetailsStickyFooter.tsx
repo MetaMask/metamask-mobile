@@ -301,12 +301,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
 
   useEffect(() => {
-    expandedDetailsProgress.value = withTiming(
-      isTraderPositionExpanded ? 1 : 0,
-      {
+    expandedDetailsProgress.set(
+      withTiming(isTraderPositionExpanded ? 1 : 0, {
         duration: 300,
         easing: Easing.inOut(Easing.cubic),
-      },
+      }),
     );
   }, [expandedDetailsProgress, isTraderPositionExpanded]);
 
@@ -528,25 +527,23 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   };
 
   // The trader-position footer renders inside a design-system BottomSheetDialog
-  // whose surface fill is `elevated1`. When collapsed the footer blends into the
-  // page (`background.default`); when expanded it must match the sheet shell, so
-  // its inner surface is raised to `elevated1`. Otherwise the inner surface
-  // (`background.default`) sits on the `elevated1` shell and leaves a visible
-  // color seam at the top of the expanded sheet (ASSETS-4183).
+  // whose own fill is `elevated1`. When collapsed the footer blends into the
+  // page (`background.default`); when expanded it reads as a raised sheet
+  // (`elevated1`). The dialog shell and the inner surface share this color:
+  // the shell shows through around the inner surface (its hidden drag-handle
+  // row on top and the safe-area padding below), so any mismatch leaves
+  // visible bands (ASSETS-4183).
+  const footerSurfaceColor = traderPositionPnl?.isExpanded
+    ? colors.background.elevated1
+    : colors.background.default;
   const footerStyle = useMemo(
     () => ({
-      backgroundColor: traderPositionPnl?.isExpanded
-        ? colors.background.elevated1
-        : colors.background.default,
+      backgroundColor: footerSurfaceColor,
       paddingHorizontal: 16,
       paddingTop: traderPositionPnl?.isExpanded ? 22 : 0,
       paddingBottom: 0,
     }),
-    [
-      colors.background.elevated1,
-      colors.background.default,
-      traderPositionPnl?.isExpanded,
-    ],
+    [footerSurfaceColor, traderPositionPnl?.isExpanded],
   );
   const legacyFooterStyle = useMemo(
     () => ({
@@ -559,6 +556,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
   const bottomSheetStyle = useMemo(
     () => ({
+      backgroundColor: footerSurfaceColor,
       // Design spec: expanded sheet uses a 38px top corner radius (ASSETS-4183).
       borderTopLeftRadius: traderPositionPnl?.isExpanded ? 38 : 0,
       borderTopRightRadius: traderPositionPnl?.isExpanded ? 38 : 0,
@@ -575,6 +573,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     }),
     [
       colors.border.muted,
+      footerSurfaceColor,
       insets.bottom,
       skipBottomInset,
       traderPositionPnl?.isExpanded,
