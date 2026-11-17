@@ -5,6 +5,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Box,
@@ -12,12 +13,13 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Tab from '../../../../../component-library/components-temp/Tabs/Tab';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import {
@@ -41,6 +43,7 @@ import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 type MoneyEarningsRoute = RouteProp<MoneyNavigationParamList, 'MoneyEarnings'>;
 
+// TODO: Implement tab navigation when building APY and Allocation tabs.
 const handleTabPress = (): undefined => undefined;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -50,6 +53,7 @@ const MoneyEarningsView = (): React.ReactElement => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<AppNavigationProp>();
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const { params } = useRoute<MoneyEarningsRoute>();
   const {
     data,
@@ -128,27 +132,29 @@ const MoneyEarningsView = (): React.ReactElement => {
     chartPoints.some(isAvailableBucket);
 
   const handleRetry = useCallback(() => {
-    void refetchHistoricalEarnings();
+    refetchHistoricalEarnings();
   }, [refetchHistoricalEarnings]);
   const handleWithdraw = useCallback(() => {
-    void initiateWithdrawal();
+    initiateWithdrawal();
   }, [initiateWithdrawal]);
   const handleAdd = useCallback(() => {
-    void navigateToMoneyDeposit();
+    navigateToMoneyDeposit();
   }, [navigateToMoneyDeposit]);
 
   return (
     <Box
       testID={MoneyEarningsViewTestIds.CONTAINER}
       twClassName="flex-1 bg-default"
-      style={{ paddingTop: insets.top }}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
         title={strings('money.earnings.title')}
         onBack={navigation.goBack}
         backButtonProps={{ testID: MoneyEarningsViewTestIds.BACK_BUTTON }}
       />
-      <Box twClassName="px-4">
+      <Box twClassName="px-4 py-4">
         <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
           {tabs.map(({ key, label, isDisabled = false, testID }) => {
             const isActive = key === activeTab;

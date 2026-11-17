@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -58,6 +59,33 @@ jest.mock('../../hooks/useMoneyAccountProjectedEarnings', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+
+let mockIsMoneyBrandRefresh = false;
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyBrandRefresh',
+  () => ({
+    selectMoneyBrandRefreshEnabled: () => mockIsMoneyBrandRefresh,
+  }),
+);
+
+const mockHeaderStandardGlassProps = jest.fn();
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const ActualHeaderStandardGlass = jest.requireActual(
+      '../../../../../component-library/components-temp/HeaderStandardGlass',
+    ).default;
+
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderStandardGlassProps(props);
+        return ReactActual.createElement(ActualHeaderStandardGlass, props);
+      },
+    };
+  },
+);
 
 const mockUseMoneyAccountWithdrawal = jest.mocked(useMoneyAccountWithdrawal);
 const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
@@ -192,6 +220,7 @@ const setHistoricalEarningsResult = ({
 describe('MoneyEarningsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsMoneyBrandRefresh = false;
     mockUseRoute.mockReturnValue({ params: undefined });
     mockUseMoneyAccountWithdrawal.mockReturnValue({
       initiateWithdrawal: mockInitiateWithdrawal,
@@ -201,6 +230,39 @@ describe('MoneyEarningsView', () => {
     });
     setHistoricalEarningsResult();
     setProjectedEarningsResult();
+  });
+
+  describe('header', () => {
+    it('renders the plain header when brand refresh is disabled', () => {
+      const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
+
+      expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isGlass: false,
+          isFloating: false,
+          includesTopInset: true,
+        }),
+      );
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyEarningsViewTestIds.CONTAINER).props.style,
+        ),
+      ).not.toHaveProperty('paddingTop');
+    });
+
+    it('renders the glass header when brand refresh is enabled', () => {
+      mockIsMoneyBrandRefresh = true;
+
+      renderWithProvider(<MoneyEarningsView />);
+
+      expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isGlass: true,
+          isFloating: false,
+          includesTopInset: true,
+        }),
+      );
+    });
   });
 
   it('selects the Earnings tab when route params are missing', () => {
