@@ -34,17 +34,6 @@ describe('getRouteCoverage', () => {
     });
     expect(report.routes).toEqual([
       {
-        route: 'WalletView',
-        keyPaths: ['WALLET_VIEW'],
-        status: 'page-object',
-        pageObject: 'WalletView',
-      },
-      {
-        route: 'Settings',
-        keyPaths: ['SETTINGS.ROOT'],
-        status: 'no-page-object',
-      },
-      {
         route: 'Main',
         keyPaths: ['MAIN_FLOW'],
         status: 'not-a-screen',
@@ -54,7 +43,19 @@ describe('getRouteCoverage', () => {
         keyPaths: ['NEW_ROUTE'],
         status: 'unregistered',
       },
+      {
+        route: 'Settings',
+        keyPaths: ['SETTINGS.ROOT'],
+        status: 'no-page-object',
+      },
+      {
+        route: 'WalletView',
+        keyPaths: ['WALLET_VIEW'],
+        status: 'page-object',
+        pageObject: 'WalletView',
+      },
     ]);
+    expect(report.aliasedRoutes).toEqual([]);
     expect(report.staleEntries).toEqual(['RemovedRoute']);
   });
 
@@ -75,5 +76,6 @@ describe('getRouteCoverage', () => {
         pageObject: 'SharedScreen',
       },
     ]);
+    expect(report.aliasedRoutes).toEqual(['SharedScreen']);
   });
 });

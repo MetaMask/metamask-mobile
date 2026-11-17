@@ -66,6 +66,15 @@ function printReport(report: RouteCoverageReport, onlyUncovered: boolean): void 
     }
   }
 
+  if (report.aliasedRoutes.length > 0) {
+    console.log('');
+    console.log('  ALIASED ROUTE VALUES');
+    for (const route of report.aliasedRoutes) {
+      const entry = report.routes.find((candidate) => candidate.route === route);
+      console.log(`  - ${route}: ${entry?.keyPaths.join(', ')}`);
+    }
+  }
+
   console.log('='.repeat(80));
 }
 

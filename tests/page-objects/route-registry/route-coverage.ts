@@ -26,18 +26,8 @@ export interface RouteCoverageReport {
     coveragePercentage: number;
   };
   routes: RouteCoverageEntry[];
+  aliasedRoutes: string[];
   staleEntries: string[];
-}
-
-function getPageObjectName(pageObject: string | object): string {
-  if (typeof pageObject === 'string') {
-    return pageObject;
-  }
-
-  const constructorName = pageObject.constructor?.name;
-  return constructorName && constructorName !== 'Object'
-    ? constructorName
-    : 'UnknownPageObject';
 }
 
 export function getRouteCoverage(
@@ -52,8 +42,8 @@ export function getRouteCoverage(
     routeMap.set(route.value, keyPaths);
   }
 
-  const entries = [...routeMap.entries()].map(
-    ([route, keyPaths]): RouteCoverageEntry => {
+  const entries = [...routeMap.entries()]
+    .map(([route, keyPaths]): RouteCoverageEntry => {
       if (!Object.hasOwn(registry, route)) {
         return { route, keyPaths, status: 'unregistered' };
       }
@@ -68,11 +58,11 @@ export function getRouteCoverage(
             route,
             keyPaths,
             status: 'page-object',
-            pageObject: getPageObjectName(pageObject),
+            pageObject,
           }
         : { route, keyPaths, status: 'no-page-object' };
-    },
-  );
+    })
+    .sort((left, right) => left.route.localeCompare(right.route));
 
   const routeValues = new Set(routeMap.keys());
   const staleEntries = Object.keys(registry).filter(
@@ -83,6 +73,9 @@ export function getRouteCoverage(
   const withPageObject = count('page-object');
   const notAScreen = count('not-a-screen');
   const screenRoutes = entries.length - notAScreen;
+  const aliasedRoutes = entries
+    .filter((entry) => entry.keyPaths.length > 1)
+    .map((entry) => entry.route);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -99,6 +92,7 @@ export function getRouteCoverage(
           : 0,
     },
     routes: entries,
+    aliasedRoutes,
     staleEntries,
   };
 }
