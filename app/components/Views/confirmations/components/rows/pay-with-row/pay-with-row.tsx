@@ -10,6 +10,7 @@ import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { isEvmRequiredToken } from '../../../utils/transaction-pay';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
@@ -188,9 +189,9 @@ function PayWithRowInteractive() {
   // if no payment token has been explicitly selected.
   // Filter out skipIfBalance (optional if user already holds) and allowUnderMinimum
   // (fallback/optional) entries — neither represents the primary destination token.
-  const defaultWithdrawToken = requiredTokens?.find(
-    (token) => !token.skipIfBalance && !token.allowUnderMinimum,
-  );
+  const defaultWithdrawToken = requiredTokens
+    ?.filter(isEvmRequiredToken)
+    .find((token) => !token.skipIfBalance && !token.allowUnderMinimum);
   const displayToken = useMemo(() => {
     if (hasAccountNoFunds) {
       return null;

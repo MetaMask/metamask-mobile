@@ -46,7 +46,10 @@ import {
   MIN_FIAT_AMOUNT,
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
-import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+import {
+  FIXED_AMOUNT_TRANSACTION_TYPES,
+  MONEY_ACCOUNT_DEPOSIT_TYPES,
+} from '../../constants/confirmations';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -74,9 +77,10 @@ export function useTransactionCustomAmount({
     isMoneyAccountDeposit &&
     getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
-  const isMembershipSubscription = hasTransactionType(transactionMeta, [
-    TransactionType.membershipSubscription,
-  ]);
+  const isFixedAmount = hasTransactionType(
+    transactionMeta,
+    FIXED_AMOUNT_TRANSACTION_TYPES,
+  );
   const { amount: defaultAmount } = useParams<ConfirmationParams>();
   const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
@@ -138,8 +142,12 @@ export function useTransactionCustomAmount({
   // vault chain's, and Total came out short of amount + fee by that spread.
   // The money account itself counts 1 mUSD as $1, so par is the figure every
   // other surface uses.
+  // Solana test deposits require Solana USDC, which has no price on the
+  // placeholder EVM chain, so treat it as par as well.
   const skipFiatRateConversion =
-    isMoneyAccountDeposit || isMoneyAccountWithdraw;
+    isMoneyAccountDeposit ||
+    isMoneyAccountWithdraw ||
+    hasTransactionType(transactionMeta, [TransactionType.solanaTest]);
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
   const payTokenKey = `${payToken?.chainId ?? ''}:${
@@ -329,7 +337,7 @@ export function useTransactionCustomAmount({
 
   const updatePendingAmount = useCallback(
     (value: string) => {
-      if (isMembershipSubscription) {
+      if (isFixedAmount) {
         return;
       }
       let newAmount = value.replace(/^0+/, '') || '0';
@@ -370,7 +378,7 @@ export function useTransactionCustomAmount({
       setAmountFiat(newAmount);
     },
     [
-      isMembershipSubscription,
+      isFixedAmount,
       isFiatBuyLimited,
       fiatMaxAmount,
       isMaxAmount,
@@ -381,7 +389,7 @@ export function useTransactionCustomAmount({
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number): boolean => {
-      if (isMembershipSubscription) {
+      if (isFixedAmount) {
         return false;
       }
       if (!balanceUsd) {
@@ -438,13 +446,7 @@ export function useTransactionCustomAmount({
       setAmountFiat(newAmount);
       return true;
     },
-    [
-      balanceUsd,
-      isMaxAmount,
-      isMembershipSubscription,
-      setIsMax,
-      setConfirmationMetric,
-    ],
+    [balanceUsd, isMaxAmount, isFixedAmount, setIsMax, setConfirmationMetric],
   );
 
   const isDepositPrefilled =
@@ -453,7 +455,7 @@ export function useTransactionCustomAmount({
   useEffect(() => {
     // Keep the original payment amount through token/account changes; prefill
     // readiness still triggers quote preparation in CustomAmountInfo.
-    if (isMembershipSubscription) {
+    if (isFixedAmount) {
       return;
     }
     // Skip if the user has manually typed on the keypad — a transient
@@ -506,12 +508,12 @@ export function useTransactionCustomAmount({
     // of waiting for hasPrefilled to toggle. Same-token balance updates do not
     // change payTokenKey, so the one-shot prefill is preserved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDepositPrefilled, payTokenKey, isMembershipSubscription]);
+  }, [isDepositPrefilled, payTokenKey, isFixedAmount]);
 
   useEffect(() => {
     if (
       isAddMusdFlow &&
-      !isMembershipSubscription &&
+      !isFixedAmount &&
       balanceUsd &&
       balanceUsd > 0 &&
       !hasPrefilled.current
@@ -530,7 +532,7 @@ export function useTransactionCustomAmount({
     }
   }, [
     isAddMusdFlow,
-    isMembershipSubscription,
+    isFixedAmount,
     balanceUsd,
     setConfirmationMetric,
     updatePendingAmountPercentage,

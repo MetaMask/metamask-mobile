@@ -66,9 +66,12 @@ export function getMusdConversionQuoteTrackingData(
   const quoteRequest = quote?.request;
 
   const quotePaymentChainId = quoteRequest?.sourceChainId;
-  const quoteOutputChainId = quoteRequest?.targetChainId;
+  // mUSD conversions only target EVM chains.
+  const quoteOutputChainId = quoteRequest?.targetChainId as Hex | undefined;
   const quotePaymentTokenAddress = quoteRequest?.sourceTokenAddress;
-  const quoteOutputTokenAddress = quoteRequest?.targetTokenAddress;
+  const quoteOutputTokenAddress = quoteRequest?.targetTokenAddress as
+    | Hex
+    | undefined;
 
   const quoteIsSameChain =
     quotePaymentChainId && quoteOutputChainId

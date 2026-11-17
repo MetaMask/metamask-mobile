@@ -23,6 +23,7 @@ import {
   getPostQuoteTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
+import { isEvmRequiredToken } from '../../utils/transaction-pay';
 import { useSelector } from 'react-redux';
 import {
   selectMetaMaskPayTokensFlags,
@@ -89,7 +90,10 @@ export function useAutomaticTransactionPayToken({
   );
 
   const targetToken = useMemo(
-    () => requiredTokens.find((token) => !token.allowUnderMinimum),
+    () =>
+      requiredTokens
+        .filter(isEvmRequiredToken)
+        .find((token) => !token.allowUnderMinimum),
     [requiredTokens],
   );
 

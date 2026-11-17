@@ -59,5 +59,11 @@ export async function getTransactionPayAmountCalls(
     }
   }
 
+  // Solana test deposits only have a placeholder call, so the required asset amount
+  // is the only thing to update.
+  if (hasTransactionType(transactionMeta, [TransactionType.solanaTest])) {
+    return [];
+  }
+
   return undefined;
 }

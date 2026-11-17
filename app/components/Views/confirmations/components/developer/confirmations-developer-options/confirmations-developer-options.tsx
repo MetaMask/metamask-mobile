@@ -4,6 +4,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
 import { Hex } from '@metamask/utils';
 import {
+  Box,
   Text,
   TextVariant,
   TextColor,
@@ -42,6 +43,12 @@ import Logger from '../../../../../../util/Logger';
 import { selectMmPayDebugEnabled } from '../../../../../../reducers/experimentalSettings/selectors';
 import { setMmPayDebugEnabled } from '../../../../../../actions/experimental';
 import { isRc, isTestEnvironment } from '../../../../../../util/test/utils';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
+import { SolScope } from '@metamask/keyring-api';
+import {
+  enableSolanaTestServerStrategy,
+  startSolanaTest,
+} from '../../../utils/solana-test';
 
 const POLYGON_USDCE_ADDRESS =
   '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
@@ -68,14 +75,39 @@ export function ConfirmationsDeveloperOptions() {
   const dispatch = useDispatch();
 
   const showMmPayDebugToggle = isRc || isTestEnvironment;
+  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme });
 
   return (
     <>
-      <PerpsDeposit />
-      <PredictDeposit />
-      <PredictClaim />
-      <PredictWithdraw />
-      <PerpsWithdraw />
+      <Text
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
+        style={styles.heading}
+      >
+        Confirmations
+      </Text>
+      <Box twClassName="mt-4 flex-row flex-wrap gap-2">
+        {isMoneyAccountDepositEnabled && (
+          <>
+            <ConfirmMembership />
+            <ConfirmMembershipTrial />
+          </>
+        )}
+        <SolanaTest />
+        {isMoneyAccountDepositEnabled && (
+          <>
+            <MembershipSubscription />
+            <MoneyAccountDeposit />
+          </>
+        )}
+        {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
+        <PerpsDeposit />
+        <PerpsWithdraw />
+        <PredictClaim />
+        <PredictDeposit />
+        <PredictWithdraw />
+      </Box>
       {showMmPayDebugToggle && (
         <MmPayDebugToggle
           value={isMmPayDebugEnabled}
@@ -84,15 +116,6 @@ export function ConfirmationsDeveloperOptions() {
           }
         />
       )}
-      {isMoneyAccountDepositEnabled && (
-        <>
-          <MoneyAccountDeposit />
-          <MembershipSubscription />
-          <ConfirmMembership />
-          <ConfirmMembershipTrial />
-        </>
-      )}
-      {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
     </>
   );
 }
@@ -132,8 +155,6 @@ function usePerpsDepositConfirmation() {
 
 function PerpsDeposit() {
   const { depositWithConfirmation } = usePerpsDepositConfirmation();
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
 
   const handleDeposit = useCallback(() => {
     depositWithConfirmation();
@@ -146,24 +167,17 @@ function PerpsDeposit() {
   return (
     <>
       <DeveloperButton
-        title="Perps Deposit"
-        description="Trigger a Perps deposit confirmation."
-        buttonLabel="Deposit"
+        label="Perps Deposit"
         onPress={handleDeposit}
         testID={ConfirmationsDeveloperOptionsTestIds.PERPS_DEPOSIT_BUTTON}
       />
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
+      <DeveloperButton
+        label="Perps Deposit (Bottom Sheet)"
         onPress={handleDepositBottomSheet}
         testID={
           ConfirmationsDeveloperOptionsTestIds.PERPS_DEPOSIT_BOTTOM_SHEET_BUTTON
         }
-        isFullWidth
-        style={styles.accessory}
-      >
-        Deposit in BottomSheet
-      </Button>
+      />
     </>
   );
 }
@@ -177,9 +191,7 @@ function PerpsWithdraw() {
 
   return (
     <DeveloperButton
-      title="Perps Withdraw"
-      description="Trigger a Perps withdraw confirmation."
-      buttonLabel="Withdraw"
+      label="Perps Withdraw"
       onPress={handleWithdraw}
       testID={ConfirmationsDeveloperOptionsTestIds.PERPS_WITHDRAW_BUTTON}
     />
@@ -196,14 +208,7 @@ function PredictWithdraw() {
     });
   }, [addTransactionBatchAndNavigate]);
 
-  return (
-    <DeveloperButton
-      title="Predict Withdraw"
-      description="Trigger a Predict withdraw confirmation."
-      buttonLabel="Withdraw"
-      onPress={handleWithdraw}
-    />
-  );
+  return <DeveloperButton label="Predict Withdraw" onPress={handleWithdraw} />;
 }
 
 function PredictClaim() {
@@ -217,14 +222,7 @@ function PredictClaim() {
     });
   }, [addTransactionBatchAndNavigate]);
 
-  return (
-    <DeveloperButton
-      title="Predict Claim"
-      description="Trigger a Predict claim confirmation."
-      buttonLabel="Claim"
-      onPress={handleClaim}
-    />
-  );
+  return <DeveloperButton label="Predict Claim" onPress={handleClaim} />;
 }
 
 function PredictDeposit() {
@@ -237,20 +235,11 @@ function PredictDeposit() {
     });
   }, [addTransactionBatchAndNavigate]);
 
-  return (
-    <DeveloperButton
-      title="Predict Deposit"
-      description="Trigger a Predict deposit confirmation."
-      buttonLabel="Deposit"
-      onPress={handleDeposit}
-    />
-  );
+  return <DeveloperButton label="Predict Deposit" onPress={handleDeposit} />;
 }
 
 function MoneyAccountDeposit() {
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
 
   const handleDeposit = useCallback(() => {
     initiateDeposit().catch((error) => {
@@ -273,38 +262,26 @@ function MoneyAccountDeposit() {
   return (
     <>
       <DeveloperButton
-        title="Money Account Deposit"
-        description="Trigger a Money Account deposit confirmation."
-        buttonLabel="Deposit"
+        label="Money Account Deposit"
         onPress={handleDeposit}
         testID={
           ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON
         }
       />
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
+      <DeveloperButton
+        label="Money Account Deposit (Bottom Sheet)"
         onPress={handleDepositBottomSheet}
         testID={
           ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BOTTOM_SHEET_BUTTON
         }
-        isFullWidth
-        style={styles.accessory}
-      >
-        Deposit in BottomSheet
-      </Button>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
+      />
+      <DeveloperButton
+        label="Money Account Deposit (Prefilled)"
         onPress={handleDepositFiveDollars}
         testID={
           ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_FIVE_DOLLARS_BUTTON
         }
-        isFullWidth
-        style={styles.accessory}
-      >
-        Deposit 5$
-      </Button>
+      />
     </>
   );
 }
@@ -327,9 +304,7 @@ function MembershipSubscription() {
 
   return (
     <DeveloperButton
-      title="Membership Subscription"
-      description="Trigger a Membership Subscription confirmation."
-      buttonLabel="Top-up 1$"
+      label="Membership Subscription"
       onPress={handleMembershipSubscription}
       testID={
         ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_MEMBERSHIP_TOP_UP_BUTTON
@@ -363,9 +338,7 @@ function ConfirmMembership() {
 
   return (
     <DeveloperButton
-      title="Confirm Membership"
-      description="Trigger a Confirm Membership bottom sheet."
-      buttonLabel="Confirm Membership"
+      label="Confirm Membership"
       onPress={handleConfirmMembership}
       testID={ConfirmationsDeveloperOptionsTestIds.CONFIRM_MEMBERSHIP_BUTTON}
     />
@@ -399,9 +372,7 @@ function ConfirmMembershipTrial() {
 
   return (
     <DeveloperButton
-      title="Confirm Membership (trial)"
-      description="Trigger a Confirm Membership bottom sheet with a free trial."
-      buttonLabel="Confirm Membership (trial)"
+      label="Confirm Membership (trial)"
       onPress={handleConfirmMembershipTrial}
       testID={
         ConfirmationsDeveloperOptionsTestIds.CONFIRM_MEMBERSHIP_TRIAL_BUTTON
@@ -422,15 +393,54 @@ function MoneyAccountWithdraw() {
 
   return (
     <DeveloperButton
-      title="Money Account Withdraw"
-      description="Trigger a Money Account withdraw confirmation."
-      buttonLabel="Withdraw"
+      label="Money Account Withdraw"
       onPress={handleWithdraw}
       testID={
         ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_WITHDRAW_BUTTON
       }
     />
   );
+}
+
+function SolanaTest() {
+  const evmAddress = useSelector(selectSelectedInternalAccountAddress);
+  const solanaAccount = useSelector(selectSelectedInternalAccountByScope)(
+    SolScope.Mainnet,
+  );
+  const { navigateToConfirmation } = useConfirmNavigation();
+
+  const { networkClientId } =
+    useSelector((state: RootState) =>
+      selectDefaultEndpointByChainId(state, CHAIN_IDS.ARBITRUM),
+    ) ?? {};
+
+  const handleDeposit = useCallback(async () => {
+    if (!evmAddress || !solanaAccount || !networkClientId) {
+      Logger.log(
+        'Developer Options: Solana test deposit requires EVM and Solana',
+      );
+      return;
+    }
+
+    try {
+      enableSolanaTestServerStrategy(process.env.MM_PAY_SERVER_BASE_URL);
+
+      const { amount } = await startSolanaTest({
+        evmAddress: evmAddress as Hex,
+        networkClientId,
+        solanaAccount,
+      });
+
+      navigateToConfirmation({ amount, stack: Routes.PREDICT.ROOT });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Developer Options: Solana test deposit failed',
+      );
+    }
+  }, [evmAddress, navigateToConfirmation, networkClientId, solanaAccount]);
+
+  return <DeveloperButton label="Solana Test" onPress={handleDeposit} />;
 }
 
 function useAddTransactionBatch() {
@@ -549,47 +559,22 @@ function MmPayDebugToggle({
 }
 
 function DeveloperButton({
-  buttonLabel,
-  description,
+  label,
   onPress,
   testID,
-  title,
 }: {
-  buttonLabel: string;
-  description: string;
+  label: string;
   onPress: () => void;
   testID?: string;
-  title: string;
 }) {
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
-
   return (
-    <>
-      <Text
-        color={TextColor.TextDefault}
-        variant={TextVariant.HeadingLg}
-        style={styles.heading}
-      >
-        {title}
-      </Text>
-      <Text
-        color={TextColor.TextAlternative}
-        variant={TextVariant.BodyMd}
-        style={styles.desc}
-      >
-        {description}
-      </Text>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={onPress}
-        testID={testID}
-        isFullWidth
-        style={styles.accessory}
-      >
-        {buttonLabel}
-      </Button>
-    </>
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Sm}
+      onPress={onPress}
+      testID={testID}
+    >
+      {label}
+    </Button>
   );
 }

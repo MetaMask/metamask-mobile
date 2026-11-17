@@ -60,6 +60,7 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  TransactionType.solanaTest,
 ];
 
 export function Footer() {

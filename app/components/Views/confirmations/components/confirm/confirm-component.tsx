@@ -71,6 +71,7 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.predictWithdraw,
   ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
+  TransactionType.solanaTest,
 ];
 
 export enum ConfirmationLoader {

@@ -30,7 +30,7 @@ import {
   TransactionPaymentToken,
   PaymentOverride,
 } from '@metamask/transaction-pay-controller';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import type {
   BlockedTokensListConfig,
   BlockedTokensConfig,
@@ -220,6 +220,25 @@ describe('Transaction Pay Utils', () => {
       } as TransactionMeta;
 
       expect(getTokenAddress(transactionMeta)).toBe(requiredAssetAddress);
+    });
+
+    it('falls back to txParams.to when first requiredAsset is non-EVM', () => {
+      const transactionMeta = {
+        txParams: {
+          data: '0x',
+          to: TO_MOCK,
+        },
+        requiredAssets: [
+          {
+            address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            amount: '0x1' as Hex,
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
+            standard: 'spl',
+          },
+        ],
+      } as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
     });
 
     it('falls back to txParams.to when requiredAssets is empty', () => {

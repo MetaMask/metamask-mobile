@@ -13,7 +13,7 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
-import { Hex } from '@metamask/utils';
+import { Hex, isStrictHexString } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import { BigNumber } from 'bignumber.js';
@@ -142,6 +142,17 @@ export function getTokenTransferData(
   return undefined;
 }
 
+export type EvmRequiredToken = TransactionPayRequiredToken & {
+  address: Hex;
+  chainId: Hex;
+};
+
+export function isEvmRequiredToken(
+  token: TransactionPayRequiredToken,
+): token is EvmRequiredToken {
+  return isStrictHexString(token.chainId);
+}
+
 export function getTokenAddress(
   transactionMeta: TransactionMeta | undefined,
 ): Hex {
@@ -151,9 +162,14 @@ export function getTokenAddress(
     return nestedCall.to;
   }
 
-  const requiredAssetAddress = transactionMeta?.requiredAssets?.[0]?.address;
-  if (requiredAssetAddress) {
-    return requiredAssetAddress;
+  // Non-EVM required assets have no address on the transaction chain.
+  const requiredAsset = transactionMeta?.requiredAssets?.[0];
+  const isNonEvmAsset =
+    requiredAsset?.chainId !== undefined &&
+    !isStrictHexString(requiredAsset.chainId);
+
+  if (requiredAsset?.address && !isNonEvmAsset) {
+    return requiredAsset.address as Hex;
   }
 
   return transactionMeta?.txParams?.to as Hex;

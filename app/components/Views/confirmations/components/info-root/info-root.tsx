@@ -24,6 +24,7 @@ import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
+import { SolanaTestInfo } from '../info/solana-test-info';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { PerpsWithdrawInfo } from '../info/perps-withdraw-info';
@@ -120,6 +121,13 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
   ) {
     return <PredictDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.solanaTest])
+  ) {
+    return <SolanaTestInfo />;
   }
 
   if (
