@@ -91,14 +91,22 @@ jobs:
         uses: actions/github-script@v9
         env:
           ENVIRONMENT: ${{ inputs.github_environment }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
           # Break-glass: a repo admin can set RELEASE_APPROVALS_REQUIRED to 1 (never 0).
           REQUIRED_APPROVALS: ${{ vars.RELEASE_APPROVALS_REQUIRED || '2' }}
         with:
           script: |
+            // The approval history spans every attempt of the run and does not say which
+            // attempt an approval belongs to, so a re-run would reuse earlier approvals.
+            if (Number(process.env.RUN_ATTEMPT) !== 1) {
+              core.setFailed(
+                'Production releases cannot be re-run: approvals from earlier attempts would ' +
+                  'still count. Start a new run so it gets fresh approvals.',
+              );
+              return;
+            }
             const environment = process.env.ENVIRONMENT;
             const required = Math.max(1, Number(process.env.REQUIRED_APPROVALS) || 2);
-            // context.actor started the run and stays the same on re-runs. Whoever clicks
-            // re-run is kept from approving that attempt by "Prevent self-review".
             const dispatcher = context.actor.toLowerCase();
             const approvals = await github.paginate(
               'GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals',

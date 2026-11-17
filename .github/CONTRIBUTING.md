@@ -79,7 +79,7 @@ GitHub environments let one reviewer approve each job, so these runs pause twice
 1. **Release approval** — `release-approval` in `build.yml`, or in `push-eas-update.yml` for OTA.
 2. **The signing job** — `build` in `build.yml`, or `push-update` in `eas-update-platform.yml`.
 
-The signing job's first step, "Verify release approvals", reads the run's approval history and fails unless two different people approved, not counting whoever started the run. If one person approves both, re-run the failed job and have someone else approve it. The person who clicks re-run can't approve that attempt.
+The signing job's first step, "Verify release approvals", reads the run's approval history and fails unless two different people approved, not counting whoever started the run. It also fails on any re-run, because approvals from an earlier attempt would still count. To retry a production release, including after one person approved both pauses, start a new run (from Runway or the workflow) so it gets fresh approvals.
 
 Environment setup (repo admins): keep required reviewers on `build-production` and `build-flask-prod`, and enable "Prevent self-review" on both. Without required reviewers no approval is recorded, so the check fails closed.
 
