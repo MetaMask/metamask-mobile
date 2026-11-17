@@ -11,6 +11,7 @@ import { PredictNextRoutes } from '../routes';
 import {
   createLegacyPredictEventRef,
   createNextPredictEventRef,
+  createPredictCampaignEventRef,
   type PredictEventRef,
 } from './eventRef';
 import type { PredictIntent } from './intents';
@@ -42,6 +43,20 @@ const kalshiRef = createNextPredictEventRef(
   'kalshi',
   'KXNFLGAME-1' as PredictEntityId,
 );
+
+/** Predict The Pitch runs on Polymarket. */
+const CAMPAIGN_HOME: PredictIntent = {
+  type: 'home',
+  entryPoint: 'rewards',
+  campaign: 'predict-the-pitch',
+};
+const CAMPAIGN_EVENT: PredictIntent = {
+  type: 'event',
+  eventRef: createPredictCampaignEventRef('predict-the-pitch', 'event-1'),
+  entryPoint: 'rewards',
+  titleSnapshot: 'Match winner',
+  imageSnapshot: 'https://example.com/icon.png',
+};
 
 describe('resolvePredictIntent', () => {
   describe('legacy branch: today routes and params', () => {
@@ -158,7 +173,7 @@ describe('resolvePredictIntent', () => {
       });
     });
 
-    it('keeps the entry point and drops the title snapshot on a Polymarket Event', () => {
+    it('keeps the entry point and the title and image snapshots on a Polymarket Event', () => {
       expect(
         resolvePredictIntent(
           {
@@ -166,6 +181,7 @@ describe('resolvePredictIntent', () => {
             eventRef: polymarketRef,
             entryPoint: 'search',
             titleSnapshot: 'Will it rain?',
+            imageSnapshot: 'https://example.com/rain.png',
           },
           LEGACY,
         ),
@@ -177,6 +193,37 @@ describe('resolvePredictIntent', () => {
             marketId: 'market-1',
             providerId: 'polymarket',
             entryPoint: 'search',
+            title: 'Will it rain?',
+            image: 'https://example.com/rain.png',
+          },
+        },
+      });
+    });
+
+    it('opens Predict Home for a campaign on its Venue, as the campaign did before intents', () => {
+      expect(resolvePredictIntent(CAMPAIGN_HOME, LEGACY)).toStrictEqual({
+        status: 'ready',
+        target: {
+          kind: 'predict',
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+            params: { entryPoint: 'rewards' },
+          },
+        },
+      });
+    });
+
+    it('opens a campaign Event as Polymarket market details, as the campaign did before intents', () => {
+      expect(resolvePredictIntent(CAMPAIGN_EVENT, LEGACY)).toStrictEqual({
+        status: 'ready',
+        target: {
+          kind: 'legacyMarketDetails',
+          params: {
+            marketId: 'event-1',
+            providerId: 'polymarket',
+            entryPoint: 'rewards',
+            title: 'Match winner',
+            image: 'https://example.com/icon.png',
           },
         },
       });
@@ -305,6 +352,16 @@ describe('resolvePredictIntent', () => {
       });
     });
 
+    it.each<[string, PredictIntent]>([
+      ['Predict Home for a Polymarket campaign', CAMPAIGN_HOME],
+      ['a Polymarket campaign Event', CAMPAIGN_EVENT],
+    ])('opens nothing for %s', (_, intent) => {
+      expect(resolvePredictIntent(intent, NEXT_KALSHI)).toStrictEqual({
+        status: 'unavailable',
+        reason: 'venueMismatch',
+      });
+    });
+
     it('opens nothing for add funds, which PredictNext does not implement', () => {
       expect(
         resolvePredictIntent(
@@ -333,6 +390,8 @@ describe('resolvePredictIntent', () => {
       { type: 'event', eventRef: kalshiRef },
       { type: 'portfolio' },
       { type: 'addFunds', autoDeposit: true },
+      CAMPAIGN_HOME,
+      CAMPAIGN_EVENT,
     ])('opens nothing for a Venue-dependent $type intent', (intent) => {
       expect(resolvePredictIntent(intent, RESOLVING)).toStrictEqual({
         status: 'unavailable',

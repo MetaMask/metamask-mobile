@@ -245,4 +245,41 @@ describe('TraderPositionPnlSection', () => {
 
     expect(footerProps[footerProps.length - 1].hasTokenBalance).toBe(false);
   });
+
+  it.each(['12.5', '1,500', '1,234,567.8', '<0.00001'])(
+    'marks the footer as having a balance for the formatted balance %s',
+    (balance) => {
+      mockUseOpenPositionHeader.mockReturnValue({
+        sharePosition: null,
+        isLoading: false,
+        isPositionLoading: false,
+      });
+      mockUseTokenBalance.mockReturnValue({
+        balance,
+        fiatBalance: '$1.00',
+        tokenFormattedBalance: `${balance} PEPE`,
+      } as ReturnType<typeof useTokenBalance>);
+
+      renderSection();
+
+      expect(footerProps[footerProps.length - 1].hasTokenBalance).toBe(true);
+    },
+  );
+
+  it('marks the footer as having no balance when the balance is undefined', () => {
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isLoading: false,
+      isPositionLoading: false,
+    });
+    mockUseTokenBalance.mockReturnValue({
+      balance: undefined,
+      fiatBalance: undefined,
+      tokenFormattedBalance: undefined,
+    } as unknown as ReturnType<typeof useTokenBalance>);
+
+    renderSection();
+
+    expect(footerProps[footerProps.length - 1].hasTokenBalance).toBe(false);
+  });
 });

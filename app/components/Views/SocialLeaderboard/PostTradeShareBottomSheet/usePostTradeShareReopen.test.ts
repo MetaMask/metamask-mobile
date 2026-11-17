@@ -46,7 +46,7 @@ describe('usePostTradeShareReopen', () => {
       requestPostTradeShareReopen();
     });
 
-    expect(onReopen).toHaveBeenCalledWith(target, undefined, 'buy');
+    expect(onReopen).toHaveBeenCalledWith(target, undefined, 'buy', undefined);
   });
 
   it('calls onReopen with the copy-trade origin when the session has one', () => {
@@ -62,12 +62,18 @@ describe('usePostTradeShareReopen', () => {
         tradeMode: 'buy',
         preview,
         copyTradeOrigin,
+        traderAddress: '0xtrader',
         owner: PostTradeShareOwner.socialV1Feed,
       });
       requestPostTradeShareReopen();
     });
 
-    expect(onReopen).toHaveBeenCalledWith(target, copyTradeOrigin, 'buy');
+    expect(onReopen).toHaveBeenCalledWith(
+      target,
+      copyTradeOrigin,
+      'buy',
+      '0xtrader',
+    );
   });
 
   it('leaves a position retry for the position screen while the feed is mounted', () => {
@@ -79,7 +85,7 @@ describe('usePostTradeShareReopen', () => {
     renderHook(() =>
       usePostTradeShareReopen(
         positionReopen,
-        PostTradeShareOwner.positionDetails,
+        PostTradeShareOwner.traderPosition,
       ),
     );
 
@@ -88,13 +94,18 @@ describe('usePostTradeShareReopen', () => {
         target,
         tradeMode: 'sell',
         preview,
-        owner: PostTradeShareOwner.positionDetails,
+        owner: PostTradeShareOwner.traderPosition,
       });
       requestPostTradeShareReopen();
     });
 
     expect(feedReopen).not.toHaveBeenCalled();
-    expect(positionReopen).toHaveBeenCalledWith(target, undefined, 'sell');
+    expect(positionReopen).toHaveBeenCalledWith(
+      target,
+      undefined,
+      'sell',
+      undefined,
+    );
   });
 
   it('registers the owner while mounted and unregisters on unmount', () => {

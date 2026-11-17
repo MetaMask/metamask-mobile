@@ -48,6 +48,7 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 // eslint-disable-next-line import-x/no-namespace
 import * as utils from '../core/Multichain/utils';
+import { getErrorMessage } from '../util/test/getErrorMessage';
 
 /**
  * Generates a mocked AccountsController state
@@ -133,7 +134,7 @@ describe('Accounts Controller Selectors', () => {
       } as RootState);
       expect(result).toBeUndefined();
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });

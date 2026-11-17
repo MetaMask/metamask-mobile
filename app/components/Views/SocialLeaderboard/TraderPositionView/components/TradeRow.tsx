@@ -1,6 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   Text,
   TextVariant,
@@ -8,6 +11,7 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Trade } from '@metamask/social-controllers';
@@ -17,11 +21,7 @@ import {
   formatUsd,
   formatTradeTime,
 } from '../../../../UI/SocialFeed/utils/formatters';
-import PerpBadges from '../../components/PerpBadges';
-import {
-  getPerpTradeDirection,
-  isPerpTrade,
-} from '../../../../UI/SocialFeed/utils/perp';
+import { isPerpTrade } from '../../../../UI/SocialFeed/utils/perp';
 import {
   getTradeActionI18nKey,
   type TradeAction,
@@ -42,6 +42,12 @@ export interface TradeRowProps {
   action?: TradeAction;
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
+  /**
+   * Replaces the trader photo with a plus or minus avatar. Plus when this fill
+   * adds to the position, minus when it leaves it, matching the amount's color.
+   */
+  showValueAvatar?: boolean;
   /** When provided, the row is tappable (e.g. to focus the chart on this trade). */
   onPress?: (trade: Trade) => void;
   /**
@@ -56,6 +62,8 @@ const TradeRow: React.FC<TradeRowProps> = ({
   action,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
+  showValueAvatar = false,
   onPress,
   isEmphasized = false,
 }) => {
@@ -76,7 +84,6 @@ const TradeRow: React.FC<TradeRowProps> = ({
 
   const isEntry = trade.intent === 'enter';
   const isPerp = isPerpTrade(trade);
-  const perpDirection = getPerpTradeDirection(trade);
 
   const actionLabel = strings(
     getTradeActionI18nKey('trader_position', isPerp, action),
@@ -118,11 +125,23 @@ const TradeRow: React.FC<TradeRowProps> = ({
           gap={4}
           twClassName="flex-1 min-w-0 mr-3"
         >
-          <TraderAvatar
-            imageUrl={traderImageUrl}
-            address={traderAddress}
-            size={AVATAR_SIZE}
-          />
+          {showValueAvatar ? (
+            <AvatarIcon
+              iconName={isEntry ? IconName.Add : IconName.Minus}
+              severity={
+                isEntry ? AvatarIconSeverity.Success : AvatarIconSeverity.Danger
+              }
+              size={AvatarIconSize.Lg}
+              testID={`trade-row-value-avatar-${trade.transactionHash}`}
+            />
+          ) : (
+            <TraderAvatar
+              imageUrl={traderImageUrl}
+              address={traderAddress}
+              profileId={traderProfileId}
+              size={AVATAR_SIZE}
+            />
+          )}
           <Box twClassName="flex-1 min-w-0">
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -138,13 +157,6 @@ const TradeRow: React.FC<TradeRowProps> = ({
               >
                 {actionLabel}
               </Text>
-              {perpDirection ? (
-                <PerpBadges
-                  direction={perpDirection}
-                  leverage={trade.perpLeverage}
-                  testID={`trade-row-perp-badges-${trade.transactionHash}`}
-                />
-              ) : null}
             </Box>
             <Text
               variant={TextVariant.BodySm}

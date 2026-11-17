@@ -10,6 +10,11 @@ import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import PerpsProTwapTerminateSheet from './PerpsProTwapTerminateSheet';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactLocal = jest.requireActual<typeof React>('react');
   const { View } =

@@ -15,6 +15,7 @@ import {
   readCachedFirstPage,
   writeCachedFirstPage,
 } from '../utils/moneyActivityCache';
+import { useMoneyActivityValuations } from './useMoneyActivityValuations';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
@@ -22,6 +23,11 @@ import type { AccountsApiActivity } from '../types/moneyActivity';
 
 jest.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: jest.fn(),
+  useQueries: jest.fn(),
+}));
+
+jest.mock('./useMoneyActivityValuations', () => ({
+  useMoneyActivityValuations: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -64,6 +70,7 @@ jest.mock('../utils/accountsApi', () => ({
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
+const mockUseMoneyActivityValuations = jest.mocked(useMoneyActivityValuations);
 const mockGetQueryOptions = jest.mocked(
   apiClient.accounts.getV1AccountTransactionsQueryOptions,
 );
@@ -141,6 +148,10 @@ beforeEach(() => {
   );
   mockQueryResult();
   mockParse.mockReturnValue([]);
+  mockUseMoneyActivityValuations.mockReturnValue({
+    getDisplayAmount: () => undefined,
+    isSettling: false,
+  });
 });
 
 describe('useMoneyAccountApiActivity', () => {
@@ -175,6 +186,18 @@ describe('useMoneyAccountApiActivity', () => {
 
     expect(mockGetQueryOptions).toHaveBeenCalledWith('', expect.anything());
     expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('stays disabled when the caller has no activity to resolve', () => {
+    renderHook(() => useMoneyAccountApiActivity({ enabled: false }));
+
+    expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockReadCachedFirstPage).not.toHaveBeenCalled();
+    expect(mockUseMoneyActivityValuations).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
   });
@@ -342,12 +365,14 @@ describe('useMoneyAccountApiActivity', () => {
       page1,
       ADDR_A,
       CASHBACK_MULTISEND_CONTRACTS,
+      [],
     );
     expect(mockParse).toHaveBeenNthCalledWith(
       2,
       page2,
       ADDR_A,
       CASHBACK_MULTISEND_CONTRACTS,
+      [],
     );
     expect(result.current.activity).toEqual([CARD]);
   });

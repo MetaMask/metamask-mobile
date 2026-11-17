@@ -35,12 +35,14 @@ jest.mock('../SecureKeychain', () => ({
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockGetCurrentRoute = jest.fn();
 jest.mock('../NavigationService', () => ({
   __esModule: true,
   default: {
     get navigation() {
       return { navigate: mockNavigate, reset: mockReset };
     },
+    getCurrentRoute: () => mockGetCurrentRoute(),
   },
 }));
 
@@ -135,6 +137,7 @@ describe('AppLockService', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockGetCurrentRoute.mockReset();
     NativeModules.PrivacyCoverModule = { hide: mockHidePrivacyCover };
     lockTime = LOCK_TIME_NEVER;
     mockDispatch = jest.fn();
@@ -389,13 +392,12 @@ describe('AppLockService', () => {
       expect(mockClearRequests).toHaveBeenCalledWith(
         providerErrors.userRejectedRequest(),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockReset).not.toHaveBeenCalled();
     });
 
-    it('still reaches Login when rejecting approvals throws after a failed unlock', async () => {
-      mockClearRequests.mockImplementationOnce(() => {
-        throw new Error('clear failed');
-      });
+    it('does not present another Login when it is already showing', async () => {
+      mockGetCurrentRoute.mockReturnValue({ name: Routes.ONBOARDING.LOGIN });
       mockTryBiometricUnlock.mockRejectedValue(new Error('user cancelled'));
       emitAppState('background');
       await settle();
@@ -403,10 +405,9 @@ describe('AppLockService', () => {
       emitAppState('active');
       await settle();
 
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.LOGIN }],
-      });
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockClearRequests).not.toHaveBeenCalled();
       expectPrivacyCoverDismissed();
     });
 
@@ -446,7 +447,7 @@ describe('AppLockService', () => {
       expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
     });
 
-    it('resets to Login and tracks the error when biometric unlock fails', async () => {
+    it('presents Login over the current screen when biometric unlock fails', async () => {
       mockTryBiometricUnlock.mockRejectedValue(new Error('user cancelled'));
       emitAppState('background');
       await settle();
@@ -454,12 +455,11 @@ describe('AppLockService', () => {
       emitAppState('active');
       await settle();
 
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.LOGIN }],
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN, {
+        resumeOverlay: true,
       });
-      expect(mockClearRequests).toHaveBeenCalledWith(
-        providerErrors.userRejectedRequest(),
-      );
+      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockClearRequests).not.toHaveBeenCalled();
       expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
         'Lockscreen: Authentication failed',
         'user cancelled',
@@ -682,12 +682,11 @@ describe('AppLockService', () => {
       rejectUnlock(new Error('cancelled by system'));
       await settle();
 
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.LOGIN }],
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN, {
+        resumeOverlay: true,
       });
-      expect(mockClearRequests).toHaveBeenCalledWith(
-        providerErrors.userRejectedRequest(),
-      );
+      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockClearRequests).not.toHaveBeenCalled();
       expect(mockHidePrivacyCover).not.toHaveBeenCalled();
 
       // The wallet is still locked when the user comes back.

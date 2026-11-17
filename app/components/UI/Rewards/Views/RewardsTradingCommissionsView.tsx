@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { IconName } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
@@ -7,6 +8,9 @@ import type { CommissionEntryView } from '../../../../core/Engine/controllers/re
 import { PerformanceCommissionRow } from '../components/Money/PerformanceActivityRows';
 import TradingActivityListView from '../components/Money/TradingActivityListView';
 import { useCommissions } from '../hooks/useCommissions';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 
 export const REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS = {
   CONTAINER: 'rewards-trading-commissions-view',
@@ -20,6 +24,10 @@ const RewardsTradingCommissionsView: React.FC = () => {
     selectReferralMeLocalizedText(state, profileId),
   );
   const list = useCommissions(profileId);
+  const navigation = useNavigation<AppNavigationProp>();
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
+  }, [navigation]);
 
   const renderItem = useCallback(
     (item: CommissionEntryView) =>
@@ -36,7 +44,10 @@ const RewardsTradingCommissionsView: React.FC = () => {
       testIDs={REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS}
       list={list}
       renderItem={renderItem}
-      emptyDescription={localizedText?.tradingActivityEmptyDescription ?? ''}
+      emptyDescription={localizedText?.copyTradingEmptyDescription ?? ''}
+      emptyActionLabel={localizedText?.copyTradingEmptyAction}
+      emptyIconName={IconName.People}
+      emptyOnAction={openSocialTab}
     />
   );
 };

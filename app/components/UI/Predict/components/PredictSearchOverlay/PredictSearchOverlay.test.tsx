@@ -18,6 +18,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
   selectPredictUpDownEnabledFlag: jest.fn(() => false),
 }));
 

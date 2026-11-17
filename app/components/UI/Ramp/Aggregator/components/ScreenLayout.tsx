@@ -36,7 +36,7 @@ const createStyles = (colors: Colors) =>
       flex: 1,
     },
     description: {
-      marginHorizontal: 20,
+      marginHorizontal: 16,
     },
   });
 

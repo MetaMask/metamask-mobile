@@ -755,7 +755,10 @@ describe('PerpsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'home_section' },
+      params: {
+        source: 'home_section',
+        button_location: 'perps_section_header',
+      },
     });
   });
 
@@ -782,7 +785,10 @@ describe('PerpsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'home_section' },
+      params: {
+        source: 'home_section',
+        button_location: 'perps_section_header',
+      },
     });
   });
 
@@ -1450,6 +1456,7 @@ describe('PerpsSection', () => {
         screen: Routes.PERPS.PERPS_HOME,
         params: {
           source: 'home_section',
+          button_location: 'perps_section_header',
           transactionActiveAbTests: activeAbTests,
         },
       });
@@ -1555,7 +1562,10 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'home_section' },
+        params: {
+          source: 'home_section',
+          button_location: 'perps_section_header',
+        },
       });
     });
 
@@ -2059,7 +2069,10 @@ describe('PerpsSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
         source: 'home_section',
         redirectScreen: Routes.PERPS.PERPS_HOME,
-        redirectParams: { source: 'home_section' },
+        redirectParams: {
+          source: 'home_section',
+          button_location: 'perps_section_header',
+        },
       });
     });
 

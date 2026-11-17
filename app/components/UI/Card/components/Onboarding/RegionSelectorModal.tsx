@@ -20,14 +20,17 @@ import {
   BottomSheet,
   ContentVariant,
   FontWeight,
-  HeaderStandard,
   ListItemSelect,
   Text,
+  TextColor,
   TextFieldSearch,
   TextVariant,
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { Region } from '../../types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -57,6 +60,7 @@ export const createRegionSelectorModalNavigationDetails =
   );
 
 function RegionSelectorModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<Region>>(null);
@@ -136,8 +140,6 @@ function RegionSelectorModal() {
           variant={ContentVariant.OneLine}
           isSelected={selectedRegionKey === region.key}
           onPress={() => handleOnRegionPressCallback(region)}
-          accessibilityRole="button"
-          accessible
           testID="region-selector-item"
           titleStartAccessory={
             <Text
@@ -161,7 +163,7 @@ function RegionSelectorModal() {
             renderAreaCode && region.areaCode ? (
               <Text
                 variant={TextVariant.BodyMd}
-                twClassName="text-text-alternative"
+                color={TextColor.TextAlternative}
                 testID="region-selector-item-area-code"
               >
                 (+{region.areaCode})
@@ -174,17 +176,23 @@ function RegionSelectorModal() {
     [selectedRegionKey, renderAreaCode, handleOnRegionPressCallback],
   );
 
+  // The empty state answers a search. With no query there is nothing to
+  // report, so render nothing rather than "No region matches" over a blank
+  // list (e.g. while regions are unavailable).
+  const hasSearchQuery = searchString.trim().length > 0;
+
   const renderEmptyList = useCallback(
-    () => (
-      <Box twClassName="p-4 items-center" testID="region-selector-empty-list">
-        <Text variant={TextVariant.BodyMd}>
-          {strings('card.card_onboarding.errors.no_region_results', {
-            searchString,
-          })}
-        </Text>
-      </Box>
-    ),
-    [searchString],
+    () =>
+      hasSearchQuery ? (
+        <Box twClassName="p-4 items-center" testID="region-selector-empty-list">
+          <Text variant={TextVariant.BodyMd}>
+            {strings('card.card_onboarding.errors.no_region_results', {
+              searchString,
+            })}
+          </Text>
+        </Box>
+      ) : null,
+    [hasSearchQuery, searchString],
   );
 
   const handleSearchTextChange = useCallback(
@@ -217,22 +225,29 @@ function RegionSelectorModal() {
       keyboardAvoidingViewEnabled={false}
       testID="region-selector-modal"
     >
-      <HeaderStandard
-        title={strings('card.card_onboarding.region_selector.title')}
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: 'region-selector-close-button' }}
-      />
+      >
+        {strings('card.card_onboarding.region_selector.title')}
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch
           value={searchString}
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
+          placeholder={strings(
+            'card.card_onboarding.region_selector.search_placeholder',
+          )}
           inputAccessibilityLabel={strings(
-            'card.card_onboarding.region_selector.title',
+            'card.card_onboarding.region_selector.search_label',
           )}
           clearButtonProps={{ testID: 'search-clear-button' }}
           inputProps={{
+            // 'one-time-code' stops iOS offering contact/address autofill for
+            // what is a list filter, not a personal-data field.
             autoComplete: 'one-time-code',
             testID: 'region-selector-search-input',
           }}

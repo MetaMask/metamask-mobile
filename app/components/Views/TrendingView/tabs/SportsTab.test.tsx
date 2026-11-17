@@ -10,6 +10,7 @@ import {
   selectPredictAvailability,
 } from '../../../UI/PredictNext';
 import SportsTab from './SportsTab';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 
 const mockNavigate = jest.fn();
@@ -44,8 +45,8 @@ const mockUsePredictionsFeed = jest.fn<
   data: [],
   isLoading: false,
 }));
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: () => mockUsePredictionsFeed(),
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: () => mockUsePredictionsFeed(),
 }));
 
 const mockUseSportsMarketsFeed = jest.fn(() => ({
@@ -60,9 +61,17 @@ const mockUseSportsMarketsFeed = jest.fn(() => ({
     fetchMore: jest.fn(),
   },
 }));
-jest.mock('../feeds/predictions/useSportsMarketsFeed', () => ({
-  useSportsMarketsFeed: () => mockUseSportsMarketsFeed(),
-}));
+jest.mock(
+  '../../../UI/PredictNext/trending/usePredictTrendingSupported',
+  () => ({ usePredictTrendingSupported: () => true }),
+);
+
+jest.mock(
+  '../../../UI/PredictNext/trending/usePredictSportsMarketsFeed',
+  () => ({
+    usePredictSportsMarketsFeed: () => mockUseSportsMarketsFeed(),
+  }),
+);
 
 jest.mock('../components/HorizontalCarousel', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -114,7 +123,9 @@ describe('SportsTab', () => {
     renderSportsTab();
 
     fireEvent.press(
-      screen.getByTestId('section-header-view-all-sports_predictions'),
+      screen.getByTestId(
+        TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_SPORTS_PREDICTIONS,
+      ),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {

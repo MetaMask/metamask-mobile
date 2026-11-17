@@ -48,6 +48,7 @@ const ExploreScreenSchema = enums([
 /** `?tab=` values. e.g. https://link.metamask.io/trending?tab=crypto */
 const ExploreTabSchema = enums([
   'now',
+  'perps',
   'macro',
   'rwas',
   'crypto',
@@ -138,7 +139,8 @@ const EXPLORE_SCREENS: Record<
 
 const EXPLORE_TABS: Record<Infer<typeof ExploreTabSchema>, ExploreTabRoute> = {
   now: { index: EXPLORE_TAB_INDEX.NOW },
-  macro: { index: EXPLORE_TAB_INDEX.MACRO },
+  perps: { index: EXPLORE_TAB_INDEX.PERPS },
+  macro: { index: EXPLORE_TAB_INDEX.PERPS },
   rwas: { index: EXPLORE_TAB_INDEX.RWAS },
   crypto: { index: EXPLORE_TAB_INDEX.CRYPTO },
   sports: { index: EXPLORE_TAB_INDEX.SPORTS },

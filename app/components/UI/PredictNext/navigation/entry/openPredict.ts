@@ -1,4 +1,3 @@
-import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
 import ReduxService from '../../../../../core/redux';
 import {
@@ -7,27 +6,12 @@ import {
 } from '../../implementation';
 import type { PredictIntent } from './intents';
 import { resolvePredictIntent } from './resolvePredictIntent';
-import type { PredictIntentTarget } from './targets';
+import { toAppNavigation, type PredictIntentTarget } from './targets';
 
-/**
- * Performs a resolved navigation on the app navigator. The legacy market
- * details target makes the call `usePredictNavigation` makes `throughRoot`.
- */
+/** Performs a resolved navigation on the app navigator. */
 const navigateFromService = (target: PredictIntentTarget): void => {
-  const { navigation } = NavigationService;
-  switch (target.kind) {
-    case 'predict':
-      navigation.navigate(Routes.PREDICT.ROOT, target.params);
-      return;
-    case 'predictModals':
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, target.params);
-      return;
-    case 'legacyMarketDetails':
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: target.params,
-      });
-  }
+  const { routeName, params } = toAppNavigation(target);
+  NavigationService.navigation.navigate(routeName, params);
 };
 
 /**

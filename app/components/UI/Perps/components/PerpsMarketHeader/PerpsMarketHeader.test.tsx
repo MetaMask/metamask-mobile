@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from '@metamask/design-system-react-native';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, within } from '@testing-library/react-native';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -11,6 +11,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsMarketHeader from './PerpsMarketHeader';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import { createProMarketHeaderTestIDs } from './perpsMarketHeaderTestIds';
 import { GLOW_TOTAL_MS } from '../PerpsModeToggle/PerpsModeSwitchPill';
 import {
@@ -33,6 +34,14 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 jest.mock('../../../../../util/haptics');
+
+let mockIsBrandRefresh = false;
+jest.mock(
+  '../../../../../selectors/featureFlagController/perpsBrandRefresh',
+  () => ({
+    selectPerpsBrandRefreshEnabled: () => mockIsBrandRefresh,
+  }),
+);
 
 const mockMarket: PerpsMarketData = {
   symbol: 'BTC',
@@ -71,6 +80,7 @@ describe('PerpsMarketHeader', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    mockIsBrandRefresh = false;
   });
 
   it('renders the asset name, leverage, and ticker subtitle', () => {
@@ -441,5 +451,55 @@ describe('PerpsMarketHeader', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_PRICE),
     ).toHaveTextContent('$---');
+  });
+
+  describe('brand refresh', () => {
+    const testIDs = createProMarketHeaderTestIDs();
+    const glassTestID = `${testIDs.container}-glass`;
+
+    beforeEach(() => {
+      mockIsBrandRefresh = true;
+    });
+
+    it('floats over the content on the glass backdrop', () => {
+      const { getByTestId } = renderHeader();
+
+      expect(getByTestId(glassTestID)).toBeOnTheScreen();
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('pads the status bar by topInset', () => {
+      const { getByTestId } = renderHeader({ topInset: 47 });
+
+      expect(getByTestId(glassTestID)).toHaveStyle({ paddingTop: 47 });
+    });
+
+    it('groups the wallet and favorite icons in one capsule', () => {
+      const { getByTestId } = renderHeader({
+        onWalletPress: jest.fn(),
+        onFavoritePress: jest.fn(),
+      });
+
+      const capsule = getByTestId(`${testIDs.container}-actions-capsule`);
+      expect(
+        within(capsule).getByTestId(testIDs.walletButton as string),
+      ).toBeOnTheScreen();
+      expect(
+        within(capsule).getByTestId(testIDs.favoriteButton as string),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the plain in-flow header when the flag is off', () => {
+      mockIsBrandRefresh = false;
+
+      const { queryByTestId } = renderHeader({
+        onWalletPress: jest.fn(),
+        onFavoritePress: jest.fn(),
+      });
+
+      expect(queryByTestId(glassTestID)).toBeNull();
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(queryByTestId(`${testIDs.container}-actions-capsule`)).toBeNull();
+    });
   });
 });

@@ -1,7 +1,8 @@
 import { ethers } from 'ethers';
+import { base58 } from 'ethers/lib/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
-import { BtcScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, XlmScope } from '@metamask/keyring-api';
 import {
   TransactionType,
   type TransactionMeta,
@@ -19,7 +20,6 @@ import type {
   ReferralLocalizedText,
   ReferralLocalizedTextKey,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
-import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/selectors';
 import { RewardsMoneyClaimRefusalError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import Engine from '../../../../core/Engine';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
@@ -30,6 +30,12 @@ import {
   buildMoneyAccountDepositBatch,
   getMoneyAccountDepositAssetAddress,
 } from '../../Money/utils/moneyAccountTransactions';
+import { isPositiveBaseUnits } from './formatUtils';
+import {
+  followTradeHeldForTax,
+  isTaxFlowEnabled,
+  revShareHeldForTax,
+} from './taxDocumentation';
 
 const RETRY_REASONS = new Set([
   'PROOF_INVALID',
@@ -78,12 +84,27 @@ const TERMINAL_REASONS = new Set(['SUSPENDED', 'UNDER_REVIEW', 'VOIDED']);
  */
 const CLAIMS_PAUSED_REASONS = new Set([
   'SUSPENDED',
-  'TAX_DETERMINATION_REQUIRED',
   'MECHANISM_NOT_CLAIMABLE',
   'EARNING_ADDRESS_UNSCREENABLE',
   'UNDER_REVIEW',
   'EARNING_ADDRESS_MISSING',
 ]);
+
+/**
+ * True when nothing was paid and a route refused because tax documentation
+ * is still required. That opens the tax flow. A paid claim that only names
+ * the reason in `excluded[]` is not one of these.
+ */
+export function isTaxDeterminationRefusal(
+  outcomes: ClaimRouteOutcome[],
+): boolean {
+  if (outcomes.some((outcome) => outcome.submitted)) {
+    return false;
+  }
+  return outcomes.some(
+    (outcome) => outcome.reason === 'TAX_DETERMINATION_REQUIRED',
+  );
+}
 
 /**
  * True when nothing was submitted and every refusal is a held or blocked
@@ -149,29 +170,149 @@ export function meetsClaimMinimum(
   }
 }
 
+export interface ClaimRouteOptions {
+  /**
+   * Follow-trade claims need the tax form and an open claim route. Omitted
+   * leaves the route off.
+   */
+  includeFollowTrade?: boolean;
+  /**
+   * Revenue share needs the tax form and an open claim route. Omitted
+   * leaves that route off, even when the family balance is positive.
+   */
+  includeRevShare?: boolean;
+}
+
 /**
- * Pilot: only trade-fee cashback, and only when that family's own claimable
- * reaches the summary's `minimum_musd_base_units`. Revenue share and
- * follow-trade are not claimed.
+ * Follow-trade and revenue share are included only when the tax form is on
+ * and commissions reports that route's `claim_open`. An unknown route stays
+ * off. Cashback does not use this: commissions has no cashback `claim_open`,
+ * so that family follows its own claimable balance.
+ */
+export function claimRouteOptions(
+  taxFormUrl: string | undefined,
+  followTradeClaimOpen: boolean | undefined,
+  revShareClaimOpen: boolean | undefined = false,
+): ClaimRouteOptions {
+  const taxFlowEnabled = isTaxFlowEnabled(taxFormUrl);
+  return {
+    includeFollowTrade: taxFlowEnabled && followTradeClaimOpen === true,
+    includeRevShare: taxFlowEnabled && revShareClaimOpen === true,
+  };
+}
+
+/**
+ * True when cashback's own claimable balance meets the summary minimum.
+ * A closed cashback mechanism is not in `claimable`, so it fails this check.
+ * There is no cashback `claim_open` flag.
+ */
+export function cashbackMeetsClaimMinimum(
+  summary: EarningsSummaryDto | null | undefined,
+): boolean {
+  return meetsClaimMinimum(
+    summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
+      ?.claimable,
+    summary?.minimum_musd_base_units,
+  );
+}
+
+const INCOME_CLAIM_ROUTES = new Set<ClaimRouteSlug>([
+  'referral-rev-share',
+  'social-follow-trade',
+]);
+
+/**
+ * Applies a Claim press's tax decision to the open routes. Cashback-only
+ * drops income. An open tax sheet drops income and leaves cashback.
+ */
+export function selectClaimRoutes(
+  routes: ClaimRouteSlug[],
+  options?: { cashbackOnly?: boolean; omitIncome?: boolean },
+): ClaimRouteSlug[] {
+  if (options?.cashbackOnly) {
+    return routes.filter((route) => route === 'referral-trade-fee-cashback');
+  }
+  if (options?.omitIncome) {
+    return routes.filter((route) => !INCOME_CLAIM_ROUTES.has(route));
+  }
+  return routes;
+}
+
+/**
+ * Cashback when that family meets the minimum, then revenue share and
+ * follow-trade when those routes are included. Each family must reach
+ * `minimum_musd_base_units` on its own. A closed route stays off no matter
+ * which persona holds the balance.
  */
 export function claimRoutesForSummary(
   summary: EarningsSummaryDto | null | undefined,
+  options?: ClaimRouteOptions,
 ): ClaimRouteSlug[] {
-  const cashback =
-    summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
-      ?.claimable;
-  if (!meetsClaimMinimum(cashback, summary?.minimum_musd_base_units)) {
-    return [];
+  const minimum = summary?.minimum_musd_base_units;
+  const routes: ClaimRouteSlug[] = [];
+  if (cashbackMeetsClaimMinimum(summary)) {
+    routes.push('referral-trade-fee-cashback');
   }
-  return ['referral-trade-fee-cashback'];
+  const revShare =
+    summary?.earned_by_others?.by_claim_family?.REFERRAL_REV_SHARE?.claimable;
+  if (
+    options?.includeRevShare === true &&
+    meetsClaimMinimum(revShare, minimum)
+  ) {
+    routes.push('referral-rev-share');
+  }
+  const followTrade =
+    summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE?.claimable;
+  if (
+    options?.includeFollowTrade === true &&
+    meetsClaimMinimum(followTrade, minimum)
+  ) {
+    routes.push('social-follow-trade');
+  }
+  return routes;
 }
 
-/** A referee whose cashback family reaches the summary minimum. Referrers do not claim in the pilot. */
+/**
+ * True when an open route's family reaches the summary minimum. A positive
+ * revenue-share balance does not count while that route is closed.
+ */
 export function canClaimEarnings(
   summary: EarningsSummaryDto | null | undefined,
-  persona: MoneyDashboardPersona | undefined,
+  options?: ClaimRouteOptions,
 ): boolean {
-  return persona === 'referee' && claimRoutesForSummary(summary).length > 0;
+  return claimRoutesForSummary(summary, options).length > 0;
+}
+
+/**
+ * True when follow-trade or revenue share is held for tax and that claim
+ * route is open. A closed route stays false even when its balance is held.
+ */
+export function incomeHeldOnOpenRoute(
+  summary: EarningsSummaryDto | null | undefined,
+  options?: ClaimRouteOptions,
+): boolean {
+  return (
+    (options?.includeFollowTrade === true && followTradeHeldForTax(summary)) ||
+    (options?.includeRevShare === true && revShareHeldForTax(summary))
+  );
+}
+
+/**
+ * True when the Earnings tab shows Claim: an open route meets the minimum,
+ * or an open income route is held for tax documentation. A blocked balance
+ * beside it does not turn this off.
+ */
+export function showEarningsIndicator(
+  summary: EarningsSummaryDto | null | undefined,
+  options?: ClaimRouteOptions,
+): boolean {
+  if (canClaimEarnings(summary, options)) {
+    return true;
+  }
+  return (
+    incomeHeldOnOpenRoute(summary, options) &&
+    isPositiveBaseUnits(summary?.held)
+  );
 }
 
 /**
@@ -224,6 +365,56 @@ export function bitcoinAddressFromEarningAddress(
   return address;
 }
 
+/** Base58 without `0`, `O`, `I`, or `l`. A Solana address keeps its case. */
+const SOLANA_ADDRESS = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+/**
+ * The Solana address in `solana:<address>`. Base58 is case-sensitive, so the
+ * address is returned as stored.
+ */
+export function solanaAddressFromEarningAddress(
+  earningAddress: string,
+): string | null {
+  const colon = earningAddress.indexOf(':');
+  if (colon <= 0 || colon === earningAddress.length - 1) {
+    return null;
+  }
+  const namespace = earningAddress.slice(0, colon).toLowerCase();
+  if (namespace !== 'solana') {
+    return null;
+  }
+  const address = earningAddress.slice(colon + 1);
+  if (!SOLANA_ADDRESS.test(address)) {
+    return null;
+  }
+  return address;
+}
+
+/** A Stellar ed25519 StrKey: `G` plus 55 base32 characters. Case is kept. */
+const STELLAR_ADDRESS = /^G[A-Z2-7]{55}$/;
+
+/**
+ * The Stellar address in `stellar:<G-address>`. A lowercase copy is not the
+ * same account.
+ */
+export function stellarAddressFromEarningAddress(
+  earningAddress: string,
+): string | null {
+  const colon = earningAddress.indexOf(':');
+  if (colon <= 0 || colon === earningAddress.length - 1) {
+    return null;
+  }
+  const namespace = earningAddress.slice(0, colon).toLowerCase();
+  if (namespace !== 'stellar') {
+    return null;
+  }
+  const address = earningAddress.slice(colon + 1);
+  if (!STELLAR_ADDRESS.test(address)) {
+    return null;
+  }
+  return address;
+}
+
 /**
  * The claim wire form of a Bitcoin snap signature. The snap returns the
  * BIP-322 witness as base64; the route wants those bytes as `0x` hex.
@@ -258,6 +449,82 @@ function signatureFromKeyringResult(result: Json): string | null {
   return typeof signature === 'string' ? bitcoinProofHex(signature) : null;
 }
 
+/** An ed25519 signature is 64 bytes. The Solana snap returns it as base58. */
+const SOLANA_SIGNATURE_BYTES = 64;
+
+function solanaProofHex(signature: string): string | null {
+  try {
+    const bytes = Buffer.from(base58.decode(signature));
+    if (bytes.length !== SOLANA_SIGNATURE_BYTES) {
+      return null;
+    }
+    return `0x${bytes.toString('hex')}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The Stellar snap returns the SEP-53 signature as base64 on `signedMessage`.
+ * An error envelope keeps that field empty.
+ */
+function stellarProofHex(result: Json): string | null {
+  if (
+    typeof result !== 'object' ||
+    result === null ||
+    Array.isArray(result) ||
+    ('error' in result && result.error) ||
+    !('signedMessage' in result)
+  ) {
+    return null;
+  }
+  const { signedMessage } = result;
+  return typeof signedMessage === 'string'
+    ? bitcoinProofHex(signedMessage)
+    : null;
+}
+
+/**
+ * Sends `signMessage` to the snap that holds `accountId`. A missing snap, a
+ * refused confirmation, and any other keyring failure become `SIGN_FAILED`.
+ * `account` on the request is the snap account id; chain params stay with
+ * the caller.
+ */
+async function submitSnapSignMessage(
+  accountId: string,
+  scope: string,
+  params: Record<string, Json>,
+): Promise<Json> {
+  try {
+    return (await Engine.context.KeyringController.withKeyringV2(
+      {
+        filter: (keyring) =>
+          isSnapKeyring(keyring) && keyring.hasAccount(accountId),
+      },
+      async ({ keyring }) => {
+        if (!isSnapKeyring(keyring)) {
+          throw new Error('SIGN_FAILED');
+        }
+        return keyring.submitRequest({
+          id: uuidv4(),
+          origin: 'metamask',
+          scope,
+          account: accountId,
+          request: {
+            method: 'signMessage',
+            params,
+          },
+        });
+      },
+    )) as Json;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'SIGN_FAILED') {
+      throw error;
+    }
+    throw new Error('SIGN_FAILED');
+  }
+}
+
 /**
  * BIP-322 simple signature over the claim challenge, as `0x` hex.
  *
@@ -270,37 +537,69 @@ export async function signBitcoinClaimMessage(
   address: string,
   message: string,
 ): Promise<string> {
-  let result: Json;
-  try {
-    result = (await Engine.context.KeyringController.withKeyringV2(
-      {
-        filter: (keyring) =>
-          isSnapKeyring(keyring) && keyring.hasAccount(accountId),
-      },
-      async ({ keyring }) => {
-        if (!isSnapKeyring(keyring)) {
-          throw new Error('SIGN_FAILED');
-        }
-        return keyring.submitRequest({
-          id: uuidv4(),
-          origin: 'metamask',
-          scope: BtcScope.Mainnet,
-          account: accountId,
-          request: {
-            method: 'signMessage',
-            params: { account: { address }, message },
-          },
-        });
-      },
-    )) as Json;
-  } catch (error) {
-    if (error instanceof Error && error.message === 'SIGN_FAILED') {
-      throw error;
-    }
+  const result = await submitSnapSignMessage(accountId, BtcScope.Mainnet, {
+    account: { address },
+    message,
+  });
+  const signature = signatureFromKeyringResult(result);
+  if (!signature) {
     throw new Error('SIGN_FAILED');
   }
+  return signature;
+}
 
-  const signature = signatureFromKeyringResult(result);
+/**
+ * ed25519 signature over the raw claim challenge, as `0x` hex.
+ *
+ * The Solana keyring `signMessage` takes a base64 challenge, decodes it, and
+ * signs those UTF-8 bytes. `signRewardsMessage` only signs
+ * `rewards,<address>,<timestamp>` and refuses a claim challenge. The snap
+ * returns a base58 signature; the claim route wants those bytes as hex.
+ * `params.account` is the address; the request's `account` is the snap
+ * account id.
+ */
+export async function signSolanaClaimMessage(
+  accountId: string,
+  address: string,
+  message: string,
+): Promise<string> {
+  const result = await submitSnapSignMessage(accountId, SolScope.Mainnet, {
+    account: { address },
+    message: Buffer.from(message, 'utf8').toString('base64'),
+  });
+
+  if (
+    typeof result !== 'object' ||
+    result === null ||
+    Array.isArray(result) ||
+    !('signature' in result) ||
+    typeof result.signature !== 'string'
+  ) {
+    throw new Error('SIGN_FAILED');
+  }
+  const signature = solanaProofHex(result.signature);
+  if (!signature) {
+    throw new Error('SIGN_FAILED');
+  }
+  return signature;
+}
+
+/**
+ * SEP-53 signature over the raw claim challenge, as `0x` hex.
+ *
+ * The Stellar snap hashes `Stellar Signed Message:\n` plus the message itself
+ * and returns base64 on `signedMessage`. The challenge is sent as UTF-8, not
+ * base64, and `params` is only that message. The claim route wants the
+ * signature bytes as hex.
+ */
+export async function signStellarClaimMessage(
+  accountId: string,
+  message: string,
+): Promise<string> {
+  const result = await submitSnapSignMessage(accountId, XlmScope.Pubnet, {
+    message,
+  });
+  const signature = stellarProofHex(result);
   if (!signature) {
     throw new Error('SIGN_FAILED');
   }
@@ -417,13 +716,15 @@ export function claimToastText(
   return template.replaceAll('{minutes}', String(Math.ceil(seconds / 60)));
 }
 
-/** Segment `claim_type` for a claim route. Follow-trade has no route yet. */
+/** Segment `claim_type` for a claim route. */
 export function claimTypeForRoute(route: ClaimRouteSlug): string {
   switch (route) {
     case 'referral-trade-fee-cashback':
       return 'cashback';
     case 'referral-rev-share':
       return 'rev_share';
+    case 'social-follow-trade':
+      return 'follow_trade';
     default: {
       const unhandled: never = route;
       return unhandled;
@@ -439,7 +740,10 @@ export function claimFailureReason(reason: string): string {
   if (reason === 'MECHANISM_NOT_CLAIMABLE') {
     return 'not_claimable';
   }
-  if (CLAIMS_PAUSED_REASONS.has(reason)) {
+  if (
+    reason === 'TAX_DETERMINATION_REQUIRED' ||
+    CLAIMS_PAUSED_REASONS.has(reason)
+  ) {
     return 'paused';
   }
   if (reason === 'UNSUPPORTED_EARNING_ADDRESS') {
@@ -480,8 +784,8 @@ export interface RunEarningsClaimDeps {
   ) => Promise<InitiateClaimResult>;
   /**
    * Whether this handset can sign for the earning-address key. EVM software
-   * keys and mainnet Bitcoin accounts on this phone can. Solana, Tron,
-   * hardware accounts, and keys that live on another device cannot.
+   * keys, mainnet Bitcoin, Solana, and Stellar accounts on this phone can.
+   * Tron, hardware accounts, and keys that live on another device cannot.
    */
   canSignEarningAddress: (earningAddress: string) => boolean;
   signMessage: (message: string, earningAddress: string) => Promise<string>;

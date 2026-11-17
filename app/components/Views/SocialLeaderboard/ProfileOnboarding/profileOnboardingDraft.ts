@@ -8,15 +8,15 @@ import {
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
 import { generateUsername, MAX_USERNAME_LENGTH } from './generateUsername';
 
+/** The length the profile API accepts for a display name. */
+export const MAX_DISPLAY_NAME_LENGTH = 50;
+
 /** X account returned by ProfileController.connectX during onboarding. */
 export interface XOnboardingIdentity {
   username: string;
   displayName: string;
   avatarUrl: string | null;
 }
-
-/** Used when the signed-in session has no profile id yet. The mock service accepts it. */
-export const SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID = 'social-v1-profile';
 
 export type ProfileOnboardingPath = 'manual' | 'x';
 
@@ -55,11 +55,11 @@ export type UsernameStatus =
   | 'available';
 
 /** Server rule: letters, numbers, and underscores; edges allowed. */
-const USERNAME_PATTERN = /^[a-z0-9_]+$/;
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]+$/;
 export const MIN_USERNAME_LENGTH = 3;
 
 export const normalizeUsername = (value: string): string =>
-  value.trim().replace(/^@+/, '').toLowerCase();
+  value.trim().replace(/^@+/, '');
 
 export const getUsernameStatus = (value: string): UsernameStatus => {
   const username = normalizeUsername(value);
@@ -81,6 +81,7 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
 
 export const displayNameFromUsername = (value: string): string =>
   normalizeUsername(value)
+    .toLowerCase()
     .split('_')
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))

@@ -2,13 +2,17 @@ import Engine from '../../../app/core/Engine';
 import { assetIdsMatch } from '@metamask/bridge-controller';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { MOCK_RECURRING_ORDERS } from '../../../app/components/UI/Bridge/api/recurringOrders.mock';
+// CV exception: the API is hard-disabled, so HTTP mocks cannot exercise pending and failed cancellations.
+// eslint-disable-next-line import-x/no-namespace
+import * as recurringOrdersApi from '../../../app/components/UI/Bridge/api/recurringOrders';
 import { MOCK_RECURRING_SWAPS_BY_ORDER_ID } from '../../../app/components/UI/Bridge/api/recurringSwaps.mock';
 import {
+  type CancelRecurringOrderQuery,
   RecurringOrderState,
   type CancelRecurringOrderResponse,
   type GetRecurringOrdersByAssetResponse,
-  type GetRecurringOrdersResponse,
-  type GetRecurringSwapsResponse,
+  type ListRecurringOrdersResponse,
+  type ListRecurringSwapsResponse,
 } from '../../../app/components/UI/Bridge/api/recurringOrders.types';
 import type {
   RecurringOrdersByAssetQueryParams,
@@ -21,6 +25,9 @@ type MessengerCall = (action: string, ...args: unknown[]) => unknown;
 const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.MockedFunction<MessengerCall>;
 const defaultImplementation = messengerCall.getMockImplementation();
+let cancelRecurringOrderSpy:
+  | jest.SpiedFunction<typeof recurringOrdersApi.cancelRecurringOrder>
+  | undefined;
 
 interface RecurringOrdersDataServiceMockOptions {
   recurringOrders?: typeof getMockRecurringOrders;
@@ -42,14 +49,22 @@ function recurringAssetIdsMatch(left: string, right: string): boolean {
 function getMockOrders() {
   return MOCK_RECURRING_ORDERS.map((order) =>
     cancelledOrderIds.has(order.id)
-      ? { ...order, state: RecurringOrderState.Cancelled }
+      ? {
+          ...order,
+          state: RecurringOrderState.Cancelled,
+          isCancellable: false,
+          timingData: {
+            ...order.timingData,
+            closedAt: order.timingData.closedAt ?? order.timingData.endsAt,
+          },
+        }
       : order,
   );
 }
 
 export async function getMockRecurringOrders(
   params: RecurringOrdersQueryParams & { cursor?: string },
-): Promise<GetRecurringOrdersResponse> {
+): Promise<ListRecurringOrdersResponse> {
   const orders = getMockOrders()
     .filter((order) => {
       const sourceAssetId = order.src.asset.assetId;
@@ -75,12 +90,12 @@ export async function getMockRecurringOrders(
   const limit = params.limit ?? 20;
   const page = orders.slice(pageStart, pageStart + limit);
   const nextPageStart = pageStart + page.length;
+  const hasNextPage = nextPageStart < orders.length;
 
   return {
     orders: page,
-    ...(nextPageStart < orders.length
-      ? { nextCursor: String(nextPageStart) }
-      : {}),
+    ...(hasNextPage ? { endCursor: String(nextPageStart) } : {}),
+    hasNextPage,
   };
 }
 
@@ -109,7 +124,7 @@ export async function getMockRecurringOrdersByAsset(
 export async function getMockRecurringSwaps(
   orderId: string,
   params: RecurringSwapsQueryParams & { cursor?: string },
-): Promise<GetRecurringSwapsResponse> {
+): Promise<ListRecurringSwapsResponse> {
   const swaps = [...(MOCK_RECURRING_SWAPS_BY_ORDER_ID[orderId] ?? [])].sort(
     (left, right) =>
       Date.parse(right.timingData.executedAt ?? right.timingData.scheduledAt) -
@@ -119,30 +134,44 @@ export async function getMockRecurringSwaps(
   const limit = params.limit ?? 20;
   const page = swaps.slice(pageStart, pageStart + limit);
   const nextPageStart = pageStart + page.length;
+  const hasNextPage = nextPageStart < swaps.length;
 
   return {
     swaps: page,
-    ...(nextPageStart < swaps.length
-      ? { nextCursor: String(nextPageStart) }
-      : {}),
+    ...(hasNextPage ? { endCursor: String(nextPageStart) } : {}),
+    hasNextPage,
   };
 }
 
 export async function cancelMockRecurringOrder(
   orderId: string,
-  _accountAddress: string,
+  _query: CancelRecurringOrderQuery,
 ): Promise<CancelRecurringOrderResponse> {
   const order = getMockOrders().find(({ id }) => id === orderId);
   if (!order) {
     throw new Error('order_not_found');
   }
-  if (order.state !== RecurringOrderState.Open) {
+  if (order.state === RecurringOrderState.Cancelled) {
+    return { order };
+  }
+  if (
+    order.state === RecurringOrderState.Completed ||
+    order.state === RecurringOrderState.Expired
+  ) {
     throw new Error('order_not_cancellable');
   }
 
   cancelledOrderIds.add(orderId);
   return {
-    order: { ...order, state: RecurringOrderState.Cancelled },
+    order: {
+      ...order,
+      state: RecurringOrderState.Cancelled,
+      isCancellable: false,
+      timingData: {
+        ...order.timingData,
+        closedAt: order.timingData.closedAt ?? order.timingData.endsAt,
+      },
+    },
   };
 }
 
@@ -152,6 +181,11 @@ export function setupRecurringOrdersDataServiceMock({
   recurringSwaps = getMockRecurringSwaps,
   cancelRecurringOrder: cancelRecurringOrderRequest = cancelMockRecurringOrder,
 }: RecurringOrdersDataServiceMockOptions = {}) {
+  cancelRecurringOrderSpy?.mockRestore();
+  cancelRecurringOrderSpy = jest
+    .spyOn(recurringOrdersApi, 'cancelRecurringOrder')
+    .mockImplementation(cancelRecurringOrderRequest);
+
   messengerCall.mockImplementation(
     (...messengerArgs: [string, ...unknown[]]) => {
       const [action] = messengerArgs;
@@ -183,21 +217,15 @@ export function setupRecurringOrdersDataServiceMock({
         return recurringSwaps(orderId, { ...params, cursor });
       }
 
-      if (action === 'RecurringOrdersDataService:cancelRecurringOrder') {
-        const [, orderId, accountAddress] = messengerArgs as [
-          string,
-          string,
-          string,
-        ];
-        return cancelRecurringOrderRequest(orderId, accountAddress);
-      }
-
       return defaultImplementation?.(...messengerArgs);
     },
   );
 }
 
 export function clearRecurringOrdersDataServiceMock() {
+  cancelRecurringOrderSpy?.mockRestore();
+  cancelRecurringOrderSpy = undefined;
+
   if (defaultImplementation) {
     messengerCall.mockImplementation(defaultImplementation);
   } else {

@@ -3,7 +3,9 @@ import { act, renderHook } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import ReactQueryService from '../../../../../../core/ReactQueryService';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import { prefetchPaginatedTraderPositions } from '../../../../../../util/social/traderPositionsPagination';
 import { prefetchTraderProfileData } from '../../../../../../util/social/traderProfileQueries';
 import { usePrefetchTraderProfiles } from './usePrefetchTraderProfiles';
 
@@ -25,6 +27,15 @@ jest.mock('../../../../../../core/ReactQueryService', () => ({
 jest.mock('../../../../../../util/social/traderProfileQueries', () => ({
   prefetchTraderProfileData: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock('../../../../../../util/social/traderPositionsPagination', () => ({
+  prefetchPaginatedTraderPositions: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockPrefetchPaginatedTraderPositions =
+  prefetchPaginatedTraderPositions as jest.MockedFunction<
+    typeof prefetchPaginatedTraderPositions
+  >;
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
@@ -108,6 +119,34 @@ describe('usePrefetchTraderProfiles', () => {
     await flushDeferredPrefetch();
 
     expect(mockPrefetchTraderProfileData).toHaveBeenCalledWith(
+      ReactQueryService.queryClient,
+      'trader-1',
+    );
+    expect(mockPrefetchPaginatedTraderPositions).not.toHaveBeenCalled();
+  });
+
+  it('warms the profile and paginated positions when SocialV1 is enabled', async () => {
+    mockUseSelector.mockImplementation((selector) =>
+      selector === selectIsUnlocked || selector === selectIsSocialV1Enabled
+        ? true
+        : undefined,
+    );
+
+    renderHook(() =>
+      usePrefetchTraderProfiles(['trader-1'], {
+        enabled: true,
+        isSectionVisible: true,
+      }),
+    );
+
+    await flushDeferredPrefetch();
+
+    expect(mockPrefetchTraderProfileData).toHaveBeenCalledWith(
+      ReactQueryService.queryClient,
+      'trader-1',
+      { includePositions: false },
+    );
+    expect(mockPrefetchPaginatedTraderPositions).toHaveBeenCalledWith(
       ReactQueryService.queryClient,
       'trader-1',
     );

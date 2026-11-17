@@ -146,7 +146,7 @@ const SectionRule = () => (
 
 /**
  * One contract check — a label, the check's own wording, and a fail glyph
- * when the check failed.
+ * when its answer is bad news.
  *
  * An unresolved check shows a dimmed dash and no glyph. That matters more here
  * than on the stat rows: Blockaid reports only the risks it detected and never

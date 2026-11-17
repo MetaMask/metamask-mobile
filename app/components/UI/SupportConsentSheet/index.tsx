@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   ButtonsAlignment,
   Checkbox,
   Text,
@@ -21,6 +20,9 @@ import {
   setDataSharingPreference,
   setShouldShowConsentSheet,
 } from '../../../actions/security';
+import { SUPPORT_CONSENT_SHEET_TEST_IDS } from './SupportConsentSheet.testIds';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export interface SupportConsentSheetParams {
   onConfirm: () => void;
@@ -34,6 +36,7 @@ export interface SupportConsentSheetParams {
  * Settings > Security & privacy > "Remember my support preference".
  */
 const SupportConsentSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<ParamListBase, string>>();
@@ -69,13 +72,17 @@ const SupportConsentSheet = () => {
   };
 
   return (
-    <BottomSheet goBack={navigation.goBack} testID="support-consent-sheet">
-      <BottomSheetHeader
+    <BottomSheet
+      goBack={navigation.goBack}
+      testID={SUPPORT_CONSENT_SHEET_TEST_IDS.CONTAINER}
+    >
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleDismiss}
-        closeButtonProps={{ testID: 'support-consent-sheet-close-button' }}
+        closeButtonProps={{ testID: SUPPORT_CONSENT_SHEET_TEST_IDS.CLOSE }}
       >
         {strings('support_consent.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Text variant={TextVariant.BodyMd} twClassName="px-4 pb-4">
         {strings('support_consent.description')}
       </Text>
@@ -84,19 +91,19 @@ const SupportConsentSheet = () => {
         onChange={setSavePreference}
         label={strings('support_consent.save_preference')}
         twClassName="px-4 pb-4"
-        testID="support-consent-sheet-save-preference-checkbox"
+        testID={SUPPORT_CONSENT_SHEET_TEST_IDS.SAVE_PREFERENCE}
       />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         primaryButtonProps={{
           children: strings('support_consent.confirm'),
           onPress: handleConfirm,
-          testID: 'support-consent-sheet-confirm-button',
+          testID: SUPPORT_CONSENT_SHEET_TEST_IDS.CONFIRM,
         }}
         secondaryButtonProps={{
           children: strings('support_consent.reject'),
           onPress: handleReject,
-          testID: 'support-consent-sheet-reject-button',
+          testID: SUPPORT_CONSENT_SHEET_TEST_IDS.REJECT,
         }}
       />
     </BottomSheet>

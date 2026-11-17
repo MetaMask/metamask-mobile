@@ -3,7 +3,6 @@ import {
   AvatarIconSeverity,
   AvatarIconSize,
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxBackgroundColor,
@@ -43,7 +42,14 @@ import {
   buildSpotPostTradeComposerParams,
   openPostTradeComposer,
 } from './postTradeComposerParams';
-import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import {
+  getSocialEventSource,
+  SocialEvent,
+  useSocialScreenAnalytics,
+} from '../analytics';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const ILLUSTRATION_SIZE = 64;
 
@@ -109,8 +115,9 @@ const navigateToActivity = (product: PostTradeShareSession['product']) => {
   }
   NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW);
 };
-const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
+const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const PostTradeShareBottomSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const session = useSyncExternalStore(
     subscribePostTradeShareSession,
     getPostTradeShareSession,
@@ -118,7 +125,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
   );
 
   const isPerps = session?.product === 'perps';
-  const source = Source.TRADER_FEED;
+  const source = getSocialEventSource(session?.analyticsSource);
   const tradeType = isPerps ? Trade.PERPS : Trade.SPOT;
   const trackInteraction = useSocialScreenAnalytics(
     Screen.POST_TRADE_SHARE_SHEET,
@@ -196,6 +203,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
         ? buildPerpsPostTradeComposerParams({
             orderId: session.orderId,
             preview: session.preview,
+            analyticsSource: session.analyticsSource,
           })
         : session.product === 'spot' &&
             session.transactionHash &&
@@ -204,6 +212,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
               transactionHash: session.transactionHash,
               chain: session.tradeInFlightChain,
               preview: session.preview,
+              analyticsSource: session.analyticsSource,
             })
           : undefined;
     if (!params) {
@@ -240,7 +249,8 @@ const PostTradeShareBottomSheet: React.FC = () => {
       onClose={handleClose}
       testID={PostTradeShareBottomSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PostTradeShareBottomSheetSelectorsIDs.CLOSE_BUTTON,
@@ -251,7 +261,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
         twClassName="pt-4 h-auto"
       >
         <StatusIcon status={session.status} />
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box alignItems={BoxAlignItems.Center} twClassName="gap-1 px-4 py-3">
         <Text
           variant={TextVariant.HeadingLg}

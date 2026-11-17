@@ -252,7 +252,7 @@ describe('Analyze App Profiling triggers', () => {
     expect(workflow.permissions).toStrictEqual({});
   });
 
-  it('does not grant issues: write while filing is paused', () => {
+  it('grants issues: write only to the job that files findings', () => {
     const workflow = loadWorkflow();
 
     const writers = Object.entries(workflow.jobs)
@@ -260,9 +260,9 @@ describe('Analyze App Profiling triggers', () => {
       .map(([name]) => name);
 
     expect(workflow.jobs.analyze.permissions).toMatchObject({
-      issues: 'read',
+      issues: 'write',
     });
-    expect(writers).toStrictEqual([]);
+    expect(writers).toStrictEqual(['analyze']);
     expect(workflow.jobs['upload-scenario-profiles'].permissions).toStrictEqual(
       {},
     );
@@ -272,7 +272,7 @@ describe('Analyze App Profiling triggers', () => {
     });
   });
 
-  it('does not open or comment on GitHub issues', () => {
+  it('opens a GitHub issue only for a scheduled finding on main', () => {
     const workflow = loadWorkflow();
     const analysisStep = workflow.jobs.analyze.steps.find(
       (step) => step.name === 'Analyze app profiling',
@@ -280,11 +280,16 @@ describe('Analyze App Profiling triggers', () => {
     const command = analysisStep?.run ?? '';
 
     expect(workflow.jobs.analyze.permissions).toMatchObject({
-      issues: 'read',
+      issues: 'write',
     });
-    expect(analysisStep?.env?.SCHEDULED_EXCEPTION_BRANCH).toBeUndefined();
-    expect(command).not.toContain('SCHEDULED_EXCEPTION_BRANCH');
-    expect(command).not.toContain('ARGS+=(--github-issues)');
+    expect(analysisStep?.env?.SCHEDULED_EXCEPTION_BRANCH).toBe(
+      '${{ github.ref_name }}',
+    );
+    expect(command).toContain('SCHEDULED_EXCEPTION_BRANCH');
+    expect(command).toContain(
+      'if [ "${SCHEDULED_EXCEPTION_BRANCH}" = "main" ]; then',
+    );
+    expect(command).toContain('ARGS+=(--github-issues)');
     // Monday still lists issues that were already opened. That flag does not
     // create or comment.
     expect(command).toContain(
@@ -312,7 +317,7 @@ describe('Analyze App Profiling triggers', () => {
     );
   });
 
-  it('DMs a scheduled issue verdict to one person and does not post channels', () => {
+  it('posts a scheduled finding to the performance channel', () => {
     const workflow = loadWorkflow();
     const notify = workflow.jobs['publish-summary'];
     const slackSteps = Object.values(workflow.jobs).flatMap((job) =>
@@ -320,7 +325,7 @@ describe('Analyze App Profiling triggers', () => {
         (step.run ?? '').includes('post-app-profiling-slack.mjs'),
       ),
     );
-    const dm = slackSteps[0];
+    const post = slackSteps[0];
 
     expect(workflow.env?.SLACK_TARGET).toBeUndefined();
     expect(workflow.env?.SLACK_PERFORMANCE_TARGET).toBeUndefined();
@@ -332,16 +337,16 @@ describe('Analyze App Profiling triggers', () => {
       notify.steps.find((step) => step.name === 'Post Slack summary'),
     ).toBeUndefined();
     expect(slackSteps).toHaveLength(1);
-    expect(dm?.name).toBe('DM issue verdict');
-    expect(dm?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
-    expect(dm?.env?.SLACK_BOT_TOKEN).toBe('${{ secrets.SLACK_BOT_TOKEN }}');
-    expect(dm?.env?.SLACK_PLAIN).toBe('1');
-    expect(dm?.['continue-on-error']).toBe(true);
-    expect(dm?.run).toContain('issue-dm.md');
-    expect(dm?.run).not.toContain('slack.md');
-    expect(dm?.run).not.toContain('slack-performance.md');
-    expect(dm?.run).not.toContain('C07KB8HRZ4J');
-    expect(dm?.run).not.toContain('C0C3WSWNKS5');
+    expect(post?.name).toBe('Post finding to performance channel');
+    expect(post?.env?.SLACK_TARGET).toBe('C07KB8HRZ4J');
+    expect(post?.env?.SLACK_BOT_TOKEN).toBe('${{ secrets.SLACK_BOT_TOKEN }}');
+    expect(post?.env?.SLACK_PLAIN).toBe('1');
+    expect(post?.['continue-on-error']).toBe(true);
+    expect(post?.run).toContain('performance-channel.md');
+    expect(post?.run).not.toContain('issue-dm.md');
+    expect(post?.run).not.toContain('slack.md');
+    expect(post?.run).not.toContain('UEYQL2PEV');
+    expect(post?.run).not.toContain('C0C3WSWNKS5');
   });
 
   it('keeps digests for a week and collected history for two', () => {
@@ -482,7 +487,7 @@ describe('Run Performance E2E Tests Manually calls the analysis', () => {
       contents: 'read',
       actions: 'read',
       'pull-requests': 'read',
-      issues: 'read',
+      issues: 'write',
     });
   });
 });

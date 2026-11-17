@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { Alert, ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
 import { useTheme } from '../../../../util/theme';
 import {
   Button,
@@ -29,6 +30,7 @@ import {
   setIsDaimoDemo,
 } from '../../../../core/redux/slices/card';
 import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
@@ -43,6 +45,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
   const dispatch = useDispatch();
   const performanceMetrics = useSelector(selectPerformanceMetrics);
   const isDaimoDemo = useSelector(selectIsDaimoDemo);
+  const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
 
   const theme = useTheme();
   const { colors, brandColors } = theme;
@@ -164,6 +167,58 @@ const ExperimentalSettings = ({ navigation }: Props) => {
     }
   };
 
+  const handleCardLogout = () => {
+    Alert.alert(
+      strings('card.card_home.logout_confirmation_title'),
+      strings('card.card_home.logout_confirmation_message'),
+      [
+        {
+          text: strings('card.card_home.logout_confirmation_cancel'),
+          style: 'cancel',
+        },
+        {
+          text: strings('card.card_home.logout_confirmation_confirm'),
+          style: 'destructive',
+          onPress: () => {
+            Engine.context.CardController.logout().catch(() => {
+              // CardController logs provider logout failures itself.
+            });
+          },
+        },
+      ],
+    );
+  };
+
+  const renderCardLogoutSettings = () => (
+    <View style={styles.heading}>
+      <Text
+        color={TextColor.TextDefault}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+      >
+        {strings('experimental_settings.card_logout_title')}
+      </Text>
+      <Text
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        style={styles.desc}
+      >
+        {strings('experimental_settings.card_logout_desc')}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleCardLogout}
+        isFullWidth
+        style={styles.accessory}
+        testID={ExperimentalSelectorsIDs.CARD_LOGOUT_BUTTON}
+      >
+        {strings('experimental_settings.card_logout_cta')}
+      </Button>
+    </View>
+  );
+
   const renderPerformanceSettings = () => (
     <View style={styles.heading}>
       <Text
@@ -201,6 +256,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
       <ScrollView style={styles.content}>
         {renderWalletConnectSettings()}
         {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
+        {isCardAuthenticated && renderCardLogoutSettings()}
         {isTestEnvironment && renderPerformanceSettings()}
       </ScrollView>
     </SafeAreaView>

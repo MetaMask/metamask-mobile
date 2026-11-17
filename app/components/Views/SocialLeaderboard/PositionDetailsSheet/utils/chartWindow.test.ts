@@ -1,68 +1,20 @@
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
-import { DAY_MS, NOW_MS, buildTrade } from '../positionDetailsSheet.fixtures';
+import { DAY_MS, NOW_MS } from '../positionDetailsSheet.fixtures';
 import {
-  DEFAULT_CHART_WINDOW_MS,
   buildTimeAxisLabels,
+  chartWindowForPeriod,
   deriveDailyChangePercent,
   formatChartTimestamp,
-  getFirstTradeMs,
-  resolveChartWindow,
-  resolveSpotPeriod,
   sliceToWindow,
 } from './chartWindow';
 
 describe('chartWindow', () => {
-  describe('getFirstTradeMs', () => {
-    it('returns the earliest fill, normalising second timestamps', () => {
-      const trades = [
-        buildTrade({ timestamp: (NOW_MS - DAY_MS) / 1000 }),
-        buildTrade({ timestamp: NOW_MS - 3 * DAY_MS }),
-      ];
-
-      expect(getFirstTradeMs(trades)).toBe(NOW_MS - 3 * DAY_MS);
-    });
-
-    it('returns undefined without trades', () => {
-      expect(getFirstTradeMs(undefined)).toBeUndefined();
-      expect(getFirstTradeMs([])).toBeUndefined();
-    });
-  });
-
-  describe('resolveChartWindow', () => {
-    it('uses the last seven days when every fill falls inside them', () => {
-      const result = resolveChartWindow(
-        [buildTrade({ timestamp: NOW_MS - 2 * DAY_MS })],
-        NOW_MS,
-      );
-
-      expect(result).toEqual({
-        startMs: NOW_MS - DEFAULT_CHART_WINDOW_MS,
+  describe('chartWindowForPeriod', () => {
+    it('ends now and looks back one day by default', () => {
+      expect(chartWindowForPeriod('1D', NOW_MS)).toEqual({
+        startMs: NOW_MS - DAY_MS,
         endMs: NOW_MS,
       });
-    });
-
-    it('widens to reach past a fill older than seven days', () => {
-      const firstTradeMs = NOW_MS - 20 * DAY_MS;
-
-      const result = resolveChartWindow(
-        [buildTrade({ timestamp: firstTradeMs })],
-        NOW_MS,
-      );
-
-      expect(result.endMs).toBe(NOW_MS);
-      expect(result.startMs).toBe(firstTradeMs - 2 * DAY_MS);
-    });
-  });
-
-  describe('resolveSpotPeriod', () => {
-    it.each([
-      [7 * DAY_MS, '1W'],
-      [20 * DAY_MS, '1M'],
-      [90 * DAY_MS, 'All'],
-    ])('maps a %d ms span to %s', (span, expected) => {
-      expect(resolveSpotPeriod({ startMs: NOW_MS - span, endMs: NOW_MS })).toBe(
-        expected,
-      );
     });
   });
 
@@ -87,31 +39,46 @@ describe('chartWindow', () => {
   });
 
   describe('buildTimeAxisLabels', () => {
-    it('labels a one-week window with weekdays', () => {
+    it('labels a day with hours and minutes', () => {
       const labels = buildTimeAxisLabels(
-        { startMs: NOW_MS - 7 * DAY_MS, endMs: NOW_MS },
+        { startMs: NOW_MS - DAY_MS, endMs: NOW_MS },
         4,
+        '1D',
       );
+      const end = new Date(NOW_MS);
+      const endLabel = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
 
       expect(labels).toHaveLength(4);
-      labels.forEach((label) =>
-        expect(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).toContain(
-          label,
-        ),
-      );
+      expect(labels[3]).toBe(endLabel);
+      labels.forEach((label) => expect(label).toMatch(/^\d{2}:\d{2}$/));
     });
 
-    it('labels a wider window with month and day', () => {
+    it('labels a week with numeric month and day', () => {
       const labels = buildTimeAxisLabels(
-        { startMs: NOW_MS - 30 * DAY_MS, endMs: NOW_MS },
+        { startMs: NOW_MS - 7 * DAY_MS, endMs: NOW_MS },
         2,
+        '1W',
       );
+      const end = new Date(NOW_MS);
 
-      expect(labels[1]).toMatch(/^Oct \d{1,2}$/);
+      expect(labels[1]).toBe(`${end.getMonth() + 1}/${end.getDate()}`);
+    });
+
+    it('labels a multi-year window with month and year', () => {
+      const labels = buildTimeAxisLabels(
+        { startMs: NOW_MS - 3 * 365 * DAY_MS, endMs: NOW_MS },
+        2,
+        'All',
+      );
+      const end = new Date(NOW_MS);
+
+      expect(labels[1]).toBe(`Oct ${end.getFullYear()}`);
     });
 
     it('returns no labels for fewer than two slots', () => {
-      expect(buildTimeAxisLabels({ startMs: 0, endMs: NOW_MS }, 1)).toEqual([]);
+      expect(
+        buildTimeAxisLabels({ startMs: 0, endMs: NOW_MS }, 1, '1D'),
+      ).toEqual([]);
     });
   });
 

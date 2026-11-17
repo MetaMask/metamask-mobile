@@ -25,7 +25,17 @@ describe('useSocialTermsGate', () => {
     const { result } = renderHook(() => useSocialTermsGate());
 
     expect(result.current.ensureSocialTermsAccepted()).toBe(true);
-    expect(mockEnsure).toHaveBeenCalledWith(mockNavigate);
+    expect(mockEnsure).toHaveBeenCalledWith(mockNavigate, undefined);
+  });
+
+  it('passes the blocked action through to the gate', () => {
+    mockEnsure.mockReturnValue(false);
+    const onAccepted = jest.fn();
+    const { result } = renderHook(() => useSocialTermsGate());
+
+    result.current.ensureSocialTermsAccepted(onAccepted);
+
+    expect(mockEnsure).toHaveBeenCalledWith(mockNavigate, onAccepted);
   });
 
   it('returns false when the terms are not accepted', () => {

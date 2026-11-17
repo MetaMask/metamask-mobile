@@ -94,6 +94,16 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+jest.mock('../../PredictNext', () => ({
+  PredictEventValues: { ENTRY_POINT: { REWARDS: 'rewards' } },
+  createPredictCampaignEventRef: jest.fn(),
+  usePredictAvailability: () => true,
+  usePredictEntryActions: () => ({
+    openPredict: jest.fn(),
+    canOpenPredict: () => true,
+  }),
+}));
+
 jest.mock('../hooks/useGetPredictThePitchPositions');
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
@@ -110,6 +120,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../utils/formatUtils', () => ({
+  ...jest.requireActual('../utils/formatUtils'),
   formatRewardsTimeOnly: () => '10:30 AM',
   formatRewardsDateLabel: (date: Date) => date.toISOString().slice(0, 10),
 }));

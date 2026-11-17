@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import { getSwapsLiveness, CHAIN_ID_TO_NAME_MAP } from './utils';
 import { invert, omit } from 'lodash';
 import { toHex } from '@metamask/controller-utils';
@@ -8,27 +7,6 @@ export const getFeatureFlagChainId = (chainId) => chainId;
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
 export const SWAPS_SET_HAS_ONBOARDED = 'SWAPS_SET_HAS_ONBOARDED';
-
-// * Action Creator
-export const setSwapsLiveness = (chainId, featureFlags) => ({
-  type: SWAPS_SET_LIVENESS,
-  payload: { chainId, featureFlags },
-});
-export const setSwapsHasOnboarded = (hasOnboarded) => ({
-  type: SWAPS_SET_HAS_ONBOARDED,
-  payload: hasOnboarded,
-});
-
-// * Selectors
-const swapsStateSelector = (state) => state.swaps;
-
-/**
- * Returns the swaps onboarded state
- */
-export const swapsHasOnboardedSelector = createSelector(
-  swapsStateSelector,
-  (swapsState) => swapsState.hasOnboarded,
-);
 
 // * Reducer
 export const initialState = {

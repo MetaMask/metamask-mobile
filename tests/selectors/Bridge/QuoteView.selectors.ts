@@ -23,7 +23,6 @@ export const QuoteViewSelectorText = {
   FEE_DISCLAIMER: enContent.bridge.fee_disclaimer,
   FEE_DISCLAIMER_QUOTE_VISIBLE,
   MAX: enContent.bridge.max,
-  INCLUDED: enContent.bridge.included,
   RATE: enContent.bridge.rate,
   RWA_GEO_RESTRICTED_MESSAGE:
     enContent.bridge.quote_stream_complete_rwa_geo_restricted,

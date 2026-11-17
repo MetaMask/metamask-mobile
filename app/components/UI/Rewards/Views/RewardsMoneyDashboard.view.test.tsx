@@ -7,12 +7,16 @@
  */
 import '../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../components/Money/ClaimableRewardsCard.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
+import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard.testIds';
 import { EARNINGS_TAB_TEST_IDS } from '../components/Money/Tabs/EarningsTab.testIds';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { renderRewardsMoneyDashboard } from '../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   CLAIMABLE_EARNINGS_SUMMARY,
@@ -20,6 +24,8 @@ import {
   referralMeFixture,
   REFERRAL_LOCALIZED_TEXT,
 } from '../../../../../tests/component-view/presets/rewardsMoney';
+import { formatMusdBaseUnits } from '../utils/formatUtils';
+import { selfEarnedLifetime } from '../utils/earningsSummaryTotals';
 
 function callsFor(engine: jest.Mock, action: string): unknown[][] {
   return engine.mock.calls.filter((call) => call[0] === action);
@@ -88,6 +94,75 @@ describe('RewardsMoneyDashboard', () => {
       ),
     ).toBeOnTheScreen();
   });
+
+  it('refetches the earnings summary once when Retry is pressed after a 503 (E4, RWDS-1674)', async () => {
+    let rejectSummary = true;
+    const refereeRebateTotal = formatMusdBaseUnits(
+      selfEarnedLifetime(
+        CLAIMABLE_EARNINGS_SUMMARY,
+        'REFERRAL_TRADE_FEE_CASHBACK',
+      ),
+    );
+    if (!refereeRebateTotal) {
+      throw new Error('Referee rebate total missing from the summary fixture');
+    }
+    const { findByTestId, findByText, queryByTestId, engine } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        summary: null,
+        handlers: {
+          'RewardsMoneyController:getEarningsSummary': () =>
+            rejectSummary
+              ? Promise.reject(
+                  new RewardsMoneyHttpError(
+                    'Get earnings summary failed: 503',
+                    503,
+                    JSON.stringify({ reason: 'SERVER_BUSY' }),
+                    2,
+                  ),
+                )
+              : Promise.resolve(CLAIMABLE_EARNINGS_SUMMARY),
+        },
+      });
+
+    // The rejected earnings summary renders the error banner.
+    const banner = await findByTestId(
+      REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR,
+      {},
+      { timeout: 3000 },
+    );
+    const summaryCallsBeforeRetry = callsFor(
+      engine,
+      'RewardsMoneyController:getEarningsSummary',
+    ).length;
+    const ledgerCallsBeforeRetry = callsFor(
+      engine,
+      'RewardsMoneyController:getEarningsLedger',
+    ).length;
+
+    rejectSummary = false;
+    fireEvent.press(
+      within(banner).getByText(
+        strings('rewards.referral_details_error.retry_button'),
+      ),
+    );
+
+    // The retried earnings summary replaces the error banner.
+    expect(
+      await findByText(refereeRebateTotal, {}, { timeout: 3000 }),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getEarningsSummary'),
+      ).toHaveLength(summaryCallsBeforeRetry + 1);
+    });
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
+    ).toHaveLength(ledgerCallsBeforeRetry);
+    expect(
+      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR),
+    ).not.toBeOnTheScreen();
+  });
 });
 
 describe('RewardsMoneyDashboard settings', () => {
@@ -141,6 +216,29 @@ describe('RewardsMoneyDashboard settings', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('keeps Ways to earn, Earnings, and Performance visible in an excluded region (A4)', async () => {
+    const { getByTestId, queryByTestId } = await openDashboard({
+      geoLocation: 'GB',
+      referralMe: {
+        ...referralMeFixture('plain'),
+        excluded_regions: ['GB'],
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    ).toBeOnTheScreen();
+  });
+
   it('opens settings when subscribed even if the profile is a referrer', async () => {
     const { getByTestId, findByTestId } = await openDashboard({
       ...subscribed,
@@ -154,5 +252,38 @@ describe('RewardsMoneyDashboard settings', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.REWARDS_SETTINGS_VIEW)),
     ).toBeOnTheScreen();
+  });
+});
+
+describe('RewardsMoneyDashboard glass header', () => {
+  it('floats the header over the content when glass headers are on', async () => {
+    const { findByTestId, getByTestId } = renderRewardsMoneyDashboard({
+      persona: 'plain',
+      moneyControllerEnabled: true,
+      subscriptionId: 'sub-1',
+      glassHeaders: true,
+    });
+
+    expect(await findByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
+    );
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.REWARDS_SETTINGS_VIEW)),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the solid header when glass headers are off', async () => {
+    const { findByTestId, queryByTestId } = renderRewardsMoneyDashboard({
+      persona: 'plain',
+      moneyControllerEnabled: true,
+    });
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
   });
 });

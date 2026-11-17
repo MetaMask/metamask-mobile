@@ -115,10 +115,10 @@ const rowIds = (markets: readonly PredictMarket[]) => {
 };
 
 describe('MoneylineMarketGroupCard', () => {
-  it('renders a full-game moneyline as two Team rows, away first', () => {
-    renderCard([home, away]);
+  it('renders a full-game moneyline as two Team rows', () => {
+    renderCard([away, home]);
 
-    expect(rowIds([home, away])).toEqual([
+    expect(rowIds([away, home])).toEqual([
       TestIds.row(GROUP, away.id),
       TestIds.row(GROUP, home.id),
     ]);
@@ -131,9 +131,9 @@ describe('MoneylineMarketGroupCard', () => {
   });
 
   it('renders a period moneyline with the tie between the Teams', () => {
-    renderCard([home, tie, away]);
+    renderCard([away, tie, home]);
 
-    expect(rowIds([home, tie, away])).toEqual([
+    expect(rowIds([away, tie, home])).toEqual([
       TestIds.row(GROUP, away.id),
       TestIds.row(GROUP, tie.id),
       TestIds.row(GROUP, home.id),

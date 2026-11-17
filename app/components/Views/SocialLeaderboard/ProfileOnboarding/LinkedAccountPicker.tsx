@@ -2,7 +2,6 @@ import {
   AvatarAccount,
   AvatarAccountSize,
   BottomSheetDialog,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -11,14 +10,12 @@ import {
   IconColor,
   IconName,
   IconSize,
-  ListItemSelect,
-  Switch,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -27,8 +24,11 @@ import { getAvatarAccountVariant } from '../../../../component-library/component
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useTheme } from '../../../../util/theme';
 import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
+import SocialAccountSectionList from '../shared/SocialAccountSectionList';
 import TradingActivityBenefits from '../shared/TradingActivityBenefits';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   root: {
@@ -49,8 +49,8 @@ interface LinkedAccountPickerProps {
 
 /**
  * Account step controls: the linked-account dropdown, the trading-activity
- * switch, and the benefit list. The sheet is built from BottomSheetDialog
- * and ListItemSelect.
+ * switch, and the benefit list. The sheet lists accounts with the homepage
+ * account cell and wallet title.
  */
 const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   accounts,
@@ -59,12 +59,19 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   onSelect,
   onShareTradingActivityChange,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const selectedAccount =
     accounts.find((account) => account.id === selectedAccountId) ?? accounts[0];
+  // Design-system Switch copies `label` into accessibilityLabel and ignores a
+  // passed accessibilityLabel. This row keeps its own text so the label can
+  // fill the row, and the native switch carries the accessible name.
+  const tradingActivityLabel = strings(
+    'social_leaderboard.manage_profile.show_trading_activity',
+  );
 
   const closeSheet = useCallback(() => {
     setIsSheetOpen(false);
@@ -80,7 +87,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      <Box gap={4}>
+      <Box gap={3}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={strings(
@@ -130,15 +137,30 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
           </Box>
         </Pressable>
 
-        <Box twClassName="bg-muted rounded-xl px-4 py-3">
-          <Switch
-            isOn={shareTradingActivity}
-            onValueChange={onShareTradingActivityChange}
-            label={strings(
-              'social_leaderboard.manage_profile.show_trading_activity',
-            )}
-            testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
-          />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="bg-muted rounded-xl pl-4 pr-3 h-14 mb-3"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="flex-1 mr-2"
+          >
+            {tradingActivityLabel}
+          </Text>
+          {/* The native switch draws at the top of a stretched frame. A 32px
+              slot matches the control, and the row centers that slot on the label. */}
+          <Box twClassName="h-8 items-center justify-center">
+            <Switch
+              value={shareTradingActivity}
+              onValueChange={onShareTradingActivityChange}
+              accessibilityRole="switch"
+              accessibilityLabel={tradingActivityLabel}
+              accessibilityState={{ checked: shareTradingActivity }}
+              testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
+            />
+          </Box>
         </Box>
 
         <TradingActivityBenefits
@@ -184,7 +206,8 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
                   onClose={closeSheet}
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_SHEET}
                 >
-                  <BottomSheetHeader
+                  <BottomSheetHeaderGlass
+                    isGlass={isGlassHeader}
                     onClose={closeSheet}
                     closeButtonProps={{
                       testID:
@@ -194,26 +217,16 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
                     {strings(
                       'social_leaderboard.profile_onboarding.select_account',
                     )}
-                  </BottomSheetHeader>
+                  </BottomSheetHeaderGlass>
                   <ScrollView style={styles.accountList}>
-                    {accounts.map((account) => (
-                      <ListItemSelect
-                        key={account.id}
-                        isSelected={account.id === selectedAccount?.id}
-                        showSelectedIcon
-                        avatar={
-                          <AvatarAccount
-                            address={account.address}
-                            size={AvatarAccountSize.Md}
-                            variant={avatarVariant}
-                          />
-                        }
-                        title={account.name}
-                        description={account.balanceLabel || undefined}
-                        onPress={() => handleSelect(account)}
-                        testID={`${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-${account.id}`}
-                      />
-                    ))}
+                    <SocialAccountSectionList
+                      accounts={accounts}
+                      onSelect={handleSelect}
+                      rowTestIdPrefix={
+                        SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW
+                      }
+                      selectedAccountId={selectedAccount?.id}
+                    />
                   </ScrollView>
                 </BottomSheetDialog>
               </Box>

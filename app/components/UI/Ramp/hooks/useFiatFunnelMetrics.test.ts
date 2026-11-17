@@ -267,6 +267,7 @@ describe('useFiatFunnelMetrics', () => {
 describe('getFiatFunnelRampSurface', () => {
   it.each([
     [TransactionType.moneyAccountDeposit, RAMP_SURFACE.MONEY_ACCOUNT],
+    [TransactionType.membershipSubscription, RAMP_SURFACE.MONEY_ACCOUNT],
     [TransactionType.perpsDeposit, undefined],
     [TransactionType.predictDeposit, undefined],
     [TransactionType.moneyAccountWithdraw, undefined],

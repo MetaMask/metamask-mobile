@@ -22,10 +22,12 @@ import PerpsTileRowItem from '../feeds/perps/PerpsTileRowItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
-import { usePredictEntryActions } from '../../../UI/PredictNext';
+import {
+  PredictTrendingCarousel,
+  usePredictEntryActions,
+  usePredictTrendingFeed,
+} from '../../../UI/PredictNext';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import ExploreSectionList, {
@@ -136,8 +138,8 @@ const CryptoTabContent: React.FC<TabProps> = ({
   } = useRobinhoodBanner(RobinhoodBannerSurface.ExploreCrypto);
 
   const tokens = useTokensFeed({ refresh });
-  const cryptoPredictions = usePredictionsFeed({
-    variant: 'crypto',
+  const cryptoPredictions = usePredictTrendingFeed({
+    tab: 'crypto',
     refresh,
   });
   const cryptoPerps = usePerpsFeed({
@@ -235,7 +237,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
       items.push({
         key: 'predictions',
         content: (
-          <PredictionsCarouselSection
+          <PredictTrendingCarousel
             feed={cryptoPredictions}
             tabName="Crypto"
             sectionName="predictions_crypto"

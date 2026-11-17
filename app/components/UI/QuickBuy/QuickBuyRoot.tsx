@@ -192,6 +192,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       onClose={onClose}
       onOpen={handleSheetOpened}
       isFullscreen
+      keyboardAvoidingViewEnabled={false}
     >
       {isContentReady ? (
         <QuickBuyProvider

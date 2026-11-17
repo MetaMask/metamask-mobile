@@ -2,9 +2,10 @@ import React, { useCallback } from 'react';
 import { useTheme } from '../../../../../util/theme';
 import type { PredictGame, PredictMarket, PredictOutcome } from '../../types';
 import {
-  GAME_TEAM_ORDER,
+  getGameTeamOrder,
   useGameTeamColors,
   type GameSelection,
+  type GameTeamOrder,
 } from '../game';
 import { formatMarketGroupOption } from '../shared/formatting';
 import {
@@ -44,10 +45,10 @@ const NO_FIRST = ['no', 'yes'] as const;
  * Rows follow the Game's Team order, whichever Team the selected line's yes
  * side backs. Without a Team, yes comes first.
  */
-const orderSides = (market: PredictMarket) => {
+const orderSides = (teamOrder: GameTeamOrder, market: PredictMarket) => {
   const yes = market.outcomes.find((outcome) => outcome.side === 'yes');
   const yesTeam = yes ? rowTeam(market, yes) : undefined;
-  return yesTeam === undefined || yesTeam === GAME_TEAM_ORDER[0]
+  return yesTeam === undefined || yesTeam === teamOrder[0]
     ? YES_FIRST
     : NO_FIRST;
 };
@@ -74,12 +75,17 @@ export const SpreadMarketGroupCard = React.memo(
       },
       [colors.error.default, colors.success.default, teamColors],
     );
+    const teamOrder = getGameTeamOrder(game);
+    const orderGameSides = useCallback(
+      (market: PredictMarket) => orderSides(teamOrder, market),
+      [teamOrder],
+    );
 
     return (
       <MarketGroupCard
         {...props}
         describeOutcome={describeOutcome}
-        orderSides={orderSides}
+        orderSides={orderGameSides}
       />
     );
   },

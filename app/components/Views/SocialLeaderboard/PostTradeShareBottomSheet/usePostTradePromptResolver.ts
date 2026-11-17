@@ -3,10 +3,7 @@ import { useSelector } from 'react-redux';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
-import {
-  selectIsProfileTradingActivityPrivate,
-  selectProfileControllerLinkedEvmAddress,
-} from '../../../../selectors/profileController';
+import { selectProfileControllerLinkedEvmAddress } from '../../../../selectors/profileController';
 import { areAddressesEqual } from '../../../../util/address';
 import {
   getShareSheetCount,
@@ -29,9 +26,6 @@ export const usePostTradePromptResolver = (): ((
 ) => PostTradePrompt) => {
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const linkedEvmAddress = useSelector(selectProfileControllerLinkedEvmAddress);
-  const isProfileTradingActivityPrivate = useSelector(
-    selectIsProfileTradingActivityPrivate,
-  );
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedGroupAccounts = useSelector(
     selectSelectedAccountGroupInternalAccounts,
@@ -56,7 +50,6 @@ export const usePostTradePromptResolver = (): ((
         product,
         isSocialV1Enabled,
         linkedEvmAddress,
-        isProfileTradingActivityPrivate,
         isLinkedAccountInSelectedGroup: isLinkedInSelectedGroup,
         shareSheetCount: linkedEvmAddress
           ? getShareSheetCount(linkedEvmAddress, product)
@@ -67,7 +60,6 @@ export const usePostTradePromptResolver = (): ((
     [
       internalAccounts,
       isSocialV1Enabled,
-      isProfileTradingActivityPrivate,
       linkedEvmAddress,
       selectedGroupAccounts,
     ],

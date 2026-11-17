@@ -4,6 +4,7 @@ import { CustomAmount } from './custom-amount';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { mockTheme } from '../../../../../../util/theme';
 import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
 
@@ -18,6 +19,21 @@ describe('CustomAmount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockFormatAmountWithLocaleSeparators.mockImplementation((value) => value);
+  });
+
+  it('reserves two characters of side margin when sizing the amount', () => {
+    const amountFiat = '1234567';
+    const fontSize = getFontSizeForInputLength(amountFiat.length + 2);
+
+    const { getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat={amountFiat} />,
+    );
+
+    expect(
+      within(getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE)).getByText(
+        '1',
+      ),
+    ).toHaveStyle({ fontSize, lineHeight: fontSize });
   });
 
   it('renders amount', () => {
