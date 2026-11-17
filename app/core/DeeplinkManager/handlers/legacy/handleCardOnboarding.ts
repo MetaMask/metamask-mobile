@@ -23,8 +23,10 @@ import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
  * DEEP_LINK_USED event - this handler only handles navigation and business logic.
  *
  * Behavior:
- * - User is logged in or has a card-linked account: Switch to first card-linked account,
+ * - User is logged in: Switch to the linked account when the legacy label says so,
  * navigate to Card Home, and show a toast notification
+ * - User is not logged in but has a card-linked account: Switch to that account and
+ * navigate to Card login
  * - User is not logged in and has no card-linked account: Remain in current account and
  * navigate to Card Welcome/onboarding screen
  *
@@ -79,14 +81,19 @@ export const handleCardOnboarding = () => {
         }
       }
 
-      DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
+      const openCard = () =>
+        isAuthenticated
+          ? navigateToCardHomeWithToast()
+          : navigateToCardAuthentication();
+      DevLogger.log(
+        isAuthenticated
+          ? '[handleCardOnboarding] Navigating to Card Home'
+          : '[handleCardOnboarding] Navigating to Card login',
+      );
       if (hasCardLinkedAccount && routing.source === 'card_links') {
-        switchToLinkedCardAccount().then(
-          navigateToCardHomeWithToast,
-          navigateToCardHomeWithToast,
-        );
+        switchToLinkedCardAccount().then(openCard, openCard);
       } else {
-        navigateToCardHomeWithToast();
+        openCard();
       }
     } else {
       // User is not logged in AND has no card-linked account
@@ -132,6 +139,17 @@ function navigateToCardHomeWithToast(): void {
         params: {
           showDeeplinkToast: true,
         },
+      },
+    });
+  }, 500);
+}
+
+function navigateToCardAuthentication(): void {
+  setTimeout(() => {
+    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: {
+        screen: Routes.CARD.AUTHENTICATION,
       },
     });
   }, 500);

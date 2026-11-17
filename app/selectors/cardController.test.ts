@@ -995,7 +995,7 @@ describe('selectIsCardStateResolved', () => {
     expect(selectIsCardStateResolved(state)).toBe(true);
   });
 
-  it('returns false while idle for a cardholder', () => {
+  it('returns true while idle for a logged-out cardholder', () => {
     mockSelectSelectedInternalAccountByScope.mockReturnValue(
       jest.fn().mockReturnValue({
         address: '0xabc',
@@ -1008,7 +1008,7 @@ describe('selectIsCardStateResolved', () => {
       isAuthenticated: false,
       cardholderAccounts: ['eip155:0:0xabc'],
     });
-    expect(selectIsCardStateResolved(state)).toBe(false);
+    expect(selectIsCardStateResolved(state)).toBe(true);
   });
 
   it('returns true while idle when stored links are closed only', () => {
@@ -1043,7 +1043,7 @@ describe('selectIsCardStateResolved', () => {
     expect(selectIsCardStateResolved(state)).toBe(true);
   });
 
-  it('returns false while idle for a labelled account when card links are off', () => {
+  it('returns true while idle for a labelled logged-out account when card links are off', () => {
     mockSelectSelectedInternalAccountByScope.mockReturnValue(
       jest.fn().mockReturnValue({
         address: '0xabc',
@@ -1060,8 +1060,8 @@ describe('selectIsCardStateResolved', () => {
       undefined,
       { cardLinkApi: { enabled: false, minimumVersion: '0.0.0' } },
     );
-    expect(selectIsCardHomeDataResolved(state)).toBe(false);
-    expect(selectIsCardStateResolved(state)).toBe(false);
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+    expect(selectIsCardStateResolved(state)).toBe(true);
   });
 });
 

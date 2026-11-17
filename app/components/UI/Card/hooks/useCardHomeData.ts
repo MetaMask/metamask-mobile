@@ -8,7 +8,6 @@ import {
   selectCardAvailableTokens,
   selectCardFundingTokens,
   selectIsCardAuthenticated,
-  selectHasCard,
   selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
@@ -23,30 +22,27 @@ export const useCardHomeData = () => {
   const primaryTokenRaw = useSelector(selectCardPrimaryToken);
   const availableTokensRaw = useSelector(selectCardAvailableTokens);
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
-  const isCardholder = useSelector(selectHasCard);
   const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
   const fetchedThisSession = useSelector(selectCardHomeDataFetchedThisSession);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
-  // Money Home mounts this for every visitor, but a user with no card has
-  // nothing to fetch — `MoneyMetaMaskCard` only reads it in 'manage' mode.
-  const hasCard = isCardholder || isCardAuthenticated;
-
-  // A cold start restores 'success' and would otherwise never refetch;
-  // `fetchedThisSession` is not persisted, so it flags data that came off disk.
+  // Logged-out cardholders no longer have a dashboard, so there is nothing
+  // to fetch until a provider session exists.
   useEffect(() => {
     if (
-      hasCard &&
+      isCardAuthenticated &&
       (status === 'idle' || status === 'error' || !fetchedThisSession)
     ) {
       Engine.context.CardController.fetchCardHomeData();
     }
-  }, [hasCard, status, fetchedThisSession]);
+  }, [isCardAuthenticated, status, fetchedThisSession]);
 
-  const refetch = useCallback(
-    () => Engine.context.CardController.fetchCardHomeData({ force: true }),
-    [],
-  );
+  const refetch = useCallback(() => {
+    if (!isCardAuthenticated) {
+      return Promise.resolve();
+    }
+    return Engine.context.CardController.fetchCardHomeData({ force: true });
+  }, [isCardAuthenticated]);
 
   // One useAssetBalances call covering all known card tokens, deduplicated by key.
   const tokensForBalanceLookup = useMemo(() => {

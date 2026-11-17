@@ -177,16 +177,24 @@ describe('handleCardHome', () => {
         );
       });
 
-      it('navigates to Card Home', () => {
+      it('navigates to Card login', () => {
         handleCardHome();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.HOME,
+            screen: Routes.CARD.AUTHENTICATION,
           },
         });
+      });
+
+      it('logs navigation to Card login', () => {
+        handleCardHome();
+
+        expect(mockDevLogger).toHaveBeenCalledWith(
+          '[handleCardHome] Navigating to Card login',
+        );
       });
 
       it('logs the account switch', () => {
@@ -290,10 +298,10 @@ describe('handleCardHome', () => {
       expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
         mockCardholderAddress,
       );
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ROOT,
-        expect.objectContaining({ screen: Routes.CARD.HOME }),
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
     });
 
     it('stays on the current account when no account matches the link', async () => {
@@ -304,10 +312,10 @@ describe('handleCardHome', () => {
       jest.runAllTimers();
 
       expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ROOT,
-        expect.objectContaining({ screen: Routes.CARD.HOME }),
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
     });
 
     it('ignores the legacy cardholder list', async () => {
@@ -493,14 +501,14 @@ describe('handleCardHome', () => {
         );
       });
 
-      it('still navigates to Card Home', () => {
+      it('still navigates to Card login', () => {
         handleCardHome();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.HOME,
+            screen: Routes.CARD.AUTHENTICATION,
           },
         });
       });

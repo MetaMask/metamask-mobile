@@ -87,10 +87,17 @@ const MainRoutes = () => {
   const cardEntryRouting = useSelector(selectCardEntryRouting);
   const hasCard = useSelector(selectHasCard);
 
-  const initialRouteName = useMemo(
-    () => (isAuthenticated || hasCard ? Routes.CARD.HOME : Routes.CARD.WELCOME),
-    [isAuthenticated, hasCard],
-  );
+  // A logged-out cardholder goes straight to login. Card Home is only for a
+  // signed-in session; everyone else starts on the welcome screen.
+  const initialRouteName = useMemo(() => {
+    if (isAuthenticated) {
+      return Routes.CARD.HOME;
+    }
+    if (hasCard) {
+      return Routes.CARD.AUTHENTICATION;
+    }
+    return Routes.CARD.WELCOME;
+  }, [isAuthenticated, hasCard]);
 
   // The deep links already land on the linked account. Opening Card from the
   // app should do the same, and only once stored links — not the legacy label

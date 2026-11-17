@@ -384,9 +384,9 @@ describe('CardRoutes', () => {
       expect(mockSwitchToLinkedCardAccount).not.toHaveBeenCalled();
     });
 
-    it('navigates to Home when is cardholder', () => {
-      expect(initialRouteNames(createMockStore(false, true))).not.toContain(
-        'CardWelcome',
+    it('navigates to login when a logged-out user has a card', () => {
+      expect(initialRouteNames(createMockStore(false, true))).toContain(
+        'CardAuthentication',
       );
     });
 
@@ -402,7 +402,7 @@ describe('CardRoutes', () => {
       expect(mockSwitchToLinkedCardAccount).not.toHaveBeenCalled();
     });
 
-    it('opens Home and switches to the linked account when stored links say there is a card', () => {
+    it('opens login and switches to the linked account when stored links say there is a card', () => {
       const store = createMockStore(false, false, {
         hasCard: true,
         provider: 'immersve',
@@ -410,7 +410,7 @@ describe('CardRoutes', () => {
         disagreesWithLegacy: false,
       });
 
-      expect(initialRouteNames(store)).not.toContain('CardWelcome');
+      expect(initialRouteNames(store)).toContain('CardAuthentication');
       expect(mockSwitchToLinkedCardAccount).toHaveBeenCalledTimes(1);
     });
 

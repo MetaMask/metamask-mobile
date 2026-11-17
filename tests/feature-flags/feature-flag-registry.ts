@@ -982,7 +982,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           ],
         },
         'eip155:59144': {
-          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
           enabled: true,
           foxConnectAddresses: {
             global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',

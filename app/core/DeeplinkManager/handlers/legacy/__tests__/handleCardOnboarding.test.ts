@@ -172,17 +172,14 @@ describe('handleCardOnboarding', () => {
         ]);
       });
 
-      it('navigates to Card Home with showDeeplinkToast param', () => {
+      it('navigates to Card login', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
+            screen: Routes.CARD.AUTHENTICATION,
           },
         });
       });
@@ -265,7 +262,7 @@ describe('handleCardOnboarding', () => {
       );
     });
 
-    it('switches to the account matching the link, then navigates to Card Home', async () => {
+    it('switches to the account matching the link, then navigates to Card login', async () => {
       mockFindLinkedAccountAddress.mockResolvedValue(mockCardholderAddress);
 
       handleCardOnboarding();
@@ -275,10 +272,10 @@ describe('handleCardOnboarding', () => {
       expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
         mockCardholderAddress,
       );
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ROOT,
-        expect.objectContaining({ screen: Routes.CARD.HOME }),
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
     });
 
     it('stays on the current account when no account matches the link', async () => {
@@ -289,10 +286,10 @@ describe('handleCardOnboarding', () => {
       jest.runAllTimers();
 
       expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ROOT,
-        expect.objectContaining({ screen: Routes.CARD.HOME }),
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
     });
 
     it('ignores the legacy cardholder list', async () => {
@@ -396,17 +393,14 @@ describe('handleCardOnboarding', () => {
         );
       });
 
-      it('still navigates to Card Home with showDeeplinkToast param', () => {
+      it('still navigates to Card login', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
+            screen: Routes.CARD.AUTHENTICATION,
           },
         });
       });

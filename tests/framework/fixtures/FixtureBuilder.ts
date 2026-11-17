@@ -2307,8 +2307,7 @@ class FixtureBuilder {
   /**
    * Seeds CardController identity state and pre-populates the cardFeature
    * RemoteFeatureFlag so BaanxProvider has a valid chain config at init time.
-   * The actual cardHomeData is populated by BaanxProvider.getOnChainAssets()
-   * on unlock, whose balance-scanner eth_call is intercepted by the mock server.
+   * Card home data is loaded only after the cardholder signs in.
    *
    * @param isAuthenticated - Whether the cardholder is authenticated (default: false).
    * @param walletAddress - EVM address of the cardholder (default: standard fixture account).
@@ -2336,8 +2335,6 @@ class FixtureBuilder {
             chains: {
               'eip155:59144': {
                 enabled: true,
-                balanceScannerAddress:
-                  '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
                 foxConnectAddresses: {
                   global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
                   us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',

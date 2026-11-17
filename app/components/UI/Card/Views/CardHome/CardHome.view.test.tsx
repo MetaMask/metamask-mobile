@@ -478,27 +478,59 @@ describe('CardHome', () => {
       });
     });
 
-    describe('when unauthenticated (teaser mode)', () => {
-      it('shows CardAuthentication when Change Asset is pressed while unauthenticated', async () => {
-        const { getByTestId, findByTestId, queryByTestId } = renderCardHomeView(
-          {
-            overrides: {
-              engine: {
-                backgroundState: {
-                  CardController: { isAuthenticated: false },
+    describe('when unauthenticated', () => {
+      it('sends a logged-out cardholder to Card login', async () => {
+        const { findByTestId, queryByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  isAuthenticated: false,
+                  cardholderAccounts: [
+                    'eip155:0:0x0000000000000000000000000000000000000001',
+                  ],
+                },
+                AssetsController: {
+                  selectedCurrency: 'usd',
+                },
+                AccountTreeController: {
+                  selectedAccountGroup: 'entropy:wallet1/0',
+                  accountTree: {
+                    wallets: {
+                      'entropy:wallet1': {
+                        id: 'entropy:wallet1',
+                        type: 'Entropy',
+                        metadata: {
+                          name: 'Wallet 1',
+                          entropy: { id: 'wallet1' },
+                        },
+                        groups: {
+                          'entropy:wallet1/0': {
+                            id: 'entropy:wallet1/0',
+                            type: 'MultipleAccount',
+                            metadata: {
+                              name: 'Group 1',
+                              pinned: false,
+                              hidden: false,
+                              lastSelected: 0,
+                            },
+                            accounts: ['acc-1'],
+                          },
+                        },
+                      },
+                    },
+                  },
                 },
               },
             },
-            extraRoutes: [
-              {
-                name: Routes.CARD.AUTHENTICATION,
-                Component: CardAuthentication,
-              },
-            ],
           },
-        );
-
-        fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
+          extraRoutes: [
+            {
+              name: Routes.CARD.AUTHENTICATION,
+              Component: CardAuthentication,
+            },
+          ],
+        });
 
         expect(
           await findByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),

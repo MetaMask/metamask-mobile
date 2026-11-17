@@ -9817,6 +9817,7 @@
           "title": "Link your MetaMask Card",
           "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Link card",
+          "cta_log_in": "Log in",
           "cta_secondary": "Skip"
         }
       }
@@ -9963,6 +9964,7 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "link_title": "Link card",
+      "sign_in_cta": "Log in",
       "link_subtitle": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_subtitle_no_apy": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",

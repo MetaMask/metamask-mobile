@@ -355,6 +355,7 @@ jest.mock('../../../../../core/Engine', () => ({
       CardController: {
         fetchCardHomeData: (...args: unknown[]) =>
           mockFetchCardHomeData(...args),
+        state: { isAuthenticated: true },
       },
     },
   },
@@ -1732,6 +1733,20 @@ describe('MoneyHomeView', () => {
       expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
     });
 
+    it('skips card home data when a logged-out cardholder pulls to refresh', async () => {
+      Engine.context.CardController.state.isAuthenticated = false;
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      await act(async () => {
+        await scrollView.props.refreshControl.props.onRefresh();
+      });
+
+      expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+      Engine.context.CardController.state.isAuthenticated = true;
+    });
+
     it('logs refresh failure when refetchBalance rejects', async () => {
       mockRefetchBalance.mockRejectedValueOnce(new Error('refresh failed'));
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -2607,7 +2622,7 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('tracks Card Home before starting an unauthenticated link flow', () => {
+    it('tracks Card Home before opening login for a logged-out cardholder', () => {
       mockSelectHasCard.mockReturnValue(true);
       mockGetLinkFlowRedirectTarget.mockReturnValue(SCREEN_NAMES.CARD_HOME);
       mockUseMoneyAccountCardLinkage.mockReturnValue(
@@ -2627,9 +2642,16 @@ describe('MoneyHomeView', () => {
         redirect_target: SCREEN_NAMES.CARD_HOME,
         component_name: COMPONENT_NAMES.MONEY_METAMASK_CARD_SECTION_HEADER,
       });
-      expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
+      expect(mockStartLinkFlow).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      });
       expect(mockTrackSurfaceClicked.mock.invocationCallOrder[0]).toBeLessThan(
-        mockStartLinkFlow.mock.invocationCallOrder[0],
+        mockNavigate.mock.invocationCallOrder[0],
       );
     });
 
@@ -3327,12 +3349,12 @@ describe('MoneyHomeView', () => {
       } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
     });
 
-    it('renders MetaMask Card section in link mode', () => {
+    it('renders MetaMask Card section in sign-in mode', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
       );
       expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_CONTAINER),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
@@ -3391,20 +3413,20 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('starts the link flow from MetaMask Card content', () => {
+    it('opens Card login from MetaMask Card content', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
-      expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
-      expect(mockStartLinkFlow).toHaveBeenCalledWith({
-        ...MONEY_HOME_CARD_ORIGIN,
-        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-      });
+      expect(mockStartLinkFlow).not.toHaveBeenCalled();
       expect(mockOpenLinkCardSheet).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      });
     });
 
     describe('fully ready for inline linking (canLink=true)', () => {
@@ -3888,7 +3910,7 @@ describe('MoneyHomeView', () => {
   });
 
   describe('MetaMask card mode selection', () => {
-    it('selects mode="manage" when card is linked to money account', () => {
+    it('selects mode="sign_in" when a logged-out cardholder is linked', () => {
       mockSelectHasCard.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: false,
@@ -3906,14 +3928,19 @@ describe('MoneyHomeView', () => {
         reset: jest.fn(),
       } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
       expect(
-        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_CONTAINER),
+        getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_CONTAINER),
       ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).not.toBeOnTheScreen();
     });
 
-    it('selects mode="link" when cardholder but not linked', () => {
+    it('selects mode="sign_in" when cardholder but not linked', () => {
       mockSelectHasCard.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
@@ -3934,11 +3961,11 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_CONTAINER),
       ).toBeOnTheScreen();
     });
 
-    it('marks the Card flow when Link card is pressed', () => {
+    it('opens Card login when Log in is pressed', () => {
       const markCardFlowOpened = jest.fn();
       mockUseCardEnableCard.mockReturnValue({
         canEnableCard: false,
@@ -3967,16 +3994,20 @@ describe('MoneyHomeView', () => {
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_BUTTON));
 
       expect(markCardFlowOpened).toHaveBeenCalledTimes(1);
-      expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
-      expect(markCardFlowOpened.mock.invocationCallOrder[0]).toBeLessThan(
-        mockStartLinkFlow.mock.invocationCallOrder[0],
-      );
+      expect(mockStartLinkFlow).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      });
     });
 
-    it('selects mode="link" for unauthenticated cardholder when base requirements are met but VEDA is unavailable', () => {
+    it('selects mode="sign_in" for an unauthenticated cardholder when VEDA is unavailable', () => {
       mockSelectHasCard.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: false,
@@ -3998,7 +4029,7 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_CONTAINER),
       ).toBeOnTheScreen();
       expect(getByTestId(MoneyMetaMaskCardTestIds.CONTENT)).toBeOnTheScreen();
     });
@@ -4086,7 +4117,7 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('selects mode="link" for cardholder even with zero transactions', () => {
+    it('selects mode="sign_in" for a logged-out cardholder even with zero transactions', () => {
       mockSelectHasCard.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
@@ -4113,7 +4144,9 @@ describe('MoneyHomeView', () => {
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTENT)).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('selects mode="upsell" when not cardholder', () => {
@@ -4580,7 +4613,8 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
         hasMoneyAccountBaseRequirements: true,
-        isCardAuthenticated: false,
+        isCardAuthenticated: true,
+        isCardVerified: true,
         isCardLinkedToMoneyAccount: false,
         primaryMoneyAccount: { address: '0xabc' },
         moneyAccountCardToken: { symbol: 'veda' },
@@ -4606,7 +4640,7 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: false,
         hasMoneyAccountBaseRequirements: false,
-        isCardAuthenticated: false,
+        isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: true,
         primaryMoneyAccount: undefined,
         moneyAccountCardToken: null,
@@ -4634,7 +4668,7 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: false,
         hasMoneyAccountBaseRequirements: false,
-        isCardAuthenticated: false,
+        isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: true,
         primaryMoneyAccount: undefined,
         moneyAccountCardToken: null,
@@ -4685,7 +4719,7 @@ describe('MoneyHomeView', () => {
     const linkedCardLinkage = {
       hasMoneyAccountRequirements: false,
       hasMoneyAccountBaseRequirements: false,
-      isCardAuthenticated: false,
+      isCardAuthenticated: true,
       isCardLinkedToMoneyAccount: true,
       primaryMoneyAccount: undefined,
       moneyAccountCardToken: null,
@@ -4933,7 +4967,8 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
         hasMoneyAccountBaseRequirements: true,
-        isCardAuthenticated: false,
+        isCardAuthenticated: true,
+        isCardVerified: true,
         isCardLinkedToMoneyAccount: false,
         primaryMoneyAccount: { address: '0xabc' },
         moneyAccountCardToken: { symbol: 'veda' },

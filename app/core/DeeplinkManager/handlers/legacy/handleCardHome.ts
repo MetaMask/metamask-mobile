@@ -26,7 +26,7 @@ import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
  * Behavior:
  * - User is logged in: Navigate directly to Card Home for the currently selected account
  * - User is not logged in but has a card-linked account: Auto-switch to first card-linked
- * account and navigate to Card Home
+ * account and navigate to Card login
  * - User is not logged in and has no card-linked account: Remain in current account and
  * navigate to Card Welcome/onboarding screen
  *
@@ -81,14 +81,16 @@ export const handleCardHome = () => {
         }
       }
 
-      DevLogger.log('[handleCardHome] Navigating to Card Home');
+      DevLogger.log(
+        isAuthenticated
+          ? '[handleCardHome] Navigating to Card Home'
+          : '[handleCardHome] Navigating to Card login',
+      );
+      const openCard = () => navigateToCardEntry(isAuthenticated);
       if (shouldSwitchAccount && routing.source === 'card_links') {
-        switchToLinkedCardAccount().then(
-          navigateToCardHome,
-          navigateToCardHome,
-        );
+        switchToLinkedCardAccount().then(openCard, openCard);
       } else {
-        navigateToCardHome();
+        openCard();
       }
     } else {
       DevLogger.log(
@@ -138,12 +140,12 @@ export const handleCardHome = () => {
   }
 };
 
-function navigateToCardHome(): void {
+function navigateToCardEntry(isAuthenticated: boolean): void {
   setTimeout(() => {
     NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: {
-        screen: Routes.CARD.HOME,
+        screen: isAuthenticated ? Routes.CARD.HOME : Routes.CARD.AUTHENTICATION,
       },
     });
   }, 500);

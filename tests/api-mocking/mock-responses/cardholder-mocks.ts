@@ -4,15 +4,11 @@ import { setupMockRequest } from '../helpers/mockHelpers.ts';
 import { createGeolocationResponse } from './ramps/responses/ramps-geolocation.ts';
 import { RAMPS_NETWORKS_RESPONSE } from './ramps/responses/ramps-networks-response.ts';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.ts';
-import { ethers } from 'ethers';
 
 /**
  * Mock responses for cardholder API calls
  * Used in E2E tests to avoid dependency on external APIs
  */
-
-// Balance scanner contract address on Linea
-const LINEA_BALANCE_SCANNER = '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a';
 
 // Static mock responses for Linea RPC calls
 const LINEA_MOCK_RESPONSES: Record<string, unknown> = {
@@ -33,47 +29,6 @@ const LINEA_MOCK_RESPONSES: Record<string, unknown> = {
   },
   net_version: '59144',
 };
-
-/**
- * Generate ABI-encoded response for spendersAllowancesForTokens.
- * Returns Result[][] where Result is (bool success, bytes data).
- * Each token has 2 spenders (global and US).
- *
- * @param tokenAllowances - Per-token allowances (0=USDC,1=USDT,2=WETH,3=EURe,4=GBPe,5=aUSDC). Used for spender[0] (global); spender[1] (us) is always 0.
- */
-const generateSpendersAllowancesResponse = (
-  tokenAllowances: (number | string)[],
-): string => {
-  const zeroData = ethers.utils.defaultAbiCoder.encode(['uint256'], [0]);
-
-  const innerArrays = tokenAllowances.map((allowance) => {
-    const allowanceData = ethers.utils.defaultAbiCoder.encode(
-      ['uint256'],
-      [allowance],
-    );
-    return [
-      [true, allowanceData], // spender 0 (global)
-      [true, zeroData], // spender 1 (us)
-    ] as [boolean, string][];
-  });
-
-  return ethers.utils.defaultAbiCoder.encode(
-    ['tuple(bool,bytes)[][]'],
-    [innerArrays],
-  );
-};
-
-// USDC (index 0): allowance 200000000000 > ARBITRARY_ALLOWANCE (100000000000) → Active
-// All other tokens: 0 → Inactive
-// With USDC as the only Active token, BaanxProvider sets it as primaryAsset.
-const SPENDERS_ALLOWANCES_RESPONSE = generateSpendersAllowancesResponse([
-  200000000000, // USDC — Active
-  0, // USDT — Inactive
-  0, // WETH — Inactive
-  0, // EURe — Inactive
-  0, // GBPe — Inactive
-  0, // aUSDC — Inactive
-]);
 
 const clientConfig = {
   urlEndpoint:
@@ -140,7 +95,6 @@ const clientConfig = {
                 address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
               },
             ],
-            balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
             enabled: true,
             foxConnectAddresses: {
               us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
@@ -165,23 +119,6 @@ const handleLineaRpcRequest = (
   } | null,
 ): { id: number; jsonrpc: string; result: unknown } => {
   const method = body?.method;
-
-  // Special handling for balance scanner eth_call
-  if (method === 'eth_call') {
-    const params = body?.params as { to?: string; data?: string }[] | undefined;
-    const to = params?.[0]?.to?.toLowerCase();
-
-    if (to === LINEA_BALANCE_SCANNER) {
-      // Return properly ABI-encoded spendersAllowancesForTokens response
-      // This is Result[][] where Result is (bool success, bytes data)
-      // 6 tokens with 2 spenders each, all returning allowance of 0
-      return {
-        id: body?.id ?? 1,
-        jsonrpc: '2.0',
-        result: SPENDERS_ALLOWANCES_RESPONSE,
-      };
-    }
-  }
 
   const result = method
     ? (LINEA_MOCK_RESPONSES as Record<string, unknown>)[method] || '0x'
@@ -254,13 +191,6 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
   // The CardSDK uses its own ethers provider with the Infura URL from constants
   await mockServer
     .forPost(/^https:\/\/linea-mainnet\.infura\.io\/v3\/.*$/)
-    .asPriority(1000)
-    .thenCallback(createRpcCallback());
-
-  // Public Linea RPC fallback used by BaanxProvider.getOnChainAssets
-  // (LINEA_PUBLIC_RPC_URL) when Infura is unavailable.
-  await mockServer
-    .forPost('https://rpc.linea.build')
     .asPriority(1000)
     .thenCallback(createRpcCallback());
 

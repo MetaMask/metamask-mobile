@@ -322,18 +322,16 @@ export const selectCardHomeDataFetchedThisSession = createSelector(
 );
 
 /**
- * Card home data has settled, or this user never fetches it. Verification
+ * Card home data has settled, or this user never fetches it. Logged-out users
+ * do not fetch: the dashboard requires a provider session. Verification
  * status is a separate wait: some providers do not report one.
  */
 export const selectIsCardHomeDataResolved = createSelector(
   selectCardHomeDataStatus,
   selectCardHomeData,
   selectIsCardAuthenticated,
-  selectHasCard,
-  (status, cardHomeData, isAuthenticated, hasCard) =>
-    status === 'success' ||
-    cardHomeData !== null ||
-    (!isAuthenticated && !hasCard),
+  (status, cardHomeData, isAuthenticated) =>
+    status === 'success' || cardHomeData !== null || !isAuthenticated,
 );
 
 export const selectIsCardStateResolved = createSelector(

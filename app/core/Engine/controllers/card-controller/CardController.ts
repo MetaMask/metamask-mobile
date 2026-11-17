@@ -430,6 +430,10 @@ export class CardController extends BaseController<
     this.cardService = cardService;
     this.#sha256 = sha256;
     this.#isBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
+    // The logged-out dashboard used to persist an on-chain snapshot. Drop it
+    // on the first start after that screen is gone, and on every later start
+    // while signed out so a restored cache cannot render a balance.
+    this.#clearLoggedOutCardHomeSnapshot();
     try {
       this.previousEvmAddress = this.#getSelectedEvmAddress();
       this.#discardCardHomeDataFromOtherAccount(this.previousEvmAddress);
@@ -437,6 +441,25 @@ export class CardController extends BaseController<
       this.previousEvmAddress = null;
     }
     this.#subscribeToEvents();
+  }
+
+  #clearLoggedOutCardHomeSnapshot(): void {
+    if (this.state.isAuthenticated) return;
+    if (
+      this.state.cardHomeData === null &&
+      this.state.cardHomeDataAddress === null &&
+      this.state.cardHomeDataError === null &&
+      this.state.cardHomeDataStatus === 'idle'
+    ) {
+      return;
+    }
+
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataAddress = null;
+      s.cardHomeDataError = null;
+      s.cardHomeDataStatus = 'idle';
+    });
   }
 
   /**
@@ -1501,8 +1524,8 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Sentry span for the card home request. `is_authenticated` separates the
-   * provider call from the on-chain-assets fallback — very different costs.
+   * Sentry span for the card home request. `is_authenticated` separates a
+   * signed-in provider call from the empty result returned with no session.
    */
   async #tracedGetCardHomeData(address: string): Promise<CardHomeData> {
     return await trace(
@@ -2671,14 +2694,7 @@ export class CardController extends BaseController<
       );
     }
 
-    const onChainProvider =
-      provider.getOnChainAssets != null
-        ? provider
-        : this.providers[DEFAULT_CARD_PROVIDER_ID];
-    return (
-      (await onChainProvider?.getOnChainAssets?.(address)) ??
-      emptyCardHomeData()
-    );
+    return emptyCardHomeData();
   }
 
   #restoreCardHomeDataAfterOptimisticFailure(
