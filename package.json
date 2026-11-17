@@ -35,7 +35,7 @@
     "lint:shard": "NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" node scripts/lint-shard.mjs",
     "lint:fix": "NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" eslint '**/*.{js,ts,tsx}' --fix --cache && yarn messenger-action-types:generate",
     "lint:clean": "rm -f .eslintcache",
-    "lint:tsc": "NODE_OPTIONS='--max-old-space-size=12288' tsc --project ./tsconfig.json",
+    "lint:tsc": "NODE_OPTIONS='--max-old-space-size=12288' tsc --project ./tsconfig.json && yarn lint:react-compiler",
     "lint:react-compiler": "yarn lint:react-compiler:list | diff -u scripts/react-compiler-baseline.txt - || (echo '+ new failing file: fix it with https://github.com/MetaMask/skills/tree/main/domains/assets/skills/react-compiler-migration | - fixed file: run yarn lint:react-compiler:update' && exit 1)",
     "lint:react-compiler:list": "rm -f node_modules/.react-compiler-report.json; react-compiler-marker --babel-plugin-path node_modules/babel-plugin-react-compiler --format json --output node_modules/.react-compiler-report.json app; jq -r '.files[] | select(.failed | length > 0) | \"app/\" + .path' node_modules/.react-compiler-report.json | grep -viE '/(__tests__|tests?|e2e|__e2e__|specs?|__mocks__|mocks?)/|\\.(test|spec|e2e)\\.[^./]+$|[/.]mocks?\\.[^./]+$' | grep -vE '/(mock[-_]|Mock[A-Z])[^/]*$' | LC_ALL=C sort",
     "lint:react-compiler:update": "yarn lint:react-compiler:list > scripts/react-compiler-baseline.txt",

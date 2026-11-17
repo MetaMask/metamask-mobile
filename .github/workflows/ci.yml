@@ -421,9 +421,6 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - run: yarn ${{ matrix['scripts'] }}
-      - name: Run `lint:react-compiler`
-        if: ${{ matrix.scripts == 'lint:changelog' }}
-        run: yarn lint:react-compiler
       - name: Require clean working directory
         shell: bash
         run: |
