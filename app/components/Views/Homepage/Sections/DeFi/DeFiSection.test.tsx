@@ -74,8 +74,19 @@ jest.mock('../../hooks/useSectionViewportVisible', () => ({
   default: jest.fn(() => ({ isVisible: false, onLayout: jest.fn() })),
 }));
 
+jest.mock('../../hooks/useSectionPerformance', () => ({
+  __esModule: true,
+  useSectionPerformance: jest.fn(),
+}));
+
 const mockUseDeFiPositionsForHomepage = jest.fn();
 const mockUseDeFiPositionsV2 = jest.fn();
+const mockUseSectionViewportVisible = jest.requireMock(
+  '../../hooks/useSectionViewportVisible',
+).default as jest.Mock;
+const mockUseSectionPerformance = jest.requireMock(
+  '../../hooks/useSectionPerformance',
+).useSectionPerformance as jest.Mock;
 
 jest.mock('./hooks', () => ({
   useDeFiPositionsForHomepage: (...args: unknown[]) =>
@@ -401,6 +412,42 @@ describe('DeFiSection', () => {
 
       expect(screen.getByText('aave')).toBeOnTheScreen();
       expect(screen.getByText('uniswap')).toBeOnTheScreen();
+    });
+
+    it('counts cached positions as demand when the section becomes visible', () => {
+      let isVisible = false;
+      mockUseSectionViewportVisible.mockImplementation(() => ({
+        isVisible,
+        onLayout: jest.fn(),
+      }));
+      mockUseDeFiPositionsV2.mockReturnValue({
+        positions: [createMockV2Position('aave')],
+        isLoading: false,
+        isError: false,
+        hasFetched: false,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const { rerender } = renderWithProvider(
+        <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          contentReady: true,
+          demandStarted: false,
+        }),
+      );
+
+      isVisible = true;
+      rerender(<DeFiSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+      expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          contentReady: true,
+          demandStarted: true,
+        }),
+      );
     });
 
     it('filters out V2 positions on disabled EVM networks', () => {

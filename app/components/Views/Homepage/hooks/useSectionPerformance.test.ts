@@ -114,6 +114,33 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('ends TTC when demand starts after content is already ready', () => {
+      const { rerender } = renderHook(
+        ({ demandStarted }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady: true,
+            demandStarted,
+          }),
+        { initialProps: { demandStarted: false } },
+      );
+
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      rerender({ demandStarted: true });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            success: true,
+            section_id: HomeSectionNames.TOKENS,
+          }),
+        }),
+      );
+    });
+
     it('ends the trace when contentReady flips to true', () => {
       const { rerender } = renderHook(
         ({ contentReady }) =>

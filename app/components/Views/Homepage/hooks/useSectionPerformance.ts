@@ -342,7 +342,14 @@ export const useSectionPerformance = ({
         pendingTtcCompletion.current = cancelFrame;
       }
     }
-  }, [enabled, contentReady, generationKey, sectionId, traceContentState]);
+  }, [
+    enabled,
+    contentReady,
+    generationKey,
+    sectionId,
+    traceContentState,
+    ttcStartReady,
+  ]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
