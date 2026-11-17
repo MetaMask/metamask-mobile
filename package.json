@@ -713,7 +713,7 @@
     "@metamask/foundryup": "2.0.0",
     "@metamask/messenger-cli": "^1.0.0",
     "@metamask/mobile-provider": "^3.0.0",
-    "@metamask/object-multiplex": "^1.1.0",
+    "@metamask/object-multiplex": "^2.1.0",
     "@metamask/platform-api-docs": "^0.2.1",
     "@metamask/providers": "^18.3.1",
     "@metamask/skills": "^0.3.1",
