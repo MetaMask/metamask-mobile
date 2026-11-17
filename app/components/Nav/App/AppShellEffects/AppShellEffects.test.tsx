@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, RenderResult, waitFor } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
@@ -12,12 +12,21 @@ import { useOTAUpdates } from '../../../hooks/useOTAUpdates';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import initialRootState from '../../../../util/test/initial-root-state';
+import Logger from '../../../../util/Logger';
 import AppShellEffects from './AppShellEffects';
 
 /**
  * AppShellEffects renders nothing. The contract is that the OTA hook, the
- * seedless password check, and the app version bookkeeping run on mount. A
- * component-view test drives visible UI and does not observe these calls.
+ * seedless password check, and version storage run on mount. A component-view
+ * test drives visible UI and does not observe these calls.
+ *
+ * Version storage is covered here, not by rendering App. App mounts this
+ * component after the full route tree, and that mount exceeds Jest's 5s test
+ * timeout on a slow unit shard.
+ *
+ * Cases that write a version await that exact `setItem` call. `waitFor` can
+ * only pass on a timer tick, so a worker whose event loop stalls past Jest's
+ * 5s deadline fails the test even after the write has already happened.
  */
 
 jest.mock('../../../hooks/useOTAUpdates', () => ({
@@ -51,10 +60,16 @@ jest.mock('../../../../store/storage-wrapper', () => ({
   },
 }));
 
-const renderEffects = ({ existingUser = false } = {}): RenderResult => {
+const mockGetItem = jest.mocked(StorageWrapper.getItem);
+const mockSetItem = jest.mocked(StorageWrapper.setItem);
+
+const renderEffects = (existingUser = false): ReturnType<typeof render> => {
   const store = configureMockStore()({
     ...initialRootState,
-    user: { ...initialRootState.user, existingUser },
+    user: {
+      ...initialRootState.user,
+      existingUser,
+    },
   });
 
   return render(
@@ -64,8 +79,19 @@ const renderEffects = ({ existingUser = false } = {}): RenderResult => {
   );
 };
 
-// The timer only matters when the awaited storage call never happens. On the
-// passing path the promise settles on microtasks, before any timer can run.
+// startApp awaits StorageWrapper several times. Each mocked call resolves on a
+// later microtask, so one Promise.resolve() stops before the effect finishes.
+// Used for cases that do not write, where there is no setItem call to await.
+const settleStartApp = async (): Promise<void> => {
+  await act(async () => {
+    for (let step = 0; step < 20; step += 1) {
+      await Promise.resolve();
+    }
+  });
+};
+
+// The timer only matters when the awaited write never happens. On the passing
+// path the promise settles on microtasks, before any timer can run.
 const storageCall = <Value,>(
   description: string,
   register: (resolve: (value: Value) => void) => void,
@@ -81,55 +107,20 @@ const storageCall = <Value,>(
     });
   });
 
-const mockStoredVersions = ({
-  current,
-  last,
-}: {
-  current: string | null;
-  last: string | null;
-}): { afterLastVersionRead: () => Promise<void> } => {
-  const lastVersionRead = Promise.resolve(last);
-  const lastVersionRequested = storageCall<void>(
-    `getItem(${LAST_APP_VERSION})`,
-    (resolve) => {
-      jest.mocked(StorageWrapper.getItem).mockImplementation((key: string) => {
-        if (key === CURRENT_APP_VERSION) return Promise.resolve(current);
-        if (key === LAST_APP_VERSION) {
-          resolve();
-          return lastVersionRead;
-        }
-        return Promise.resolve(null);
-      });
-    },
-  );
-
-  return {
-    // The effect awaits the last-version read before the test does, so its
-    // continuation (including any write) has run once this resolves.
-    afterLastVersionRead: async (): Promise<void> => {
-      await lastVersionRequested;
-      await lastVersionRead;
-    },
-  };
-};
-
-// Await the exact write instead of polling with `waitFor`. A `waitFor` poll
-// needs timer ticks to finish, so if the worker's event loop stalls past
-// Jest's 5s deadline, the expired test timeout fires before the poll can pass.
 const nextWrite = (key: string): Promise<string> =>
   storageCall<string>(`setItem(${key})`, (resolve) => {
-    jest
-      .mocked(StorageWrapper.setItem)
-      .mockImplementation(
-        async (writtenKey: string, value: string): Promise<void> => {
-          if (writtenKey === key) resolve(value);
-        },
-      );
+    mockSetItem.mockImplementation(
+      async (writtenKey: string, value: string): Promise<void> => {
+        if (writtenKey === key) resolve(value);
+      },
+    );
   });
 
 describe('AppShellEffects', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetItem.mockResolvedValue('1.0.0');
+    mockSetItem.mockResolvedValue(undefined);
     jest
       .mocked(Authentication.checkIsSeedlessPasswordOutdated)
       .mockResolvedValue(false);
@@ -141,71 +132,117 @@ describe('AppShellEffects', () => {
 
     expect(useOTAUpdates).toHaveBeenCalledTimes(1);
 
-    await waitFor(() => {
-      expect(
-        Authentication.checkIsSeedlessPasswordOutdated,
-      ).toHaveBeenCalledWith({
+    await settleStartApp();
+
+    expect(Authentication.checkIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
+      {
         skipCache: true,
         captureSentryError: false,
-      });
-    });
+      },
+    );
   });
 
-  describe('app version storage', () => {
-    it('saves last and current version when currentVersion differs from savedVersion', async () => {
-      mockStoredVersions({ current: '0.9.0', last: '0.8.0' });
-      const currentVersionWritten = nextWrite(CURRENT_APP_VERSION);
+  describe('version storage', () => {
+    it('reads the saved app version on mount', async () => {
+      mockGetItem.mockResolvedValue(null);
 
       renderEffects();
+      await settleStartApp();
+
+      expect(mockGetItem).toHaveBeenCalledWith(CURRENT_APP_VERSION);
+    });
+
+    it('logs storage errors from the version effect', async () => {
+      const storageError = new Error('Storage error');
+      mockGetItem.mockRejectedValue(storageError);
+
+      renderEffects();
+      await settleStartApp();
+
+      expect(Logger.error).toHaveBeenCalledWith(storageError);
+    });
+
+    it('saves last and current version when currentVersion differs from savedVersion', async () => {
+      mockGetItem.mockImplementation(async (key) => {
+        if (key === CURRENT_APP_VERSION) {
+          return '0.9.0';
+        }
+        if (key === LAST_APP_VERSION) {
+          return '0.8.0';
+        }
+        return null;
+      });
+      const currentVersionWritten = nextWrite(CURRENT_APP_VERSION);
+
+      renderEffects(false);
 
       expect(await currentVersionWritten).toBe('1.0.0');
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        LAST_APP_VERSION,
-        '0.9.0',
-      );
+      expect(mockSetItem).toHaveBeenCalledWith(LAST_APP_VERSION, '0.9.0');
     });
 
     it('saves only current version when savedVersion is null', async () => {
-      mockStoredVersions({ current: null, last: null });
+      mockGetItem.mockImplementation(async () => null);
       const lastVersionWritten = nextWrite(LAST_APP_VERSION);
 
-      renderEffects();
+      renderEffects(false);
 
       expect(await lastVersionWritten).toBe('1.0.0');
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        CURRENT_APP_VERSION,
-        '1.0.0',
-      );
+      expect(mockSetItem).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
     });
 
     it('sets lastVersion to 0.0.1 when existingUser is true and lastVersion is missing', async () => {
-      mockStoredVersions({ current: '1.0.0', last: null });
+      mockGetItem.mockImplementation(async (key) => {
+        if (key === CURRENT_APP_VERSION) {
+          return '1.0.0';
+        }
+        return null;
+      });
       const lastVersionWritten = nextWrite(LAST_APP_VERSION);
 
-      renderEffects({ existingUser: true });
+      renderEffects(true);
 
       expect(await lastVersionWritten).toBe('0.0.1');
-      expect(StorageWrapper.setItem).toHaveBeenCalledTimes(1);
+      expect(mockSetItem).toHaveBeenCalledTimes(1);
     });
 
     it('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
-      mockStoredVersions({ current: '1.0.0', last: null });
+      mockGetItem.mockImplementation(async (key) => {
+        if (key === CURRENT_APP_VERSION) {
+          return '1.0.0';
+        }
+        return null;
+      });
       const lastVersionWritten = nextWrite(LAST_APP_VERSION);
 
-      renderEffects({ existingUser: false });
+      renderEffects(false);
 
       expect(await lastVersionWritten).toBe('1.0.0');
-      expect(StorageWrapper.setItem).toHaveBeenCalledTimes(1);
+      expect(mockSetItem).toHaveBeenCalledTimes(1);
     });
 
     it('does not overwrite versions when currentVersion matches savedVersion', async () => {
-      const storage = mockStoredVersions({ current: '1.0.0', last: '0.9.0' });
+      mockGetItem.mockImplementation(async (key) => {
+        if (key === CURRENT_APP_VERSION) {
+          return '1.0.0';
+        }
+        if (key === LAST_APP_VERSION) {
+          return '0.9.0';
+        }
+        return null;
+      });
 
-      renderEffects();
-      await storage.afterLastVersionRead();
+      renderEffects(false);
+      await settleStartApp();
 
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(LAST_APP_VERSION);
-      expect(StorageWrapper.setItem).not.toHaveBeenCalled();
+      expect(mockGetItem).toHaveBeenCalledWith(LAST_APP_VERSION);
+      expect(mockSetItem).not.toHaveBeenCalledWith(
+        CURRENT_APP_VERSION,
+        expect.anything(),
+      );
+      expect(mockSetItem).not.toHaveBeenCalledWith(
+        LAST_APP_VERSION,
+        expect.anything(),
+      );
     });
   });
 });

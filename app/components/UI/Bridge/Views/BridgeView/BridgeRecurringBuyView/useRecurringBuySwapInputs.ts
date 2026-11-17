@@ -25,6 +25,7 @@ import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { useEnsureSameChainDestToken } from '../../../hooks/useEnsureSameChainDestToken';
 
 export const useRecurringBuySwapInputs = () => {
   const dispatch = useDispatch();
@@ -42,6 +43,8 @@ export const useRecurringBuySwapInputs = () => {
     (state: RootState) =>
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
   );
+
+  useEnsureSameChainDestToken({ sourceToken, destToken });
 
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {

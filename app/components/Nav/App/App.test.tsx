@@ -9,7 +9,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
-  CURRENT_APP_VERSION,
 } from '../../../constants/storage';
 import {
   NavigationContainer,
@@ -751,72 +750,6 @@ describe('App', () => {
     it('has webview routes defined', () => {
       expect(Routes.WEBVIEW.SIMPLE).toBeDefined();
       expect(Routes.WEBVIEW.MAIN).toBeDefined();
-    });
-  });
-
-  describe('App version handling', () => {
-    it('should handle version storage operations', async () => {
-      const getItemSpy = jest
-        .spyOn(StorageWrapper, 'getItem')
-        .mockResolvedValue(null);
-
-      const mockStore = configureMockStore();
-      const store = mockStore(initialState);
-
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      render(<App />, { wrapper: Providers });
-
-      // Flush startApp's microtasks. Avoid waitFor here: this suite uses fake
-      // timers and testSetup freezes Date.now, so waitFor's timeout never
-      // elapses and a delayed getItem call hangs until Jest's test timeout.
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(getItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION);
-      getItemSpy.mockRestore();
-    });
-  });
-
-  describe('App version handling branches', () => {
-    const renderAppForVersionTest = (state: DeepPartial<RootState>) => {
-      const mockStoreCreator = configureMockStore();
-      const store = mockStoreCreator(state);
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-      return render(<App />, { wrapper: Providers });
-    };
-
-    it('handles errors in startApp gracefully', async () => {
-      const getItemSpy = jest
-        .spyOn(StorageWrapper, 'getItem')
-        .mockRejectedValue(new Error('Storage error'));
-
-      renderAppForVersionTest(initialState);
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(getItemSpy).toHaveBeenCalled();
-
-      getItemSpy.mockRestore();
     });
   });
 
