@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import {
+  formatAddressToAssetId,
   formatChainIdToCaip,
   SwapFeatureTag,
   type GenericQuoteRequest,
@@ -25,6 +26,8 @@ export type SwapQuoteFetchTraceResult =
 interface StartSwapQuoteFetchTraceParams {
   srcChainId?: GenericQuoteRequest['srcChainId'];
   destChainId?: GenericQuoteRequest['destChainId'];
+  srcTokenAddress?: GenericQuoteRequest['srcTokenAddress'];
+  destTokenAddress?: GenericQuoteRequest['destTokenAddress'];
   isRefresh: boolean;
 }
 
@@ -103,6 +106,8 @@ export const swapQuoteFetchTrace = {
   start({
     srcChainId,
     destChainId,
+    srcTokenAddress,
+    destTokenAddress,
     isRefresh,
   }: StartSwapQuoteFetchTraceParams): string {
     if (activeTraceId) {
@@ -142,12 +147,24 @@ export const swapQuoteFetchTrace = {
     });
     activeTraceId = id;
     try {
+      const srcToken =
+        srcTokenAddress !== undefined && srcChainId
+          ? formatAddressToAssetId(srcTokenAddress, srcChainId)
+          : undefined;
+      const destToken =
+        destTokenAddress !== undefined && destChainId
+          ? formatAddressToAssetId(destTokenAddress, destChainId)
+          : undefined;
       annotateTraceByRequest(
         { name: TraceName.SwapQuoteFetch, id },
         {
           first_quote_flush_variant: selectFirstQuoteFlushVariant(
             ReduxService.store.getState(),
           ),
+          ...(srcToken && { src_token: srcToken }),
+          ...(destToken && { dest_token: destToken }),
+          ...(srcToken &&
+            destToken && { token_pair: `${srcToken}>${destToken}` }),
         },
       );
     } catch {
