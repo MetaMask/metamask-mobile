@@ -1703,6 +1703,21 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
   });
 
   describe('price range', () => {
+    it('keeps the label outside the press target', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await userEvent.press(
+        renderResult.getByText(
+          strings('bridge.recurring.price_range.input_label'),
+        ),
+      );
+
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
+    });
+
     it('opens the unset price range sheet with market price placeholders', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
