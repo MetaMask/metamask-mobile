@@ -42,6 +42,11 @@ jest.mock('./hooks/useRefreshTokens', () => ({
   useRefreshTokens: () => ({ refresh: mockRefreshTokensForGroup }),
 }));
 
+const mockUseAssetsHaveLoaded = jest.fn(() => true);
+jest.mock('../Assets/hooks/useAssetsHaveLoaded', () => ({
+  useAssetsHaveLoaded: () => mockUseAssetsHaveLoaded(),
+}));
+
 // Mocking versioning for some selectors
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -177,6 +182,7 @@ const renderComponent = (
 
 describe('Tokens', () => {
   beforeEach(() => {
+    mockUseAssetsHaveLoaded.mockReturnValue(true);
     arrangeMockComponents();
     arrangeMockSelectors();
     arrangeMockInteractionManager();
@@ -199,9 +205,7 @@ describe('Tokens', () => {
   });
 
   it('displays loading skeleton', async () => {
-    // Force mockInteraction to not run immediately to test the skeleton
-    const { mockRunAfterInteractions } = arrangeMockInteractionManager();
-    mockRunAfterInteractions.mockRestore();
+    mockUseAssetsHaveLoaded.mockReturnValue(false);
 
     const { getByTestId } = renderComponent();
 
