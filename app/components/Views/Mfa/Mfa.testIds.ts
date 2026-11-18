@@ -9,6 +9,7 @@ export const MfaFlowSelectorsIDs = {
   EMAIL_INPUT: 'mfa-flow-email-input',
   CODE_INPUT: 'mfa-flow-code-input',
   CODE_TAP_AREA: 'mfa-flow-code-tap-area',
+  PASTE_BUTTON: 'mfa-flow-paste-button',
   VERIFYING_INDICATOR: 'mfa-flow-verifying-indicator',
   RESEND_BUTTON: 'mfa-flow-resend-button',
   PICKER_OPTION: 'mfa-flow-picker-option',

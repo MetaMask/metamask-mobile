@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { StyleSheet } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { notifyManager } from '@tanstack/query-core';
 import Engine from '../../../../../core/Engine';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -18,6 +19,13 @@ import {
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { VbaOnboardingRoutes } from './routes';
+
+notifyManager.setScheduler((callback) => {
+  act(callback);
+});
+notifyManager.setNotifyFunction((callback) => {
+  act(callback);
+});
 
 const mockGetPaymentMethodsForContext = jest.mocked(
   Engine.context.RampsController.getPaymentMethodsForContext,

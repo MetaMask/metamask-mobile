@@ -19,6 +19,11 @@
       "phases": ["commit"],
       "commitRelay": "unknown"
     },
+    "amount_below_minimum": {
+      "status": 422,
+      "phases": ["preview"],
+      "commitRelay": "not_a_mutation"
+    },
     "amount_rejected": {
       "status": 422,
       "phases": ["commit"],

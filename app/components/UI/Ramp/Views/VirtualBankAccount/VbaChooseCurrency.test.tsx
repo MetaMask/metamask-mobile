@@ -4,6 +4,14 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaChooseCurrency from './VbaChooseCurrency';
 import { VbaChooseCurrencySelectorsIDs } from './VbaChooseCurrency.testIds';
 import { openCompletedVbaAccount } from './hooks/useVbaOnboardingRouting';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics', () => ({
+  fireImpact: jest.fn(),
+  ImpactMoment: {
+    SecondaryCTA: 'secondaryCta',
+  },
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigation = { goBack: mockGoBack };
@@ -44,6 +52,7 @@ describe('VbaChooseCurrency', () => {
     );
 
     expect(mockOpenCompletedVbaAccount).toHaveBeenCalledWith(mockNavigation);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
   });
 
   it('goes back from the header', () => {
@@ -52,5 +61,6 @@ describe('VbaChooseCurrency', () => {
     fireEvent.press(getByTestId(VbaChooseCurrencySelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(fireImpact).not.toHaveBeenCalled();
   });
 });

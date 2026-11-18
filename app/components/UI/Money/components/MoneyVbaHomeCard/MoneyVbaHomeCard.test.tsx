@@ -28,6 +28,7 @@ import {
   VBA_CUF_END_REASON,
   VBA_CUF_ENTRY_SURFACE,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import {
   COMPONENT_NAMES,
@@ -40,6 +41,13 @@ import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+
+jest.mock('../../../../../util/haptics', () => ({
+  fireImpact: jest.fn(),
+  ImpactMoment: {
+    SecondaryCTA: 'secondaryCta',
+  },
+}));
 
 const mockNavigate = jest.fn();
 const mockNavigation = { dispatch: jest.fn(), navigate: mockNavigate };
@@ -444,6 +452,7 @@ describe('MoneyVbaHomeCard', () => {
     );
 
     expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
     expect(mockStartVbaCufJourney).not.toHaveBeenCalled();
     expect(mockResolve).not.toHaveBeenCalled();
     expect(mockNavigateToDestination).not.toHaveBeenCalled();
@@ -464,6 +473,7 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockTrackButtonClicked.mock.invocationCallOrder[0]).toBeLessThan(
       mockStartVbaCufJourney.mock.invocationCallOrder[0],
     );
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
   });
 
   it('opens persisted account details directly and stays tappable afterward', () => {
