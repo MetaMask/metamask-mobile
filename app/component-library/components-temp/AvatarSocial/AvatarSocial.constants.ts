@@ -15,6 +15,10 @@ export const FOXICON_SIZE_BY_AVATARBASE_SIZE: Record<AvatarBaseSize, number> = {
   [AvatarBaseSize.Xl]: 48,
 };
 
+/** Light blue backdrop drawn behind the fallback fox for retired or unknown variants. */
+export const AVATARSOCIAL_FALLBACK_BACKGROUND_COLOR: AvatarSocialBackgroundColor =
+  AvatarSocialBackgroundColor.Background4;
+
 /**
  * Maps each background color slot to its MMDS brand color token.
  */

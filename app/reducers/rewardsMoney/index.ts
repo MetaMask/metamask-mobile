@@ -332,6 +332,16 @@ const rewardsMoneySlice = createSlice({
         state.pendingReferralCode = null;
       }
     },
+    /**
+     * Un-answers `code` so the same link can offer it again this session.
+     * For an accepted invite whose registration failed in a way a retry can
+     * fix. Anything pending is left as it is.
+     */
+    releaseAnsweredReferralCode: (state, action: PayloadAction<string>) => {
+      if (state.answeredReferralCode === action.payload) {
+        state.answeredReferralCode = null;
+      }
+    },
     setReferralLinkPending: (state, action: PayloadAction<boolean>) => {
       state.isReferralLinkPending = action.payload;
     },
@@ -388,6 +398,7 @@ export const {
   setClaimLock,
   setPendingReferralCode,
   clearPendingReferralCode,
+  releaseAnsweredReferralCode,
   setReferralLinkPending,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;

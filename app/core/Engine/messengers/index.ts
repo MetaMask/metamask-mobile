@@ -55,6 +55,10 @@ import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
 } from './predict-order-service-messenger';
+import {
+  getPredictFundingServiceInitMessenger,
+  getPredictFundingServiceMessenger,
+} from './predict-funding-service-messenger';
 import { getPredictVenueControllerMessenger } from './predict-venue-controller-messenger';
 import {
   getPredictDeviceAuthServiceInitMessenger,
@@ -318,6 +322,10 @@ export const MESSENGER_FACTORIES = {
   PredictOrderService: {
     getMessenger: getPredictOrderServiceMessenger,
     getInitMessenger: getPredictOrderServiceInitMessenger,
+  },
+  PredictFundingService: {
+    getMessenger: getPredictFundingServiceMessenger,
+    getInitMessenger: getPredictFundingServiceInitMessenger,
   },
   PredictVenueController: {
     getMessenger: getPredictVenueControllerMessenger,
