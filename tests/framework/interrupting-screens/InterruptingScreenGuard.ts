@@ -284,18 +284,34 @@ export class InterruptingScreenGuard {
       if (pageSource === null) {
         return false;
       }
-      for (const screen of this.#findKnownScreens(pageSource)) {
-        if (
-          await this.#dismissKnownScreen(
-            screen,
-            context.trigger,
-            context.intent,
-          )
-        ) {
-          return true;
-        }
+      if (
+        await this.#dismissFirstKnownScreen(
+          pageSource,
+          context.trigger,
+          context.intent,
+        )
+      ) {
+        return true;
       }
       return this.#dismissWithAi(pageSource, context);
+    });
+  }
+
+  /**
+   * Reads the page source once and dismisses the first known screen on it.
+   * Registry only (no AI). For polling loops whose readiness checks cannot
+   * pass while a sheet covers the screen, such as the wallet-home wait.
+   */
+  async dismissKnownScreen(intent: string): Promise<boolean> {
+    if (!this.isActive()) {
+      return false;
+    }
+    return this.#runExcluded(INTERRUPTING_SCREEN_RECOVERY_PHASE, async () => {
+      const pageSource = await this.#safePageSource();
+      return (
+        pageSource !== null &&
+        this.#dismissFirstKnownScreen(pageSource, 'wait-failure', intent)
+      );
     });
   }
 
@@ -318,6 +334,19 @@ export class InterruptingScreenGuard {
       );
       return action();
     }
+  }
+
+  async #dismissFirstKnownScreen(
+    pageSource: string,
+    trigger: InterruptionTrigger,
+    intent: string,
+  ): Promise<boolean> {
+    for (const screen of this.#findKnownScreens(pageSource)) {
+      if (await this.#dismissKnownScreen(screen, trigger, intent)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   #findKnownScreens(pageSource: string): InterruptingScreenDefinition[] {

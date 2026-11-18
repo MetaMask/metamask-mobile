@@ -202,6 +202,57 @@ describe('InterruptingScreenGuard', () => {
     });
   });
 
+  describe('dismissKnownScreen', () => {
+    it('dismisses a known sheet without asking the AI provider', async () => {
+      const adapter = createAdapter([EXPERIENCE_ENHANCER]);
+      const aiProvider = createAiProvider(null);
+      const onDismissed = jest.fn();
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({ aiProvider, onDismissed });
+
+      const dismissed = await guard.dismissKnownScreen('wait for wallet home');
+
+      expect(dismissed).toBe(true);
+      expect(aiProvider.identifyInterruption).not.toHaveBeenCalled();
+      expect(onDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screen: 'experience-enhancer-marketing-consent',
+          trigger: 'wait-failure',
+          intent: 'wait for wallet home',
+        }),
+      );
+    });
+
+    it('returns false without calling the AI when no known sheet is up', async () => {
+      const adapter = createAdapter([UNKNOWN_SURVEY]);
+      const aiProvider = createAiProvider(
+        surveyDecision(
+          { strategy: 'testID', value: 'survey-dismiss' },
+          'Not now',
+        ),
+      );
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({ aiProvider });
+
+      expect(await guard.dismissKnownScreen('wait for wallet home')).toBe(
+        false,
+      );
+      expect(aiProvider.identifyInterruption).not.toHaveBeenCalled();
+      expect(adapter.tapped).toEqual([]);
+    });
+
+    it('does not touch the device when the guard is not configured', async () => {
+      const adapter = createAdapter([EXPERIENCE_ENHANCER]);
+      const getPageSource = jest.spyOn(adapter, 'getPageSource');
+      const guard = new InterruptingScreenGuard(adapter);
+
+      expect(await guard.dismissKnownScreen('wait for wallet home')).toBe(
+        false,
+      );
+      expect(getPageSource).not.toHaveBeenCalled();
+    });
+  });
+
   describe('retryAfterInterruption', () => {
     it('runs the action once when it succeeds', async () => {
       const adapter = createAdapter([EXPERIENCE_ENHANCER]);

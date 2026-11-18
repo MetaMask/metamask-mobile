@@ -600,7 +600,10 @@ points:
    then polls the page source for known screens for
    `INTERRUPTING_SCREEN_SETTLE_MS` (default 4000ms). This happens inside the
    `login` phase, before `test_body` starts, and each screen that appears is
-   dismissed.
+   dismissed. A sheet that is already up hides the wallet chrome, so the
+   wallet-home wait (`waitForWalletHomePlaywright`) itself checks for known
+   screens every 2s while it polls. If it still times out, it gets one
+   dismiss-and-retry (AI fallback included).
 2. **Dismiss and retry once.** When `Gestures.tap` / `Gestures.waitAndTap` or
    `Assertions.expectElementToBeVisible` / `AppiumAssertions.expectElementToBeVisible`
    fails, the guard reads the page source once:

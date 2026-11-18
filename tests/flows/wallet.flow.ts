@@ -63,6 +63,37 @@ const logger = createLogger({
 });
 
 const WALLET_HOME_POLL_INTERVAL_MS = 250;
+/** Spacing between page-source reads for interrupting sheets while waiting. */
+const WALLET_HOME_INTERRUPTION_CHECK_INTERVAL_MS = 2_000;
+const WALLET_HOME_INTENT = 'wait for wallet home';
+
+const pollWalletHome = async (timeout: number): Promise<void> => {
+  const deadline = Date.now() + timeout;
+  const isAndroid = PlatformDetector.isAndroid();
+  const platform = isAndroid ? 'Android' : 'iOS';
+  let nextInterruptionCheckAt =
+    Date.now() + WALLET_HOME_INTERRUPTION_CHECK_INTERVAL_MS;
+
+  while (Date.now() < deadline) {
+    if (await isWalletHomeReadyOnAppium()) {
+      logger.debug(`Wallet home ready on ${platform}`);
+      return;
+    }
+    if (isAndroid) {
+      await dismissAndroidSystemOverlaysPlaywright();
+    }
+    if (Date.now() >= nextInterruptionCheckAt) {
+      await interruptingScreenGuard.dismissKnownScreen(WALLET_HOME_INTENT);
+      nextInterruptionCheckAt =
+        Date.now() + WALLET_HOME_INTERRUPTION_CHECK_INTERVAL_MS;
+    }
+    await sleep(WALLET_HOME_POLL_INTERVAL_MS);
+  }
+
+  throw new Error(
+    `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
+  );
+};
 
 /**
  * Waits for the wallet home screen to be ready after login.
@@ -73,29 +104,19 @@ const WALLET_HOME_POLL_INTERVAL_MS = 250;
  * `wallet-screen` hierarchy existence is not readiness — that node can sit
  * under the lock screen. Child chrome covers the post-Perps withdraw case
  * where the parent `isDisplayed` probe fails.
+ *
+ * A sheet that slides up after Unlock (e.g. Experience Enhancer) hides the
+ * wallet chrome, so readiness can never pass while it is up. In performance
+ * runs the interrupting-screen guard dismisses known sheets during the wait
+ * and, on timeout, gets one dismiss-and-retry (AI fallback included).
  */
 export const waitForWalletHomePlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),
-): Promise<void> => {
-  const deadline = Date.now() + timeout;
-  const isAndroid = PlatformDetector.isAndroid();
-  const platform = isAndroid ? 'Android' : 'iOS';
-
-  while (Date.now() < deadline) {
-    if (await isWalletHomeReadyOnAppium()) {
-      logger.debug(`Wallet home ready on ${platform}`);
-      return;
-    }
-    if (isAndroid) {
-      await dismissAndroidSystemOverlaysPlaywright();
-    }
-    await sleep(WALLET_HOME_POLL_INTERVAL_MS);
-  }
-
-  throw new Error(
-    `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
+): Promise<void> =>
+  interruptingScreenGuard.retryAfterInterruption(
+    () => pollWalletHome(timeout),
+    { intent: WALLET_HOME_INTENT, trigger: 'wait-failure' },
   );
-};
 
 const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
   if (PlatformDetector.isAndroid()) {
