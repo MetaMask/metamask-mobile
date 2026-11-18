@@ -1,14 +1,6 @@
 /**
- * MiCA Disclaimer Component
- *
  * Displays the EEA pricing disclaimer when a quote includes `MICA_EEA_BUY` or
- * `MICA_EEA_SELL` in termsIds. Show this on both the quote screen and the order
- * confirmation screen, above the CTA button, per FMA requirements.
- *
- * Usage:
- * ```tsx
- * <MicaDisclaimer termsIds={quote.termsIds} />
- * ```
+ * `MICA_EEA_SELL` in termsIds, per FMA requirements.
  */
 
 import React from 'react';

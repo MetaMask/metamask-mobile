@@ -1,10 +1,6 @@
 /**
- * Source of Income Screen (MiCA/EEA)
- *
  * Collects source of funds, monthly volume, employment status, and nationality
  * for EEA users per MiCA requirements.
- *
- * Rendered when Get Additional Requirements returns type: 'SOURCE_OF_INCOME'.
  */
 
 import React, { useCallback, useState } from 'react';
@@ -38,7 +34,7 @@ import {
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import type { TransakSourceOfIncomeFormMetadata } from '../../types/micaTypes';
 import DepositTextField from '../../components/DepositTextField';
-import DepositSelectField from '../../components/DepositSelectField';
+import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import styleSheet from './SourceOfIncome.styles';
 
 export interface SourceOfIncomeParams {

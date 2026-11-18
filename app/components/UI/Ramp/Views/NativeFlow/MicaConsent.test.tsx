@@ -105,7 +105,7 @@ describe('MicaConsent', () => {
   });
 
   it('enables submit button when both consents are checked', async () => {
-    const { getByLabelText, getByText } = render(
+    const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <MicaConsent />
       </ThemeContext.Provider>,
@@ -115,8 +115,8 @@ describe('MicaConsent', () => {
       expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
     });
 
-    const dataProcessingCheckbox = getByLabelText('deposit.mica.dataProcessingConsent');
-    const termsCheckbox = getByLabelText('deposit.mica.termsAndPrivacyConsent');
+    const dataProcessingCheckbox = getByText('deposit.mica.dataProcessingConsent');
+    const termsCheckbox = getByText('deposit.mica.termsAndPrivacyConsent');
 
     fireEvent.press(dataProcessingCheckbox);
     fireEvent.press(termsCheckbox);
@@ -128,7 +128,7 @@ describe('MicaConsent', () => {
   });
 
   it('submits consent and navigates back', async () => {
-    const { getByLabelText, getByText } = render(
+    const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <MicaConsent />
       </ThemeContext.Provider>,
@@ -138,8 +138,8 @@ describe('MicaConsent', () => {
       expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
     });
 
-    const dataProcessingCheckbox = getByLabelText('deposit.mica.dataProcessingConsent');
-    const termsCheckbox = getByLabelText('deposit.mica.termsAndPrivacyConsent');
+    const dataProcessingCheckbox = getByText('deposit.mica.dataProcessingConsent');
+    const termsCheckbox = getByText('deposit.mica.termsAndPrivacyConsent');
 
     fireEvent.press(dataProcessingCheckbox);
     fireEvent.press(termsCheckbox);
@@ -157,7 +157,7 @@ describe('MicaConsent', () => {
     const micaMockModule = require('../../utils/micaMockMode');
     micaMockModule.isMicaMockModeEnabled.mockReturnValue(true);
 
-    const { getByLabelText, getByText } = render(
+    const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <MicaConsent />
       </ThemeContext.Provider>,
@@ -167,8 +167,8 @@ describe('MicaConsent', () => {
       expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
     });
 
-    const dataProcessingCheckbox = getByLabelText('deposit.mica.dataProcessingConsent');
-    const termsCheckbox = getByLabelText('deposit.mica.termsAndPrivacyConsent');
+    const dataProcessingCheckbox = getByText('deposit.mica.dataProcessingConsent');
+    const termsCheckbox = getByText('deposit.mica.termsAndPrivacyConsent');
 
     fireEvent.press(dataProcessingCheckbox);
     fireEvent.press(termsCheckbox);

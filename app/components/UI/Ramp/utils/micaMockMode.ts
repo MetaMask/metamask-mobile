@@ -1,23 +1,6 @@
 /**
- * MiCA/EEA Mock Mode for Development
- *
- * Allows testing the full EU native Transak flow on a simulator without Transak
- * staging support. Off by default.
- *
- * HOW TO ENABLE:
- * Set environment variable before building:
- * ```
- * export MICA_MOCK_MODE=true
- * ```
- * Then rebuild the app. Verify mock mode is active by checking logs on the
- * MiCA consent screen.
- *
- * WHAT IT DOES:
- * 1. Returns mock CONSENT and SOURCE_OF_INCOME forms from getAdditionalRequirements
- * 2. Fakes successful submission of consent and source of income
- * 3. Injects transak-native provider for EU regions when it's missing from the API
- *
- * This is DEV-ONLY and excluded from production builds.
+ * Dev-only mock mode for testing the EU native Transak flow without staging support.
+ * Enable by setting MICA_MOCK_MODE=true before building.
  */
 
 import type {
@@ -26,7 +9,6 @@ import type {
 } from '../types/micaTypes';
 import Logger from '../../../../util/Logger';
 
-// Read from build-time environment variable (set before building, not at runtime)
 const MICA_MOCK_MODE_ENABLED =
   process.env.MICA_MOCK_MODE === 'true' && __DEV__;
 
@@ -34,9 +16,6 @@ export function isMicaMockModeEnabled(): boolean {
   return MICA_MOCK_MODE_ENABLED;
 }
 
-/**
- * Mock CONSENT form response for existing EEA users.
- */
 export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
   Logger.log('[MiCA Mock] Returning mock CONSENT form');
   return {
@@ -49,9 +28,6 @@ export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
   };
 }
 
-/**
- * Injects MiCA termsIds into a quote for testing disclaimer display.
- */
 export function injectMicaTermsIds(quote: any): any {
   if (!isMicaMockModeEnabled() || !quote) {
     return quote;
@@ -64,9 +40,6 @@ export function injectMicaTermsIds(quote: any): any {
   };
 }
 
-/**
- * Mock SOURCE_OF_INCOME form response with EEA fields.
- */
 export function getMockSourceOfIncomeForm(): TransakAdditionalRequirementsResponse {
   Logger.log('[MiCA Mock] Returning mock SOURCE_OF_INCOME form');
   const metadata: TransakSourceOfIncomeFormMetadata = {
@@ -129,9 +102,6 @@ export async function mockSubmitMicaConsent(
   return { status: 'SUBMITTED' };
 }
 
-/**
- * Mock successful source of income submission.
- */
 export async function mockSubmitSourceOfIncome(data: {
   monthlyVolume: string;
   sourceOfFundsType: string;
@@ -144,13 +114,7 @@ export async function mockSubmitSourceOfIncome(data: {
 }
 
 /**
- * Injects transak-native provider into the providers list for EU regions when
- * it's missing (due to server-side excludeEuTransakNative setting).
- *
- * Returns the original list unchanged when:
- * - Mock mode is off
- * - transak-native already exists
- * - Region is not EU
+ * Injects transak-native provider for EU regions to bypass excludeEuTransakNative.
  */
 export function injectMockNativeProviderIfNeeded(
   providers: Array<{ id: string; name: string; type?: string }>,

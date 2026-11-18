@@ -1,10 +1,6 @@
 /**
- * MiCA Consent Screen
- *
- * One-time consent for existing EEA users per MiCA regulations. Shows user data
- * (read-only), data processing consent, and Terms/Privacy Policy agreement.
- *
- * Rendered when Get Additional Requirements returns type: 'CONSENT'.
+ * One-time MiCA consent for existing EEA users. Displays user data (read-only)
+ * and requires acceptance of data processing consent and Terms/Privacy Policy.
  */
 
 import React, { useCallback, useState } from 'react';
