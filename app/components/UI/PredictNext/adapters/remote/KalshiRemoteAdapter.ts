@@ -598,12 +598,13 @@ export class KalshiRemoteAdapter {
           return mapError(error, 'preview');
         }
       },
-      commitWithdraw: async (previewId, options) => {
+      commitWithdraw: async (previewId, options, onDispatch) => {
         try {
           const value = await client.commitWithdraw(
             this.venueId,
             previewId,
             options,
+            onDispatch,
           );
           return parseOwnWithdrawReceipt(value, this.venueId, previewId);
         } catch (error) {

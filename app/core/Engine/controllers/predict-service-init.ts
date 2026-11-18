@@ -288,12 +288,14 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
     venueId: adapter.venueId,
   });
 
-  // A replaced Predict User must not have their Withdrawal receipts observed
-  // with the next person's bearer token. This is watched here, not on a
-  // screen, so it applies whether or not the Withdraw sheet is mounted.
-  const abandon = () => controller.abandon();
-  initMessenger.subscribe('KeyringController:lock', abandon);
-  initMessenger.subscribe('AuthenticationController:profileSignIn', abandon);
+  // Lock stops observation; replacing the identity also detaches funding state.
+  const stopObserving = () => controller.stopObserving();
+  const changeIdentity = () => controller.changeIdentity();
+  initMessenger.subscribe('KeyringController:lock', stopObserving);
+  initMessenger.subscribe(
+    'AuthenticationController:profileSignIn',
+    changeIdentity,
+  );
   let signedIn = initMessenger.call(
     'AuthenticationController:getState',
   ).isSignedIn;
@@ -303,7 +305,7 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
     ).isSignedIn;
     if (next !== signedIn) {
       signedIn = next;
-      abandon();
+      changeIdentity();
     }
   };
   initMessenger.subscribe(
@@ -314,14 +316,14 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
   // this session no longer serves.
   const unsubscribeVenue = subscribeToActiveVenueChanges(
     { getState, subscribe: (listener) => store.subscribe(listener) },
-    abandon,
+    changeIdentity,
   );
 
   controller.setLifecycleCleanup(() => {
-    initMessenger.unsubscribe('KeyringController:lock', abandon);
+    initMessenger.unsubscribe('KeyringController:lock', stopObserving);
     initMessenger.unsubscribe(
       'AuthenticationController:profileSignIn',
-      abandon,
+      changeIdentity,
     );
     initMessenger.unsubscribe(
       'AuthenticationController:stateChange',

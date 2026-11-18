@@ -1280,6 +1280,38 @@ describe('PredictApiReadClient', () => {
       });
     });
 
+    it('notifies dispatch before fetch and before its response resolves', async () => {
+      bearerOnlyClient();
+      let respond!: (response: Response) => void;
+      const response = new Promise<Response>((resolve) => {
+        respond = resolve;
+      });
+      let dispatched!: () => void;
+      const issued = new Promise<void>((resolve) => {
+        dispatched = resolve;
+      });
+      const onDispatch = jest.fn();
+      fetchMock.mockImplementationOnce(() => {
+        expect(onDispatch).toHaveBeenCalledTimes(1);
+        dispatched();
+        return response;
+      });
+
+      const pending = client.commitWithdraw(
+        venueId,
+        previewId,
+        undefined,
+        onDispatch,
+      );
+      expect(onDispatch).not.toHaveBeenCalled();
+      await issued;
+      expect(onDispatch).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      respond(createResponse({ json: { ok: true } }));
+      await expect(pending).resolves.toEqual({ ok: true });
+    });
+
     it('reads the receipt without a body or a signature', async () => {
       const { signRead } = bearerOnlyClient();
       fetchMock.mockResolvedValueOnce(createResponse({ json: { ok: true } }));

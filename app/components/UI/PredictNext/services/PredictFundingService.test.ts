@@ -163,12 +163,25 @@ const serviceWith = (): PredictFundingService => {
   return service;
 };
 
+const quotedServiceWith = async (): Promise<PredictFundingService> => {
+  const service = serviceWith();
+  await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+    amount: preview.requestedAmount as PredictAmount,
+  });
+  return service;
+};
+
 const invalidations = () =>
   portfolioQueryFamilies(KALSHI_VENUE_ID).map((queryKey) => [{ queryKey }]);
 
 beforeEach(() => {
   previewWithdraw.mockReset().mockResolvedValue(preview);
-  commitWithdraw.mockReset().mockResolvedValue(receipt('processing'));
+  commitWithdraw
+    .mockReset()
+    .mockImplementation((_previewId, _options, onDispatch) => {
+      onDispatch?.();
+      return Promise.resolve(receipt('processing'));
+    });
   observeWithdraw.mockReset().mockResolvedValue(receipt('processing'));
   invalidateQueries.mockReset().mockResolvedValue(undefined);
 });
@@ -216,7 +229,7 @@ describe('PredictFundingService withdrawal flow', () => {
       const pending = service.requestWithdrawPreview(KALSHI_VENUE_ID, {
         sweepAll: true,
       });
-      service.abandon();
+      service.changeIdentity();
       gate.resolve(preview);
 
       await expect(pending).rejects.toMatchObject({
@@ -232,18 +245,110 @@ describe('PredictFundingService withdrawal flow', () => {
       const pending = service.requestWithdrawPreview(KALSHI_VENUE_ID, {
         sweepAll: true,
       });
-      service.abandon();
+      service.changeIdentity();
       gate.reject(PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE));
 
       await expect(pending).rejects.toMatchObject({
         code: PredictErrorCode.UNAUTHENTICATED,
       });
     });
+
+    it('keeps only the newest 50 unused quotes', async () => {
+      const service = serviceWith();
+      for (let index = 0; index < 100; index += 1) {
+        previewWithdraw.mockResolvedValueOnce({
+          ...preview,
+          previewId: `quote-${index}`,
+        });
+        await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+          sweepAll: true,
+        });
+      }
+      for (let index = 0; index < 50; index += 1) {
+        await expect(
+          service.commitWithdrawPreview(KALSHI_VENUE_ID, `quote-${index}`),
+        ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
+      }
+      expect(commitWithdraw).not.toHaveBeenCalled();
+      commitWithdraw.mockImplementation((previewId, _options, onDispatch) => {
+        onDispatch?.();
+        return Promise.resolve(receipt('processing', { previewId }));
+      });
+      for (let index = 50; index < 100; index += 1) {
+        await expect(
+          service.commitWithdrawPreview(KALSHI_VENUE_ID, `quote-${index}`),
+        ).resolves.toMatchObject({ previewId: `quote-${index}` });
+      }
+    });
+
+    it('retains an in-flight dispatched preview through a long quote sequence', async () => {
+      const service = await quotedServiceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      commitWithdraw.mockImplementationOnce(
+        (_previewId, _options, onDispatch) => {
+          onDispatch?.();
+          return gate.promise;
+        },
+      );
+      const pending = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+      await Promise.resolve();
+      for (let index = 0; index < 100; index += 1) {
+        previewWithdraw.mockResolvedValueOnce({
+          ...preview,
+          previewId: `quote-${index}`,
+        });
+        await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+          sweepAll: true,
+        });
+      }
+      expect(service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1')).toBe(
+        pending,
+      );
+      gate.resolve(receipt('processing'));
+      await expect(pending).resolves.toMatchObject({ status: 'processing' });
+      observeWithdraw.mockResolvedValueOnce(
+        receipt('settled', {
+          requestedAmount: '6' as PredictAmount,
+        }),
+      );
+      await expect(
+        service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1'),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+      expect(commitWithdraw).toHaveBeenCalledTimes(1);
+    });
+
+    it('evicts settled pins while keeping the latest quote usable', async () => {
+      const service = serviceWith();
+      commitWithdraw.mockImplementation((previewId, _options, onDispatch) => {
+        onDispatch?.();
+        return Promise.resolve(receipt('settled', { previewId }));
+      });
+      for (let index = 0; index < 60; index += 1) {
+        const previewId = `settled-${index}`;
+        previewWithdraw.mockResolvedValueOnce({ ...preview, previewId });
+        await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+          sweepAll: true,
+        });
+        await service.commitWithdrawPreview(KALSHI_VENUE_ID, previewId);
+      }
+      const calls = commitWithdraw.mock.calls.length;
+
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'settled-0'),
+      ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
+      expect(commitWithdraw).toHaveBeenCalledTimes(calls);
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'settled-59'),
+      ).resolves.toMatchObject({ status: 'settled' });
+    });
   });
 
   describe('commitWithdrawPreview', () => {
     it('commits by reference and returns the canonical receipt', async () => {
-      const service = serviceWith();
+      const service = await quotedServiceWith();
       const canonical = receipt('processing');
       commitWithdraw.mockResolvedValueOnce(canonical);
 
@@ -254,12 +359,357 @@ describe('PredictFundingService withdrawal flow', () => {
 
       expect(result).toBe(canonical);
       expect(commitWithdraw.mock.calls).toEqual([
-        ['preview-1', { signal: expect.any(AbortSignal) }],
+        [
+          'preview-1',
+          { signal: expect.any(AbortSignal) },
+          expect.any(Function),
+        ],
       ]);
     });
 
-    it('forwards caller cancellation and keeps its AbortError', async () => {
+    it('coalesces concurrent callers into one receipt and adapter commit', async () => {
+      const service = await quotedServiceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      const canonical = receipt('processing');
+      commitWithdraw.mockReturnValueOnce(gate.promise);
+
+      const first = service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+      const second = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+
+      expect(second).toBe(first);
+      await Promise.resolve();
+      expect(commitWithdraw).toHaveBeenCalledTimes(1);
+      gate.resolve(canonical);
+      await expect(first).resolves.toBe(canonical);
+      await expect(second).resolves.toBe(canonical);
+    });
+
+    it('keeps a dispatched shared commit and receipt alive during lock', async () => {
+      const service = await quotedServiceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      commitWithdraw.mockImplementationOnce(
+        (_previewId, _options, onDispatch) => {
+          onDispatch?.();
+          return gate.promise;
+        },
+      );
+      const first = service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+      await Promise.resolve();
+
+      service.stopObserving();
+
+      expect(commitWithdraw.mock.calls[0][1]?.signal?.aborted).toBe(false);
+      expect(service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1')).toBe(
+        first,
+      );
+      gate.resolve(receipt('processing'));
+      await expect(first).resolves.toMatchObject({ status: 'processing' });
+      invalidateQueries.mockClear();
+      await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+      expect(invalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('keeps a dispatched transport alive but drops its result on identity change', async () => {
+      const service = await quotedServiceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      commitWithdraw.mockImplementationOnce(
+        (_previewId, _options, onDispatch) => {
+          onDispatch?.();
+          return gate.promise;
+        },
+      );
+      const pending = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+      await Promise.resolve();
+
+      service.changeIdentity();
+
+      expect(commitWithdraw.mock.calls[0][1]?.signal?.aborted).toBe(false);
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
+      expect(commitWithdraw).toHaveBeenCalledTimes(1);
+      gate.resolve(receipt('processing'));
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(invalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('marks dispatch only when notified, before the response resolves', async () => {
+      const service = await quotedServiceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      let dispatch: (() => void) | undefined;
+      commitWithdraw.mockImplementationOnce(
+        (_previewId, _options, onDispatch) => {
+          dispatch = onDispatch;
+          return gate.promise;
+        },
+      );
+      const pending = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+      await Promise.resolve();
+      expect(dispatch).toEqual(expect.any(Function));
+      dispatch?.();
+      service.stopObserving();
+      expect(commitWithdraw.mock.calls[0][1]?.signal?.aborted).toBe(false);
+      gate.resolve(receipt('processing'));
+      await expect(pending).resolves.toMatchObject({ status: 'processing' });
+    });
+
+    it('does not mark an unsent failure dispatched or bypass first-dispatch expiry', async () => {
+      const service = await quotedServiceWith();
+      const failure = PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED);
+      commitWithdraw.mockRejectedValueOnce(failure);
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).rejects.toBe(failure);
+      const originalNow = Date.now();
+      jest.mocked(Date.now).mockReturnValue(Date.parse(preview.expiresAt) + 1);
+      try {
+        await expect(
+          service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+        ).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+        expect(commitWithdraw).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.mocked(Date.now).mockReturnValue(originalNow);
+      }
+    });
+
+    it('does not cancel the shared POST when a second caller aborts', async () => {
+      const service = await quotedServiceWith();
+      const caller = new AbortController();
+      const gate = deferred<PredictWithdrawReceipt>();
+      const canonical = receipt('processing');
+      commitWithdraw.mockReturnValueOnce(gate.promise);
+
+      const first = service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+      const second = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        {
+          signal: caller.signal,
+        },
+      );
+      const cancelled = expect(second).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+      await Promise.resolve();
+      caller.abort();
+
+      await cancelled;
+      expect(commitWithdraw).toHaveBeenCalledTimes(1);
+      expect(commitWithdraw.mock.calls[0][1]?.signal?.aborted).toBe(false);
+      gate.resolve(canonical);
+      await expect(first).resolves.toBe(canonical);
+    });
+
+    it.each(['unknown', 'changeIdentity', 'clearState'] as const)(
+      'refuses an unapproved preview after %s without dispatch',
+      async (reason) => {
+        const service = await quotedServiceWith();
+        if (reason !== 'unknown') {
+          service[reason]();
+        }
+
+        await expect(
+          service.commitWithdrawPreview(
+            KALSHI_VENUE_ID,
+            reason === 'unknown' ? 'unknown-preview' : 'preview-1',
+          ),
+        ).rejects.toMatchObject({
+          code: PredictErrorCode.UNAUTHENTICATED,
+          metadata: { mutationRelay: 'not_relayed_this_invocation' },
+        });
+        expect(commitWithdraw).not.toHaveBeenCalled();
+      },
+    );
+
+    it('pins copies of both the preview and destination', async () => {
       const service = serviceWith();
+      const quote = { ...preview, destination: { ...preview.destination } };
+      previewWithdraw.mockResolvedValueOnce(quote);
+      const approved = await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        amount: '5.00' as PredictAmount,
+      });
+      approved.mode = 'sweep_all';
+      approved.requestedAmount = '500' as PredictAmount;
+      approved.destination.address = 'changed-address';
+      approved.destination.source = 'venue';
+
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toMatchObject({
+        mode: 'fixed',
+        requestedAmount: '5.00',
+        destination: preview.destination,
+      });
+    });
+
+    it('accepts normalized equal amounts and venue destinations', async () => {
+      const service = serviceWith();
+      const destination = { ...preview.destination, source: 'venue' as const };
+      previewWithdraw.mockResolvedValueOnce({
+        ...preview,
+        requestedAmount: '25' as PredictAmount,
+        destination,
+      });
+      commitWithdraw.mockResolvedValueOnce(
+        receipt('processing', {
+          requestedAmount: '25.00' as PredictAmount,
+          destination,
+        }),
+      );
+      await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        amount: '25' as PredictAmount,
+      });
+
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toMatchObject({ requestedAmount: '25.00', destination });
+    });
+
+    it('refuses an expired first dispatch without calling the adapter', async () => {
+      const service = serviceWith();
+      previewWithdraw.mockResolvedValueOnce({
+        ...preview,
+        expiresAt: new Date(Date.now() - 1).toISOString() as PredictTimestamp,
+      });
+      await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        amount: '5.00' as PredictAmount,
+      });
+
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.PREVIEW_EXPIRED,
+        metadata: {
+          phase: 'commit',
+          mutationRelay: 'not_relayed_this_invocation',
+        },
+      });
+      expect(commitWithdraw).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['amount', { requestedAmount: '6' as PredictAmount }],
+      ['mode', { mode: 'sweep_all' as const, requestedAmount: undefined }],
+      [
+        'address',
+        { destination: { ...preview.destination, address: 'other-address' } },
+      ],
+      [
+        'network',
+        { destination: { ...preview.destination, network: 'other-network' } },
+      ],
+      [
+        'source',
+        { destination: { ...preview.destination, source: 'venue' as const } },
+      ],
+    ])(
+      'rejects a different %s without losing recovery',
+      async (_field, overrides) => {
+        const service = await quotedServiceWith();
+        const invalid = receipt(
+          'processing',
+          overrides as Partial<PredictWithdrawReceipt>,
+        );
+        commitWithdraw.mockResolvedValueOnce(invalid);
+        observeWithdraw
+          .mockResolvedValueOnce(invalid)
+          .mockResolvedValueOnce(receipt('settled'));
+
+        await expect(
+          service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+        ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+        expect(invalidateQueries).not.toHaveBeenCalled();
+        await expect(
+          service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1'),
+        ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+        await expect(
+          service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1'),
+        ).resolves.toMatchObject({ status: 'settled' });
+      },
+    );
+
+    it('keeps dispatched recovery usable after expiry and an invalid receipt', async () => {
+      const service = serviceWith();
+      const expiresAt = '2099-03-01T12:01:00.000Z' as PredictTimestamp;
+      previewWithdraw.mockResolvedValueOnce({ ...preview, expiresAt });
+      await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        amount: '5.00' as PredictAmount,
+      });
+      commitWithdraw.mockImplementationOnce(
+        (_previewId, _options, onDispatch) => {
+          onDispatch?.();
+          return Promise.resolve(
+            receipt('processing', {
+              requestedAmount: '6.00' as PredictAmount,
+            }),
+          );
+        },
+      );
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+      const originalNow = Date.now();
+      jest.mocked(Date.now).mockReturnValue(Date.parse(expiresAt) + 1);
+      try {
+        await expect(
+          service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1'),
+        ).resolves.toMatchObject({ status: 'processing' });
+        await expect(
+          service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+        ).resolves.toMatchObject({ status: 'processing' });
+        expect(commitWithdraw).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.mocked(Date.now).mockReturnValue(originalNow);
+      }
+    });
+
+    it('does not detach a new session commit when the old one settles', async () => {
+      const service = await quotedServiceWith();
+      const oldGate = deferred<PredictWithdrawReceipt>();
+      const newGate = deferred<PredictWithdrawReceipt>();
+      commitWithdraw
+        .mockReturnValueOnce(oldGate.promise)
+        .mockReturnValueOnce(newGate.promise);
+      const oldCommit = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+      const abandoned = expect(oldCommit).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      await Promise.resolve();
+      service.changeIdentity();
+      await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        amount: '5' as PredictAmount,
+      });
+      const newCommit = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+      oldGate.resolve(receipt('processing'));
+      await abandoned;
+
+      expect(service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1')).toBe(
+        newCommit,
+      );
+      newGate.resolve(receipt('processing'));
+      await expect(newCommit).resolves.toMatchObject({ status: 'processing' });
+      expect(commitWithdraw).toHaveBeenCalledTimes(2);
+    });
+
+    it('cancels only the caller waiting, not the shared commit', async () => {
+      const service = await quotedServiceWith();
       const caller = new AbortController();
       const gate = deferred<PredictWithdrawReceipt>();
       let signal: AbortSignal | undefined;
@@ -273,21 +723,24 @@ describe('PredictFundingService withdrawal flow', () => {
         'preview-1',
         { signal: caller.signal },
       );
+      await Promise.resolve();
       expect(signal).not.toBe(caller.signal);
       expect(signal?.aborted).toBe(false);
 
       caller.abort();
-      expect(signal?.aborted).toBe(true);
-      const abortError = new Error('The request was aborted.');
-      abortError.name = 'AbortError';
-      gate.reject(abortError);
-
-      await expect(pending).rejects.toBe(abortError);
-      expect(invalidateQueries).not.toHaveBeenCalled();
+      const cancelled = expect(pending).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+      expect(signal?.aborted).toBe(false);
+      await cancelled;
+      gate.resolve(receipt('processing'));
+      await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+      expect(commitWithdraw).toHaveBeenCalledTimes(1);
+      expect(invalidateQueries.mock.calls).toEqual(invalidations());
     });
 
     it('aborts a commit still resolving its token when abandoned', async () => {
-      const service = serviceWith();
+      const service = await quotedServiceWith();
       const gate = deferred<PredictWithdrawReceipt>();
       let signal: AbortSignal | undefined;
       commitWithdraw.mockImplementationOnce((_previewId, options) => {
@@ -299,9 +752,10 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
+      await Promise.resolve();
       expect(signal?.aborted).toBe(false);
 
-      service.abandon();
+      service.changeIdentity();
       expect(signal?.aborted).toBe(true);
       gate.resolve(receipt('processing'));
 
@@ -312,7 +766,7 @@ describe('PredictFundingService withdrawal flow', () => {
     });
 
     it('aborts a commit still resolving its token when destroyed', async () => {
-      const service = serviceWith();
+      const service = await quotedServiceWith();
       const gate = deferred<PredictWithdrawReceipt>();
       let signal: AbortSignal | undefined;
       commitWithdraw.mockImplementationOnce((_previewId, options) => {
@@ -324,6 +778,7 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
+      await Promise.resolve();
       expect(signal?.aborted).toBe(false);
 
       service.destroy();
@@ -337,7 +792,7 @@ describe('PredictFundingService withdrawal flow', () => {
     });
 
     it('removes the caller abort listener after a normal commit', async () => {
-      const service = serviceWith();
+      const service = await quotedServiceWith();
       const addEventListener = jest.fn();
       const removeEventListener = jest.fn();
       const caller = {
@@ -364,7 +819,7 @@ describe('PredictFundingService withdrawal flow', () => {
     });
 
     it('returns the persisted refusal as an outcome rather than throwing', async () => {
-      const service = serviceWith();
+      const service = await quotedServiceWith();
       const refusal = receipt('rejected', {
         rejectionCode: 'insufficient_balance',
       });
@@ -428,6 +883,23 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(invalidateQueries).not.toHaveBeenCalled();
     });
 
+    it('aborts observation on lock without forgetting the approved preview', async () => {
+      const service = await quotedServiceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      observeWithdraw.mockReturnValueOnce(gate.promise);
+      const pending = service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+
+      service.stopObserving();
+
+      expect(observeWithdraw.mock.calls[0][1]?.signal?.aborted).toBe(true);
+      gate.resolve(receipt('processing'));
+      await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+      expect(invalidateQueries).not.toHaveBeenCalled();
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toMatchObject({ status: 'processing' });
+    });
+
     it('aborts an observation still resolving its token when abandoned', async () => {
       const service = serviceWith();
       const gate = deferred<PredictWithdrawReceipt>();
@@ -440,7 +912,7 @@ describe('PredictFundingService withdrawal flow', () => {
       const pending = service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
       expect(signal?.aborted).toBe(false);
 
-      service.abandon();
+      service.changeIdentity();
       expect(signal?.aborted).toBe(true);
       gate.resolve(receipt('processing'));
 
@@ -505,6 +977,11 @@ describe('PredictFundingService withdrawal flow', () => {
 
       it('surfaces the backend error unchanged', async () => {
         const service = serviceWith();
+        if (method === 'commit') {
+          await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+            amount: '5.00' as PredictAmount,
+          });
+        }
         const failure = PredictError.from(
           PredictErrorCode.AMOUNT_BELOW_MINIMUM,
         );
@@ -522,7 +999,7 @@ describe('PredictFundingService withdrawal flow', () => {
 
   describe('portfolio invalidation', () => {
     it('invalidates every portfolio read once per status transition', async () => {
-      const service = serviceWith();
+      const service = await quotedServiceWith();
       observeWithdraw
         .mockResolvedValueOnce(receipt('processing'))
         .mockResolvedValueOnce(receipt('settled'))
@@ -556,7 +1033,7 @@ describe('PredictFundingService withdrawal flow', () => {
     it.each(['pending', 'rejected'] as const)(
       'does not invalidate for %s receipts',
       async (status) => {
-        const service = serviceWith();
+        const service = await quotedServiceWith();
         commitWithdraw.mockResolvedValueOnce(receipt(status));
         observeWithdraw.mockResolvedValueOnce(receipt(status));
 
@@ -568,7 +1045,7 @@ describe('PredictFundingService withdrawal flow', () => {
     );
 
     it('tracks status separately for each preview', async () => {
-      const service = serviceWith();
+      const service = await quotedServiceWith();
       observeWithdraw.mockResolvedValueOnce(
         receipt('processing', { previewId: 'preview-2' }),
       );
@@ -585,7 +1062,7 @@ describe('PredictFundingService withdrawal flow', () => {
     it.each(['commit', 'observe'] as const)(
       'keeps %s successful when invalidation fails',
       async (method) => {
-        const service = serviceWith();
+        const service = await quotedServiceWith();
         invalidateQueries.mockRejectedValue(new Error('invalidate failed'));
 
         const result =
@@ -599,13 +1076,13 @@ describe('PredictFundingService withdrawal flow', () => {
     );
   });
 
-  describe('abandon', () => {
+  describe('changeIdentity', () => {
     it('forgets receipt statuses so the next processing receipt invalidates again', async () => {
-      const service = serviceWith();
+      const service = await quotedServiceWith();
       await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
       invalidateQueries.mockClear();
 
-      service.abandon();
+      service.changeIdentity();
       await service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
 
       expect(invalidateQueries.mock.calls).toEqual(invalidations());
@@ -614,7 +1091,7 @@ describe('PredictFundingService withdrawal flow', () => {
     it.each(['commit', 'observe'] as const)(
       'discards an in-flight %s after the Predict User changes',
       async (method) => {
-        const service = serviceWith();
+        const service = await quotedServiceWith();
         const gate = deferred<PredictWithdrawReceipt>();
         commitWithdraw.mockReturnValueOnce(gate.promise);
         observeWithdraw.mockReturnValueOnce(gate.promise);
@@ -623,7 +1100,7 @@ describe('PredictFundingService withdrawal flow', () => {
           method === 'commit'
             ? service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1')
             : service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
-        service.abandon();
+        service.changeIdentity();
         gate.resolve(receipt('settled'));
 
         await expect(pending).rejects.toMatchObject({

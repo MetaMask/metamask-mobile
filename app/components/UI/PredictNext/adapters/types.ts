@@ -95,10 +95,12 @@ export interface VenueFundingAdapter {
     options?: PredictReadOptions,
   ): Promise<PredictWithdrawPreview>;
   /** Commits the stored, expiring Preview by reference only. Repeated calls
-   * for the same `previewId` converge on one operation. */
+   * for the same `previewId` converge on one operation. `onDispatch` fires
+   * immediately before issuing the request, after bearer resolution. */
   commitWithdraw(
     previewId: string,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<PredictWithdrawReceipt>;
   /** The operation's canonical receipt. Never submits. */
   observeWithdraw(

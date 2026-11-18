@@ -1405,7 +1405,6 @@ export class Engine {
       );
     }
     try {
-      PredictFundingService.abandon();
       PredictFundingService.clearState();
       await PredictPortfolioService.clearAccountData();
     } catch (error) {

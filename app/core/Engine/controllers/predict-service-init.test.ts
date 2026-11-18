@@ -340,9 +340,6 @@ describe('Predict service initialization', () => {
         if (action === 'AuthenticationController:getState') {
           return { isSignedIn: session.isSignedIn };
         }
-        if (action === 'KeyringController:getState') {
-          return { isUnlocked: true };
-        }
         return Promise.resolve('test-bearer-token');
       });
       const { controller } = predictFundingServiceInit({
@@ -364,35 +361,38 @@ describe('Predict service initialization', () => {
       return { rootMessenger, controller, handlers, session };
     };
 
-    it('abandons reported Withdrawals when the keyring locks or the profile changes', () => {
+    it('stops observation on lock and detaches state only on profile change', () => {
       const { controller, handlers } = buildFundingInit();
-      const abandon = jest.spyOn(controller, 'abandon');
+      const stopObserving = jest.spyOn(controller, 'stopObserving');
+      const changeIdentity = jest.spyOn(controller, 'changeIdentity');
 
       handlers.get('KeyringController:lock')?.();
+      expect(stopObserving).toHaveBeenCalledTimes(1);
+      expect(changeIdentity).not.toHaveBeenCalled();
       handlers.get('AuthenticationController:profileSignIn')?.();
 
-      expect(abandon).toHaveBeenCalledTimes(2);
+      expect(changeIdentity).toHaveBeenCalledTimes(1);
       controller.destroy();
     });
 
-    it('abandons reported Withdrawals when the session signs out, not when it refreshes', () => {
+    it('changes identity when the session signs out, not when it refreshes', () => {
       const { controller, handlers, session } = buildFundingInit();
-      const abandon = jest.spyOn(controller, 'abandon');
+      const changeIdentity = jest.spyOn(controller, 'changeIdentity');
       const authenticationChanged = handlers.get(
         'AuthenticationController:stateChange',
       );
 
       session.isSignedIn = true;
       authenticationChanged?.();
-      expect(abandon).not.toHaveBeenCalled();
+      expect(changeIdentity).not.toHaveBeenCalled();
 
       session.isSignedIn = false;
       authenticationChanged?.();
-      expect(abandon).toHaveBeenCalledTimes(1);
+      expect(changeIdentity).toHaveBeenCalledTimes(1);
       controller.destroy();
     });
 
-    it('abandons reported Withdrawals when the Active Venue changes', () => {
+    it('changes identity when the Active Venue changes', () => {
       let state = activeVenueState('kalshi');
       const rootMessenger = new Messenger<
         MockAnyNamespace,
@@ -415,15 +415,15 @@ describe('Predict service initialization', () => {
         } as never,
         getState: jest.fn(() => state) as never,
       });
-      const abandon = jest.spyOn(controller, 'abandon');
+      const changeIdentity = jest.spyOn(controller, 'changeIdentity');
       const onStoreChange = jest.mocked(store.subscribe).mock.calls[0][0];
 
       onStoreChange();
-      expect(abandon).not.toHaveBeenCalled();
+      expect(changeIdentity).not.toHaveBeenCalled();
 
       state = activeVenueState('polymarket');
       onStoreChange();
-      expect(abandon).toHaveBeenCalledTimes(1);
+      expect(changeIdentity).toHaveBeenCalledTimes(1);
       controller.destroy();
     });
 

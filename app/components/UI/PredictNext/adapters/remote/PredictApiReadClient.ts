@@ -120,6 +120,7 @@ export interface PredictApiReadTransport {
     venueId: PredictVenueId,
     previewId: string,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<unknown>;
   observeWithdraw(
     venueId: PredictVenueId,
@@ -539,11 +540,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     previewId: string,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<unknown> {
     return this.#postAuthenticated(
       ['v1', 'venues', venueId, 'withdrawals', previewId, 'commit'],
       {},
       options,
+      onDispatch,
     );
   }
 
@@ -852,6 +855,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     segments: readonly string[],
     body: PredictApiPostBody,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
     // A write aborted while its token resolved must not go out: the token
@@ -860,7 +864,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       throw abortedError();
     }
     return this.#parseBody(
-      await this.#post(segments, body, bearerToken, options),
+      await this.#post(segments, body, bearerToken, options, onDispatch),
     );
   }
 
@@ -869,6 +873,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     body: PredictApiPostBody,
     bearerToken: string,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<Response> {
     // A read aborted while its token or signature resolved must not go out
     // either: an observation can replay a stored submission.
@@ -879,7 +884,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
-    return this.#fetch(url.toString(), {
+    const request: RequestInit = {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -890,7 +895,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       signal: options?.signal,
-    });
+    };
+    onDispatch?.();
+    return this.#fetch(url.toString(), request);
   }
 
   /**
