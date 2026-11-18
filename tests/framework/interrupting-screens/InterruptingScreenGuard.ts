@@ -212,6 +212,9 @@ export class InterruptingScreenGuard {
    * Polls for known screens for `windowMs` and dismisses each one that
    * appears. Use right after a transition known to trigger sheets (unlock),
    * before the measured part of the test starts.
+   *
+   * A window of 0 or less (including `INTERRUPTING_SCREEN_SETTLE_MS=0`) returns
+   * immediately and does not read the page source or tap anything.
    */
   async settle(
     options: SettleOptions = {},
@@ -220,6 +223,9 @@ export class InterruptingScreenGuard {
       return [];
     }
     const windowMs = options.windowMs ?? resolveSettleWindowMs();
+    if (windowMs <= 0) {
+      return [];
+    }
     const pollIntervalMs =
       options.pollIntervalMs ?? DEFAULT_SETTLE_POLL_INTERVAL_MS;
 

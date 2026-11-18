@@ -143,6 +143,23 @@ describe('InterruptingScreenGuard', () => {
       );
     });
 
+    it.each([0, -1])(
+      'returns immediately without touching the device when the window is %p',
+      async (windowMs) => {
+        const adapter = createAdapter([EXPERIENCE_ENHANCER]);
+        const getPageSource = jest.spyOn(adapter, 'getPageSource');
+        const guard = new InterruptingScreenGuard(adapter);
+        guard.configure({});
+
+        const dismissed = await guard.settle({ windowMs });
+
+        expect(dismissed).toEqual([]);
+        expect(getPageSource).not.toHaveBeenCalled();
+        expect(adapter.tapped).toEqual([]);
+        expect(adapter.clock).toBe(0);
+      },
+    );
+
     it('stops polling at the end of the window when nothing appears', async () => {
       const adapter = createAdapter([WALLET_HOME]);
       const guard = new InterruptingScreenGuard(adapter);
