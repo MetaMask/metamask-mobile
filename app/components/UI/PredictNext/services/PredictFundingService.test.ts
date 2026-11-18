@@ -223,6 +223,22 @@ describe('PredictFundingService withdrawal flow', () => {
         code: PredictErrorCode.UNAUTHENTICATED,
       });
     });
+
+    it('reports a quote failure that lands after abandonment as unauthenticated', async () => {
+      const service = serviceWith();
+      const gate = deferred<PredictWithdrawPreview>();
+      previewWithdraw.mockReturnValueOnce(gate.promise);
+
+      const pending = service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        sweepAll: true,
+      });
+      service.abandon();
+      gate.reject(PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE));
+
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+    });
   });
 
   describe('commitWithdrawPreview', () => {

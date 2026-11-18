@@ -578,7 +578,18 @@ export class KalshiRemoteAdapter {
             options,
           );
           const result = parsePredictWithdrawPreview(value);
-          if (result.venueId !== this.venueId) {
+          // The backend owns the destination and the expiry, but not the
+          // intent: a quote for another mode or amount is not the one the
+          // person asked to approve.
+          const requestedAmount = 'amount' in params ? params.amount : undefined;
+          const quotedForIntent =
+            result.venueId === this.venueId &&
+            result.mode ===
+              (requestedAmount === undefined ? 'sweep_all' : 'fixed') &&
+            (requestedAmount === undefined ||
+              (result.requestedAmount !== undefined &&
+                isSameAmount(result.requestedAmount, requestedAmount)));
+          if (!quotedForIntent) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;

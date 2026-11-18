@@ -379,18 +379,25 @@ export class PredictFundingService {
   ): Promise<PredictWithdrawPreview> {
     this.#assertVenue(venueId);
     const generation = this.#generation;
-    const preview = await withPredictNextTrace(
-      {
-        method: 'requestWithdrawPreview',
-        name: TraceName.PredictNextWithdrawPreview,
-        op: TraceOperation.PredictDataFetch,
-        tags: { venueId: this.#venueId },
-        data: { mode: this.#modeOf(params) },
-      },
-      () => this.#funding.previewWithdraw(params, options),
-    );
-    this.#assertNotAbandoned(generation);
-    return preview;
+    try {
+      const preview = await withPredictNextTrace(
+        {
+          method: 'requestWithdrawPreview',
+          name: TraceName.PredictNextWithdrawPreview,
+          op: TraceOperation.PredictDataFetch,
+          tags: { venueId: this.#venueId },
+          data: { mode: this.#modeOf(params) },
+        },
+        () => this.#funding.previewWithdraw(params, options),
+      );
+      this.#assertNotAbandoned(generation);
+      return preview;
+    } catch (error) {
+      // An abandoned session is UNAUTHENTICATED even when the request
+      // rejected, so an old failure never surfaces as the next person's.
+      this.#assertNotAbandoned(generation);
+      throw error;
+    }
   }
 
   /** Commits a quoted Withdrawal by reference only. The sheet is the one
