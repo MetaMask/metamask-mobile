@@ -959,6 +959,12 @@
       "appium-xcuitest-driver>appium-ios-remotexpc>appium-ios-tuntap": false
     }
   },
+  "previewBuilds": {
+    "@metamask/kyc-controller": {
+      "type": "non-breaking",
+      "previewVersion": "0.16.0-preview-9726c3b7f"
+    }
+  },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
   "foundryup": {
     "binaries": [

@@ -84,7 +84,7 @@ describe('vendorOnboardingControllerInit', () => {
   it('hydrates state from persistedState', () => {
     const persisted: Partial<VendorOnboardingControllerState> = {
       vendors: {
-        kalshi: { step: 'kyc_pending', sessionId: 'sid-1' },
+        kalshi: { step: 'account_link', status: 'none', sessionId: 'sid-1' },
       },
     };
 

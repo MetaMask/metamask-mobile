@@ -14,7 +14,6 @@ import type {
   KycCatalogDocument,
   KycConsentDocument,
   KycDisclaimer,
-  KycStep,
   OnboardingVendorState,
 } from '@metamask/kyc-controller';
 import {
@@ -169,7 +168,7 @@ const KalshiOnboarding = () => {
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
   const [linkCodeSent, setLinkCodeSent] = useState(false);
   /** Carried into the field on the next screen change, then forgotten. */
-  const prefill = useRef<string>();
+  const prefill = useRef<string | undefined>(undefined);
   const [linkedEmail, setLinkedEmail] = useState<string>();
   const [mfaMethod, setMfaMethod] = useState<KycAccountLinkMfaMethod>();
   const [input, setInput] = useState('');

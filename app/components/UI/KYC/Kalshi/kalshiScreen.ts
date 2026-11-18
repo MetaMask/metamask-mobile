@@ -36,18 +36,20 @@ export interface KalshiScreenContext {
 /**
  * Picks the screen for the step kyc-api decided.
  *
- * @param step - The step kyc-api decided, or `undefined` before it answered.
+ * @param step - The step kyc-api decided, or `null` / `undefined` before it
+ * answered.
  * @param status - How verification is going, as kyc-api reported it.
  * @param context - What the phone knows beyond the step.
  * @returns The screen to show.
  */
 export function deriveKalshiScreen(
-  step: KycStep | undefined,
-  status: KycStepStatus,
+  step: KycStep | null | undefined,
+  status: KycStepStatus | null,
   context: KalshiScreenContext,
 ): KalshiScreen {
   switch (step) {
     case undefined:
+    case null:
       return 'loading';
     case 'vendor_terms':
       return 'terms';
@@ -79,7 +81,7 @@ export function deriveKalshiScreen(
  * @param status - How verification went.
  * @returns The screen to show.
  */
-function doneScreen(status: KycStepStatus): KalshiScreen {
+function doneScreen(status: KycStepStatus | null): KalshiScreen {
   switch (status) {
     case 'approved':
       return 'done';

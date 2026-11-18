@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import type { KycStep } from '@metamask/kyc-controller';
+import type { KycStep, KycStepStatus } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -30,13 +30,13 @@ jest.mock('../../../../core/Engine', () => ({
 const refreshStep = Engine.context.VendorOnboardingController
   .refreshStep as unknown as jest.Mock;
 
-const render = (step?: KycStep) =>
+const render = (step?: KycStep | null, status: KycStepStatus | null = 'none') =>
   renderWithProvider(<KalshiAccountBanner />, {
     state: {
       engine: {
         backgroundState: {
           VendorOnboardingController: {
-            vendors: step ? { kalshi: { step, sessionId: null } } : {},
+            vendors: step ? { kalshi: { step, status, sessionId: null } } : {},
           },
         },
       },
@@ -58,7 +58,7 @@ describe('KalshiAccountBanner', () => {
     expect(refreshStep).toHaveBeenCalledTimes(1);
   });
 
-  it.each([undefined, 'vendor_terms', 'kyc_pending', 'kyc_rejected'] as const)(
+  it.each([undefined, 'vendor_terms', 'identity_provider', 'done'] as const)(
     'invites the user to set up Kalshi while the step is %s',
     (step) => {
       const screen = render(step);
@@ -80,7 +80,7 @@ describe('KalshiAccountBanner', () => {
   });
 
   it('is hidden once kyc-api has approved the user', () => {
-    const screen = render('approved');
+    const screen = render('done', 'approved');
 
     expect(screen.queryByTestId(KalshiAccountBannerTestIds.BUTTON)).toBeNull();
   });

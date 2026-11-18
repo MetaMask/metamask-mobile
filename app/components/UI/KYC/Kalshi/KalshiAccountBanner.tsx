@@ -25,10 +25,13 @@ export const KalshiAccountBannerTestIds = {
   BUTTON: 'kalshi-account-banner-button',
 } as const;
 
-const selectIsKalshiVerified = (state: RootState): boolean =>
-  state.engine.backgroundState.VendorOnboardingController?.vendors?.[
-    KALSHI_KYC_VENDOR.id
-  ]?.step === 'approved';
+const selectIsKalshiVerified = (state: RootState): boolean => {
+  const vendor =
+    state.engine.backgroundState.VendorOnboardingController?.vendors?.[
+      KALSHI_KYC_VENDOR.id
+    ];
+  return vendor?.step === 'done' && vendor.status === 'approved';
+};
 
 /**
  * Invites the user to set up a Kalshi account until kyc-api says their

@@ -303,6 +303,12 @@ jest.mock('../../app/core/Engine', () => {
         // disclaimers request settles (CreateVirtualBankAccount).
         ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
       },
+      // Kalshi surfaces ask kyc-api for the step when they appear. The answer
+      // lives in Redux; this call only refreshes it.
+      VendorOnboardingController: {
+        refreshStep: jest.fn().mockResolvedValue(null),
+        reset: jest.fn(),
+      },
       SeedlessOnboardingController: {
         state: {
           accessToken: undefined,

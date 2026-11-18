@@ -6,6 +6,7 @@ const context = { linkCodeSent: false, phoneCodeSent: false };
 describe('deriveKalshiScreen', () => {
   it('shows a loading screen before kyc-api answers', () => {
     expect(deriveKalshiScreen(undefined, 'none', context)).toBe('loading');
+    expect(deriveKalshiScreen(null, null, context)).toBe('loading');
   });
 
   it.each([
