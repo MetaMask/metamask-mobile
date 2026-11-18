@@ -21,6 +21,7 @@ import type {
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
+  PredictAmount,
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
@@ -37,6 +38,13 @@ import {
 
 export interface PredictApiReadTransport {
   fetchVenueStatus(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  /** The deployment's catalog for the Venue, including which product actions
+   * it actually serves. Bearer-only: it is client configuration, not account
+   * data. */
+  fetchVenueCatalog(
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
@@ -103,6 +111,23 @@ export interface PredictApiReadTransport {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  fetchWithdrawPreview(
+    venueId: PredictVenueId,
+    params: FetchWithdrawPreviewBody,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  commitWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+    onDispatch?: () => void,
+  ): Promise<unknown>;
+  observeWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+
   /** Starts a deposit without a signature. The route stores nothing and
    * answers the values to sign, or the deposit a repeated key created. */
   startDeposit(
@@ -140,6 +165,23 @@ export interface PredictApiReadTransport {
   ): Promise<unknown>;
 }
 
+/** Wire shape of a Withdraw Preview request: exactly one of a fixed amount or
+ * a sweep. The backend's strict schema rejects any other key, so a client
+ * identity, destination, or idempotency key can never be smuggled in. */
+export type FetchWithdrawPreviewBody =
+  | { amount: PredictAmount }
+  | { sweepAll: true };
+
+/** A JSON body this client posts. Undefined posts no body at all. */
+type PredictApiPostBody =
+  | FetchOrderPreviewParams
+  | FetchOrderCommitParams
+  | FetchWithdrawPreviewBody
+  | PredictDepositParams
+  | PredictDepositTransferParams
+  | Record<string, never>
+  | undefined;
+
 type PredictApiReadQueryParams = FetchFeedParams &
   Partial<FetchSearchParams> & {
     range?: PredictMarketHistoryRange;
@@ -147,14 +189,6 @@ type PredictApiReadQueryParams = FetchFeedParams &
     sort?: FetchPositionsParams['sort'];
     state?: 'unresolved' | 'open';
   };
-
-/** A JSON body this client posts. Undefined posts no body at all. */
-type PredictApiPostBody =
-  | FetchOrderPreviewParams
-  | FetchOrderCommitParams
-  | PredictDepositParams
-  | PredictDepositTransferParams
-  | undefined;
 
 export interface PredictApiReadClientOptions {
   baseUrl?: string;
@@ -177,6 +211,13 @@ export interface PredictApiReadClientOptions {
   /** Drops the cached A2T after `venue_authorization_invalid`. */
   invalidateSigningSession?: () => void;
 }
+
+/** A caller-visible cancellation, never a venue or transport failure. */
+const abortedError = (): Error => {
+  const aborted = new Error('The request was aborted.');
+  aborted.name = 'AbortError';
+  return aborted;
+};
 
 const parseBaseUrl = (baseUrl?: string): URL | undefined => {
   if (!baseUrl) {
@@ -283,6 +324,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     options?: PredictReadOptions,
   ): Promise<unknown> {
     return this.#get(['v1', 'venues', venueId, 'status'], undefined, options);
+  }
+
+  fetchVenueCatalog(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'catalog'], undefined, options);
   }
 
   fetchBalance(
@@ -450,6 +498,23 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   }
 
   /**
+   * Quotes one Withdraw Preview. Bearer-only: the backend resolves the payout
+   * destination and owns the idempotency key, so the phone sends the amount
+   * shape and nothing else.
+   */
+  fetchWithdrawPreview(
+    venueId: PredictVenueId,
+    params: FetchWithdrawPreviewBody,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'withdrawals', 'preview'],
+      params,
+      options,
+    );
+  }
+
+  /**
    * The first deposit call: bearer-only, with no signature. The route
    * stores nothing and calls nothing. It answers the `sign_request` step,
    * or the stored deposit when `clientOperationId` was used before.
@@ -463,6 +528,25 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       ['v1', 'venues', venueId, 'deposits'],
       { amount: params.amount, clientOperationId: params.clientOperationId },
       options,
+    );
+  }
+
+  /**
+   * Commits a Withdraw Preview by reference only. The body is `{}`: every
+   * executable detail comes from the stored, expiring Preview the
+   * authenticated profile owns.
+   */
+  commitWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+    onDispatch?: () => void,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'withdrawals', previewId, 'commit'],
+      {},
+      options,
+      onDispatch,
     );
   }
 
@@ -503,6 +587,20 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   ): Promise<unknown> {
     return this.#get(
       ['v1', 'venues', venueId, 'deposits', operationId],
+      undefined,
+      options,
+    );
+  }
+
+  /** The withdrawal's receipt. Never submits: a `pending` or `processing`
+   * operation is resolved from the backend's own venue reads. */
+  observeWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'withdrawals', previewId],
       undefined,
       options,
     );
@@ -621,6 +719,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     deviceAuth?: DeviceAuthHeader,
     signed?: ProposedRead,
   ): Promise<Response> {
+    // A read aborted while its token or signature resolved must not go out
+    // either: an observation can replay a stored submission.
+    if (options?.signal?.aborted) {
+      throw abortedError();
+    }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
@@ -752,17 +855,16 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     segments: readonly string[],
     body: PredictApiPostBody,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
     // A write aborted while its token resolved must not go out: the token
     // may already belong to whoever replaced the Predict User.
     if (options?.signal?.aborted) {
-      const aborted = new Error('The request was aborted.');
-      aborted.name = 'AbortError';
-      throw aborted;
+      throw abortedError();
     }
     return this.#parseBody(
-      await this.#post(segments, body, bearerToken, options),
+      await this.#post(segments, body, bearerToken, options, onDispatch),
     );
   }
 
@@ -771,12 +873,18 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     body: PredictApiPostBody,
     bearerToken: string,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<Response> {
+    // A read aborted while its token or signature resolved must not go out
+    // either: an observation can replay a stored submission.
+    if (options?.signal?.aborted) {
+      throw abortedError();
+    }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
-    return this.#fetch(url.toString(), {
+    const request: RequestInit = {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -787,7 +895,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       signal: options?.signal,
-    });
+    };
+    onDispatch?.();
+    return this.#fetch(url.toString(), request);
   }
 
   /**
@@ -809,9 +919,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
     const bearerToken = await this.#resolveBearerToken();
     if (options?.signal?.aborted) {
-      const aborted = new Error('The request was aborted.');
-      aborted.name = 'AbortError';
-      throw aborted;
+      throw abortedError();
     }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
@@ -842,11 +950,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         intent,
         signing,
         send,
-        async (response) => ({
-          status: response.status,
-          code: response.ok
+        async (sent) => ({
+          status: sent.status,
+          code: sent.ok
             ? undefined
-            : await this.#extractErrorCode(response.clone()),
+            : await this.#extractErrorCode(sent.clone()),
         }),
       );
       return await this.#parseBody(response);
