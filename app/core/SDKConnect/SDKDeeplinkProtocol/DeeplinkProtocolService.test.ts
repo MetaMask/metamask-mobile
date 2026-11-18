@@ -637,13 +637,30 @@ describe('DeeplinkProtocolService', () => {
       jest.spyOn(service, 'openDeeplink').mockResolvedValue(undefined);
     });
 
+    const switchChainMessage = encodeRpc({
+      id: '1',
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: '0x89' }],
+    });
+
     it.each([
-      ['has no chain separator', '0xabc'],
-      ['is empty', ''],
+      ['has no chain separator', '0xabc', sendTransactionMessage],
+      ['is empty', '', sendTransactionMessage],
+      ['has no address', '@0x1', sendTransactionMessage],
+      [
+        'has no chain on a chain switch',
+        `${toChecksumHexAddress(MOCK_ADDRESS)}@`,
+        switchChainMessage,
+      ],
+      [
+        'has more than one chain separator',
+        `${toChecksumHexAddress(MOCK_ADDRESS)}@0x1@0x1`,
+        sendTransactionMessage,
+      ],
     ])(
       'rejects to the requester when the account %s',
-      async (_case, account) => {
-        await handleMessageAndSettle({ account });
+      async (_case, account, message) => {
+        await handleMessageAndSettle({ account, message });
 
         expect(service.openDeeplink).toHaveBeenCalledWith({
           message: {
@@ -705,6 +722,65 @@ describe('DeeplinkProtocolService', () => {
       expect(data).not.toHaveProperty('chainId');
       expect(data).not.toHaveProperty('accounts');
       expect(handleCustomRpcCalls).not.toHaveBeenCalled();
+    });
+
+    it('rejects when the wallet chain cannot be derived', async () => {
+      (
+        Engine.context as unknown as {
+          NetworkController: { getNetworkClientById: () => object };
+        }
+      ).NetworkController.getNetworkClientById = () => ({
+        configuration: { chainId: '' },
+      });
+
+      await handleMessageAndSettle({
+        account: `${toChecksumHexAddress(MOCK_ADDRESS)}@0x1`,
+        message: switchChainMessage,
+      });
+
+      expect(service.openDeeplink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            data: expect.objectContaining({
+              error: {
+                code: -32602,
+                message: 'The selected account has changed. Please try again.',
+              },
+            }),
+          }),
+          clientId: 'channel1',
+        }),
+      );
+      expect(handleCustomRpcCalls).not.toHaveBeenCalled();
+    });
+
+    it('forwards the request when the account and chain match the wallet', async () => {
+      const onMessage = jest.fn();
+      service.bridgeByClientId.channel1 = {
+        onMessage,
+      } as unknown as BackgroundBridge;
+
+      await handleMessageAndSettle({});
+
+      expect(service.openDeeplink).not.toHaveBeenCalled();
+      expect(handleCustomRpcCalls).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rpc: { id: '1', method: 'eth_sendTransaction', params: [] },
+        }),
+      );
+      expect(onMessage).toHaveBeenCalled();
+    });
+
+    it('logs when the rejection cannot be delivered', async () => {
+      const deliveryError = new Error('openURL failed');
+      (service.openDeeplink as jest.Mock).mockRejectedValue(deliveryError);
+
+      await handleMessageAndSettle({ account: '0xabc' });
+
+      expect(Logger.log).toHaveBeenCalledWith(
+        deliveryError,
+        expect.stringContaining('rejectStaleAccountContext'),
+      );
     });
 
     it('logs an incoming deeplink message', () => {

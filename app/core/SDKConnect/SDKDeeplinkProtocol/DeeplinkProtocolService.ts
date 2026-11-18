@@ -708,6 +708,11 @@ export default class DeeplinkProtocolService {
       },
       clientId: channelId,
       scheme,
+    }).catch((err) => {
+      Logger.log(
+        err,
+        `DeeplinkProtocolService::rejectStaleAccountContext error sending jsonrpc error message to client ${channelId}`,
+      );
     });
   }
 
@@ -719,23 +724,29 @@ export default class DeeplinkProtocolService {
     scheme: string;
     account: string; // account@chainid
   }) {
-    const hasAccountContext = Boolean(params.account?.includes('@'));
+    const account = params.account?.split('@') ?? [];
     let walletSelectedAddress = '';
     let walletSelectedChainId = '';
     let dappAccountChainId = '';
     let dappAccountAddress = '';
 
-    if (!hasAccountContext) {
+    if (account.length !== 2) {
       DevLogger.log(
         'DeeplinkProtocolService:: handleMessage invalid params.account format',
       );
     } else {
-      const account = params.account.split('@');
       walletSelectedAddress = this.getSelectedAddress();
       walletSelectedChainId = this.getChainId();
       dappAccountChainId = account[1];
       dappAccountAddress = account[0];
     }
+
+    const hasAccountContext = Boolean(
+      walletSelectedAddress &&
+        walletSelectedChainId &&
+        dappAccountAddress &&
+        dappAccountChainId,
+    );
 
     DevLogger.log(
       'DeeplinkProtocolService:: handleMessage params from deeplink',
@@ -811,8 +822,8 @@ export default class DeeplinkProtocolService {
 
         const isRpcMethodToSkip = checkForRpcMethodToSkip();
 
-        // Without an account context both sides of the comparison are empty,
-        // so a malformed account must fail closed instead of matching.
+        // Any value that could not be derived would compare as unchanged, so a
+        // missing account or chain must fail closed instead of matching.
         if (
           !hasAccountContext ||
           isAccountChanged ||
