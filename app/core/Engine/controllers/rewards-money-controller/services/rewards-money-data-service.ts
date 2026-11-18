@@ -705,7 +705,10 @@ export class RewardsMoneyDataService {
   }
 
   canChangeRewardsMoneyEnvUrl(): boolean {
-    return canChangeRewardsMoneyEnvUrl(process.env.METAMASK_ENVIRONMENT);
+    const [defaultUrl] = getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv(
+      process.env.METAMASK_ENVIRONMENT,
+    );
+    return canChangeRewardsMoneyEnvUrl(defaultUrl);
   }
 
   setRewardsMoneyEnvUrl(url: string): void {
