@@ -5866,7 +5866,7 @@ describe('Pro fee display format', () => {
   });
 });
 
-describeForPlatforms('Pro TWAP watch-only account', () => {
+describeForPlatforms('Pro watch-only account', () => {
   withWatchOnlyKeyring();
 
   it('refuses TWAP termination with the watch-only message and sends no request', async () => {
@@ -5885,6 +5885,34 @@ describeForPlatforms('Pro TWAP watch-only account', () => {
     fireEvent.press(
       await screen.findByTestId(
         PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CONFIRM,
+      ),
+    );
+
+    expect(
+      await screen.findByText(strings('watch_only.blocked_message')),
+    ).toBeOnTheScreen();
+    expect(Engine.context.PerpsController.cancelOrder).not.toHaveBeenCalled();
+  });
+
+  it('refuses Chase termination with the watch-only message and sends no request', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.getChaseOrders)
+      .mockResolvedValue([activeChase]);
+    jest.mocked(Engine.context.PerpsController.cancelOrder).mockClear();
+    renderPerpsProMarketView({
+      includeToasts: true,
+      streamOverrides: { account: createFundedAccountForViews('1000') },
+    });
+    await openChaseManagementTab();
+
+    fireEvent.press(
+      await screen.findByTestId(
+        getPerpsProChaseTerminateSelector(
+          'active',
+          'ETH',
+          activeChase.handle,
+          true,
+        ),
       ),
     );
 

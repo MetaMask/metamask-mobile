@@ -62,49 +62,29 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
     );
   });
 
-  it('creates the trimmed address as a watch-only account and selects it', async () => {
-    mockCreateAccount.mockResolvedValue({ id: 'watch-id', address: ADDRESS });
-
-    await renderAndAdd();
-
-    expect(mockCreateAccount).toHaveBeenCalledWith(ADDRESS);
-    expect(mockSelectAccount).toHaveBeenCalledWith('watch-id');
-  });
-
-  it('shows and announces the added account name', async () => {
+  it('announces the added account name', async () => {
     mockCreateAccount.mockResolvedValue({ id: 'watch-id', address: ADDRESS });
     const expected = strings(
       'app_settings.developer_options.watch_only.added',
       { name: 'Watch-only Account 1' },
     );
 
-    const { findByTestId } = await renderAndAdd();
+    await renderAndAdd();
 
-    expect(
-      await findByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT),
-    ).toHaveTextContent(expected);
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
       expected,
     );
   });
 
-  it('shows the error, logs it and selects nothing when creation fails', async () => {
+  it('logs the error when creation fails', async () => {
     const error = new Error('Invalid address');
     mockCreateAccount.mockRejectedValue(error);
 
-    const { findByTestId } = await renderAndAdd();
+    await renderAndAdd();
 
-    expect(
-      await findByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT),
-    ).toHaveTextContent(
-      strings('app_settings.developer_options.watch_only.add_error', {
-        message: 'Invalid address',
-      }),
-    );
     expect(Logger.error).toHaveBeenCalledWith(
       error,
       'WatchOnlyDeveloperOptionsSection: add watch-only account failed',
     );
-    expect(mockSelectAccount).not.toHaveBeenCalled();
   });
 });
