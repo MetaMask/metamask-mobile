@@ -90,7 +90,10 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
-import { estimateCrossLiquidationPrice } from '../../../../utils/crossMarginSummary';
+import {
+  estimateCrossLiquidationPrice,
+  presentCrossLiquidationEstimate,
+} from '../../../../utils/crossMarginSummary';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
@@ -2128,6 +2131,7 @@ export const usePerpsProOrderForm = ({
     if (
       marginMode !== 'cross' ||
       isScaleOrder ||
+      isPositionStreamLoading ||
       typeof marketMaxLeverage !== 'number'
     ) {
       return { status: 'unknown' as const };
@@ -2155,11 +2159,14 @@ export const usePerpsProOrderForm = ({
     liveAccount?.crossMarginSummary,
     liveAccount?.spotCollateral,
     market.providerId,
+    isPositionStreamLoading,
   ]);
-  const crossLiquidationPrice =
-    crossLiquidationEstimate.status === 'price'
-      ? new BigNumber(crossLiquidationEstimate.price).toFixed()
-      : '';
+  const presentedCrossLiquidation = presentCrossLiquidationEstimate({
+    estimate: crossLiquidationEstimate,
+    hasValidAmount,
+  });
+  const crossLiquidationPrice = presentedCrossLiquidation.rawPrice;
+  const crossLiquidationDisplay = presentedCrossLiquidation.display;
   const liquidationPrice =
     marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;
 
@@ -4153,8 +4160,6 @@ export const usePerpsProOrderForm = ({
     }
     const formatMargin = (value: number | string) =>
       formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
-    const formatLiquidation = (value: number | string) =>
-      formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
     const formatBeforeAfter = (before: string, after: string) =>
       strings('perps.pro_order_form.before_after', { before, after });
 
@@ -4164,18 +4169,11 @@ export const usePerpsProOrderForm = ({
         : PERPS_CONSTANTS.FallbackDataDisplay;
     let orderLiquidationDisplay: string = PERPS_CONSTANTS.FallbackDataDisplay;
     if (marginMode === 'cross') {
-      if (hasValidAmount && crossLiquidationEstimate.status === 'price') {
-        const formatted = formatLiquidation(crossLiquidationEstimate.price);
-        orderLiquidationDisplay = crossLiquidationEstimate.approximate
-          ? strings('perps.order.approximate_price', { price: formatted })
-          : formatted;
-      } else if (hasValidAmount && crossLiquidationEstimate.status === 'none') {
-        orderLiquidationDisplay = strings(
-          'perps.cross_position.no_liquidation_price',
-        );
-      }
+      orderLiquidationDisplay = crossLiquidationDisplay;
     } else if (hasValidAmount && liquidationPrice) {
-      orderLiquidationDisplay = formatLiquidation(liquidationPrice);
+      orderLiquidationDisplay = formatPerpsFiat(liquidationPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
     }
 
     let margin = orderMarginDisplay;
@@ -4227,7 +4225,7 @@ export const usePerpsProOrderForm = ({
     effectiveMarginRequired,
     hasValidAmount,
     liquidationPrice,
-    crossLiquidationEstimate,
+    crossLiquidationDisplay,
     marginMode,
     estimatedSlippagePctDisplay,
     maxSlippageBps,

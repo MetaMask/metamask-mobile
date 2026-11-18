@@ -1,11 +1,15 @@
 import {
   calculateAccountSummary,
+  formatPerpsFiat,
   getCrossCollateral,
+  PERPS_CONSTANTS,
+  PRICE_RANGES_UNIVERSAL,
   type AccountState,
   type CrossMarginSummary,
   type PerpsAccountSummary,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
 import type {
   HardwareTier,
   NetworkTier,
@@ -91,6 +95,22 @@ export const getCrossMarginSummaryThrottleMs = ({
  */
 const HYPERLIQUID_TIERED_MARGIN_TABLE_ID = 50;
 
+/** Hyperliquid maintenance leverage is twice the asset's max leverage. */
+const HYPERLIQUID_MAINTENANCE_LEVERAGE_MULTIPLIER = 2;
+
+export type CrossLiquidationContentKey =
+  | 'cross_liquidation_price'
+  | 'cross_no_liquidation_price'
+  | 'cross_liquidation_estimate_unavailable';
+
+export interface PresentedCrossLiquidation {
+  /** Row text: a price, `~price`, N/A, or the fallback dash. */
+  display: string;
+  /** Unformatted price for TP/SL checks. Empty when the row has no price. */
+  rawPrice: string;
+  contentKey: CrossLiquidationContentKey;
+}
+
 export type CrossLiquidationEstimate =
   | { status: 'unknown' }
   | { status: 'none' }
@@ -169,7 +189,8 @@ export const estimateCrossLiquidationPrice = ({
   if (!(resultSize > 0)) {
     return { status: 'none' };
   }
-  const maintenanceFraction = 1 / (2 * maxLeverage);
+  const maintenanceFraction =
+    1 / (HYPERLIQUID_MAINTENANCE_LEVERAGE_MULTIPLIER * maxLeverage);
   const existingMaintenance =
     Math.abs(existingSignedSize) * entryPrice * maintenanceFraction;
   const otherMaintenance = Math.max(0, maintenanceMargin - existingMaintenance);
@@ -189,6 +210,43 @@ export const estimateCrossLiquidationPrice = ({
     status: 'price',
     price: liquidationPrice,
     approximate: !spotIsKnown || tieredMarket,
+  };
+};
+
+/**
+ * Turns a cross estimate into the order-row value. Callers that are not
+ * placing a cross order should keep their isolated price instead.
+ */
+export const presentCrossLiquidationEstimate = ({
+  estimate,
+  hasValidAmount,
+}: {
+  estimate: CrossLiquidationEstimate;
+  hasValidAmount: boolean;
+}): PresentedCrossLiquidation => {
+  if (hasValidAmount && estimate.status === 'price') {
+    const formatted = formatPerpsFiat(estimate.price, {
+      ranges: PRICE_RANGES_UNIVERSAL,
+    });
+    return {
+      display: estimate.approximate
+        ? strings('perps.order.approximate_price', { price: formatted })
+        : formatted,
+      rawPrice: String(estimate.price),
+      contentKey: 'cross_liquidation_price',
+    };
+  }
+  if (hasValidAmount && estimate.status === 'none') {
+    return {
+      display: strings('perps.cross_position.no_liquidation_price'),
+      rawPrice: '',
+      contentKey: 'cross_no_liquidation_price',
+    };
+  }
+  return {
+    display: PERPS_CONSTANTS.FallbackDataDisplay,
+    rawPrice: '',
+    contentKey: 'cross_liquidation_estimate_unavailable',
   };
 };
 
