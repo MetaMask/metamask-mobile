@@ -1,16 +1,7 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import React, { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import { selectAssetsHaveLoadedForSelectedAccountGroup } from '../../../../selectors/assets/assets-controller';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
-
-const AssetsHaveLoadedContext = createContext<boolean | undefined>(undefined);
 
 const createSettledAccountGroupsStore = () => {
   const settledAccountGroups = new Set<string>();
@@ -30,6 +21,13 @@ const createSettledAccountGroupsStore = () => {
         accountGroupId && settledAccountGroups.has(accountGroupId),
       );
     },
+    clear() {
+      if (settledAccountGroups.size === 0) {
+        return;
+      }
+      settledAccountGroups.clear();
+      listeners.forEach((listener) => listener());
+    },
     subscribe(listener: () => void) {
       listeners.add(listener);
       return () => {
@@ -40,23 +38,42 @@ const createSettledAccountGroupsStore = () => {
 };
 
 /**
- * Latches "assets have loaded" per account group for the wallet home tree so
- * later background refreshes do not regress to full skeletons.
+ * Session-scoped latch shared by every `useAssetsHaveLoaded` caller so full
+ * token screens and Money (outside Wallet home) keep real rows during later
+ * background refreshes — not only the Wallet home tree under the provider.
+ */
+const settledAccountGroupsStore = createSettledAccountGroupsStore();
+
+/** Clears the latch between unit tests. */
+export const resetAssetsHaveLoadedLatchForTests = (): void => {
+  settledAccountGroupsStore.clear();
+};
+
+/**
+ * Optional wrapper kept for Wallet home call sites. The latch lives in
+ * {@link useAssetsHaveLoaded}, so screens outside this provider (Tokens full
+ * view, Cash, Money) still stay settled across background refreshes.
  */
 export const AssetsHaveLoadedProvider = ({
   children,
-}: React.PropsWithChildren) => {
+}: React.PropsWithChildren) => children;
+
+/**
+ * Whether assets for the selected account group have finished initial +
+ * background load. Latches per account group for the session so later
+ * background refreshes do not regress to full skeletons.
+ */
+export const useAssetsHaveLoaded = (): boolean => {
   const selectedAccountGroup = useSelector(selectSelectedAccountGroupId);
   const currentLoadHasSettled = useSelector(
     selectAssetsHaveLoadedForSelectedAccountGroup,
   );
-  const [settledAccountGroups] = useState(createSettledAccountGroupsStore);
   const getSnapshot = useCallback(
-    () => settledAccountGroups.has(selectedAccountGroup),
-    [selectedAccountGroup, settledAccountGroups],
+    () => settledAccountGroupsStore.has(selectedAccountGroup),
+    [selectedAccountGroup],
   );
   const selectedGroupHasSettled = useSyncExternalStore(
-    settledAccountGroups.subscribe,
+    settledAccountGroupsStore.subscribe,
     getSnapshot,
     getSnapshot,
   );
@@ -66,28 +83,8 @@ export const AssetsHaveLoadedProvider = ({
       return;
     }
 
-    settledAccountGroups.add(selectedAccountGroup);
-  }, [currentLoadHasSettled, selectedAccountGroup, settledAccountGroups]);
+    settledAccountGroupsStore.add(selectedAccountGroup);
+  }, [currentLoadHasSettled, selectedAccountGroup]);
 
-  const assetsHaveLoaded = currentLoadHasSettled || selectedGroupHasSettled;
-
-  return (
-    <AssetsHaveLoadedContext.Provider value={assetsHaveLoaded}>
-      {children}
-    </AssetsHaveLoadedContext.Provider>
-  );
-};
-
-/**
- * Whether assets for the selected account group have finished initial +
- * background load. Uses the homepage latch when under
- * {@link AssetsHaveLoadedProvider}; otherwise reads the selector directly.
- */
-export const useAssetsHaveLoaded = (): boolean => {
-  const contextValue = useContext(AssetsHaveLoadedContext);
-  const selectorValue = useSelector(
-    selectAssetsHaveLoadedForSelectedAccountGroup,
-  );
-
-  return contextValue ?? selectorValue;
+  return currentLoadHasSettled || selectedGroupHasSettled;
 };

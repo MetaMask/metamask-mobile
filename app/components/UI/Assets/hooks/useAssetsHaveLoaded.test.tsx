@@ -6,6 +6,7 @@ import { selectAssetsHaveLoadedForSelectedAccountGroup } from '../../../../selec
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   AssetsHaveLoadedProvider,
+  resetAssetsHaveLoadedLatchForTests,
   useAssetsHaveLoaded,
 } from './useAssetsHaveLoaded';
 
@@ -19,8 +20,12 @@ const Probe = () => {
   return <Text testID="assets-have-loaded">{String(assetsHaveLoaded)}</Text>;
 };
 
-describe('AssetsHaveLoadedProvider', () => {
-  it('keeps an account group settled during later background refreshes', () => {
+describe('useAssetsHaveLoaded', () => {
+  beforeEach(() => {
+    resetAssetsHaveLoadedLatchForTests();
+  });
+
+  it('keeps an account group settled during later background refreshes without a provider', () => {
     let selectedAccountGroup: string | null = 'entropy:wallet/group-1';
     let currentLoadHasSettled = false;
 
@@ -34,13 +39,41 @@ describe('AssetsHaveLoadedProvider', () => {
       return undefined;
     });
 
+    const view = render(<Probe />);
+
+    expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('false');
+
+    currentLoadHasSettled = true;
+    view.rerender(<Probe />);
+    expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('true');
+
+    currentLoadHasSettled = false;
+    view.rerender(<Probe />);
+    expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('true');
+
+    selectedAccountGroup = 'entropy:wallet/group-2';
+    view.rerender(<Probe />);
+    expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('false');
+  });
+
+  it('still latches when wrapped in AssetsHaveLoadedProvider', () => {
+    let currentLoadHasSettled = false;
+
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroupId) {
+        return 'entropy:wallet/group-1';
+      }
+      if (selector === selectAssetsHaveLoadedForSelectedAccountGroup) {
+        return currentLoadHasSettled;
+      }
+      return undefined;
+    });
+
     const view = render(
       <AssetsHaveLoadedProvider>
         <Probe />
       </AssetsHaveLoadedProvider>,
     );
-
-    expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('false');
 
     currentLoadHasSettled = true;
     view.rerender(
@@ -57,13 +90,5 @@ describe('AssetsHaveLoadedProvider', () => {
       </AssetsHaveLoadedProvider>,
     );
     expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('true');
-
-    selectedAccountGroup = 'entropy:wallet/group-2';
-    view.rerender(
-      <AssetsHaveLoadedProvider>
-        <Probe />
-      </AssetsHaveLoadedProvider>,
-    );
-    expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('false');
   });
 });
