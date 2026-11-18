@@ -139,7 +139,7 @@ describe('EarnRewardsPreview', () => {
       expect(UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
-    it('does not show a skeleton while the location is unknown', () => {
+    it('does not render Earn rewards while the location is unknown and geo is loading', () => {
       setupSelectors({ geoStatus: 'loading' });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
@@ -147,7 +147,7 @@ describe('EarnRewardsPreview', () => {
       ).toBeNull();
     });
 
-    it('does not show a skeleton while geo is idle and the location is unknown', () => {
+    it('does not render Earn rewards while geo is idle and the location is unknown', () => {
       setupSelectors({ geoStatus: 'idle' });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
@@ -155,7 +155,7 @@ describe('EarnRewardsPreview', () => {
       ).toBeNull();
     });
 
-    it('does not show a skeleton for the UK while geo is still loading', () => {
+    it('does not render Earn rewards for the UK while geo is still loading', () => {
       setupSelectors({ geoLocation: 'GB', geoStatus: 'loading' });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(

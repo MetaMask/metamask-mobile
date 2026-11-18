@@ -16,7 +16,6 @@ import {
   Box,
   FontWeight,
   SectionHeader,
-  Skeleton,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -108,20 +107,16 @@ const EarnCard: React.FC<EarnCardProps> = ({
   );
 };
 
-type CarouselSlotKey = 'musd-skeleton' | 'musd';
+type CarouselSlotKey = 'musd';
 
 /**
  * EarnRewardsPreview shows the "Earn rewards" section on the dashboard.
  *
- * The only slide is the mUSD calculator. It is shown when geoLocation has
- * settled and is not UK. 'UNKNOWN' is treated as non-UK. It is hidden when
- * the location is still unknown or is 'GB', so UK users do not see a flash.
- * The section stays unmounted until the location is known and is not the UK,
- * so a loading skeleton does not appear and then disappear. If Money is off,
- * or there is no slide to show, the section is not rendered.
+ * The only slide is the mUSD calculator. It is shown when the location is
+ * known and is not the UK. 'UNKNOWN' is treated as non-UK. The section stays
+ * unmounted while the location is unknown or is 'GB', and while Money is off.
  */
 const EarnRewardsPreview: React.FC = () => {
-  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
@@ -135,13 +130,9 @@ const EarnRewardsPreview: React.FC = () => {
     isMoneyAccountEnabled &&
     geoLocation !== undefined &&
     geoLocation !== UK_COUNTRY_CODE;
-  // A skeleton only while we already know the tile will stay. An unknown or UK
+  // Header spinner only when the tile will stay on screen. An unknown or UK
   // location must not mount the section and then remove it.
-  const showMusdSkeleton =
-    isMoneyAccountEnabled &&
-    isMusdGeoLoading &&
-    geoLocation !== undefined &&
-    geoLocation !== UK_COUNTRY_CODE;
+  const showHeaderSpinner = showMusdCard && isMusdGeoLoading;
   const { apyPercent } = useMoneyVaultApy();
 
   const handleMusdPress = useCallback(() => {
@@ -171,9 +162,7 @@ const EarnRewardsPreview: React.FC = () => {
 
   // Build the ordered list of carousel slots, preserving existing visibility logic.
   const items: CarouselSlotKey[] = [];
-  if (showMusdSkeleton && !showMusdCard) {
-    items.push('musd-skeleton');
-  } else if (showMusdCard) {
+  if (showMusdCard) {
     items.push('musd');
   }
   const itemCount = items.length;
@@ -210,7 +199,7 @@ const EarnRewardsPreview: React.FC = () => {
       <SectionHeader
         title={strings('rewards.earn_rewards.title')}
         startAccessory={
-          showMusdSkeleton ? (
+          showHeaderSpinner ? (
             <ActivityIndicator size="small" color={colors.primary.default} />
           ) : undefined
         }
@@ -232,9 +221,6 @@ const EarnRewardsPreview: React.FC = () => {
               key={item}
               style={[cardStyle, index < items.length - 1 && styles.cardGap]}
             >
-              {item === 'musd-skeleton' && (
-                <Skeleton style={tw.style('h-28 rounded-xl')} />
-              )}
               {item === 'musd' && (
                 <EarnCard
                   testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
