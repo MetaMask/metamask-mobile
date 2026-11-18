@@ -248,6 +248,13 @@ jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
+const mockReportSocialServiceFailure = jest.fn();
+jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
+  ...jest.requireActual('../../../../util/social/socialServiceTelemetry'),
+  reportSocialServiceFailure: (...args: unknown[]) =>
+    mockReportSocialServiceFailure(...args),
+}));
+
 const mockInvalidateModerationStatus = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../UI/SocialFeed/moderationApi', () => ({
@@ -901,6 +908,15 @@ describe('SocialPostComposerView', () => {
       'post_failed',
       expect.objectContaining({ failure_reason: 'unknown' }),
     );
+    expect(mockReportSocialServiceFailure).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        surface: 'post_composer',
+        operation: 'create_comment',
+        endpoint: 'create_comment',
+        profileId: 'current-user',
+      }),
+    );
   });
 
   it('shows the post failure toast and reports to Sentry when creating a post takes longer than 7 seconds', async () => {
@@ -945,6 +961,7 @@ describe('SocialPostComposerView', () => {
       'post_failed',
       expect.objectContaining({ failure_reason: 'timeout' }),
     );
+    expect(mockReportSocialServiceFailure).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(0);

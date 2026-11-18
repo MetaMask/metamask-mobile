@@ -21,7 +21,8 @@ export type SocialSurface =
   | 'follow'
   | 'moderation'
   | 'profile_onboarding'
-  | 'leaderboard_onboarding';
+  | 'leaderboard_onboarding'
+  | 'post_composer';
 
 /**
  * SocialService / SocialController operations we instrument.
@@ -47,7 +48,8 @@ export type SocialEndpoint =
   | 'create_profile'
   | 'update_profile'
   | 'check_username'
-  | 'connect_x';
+  | 'connect_x'
+  | 'create_comment';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.
