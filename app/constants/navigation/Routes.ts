@@ -492,6 +492,12 @@ const Routes = {
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
+  COLLECTIBLES: {
+    ROOT: 'Collectibles',
+    HOME: 'CollectiblesHome',
+    PACK: 'CollectiblesPack',
+    BUY_SHEET: 'CollectiblesBuySheet',
+  },
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',

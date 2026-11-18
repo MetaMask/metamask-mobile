@@ -47,6 +47,10 @@ import type { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../../compon
 import type { Nft } from '@metamask/assets-controllers';
 import type { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
 import type { DeFiProtocolPositionDetailsParams } from '../../components/UI/DeFiPositions/DeFiProtocolPositionDetails';
+import type {
+  CollectiblesPackParams,
+  CollectiblesStackParamList,
+} from '../../components/UI/Collectibles/types/navigation';
 
 // Bridge params
 import type {
@@ -1038,6 +1042,13 @@ export type RootStackParamList = {
   PredictUnavailable: PredictAppRouteParamList['PredictUnavailable'];
   PredictMarketUnavailable: PredictAppRouteParamList['PredictMarketUnavailable'];
   PredictAddFundsSheet: PredictAppRouteParamList['PredictAddFundsSheet'];
+
+  // Collectibles routes. `Collectibles` is a nested stack; the buy sheet is
+  // top-level so it opens over Home.
+  Collectibles: NavigatorScreenParams<CollectiblesStackParamList> | undefined;
+  CollectiblesHome: CollectiblesStackParamList['CollectiblesHome'];
+  CollectiblesPack: CollectiblesStackParamList['CollectiblesPack'];
+  CollectiblesBuySheet: CollectiblesPackParams;
 
   // Social Leaderboard routes
   SocialV0View:

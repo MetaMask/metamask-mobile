@@ -192,6 +192,9 @@ import {
   PredictPreviewSheetProvider,
 } from '../../UI/Predict';
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
+import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
+import CollectiblesScreenStack from '../../UI/Collectibles/routes';
+import CollectiblesBuySheet from '../../UI/Collectibles/views/CollectiblesBuySheet';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -1040,6 +1043,7 @@ const MainNavigator = () => {
   // Predict routes are registered while Predict is available for the
   // Active Venue, the same gate its entry points use.
   const isPredictEnabled = useSelector(selectPredictAvailability);
+  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabledFlag);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1479,6 +1483,20 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
+            options={transparentModalStackOptions}
+          />
+        </>
+      )}
+      {isCollectiblesEnabled && (
+        <>
+          <NativeStack.Screen
+            name={Routes.COLLECTIBLES.ROOT}
+            component={CollectiblesScreenStack}
+            options={slideFromRightNativeOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.COLLECTIBLES.BUY_SHEET}
+            component={CollectiblesBuySheet}
             options={transparentModalStackOptions}
           />
         </>

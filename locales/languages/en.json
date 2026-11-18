@@ -13571,6 +13571,14 @@
       "retry": "Retry"
     }
   },
+  "collectibles": {
+    "placeholder": {
+      "main": "Collectibles",
+      "pack": "Pack",
+      "buy": "Buy pack",
+      "coming_soon": "Coming soon"
+    }
+  },
   "sites": {
     "popular": "Popular"
   },
