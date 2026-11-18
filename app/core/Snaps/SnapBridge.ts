@@ -148,6 +148,15 @@ export default class SnapBridge {
     if (isSnapPreinstalled(this.#snapId)) {
       engine.push(
         createPreinstalledSnapsMiddleware({
+          getEvmScopes: () => {
+            const chainIds = Object.keys(
+              controllerMessenger.call('NetworkController:getState')
+                .networkConfigurationsByChainId,
+            );
+            return chainIds.map(
+              (chainId) => `eip155:${BigInt(chainId).toString(10)}`,
+            );
+          },
           getPermissions: PermissionController.getPermissions.bind(
             PermissionController,
             this.#snapId,
