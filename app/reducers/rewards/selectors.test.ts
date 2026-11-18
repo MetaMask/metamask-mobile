@@ -20,7 +20,6 @@ import {
   selectSeasonTiers,
   selectSeasonActivityTypes,
   selectSeasonWaysToEarn,
-  selectOnboardingActiveStep,
   selectGeoLocation,
   selectOptinAllowedForGeo,
   selectOptinAllowedForGeoLoading,
@@ -92,7 +91,6 @@ import {
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
-import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
@@ -1031,77 +1029,6 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectOnboardingActiveStep', () => {
-    it('returns INTRO step when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.INTRO },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.INTRO);
-    });
-
-    it('returns STEP_1 when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.STEP_1 },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.STEP_1);
-    });
-
-    it('returns STEP_2 when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.STEP_2 },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.STEP_2);
-    });
-
-    it('returns STEP_3 when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.STEP_3 },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.STEP_3);
-    });
-
-    it('returns STEP_4 when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.STEP_4 },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.STEP_4);
-    });
-  });
   describe('selectGeoLocation', () => {
     it('returns null when geo location is not set', () => {
       const mockState = { rewards: { geoLocation: null } };
@@ -2230,7 +2157,6 @@ describe('Rewards selectors', () => {
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
         balanceUpdatedAt: new Date('2024-03-15T14:30:00Z'),
-        onboardingActiveStep: OnboardingStep.STEP_3,
         candidateSubscriptionId: 'sub-candidate-12345',
         geoLocation: 'US-CA',
         optinAllowedForGeo: true,
@@ -2272,9 +2198,6 @@ describe('Rewards selectors', () => {
         expect(selectBalanceTotal(comprehensiveState)).toBe(2750.5);
         expect(selectBalanceUpdatedAt(comprehensiveState)).toEqual(
           new Date('2024-03-15T14:30:00Z'),
-        );
-        expect(selectOnboardingActiveStep(comprehensiveState)).toBe(
-          OnboardingStep.STEP_3,
         );
         expect(selectCandidateSubscriptionId(comprehensiveState)).toBe(
           'sub-candidate-12345',

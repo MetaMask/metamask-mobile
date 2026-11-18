@@ -156,6 +156,7 @@ describe('KycIdentityVerificationModule', () => {
         <KycIdentityVerificationModule
           route={abandonedRoute}
           navigation={moduleNavigation}
+          onExit={jest.fn()}
         />,
       );
 
@@ -176,6 +177,7 @@ describe('KycIdentityVerificationModule', () => {
         <KycIdentityVerificationModule
           route={termsAcceptedRoute}
           navigation={moduleNavigation}
+          onExit={jest.fn()}
         />,
       );
 
@@ -196,6 +198,7 @@ describe('KycIdentityVerificationModule', () => {
         <KycIdentityVerificationModule
           route={newSessionRoute}
           navigation={moduleNavigation}
+          onExit={jest.fn()}
         />,
       );
 

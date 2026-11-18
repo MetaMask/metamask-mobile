@@ -27,7 +27,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
 import {
   clearLeaderboardApiMock,
-  getLeaderboardMessengerSpy,
   setupLeaderboardApiMock,
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import {
@@ -280,6 +279,37 @@ describe('SocialV1View copy trade', () => {
     ).toHaveBeenCalled();
   });
 
+  it.each([
+    {
+      name: 'geolocation is the UK',
+      geolocation: { location: 'GB', status: 'complete' as const },
+    },
+    {
+      name: 'geolocation has not resolved',
+      geolocation: { location: 'UNKNOWN', status: 'loading' as const },
+    },
+  ])('hides Copy trade when $name', async ({ geolocation }) => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute], {
+      overrides: {
+        engine: {
+          backgroundState: {
+            ...eligibleOverrides.engine.backgroundState,
+            GeolocationController: geolocation,
+          },
+        },
+      },
+    });
+
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    await trendingPage.findByTestId(
+      `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
+    );
+
+    expect(trendingPage.queryByTestId(copyTradeButtonTestId)).toBeNull();
+  });
+
   it('shows the open perp copy-trade card after the feed loads', async () => {
     renderSocialV1ViewWithRoutes([perpsModalsRoute], {
       overrides: eligibleOverrides,
@@ -303,8 +333,6 @@ describe('SocialV1View copy trade', () => {
 
 describe('SocialV1View initial tab', () => {
   const feedPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`;
-  const getCalledActions = () =>
-    getLeaderboardMessengerSpy().mock.calls.map(([action]) => action);
 
   const SocialV1ViewWithAccessRestricted = () => (
     <AccessRestrictedProvider>
@@ -335,13 +363,8 @@ describe('SocialV1View initial tab', () => {
     expect(
       await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).toBeOnTheScreen();
-    await waitFor(() =>
-      expect(getCalledActions()).toContain('SocialService:fetchFeed'),
-    );
-    const trendingPage = within(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
-    );
-    expect(trendingPage.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
+    // Pages mount lazily, so Trending has not rendered its feed yet.
+    expect(screen.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
   });
 
   it('opens on Trending when the initial tab is not a Social V1 tab', async () => {

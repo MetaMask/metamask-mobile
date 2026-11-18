@@ -33,6 +33,7 @@ export { default as SocialFeed } from './components/SocialFeed';
 export type {
   SocialFeedInlineRow,
   SocialFeedProps,
+  SocialFeedRefreshHandle,
   SocialFeedScrollMode,
 } from './components/SocialFeed';
 export { SocialFeedLiveButton } from './components/SocialFeedRealtime';

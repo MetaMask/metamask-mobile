@@ -12,8 +12,8 @@ import {
   type HomeDiscoverySlotId,
 } from './homeDiscoverySlots';
 
-/** The same params as the PredictNext Home preview, so a slot and the Home
- * section of the same Feed share one cache entry. */
+/** One page of a slot's size. PredictNext Home reads more of the same game
+ * Feeds for its Trending and Sports rows, so it keeps cache entries of its own. */
 const FEED_PARAMS = { limit: HOME_DISCOVERY_EVENTS_PER_SLOT };
 const NO_EVENTS: readonly PredictEvent[] = [];
 const NO_READS: readonly HomeDiscoveryFeedRead[] = [];

@@ -7,9 +7,8 @@ import {
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
+import { selectMoneyEntryContext } from '../../selectors/entry';
 import { selectHighestBalanceAaveTokenMeetingDepositMinimum } from '../../selectors/aaveOutputTokenEligibility';
-import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
@@ -28,7 +27,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../hooks/useMoneyAccount');
-jest.mock('../../hooks/useMoneyNavigation');
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../util/errorHandling/isUserRejectedError');
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -39,13 +37,9 @@ const mockUseNavigation = jest.mocked(useNavigation);
 const mockUseRoute = jest.mocked(useRoute);
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockUseMoneyOnboardingNavigation = jest.mocked(
-  useMoneyOnboardingNavigation,
-);
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockInitiateDeposit = jest.fn();
-const mockRedirectToOnboardingIfNeeded = jest.fn();
 const mockIsUserRejectedError = jest.mocked(isUserRejectedError);
 const mockHighestBalanceAaveOutputToken = {
   address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
@@ -55,11 +49,13 @@ const mockHighestBalanceAaveOutputToken = {
 const arrangeEligibility = ({
   isMoneyAccountFeatureEnabled = true,
   isMoneyAccountGeoEligible = true,
+  isOnboardingRedirectNeeded = false,
   geolocationStatus = 'complete',
   highestBalanceAaveTokenMeetingDepositMinimum,
 }: {
   isMoneyAccountFeatureEnabled?: boolean;
   isMoneyAccountGeoEligible?: boolean;
+  isOnboardingRedirectNeeded?: boolean;
   geolocationStatus?: string;
   highestBalanceAaveTokenMeetingDepositMinimum?: typeof mockHighestBalanceAaveOutputToken;
 } = {}) => {
@@ -68,8 +64,15 @@ const arrangeEligibility = ({
       return isMoneyAccountFeatureEnabled;
     }
 
-    if (selector === selectIsMoneyAccountGeoEligible) {
-      return isMoneyAccountGeoEligible;
+    if (selector === selectMoneyEntryContext) {
+      return {
+        accessBlockReason: !isMoneyAccountFeatureEnabled
+          ? 'feature_disabled'
+          : !isMoneyAccountGeoEligible
+            ? 'geo_blocked'
+            : undefined,
+        isOnboardingRedirectNeeded,
+      };
     }
 
     if (selector === selectGeolocationStatus) {
@@ -97,12 +100,7 @@ describe('MoneyDepositDeeplinkBridge', () => {
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     } as never);
-    mockUseMoneyOnboardingNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: false,
-      redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
-    });
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
     mockIsUserRejectedError.mockReturnValue(false);
     arrangeEligibility();
   });
@@ -151,12 +149,9 @@ describe('MoneyDepositDeeplinkBridge', () => {
       },
     } as never);
     arrangeEligibility({
+      isOnboardingRedirectNeeded: true,
       highestBalanceAaveTokenMeetingDepositMinimum:
         mockHighestBalanceAaveOutputToken,
-    });
-    mockUseMoneyOnboardingNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: true,
-      redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
     });
 
     render(<MoneyDepositDeeplinkBridge />);

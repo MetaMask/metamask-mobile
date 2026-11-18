@@ -1,3 +1,7 @@
-export { default } from './Foxicon';
-export { FoxiconVariant } from './Foxicon.types';
+export { default, isFoxiconVariant } from './Foxicon';
+export {
+  FOXICON_FALLBACK_VARIANT,
+  FoxiconVariant,
+  RetiredFoxiconVariant,
+} from './Foxicon.types';
 export type { FoxiconProps } from './Foxicon.types';

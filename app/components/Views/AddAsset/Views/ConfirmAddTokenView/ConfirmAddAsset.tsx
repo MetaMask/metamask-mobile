@@ -28,21 +28,17 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 
 interface ConfirmAddAssetRowProps {
   asset: ImportAsset;
-  networkName: string;
 }
 
 const getAssetRowKey = (asset: ImportAsset) =>
   `${asset.chainId}-${asset.address.toLowerCase()}`;
 
-function ConfirmAddAssetRowComponent({
-  asset,
-  networkName,
-}: ConfirmAddAssetRowProps) {
+function ConfirmAddAssetRowComponent({ asset }: ConfirmAddAssetRowProps) {
   const tw = useTailwind();
 
   return (
     <ListItem gap={20} style={tw.style('p-0')}>
-      <AddAssetTokenRow asset={asset} networkName={networkName} />
+      <AddAssetTokenRow asset={asset} />
     </ListItem>
   );
 }
@@ -51,9 +47,8 @@ const ConfirmAddAssetRow = React.memo(ConfirmAddAssetRowComponent);
 
 const ConfirmAddAsset = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const { selectedAsset, networkName, addTokenList } = useParams<{
+  const { selectedAsset, addTokenList } = useParams<{
     selectedAsset: ImportAsset[];
-    networkName: string;
     addTokenList: () => Promise<void>;
   }>();
 
@@ -105,8 +100,8 @@ const ConfirmAddAsset = () => {
   ]);
 
   const renderItem = useCallback<ListRenderItem<ImportAsset>>(
-    ({ item }) => <ConfirmAddAssetRow asset={item} networkName={networkName} />,
-    [networkName],
+    ({ item }) => <ConfirmAddAssetRow asset={item} />,
+    [],
   );
 
   return (
@@ -133,7 +128,7 @@ const ConfirmAddAsset = () => {
         <FlashList
           data={selectedAsset}
           style={tw.style('flex-1 bg-default')}
-          contentContainerStyle={tw.style('pt-6 px-6 pb-4')}
+          contentContainerStyle={tw.style('pt-6 px-4 pb-4')}
           renderItem={renderItem}
           keyExtractor={getAssetRowKey}
         />

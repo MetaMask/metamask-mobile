@@ -23,6 +23,7 @@ import type { BatchSellMinimumReceivedInfoModalParams } from '../components/Batc
 import type { NetworkListModalParams } from '../components/BridgeTokenSelector/NetworkListModal';
 import type { SwapsLimitOrderExpirationModalParams } from '../components/SwapsLimitOrderExpirationModal/types';
 import type { LimitOrderConfirmationModalParams } from '../components/LimitOrderConfirmationModal/types';
+import type { RecurringConfirmOrderModalParams } from '../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.types';
 import type { OpenLimitOrderDetailsModalParams } from '../components/OpenLimitOrderDetailsModal/types';
 import type { CancelLimitOrderModalParams } from '../components/CancelLimitOrderModal/types';
 import type { RecurringOrderDetailsRouteParams } from '../Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
@@ -92,7 +93,7 @@ export type BridgeModalsNavigationParamList = {
   RecurringIntervalModal: undefined;
   RecurringRepeatInfoModal: undefined;
   RecurringPriceRangeModal: undefined;
-  RecurringConfirmOrderModal: undefined;
+  RecurringConfirmOrderModal: RecurringConfirmOrderModalParams;
   RecurringDelegationFeeInfoModal: undefined;
 };
 

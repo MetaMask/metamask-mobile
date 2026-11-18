@@ -88,8 +88,12 @@ jest.mock('../../../hooks/useConfirmNavigation', () => ({
 jest.mock(
   '../../../../../../selectors/featureFlagController/moneyAccount',
   () => ({
+    ...jest.requireActual(
+      '../../../../../../selectors/featureFlagController/moneyAccount',
+    ),
     selectMoneyAccountDepositEnabledFlag: jest.fn(),
     selectMoneyAccountWithdrawEnabledFlag: jest.fn(),
+    selectMoneyOnboardingStepperAnimationEnabled: jest.fn(() => false),
   }),
 );
 

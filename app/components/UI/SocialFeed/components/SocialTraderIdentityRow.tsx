@@ -20,7 +20,7 @@ import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
 import XTrustMark from './XTrustMark';
 import { buildTraderStatLabels } from '../utils/traderStats';
-import { formatFeedPostAge } from '../utils/formatters';
+import FeedPostAge from './FeedPostAge';
 import {
   SocialTraderIdentityRowSelectorsIDs,
   type SocialTraderIdentityRowTestIds,
@@ -106,7 +106,9 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           </Text>
           {author.xHandle ? <XTrustMark /> : null}
         </Box>
-        <Text
+        <FeedPostAge
+          timestampMs={timestampMs}
+          now={now}
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextMuted}
@@ -114,9 +116,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           testID={
             testIDs?.timestamp ?? SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
           }
-        >
-          {formatFeedPostAge(timestampMs, now)}
-        </Text>
+        />
       </Box>
       <RotatingTraderStat
         labels={statLabels}

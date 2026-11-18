@@ -4,7 +4,11 @@ import { Text } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { fireEvent } from '@testing-library/react-native';
+import {
+  fireEvent,
+  waitFor,
+  type RenderResult,
+} from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import renderWithProvider, {
@@ -22,9 +26,8 @@ import VbaDetails, {
 import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
 import VbaChooseCurrency from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency';
 import { VbaChooseCurrencySelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency.testIds';
-import KycIdentityVerified, {
-  KycIdentityVerifiedSelectorsIDs,
-} from './IdentityVerified';
+import { KycIdentityVerifiedSelectorsIDs } from './IdentityVerified';
+import { VbaIdentityVerifiedAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 
 const Onboarding = createNativeStackNavigator();
 const Root = createNativeStackNavigator();
@@ -39,7 +42,7 @@ const OnboardingNavigator = () => (
   >
     <Onboarding.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
-      component={KycIdentityVerified}
+      component={VbaIdentityVerifiedAdapter}
     />
     <Onboarding.Screen
       name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
@@ -85,6 +88,19 @@ const engineContext = Engine.context as unknown as {
   NeoBankService?: { getDepositInstructions: jest.Mock };
 };
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+/** Waits for the success cascade so Continue is pressable, then taps it. */
+const pressContinue = async ({
+  getByTestId,
+}: Pick<RenderResult, 'getByTestId'>) => {
+  await waitFor(() => {
+    expect(getByTestId(KycIdentityVerifiedSelectorsIDs.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
+  });
+  fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON));
+};
 
 describeForPlatforms('KycIdentityVerified view', () => {
   afterEach(() => {
@@ -144,9 +160,7 @@ describeForPlatforms('KycIdentityVerified view', () => {
       Probe(Routes.RAMP.VBA_DETAILS),
     );
 
-    fireEvent.press(
-      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
@@ -183,9 +197,7 @@ describeForPlatforms('KycIdentityVerified view', () => {
     });
     const { findByTestId, findByText, getByTestId } = render(VbaDetails);
 
-    fireEvent.press(
-      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
 
     expect(
       await findByText(strings('virtual_bank_account.creating_account.title')),
@@ -212,9 +224,7 @@ describeForPlatforms('KycIdentityVerified view', () => {
       chooseCurrency: true,
     });
 
-    fireEvent.press(
-      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
 
     expect(
       await findByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER),
@@ -248,9 +258,7 @@ describeForPlatforms('KycIdentityVerified view', () => {
       chooseCurrency: true,
     });
 
-    fireEvent.press(
-      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
     fireEvent.press(
       await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
     );
@@ -271,9 +279,7 @@ describeForPlatforms('KycIdentityVerified view', () => {
       { chooseCurrency: true },
     );
 
-    fireEvent.press(
-      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await pressContinue({ getByTestId });
     fireEvent.press(
       await findByTestId(VbaChooseCurrencySelectorsIDs.BACK_BUTTON),
     );

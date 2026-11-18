@@ -100,8 +100,11 @@ interface CapturedRowProps {
   display: {
     icon: IconName;
     primaryAmount: string;
+    fiatAmount: string;
     isIncoming: boolean;
     status: string;
+    showPrimaryAmount?: boolean;
+    isFiatAmountMuted?: boolean;
   };
 }
 
@@ -123,7 +126,29 @@ describe('AccountsApiActivityItem', () => {
     expect(props.display.status).toBe('confirmed');
     expect(props.display.icon).toBe(IconName.Card);
     expect(props.display.isIncoming).toBe(false);
-    expect(props.display.primaryAmount).toBe('-5.38 mUSD');
+    expect(props.display.fiatAmount).toBe('-$5.38');
+    expect(props.display.showPrimaryAmount).toBe(false);
+    expect(props.display.isFiatAmountMuted).toBe(false);
+  });
+
+  it('hides the mUSD line when a historical valuation is present', () => {
+    render(
+      <AccountsApiActivityItem
+        activity={{
+          ...card,
+          displayAmount: {
+            type: 'historical',
+            value: '6570000',
+            decimals: 6,
+          },
+        }}
+      />,
+    );
+
+    const props = lastRowProps();
+    expect(props.display.fiatAmount).toBe('-$6.57');
+    expect(props.display.showPrimaryAmount).toBe(false);
+    expect(props.display.primaryAmount).toBe('-6.57 mUSD');
   });
 
   it('feeds a cashback credit (incoming amount) into the row view', () => {
@@ -131,7 +156,8 @@ describe('AccountsApiActivityItem', () => {
 
     const props = lastRowProps();
     expect(props.display.isIncoming).toBe(true);
-    expect(props.display.primaryAmount).toBe('+0.30 mUSD');
+    expect(props.display.fiatAmount).toBe('+$0.30');
+    expect(props.display.showPrimaryAmount).toBe(false);
   });
 
   it('navigates to the full-screen activity details with the activity on press', () => {

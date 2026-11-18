@@ -1,8 +1,12 @@
 import React, { useCallback } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -12,24 +16,41 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { getBetaSupportUrl } from '../../utils';
+import { openContactSupportWebview } from '../../utils/openContactSupportWebview';
 import { TAX_FORM_CONTACT_US_SHEET_TEST_IDS } from './TaxFormContactUsSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface TaxFormContactUsSheetParams {
   title: string;
   description: string;
   contactLabel: string;
+  /**
+   * Set once support has opened. Backing out of support focuses this sheet
+   * again, and the sheet closes. Absent until then, so dismissing the consent
+   * sheet leaves this sheet up.
+   */
+  closeOnSupportReturn?: boolean;
 }
 
 const TaxFormContactUsSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const params = route.params as TaxFormContactUsSheetParams;
   const { openSupportWithConsent } = useSupportConsent();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (params.closeOnSupportReturn) {
+        navigation.goBack();
+      }
+    }, [navigation, params.closeOnSupportReturn]),
+  );
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -37,14 +58,12 @@ const TaxFormContactUsSheet: React.FC = () => {
 
   const handleContactSupport = useCallback(() => {
     const betaSupportUrl = getBetaSupportUrl();
-    const openWebview = (url: string) =>
-      navigation.navigate(Routes.WEBVIEW.MAIN, {
-        screen: Routes.WEBVIEW.SIMPLE,
-        params: {
-          url,
-          title: strings('app_settings.contact_support'),
-        },
-      });
+    const openWebview = (url: string) => {
+      navigation.dispatch(
+        CommonActions.setParams({ closeOnSupportReturn: true }),
+      );
+      openContactSupportWebview(navigation, url);
+    };
 
     if (betaSupportUrl) {
       openWebview(betaSupportUrl);
@@ -59,12 +78,13 @@ const TaxFormContactUsSheet: React.FC = () => {
       goBack={navigation.goBack}
       testID={TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={TAX_FORM_CONTACT_US_SHEET_TEST_IDS.TITLE}
       >
         {params.title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="gap-4 px-4">
         <Text
           variant={TextVariant.BodyMd}

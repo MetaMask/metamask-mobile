@@ -1,6 +1,6 @@
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { AccessibilityInfo, StyleSheet } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import {
@@ -208,5 +208,68 @@ describe('SocialFeedPostTranslation', () => {
 
     expect(screen.queryByText('See less')).not.toBeOnTheScreen();
     expect(screen.getByText('A newer comment').props.numberOfLines).toBe(4);
+  });
+
+  it('returns to the original caption and reuses the English text', async () => {
+    mockTranslateComment.mockResolvedValue({
+      state: 'translated',
+      sourceLanguage: 'ko',
+      translations: { en: 'Translated comment' },
+    });
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    renderTranslation(createPost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TRANSLATE}-post-1`),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Translated comment')).toBeOnTheScreen();
+    });
+    expect(screen.getByText('See original')).toBeOnTheScreen();
+    expect(announce).toHaveBeenCalledWith(
+      'Translated comment Translated to English',
+    );
+
+    fireEvent.press(
+      screen.getByTestId(
+        `${SocialFeedPostShellSelectorsIDs.SEE_ORIGINAL}-post-1`,
+      ),
+    );
+
+    expect(screen.getByText('Original comment')).toBeOnTheScreen();
+    expect(screen.queryByText('Translated comment')).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TRANSLATE}-post-1`),
+    ).toBeOnTheScreen();
+    expect(announce).toHaveBeenCalledWith('Original comment');
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TRANSLATE}-post-1`),
+    );
+
+    expect(screen.getByText('Translated comment')).toBeOnTheScreen();
+    expect(screen.getByText('See original')).toBeOnTheScreen();
+    expect(mockTranslateComment).toHaveBeenCalledTimes(1);
+    announce.mockRestore();
+  });
+
+  it('keeps the status line when the translation matches the caption', async () => {
+    mockTranslateComment.mockResolvedValue({
+      state: 'translated',
+      sourceLanguage: 'en',
+      translations: { en: 'Original comment' },
+    });
+    renderTranslation(createPost({ sourceLanguage: 'en' }));
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TRANSLATE}-post-1`),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+    });
+    expect(screen.queryByText('See original')).not.toBeOnTheScreen();
+    expect(screen.getByText('Original comment')).toBeOnTheScreen();
   });
 });

@@ -1,13 +1,11 @@
-import React, { useRef, useCallback } from 'react';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import React, { useCallback } from 'react';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   Box,
+  BottomSheet,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -17,12 +15,15 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
 import NotifCard from '../../../../UI/Notification/NotifCard';
+import { usePrePromptSheetClose } from '../usePrePromptSheetClose';
 
 export interface NewUserSheetProps {
   isVisible: boolean;
   onClose: (hasPendingAction?: boolean) => void;
   onYes?: () => void;
   onNotNow?: () => void;
+  /** Records a response before the button's close animation starts. */
+  onUserAnswered?: () => void;
   testID?: string;
   /** Optional heading override. Defaults to the push-onboarding copy. */
   title?: string;
@@ -43,6 +44,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
   onClose,
   onYes,
   onNotNow,
+  onUserAnswered,
   testID,
   title = strings('notifications.push_onboarding.new_user.title'),
   body = strings('notifications.push_onboarding.new_user.body'),
@@ -52,16 +54,8 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
   previewMessage,
   previewTimestamp,
 }) => {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  const closeWithAction = useCallback((action?: () => void) => {
-    const callback = () => action?.();
-    if (!bottomSheetRef.current) {
-      callback();
-      return;
-    }
-    bottomSheetRef.current.onCloseBottomSheet(callback);
-  }, []);
+  const { bottomSheetRef, closeFromIcon, closeWithAction } =
+    usePrePromptSheetClose(onUserAnswered);
 
   const handleYes = useCallback(() => {
     closeWithAction(onYes);
@@ -76,7 +70,6 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      shouldNavigateBack={false}
       onClose={onClose}
       testID={testID ?? NewUserSheetSelectorsIDs.CONTAINER}
     >
@@ -85,7 +78,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
           <ButtonIcon
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
-            onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
+            onPress={closeFromIcon}
           />
         </Box>
         {showPreview && (

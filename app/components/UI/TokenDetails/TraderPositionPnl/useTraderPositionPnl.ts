@@ -1,18 +1,11 @@
 import { useCallback, useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useABTest } from '../../../../hooks';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { useOpenSocialPostComposer } from '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_VARIANTS,
-} from '../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TraderPositionPnlProps } from './TraderPositionPnl';
 import { toComposerPosition } from './composerPosition';
 import { useOpenPositionHeader } from './useOpenPositionHeader';
-
-const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
 interface UseTraderPositionPnlOptions {
   token: TokenDetailsRouteParams;
@@ -42,22 +35,12 @@ export const useTraderPositionPnl = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const header = useOpenPositionHeader(token);
   const { openComposer } = useOpenSocialPostComposer();
-  const isSocialLeaderboardEnabled = useSelector(
-    selectSocialLeaderboardEnabled,
-  );
-  const { variant: socialV1Variant } = useABTest(
-    SOCIAL_V1_AB_KEY,
-    SOCIAL_V1_VARIANTS,
-    SOCIAL_V1_ASSIGNMENT_OPTIONS,
-  );
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
 
   // The composer and profile onboarding are registered on MainNavigator only
   // under this gate. Without a position to attach, Share to feed is omitted.
   const sharePosition = header.sharePosition;
-  const canShareToFeed =
-    isSocialLeaderboardEnabled &&
-    socialV1Variant.useSocialV1 &&
-    sharePosition != null;
+  const canShareToFeed = isSocialV1Enabled && sharePosition != null;
   const shareToFeedPress = useCallback(() => {
     if (!sharePosition) {
       return;

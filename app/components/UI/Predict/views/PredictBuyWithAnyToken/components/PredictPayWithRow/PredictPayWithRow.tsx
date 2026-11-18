@@ -8,6 +8,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -122,12 +123,12 @@ export function PredictPayWithRow({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="pt-4 pb-2"
+          twClassName="pt-4"
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="font-medium"
+            fontWeight={FontWeight.Medium}
           >
             {label}
           </Text>
@@ -148,13 +149,18 @@ export function PredictPayWithRow({
                 />
               )
             )}
-            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
+              fontWeight={FontWeight.Medium}
+            >
               {displaySymbol}
             </Text>
             {availableBalance && (
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
               >
                 ({availableBalance})
               </Text>

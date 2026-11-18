@@ -83,9 +83,18 @@ export const invalidateModerationStatus = async (): Promise<void> => {
   });
 };
 
-/** Blocks a trader for the viewer. */
-export const blockProfile = (profileId: string): Promise<void> =>
-  Engine.controllerMessenger.call('SocialService:block', { profileId });
+/**
+ * Blocks a trader for the viewer. A `reason` stores the report on that block
+ * so the social API can screen it. Impersonation is not sent here.
+ */
+export const blockProfile = (
+  profileId: string,
+  reason?: string,
+): Promise<void> =>
+  Engine.controllerMessenger.call('SocialService:block', {
+    profileId,
+    ...(reason ? { reason } : {}),
+  });
 
 /**
  * Hides a comment for the viewer. With a `reason` this is a report: the

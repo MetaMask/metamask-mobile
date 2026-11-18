@@ -79,6 +79,7 @@ export class AppStateEventListener {
   private openedFromPushAt = 0;
   private openedFromPush: PushOpenDetails | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
+  private openedAt = Date.now();
 
   constructor() {
     this.lastAppState = AppState.currentState;
@@ -89,6 +90,7 @@ export class AppStateEventListener {
       // Already started
       return;
     }
+    this.openedAt = Date.now();
     this.appStateSubscription = AppState.addEventListener(
       'change',
       this.handleAppStateChange,
@@ -146,6 +148,11 @@ export class AppStateEventListener {
     }
   }
 
+  /** When the app last cold started or came back from the background, in epoch ms. */
+  public getOpenedAt(): number {
+    return this.openedAt;
+  }
+
   public clearPendingDeeplink() {
     this.pendingDeeplink = null;
     this.pendingDeeplinkSource = null;
@@ -156,6 +163,7 @@ export class AppStateEventListener {
     // Transitioning from inactive (e.g. system permission dialogs, incoming calls)
     // back to active should NOT count as the user opening the app.
     if (nextAppState === 'active' && this.lastAppState === 'background') {
+      this.openedAt = Date.now();
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
         this.processAppStateChange(AppOpenedType.WarmStart);

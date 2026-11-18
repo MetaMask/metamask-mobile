@@ -153,4 +153,41 @@ describe('useCashbackLedger', () => {
 
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
+
+  it('asks for a failed later page again only once', async () => {
+    mockEngineCall.mockResolvedValueOnce({
+      results: [earning],
+      has_more: true,
+      cursor: 'cursor-2',
+      window: null,
+    });
+
+    const { result } = renderHook(() => useCashbackLedger(PROFILE_A));
+
+    await waitFor(() => {
+      expect(result.current.items).not.toBeNull();
+    });
+
+    mockEngineCall.mockRejectedValue(new Error('boom'));
+    jest.useFakeTimers();
+    try {
+      await act(async () => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(60_000);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not fetch without a profile', async () => {
+    renderHook(() => useCashbackLedger(undefined));
+    await flushPromises();
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
 });

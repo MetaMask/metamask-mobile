@@ -299,8 +299,13 @@ export const waitForAppReady = async (
           });
           logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
           return 'login';
-        } catch {
-          // Still booting — keep polling.
+        } catch (error) {
+          // A dead iOS accessibility server is not "still booting". Surfacing
+          // it here lets the outer catch drop the shared session instead of
+          // burning the login timeout and reporting a rehydration hang.
+          if (isDeviceHealthError(error)) {
+            throw error;
+          }
         }
       }
 

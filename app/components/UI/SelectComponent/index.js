@@ -58,8 +58,8 @@ const createStyles = (theme) => {
       width: '100%',
     },
     optionButton: {
-      paddingHorizontal: 15,
-      paddingVertical: 5,
+      paddingHorizontal: 16,
+      paddingVertical: 4,
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',

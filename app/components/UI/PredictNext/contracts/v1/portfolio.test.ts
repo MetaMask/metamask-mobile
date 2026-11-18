@@ -199,6 +199,41 @@ describe('Predict API canonical Positions parser', () => {
     expect(parsePredictPositionsPage(input)).toEqual(input);
   });
 
+  it.each([
+    ['a Player and a line', ['Josh Jacobs', '60+']],
+    ['a line alone', ['60+']],
+  ])('parses a Position whose Market labels name %s', (_name, marketLabels) => {
+    const input = {
+      venueId: 'kalshi',
+      positions: [createPosition({ context: createContext({ marketLabels }) })],
+    };
+
+    expect(parsePredictPositionsPage(input)).toEqual(input);
+  });
+
+  it.each([
+    ['empty', []],
+    ['with a blank label', ['Josh Jacobs', ' ']],
+    ['with a non-string label', ['Josh Jacobs', 60]],
+    ['not an array', 'Josh Jacobs · 60+'],
+  ])(
+    'drops Market labels that are %s and keeps the Position',
+    (_name, marketLabels) => {
+      const position = createPosition({ context: createContext() });
+      const input = {
+        venueId: 'kalshi',
+        positions: [
+          { ...position, context: { ...position.context, marketLabels } },
+        ],
+      };
+
+      expect(parsePredictPositionsPage(input)).toEqual({
+        venueId: 'kalshi',
+        positions: [position],
+      });
+    },
+  );
+
   it('discards superseded and unknown fields', () => {
     const input = {
       venueId: 'kalshi',
@@ -344,6 +379,33 @@ describe('Predict API canonical Activity parser', () => {
 
     expect(parsePredictActivityPage(input)).toEqual(input);
   });
+
+  it('keeps empty scan pages nonterminal when an opaque cursor is present', () => {
+    const input = pageOf([], {
+      nextCursor: 'opaque-v2-scan-continuation',
+      settlementsCompleteFrom: '2026-08-27T00:00:00.000Z',
+    });
+
+    expect(parsePredictActivityPage(input)).toEqual(input);
+  });
+
+  it('preserves an explicit demo settlements permission degradation', () => {
+    const input = pageOf([createTrade()], {
+      settlementsDegradedReason: 'venue_permission_denied',
+      settlementsCompleteFrom: '2026-08-27T00:00:00.000Z',
+    });
+
+    expect(parsePredictActivityPage(input)).toEqual(input);
+  });
+
+  it.each(['upstream_failure', '', null, 403])(
+    'rejects an unsupported settlements degradation reason: %s',
+    (settlementsDegradedReason) => {
+      expect(() =>
+        parsePredictActivityPage(pageOf([], { settlementsDegradedReason })),
+      ).toThrow(INVALID_RESPONSE);
+    },
+  );
 
   it('accepts a trade before a Settlement at the same timestamp', () => {
     const timestamp = '2026-09-01T00:00:00.000Z';
