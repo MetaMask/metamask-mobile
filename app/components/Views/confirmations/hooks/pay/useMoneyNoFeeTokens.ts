@@ -7,6 +7,7 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
 import { isSubsidizedSource } from '../../utils/relayFixedSpread';
+import { getPayTokenAddressAndChainId } from '../../utils/transaction-pay';
 
 const MONEY_ACCOUNT_TRANSACTION_TYPES: TransactionType[] = [
   TransactionType.moneyAccountDeposit,
@@ -23,14 +24,16 @@ export function useMoneyNoFeeTokens(): { isMoneyNoFeeToken: boolean } {
     MONEY_ACCOUNT_TRANSACTION_TYPES,
   );
 
-  if (!isMoneyAccountTransaction || !payToken) {
+  const payTokenInfo = getPayTokenAddressAndChainId(payToken);
+
+  if (!isMoneyAccountTransaction || !payTokenInfo) {
     return { isMoneyNoFeeToken: false };
   }
 
   return {
     isMoneyNoFeeToken: isSubsidizedSource(relayFixedSpread, {
-      chainId: payToken.chainId,
-      address: payToken.address,
+      chainId: payTokenInfo.chainId,
+      address: payTokenInfo.address,
     }),
   };
 }

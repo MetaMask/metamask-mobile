@@ -16,6 +16,7 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { getPayTokenAddressAndChainId } from '../../../utils/transaction-pay';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
@@ -24,12 +25,14 @@ export function BridgeTimeRow() {
   const { estimatedDuration } = useTransactionPayTotals() ?? {};
   const quotes = useTransactionPayQuotes();
   const { payToken } = useTransactionPayToken();
+  const payTokenInfo = getPayTokenAddressAndChainId(payToken);
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId } = transactionMetadata ?? {};
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
 
-  const isSameChain = payToken?.chainId != null && payToken.chainId === chainId;
+  const isSameChain =
+    payTokenInfo?.chainId != null && payTokenInfo.chainId === chainId;
 
   const showEstimate =
     (isLoading || Boolean(quotes?.length) || isSameChain) &&
