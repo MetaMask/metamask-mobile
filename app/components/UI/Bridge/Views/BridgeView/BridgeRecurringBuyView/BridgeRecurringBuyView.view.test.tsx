@@ -76,7 +76,6 @@ const ETH_USD_RATE = 2000;
 const ETH_EUR_RATE = 1800;
 const MUSD_ETH_PRICE = 0.0005;
 const MUSD_USD_RATE = ETH_USD_RATE * MUSD_ETH_PRICE;
-const MUSD_EUR_RATE = ETH_EUR_RATE * MUSD_ETH_PRICE;
 const recurringOrdersRequest = jest.fn(getMockRecurringOrders);
 const STORED_USD_PRICE_RANGE: RecurringPriceRange = {
   tokenSide: 'dest',
@@ -403,6 +402,7 @@ async function seedPriceRangeAfterTokens(
 
 async function openPriceRangeSheet(
   renderResult: ReturnType<typeof renderBridgeView>,
+  expectedTokenSymbol = 'ETH',
 ) {
   fireEvent.press(renderResult.getByTestId(PriceRangeRowSelectorsIDs.ROW));
 
@@ -415,7 +415,7 @@ async function openPriceRangeSheet(
     expect(
       renderResult.getByText(
         strings('bridge.recurring.price_range.min_token_price', {
-          symbol: 'mUSD',
+          symbol: expectedTokenSymbol,
         }),
       ),
     ).toBeOnTheScreen();
@@ -455,20 +455,18 @@ async function typePriceRangeDigits(
   }
 }
 
-async function selectPriceRangeSourceToken(
+async function selectPriceRangeDestToken(
   renderResult: ReturnType<typeof renderBridgeView>,
 ) {
   fireEvent.press(
-    renderResult.getByTestId(
-      PriceRangeSheetSelectorsIDs.TOKEN_OPTION('source'),
-    ),
+    renderResult.getByTestId(PriceRangeSheetSelectorsIDs.TOKEN_OPTION('dest')),
   );
 
   await waitFor(() => {
     expect(
       renderResult.getByText(
         strings('bridge.recurring.price_range.min_token_price', {
-          symbol: 'ETH',
+          symbol: 'mUSD',
         }),
       ),
     ).toBeOnTheScreen();
@@ -1725,10 +1723,13 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
       ).not.toBeOnTheScreen();
       expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.PRICE),
+      ).toHaveTextContent(formatTokenPrice('ETH', ETH_USD_RATE, 'USD'));
+      expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.EXCHANGE_RATE),
       ).toHaveTextContent(
         formatExchangeRate({
-          selected: 'dest',
+          selected: 'source',
           sourceSymbol: 'ETH',
           destSymbol: 'mUSD',
           quoteRate: ETH_USD_RATE / MUSD_USD_RATE,
@@ -1777,7 +1778,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     it('clears min and max independently without closing the sheet', async () => {
       const renderResult = renderRecurringPriceRangeView();
-      const expectedMax = applyPercentToPrice(MUSD_USD_RATE, 10);
+      const expectedMax = applyPercentToPrice(ETH_USD_RATE, 10);
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
@@ -1834,14 +1835,14 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       const renderResult = renderRecurringPriceRangeView({
         currentCurrency: 'eur',
       });
-      const min = applyPercentToPrice(MUSD_EUR_RATE, -10);
-      const max = applyPercentToPrice(MUSD_EUR_RATE, 10);
+      const min = applyPercentToPrice(ETH_EUR_RATE, -10);
+      const max = applyPercentToPrice(ETH_EUR_RATE, 10);
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.PRICE),
-      ).toHaveTextContent(formatTokenPrice('mUSD', MUSD_EUR_RATE, 'EUR'));
+      ).toHaveTextContent(formatTokenPrice('ETH', ETH_EUR_RATE, 'EUR'));
       expect(renderResult.getAllByText('€')).toHaveLength(2);
       fireEvent.press(
         renderResult.getByTestId(
@@ -1876,7 +1877,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveTextContent(formatPriceRangeLabel(min, max, 'EUR'));
       expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
         {
-          tokenSide: 'dest',
+          tokenSide: 'source',
           currency: 'eur',
           min,
           max,
@@ -1894,12 +1895,12 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           PriceRangeSheetSelectorsIDs.PERCENT('min', -10),
         ),
       );
-      await selectPriceRangeSourceToken(renderResult);
+      await selectPriceRangeDestToken(renderResult);
 
       expect(
         renderResult.getByText(
           strings('bridge.recurring.price_range.max_token_price', {
-            symbol: 'ETH',
+            symbol: 'mUSD',
           }),
         ),
       ).toBeOnTheScreen();
@@ -1930,14 +1931,14 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       {
         bound: 'min' as const,
         percent: -10,
-        min: applyPercentToPrice(MUSD_USD_RATE, -10),
+        min: applyPercentToPrice(ETH_USD_RATE, -10),
         max: '',
       },
       {
         bound: 'max' as const,
         percent: 10,
         min: '',
-        max: applyPercentToPrice(MUSD_USD_RATE, 10),
+        max: applyPercentToPrice(ETH_USD_RATE, 10),
       },
     ])(
       'enables confirm and saves a $bound-only range',
@@ -1974,7 +1975,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         expect(
           renderResult.store.getState().bridge.recurring.priceRange,
         ).toEqual({
-          tokenSide: 'dest',
+          tokenSide: 'source',
           currency: 'usd',
           min,
           max,
@@ -2098,8 +2099,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     it('writes the confirmed range onto the row', async () => {
       const renderResult = renderRecurringPriceRangeView();
-      const min = applyPercentToPrice(MUSD_USD_RATE, -10);
-      const max = applyPercentToPrice(MUSD_USD_RATE, 10);
+      const min = applyPercentToPrice(ETH_USD_RATE, -10);
+      const max = applyPercentToPrice(ETH_USD_RATE, 10);
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
@@ -2135,7 +2136,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeOnTheScreen();
       expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
         {
-          tokenSide: 'dest',
+          tokenSide: 'source',
           currency: 'usd',
           min,
           max,
@@ -2148,7 +2149,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
       await openRecurringTab(renderResult);
       await seedPriceRangeAfterTokens(renderResult, STORED_USD_PRICE_RANGE);
-      await openPriceRangeSheet(renderResult);
+      await openPriceRangeSheet(renderResult, 'mUSD');
       fireEvent.press(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MIN),
       );
@@ -2199,7 +2200,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         STORED_USD_PRICE_RANGE,
       );
 
-      await openPriceRangeSheet(renderResult);
+      await openPriceRangeSheet(renderResult, 'mUSD');
 
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
@@ -2233,7 +2234,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         renderResult.getByTestId(PriceRangeRowSelectorsIDs.AVATAR),
       ).toBeOnTheScreen();
 
-      await openPriceRangeSheet(renderResult);
+      await openPriceRangeSheet(renderResult, 'mUSD');
 
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
