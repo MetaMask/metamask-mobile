@@ -14,10 +14,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   HelpText,
-  Icon,
-  IconColor,
   IconName,
   Spinner,
   Text,
@@ -324,27 +321,20 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
         {/* Authenticator app codes are copied from another app; email codes
             come from the keyboard's suggestion or a long press. */}
         {isTotp && codeSent && !isVerifying ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={strings('mfa.otp.paste')}
-            disabled={busy}
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Md}
+            startIconName={IconName.Clipboard}
+            isDisabled={busy}
             onPress={() => {
               // An unreadable clipboard leaves the boxes as they are.
               paste().catch(() => undefined);
             }}
-            style={({ pressed }) =>
-              tw.style(
-                'flex-row items-center gap-1 self-end py-2',
-                pressed && 'opacity-70',
-              )
-            }
+            twClassName="self-end"
             testID={MfaFlowSelectorsIDs.PASTE_BUTTON}
           >
-            <Icon name={IconName.Clipboard} color={IconColor.IconDefault} />
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('mfa.otp.paste')}
-            </Text>
-          </Pressable>
+            {strings('mfa.otp.paste')}
+          </Button>
         ) : null}
       </Box>
     </StepLayout>
