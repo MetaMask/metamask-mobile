@@ -964,6 +964,272 @@ describe('PolyBoltCryptoFeed', () => {
       mockSockets[2].receive(livePoint('binance', '103'));
       expect(jest.mocked(captureMessage)).toHaveBeenCalledTimes(2);
     });
+
+    it('warns Sentry once and retries a TWAP subscription without provider on bad_filter', () => {
+      jest.mocked(captureMessage).mockClear();
+      const { socket } = connectWith([twap('btc')], listener(), {
+        ...credentials,
+        chainlinkApiKey: 'secret-cl-key',
+      });
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+
+      expect(sentryCalls()).toEqual([]);
+      expect(jest.mocked(captureMessage).mock.calls).toEqual([
+        [
+          'PolyBoltCryptoFeed: filter rejected',
+          {
+            level: 'warning',
+            tags: { feature: 'Predict', provider: 'polymarket' },
+            contexts: {
+              PolyBoltCryptoFeed: {
+                code: 'bad_filter',
+                message: 'unknown field provider',
+                channel: 'price.crypto.twap',
+                rid: 's2',
+                symbol: 'btcusd',
+              },
+            },
+          },
+        ],
+      ]);
+      expect(
+        JSON.stringify(jest.mocked(captureMessage).mock.calls),
+      ).not.toContain('secret-cl-key');
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's3',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('retries a TWAP subscription once per connection and deduplicates Sentry warnings', () => {
+      jest.mocked(captureMessage).mockClear();
+      const { socket } = connectWith([twap('btc')]);
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's3',
+      });
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+
+      expect(subscribeFrames(socket)).toHaveLength(1);
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledTimes(1);
+
+      socket.closeWith(1006);
+      jest.advanceTimersByTime(1_000);
+      const reconnected = mockSockets[1];
+      reconnected.open();
+      reconnected.receive({
+        op: 'authed',
+        rid: sentFrames(reconnected)[0].rid,
+      });
+      const reconnectSubscribeRid = subscribeFrames(reconnected)[0].rid;
+      reconnected.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: reconnectSubscribeRid,
+      });
+
+      expect(subscribeFrames(reconnected)).toEqual([
+        {
+          op: 'subscribe',
+          rid: reconnectSubscribeRid,
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: {
+                symbol: 'btcusd',
+                window_seconds: 60,
+                provider: 'chainlink',
+              },
+            },
+          ],
+        },
+        {
+          op: 'subscribe',
+          rid: 's6',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        },
+      ]);
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps provider on spot frames when retrying TWAP from a shared frame', () => {
+      jest.mocked(captureMessage).mockClear();
+      const { socket } = connectWith([spot('eth'), twap('btc')]);
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's3',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        },
+      ]);
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledTimes(1);
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: filter rejected',
+        expect.objectContaining({
+          contexts: {
+            PolyBoltCryptoFeed: expect.objectContaining({
+              channel: 'price.crypto.twap',
+              symbol: 'btcusd',
+            }),
+          },
+        }),
+      );
+    });
+
+    it('keeps bad_filter behaviour unchanged for a pinned spot frame', () => {
+      jest.mocked(captureMessage).mockClear();
+      const { socket } = connectWith([binanceBtc]);
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        channel: 'price.crypto',
+        rid: 's2',
+      });
+
+      expect(jest.mocked(captureMessage)).not.toHaveBeenCalled();
+      expect(sentryCalls()).toHaveLength(1);
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's3',
+          subscriptions: [
+            {
+              channel: 'price.crypto',
+              filter: { symbol: 'btcusd', provider: 'chainlink' },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('clears tracked frames on reconnect', () => {
+      jest.mocked(captureMessage).mockClear();
+      const { socket } = connectWith([twap('btc')]);
+
+      socket.closeWith(1006);
+      jest.advanceTimersByTime(1_000);
+      const reconnected = mockSockets[1];
+      reconnected.open();
+      reconnected.receive({
+        op: 'authed',
+        rid: sentFrames(reconnected)[0].rid,
+      });
+      reconnected.send.mockClear();
+
+      reconnected.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'bad filter',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+
+      expect(reconnected.send).not.toHaveBeenCalled();
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledTimes(1);
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: filter rejected',
+        expect.objectContaining({
+          contexts: {
+            PolyBoltCryptoFeed: {
+              code: 'bad_filter',
+              message: 'bad filter',
+              channel: 'price.crypto.twap',
+              rid: 's2',
+            },
+          },
+        }),
+      );
+    });
+
+    it('warns Sentry without retrying when bad_filter hits an unsubscribe frame', () => {
+      jest.mocked(captureMessage).mockClear();
+      const { feed, socket } = connectWith([spot('eth'), twap('btc')]);
+      socket.send.mockClear();
+
+      feed.setSubscriptions([spot('eth')]);
+      const unsubscribeRid = sentFrames(socket)[0].rid;
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'bad filter',
+        channel: 'price.crypto.twap',
+        rid: unsubscribeRid,
+      });
+
+      expect(socket.send).not.toHaveBeenCalled();
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledTimes(1);
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: filter rejected',
+        expect.objectContaining({
+          contexts: {
+            PolyBoltCryptoFeed: expect.objectContaining({
+              rid: unsubscribeRid,
+              symbol: 'btcusd',
+            }),
+          },
+        }),
+      );
+    });
   });
 
   describe('Chainlink API key', () => {

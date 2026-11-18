@@ -13,6 +13,7 @@ const POLICY_CLOSE_CODE = 4008;
 const ABNORMAL_CLOSE_CODE = 1006;
 const MAX_AUTH_FRAMES = 8;
 const MAX_SUBSCRIPTIONS = 64;
+const MAX_PENDING_FRAMES = 256;
 const MAX_BACKOFF_MS = 30_000;
 const BASE_BACKOFF_MS = 1_000;
 // The provider named for a subscription without a pin. PolyBolt requires a
@@ -64,6 +65,11 @@ interface SocketCloseEvent {
   code?: number;
 }
 
+interface PendingFrame {
+  op: 'subscribe' | 'unsubscribe';
+  subscriptions: PolyBoltSubscription[];
+}
+
 /**
  * Converts a caller symbol such as `btc/usd` to the PolyBolt wire symbol `btcusd`.
  *
@@ -103,23 +109,26 @@ const subscriptionId = (subscription: PolyBoltSubscription): string =>
 
 /**
  * Builds the `filter` of a subscribe or unsubscribe entry. PolyBolt rejects a
- * filter without a provider, so every filter names one.
+ * filter without a provider, so every filter names one unless the pre-enforcement
+ * TWAP fallback explicitly omits it.
  *
  * @param channel - PolyBolt channel.
  * @param wireSymbol - Lowercase PolyBolt symbol.
  * @param provider - Vendor pin. Absent, or on TWAP, the filter names Chainlink.
+ * @param includeTwapProvider - Whether to include `provider` on TWAP filters.
  * @returns The filter object for the wire.
  */
 export const toPolyboltFilter = (
   channel: PolyBoltChannel,
   wireSymbol: string,
   provider?: CryptoPriceProvider,
-): { symbol: string; window_seconds?: 60; provider: CryptoPriceProvider } => {
+  includeTwapProvider = true,
+): { symbol: string; window_seconds?: 60; provider?: CryptoPriceProvider } => {
   if (channel === 'price.crypto.twap') {
     return {
       symbol: wireSymbol,
       window_seconds: 60,
-      provider: DEFAULT_CRYPTO_PROVIDER,
+      ...(includeTwapProvider && { provider: DEFAULT_CRYPTO_PROVIDER }),
     };
   }
 
@@ -190,6 +199,21 @@ export class PolyBoltCryptoFeed {
   // Subscribe rid of each pinned subscription awaiting its ack, so the ack or
   // a bad_filter can be traced back to the pin. Pins go out one per frame.
   private readonly pendingPins: Map<string, string> = new Map();
+
+  // Subscriptions sent in each subscribe/unsubscribe frame awaiting ack or error,
+  // keyed by rid so unpinned rejections (such as TWAP) still resolve symbols.
+  private readonly pendingFrames: Map<string, PendingFrame> = new Map();
+
+  // TWAP subscriptions retried without `provider` on this connection during the
+  // pre-enforcement window.
+  private readonly retriedTwapWithoutProvider: Set<string> = new Set();
+
+  // Unpinned bad_filter warnings already sent (keyed without rid), so a
+  // reconnect loop cannot spam Sentry.
+  private readonly warnedBadFilters: Set<string> = new Set();
+
+  // rids already handled by handleBadFilter on this connection.
+  private readonly handledBadFilterRids: Set<string> = new Set();
 
   // Pinned subscriptions served by the default provider on this connection:
   // the server rejected the pin, ignored it, or named another vendor.
@@ -282,6 +306,10 @@ export class PolyBoltCryptoFeed {
     this.clearTimers();
     this.closeSocket();
     this.authed = false;
+    this.pendingPins.clear();
+    this.pendingFrames.clear();
+    this.handledBadFilterRids.clear();
+    this.retriedTwapWithoutProvider.clear();
     this.listener.onConnectionChange();
   }
 
@@ -305,6 +333,11 @@ export class PolyBoltCryptoFeed {
 
   private forgetRemoved(current: PolyBoltSubscription[]): void {
     const currentIds = new Set(current.map(subscriptionId));
+    const currentChannelSymbols = new Set(
+      current.map(
+        (subscription) => `${subscription.channel}|${subscription.wireSymbol}`,
+      ),
+    );
     this.ownerServed.forEach((id) => {
       if (!currentIds.has(id)) {
         this.ownerServed.delete(id);
@@ -313,6 +346,11 @@ export class PolyBoltCryptoFeed {
     this.loggedProviderMismatches.forEach((id) => {
       if (!currentIds.has(id)) {
         this.loggedProviderMismatches.delete(id);
+      }
+    });
+    this.warnedBadFilters.forEach((key) => {
+      if (!key.startsWith('untracked|') && !currentChannelSymbols.has(key)) {
+        this.warnedBadFilters.delete(key);
       }
     });
   }
@@ -397,6 +435,9 @@ export class PolyBoltCryptoFeed {
     this.closedByClient = false;
     // A symbol's vendor can change between connections, so try each pin again.
     this.pendingPins.clear();
+    this.pendingFrames.clear();
+    this.handledBadFilterRids.clear();
+    this.retriedTwapWithoutProvider.clear();
     this.ownerServed.clear();
     this.chainlinkUnavailable = false;
     this.reportedErrorCodes.clear();
@@ -606,12 +647,23 @@ export class PolyBoltCryptoFeed {
   private sendSubscriptionFrame(
     op: 'subscribe' | 'unsubscribe',
     subscriptions: PolyBoltSubscription[],
+    includeTwapProvider = true,
   ): string | undefined {
-    if (subscriptions.length === 0) {
+    if (
+      subscriptions.length === 0 ||
+      this.socket?.readyState !== WebSocket.OPEN
+    ) {
       return undefined;
     }
 
     const rid = this.nextRequestId(op === 'subscribe' ? 's' : 'u');
+    if (this.pendingFrames.size >= MAX_PENDING_FRAMES) {
+      const oldestRid = this.pendingFrames.keys().next().value;
+      if (oldestRid !== undefined) {
+        this.pendingFrames.delete(oldestRid);
+      }
+    }
+    this.pendingFrames.set(rid, { op, subscriptions: [...subscriptions] });
     this.send({
       op,
       rid,
@@ -621,6 +673,7 @@ export class PolyBoltCryptoFeed {
           subscription.channel,
           subscription.wireSymbol,
           this.wireProvider(subscription),
+          includeTwapProvider,
         ),
       })),
     });
@@ -670,6 +723,11 @@ export class PolyBoltCryptoFeed {
       return;
     }
 
+    if (message.op === 'unsubscribed') {
+      this.takePendingFrame(message.rid);
+      return;
+    }
+
     if (message.op !== 'error' || typeof message.code !== 'string') {
       return;
     }
@@ -688,6 +746,7 @@ export class PolyBoltCryptoFeed {
       // Every filter names a provider, so this is a client bug. Resending the
       // same frame would fail the same way.
       this.takePendingPin(message.rid);
+      this.takePendingFrame(message.rid);
       this.reportErrorOnce(message);
       return;
     }
@@ -707,7 +766,24 @@ export class PolyBoltCryptoFeed {
 
     if (message.code === 'auth_unavailable') {
       this.scheduleAuthRetry();
+      return;
     }
+
+    this.takePendingFrame(message.rid);
+  }
+
+  private takePendingFrame(rid: unknown): PendingFrame | undefined {
+    if (typeof rid !== 'string') {
+      return undefined;
+    }
+
+    const frame = this.pendingFrames.get(rid);
+    if (!frame) {
+      return undefined;
+    }
+
+    this.pendingFrames.delete(rid);
+    return frame;
   }
 
   private takePendingPin(rid: unknown): PolyBoltSubscription | undefined {
@@ -733,6 +809,7 @@ export class PolyBoltCryptoFeed {
    */
   private handleSubscribedAck(message: Record<string, unknown>): void {
     const subscription = this.takePendingPin(message.rid);
+    this.takePendingFrame(message.rid);
     if (!subscription?.provider) {
       return;
     }
@@ -750,33 +827,151 @@ export class PolyBoltCryptoFeed {
   /**
    * Polymarket's docs disagree on whether a binance pin is honoured, ignored
    * or rejected. When it is rejected, fall back to Chainlink so the market
-   * keeps a live price.
+   * keeps a live price. For unpinned rejections (such as TWAP), warn Sentry
+   * once and retry TWAP subscriptions once without `provider`.
    */
   private handleBadFilter(message: Record<string, unknown>): void {
     const subscription = this.takePendingPin(message.rid);
-    DevLogger.log('PolyBoltCryptoFeed: filter rejected', {
-      channel: message.channel,
-      rid: message.rid,
-      symbol: subscription?.wireSymbol,
-      provider: subscription?.provider,
-    });
-    if (!subscription) {
+    const frame = this.takePendingFrame(message.rid);
+    if (subscription) {
+      if (typeof message.rid === 'string') {
+        this.handledBadFilterRids.add(message.rid);
+      }
+      DevLogger.log('PolyBoltCryptoFeed: filter rejected', {
+        channel: message.channel,
+        rid: message.rid,
+        symbol: subscription.wireSymbol,
+        provider: subscription.provider,
+      });
+      const alreadyOnWire = new Set(
+        this.subscriptions
+          .filter((other) => other !== subscription)
+          .map((other) => this.wireKey(other)),
+      );
+      this.ownerServed.add(subscriptionId(subscription));
+      this.logProviderMismatch(subscription, 'none, filter rejected');
+      if (
+        !this.chainlinkUnavailable &&
+        !alreadyOnWire.has(this.wireKey(subscription))
+      ) {
+        this.sendSubscriptionFrame('subscribe', [subscription]);
+      }
       return;
     }
 
-    const alreadyOnWire = new Set(
-      this.subscriptions
-        .filter((other) => other !== subscription)
-        .map((other) => this.wireKey(other)),
-    );
-    this.ownerServed.add(subscriptionId(subscription));
-    this.logProviderMismatch(subscription, 'none, filter rejected');
-    if (
-      !this.chainlinkUnavailable &&
-      !alreadyOnWire.has(this.wireKey(subscription))
-    ) {
-      this.sendSubscriptionFrame('subscribe', [subscription]);
+    const resolvedSubscriptions = frame
+      ? this.resolveRejectedSubscriptions(frame.subscriptions, message.channel)
+      : [];
+    const symbol = this.formatRejectedSymbols(resolvedSubscriptions);
+    const channel =
+      typeof message.channel === 'string'
+        ? message.channel
+        : this.formatRejectedChannels(resolvedSubscriptions);
+    DevLogger.log('PolyBoltCryptoFeed: filter rejected', {
+      channel,
+      rid: message.rid,
+      symbol,
+      provider: undefined,
+    });
+    this.warnBadFilterOnce(message, channel, symbol, resolvedSubscriptions);
+
+    if (frame?.op === 'subscribe' && !this.chainlinkUnavailable) {
+      this.retryTwapWithoutProvider(frame.subscriptions);
     }
+  }
+
+  private resolveRejectedSubscriptions(
+    subscriptions: PolyBoltSubscription[],
+    channel: unknown,
+  ): PolyBoltSubscription[] {
+    if (typeof channel === 'string') {
+      const matching = subscriptions.filter(
+        (subscription) => subscription.channel === channel,
+      );
+      if (matching.length > 0) {
+        return matching;
+      }
+    }
+    return subscriptions;
+  }
+
+  private formatRejectedSymbols(
+    subscriptions: PolyBoltSubscription[],
+  ): string | undefined {
+    const symbols = Array.from(
+      new Set(subscriptions.map((subscription) => subscription.wireSymbol)),
+    );
+    return symbols.length > 0 ? symbols.join(',') : undefined;
+  }
+
+  private formatRejectedChannels(
+    subscriptions: PolyBoltSubscription[],
+  ): string | undefined {
+    const channels = Array.from(
+      new Set(subscriptions.map((subscription) => subscription.channel)),
+    );
+    return channels.length > 0 ? channels.join(',') : undefined;
+  }
+
+  private warnBadFilterOnce(
+    message: Record<string, unknown>,
+    channel: string | undefined,
+    symbol: string | undefined,
+    resolvedSubscriptions: PolyBoltSubscription[],
+  ): void {
+    const rid = typeof message.rid === 'string' ? message.rid : undefined;
+    if (rid !== undefined && this.handledBadFilterRids.has(rid)) {
+      return;
+    }
+    if (rid !== undefined) {
+      this.handledBadFilterRids.add(rid);
+    }
+
+    const dedupKeys =
+      resolvedSubscriptions.length > 0
+        ? resolvedSubscriptions.map(
+            (subscription) =>
+              `${subscription.channel}|${subscription.wireSymbol}`,
+          )
+        : [`untracked|${channel ?? ''}`];
+    if (dedupKeys.every((key) => this.warnedBadFilters.has(key))) {
+      return;
+    }
+    dedupKeys.forEach((key) => {
+      this.warnedBadFilters.add(key);
+    });
+
+    warnToSentry('PolyBoltCryptoFeed: filter rejected', {
+      code: message.code,
+      message: message.message,
+      channel,
+      rid: message.rid,
+      ...(symbol !== undefined && { symbol }),
+    });
+  }
+
+  private retryTwapWithoutProvider(
+    subscriptions: PolyBoltSubscription[],
+  ): void {
+    const activeIds = new Set(this.subscriptions.map(subscriptionId));
+    const retries = subscriptions.filter((subscription) => {
+      if (subscription.channel !== 'price.crypto.twap') {
+        return false;
+      }
+      const id = subscriptionId(subscription);
+      return activeIds.has(id) && !this.retriedTwapWithoutProvider.has(id);
+    });
+    if (retries.length === 0) {
+      return;
+    }
+
+    retries.forEach((subscription) => {
+      this.retriedTwapWithoutProvider.add(subscriptionId(subscription));
+    });
+    // Fallback for the pre-enforcement window: after 2026-11-30 a filter
+    // without a provider is itself refused with 4011, and that refusal is
+    // handled elsewhere and reported.
+    this.sendSubscriptionFrame('subscribe', retries, false);
   }
 
   /**
@@ -788,6 +983,7 @@ export class PolyBoltCryptoFeed {
    */
   private handleChainlinkKeyRequired(message: Record<string, unknown>): void {
     this.takePendingPin(message.rid);
+    this.takePendingFrame(message.rid);
     this.chainlinkUnavailable = true;
     this.reportErrorOnce(message, {
       hasChainlinkApiKey: Boolean(this.credentials?.chainlinkApiKey),
