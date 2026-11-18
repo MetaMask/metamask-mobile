@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import { formatPerpsUsdCents } from '../utils/formatUtils';
+import { formatPerpsUsdCents, formatPositionSize } from '../utils/formatUtils';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
+  PERPS_DISPLAY_PRECISION,
   WITHDRAWAL_CONSTANTS,
 } from '@metamask/perps-controller';
 import {
@@ -61,11 +62,13 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     return routes.find((route) => route.assetId === usdcAssetId);
   }, []);
 
+  // Numeric network fee, for arithmetic; never re-parse the localized display.
+  const networkFeeAmount: number =
+    withdrawalRoute?.constraints?.fees?.fixed ??
+    WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
+
   const formattedQuoteData = useMemo<FormattedQuoteData>(() => {
-    // Get fees from route constraints or use defaults
-    const networkFee =
-      withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
+    const networkFee = networkFeeAmount;
     const metamaskFee = METAMASK_WITHDRAWAL_FEE; // $0 currently
     const totalFees = networkFee + metamaskFee;
 
@@ -101,9 +104,11 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER, // "$0.00"
       totalFees: totalFeesDisplay,
       estimatedTime,
-      receivingAmount: `${receivingAmount.toFixed(2)} USDC`,
+      receivingAmount: `${formatPositionSize(receivingAmount, {
+        decimals: PERPS_DISPLAY_PRECISION.Fee,
+      })} USDC`,
     };
-  }, [parsedAmount, isValid, withdrawalRoute]);
+  }, [parsedAmount, isValid, withdrawalRoute, networkFeeAmount]);
 
   // Simple validation
   const hasValidQuote = useMemo(() => {
@@ -138,6 +143,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
   return {
     formattedQuoteData,
+    networkFeeAmount,
     hasValidQuote,
     error,
     // These are not needed for withdrawals but kept for consistency with deposit hook

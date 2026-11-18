@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { usePerpsLimitPriceInput } from './usePerpsLimitPriceInput';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsLivePrices, usePerpsTopOfBook } from './stream';
@@ -205,6 +205,29 @@ describe('usePerpsLimitPriceInput', () => {
 
       expect(setLimitPrice).not.toHaveBeenCalled();
     });
+  });
+
+  describe('draft display', () => {
+    afterEach(() => {
+      I18n.locale = 'en-US';
+    });
+
+    it.each([
+      ['1234.', '1.234,\u00a0$'],
+      ['1234.50', '1.234,50\u00a0$'],
+    ])(
+      'shows the German draft %s with the separator before the currency',
+      (limitPrice, expected) => {
+        // Arrange
+        I18n.locale = 'de';
+
+        // Act
+        const { result } = renderLimitPriceInput({ limitPrice });
+
+        // Assert
+        expect(result.current.formattedLimitPrice).toBe(expected);
+      },
+    );
   });
 
   describe('validation', () => {

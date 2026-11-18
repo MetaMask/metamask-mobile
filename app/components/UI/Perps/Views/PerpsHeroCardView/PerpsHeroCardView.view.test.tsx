@@ -83,8 +83,8 @@ describe('PerpsHeroCardView', () => {
       getPerpsHeroCardViewSelector.pnlText(0),
     );
     expect(pnlEl).toBeOnTheScreen();
-    // ROE is 20% → displayed as +20.00%
-    expect(pnlEl).toHaveTextContent('+20.00%');
+    // ROE is 20% → displayed as +20.0% (RoE precision)
+    expect(pnlEl).toHaveTextContent('+20.0%');
   });
 
   it('shows negative PnL display for a losing short position', async () => {
@@ -94,8 +94,8 @@ describe('PerpsHeroCardView', () => {
       getPerpsHeroCardViewSelector.pnlText(0),
     );
     expect(pnlEl).toBeOnTheScreen();
-    // ROE is -10% → displayed as -10.00%
-    expect(pnlEl).toHaveTextContent('-10.00%');
+    // ROE is -10% → displayed as -10.0% (RoE precision)
+    expect(pnlEl).toHaveTextContent('-10.0%');
   });
 
   it('shows the dot indicator for switching between card templates', async () => {

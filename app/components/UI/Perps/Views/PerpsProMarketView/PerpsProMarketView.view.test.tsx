@@ -4628,7 +4628,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
             formatPerpsInput('2'),
           );
           expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
-            `${strings('perps.order.type.chase.title')}$2500`,
+            `${strings('perps.order.type.chase.title')}$2,500`,
           );
         });
       } finally {
@@ -5859,6 +5859,111 @@ describe('Pro fee display format', () => {
     );
     expect(calculateFees()).not.toHaveBeenCalledWith(
       expect.objectContaining({ orderType: 'limit' }),
+    );
+  });
+});
+
+describe('Pro order form available to trade', () => {
+  const availableLabel = (amount: string) =>
+    strings('perps.pro_order_form.available_to_trade', { amount });
+  const unknownLabel = strings(
+    'perps.pro_order_form.available_to_trade_unknown',
+  );
+  const ethAvailable = (long: string, short: string) => ({
+    providerId: 'hyperliquid' as const,
+    symbol: 'ETH',
+    long,
+    short,
+  });
+
+  it('shows the placeholder until the venue reports the market value', async () => {
+    renderPerpsProMarketView();
+
+    const label = await screen.findByTestId(ids.AVAILABLE_BALANCE);
+
+    expect(label).toHaveTextContent(unknownLabel);
+  });
+
+  it('falls back to the spendable balance for a provider without a venue value', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.getOrderCapabilities)
+      .mockResolvedValue({
+        status: 'unavailable',
+        providerId: 'lighter',
+        reason: 'not_implemented',
+      });
+    renderPerpsProMarketView({
+      initialParams: { market: { symbol: 'ETH', providerId: 'lighter' } },
+      streamOverrides: {
+        account: createFundedAccountForViews('1000'),
+      },
+    });
+
+    const label = await screen.findByTestId(ids.AVAILABLE_BALANCE);
+
+    // A provider without a venue value never reports one, so the account-wide
+    // spendable balance stands in instead of a permanent placeholder.
+    expect(label).toHaveTextContent(availableLabel('$1,000'));
+  });
+
+  it('shows the long value, then the short value for a short order', async () => {
+    const { stream } = renderPerpsProMarketView();
+    await screen.findByTestId(ids.AVAILABLE_BALANCE);
+    act(() => {
+      stream.emitAvailableToTrade(ethAvailable('8.65', '9.65'), 'ETH');
+    });
+    const longLabel = screen.getByTestId(ids.AVAILABLE_BALANCE);
+    expect(longLabel).toHaveTextContent(availableLabel('$8.65'));
+
+    fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+
+    expect(screen.getByTestId(ids.AVAILABLE_BALANCE)).toHaveTextContent(
+      availableLabel('$9.65'),
+    );
+  });
+
+  it('shows a genuine zero as a value, not the placeholder', async () => {
+    const { stream } = renderPerpsProMarketView();
+    await screen.findByTestId(ids.AVAILABLE_BALANCE);
+
+    act(() => {
+      stream.emitAvailableToTrade(ethAvailable('0', '0'), 'ETH');
+    });
+
+    expect(screen.getByTestId(ids.AVAILABLE_BALANCE)).toHaveTextContent(
+      availableLabel('$0'),
+    );
+  });
+
+  it('returns to the placeholder when the value is cleared, until the next one arrives', async () => {
+    const { stream } = renderPerpsProMarketView();
+    await screen.findByTestId(ids.AVAILABLE_BALANCE);
+    act(() => {
+      stream.emitAvailableToTrade(ethAvailable('8.65', '9.65'), 'ETH');
+    });
+
+    act(() => {
+      stream.emitAvailableToTrade(undefined, 'ETH');
+    });
+
+    expect(screen.getByTestId(ids.AVAILABLE_BALANCE)).toHaveTextContent(
+      unknownLabel,
+    );
+  });
+
+  it('ignores a value reported for another market', async () => {
+    const { stream } = renderPerpsProMarketView();
+    await screen.findByTestId(ids.AVAILABLE_BALANCE);
+
+    act(() => {
+      stream.emitAvailableToTrade(
+        { ...ethAvailable('8.65', '9.65'), symbol: 'BTC' },
+        'BTC',
+      );
+    });
+
+    expect(screen.getByTestId(ids.AVAILABLE_BALANCE)).toHaveTextContent(
+      unknownLabel,
     );
   });
 });

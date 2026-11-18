@@ -50,6 +50,15 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
 - **Use cases:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration
 
+### Perps Controller Streams — [`perps-stream.ts`](perps-stream.ts)
+
+- **Shape:** focused Shape D — real controller live-stream contract built on the Shape A I/O mocks
+- **Real:** `PerpsController` routing and `HyperLiquidProvider` stream mapping (e.g. `subscribeToAvailableToTrade` → `activeAssetData`), Mobile `PerpsStreamManager` channels
+- **Mocked:** Shape A SDK/wallet/subscription I/O; the harness owns the Engine binding (controller, selected account), the connection manager state and the store
+- **Factory:** `buildPerpsStreamHarness()` (async, initializes the controller); `resetPerpsStreamHarness()` in `afterEach`
+- **Returns:** `{ controller, subscription, wallet, selectAccount }`
+- **Use when:** a Mobile stream channel must be proven against Core's controller → provider subscription chain, including an account switch
+
 ### Perps Fee Resolution — [`perps.ts`](perps.ts)
 
 - **Shape:** focused Shape D — real controller fee preview built on the Shape A I/O mocks

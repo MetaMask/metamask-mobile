@@ -191,6 +191,7 @@ import {
 import PerpsDirectionButton from '../../components/PerpsDirectionButton';
 import {
   formatLiquidationDistance,
+  formatMaxSlippageNumber,
   formatPercentage,
   formatPercentageNumber,
   formatPerpsFiat,
@@ -3325,11 +3326,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               value={
                 estimatedSlippagePctDisplay === null
                   ? strings('perps.slippage.row_format_pending', {
-                      value: bpsToPercent(maxSlippageBps),
+                      value: formatMaxSlippageNumber(maxSlippageBps),
                     })
                   : strings('perps.slippage.row_format', {
                       est: estimatedSlippagePctDisplay,
-                      value: bpsToPercent(maxSlippageBps),
+                      value: formatMaxSlippageNumber(maxSlippageBps),
                     })
               }
               valueTextProps={{

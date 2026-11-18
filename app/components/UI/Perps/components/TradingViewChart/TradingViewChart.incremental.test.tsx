@@ -15,6 +15,7 @@ import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 import TradingViewChart from './TradingViewChart';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import I18n, { I18nEvents } from '../../../../../../locales/i18n';
 
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
@@ -794,6 +795,183 @@ describe('TradingViewChart — incremental update routing', () => {
     it('clamps the reported count to the configured zoom limits', () => {
       expect(reportCandleCount({ from: 98, to: 99 }, 100)).toBe(10);
       expect(reportCandleCount({ from: 0, to: 399 }, 400)).toBe(250);
+    });
+  });
+  describe('price axis labels', () => {
+    const PRICE_LABELS_TEST_ID = 'price-axis-labels';
+
+    /** Sends a WebView message into the mounted chart. */
+    const sendFromWebView = (
+      getByTestId: (id: string) => { props: Record<string, unknown> },
+      message: object,
+    ) => {
+      const onMessage = getByTestId(`${PRICE_LABELS_TEST_ID}-webview`).props
+        .onMessage as (e: unknown) => void;
+      act(() => {
+        onMessage({ nativeEvent: { data: JSON.stringify(message) } });
+      });
+    };
+
+    /** The labels posted back in the last PRICE_LABELS message. */
+    const postedLabels = (): [number, string][] | undefined => {
+      const messages = mockPostMessage.mock.calls
+        .map((call) => JSON.parse(call[0]))
+        .filter((message) => message.type === 'PRICE_LABELS');
+      return messages[messages.length - 1]?.labels;
+    };
+
+    /** Runs the template's price label code against a window stub. */
+    const loadTemplatePriceLabels = () => {
+      const template = createTradingViewChartTemplate(mockTheme, '', true);
+      const start = template.indexOf('window.MAX_PRICE_LABELS');
+      const end = template.indexOf('// Smart timestamp formatter');
+      expect(start).toBeGreaterThan(-1);
+      expect(end).toBeGreaterThan(start);
+      const posted: { type: string; prices: number[] }[] = [];
+      const applyOptions = jest.fn();
+      const windowStub: {
+        chart: { applyOptions: jest.Mock };
+        ReactNativeWebView: { postMessage: (raw: string) => void };
+        chartPriceFormatter?: (price: number) => string;
+        applyPriceLabels?: (labels: unknown) => void;
+        resetPriceLabels?: () => void;
+        currentPriceNumeric?: number;
+        currentPriceLabel?: string;
+      } = {
+        chart: { applyOptions },
+        ReactNativeWebView: {
+          postMessage: (raw: string) => posted.push(JSON.parse(raw)),
+        },
+      };
+      // eslint-disable-next-line no-new-func
+      new Function('window', template.slice(start, end))(windowStub);
+      return { windowStub, posted, applyOptions };
+    };
+
+    afterEach(() => {
+      I18n.locale = 'en-US';
+    });
+
+    it('formats requested axis prices with the shared price ranges and no currency symbol', () => {
+      const { getByTestId } = render(
+        <TradingViewChart symbol="BTC" testID={PRICE_LABELS_TEST_ID} />,
+      );
+
+      sendFromWebView(getByTestId, {
+        type: 'FORMAT_PRICE_LABELS',
+        prices: [74123.4, 1234.56, 0.012345],
+      });
+
+      expect(postedLabels()).toStrictEqual([
+        [74123.4, '74,123'],
+        [1234.56, '1,234.6'],
+        [0.012345, '0.012345'],
+      ]);
+    });
+
+    it('formats axis prices in the app language', () => {
+      I18n.locale = 'de';
+      const { getByTestId } = render(
+        <TradingViewChart symbol="BTC" testID={PRICE_LABELS_TEST_ID} />,
+      );
+
+      sendFromWebView(getByTestId, {
+        type: 'FORMAT_PRICE_LABELS',
+        prices: [74123.4, 1234.56],
+      });
+
+      expect(postedLabels()).toStrictEqual([
+        [74123.4, '74.123'],
+        [1234.56, '1.234,6'],
+      ]);
+    });
+
+    it('ignores prices that are not finite numbers', () => {
+      const { getByTestId } = render(
+        <TradingViewChart symbol="BTC" testID={PRICE_LABELS_TEST_ID} />,
+      );
+
+      sendFromWebView(getByTestId, {
+        type: 'FORMAT_PRICE_LABELS',
+        prices: ['74123', null],
+      });
+
+      expect(postedLabels()).toBeUndefined();
+    });
+
+    it('asks the app for an unknown label once and draws it when it arrives', () => {
+      const { windowStub, posted, applyOptions } = loadTemplatePriceLabels();
+      const format = windowStub.chartPriceFormatter as (p: number) => string;
+
+      const first = format(74000);
+      format(74000);
+      format(73000);
+      jest.runOnlyPendingTimers();
+      windowStub.applyPriceLabels?.([
+        [74000, '74.000'],
+        [73000, '73.000'],
+      ]);
+
+      expect(first).toBe('');
+      expect(posted).toStrictEqual([
+        { type: 'FORMAT_PRICE_LABELS', prices: [74000, 73000] },
+      ]);
+      expect(format(74000)).toBe('74.000');
+      expect(applyOptions).toHaveBeenCalledWith({
+        localization: { priceFormatter: windowStub.chartPriceFormatter },
+      });
+    });
+
+    it('asks for every label again after a language change', () => {
+      const { windowStub, posted } = loadTemplatePriceLabels();
+      const format = windowStub.chartPriceFormatter as (p: number) => string;
+      format(74000);
+      jest.runOnlyPendingTimers();
+      windowStub.applyPriceLabels?.([[74000, '74,000']]);
+
+      windowStub.resetPriceLabels?.();
+      const afterReset = format(74000);
+      jest.runOnlyPendingTimers();
+
+      expect(afterReset).toBe('');
+      expect(posted).toStrictEqual([
+        { type: 'FORMAT_PRICE_LABELS', prices: [74000] },
+        { type: 'FORMAT_PRICE_LABELS', prices: [74000] },
+      ]);
+    });
+
+    it('tells the chart to drop its labels when the app language changes', () => {
+      const { getByTestId } = render(
+        <TradingViewChart symbol="BTC" testID={PRICE_LABELS_TEST_ID} />,
+      );
+      triggerChartReady(getByTestId, PRICE_LABELS_TEST_ID);
+      mockPostMessage.mockClear();
+
+      act(() => {
+        I18n.locale = 'de';
+        I18nEvents.emit('localeChanged', 'de');
+      });
+
+      expect(allMessageTypes()).toContain('RESET_PRICE_LABELS');
+    });
+
+    it('labels the current price line with the label sent alongside it', () => {
+      const { windowStub, posted } = loadTemplatePriceLabels();
+      windowStub.currentPriceNumeric = 74123.4;
+      windowStub.currentPriceLabel = '74.123';
+
+      const label = windowStub.chartPriceFormatter?.(74123.4);
+      jest.runOnlyPendingTimers();
+
+      expect(label).toBe('74.123');
+      expect(posted).toStrictEqual([]);
+    });
+
+    it('formats no price in the WebView itself', () => {
+      const template = createTradingViewChartTemplate(mockTheme, '', true);
+
+      expect(template).not.toContain('Intl.NumberFormat');
+      expect(template).not.toContain('formatPriceUniversal');
     });
   });
 });

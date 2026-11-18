@@ -9,9 +9,8 @@ import {
 } from '@metamask/perps-controller';
 import {
   formatFundingRate,
-  formatLargeNumber,
   formatPerpsFiat,
-  LARGE_NUMBER_RANGES_DETAILED,
+  formatVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
 import { usePerpsMarketContext } from './usePerpsMarketContext';
@@ -228,18 +227,8 @@ export const usePerpsMarketStats = (
         low > 0
           ? formatPerpsFiat(low, { ranges: PRICE_RANGES_UNIVERSAL })
           : displayFallbackPrice,
-      volume24h:
-        currentMarketData.volume24h !== undefined
-          ? `$${formatLargeNumber(currentMarketData.volume24h, {
-              ranges: LARGE_NUMBER_RANGES_DETAILED,
-            })}`
-          : PERPS_CONSTANTS.FallbackPriceDisplay,
-      openInterest:
-        currentMarketData.openInterest !== undefined
-          ? `$${formatLargeNumber(currentMarketData.openInterest, {
-              ranges: LARGE_NUMBER_RANGES_DETAILED,
-            })}`
-          : PERPS_CONSTANTS.FallbackPriceDisplay,
+      volume24h: formatVolume(currentMarketData.volume24h),
+      openInterest: formatVolume(currentMarketData.openInterest),
       fundingRate: formatFundingRate(currentMarketData.funding),
       currentPrice: fallbackPrice,
       isLoading: !currentCandleData,
