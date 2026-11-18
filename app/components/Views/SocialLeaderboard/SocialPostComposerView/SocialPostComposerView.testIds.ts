@@ -4,6 +4,7 @@ export const SocialPostComposerViewSelectorsIDs = {
   CLOSE_BUTTON: 'social-post-composer-close',
   CHARACTER_COUNT: 'social-post-composer-character-count',
   POST_BUTTON: 'social-post-composer-post',
+  POST_BUTTON_BLOCKED: 'social-post-composer-post-blocked',
   INPUT: 'social-post-composer-input',
   SCROLL: 'social-post-composer-scroll',
   DISMISS_KEYBOARD_SURFACE: 'social-post-composer-dismiss-keyboard-surface',

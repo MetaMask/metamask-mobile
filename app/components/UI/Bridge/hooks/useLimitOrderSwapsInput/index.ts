@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -9,7 +9,6 @@ import {
   selectDestToken,
   selectSourceAmount,
   selectSourceToken,
-  setDestToken,
   setSourceAmount,
   setSourceAmountAsMax,
 } from '../../../../../core/redux/slices/bridge';
@@ -23,12 +22,8 @@ import { useSourceAmountInput } from '../useSourceAmountInput';
 import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import { useSwitchTokens } from '../useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
-import {
-  getDefaultDestToken,
-  getNativeSourceToken,
-} from '../../utils/tokenUtils';
-import { areAddressesEqual } from '../../../../../util/address';
 import { useBridgeSession } from '../useBridgeSession';
+import { useEnsureSameChainDestToken } from '../useEnsureSameChainDestToken';
 
 export const useLimitOrderSwapInputs = () => {
   const dispatch = useDispatch();
@@ -47,27 +42,7 @@ export const useLimitOrderSwapInputs = () => {
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
   );
 
-  useEffect(() => {
-    if (!sourceToken?.chainId || !destToken?.chainId) {
-      return;
-    }
-    const sourceChainCaip = formatChainIdToCaip(sourceToken.chainId);
-    const destChainCaip = formatChainIdToCaip(destToken.chainId);
-    if (sourceChainCaip === destChainCaip) {
-      return;
-    }
-    // Limit orders don't support cross-chain trades, so a stale
-    // cross-chain dest must always be corrected, even if the user
-    // manually picked it earlier on the previous source chain.
-    const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
-    const nativeToken = getNativeSourceToken(sourceToken.chainId);
-    const nextDestToken =
-      defaultDestToken &&
-      !areAddressesEqual(sourceToken.address, defaultDestToken.address)
-        ? defaultDestToken
-        : nativeToken;
-    dispatch(setDestToken(nextDestToken));
-  }, [sourceToken, destToken, dispatch]);
+  useEnsureSameChainDestToken({ sourceToken, destToken });
 
   const { latestSourceBalance } = useBridgeSession();
 

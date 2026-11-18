@@ -291,6 +291,24 @@ describe('useSocialFeedInteractions', () => {
     );
   });
 
+  it('adds the post id and author trader id to a reaction', () => {
+    const { result } = renderHook(() =>
+      useSocialFeedInteractions(Screen.TRENDING),
+    );
+    result.current.onReactionInteraction('added', '❤️', {
+      post_id: 'comment-1',
+      author_trader_id: 'trader-1',
+    });
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      expect.objectContaining({
+        reaction_type: 'heart',
+        post_id: 'comment-1',
+        author_trader_id: 'trader-1',
+      }),
+    );
+  });
+
   it('tracks a blocked copy trade with its reason', () => {
     const { result } = renderHook(() =>
       useSocialFeedInteractions(Screen.FOLLOWING),

@@ -1,26 +1,16 @@
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import { renderHook } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  selectMoneyMovementNeobank,
-  selectNeobankMarkets,
-} from '../../../../../../selectors/featureFlagController/moneyAccount';
 import type { VbaMarket } from '../../../../../../util/region/getVbaSourceCurrency';
 import { getVbaArrivalTimeframe, useVbaArrivalTime } from './useVbaArrivalTime';
 import { useVbaEligibility } from './useVbaEligibility';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
 import { useRampsPaymentMethodsForContext } from '../../../hooks/useRampsPaymentMethods';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
 jest.mock('./useVbaEligibility');
 jest.mock('../../../../Money/hooks/useMoneyAccountDepositAssetId');
 jest.mock('../../../hooks/useRampsPaymentMethods');
 
-const mockUseSelector = jest.mocked(useSelector);
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
 const mockUseMoneyAccountDepositAssetId = jest.mocked(
   useMoneyAccountDepositAssetId,
@@ -132,6 +122,9 @@ describe('useVbaArrivalTime', () => {
   const PIX_TITLE = strings(
     'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
   );
+  const EUR_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_eur',
+  );
   const CATALOG_TITLE = strings(
     'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
     { timeframe: '2 - 3 business days' },
@@ -142,11 +135,11 @@ describe('useVbaArrivalTime', () => {
   const markets: VbaMarket[] = [
     { currency: 'BRL', regions: ['BR'] },
     { currency: 'USD', regions: ['US'] },
+    { currency: 'EUR', regions: ['DE'] },
   ];
 
   const setup = ({
     eligibility,
-    chooseCurrency = false,
     paymentMethods = [
       buildMethod({ isManualBankTransfer: true, delay: [2880, 4320] }),
     ],
@@ -156,21 +149,20 @@ describe('useVbaArrivalTime', () => {
       location?: string | undefined;
       isRegionEligible?: boolean;
     };
-    chooseCurrency?: boolean;
     paymentMethods?: PaymentMethod[];
   } = {}) => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMoneyMovementNeobank) {
-        return { chooseCurrency, regionOverride: undefined };
-      }
-      if (selector === selectNeobankMarkets) {
-        return markets;
-      }
-      return undefined;
-    });
+    // Mirror useVbaEligibility: the market follows the effective location.
+    const resolvedLocation =
+      eligibility && 'location' in eligibility ? eligibility.location : 'US';
+    const market = resolvedLocation
+      ? markets.find((candidate) =>
+          candidate.regions.includes(resolvedLocation.split('-')[0]),
+        )
+      : undefined;
     mockUseVbaEligibility.mockReturnValue({
-      location: 'US',
+      location: resolvedLocation,
       isRegionEligible: true,
+      market,
       ...eligibility,
     } as ReturnType<typeof useVbaEligibility>);
     mockUseMoneyAccountDepositAssetId.mockReturnValue(
@@ -223,16 +215,19 @@ describe('useVbaArrivalTime', () => {
     },
   );
 
-  it('does not return the Pix title before the user picks a currency', () => {
-    setup({ eligibility: { location: 'BR' }, chooseCurrency: true });
+  it.each(['DE', 'DE-BE'])(
+    'returns the EUR title and disables the query for %s',
+    (location) => {
+      setup({ eligibility: { location }, paymentMethods: [] });
 
-    const { result } = renderHook(() => useVbaArrivalTime());
+      const { result } = renderHook(() => useVbaArrivalTime());
 
-    expect(result.current.arrivalTitle).toBe(CATALOG_TITLE);
-    expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
-      expect.objectContaining({ regionCode: 'br' }),
-    );
-  });
+      expect(result.current.arrivalTitle).toBe(EUR_TITLE);
+      expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
+        expect.objectContaining({ regionCode: '' }),
+      );
+    },
+  );
 
   it('disables the query when the IP geolocation is not an allowed VBA region', () => {
     setup({ eligibility: { location: 'PT', isRegionEligible: false } });

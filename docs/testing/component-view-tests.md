@@ -479,6 +479,27 @@ Alternatively, set these fields manually in `engine.backgroundState.BridgeContro
 
 Also ensure remote feature flags enable Bridge for the target chain(s) via `RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2`.
 
+#### Perps: two-exchange presets
+
+`perpsTwoExchangeState(scenario)` (`tests/component-view/presets/perpsTwoExchangePresets.ts`) returns `{ overrides, streamOverrides }` for a user with Hyperliquid and Lighter both enabled. Spread it into a perps renderer and call `withLighterBuildEnabled()` in the describe block.
+
+```typescript
+describe('my two-exchange view', () => {
+  withLighterBuildEnabled();
+
+  it('renders with both exchanges funded', () => {
+    renderPerpsHomeView(perpsTwoExchangeState('bothFunded'));
+  });
+});
+```
+
+- `bothFunded`: Hyperliquid 100, Lighter 50.
+- `oneFunded`: Hyperliquid 100, Lighter 0.
+- `sameMarketOnBoth`: both funded, ETH listed on both exchanges, ETH position on Lighter.
+- `lighterDown`: Hyperliquid 100, no Lighter balance or markets.
+
+The scenarios are synthetic two-exchange fixtures, not snapshots of what the installed `perps-controller` emits. They use fields it supports (per-exchange `perpsBalances` plus a combined account) and have no per-exchange availability metadata yet. When the package ships it (core#11461, TAT-4392), `yarn lint:tsc` fails on a marked line in the preset file so the scenarios get updated.
+
 #### When no renderer exists for the view yet
 
 Create one. Pattern (copy from `tests/component-view/renderers/bridge.ts`):

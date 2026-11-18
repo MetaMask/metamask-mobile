@@ -23,6 +23,17 @@ jest.mock('../../../../../core/DeeplinkManager', () => ({
   handleDeeplink: (...args: unknown[]) => mockHandleDeeplink(...args),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialTab: jest.fn(),
+  }),
+);
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
