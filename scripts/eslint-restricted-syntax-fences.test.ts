@@ -12,12 +12,12 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
-import { Linter } from 'eslint';
+import { Linter, Rule } from 'eslint';
 
 const require = createRequire(__filename);
 const componentViewPlugin = require('./eslint/component-view-plugin') as {
   meta: { name: string; version: string };
-  rules: Record<string, Linter.RuleModule>;
+  rules: Record<string, Rule.RuleModule>;
 };
 
 const RULE = 'no-restricted-syntax';
