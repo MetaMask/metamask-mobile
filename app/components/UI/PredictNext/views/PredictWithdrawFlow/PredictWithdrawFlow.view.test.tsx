@@ -802,6 +802,59 @@ describe('PredictWithdrawFlow', () => {
     expect(previewBodies()).toEqual([{ amount: '5.00' }]);
   });
 
+  it('starts one recovery read while a check is in flight', async () => {
+    let releaseRecovery: (value: FetchReply) => void = () => undefined;
+    const hangingRead = new Promise<FetchReply>((resolve) => {
+      releaseRecovery = resolve;
+    });
+    const observe = jest
+      .fn<FetchReply | Promise<FetchReply>, []>()
+      .mockImplementationOnce(() => {
+        throw new TypeError('Still offline');
+      })
+      .mockReturnValueOnce(hangingRead);
+    stubWithdrawals({
+      commit: () => {
+        throw new TypeError('Connection lost');
+      },
+      observe,
+    });
+
+    renderWithdrawFlow();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    fireEvent.press(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    );
+    await screen.findByText(strings('predict_next.withdraw.outcome_unknown'));
+
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.RETRY));
+    await waitFor(() => expect(observe).toHaveBeenCalledTimes(2));
+
+    // The retry is disabled and re-pressing it cannot start a second read,
+    // so a not-found cannot race a receipt into the input phase.
+    expect(screen.getByTestId(PredictWithdrawFlowTestIds.RETRY)).toBeDisabled();
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.RETRY));
+    expect(observe).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      releaseRecovery({
+        body: receiptOf({
+          status: 'settled',
+          withdrawnAmount: '5.00',
+          resolvedAt: new Date().toISOString(),
+        }),
+      });
+    });
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.DONE),
+    ).toBeEnabled();
+    expect(observe).toHaveBeenCalledTimes(2);
+    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+  });
+
   it('announces a settled status reached after polling', async () => {
     const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
     stubWithdrawals({

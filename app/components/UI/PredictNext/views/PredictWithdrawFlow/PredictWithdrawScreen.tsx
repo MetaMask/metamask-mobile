@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useReducer, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import {
   type RouteProp,
   useNavigation,
@@ -268,6 +274,8 @@ export const PredictWithdrawScreen = () => {
     withdrawFlowReducer,
     initialWithdrawFlowState,
   );
+  const [isRecovering, setIsRecovering] = useState(false);
+  const recoveryInFlight = useRef(false);
   const phaseHeadingRef = useRef<View>(null);
   useEffect(() => {
     const heading = findNodeHandle(phaseHeadingRef.current);
@@ -382,13 +390,26 @@ export const PredictWithdrawScreen = () => {
   );
 
   const checkWithdrawal = useCallback(async () => {
-    if (state.phase !== 'status' || isOffline) {
+    if (state.phase !== 'status' || isOffline || recoveryInFlight.current) {
       return;
     }
-    if (state.receipt) {
-      retryObservation();
-    } else if (state.error) {
-      await recoverCommitOutcome(state.preview.previewId, state.error);
+    if (!state.receipt && !state.error) {
+      return;
+    }
+    // One read decides between "nothing was relayed" and "it exists". A second
+    // read racing the first could requote on a not-found while the other
+    // returns a receipt the input phase then ignores.
+    recoveryInFlight.current = true;
+    setIsRecovering(true);
+    try {
+      if (state.receipt) {
+        retryObservation();
+      } else if (state.error) {
+        await recoverCommitOutcome(state.preview.previewId, state.error);
+      }
+    } finally {
+      recoveryInFlight.current = false;
+      setIsRecovering(false);
     }
   }, [isOffline, recoverCommitOutcome, retryObservation, state]);
 
@@ -610,7 +631,7 @@ export const PredictWithdrawScreen = () => {
             size={ButtonSize.Lg}
             isFullWidth
             onPress={checkWithdrawal}
-            isDisabled={isOffline}
+            isDisabled={isOffline || isRecovering}
             testID={PredictWithdrawFlowTestIds.CHECK_WITHDRAWAL}
           >
             {strings('predict_next.withdraw.retry')}
@@ -625,7 +646,9 @@ export const PredictWithdrawScreen = () => {
           size={ButtonSize.Lg}
           isFullWidth
           onPress={state.receipt ? close : checkWithdrawal}
-          isDisabled={!state.receipt && (!state.error || isOffline)}
+          isDisabled={
+            !state.receipt && (!state.error || isOffline || isRecovering)
+          }
           testID={
             state.receipt
               ? PredictWithdrawFlowTestIds.DONE
