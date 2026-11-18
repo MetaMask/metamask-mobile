@@ -17,10 +17,6 @@ import {
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
-  AMBIENT_PRICE_COLOR_AB_KEY,
-  AMBIENT_PRICE_COLOR_VARIANTS,
-} from '../../../components/UI/TokenDetails/components/abTestConfig';
-import {
   CHAIN_VALUE_ORDER_AB_KEY,
   CHAIN_VALUE_ORDER_VARIANTS,
 } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
@@ -66,10 +62,6 @@ export default function useSubmitBridgeTx() {
   const unifiedSwapBridgeContext = useUnifiedSwapBridgeContext();
   const abTestContext = useSelector(selectAbTestContext);
   const {
-    variantName: ambientColorVariantName,
-    isActive: isAmbientColorAbActive,
-  } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
-  const {
     variantName: chainValueOrderVariantName,
     isActive: isChainValueOrderAbActive,
   } = useABTest(CHAIN_VALUE_ORDER_AB_KEY, CHAIN_VALUE_ORDER_VARIANTS);
@@ -83,15 +75,6 @@ export default function useSubmitBridgeTx() {
   const activeAbTests = useMemo(() => {
     const tests: TransactionActiveAbTestEntry[] = [];
 
-    if (isAmbientColorAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          AMBIENT_PRICE_COLOR_AB_KEY,
-          ambientColorVariantName,
-        ),
-      );
-    }
-
     if (isChainValueOrderAbActive) {
       tests.push(
         createActiveABTestAssignment(
@@ -102,12 +85,7 @@ export default function useSubmitBridgeTx() {
     }
 
     return tests.length > 0 ? tests : undefined;
-  }, [
-    isAmbientColorAbActive,
-    ambientColorVariantName,
-    isChainValueOrderAbActive,
-    chainValueOrderVariantName,
-  ]);
+  }, [isChainValueOrderAbActive, chainValueOrderVariantName]);
 
   const submitBridgeTx = async ({
     quoteResponse,

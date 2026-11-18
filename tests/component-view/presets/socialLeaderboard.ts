@@ -6,6 +6,7 @@
  * every trader row starts with a "Follow" button.
  */
 
+import type { Profile } from '@metamask/profile-controller';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { createStateFixture } from '../stateFixture';
@@ -60,6 +61,21 @@ function makeVersionFlag(enabled: boolean) {
  */
 const CV_SOCIAL_LINKED_ADDRESS = '0x00000000000000000000000000000000000000aa';
 
+/** Complete controller profile shared by the preset and owner-profile tests. */
+export const CV_SOCIAL_PROFILE: Profile = {
+  profileId: 'cv-social-profile',
+  username: 'cv_trader',
+  displayName: 'cv_trader',
+  bio: '',
+  linkedAddresses: [`eip155:1:${CV_SOCIAL_LINKED_ADDRESS}`],
+  avatarUrl: '',
+  tradingPrivacy: 'public',
+  connectedToX: false,
+  verified: false,
+  createdAt: '',
+  updatedAt: '',
+};
+
 /**
  * Returns a `StateFixtureBuilder` configured for Social Leaderboard CV tests.
  * Call `.build()` to produce the state object, or chain `.withOverrides(...)`.
@@ -95,6 +111,9 @@ export function initialStateSocialLeaderboard(
         backgroundState: {
           // isUnlocked: true so useTopTraders query is enabled.
           KeyringController: { isUnlocked: true, keyrings: [] },
+          // A resolved non-UK IP so Copy trade stays visible. UK and an
+          // unfinished lookup hide it.
+          GeolocationController: { location: 'US', status: 'complete' },
           NotificationServicesController: {
             isNotificationServicesEnabled: notificationsEnabled,
             isFeatureAnnouncementsEnabled: true,
@@ -116,20 +135,7 @@ export function initialStateSocialLeaderboard(
           ...(linkedSocialProfile
             ? {
                 ProfileController: {
-                  profile: {
-                    profileId: 'cv-social-profile',
-                    username: 'cv_trader',
-                    displayName: 'cv_trader',
-                    bio: '',
-                    linkedAddresses: [
-                      `eip155:1:${CV_SOCIAL_LINKED_ADDRESS}` as const,
-                    ],
-                    avatarUrl: '',
-                    tradingPrivacy: 'public' as const,
-                    connectedToX: false,
-                    createdAt: '',
-                    updatedAt: '',
-                  },
+                  profile: CV_SOCIAL_PROFILE,
                 },
               }
             : {}),

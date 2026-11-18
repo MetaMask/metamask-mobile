@@ -199,7 +199,7 @@ describe('getVbaDestinationForSnapshot', () => {
         "sumsub submitted": "kycPending",
         "sumsub submitted and account ready": "complete",
         "sumsub submitted before review": "kycPending",
-        "sumsub submitted but kyc retry": "identityVerification",
+        "sumsub submitted but kyc retry": "kycRejected",
         "usable account after reinstall wiped local onboarding": "complete",
         "vendor terms done": "email",
       }

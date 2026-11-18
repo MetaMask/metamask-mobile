@@ -2,9 +2,12 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
-  Label,
   Text,
+  TextColor,
   TextVariant,
   Icon,
   IconName,
@@ -20,6 +23,7 @@ import {
   type AccountAvatarVariant,
 } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { CardAuthenticationSelectors } from '../CardAuthentication.testIds';
+import CardFormField from '../../../components/Onboarding/CardFormField';
 import { MoneyAccountIdentity } from '../../../components/MoneyAccountRow/MoneyAccountRow';
 
 interface SignInWalletFieldsProps {
@@ -54,21 +58,30 @@ const SignInWalletFields = ({
       {origin === 'manual' && onBack && (
         <TouchableOpacity
           onPress={onBack}
+          accessibilityRole="button"
           style={tw.style('flex-row items-center gap-2 self-start')}
         >
           <Icon name={IconName.ArrowLeft} size={IconSize.Sm} />
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-alternative"
+            color={TextColor.TextAlternative}
           >
             {strings('card.card_authentication.fork_wallet_back')}
           </Text>
         </TouchableOpacity>
       )}
 
-      <Box>
-        <Label>{strings('card.card_authentication.account_label')}</Label>
+      <CardFormField
+        label={strings('card.card_authentication.account_label')}
+        helpText={
+          origin === 'manual'
+            ? strings('card.card_authentication.account_helper_pick')
+            : undefined
+        }
+        errorText={walletError}
+        errorTestID={CardAuthenticationSelectors.UK_LOGIN_ERROR_TEXT}
+      >
         {lockToMoneyAccount ? (
           <Box
             twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
@@ -80,6 +93,7 @@ const SignInWalletFields = ({
           <SelectField
             value={displayAccountLabel}
             onPress={onSelectAccount}
+            isError={Boolean(walletError)}
             testID={CardAuthenticationSelectors.ACCOUNT_SELECT}
             startAccessory={
               displayAccountAddress ? (
@@ -92,38 +106,18 @@ const SignInWalletFields = ({
             }
           />
         )}
-        {origin === 'manual' ? (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-text-alternative mt-1"
-          >
-            {strings('card.card_authentication.account_helper_pick')}
-          </Text>
-        ) : null}
-        {walletError ? (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default mt-1"
-            testID={CardAuthenticationSelectors.UK_LOGIN_ERROR_TEXT}
-          >
-            {walletError}
-          </Text>
-        ) : null}
-      </Box>
+      </CardFormField>
 
       {showSoftLink && (
-        <TouchableOpacity
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ButtonSize.Md}
           onPress={onUseCurrentCard}
           testID={CardAuthenticationSelectors.RESUME_SOFT_LINK}
+          twClassName="self-start"
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-primary-default py-2"
-          >
-            {strings('card.card_authentication.resume_use_current_card')}
-          </Text>
-        </TouchableOpacity>
+          {strings('card.card_authentication.resume_use_current_card')}
+        </Button>
       )}
     </Box>
   );

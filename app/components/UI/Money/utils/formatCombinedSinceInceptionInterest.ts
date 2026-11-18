@@ -51,8 +51,8 @@ const readInterestUsd = (
  * Sums finite USD amounts, then formats once. A missing or non-finite amount
  * that did not fail counts as zero, including a disabled base-vault query. If
  * either side failed and has no finite amount, the total is unknown. A failed
- * query that still has a finite amount uses that amount. Positive totals get
- * a leading plus, matching other Money interest amounts.
+ * query that still has a finite amount uses that amount. The total is the
+ * dollar amount, with no leading plus.
  *
  * @param params - The two since-inception amounts.
  * @param params.premium - Premium-vault since-inception interest.
@@ -72,10 +72,5 @@ export const formatCombinedSinceInceptionInterest = ({
     return FAILED_INTEREST_PLACEHOLDER;
   }
 
-  const total = premiumAmount.plus(baseAmount);
-  const formattedZero = moneyFormatUsd(new BigNumber(0));
-  const formatted = moneyFormatUsd(total);
-  return total.isGreaterThan(0) && formatted !== formattedZero
-    ? `+${formatted}`
-    : formatted;
+  return moneyFormatUsd(premiumAmount.plus(baseAmount));
 };

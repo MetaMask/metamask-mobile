@@ -3,7 +3,11 @@ import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
 import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
 import Engine from '../../../app/core/Engine';
@@ -31,6 +35,7 @@ import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views
 import RewardsMoneyReferralAcceptedSplashView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import type { MoneyReferralEntryType } from '../../../app/components/UI/Rewards/types/navigation';
 import RewardsTaxFormView from '../../../app/components/UI/Rewards/Views/RewardsTaxFormView';
+import SupportConsentSheet from '../../../app/components/UI/SupportConsentSheet';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import type {
   ClaimDto,
@@ -45,6 +50,7 @@ import type {
 import Routes from '../../../app/constants/navigation/Routes';
 import {
   createRouteParamsProbe,
+  getRouteParamsProbeTestId,
   getRouteProbeTestId,
   renderScreenWithRoutes,
 } from '../render';
@@ -299,6 +305,41 @@ function RewardsFlowProbe() {
   );
 }
 
+export const REWARDS_ROOT_MODAL_BACK_TEST_ID = 'rewards-root-modal-back';
+
+function SupportWebviewProbe() {
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  return (
+    <>
+      <Text testID={getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)}>
+        {JSON.stringify(route.params ?? {})}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        testID={REWARDS_ROOT_MODAL_BACK_TEST_ID}
+        onPress={() => navigation.goBack()}
+      />
+    </>
+  );
+}
+
+function RootModalFlowProbe() {
+  return (
+    <FlowStack.Navigator screenOptions={{ headerShown: false }}>
+      <FlowStack.Screen
+        name={Routes.MODAL.SUPPORT_CONSENT_SHEET}
+        component={SupportConsentSheet}
+      />
+      <FlowStack.Screen
+        name={Routes.WEBVIEW.SIMPLE}
+        component={SupportWebviewProbe}
+      />
+    </FlowStack.Navigator>
+  );
+}
+
 function rewardsFlowRoutes() {
   return [
     { name: Routes.REWARDS_FLOW, Component: RewardsFlowProbe },
@@ -331,6 +372,10 @@ function rewardsFlowRoutes() {
     {
       name: Routes.WEBVIEW.MAIN,
       Component: SupportWebviewStack,
+    },
+    {
+      name: Routes.MODAL.ROOT_MODAL_FLOW,
+      Component: RootModalFlowProbe,
     },
   ];
 }
@@ -498,7 +543,13 @@ export function renderRewardsSettingsView(
     ...renderScreenWithRoutes(
       RewardsSettingsView as unknown as React.ComponentType,
       { name: Routes.REWARDS_SETTINGS_VIEW },
-      [{ name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW }],
+      [
+        { name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW },
+        {
+          name: Routes.MODAL.ROOT_MODAL_FLOW,
+          Component: createRouteParamsProbe(Routes.MODAL.ROOT_MODAL_FLOW),
+        },
+      ],
       { state },
     ),
     engine,

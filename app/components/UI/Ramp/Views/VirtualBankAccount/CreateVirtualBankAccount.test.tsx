@@ -18,6 +18,8 @@ import {
 
 const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
+const mockFetchIdosEnclaveJwks = jest.fn();
+const mockFetchIdosRelayJwks = jest.fn();
 const mockEnsureLocalUserSecret = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -29,6 +31,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
+    KycService: {
+      fetchIdosEnclaveJwks: (...args: unknown[]) =>
+        mockFetchIdosEnclaveJwks(...args),
+      fetchIdosRelayJwks: (...args: unknown[]) =>
+        mockFetchIdosRelayJwks(...args),
+    },
     KycController: {
       ensureLocalUserSecret: (...args: unknown[]) =>
         mockEnsureLocalUserSecret(...args),
@@ -83,6 +91,8 @@ describe('CreateVirtualBankAccount', () => {
       retry: mockRetry,
     });
     mockAcceptDisclaimers.mockResolvedValue(true);
+    mockFetchIdosEnclaveJwks.mockResolvedValue(undefined);
+    mockFetchIdosRelayJwks.mockResolvedValue(undefined);
     mockEnsureLocalUserSecret.mockResolvedValue(undefined);
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4.2,
@@ -99,11 +109,11 @@ describe('CreateVirtualBankAccount', () => {
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
-    expect(getByText('Add funds right from your bank')).toBeOnTheScreen();
-    expect(getByText('No fees to add funds')).toBeOnTheScreen();
+    expect(getByText('Add funds from your bank')).toBeOnTheScreen();
+    expect(getByText('No fees from MetaMask')).toBeOnTheScreen();
     expect(getByText('Arrives in a few business days')).toBeOnTheScreen();
     expect(getByText('Set up once, use anytime')).toBeOnTheScreen();
-    expect(getByText('Starts earning straight away')).toBeOnTheScreen();
+    expect(getByText('Starts earning right away')).toBeOnTheScreen();
     expect(getByText('Powered by')).toBeOnTheScreen();
     expect(
       getByTestId(
@@ -111,7 +121,7 @@ describe('CreateVirtualBankAccount', () => {
       ),
     ).toBeOnTheScreen();
     expect(getByText('Get account details')).toBeOnTheScreen();
-    expect(getByText('Deposits earn 4.2% APY as mUSD.')).toBeOnTheScreen();
+    expect(getByText('Funds earn 4.2% APY as mUSD.')).toBeOnTheScreen();
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: VBA_SCREEN_PERFORMANCE_CONFIG,
       screenId: VBA_SCREEN_ID.VENDOR_TERMS,
@@ -129,8 +139,8 @@ describe('CreateVirtualBankAccount', () => {
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
-    expect(getByText('Deposits earn APY as mUSD.')).toBeOnTheScreen();
-    expect(queryByText('Deposits earn 4.2% APY as mUSD.')).toBeNull();
+    expect(getByText('Funds earn APY as mUSD.')).toBeOnTheScreen();
+    expect(queryByText('Funds earn 4.2% APY as mUSD.')).toBeNull();
   });
 
   it('navigates back when the header back button is pressed', () => {
@@ -410,6 +420,93 @@ describe('CreateVirtualBankAccount', () => {
 
     fireEvent.press(getByText('Try again'));
     expect(mockRetry).toHaveBeenCalledTimes(1);
+  });
+
+  describe('idOS JWKS prefetch', () => {
+    it('fetches both idOS JWKS once the disclaimers request has settled', async () => {
+      renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      await waitFor(() => {
+        expect(mockFetchIdosEnclaveJwks).toHaveBeenCalledTimes(1);
+        expect(mockFetchIdosRelayJwks).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('leaves both JWKS fetches uncalled while the disclaimers request is still loading', () => {
+      mockUseKycDisclaimers.mockReturnValue({
+        disclaimers: null,
+        isLoading: true,
+        isAccepting: false,
+        error: null,
+        acceptDisclaimers: mockAcceptDisclaimers,
+        retry: mockRetry,
+      });
+
+      renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      expect(mockFetchIdosEnclaveJwks).not.toHaveBeenCalled();
+      expect(mockFetchIdosRelayJwks).not.toHaveBeenCalled();
+    });
+
+    it('fetches both idOS JWKS when the disclaimers request fails', async () => {
+      mockUseKycDisclaimers.mockReturnValue({
+        disclaimers: null,
+        isLoading: false,
+        isAccepting: false,
+        error: 'Request timed out',
+        acceptDisclaimers: mockAcceptDisclaimers,
+        retry: mockRetry,
+      });
+
+      renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      await waitFor(() => {
+        expect(mockFetchIdosEnclaveJwks).toHaveBeenCalledTimes(1);
+        expect(mockFetchIdosRelayJwks).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('logs a rejected JWKS fetch and keeps the continue button enabled', async () => {
+      const jwksError = new Error('enclave JWKS unavailable');
+      mockFetchIdosEnclaveJwks.mockRejectedValue(jwksError);
+
+      const { getByTestId } = renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      await waitFor(() =>
+        expect(Logger.error).toHaveBeenCalledWith(jwksError, {
+          tags: { feature: 'vba-onboarding' },
+          context: {
+            name: 'CreateVirtualBankAccount',
+            data: { step: 'fetchIdosEnclaveJwks' },
+          },
+        }),
+      );
+      expect(mockFetchIdosRelayJwks).toHaveBeenCalledTimes(1);
+      expect(
+        getByTestId(
+          CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+        ),
+      ).toBeEnabled();
+    });
+
+    it('fetches each JWKS once when the disclaimers hook re-renders after loading settles', () => {
+      const { rerender } = renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      rerender(<CreateVirtualBankAccount onSuccess={mockOnSuccess} />);
+
+      expect(mockFetchIdosEnclaveJwks).toHaveBeenCalledTimes(1);
+      expect(mockFetchIdosRelayJwks).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('ensureLocalUserSecret', () => {

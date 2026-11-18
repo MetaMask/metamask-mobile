@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions, useRoute } from '@react-navigation/native';
-import Complete from './Complete';
+import { IconName } from '@metamask/design-system-react-native';
+import Complete, { COMPLETE_ENTRANCE_START_TIMEOUT_MS } from './Complete';
 import { CompleteSelectors } from './Complete.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -9,6 +10,8 @@ import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { strings } from '../../../../../../locales/i18n';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
+import { useReduceMotionState } from '../../../Money/hooks/useReduceMotion';
+import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
 
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
@@ -33,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockReduxDispatch,
+  useSelector: jest.fn(() => false),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -46,17 +50,75 @@ jest.mock('../../util/cardTokenVault', () => ({
   getCardBaanxToken: jest.fn(),
 }));
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn((className?: string) => ({ className })),
+  }),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotionState: jest.fn(() => false),
+}));
+
+jest.mock('../../../KYC/components/Illustration', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    KycIllustrationSource: {
+      scanner: 'scanner',
+      checkmark: 'checkmark',
+      hazard: 'hazard',
+    },
+    default: () =>
+      ReactActual.createElement(View, { testID: 'vba-illustration' }),
+  };
+});
+
+jest.mock('../../../MarketingMomentTitle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      testID,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(Text, { testID }, children),
+  };
+});
+
 const mockUseRoute = jest.mocked(useRoute);
 const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
+const mockUseReduceMotionState = jest.mocked(useReduceMotionState);
+
+/** Runs the entrance (fallback start plus the cascade) to the end. */
+const finishEntrance = () =>
+  act(() => {
+    jest.advanceTimersByTime(COMPLETE_ENTRANCE_START_TIMEOUT_MS + 2000);
+  });
 
 const pressContinue = () => {
   const { getByTestId } = render(<Complete />);
+  finishEntrance();
   fireEvent.press(getByTestId(CompleteSelectors.CONFIRM_BUTTON));
 };
 
 describe('Complete', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
+    __resetRiveMocks();
+    mockUseReduceMotionState.mockReturnValue(false);
     mockUseRoute.mockReturnValue({
       key: 'complete',
       name: 'Complete',
@@ -69,7 +131,7 @@ describe('Complete', () => {
   });
 
   it('renders the completion copy, artwork, and actions', () => {
-    const { getByTestId } = render(<Complete />);
+    const { getByTestId, queryByTestId } = render(<Complete />);
 
     expect(getByTestId(CompleteSelectors.TITLE)).toHaveTextContent(
       strings('card.card_onboarding.complete.title'),
@@ -81,9 +143,82 @@ describe('Complete', () => {
     expect(getByTestId(CompleteSelectors.CONFIRM_BUTTON)).toHaveTextContent(
       strings('card.card_onboarding.complete.confirm_button'),
     );
-    expect(getByTestId(CompleteSelectors.NOT_NOW_BUTTON)).toHaveTextContent(
-      strings('card.card_onboarding.not_now_button'),
+    expect(queryByTestId(CompleteSelectors.NOT_NOW_BUTTON)).toBeNull();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('has no back button in the header', () => {
+    const { UNSAFE_queryAllByProps } = render(<Complete />);
+
+    expect(
+      UNSAFE_queryAllByProps({ iconName: IconName.ArrowLeft }),
+    ).toHaveLength(0);
+  });
+
+  it('ignores taps on the button until its fade-in starts', () => {
+    const { getByTestId } = render(<Complete />);
+
+    expect(getByTestId(CompleteSelectors.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'none',
     );
+    fireEvent.press(getByTestId(CompleteSelectors.CONFIRM_BUTTON));
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_BUTTON_CLICKED,
+    );
+
+    finishEntrance();
+
+    expect(getByTestId(CompleteSelectors.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
+  });
+
+  it('makes the button pressable straight away under Reduce Motion', () => {
+    mockUseReduceMotionState.mockReturnValue(true);
+
+    const { getByTestId } = render(<Complete />);
+
+    expect(getByTestId(CompleteSelectors.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
+  });
+
+  it('draws the tick in with Rive when Reduce Motion is off', () => {
+    const { getByTestId, queryByTestId } = render(<Complete />);
+
+    expect(getByTestId(CompleteSelectors.CHECK_ANIMATION)).toBeOnTheScreen();
+    expect(queryByTestId(CompleteSelectors.CHECK_IMAGE)).not.toBeOnTheScreen();
+  });
+
+  it('shows the static checkmark and all content under Reduce Motion', () => {
+    mockUseReduceMotionState.mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = render(<Complete />);
+
+    expect(getByTestId(CompleteSelectors.CHECK_IMAGE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(CompleteSelectors.CHECK_ANIMATION),
+    ).not.toBeOnTheScreen();
+    expect(getByTestId(CompleteSelectors.TITLE)).toBeOnTheScreen();
+    expect(getByTestId(CompleteSelectors.CONFIRM_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('shows neither checkmark while the Reduce Motion check is pending', () => {
+    mockUseReduceMotionState.mockReturnValue(null);
+
+    const { getByTestId, queryByTestId } = render(<Complete />);
+
+    expect(
+      queryByTestId(CompleteSelectors.CHECK_ANIMATION),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId(CompleteSelectors.CHECK_IMAGE)).not.toBeOnTheScreen();
+    expect(getByTestId(CompleteSelectors.IMAGE)).toBeOnTheScreen();
   });
 
   it('tracks the screen view on mount', () => {
@@ -97,15 +232,6 @@ describe('Complete', () => {
       screen: CardScreens.COMPLETE,
     });
     expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('goes back when Not now is pressed', () => {
-    const { getByTestId } = render(<Complete />);
-
-    fireEvent.press(getByTestId(CompleteSelectors.NOT_NOW_BUTTON));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('tracks the continue press', async () => {

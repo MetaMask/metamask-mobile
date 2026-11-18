@@ -1,26 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Image } from 'react-native';
 import {
   StackActions,
   useNavigation,
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
-import { useDispatch } from 'react-redux';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
-import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import MarketingMoment from '../../../MarketingMoment';
-import { CompleteSelectors } from './Complete.testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import CardVerifiedContent from './CardVerifiedContent';
+
+export { COMPLETE_ENTRANCE_START_TIMEOUT_MS } from './CardVerifiedContent';
 
 /**
  * Route params for Complete screen
@@ -37,13 +38,16 @@ interface CompleteRouteParams {
   nextDestination?: NextDestination;
 }
 
+/**
+ * Baanx card onboarding success ("You're verified"). Continue is the only
+ * exit. The visual lives in `CardVerifiedContent`, which Immersve also shows
+ * in place after KYC.
+ */
 const Complete = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const handleNotNow = () => {
-    navigation.goBack();
-  };
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
@@ -114,36 +118,17 @@ const Complete = () => {
   };
 
   return (
-    <MarketingMoment
-      title={strings('card.card_onboarding.complete.title')}
-      titleProps={{ testID: CompleteSelectors.TITLE }}
-      description={strings('card.card_onboarding.complete.description')}
-      descriptionProps={{
-        testID: CompleteSelectors.DESCRIPTION,
-        twClassName: 'text-center px-4',
-      }}
-      artwork={
-        <Image
-          source={MM_CARD_ONBOARDING_SUCCESS}
-          resizeMode="contain"
-          style={tw.style('h-full w-full')}
-          testID={CompleteSelectors.IMAGE}
-        />
-      }
-      primaryAction={{
-        label: strings('card.card_onboarding.complete.confirm_button'),
-        onPress: handleContinue,
-        isDisabled: isLoading,
-        isLoading,
-        testID: CompleteSelectors.CONFIRM_BUTTON,
-      }}
-      secondaryAction={{
-        label: strings('card.card_onboarding.not_now_button'),
-        onPress: handleNotNow,
-        isDisabled: isLoading,
-        testID: CompleteSelectors.NOT_NOW_BUTTON,
-      }}
-    />
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={tw.style('flex-1 bg-default')}
+    >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+      />
+      <CardVerifiedContent onContinue={handleContinue} isLoading={isLoading} />
+    </SafeAreaView>
   );
 };
 

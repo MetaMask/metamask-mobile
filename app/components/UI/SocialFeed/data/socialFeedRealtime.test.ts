@@ -22,6 +22,7 @@ import {
   getVisiblePendingNewCount,
   mergeRealtimeFeedItem,
   mergeRealtimeRows,
+  pinRealtimeRows,
   rememberEvictedRevision,
   shouldDeferPendingNewRow,
   toRealtimeEventPost,
@@ -668,6 +669,202 @@ describe('socialFeedRealtime', () => {
 
       expect(merged).toHaveLength(1);
       expect(merged[0]?.revision).toBe(2);
+    });
+  });
+
+  describe('pinRealtimeRows', () => {
+    const NO_SERVER_ROWS = new Set<string>();
+    const rowAt = (
+      feedItemId: string,
+      sortTimestamp: number,
+    ): SocialFeedRow => ({
+      ...buildSocketRow(buildEvent({ feedItemId })),
+      sortTimestamp,
+    });
+    const order = (rows: SocialFeedRow[]): [string, number][] =>
+      rows.map((row) => [row.feedItemId, row.sortTimestamp]);
+
+    it('keeps own keys on the first placement', () => {
+      const rows = [rowAt('pos-b', 200), rowAt('pos-a', 100)];
+
+      const pinned = pinRealtimeRows(rows, new Map(), NO_SERVER_ROWS);
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-b', 200],
+        ['pos-a', 100],
+      ]);
+      expect([...pinned.placed]).toEqual([
+        ['pos-b', 200],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('keeps a shown row in place when its key moves forward', () => {
+      const placed = new Map([
+        ['pos-b', 200],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-a', 300), rowAt('pos-b', 200)],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-b', 200],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('raises a late row that would land between shown rows above the top', () => {
+      const placed = new Map([
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-c', 300), rowAt('pos-b', 200), rowAt('pos-a', 100)],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-b', 301],
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+      expect(pinned.placed.get('pos-b')).toBe(301);
+    });
+
+    it('raises several late rows above the top in their own order', () => {
+      const placed = new Map([['pos-top', 500]]);
+
+      const pinned = pinRealtimeRows(
+        [
+          rowAt('pos-newer', 520),
+          rowAt('pos-top', 500),
+          rowAt('pos-late', 500),
+          rowAt('pos-later', 510),
+        ],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-newer', 520],
+        ['pos-later', 510],
+        ['pos-late', 501],
+        ['pos-top', 500],
+      ]);
+    });
+
+    it('keeps own keys for rows older than everything shown', () => {
+      const placed = new Map([['pos-shown', 500]]);
+      const older = rowAt('pos-older', 100);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-shown', 500), older],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect(pinned.rows[1]).toBe(older);
+    });
+
+    it('puts a next-page server row newer than shown rows below the bottom', () => {
+      const placed = new Map([
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [
+          rowAt('pos-c', 300),
+          rowAt('pos-page-new', 200),
+          rowAt('pos-a', 100),
+          rowAt('pos-page-old', 50),
+        ],
+        placed,
+        new Set(['pos-c', 'pos-a', 'pos-page-new', 'pos-page-old']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-c', 300],
+        ['pos-a', 100],
+        ['pos-page-new', 99],
+        ['pos-page-old', 50],
+      ]);
+    });
+
+    it('raises a server row newer than every shown row above the top', () => {
+      const placed = new Map([['pos-a', 100]]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-fresh', 400), rowAt('pos-a', 100)],
+        placed,
+        new Set(['pos-fresh', 'pos-a']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-fresh', 400],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('raises a late socket row above the top beside server rows', () => {
+      const placed = new Map([
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-c', 300), rowAt('pos-socket', 200), rowAt('pos-a', 100)],
+        placed,
+        new Set(['pos-c', 'pos-a']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-socket', 301],
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('forgets rows no longer present', () => {
+      const placed = new Map([
+        ['pos-gone', 900],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-a', 100)],
+        placed,
+        NO_SERVER_ROWS,
+      );
+
+      expect([...pinned.placed]).toEqual([['pos-a', 100]]);
+    });
+
+    it('returns the same placement when pinned again', () => {
+      const rows = [
+        rowAt('pos-c', 300),
+        rowAt('pos-b', 200),
+        rowAt('pos-a', 100),
+      ];
+      const first = pinRealtimeRows(
+        rows,
+        new Map([
+          ['pos-c', 300],
+          ['pos-a', 100],
+        ]),
+        NO_SERVER_ROWS,
+      );
+
+      const second = pinRealtimeRows(rows, first.placed, NO_SERVER_ROWS);
+
+      expect(order(second.rows)).toEqual(order(first.rows));
+      expect(second.placed).toEqual(first.placed);
     });
   });
 

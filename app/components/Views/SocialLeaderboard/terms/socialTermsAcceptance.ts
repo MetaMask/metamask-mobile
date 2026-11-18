@@ -14,6 +14,9 @@ export const SOCIAL_TERMS_VERSION = 'v1';
 // made this session must not depend on reading it back from storage.
 let hasAcceptedThisSession = false;
 
+// Each gate call replaces it, so a later Accept never runs an older entry.
+let pendingEntry: (() => void) | undefined;
+
 /**
  * Whether the user accepted the current Social terms version on this device.
  * Synchronous (MMKV) so navigation helpers can branch before navigating.
@@ -64,8 +67,15 @@ const hasLoadedSocialProfile = (): boolean => {
  * A profile with no stored acceptance already accepted the current terms on
  * another install. Writes that version locally so later reads skip the sheet.
  * A stored older version is left unchanged so a terms change still re-prompts.
+ *
+ * @param options - Optional settings.
+ * @param options.profileLoaded - The caller just read the profile from the
+ * server. Redux receives ProfileController updates in batches, so it may not
+ * show that profile yet and is not checked.
  */
-export const recordSocialTermsAcceptanceForExistingProfile = (): void => {
+export const recordSocialTermsAcceptanceForExistingProfile = ({
+  profileLoaded = false,
+}: { profileLoaded?: boolean } = {}): void => {
   if (hasAcceptedThisSession) {
     return;
   }
@@ -73,7 +83,7 @@ export const recordSocialTermsAcceptanceForExistingProfile = (): void => {
   if (stored != null && stored !== '') {
     return;
   }
-  if (!hasLoadedSocialProfile()) {
+  if (!profileLoaded && !hasLoadedSocialProfile()) {
     return;
   }
   acceptSocialTerms().catch(() => undefined);
@@ -93,20 +103,34 @@ export const resetSocialTermsAcceptance = (): Promise<void> => {
 type SocialTermsNavigate = Pick<AppNavigationProp, 'navigate'>['navigate'];
 
 /**
+ * Returns the Social entry the last gate call held back and forgets it. The
+ * terms-only screen runs it after Accept so the user lands where they tapped.
+ */
+export const takePendingSocialEntry = (): (() => void) | undefined => {
+  const entry = pendingEntry;
+  pendingEntry = undefined;
+  return entry;
+};
+
+/**
  * Gate for every Social entry point and interaction. When the terms are not
  * accepted it opens profile onboarding, where they are accepted, and returns
  * `false` so the caller skips the original action.
  *
  * @param navigate - The caller's navigate function (React or deeplink).
+ * @param onAccepted - Reopens the caller's destination once the terms-only
+ * screen is accepted.
  * @returns `true` when the caller may continue.
  */
 export const ensureSocialTermsAccepted = (
   navigate: SocialTermsNavigate,
+  onAccepted?: () => void,
 ): boolean => {
   recordSocialTermsAcceptanceForExistingProfile();
   if (hasAcceptedSocialTerms()) {
     return true;
   }
+  pendingEntry = onAccepted;
   try {
     if (hasLoadedSocialProfile()) {
       navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });

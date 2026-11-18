@@ -24,6 +24,9 @@ import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationS
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
 import { CardFlow } from '../../UI/Card/util/metrics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -484,6 +487,57 @@ describe('AccountsMenu', () => {
         Routes.BRIDGE.ROOT,
         expect.anything(),
       );
+    });
+  });
+
+  describe('Quick Actions', () => {
+    it('renders Activity, Scan and Batch sell in that order', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+
+      const { getByTestId, getAllByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.ACTIVITY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON),
+      ).toBeOnTheScreen();
+
+      // getAllByTestId returns matches in tree (render) order, so this
+      // assertion fails if the JSX order of the quick-action tiles changes.
+      const quickActionsInRenderOrder = getAllByTestId(
+        new RegExp(
+          `^(${AccountsMenuSelectorsIDs.ACTIVITY_BUTTON}|${WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}|${AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON})$`,
+        ),
+      ).map((node) => node.props.testID);
+
+      expect(quickActionsInRenderOrder).toEqual([
+        AccountsMenuSelectorsIDs.ACTIVITY_BUTTON,
+        WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+        AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON,
+      ]);
+    });
+  });
+
+  describe('Activity Button', () => {
+    it('navigates to the Activity screen and tracks the click when pressed', () => {
+      mockNavigate.mockClear();
+      mockTrackEvent.mockClear();
+
+      const { getByTestId } = render(<AccountsMenu />);
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.ACTIVITY_BUTTON));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        EVENT_NAME.ACTIVITY_CLICKED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { entryPoint: ActivityScreenEntryPoint.AccountsMenu },
+      });
     });
   });
 

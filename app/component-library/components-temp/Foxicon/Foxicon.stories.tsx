@@ -17,7 +17,7 @@ const FoxiconMeta = {
     },
   },
   args: {
-    variant: FoxiconVariant.Base,
+    variant: FoxiconVariant.Astro,
     size: 48,
   },
 };

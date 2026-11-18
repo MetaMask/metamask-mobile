@@ -5,7 +5,6 @@ import { FullWindowOverlay } from 'react-native-screens';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   Icon,
@@ -27,6 +26,9 @@ import {
   playNotification,
 } from '../../../../../util/haptics';
 import { PaymentFailedSheetTestIds } from './PaymentFailedSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PaymentFailedSheetProps {
   onClose: () => void;
@@ -43,6 +45,7 @@ interface PaymentFailedSheetProps {
  * overlay is not left up over the app accessibility tree.
  */
 const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const tryAgainRef = useRef(false);
@@ -98,7 +101,8 @@ const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
           keyboardAvoidingViewEnabled={false}
           onClose={onClose}
         >
-          <BottomSheetHeader
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
             onClose={handleClose}
             closeButtonProps={{
               testID: PaymentFailedSheetTestIds.CLOSE,
@@ -117,7 +121,7 @@ const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
                 {strings('pro_subscription.payment.failed_title')}
               </Text>
             </Box>
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
           <Box twClassName="px-4">
             <Text
               variant={TextVariant.BodyMd}

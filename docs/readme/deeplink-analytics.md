@@ -79,7 +79,7 @@ Sensitive properties are extracted based on the route type and include transacti
 
 **HOME Route:**
 
-- `previewToken` - Preview token identifier (only property for HOME route)
+- No sensitive properties extracted
 
 **INVALID Route:**
 

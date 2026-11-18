@@ -170,7 +170,7 @@ const PerformanceErrorBanner: React.FC<{
   }[source];
 
   return (
-    <Box twClassName="mt-3 px-4 pt-4">
+    <Box twClassName="px-4 pt-4">
       <RewardsErrorBanner
         title={strings(`${copy}.error_fetching_title`)}
         description={strings(`${copy}.error_fetching_description`)}
@@ -242,7 +242,7 @@ const FunnelSection: React.FC<{
 
   return (
     <>
-      <SectionHeader title={localizedText.referrals} twClassName="pt-6 pb-4">
+      <SectionHeader title={localizedText.referrals} twClassName="pt-4 pb-4">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {localizedText.updatedDaily}
         </Text>
@@ -318,6 +318,7 @@ function ActivitySection<T extends { id: string }>({
   bottomPadding,
   emptyDescription,
   emptyActionLabel,
+  emptyIconName = IconName.Activity,
   onEmptyAction,
   onOpenList,
   renderItem,
@@ -332,6 +333,8 @@ function ActivitySection<T extends { id: string }>({
   emptyDescription: string;
   /** The empty state renders a button only with both label and handler. */
   emptyActionLabel?: string;
+  /** Defaults to the trading-activity icon. Copy trading passes People. */
+  emptyIconName?: IconName;
   onEmptyAction?: () => void;
   onOpenList: () => void;
   renderItem: (item: T) => React.ReactElement;
@@ -347,7 +350,7 @@ function ActivitySection<T extends { id: string }>({
         <TabEmptyState
           icon={
             <AvatarIcon
-              iconName={IconName.Activity}
+              iconName={emptyIconName}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}
               iconProps={{ color: IconColor.IconDefault }}
@@ -391,7 +394,7 @@ function ActivitySection<T extends { id: string }>({
         title={title}
         isInteractive={!listEmpty}
         onPress={listEmpty ? undefined : onOpenList}
-        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
         testID={testIDs.header}
       />
       <Box twClassName={bottomPadding ? 'px-4 pb-8' : 'px-4'}>{body}</Box>
@@ -496,6 +499,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
           bottomPadding={!rebates.show}
           emptyDescription={localizedText.copyTradingEmptyDescription}
           emptyActionLabel={localizedText.copyTradingEmptyAction}
+          emptyIconName={IconName.People}
           onEmptyAction={openSocialTab}
           onOpenList={() =>
             navigateToRewardsRoute(

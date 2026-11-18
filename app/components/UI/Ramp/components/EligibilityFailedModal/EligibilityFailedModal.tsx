@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -21,6 +20,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { ELIGIBILITY_FAILED_MODAL_TEST_IDS } from './EligibilityFailedModal.testIds';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const SUPPORT_URL = METAMASK_SUPPORT_URL;
 
@@ -31,6 +33,7 @@ export const createEligibilityFailedModalNavigationDetails =
   );
 
 function EligibilityFailedModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -57,7 +60,8 @@ function EligibilityFailedModal() {
       isInteractable={false}
       testID={ELIGIBILITY_FAILED_MODAL_TEST_IDS.MODAL}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: ELIGIBILITY_FAILED_MODAL_TEST_IDS.CLOSE_BUTTON,
@@ -66,7 +70,7 @@ function EligibilityFailedModal() {
         <Text variant={TextVariant.HeadingMd}>
           {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

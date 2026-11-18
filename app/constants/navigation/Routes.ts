@@ -166,8 +166,6 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
-  REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
-  REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
   REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
@@ -343,6 +341,8 @@ const Routes = {
     DEFI_FULL_VIEW: 'DeFiFullView',
     CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
     WATCHLIST_FULL_VIEW: 'WatchlistFullView',
+    ADD_CUSTOM_TOKEN: 'AddCustomToken',
+    HIDDEN_TOKENS: 'HiddenTokens',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -474,6 +474,7 @@ const Routes = {
     POST_COMPOSER: 'SocialPostComposerView',
     PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
+    TRADER_PREVIEW_SHEET: 'SocialTraderPreviewSheet',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -540,10 +541,12 @@ const Routes = {
     MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
     MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
+    SPLASH: 'MoneySplash',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
     DEPOSIT_DEEPLINK: 'MoneyDepositDeeplink',
+    ACCOUNT_STATUS: 'MoneyAccountStatus',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
@@ -581,7 +584,6 @@ const Routes = {
     EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
-    DRAWER: 'ProfileDrawer',
     MANAGE_PROFILE: 'ManageProfile',
     MANAGE_PROFILE_FIELD: 'ManageProfileField',
     X_ACCOUNT: 'ManageProfileXAccount',
@@ -635,8 +637,8 @@ const Routes = {
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
-      KYC_PENDING: 'CardOnboardingKYCPending',
       KYC_PROCESSING: 'CardOnboardingKYCProcessing',
+      IMMERSVE_KYC: 'CardOnboardingImmersveKYC',
       FUNDING_APPROVAL: 'CardOnboardingFundingApproval',
     },
     MODALS: {
@@ -651,7 +653,6 @@ const Routes = {
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
-      IMMERSVE_KYC: 'CardImmersveKYCModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',

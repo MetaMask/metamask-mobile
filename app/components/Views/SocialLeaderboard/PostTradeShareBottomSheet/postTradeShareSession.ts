@@ -20,6 +20,7 @@ export type PostTradeShareVariant = 'share' | 'create_profile';
  */
 export const PostTradeShareOwner = {
   socialV1Feed: 'social-v1-feed',
+  socialV1Profile: 'social-v1-profile',
   traderPosition: 'trader-position',
   tokenDetails: 'token-details',
 } as const;
@@ -49,6 +50,8 @@ export interface SpotPostTradeShareSession extends PostTradeShareSessionBase {
   tradeMode: QuickBuyTradeMode;
   /** Post being copied, so a failed swap can reopen Quick Buy with the same intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  /** Trader copied by this swap. Restored when Try again reopens Quick Buy. */
+  traderAddress?: string;
   /** Screen that should reopen Quick Buy after a failure. */
   owner?: string;
 }
@@ -99,6 +102,8 @@ export interface PostTradeShareReopen {
   target: QuickBuyTarget;
   copyTradeOrigin?: CopyTradeOrigin;
   tradeMode: QuickBuyTradeMode;
+  /** Trader the original Quick Buy was copying. Restored on Try again. */
+  traderAddress?: string;
 }
 
 type Listener = () => void;
@@ -247,8 +252,8 @@ export const consumePostTradeShareReopen = (): PostTradeShareReopen | null => {
   if (!state.session?.reopenRequested || state.session.product !== 'spot') {
     return null;
   }
-  const { target, copyTradeOrigin, tradeMode } = state.session;
+  const { target, copyTradeOrigin, tradeMode, traderAddress } = state.session;
   state.session = null;
   notify();
-  return { target, copyTradeOrigin, tradeMode };
+  return { target, copyTradeOrigin, tradeMode, traderAddress };
 };

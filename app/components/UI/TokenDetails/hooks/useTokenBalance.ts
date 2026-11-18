@@ -17,6 +17,16 @@ import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxA
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 
 export interface UseTokenBalanceResult {
+  /**
+   * Token balance as a locale-formatted display string (e.g. `'1,500'`,
+   * `'<0.00001'`, or `'0'` for zero). Do not parse this with `Number()` —
+   * formatted values return `NaN`. For presence checks use
+   * `Boolean(balance) && balance !== '0'`. For approximate USD amounts
+   * (e.g. analytics buckets) use `balanceFiatUsd` via the
+   * `calculateUsdBalance: true` overload — never as a presence check: it
+   * returns 0 when conversion rates are missing and mis-parses
+   * non-'.'-decimal locales.
+   */
   balance: string | undefined;
   fiatBalance: string | undefined;
   tokenFormattedBalance: string | undefined;

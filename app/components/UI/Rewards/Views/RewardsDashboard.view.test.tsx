@@ -4,7 +4,8 @@
  * yarn jest -c jest.config.view.js app/components/UI/Rewards/Views/RewardsDashboard.view.test.tsx --runInBand --coverage=false
  */
 import '../../../../../tests/component-view/mocks';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
@@ -14,6 +15,7 @@ import {
   restoreRewardsDashboardStore,
 } from '../../../../../tests/component-view/renderers/rewardsMoney';
 import { referralMeFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
+import { strings } from '../../../../../locales/i18n';
 
 describe('RewardsDashboard copy trading', () => {
   afterEach(() => {
@@ -28,6 +30,12 @@ describe('RewardsDashboard copy trading', () => {
     expect(
       await findByTestId(REWARDS_VIEW_SELECTORS.COPY_TRADING_SECTION),
     ).toBeOnTheScreen();
+
+    expect(
+      within(
+        getByTestId(REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.People);
 
     fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION));
 
@@ -95,6 +103,25 @@ describe('RewardsDashboard subscription sections', () => {
     expect(
       queryByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SECTION),
     ).not.toBeOnTheScreen();
+  });
+
+  it('uses the campaign opt-in label when referral copy has no action', async () => {
+    const referralMe = referralMeFixture('plain');
+    const { findByTestId } = renderRewardsDashboard({
+      socialV1: false,
+      subscriptionId: null,
+      referralMe: {
+        ...referralMe,
+        localized_text: {
+          ...referralMe.localized_text,
+          invitedOptInAction: '',
+        },
+      },
+    });
+
+    expect(
+      await findByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION),
+    ).toHaveTextContent(strings('rewards.campaign.opt_in_cta'));
   });
 
   it('shows campaigns and benefits when the user has a Rewards subscription', async () => {

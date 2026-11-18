@@ -2,7 +2,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonVariant,
   FontWeight,
@@ -18,10 +17,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   StackActions,
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import React, {
   useCallback,
   useEffect,
@@ -31,11 +32,19 @@ import React, {
   useState,
 } from 'react';
 import {
+  AccessibilityInfo,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  type TextStyle,
+  type LayoutChangeEvent,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {
   SafeAreaInsetsContext,
   SafeAreaView,
@@ -59,17 +68,21 @@ import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderbo
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
+import { getProfileCreateErrorCopy } from '../ManageProfileView/errors/profileApiErrorMessageKeys';
+import { getHandleAvailabilityRejection } from '../ManageProfileView/screens/handleAvailabilityError';
+import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
+import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
-  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
   applyXOnboardingProfile,
   startManualOnboarding,
   buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
+  MAX_DISPLAY_NAME_LENGTH,
   displayNameFromUsername,
   getUsernameStatus,
   isUneditedXUsername,
@@ -79,6 +92,7 @@ import {
   type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import { getDisplayNameError } from './utils/getDisplayNameError';
 import { getUsernameLocalError } from './utils/getUsernameLocalError';
 import { getUsernameFeedback } from './utils/getUsernameFeedback';
 import UsernameStatusLine from './UsernameStatusLine';
@@ -87,6 +101,7 @@ import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
+import { lookUpExistingSocialProfile } from '../hooks/lookUpExistingSocialProfile';
 import ProfileAvatarPicker from './ProfileAvatarPicker';
 import {
   generateUsername,
@@ -101,7 +116,10 @@ import SocialTermsSheet from '../terms/SocialTermsSheet';
 import {
   acceptSocialTerms,
   hasAcceptedSocialTerms,
+  takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
+import { useOpenPendingSocialPreviewTarget } from '../TraderPreviewSheet/useOpenPendingSocialPreviewTarget';
+import { takePendingSocialPreviewTarget } from '../TraderPreviewSheet/pendingSocialPreviewTarget';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
@@ -110,6 +128,11 @@ const { Interaction, Outcome, Screen, Step } = SocialEvent;
 // Future live source: https://metamask.com/terms-of-use
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
+
+const EXISTING_PROFILE_LOOKUP_QUERY_KEY = [
+  'social',
+  'profileOnboardingExistingProfile',
+] as const;
 
 /**
  * `superseded` means a newer check started before this one finished. That is
@@ -157,35 +180,190 @@ const LIVE_ACTIVITY = [
 /**
  * Step title. Grotzec Cond Bold via the marketing-moment title, which is the
  * design-system hero face and falls back when the language is not in the font.
- * Spacing stays on the wrapper. The title paints its metrics as a style, so a
- * padding class on the text would lose to that style.
+ * DisplayLg on iOS is an 80% line (32px) with 8px of clip padding. Spacing
+ * stays on the wrapper.
  */
-/**
- * Design-system DisplayLg line box (40px font, 50px line). It replaces the
- * Grotzec tight metrics, so the clip padding and negative margin are cleared.
- */
-const DISPLAY_LG_LINE_STYLE: TextStyle = {
-  lineHeight: 50,
-  paddingTop: 0,
-  paddingBottom: 0,
-  marginBottom: 0,
-};
-
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
-  textStyle?: TextStyle;
-}> = ({ children, twClassName, textStyle }) => (
+}> = ({ children, twClassName }) => (
   <Box twClassName={twClassName}>
     <MarketingMomentTitle
       variant={TextVariant.DisplayLg}
       twClassName="w-full text-center"
-      style={textStyle}
     >
       {children}
     </MarketingMomentTitle>
   </Box>
 );
+
+const INTRO_TITLE_KEYS = {
+  1: 'social_leaderboard.profile_onboarding.intro_title_activity',
+  2: 'social_leaderboard.profile_onboarding.intro_title',
+  3: 'social_leaderboard.profile_onboarding.intro_title_post',
+} as const;
+
+const INTRO_TITLE_STEPS = [1, 2, 3] as const;
+
+/** How long the outgoing and incoming intro titles crossfade. */
+const INTRO_TITLE_FADE_MS = 280;
+
+const INTRO_TITLE_FADE_EASING = Easing.out(Easing.cubic);
+
+const IntroTitleText: React.FC<{
+  step: 1 | 2 | 3;
+  testID?: string;
+}> = ({ step, testID }) => (
+  <MarketingMomentTitle
+    variant={TextVariant.DisplayLg}
+    twClassName="w-full text-center"
+    testID={testID}
+  >
+    {strings(INTRO_TITLE_KEYS[step])}
+  </MarketingMomentTitle>
+);
+
+/**
+ * Scene title. Hidden copies of the three lines are measured, and the slot
+ * stays as tall as the tallest one, so a longer title or a larger text size
+ * stays clear of the animation. Each line keeps its own layer. A scene change
+ * fades the previous layer out and the next layer in, so the text on a layer
+ * never changes while that layer is visible. The first paint and Reduce Motion
+ * show the current line with no fade.
+ */
+const IntroStepTitle: React.FC<{ step: 1 | 2 | 3 }> = ({ step }) => {
+  const tw = useTailwind();
+  const reducedMotion = useReducedMotion();
+  const shownStepRef = useRef(step);
+  const skipFade = useRef(true);
+  const measuredHeights = useRef<Partial<Record<1 | 2 | 3, number>>>({});
+  const [slotHeight, setSlotHeight] = useState(0);
+  const [previousStep, setPreviousStep] = useState<1 | 2 | 3 | null>(null);
+  const stepOneOpacity = useSharedValue(step === 1 ? 1 : 0);
+  const stepTwoOpacity = useSharedValue(step === 2 ? 1 : 0);
+  const stepThreeOpacity = useSharedValue(step === 3 ? 1 : 0);
+  const stepOpacity = useMemo(
+    () => ({
+      1: stepOneOpacity,
+      2: stepTwoOpacity,
+      3: stepThreeOpacity,
+    }),
+    [stepOneOpacity, stepTwoOpacity, stepThreeOpacity],
+  );
+
+  const handleSizerLayout = useCallback(
+    (sizerStep: 1 | 2 | 3, event: LayoutChangeEvent) => {
+      const nextHeight = event.nativeEvent.layout.height;
+      if (measuredHeights.current[sizerStep] === nextHeight) {
+        return;
+      }
+      measuredHeights.current[sizerStep] = nextHeight;
+      const tallest = Math.max(
+        ...INTRO_TITLE_STEPS.map(
+          (titleStep) => measuredHeights.current[titleStep] ?? 0,
+        ),
+      );
+      setSlotHeight((current) => (current === tallest ? current : tallest));
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (skipFade.current) {
+      skipFade.current = false;
+      shownStepRef.current = step;
+      return;
+    }
+
+    const outgoing = shownStepRef.current;
+    if (outgoing !== step) {
+      setPreviousStep(outgoing);
+      shownStepRef.current = step;
+    }
+
+    const timing = {
+      duration: reducedMotion ? 0 : INTRO_TITLE_FADE_MS,
+      easing: INTRO_TITLE_FADE_EASING,
+    };
+    INTRO_TITLE_STEPS.forEach((titleStep) => {
+      const target = titleStep === step ? 1 : 0;
+      stepOpacity[titleStep].value = reducedMotion
+        ? target
+        : withTiming(target, timing);
+    });
+  }, [reducedMotion, step, stepOpacity]);
+
+  const stepOneStyle = useAnimatedStyle(() => ({
+    opacity: stepOneOpacity.value,
+  }));
+  const stepTwoStyle = useAnimatedStyle(() => ({
+    opacity: stepTwoOpacity.value,
+  }));
+  const stepThreeStyle = useAnimatedStyle(() => ({
+    opacity: stepThreeOpacity.value,
+  }));
+  const stepStyle = {
+    1: stepOneStyle,
+    2: stepTwoStyle,
+    3: stepThreeStyle,
+  };
+
+  return (
+    <Box
+      twClassName="relative w-full"
+      style={slotHeight > 0 ? { minHeight: slotHeight } : undefined}
+      testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SLOT}
+    >
+      {INTRO_TITLE_STEPS.map((sizerStep) => (
+        <Box
+          key={sizerStep}
+          twClassName="absolute left-0 right-0 top-0 w-full opacity-0"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          onLayout={(event) => handleSizerLayout(sizerStep, event)}
+          testID={`${SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SIZER}-${sizerStep}`}
+        >
+          <IntroTitleText step={sizerStep} />
+        </Box>
+      ))}
+      {INTRO_TITLE_STEPS.map((titleStep) => {
+        const isCurrent = titleStep === step;
+        const isOutgoing = titleStep === previousStep && !isCurrent;
+        return (
+          <Animated.View
+            key={titleStep}
+            style={[
+              tw.style('absolute left-0 right-0 top-0'),
+              stepStyle[titleStep],
+            ]}
+            accessibilityElementsHidden={!isCurrent}
+            importantForAccessibility={
+              isCurrent ? 'auto' : 'no-hide-descendants'
+            }
+            pointerEvents="none"
+            testID={
+              isCurrent
+                ? SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_INCOMING
+                : isOutgoing
+                  ? SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING
+                  : undefined
+            }
+          >
+            <IntroTitleText
+              step={titleStep}
+              testID={
+                isCurrent
+                  ? SocialProfileOnboardingSelectorsIDs.INTRO_TITLE
+                  : undefined
+              }
+            />
+          </Animated.View>
+        );
+      })}
+    </Box>
+  );
+};
 
 /**
  * "Connect [X logo] account". The logo stands in for the word X, so the
@@ -281,7 +459,8 @@ const ReadyCardFallback: React.FC<{
   avatarBackgroundId: string | null | undefined;
   imageUrl?: string | null;
   handle: string;
-}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle }) => (
+  isVerified: boolean;
+}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle, isVerified }) => (
   <>
     <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
@@ -313,19 +492,31 @@ const ReadyCardFallback: React.FC<{
           size="xl"
         />
       </Box>
-      <Text
-        variant={TextVariant.BodyMd}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
         twClassName="pt-3"
-        testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
       >
-        @{handle}
-      </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
+        >
+          @{handle}
+        </Text>
+        {isVerified ? (
+          <ProfileVerifiedBadge
+            testID={SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE}
+          />
+        ) : null}
+      </Box>
     </Box>
   </>
 );
 
 const SocialProfileOnboardingView: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isFocused = useIsFocused();
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
@@ -339,9 +530,50 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile, updateProfile } =
-    useProfileController();
+  const {
+    profile: controllerProfile,
+    checkUsernameAvailability,
+    checkDisplayNameValidity,
+    createProfile,
+    updateProfile,
+    fetchAndUpdateProfile,
+  } = useProfileController();
+  const isTermsOnlyRoute = route.params?.termsOnly === true;
+  const openPendingSocialPreviewTarget = useOpenPendingSocialPreviewTarget();
+  // A trader preview link is only opened by this onboarding run. Leaving
+  // without finishing drops it, so a later onboarding is not redirected.
+  useEffect(
+    () => () => {
+      takePendingSocialPreviewTarget('onboarding');
+    },
+    [],
+  );
+  // The entry gates only read ProfileController, which is empty on a fresh
+  // install until the profile is fetched. Ask the server before offering to
+  // create one, so an existing profile is never replaced.
+  const existingProfileLookup = useQuery({
+    queryKey: EXISTING_PROFILE_LOOKUP_QUERY_KEY,
+    queryFn: async () =>
+      lookUpExistingSocialProfile(
+        await getSocialProfileId(),
+        fetchAndUpdateProfile,
+      ),
+    enabled: !isTermsOnlyRoute,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
+    retry: false,
+  });
+  const isCheckingExistingProfile =
+    !isTermsOnlyRoute && existingProfileLookup.isPending;
+  const existingProfileLookupResult = existingProfileLookup.data;
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
+  const [introSceneStep, setIntroSceneStep] = useState<1 | 2 | 3>(1);
+  const handleIntroSceneStep = useCallback((nextStep: number) => {
+    if (nextStep === 1 || nextStep === 2 || nextStep === 3) {
+      setIntroSceneStep(nextStep);
+    }
+  }, []);
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
   );
@@ -349,16 +581,34 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [usernameClaimError, setUsernameClaimError] = useState<string | null>(
     null,
   );
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
+  const displayNameCheckId = useRef(0);
+
+  useEffect(() => {
+    displayNameCheckId.current += 1;
+    setDisplayNameError(null);
+  }, [draft.displayName]);
+
+  // VoiceOver keeps focus on Continue and ignores accessibilityLiveRegion, so
+  // announce the error explicitly. TalkBack reads the alert live region.
+  useEffect(() => {
+    if (!displayNameError) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(displayNameError);
+  }, [displayNameError]);
   const [finishError, setFinishError] = useState<string | null>(null);
   // Path the user picked while the terms sheet is open; null when it is closed.
   const [pendingTermsPath, setPendingTermsPath] =
     useState<ProfileOnboardingPath | null>(null);
-  const [pendingTermsOnly, setPendingTermsOnly] = useState(
-    () => route.params?.termsOnly === true,
-  );
+  const [pendingTermsOnly, setPendingTermsOnly] = useState(isTermsOnlyRoute);
+  const rivePaused =
+    !isFocused || Boolean(pendingTermsPath || pendingTermsOnly);
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
+  const isProfileCreatedAndVerified =
+    profileCreated && controllerProfile?.verified === true;
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
@@ -377,12 +627,16 @@ const SocialProfileOnboardingView: React.FC = () => {
   const previousStepRef = useRef(step);
   const createProfileRef = useRef(createProfile);
   const updateProfileRef = useRef(updateProfile);
+  const fetchAndUpdateProfileRef = useRef(fetchAndUpdateProfile);
+  const existingProfileLookupResultRef = useRef(existingProfileLookupResult);
   const trackInteractionRef = useRef(trackInteraction);
   draftRef.current = draft;
   accountsRef.current = accounts;
   stepRef.current = step;
   createProfileRef.current = createProfile;
   updateProfileRef.current = updateProfile;
+  fetchAndUpdateProfileRef.current = fetchAndUpdateProfile;
+  existingProfileLookupResultRef.current = existingProfileLookupResult;
   trackInteractionRef.current = trackInteraction;
 
   const clearUsernameCheckTimer = useCallback(() => {
@@ -403,6 +657,26 @@ const SocialProfileOnboardingView: React.FC = () => {
       trackInteraction(Interaction.SHEET_DISPLAYED, { step: Step.TERMS });
     }
   }, [pendingTermsOnly, trackInteraction]);
+
+  // An existing profile skips creation. An older accepted terms version still
+  // has to be accepted again, so that case keeps only the terms sheet.
+  const openExistingProfile = useCallback(() => {
+    if (hasAcceptedSocialTerms()) {
+      finishProfileOnboardingToSocialTab(navigation);
+      return;
+    }
+    setPendingTermsOnly(true);
+  }, [navigation]);
+
+  useEffect(() => {
+    if (
+      existingProfileLookupResult !== 'found' ||
+      stepRef.current !== 'intro'
+    ) {
+      return;
+    }
+    openExistingProfile();
+  }, [existingProfileLookupResult, openExistingProfile]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -426,6 +700,14 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, []);
 
   useEffect(() => cancelConnectX, [cancelConnectX]);
+
+  // A declined entry must not run after a later, unrelated onboarding.
+  useEffect(
+    () => () => {
+      takePendingSocialEntry();
+    },
+    [],
+  );
 
   const handleClose = useCallback(() => {
     cancelConnectX();
@@ -467,23 +749,31 @@ const SocialProfileOnboardingView: React.FC = () => {
     async (username: string): Promise<UsernameAvailability> => {
       try {
         const availability = await checkUsernameAvailability(username);
-        if (!availability.valid) {
-          return {
-            status: 'invalid',
-            claimError: strings(
-              'social_leaderboard.profile_onboarding.username_invalid',
-            ),
-          };
+        switch (getHandleAvailabilityRejection(availability)) {
+          case null:
+            return { status: 'available', claimError: null };
+          case 'invalidFormat':
+            return {
+              status: 'invalid',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_invalid',
+              ),
+            };
+          case 'reserved':
+            return {
+              status: 'taken',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_reserved',
+              ),
+            };
+          default:
+            return {
+              status: 'taken',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_unavailable',
+              ),
+            };
         }
-        if (!availability.available) {
-          return {
-            status: 'taken',
-            claimError: strings(
-              'social_leaderboard.profile_onboarding.username_unavailable',
-            ),
-          };
-        }
-        return { status: 'available', claimError: null };
       } catch {
         return {
           status: 'error',
@@ -566,6 +856,22 @@ const SocialProfileOnboardingView: React.FC = () => {
     trackInteraction,
   ]);
 
+  const checkDisplayName = useCallback(
+    async (displayName: string): Promise<boolean> => {
+      const requestId = ++displayNameCheckId.current;
+      const error = await getDisplayNameError(
+        displayName,
+        checkDisplayNameValidity,
+      );
+      if (requestId !== displayNameCheckId.current) {
+        return false;
+      }
+      setDisplayNameError(error);
+      return error === null;
+    },
+    [checkDisplayNameValidity],
+  );
+
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
       ...current,
@@ -626,7 +932,9 @@ const SocialProfileOnboardingView: React.FC = () => {
           return;
         }
         setConnectXError(
-          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+          error instanceof XAuthError
+            ? getXConnectError(error)
+            : strings('social_leaderboard.profile_onboarding.connect_x_error'),
         );
       } finally {
         if (connectAbortRef.current === controller) {
@@ -676,7 +984,19 @@ const SocialProfileOnboardingView: React.FC = () => {
     acceptSocialTerms().catch(() => undefined);
     if (pendingTermsOnly) {
       setPendingTermsOnly(false);
-      navigation.goBack();
+      // The termsOnly route is pushed by a Social entry gate that expects to
+      // return to its caller. An existing profile found on open has no caller
+      // to return to, so it opens the Social tab instead.
+      if (openPendingSocialPreviewTarget(navigation)) {
+        return;
+      }
+      if (isTermsOnlyRoute) {
+        const openPendingEntry = takePendingSocialEntry();
+        navigation.goBack();
+        openPendingEntry?.();
+      } else {
+        finishProfileOnboardingToSocialTab(navigation);
+      }
       return;
     }
     const path = pendingTermsPath;
@@ -688,7 +1008,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     }
   }, [
     beginConnectX,
+    isTermsOnlyRoute,
     navigation,
+    openPendingSocialPreviewTarget,
     pendingTermsOnly,
     pendingTermsPath,
     startManualPath,
@@ -782,11 +1104,21 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (outcome !== 'available') {
         return;
       }
+      if (step === 'username' && !(await checkDisplayName(draft.displayName))) {
+        return;
+      }
       setStep(step === 'x-identity' ? 'account' : 'avatar');
     } finally {
       setIsSubmitting(false);
     }
-  }, [checkHandle, clearUsernameCheckTimer, draft, playSelection, step]);
+  }, [
+    checkDisplayName,
+    checkHandle,
+    clearUsernameCheckTimer,
+    draft,
+    playSelection,
+    step,
+  ]);
 
   const fingerprintForDraft = (
     current: ProfileOnboardingDraft,
@@ -800,12 +1132,20 @@ const SocialProfileOnboardingView: React.FC = () => {
     );
   };
 
-  const writeOnboardingProfile = async (current: ProfileOnboardingDraft) => {
+  /**
+   * @returns `existing` when the session already owns a profile, so nothing
+   * was written.
+   */
+  const writeOnboardingProfile = async (
+    current: ProfileOnboardingDraft,
+  ): Promise<'saved' | 'existing'> => {
     const linkedAccount = accountsRef.current.find(
       (account) => account.id === current.linkedAccountId,
     );
-    const profileId =
-      (await getSocialProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+    const profileId = await getSocialProfileId();
+    if (!profileId) {
+      throw new Error('Social profile id is not available');
+    }
     const params = buildCreateProfileParams(
       current,
       profileId,
@@ -823,9 +1163,22 @@ const SocialProfileOnboardingView: React.FC = () => {
         avatar_url: params.avatar_url,
         trading_privacy: params.trading_privacy,
       });
-      return;
+      return 'saved';
+    }
+    // The check on open ends without an answer when sign-in or the profile
+    // read fails. Ask again now that there is a profile id, so a profile that
+    // already exists is never replaced.
+    if (
+      existingProfileLookupResultRef.current !== 'not-found' &&
+      (await lookUpExistingSocialProfile(
+        profileId,
+        fetchAndUpdateProfileRef.current,
+      )) === 'found'
+    ) {
+      return 'existing';
     }
     await createProfileRef.current(params);
+    return 'saved';
   };
 
   const publishCreatedProfile = (current: ProfileOnboardingDraft) => {
@@ -852,15 +1205,24 @@ const SocialProfileOnboardingView: React.FC = () => {
       setFinishError(null);
       setIsSubmitting(true);
       const hadProfile = serverProfileFingerprintRef.current !== null;
+      let writeResult: 'saved' | 'existing';
       try {
-        await writeOnboardingProfile(currentDraft);
-      } catch {
+        writeResult = await writeOnboardingProfile(currentDraft);
+      } catch (error) {
         if (stepRef.current === 'ready') {
           setFinishError(
-            strings('social_leaderboard.profile_onboarding.save_error'),
+            getProfileCreateErrorCopy(error) ??
+              strings('social_leaderboard.profile_onboarding.save_error'),
           );
         }
         setIsSubmitting(false);
+        return;
+      }
+      if (writeResult === 'existing') {
+        setIsSubmitting(false);
+        if (navigation.isFocused()) {
+          openExistingProfile();
+        }
         return;
       }
       serverProfileFingerprintRef.current = fingerprint;
@@ -970,14 +1332,23 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
+    if (openPendingSocialPreviewTarget(navigation)) {
+      return;
+    }
     if (draft.path === 'x') {
       // Replace drops onboarding from the stack. My Profile's replace is a pop,
       // so this screen's slide_from_left plays and it leaves toward the left.
       navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
       return;
     }
+    const openPendingEntry = takePendingSocialEntry();
+    if (openPendingEntry) {
+      navigation.goBack();
+      openPendingEntry();
+      return;
+    }
     finishProfileOnboardingToSocialTab(navigation);
-  }, [draft.path, navigation]);
+  }, [draft.path, navigation, openPendingSocialPreviewTarget]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
@@ -1040,17 +1411,16 @@ const SocialProfileOnboardingView: React.FC = () => {
             <SafeAreaInsetsContext.Provider value={introInsets}>
               <MarketingMoment
                 testID={SocialProfileOnboardingSelectorsIDs.INTRO}
-                title={strings(
-                  'social_leaderboard.profile_onboarding.intro_title',
-                )}
-                titleProps={{
-                  testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
-                  twClassName: 'px-1',
-                  variant: TextVariant.DisplayLg,
-                }}
+                title={<IntroStepTitle step={introSceneStep} />}
+                // 20px matches "Claim a username": that step's progress bar
+                // is an 8px inset plus a 4px track, then pt-2. The intro has
+                // no progress bar, so this margin makes up the difference.
+                copyClassName="mt-5"
                 artwork={
                   <ProfileOnboardingIntroAnimation
                     fallback={<LiveActivityFallback />}
+                    onStepChange={handleIntroSceneStep}
+                    paused={rivePaused}
                   />
                 }
                 artworkWrapperProps={{
@@ -1076,8 +1446,8 @@ const SocialProfileOnboardingView: React.FC = () => {
                     'social_leaderboard.profile_onboarding.connect_x',
                   ),
                   onPress: handleConnectX,
-                  isLoading: isConnectingX,
-                  isDisabled: isConnectingX,
+                  isLoading: isConnectingX || isCheckingExistingProfile,
+                  isDisabled: isConnectingX || isCheckingExistingProfile,
                   testID: SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
                 }}
                 secondaryAction={{
@@ -1085,7 +1455,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     'social_leaderboard.profile_onboarding.create_manually',
                   ),
                   onPress: handleCreateManually,
-                  isDisabled: isConnectingX,
+                  isDisabled: isConnectingX || isCheckingExistingProfile,
                   testID:
                     SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
                 }}
@@ -1117,7 +1487,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   gap={4}
                   testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STEP}
                 >
-                  <OnboardingTitle twClassName="pt-2">
+                  <OnboardingTitle twClassName="pt-4 pb-5">
                     {strings(
                       'social_leaderboard.profile_onboarding.claim_username',
                     )}
@@ -1176,28 +1546,40 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.displayName}
                       onChangeText={handleDisplayNameChange}
+                      isError={Boolean(displayNameError)}
                       endAccessory={
-                        draft.displayName.trim() ? (
+                        draft.displayName.trim() && !displayNameError ? (
                           <Icon
                             name={IconName.Check}
                             size={IconSize.Sm}
-                            color={IconColor.PrimaryDefault}
+                            color={IconColor.SuccessDefault}
                           />
                         ) : undefined
                       }
                       inputProps={{
                         autoCapitalize: 'words',
+                        maxLength: MAX_DISPLAY_NAME_LENGTH,
                         testID:
                           SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
                       }}
                     />
+                    {displayNameError ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.ErrorDefault}
+                        accessibilityRole="alert"
+                        accessibilityLiveRegion="polite"
+                      >
+                        {displayNameError}
+                      </Text>
+                    ) : null}
                   </Box>
                 </Box>
               ) : null}
 
               {step === 'avatar' ? (
                 <Box alignItems={BoxAlignItems.Center}>
-                  <OnboardingTitle twClassName="pt-2 pb-14">
+                  <OnboardingTitle twClassName="m-0.5 pt-3 pb-8">
                     {strings(
                       'social_leaderboard.profile_onboarding.customize_avatar',
                     )}
@@ -1213,14 +1595,11 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'account' ? (
                 <Box
-                  gap={4}
+                  gap={3}
                   twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
-                  <OnboardingTitle
-                    twClassName="pt-2"
-                    textStyle={DISPLAY_LG_LINE_STYLE}
-                  >
+                  <OnboardingTitle twClassName="m-0.5 pt-3 px-3 pb-3">
                     {strings(
                       'social_leaderboard.profile_onboarding.link_account',
                     )}
@@ -1278,13 +1657,15 @@ const SocialProfileOnboardingView: React.FC = () => {
                       avatarPresetId={draft.avatarPresetId}
                       avatarBackgroundId={draft.avatarBackgroundId}
                       imageUrl={readyImageUrl}
-                      isVerified={draft.path === 'x'}
+                      isVerified={isProfileCreatedAndVerified}
+                      paused={rivePaused}
                       fallback={
                         <ReadyCardFallback
                           avatarPresetId={draft.avatarPresetId}
                           avatarBackgroundId={draft.avatarBackgroundId}
                           imageUrl={readyImageUrl}
                           handle={username}
+                          isVerified={isProfileCreatedAndVerified}
                         />
                       }
                     />

@@ -5,9 +5,9 @@ import KycSumSub, { KycSumSubSelectorsIDs } from './SumSubKyc';
 import Engine from '../../../../../core/Engine';
 import I18n from '../../../../../../locales/i18n';
 import { toSumSubLocale } from '../../utils/toSumSubLocale';
-import Routes from '../../../../../constants/navigation/Routes';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 const mockOnSubmitted = jest.fn();
+const mockOnExit = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockParentGoBack = jest.fn();
@@ -79,14 +79,16 @@ describe('KycSumSub', () => {
 
   it('renders the container', () => {
     const { getByTestId } = renderWithProvider(
-      <KycSumSub onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
     );
 
     expect(getByTestId(KycSumSubSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
   it('launches SumSub on mount then reports submission', async () => {
-    renderWithProvider(<KycSumSub onSubmitted={mockOnSubmitted} />);
+    renderWithProvider(
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
+    );
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
@@ -106,7 +108,7 @@ describe('KycSumSub', () => {
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
     const { getByTestId } = renderWithProvider(
-      <KycSumSub onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
     );
 
     await waitFor(() => {
@@ -120,7 +122,7 @@ describe('KycSumSub', () => {
 
   it('launches SumSub on mount without the more-info interstitial', async () => {
     const { getByTestId } = renderWithProvider(
-      <KycSumSub onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
     );
 
     await waitFor(() => {
@@ -135,7 +137,7 @@ describe('KycSumSub', () => {
     mockKycController.launchProviderFlow.mockResolvedValue('failed');
 
     const { getByTestId } = renderWithProvider(
-      <KycSumSub onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
     );
 
     await waitFor(() => {
@@ -150,7 +152,7 @@ describe('KycSumSub', () => {
     );
 
     const { getByTestId } = renderWithProvider(
-      <KycSumSub onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
     );
 
     await waitFor(() => {
@@ -170,7 +172,7 @@ describe('KycSumSub', () => {
     );
 
     const { getByTestId, queryByTestId, unmount } = renderWithProvider(
-      <KycSumSub onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
     );
 
     await waitFor(() => {
@@ -189,21 +191,21 @@ describe('KycSumSub', () => {
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
-  it('goes to Money home when an abandoned flow has nothing to pop', async () => {
+  it('calls onExit when an abandoned flow has nothing to pop', async () => {
     mockCanGoBack.mockReturnValue(false);
     mockParentCanGoBack.mockReturnValue(false);
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
-    renderWithProvider(<KycSumSub onSubmitted={mockOnSubmitted} />);
+    renderWithProvider(
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
+    );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockOnExit).toHaveBeenCalledTimes(1);
     });
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockParentGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('falls back to the parent navigator when an abandoned flow cannot pop the current stack', async () => {
@@ -211,7 +213,9 @@ describe('KycSumSub', () => {
     mockParentCanGoBack.mockReturnValue(true);
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
-    renderWithProvider(<KycSumSub onSubmitted={mockOnSubmitted} />);
+    renderWithProvider(
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
+    );
 
     await waitFor(() => {
       expect(mockParentGoBack).toHaveBeenCalledTimes(1);
@@ -225,7 +229,7 @@ describe('KycSumSub', () => {
     );
 
     const { getByTestId } = renderWithProvider(
-      <KycSumSub onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
     );
 
     await waitFor(() => {

@@ -1,5 +1,8 @@
 import {
-  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
+  PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
+} from '../MyProfileView/avatarPresets';
+import {
   applyXOnboardingProfile,
   startManualOnboarding,
   buildCreateProfileParams,
@@ -13,6 +16,8 @@ import {
   onboardingProfileFingerprint,
   type XOnboardingIdentity,
 } from './profileOnboardingDraft';
+
+const PROFILE_ID = 'session-profile-id';
 
 const X_IDENTITY: XOnboardingIdentity = {
   username: 'degangirl',
@@ -41,6 +46,38 @@ describe('profileOnboardingDraft', () => {
 
     expect(draft.username).toBe('bonk_turbo_queen');
     expect(draft.displayName).toBe('Bonk Turbo Queen');
+  });
+
+  it('starts the draft on the first avatar and the first middle backdrop when the random draw is zero', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.avatarPresetId).toBe(PROFILE_AVATAR_PRESETS[0].id);
+    expect(draft.avatarBackgroundId).toBe(PROFILE_AVATAR_BACKGROUNDS[2].id);
+  });
+
+  it('starts the draft on a later avatar and the last middle backdrop when the random draw moves on', () => {
+    const avatarIndex = 2;
+    const backgroundIndex = 4;
+    let call = 0;
+    jest.spyOn(Math, 'random').mockImplementation(() => {
+      call += 1;
+      if (call <= 3) {
+        return 0;
+      }
+      if (call === 4) {
+        return avatarIndex / PROFILE_AVATAR_PRESETS.length;
+      }
+      return 0.999;
+    });
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.avatarPresetId).toBe(PROFILE_AVATAR_PRESETS[avatarIndex].id);
+    expect(draft.avatarBackgroundId).toBe(
+      PROFILE_AVATAR_BACKGROUNDS[backgroundIndex].id,
+    );
   });
 
   it('builds a display name from an underscored handle', () => {
@@ -186,10 +223,9 @@ describe('profileOnboardingDraft', () => {
         connectedToX: true,
       }),
     );
-    expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID)
-        .avatar_url,
-    ).toBe(X_IDENTITY.avatarUrl);
+    expect(buildCreateProfileParams(draft, PROFILE_ID).avatar_url).toBe(
+      X_IDENTITY.avatarUrl,
+    );
   });
 
   it('preserves the casing of an imported X username in the draft and profile', () => {
@@ -241,14 +277,14 @@ describe('profileOnboardingDraft', () => {
       ...createInitialOnboardingDraft(),
       username: ' @Wen_Cat ',
       displayName: 'Wen Cat',
+      avatarPresetId: 'vr',
+      avatarBackgroundId: 'background3',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
     };
 
-    expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID),
-    ).toEqual({
-      profile_id: 'social-v1-profile',
+    expect(buildCreateProfileParams(draft, PROFILE_ID)).toEqual({
+      profile_id: PROFILE_ID,
       username: 'Wen_Cat',
       display_name: 'Wen Cat',
       bio: null,
@@ -269,9 +305,8 @@ describe('profileOnboardingDraft', () => {
     ] as const;
 
     expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID, [
-        ...linkedAddresses,
-      ]).linked_addresses,
+      buildCreateProfileParams(draft, PROFILE_ID, [...linkedAddresses])
+        .linked_addresses,
     ).toEqual(linkedAddresses);
   });
 });

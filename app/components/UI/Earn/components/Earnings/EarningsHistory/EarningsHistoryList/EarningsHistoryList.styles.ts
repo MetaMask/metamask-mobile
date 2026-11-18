@@ -5,7 +5,7 @@ const styleSheet = () =>
     earningsHistoryListContainer: {
       flex: 1,
       paddingTop: 24,
-      paddingBottom: 35,
+      paddingBottom: 32,
     },
     lineItemContainer: {
       flex: 1,

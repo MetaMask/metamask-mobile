@@ -578,7 +578,10 @@ describe('SocialV0View', () => {
       expect(mockUseABTest).toHaveBeenCalledWith(
         'socialAiTSA1122AbtestSocialBundleV1',
         expect.anything(),
-        expect.objectContaining({ experimentName: 'Social V1' }),
+        expect.objectContaining({
+          experimentName: 'Social V1',
+          trackExposure: true,
+        }),
       );
     });
   });
