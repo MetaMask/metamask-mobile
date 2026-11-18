@@ -41,7 +41,11 @@ describe('useIsMemeToken', () => {
 
     const { result } = renderHook(() => useIsMemeToken({ assetId: ASSET_ID }));
 
-    expect(result.current).toStrictEqual({ isMeme: true, isLoading: false });
+    expect(result.current).toStrictEqual({
+      isMeme: true,
+      isLoading: false,
+      asset: { launchpadData },
+    });
   });
 
   it('treats a token without launchpad data as a standard token', () => {
@@ -53,7 +57,11 @@ describe('useIsMemeToken', () => {
 
     const { result } = renderHook(() => useIsMemeToken({ assetId: ASSET_ID }));
 
-    expect(result.current).toStrictEqual({ isMeme: false, isLoading: false });
+    expect(result.current).toStrictEqual({
+      isMeme: false,
+      isLoading: false,
+      asset: { launchpadData: null },
+    });
   });
 
   it('reports loading while the asset request is in flight', () => {
@@ -65,7 +73,11 @@ describe('useIsMemeToken', () => {
 
     const { result } = renderHook(() => useIsMemeToken({ assetId: ASSET_ID }));
 
-    expect(result.current).toStrictEqual({ isMeme: false, isLoading: true });
+    expect(result.current).toStrictEqual({
+      isMeme: false,
+      isLoading: true,
+      asset: null,
+    });
   });
 
   // Detection has to ask the host the page itself reads, or it would judge a

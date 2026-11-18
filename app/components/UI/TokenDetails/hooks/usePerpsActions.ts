@@ -1,18 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   usePerpsMarketForAsset,
   type UsePerpsMarketForAssetResult,
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { selectPerpsEnabledFlag } from '../../Perps/selectors/featureFlags';
-import { selectMemecoinTdpV1TokenApiBaseUrl } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
-import { useTokenCaipAssetId } from './useTokenCaipAssetId';
 import { useIsPerpsProModeActive } from '../../Perps/utils/perpsModeSwitch';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../Perps/hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -24,10 +18,7 @@ import {
 export interface UsePerpsActionsParams {
   /** Token symbol, or null to skip the perps market check */
   symbol: string | null;
-  token?: Pick<
-    TokenDetailsRouteParams,
-    'rwaData' | 'caipAssetId' | 'address' | 'chainId'
-  >;
+  token?: Pick<TokenDetailsRouteParams, 'rwaData'>;
   /** When true, signals that navigation originated from the token details screen */
   fromTokenDetails?: boolean;
   /** Homepage / explicit flow tests for Transaction Added attribution */
@@ -75,21 +66,7 @@ export const usePerpsActions = ({
     trackExposure: false,
   });
 
-  const assetId = useTokenCaipAssetId(token ?? { address: '' });
-  const tokenApiBaseUrl = useSelector(selectMemecoinTdpV1TokenApiBaseUrl);
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
-  const { asset } = useTokenAssetDetails(
-    token && isPerpsEnabled && isBasicFunctionalityEnabled ? assetId : null,
-    tokenApiBaseUrl,
-  );
-  const fetchedTicker = (asset?.rwaData as { ticker?: unknown } | null)?.ticker;
-  const rwaTicker =
-    token?.rwaData?.ticker ||
-    (typeof fetchedTicker === 'string' ? fetchedTicker : '');
-
+  const rwaTicker = token?.rwaData?.ticker;
   const perpSymbol = rwaTicker || symbol || '';
 
   const { hasPerpsMarket, marketData, isLoading, error } =

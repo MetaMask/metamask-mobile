@@ -39,7 +39,7 @@ describe('useTokenDetailsVariant', () => {
     isLoading?: boolean;
   }) => {
     mockUseSelector.mockReturnValue(isFlagEnabled);
-    mockUseIsMemeToken.mockReturnValue({ isMeme, isLoading });
+    mockUseIsMemeToken.mockReturnValue({ isMeme, isLoading, asset: null });
 
     return renderHook(() => useTokenDetailsVariant(token));
   };
@@ -50,6 +50,7 @@ describe('useTokenDetailsVariant', () => {
     expect(result.current).toStrictEqual({
       variant: TokenDetailsVariant.Memecoin,
       isLoading: false,
+      asset: null,
     });
   });
 
@@ -59,6 +60,7 @@ describe('useTokenDetailsVariant', () => {
     expect(result.current).toStrictEqual({
       variant: null,
       isLoading: false,
+      asset: null,
     });
   });
 
@@ -68,6 +70,7 @@ describe('useTokenDetailsVariant', () => {
     expect(result.current).toStrictEqual({
       variant: null,
       isLoading: false,
+      asset: null,
     });
   });
 
@@ -81,6 +84,7 @@ describe('useTokenDetailsVariant', () => {
     expect(result.current).toStrictEqual({
       variant: null,
       isLoading: true,
+      asset: null,
     });
   });
 
@@ -94,6 +98,7 @@ describe('useTokenDetailsVariant', () => {
     expect(result.current).toStrictEqual({
       variant: null,
       isLoading: false,
+      asset: null,
     });
   });
 

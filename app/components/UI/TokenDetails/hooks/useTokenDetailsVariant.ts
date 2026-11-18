@@ -6,11 +6,13 @@ import {
 } from '../constants/constants';
 import { useIsMemeToken } from './useIsMemeToken';
 import { useTokenCaipAssetId } from './useTokenCaipAssetId';
+import type { TokenAssetRecord } from '../queries/tokenAssetQuery';
 
 export interface UseTokenDetailsVariantResult {
   variant: TokenDetailsVariant | null;
   /** `true` while the meme-token signal is still loading from the API. */
   isLoading: boolean;
+  asset: TokenAssetRecord | null;
 }
 
 /**
@@ -26,17 +28,18 @@ export const useTokenDetailsVariant = (
   const caipAssetId = useTokenCaipAssetId(token);
 
   const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
-  const { isMeme, isLoading } = useIsMemeToken({
+  const { isMeme, isLoading, asset } = useIsMemeToken({
     assetId: caipAssetId,
     enabled: isMemecoinTdpEnabled,
   });
 
   if (isMemecoinTdpEnabled && isMeme) {
-    return { variant: TokenDetailsVariant.Memecoin, isLoading: false };
+    return { variant: TokenDetailsVariant.Memecoin, isLoading: false, asset };
   }
 
   return {
     variant: null,
     isLoading: isMemecoinTdpEnabled && isLoading,
+    asset,
   };
 };
