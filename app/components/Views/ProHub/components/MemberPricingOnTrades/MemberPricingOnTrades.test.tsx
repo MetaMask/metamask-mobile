@@ -247,8 +247,8 @@ describe('TradeAllowanceRow', () => {
 
     const row = getByTestId(MemberPricingOnTradesTestIds.ROW('swaps'));
 
-    expect(row).toHaveTextContent(toRegex('$310'));
-    expect(row).toHaveTextContent(toRegex('$500'));
+    expect(row).toHaveTextContent(toRegex('$310.00'));
+    expect(row).toHaveTextContent(toRegex('$500.00'));
   });
 
   it('renders predict usage as a count value', () => {
@@ -289,7 +289,7 @@ describe('TradeAllowanceRow', () => {
   it('rounds fractional progress fill width to a whole percent', () => {
     const fractionalItem: TradeAllowanceItem = {
       id: 'swaps',
-      used: 1,
+      used: 2,
       allowance: 3,
       kind: 'currency',
     };
@@ -301,7 +301,7 @@ describe('TradeAllowanceRow', () => {
     );
 
     expect(getFlattenedStyle(fill.props.style)).toEqual(
-      expect.objectContaining({ width: '33%' }),
+      expect.objectContaining({ width: '67%' }),
     );
   });
 
@@ -329,7 +329,57 @@ describe('TradeAllowanceRow', () => {
     });
   });
 
-  it('clamps progress fill width to 100% when used exceeds allowance', () => {
+  it.each([
+    [999.67, '$999.67'],
+    [999.6, '$999.60'],
+    [999.4, '$999.40'],
+  ])('formats %s as %s', (used, expected) => {
+    const { getByTestId } = renderTradeAllowanceRow({
+      id: 'swaps',
+      used,
+      allowance: 1000,
+      kind: 'currency',
+    });
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).toHaveTextContent(toRegex(expected));
+  });
+
+  it('shows a 1% bar when usage is below 1%', () => {
+    const { getByTestId } = renderTradeAllowanceRow({
+      id: 'swaps',
+      used: 4.99,
+      allowance: 500,
+      kind: 'currency',
+    });
+
+    expect(
+      getFlattenedStyle(
+        getByTestId(MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps')).props
+          .style,
+      ),
+    ).toEqual(expect.objectContaining({ width: '1%' }));
+  });
+
+  it('keeps a near-cap meter short of a full bar until it is exhausted', () => {
+    const { getByTestId } = renderTradeAllowanceRow({
+      id: 'swaps',
+      used: 999.6,
+      allowance: 1000,
+      kind: 'currency',
+      exhausted: false,
+    });
+
+    expect(
+      getFlattenedStyle(
+        getByTestId(MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps')).props
+          .style,
+      ),
+    ).toEqual(expect.objectContaining({ width: '99%' }));
+  });
+
+  it('fills the bar when used has reached the allowance before exhaustion', () => {
     const overAllowanceItem: TradeAllowanceItem = {
       id: 'swaps',
       used: 600,

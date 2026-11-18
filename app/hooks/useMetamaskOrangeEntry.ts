@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 import { strings } from '../../locales/i18n';
 import {
@@ -9,6 +10,8 @@ import {
   SCREEN_NAMES,
 } from '../components/UI/Money/constants/moneyEvents';
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
+import { selectMoneyAccountAccessBlockReason } from '../components/UI/Money/selectors/visibility';
+import useSubscriptions from '../components/hooks/useSubscriptions';
 import Routes from '../constants/navigation/Routes';
 import type { AppNavigationProp } from '../core/NavigationService/types';
 import {
@@ -24,7 +27,8 @@ export interface UseMetamaskOrangeEntryResult {
    * True when the Pro flow is on and the label is already known. Home starts
    * the subscriptions fetch, so the row is present with the right copy when
    * the menu opens. It stays hidden until a membership is stored or the
-   * fetch settles on a non-member.
+   * fetch settles on a non-member. A blocked Money Account hides the join
+   * row. An existing member still sees the row and can open Pro Hub.
    */
   showOrangeEntry: boolean;
   /** Subscriber or join label, already localized. */
@@ -49,12 +53,17 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const navigation = useNavigation<AppNavigationProp>();
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const { access, isSubscriptionsSettled } = useMoneyAccountPlusAccessState();
+  const accessBlockReason = useSelector(selectMoneyAccountAccessBlockReason);
+  const isAccessOpen = accessBlockReason === undefined;
   const hasMembership = useHasProMembership();
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
   });
-  // Home starts the subscriptions query, so a stored plan labels the row
-  // before any refetch here finishes.
+  // Home starts the subscriptions query when access is open. A blocked
+  // country still fetches here so a restored member is not left hidden.
+  useSubscriptions({
+    enabled: isProSubscriptionEnabled && !isAccessOpen,
+  });
   const entry = isProSubscriptionEnabled
     ? resolveMoneyAccountPlusEntry({
         access,
@@ -63,7 +72,8 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
       })
     : MoneyAccountPlusEntry.Disabled;
   const isMember = entry === MoneyAccountPlusEntry.Hub;
-  const isKnownNonMember = entry === MoneyAccountPlusEntry.Join;
+  // Join stays hidden when Money Account is geo-blocked or turned off.
+  const isKnownNonMember = entry === MoneyAccountPlusEntry.Join && isAccessOpen;
   const showOrangeEntry = isMember || isKnownNonMember;
   const labelKey = isKnownNonMember
     ? 'accounts_menu.join_metamask_orange'
@@ -74,7 +84,8 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
       return;
     }
 
-    // Members open the hub. Only a settled non-member opens Benefits.
+    // Members open the hub, including in a blocked country. Only a settled
+    // non-member with open access opens Benefits.
     const destination = isKnownNonMember
       ? {
           button_intent: MONEY_BUTTON_INTENTS.GET_PRO,

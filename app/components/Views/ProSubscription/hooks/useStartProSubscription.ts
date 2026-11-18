@@ -26,6 +26,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
+import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
@@ -37,11 +38,10 @@ import {
 } from '../utils/proSubscriptionPaymentStatus';
 import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from './isSubscriptionAlreadyStartingError';
 
 const PAYMENT_UNAVAILABLE_ERROR =
   'Money Account subscription payment is unavailable';
-const SUBSCRIPTION_IN_PROGRESS_ERROR =
-  'Money Account subscription is already starting';
 
 function isHexAddress(value: string | undefined): value is Hex {
   return isStrictHexString(value) && isValidHexAddress(value);
@@ -310,9 +310,17 @@ function requireSubscriptionPayment(
  * Maps a failed subscription start to the message shown on the join screen.
  *
  * @param error - Error caught while starting the subscription.
- * @returns Localized join or insufficient-balance copy.
+ * @returns Localized join, access-blocked, or insufficient-balance copy.
  */
 function getStartSubscriptionErrorMessage(error: Error): string {
+  if (error instanceof MoneyAccountAccessBlockedError) {
+    return strings(
+      error.reason === 'geo_blocked'
+        ? 'pro_subscription.join_error_geo_blocked'
+        : 'pro_subscription.join_error_feature_disabled',
+    );
+  }
+
   const isInsufficientBalanceError =
     error.message ===
     SubscriptionDelegationServiceErrorMessage.InsufficientBalance;
@@ -423,7 +431,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
       options?: StartProSubscriptionOptions,
     ): Promise<StartProSubscriptionResult> => {
       if (isSubmittingRef.current) {
-        throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
+        throw new Error(SUBSCRIPTION_ALREADY_STARTING_MESSAGE);
       }
 
       isSubmittingRef.current = true;

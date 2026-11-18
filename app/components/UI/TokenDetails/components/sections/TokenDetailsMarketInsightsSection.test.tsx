@@ -264,30 +264,6 @@ describe('TokenDetailsMarketInsightsSection', () => {
       pricePercentChange: 3.09,
       token,
       source: 'token_details',
-      useAmbientColor: undefined,
-    });
-  });
-
-  it('forwards the ambient color flag to the full insights view (legacy wiring)', () => {
-    const { getByTestId } = render(
-      <TokenDetailsMarketInsightsSection
-        token={token}
-        assetId={assetId as never}
-        securityData={securityData}
-        useAmbientColor
-      />,
-    );
-
-    fireEvent.press(getByTestId('market-insights-entry-card'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MARKET_INSIGHTS.VIEW, {
-      assetSymbol: 'PEPE',
-      assetIdentifier: assetId,
-      tokenImageUrl: 'https://image.png',
-      pricePercentChange: 0,
-      token,
-      source: 'token_details',
-      useAmbientColor: true,
     });
   });
 

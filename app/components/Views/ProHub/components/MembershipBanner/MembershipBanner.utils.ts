@@ -90,8 +90,13 @@ const deactivatedAlert = (): MembershipAlert => ({
   action: MembershipAlertAction.AddFunds,
 });
 
-const cancelledAlert = (date: string | undefined): MembershipAlert => {
-  const formattedDate = formatSubscriptionPeriodEnd(date);
+const cancelledAlert = (
+  date: string | undefined,
+  exclusivePeriodEnd = true,
+): MembershipAlert => {
+  const formattedDate = formatSubscriptionPeriodEnd(date, {
+    exclusivePeriodEnd,
+  });
 
   return {
     severity: BannerAlertSeverity.Warning,
@@ -105,8 +110,13 @@ const cancelledAlert = (date: string | undefined): MembershipAlert => {
   };
 };
 
-const addFundsAlert = (date: string | undefined): MembershipAlert => {
-  const formattedDate = formatSubscriptionPeriodEnd(date);
+const addFundsAlert = (
+  date: string | undefined,
+  exclusivePeriodEnd = true,
+): MembershipAlert => {
+  const formattedDate = formatSubscriptionPeriodEnd(date, {
+    exclusivePeriodEnd,
+  });
 
   return {
     severity: BannerAlertSeverity.Info,
@@ -137,6 +147,7 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
       iconColor: IconColor.PrimaryDefault,
       alert: addFundsAlert(
         subscription.currentPeriodEnd || subscription.endDate,
+        Boolean(subscription.currentPeriodEnd),
       ),
     };
   }
@@ -223,6 +234,7 @@ export const getMembershipBannerModel = (
       iconColor: IconColor.WarningDefault,
       alert: cancelledAlert(
         subscription.currentPeriodEnd || subscription.canceledAt,
+        Boolean(subscription.currentPeriodEnd),
       ),
     };
   }

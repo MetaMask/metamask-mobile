@@ -35,6 +35,7 @@ import { formatPerpsBalance } from '../../utils/formatUtils';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   createBtcMarketForViews,
+  createCrossMarginAccountForViews,
   createEthMarketForViews,
   createFundedAccountForViews,
   createHomeExploreAssignmentForViews,
@@ -44,8 +45,11 @@ import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  getPerpsCrossMarginSummaryLabelSelector,
   getPerpsLiveTradeRowSelector,
   getPerpsMarketRowItemSelector,
+  PerpsBalanceBottomSheetSelectorsIDs,
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
@@ -68,6 +72,7 @@ import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import {
   clearPerpsOutreachApiMocks,
   setupPerpsOutreachApiMock,
+  waitForPerpsOutreachQuery,
 } from '../../../../../../tests/component-view/api-mocking/perpsOutreach';
 import {
   clearLeaderboardApiMock,
@@ -141,26 +146,21 @@ describe('PerpsHomeView', () => {
     clearPerpsOutreachApiMocks();
   });
 
-  // Temporarily skipped: flaky on CI when run first/cold in shard 1
-  // (`Unable to find an element with testID: perps-outreach-banner`).
-  // https://github.com/MetaMask/metamask-mobile/issues/39860 (MCWP-1192)
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('shows and dismisses an eligible Terminal outreach campaign', async () => {
+  it('shows and dismisses an eligible Terminal outreach campaign', async () => {
     // The fixture's selected account enables the outreach query on the first
     // render. Leave the session profile unset: a profile that resolves after
     // mount changes the query key, aborts the in-flight request, and makes the
     // banner wait on a second round trip.
-    renderPerpsHomeView({
+    const { queryClient } = renderPerpsHomeView({
       overrides: eligibleOverrides,
     });
 
-    // Waits on the single Terminal outreach request keyed by the account.
+    // On CI this case runs first in a fresh worker, where cold post-mount work
+    // can outlast any `findBy*` budget. Wait for the answer, not a deadline.
+    await act(() => waitForPerpsOutreachQuery(queryClient));
+
     expect(
-      await screen.findByTestId(
-        PerpsOutreachBannerSelectorsIDs.BANNER,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      screen.getByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -2865,5 +2865,206 @@ describe('PerpsHomeView', () => {
       ).toBeNull();
       expect(headerExposureEvents()).toEqual([]);
     });
+  });
+});
+
+describe('Perps home cross margin risk', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearExploreSessionTab();
+    setupPerpsOutreachApiMock();
+  });
+
+  afterEach(() => {
+    cleanup();
+    clearExploreSessionTab();
+    clearPerpsOutreachApiMocks();
+  });
+
+  const fundedCrossAccount = (
+    maintenanceMargin: string,
+    marginUsed: string,
+    notional: string,
+  ) =>
+    createCrossMarginAccountForViews({
+      maintenanceMargin,
+      marginUsed,
+      notional,
+    });
+
+  const renderCrossHome = (
+    account: ReturnType<typeof fundedCrossAccount>,
+    privacyMode = false,
+  ) =>
+    renderPerpsHomeView({
+      crossMarginEnabled: true,
+      overrides: {
+        ...eligibleOverrides,
+        engine: {
+          backgroundState: {
+            ...eligibleOverrides.engine.backgroundState,
+            PreferencesController: { privacyMode },
+          },
+        },
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+  it('shows a warning banner and opens the balance summary from the available balance', async () => {
+    renderCrossHome(fundedCrossAccount('610', '730', '3200'));
+
+    expect(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER,
+      ),
+    ).toHaveTextContent(
+      strings('perps.crossMarginRatio.description', { ratio: '61%' }),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('61%');
+    expect(
+      screen.getByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
+        { includeHiddenElements: true },
+      ),
+    ).toBeOnTheScreen();
+    // Usage is 73% here, but only the ratio carries a risk tone.
+    expect(
+      screen.getByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE,
+      ),
+    ).toHaveTextContent('73%');
+    expect(
+      screen.queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE}-tone`,
+        { includeHiddenElements: true },
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsCrossMarginSummaryLabelSelector('account_ratio'),
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(strings('perps.tooltips.account_ratio.content'));
+  });
+
+  it('opens a safe balance summary without a home banner or risk icon', async () => {
+    renderCrossHome(fundedCrossAccount('174', '200', '100'));
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON,
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('17.4%');
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
+        { includeHiddenElements: true },
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps a high cross margin usage neutral while the account ratio is safe', async () => {
+    // Maintenance $100 and margin used $800 on $1,000 of collateral: a healthy
+    // account at 10% ratio that has used 80% of its margin.
+    renderCrossHome(fundedCrossAccount('100', '800', '2000'));
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON,
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('10%');
+    expect(
+      screen.getByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE,
+      ),
+    ).toHaveTextContent('80%');
+    expect(
+      screen.queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE}-tone`,
+        { includeHiddenElements: true },
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('masks the ratio while privacy mode is on', async () => {
+    renderCrossHome(fundedCrossAccount('800', '800', '2000'), true);
+
+    expect(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER,
+      ),
+    ).toHaveTextContent(
+      strings('perps.crossMarginRatio.description', { ratio: '••••••' }),
+    );
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON,
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('••••••');
+    expect(screen.queryByText('80%')).not.toBeOnTheScreen();
+  });
+
+  it('shows the available balance as plain text when the Cross margin flag is off', async () => {
+    renderPerpsHomeView({
+      overrides: eligibleOverrides,
+      streamOverrides: {
+        account: fundedCrossAccount('610', '730', '3200'),
+        positions: [],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_ROW,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+    ).not.toBeOnTheScreen();
   });
 });

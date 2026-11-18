@@ -167,8 +167,9 @@ const ProHub = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // Statuses the hub banner can show stay. Unknown access waits for the
-  // first fetch. A canceled, incomplete, or missing plan leaves.
+  // Statuses the hub banner can show stay, including in a blocked country,
+  // so a member can still cancel. Unknown access waits for the first fetch.
+  // A canceled, incomplete, or missing plan leaves.
   useEffect(() => {
     if (
       entry === MoneyAccountPlusEntry.Hub ||

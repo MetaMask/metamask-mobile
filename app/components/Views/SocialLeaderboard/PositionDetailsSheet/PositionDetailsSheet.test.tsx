@@ -56,6 +56,14 @@ jest.mock('@metamask/bridge-controller', () => {
   };
 });
 
+const mockIsCopyTradeAllowed = jest.fn(() => true);
+
+// The sheet test renders without a Redux provider. Copy-trade visibility for a
+// real geolocation is covered by SocialV1View.view.test.tsx.
+jest.mock('../../../UI/SocialFeed/hooks/useIsCopyTradeAllowed', () => ({
+  useIsCopyTradeAllowed: () => mockIsCopyTradeAllowed(),
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockOpenPerpsOrder = jest.fn();
@@ -330,6 +338,7 @@ describe('PositionDetailsSheet', () => {
     mockProfile = { profileId: 'viewer-1', linkedAccountAddress: '0xViewer' };
     mockIsFollowing = false;
     mockHeldBalance = undefined;
+    mockIsCopyTradeAllowed.mockReturnValue(true);
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     mockEnsureSocialTermsAccepted.mockReturnValue(true);
     mockIsMemeToken = { isMeme: false, isLoading: false };
@@ -806,7 +815,7 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityLabel,
-    ).toContain('40x');
+    ).not.toContain('40x');
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityHint,
@@ -1064,6 +1073,18 @@ describe('PositionDetailsSheet', () => {
           { translationY },
         ]);
       });
+
+    it('hides Copy trade when geolocation disallows it', () => {
+      mockIsCopyTradeAllowed.mockReturnValue(false);
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+    });
 
     it('opens collapsed so the footer stays in view', () => {
       render(<PositionDetailsSheet />);
