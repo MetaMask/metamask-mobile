@@ -27,6 +27,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import Logger from '../../../../../util/Logger';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
@@ -49,6 +50,7 @@ import { PredictWithdrawFlowTestIds } from './internal/PredictWithdrawFlow.testI
 import { WithdrawAmountStep } from './internal/WithdrawAmountStep';
 import { WithdrawConfirmStep } from './internal/WithdrawConfirmStep';
 import { WithdrawStatusStep } from './internal/WithdrawStatusStep';
+import { useWithdrawAnnouncement } from './internal/useWithdrawAnnouncement';
 import {
   normalizeWithdrawAmount,
   sanitizeWithdrawAmount,
@@ -244,6 +246,7 @@ export const PredictWithdrawScreen = () => {
   const service = Engine.context.PredictFundingService;
   const privacyMode = useSelector(selectPrivacyMode) === true;
   const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const isWalletUnlocked = useSelector(selectIsUnlocked);
   const balanceQuery = useBalance(venueId);
   const networkTier = useNetworkTier();
   const [state, dispatch] = useReducer(
@@ -253,6 +256,11 @@ export const PredictWithdrawScreen = () => {
 
   const { input } = state;
   const availableBalance = balanceQuery.data?.available;
+  const balanceStatus = balanceQuery.isPending
+    ? 'loading'
+    : availableBalance === undefined
+      ? 'unavailable'
+      : 'ready';
   const isOffline = networkTier === 'NONE';
   const isLowHardware = getHardwareTier() === 'LOW';
   const amountIssue = withdrawAmountIssue(input.amount, availableBalance);
@@ -265,6 +273,14 @@ export const PredictWithdrawScreen = () => {
   const isKeypadLocked =
     state.phase !== 'input' || state.isRequesting || isOffline;
   const isOutcomeUnknown = state.phase === 'status' && state.receipt === null;
+  // A receipt the backend is still working through can always be read again;
+  // automatic polling is not the only way back from a stalled observation.
+  const canCheckWithdrawal =
+    state.phase === 'status' &&
+    state.receipt !== null &&
+    !state.receipt.needsManualReview &&
+    (state.receipt.status === 'pending' ||
+      state.receipt.status === 'processing');
 
   // A lost reply is not a failed withdrawal. Keep this preview reachable until
   // its receipt is recovered; a new preview would mint another idempotency key.
@@ -285,13 +301,20 @@ export const PredictWithdrawScreen = () => {
   /** Once the Commit returns, this screen is the surface observing the
    * Withdrawal: the hook owns the backoff schedule and stops on a terminal
    * receipt, on manual review, or when the screen unmounts. */
-  useWithdrawReceipt({
+  const { isStalled, retry: retryObservation } = useWithdrawReceipt({
     service,
     venueId,
     receipt: state.phase === 'status' ? state.receipt : null,
     networkTier,
+    isWalletUnlocked,
     onReceipt: handleReceipt,
   });
+
+  // A Preview or Commit failure replaces the visible content; announce the
+  // same sentence the screen shows instead of relying on re-exploration.
+  useWithdrawAnnouncement(
+    state.error === null ? null : strings(errorCopyKey(state.error)),
+  );
 
   const handleKeyPress = useCallback(
     (key: string) => {
@@ -400,6 +423,7 @@ export const PredictWithdrawScreen = () => {
           <WithdrawAmountStep
             amount={input.amount}
             availableBalance={availableBalance}
+            balanceStatus={balanceStatus}
             amountIssue={amountIssue}
             isPrivacyMode={privacyMode}
           />
@@ -407,6 +431,8 @@ export const PredictWithdrawScreen = () => {
         <Box twClassName="gap-3 px-4 pb-2">
           {state.error !== null ? (
             <Text
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
               testID={PredictWithdrawFlowTestIds.ERROR}
@@ -474,6 +500,8 @@ export const PredictWithdrawScreen = () => {
           />
           {state.error !== null ? (
             <Text
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
               testID={PredictWithdrawFlowTestIds.ERROR}
@@ -533,9 +561,36 @@ export const PredictWithdrawScreen = () => {
             </Box>
           )}
         </ScrollView>
-        <Box twClassName="px-4 pb-4">
+        <Box twClassName="gap-3 px-4 pb-4">
+          {state.receipt !== null && isStalled ? (
+            <Text
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              testID={PredictWithdrawFlowTestIds.STALLED}
+            >
+              {strings('predict_next.withdraw.status.stalled')}
+            </Text>
+          ) : null}
+          {canCheckWithdrawal ? (
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={retryObservation}
+              isDisabled={isOffline}
+              testID={PredictWithdrawFlowTestIds.CHECK_WITHDRAWAL}
+            >
+              {strings('predict_next.withdraw.retry')}
+            </Button>
+          ) : null}
           <Button
-            variant={ButtonVariant.Primary}
+            variant={
+              state.receipt !== null && isStalled
+                ? ButtonVariant.Secondary
+                : ButtonVariant.Primary
+            }
             size={ButtonSize.Lg}
             isFullWidth
             onPress={state.receipt ? close : handleConfirm}

@@ -20,6 +20,7 @@ import type {
 } from '../../../types';
 import { formatUsd } from '../../../utils/formatUsd';
 import { PredictWithdrawFlowTestIds } from './PredictWithdrawFlow.testIds';
+import { useWithdrawAnnouncement } from './useWithdrawAnnouncement';
 
 interface RejectionCopy {
   title: string;
@@ -126,33 +127,51 @@ export const WithdrawStatusStep = ({
   receipt,
   isPrivacyMode,
 }: WithdrawStatusStepProps) => {
-  if (receipt.status === 'rejected') {
-    const copy = rejectionCopy(
-      receipt.rejectionCode ??
-        // The contract guarantees the code on a rejection; a receipt without
-        // one is treated as the Venue's refusal rather than an empty screen.
-        'venue_rejected',
-    );
+  const rejection =
+    receipt.status === 'rejected'
+      ? rejectionCopy(
+          receipt.rejectionCode ??
+            // The contract guarantees the code on a rejection; a receipt
+            // without one is treated as the Venue's refusal rather than an
+            // empty screen.
+            'venue_rejected',
+        )
+      : null;
+  const copy =
+    receipt.status === 'rejected' ? null : STATUS_COPY[receipt.status];
+  const withdrawn = withdrawnValue(receipt);
+  const isSettled = receipt.status === 'settled';
+  const isSweep = receipt.mode === 'sweep_all';
+
+  // A status reached by polling is asynchronous: screen readers hear the new
+  // outcome without having to re-explore the screen.
+  useWithdrawAnnouncement(
+    rejection
+      ? `${rejection.title}. ${rejection.body}`
+      : receipt.needsManualReview
+        ? `${strings('predict_next.withdraw.status.manual_review.title')}. ${strings('predict_next.withdraw.status.manual_review.body')}`
+        : `${copy?.title ?? ''}${isSettled && withdrawn !== null ? `. ${withdrawn}` : ''}`,
+  );
+
+  if (rejection) {
     return (
       <Box gap={2} testID={PredictWithdrawFlowTestIds.STATUS}>
         <Text
+          accessibilityRole="header"
           variant={TextVariant.HeadingSm}
           color={TextColor.ErrorDefault}
           testID={PredictWithdrawFlowTestIds.STATUS_REJECTION}
         >
-          {copy.title}
+          {rejection.title}
         </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {copy.body}
+          {rejection.body}
         </Text>
       </Box>
     );
   }
 
-  const copy = STATUS_COPY[receipt.status];
-  const withdrawn = withdrawnValue(receipt);
-  const isSettled = receipt.status === 'settled';
-  const isSweep = receipt.mode === 'sweep_all';
+  if (!copy) return null;
   const statusBody =
     !receipt.needsManualReview && copy.body ? (
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -169,7 +188,11 @@ export const WithdrawStatusStep = ({
         testID={PredictWithdrawFlowTestIds.status(receipt.status)}
       >
         <Icon name={copy.icon} size={IconSize.Xl} color={copy.iconColor} />
-        <Text variant={TextVariant.HeadingSm} color={copy.tone}>
+        <Text
+          accessibilityRole="header"
+          variant={TextVariant.HeadingSm}
+          color={copy.tone}
+        >
           {copy.title}
         </Text>
         {isSettled && withdrawn !== null ? (

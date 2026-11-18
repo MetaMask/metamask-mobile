@@ -71,12 +71,18 @@ export const PredictAmountDisplay = ({
     </Box>
   );
 
+  // The figure is an output, not an input: without the value, a grouped
+  // accessible element announces only its label and the entered digits are
+  // absent from the accessibility tree.
+  const accessibilityValue = { text: label };
+
   if (!onAmountPress) {
     return (
       <Box
         accessible
         testID={PredictAmountEntryTestIds.DISPLAY}
         accessibilityLabel={accessibilityLabel}
+        accessibilityValue={accessibilityValue}
       >
         {figure}
       </Box>
@@ -90,6 +96,7 @@ export const PredictAmountDisplay = ({
       testID={PredictAmountEntryTestIds.DISPLAY}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityValue={accessibilityValue}
     >
       {figure}
     </Pressable>

@@ -342,4 +342,17 @@ describe('API emitted error contract at the mobile adapter boundary', () => {
       });
     }
   });
+
+  it('treats the replaying withdrawal read as unknown, not mutation-free', () => {
+    expect(contract.replayingReads).toContain('withdrawals.observe');
+    expect(
+      predictErrorEvidence('observe', 'venue_unavailable', true, {
+        readCanReplay: true,
+      }).mutationRelay,
+    ).toBe('unknown');
+    // A plain read keeps its claim.
+    expect(
+      predictErrorEvidence('observe', 'venue_unavailable', true).mutationRelay,
+    ).toBe('not_a_mutation');
+  });
 });

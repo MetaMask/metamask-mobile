@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 
 import Logger from '../../../../util/Logger';
@@ -26,6 +26,15 @@ const IN_PROGRESS_WITHDRAW_STATUSES: Partial<
 const isInProgressWithdraw = (receipt: PredictWithdrawReceipt): boolean =>
   IN_PROGRESS_WITHDRAW_STATUSES[receipt.status] === true;
 
+export interface WithdrawReceiptObservation {
+  /** Automatic reads stopped after their consecutive-failure budget ran out.
+   * The surface must offer a way to resume the same Preview. */
+  isStalled: boolean;
+  /** Resumes observation of the same Preview, resetting the failure budget.
+   * Never starts a new quote or another withdrawal. */
+  retry: () => void;
+}
+
 export interface UseWithdrawReceiptOptions {
   service: Pick<PredictFundingService, 'observeWithdraw'>;
   venueId: PredictVenueId;
@@ -34,6 +43,10 @@ export interface UseWithdrawReceiptOptions {
   receipt: PredictWithdrawReceipt | null;
   /** Read at scheduling time, so a tier change never restarts the loop. */
   networkTier: NetworkTier | null;
+  /** A locked vault cannot resolve a bearer token, so reads are paused rather
+   * than spending the failure budget behind the Login screen. Unlocking
+   * restarts observation of the same Preview. */
+  isWalletUnlocked?: boolean;
   onReceipt: (receipt: PredictWithdrawReceipt) => void;
 }
 
@@ -43,18 +56,34 @@ export interface UseWithdrawReceiptOptions {
  * app is not active or the connection is known to be gone, and stops when the
  * receipt leaves an in-progress status, the backend asks for manual review,
  * or the surface unmounts. Nothing is persisted.
+ *
+ * Once the failure budget is spent the loop stops, but the receipt stays on
+ * screen and `retry` restarts the same Preview: an unreachable API is not a
+ * failed withdrawal. A locked vault pauses the loop without spending budget.
  */
 export const useWithdrawReceipt = ({
   service,
   venueId,
   receipt,
   networkTier,
+  isWalletUnlocked = true,
   onReceipt,
-}: UseWithdrawReceiptOptions): void => {
+}: UseWithdrawReceiptOptions): WithdrawReceiptObservation => {
   const onReceiptRef = useRef(onReceipt);
   onReceiptRef.current = onReceipt;
   const networkTierRef = useRef(networkTier);
   networkTierRef.current = networkTier;
+
+  const [isStalled, setIsStalled] = useState(false);
+  /** Bumped by `retry` to restart the loop. */
+  const [restartKey, setRestartKey] = useState(0);
+  /** A manual check reads immediately instead of waiting out the backoff. */
+  const immediateReadRef = useRef(false);
+  const retry = useCallback(() => {
+    setIsStalled(false);
+    immediateReadRef.current = true;
+    setRestartKey((key) => key + 1);
+  }, []);
 
   const previewId = receipt?.previewId;
   const shouldPoll =
@@ -63,7 +92,10 @@ export const useWithdrawReceipt = ({
     !receipt.needsManualReview;
 
   useEffect(() => {
-    if (!previewId || !shouldPoll) {
+    setIsStalled(false);
+    const isImmediate = immediateReadRef.current;
+    immediateReadRef.current = false;
+    if (!previewId || !shouldPoll || !isWalletUnlocked) {
       return undefined;
     }
 
@@ -127,6 +159,8 @@ export const useWithdrawReceipt = ({
         Logger.log('PredictNext: the Withdrawal receipt read failed', error);
         if (failures < MAX_WITHDRAW_READ_FAILURES) {
           schedule();
+        } else {
+          setIsStalled(true);
         }
       } finally {
         controller = undefined;
@@ -143,7 +177,11 @@ export const useWithdrawReceipt = ({
     }
     const subscription = AppState.addEventListener('change', onAppStateChange);
 
-    schedule();
+    if (isImmediate) {
+      poll().catch(() => undefined);
+    } else {
+      schedule();
+    }
 
     return () => {
       cancelled = true;
@@ -151,5 +189,7 @@ export const useWithdrawReceipt = ({
       controller?.abort();
       subscription.remove();
     };
-  }, [previewId, service, shouldPoll, venueId]);
+  }, [isWalletUnlocked, previewId, restartKey, service, shouldPoll, venueId]);
+
+  return { isStalled, retry };
 };

@@ -4149,7 +4149,8 @@
       "title": "Withdraw",
       "amount_label": "Amount",
       "available_balance": "Available balance: {{amount}}",
-      "zero_balance": "Nothing is available to withdraw yet.",
+      "balance_loading": "Checking your available balance...",
+      "balance_unavailable": "We couldn't load your available balance.",
       "below_minimum": "The minimum withdrawal is {{amount}}.",
       "over_balance": "Enter an amount within your available balance.",
       "offline": "You're offline. Reconnect to withdraw.",
@@ -4181,9 +4182,10 @@
           "body": "The venue transferred the funds. Your destination wallet may take a few minutes to show them."
         },
         "sweep_remainder": "Any amount above the per-withdrawal limit stays in your balance.",
+        "stalled": "We can't get the latest status right now. Check again.",
         "manual_review": {
           "title": "Withdrawal under review",
-          "body": "We'll email you when it's resolved. Closing this screen stops updates for now."
+          "body": "This withdrawal needs a manual review. Check your balance later, and contact support if it doesn't arrive."
         },
         "failed": {
           "title": "Withdrawal failed",
@@ -4201,7 +4203,7 @@
         "amount_below_minimum": "Amount too small",
         "amount_below_minimum_body": "The venue requires at least $1.00. Nothing left your account.",
         "step_up_verification_required": "Verification required",
-        "step_up_verification_required_body": "Withdrawals above a limit need extra verification, which isn't available in the app yet. Nothing left your account.",
+        "step_up_verification_required_body": "This withdrawal needs extra verification, which isn't available in the app yet. Nothing left your account.",
         "venue_rejected": "Withdrawal not accepted",
         "venue_rejected_body": "The venue refused this withdrawal. Nothing left your account."
       },

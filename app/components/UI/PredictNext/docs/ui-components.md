@@ -52,6 +52,8 @@ Withdrawal entry, confirmation, and status mask account balances and payout deta
 
 The withdrawal reducer groups transitions by phase. Unsupported actions leave the current state unchanged. Receipt updates share one transition, and manual-review guidance replaces the ordinary status description.
 
+This slice ships fixed-amount entry only: the screen never submits `sweep_all`, and it has no Max action. The API, the service, and the receipt projection all support a sweep preview, and a component-view test pins sweep-result rendering, but no reachable journey starts one. Exposing Max is a separate product decision, not a missing wiring detail.
+
 ## Visual reference when no designs exist
 
 When a ticket or slice ships without Figma designs, use the legacy Polymarket implementation under `../Predict/` as the visual and behavioral guideline for the equivalent surface (for example, `PredictPosition` and `PredictActivity` rows for portfolio lists). Treat it strictly as a reference:

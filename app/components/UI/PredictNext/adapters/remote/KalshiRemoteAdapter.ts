@@ -121,6 +121,8 @@ const FUNDING_ERROR_CODE_BY_BACKEND_CODE: Record<
 interface RouteErrorReading {
   codes: Record<string, PredictErrorCode | undefined>;
   refusedBeforeRelay?: PredictRouteRefusals;
+  /** Set when a read on this route replays a stored submission first. */
+  readCanReplay?: boolean;
 }
 
 /** The deposit reads and the deposit create. */
@@ -159,6 +161,14 @@ const DEPOSIT_TRANSFER_ROUTE: RouteErrorReading = {
   },
 };
 
+/** The Withdraw receipt read replays the operation's unanswered submission
+ * with its stored Idempotency-Key before it reads. It is not a plain read: a
+ * failure there proves nothing about this invocation. */
+const WITHDRAW_OBSERVE_ROUTE: RouteErrorReading = {
+  codes: {},
+  readCanReplay: true,
+};
+
 const isAbortError = (error: unknown): error is Error =>
   error instanceof Error && error.name === 'AbortError';
 
@@ -178,19 +188,17 @@ const isSameAmount = (left: string, right: string): boolean =>
 const toHttpErrorMetadata = (
   error: PredictHttpError,
   phase: PredictErrorPhase,
-  routeRefusals?: PredictRouteRefusals,
+  route: RouteErrorReading,
 ): Record<string, unknown> => ({
   status: error.status,
   ...(error.bodyCode === undefined ? {} : { bodyCode: error.bodyCode }),
   ...(error.requestSent === undefined
     ? {}
     : { requestSent: error.requestSent }),
-  ...predictErrorEvidence(
-    phase,
-    error.bodyCode,
-    error.requestSent,
-    routeRefusals,
-  ),
+  ...predictErrorEvidence(phase, error.bodyCode, error.requestSent, {
+    refusesBeforeRelay: route.refusedBeforeRelay,
+    readCanReplay: route.readCanReplay,
+  }),
 });
 
 /**
@@ -230,11 +238,7 @@ const mapError = (
   }
 
   if (error instanceof PredictHttpError) {
-    const metadata = toHttpErrorMetadata(
-      error,
-      phase,
-      route.refusedBeforeRelay,
-    );
+    const metadata = toHttpErrorMetadata(error, phase, route);
     const mapped = error.bodyCode
       ? (route.codes[error.bodyCode] ??
         ERROR_CODE_BY_BACKEND_CODE[error.bodyCode])
@@ -607,7 +611,7 @@ export class KalshiRemoteAdapter {
           );
           return parseOwnWithdrawReceipt(value, this.venueId, previewId);
         } catch (error) {
-          return mapError(error, 'observe');
+          return mapError(error, 'observe', WITHDRAW_OBSERVE_ROUTE);
         }
       },
       prepareDeposit: async (params, approval, options) => {

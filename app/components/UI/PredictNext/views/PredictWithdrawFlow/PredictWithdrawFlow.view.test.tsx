@@ -1,6 +1,12 @@
 import '../../../../../../tests/component-view/mocks';
-import { act, fireEvent, screen, within } from '@testing-library/react-native';
-import { AppState } from 'react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
+import { AccessibilityInfo, AppState } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 
@@ -329,6 +335,24 @@ describe('PredictWithdrawFlow', () => {
     expect(previewBodies()).toEqual([]);
   });
 
+  it('exposes the keyed amount as the amount display value', async () => {
+    renderPredictNext();
+    await openWithdrawFlow();
+    const display = () => screen.getByTestId(PredictAmountEntryTestIds.DISPLAY);
+
+    // The figure is an output, so the digits must be the accessible value or
+    // a grouped element announces only "Amount".
+    expect(display()).toHaveAccessibilityValue({ text: '$0' });
+
+    typeAmount('5.00');
+    expect(display()).toHaveAccessibilityValue({ text: '$5.00' });
+
+    fireEvent.press(
+      screen.getByTestId(PredictAmountEntryTestIds.KEYPAD_KEY('delete')),
+    );
+    expect(display()).toHaveAccessibilityValue({ text: '$5.0' });
+  });
+
   it('sends a trailing-dot amount without the dot', async () => {
     renderPredictNext();
     await openWithdrawFlow();
@@ -406,6 +430,27 @@ describe('PredictWithdrawFlow', () => {
         }),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('distinguishes an unreadable balance from a zero balance', async () => {
+    mockPredictNextMessenger((action: string) => {
+      if (action === 'PredictPortfolioService:getBalance') {
+        return Promise.reject(new Error('unreachable'));
+      }
+      return Promise.resolve(undefined);
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+
+    expect(
+      await screen.findByText(
+        strings('predict_next.withdraw.balance_unavailable'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('predict_next.withdraw.zero_balance')),
+    ).not.toBeOnTheScreen();
   });
 
   it('disables Continue and shows the offline banner with no connection', async () => {
@@ -491,7 +536,9 @@ describe('PredictWithdrawFlow', () => {
     ).toHaveTextContent('Verification required');
     expect(
       screen.getByText(
-        "Withdrawals above a limit need extra verification, which isn't available in the app yet. Nothing left your account.",
+        strings(
+          'predict_next.withdraw.rejection.step_up_verification_required_body',
+        ),
       ),
     ).toBeOnTheScreen();
   });
@@ -761,6 +808,60 @@ describe('PredictWithdrawFlow', () => {
       await screen.findByText(strings('predict_next.withdraw.outcome_unknown')),
     ).toBeOnTheScreen();
     expect(commitPreviewIds()).toEqual([PREVIEW_ID, PREVIEW_ID]);
+    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+  });
+
+  it('announces a settled status reached after polling', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    stubWithdrawals({
+      commit: () => ({
+        status: 201,
+        body: receiptOf({
+          status: 'settled',
+          withdrawnAmount: '5.00',
+          resolvedAt: new Date().toISOString(),
+        }),
+      }),
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.status('settled')),
+    ).toBeOnTheScreen();
+    expect(announce).toHaveBeenCalledWith('Withdrawal sent. $5.00');
+  });
+
+  it('lets the person check the same in-progress withdrawal again', async () => {
+    const observeCount = () =>
+      fetchMock.mock.calls.filter(
+        ([url, init]) =>
+          OBSERVE_URL.test(String(url)) && init?.method === 'GET',
+      ).length;
+    stubWithdrawals();
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
+
+    await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS);
+    const readsBeforeCheck = observeCount();
+
+    fireEvent.press(
+      screen.getByTestId(PredictWithdrawFlowTestIds.CHECK_WITHDRAWAL),
+    );
+
+    // A manual check reads immediately instead of waiting out the backoff.
+    await waitFor(() => expect(observeCount()).toBe(readsBeforeCheck + 1));
+    // It reads the Preview already on the receipt; it never mints another.
     expect(previewBodies()).toEqual([{ amount: '5.00' }]);
   });
 

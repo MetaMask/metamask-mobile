@@ -17,11 +17,17 @@ import {
   MINIMUM_WITHDRAW_AMOUNT,
   type PredictWithdrawAmountIssue,
 } from './withdrawAmount';
+import { useWithdrawAnnouncement } from './useWithdrawAnnouncement';
+
+/** `loading` and `unavailable` are distinct from a measured zero balance. */
+export type WithdrawBalanceStatus = 'loading' | 'ready' | 'unavailable';
 
 interface WithdrawAmountStepProps {
   /** The amount as keyed in, or `''` before the first key. */
   amount: string;
   availableBalance?: PredictAmount;
+  /** Whether `availableBalance` is real, still loading, or could not be read. */
+  balanceStatus: WithdrawBalanceStatus;
   amountIssue: PredictWithdrawAmountIssue;
   /** Hides the Venue-reported available balance; the keyed amount stays. */
   isPrivacyMode: boolean;
@@ -51,37 +57,51 @@ const amountIssueCopy = (issue: Exclude<PredictWithdrawAmountIssue, null>) =>
 export const WithdrawAmountStep = ({
   amount,
   availableBalance,
+  balanceStatus,
   amountIssue,
   isPrivacyMode,
-}: WithdrawAmountStepProps) => (
-  <Box twClassName="flex-1 items-center justify-center px-6">
-    <PredictAmountDisplay
-      amount={amount}
-      isActive={false}
-      accessibilityLabel={strings('predict_next.withdraw.amount_label')}
-    />
-    <SensitiveText
-      isHidden={isPrivacyMode}
-      variant={TextVariant.BodySm}
-      color={TextColor.TextAlternative}
-      twClassName="pt-1 text-center"
-      testID={PredictWithdrawFlowTestIds.AVAILABLE_BALANCE}
-    >
-      {availableBalance === undefined
-        ? strings('predict_next.withdraw.zero_balance')
+}: WithdrawAmountStepProps) => {
+  useWithdrawAnnouncement(
+    amountIssue === null ? null : amountIssueCopy(amountIssue),
+  );
+
+  const balanceCopy =
+    balanceStatus === 'loading'
+      ? strings('predict_next.withdraw.balance_loading')
+      : balanceStatus === 'unavailable' || availableBalance === undefined
+        ? strings('predict_next.withdraw.balance_unavailable')
         : strings('predict_next.withdraw.available_balance', {
             amount: balanceLabel(availableBalance),
-          })}
-    </SensitiveText>
-    {amountIssue === null ? null : (
-      <Text
+          });
+
+  return (
+    <Box twClassName="flex-1 items-center justify-center px-6">
+      <PredictAmountDisplay
+        amount={amount}
+        isActive={false}
+        accessibilityLabel={strings('predict_next.withdraw.amount_label')}
+      />
+      <SensitiveText
+        isHidden={isPrivacyMode}
         variant={TextVariant.BodySm}
-        color={TextColor.ErrorDefault}
-        twClassName="pt-2 text-center"
-        testID={PredictWithdrawFlowTestIds.AMOUNT_ERROR}
+        color={TextColor.TextAlternative}
+        twClassName="pt-1 text-center"
+        testID={PredictWithdrawFlowTestIds.AVAILABLE_BALANCE}
       >
-        {amountIssueCopy(amountIssue)}
-      </Text>
-    )}
-  </Box>
-);
+        {balanceCopy}
+      </SensitiveText>
+      {amountIssue === null ? null : (
+        <Text
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          twClassName="pt-2 text-center"
+          testID={PredictWithdrawFlowTestIds.AMOUNT_ERROR}
+        >
+          {amountIssueCopy(amountIssue)}
+        </Text>
+      )}
+    </Box>
+  );
+};

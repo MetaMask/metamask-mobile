@@ -57,17 +57,25 @@ describe('useWithdrawReceipt', () => {
   const renderObserved = (
     initialReceipt: PredictWithdrawReceipt | null,
     networkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' = 'WIFI',
+    isWalletUnlocked = true,
   ) =>
     renderHook(
-      ({ latest, tier }) =>
+      ({ latest, tier, unlocked }) =>
         useWithdrawReceipt({
           service,
           venueId: VENUE_ID,
           receipt: latest,
           networkTier: tier,
+          isWalletUnlocked: unlocked,
           onReceipt,
         }),
-      { initialProps: { latest: initialReceipt, tier: networkTier } },
+      {
+        initialProps: {
+          latest: initialReceipt,
+          tier: networkTier,
+          unlocked: isWalletUnlocked,
+        },
+      },
     );
 
   beforeEach(() => {
@@ -106,7 +114,8 @@ describe('useWithdrawReceipt', () => {
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     expect(onReceipt).toHaveBeenCalledWith(receipt());
-    expect(result.current).toBeUndefined();
+    expect(result.current).toMatchObject({ isStalled: false });
+    expect(typeof result.current.retry).toBe('function');
   });
 
   it('backs off through every step and repeats the last one', async () => {
@@ -150,7 +159,11 @@ describe('useWithdrawReceipt', () => {
     await advance(2_000);
     expect(observeWithdraw).toHaveBeenCalledTimes(1);
 
-    rerender({ latest: receipt({ status: 'settled' }), tier: 'WIFI' });
+    rerender({
+      latest: receipt({ status: 'settled' }),
+      tier: 'WIFI',
+      unlocked: true,
+    });
     await advance(60_000);
 
     expect(observeWithdraw).toHaveBeenCalledTimes(1);
@@ -190,7 +203,7 @@ describe('useWithdrawReceipt', () => {
     await advance(2_000);
     expect(observeWithdraw).not.toHaveBeenCalled();
 
-    rerender({ latest: receipt(), tier: 'WIFI' });
+    rerender({ latest: receipt(), tier: 'WIFI', unlocked: true });
     await advance(2_000);
 
     expect(observeWithdraw).toHaveBeenCalledTimes(1);
@@ -221,6 +234,60 @@ describe('useWithdrawReceipt', () => {
     await advance(60_000);
     expect(observeWithdraw).toHaveBeenCalledTimes(MAX_WITHDRAW_READ_FAILURES);
     expect(onReceipt).not.toHaveBeenCalled();
+  });
+
+  it('exposes a stall after the failure budget and resumes the same Preview', async () => {
+    observeWithdraw.mockRejectedValue(new Error('unreachable'));
+    const { result } = renderObserved(receipt());
+
+    await advance(2_000);
+    await advance(4_000);
+    await advance(8_000);
+    await advance(15_000);
+    await advance(15_000);
+    expect(result.current.isStalled).toBe(true);
+
+    observeWithdraw.mockResolvedValue(receipt({ status: 'settled' }));
+    await act(async () => {
+      result.current.retry();
+    });
+
+    // A manual check reads immediately; it does not wait out the backoff.
+    expect(observeWithdraw).toHaveBeenCalledTimes(
+      MAX_WITHDRAW_READ_FAILURES + 1,
+    );
+    await advance(0);
+    expect(observeWithdraw).toHaveBeenLastCalledWith(
+      VENUE_ID,
+      PREVIEW_ID,
+      expect.anything(),
+    );
+    expect(onReceipt).toHaveBeenCalledWith(receipt({ status: 'settled' }));
+    expect(result.current.isStalled).toBe(false);
+  });
+
+  it('does not spend the failure budget while the vault is locked', async () => {
+    observeWithdraw.mockRejectedValue(new Error('unreachable'));
+    const { result, rerender } = renderObserved(receipt());
+
+    await advance(2_000);
+    await advance(4_000);
+    await advance(8_000);
+    await advance(15_000);
+    expect(observeWithdraw).toHaveBeenCalledTimes(4);
+
+    rerender({ latest: receipt(), tier: 'WIFI', unlocked: false });
+    await advance(10 * 60_000);
+    expect(observeWithdraw).toHaveBeenCalledTimes(4);
+    expect(result.current.isStalled).toBe(false);
+
+    observeWithdraw.mockResolvedValue(receipt({ status: 'settled' }));
+    rerender({ latest: receipt(), tier: 'WIFI', unlocked: true });
+    await advance(2_000);
+
+    expect(observeWithdraw).toHaveBeenCalledTimes(5);
+    expect(onReceipt).toHaveBeenCalledWith(receipt({ status: 'settled' }));
+    expect(result.current.isStalled).toBe(false);
   });
 
   it('aborts an in-flight read when the surface unmounts', async () => {
