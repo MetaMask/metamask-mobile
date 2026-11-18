@@ -97,7 +97,20 @@ describe('parsePredictConfig', () => {
     expect(DEFAULT_PREDICT_CONFIG.kalshiDepositsEnabled).toBeUndefined();
   });
 
-  it('reads kalshiWithdrawalsEnabled when the config sets it', () => {
+  it('reads venues.kalshi.withdrawalsEnabled when the config sets it', () => {
+    const result = parsePredictConfig({
+      enabled: true,
+      venues: {
+        polymarket: { enabled: false },
+        kalshi: { enabled: true, withdrawalsEnabled: true },
+      },
+      venueSelection: { enabled: false },
+    });
+
+    expect(result.venues.kalshi.withdrawalsEnabled).toBe(true);
+  });
+
+  it('ignores a withdrawal flag outside venues.kalshi', () => {
     const result = parsePredictConfig({
       enabled: true,
       venues: {
@@ -108,10 +121,10 @@ describe('parsePredictConfig', () => {
       kalshiWithdrawalsEnabled: true,
     });
 
-    expect(result.kalshiWithdrawalsEnabled).toBe(true);
+    expect(result.venues.kalshi.withdrawalsEnabled).toBeUndefined();
   });
 
-  it('parses a config from before kalshiWithdrawalsEnabled, leaving Kalshi withdrawals off', () => {
+  it('parses a config from before venues.kalshi.withdrawalsEnabled, leaving Kalshi withdrawals off', () => {
     const value = {
       enabled: true,
       venues: {
@@ -124,11 +137,13 @@ describe('parsePredictConfig', () => {
     const result = parsePredictConfig(value);
 
     expect(result).toEqual(value);
-    expect(result.kalshiWithdrawalsEnabled).toBeUndefined();
+    expect(result.venues.kalshi.withdrawalsEnabled).toBeUndefined();
   });
 
   it('keeps Kalshi withdrawals off by default', () => {
-    expect(DEFAULT_PREDICT_CONFIG.kalshiWithdrawalsEnabled).toBeUndefined();
+    expect(
+      DEFAULT_PREDICT_CONFIG.venues.kalshi.withdrawalsEnabled,
+    ).toBeUndefined();
   });
 
   it.each([undefined, {}, { enabled: true }, { enabled: 'true' }])(

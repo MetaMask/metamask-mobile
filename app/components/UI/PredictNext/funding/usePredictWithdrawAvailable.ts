@@ -36,14 +36,15 @@ export const usePredictWithdrawAvailable = (): PredictFundingResolution => {
         // `resolvePredictFunding` asks for by name.
         getCapabilities: () => capabilities,
         kalshiDepositsEnabled: config.kalshiDepositsEnabled === true,
-        kalshiWithdrawalsEnabled: config.kalshiWithdrawalsEnabled === true,
+        kalshiWithdrawalsEnabled:
+          config.venues.kalshi.withdrawalsEnabled === true,
       }),
     [
       activeVenue,
       available,
       capabilities,
       config.kalshiDepositsEnabled,
-      config.kalshiWithdrawalsEnabled,
+      config.venues.kalshi.withdrawalsEnabled,
     ],
   );
 };

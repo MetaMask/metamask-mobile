@@ -32,7 +32,14 @@ const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const renderWithdrawFlow = (privacyMode = false) =>
   renderPredictNext(privacyMode, {
     remoteFeatureFlags: {
-      predictConfig: { kalshiWithdrawalsEnabled: true },
+      predictConfig: {
+        enabled: true,
+        venues: {
+          polymarket: { enabled: false },
+          kalshi: { enabled: true, withdrawalsEnabled: true },
+        },
+        venueSelection: { enabled: false },
+      },
     },
   });
 

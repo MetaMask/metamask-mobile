@@ -17,7 +17,7 @@ export interface PredictFundingInput {
   getCapabilities: (venue: PredictConfiguredVenue) => PredictVenueCapabilities;
   /** `predictConfig.kalshiDepositsEnabled`: the Kalshi deposit rollout. */
   kalshiDepositsEnabled: boolean;
-  /** `predictConfig.kalshiWithdrawalsEnabled`: the Kalshi withdrawal rollout. */
+  /** `predictConfig.venues.kalshi.withdrawalsEnabled`: the Kalshi withdrawal rollout. */
   kalshiWithdrawalsEnabled: boolean;
 }
 
