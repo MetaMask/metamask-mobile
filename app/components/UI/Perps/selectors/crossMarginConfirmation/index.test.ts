@@ -19,13 +19,20 @@ describe('selectHasConfirmedCrossMargin', () => {
     ).toBe(false);
   });
 
-  it('returns false without a selected account or stored confirmations', () => {
-    expect(
-      selectHasConfirmedCrossMargin.resultFunc(
-        { perpsCrossMarginConfirmedAccounts: { '0xabc': true } },
-        undefined,
-      ),
-    ).toBe(false);
-    expect(selectHasConfirmedCrossMargin.resultFunc({}, '0xabc')).toBe(false);
+  it('returns false without a selected account', () => {
+    const settings = { perpsCrossMarginConfirmedAccounts: { '0xabc': true } };
+
+    const hasConfirmed = selectHasConfirmedCrossMargin.resultFunc(
+      settings,
+      undefined,
+    );
+
+    expect(hasConfirmed).toBe(false);
+  });
+
+  it('returns false before any confirmation is stored', () => {
+    const hasConfirmed = selectHasConfirmedCrossMargin.resultFunc({}, '0xabc');
+
+    expect(hasConfirmed).toBe(false);
   });
 });

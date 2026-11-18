@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react-native';
-import type { MarginMode } from '@metamask/perps-controller';
 import { setPerpsCrossMarginConfirmed } from '../../../../../../../actions/settings';
 import { selectHasConfirmedCrossMargin } from '../../../../selectors/crossMarginConfirmation';
 import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
@@ -19,10 +18,13 @@ jest.mock('react-redux', () => ({
 const setSelectedAccount = (address: string | undefined) =>
   mockSelectorValues.set(selectPerpsSelectedAccountAddress, address);
 
-const renderConfirmHook = (marginMode: MarginMode = 'isolated') => {
+const renderConfirmHook = () => {
   const onMarginModeSelect = jest.fn();
   const hook = renderHook(() =>
-    usePerpsProCrossMarginConfirm({ marginMode, onMarginModeSelect }),
+    usePerpsProCrossMarginConfirm({
+      marginMode: 'isolated',
+      onMarginModeSelect,
+    }),
   );
   return { ...hook, onMarginModeSelect };
 };
@@ -66,47 +68,6 @@ describe('usePerpsProCrossMarginConfirm', () => {
       setPerpsCrossMarginConfirmed(ACCOUNT_A),
     );
     expect(onMarginModeSelect).toHaveBeenCalledWith('cross');
-    expect(result.current.isCrossConfirmVisible).toBe(false);
-  });
-
-  it('does not store anything when the user goes back', () => {
-    const { result, onMarginModeSelect } = renderConfirmHook();
-    requestCross(result);
-
-    act(() => result.current.closeCrossConfirm());
-
-    expect(result.current.isCrossConfirmVisible).toBe(false);
-    expect(mockDispatch).not.toHaveBeenCalled();
-    expect(onMarginModeSelect).not.toHaveBeenCalled();
-  });
-
-  it('selects Cross directly once the account has confirmed', () => {
-    mockSelectorValues.set(selectHasConfirmedCrossMargin, true);
-    const { result, onMarginModeSelect } = renderConfirmHook();
-
-    requestCross(result);
-
-    expect(onMarginModeSelect).toHaveBeenCalledWith('cross');
-    expect(result.current.isCrossConfirmVisible).toBe(false);
-  });
-
-  it('passes Isolated through without the confirm sheet', () => {
-    const { result, onMarginModeSelect } = renderConfirmHook('cross');
-
-    act(() => result.current.onMarginModeSelect('isolated'));
-    act(() => result.current.onMarginModeSheetClosed());
-
-    expect(onMarginModeSelect).toHaveBeenCalledWith('isolated');
-    expect(result.current.isCrossConfirmVisible).toBe(false);
-  });
-
-  it('closes the confirm sheet when the account changes while it is open', () => {
-    const { result, rerender } = renderConfirmHook();
-    requestCross(result);
-
-    setSelectedAccount(ACCOUNT_B);
-    rerender({});
-
     expect(result.current.isCrossConfirmVisible).toBe(false);
   });
 
