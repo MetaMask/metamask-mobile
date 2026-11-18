@@ -13,7 +13,6 @@ const asset = {
   symbol: 'DAI',
   name: 'Dai',
   decimals: 18,
-  rwaData: null,
   marketData: {
     marketCap: 1,
     totalVolume: 2,

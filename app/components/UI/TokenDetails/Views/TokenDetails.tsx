@@ -1073,13 +1073,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const token = route.params as TokenDetailsRouteParams;
   const { variant, isLoading, asset } = useTokenDetailsVariant(token);
   usePrefetchTokenDetails(token);
-  const pageToken = useMemo(
-    () =>
-      asset?.rwaData && !token.rwaData
-        ? { ...token, rwaData: asset.rwaData }
-        : token,
-    [asset?.rwaData, token],
-  );
+  const pageToken = { ...token, ...asset };
 
   if (isLoading) {
     return <TokenDetailsPagePending token={token} />;
