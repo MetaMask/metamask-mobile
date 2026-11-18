@@ -18,11 +18,8 @@ import {
   buildPostCancellationResetState,
   CANCELLATION_TIMINGS,
   getCancellationTiming,
-  getPostCancellationDestination,
-  POST_CANCELLATION_DESTINATIONS,
   shuffleCancelReasons,
   toCancellationReason,
-  type PostCancellationDestination,
 } from './CancelMembership.utils';
 import CancelPostCancelSheet, {
   type CancelPostCancelSheetContent,
@@ -78,29 +75,19 @@ const CancelMembership = () => {
     navigation.goBack();
   }, [isSubmitting, navigation]);
 
-  const resetAfterCancellation = useCallback(
-    (destination: PostCancellationDestination) => {
-      if (isNavigatingRef.current) return;
-      isNavigatingRef.current = true;
-      // Reset instead of navigate so the stale cancel and membership screens are
-      // removed. Period-end lands on Pro Hub; immediate lands on Wallet home.
-      navigation.dispatch((state) =>
-        CommonActions.reset(
-          destination === POST_CANCELLATION_DESTINATIONS.HOME
-            ? buildPostCancellationHomeResetState()
-            : buildPostCancellationResetState(state),
-        ),
-      );
-    },
-    [navigation],
-  );
-
   const handleCancelOutcomeConfirm = useCallback(() => {
-    if (!cancelOutcome) return;
-    resetAfterCancellation(
-      getPostCancellationDestination(cancelOutcome.timing),
+    if (!cancelOutcome || isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    // Reset instead of navigate so the stale cancel and membership screens are
+    // removed. Period-end lands on Pro Hub; immediate lands on Wallet home.
+    navigation.dispatch((state) =>
+      CommonActions.reset(
+        cancelOutcome.timing === CANCELLATION_TIMINGS.IMMEDIATE
+          ? buildPostCancellationHomeResetState()
+          : buildPostCancellationResetState(state),
+      ),
     );
-  }, [cancelOutcome, resetAfterCancellation]);
+  }, [cancelOutcome, navigation]);
 
   const handleCancelConfirm = useCallback(async () => {
     if (isSubmittingRef.current || isNavigatingRef.current) return;

@@ -7,12 +7,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { CANCEL_REASONS } from './CancelMembership.constants';
 import {
   CANCELLATION_TIMINGS,
-  POST_CANCELLATION_DESTINATIONS,
   POST_CANCELLATION_PRO_HUB_SOURCE,
   buildPostCancellationHomeResetState,
   buildPostCancellationResetState,
   getCancellationTiming,
-  getPostCancellationDestination,
   shuffleCancelReasons,
   toCancellationReason,
 } from './CancelMembership.utils';
@@ -250,19 +248,5 @@ describe('buildPostCancellationHomeResetState', () => {
       index: 0,
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
-  });
-});
-
-describe('getPostCancellationDestination', () => {
-  it('sends an immediate cancellation home', () => {
-    expect(getPostCancellationDestination(CANCELLATION_TIMINGS.IMMEDIATE)).toBe(
-      POST_CANCELLATION_DESTINATIONS.HOME,
-    );
-  });
-
-  it('sends a period-end cancellation to MetaMask Orange', () => {
-    expect(
-      getPostCancellationDestination(CANCELLATION_TIMINGS.PERIOD_END),
-    ).toBe(POST_CANCELLATION_DESTINATIONS.ORANGE);
   });
 });

@@ -80,27 +80,6 @@ export const getCancellationTiming = (
   return undefined;
 };
 
-export const POST_CANCELLATION_DESTINATIONS = {
-  /** Period-end cancel: the membership is still active, so land on MetaMask Orange. */
-  ORANGE: 'orange',
-  /** Immediate cancel: benefits have ended, so land on home without Pro Hub. */
-  HOME: 'home',
-} as const;
-
-export type PostCancellationDestination =
-  (typeof POST_CANCELLATION_DESTINATIONS)[keyof typeof POST_CANCELLATION_DESTINATIONS];
-
-/**
- * Maps the cancellation timing to the screen shown when the post-cancel sheet
- * is confirmed.
- */
-export const getPostCancellationDestination = (
-  timing: CancellationTiming,
-): PostCancellationDestination =>
-  timing === CANCELLATION_TIMINGS.IMMEDIATE
-    ? POST_CANCELLATION_DESTINATIONS.HOME
-    : POST_CANCELLATION_DESTINATIONS.ORANGE;
-
 export const POST_CANCELLATION_PRO_HUB_SOURCE =
   'pro_subscription_cancellation_success' as const;
 
