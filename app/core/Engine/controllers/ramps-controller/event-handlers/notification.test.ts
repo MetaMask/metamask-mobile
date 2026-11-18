@@ -4,6 +4,7 @@ import {
 } from '@metamask/ramps-controller';
 import {
   handleOrderStatusChangedForNotifications,
+  resetToastedOrderStatuses,
   shouldShowOrderStatusToast,
 } from './notification';
 import { showV2OrderToast } from '../../../../../components/UI/Ramp/utils/v2OrderToast';
@@ -63,6 +64,46 @@ describe('shouldShowOrderStatusToast', () => {
 describe('handleOrderStatusChangedForNotifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetToastedOrderStatuses();
+  });
+
+  it('toasts an order and status only once when polling republishes it', () => {
+    const event = {
+      order: createMockOrder({ status: Status.Completed }),
+      previousStatus: Status.Pending,
+    };
+
+    handleOrderStatusChangedForNotifications(event);
+    handleOrderStatusChangedForNotifications(event);
+    handleOrderStatusChangedForNotifications(event);
+
+    expect(showV2OrderToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('toasts again when the same order reaches a different status', () => {
+    handleOrderStatusChangedForNotifications({
+      order: createMockOrder({ status: Status.Pending }),
+      previousStatus: Status.Created,
+    });
+    handleOrderStatusChangedForNotifications({
+      order: createMockOrder({ status: Status.Completed }),
+      previousStatus: Status.Pending,
+    });
+
+    expect(showV2OrderToast).toHaveBeenCalledTimes(2);
+  });
+
+  it('toasts separately for different orders with the same status', () => {
+    handleOrderStatusChangedForNotifications({
+      order: createMockOrder({ providerOrderId: 'order-1' }),
+      previousStatus: Status.Pending,
+    });
+    handleOrderStatusChangedForNotifications({
+      order: createMockOrder({ providerOrderId: 'order-2' }),
+      previousStatus: Status.Pending,
+    });
+
+    expect(showV2OrderToast).toHaveBeenCalledTimes(2);
   });
 
   it('calls showV2OrderToast with correct params for Completed status', () => {
