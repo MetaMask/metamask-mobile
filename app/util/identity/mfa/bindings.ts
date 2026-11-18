@@ -20,7 +20,10 @@ export const mobileMfaControllerAdapter: MfaControllerAdapter = {
     if (request.proof.type === 'passkey') {
       // Recovery only accepts passkeys a user device recorded, so a
       // compromised Auth API cannot add its own.
-      await trustPasskey(request.proof.attestation.response.attestationObject);
+      await trustPasskey({
+        credentialId: request.proof.attestation.id,
+        attestationObject: request.proof.attestation.response.attestationObject,
+      });
     }
     return credentials;
   },

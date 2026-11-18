@@ -3,6 +3,7 @@ import type {
   TokenReason,
 } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../../core/Engine';
+import { forgetPendingPasskey } from '../../../core/MfaRecovery/trustPasskey';
 
 /**
  * Removes one of the profile's methods and caches the ones left. It needs a
@@ -18,6 +19,7 @@ export const removeMfaCredential = async (
 ): Promise<void> => {
   if (credential.type === 'passkey') {
     // First, so a failure cannot leave a removed passkey trusted for recovery.
+    await forgetPendingPasskey(credential.id);
     await Engine.context.MfaRecoveryController.untrustPasskey(credential.id);
   }
   await Engine.context.AuthenticationController.removeCredential({

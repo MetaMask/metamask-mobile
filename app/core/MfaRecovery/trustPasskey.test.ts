@@ -1,6 +1,10 @@
 import Engine from '../Engine';
 import StorageWrapper from '../../store/storage-wrapper';
-import { retryPendingPasskeys, trustPasskey } from './trustPasskey';
+import {
+  forgetPendingPasskey,
+  retryPendingPasskeys,
+  trustPasskey,
+} from './trustPasskey';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -29,6 +33,7 @@ const getSessionProfile = jest.mocked(
 );
 const useProfile = (profileId: string) =>
   getSessionProfile.mockResolvedValue({ profileId } as never);
+const PASSKEY = { credentialId: 'cred', attestationObject: 'att' };
 const pending = async (profileId = 'profile-a') =>
   JSON.parse(
     (await StorageWrapper.getItem(
@@ -49,7 +54,7 @@ describe('trustPasskey', () => {
   it('records the passkey', async () => {
     trustIdentifier.mockResolvedValue(undefined);
 
-    await trustPasskey('att');
+    await trustPasskey(PASSKEY);
 
     expect(trustIdentifier).toHaveBeenCalledWith({
       type: 'passkey',
@@ -61,14 +66,14 @@ describe('trustPasskey', () => {
   it('keeps the passkey for a retry when recording fails', async () => {
     trustIdentifier.mockRejectedValue(new Error('offline'));
 
-    await trustPasskey('att');
+    await trustPasskey(PASSKEY);
 
-    expect(await pending()).toStrictEqual(['att']);
+    expect(await pending()).toStrictEqual([PASSKEY]);
   });
 
   it('records kept passkeys on retry and forgets them', async () => {
     trustIdentifier.mockRejectedValueOnce(new Error('offline'));
-    await trustPasskey('att');
+    await trustPasskey(PASSKEY);
     trustIdentifier.mockResolvedValue(undefined);
 
     await retryPendingPasskeys();
@@ -82,21 +87,33 @@ describe('trustPasskey', () => {
 
   it('keeps passkeys that still fail on retry', async () => {
     trustIdentifier.mockRejectedValue(new Error('offline'));
-    await trustPasskey('att');
+    await trustPasskey(PASSKEY);
 
     await expect(retryPendingPasskeys()).rejects.toThrow('offline');
-    expect(await pending()).toStrictEqual(['att']);
+    expect(await pending()).toStrictEqual([PASSKEY]);
+  });
+
+  it('does not trust a removed passkey on retry', async () => {
+    trustIdentifier.mockRejectedValueOnce(new Error('offline'));
+    await trustPasskey(PASSKEY);
+    trustIdentifier.mockResolvedValue(undefined);
+
+    await forgetPendingPasskey('cred');
+    await retryPendingPasskeys();
+
+    expect(trustIdentifier).toHaveBeenCalledTimes(1);
+    expect(await pending()).toStrictEqual([]);
   });
 
   it('does not retry passkeys another profile left pending', async () => {
     trustIdentifier.mockRejectedValueOnce(new Error('offline'));
-    await trustPasskey('att');
+    await trustPasskey(PASSKEY);
     trustIdentifier.mockResolvedValue(undefined);
     useProfile('profile-b');
 
     await retryPendingPasskeys();
 
     expect(trustIdentifier).toHaveBeenCalledTimes(1);
-    expect(await pending('profile-a')).toStrictEqual(['att']);
+    expect(await pending('profile-a')).toStrictEqual([PASSKEY]);
   });
 });
