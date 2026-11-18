@@ -18,3 +18,11 @@ export const SUMSUB_PRIVACY_NOTICE_URL =
   'https://sumsub.com/privacy-notice-service/';
 export const SUMSUB_BIOMETRICS_CONSENT_URL =
   'https://sumsub.com/privacy-user-acknowledgement-and-consent/';
+
+/**
+ * idOS Terms and Conditions (published as the User Agreement). Fallback for the
+ * "I agree to idOS Terms and Conditions" footer link when the catalog has no
+ * matching document, so the link never renders as dead text.
+ */
+export const IDOS_TERMS_AND_CONDITIONS_URL =
+  'https://www.idos.network/legal/user-agreement';

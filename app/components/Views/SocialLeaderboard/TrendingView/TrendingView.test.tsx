@@ -464,4 +464,18 @@ describe('TrendingView', () => {
 
     expect(mockFeedScrollToOffset).toHaveBeenCalledWith(24, true);
   });
+
+  it('forwards header insets to the virtualized feed', () => {
+    renderWithProvider(
+      <TrendingView contentTopInset={144} pendingPostsTopOffset={96} />,
+    );
+
+    expect(lastFeedProps()).toEqual(
+      expect.objectContaining({
+        contentTopInset: 144,
+        refreshProgressViewOffset: 144,
+        pendingPostsTopOffset: 96,
+      }),
+    );
+  });
 });

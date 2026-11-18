@@ -29,7 +29,8 @@ const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const styles = createStyles();
-  const { trackEvent, identify, createEventBuilder } = useAnalytics();
+  const { trackEvent, identify, createEventBuilder, isEnabled } =
+    useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   // Social-login wallets also store the choice server-side so the auth
@@ -43,6 +44,27 @@ const ExperienceEnhancerModal = () => {
     }
   };
 
+  // Marketing consent signals only go out while MetaMetrics is on, the same
+  // way the settings screen gates them. The choice itself is stored above.
+  const trackMarketingConsent = (value: boolean) => {
+    if (!isEnabled()) {
+      return;
+    }
+
+    identify({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: value,
+    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+        .addProperties({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: value,
+          updated_after_onboarding: true,
+          location: 'marketing_consent_modal',
+        })
+        .build(),
+    );
+  };
+
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
     label: strings('experience_enhancer_modal.cancel'),
@@ -52,18 +74,7 @@ const ExperienceEnhancerModal = () => {
       syncMarketingConsentToServer(false);
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
-      });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-          .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
-            updated_after_onboarding: true,
-            location: 'marketing_consent_modal',
-          })
-          .build(),
-      );
+      trackMarketingConsent(false);
     },
     testID: ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
   };
@@ -77,18 +88,7 @@ const ExperienceEnhancerModal = () => {
       syncMarketingConsentToServer(true);
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-      });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-          .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-            updated_after_onboarding: true,
-            location: 'marketing_consent_modal',
-          })
-          .build(),
-      );
+      trackMarketingConsent(true);
     },
     testID: ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
   };
