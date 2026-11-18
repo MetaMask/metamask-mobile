@@ -3,7 +3,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { act } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { toast } from '@metamask/design-system-react-native';
+import { AvatarNetworkSize, toast } from '@metamask/design-system-react-native';
 import Main from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
@@ -11,6 +11,7 @@ import Engine from '../../../core/Engine';
 import { updateBgState } from '../../../core/redux/slices/engine';
 import { strings } from '../../../../locales/i18n';
 import { selectNetworkImageSource } from '../../../selectors/networkInfos';
+import { getNetworkImageSource } from '../../../util/networks';
 import { resetSuppressedNetworkAddedToasts } from '../../../util/networks/networkToastSuppression';
 
 const toastMock = toast as unknown as jest.Mock;
@@ -165,14 +166,13 @@ describe('Main', () => {
   });
 
   describe('network list toasts', () => {
-    const addedChainId = '0x539';
-    const networkImage = { uri: 'https://example.com/eth.png' };
+    const unmappedChainId = '0x539';
+    const mappedChainId = '0x144';
+    const selectedNetworkImage = { uri: 'https://example.com/selected.png' };
 
     beforeEach(() => {
       resetSuppressedNetworkAddedToasts();
-      selectNetworkImageSourceMock.mockImplementation(
-        actualSelectNetworkImageSource,
-      );
+      selectNetworkImageSourceMock.mockReturnValue(selectedNetworkImage);
     });
 
     afterEach(() => {
@@ -215,52 +215,93 @@ describe('Main', () => {
       return { originalConfigurations, publishConfigurations };
     };
 
-    const addedNetwork = {
-      chainId: addedChainId,
-      name: 'Added Network',
+    const buildNetwork = (chainId: string, name: string) => ({
+      chainId,
+      name,
       nativeCurrency: 'ETH',
       defaultRpcEndpointIndex: 0,
       rpcEndpoints: [],
       blockExplorerUrls: [],
-    };
+    });
 
-    it('shows an added network toast with the network image', () => {
-      selectNetworkImageSourceMock.mockReturnValue(networkImage);
+    const expectNetworkAvatar = (chainId: string) =>
+      expect.objectContaining({
+        props: expect.objectContaining({
+          src: getNetworkImageSource({ chainId }),
+          size: AvatarNetworkSize.Md,
+        }),
+      });
+
+    it('shows an added network toast with that network image', () => {
       const { originalConfigurations, publishConfigurations } =
         mountNetworkList();
       toastMock.mockClear();
 
       publishConfigurations({
         ...originalConfigurations,
-        [addedChainId]: addedNetwork,
+        [mappedChainId]: buildNetwork(mappedChainId, 'zkSync Era'),
       });
 
+      const addedNetworkImage = getNetworkImageSource({
+        chainId: mappedChainId,
+      });
+
+      expect(addedNetworkImage).toBeTruthy();
+      expect(addedNetworkImage).not.toEqual(selectedNetworkImage);
       expect(toastMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: `Added Network ${strings('toast.network_added')}`,
+          title: `zkSync Era ${strings('toast.network_added')}`,
           hasNoTimeout: false,
           showCloseButton: false,
-          startAccessory: expect.anything(),
+          startAccessory: expectNetworkAvatar(mappedChainId),
         }),
       );
     });
 
-    it('shows a removed network toast without a network image', () => {
-      selectNetworkImageSourceMock.mockReturnValue(networkImage);
+    it('shows a removed network toast with that network image', () => {
       const { originalConfigurations, publishConfigurations } =
         mountNetworkList();
+
       publishConfigurations({
         ...originalConfigurations,
-        [addedChainId]: addedNetwork,
+        [mappedChainId]: buildNetwork(mappedChainId, 'zkSync Era'),
       });
-      selectNetworkImageSourceMock.mockReturnValue(undefined);
       toastMock.mockClear();
 
       publishConfigurations(originalConfigurations);
 
+      const removedNetworkImage = getNetworkImageSource({
+        chainId: mappedChainId,
+      });
+
+      expect(removedNetworkImage).toBeTruthy();
+      expect(removedNetworkImage).not.toEqual(selectedNetworkImage);
       expect(toastMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: `Added Network ${strings('toast.network_removed')}`,
+          title: `zkSync Era ${strings('toast.network_removed')}`,
+          hasNoTimeout: false,
+          showCloseButton: false,
+          startAccessory: expectNetworkAvatar(mappedChainId),
+        }),
+      );
+    });
+
+    it('omits the avatar when the changed network has no image', () => {
+      const { originalConfigurations, publishConfigurations } =
+        mountNetworkList();
+      toastMock.mockClear();
+
+      publishConfigurations({
+        ...originalConfigurations,
+        [unmappedChainId]: buildNetwork(unmappedChainId, 'Added Network'),
+      });
+
+      expect(
+        getNetworkImageSource({ chainId: unmappedChainId }),
+      ).toBeUndefined();
+      expect(toastMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: `Added Network ${strings('toast.network_added')}`,
           hasNoTimeout: false,
           showCloseButton: false,
           startAccessory: undefined,

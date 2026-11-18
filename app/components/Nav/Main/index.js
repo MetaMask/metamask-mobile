@@ -70,6 +70,7 @@ import {
 } from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
+import { getNetworkImageSource } from '../../../util/networks';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
@@ -289,6 +290,11 @@ const Main = (props) => {
             (curr) => curr.chainId === network.chainId,
           ),
       );
+      // Avatar matches the network named in the toast title.
+      const changedNetwork = deletedNetwork || newNetwork;
+      const changedNetworkImage = changedNetwork?.chainId
+        ? getNetworkImageSource({ chainId: changedNetwork.chainId })
+        : undefined;
 
       const shouldShowToast = shouldShowNetworkListToast({
         newNetworkChainId: newNetwork?.chainId,
@@ -304,8 +310,11 @@ const Main = (props) => {
               ? strings('toast.network_removed')
               : strings('toast.network_added')
           }`,
-          startAccessory: networkImage ? (
-            <AvatarNetwork src={networkImage} size={AvatarNetworkSize.Md} />
+          startAccessory: changedNetworkImage ? (
+            <AvatarNetwork
+              src={changedNetworkImage}
+              size={AvatarNetworkSize.Md}
+            />
           ) : undefined,
           hasNoTimeout: false,
           showCloseButton: false,
@@ -313,7 +322,7 @@ const Main = (props) => {
       }
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [networkConfigurations, networkImage]);
+  }, [networkConfigurations]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
