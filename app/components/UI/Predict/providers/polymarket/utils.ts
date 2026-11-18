@@ -1009,9 +1009,10 @@ const getResolutionSource = (
 
 /**
  * Reads the vendor a market settles against from its Gamma resolution source.
- * Settlement, not the series length, decides the vendor: on Gamma the hourly
- * and daily crypto up/down series resolve on binance.com USDT pairs, while the
- * 5m, 15m and 4h series resolve on data.chain.link streams.
+ * Settlement, not the series length, decides the vendor: 5m, 15m and 4h markets
+ * resolve on data.chain.link streams, and the hourly and daily series moved from
+ * binance.com USDT pairs to Chainlink on 2026-11-18, so one series can hold
+ * markets on both.
  *
  * @param event - Gamma event.
  * @param markets - The event's markets. Their own source wins over the event's.
