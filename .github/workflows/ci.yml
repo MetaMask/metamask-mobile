@@ -4,15 +4,13 @@ on:
   push:
     branches: [main, stable, 'release/**']
 jobs:
-  smoke:
-    name: Appium Smoke Tests
+  prepare:
+    name: Prepare CI JS dependencies
     runs-on: ubuntu-latest
     steps:
-      - name: Fail the first attempt
-        run: |
-          echo "attempt ${{ github.run_attempt }}"
-          if [ "${{ github.run_attempt }}" -eq 1 ]; then
-            echo "ETIMEDOUT talking to the runner"
-            exit 1
-          fi
-          echo "ok"
+      - run: echo "ETIMEDOUT talking to the runner" && exit 1
+  unknown:
+    name: Totally New CI Job
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "unmatched on purpose" && exit 1
