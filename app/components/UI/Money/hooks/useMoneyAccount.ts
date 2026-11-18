@@ -18,6 +18,7 @@ import {
 } from '../utils/moneyAccountTransactions';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
+import { logColdStartDeeplink } from '../../../../core/DeeplinkManager/utils/coldStartDeeplinkDebug';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
 import { isMonadMainnetChainId } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
@@ -108,6 +109,16 @@ export function useMoneyAccountDeposit() {
 
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
+      const debugDeeplink =
+        __DEV__ &&
+        NavigationService.getCurrentRoute?.()?.name ===
+          Routes.MONEY.DEPOSIT_DEEPLINK;
+      if (debugDeeplink) {
+        logColdStartDeeplink('money.depositSetup', {
+          hasVaultConfig: Boolean(vaultConfig),
+          hasMoneyAccount: Boolean(primaryMoneyAccount?.address),
+        });
+      }
       assertMoneyAccountAccessible();
 
       const preferredPaymentToken = options?.preferredPaymentToken;
@@ -130,6 +141,11 @@ export function useMoneyAccountDeposit() {
 
         const chainIdHex = chainId as Hex;
         const provider = getProviderByChainId(chainIdHex);
+        if (debugDeeplink) {
+          logColdStartDeeplink('money.depositProvider', {
+            ready: Boolean(provider),
+          });
+        }
         if (!provider) {
           throw new Error(
             `${LOG_TAG} No provider available for chain ${chainId}`,
@@ -191,6 +207,9 @@ export function useMoneyAccountDeposit() {
       };
 
       // Navigate early for better UX; recover on failure below.
+      if (debugDeeplink) {
+        logColdStartDeeplink('money.confirmationRequested', {});
+      }
       navigateToConfirmation({
         ...confirmationParams,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
@@ -241,6 +260,9 @@ export function useMoneyAccountDeposit() {
           ],
         });
       } catch (error) {
+        if (debugDeeplink) {
+          logColdStartDeeplink('money.depositBatchFailed', {});
+        }
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
         clearMoneyAccountDepositIntent(batchId);
         if (!isUserRejectedError(error, errorObj.message)) {

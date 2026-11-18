@@ -28,6 +28,10 @@ import {
   type DeeplinkPerfAppStartType,
 } from '../Performance/DeeplinkPerformance';
 import { getUnlockAppStartType } from '../Performance/unlockTraces';
+import {
+  coldStartDebugRoute,
+  logColdStartDeeplink,
+} from './utils/coldStartDeeplinkDebug';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -180,9 +184,16 @@ export class DeeplinkManager {
 
   static start() {
     DeeplinkManager.getInstance();
+    logColdStartDeeplink('intake.start', {});
 
-    const getBranchDeeplink = async (uri?: string) => {
+    const getBranchDeeplink = async (trigger: string, uri?: string) => {
       if (uri) {
+        if (__DEV__) {
+          logColdStartDeeplink('branch.uri', {
+            trigger,
+            route: coldStartDebugRoute(uri),
+          });
+        }
         handleDeeplink({ uri });
         return;
       }
@@ -195,16 +206,24 @@ export class DeeplinkManager {
           latestParams?.['~referring_link'] as string | undefined,
           latestParams as Record<string, unknown> | undefined,
         );
+        const deeplink = latestParams?.['+non_branch_link'] as string;
+        if (__DEV__) {
+          logColdStartDeeplink('branch.latest', {
+            trigger,
+            referringRoute: coldStartDebugRoute(rewritten),
+            nonBranchRoute: coldStartDebugRoute(deeplink),
+          });
+        }
         if (rewritten) {
           handleDeeplink({ uri: rewritten });
           return;
         }
 
-        const deeplink = latestParams?.['+non_branch_link'] as string;
         if (deeplink) {
           handleDeeplink({ uri: deeplink });
         }
       } catch (error) {
+        logColdStartDeeplink('branch.latestFailed', { trigger });
         Logger.error(error as Error, 'Error getting Branch deeplink');
       }
     };
@@ -285,6 +304,11 @@ export class DeeplinkManager {
     });
 
     Linking.getInitialURL().then((url) => {
+      if (__DEV__) {
+        logColdStartDeeplink('linking.initial', {
+          route: coldStartDebugRoute(url),
+        });
+      }
       if (!url) {
         return;
       }
@@ -294,13 +318,18 @@ export class DeeplinkManager {
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
+      if (__DEV__) {
+        logColdStartDeeplink('linking.event', {
+          route: coldStartDebugRoute(url),
+        });
+      }
       handleDeeplink({ uri: url });
     });
 
     // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
     // This is a workaround to ensure that the deeplink is processed for iOS cold start.
     // TODO: Remove this once branch.subscribe is called for iOS cold start.
-    getBranchDeeplink();
+    getBranchDeeplink('startup');
 
     branch.subscribe((opts) => {
       const { error } = opts;
@@ -312,7 +341,7 @@ export class DeeplinkManager {
         opts.uri,
         opts.params as Record<string, unknown> | undefined,
       );
-      getBranchDeeplink(rewritten ?? opts.uri);
+      getBranchDeeplink('subscribe', rewritten ?? opts.uri);
     });
   }
 }

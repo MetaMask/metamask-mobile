@@ -100,6 +100,7 @@ import ReduxService from '../../redux';
 import { analytics } from '../../../util/analytics/analytics';
 import branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
+import { logColdStartDeeplink } from '../utils/coldStartDeeplinkDebug';
 import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import { handleMoney } from './legacy/handleMoney';
@@ -424,6 +425,14 @@ async function handleUniversalLink({
     return;
   }
 
+  const debugLink =
+    __DEV__ &&
+    (action === SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT ||
+      action === SUPPORTED_ACTIONS.PERPS);
+  if (debugLink) {
+    logColdStartDeeplink('universal.start', { action, mode });
+  }
+
   let isPrivateLink = false;
   let isInvalidLink = false;
 
@@ -600,6 +609,13 @@ async function handleUniversalLink({
     signatureStatus = SignatureStatus.INVALID;
   } else {
     signatureStatus = SignatureStatus.MISSING;
+  }
+  if (debugLink) {
+    logColdStartDeeplink('universal.classified', {
+      action,
+      mode,
+      signatureStatus,
+    });
   }
 
   // Type guard to ensure action is a SupportedAction before mapping

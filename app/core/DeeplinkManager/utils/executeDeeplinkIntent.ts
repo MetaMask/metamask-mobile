@@ -8,6 +8,7 @@ import {
 } from '../../Performance/DeeplinkPerformance';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { resetToHomeNav, type NavigationRoute } from './resetToHomeNav';
+import { logColdStartDeeplink } from './coldStartDeeplinkDebug';
 
 const createRoute = (name: string, params?: object): NavigationRoute =>
   params ? { name, params } : { name };
@@ -48,6 +49,7 @@ export const executeDeeplinkIntent = async (
   await prepareIntentAndEndProcessedTrace(intent);
 
   const { routeName, params } = intent.target;
+  logColdStartDeeplink('intent.navigate', { target: routeName });
 
   // For main-stack targets that declare a backTab, activate that tab first so
   // the back stack is correct: back from the target returns to that tab rather
@@ -76,6 +78,7 @@ export const executeStartupDeeplinkIntent = async (
   await prepareIntentAndEndProcessedTrace(intent);
 
   const { routeName, params } = intent.target;
+  logColdStartDeeplink('intent.startupReset', { target: routeName });
   const targetRoute = createRoute(routeName, params);
 
   if (intent.target.type === 'home-tab') {

@@ -16,6 +16,10 @@ import { detectAppInstallation } from '../util/deeplinks/deepLinkAnalytics';
 import { startDeeplinkNavigatedTrace } from '../../Performance/DeeplinkPerformance';
 import { armMeasuredAppProfilingFromUri } from '../../Performance/appProfiling';
 import Engine from '../../Engine';
+import {
+  coldStartDebugRoute,
+  logColdStartDeeplink,
+} from '../utils/coldStartDeeplinkDebug';
 
 /**
  * Time window during which an identical deeplink is treated as a duplicate and
@@ -67,10 +71,12 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       // DUPLICATE_DEEPLINK_WINDOW_MS) so a single click does not, for example,
       // open a dapp in two browser tabs on Android.
       const now = Date.now();
+      const route = __DEV__ ? coldStartDebugRoute(uri) : undefined;
       if (
         uri === lastHandledDeeplinkUri &&
         now - lastHandledDeeplinkAt < DUPLICATE_DEEPLINK_WINDOW_MS
       ) {
+        logColdStartDeeplink('intake.duplicate', { route });
         Logger.log(`Deeplink: Ignoring duplicate deeplink: ${uri}`);
         AppStateEventProcessor.promoteCurrentDeeplinkSource(uri, source);
         return;
@@ -79,6 +85,7 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       lastHandledDeeplinkAt = now;
 
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
+      logColdStartDeeplink('intake.pending', { route });
       // Start the Navigated clock only if the wallet is already unlocked.
       // If it is locked, this function returns without starting anything;
       // the Login screen starts the clock when the user confirms unlock.

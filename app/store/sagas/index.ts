@@ -31,6 +31,10 @@ import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
+import {
+  coldStartDebugRoute,
+  logColdStartDeeplink,
+} from '../../core/DeeplinkManager/utils/coldStartDeeplinkDebug';
 import { getUnlockAppStartType } from '../../core/Performance/unlockTraces';
 import AppConstants from '../../core/AppConstants';
 import {
@@ -424,6 +428,14 @@ export function* handleDeeplinkSaga() {
 
     const { KeyringController } = Engine.context;
     const isUnlocked = KeyringController.isUnlocked();
+    if (__DEV__ && AppStateEventProcessor.pendingDeeplink) {
+      logColdStartDeeplink('saga.pending', {
+        route: coldStartDebugRoute(AppStateEventProcessor.pendingDeeplink),
+        action: value.type,
+        isUnlocked,
+        completedOnboarding,
+      });
+    }
 
     // App is locked or onboarding is not yet complete
     if (!isUnlocked || !completedOnboarding) {
@@ -457,6 +469,13 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
+      if (__DEV__) {
+        logColdStartDeeplink('saga.consuming', {
+          route: coldStartDebugRoute(deeplink),
+          hasMainNavigatorMounted,
+          focused: currentRouteName,
+        });
+      }
       if (isSDKServiceDeeplink(deeplink)) {
         yield call(waitForSDKServicesInitialization);
       }

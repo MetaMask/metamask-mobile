@@ -26,6 +26,7 @@ import {
 } from '../../types/navigation';
 import { getMoneyEntryDecision } from '../../navigation/moneyEntryDecision';
 import { isUserRejectedError } from '../../../../../util/errorHandling/isUserRejectedError';
+import { logColdStartDeeplink } from '../../../../../core/DeeplinkManager/utils/coldStartDeeplinkDebug';
 
 type MoneyDepositDeeplinkRouteProp = RouteProp<
   RootStackParamList,
@@ -80,6 +81,16 @@ const MoneyDepositDeeplinkBridge = () => {
   }, [navigation]);
 
   useEffect(() => {
+    logColdStartDeeplink('money.bridge', {
+      geolocationStatus: geolocationStatus ?? 'unset',
+      featureEnabled: isMoneyAccountFeatureEnabled,
+      accessBlockReason: entryContext.accessBlockReason,
+      needsOnboarding: entryContext.isOnboardingRedirectNeeded,
+      alreadyHandled: hasHandledRequest.current,
+    });
+  }, [entryContext, geolocationStatus, isMoneyAccountFeatureEnabled]);
+
+  useEffect(() => {
     if (hasHandledRequest.current || isGeolocationLoading) {
       return;
     }
@@ -87,6 +98,9 @@ const MoneyDepositDeeplinkBridge = () => {
     hasHandledRequest.current = true;
 
     if (!isMoneyAccountFeatureEnabled) {
+      logColdStartDeeplink('money.decision', {
+        destination: 'featureDisabled',
+      });
       Logger.log(
         '[MoneyDepositDeeplinkBridge] Deposit blocked: Money account feature disabled',
       );
@@ -101,6 +115,9 @@ const MoneyDepositDeeplinkBridge = () => {
     }
 
     const decision = getMoneyEntryDecision('deposit', entryContext);
+    logColdStartDeeplink('money.decision', {
+      destination: decision.destination,
+    });
 
     if (decision.destination === 'geoBlockSheet') {
       Logger.log(
@@ -136,8 +153,10 @@ const MoneyDepositDeeplinkBridge = () => {
             '[MoneyDepositDeeplinkBridge] Deposit cancelled',
           )
         ) {
+          logColdStartDeeplink('money.depositCancelled', {});
           return;
         }
+        logColdStartDeeplink('money.depositFailed', {});
         Logger.error(
           error as Error,
           '[MoneyDepositDeeplinkBridge] Failed to initiate deposit',

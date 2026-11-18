@@ -19,6 +19,10 @@ import {
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
 import { takePostUnlockResume } from '../../PostUnlockResume';
+import {
+  coldStartDebugRoute,
+  logColdStartDeeplink,
+} from './coldStartDeeplinkDebug';
 
 // Set before the fallback parse so consumeNextParseAppStartType stamps it with
 // the unlock-session app_start_type. Cleared after one read.
@@ -56,6 +60,11 @@ const scheduleAfterNavigation = (callback: () => void) => {
 
 export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
   const deeplink = AppStateEventProcessor.pendingDeeplink;
+  if (__DEV__) {
+    logColdStartDeeplink('unlock.pending', {
+      route: coldStartDebugRoute(deeplink),
+    });
+  }
   if (!deeplink) {
     clearUnlockAppStartType();
     return false;
@@ -80,6 +89,10 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
       origin,
       appStartType,
     });
+    logColdStartDeeplink('unlock.resolved', {
+      target: intent ? intent.target.routeName : undefined,
+      rejected: intent === false,
+    });
     if (intent === false) {
       // The startup resolve pass already showed the interstitial and the user
       // rejected it. Clear the pending link so the Home fallback does not
@@ -101,6 +114,7 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
 
     return handled;
   } catch (error) {
+    logColdStartDeeplink('unlock.failed', {});
     cancelDeeplinkProcessedTrace({ reason: 'error' });
     cancelDeeplinkNavigatedTrace({ reason: 'error' });
     // Keep pending and the unlock-session app_start_type: Home will retry via

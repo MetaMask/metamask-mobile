@@ -24,6 +24,7 @@ import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { endNavigationInitializationAppStart } from '../../../util/sentry/navigationInitializationAppStart';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
+import { logColdStartDeeplink } from '../../../core/DeeplinkManager/utils/coldStartDeeplinkDebug';
 import {
   focusedRouteFromNavigationState,
   recordFocusedRoute,
@@ -109,9 +110,13 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     if (focusedRoute) {
       recordFocusedRoute(focusedRoute);
     }
-    handleDeeplinkNavigationStateChange({
-      focusedRouteNames: collectFocusedRouteNames(state),
-    });
+    const focusedRouteNames = collectFocusedRouteNames(state);
+    if (__DEV__) {
+      logColdStartDeeplink('nav.committed', {
+        path: focusedRouteNames.join(' > '),
+      });
+    }
+    handleDeeplinkNavigationStateChange({ focusedRouteNames });
   };
 
   /**
