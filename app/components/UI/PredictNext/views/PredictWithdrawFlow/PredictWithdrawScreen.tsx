@@ -229,6 +229,18 @@ const toPredictError = (error: unknown): PredictError =>
     ? error
     : PredictError.from(PredictErrorCode.UNKNOWN);
 
+/** The phases whose Preview can be committed again: the confirmation step, and
+ * a status step whose Commit reply was lost. */
+const isCommittable = (
+  state: WithdrawFlowState,
+  isOffline: boolean,
+): state is Extract<WithdrawFlowState, { phase: 'confirm' | 'status' }> =>
+  !isOffline &&
+  (state.phase === 'confirm' ||
+    (state.phase === 'status' &&
+      state.receipt === null &&
+      state.error !== null));
+
 /**
  * The one Withdraw screen: enter an amount on the keypad, confirm what the
  * backend quoted, then watch the receipt until it settles. The Venue owns
@@ -297,6 +309,30 @@ export const PredictWithdrawScreen = () => {
     (receipt: PredictWithdrawReceipt) => dispatch({ type: 'receipt', receipt }),
     [],
   );
+  /** A lost Commit reply is not a failed withdrawal: read the same operation
+   * before deciding whether the Preview can be retried or the outcome is
+   * unknown. */
+  const recoverCommitOutcome = useCallback(
+    async (previewId: string, error: PredictError) => {
+      try {
+        const receipt = await service.observeWithdraw(venueId, previewId);
+        dispatch({ type: 'receipt', receipt });
+      } catch (recoveryError) {
+        const missingPreview = error.metadata?.bodyCode === 'preview_not_found';
+        const missingOperation =
+          recoveryError instanceof PredictError &&
+          recoveryError.metadata?.bodyCode === 'operation_not_found';
+        dispatch({
+          type:
+            missingPreview && missingOperation
+              ? 'commitFailed'
+              : 'outcomeUnknown',
+          error,
+        });
+      }
+    },
+    [service, venueId],
+  );
   /** Once the Commit returns, this screen is the surface observing the
    * Withdrawal: the hook owns the backoff schedule and stops on a terminal
    * receipt, on manual review, or when the screen unmounts. */
@@ -360,23 +396,17 @@ export const PredictWithdrawScreen = () => {
   /** Commits by reference: the phone sends the Preview id and nothing else,
    * and the receipt it returns is the operation's state from now on. */
   const handleConfirm = useCallback(async () => {
-    if (
-      isOffline ||
-      (state.phase !== 'confirm' &&
-        !(state.phase === 'status' && state.receipt === null && state.error))
-    ) {
+    if (!isCommittable(state, isOffline)) {
       return;
     }
     const { preview } = state;
     dispatch({ type: state.phase === 'confirm' ? 'confirm' : 'retryCommit' });
     try {
-      dispatch({
-        type: 'committed',
-        receipt: await service.commitWithdrawPreview(
-          venueId,
-          preview.previewId,
-        ),
-      });
+      const receipt = await service.commitWithdrawPreview(
+        venueId,
+        preview.previewId,
+      );
+      dispatch({ type: 'committed', receipt });
     } catch (error_) {
       const error = toPredictError(error_);
       if (error.code === PredictErrorCode.PREVIEW_EXPIRED) {
@@ -387,28 +417,9 @@ export const PredictWithdrawScreen = () => {
         dispatch({ type: 'outcomeUnknown', error });
         return;
       }
-      // The POST may have executed even when its response was lost. Read the
-      // same operation first, and only ever retry this preview if that fails.
-      try {
-        dispatch({
-          type: 'receipt',
-          receipt: await service.observeWithdraw(venueId, preview.previewId),
-        });
-      } catch (recoveryError) {
-        const missingPreview = error.metadata?.bodyCode === 'preview_not_found';
-        const missingOperation =
-          recoveryError instanceof PredictError &&
-          recoveryError.metadata?.bodyCode === 'operation_not_found';
-        dispatch({
-          type:
-            missingPreview && missingOperation
-              ? 'commitFailed'
-              : 'outcomeUnknown',
-          error,
-        });
-      }
+      await recoverCommitOutcome(preview.previewId, error);
     }
-  }, [isOffline, service, state, venueId]);
+  }, [isOffline, recoverCommitOutcome, service, state, venueId]);
 
   const handleBack = useCallback(() => dispatch({ type: 'back' }), []);
 
@@ -605,6 +616,13 @@ export const PredictWithdrawScreen = () => {
       </>
     ) : null;
 
+  // Back leaves confirmation for entry, and leaves the flow anywhere else.
+  // An unknown outcome has no safe back at all.
+  let headerBack;
+  if (!isOutcomeUnknown) {
+    headerBack = state.phase === 'confirm' ? handleBack : close;
+  }
+
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
@@ -617,13 +635,7 @@ export const PredictWithdrawScreen = () => {
           isFloating={false}
           includesTopInset
           title={strings('predict_next.withdraw.title')}
-          onBack={
-            isOutcomeUnknown
-              ? undefined
-              : state.phase === 'confirm'
-                ? handleBack
-                : close
-          }
+          onBack={headerBack}
           backButtonProps={{
             testID: PredictWithdrawFlowTestIds.BACK,
             isDisabled: isOutcomeUnknown,
