@@ -23,6 +23,7 @@ const TX_HASH = transferReported.txHash as PredictHex;
 
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
+  fetchVenueCatalog: jest.fn(),
   fetchBalance: jest.fn(),
   fetchPositions: jest.fn(),
   fetchActivity: jest.fn(),

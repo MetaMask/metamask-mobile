@@ -24,7 +24,6 @@ import {
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { parsePredictVenueCatalog } from '../../contracts/v1/venueCatalog';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   predictErrorEvidence,
@@ -808,10 +807,18 @@ export class KalshiRemoteAdapter {
       },
     };
     this.marketData = {
-      // Static client config until PRED-1403 serves the catalog from the
-      // Predict API; only this method changes then.
-      fetchVenueCatalog: async () =>
-        parsePredictVenueCatalog(KALSHI_STATIC_VENUE_CATALOG, this.venueId),
+      // The API catalog is authoritative for every action, including
+      // `withdraw`: the deployment advertises it only while its fence serves
+      // the route. A failed read surfaces as an error, so the UI omits
+      // actions instead of fabricating support.
+      fetchVenueCatalog: async (options) => {
+        try {
+          const value = await client.fetchVenueCatalog(this.venueId, options);
+          return parsePredictVenueCatalog(value, this.venueId);
+        } catch (error) {
+          return mapError(error);
+        }
+      },
       fetchVenueStatus: async (options) => {
         try {
           const value = await client.fetchVenueStatus(this.venueId, options);

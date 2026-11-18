@@ -55,11 +55,11 @@ A privileged backend route never authorizes from a client-supplied wallet addres
 
 ## Mobile transport
 
-The installed MetaMask platform client has no supported generic request API. The first public-read slice therefore uses one narrow, injected Predict API GET transport. It is deliberately unauthenticated, forwards cancellation, retains no response bodies in errors, and performs no response caching or retry. The MarketDataService alone owns response caching, deduplication, and bounded retry.
+The installed MetaMask platform client has no supported generic request API. The Predict API slices therefore use one narrow, injected Predict API transport. Its GETs send a fresh MetaMask bearer token, forward cancellation, retain no response bodies in errors, and perform no response caching or retry. The MarketDataService alone owns response caching, deduplication, and bounded retry.
 
 Base URL and client version come from composition/configuration; environment differences do not create different Venue adapters. A concrete `KalshiRemoteAdapter` is preferable to a configurable remote-adapter factory while Kalshi is the only consumer.
 
-Account-scoped Balance reads use an explicit required-auth path on the same narrow transport. It obtains a fresh MetaMask bearer token for each request and never stores or logs it. Public catalog reads remain unauthenticated here; PRED-1159/PRED-1175 owns migrating those routes to required authentication.
+Account-scoped Balance reads use an explicit required-auth path on the same narrow transport. It obtains a fresh MetaMask bearer token for each request and never stores or logs it. The Venue catalog and every other Predict API route are also authenticated: each request resolves a fresh bearer token, and a missing or failed token provider is a 401 before HTTP.
 
 ## Canonical backend contract
 

@@ -80,6 +80,7 @@ const createMarketHistory = (overrides = {}) => ({
 
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
+  fetchVenueCatalog: jest.fn(),
   fetchBalance: jest.fn(),
   fetchPositions: jest.fn(),
   fetchActivity: jest.fn(),
@@ -118,45 +119,83 @@ describe('KalshiRemoteAdapter', () => {
     });
   });
 
-  it('serves the static Kalshi catalog without a network read', async () => {
-    const result = await adapter.marketData.fetchVenueCatalog();
-
-    expect(result).toEqual({
+  it('serves the API catalog without adding withdraw the deployment omits', async () => {
+    const catalog = {
       venueId: 'kalshi',
-      actions: ['buy', 'sell', 'deposit', 'withdraw'],
+      actions: ['buy', 'sell', 'deposit'],
       feeds: {
         sports: 'sports-football-nfl-games',
         'nfl-games': 'sports-football-nfl-games',
-        'nfl-props': 'sports-football-nfl-win-totals',
-        'college-football-games': 'sports-football-ncaa-games',
-        'college-football-props': 'sports-football-ncaa-win-totals',
-        politics: 'politics-trump',
-        'politics-trump': 'politics-trump',
-        'politics-congress': 'politics-congress',
-        'politics-iran': 'politics-iran',
       },
-      categories: ['sports', 'politics'],
+      categories: ['sports'],
+      searchSupported: true,
+    };
+    client.fetchVenueCatalog.mockResolvedValue(catalog);
+
+    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual(
+      catalog,
+    );
+    expect(client.fetchVenueCatalog).toHaveBeenCalledWith('kalshi', undefined);
+  });
+
+  it('keeps withdraw when the deployment advertises it', async () => {
+    client.fetchVenueCatalog.mockResolvedValue({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell', 'deposit', 'withdraw'],
+      feeds: {},
+      categories: [],
       searchSupported: true,
     });
-    expect(Object.values(client).some((fn) => fn.mock.calls.length)).toBe(
-      false,
+
+    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toMatchObject(
+      { actions: ['buy', 'sell', 'deposit', 'withdraw'] },
     );
   });
 
-  it('lists only the actions its adapter structure implements', async () => {
-    const { actions } = await adapter.marketData.fetchVenueCatalog();
+  it('surfaces a catalog read failure instead of fabricating support', async () => {
+    client.fetchVenueCatalog.mockRejectedValue(new PredictHttpError(503));
 
-    // Buy and sell are served by the trading capability, Deposit and Withdraw
-    // by the funding capability. There is no Claim capability (Kalshi settles
-    // automatically), so that action must stay absent.
-    // predictConfig.kalshiDepositsEnabled gates the deposit client flow, not
-    // the catalog.
-    expect(typeof adapter.trading.previewOrder).toBe('function');
-    expect(typeof adapter.trading.commitOrder).toBe('function');
-    expect(typeof adapter.funding.previewWithdraw).toBe('function');
-    expect(typeof adapter.funding.prepareDeposit).toBe('function');
-    expect(adapter).not.toHaveProperty('claims');
-    expect([...actions].sort()).toEqual(['buy', 'deposit', 'sell', 'withdraw']);
+    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toMatchObject(
+      { code: PredictErrorCode.VENUE_UNAVAILABLE },
+    );
+  });
+
+  it('rejects a malformed catalog instead of enabling partial support', async () => {
+    client.fetchVenueCatalog.mockResolvedValue({
+      venueId: 'kalshi',
+      actions: 'buy',
+    });
+
+    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toMatchObject(
+      { code: PredictErrorCode.INVALID_RESPONSE },
+    );
+  });
+
+  it('preserves a cancelled catalog read instead of mapping it to a failure', async () => {
+    const abortError = new Error('aborted');
+    abortError.name = 'AbortError';
+    client.fetchVenueCatalog.mockRejectedValue(abortError);
+
+    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toBe(
+      abortError,
+    );
+  });
+
+  it('forwards cancellation and reads the catalog through the client', async () => {
+    client.fetchVenueCatalog.mockResolvedValue({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell'],
+      feeds: {},
+      categories: [],
+      searchSupported: false,
+    });
+    const signal = new AbortController().signal;
+
+    await adapter.marketData.fetchVenueCatalog({ signal });
+
+    expect(client.fetchVenueCatalog).toHaveBeenCalledWith('kalshi', {
+      signal,
+    });
   });
 
   it('parses canonical Events from the Predict API', async () => {
