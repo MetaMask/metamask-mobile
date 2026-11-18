@@ -307,12 +307,29 @@ export function isTokenBlocked(
 }
 
 export function isMatchingPayToken(
-  token: { address?: string; chainId?: string } | undefined,
+  token:
+    | TransactionPaymentToken
+    | { address?: string; chainId?: string }
+    | undefined,
   target: { address: string; chainId: string } | undefined,
 ): boolean {
   if (!token || !target) {
     return false;
   }
+
+  // Handle TransactionPaymentToken with assetId
+  if ('assetId' in token) {
+    const tokenInfo = getPayTokenAddressAndChainId(token);
+    if (!tokenInfo) {
+      return false;
+    }
+    return (
+      tokenInfo.address.toLowerCase() === target.address.toLowerCase() &&
+      tokenInfo.chainId.toLowerCase() === target.chainId.toLowerCase()
+    );
+  }
+
+  // Handle legacy structure with address and chainId
   return (
     token.address?.toLowerCase() === target.address.toLowerCase() &&
     token.chainId?.toLowerCase() === target.chainId.toLowerCase()

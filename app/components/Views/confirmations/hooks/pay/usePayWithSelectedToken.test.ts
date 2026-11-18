@@ -14,23 +14,21 @@ const AUTOMATIC_TOKEN_MOCK = {
 };
 
 const SELECTED_PAY_TOKEN_MOCK: TransactionPaymentToken = {
-  address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
+  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
   balanceFiat: '$20.00',
   balanceHuman: '20',
   balanceRaw: '20000000',
   balanceUsd: '20',
-  chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'POL',
 };
 
 const MATCHING_PAY_TOKEN_MOCK: TransactionPaymentToken = {
-  address: AUTOMATIC_TOKEN_MOCK.address,
+  assetId: `eip155:1/erc20:${AUTOMATIC_TOKEN_MOCK.address}`,
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
   balanceRaw: '12340000',
   balanceUsd: '12.34',
-  chainId: AUTOMATIC_TOKEN_MOCK.chainId,
   decimals: 6,
   symbol: 'USDC',
 };
@@ -60,9 +58,9 @@ describe('usePayWithSelectedToken', () => {
 
     expect(result.current.isSelectedDistinctFromAutomatic).toBe(true);
     expect(result.current.selectedToken).toEqual({
-      address: SELECTED_PAY_TOKEN_MOCK.address,
+      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       balanceUsd: SELECTED_PAY_TOKEN_MOCK.balanceUsd,
-      chainId: SELECTED_PAY_TOKEN_MOCK.chainId,
+      chainId: '0x1',
       symbol: SELECTED_PAY_TOKEN_MOCK.symbol,
     });
   });
@@ -127,8 +125,8 @@ describe('usePayWithSelectedToken', () => {
 
   it('selectToken is a no-op when the target already matches the current pay token', () => {
     const target = {
-      address: SELECTED_PAY_TOKEN_MOCK.address,
-      chainId: SELECTED_PAY_TOKEN_MOCK.chainId,
+      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
+      chainId: '0x1' as Hex,
     };
 
     const { result } = renderHook(() => usePayWithSelectedToken());
