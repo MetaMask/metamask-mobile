@@ -20,6 +20,10 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingVertical: 24,
       zIndex: 0,
     },
+    moneyTokenCard: {
+      backgroundColor: theme.colors.background.muted,
+      paddingVertical: 12,
+    },
     compactDestTokenCard: {
       paddingVertical: 12,
     },

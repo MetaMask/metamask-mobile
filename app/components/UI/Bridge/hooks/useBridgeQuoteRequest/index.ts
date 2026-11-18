@@ -29,6 +29,7 @@ import { useInsufficientNativeReserveError } from '../useInsufficientNativeReser
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
 import { useSwapQuotes } from '../useSwapQuotes';
+import useMoneyAccountInfo from '../../../Money/hooks/useMoneyAccountInfo';
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;
@@ -79,6 +80,7 @@ export const useBridgeQuoteRequest = (
       ? {}
       : {
           address: sourceToken?.address,
+          isMoneyToken: sourceToken?.isMoneyToken,
           decimals: sourceToken?.decimals,
           chainId: sourceToken?.chainId,
           balance: sourceToken?.balance,
@@ -114,6 +116,8 @@ export const useBridgeQuoteRequest = (
   const insufficientBal =
     insufficientBalance || Boolean(insufficientNativeReserveError);
 
+  const { primaryMoneyAccount } = useMoneyAccountInfo();
+
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -145,10 +149,15 @@ export const useBridgeQuoteRequest = (
         srcTokenAmount: normalizedSourceAmount,
         slippage: slippage ? Number(slippage) : undefined,
         walletAddress,
-        destWalletAddress: destAddress ?? walletAddress,
+        destWalletAddress: destToken?.isMoneyToken
+          ? primaryMoneyAccount?.address
+          : (destAddress ?? walletAddress),
         gasIncluded,
         gasIncluded7702,
-        insufficientBal,
+        insufficientBal: sourceToken?.isMoneyToken ? true : insufficientBal,
+        isMoneyAccount: Boolean(
+          sourceToken?.isMoneyToken || destToken?.isMoneyToken,
+        ),
       };
 
       const shouldTrace = isValidQuoteRequest(params);
@@ -174,6 +183,7 @@ export const useBridgeQuoteRequest = (
     [
       sourceToken,
       destToken,
+      primaryMoneyAccount?.address,
       sourceAmount,
       destChainId,
       slippage,

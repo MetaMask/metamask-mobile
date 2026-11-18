@@ -352,6 +352,67 @@ describe('TokenInputArea', () => {
     expect(mockOnMaxPress).toHaveBeenCalledTimes(1);
   });
 
+  it('displays the max button when the source token is Money', () => {
+    const moneyToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'MUSD',
+      decimals: 6,
+      chainId: '0x1' as `0x${string}`,
+      isMoneyToken: true,
+    };
+
+    const { getByText } = renderScreen(
+      () => (
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={moneyToken}
+            tokenBalance="12.5"
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>
+      ),
+      { name: 'TokenInputArea' },
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('Max'));
+
+    expect(mockOnMaxPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the Money source balance instead of the typed amount', () => {
+    mockUseFormattedBalanceWithThreshold.mockReturnValue('4 MUSD');
+    const moneyToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'MUSD',
+      decimals: 6,
+      chainId: '0x1' as `0x${string}`,
+      isMoneyToken: true,
+    };
+
+    const { getByText, queryByText } = renderScreen(
+      () => (
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={moneyToken}
+            amount="1.25"
+            tokenBalance="4"
+            secondaryValue="1.25 MUSD"
+          />
+        </SwapsFeatureIdProvider>
+      ),
+      { name: 'TokenInputArea' },
+      { state: initialState },
+    );
+
+    expect(getByText('4 MUSD')).toBeTruthy();
+    expect(queryByText('1.25 MUSD')).toBeNull();
+  });
+
   it('does not display max button for destination token', () => {
     // Arrange
     const mockToken: BridgeToken = {
@@ -1178,6 +1239,45 @@ describe('TokenInputArea', () => {
       expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith(
         expect.objectContaining({ amount: '0.05' }),
       );
+    });
+
+    it('shows the passed currency prefix and token amount when dest Money fiat is hidden', () => {
+      const moneyToken: BridgeToken = {
+        ...mockToken,
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      };
+
+      const { getByTestId, getByText } = renderAmountOverrideInput({
+        amount: '24.44',
+        token: moneyToken,
+        tokenType: TokenInputAreaType.Destination,
+        showFiatAmountAsPrimary: true,
+        hideFiatValueWhenUnpriced: true,
+        inputPrefix: '$',
+      });
+
+      expect(getByTestId('token-input-input').props.value).toBe('24.44');
+      expect(getByText('$')).toBeOnTheScreen();
+    });
+
+    it('shows Earn APY under a Money destination instead of the balance', () => {
+      const moneyToken: BridgeToken = {
+        ...mockToken,
+        symbol: 'MUSD',
+        isMoneyToken: true,
+        apy: 6.2,
+      };
+
+      const { getByText, queryByText } = renderAmountOverrideInput({
+        amount: '24.44',
+        token: moneyToken,
+        tokenBalance: '10',
+        tokenType: TokenInputAreaType.Destination,
+      });
+
+      expect(getByText('Earn 6.2% APY')).toBeOnTheScreen();
+      expect(queryByText('100')).toBeNull();
     });
 
     it('shows fiat as primary and token amount as secondary for destination display mode', () => {

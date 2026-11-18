@@ -144,7 +144,7 @@ export default function useSubmitBridgeTx() {
       },
     );
     if (operation && ['withdraw', 'deposit'].includes(operation)) {
-      upgradeMoneyAccountOnSubmit();
+      // upgradeMoneyAccountOnSubmit();
     }
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,

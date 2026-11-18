@@ -45,6 +45,7 @@ export const resolveMoneyDepositIntent = (
   if (isMusdToken(transactionMeta.metamaskPay?.tokenAddress)) {
     return 'addMusd';
   }
+  console.log('=====resolveMoneyDepositIntent', transactionMeta);
   return 'convert';
 };
 

@@ -1,7 +1,9 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   TokenInputArea,
@@ -12,6 +14,9 @@ import { FLipQuoteButton } from '../FlipQuoteButton';
 import type { useSourceAmountInput } from '../../hooks/useSourceAmountInput';
 import type { BridgeToken } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { useTokenFiatRate } from '../../hooks/useTokenFiatRate';
+import { getMoneyInputPrefix } from '../../utils/currencyUtils';
+import { hasMissingTokenFiatRate } from '../../utils/hasMissingTokenFiatRate';
 import { createStyles } from './SwapsInputs.styles';
 
 interface SwapsInputsProps {
@@ -57,11 +62,28 @@ export const SwapsInputs = ({
 }: SwapsInputsProps) => {
   const { styles } = useStyles(createStyles);
   const { latestSourceBalance } = useBridgeSession();
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const destFiatRate = useTokenFiatRate(destToken);
+  const destAmount = hideDestAmount ? undefined : destTokenAmount;
+  const destInputPrefix = getMoneyInputPrefix({
+    isMoneyToken: Boolean(destToken?.isMoneyToken),
+    showFiatAmountAsPrimary: hideDestAmount
+      ? false
+      : Boolean(destToken?.isMoneyToken || sourceAmountInput.isFiatMode),
+    hideFiatValue: hasMissingTokenFiatRate(destToken, destFiatRate),
+    amount: destAmount,
+    currency: currentCurrency,
+  });
 
   return (
     <Box style={styles.inputsContainer}>
       <Box style={styles.inputCardsWrapper}>
-        <Box style={styles.tokenCard}>
+        <Box
+          style={[
+            styles.tokenCard,
+            sourceToken?.isMoneyToken && styles.moneyTokenCard,
+          ]}
+        >
           <TokenInputArea
             ref={inputRef}
             amount={sourceAmountInput.amount}
@@ -83,7 +105,11 @@ export const SwapsInputs = ({
             onMaxPress={onSourceMaxPress}
             isSourceToken
             inputPrefix={sourceAmountInput.inputPrefix}
-            secondaryValue={sourceAmountInput.secondaryValue}
+            secondaryValue={
+              sourceToken?.isMoneyToken
+                ? strings('money.usd_name')
+                : sourceAmountInput.secondaryValue
+            }
             balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
             onAmountTypeTogglePress={
               sourceAmountInput.canToggle
@@ -92,6 +118,9 @@ export const SwapsInputs = ({
             }
             amountTypeToggleTestID={sourceAmountTypeToggleTestID}
             hideFiatValueWhenUnpriced
+            showFiatAmountAsPrimary={
+              sourceToken?.isMoneyToken ? true : undefined
+            }
           />
         </Box>
         <FLipQuoteButton onPress={onFlipPress} disabled={isFlipDisabled} />
@@ -99,10 +128,11 @@ export const SwapsInputs = ({
           style={[
             styles.tokenCard,
             hideDestAmount ? styles.compactDestTokenCard : undefined,
+            destToken?.isMoneyToken && styles.moneyTokenCard,
           ]}
         >
           <TokenInputArea
-            amount={hideDestAmount ? undefined : destTokenAmount}
+            amount={destAmount}
             token={destToken}
             networkImageSource={
               destToken
@@ -116,8 +146,11 @@ export const SwapsInputs = ({
             isLoading={
               hideDestAmount ? false : !destTokenAmount && isDestAmountLoading
             }
+            inputPrefix={destInputPrefix}
             showFiatAmountAsPrimary={
-              hideDestAmount ? false : sourceAmountInput.isFiatMode
+              hideDestAmount
+                ? false
+                : destToken?.isMoneyToken || sourceAmountInput.isFiatMode
             }
             hideAmount={hideDestAmount}
             amountReplacementLabel={

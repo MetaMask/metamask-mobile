@@ -995,6 +995,44 @@ describe('BridgeView', () => {
     expect(arrowButton.props.onPress).toBeUndefined();
   });
 
+  it('enables switch button when destination token is money', () => {
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          image: '',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        destToken: {
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          chainId: 'eip155:143',
+          decimals: 6,
+          image: '',
+          name: 'Stablecoin account',
+          symbol: 'MUSD',
+          isMoneyToken: true,
+        },
+        selectedDestChainId: 'eip155:143',
+      },
+    });
+
+    const { getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    const arrowButton = getByTestId('arrow-button');
+
+    expect(arrowButton).not.toBeDisabled();
+    expect(arrowButton.props.onPress).toBeDefined();
+  });
+
   describe('Solana Swap', () => {
     it('renders non-EVM source token without native reserve warning', () => {
       const testState = createBridgeTestState({

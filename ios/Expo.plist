@@ -3,5 +3,50 @@
 <plist version="1.0">
   <dict>
     <!-- EAS Update configuration is injected by scripts/update-expo-channel.js during build -->
+	<key>EXUpdatesRuntimeVersion</key>
+	<string>8.22.0</string>
+	<key>EXUpdatesURL</key>
+	<string>https://u.expo.dev/</string>
+	<key>EXUpdatesRequestHeaders</key>
+	<dict>
+		<key>expo-channel-name</key>
+		<string>production</string>
+	</dict>
+	<key>EXUpdatesCheckOnLaunch</key>
+	<string>NEVER</string>
+	<key>EXUpdatesLaunchWaitMs</key>
+	<integer>0</integer>
+	<key>EXUpdatesCodeSigningCertificate</key>
+	<string>-----BEGIN CERTIFICATE-----&#xD;
+MIIC0zCCAbugAwIBAgIJaqBgJ/nwfDyGMA0GCSqGSIb3DQEBCwUAMBMxETAPBgNV&#xD;
+BAMTCE1ldGFNYXNrMB4XDTI1MTIxOTIzMjIyMloXDTM1MTIxOTIzMjIyMlowEzER&#xD;
+MA8GA1UEAxMITWV0YU1hc2swggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB&#xD;
+AQCYLssVwzNInWR+fQ7bUGsDVk+1+lF3TZhR3MkZjlY/Cm/5jG2H5oW8gpL9+3Ip&#xD;
+2VjGqp4bIwEQKSrkIKeg4188pI3Qqpn2fR43GHMbSSmtQ0EF9N1OTH8vh3pLR717&#xD;
+T6P9hXBMJtNS1sOlwRpRjZZy0DC/8SpdjA9tE++PgiU0AY2y+sNMXKk/eMITjr6P&#xD;
+gAbUGgph4iRwMrsW/PC2wD3QE6D5nCOviTp17tC4+TkaEyw+cO2D4BCG8Z/oozLK&#xD;
+JQSskcDCYfaFMcf0kYQrliiGvwmFvp/tdpT6TSYut1hfEV2H1hfvdtP5J/9L/k4J&#xD;
+d9sV37QI3jCzOfencXaKNTX7AgMBAAGjKjAoMA4GA1UdDwEB/wQEAwIHgDAWBgNV&#xD;
+HSUBAf8EDDAKBggrBgEFBQcDAzANBgkqhkiG9w0BAQsFAAOCAQEAkKTLPjiqrLkH&#xD;
+QKA8X223RikeCYOwFG4bqhpvQ867TPn6nARAwwtOssVu6duaKNwQFXhN424wWpcT&#xD;
+JeCvxJdnQS9qKNCeNEbjtTxmqDQmqVNnUy6kPXBYbGiSVKX49GjRfdjVZSmeHQCh&#xD;
+dXQ5jsRqcpNjn+VkzHzZ7iWx7RZBQ6ueSl/udFuTHlswUBRdgZxCcpANFplVVF5E&#xD;
+2xegZVSolQHKQaS7pVD6EnnK3B8VlGV4o0yUe4Jz8bdRC0KCMN3SxLxBSj2f7/cQ&#xD;
+OF6hIMvGG6Qw0IHfQBRIcmnJm/ciny+4PTmSVlm2zMbeZ6hFVGzKo8SgUcxwTf/N&#xD;
+Uuat8HYBag==&#xD;
+-----END CERTIFICATE-----&#xD;
+</string>
+																																																																																								<key>EXUpdatesCodeSigningMetadata</key>
+	<dict>
+		<key>keyid</key>
+		<string>production</string>
+		<key>alg</key>
+		<string>rsa-v1_5-sha256</string>
+	</dict>
+	<key>EXUpdatesEnabled</key>
+	<true/>
+
+
+
   </dict>
 </plist>

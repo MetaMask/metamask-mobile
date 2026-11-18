@@ -11,6 +11,8 @@ import {
   formatFiatInputAmount,
   formatSecondaryTokenAmount,
 } from '../../utils/sourceAmountInputMode';
+import { getCurrencySymbol } from '../../utils/currencyUtils';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../../components/TokenInputArea', () => ({
@@ -54,7 +56,8 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectIsMaxSourceAmount: () => mockIsMaxSourceAmount(),
 }));
 jest.mock('../../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: () => 'usd',
+  selectCurrentCurrency: jest.fn(() => 'usd'),
+  selectCurrencyRates: jest.fn(() => undefined),
 }));
 jest.mock('../../utils/sourceAmountInputMode', () => ({
   FIAT_INPUT_DECIMALS: 2,
@@ -64,7 +67,9 @@ jest.mock('../../utils/sourceAmountInputMode', () => ({
 }));
 jest.mock('../../utils/currencyUtils', () => ({
   formatCurrency: jest.fn(() => '$0'),
-  getCurrencySymbol: jest.fn(() => '$'),
+  getCurrencySymbol: jest.fn((currency: string) =>
+    currency.toLowerCase() === 'eur' ? '€' : '$',
+  ),
 }));
 jest.mock('../../utils/formatAmountWithLocaleSeparators', () => ({
   formatAmountWithLocaleSeparators: (value: string) => value,
@@ -74,12 +79,75 @@ jest.mock('../useSwapsFeatureId', () => ({
 }));
 
 const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+const mockSelectCurrentCurrency = jest.mocked(selectCurrentCurrency);
+const mockGetCurrencySymbol = jest.mocked(getCurrencySymbol);
 
 const mockPlaySelection = jest.mocked(playSelection);
 const mockUseTokenFiatRate = jest.mocked(useTokenFiatRate);
 const mockTrackUnifiedSwapBridgeEvent = jest.mocked(
   Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
 );
+
+describe('useSourceAmountInput money source', () => {
+  const moneySourceToken = {
+    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    symbol: 'Money',
+    chainId: '0x1' as const,
+    decimals: 6,
+    isMoneyToken: true,
+  };
+
+  beforeEach(() => {
+    mockSelectCurrentCurrency.mockReturnValue('usd');
+    mockGetCurrencySymbol.mockImplementation((currency: string) =>
+      currency.toLowerCase() === 'eur' ? '€' : '$',
+    );
+  });
+
+  it('prefixes the amount with the user currency symbol when the source token is Money', () => {
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+    mockUseTokenFiatRate.mockReturnValue(undefined);
+
+    const { result } = renderHook(() =>
+      useSourceAmountInput({
+        isFiatToggleEnabled: true,
+        sourceAmount: '1.3',
+        sourceToken: moneySourceToken,
+        onSourceAmountChange: jest.fn(),
+      }),
+    );
+
+    expect(mockGetCurrencySymbol).toHaveBeenCalledWith('usd');
+    expect(result.current.inputPrefix).toBe('$');
+    expect(result.current.canToggle).toBe(false);
+    expect(result.current.isFiatMode).toBe(true);
+    expect(result.current.amount).toBe('2000');
+    expect(formatFiatInputAmount).toHaveBeenCalledWith('1.3', 1);
+    expect(
+      Engine.context.BridgeController.setInputPrimaryDenomination,
+    ).toHaveBeenCalledWith('fiat_value');
+  });
+
+  it('prefixes the amount with € when the user currency is eur', () => {
+    mockSelectCurrentCurrency.mockReturnValue('eur');
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+    mockUseTokenFiatRate.mockReturnValue(undefined);
+
+    const { result } = renderHook(() =>
+      useSourceAmountInput({
+        isFiatToggleEnabled: true,
+        sourceAmount: '1.3',
+        sourceToken: moneySourceToken,
+        onSourceAmountChange: jest.fn(),
+      }),
+    );
+
+    expect(mockGetCurrencySymbol).toHaveBeenCalledWith('eur');
+    expect(result.current.inputPrefix).toBe('€');
+    expect(result.current.isFiatMode).toBe(true);
+    expect(result.current.canToggle).toBe(false);
+  });
+});
 
 describe('useSourceAmountInput haptics', () => {
   it('plays selection haptic when toggling fiat mode', () => {

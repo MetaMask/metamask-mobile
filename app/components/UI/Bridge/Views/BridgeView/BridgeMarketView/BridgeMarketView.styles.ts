@@ -26,6 +26,10 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingVertical: 24,
       zIndex: 0,
     },
+    moneyTokenCard: {
+      backgroundColor: theme.colors.background.muted,
+      paddingVertical: 12,
+    },
     buttonContainer: {
       width: '100%',
       paddingHorizontal: 16,

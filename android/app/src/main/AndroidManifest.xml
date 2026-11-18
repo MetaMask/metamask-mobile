@@ -246,5 +246,14 @@
 			android:name="app.notifee.core.BlockStateBroadcastReceiver"
 			android:enabled="false"
 			tools:node="remove" />
+		<!-- EAS Update configuration -->
+		<meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="{&quot;expo-channel-name&quot;:&quot;production&quot;}"/>
+		<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="8.22.0" />
+		<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/" />
+		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="NEVER" />
+		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0" />
+		<meta-data android:name="expo.modules.updates.CODE_SIGNING_CERTIFICATE" android:value="-----BEGIN CERTIFICATE-----&#xD;&#xA;MIIC0zCCAbugAwIBAgIJaqBgJ/nwfDyGMA0GCSqGSIb3DQEBCwUAMBMxETAPBgNV&#xD;&#xA;BAMTCE1ldGFNYXNrMB4XDTI1MTIxOTIzMjIyMloXDTM1MTIxOTIzMjIyMlowEzER&#xD;&#xA;MA8GA1UEAxMITWV0YU1hc2swggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB&#xD;&#xA;AQCYLssVwzNInWR+fQ7bUGsDVk+1+lF3TZhR3MkZjlY/Cm/5jG2H5oW8gpL9+3Ip&#xD;&#xA;2VjGqp4bIwEQKSrkIKeg4188pI3Qqpn2fR43GHMbSSmtQ0EF9N1OTH8vh3pLR717&#xD;&#xA;T6P9hXBMJtNS1sOlwRpRjZZy0DC/8SpdjA9tE++PgiU0AY2y+sNMXKk/eMITjr6P&#xD;&#xA;gAbUGgph4iRwMrsW/PC2wD3QE6D5nCOviTp17tC4+TkaEyw+cO2D4BCG8Z/oozLK&#xD;&#xA;JQSskcDCYfaFMcf0kYQrliiGvwmFvp/tdpT6TSYut1hfEV2H1hfvdtP5J/9L/k4J&#xD;&#xA;d9sV37QI3jCzOfencXaKNTX7AgMBAAGjKjAoMA4GA1UdDwEB/wQEAwIHgDAWBgNV&#xD;&#xA;HSUBAf8EDDAKBggrBgEFBQcDAzANBgkqhkiG9w0BAQsFAAOCAQEAkKTLPjiqrLkH&#xD;&#xA;QKA8X223RikeCYOwFG4bqhpvQ867TPn6nARAwwtOssVu6duaKNwQFXhN424wWpcT&#xD;&#xA;JeCvxJdnQS9qKNCeNEbjtTxmqDQmqVNnUy6kPXBYbGiSVKX49GjRfdjVZSmeHQCh&#xD;&#xA;dXQ5jsRqcpNjn+VkzHzZ7iWx7RZBQ6ueSl/udFuTHlswUBRdgZxCcpANFplVVF5E&#xD;&#xA;2xegZVSolQHKQaS7pVD6EnnK3B8VlGV4o0yUe4Jz8bdRC0KCMN3SxLxBSj2f7/cQ&#xD;&#xA;OF6hIMvGG6Qw0IHfQBRIcmnJm/ciny+4PTmSVlm2zMbeZ6hFVGzKo8SgUcxwTf/N&#xD;&#xA;Uuat8HYBag==&#xD;&#xA;-----END CERTIFICATE-----&#xD;&#xA;" />
+		<meta-data android:name="expo.modules.updates.CODE_SIGNING_METADATA" android:value="{&quot;keyid&quot;:&quot;production&quot;,&quot;alg&quot;:&quot;rsa-v1_5-sha256&quot;}" />
+		<meta-data android:name="expo.modules.updates.ENABLED" android:value="true" />
 	</application>
 </manifest>

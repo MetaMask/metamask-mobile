@@ -70,3 +70,29 @@ export function getCurrencySymbol(currency: string): string {
 
   return normalizedCurrency;
 }
+
+export const getMoneyInputPrefix = ({
+  isMoneyToken,
+  showFiatAmountAsPrimary,
+  hideFiatValue,
+  amount,
+  currency,
+}: {
+  isMoneyToken: boolean;
+  showFiatAmountAsPrimary: boolean;
+  hideFiatValue: boolean;
+  amount?: string;
+  currency: string;
+}) => {
+  const showsFiatAmount =
+    showFiatAmountAsPrimary &&
+    !hideFiatValue &&
+    Boolean(amount) &&
+    Number(amount) > 0;
+
+  if (!isMoneyToken || showsFiatAmount) {
+    return undefined;
+  }
+
+  return getCurrencySymbol(currency);
+};

@@ -1,6 +1,10 @@
 import I18n from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
-import { formatCurrency, formatMinimumReceived } from './currencyUtils';
+import {
+  formatCurrency,
+  formatMinimumReceived,
+  getMoneyInputPrefix,
+} from './currencyUtils';
 
 jest.mock('../../../../../locales/i18n', () => ({
   locale: 'en-US',
@@ -452,5 +456,56 @@ describe('formatMinimumReceived', () => {
     });
 
     (I18n as { locale: string }).locale = 'en-US';
+  });
+});
+
+describe('getMoneyInputPrefix', () => {
+  const mockFormat = jest.fn();
+  const mockGetIntlNumberFormatter =
+    getIntlNumberFormatter as jest.MockedFunction<
+      typeof getIntlNumberFormatter
+    >;
+
+  beforeEach(() => {
+    mockFormat.mockReturnValue('$0');
+    mockGetIntlNumberFormatter.mockReturnValue({
+      format: mockFormat,
+    } as unknown as Intl.NumberFormat);
+  });
+
+  it('returns the currency symbol for a money token when fiat is not the amount', () => {
+    const prefix = getMoneyInputPrefix({
+      isMoneyToken: true,
+      showFiatAmountAsPrimary: true,
+      hideFiatValue: true,
+      amount: '24.44',
+      currency: 'usd',
+    });
+
+    expect(prefix).toBe('$');
+  });
+
+  it('returns undefined when the money amount is already shown in fiat', () => {
+    const prefix = getMoneyInputPrefix({
+      isMoneyToken: true,
+      showFiatAmountAsPrimary: true,
+      hideFiatValue: false,
+      amount: '24.44',
+      currency: 'usd',
+    });
+
+    expect(prefix).toBeUndefined();
+  });
+
+  it('returns undefined for a non-money token', () => {
+    const prefix = getMoneyInputPrefix({
+      isMoneyToken: false,
+      showFiatAmountAsPrimary: false,
+      hideFiatValue: true,
+      amount: '1',
+      currency: 'usd',
+    });
+
+    expect(prefix).toBeUndefined();
   });
 });
