@@ -13,6 +13,7 @@ import ProgressBar from 'react-native-progress/Bar';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { SPENDING_LIMIT_WARNING_THRESHOLD } from '../../util/formatSpendingLimitDisplayValue';
 
 interface SpendingLimitProgressBarProps {
   decimals: number;
@@ -58,7 +59,7 @@ const SpendingLimitProgressBar = ({
 
   const progressColor = useMemo(
     () =>
-      progress >= 0.8
+      progress >= SPENDING_LIMIT_WARNING_THRESHOLD
         ? theme.colors.warning.default
         : theme.colors.info.default,
     [progress, theme],

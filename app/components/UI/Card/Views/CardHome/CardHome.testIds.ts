@@ -12,6 +12,8 @@ export const CardHomeSelectors = {
   ADD_FUNDS_BUTTON: 'add-funds-button',
   CARD_ART: 'card-home-card-art',
   BALANCE_HEADER: 'card-home-balance-header',
+  MORE_BUTTON: 'card-home-more-button',
+  MORE_SHEET: 'card-home-more-sheet',
   DASHBOARD_BANNERS: 'card-home-dashboard-banners',
   ACTION_BUTTON_ROW: 'card-home-action-button-row',
   HOME_SEGMENTS: 'card-home-segments',
