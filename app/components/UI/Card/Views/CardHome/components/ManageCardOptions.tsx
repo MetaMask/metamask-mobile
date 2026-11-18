@@ -57,6 +57,13 @@ interface ManageCardOptionsProps {
   isSpendingLimitActive: boolean;
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
+  /**
+   * The Card home quick-action row now carries the View card details, View
+   * PIN and Freeze/Unfreeze actions; when it is showing them, hide these
+   * rows so the same action does not appear twice. Defaults to false (rows
+   * unchanged).
+   */
+  hideQuickActionRows?: boolean;
   onCashback: () => void;
   onTravel: () => void;
   onTransactionHistory?: () => void;
@@ -97,6 +104,7 @@ const ManageCardOptions = ({
   isSpendingLimitActive,
   onChangeAsset,
   hasPriorityTokenBalance,
+  hideQuickActionRows = false,
   onCashback,
   onTravel,
   onTransactionHistory,
@@ -206,21 +214,22 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CASHBACK_ITEM}
             />
           )}
-        {((isAuthenticated && !isLoading && card && !hideManageOptions) ||
-          showTeaserOptions) && (
-          <ManageCardListItem
-            title={strings(
-              cardDetailsVisible
-                ? 'card.card_home.manage_card_options.hide_card_details'
-                : 'card.card_home.manage_card_options.view_card_details',
-            )}
-            description={strings(
-              'card.card_home.manage_card_options.view_card_details_description',
-            )}
-            onPress={onViewCardDetails}
-            testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
-          />
-        )}
+        {!hideQuickActionRows &&
+          ((isAuthenticated && !isLoading && card && !hideManageOptions) ||
+            showTeaserOptions) && (
+            <ManageCardListItem
+              title={strings(
+                cardDetailsVisible
+                  ? 'card.card_home.manage_card_options.hide_card_details'
+                  : 'card.card_home.manage_card_options.view_card_details',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.view_card_details_description',
+              )}
+              onPress={onViewCardDetails}
+              testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
+            />
+          )}
         {isFullySetUp &&
           !hideManageOptions &&
           showDigitalWalletInstructions && (
@@ -236,23 +245,24 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM}
             />
           )}
-        {((isAuthenticated &&
-          !isLoading &&
-          card &&
-          capabilities?.supportsPinView &&
-          cardHasPin &&
-          !hideManageOptions) ||
-          (showTeaserOptions && capabilities?.supportsPinView)) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.view_pin')}
-            description={strings(
-              'card.card_home.manage_card_options.view_pin_description',
-            )}
-            onPress={onViewPin}
-            isLoading={isPinLoading}
-            testID={CardHomeSelectors.VIEW_PIN_BUTTON}
-          />
-        )}
+        {!hideQuickActionRows &&
+          ((isAuthenticated &&
+            !isLoading &&
+            card &&
+            capabilities?.supportsPinView &&
+            cardHasPin &&
+            !hideManageOptions) ||
+            (showTeaserOptions && capabilities?.supportsPinView)) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.view_pin')}
+              description={strings(
+                'card.card_home.manage_card_options.view_pin_description',
+              )}
+              onPress={onViewPin}
+              isLoading={isPinLoading}
+              testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+            />
+          )}
         {((isAuthenticated &&
           !isLoading &&
           card &&
@@ -270,35 +280,36 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.SET_PIN_BUTTON}
           />
         )}
-        {((isAuthenticated &&
-          !isLoading &&
-          card?.isFreezable &&
-          card?.status !== CardStatus.BLOCKED &&
-          !hideManageOptions) ||
-          showTeaserOptions) && (
-          <ManageCardListItem
-            title={
-              isFrozen && isAuthenticated
-                ? strings('card.card_home.manage_card_options.unfreeze_card')
-                : strings('card.card_home.manage_card_options.freeze_card')
-            }
-            description={strings(
-              isFrozen && isAuthenticated
-                ? 'card.card_home.manage_card_options.unfreeze_card_description'
-                : 'card.card_home.manage_card_options.freeze_card_description',
-            )}
-            rightElement={
-              <Switch
-                value={isFrozen && isAuthenticated}
-                onValueChange={isFreezeLoading ? undefined : onToggleFreeze}
-                disabled={isFreezeLoading}
-                style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
-                testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
-              />
-            }
-            testID="freeze-card-list-item"
-          />
-        )}
+        {!hideQuickActionRows &&
+          ((isAuthenticated &&
+            !isLoading &&
+            card?.isFreezable &&
+            card?.status !== CardStatus.BLOCKED &&
+            !hideManageOptions) ||
+            showTeaserOptions) && (
+            <ManageCardListItem
+              title={
+                isFrozen && isAuthenticated
+                  ? strings('card.card_home.manage_card_options.unfreeze_card')
+                  : strings('card.card_home.manage_card_options.freeze_card')
+              }
+              description={strings(
+                isFrozen && isAuthenticated
+                  ? 'card.card_home.manage_card_options.unfreeze_card_description'
+                  : 'card.card_home.manage_card_options.freeze_card_description',
+              )}
+              rightElement={
+                <Switch
+                  value={isFrozen && isAuthenticated}
+                  onValueChange={isFreezeLoading ? undefined : onToggleFreeze}
+                  disabled={isFreezeLoading}
+                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
+                  testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
+                />
+              }
+              testID="freeze-card-list-item"
+            />
+          )}
         {capabilities?.supportsFundingLimits &&
           !isLoading &&
           !hideManageOptions && (
