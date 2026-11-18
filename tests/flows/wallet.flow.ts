@@ -51,6 +51,7 @@ import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifi
 import { NewUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
 import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
+import { interruptingScreenGuard } from '../framework/interrupting-screens/InterruptingScreenGuard.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -785,10 +786,12 @@ export const dismissExperienceEnhancerModal = async (): Promise<void> => {
 /**
  * Logs into the application using the provided password or a default password.
  *
- * Default fixtures suppress push / marketing pre-prompts, so this path does
- * not probe or dismiss those sheets (MMQA-2214). Call
- * {@link dismissPushNotificationExistingUserSheet} /
- * {@link dismissExperienceEnhancerModal} explicitly when a flow needs them.
+ * Default fixtures suppress push / marketing pre-prompts, so smoke runs do
+ * not probe or dismiss those sheets (MMQA-2214). Performance runs configure
+ * the interrupting-screen guard, which watches for known sheets (e.g. the
+ * Experience Enhancer consent that slides up ~2s after unlock on preloaded
+ * BrowserStack wallets) during a short settle window inside the `login`
+ * phase, before `test_body` starts. Outside performance the settle is a no-op.
  *
  * @async
  * @function loginToAppPlaywright
@@ -798,10 +801,13 @@ export const loginToAppPlaywright = async (
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
+  const startTestBody = async (): Promise<void> => {
+    await interruptingScreenGuard.settle();
+    startPhase('test_body');
+  };
+
   const afterWalletHomeReady = async (): Promise<void> => {
-    await completeUnlockedWalletHome(async () => {
-      startPhase('test_body');
-    });
+    await completeUnlockedWalletHome(startTestBody);
   };
 
   startPhase('login');
@@ -841,7 +847,7 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
-  startPhase('test_body');
+  await startTestBody();
 };
 
 const MM_CONNECT_UNLOCK_ATTEMPTS = 3;

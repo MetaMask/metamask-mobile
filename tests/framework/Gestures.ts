@@ -19,6 +19,7 @@ import {
   getPerformanceLocatorRecovery,
   isPerformanceSuiteActive,
 } from './ai-locator/PerformanceLocatorRecovery.ts';
+import { interruptingScreenGuard } from './interrupting-screens/InterruptingScreenGuard.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 type TapAtIndexElement =
@@ -138,17 +139,22 @@ export default class Gestures {
     elementOrPromise: AppiumElement | Promise<AppiumElement>,
     options: TapOptions,
   ): Promise<void> {
+    const intent = options.elemDescription ?? 'tap the current mobile control';
     const tap = async (target: AppiumElement): Promise<void> => {
-      await AppiumGestures.waitAndTap(target, {
-        timeout: options.timeout,
-        delay: options.delay,
-        checkForDisplayed: options.checkForDisplayed ?? true,
-        checkForEnabled: options.checkEnabled,
-        waitForInteractive: options.waitForInteractive,
-        enabledStableReads: options.enabledStableReads,
-        postEnabledSettleMs: options.postEnabledSettleMs,
-        checkForStable: options.checkStability,
-      });
+      await interruptingScreenGuard.retryAfterInterruption(
+        () =>
+          AppiumGestures.waitAndTap(target, {
+            timeout: options.timeout,
+            delay: options.delay,
+            checkForDisplayed: options.checkForDisplayed ?? true,
+            checkForEnabled: options.checkEnabled,
+            waitForInteractive: options.waitForInteractive,
+            enabledStableReads: options.enabledStableReads,
+            postEnabledSettleMs: options.postEnabledSettleMs,
+            checkForStable: options.checkStability,
+          }),
+        { intent, trigger: 'tap-failure' },
+      );
     };
 
     const recovery = getPerformanceLocatorRecovery();
@@ -162,7 +168,7 @@ export default class Gestures {
     // tappable. Run the real waitAndTap as `primary` so a missing/stale
     // control triggers recovery. Tap again only for the recovered locator.
     const { element, source } = await findWithSelfHealingLocator({
-      intent: options.elemDescription ?? 'tap the current mobile control',
+      intent,
       primary: async () => {
         const resolvedElement = await elementOrPromise;
         await tap(resolvedElement);

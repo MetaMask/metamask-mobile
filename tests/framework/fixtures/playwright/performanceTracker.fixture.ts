@@ -19,6 +19,11 @@ import {
   configurePerformanceLocatorRecovery,
   setPerformanceSuiteActive,
 } from '../../ai-locator/PerformanceLocatorRecovery.ts';
+import { createClaudeInterruptionRecoveryProvider } from '../../ai-locator/ClaudeInterruptionRecoveryProvider.ts';
+import {
+  interruptingScreenGuard,
+  isInterruptingScreenGuardEnabledByEnv,
+} from '../../interrupting-screens/InterruptingScreenGuard.ts';
 
 const logger = createAppiumLogger('performanceTracker');
 
@@ -79,9 +84,29 @@ export const performanceTrackerFixture = {
         : undefined,
     );
 
+    if (isInterruptingScreenGuardEnabledByEnv()) {
+      const interruptionProvider = createClaudeInterruptionRecoveryProvider();
+      logger.info(
+        `Interrupting screen guard enabled (AI fallback ${interruptionProvider ? 'enabled' : 'disabled'})`,
+      );
+      interruptingScreenGuard.configure({
+        aiProvider: interruptionProvider,
+        onDismissed: (event) =>
+          testInfo.attach(`interrupting-screen-dismissed-${event.screen}`, {
+            body: JSON.stringify(event),
+            contentType: 'application/json',
+          }),
+      });
+    } else {
+      logger.info(
+        'Interrupting screen guard disabled (INTERRUPTING_SCREEN_GUARD_ENABLED=false)',
+      );
+    }
+
     try {
       await use(performanceTracker);
     } finally {
+      interruptingScreenGuard.configure(undefined);
       configurePerformanceLocatorRecovery(undefined);
       setPerformanceSuiteActive(false);
     }
