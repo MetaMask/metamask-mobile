@@ -34,6 +34,7 @@ import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+import { getPayTokenAddressAndChainId } from '../../utils/transaction-pay';
 
 /** Smallest fiat amount the input can display and a quote can be built for. */
 export const MIN_FIAT_AMOUNT = 0.01;
@@ -207,11 +208,10 @@ export function useDepositPrefillAmount({
       };
     }
 
-    const stable = isListedStablecoin(
-      stablecoins,
-      payToken.chainId,
-      payToken.address,
-    );
+    const payTokenInfo = getPayTokenAddressAndChainId(payToken);
+    const stable =
+      payTokenInfo &&
+      isListedStablecoin(stablecoins, payTokenInfo.chainId, payTokenInfo.address);
     const nextPercentage = isMoneyAccountDeposit && stable ? 100 : 50;
 
     const raw = new BigNumber(nextPercentage)
