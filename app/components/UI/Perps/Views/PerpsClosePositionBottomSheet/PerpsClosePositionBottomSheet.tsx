@@ -1,6 +1,7 @@
 import PerpsFeeCaption from '../../components/PerpsFeesDisplay/PerpsFeeCaption';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -81,6 +82,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleDonePress,
     confirmButtonProps,
     feeResults,
+    summaryMargin,
+    summaryMarginMode,
     summaryPnl,
     summaryRoePercentage,
     receiveAmount,
@@ -256,6 +259,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           pnl={summaryPnl}
           roePercentage={summaryRoePercentage}
           receiveAmount={receiveAmount}
+          margin={summaryMargin}
+          marginMode={summaryMarginMode}
         />
       )}
 

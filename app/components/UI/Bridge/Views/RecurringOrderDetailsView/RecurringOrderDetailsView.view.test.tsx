@@ -464,6 +464,38 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('replaces stale route progress with the fresh order response', async () => {
+    const staleOrder = {
+      ...MOCK_RECURRING_OPEN_ORDER,
+      fillData: {
+        ...MOCK_RECURRING_OPEN_ORDER.fillData,
+        src: {
+          ...MOCK_RECURRING_OPEN_ORDER.fillData.src,
+          amount: '0',
+        },
+        dest: {
+          ...MOCK_RECURRING_OPEN_ORDER.fillData.dest,
+          amount: '0',
+        },
+        count: 0,
+      },
+    };
+    const renderResult = renderRecurringOrderDetailsView({
+      order: staleOrder,
+    });
+
+    await openOrderDetails(renderResult);
+
+    expect(
+      await renderResult.findByText(
+        strings('bridge.recurring.history_progress', {
+          filledOrderCount: MOCK_RECURRING_OPEN_ORDER.fillData.count,
+          totalOrderCount: MOCK_RECURRING_OPEN_ORDER.schedule.repeatCount,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('opens swap details when a history row is pressed', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_OPEN_ORDER,
@@ -755,11 +787,18 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
   });
 
   it('hides cancellation when the API marks an open order non-cancellable', async () => {
+    const nonCancellableOrder = {
+      ...MOCK_RECURRING_OPEN_ORDER,
+      isCancellable: false,
+    };
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({
+      recurringOrder: jest.fn().mockResolvedValue({
+        order: nonCancellableOrder,
+      }),
+    });
     const renderResult = renderRecurringOrderDetailsView({
-      order: {
-        ...MOCK_RECURRING_OPEN_ORDER,
-        isCancellable: false,
-      },
+      order: MOCK_RECURRING_OPEN_ORDER,
     });
 
     await userEvent.press(
