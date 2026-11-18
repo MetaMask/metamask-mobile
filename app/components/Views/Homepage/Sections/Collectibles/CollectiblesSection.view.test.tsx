@@ -2,9 +2,10 @@ import '../../../../../../tests/component-view/mocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { renderCollectiblesSectionWithRoutes } from '../../../../../../tests/component-view/renderers/collectibles';
-import Engine from '../../../../../core/Engine';
-import { updateBgState } from '../../../../../core/redux/slices/engine';
+import {
+  createCollectiblesFlagHarness,
+  renderCollectiblesSectionWithRoutes,
+} from '../../../../../../tests/component-view/renderers/collectibles';
 import { CollectiblesHomeTestIds } from '../../../../UI/Collectibles';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { HomeSectionNames } from '../../hooks/useHomeViewedEvent';
@@ -55,26 +56,20 @@ describeForPlatforms('CollectiblesSection', () => {
   // is visible, without remounting the homepage.
   it('removes the visible section when the remote flag is disabled while the homepage is open', async () => {
     const { store } = renderCollectiblesSectionWithRoutes();
-    await screen.findByTestId(CollectiblesSectionTestIds.CONTAINER);
+    const { setEnabled, cleanup } = createCollectiblesFlagHarness(store);
 
-    act(() => {
-      Object.assign(Engine, {
-        state: {
-          ...store.getState().engine.backgroundState,
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              collectiblesEnabled: { enabled: false, minimumVersion: '0.0.1' },
-            },
-          },
-        },
+    try {
+      await screen.findByTestId(CollectiblesSectionTestIds.CONTAINER);
+
+      act(() => setEnabled(false));
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(CollectiblesSectionTestIds.CONTAINER),
+        ).not.toBeOnTheScreen();
       });
-      store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
-    });
-
-    await waitFor(() => {
-      expect(
-        screen.queryByTestId(CollectiblesSectionTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
+    } finally {
+      cleanup();
+    }
   });
 });
