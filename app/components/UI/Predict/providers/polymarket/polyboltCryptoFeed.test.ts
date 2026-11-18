@@ -1,3 +1,4 @@
+import { captureMessage } from '@sentry/react-native';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import {
@@ -920,17 +921,48 @@ describe('PolyBoltCryptoFeed', () => {
       ]);
     });
 
-    it('keeps an unpinned stream from another vendor out of Sentry', () => {
+    it('warns Sentry once per subscription when another vendor serves a Chainlink request', () => {
+      jest.mocked(captureMessage).mockClear();
       const logSpy = jest.spyOn(DevLogger, 'log');
-      const { socket } = connectWith([chainlinkBtc]);
+      const { feed, socket } = connectWith([chainlinkBtc]);
 
-      socket.receive(livePoint('pyth', '100'));
+      socket.receive(livePoint('binance', '100'));
+      socket.receive(livePoint('binance', '101'));
+      socket.closeWith(1006);
+      jest.advanceTimersByTime(1_000);
+      mockSockets[1].open();
+      mockSockets[1].receive({ op: 'authed', rid: 'a2' });
+      mockSockets[1].receive(livePoint('binance', '102'));
 
       expect(logSpy).toHaveBeenCalledWith(
         'PolyBoltCryptoFeed: served provider differs from request',
-        expect.objectContaining({ requested: 'chainlink', served: 'pyth' }),
+        expect.objectContaining({ requested: 'chainlink', served: 'binance' }),
       );
       expect(sentryCalls()).toEqual([]);
+      expect(jest.mocked(captureMessage).mock.calls).toEqual([
+        [
+          'PolyBoltCryptoFeed: Chainlink request served by another vendor',
+          {
+            level: 'warning',
+            tags: { feature: 'Predict', provider: 'polymarket' },
+            contexts: {
+              PolyBoltCryptoFeed: {
+                channel: 'price.crypto',
+                symbol: 'btcusd',
+                requested: 'chainlink',
+                served: 'binance',
+              },
+            },
+          },
+        ],
+      ]);
+
+      feed.setSubscriptions([]);
+      feed.setSubscriptions([chainlinkBtc]);
+      mockSockets[2].open();
+      mockSockets[2].receive({ op: 'authed', rid: 'a3' });
+      mockSockets[2].receive(livePoint('binance', '103'));
+      expect(jest.mocked(captureMessage)).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -1119,8 +1151,10 @@ describe('PolyBoltCryptoFeed', () => {
         jest
           .mocked(Logger.error)
           .mock.calls.map(([error, options]) => [error.message, options]),
+        jest.mocked(captureMessage).mock.calls,
       ]);
       expect(jest.mocked(Logger.error)).toHaveBeenCalled();
+      expect(jest.mocked(captureMessage)).toHaveBeenCalled();
       expect(logged).not.toContain(fakeKey);
       expect(logged).not.toContain('fake-rotated-key');
       expect(logged).toContain('"hasChainlinkApiKey":true');

@@ -1,3 +1,4 @@
+import { captureMessage } from '@sentry/react-native';
 import type { CryptoPriceProvider, CryptoPriceUpdate } from '../../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -137,6 +138,17 @@ const reportToSentry = (
       provider: POLYMARKET_PROVIDER_ID,
     },
     context: { name: 'PolyBoltCryptoFeed', data },
+  });
+};
+
+const warnToSentry = (message: string, data: Record<string, unknown>): void => {
+  captureMessage(message, {
+    level: 'warning',
+    tags: {
+      feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      provider: POLYMARKET_PROVIDER_ID,
+    },
+    contexts: { PolyBoltCryptoFeed: data },
   });
 };
 
@@ -805,9 +817,10 @@ export class PolyBoltCryptoFeed {
 
   /**
    * Logs once per subscription when a stream comes from another vendor than
-   * it asked for. A pin that falls back this way, because PolyBolt rejected,
-   * ignored or overrode it, also goes to Sentry: the market keeps a price, but
-   * not from the vendor it settles on.
+   * it asked for, and reports it to Sentry: the market keeps a price, but not
+   * from the vendor it settles on. A pin that falls back, because PolyBolt
+   * rejected, ignored or overrode it, is an error. A Chainlink request served
+   * by another vendor is a warning.
    */
   private logProviderMismatch(
     subscription: PolyBoltSubscription,
@@ -831,6 +844,11 @@ export class PolyBoltCryptoFeed {
     );
     if (details.requested !== DEFAULT_CRYPTO_PROVIDER) {
       reportToSentry('PolyBoltCryptoFeed: provider pin fell back', details);
+    } else {
+      warnToSentry(
+        'PolyBoltCryptoFeed: Chainlink request served by another vendor',
+        details,
+      );
     }
   }
 
