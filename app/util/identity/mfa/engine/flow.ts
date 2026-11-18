@@ -1,3 +1,4 @@
+import { isEscrowPasskeyChallenge } from '@metamask/mfa-recovery-controller';
 import {
   getMfaRetryAfterMs,
   type EnrolledCredential,
@@ -31,6 +32,19 @@ import type {
   Plan,
   PlanContext,
 } from './types';
+
+/**
+ * A compromised Auth API could relay an escrow login challenge as an MFA
+ * challenge and replay the signature at the escrow. Unreadable challenges are
+ * refused too.
+ */
+function isEscrowChallenge(challenge: string): boolean {
+  try {
+    return isEscrowPasskeyChallenge(challenge);
+  } catch {
+    return true;
+  }
+}
 
 interface CurrentStep {
   method: MfaMethod;
@@ -259,7 +273,10 @@ export const createMfaFlow = ({
         type: 'passkey',
         reason: tokenReason,
       });
-      if (challenge.type !== 'passkey') {
+      if (
+        challenge.type !== 'passkey' ||
+        isEscrowChallenge(challenge.publicKey.challenge)
+      ) {
         throw new MfaFlowError('invalid_response');
       }
       const assertion = await passkey.get(challenge.publicKey);

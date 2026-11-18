@@ -44,6 +44,7 @@ const SOCIAL: Identifier = {
 describe('RecoveryIdentifierRouter', () => {
   const proofPublicKey = new Uint8Array([1, 2, 3]);
   const requestHash = '0xabc';
+  const notAfter = 1_800_000_000;
 
   it('routes passkey identifiers to the passkey provider', async () => {
     const getPasskeyAssertion = jest.fn().mockResolvedValue({
@@ -59,6 +60,7 @@ describe('RecoveryIdentifierRouter', () => {
       identifier: PASSKEY,
       proofPublicKey,
       requestHash,
+      notAfter,
     });
 
     expect(getPasskeyAssertion).toHaveBeenCalledTimes(1);
@@ -79,6 +81,7 @@ describe('RecoveryIdentifierRouter', () => {
       identifier: SOCIAL,
       proofPublicKey,
       requestHash,
+      notAfter,
     });
 
     expect(getSocialIdToken).toHaveBeenCalledWith('nonce');
@@ -100,6 +103,7 @@ describe('RecoveryIdentifierRouter', () => {
         } as Identifier,
         proofPublicKey,
         requestHash,
+        notAfter,
       }),
     ).rejects.toEqual(
       new MfaRecoveryControllerError(
