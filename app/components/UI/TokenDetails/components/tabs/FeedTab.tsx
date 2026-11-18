@@ -1,6 +1,10 @@
 import { Box } from '@metamask/design-system-react-native';
 import { parseCaipAssetType, type CaipAssetType } from '@metamask/utils';
 import React, { useCallback, useMemo } from 'react';
+import {
+  SocialEvent,
+  useSocialScreenAnalytics,
+} from '../../../../Views/SocialLeaderboard/analytics';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
 import { SocialEntryOptionsProvider, SocialFeed } from '../../../SocialFeed';
 import type { SocialFeedPostShellProps } from '../../../SocialFeed/components/SocialFeedPostShell';
@@ -29,6 +33,10 @@ const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
   token,
   onEmptyChange,
 }) => {
+  useSocialScreenAnalytics(SocialEvent.Screen.TOKEN_DETAILS_FEED, {
+    source: SocialEvent.Source.TOKEN_DETAILS_FEED,
+    isActive,
+  });
   const { onAuthorPress, onPositionPress } =
     useSocialFeedPostNavigation('token_details');
   const query = useMemo(() => {

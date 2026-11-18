@@ -65,8 +65,9 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const selectedAccount =
-    accounts.find((account) => account.id === selectedAccountId) ?? accounts[0];
+  const selectedAccount = accounts.find(
+    (account) => account.id === selectedAccountId,
+  );
   // Design-system Switch copies `label` into accessibilityLabel and ignores a
   // passed accessibilityLabel. This row keeps its own text so the label can
   // fill the row, and the native switch carries the accessible name.

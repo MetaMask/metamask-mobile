@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { render, fireEvent, within } from '@testing-library/react-native';
 import { IconColor } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
@@ -20,6 +21,7 @@ import {
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import {
   getMembershipBannerModel,
+  MembershipAlertAction,
   MembershipStatusKind,
 } from './components/MembershipBanner/MembershipBanner.utils';
 import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
@@ -58,9 +60,17 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 // ─── Plus access ──────────────────────────────────────────────────────────────
 
 const mockUseMoneyAccountPlusAccess = jest.fn();
+let mockSubscriptionsSettled: boolean | undefined;
 jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
+  useMoneyAccountPlusAccessState: () => {
+    const access = mockUseMoneyAccountPlusAccess();
+    return {
+      access,
+      isSubscriptionsSettled: mockSubscriptionsSettled ?? access !== 'unknown',
+    };
+  },
 }));
 
 const mockUseMoneyAccountPlusBenefits = jest.mocked(
@@ -97,6 +107,18 @@ jest.mock('../../UI/Money/hooks/useMoneyPremiumVaultRate', () => ({
 const mockUseMembershipBannerModel = jest.mocked(useMembershipBannerModel);
 jest.mock('./hooks/useMembershipBannerModel', () => ({
   useMembershipBannerModel: jest.fn(),
+}));
+
+let mockResumeMembership: jest.Mock;
+let mockIsResuming = false;
+let mockResumeErrorMessage: string | null = null;
+
+jest.mock('./hooks/useResumeMembership', () => ({
+  useResumeMembership: () => ({
+    resumeMembership: mockResumeMembership,
+    isResuming: mockIsResuming,
+    errorMessage: mockResumeErrorMessage,
+  }),
 }));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -193,6 +215,10 @@ describe('ProHub', () => {
     jest.clearAllMocks();
     mockGoBack = jest.fn();
     mockNavigate = jest.fn();
+    mockResumeMembership = jest.fn();
+    mockIsResuming = false;
+    mockResumeErrorMessage = null;
+    mockSubscriptionsSettled = undefined;
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Subscriber,
     );
@@ -201,6 +227,7 @@ describe('ProHub', () => {
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
       retry: jest.fn(),
+      benefitsPaused: false,
     });
     mockUseMoneyPremiumAccountInterest.mockReturnValue({
       sinceInceptionQuery: {
@@ -246,6 +273,18 @@ describe('ProHub', () => {
       renderProHub({ subscriptions: [] });
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays open while an entitlement refetch has not settled', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+      mockSubscriptionsSettled = false;
+
+      const { queryByTestId } = renderProHub({ subscriptions: [] });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
     it('stays open while Plus access is unresolved', () => {
@@ -363,6 +402,10 @@ describe('ProHub', () => {
   // ── Rendering ──────────────────────────────────────────────────────────────
 
   describe('Rendering', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('renders the pro hub container', () => {
       const { getByTestId } = renderProHub();
 
@@ -617,6 +660,71 @@ describe('ProHub', () => {
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT);
+      expect(mockResumeMembership).not.toHaveBeenCalled();
+    });
+
+    it('resumes a pending cancellation instead of opening the subscription screen', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Active,
+          statusKey: 'pro_hub.membership_status.active',
+          alert: {
+            severity: 'warning' as const,
+            titleKey: 'pro_hub.membership_alert.cancelled.title',
+            descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+            actionKey: 'pro_hub.membership.resume_membership',
+            action: MembershipAlertAction.Resume,
+          },
+        },
+        subscription: { id: 'sub-pending' } as Subscription,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Active),
+        ),
+      );
+
+      expect(mockResumeMembership).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PRO_SUBSCRIPTION.ROOT,
+      );
+    });
+
+    it('announces resume and shows the failure on the banner', () => {
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      mockIsResuming = true;
+      mockResumeErrorMessage = strings('pro_hub.membership.resume_failed');
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Active,
+          statusKey: 'pro_hub.membership_status.active',
+          alert: {
+            severity: 'warning' as const,
+            titleKey: 'pro_hub.membership_alert.cancelled.title',
+            actionKey: 'pro_hub.membership.resume_membership',
+            action: MembershipAlertAction.Resume,
+          },
+        },
+        subscription: { id: 'sub-pending' } as Subscription,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_failed'),
+      );
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_RESUME_ERROR),
+      ).toHaveTextContent(strings('pro_hub.membership.resume_failed'));
     });
 
     it('renders the physical card banner with title and description', () => {
@@ -728,7 +836,9 @@ describe('ProHub', () => {
 
       fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV, {
+        screen: Routes.CARD.ROOT,
+      });
     });
 
     it('shows unlock copy and does not navigate when the banner is pressed during a free trial', () => {

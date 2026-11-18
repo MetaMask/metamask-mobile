@@ -536,6 +536,8 @@ app/components/Views/ActivityDetails/templates/Perps/       @MetaMask/perps @Met
 app/components/Views/ActivityDetails/templates/Ramps/       @MetaMask/money-movement @MetaMask/mobile-core-ux
 app/components/Views/ActivityDetails/templates/Earn/        @MetaMask/earn @MetaMask/mobile-core-ux
 app/util/activity-adapters/adapters/earn/                   @MetaMask/earn @MetaMask/mobile-core-ux
+app/components/Views/ActivityList/perps/                    @MetaMask/perps @MetaMask/mobile-core-ux
+app/util/activity-adapters/adapters/perps/                  @MetaMask/perps @MetaMask/mobile-core-ux
 
 # Networks Team
 app/util/networks                                           @MetaMask/networks

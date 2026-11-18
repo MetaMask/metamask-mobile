@@ -48,8 +48,11 @@ export const resolvePostComposerEntry = (
     return undefined;
   }
   if (params.tradeInFlight) {
-    return params.preview && 'product' in params.preview
-      ? ComposerEntry.POST_TRADE_PERPS
+    if (params.preview && 'product' in params.preview) {
+      return ComposerEntry.POST_TRADE_PERPS;
+    }
+    return params.spotComposerEntry === ComposerEntry.POST_TRADE_SWAP
+      ? ComposerEntry.POST_TRADE_SWAP
       : ComposerEntry.POST_TRADE_SPOT;
   }
   if (params.entryPoint === 'perps') {
