@@ -8,8 +8,8 @@ import type { ExploreSectionName } from '../../search/analytics';
 export type CryptoPillKey =
   | 'watchlist'
   | 'trending'
-  | 'top_gainers'
-  | 'top_losers'
+  | 'gainers'
+  | 'losers'
   | 'most_traded'
   | 'robinhood';
 
@@ -43,7 +43,7 @@ export interface CryptoChainPillDefinition {
 
 export const CRYPTO_WATCHLIST_PILL: CryptoPillDefinition = {
   key: 'watchlist',
-  labelKey: 'trending.crypto_pills.watchlist',
+  labelKey: 'perps.home.watchlist',
   sectionName: 'tokens_watchlist',
   minItems: 0,
   iconName: IconName.StarFilled,
@@ -67,9 +67,9 @@ export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
     },
   },
   {
-    key: 'top_gainers',
-    labelKey: 'trending.crypto_pills.top_gainers',
-    sectionName: 'tokens_top_gainers',
+    key: 'gainers',
+    labelKey: 'trending.perps_movers_pill_gainers',
+    sectionName: 'tokens_gainers',
     minItems: 1,
     request: {
       path: '/v3/tokens/top-gainers',
@@ -81,9 +81,9 @@ export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
     },
   },
   {
-    key: 'top_losers',
-    labelKey: 'trending.crypto_pills.top_losers',
-    sectionName: 'tokens_top_losers',
+    key: 'losers',
+    labelKey: 'trending.perps_movers_pill_losers',
+    sectionName: 'tokens_losers',
     minItems: 3,
     request: {
       path: '/v3/tokens/top-gainers',

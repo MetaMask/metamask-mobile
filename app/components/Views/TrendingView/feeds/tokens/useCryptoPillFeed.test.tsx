@@ -156,8 +156,8 @@ describe('getSelectableCryptoPills', () => {
   ): Record<string, CryptoPillFeedResult> => ({
     watchlist,
     trending: makeResult([makeToken('BTC')]),
-    top_gainers: makeResult([makeToken('SOL')]),
-    top_losers: makeResult([makeToken('DOGE')]),
+    gainers: makeResult([makeToken('SOL')]),
+    losers: makeResult([makeToken('DOGE')]),
     most_traded: makeResult([makeToken('XRP')]),
     robinhood: makeResult([makeToken('MOW')]),
   });
@@ -339,12 +339,12 @@ describe('useCryptoPillFeed', () => {
       expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(6);
     });
 
-    rerender({ activePillKey: 'top_gainers' });
+    rerender({ activePillKey: 'gainers' });
 
     await waitFor(() => {
-      expect(result.current.results.top_gainers.data).toEqual([]);
+      expect(result.current.results.gainers.data).toEqual([]);
     });
-    expect(result.current.results.top_gainers.isLoading).toBe(false);
+    expect(result.current.results.gainers.isLoading).toBe(false);
     expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(6);
   });
 
@@ -439,7 +439,7 @@ describe('useCryptoPillFeed', () => {
   it('refetches the user-selected pill rather than the default on a refresh trigger', async () => {
     mockIsWatchlistEnabled = false;
     const { rerender } = renderFeed({
-      activePillKey: 'top_gainers',
+      activePillKey: 'gainers',
       refresh: { trigger: 0, silentRefresh: true },
     });
 
@@ -452,7 +452,7 @@ describe('useCryptoPillFeed', () => {
     });
 
     rerender({
-      activePillKey: 'top_gainers',
+      activePillKey: 'gainers',
       refresh: { trigger: 1, silentRefresh: true },
     });
 

@@ -54,7 +54,7 @@ export interface CryptoTokensPillBlockProps {
 
 /**
  * Explore crypto tokens section: a pill row (watchlist, trending, top
- * gainers, top losers, most traded, plus configured chains) above a card
+ * gainers, losers, most traded, plus configured chains) above a card
  * list backed by one query per pill. Pills whose loaded data falls below
  * their `minItems` are hidden; the active pill falls back to the first
  * visible one.

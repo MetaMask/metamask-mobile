@@ -152,8 +152,8 @@ const makeResults = (
     isLoading: false,
     isError: false,
   },
-  top_gainers: { data: [makeToken('SOL')], isLoading: false, isError: false },
-  top_losers: { data: [makeToken('DOGE')], isLoading: false, isError: false },
+  gainers: { data: [makeToken('SOL')], isLoading: false, isError: false },
+  losers: { data: [makeToken('DOGE')], isLoading: false, isError: false },
   most_traded: { data: [makeToken('XRP')], isLoading: false, isError: false },
   robinhood: { data: [makeToken('MOW')], isLoading: false, isError: false },
   ...overrides,
@@ -249,15 +249,15 @@ describe('CryptoTokensPillBlock', () => {
       const { getByTestId, queryByTestId } = renderBlock();
 
       expect(getByTestId('crypto-tokens-pill-trending')).toBeTruthy();
-      expect(getByTestId('crypto-tokens-pill-top_gainers')).toBeTruthy();
+      expect(getByTestId('crypto-tokens-pill-gainers')).toBeTruthy();
       expect(getByTestId('crypto-tokens-pill-most_traded')).toBeTruthy();
       expect(getByTestId('crypto-tokens-pill-robinhood')).toBeTruthy();
-      expect(queryByTestId('crypto-tokens-pill-top_losers')).toBeNull();
+      expect(queryByTestId('crypto-tokens-pill-losers')).toBeNull();
     });
 
-    it('keeps the top losers pill when it has at least 3 items', () => {
+    it('keeps the losers pill when it has at least 3 items', () => {
       const results = makeResults({
-        top_losers: {
+        losers: {
           data: [makeToken('A'), makeToken('B'), makeToken('C')],
           isLoading: false,
           isError: false,
@@ -265,16 +265,16 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { getByTestId } = renderBlock(results);
 
-      expect(getByTestId('crypto-tokens-pill-top_losers')).toBeTruthy();
+      expect(getByTestId('crypto-tokens-pill-losers')).toBeTruthy();
     });
 
     it('keeps pills that have not loaded yet visible', () => {
       const results = makeResults({
-        top_losers: { data: undefined, isLoading: true, isError: false },
+        losers: { data: undefined, isLoading: true, isError: false },
       });
       const { getByTestId } = renderBlock(results);
 
-      expect(getByTestId('crypto-tokens-pill-top_losers')).toBeTruthy();
+      expect(getByTestId('crypto-tokens-pill-losers')).toBeTruthy();
     });
 
     it('hides an errored pill', () => {
@@ -299,12 +299,12 @@ describe('CryptoTokensPillBlock', () => {
       const { getByTestId, queryByTestId, rerender } = renderBlock();
 
       act(() => {
-        fireEvent.press(getByTestId('crypto-tokens-pill-top_gainers'));
+        fireEvent.press(getByTestId('crypto-tokens-pill-gainers'));
       });
       expect(getByTestId('token-row-SOL')).toBeTruthy();
 
       const errored = makeResults({
-        top_gainers: { data: undefined, isLoading: false, isError: true },
+        gainers: { data: undefined, isLoading: false, isError: true },
       });
       arrange(errored);
       rerender(<CryptoPillBlockHarness blockProps={DEFAULT_PROPS} />);
@@ -321,19 +321,19 @@ describe('CryptoTokensPillBlock', () => {
         renderBlock(emptyWatchlist);
 
       act(() => {
-        fireEvent.press(getByTestId('crypto-tokens-pill-top_gainers'));
+        fireEvent.press(getByTestId('crypto-tokens-pill-gainers'));
       });
       expect(getByTestId('token-row-SOL')).toBeTruthy();
 
       const errored = makeResults({
         watchlist: { data: [], isLoading: false, isError: false },
-        top_gainers: { data: undefined, isLoading: false, isError: true },
+        gainers: { data: undefined, isLoading: false, isError: true },
       });
       arrange(errored);
       rerender(<CryptoPillBlockHarness blockProps={DEFAULT_PROPS} />);
 
       expect(getByTestId('token-row-BTC')).toBeTruthy();
-      expect(queryByTestId('crypto-tokens-pill-top_gainers')).toBeNull();
+      expect(queryByTestId('crypto-tokens-pill-gainers')).toBeNull();
     });
   });
 
@@ -364,7 +364,7 @@ describe('CryptoTokensPillBlock', () => {
       const { getByTestId, queryByTestId } = renderBlock();
 
       act(() => {
-        fireEvent.press(getByTestId('crypto-tokens-pill-top_gainers'));
+        fireEvent.press(getByTestId('crypto-tokens-pill-gainers'));
       });
 
       expect(getByTestId('token-row-SOL')).toBeTruthy();
@@ -429,8 +429,8 @@ describe('CryptoTokensPillBlock', () => {
       mockIsWatchlistEnabled = false;
       const results = makeResults({
         trending: { data: [], isLoading: false, isError: false },
-        top_gainers: { data: [], isLoading: false, isError: false },
-        top_losers: { data: [], isLoading: false, isError: false },
+        gainers: { data: [], isLoading: false, isError: false },
+        losers: { data: [], isLoading: false, isError: false },
         most_traded: { data: [], isLoading: false, isError: false },
         robinhood: { data: [], isLoading: false, isError: false },
       });

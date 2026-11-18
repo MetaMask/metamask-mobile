@@ -13492,10 +13492,7 @@
     "trending_tokens": "Trending",
     "crypto_tokens_section": "Tokens",
     "crypto_pills": {
-      "watchlist": "Watchlist",
       "trending": "Trending",
-      "top_gainers": "Top gainers",
-      "top_losers": "Top losers",
       "most_traded": "Most traded",
       "robinhood": "Robinhood"
     },

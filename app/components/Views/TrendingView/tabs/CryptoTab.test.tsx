@@ -351,7 +351,7 @@ describe('CryptoTab — tokens pill block', () => {
     mockUseCryptoPillFeed.mockReturnValue({
       results: {
         trending: { data: [], isLoading: false, isError: false },
-        top_gainers: { data: undefined, isLoading: false, isError: true },
+        gainers: { data: undefined, isLoading: false, isError: true },
       },
     } as never);
 
@@ -421,7 +421,7 @@ describe('CryptoTab — tokens pill block', () => {
           isLoading: false,
           isError: false,
         },
-        top_gainers: {
+        gainers: {
           data: [{} as TrendingAsset],
           isLoading: false,
           isError: false,
@@ -435,11 +435,11 @@ describe('CryptoTab — tokens pill block', () => {
       onActivePillChange: (key: CryptoPillKey) => void;
     };
     act(() => {
-      blockProps.onActivePillChange('top_gainers');
+      blockProps.onActivePillChange('gainers');
     });
 
     expect(mockUseCryptoPillFeed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ activePillKey: 'top_gainers' }),
+      expect.objectContaining({ activePillKey: 'gainers' }),
     );
   });
 
