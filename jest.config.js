@@ -290,6 +290,20 @@ const config = {
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
+    // @metamask/design-system-react-native@0.57.0's CJS build assigns
+    // `exports.x = x` at the top of dist/components/Slider/Slider.utilities.cjs,
+    // before the `'worklet'` function declarations. The worklets Babel plugin
+    // (this repo transpiles the package in jest) rewrites those declarations
+    // into `var x = workletFactory(...)` at the same position, so the
+    // top-of-file assignments capture the hoisted, still-undefined `var` and
+    // every exported worklet helper stays `undefined` — Slider crashes in jest
+    // with "resolveValueToTrackPercent is not a function". The ESM build
+    // compiles `export function` into a fused
+    // `var x = exports.x = workletFactory(...)`, which keeps exports intact,
+    // so map the one broken CJS module to its ESM sibling until upstream
+    // publishes a fixed build.
+    '^\\./Slider\\.utilities\\.cjs$':
+      '<rootDir>/node_modules/@metamask/design-system-react-native/dist/components/Slider/Slider.utilities.mjs',
     '^@rive-app/react-native$':
       '<rootDir>/app/__mocks__/rive-app-react-native.tsx',
     '^react-native-qrcode-svg$':
