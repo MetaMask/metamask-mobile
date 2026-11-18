@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Dimensions } from 'react-native';
+import { ActivityIndicator, ScrollView } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import EarnRewardsPreview from './EarnRewardsPreview';
@@ -112,14 +112,6 @@ describe('EarnRewardsPreview', () => {
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Earn rewards')).toBeOnTheScreen();
     });
-
-    it('does not render Earn rewards while the location is still unknown', () => {
-      setupSelectors({ geoStatus: 'loading' });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeNull();
-    });
   });
 
   describe('geo loading state', () => {
@@ -187,17 +179,20 @@ describe('EarnRewardsPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('sizes the only tile to the full section width', () => {
+    it('renders the only tile in the section without a horizontal scroller', () => {
       setupSelectors({ geoLocation: 'US' });
-      const { getByTestId } = render(<EarnRewardsPreview />);
+      const { getByTestId, UNSAFE_queryByType } = render(
+        <EarnRewardsPreview />,
+      );
       const tile = getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD);
-      const sectionWidth = Dimensions.get('window').width - 32;
-      let node: { props?: { style?: unknown }; parent?: typeof node } | null =
-        tile;
-      let width: number | undefined;
+      let node: {
+        props?: { style?: unknown };
+        parent?: typeof node;
+      } | null = tile;
+      let paddingHorizontal: number | undefined;
       for (
         let depth = 0;
-        depth < 8 && node && width === undefined;
+        depth < 8 && node && paddingHorizontal === undefined;
         depth += 1
       ) {
         const style = node.props?.style;
@@ -206,16 +201,28 @@ describe('EarnRewardsPreview', () => {
           if (
             entry &&
             typeof entry === 'object' &&
-            'width' in entry &&
-            typeof entry.width === 'number'
+            'paddingHorizontal' in entry &&
+            typeof entry.paddingHorizontal === 'number'
           ) {
-            width = entry.width;
+            paddingHorizontal = entry.paddingHorizontal;
           }
         }
         node = node.parent ?? null;
       }
 
-      expect(width).toBe(sectionWidth);
+      expect(UNSAFE_queryByType(ScrollView)).toBeNull();
+      expect(paddingHorizontal).toBe(16);
+    });
+
+    it('shows a header spinner while a known non-UK location is still idle', () => {
+      setupSelectors({ geoLocation: 'US', geoStatus: 'idle' });
+
+      const { getByTestId, UNSAFE_getByType } = render(<EarnRewardsPreview />);
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+      ).toBeOnTheScreen();
+      expect(UNSAFE_getByType(ActivityIndicator)).toBeDefined();
     });
 
     it('does not render Earn rewards when the location is unknown', () => {
