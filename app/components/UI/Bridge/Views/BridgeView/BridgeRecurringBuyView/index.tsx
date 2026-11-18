@@ -408,10 +408,18 @@ const BridgeRecurringBuyViewContent = ({
           />
 
           <Box twClassName="-mt-1">
+            <RecurringScheduleFields
+              onEveryPress={focusEvery}
+              onRepeatPress={focusRepeat}
+              onDismissKeypad={dismissInputAndKeypad}
+              onUnitPress={handleUnitPress}
+              onRepeatInfoPress={handleRepeatInfoPress}
+            />
+
             <Box
               testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
               onLayout={handleBannersLayout}
-              twClassName={hasVisibleBanner ? 'mb-2' : undefined}
+              twClassName={hasVisibleBanner ? 'mt-2' : undefined}
               onTouchEnd={dismissInputAndKeypad}
             >
               <SwapsBanners
@@ -420,6 +428,7 @@ const BridgeRecurringBuyViewContent = ({
               >
                 <HardwareWalletUnsupportedBanner />
                 <QuoteErrorBanner />
+                <TokenWarningBanner />
                 <DestAssetRequireActivateBanner />
                 <InsufficientNativeReserveBanner />
                 <MissingQuoteAndAssetsPriceDataBanner />
@@ -443,21 +452,6 @@ const BridgeRecurringBuyViewContent = ({
                 />
               </SwapsBanners>
             </Box>
-
-            <RecurringScheduleFields
-              onEveryPress={focusEvery}
-              onRepeatPress={focusRepeat}
-              onDismissKeypad={dismissInputAndKeypad}
-              onUnitPress={handleUnitPress}
-              onRepeatInfoPress={handleRepeatInfoPress}
-            />
-
-            <SwapsBanners
-              gap={2}
-              onAdjustSourceAmount={handleSourcePresetAmountSelect}
-            >
-              <TokenWarningBanner style={tw.style('mt-2')} />
-            </SwapsBanners>
           </Box>
 
           <PriceRangeRow
