@@ -214,11 +214,12 @@ export interface PredictFundingServiceOptions {
  * receipt read a surface polls. The phone supplies no identity, destination,
  * or idempotency key — the backend owns all three — so a retry only ever
  * references `previewId`, and repeated Commits converge on one operation.
- * A Commit still resolving its bearer token is aborted when the session is
- * abandoned, so it never goes out with the next person's token; a Commit
- * already sent is not undone, and its outcome stays unknown to this service.
- * Observation belongs to the surface: {@link useWithdrawReceipt} polls this
- * service only while the Withdraw sheet is mounted, and nothing is persisted.
+ * A Commit or an observation still resolving its bearer token is aborted when
+ * the session is abandoned, so it never goes out with the next person's
+ * token; a call already sent is not undone, and its outcome stays unknown to
+ * this service. Observation belongs to the surface:
+ * {@link useWithdrawReceipt} polls this service only while the Withdraw sheet
+ * is mounted, and nothing is persisted.
  *
  * **Identity.** {@link PredictFundingService.clearState} forgets every
  * deposit and detaches calls in flight, and
@@ -243,6 +244,10 @@ export class PredictFundingService {
   /** Commits whose bearer token may still be resolving. Aborting one before
    * it is sent keeps the previous session's Commit from going out. */
   readonly #commitTransports = new Set<AbortController>();
+  /** Receipt reads whose bearer token may still be resolving. An observation
+   * can replay a stored submission, so it must not go out for the next
+   * Predict User either. */
+  readonly #observationTransports = new Set<AbortController>();
   /** Bumped by `clearState` and `abandon`: answers to older calls are not
    * tracked, and a session that quoted a Preview cannot commit it. */
   #generation = 0;
@@ -448,10 +453,33 @@ export class PredictFundingService {
   ): Promise<PredictWithdrawReceipt> {
     this.#assertVenue(venueId);
     const generation = this.#generation;
-    const receipt = await this.#funding.observeWithdraw(previewId, options);
-    this.#assertNotAbandoned(generation);
-    this.#recordStatus(receipt);
-    return receipt;
+    const transport = new AbortController();
+    const abortForCaller = (): void => transport.abort();
+    if (options?.signal?.aborted) {
+      transport.abort();
+    }
+    options?.signal?.addEventListener('abort', abortForCaller);
+    this.#observationTransports.add(transport);
+    try {
+      const receipt = await this.#funding.observeWithdraw(previewId, {
+        ...options,
+        signal: transport.signal,
+      });
+      // The fence stays after the answer, exactly as a Commit's does: a read
+      // sent for one Predict User is never recorded against the next.
+      this.#assertNotAbandoned(generation);
+      this.#recordStatus(receipt);
+      return receipt;
+    } catch (error) {
+      // An abandoned session is UNAUTHENTICATED even when the transport
+      // rejected because it was aborted. A caller-only abort keeps its
+      // AbortError so the surface can tell a local cancellation apart.
+      this.#assertNotAbandoned(generation);
+      throw error;
+    } finally {
+      this.#observationTransports.delete(transport);
+      options?.signal?.removeEventListener('abort', abortForCaller);
+    }
   }
 
   /**
@@ -471,13 +499,13 @@ export class PredictFundingService {
    * else, so the service must neither read their receipts nor refresh the
    * balance reads they describe.
    *
-   * A Commit still resolving its bearer token is aborted before the
-   * generation changes, so it cannot be sent for the next Predict User. A
-   * Commit already sent keeps its unknown outcome; this only stops waiting
-   * for an answer that is no longer this session's to record.
+   * A Commit or an observation still resolving its bearer token is aborted
+   * before the generation changes, so it cannot be sent for the next Predict
+   * User. A call already sent keeps its unknown outcome; this only stops
+   * waiting for an answer that is no longer this session's to record.
    */
   abandon(): void {
-    this.#abortInFlightCommits();
+    this.#abortInFlightTransports();
     this.#generation += 1;
     this.#statusByPreview.clear();
   }
@@ -618,10 +646,15 @@ export class PredictFundingService {
     }
   }
 
-  #abortInFlightCommits(): void {
-    const transports = [...this.#commitTransports];
-    this.#commitTransports.clear();
-    transports.forEach((transport) => transport.abort());
+  #abortInFlightTransports(): void {
+    for (const pending of [
+      this.#commitTransports,
+      this.#observationTransports,
+    ]) {
+      const transports = [...pending];
+      pending.clear();
+      transports.forEach((transport) => transport.abort());
+    }
   }
 
   #assertNotAbandoned(generation: number): void {

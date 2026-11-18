@@ -211,6 +211,13 @@ export interface PredictApiReadClientOptions {
   invalidateSigningSession?: () => void;
 }
 
+/** A caller-visible cancellation, never a venue or transport failure. */
+const abortedError = (): Error => {
+  const aborted = new Error('The request was aborted.');
+  aborted.name = 'AbortError';
+  return aborted;
+};
+
 const parseBaseUrl = (baseUrl?: string): URL | undefined => {
   if (!baseUrl) {
     return undefined;
@@ -709,6 +716,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     deviceAuth?: DeviceAuthHeader,
     signed?: ProposedRead,
   ): Promise<Response> {
+    // A read aborted while its token or signature resolved must not go out
+    // either: an observation can replay a stored submission.
+    if (options?.signal?.aborted) {
+      throw abortedError();
+    }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
@@ -845,9 +857,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     // A write aborted while its token resolved must not go out: the token
     // may already belong to whoever replaced the Predict User.
     if (options?.signal?.aborted) {
-      const aborted = new Error('The request was aborted.');
-      aborted.name = 'AbortError';
-      throw aborted;
+      throw abortedError();
     }
     return this.#parseBody(
       await this.#post(segments, body, bearerToken, options),
@@ -860,6 +870,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     bearerToken: string,
     options?: PredictReadOptions,
   ): Promise<Response> {
+    // A read aborted while its token or signature resolved must not go out
+    // either: an observation can replay a stored submission.
+    if (options?.signal?.aborted) {
+      throw abortedError();
+    }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
@@ -897,9 +912,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
     const bearerToken = await this.#resolveBearerToken();
     if (options?.signal?.aborted) {
-      const aborted = new Error('The request was aborted.');
-      aborted.name = 'AbortError';
-      throw aborted;
+      throw abortedError();
     }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),

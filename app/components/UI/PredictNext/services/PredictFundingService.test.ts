@@ -382,8 +382,78 @@ describe('PredictFundingService withdrawal flow', () => {
       );
 
       expect(result).toBe(canonical);
-      expect(observeWithdraw.mock.calls).toEqual([['preview-1', undefined]]);
+      expect(observeWithdraw.mock.calls).toEqual([
+        ['preview-1', { signal: expect.any(AbortSignal) }],
+      ]);
       expect(commitWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('forwards caller cancellation and keeps its AbortError', async () => {
+      const service = serviceWith();
+      const caller = new AbortController();
+      const gate = deferred<PredictWithdrawReceipt>();
+      let signal: AbortSignal | undefined;
+      observeWithdraw.mockImplementationOnce((_previewId, options) => {
+        signal = options?.signal;
+        return gate.promise;
+      });
+
+      const pending = service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1', {
+        signal: caller.signal,
+      });
+      expect(signal).not.toBe(caller.signal);
+      caller.abort();
+      expect(signal?.aborted).toBe(true);
+      const abortError = new Error('The request was aborted.');
+      abortError.name = 'AbortError';
+      gate.reject(abortError);
+
+      await expect(pending).rejects.toBe(abortError);
+      expect(invalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('aborts an observation still resolving its token when abandoned', async () => {
+      const service = serviceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      let signal: AbortSignal | undefined;
+      observeWithdraw.mockImplementationOnce((_previewId, options) => {
+        signal = options?.signal;
+        return gate.promise;
+      });
+
+      const pending = service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+      expect(signal?.aborted).toBe(false);
+
+      service.abandon();
+      expect(signal?.aborted).toBe(true);
+      gate.resolve(receipt('processing'));
+
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(invalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('aborts an observation still resolving its token when destroyed', async () => {
+      const service = serviceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      let signal: AbortSignal | undefined;
+      observeWithdraw.mockImplementationOnce((_previewId, options) => {
+        signal = options?.signal;
+        return gate.promise;
+      });
+
+      const pending = service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+      expect(signal?.aborted).toBe(false);
+
+      service.destroy();
+      expect(signal?.aborted).toBe(true);
+      gate.resolve(receipt('processing'));
+
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(invalidateQueries).not.toHaveBeenCalled();
     });
   });
 

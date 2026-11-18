@@ -20,6 +20,7 @@ import {
 
 const PREVIEW_ID = 'b3c2a1d0-1111-4222-8333-444455556666';
 const COMMIT_PATH = `/v1/venues/kalshi/withdrawals/${PREVIEW_ID}/commit`;
+const OBSERVE_PATH = `/v1/venues/kalshi/withdrawals/${PREVIEW_ID}`;
 
 const receiptPayload = {
   operationId: '0f8a1c2b-3333-4444-8555-666677778888',
@@ -68,6 +69,11 @@ const deferTokenTo = (
 
 const commitResponder = (url: string): PredictFetchResult =>
   String(url).endsWith(COMMIT_PATH)
+    ? { body: receiptPayload }
+    : { status: 404, body: { code: 'not_found' } };
+
+const observeResponder = (url: string): PredictFetchResult =>
+  String(url).endsWith(OBSERVE_PATH)
     ? { body: receiptPayload }
     : { status: 404, body: { code: 'not_found' } };
 
@@ -214,6 +220,75 @@ describe('PredictFundingService withdrawal transport', () => {
         { queryKey },
       ]),
     );
+
+    caller.abort();
+    expect(transportSignal?.aborted).toBe(false);
+  });
+
+  it('never dispatches an observation whose token resolves after abandonment', async () => {
+    // The GET can replay a stored submission, so it is not a harmless read.
+    const harness = buildHarness(observeResponder);
+    const token = deferred<string | undefined>();
+    const tokenRequested = deferred<void>();
+    deferTokenTo(harness, tokenRequested, token);
+    const service = buildService(harness);
+
+    const observation = service.observeWithdraw(
+      harness.adapter.venueId,
+      PREVIEW_ID,
+    );
+    await tokenRequested.promise;
+    service.abandon();
+    token.resolve('replaced-bearer-token');
+
+    await expect(observation).rejects.toMatchObject({
+      code: PredictErrorCode.UNAUTHENTICATED,
+    });
+    expect(harness.fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('cancels an observation waiting on its token when the caller aborts', async () => {
+    const harness = buildHarness(observeResponder);
+    const token = deferred<string | undefined>();
+    const tokenRequested = deferred<void>();
+    deferTokenTo(harness, tokenRequested, token);
+    const service = buildService(harness);
+    const caller = new AbortController();
+
+    const observation = service.observeWithdraw(
+      harness.adapter.venueId,
+      PREVIEW_ID,
+      { signal: caller.signal },
+    );
+    await tokenRequested.promise;
+    caller.abort();
+    token.resolve('caller-token');
+
+    await expect(observation).rejects.toMatchObject({ name: 'AbortError' });
+    expect(harness.fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('observes normally and detaches the caller cancellation afterwards', async () => {
+    const harness = buildHarness(observeResponder);
+    const service = buildService(harness);
+    const caller = new AbortController();
+
+    const result = await service.observeWithdraw(
+      harness.adapter.venueId,
+      PREVIEW_ID,
+      { signal: caller.signal },
+    );
+
+    const [url, init] = harness.fetchMock.mock.calls[0];
+    const transportSignal = init?.signal;
+    expect(String(url)).toContain(OBSERVE_PATH);
+    expect(init?.method).toBe('GET');
+    expect(transportSignal).toBeInstanceOf(AbortSignal);
+    expect(transportSignal?.aborted).toBe(false);
+    expect(result).toMatchObject({
+      previewId: PREVIEW_ID,
+      status: 'processing',
+    });
 
     caller.abort();
     expect(transportSignal?.aborted).toBe(false);
