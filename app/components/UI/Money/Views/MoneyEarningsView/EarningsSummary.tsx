@@ -15,47 +15,47 @@ import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 interface EarningsSummaryProps {
-  thisMonth: number;
-  lifetime: number;
-  projectedOneYear: number | undefined;
+  thisMonthUsd: number;
+  lifetimeUsd: number;
+  projectedOneYearUsd: number | undefined;
 }
 
 interface SummaryRow {
   label: string;
-  value: number;
+  valueUsd: number;
   sublabel?: string;
 }
 
 const isFiniteNumber = (value: number | undefined): value is number =>
   value !== undefined && Number.isFinite(value);
 
-const formatSignedUsd = (amount: number): string => {
-  const formattedAmount = moneyFormatUsd(new BigNumber(amount));
-  return amount > 0 ? `+${formattedAmount}` : formattedAmount;
+const formatSignedUsd = (amountUsd: number): string => {
+  const formattedAmountUsd = moneyFormatUsd(new BigNumber(amountUsd));
+  return amountUsd > 0 ? `+${formattedAmountUsd}` : formattedAmountUsd;
 };
 
 const EarningsSummary = ({
-  thisMonth,
-  lifetime,
-  projectedOneYear,
+  thisMonthUsd,
+  lifetimeUsd,
+  projectedOneYearUsd,
 }: EarningsSummaryProps): React.ReactElement => {
   const tw = useTailwind();
   const rows: SummaryRow[] = [
     {
       label: strings('money.earnings.last_30_days'),
-      value: thisMonth,
+      valueUsd: thisMonthUsd,
     },
     // TODO: Replace 1Y earnings with a lifetime endpoint once available.
     // 1Y is not a valid lifetime substitute after the account is older than one year.
     {
       label: strings('money.earnings.lifetime'),
-      value: lifetime,
+      valueUsd: lifetimeUsd,
     },
-    ...(isFiniteNumber(projectedOneYear)
+    ...(isFiniteNumber(projectedOneYearUsd)
       ? [
           {
             label: strings('money.earnings.projected_in_1_year'),
-            value: projectedOneYear,
+            valueUsd: projectedOneYearUsd,
             sublabel: strings('money.earnings.projection_disclaimer'),
           },
         ]
@@ -64,7 +64,7 @@ const EarningsSummary = ({
 
   return (
     <Box testID={MoneyEarningsViewTestIds.SUMMARY}>
-      {rows.map(({ label, value, sublabel }) => (
+      {rows.map(({ label, valueUsd, sublabel }) => (
         <Box
           key={label}
           flexDirection={BoxFlexDirection.Row}
@@ -87,10 +87,12 @@ const EarningsSummary = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={value > 0 ? TextColor.SuccessDefault : TextColor.TextDefault}
+            color={
+              valueUsd > 0 ? TextColor.SuccessDefault : TextColor.TextDefault
+            }
             twClassName="text-right"
           >
-            {formatSignedUsd(value)}
+            {formatSignedUsd(valueUsd)}
           </Text>
         </Box>
       ))}

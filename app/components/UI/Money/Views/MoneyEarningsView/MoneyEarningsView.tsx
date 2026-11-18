@@ -22,23 +22,21 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
-import {
-  useMoneyHistoricalEarnings,
-  type InterestHistoryResponse,
-} from '../../hooks/useMoneyHistoricalEarnings';
+import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
 import type { MoneyNavigationParamList } from '../../types/navigation';
+import type { InterestHistoryResponse } from '../../types/moneyInterestHistory';
 import EarningsChart from './EarningsChart';
 import EarningsHero from './EarningsHero';
 import EarningsSummary from './EarningsSummary';
 import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
 import {
-  getAuthoritativeRangeTotal,
+  getAuthoritativeRangeTotalUsd,
   getBucketPoints,
   getSelectedRange,
-  hasInvalidHistoryEntries,
   isAvailableBucket,
   type EarningsRange,
 } from './earningsHistory';
+import { hasInvalidInterestHistoryResponse } from './earningsHistoryValidation';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 type MoneyEarningsRoute = RouteProp<MoneyNavigationParamList, 'MoneyEarnings'>;
@@ -71,8 +69,9 @@ const MoneyEarningsView = (): React.ReactElement => {
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
   const hasMalformedHistory =
-    data !== undefined && (!isRecord(data) || hasInvalidHistoryEntries(data));
-  const entries: InterestHistoryResponse | undefined =
+    data !== undefined &&
+    (!isRecord(data) || hasInvalidInterestHistoryResponse(data));
+  const historicalEarningsResponse: InterestHistoryResponse | undefined =
     !hasMalformedHistory && isRecord(data)
       ? (data as InterestHistoryResponse)
       : undefined;
@@ -97,30 +96,33 @@ const MoneyEarningsView = (): React.ReactElement => {
   ];
 
   const selectedRangeData = useMemo(
-    () => getSelectedRange(entries, selectedRange),
-    [entries, selectedRange],
+    () => getSelectedRange(historicalEarningsResponse, selectedRange),
+    [historicalEarningsResponse, selectedRange],
   );
 
   const chartPoints = useMemo(
     () => getBucketPoints(selectedRangeData),
     [selectedRangeData],
   );
-  const thirtyDayTotal = useMemo(
+  const thirtyDayTotalUsd = useMemo(
     () =>
-      getAuthoritativeRangeTotal(getSelectedRange(entries, '30D')) ??
-      Number.NaN,
-    [entries],
+      getAuthoritativeRangeTotalUsd(
+        getSelectedRange(historicalEarningsResponse, '30D'),
+      ) ?? Number.NaN,
+    [historicalEarningsResponse],
   );
-  const oneYearTotal = useMemo(
+  const oneYearTotalUsd = useMemo(
     () =>
-      getAuthoritativeRangeTotal(getSelectedRange(entries, '1Y')) ?? Number.NaN,
-    [entries],
+      getAuthoritativeRangeTotalUsd(
+        getSelectedRange(historicalEarningsResponse, '1Y'),
+      ) ?? Number.NaN,
+    [historicalEarningsResponse],
   );
-  const selectedRangeTotal = useMemo(
-    () => getAuthoritativeRangeTotal(selectedRangeData) ?? Number.NaN,
+  const selectedRangeTotalUsd = useMemo(
+    () => getAuthoritativeRangeTotalUsd(selectedRangeData) ?? Number.NaN,
     [selectedRangeData],
   );
-  const { projectedAmount: projectedOneYear } =
+  const { projectedAmount: projectedOneYearUsd } =
     useMoneyAccountProjectedEarnings();
   const hasUnavailableRange =
     selectedRangeData !== undefined &&
@@ -130,9 +132,9 @@ const MoneyEarningsView = (): React.ReactElement => {
     !isLoading &&
     !isError &&
     !hasMalformedHistory &&
-    Number.isFinite(thirtyDayTotal) &&
-    Number.isFinite(oneYearTotal) &&
-    Number.isFinite(selectedRangeTotal) &&
+    Number.isFinite(thirtyDayTotalUsd) &&
+    Number.isFinite(oneYearTotalUsd) &&
+    Number.isFinite(selectedRangeTotalUsd) &&
     chartPoints.some(isAvailableBucket);
 
   const handleRetry = useCallback(() => {
@@ -193,15 +195,15 @@ const MoneyEarningsView = (): React.ReactElement => {
         >
           {hasHistoricalEarnings && selectedRangeData ? (
             <EarningsHero
-              totalEarned={oneYearTotal}
-              periodEarnings={selectedRangeTotal}
+              totalEarnedUsd={oneYearTotalUsd}
+              periodEarningsUsd={selectedRangeTotalUsd}
               periodStart={selectedRangeData.range_start}
-              periodEnd={selectedRangeData.range_end}
+              periodEndExclusive={selectedRangeData.range_end}
               periodGranularity={selectedRangeData.granularity}
             />
           ) : null}
           <EarningsChart
-            entries={entries}
+            historicalEarningsResponse={historicalEarningsResponse}
             isLoading={isLoading}
             isError={isError || hasMalformedHistory || hasUnavailableRange}
             onRetry={handleRetry}
@@ -212,9 +214,9 @@ const MoneyEarningsView = (): React.ReactElement => {
           {hasHistoricalEarnings ? (
             <Box twClassName="py-4">
               <EarningsSummary
-                thisMonth={thirtyDayTotal}
-                lifetime={oneYearTotal}
-                projectedOneYear={projectedOneYear}
+                thisMonthUsd={thirtyDayTotalUsd}
+                lifetimeUsd={oneYearTotalUsd}
+                projectedOneYearUsd={projectedOneYearUsd}
               />
             </Box>
           ) : null}

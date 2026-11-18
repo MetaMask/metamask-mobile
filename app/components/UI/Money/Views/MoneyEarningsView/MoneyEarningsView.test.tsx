@@ -7,13 +7,13 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
-import {
-  useMoneyHistoricalEarnings,
-  type InterestHistoryAvailability,
-  type InterestHistoryBucket,
-  type InterestHistoryRange,
-  type InterestHistoryResponse,
-} from '../../hooks/useMoneyHistoricalEarnings';
+import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
+import type {
+  InterestHistoryAvailability,
+  InterestHistoryBucket,
+  InterestHistoryRange,
+  InterestHistoryResponse,
+} from '../../types/moneyInterestHistory';
 import MoneyEarningsView from './MoneyEarningsView';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
