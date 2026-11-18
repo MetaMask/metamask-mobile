@@ -28,7 +28,7 @@ export class PasswordlessRecoverySetupError extends Error {
 /**
  * Prepares the unlocked social wallet so passwordless recovery can open it.
  *
- * Registers one recovery secret at Cubist for the primary account (SIWE), the
+ * Registers one recovery secret at Cubist for the primary SRP (SIWE), the
  * social login and the enrolled passkey, then seals the seed phrases so that
  * secret can open them.
  * The current password still unlocks the wallet. Does nothing when the vault

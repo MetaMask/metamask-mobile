@@ -1,11 +1,16 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
+import { createSrpSiweSigner } from '../../Engine/controllers/mfa-recovery-controller/auth/srp-siwe-signer';
 import { linkSocialLogin } from '../social-login/link-social-login';
 import {
   IdentifierNotApprovedError,
   MfaRecoveryService,
 } from './mfa-recovery-service';
-import { createMfaRecoveryServiceTestMessenger } from './mfa-recovery-service-test-messenger';
+import {
+  createMfaRecoveryServiceTestMessenger,
+  createTestKeyringController,
+  TEST_PRIMARY_ENTROPY_SOURCE_ID,
+} from './mfa-recovery-service-test-messenger';
 
 const ADDRESS = '0xAbC';
 const SIWE = createSiweIdentifier(ADDRESS);
@@ -118,13 +123,16 @@ function createService({
   controller = createController(),
   seedless = createSeedless(),
   authIdentifiers = [AUTH_PASSKEY, AUTH_SOCIAL],
-  address = ADDRESS,
+  siweAddress = ADDRESS,
+  keyring = createTestKeyringController(),
   getSocialLinkEmail,
 }: {
   controller?: ReturnType<typeof createController>;
   seedless?: ReturnType<typeof createSeedless>;
   authIdentifiers?: Identifier[];
-  address?: string;
+  /** Stubs `getSiweAddress`; `null` derives it from `keyring`. */
+  siweAddress?: string | null;
+  keyring?: ReturnType<typeof createTestKeyringController>;
   getSocialLinkEmail?: () => Promise<string | undefined>;
 } = {}) {
   const auth = { identifiers: authIdentifiers };
@@ -141,9 +149,7 @@ function createService({
   Object.assign(controllers, {
     MfaRecoveryController: controller,
     SeedlessOnboardingController: seedless,
-    KeyringController: {
-      state: { keyrings: [{ accounts: address ? [address] : [] }] },
-    },
+    KeyringController: keyring,
     AuthenticationController: { requestMfaApproval, getVerificationToken },
   });
   const service = new MfaRecoveryService({
@@ -152,6 +158,9 @@ function createService({
     approvalOperation: OPERATION,
     getSocialLinkEmail,
   });
+  if (siweAddress !== null) {
+    jest.spyOn(service, 'getSiweAddress').mockResolvedValue(siweAddress);
+  }
   return {
     service,
     controller,
@@ -194,14 +203,66 @@ describe('MfaRecoveryService', () => {
     mockLinkSocialLogin.mockReset();
   });
 
-  it('reads the primary account and status through the messenger', () => {
+  it('reads the status through the messenger', () => {
     const seedless = createSeedless();
     const { service } = createService({ seedless });
 
-    expect(service.address).toBe(ADDRESS);
     expect(service.getStatus()).toBe('NotEnabled');
     seedless.state.envelope = { v: 1, vaultAuthPubKey: 'pk' };
     expect(service.getStatus()).toBe('Enabled');
+  });
+
+  describe('getSiweAddress', () => {
+    it("derives the address of the primary SRP's message-signing key", async () => {
+      const seed = new Uint8Array(64).fill(5);
+      const keyring = createTestKeyringController({ seed });
+      const { service } = createService({ siweAddress: null, keyring });
+      const expectedAddress = await createSrpSiweSigner({
+        getSeed: async () => new Uint8Array(seed),
+      }).getAddress();
+
+      const address = await service.getSiweAddress();
+
+      expect(address).toBe(expectedAddress);
+      expect(keyring.withKeyringV2Unsafe).toHaveBeenCalledWith(
+        { id: TEST_PRIMARY_ENTROPY_SOURCE_ID },
+        expect.any(Function),
+      );
+    });
+
+    it('throws primary_account_unavailable while the keyring is locked', async () => {
+      const keyring = createTestKeyringController({ isUnlocked: false });
+      const { service } = createService({ siweAddress: null, keyring });
+
+      await expect(service.getSiweAddress()).rejects.toMatchObject({
+        code: 'primary_account_unavailable',
+      });
+      expect(keyring.withKeyringV2Unsafe).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('signSiweMessage', () => {
+    it("signs with the primary SRP's message-signing key", async () => {
+      const seed = new Uint8Array(64).fill(5);
+      const keyring = createTestKeyringController({ seed });
+      const { service } = createService({ siweAddress: null, keyring });
+      const expectedSignature = await createSrpSiweSigner({
+        getSeed: async () => new Uint8Array(seed),
+      }).signMessage('message');
+
+      const signature = await service.signSiweMessage('message');
+
+      expect(signature).toBe(expectedSignature);
+    });
+
+    it('throws primary_account_unavailable while the keyring is locked', async () => {
+      const keyring = createTestKeyringController({ isUnlocked: false });
+      const { service } = createService({ siweAddress: null, keyring });
+
+      await expect(service.signSiweMessage('message')).rejects.toMatchObject({
+        code: 'primary_account_unavailable',
+      });
+    });
   });
 
   describe('hasEnrolledIdentifier', () => {
@@ -327,8 +388,11 @@ describe('MfaRecoveryService', () => {
   });
 
   describe('prepareRun', () => {
-    it('throws primary_account_unavailable without an address', async () => {
-      const { service, verifyMfa } = createService({ address: '' });
+    it('throws primary_account_unavailable without the primary SRP', async () => {
+      const { service, verifyMfa } = createService({
+        siweAddress: null,
+        keyring: createTestKeyringController({ isUnlocked: false }),
+      });
 
       await expect(service.prepareRun()).rejects.toMatchObject({
         code: 'primary_account_unavailable',
@@ -365,7 +429,7 @@ describe('MfaRecoveryService', () => {
       expect(identifiers.passkeyIdentifier).toBe(AUTH_PASSKEY);
     });
 
-    it('falls back to the primary account SIWE identifier', async () => {
+    it("falls back to the SRP signing key's SIWE identifier", async () => {
       const { service } = createService({ authIdentifiers: [] });
 
       const identifiers = await service.prepareRun();
@@ -765,7 +829,7 @@ describe('MfaRecoveryService', () => {
   });
 
   describe('getCandidateIdentifiers', () => {
-    it("prefers Auth's identifiers and falls back to the account and seedless login", async () => {
+    it("prefers Auth's identifiers and falls back to the SIWE address and seedless login", async () => {
       const controller = createController();
       const { service } = createService({ controller });
 

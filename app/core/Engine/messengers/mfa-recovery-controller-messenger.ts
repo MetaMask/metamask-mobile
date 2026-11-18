@@ -7,7 +7,7 @@ import type { AuthenticationController } from '@metamask/profile-sync-controller
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type {
   KeyringControllerGetStateAction,
-  KeyringControllerSignPersonalMessageAction,
+  KeyringControllerWithKeyringV2UnsafeAction,
 } from '@metamask/keyring-controller';
 import type { MfaRecoveryControllerMessenger } from '@metamask/mfa-recovery-controller';
 import type { MfaRecoveryServiceMessenger } from '../../MfaRecovery/services/mfa-recovery-service';
@@ -39,7 +39,7 @@ type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
   | AuthenticationController.AuthenticationControllerExchangeSocialAccessTokenAction
   | KeyringControllerGetStateAction
-  | KeyringControllerSignPersonalMessageAction
+  | KeyringControllerWithKeyringV2UnsafeAction
   | RemoteFeatureFlagControllerGetStateAction;
 
 export type MfaRecoveryControllerInitMessenger = Messenger<
@@ -65,7 +65,7 @@ export function getMfaRecoveryControllerInitMessenger(
       'AuthenticationController:refreshCanonicalProfileId',
       'AuthenticationController:exchangeSocialAccessToken',
       'KeyringController:getState',
-      'KeyringController:signPersonalMessage',
+      'KeyringController:withKeyringV2Unsafe',
       'RemoteFeatureFlagController:getState',
     ],
     messenger,
@@ -78,6 +78,7 @@ export const MFA_RECOVERY_SERVICE_ACTIONS = [
   'AuthenticationController:getVerificationToken',
   'AuthenticationController:requestMfaApproval',
   'KeyringController:getState',
+  'KeyringController:withKeyringV2Unsafe',
   'MfaRecoveryController:authenticateIdentifier',
   'MfaRecoveryController:getIdentifiers',
   'MfaRecoveryController:getPhase',

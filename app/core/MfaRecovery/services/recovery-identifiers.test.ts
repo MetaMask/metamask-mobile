@@ -24,7 +24,7 @@ const SOCIAL: Identifier = {
 const SEEDLESS_STATE = { authConnection: 'google', userId: 'google-user' };
 
 describe('getCandidateIdentifiers', () => {
-  it('uses Auth identifiers, the primary account for SIWE, and seedless for social', () => {
+  it('uses Auth identifiers, the SIWE address, and seedless for social', () => {
     expect(
       getCandidateIdentifiers([AUTH_PASSKEY], ADDRESS, SEEDLESS_STATE),
     ).toStrictEqual({ siwe: SIWE, passkey: AUTH_PASSKEY, social: SOCIAL });

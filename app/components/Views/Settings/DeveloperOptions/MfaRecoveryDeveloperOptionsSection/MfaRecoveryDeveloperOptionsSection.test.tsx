@@ -5,6 +5,8 @@ import Engine from '../../../../../core/Engine';
 import { isMfaRecoveryConfigured } from '../../../../../core/Engine/controllers/mfa-recovery-controller/config';
 import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagController/mfaRecovery';
 import { LinkSocialLoginError } from '../../../../../core/MfaRecovery/social-login/link-social-login';
+import { MfaRecoveryService } from '../../../../../core/MfaRecovery/services/mfa-recovery-service';
+import { createSiweIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import { SOCIAL_LINK_EMAIL_TEST_IDS } from '../../../shared/SocialLinkEmailBottomSheet';
 import MfaRecoveryDeveloperOptionsSection from './MfaRecoveryDeveloperOptionsSection';
 
@@ -101,7 +103,6 @@ jest.mock('../../../../../core/Engine', () => ({
     context: {
       KeyringController: {
         state: { keyrings: [{ accounts: ['0xabc'] }] },
-        signPersonalMessage: jest.fn(),
       },
       AuthenticationController: {
         state: { srpSessionData: {} },
@@ -693,7 +694,10 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     });
   });
 
-  it('runs the TOPRF recovery secret test with the seedless controller and account address', async () => {
+  it('runs the TOPRF recovery secret test with the seedless controller and SIWE signer', async () => {
+    const signSiweMessage = jest
+      .spyOn(MfaRecoveryService.prototype, 'signSiweMessage')
+      .mockResolvedValue('0xsignature');
     const { getByTestId } = renderWithProvider(
       <MfaRecoveryDeveloperOptionsSection />,
     );
@@ -707,7 +711,11 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     expect(dependencies.seedless).toBe(
       Engine.context.SeedlessOnboardingController,
     );
-    expect(dependencies.address).toBe('0xabc');
+    await expect(dependencies.signMessage('message')).resolves.toBe(
+      '0xsignature',
+    );
+    expect(signSiweMessage).toHaveBeenCalledWith('message');
+    signSiweMessage.mockRestore();
   });
 
   it('displays the full TOPRF recovery secret test result', async () => {
@@ -1280,6 +1288,39 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
         expect.anything(),
         PASSKEY,
       );
+    });
+
+    it('adds the SIWE identifier of the SIWE signing key', async () => {
+      const getSiweAddress = jest
+        .spyOn(MfaRecoveryService.prototype, 'getSiweAddress')
+        .mockResolvedValue('0xABC');
+      mockGetIdentifiers.mockResolvedValue({
+        identifiers: [PASSKEY, SOCIAL],
+        epoch: 2,
+        authIdentifiers: [],
+      });
+      mockRunAddCubistIdentifier.mockResolvedValue({
+        identifierType: 'siwe',
+        change: 'added',
+        epoch: 3,
+      });
+      const { findByText, getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+      await findByText('Add Cubist identifier: siwe');
+      await waitFor(() => {
+        expect(getByTestId(ADD_CUBIST_IDENTIFIER_BUTTON_TEST_ID)).toBeEnabled();
+      });
+
+      fireEvent.press(getByTestId(ADD_CUBIST_IDENTIFIER_BUTTON_TEST_ID));
+
+      await waitFor(() => {
+        expect(mockRunAddCubistIdentifier).toHaveBeenCalledWith(
+          expect.anything(),
+          createSiweIdentifier('0xABC'),
+        );
+      });
+      getSiweAddress.mockRestore();
     });
 
     it('lists the enrolled identifiers in a sheet and removes the pressed one', async () => {

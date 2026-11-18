@@ -9,6 +9,7 @@ import type { MessengerClientInitFunction } from '../../types';
 import type { MfaRecoveryControllerInitMessenger } from '../../messengers/mfa-recovery-controller-messenger';
 import { isMfaRecoveryConfigured } from './config';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
+import { createSrpSiweSigner, getPrimarySrpSeed } from './auth/srp-siwe-signer';
 
 /**
  * The pending mutation key lives only in memory, so a pending mutation saved
@@ -61,11 +62,18 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
         'AuthenticationController:exchangeSocialAccessToken',
       ),
     getPasskeyAssertion: mobilePasskeyAdapter.get,
-    getAddress: () =>
-      initMessenger.call('KeyringController:getState').keyrings[0]
-        ?.accounts?.[0] ?? '',
-    signPersonalMessage: async (params) =>
-      await initMessenger.call('KeyringController:signPersonalMessage', params),
+    siweSigner: createSrpSiweSigner({
+      getSeed: async () =>
+        await getPrimarySrpSeed({
+          getState: () => initMessenger.call('KeyringController:getState'),
+          withKeyringV2Unsafe: (selector, operation) =>
+            initMessenger.call(
+              'KeyringController:withKeyringV2Unsafe',
+              selector,
+              operation,
+            ),
+        }),
+    }),
     getSocialIdToken: async (nonce) => {
       // Dynamic import: OAuthService imports Engine, which imports this module.
       const { default: OAuthService } = await import(

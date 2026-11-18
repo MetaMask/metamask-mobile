@@ -1,4 +1,6 @@
+import { mnemonicToSeed } from '@metamask/key-tree';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
+import { createSrpSiweSigner } from './auth/srp-siwe-signer';
 import { isMfaRecoveryConfigured } from './config';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
 import { mfaRecoveryControllerInit } from './index';
@@ -123,31 +125,83 @@ describe('mfaRecoveryControllerInit', () => {
     });
   });
 
-  it('wires SIWE address and signing through the keyring', async () => {
-    mfaRecoveryControllerInit({
-      controllerMessenger,
-      initMessenger,
-      persistedState: {},
-    } as never);
-    const options = mockCreate.mock.calls[0][0];
+  describe('SIWE signer', () => {
+    const entropySourceId = 'primary-hd-keyring-id';
+    let seed: Uint8Array;
 
-    initMessenger.call.mockReturnValueOnce({
-      keyrings: [{ accounts: ['0xprimary', '0xother'] }],
+    beforeAll(async () => {
+      seed = await mnemonicToSeed(
+        'test test test test test test test test test test test junk',
+      );
     });
-    expect(options.getAddress()).toBe('0xprimary');
-    expect(initMessenger.call).toHaveBeenLastCalledWith(
-      'KeyringController:getState',
-    );
 
-    initMessenger.call.mockReturnValueOnce({ keyrings: [] });
-    expect(options.getAddress()).toBe('');
+    function mockKeyring(isUnlocked: boolean): void {
+      initMessenger.call.mockImplementation(
+        (action: string, ...args: unknown[]) => {
+          if (action === 'KeyringController:getState') {
+            return {
+              isUnlocked,
+              keyrings: [
+                {
+                  type: 'HD Key Tree',
+                  accounts: ['0xprimary'],
+                  metadata: { id: entropySourceId, name: '' },
+                },
+              ],
+            };
+          }
+          const operation = args[1] as (operationArgs: {
+            keyring: unknown;
+          }) => Promise<unknown>;
+          return operation({ keyring: { seed } });
+        },
+      );
+    }
 
-    const params = { data: '0x68656c6c6f', from: '0xprimary' };
-    initMessenger.call.mockResolvedValueOnce('0xsig');
-    await expect(options.signPersonalMessage(params)).resolves.toBe('0xsig');
-    expect(initMessenger.call).toHaveBeenLastCalledWith(
-      'KeyringController:signPersonalMessage',
-      params,
-    );
+    it('signs with the primary SRP message-signing key from the keyring', async () => {
+      mfaRecoveryControllerInit({
+        controllerMessenger,
+        initMessenger,
+        persistedState: {},
+      } as never);
+      const { siweSigner } = mockCreate.mock.calls[0][0];
+      const expectedSigner = createSrpSiweSigner({
+        getSeed: async () => new Uint8Array(seed),
+      });
+      mockKeyring(true);
+
+      const address = await siweSigner.getAddress();
+      const signature = await siweSigner.signMessage('hello');
+
+      expect(address).toBe(await expectedSigner.getAddress());
+      expect(signature).toBe(await expectedSigner.signMessage('hello'));
+      expect(initMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:getState',
+      );
+      expect(initMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:withKeyringV2Unsafe',
+        { id: entropySourceId },
+        expect.any(Function),
+      );
+    });
+
+    it('rejects with primary_account_unavailable while locked', async () => {
+      mfaRecoveryControllerInit({
+        controllerMessenger,
+        initMessenger,
+        persistedState: {},
+      } as never);
+      const { siweSigner } = mockCreate.mock.calls[0][0];
+      mockKeyring(false);
+
+      await expect(siweSigner.getAddress()).rejects.toMatchObject({
+        code: 'primary_account_unavailable',
+      });
+      expect(initMessenger.call).not.toHaveBeenCalledWith(
+        'KeyringController:withKeyringV2Unsafe',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
   });
 });

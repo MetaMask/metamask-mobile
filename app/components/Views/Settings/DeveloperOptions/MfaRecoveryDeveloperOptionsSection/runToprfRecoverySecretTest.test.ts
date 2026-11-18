@@ -1,32 +1,23 @@
 import { personalSign } from '@metamask/eth-sig-util';
 import { secp256k1 } from '@noble/curves/secp256k1';
-import { bytesToHex, sha256 } from '@metamask/utils';
-import {
-  bufferToHex,
-  privateToAddress,
-  toChecksumAddress,
-} from 'ethereumjs-util';
-import {
-  getMfaRecoveryErrorCode,
-  MfaRecoveryControllerError,
-} from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
-import type { SignPersonalMessage } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
+import { bytesToHex, sha256, stringToBytes } from '@metamask/utils';
 import {
   deriveTestRecoverySecret,
   runToprfRecoverySecretTest,
+  type SignMessage,
   type ToprfRecoverySecretTestDependencies,
   type ToprfRecoverySecretTestStep,
 } from './runToprfRecoverySecretTest';
 
 const TEST_PRIVATE_KEY = Buffer.alloc(32, 0x01);
-const TEST_ADDRESS = toChecksumAddress(
-  bufferToHex(privateToAddress(TEST_PRIVATE_KEY)),
-);
 
 const PUBLIC_KEY_MESSAGE = 'MetaMask TOPRF recovery secret test v1';
 
-const signWithTestKey: SignPersonalMessage = async ({ data }) =>
-  personalSign({ privateKey: TEST_PRIVATE_KEY, data });
+const signWithTestKey: SignMessage = async (message) =>
+  personalSign({
+    privateKey: TEST_PRIVATE_KEY,
+    data: bytesToHex(stringToBytes(message)),
+  });
 
 async function computeExpectedSecret(): Promise<Uint8Array> {
   const uncompressedPublicKeyWithoutPrefix = secp256k1
@@ -63,8 +54,7 @@ function createDependencies(
   overrides: Partial<ToprfRecoverySecretTestDependencies> = {},
 ): ToprfRecoverySecretTestDependencies {
   return {
-    address: TEST_ADDRESS,
-    signPersonalMessage: signWithTestKey,
+    signMessage: signWithTestKey,
     seedless:
       seedless as unknown as ToprfRecoverySecretTestDependencies['seedless'],
     openRecoverySession: jest.fn(() => seedless.authenticateForRecovery()),
@@ -74,47 +64,34 @@ function createDependencies(
 
 describe('deriveTestRecoverySecret', () => {
   it('returns the same 32 bytes on repeated calls', async () => {
-    const first = await deriveTestRecoverySecret(TEST_ADDRESS, signWithTestKey);
-    const second = await deriveTestRecoverySecret(
-      TEST_ADDRESS,
-      signWithTestKey,
-    );
+    const first = await deriveTestRecoverySecret(signWithTestKey);
+    const second = await deriveTestRecoverySecret(signWithTestKey);
 
     expect(first).toHaveLength(32);
     expect(bytesToHex(second)).toBe(bytesToHex(first));
   });
 
   it('matches the SHA-256 of the uncompressed public key of the test private key', async () => {
-    const secret = await deriveTestRecoverySecret(
-      TEST_ADDRESS,
-      signWithTestKey,
-    );
+    const secret = await deriveTestRecoverySecret(signWithTestKey);
 
     expect(bytesToHex(secret)).toBe(bytesToHex(await computeExpectedSecret()));
   });
 
-  it('signs the fixed public key message from the given address', async () => {
-    const signPersonalMessage = jest.fn(signWithTestKey);
+  it('signs the fixed public key message', async () => {
+    const signMessage = jest.fn(signWithTestKey);
 
-    await deriveTestRecoverySecret(TEST_ADDRESS, signPersonalMessage);
+    await deriveTestRecoverySecret(signMessage);
 
-    expect(signPersonalMessage).toHaveBeenCalledTimes(1);
-    expect(signPersonalMessage).toHaveBeenCalledWith({
-      data: bytesToHex(new TextEncoder().encode(PUBLIC_KEY_MESSAGE)),
-      from: TEST_ADDRESS,
-    });
+    expect(signMessage).toHaveBeenCalledTimes(1);
+    expect(signMessage).toHaveBeenCalledWith(PUBLIC_KEY_MESSAGE);
   });
 
-  it('throws primary_account_unavailable for an empty address', async () => {
-    const signPersonalMessage = jest.fn(signWithTestKey);
+  it('propagates signer errors', async () => {
+    const signerError = new Error('locked');
 
-    const error = await deriveTestRecoverySecret('', signPersonalMessage).catch(
-      (caught: unknown) => caught,
-    );
-
-    expect(error).toBeInstanceOf(MfaRecoveryControllerError);
-    expect(getMfaRecoveryErrorCode(error)).toBe('primary_account_unavailable');
-    expect(signPersonalMessage).not.toHaveBeenCalled();
+    await expect(
+      deriveTestRecoverySecret(jest.fn().mockRejectedValue(signerError)),
+    ).rejects.toBe(signerError);
   });
 });
 

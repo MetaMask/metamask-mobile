@@ -5,7 +5,6 @@ import type {
 } from '@metamask/mfa-recovery-controller';
 import { SIWE_CHAIN_ID, SIWE_DOMAIN } from '../constants';
 import { MfaRecoveryControllerError } from '../errors';
-import type { SignPersonalMessage } from './identifiers';
 import {
   PlatformPasskeyIdentifierAuthProvider,
   type PasskeyAssertionGetter,
@@ -14,34 +13,23 @@ import {
   SocialIdentifierAuthProvider,
   type SocialIdTokenProvider,
 } from './social-identifier-auth-provider';
+import type { SiweSigner } from './srp-siwe-signer';
 
 type KeyBoundIdentifierToken = Awaited<
   ReturnType<RecoveryIdentifierAuthProvider['getKeyBoundIdentifierToken']>
 >;
 
-interface SiweIdentifierAuthProviderOptions {
-  /** Returns the primary account address that signs SIWE proofs. */
-  getAddress: () => string;
-  /** Signs a hex-encoded personal message with the keyring. */
-  signPersonalMessage: SignPersonalMessage;
-}
-
 /**
- * Signs key-bound SIWE identifier proofs with the current primary account.
+ * Signs key-bound SIWE identifier proofs with the primary SRP's
+ * message-signing key, the same key profile sign-in uses.
  */
 export class SiweIdentifierAuthProvider
   implements RecoveryIdentifierAuthProvider
 {
-  readonly #getAddress: () => string;
+  readonly #signer: SiweSigner;
 
-  readonly #signPersonalMessage: SignPersonalMessage;
-
-  constructor({
-    getAddress,
-    signPersonalMessage,
-  }: SiweIdentifierAuthProviderOptions) {
-    this.#getAddress = getAddress;
-    this.#signPersonalMessage = signPersonalMessage;
+  constructor({ signer }: { signer: SiweSigner }) {
+    this.#signer = signer;
   }
 
   async getKeyBoundIdentifierToken(params: {
@@ -49,7 +37,7 @@ export class SiweIdentifierAuthProvider
     proofPublicKey: Uint8Array;
     requestHash: string;
   }): Promise<KeyBoundIdentifierToken> {
-    const address = this.#getAddress();
+    const address = await this.#signer.getAddress();
     const nonce = bytesToHex(
       await sha256(
         stringToBytes(
@@ -72,10 +60,7 @@ export class SiweIdentifierAuthProvider
       `Nonce: ${nonce}`,
       `Issued At: ${new Date().toISOString()}`,
     ].join('\n');
-    const signature = await this.#signPersonalMessage({
-      data: bytesToHex(stringToBytes(message)),
-      from: address,
-    });
+    const signature = await this.#signer.signMessage(message);
 
     return {
       identifier: params.identifier,
@@ -86,8 +71,9 @@ export class SiweIdentifierAuthProvider
   }
 }
 
-export interface RecoveryIdentifierRouterOptions
-  extends SiweIdentifierAuthProviderOptions {
+export interface RecoveryIdentifierRouterOptions {
+  /** Signs SIWE identifier proofs with the primary SRP's message-signing key. */
+  siweSigner: SiweSigner;
   /** Runs the platform passkey assertion ceremony. */
   getPasskeyAssertion: PasskeyAssertionGetter;
   /** Issues social ID tokens bound to a nonce. */
@@ -107,8 +93,7 @@ export class RecoveryIdentifierRouter
   constructor({
     getPasskeyAssertion,
     getSocialIdToken,
-    getAddress,
-    signPersonalMessage,
+    siweSigner,
   }: RecoveryIdentifierRouterOptions) {
     this.#providers = new Map<string, RecoveryIdentifierAuthProvider>([
       [
@@ -119,10 +104,7 @@ export class RecoveryIdentifierRouter
         'social',
         new SocialIdentifierAuthProvider({ getIdToken: getSocialIdToken }),
       ],
-      [
-        'siwe',
-        new SiweIdentifierAuthProvider({ getAddress, signPersonalMessage }),
-      ],
+      ['siwe', new SiweIdentifierAuthProvider({ signer: siweSigner })],
     ]);
   }
 

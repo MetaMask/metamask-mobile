@@ -258,6 +258,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     useState<RecoveryIdentifiers | null>(null);
   const [isCubistIdentifiersUnavailable, setIsCubistIdentifiersUnavailable] =
     useState(false);
+  const [siweAddress, setSiweAddress] = useState('');
   const [isIdentifierSheetOpen, setIsIdentifierSheetOpen] = useState(false);
   const [isSetupSheetOpen, setIsSetupSheetOpen] = useState(false);
   const [isRecoverSheetOpen, setIsRecoverSheetOpen] = useState(false);
@@ -265,6 +266,17 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     useState(false);
 
   const refreshCubistIdentifiers = useCallback(async () => {
+    try {
+      setSiweAddress(
+        await createMfaRecoveryService({
+          // Reading the SIWE address never verifies.
+          verifyMfa: () => Promise.resolve(),
+          approvalOperation: AAL2_APPROVAL_OPERATION,
+        }).getSiweAddress(),
+      );
+    } catch {
+      setSiweAddress('');
+    }
     try {
       setCubistIdentifiers(
         await Engine.context.MfaRecoveryController.getIdentifiers(),
@@ -290,11 +302,11 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       cubistIdentifiers.identifiers,
       getCandidateIdentifiers(
         cubistIdentifiers.authIdentifiers,
-        Engine.context.KeyringController.state.keyrings[0]?.accounts?.[0] ?? '',
+        siweAddress,
         Engine.context.SeedlessOnboardingController.state,
       ),
     );
-  }, [cubistIdentifiers]);
+  }, [cubistIdentifiers, siweAddress]);
 
   // getIdentifiers has no distinct "not registered" error, so a failed read
   // leaves setup available; only a read that returns identifiers blocks it.
@@ -611,9 +623,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       (service, onStep) =>
         runToprfRecoverySecretTest(
           {
-            address: service.address,
-            signPersonalMessage: (params) =>
-              Engine.context.KeyringController.signPersonalMessage(params),
+            signMessage: (message) => service.signSiweMessage(message),
             seedless: Engine.context.SeedlessOnboardingController,
             openRecoverySession: async () => {
               await service.verifyMfa();

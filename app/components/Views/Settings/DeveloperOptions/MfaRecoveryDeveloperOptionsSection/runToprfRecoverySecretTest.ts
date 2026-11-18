@@ -1,7 +1,5 @@
 import { extractPublicKey } from '@metamask/eth-sig-util';
 import { bytesToHex, hexToBytes, sha256, stringToBytes } from '@metamask/utils';
-import { MfaRecoveryControllerError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
-import type { SignPersonalMessage } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   getMfaRecoveryStatus,
   type MfaRecoverySeedless,
@@ -10,9 +8,11 @@ import {
 
 const PUBLIC_KEY_MESSAGE = 'MetaMask TOPRF recovery secret test v1';
 
+/** EIP-191 `personal_sign` of `message`. */
+export type SignMessage = (message: string) => Promise<string>;
+
 export interface ToprfRecoverySecretTestDependencies {
-  address: string;
-  signPersonalMessage: SignPersonalMessage;
+  signMessage: SignMessage;
   seedless: MfaRecoverySeedless;
   /** Authenticates the seedless controller with the TOPRF nodes at aal2. */
   openRecoverySession: () => Promise<void>;
@@ -34,23 +34,18 @@ export interface ToprfRecoverySecretTestResult {
 }
 
 /**
- * Derives a constant test recovery secret from the public key of `address`:
+ * Derives a constant test recovery secret from the signing key's public key:
  * SHA-256 of the key recovered from a personal signature. Anyone who knows the
  * public key can derive it, so it must only be used on throwaway accounts.
  */
 export async function deriveTestRecoverySecret(
-  address: string,
-  signPersonalMessage: SignPersonalMessage,
+  signMessage: SignMessage,
 ): Promise<Uint8Array> {
-  if (!address) {
-    throw new MfaRecoveryControllerError(
-      'The primary account is unavailable',
-      'primary_account_unavailable',
-    );
-  }
-  const data = bytesToHex(stringToBytes(PUBLIC_KEY_MESSAGE));
-  const signature = await signPersonalMessage({ data, from: address });
-  const publicKey = extractPublicKey({ data, signature });
+  const signature = await signMessage(PUBLIC_KEY_MESSAGE);
+  const publicKey = extractPublicKey({
+    data: bytesToHex(stringToBytes(PUBLIC_KEY_MESSAGE)),
+    signature,
+  });
   return await sha256(hexToBytes(publicKey));
 }
 
@@ -69,8 +64,7 @@ export async function runToprfRecoverySecretTest(
 
   onStepCallback('deriving_recovery_secret');
   const recoverySecret = await deriveTestRecoverySecret(
-    dependencies.address,
-    dependencies.signPersonalMessage,
+    dependencies.signMessage,
   );
 
   onStepCallback('authenticating_aal2');

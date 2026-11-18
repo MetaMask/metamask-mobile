@@ -1,4 +1,7 @@
-import type { KeyringControllerGetStateAction } from '@metamask/keyring-controller';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerWithKeyringV2UnsafeAction,
+} from '@metamask/keyring-controller';
 import type { Messenger } from '@metamask/messenger';
 import type {
   Identifier,
@@ -37,6 +40,11 @@ import {
   getToprfRecoveryConfig,
 } from '../../Engine/controllers/mfa-recovery-controller/config';
 import { RECOVERY_SECRET_LENGTH } from '../../Engine/controllers/mfa-recovery-controller/constants';
+import {
+  createSrpSiweSigner,
+  getPrimarySrpSeed,
+  type SiweSigner,
+} from '../../Engine/controllers/mfa-recovery-controller/auth/srp-siwe-signer';
 import { MfaRecoveryControllerError } from '../../Engine/controllers/mfa-recovery-controller/errors';
 import { linkSocialLogin } from '../social-login/link-social-login';
 import {
@@ -62,6 +70,7 @@ type AllowedActions =
   | AuthenticationController.AuthenticationControllerGetVerificationTokenAction
   | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | KeyringControllerGetStateAction
+  | KeyringControllerWithKeyringV2UnsafeAction
   | MfaRecoveryControllerAuthenticateIdentifierAction
   | MfaRecoveryControllerGetIdentifiersAction
   | MfaRecoveryControllerGetPhaseAction
@@ -124,19 +133,38 @@ export class MfaRecoveryService {
 
   #verification?: Promise<void>;
 
+  readonly #siweSigner: SiweSigner;
+
   #prepared?: Promise<PreparedRun>;
 
   constructor(options: MfaRecoveryServiceOptions) {
     this.#messenger = options.messenger;
     this.#options = options;
+    this.#siweSigner = createSrpSiweSigner({
+      getSeed: async () =>
+        await getPrimarySrpSeed({
+          getState: () => this.#messenger.call('KeyringController:getState'),
+          withKeyringV2Unsafe: (selector, operation) =>
+            this.#messenger.call(
+              'KeyringController:withKeyringV2Unsafe',
+              selector,
+              operation,
+            ),
+        }),
+    });
   }
 
-  /** The primary account; recovery proves SIWE with it. */
-  get address(): string {
-    return (
-      this.#messenger.call('KeyringController:getState').keyrings[0]
-        ?.accounts?.[0] ?? ''
-    );
+  /**
+   * The address of the primary SRP's message-signing key, which SIWE
+   * identifiers use.
+   */
+  async getSiweAddress(): Promise<string> {
+    return await this.#siweSigner.getAddress();
+  }
+
+  /** EIP-191 `personal_sign` of `message` with the SIWE signing key. */
+  async signSiweMessage(message: string): Promise<string> {
+    return await this.#siweSigner.signMessage(message);
   }
 
   /** Recovery is set up once the vault is envelope-managed. */
@@ -392,7 +420,7 @@ export class MfaRecoveryService {
 
   /**
    * Returns the identifier each type would be added with. Auth's identifiers
-   * win, with fallbacks to the primary account and the seedless login.
+   * win, with fallbacks to the SRP signing key and the seedless login.
    */
   async getCandidateIdentifiers(): Promise<
     Partial<Record<CubistIdentifierType, Identifier>>
@@ -402,7 +430,7 @@ export class MfaRecoveryService {
     );
     return getCandidateIdentifiers(
       authIdentifiers,
-      this.address,
+      await this.getSiweAddress(),
       this.#seedlessState(),
     );
   }
@@ -476,7 +504,7 @@ export class MfaRecoveryService {
   }
 
   /**
-   * Resolves the run's account and Auth identifiers once per instance, so
+   * Resolves the run's SIWE address and Auth identifiers once per instance, so
    * `prepareRun` followed by `setUp` resumes and reads only once. A failed
    * attempt is not cached, so a retry runs again.
    */
@@ -489,13 +517,7 @@ export class MfaRecoveryService {
   }
 
   async #runPrepare(): Promise<PreparedRun> {
-    const { address } = this;
-    if (!address) {
-      throw new MfaRecoveryControllerError(
-        'The primary account is unavailable',
-        'primary_account_unavailable',
-      );
-    }
+    const address = await this.getSiweAddress();
     await this.verifyMfa();
     await this.#resumePendingOperation();
     return { address, authIdentifiers: await this.getAuthIdentifiers() };
@@ -548,14 +570,14 @@ function randomBytes(length: number): Uint8Array {
 
 function toRunIdentifiers(
   authIdentifiers: readonly Identifier[],
-  address: string,
+  siweAddress: string,
 ): MfaRecoveryRunIdentifiers {
   return {
     // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
-    // signature, so fall back to the primary account's identifier.
+    // signature, so fall back to the SRP signing key's identifier.
     siweIdentifier:
       authIdentifiers.find((identifier) => identifier.type === 'siwe') ??
-      createSiweIdentifier(address),
+      createSiweIdentifier(siweAddress),
     // Lazy: a run that uses SIWE must not fail when no passkey is approved.
     get passkeyIdentifier(): Identifier {
       return findAuthIdentifier(authIdentifiers, 'passkey');
@@ -563,7 +585,7 @@ function toRunIdentifiers(
   };
 }
 
-/** The run's account and the identifiers Auth approved for it. */
+/** The run's SIWE address and the identifiers Auth approved for it. */
 interface PreparedRun {
   address: string;
   authIdentifiers: Identifier[];

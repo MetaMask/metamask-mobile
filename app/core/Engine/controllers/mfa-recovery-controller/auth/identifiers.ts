@@ -2,11 +2,6 @@ import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { SIWE_CHAIN_ID, SIWE_DOMAIN } from '../constants';
 import { MfaRecoveryControllerError } from '../errors';
 
-export type SignPersonalMessage = (params: {
-  data: string;
-  from: string;
-}) => Promise<string>;
-
 /** OIDC issuers of the social logins seedless onboarding supports. */
 export const SOCIAL_IDENTIFIER_ISSUERS: Readonly<Record<string, string>> = {
   google: 'https://accounts.google.com',

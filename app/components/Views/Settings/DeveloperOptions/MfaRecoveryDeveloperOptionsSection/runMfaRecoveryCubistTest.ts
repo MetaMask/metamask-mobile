@@ -66,9 +66,10 @@ async function prepareTestRun(
   service: MfaRecoveryService,
 ): Promise<MfaRecoveryRunIdentifiers> {
   const identifiers = await service.prepareRun();
-  if (lastRegisteredAddress !== service.address) {
+  const siweAddress = await service.getSiweAddress();
+  if (lastRegisteredAddress !== siweAddress) {
     lastRegisteredSecret = undefined;
-    lastRegisteredAddress = service.address;
+    lastRegisteredAddress = siweAddress;
   }
   return identifiers;
 }

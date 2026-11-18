@@ -3,7 +3,10 @@ import type {
   MfaRecoveryController,
 } from '@metamask/mfa-recovery-controller';
 import { MfaRecoveryService } from '../../../../../core/MfaRecovery/services/mfa-recovery-service';
-import { createMfaRecoveryServiceTestMessenger } from '../../../../../core/MfaRecovery/services/mfa-recovery-service-test-messenger';
+import {
+  createMfaRecoveryServiceTestMessenger,
+  createTestKeyringController,
+} from '../../../../../core/MfaRecovery/services/mfa-recovery-service-test-messenger';
 import {
   getMfaRecoveryErrorDetail,
   runMfaRecoveryCubistRecover,
@@ -92,12 +95,15 @@ function createRegisteredController({ enrolled }: MockControllerOptions) {
   } as unknown as MfaRecoveryController;
 }
 
-function createService(controller: MfaRecoveryController, address = '0xabc') {
+function createService(
+  controller: MfaRecoveryController,
+  seed = new Uint8Array(64).fill(1),
+) {
   const verifyMfa = jest.fn().mockResolvedValue(undefined);
   Object.assign(mockEngineContext, {
     MfaRecoveryController: controller,
     SeedlessOnboardingController: { state: {} },
-    KeyringController: { state: { keyrings: [{ accounts: [address] }] } },
+    KeyringController: createTestKeyringController({ seed }),
     AuthenticationController: {
       requestMfaApproval: jest.fn().mockResolvedValue({
         approval: 'approval',
@@ -191,13 +197,14 @@ describe('runMfaRecoveryCubistRecover', () => {
     });
   });
 
-  it('has nothing to compare with after the primary account changes', async () => {
+  it('has nothing to compare with after the primary SRP changes', async () => {
     const controller = createRegisteredController({
       enrolled: [{ type: 'siwe' }],
     });
+    await runMfaRecoveryCubistTest(createService(controller).service);
 
     const result = await runMfaRecoveryCubistRecover(
-      createService(controller, '0xother').service,
+      createService(controller, new Uint8Array(64).fill(2)).service,
     );
 
     expect(result.matches).toBeUndefined();

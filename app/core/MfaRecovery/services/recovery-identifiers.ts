@@ -32,12 +32,12 @@ export function isSameIdentifier(a: Identifier, b: Identifier): boolean {
 
 /**
  * Returns the identifier each type would be enrolled with. Auth's identifiers
- * win; SIWE falls back to the primary account and social to the seedless login,
- * since Auth does not always return them.
+ * win; SIWE falls back to the SIWE signing key's address and social to the
+ * seedless login, since Auth does not always return them.
  */
 export function getCandidateIdentifiers(
   authIdentifiers: readonly Identifier[],
-  address: string,
+  siweAddress: string,
   seedlessState: { authConnection?: string; userId?: string },
 ): Partial<Record<CubistIdentifierType, Identifier>> {
   const fromAuth = (type: CubistIdentifierType) =>
@@ -52,7 +52,8 @@ export function getCandidateIdentifiers(
   }
   return {
     siwe:
-      fromAuth('siwe') ?? (address ? createSiweIdentifier(address) : undefined),
+      fromAuth('siwe') ??
+      (siweAddress ? createSiweIdentifier(siweAddress) : undefined),
     passkey: fromAuth('passkey'),
     social: socialIdentifier,
   };

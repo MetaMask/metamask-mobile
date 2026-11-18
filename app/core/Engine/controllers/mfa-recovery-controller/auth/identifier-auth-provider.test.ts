@@ -6,6 +6,7 @@ import {
 } from './identifier-auth-provider';
 import { createSiweIdentifier } from './identifiers';
 import { MfaRecoveryControllerError } from '../errors';
+import type { SiweSigner } from './srp-siwe-signer';
 
 jest.mock('./passkey-identifier-auth-provider', () => ({
   PlatformPasskeyIdentifierAuthProvider: jest
@@ -44,6 +45,18 @@ const SOCIAL: Identifier = {
 
 const ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
 
+function createSiweSigner(signature = '0xsig'): SiweSigner & {
+  getAddress: jest.Mock<Promise<string>, []>;
+  signMessage: jest.Mock<Promise<string>, [string]>;
+} {
+  return {
+    getAddress: jest.fn<Promise<string>, []>().mockResolvedValue(ADDRESS),
+    signMessage: jest
+      .fn<Promise<string>, [string]>()
+      .mockResolvedValue(signature),
+  };
+}
+
 describe('RecoveryIdentifierRouter', () => {
   const proofPublicKey = new Uint8Array([1, 2, 3]);
   const requestHash = '0xabc';
@@ -56,8 +69,7 @@ describe('RecoveryIdentifierRouter', () => {
     const router = new RecoveryIdentifierRouter({
       getPasskeyAssertion,
       getSocialIdToken: jest.fn(),
-      getAddress: jest.fn(),
-      signPersonalMessage: jest.fn(),
+      siweSigner: createSiweSigner(),
     });
 
     const result = await router.getKeyBoundIdentifierToken({
@@ -78,8 +90,7 @@ describe('RecoveryIdentifierRouter', () => {
     const router = new RecoveryIdentifierRouter({
       getPasskeyAssertion: jest.fn(),
       getSocialIdToken,
-      getAddress: jest.fn(),
-      signPersonalMessage: jest.fn(),
+      siweSigner: createSiweSigner(),
     });
 
     const result = await router.getKeyBoundIdentifierToken({
@@ -96,8 +107,7 @@ describe('RecoveryIdentifierRouter', () => {
     const router = new RecoveryIdentifierRouter({
       getPasskeyAssertion: jest.fn(),
       getSocialIdToken: jest.fn(),
-      getAddress: jest.fn(),
-      signPersonalMessage: jest.fn(),
+      siweSigner: createSiweSigner(),
     });
 
     await expect(
@@ -119,12 +129,11 @@ describe('RecoveryIdentifierRouter', () => {
   });
 
   it('routes siwe identifiers to the SIWE provider', async () => {
-    const signPersonalMessage = jest.fn().mockResolvedValue('0xsig');
+    const siweSigner = createSiweSigner();
     const router = new RecoveryIdentifierRouter({
       getPasskeyAssertion: jest.fn(),
       getSocialIdToken: jest.fn(),
-      getAddress: (): string => ADDRESS,
-      signPersonalMessage,
+      siweSigner,
     });
 
     const result = await router.getKeyBoundIdentifierToken({
@@ -133,7 +142,7 @@ describe('RecoveryIdentifierRouter', () => {
       requestHash,
     });
 
-    expect(signPersonalMessage).toHaveBeenCalledTimes(1);
+    expect(siweSigner.signMessage).toHaveBeenCalledTimes(1);
     expect(result.providerAssertion).toEqual(
       expect.objectContaining({ signature: '0xsig' }),
     );
@@ -145,11 +154,8 @@ describe('SiweIdentifierAuthProvider', () => {
   const requestHash = '0xabc';
 
   it('signs a SIWE message bound to the proof key and request hash', async () => {
-    const signPersonalMessage = jest.fn().mockResolvedValue('0xsig');
-    const provider = new SiweIdentifierAuthProvider({
-      getAddress: (): string => ADDRESS,
-      signPersonalMessage,
-    });
+    const signer = createSiweSigner();
+    const provider = new SiweIdentifierAuthProvider({ signer });
     const identifier = createSiweIdentifier(ADDRESS);
     const expectedNonce = bytesToHex(
       await sha256(
@@ -176,10 +182,8 @@ describe('SiweIdentifierAuthProvider', () => {
     expect(message).toContain('Chain ID: 1');
     expect(message).toContain(`Nonce: ${expectedNonce}`);
     expect(signature).toBe('0xsig');
-    expect(signPersonalMessage).toHaveBeenCalledWith({
-      data: bytesToHex(stringToBytes(message)),
-      from: ADDRESS,
-    });
+    expect(signer.getAddress).toHaveBeenCalledTimes(1);
+    expect(signer.signMessage).toHaveBeenCalledWith(message);
     expect(result).toEqual({
       identifier,
       proofPublicKey,
