@@ -3,7 +3,7 @@ import { execFileSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { runHeal } from './scenario-heal';
+import { main, runHeal } from './scenario-heal';
 
 const MD_PATH = 'tests/performance/login/scenarios/demo.scenario.md';
 const CACHE_PATH = MD_PATH.replace('.md', '.cache.json');
@@ -42,7 +42,6 @@ function outcome(healedCache: Record<string, unknown>, status = 'INVALID_MEASURE
     changedSteps: [
       { number: 3, text: 'the swap screen is visible', before: expectEl('old'), after: expectEl('swap-screen-v2') },
     ],
-    rewordings: [],
     healedCache,
     modelCalls: 1,
   };
@@ -82,7 +81,7 @@ describe('scenario-heal', () => {
     expect(result.hasPr).toBe(true);
     expect(result.changes.map((c) => c.path)).toEqual([CACHE_PATH]);
     expect(result.diff).toContain('+        "value": "swap-screen-v2"');
-    expect(result.summary).toContain('| Demo [scenario shadow] | INVALID_MEASUREMENT | repairable | 3 |');
+    expect(result.summary).toContain('| Demo [scenario shadow] | INVALID_MEASUREMENT | heal PR | 3 |');
     expect(fs.readFileSync(result.bodyFile, 'utf8')).toContain('https://he/job/1');
     expect(git('status', '--porcelain')).toBe('');
   });
@@ -97,9 +96,9 @@ describe('scenario-heal', () => {
   });
 
   it('aborts the whole heal and only reports when the diff breaks a rule', () => {
-    const { root, artifacts, out, git } = setup(
-      outcome({ ...healed, 'Log in to the wallet': tap('password-input') }),
-    );
+    const bad = outcome({ ...healed, 'Log in to the wallet': tap('password-input') });
+    bad.changedSteps.push({ number: 1, text: 'Log in to the wallet', before: null as never, after: tap('password-input') });
+    const { root, artifacts, out, git } = setup(bad);
 
     const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: true, runUrl: '', baseRef: 'main', existingPrs: [] });
 
@@ -133,7 +132,7 @@ describe('scenario-heal', () => {
     const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: '', baseRef: 'main', existingPrs: [] });
 
     expect(result.hasPr).toBe(false);
-    expect(result.summary).toContain('| FAIL | pinned-check | 2 |');
+    expect(result.summary).toContain('| FAIL | report only | 2 | the scenario\'s check failed: testID=x |');
   });
 
   describe('cache drift on a passing run', () => {
@@ -156,15 +155,14 @@ describe('scenario-heal', () => {
       expect(result.hasPr).toBe(true);
       expect(result.changes.map((c) => c.path)).toEqual([CACHE_PATH]);
       expect(git('status', '--porcelain').trim()).toBe(`M ${CACHE_PATH}`);
-      expect(result.summary).toContain('| Demo [scenario shadow] | PASS | cache-drift | 3 |');
-      expect(result.summary).toContain('heal PR (cache drift)');
+      expect(result.summary).toContain('| Demo [scenario shadow] | PASS | heal PR | 3 | cache drift (run passed)');
       const body = fs.readFileSync(result.bodyFile, 'utf8');
-      expect(body).toContain('Category: `cache-drift`');
+      expect(body).toContain('Run status: PASS');
       expect(body).toContain('| 3. the swap screen is visible | expect testID=old | expect testID=swap-screen-v2 |');
-      expect(result.slackNotices[0]).toEqual(expect.objectContaining({ category: 'cache-drift', step: 3 }));
+      expect(result.slackNotices[0]).toEqual(expect.objectContaining({ drift: true, step: 3 }));
     });
 
-    it('leaves the Markdown alone even when the outcome proposes a rewording', () => {
+    it('only ever changes the cache, even for an outcome that carries old rewordings', () => {
       const { root, artifacts, out } = setup({
         ...drifted,
         rewordings: [{ number: 2, from: 'Tap the Swap button on the wallet home', to: 'Tap Trade' }],
@@ -193,7 +191,25 @@ describe('scenario-heal', () => {
       const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: true, runUrl: '', baseRef: 'main', existingPrs: [] });
 
       expect(result.hasPr).toBe(false);
-      expect(result.summary).toContain('| PASS | passed |');
+      expect(result.summary).toContain('| PASS | none |');
     });
+  });
+
+  it('renders the Slack text for notices once the PR is open', () => {
+    const { root, artifacts, out } = setup(outcome(healed));
+    runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: 'https://run/1', baseRef: 'main', existingPrs: [] });
+
+    main([
+      '--notices', path.join(out, 'slack-notices.json'),
+      '--out', out,
+      '--repository-url', 'https://github.com/org/repo',
+      '--pr-url', 'https://github.com/org/repo/pull/5',
+      '--commit-sha', 'abc1234',
+    ], {} as NodeJS.ProcessEnv);
+
+    const text = fs.readFileSync(path.join(out, 'slack.txt'), 'utf8');
+    expect(text).toContain('Repairable performance scenario: Demo [scenario shadow]');
+    expect(text).toContain('Heal PR: https://github.com/org/repo/pull/5');
+    expect(text).toContain('Commit: abc1234 (https://github.com/org/repo/commit/abc1234)');
   });
 });

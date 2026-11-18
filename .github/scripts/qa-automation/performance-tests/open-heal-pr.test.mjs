@@ -311,11 +311,11 @@ test('an unrelated tracked file aborts before any GitHub call', () => {
   const { result, calls } = run(repo.root);
 
   assert.notEqual(result.status, 0);
-  assert.match(result.stdout + result.stderr, /Unexpected changes outside scenario caches and Markdown/);
+  assert.match(result.stdout + result.stderr, /Unexpected changes outside scenario caches/);
   assert.equal(calls.length, 0);
 });
 
-test('a reworded scenario markdown is published with the cache', () => {
+test('a changed scenario markdown is never published', () => {
   const repo = gitRepo({
     [CACHE]: '{"old":true}\n',
     [MARKDOWN]: 'old wording\n',
@@ -326,9 +326,9 @@ test('a reworded scenario markdown is published with the cache', () => {
   });
 
   const { result, calls } = run(repo.root);
-  assert.equal(result.status, 0, result.stderr);
-  const tree = JSON.parse(callsOf(calls, '/git/trees')[0].stdin);
-  assert.deepEqual(tree.tree.map((entry) => entry.path).sort(), [CACHE, MARKDOWN]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout + result.stderr, /Unexpected changes outside scenario caches/);
+  assert.equal(calls.length, 0);
 });
 
 test('a staged file outside the scenario files is refused before any GitHub call', () => {
@@ -349,6 +349,6 @@ test('no cache change does not create a branch', () => {
   const repo = gitRepo({ [CACHE]: '{"old":true}\n' });
   const { result, calls } = run(repo.root);
   assert.notEqual(result.status, 0);
-  assert.match(result.stdout + result.stderr, /No scenario cache or Markdown changes/);
+  assert.match(result.stdout + result.stderr, /No scenario cache changes/);
   assert.equal(calls.length, 0);
 });

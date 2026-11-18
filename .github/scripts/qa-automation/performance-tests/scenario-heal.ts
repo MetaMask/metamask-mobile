@@ -1,7 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 /**
  * Classifies agent-driven scenario outcomes from a performance run and builds
- * the heal for repairable ones (stale cache or step wording only).
+ * the heal (stale `*.scenario.cache.json` entries only) for healable ones.
  *
  *   yarn tsx .github/scripts/qa-automation/performance-tests/scenario-heal.ts \
  *     --artifacts <downloaded artifacts dir> [--out tmp/scenario-heal] \
@@ -11,6 +11,9 @@
  * written: the summary, plan, PR body and heal.diff go to --out.
  * With --apply, the files are written and the working tree is checked again
  * against the heal rules; any other change reverts everything.
+ *
+ * After the PR is opened, `--notices <out>/slack-notices.json --pr-url URL
+ * --commit-sha SHA` writes the Slack text to <out>/slack.txt.
  */
 import { execFileSync } from 'child_process';
 import fs from 'fs';
@@ -28,6 +31,7 @@ import {
   renderHealSlackMessage,
   renderSummary,
   type Classification,
+  type ExistingHealPr,
   type SlackHealNotice,
   type FileChange,
   type HealedScenario,
@@ -42,7 +46,7 @@ export interface HealOptions {
   runUrl: string;
   baseRef: string;
   /** Open heal PRs, used to dedupe and to link the Slack message. */
-  existingPrs: { url?: string; body?: string; headSha?: string }[];
+  existingPrs: ExistingHealPr[];
 }
 
 export interface HealRunResult {
@@ -52,7 +56,7 @@ export interface HealRunResult {
   summary: string;
   changes: FileChange[];
   diff: string;
-  /** Repairable scenarios to announce. New PRs have an empty prUrl until opened. */
+  /** Healed scenarios to announce. New PRs have an empty prUrl until opened. */
   slackNotices: SlackHealNotice[];
 }
 
@@ -66,19 +70,24 @@ function walk(dir: string, found: string[] = []): string[] {
   return found;
 }
 
+const readJson = <T>(file: string): T | null => {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
+  } catch {
+    // A truncated file from a crashed task carries nothing.
+    return null;
+  }
+};
+
 /** Outcomes by scenario; HyperExecute may keep a -HYPL-<task> copy too. */
 export function readOutcomes(artifactsDir: string): ScenarioOutcome[] {
   const byScenario = new Map<string, ScenarioOutcome>();
   for (const file of walk(artifactsDir)) {
     const name = path.basename(file);
     if (!name.startsWith(OUTCOME_FILE_PREFIX) || !name.endsWith('.json')) continue;
-    try {
-      const outcome = JSON.parse(fs.readFileSync(file, 'utf8')) as ScenarioOutcome;
-      if (outcome.schema === 1 && outcome.scenarioPath) {
-        byScenario.set(outcome.scenarioPath, outcome);
-      }
-    } catch {
-      // A truncated file from a crashed task carries no outcome.
+    const outcome = readJson<ScenarioOutcome>(file);
+    if (outcome?.schema === 1 && outcome.scenarioPath) {
+      byScenario.set(outcome.scenarioPath, outcome);
     }
   }
   return [...byScenario.values()].sort((a, b) =>
@@ -87,17 +96,11 @@ export function readOutcomes(artifactsDir: string): ScenarioOutcome[] {
 }
 
 function readHeJobUrls(artifactsDir: string): string[] {
-  const urls = new Set<string>();
-  for (const file of walk(artifactsDir)) {
-    if (!/^hyperexecute-job-.*\.json$/.test(path.basename(file))) continue;
-    try {
-      const { url } = JSON.parse(fs.readFileSync(file, 'utf8')) as { url?: string };
-      if (url) urls.add(url);
-    } catch {
-      // ignore
-    }
-  }
-  return [...urls];
+  const urls = walk(artifactsDir)
+    .filter((file) => /^hyperexecute-job-.*\.json$/.test(path.basename(file)))
+    .map((file) => readJson<{ url?: string }>(file)?.url)
+    .filter((url): url is string => Boolean(url));
+  return [...new Set(urls)];
 }
 
 function unifiedDiff(changes: FileChange[]): string {
@@ -131,33 +134,27 @@ function unifiedDiff(changes: FileChange[]): string {
 function verifyWorktree(repoRoot: string, changes: FileChange[]): string[] {
   const git = (...args: string[]) =>
     execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' });
+  const readFile = (file: string) => {
+    const full = path.join(repoRoot, file);
+    return fs.existsSync(full) ? fs.readFileSync(full, 'utf8') : null;
+  };
   const changed = git('status', '--porcelain', '--untracked-files=all')
     .split('\n')
     .filter(Boolean)
     .map((line) => line.slice(3).trim());
   const expected = new Set(changes.map((c) => c.path));
-  const actual: FileChange[] = changed.map((file) => {
-    let before: string | null = null;
-    try {
-      before = git('show', `HEAD:${file}`);
-    } catch {
-      before = null;
-    }
-    const full = path.join(repoRoot, file);
-    return {
-      path: file,
-      before,
-      after: fs.existsSync(full) ? fs.readFileSync(full, 'utf8') : '',
-    };
-  });
   const violations = [
     ...changed
       .filter((file) => !expected.has(file))
       .map((file) => `${file}: changed but not part of the heal`),
-    ...healRuleViolations(actual, (p) => {
-      const full = path.join(repoRoot, p);
-      return fs.existsSync(full) ? fs.readFileSync(full, 'utf8') : null;
-    }),
+    ...healRuleViolations(
+      changed.map((file) => ({
+        path: file,
+        before: null,
+        after: readFile(file) ?? '',
+      })),
+      readFile,
+    ),
   ];
   if (violations.length > 0) {
     git('checkout', '--', '.');
@@ -171,7 +168,6 @@ export function runHeal(options: HealOptions): HealRunResult {
     const full = path.join(options.repoRoot, repoPath);
     return fs.existsSync(full) ? fs.readFileSync(full, 'utf8') : null;
   };
-  const outcomes = readOutcomes(options.artifactsDir);
   const heJobUrls = readHeJobUrls(options.artifactsDir);
   const openPrs = indexHealPrs(options.existingPrs);
   const rows: Parameters<typeof renderSummary>[0] = [];
@@ -181,10 +177,10 @@ export function runHeal(options: HealOptions): HealRunResult {
   const noticeFor = (
     outcome: ScenarioOutcome,
     classification: Classification,
-    pr?: { url?: string; headSha?: string },
+    pr?: ExistingHealPr,
   ): SlackHealNotice => ({
     scenario: outcome.title,
-    category: classification.category,
+    drift: outcome.status === 'PASS',
     step: classification.step,
     reason: classification.reason,
     runUrl: options.runUrl,
@@ -194,9 +190,9 @@ export function runHeal(options: HealOptions): HealRunResult {
     commitUrl: '',
   });
 
-  for (const outcome of outcomes) {
+  for (const outcome of readOutcomes(options.artifactsDir)) {
     const classification = classifyOutcome(outcome);
-    if (!classification.repairable) {
+    if (classification.category !== 'heal') {
       rows.push({ outcome, classification });
       continue;
     }
@@ -206,11 +202,7 @@ export function runHeal(options: HealOptions): HealRunResult {
       ? openPrs.get(keys[0])
       : undefined;
     if (existing) {
-      rows.push({
-        outcome,
-        classification,
-        note: 'already proposed by an open heal PR',
-      });
+      rows.push({ outcome, classification, note: 'already proposed by an open heal PR' });
       slackNotices.push(noticeFor(outcome, classification, existing));
       continue;
     }
@@ -223,14 +215,7 @@ export function runHeal(options: HealOptions): HealRunResult {
       });
       continue;
     }
-    rows.push({
-      outcome,
-      classification,
-      note:
-        classification.category === 'cache-drift'
-          ? 'heal PR (cache drift)'
-          : 'heal PR',
-    });
+    rows.push({ outcome, classification });
     healed.push({ outcome, classification, changes, notes });
     slackNotices.push(noticeFor(outcome, classification));
   }
@@ -239,7 +224,7 @@ export function runHeal(options: HealOptions): HealRunResult {
   const violations = healRuleViolations(changes, readFile);
   if (violations.length > 0) {
     extra.push(
-      '**Heal aborted.** The diff would touch more than caches and step wording:',
+      '**Heal aborted.** The diff would touch more than scenario caches:',
       ...violations.map((v) => `- ${v}`),
     );
     changes = [];
@@ -268,71 +253,74 @@ export function runHeal(options: HealOptions): HealRunResult {
   const notices = hasPr
     ? slackNotices
     : slackNotices.filter((notice) => notice.prUrl);
-  const { title, body } = renderHealPr(
-    healed.filter(() => hasPr),
-    {
-      runUrl: options.runUrl,
-      heJobUrls: readHeJobUrls(options.artifactsDir),
-      baseRef: options.baseRef,
-    },
-  );
+  const { title, body } = renderHealPr(hasPr ? healed : [], {
+    runUrl: options.runUrl,
+    heJobUrls,
+    baseRef: options.baseRef,
+  });
   const bodyFile = path.join(options.outDir, 'heal-pr-body.md');
   fs.writeFileSync(bodyFile, body);
   const summary = renderSummary(rows, extra);
   fs.writeFileSync(path.join(options.outDir, 'summary.md'), summary);
-  fs.writeFileSync(
-    path.join(options.outDir, 'heal-plan.json'),
-    `${JSON.stringify(
-      {
-        hasPr,
-        title,
-        scenarios: rows.map((r) => ({
-          scenarioPath: r.outcome.scenarioPath,
-          status: r.outcome.status,
-          ...r.classification,
-          note: r.note,
-        })),
-        files: changes.map((c) => c.path),
-      },
-      null,
-      2,
-    )}\n`,
-  );
-  fs.writeFileSync(
-    path.join(options.outDir, 'slack-notices.json'),
-    `${JSON.stringify(notices, null, 2)}\n`,
-  );
+  const writeJson = (name: string, value: unknown) =>
+    fs.writeFileSync(
+      path.join(options.outDir, name),
+      `${JSON.stringify(value, null, 2)}\n`,
+    );
+  writeJson('heal-plan.json', {
+    hasPr,
+    title,
+    scenarios: rows.map((r) => ({
+      scenarioPath: r.outcome.scenarioPath,
+      status: r.outcome.status,
+      ...r.classification,
+      note: r.note,
+    })),
+    files: changes.map((c) => c.path),
+  });
+  writeJson('slack-notices.json', notices);
   return { hasPr, title, bodyFile, summary, changes, diff, slackNotices: notices };
 }
 
-function argValue(argv: string[], name: string): string | undefined {
+function argValue(argv: string[], name: string): string {
   const index = argv.indexOf(name);
-  return index >= 0 ? argv[index + 1] : undefined;
+  return index >= 0 ? (argv[index + 1] ?? '') : '';
 }
 
 export function main(argv = process.argv.slice(2), env = process.env): void {
+  const outDir = path.resolve(argValue(argv, '--out') || 'tmp/scenario-heal');
+  const noticesFile = argValue(argv, '--notices');
+  if (noticesFile) {
+    const text = renderHealSlackMessage(
+      completeSlackNotices(readJson<SlackHealNotice[]>(noticesFile) ?? [], {
+        prUrl: argValue(argv, '--pr-url'),
+        commitSha: argValue(argv, '--commit-sha'),
+        repositoryUrl: argValue(argv, '--repository-url'),
+      }),
+    );
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(path.join(outDir, 'slack.txt'), text);
+    console.log(text || 'Nothing to post to Slack.');
+    return;
+  }
+
   const artifactsDir = argValue(argv, '--artifacts');
   if (!artifactsDir) {
     throw new Error('Usage: scenario-heal.ts --artifacts <dir> [--out dir] [--apply]');
   }
   const dryRun = env.SCENARIO_HEAL_DRY_RUN === 'true' || argv.includes('--dry-run');
   const existingFile = argValue(argv, '--existing-prs');
-  const existing = existingFile && fs.existsSync(existingFile)
-    ? (JSON.parse(fs.readFileSync(existingFile, 'utf8')) as {
-        url?: string;
-        body?: string;
-        headSha?: string;
-        headRefOid?: string;
-      }[])
-    : [];
-  const outDir = path.resolve(argValue(argv, '--out') ?? 'tmp/scenario-heal');
+  const existing =
+    (existingFile &&
+      readJson<(ExistingHealPr & { headRefOid?: string })[]>(existingFile)) ||
+    [];
   const result = runHeal({
     artifactsDir,
-    repoRoot: path.resolve(argValue(argv, '--repo-root') ?? process.cwd()),
+    repoRoot: path.resolve(argValue(argv, '--repo-root') || process.cwd()),
     outDir,
     apply: argv.includes('--apply') && !dryRun,
-    runUrl: argValue(argv, '--run-url') ?? '',
-    baseRef: argValue(argv, '--base-ref') ?? '',
+    runUrl: argValue(argv, '--run-url'),
+    baseRef: argValue(argv, '--base-ref'),
     existingPrs: existing.map((pr) => ({
       url: pr.url,
       body: pr.body,
@@ -340,37 +328,22 @@ export function main(argv = process.argv.slice(2), env = process.env): void {
     })),
   });
 
-  const repositoryUrl = argValue(argv, '--repository-url') ?? '';
-  const opened =
-    argValue(argv, '--pr-url') && argValue(argv, '--commit-sha')
-      ? {
-          prUrl: argValue(argv, '--pr-url') as string,
-          commitSha: argValue(argv, '--commit-sha') as string,
-          repositoryUrl,
-        }
-      : undefined;
-  // A dry run has no PR yet. Show the message with placeholders instead of posting.
-  const preview = dryRun && !opened
-    ? { prUrl: '(the draft PR this run would open)', commitSha: '(the heal commit)', repositoryUrl: '' }
-    : opened;
-  const slackText = renderHealSlackMessage(
-    completeSlackNotices(result.slackNotices, preview),
-  );
-
-  const fillingInOpenedPr = Boolean(opened);
-  if (env.GITHUB_STEP_SUMMARY && !fillingInOpenedPr) {
+  if (env.GITHUB_STEP_SUMMARY) {
     fs.appendFileSync(env.GITHUB_STEP_SUMMARY, result.summary);
   }
-  if (!fillingInOpenedPr) console.log(result.summary);
+  console.log(result.summary);
   if (dryRun) {
-    console.log(result.diff || '(no heal diff)');
-    console.log(
-      slackText
-        ? `Would post to Slack:\n${slackText}`
-        : 'Would not post to Slack.',
+    // A dry run opens no PR: show the message with placeholders instead of posting.
+    const preview = renderHealSlackMessage(
+      completeSlackNotices(result.slackNotices, {
+        prUrl: '(the draft PR this run would open)',
+        commitSha: '(the heal commit)',
+        repositoryUrl: '',
+      }),
     );
+    console.log(result.diff || '(no heal diff)');
+    console.log(preview ? `Would post to Slack:\n${preview}` : 'Would not post to Slack.');
   }
-  if (slackText) fs.writeFileSync(path.join(outDir, 'slack.txt'), slackText);
   if (env.GITHUB_OUTPUT) {
     fs.appendFileSync(
       env.GITHUB_OUTPUT,

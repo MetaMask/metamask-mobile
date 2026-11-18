@@ -1,22 +1,23 @@
 import {
-  applyRewordings,
   buildHealChanges,
   buildScenarioOutcome,
   classifyOutcome,
   completeSlackNotices,
   computeCacheDrift,
-  healCategories,
   healKey,
   healKeys,
   healRuleViolations,
-  proposedKeys,
+  indexHealPrs,
   renderHealPr,
   renderHealSlackMessage,
-  type FileChange,
   type ScenarioOutcome,
 } from './heal.ts';
 import { parseScenario } from './scenario.ts';
 import type { AgentRunResult } from './ScenarioAgent.ts';
+
+/** Keys already proposed by open heal PR bodies. */
+const proposedKeys = (bodies: string[]) =>
+  new Set(indexHealPrs(bodies.map((body) => ({ body }))).keys());
 
 const MD_PATH = 'tests/performance/login/scenarios/demo.scenario.md';
 const CACHE_PATH = MD_PATH.replace('.md', '.cache.json');
@@ -115,14 +116,14 @@ function outcome(
 const repo = (files: Record<string, string>) => (p: string) => files[p] ?? null;
 
 describe('classifyOutcome', () => {
-  it('repairs a stale cached end element that the agent re-resolved after the window', () => {
+  it('heals a stale cached end element that the agent re-resolved after the window', () => {
     const result = classifyOutcome(outcome());
 
     expect(result).toEqual(
       expect.objectContaining({
-        category: 'repairable',
-        repairable: true,
+        category: 'heal',
         step: 3,
+        reason: expect.stringContaining('"swap opens"'),
       }),
     );
   });
@@ -147,9 +148,9 @@ describe('classifyOutcome', () => {
 
     expect(result).toEqual(
       expect.objectContaining({
-        category: 'pinned-check',
-        repairable: false,
+        category: 'report',
         step: 5,
+        reason: expect.stringContaining('pinned end check of "quote shows"'),
       }),
     );
   });
@@ -160,30 +161,29 @@ describe('classifyOutcome', () => {
         outcome(runResult(), ['Step 1 exceeded: 4000ms > 2875ms']),
       ),
     ).toEqual(
-      expect.objectContaining({ category: 'threshold', repairable: false }),
+      expect.objectContaining({
+        category: 'report',
+        reason: 'threshold exceeded: Step 1 exceeded: 4000ms > 2875ms',
+      }),
     );
   });
 
   it('does not repair an invalid timer whose end step was not re-resolved', () => {
     expect(classifyOutcome(outcome(runResult({ changedSteps: [] })))).toEqual(
-      expect.objectContaining({ category: 'not-healed', repairable: false }),
+      expect.objectContaining({
+        category: 'report',
+        reason: expect.stringContaining('the end step was not re-resolved'),
+      }),
     );
   });
 
   it.each([
-    [
-      "Step 4: the scenario's check failed: testID=confirm-button: not visible",
-      'pinned-check',
-    ],
-    [
-      'refusing to tap "Confirm": only a Confirm/Submit step may submit, and this step is "Tap Review"',
-      'submit-guard',
-    ],
-    ['Step 4: blocked on screen: Insufficient funds', 'blocked'],
-    ['Step 4 did not finish within 8 actions', 'no-path'],
-    ['WebDriverError: invalid session id', 'timeout-or-crash'],
-    ['something new', 'unknown'],
-  ])('classifies a FAIL "%s" as %s and never repairs it', (error, category) => {
+    "Step 4: the scenario's check failed: testID=confirm-button: not visible",
+    'refusing to tap "Confirm": only a Confirm/Submit step may submit, and this step is "Tap Review"',
+    'Step 4: blocked on screen: Insufficient funds',
+    'Step 4 did not finish within 8 actions',
+    'WebDriverError: invalid session id',
+  ])('only reports a FAIL, with its error as the reason: %s', (error) => {
     const failed = outcome(
       runResult({
         status: 'FAIL',
@@ -199,9 +199,11 @@ describe('classifyOutcome', () => {
       }),
     );
 
-    expect(classifyOutcome(failed)).toEqual(
-      expect.objectContaining({ category, repairable: false, step: 4 }),
-    );
+    expect(classifyOutcome(failed)).toEqual({
+      category: 'report',
+      step: 4,
+      reason: error,
+    });
   });
 });
 
@@ -218,110 +220,8 @@ describe('heal rules', () => {
     expect(healRuleViolations(changes, repo(files))).toEqual([]);
   });
 
-  it('applies a proposed rewording to the step text only and renames the cache key', () => {
-    const reworded = {
-      ...outcome(),
-      rewordings: [
-        {
-          number: 2,
-          from: 'Tap the Swap button on the wallet home',
-          to: 'Tap the Trade button on the wallet home',
-        },
-      ],
-    };
-
-    const { changes } = buildHealChanges(reworded, repo(files));
-    const md = changes.find((c) => c.path === MD_PATH)?.after ?? '';
-    const cache = JSON.parse(
-      changes.find((c) => c.path === CACHE_PATH)?.after ?? '{}',
-    );
-
-    expect(md).toContain('2. Tap the Trade button on the wallet home\n');
-    expect(cache).toHaveProperty(['Tap the Trade button on the wallet home']);
-    expect(healRuleViolations(changes, repo(files))).toEqual([]);
-  });
-
-  it('keeps pins and the Expect prefix when rewording', () => {
-    const { markdown } = applyRewordings(MARKDOWN, [
-      { number: 5, from: 'the quote is shown', to: 'the quote appears' },
-    ]);
-
-    expect(markdown).toContain(
-      '5. Expect: the quote appears [check: testID=quote text=/[1-9]/]',
-    );
-  });
-
-  it('never rewords Secret steps', () => {
-    const { markdown, skipped } = applyRewordings(MARKDOWN, [
-      { number: 1, from: 'Log in to the wallet', to: 'Skip login' },
-    ]);
-
-    expect(markdown).toBe(MARKDOWN);
-    expect(skipped[0]).toContain('never reworded');
-  });
-
-  const mdChange = (after: string): FileChange[] => [
-    { path: MD_PATH, before: MARKDOWN, after },
-  ];
-
   it.each([
-    [
-      'a pin',
-      MARKDOWN.replace(
-        '[check: testID=confirm-button]',
-        '[check: testID=other]',
-      ),
-    ],
-    [
-      'an [if:] condition',
-      MARKDOWN.replace(
-        '4. Tap Review',
-        '4. Tap Review [if: perps-gtm-onboarding]',
-      ),
-    ],
-    ['a threshold', MARKDOWN.replace('Android 2500 ms', 'Android 9999 ms')],
-    [
-      'a timer',
-      MARKDOWN.replace(
-        'from step 2 until step 3',
-        'from step 4 until step 5',
-      ).replace(
-        'from step 4 until step 5 (Android 3000',
-        'from step 2 until step 3 (Android 3000',
-      ),
-    ],
-    [
-      'a Secret step',
-      MARKDOWN.replace(
-        'Secret: Log in to the wallet',
-        'Secret: Log in with another wallet',
-      ),
-    ],
-    [
-      'a step kind',
-      MARKDOWN.replace(
-        '3. Expect: the swap screen is visible',
-        '3. Tap the swap screen',
-      ),
-    ],
-    [
-      'the tags',
-      MARKDOWN.replace(
-        'Tags: @PerformanceShadow',
-        'Tags: @PerformanceShadow @Other',
-      ),
-    ],
-    [
-      'an added line',
-      MARKDOWN.replace('## Timers', '6. Tap Confirm\n\n## Timers'),
-    ],
-  ])('rejects a Markdown change to %s', (_what, after) => {
-    expect(
-      healRuleViolations(mdChange(after), repo(files)).length,
-    ).toBeGreaterThan(0);
-  });
-
-  it.each([
+    MD_PATH,
     'tests/framework/scenario-agent/scenarioTest.ts',
     'tests/performance/login/scenarios/demo.scenario.spec.ts',
     'tests/playwright.testmu.config.ts',
@@ -333,9 +233,7 @@ describe('heal rules', () => {
         repo(files),
       ),
     ).toEqual([
-      expect.stringContaining(
-        'only *.scenario.cache.json and *.scenario.md may change',
-      ),
+      expect.stringContaining('only *.scenario.cache.json may change'),
     ]);
   });
 
@@ -397,6 +295,7 @@ describe('heal PR', () => {
 describe('renderHealSlackMessage', () => {
   const notice = {
     scenario: 'Predict Available Balance [scenario shadow]',
+    drift: false,
     step: 2,
     reason: 'end element testID=old did not appear',
     runUrl: 'https://github.com/org/repo/actions/runs/1',
@@ -522,18 +421,19 @@ describe('cache drift on a passing run', () => {
     );
   });
 
-  it('classifies a valid run with re-resolved steps as cache-drift and repairable', () => {
+  it('heals a valid run with re-resolved steps and says it is cache drift', () => {
     expect(classifyOutcome(retriedPass())).toEqual(
       expect.objectContaining({
-        category: 'cache-drift',
-        repairable: true,
+        category: 'heal',
         step: 3,
-        reason: expect.stringContaining('3. the swap screen is visible'),
+        reason: expect.stringMatching(
+          /^cache drift \(run passed\).*3\. the swap screen is visible/,
+        ),
       }),
     );
   });
 
-  it('keeps a clean pass and a threshold failure out of cache-drift', () => {
+  it('keeps a clean pass and a threshold failure out of the heal', () => {
     expect(classifyOutcome(retriedPass({ cacheDrift: [] })).category).toBe(
       'passed',
     );
@@ -543,7 +443,7 @@ describe('cache drift on a passing run', () => {
           thresholdViolations: ['Step 1 exceeded: 4000ms > 2875ms'],
         }),
       ).category,
-    ).toBe('threshold');
+    ).toBe('report');
   });
 
   it('never trusts drift from a run that did not pass', () => {
@@ -553,22 +453,12 @@ describe('cache drift on a passing run', () => {
           status: 'FAIL',
           failedStep: { number: 3, text: 'x', error: 'boom' },
         }),
-      ).repairable,
-    ).toBe(false);
+      ).category,
+    ).toBe('report');
   });
 
   it('writes only the re-resolved entry onto the committed cache and never touches the Markdown', () => {
-    const reworded = retriedPass({
-      rewordings: [
-        {
-          number: 2,
-          from: 'Tap the Swap button on the wallet home',
-          to: 'Tap Trade',
-        },
-      ],
-    });
-
-    const { changes } = buildHealChanges(reworded, repo(files));
+    const { changes } = buildHealChanges(retriedPass(), repo(files));
     const cache = JSON.parse(changes[0].after);
 
     expect(changes.map((c) => c.path)).toEqual([CACHE_PATH]);
@@ -592,7 +482,7 @@ describe('cache drift on a passing run', () => {
     expect(notes[0]).toContain('no cached entry');
   });
 
-  it('puts the category, old vs new resolution, run and a marker per step in the PR body', () => {
+  it('puts the run status, old vs new resolution, run and a marker per step in the PR body', () => {
     const drift = retriedPass();
     const { changes } = buildHealChanges(drift, repo(files));
     const { body } = renderHealPr(
@@ -607,20 +497,19 @@ describe('cache drift on a passing run', () => {
       { runUrl: 'https://github.com/run/2', heJobUrls: [], baseRef: 'main' },
     );
 
-    expect(body).toContain('Category: `cache-drift`');
+    expect(body).toContain('Run status: PASS');
     expect(body).toContain('passed on retry 1');
     expect(body).toContain(
       '| 3. the swap screen is visible | expect testID=old-swap-screen | expect testID=swap-screen-v2 |',
     );
     expect(body).toContain('https://github.com/run/2');
-    expect(body).toContain('Cache drift only');
-    expect(body).not.toMatch(/- Step \d+ wording:/);
+    expect(body).toContain('Only `*.scenario.cache.json` files change');
     expect(proposedKeys([body])).toEqual(
       new Set(healKeys(drift, classifyOutcome(drift))),
     );
   });
 
-  it('combines repairable with drift in other steps in one heal', () => {
+  it('combines a failed-run heal with drift in other steps in one heal', () => {
     const tapDrift = {
       number: 2,
       text: 'Tap the Swap button on the wallet home',
@@ -642,11 +531,7 @@ describe('cache drift on a passing run', () => {
     };
     const classification = classifyOutcome(both);
 
-    expect(classification.category).toBe('repairable');
-    expect(healCategories(both, classification)).toEqual([
-      'repairable',
-      'cache-drift',
-    ]);
+    expect(classification.category).toBe('heal');
     expect(healKeys(both, classification)).toEqual([
       healKey(both, 3),
       healKey(both, 2),
@@ -658,54 +543,13 @@ describe('cache drift on a passing run', () => {
   });
 });
 
-describe('pinned Expect failures', () => {
-  it('are reported as pinned-check, not no-path', () => {
-    const failed = outcome(
-      runResult({
-        status: 'FAIL',
-        steps: [
-          {
-            number: 4,
-            text: 'the ETH token overview screen is visible',
-            source: 'agent',
-            actions: [],
-            error:
-              'Step 4: expectation not met: the ETH token overview screen is visible (testID=perf-heal-test-does-not-exist: element still not displayed after 1501ms)',
-          },
-        ],
-      }),
-    );
-
-    expect(classifyOutcome(failed).category).toBe('pinned-check');
-  });
-
-  it('still calls an unpinned expectation the model could not meet no-path', () => {
-    const failed = outcome(
-      runResult({
-        status: 'FAIL',
-        steps: [
-          {
-            number: 3,
-            text: 'x',
-            source: 'agent',
-            actions: [],
-            error: 'Step 3: expectation not met: the quote is shown',
-          },
-        ],
-      }),
-    );
-
-    expect(classifyOutcome(failed).category).toBe('no-path');
-  });
-});
-
 describe('cache-drift Slack notice', () => {
   it('says the run passed and the cache was stale', () => {
     const [ready] = completeSlackNotices(
       [
         {
           scenario: 'Predict [scenario shadow]',
-          category: 'cache-drift',
+          drift: true,
           step: 3,
           reason:
             're-resolved 1 cached step: 3. the Predict home screen is visible',
