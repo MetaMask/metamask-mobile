@@ -29,6 +29,24 @@ describe('HeaderStandardGlass', () => {
     );
   });
 
+  it('keeps caller layout classes when forcing px-4', () => {
+    const { getByTestId } = render(
+      <HeaderStandardGlass
+        title="Accounts"
+        testID="header"
+        twClassName="min-h-14 h-auto"
+      />,
+    );
+
+    expect(StyleSheet.flatten(getByTestId('header').props.style)).toEqual(
+      expect.objectContaining({
+        paddingLeft: 16,
+        paddingRight: 16,
+        minHeight: 56,
+      }),
+    );
+  });
+
   it('renders the plain MMDS header when glass is off', () => {
     const { getByText, getByTestId, queryByTestId } = render(
       <HeaderStandardGlass
