@@ -1,9 +1,9 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import type { SecuritySettingsScrollSection } from '../../../../components/Views/Settings/SecuritySettings/SecuritySettings.types';
+import type { PrivacySettingsScrollSection } from '../../../../components/Views/Settings/PrivacySettings/PrivacySettings.types';
 
 /**
- * Handles the /privacy universal link by navigating to the Security & Privacy
+ * Handles the /privacy universal link by navigating to the Privacy
  * settings screen, scrolled to the requested section.
  *
  * Supported URL formats:
@@ -23,11 +23,11 @@ export function handlePrivacyUrl({ privacyPath }: { privacyPath: string }) {
     privacyPath?.includes('?') ? privacyPath.split('?')[1] : '',
   );
   const setting = urlParams.get('setting');
-  const scrollToSection: SecuritySettingsScrollSection =
+  const scrollToSection: PrivacySettingsScrollSection =
     setting === 'data-collection' ? 'data-collection' : 'metametrics';
 
   NavigationService.navigation.navigate(Routes.SETTINGS_VIEW, {
-    screen: Routes.SETTINGS.SECURITY_SETTINGS,
+    screen: Routes.SETTINGS.PRIVACY_SETTINGS,
     params: { scrollToSection },
   });
 }

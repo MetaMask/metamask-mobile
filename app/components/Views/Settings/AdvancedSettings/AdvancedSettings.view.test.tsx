@@ -1,5 +1,4 @@
 import '../../../../../tests/component-view/mocks';
-import { Linking } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import type { Json } from '@metamask/utils';
 import {
@@ -9,7 +8,6 @@ import {
 } from '../../../../../tests/component-view/renderers/settings';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import { strings } from '../../../../../locales/i18n';
-import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import { AdvancedViewSelectorsIDs } from './AdvancedView.testIds';
@@ -53,34 +51,6 @@ describeForPlatforms('Advanced Settings component view', () => {
     fireEvent(toggle, 'valueChange', false);
 
     expect(setEnabledSpy).toHaveBeenCalledWith(true);
-  });
-
-  it('disables smart transactions', async () => {
-    const setOptInStatusSpy = jest.spyOn(
-      Engine.context.PreferencesController,
-      'setSmartTransactionsOptInStatus',
-    );
-    const { findByLabelText } = renderAdvancedSettings();
-    const toggle = await findByLabelText(
-      strings('app_settings.smart_transactions_opt_in_heading'),
-    );
-
-    fireEvent(toggle, 'valueChange', false);
-
-    expect(setOptInStatusSpy).toHaveBeenCalledWith(false);
-  });
-
-  it('opens the smart transactions information page', async () => {
-    const openUrlSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValueOnce(undefined);
-    const { getByText } = renderAdvancedSettings();
-
-    fireEvent.press(
-      getByText(strings('app_settings.smart_transactions_learn_more')),
-    );
-
-    expect(openUrlSpy).toHaveBeenCalledWith(AppConstants.URLS.SMART_TXS);
   });
 
   it('opens the fiat-on-testnets friction sheet when enabling fiat', async () => {
