@@ -20,6 +20,7 @@ import {
 } from '../../components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import { useTrendingSearch } from '../../hooks/useTrendingSearch/useTrendingSearch';
+import { filterRiskyTokens } from '../../../../Views/TrendingView/feeds/tokens/useTokensFeed';
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import EmptyErrorTrendingState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptySearchResultState';
@@ -191,20 +192,22 @@ const TrendingTokensFullView = () => {
   });
 
   const trendingTokens = useMemo(() => {
-    if (searchResults.length === 0) {
+    const safeResults = filterRiskyTokens(searchResults);
+
+    if (safeResults.length === 0) {
       return [];
     }
 
     if (filters.searchQuery?.trim()) {
-      return searchResults;
+      return safeResults;
     }
 
     if (!filters.selectedPriceChangeOption) {
-      return searchResults;
+      return safeResults;
     }
 
     return sortTrendingTokens(
-      searchResults,
+      safeResults,
       filters.selectedPriceChangeOption,
       filters.priceChangeSortDirection,
       filters.selectedTimeOption,

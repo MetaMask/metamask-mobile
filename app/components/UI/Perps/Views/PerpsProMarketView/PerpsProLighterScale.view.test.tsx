@@ -98,7 +98,11 @@ const renderLighter = (leverage?: number) => {
             initializationState: InitializationState.Initialized,
             ...(leverage === undefined
               ? {}
-              : { tradeConfigurations: { testnet: { ETH: { leverage } } } }),
+              : {
+                  tradeConfigurations: {
+                    testnet: { lighter: { ETH: { leverage } } },
+                  },
+                }),
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {

@@ -150,11 +150,10 @@ const mockTrackPayWithSelected = jest.fn();
 const mockTrackReceiveTokenSelected = jest.fn();
 const mockTrackSlippageChanged = jest.fn();
 const mockDispatch = jest.fn();
-const { mockShowToast, toastRef: mockToastRef } = jest.requireMock(
-  '../../../../component-library/components/Toast',
+const { toast: mockToast } = jest.requireMock(
+  '@metamask/design-system-react-native',
 ) as {
-  mockShowToast: jest.Mock;
-  toastRef: { current: { showToast?: jest.Mock } | null };
+  toast: jest.Mock;
 };
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
@@ -3253,7 +3252,7 @@ export const runQuickBuyControllerCases = ({
             },
           );
           expect(onClose).toHaveBeenCalledTimes(1);
-          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(mockToast).not.toHaveBeenCalled();
           expect(mockTrackTradeCompleted).not.toHaveBeenCalled();
         });
 
@@ -3269,7 +3268,7 @@ export const runQuickBuyControllerCases = ({
             await confirmPromise;
           });
 
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
           expect(mockRecordSocialTrade).toHaveBeenCalledTimes(1);
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ status: 'success', tx_hash: '0xhash' }),
@@ -3285,8 +3284,8 @@ export const runQuickBuyControllerCases = ({
             await confirmPromise;
           });
 
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
-          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockToast).not.toHaveBeenCalledWith({ kind: 'pending' });
           expect(mockRecordSocialTrade).not.toHaveBeenCalled();
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ status: 'failed' }),
@@ -3318,7 +3317,7 @@ export const runQuickBuyControllerCases = ({
               transactionHash: '0xhash',
             }),
           );
-          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).not.toHaveBeenCalledWith({ kind: 'pending' });
         });
 
         it('never opens the share sheet when the HW session ends without submitting', async () => {
@@ -3332,7 +3331,7 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(getPostTradeShareSession()).toBeNull();
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'failed' });
         });
 
         it('never opens the share sheet after signing a quote token trade', async () => {
@@ -3353,7 +3352,7 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(getPostTradeShareSession()).toBeNull();
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
         });
 
         it('posts the copy-trade intent before signing', async () => {
@@ -4119,7 +4118,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       describe('stay-on-screen swap toasts', () => {
-        const mockUsableQuote = (amount = '20') => {
+        const mockUsableQuote = (amount = '20', destAmount?: string) => {
           setupQuoteSourceMock(
             createQuoteState({
               activeQuote: createActiveQuote({
@@ -4129,6 +4128,9 @@ export const runQuickBuyControllerCases = ({
                       .mul('1000000000000000')
                       .toString(),
                   },
+                  ...(destAmount === undefined
+                    ? {}
+                    : { dest: { normalizedAmount: destAmount } }),
                 },
               }),
               destTokenAmount: '1',
@@ -4177,9 +4179,8 @@ export const runQuickBuyControllerCases = ({
               tokenSymbol: 'TEST',
               tradeMode: 'buy',
             }),
-            theme: expect.any(Object),
           });
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
           expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
 
           await act(async () => {
@@ -4388,17 +4389,17 @@ export const runQuickBuyControllerCases = ({
               tokenSymbol: 'TEST',
               tradeMode: 'buy',
             }),
-            theme: expect.any(Object),
           });
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
         });
 
         describe('in-flight preview entry', () => {
           const submitWithPostTradeShare = async (
             tradeMode: 'buy' | 'sell',
             analyticsContext: QuickBuyAnalyticsContext,
+            destAmount?: string,
           ) => {
-            mockUsableQuote();
+            mockUsableQuote('20', destAmount);
             (
               Engine.context.BridgeStatusController.submitTx as jest.Mock
             ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
@@ -4419,7 +4420,49 @@ export const runQuickBuyControllerCases = ({
             return result;
           };
 
-          it('uses the token USD market price as the buy preview entry', async () => {
+          it('uses the quoted USD cost per bought token as the buy preview entry', async () => {
+            await submitWithPostTradeShare(
+              'buy',
+              { source: 'profile_position', tokenPriceFiat: 0.006235 },
+              '0.004',
+            );
+
+            // $20 buys 0.004 tokens: $5,000 each. The $0.006235 market price is
+            // not what this trade paid, so it does not feed the preview.
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  side: 'buy',
+                  costLabel: '$20.00',
+                  entryPriceLabel: '$5,000',
+                }),
+              }),
+            );
+          });
+
+          it('converts the typed buy amount from the user currency to USD', async () => {
+            (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+              ETH: { conversionRate: 1000, usdConversionRate: 1200 },
+            });
+
+            await submitWithPostTradeShare(
+              'buy',
+              { source: 'profile_position' },
+              '0.004',
+            );
+
+            // 20 in the user currency is $24 USD at this rate, so $6,000 each.
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  costLabel: '$24.00',
+                  entryPriceLabel: '$6,000',
+                }),
+              }),
+            );
+          });
+
+          it('leaves the buy preview entry empty without a quoted destination amount', async () => {
             await submitWithPostTradeShare('buy', {
               source: 'profile_position',
               tokenPriceFiat: 0.006235,
@@ -4429,39 +4472,8 @@ export const runQuickBuyControllerCases = ({
               expect.objectContaining({
                 preview: expect.objectContaining({
                   side: 'buy',
-                  entryPriceLabel: '$0.006235',
+                  costLabel: '$20.00',
                 }),
-              }),
-            );
-          });
-
-          it('converts the buy token price from the user currency to USD', async () => {
-            (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
-              ETH: { conversionRate: 1000, usdConversionRate: 1200 },
-            });
-
-            await submitWithPostTradeShare('buy', {
-              source: 'profile_position',
-              tokenPriceFiat: 0.006235,
-            });
-
-            expect(getPostTradeShareSession()).toEqual(
-              expect.objectContaining({
-                preview: expect.objectContaining({
-                  entryPriceLabel: '$0.007482',
-                }),
-              }),
-            );
-          });
-
-          it('leaves the buy preview entry empty without a token price', async () => {
-            await submitWithPostTradeShare('buy', {
-              source: 'profile_position',
-            });
-
-            expect(getPostTradeShareSession()).toEqual(
-              expect.objectContaining({
-                preview: expect.objectContaining({ side: 'buy' }),
               }),
             );
             expect(
@@ -4469,7 +4481,7 @@ export const runQuickBuyControllerCases = ({
             ).toBeUndefined();
           });
 
-          it('keeps the swap rate as the sell preview entry', async () => {
+          it('uses the quoted USD value per token sold as the sell preview entry', async () => {
             (usePositionTokenBalance as jest.Mock).mockReturnValue(
               createSourceToken({
                 address: '0xDEST',
@@ -4488,14 +4500,20 @@ export const runQuickBuyControllerCases = ({
               displayBalance: '1.0',
               atomicBalance: '1000000000000000000',
             });
-            const result = await submitWithPostTradeShare('sell', {
+            await submitWithPostTradeShare('sell', {
               source: 'profile_position',
             });
-            const swapRate = result.current.formattedRate;
 
-            expect(swapRate).toBeDefined();
-            expect(getPostTradeShareSession()?.preview.entryPriceLabel).toBe(
-              swapRate,
+            // $20 sold from the quoted 0.01 tokens: $2,000 each, not the swap
+            // rate between the two tokens.
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  side: 'sell',
+                  costLabel: '$20.00',
+                  entryPriceLabel: '$2,000',
+                }),
+              }),
             );
           });
         });
@@ -4531,7 +4549,7 @@ export const runQuickBuyControllerCases = ({
 
           const expectNormalQuickBuyFeedback = () => {
             expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
             expect(trackQuickBuyTrade).toHaveBeenCalledWith(
               'tx-1',
               expect.objectContaining({
@@ -4608,7 +4626,7 @@ export const runQuickBuyControllerCases = ({
                 variant: 'create_profile',
               }),
             );
-            expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+            expect(mockToast).not.toHaveBeenCalledWith({ kind: 'pending' });
             expect(trackQuickBuyTrade).toHaveBeenCalledWith(
               'tx-1',
               expect.objectContaining({
@@ -4891,11 +4909,7 @@ export const runQuickBuyControllerCases = ({
             await result.current.handleConfirm();
           });
 
-          expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith(
-            'tx-1',
-            expect.any(Function),
-            expect.any(Object),
-          );
+          expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith('tx-1');
         });
 
         it('uses an empty counter token symbol when the source has no symbol', async () => {
@@ -4918,28 +4932,7 @@ export const runQuickBuyControllerCases = ({
             trade: expect.objectContaining({
               counterTokenSymbol: '',
             }),
-            theme: expect.any(Object),
           });
-        });
-
-        it('skips terminal toast reconcile when the toast ref is missing', async () => {
-          mockToastRef.current = null;
-          mockUsableQuote();
-          (
-            Engine.context.BridgeStatusController.submitTx as jest.Mock
-          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
-
-          try {
-            const { result } = renderHook(createTarget(), jest.fn());
-
-            await act(async () => {
-              await result.current.handleConfirm();
-            });
-
-            expect(resolveQuickBuyTerminalToast).not.toHaveBeenCalled();
-          } finally {
-            mockToastRef.current = { showToast: mockShowToast };
-          }
         });
 
         it('shows a failed toast and does not track the trade when submit throws', async () => {
@@ -4961,9 +4954,8 @@ export const runQuickBuyControllerCases = ({
               tokenSymbol: 'TEST',
               tradeMode: 'buy',
             }),
-            theme: expect.any(Object),
           });
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'failed' });
           expect(playErrorNotification).toHaveBeenCalledTimes(1);
           expect(trackQuickBuyTrade).not.toHaveBeenCalled();
         });

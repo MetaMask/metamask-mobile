@@ -4,14 +4,7 @@ import {
   getNativeAssetForChainId,
 } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -51,7 +44,10 @@ import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { formatPostTradePairLabel } from '../utils/formatPostTradePairLabel';
 import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMapping';
-import { formatTradeUnitPrice } from '../../SocialFeed/utils/formatters';
+import {
+  formatTradeUnitPrice,
+  formatUsd,
+} from '../../SocialFeed/utils/formatters';
 import {
   beginPostTradeShareSession,
   patchPostTradeShareSession,
@@ -79,7 +75,7 @@ import {
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useReceiveTokens } from './useReceiveTokens';
 import I18n, { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import {
   selectBridgeFeatureFlags,
@@ -123,7 +119,6 @@ import {
   isSocialTradeSource,
   recordSocialTrade,
 } from '../../../../util/social/socialActivityStorage';
-import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
@@ -319,8 +314,6 @@ export function useQuickBuyController(
   const dispatch = useDispatch();
   const formatters = useFormatters();
   const navigation = useNavigation<AppNavigationProp>();
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
   const canShareCopyTrade = useCanShareCopyTrade();
@@ -1201,15 +1194,6 @@ export function useQuickBuyController(
     tradeMode === 'sell'
       ? sourceToken?.currencyExchangeRate
       : destTokenForRate?.currencyExchangeRate;
-  // A buy's Entry is the bought token's USD market price. The swap rate
-  // (`formattedRate`) is a token ratio, not a price, so it never becomes a
-  // buy's Entry. Sells keep the rate until their Entry is defined.
-  const buyEntryPriceLabel = useMemo(() => {
-    if (tradeMode !== 'buy' || !tokenPrice) return undefined;
-    const usdPrice = toAmountUsd(tokenPrice);
-    return usdPrice > 0 ? formatTradeUnitPrice(usdPrice) : undefined;
-  }, [tradeMode, tokenPrice, toAmountUsd]);
-
   const metamaskFeePercent = useMemo(
     () => getMetamaskFeePercent(activeQuote),
     [activeQuote],
@@ -1657,6 +1641,12 @@ export function useQuickBuyController(
       amountTokenRaw != null && isNumberValue(amountTokenRaw)
         ? Number(amountTokenRaw)
         : undefined;
+    // Tokens leaving the wallet for this quote (the sell side's size).
+    const soldTokensRaw = activeQuote.quote?.src?.normalizedAmount;
+    const soldTokens =
+      soldTokensRaw != null && isNumberValue(soldTokensRaw)
+        ? Number(soldTokensRaw)
+        : undefined;
     const submittedTraderAddress = traderAddress;
     const submittedCaip19 = caip19;
     const submittedAssetName = target.tokenSymbol;
@@ -1772,13 +1762,27 @@ export function useQuickBuyController(
     // of this slug.
     const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
     const previewChain = tradeInFlightChain ?? target.chain;
+    // The composer card shows what this trade executes, not the typed amount or
+    // the market price. Cost is the trade's USD value and Entry is that value
+    // per token, both from the quote being submitted, so they agree with the
+    // position the feed builds once the trade is indexed (USD, like the feed).
+    const previewTokens = tradeMode === 'buy' ? amountToken : soldTokens;
+    const previewEntryUsd =
+      amountUsd !== undefined &&
+      previewTokens !== undefined &&
+      previewTokens > 0
+        ? amountUsdValue / previewTokens
+        : undefined;
     const sharePreview: SocialPostTradePreview = {
       tokenSymbol: target.tokenSymbol,
       tokenAddress: target.tokenAddress,
       chain: previewChain,
       side: tradeMode,
-      costLabel: tradeToastInfo.fiatAmountLabel,
-      entryPriceLabel: tradeMode === 'buy' ? buyEntryPriceLabel : formattedRate,
+      costLabel: amountUsd !== undefined ? formatUsd(amountUsd) : undefined,
+      entryPriceLabel:
+        previewEntryUsd !== undefined
+          ? formatTradeUnitPrice(previewEntryUsd)
+          : undefined,
     };
     // Copy-trades share whenever the linked account is the one trading; from
     // any other account the post could never land. Other swaps get the prompt
@@ -1866,9 +1870,7 @@ export function useQuickBuyController(
       ? undefined
       : beginShareSession();
     const showPendingToast = () =>
-      toastRef?.current?.showToast(
-        buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
-      );
+      toast(buildQuickBuyToastOptions('pending', { trade: tradeToastInfo }));
     onClose();
     if (!shouldPostTradeShare && !isHardwareAddress) {
       showPendingToast();
@@ -1970,10 +1972,7 @@ export function useQuickBuyController(
         // tracked and the app-root handler ignored them. Reconcile against the
         // current bridge status now so the user isn't stuck on the pending
         // toast; if it's still pending, future stateChange events take over.
-        const showToast = toastRef?.current?.showToast;
-        if (showToast) {
-          resolveQuickBuyTerminalToast(txMetaId, showToast, theme);
-        }
+        resolveQuickBuyTerminalToast(txMetaId);
       }
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -2008,9 +2007,7 @@ export function useQuickBuyController(
           })
         : false;
       if (!sessionUpdated) {
-        toastRef?.current?.showToast(
-          buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
-        );
+        toast(buildQuickBuyToastOptions('failed', { trade: tradeToastInfo }));
       }
       await playErrorNotification();
       if (tradeBaseProps) {
@@ -2039,8 +2036,6 @@ export function useQuickBuyController(
     stxEnabled,
     dispatch,
     onClose,
-    toastRef,
-    theme,
     isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,
@@ -2050,7 +2045,6 @@ export function useQuickBuyController(
     toAmountUsd,
     currentCurrency,
     formattedRate,
-    buyEntryPriceLabel,
     formatters,
     traderAddress,
     caip19,

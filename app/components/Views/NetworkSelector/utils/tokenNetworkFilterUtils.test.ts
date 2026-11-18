@@ -30,17 +30,17 @@ describe('tokenNetworkFilterUtils', () => {
   });
 
   describe('getTokenNetworkFilterAfterNetworkDelete', () => {
-    it('sets only the deleted chain when not in all-networks mode', () => {
-      expect(
-        getTokenNetworkFilterAfterNetworkDelete(false, sampleFilter, '0x64'),
-      ).toEqual({
-        '0x64': true,
-      });
+    it('removes the deleted chain from a single-network filter', () => {
+      const filter = { '0x64': true };
+
+      expect(getTokenNetworkFilterAfterNetworkDelete(filter, '0x64')).toEqual(
+        {},
+      );
     });
 
-    it('removes the deleted chain when all networks are enabled', () => {
+    it('removes the deleted chain from a multi-network filter', () => {
       expect(
-        getTokenNetworkFilterAfterNetworkDelete(true, sampleFilter, '0x64'),
+        getTokenNetworkFilterAfterNetworkDelete(sampleFilter, '0x64'),
       ).toEqual({
         '0x1': true,
         '0xa': true,

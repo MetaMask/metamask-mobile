@@ -18,6 +18,7 @@ jest.mock('../../core/Analytics', () => ({
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     identify: jest.fn(),
+    isEnabled: jest.fn(),
     trackEvent: jest.fn(),
   },
 }));
@@ -46,11 +47,13 @@ const buildState = (dataCollectionForMarketing: boolean | null) => ({
 
 describe('backfillSocialLoginMarketingConsent', () => {
   const mockedIdentify = jest.mocked(analytics.identify);
+  const mockedIsEnabled = jest.mocked(analytics.isEnabled);
   const mockedTrackEvent = jest.mocked(analytics.trackEvent);
   const mockedLoggerError = jest.mocked(Logger.error);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedIsEnabled.mockReturnValue(true);
     mockedTrackEvent.mockReset();
   });
 
@@ -104,6 +107,20 @@ describe('backfillSocialLoginMarketingConsent', () => {
       expect(mockedTrackEvent).not.toHaveBeenCalled();
     },
   );
+
+  it('keeps the marketing choice without sending analytics when MetaMetrics is off', async () => {
+    mockedIsEnabled.mockReturnValue(false);
+
+    await expectSaga(backfillSocialLoginMarketingConsentSaga)
+      .withState(buildState(true))
+      .dispatch(loginAction)
+      .put(setDataCollectionForMarketing(true))
+      .put(setPendingSocialLoginMarketingConsentBackfill(null))
+      .run();
+
+    expect(mockedIdentify).not.toHaveBeenCalled();
+    expect(mockedTrackEvent).not.toHaveBeenCalled();
+  });
 
   it('logs the error and still clears the marker when trackEvent throws', async () => {
     mockedTrackEvent.mockImplementation(() => {

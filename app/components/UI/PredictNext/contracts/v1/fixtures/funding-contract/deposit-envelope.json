@@ -1,0 +1,19 @@
+{
+  "description": "funding.deposit signed by predict-api signedTradingHeaders (feat/PRED-1187) under profile v3 and accepted by its verifier. The mobile signer must produce venueAuthorization byte for byte from the same inputs.",
+  "profile": {
+    "id": "kalshi-demo-signing",
+    "version": 3
+  },
+  "deviceKeySeed": "PRED-1494 funding.deposit envelope fixture",
+  "deviceKey": "BICrPfdskNaxm9WhG1YEtvx_8kNfq4E8xE-c2tgZiFw-FIGZjcFei32GSvW6ZAeKw9Z6PCVnrc_E58LXUhzdwqs",
+  "salt": "CQkJCQkJCQkJCQkJCQkJCQ",
+  "a2t": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImZpeHR1cmUifQ.eyJpc3MiOiJmaXh0dXJlLWlzc3VlciIsInN1YiI6InByb2ZpbGUtMSIsImF1ZCI6ImZpeHR1cmUtYXVkaWVuY2UiLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDMwMCwibm9uY2UiOiJ1Q2ptVW1mX0ZCc1J3eVlmUnJVUk5senNvQ1ZzeTFtVlhERmNOUFMzSEI0In0.bm90LWEtc2lnbmF0dXJl",
+  "requestId": "3f1d2c4b-5a6e-4f70-8b9c-0d1e2f3a4b5c",
+  "created": 1700000000,
+  "amountCents": 2550,
+  "clientOperationId": "6f1c7a52-8f3e-4d8b-9c1e-2a4b5c6d7e8f",
+  "signedBody": "{\"amount_cents\":2550,\"networks\":[\"base\"]}",
+  "signatureInput": "kalshi=(\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"3f1d2c4b-5a6e-4f70-8b9c-0d1e2f3a4b5c\";tag=\"kalshi-device-request-v1\"",
+  "signature": "kalshi=:eziudIaJIKuNbY1ah+eJpkCsjahOrwq7BCztx4fV/QoIB5ny3Et5U6Li8e+6C5fnLl/ggLnnZFgsEEvycF3n4Q==:",
+  "venueAuthorization": "eyJ2IjoxLCJwcm9maWxlIjp7ImlkIjoia2Fsc2hpLWRlbW8tc2lnbmluZyIsInZlcnNpb24iOjN9LCJjcmVkZW50aWFsIjp7ImEydCI6ImV5SmhiR2NpT2lKRlV6STFOaUlzSW10cFpDSTZJbVpwZUhSMWNtVWlmUS5leUpwYzNNaU9pSm1hWGgwZFhKbExXbHpjM1ZsY2lJc0luTjFZaUk2SW5CeWIyWnBiR1V0TVNJc0ltRjFaQ0k2SW1acGVIUjFjbVV0WVhWa2FXVnVZMlVpTENKcFlYUWlPakUzTURBd01EQXdNREFzSW1WNGNDSTZNVGN3TURBd01ETXdNQ3dpYm05dVkyVWlPaUoxUTJwdFZXMW1YMFpDYzFKM2VWbG1VbkpWVWs1c2VuTnZRMVp6ZVRGdFZsaEVSbU5PVUZNelNFSTBJbjAuYm05MExXRXRjMmxuYm1GMGRYSmwiLCJkZXZpY2VLZXkiOiJCSUNyUGZkc2tOYXhtOVdoRzFZRXR2eF84a05mcTRFOHhFLWMydGdaaUZ3LUZJR1pqY0ZlaTMyR1N2VzZaQWVLdzlaNlBDVm5yY19FNThMWFVoemR3cXMiLCJzYWx0IjoiQ1FrSkNRa0pDUWtKQ1FrSkNRa0pDUSJ9LCJzaWduYXR1cmVzIjpbeyJyZXF1ZXN0SWQiOiIzZjFkMmM0Yi01YTZlLTRmNzAtOGI5Yy0wZDFlMmYzYTRiNWMiLCJzaWduYXR1cmVJbnB1dCI6ImthbHNoaT0oXCJAbWV0aG9kXCIgXCJAYXV0aG9yaXR5XCIgXCJAcGF0aFwiIFwiQHF1ZXJ5XCIgXCJhdXRob3JpemF0aW9uXCIgXCJrYWxzaGktZGV2aWNlLXJlcXVlc3QtaWRcIiBcImthbHNoaS1kZXZpY2Uta2V5XCIgXCJrYWxzaGktZGV2aWNlLWtleS1zYWx0XCIgXCJjb250ZW50LWRpZ2VzdFwiIFwiY29udGVudC10eXBlXCIgXCJpZGVtcG90ZW5jeS1rZXlcIik7Y3JlYXRlZD0xNzAwMDAwMDAwO2V4cGlyZXM9MTcwMDAwMDA2MDtub25jZT1cIjNmMWQyYzRiLTVhNmUtNGY3MC04YjljLTBkMWUyZjNhNGI1Y1wiO3RhZz1cImthbHNoaS1kZXZpY2UtcmVxdWVzdC12MVwiIiwic2lnbmF0dXJlIjoia2Fsc2hpPTpleml1ZElhSklLdU5iWTFhaCtlSnBrQ3NqYWhPcndxN0JDenR4NGZWL1FvSUI1bnkzRXQ1VTZMaThlKzZDNWZuTGwvZ2dMbm5aRmdzRUV2eWNGM240UT09OiJ9XX0"
+}

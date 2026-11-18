@@ -21,6 +21,7 @@ import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -390,6 +391,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       }
 
       reactionRowRef.current?.measureInWindow((x, y, width, height) => {
+        playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
         setPickerAnchor({ x, y, width, height });
         setPickerVisible(true);
         notifyPicker?.();
@@ -446,7 +448,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   const handlePick = useCallback(
     (emotion: string) => {
-      setPickerVisible(false);
       toggleEmotion(emotion);
     },
     [toggleEmotion],
