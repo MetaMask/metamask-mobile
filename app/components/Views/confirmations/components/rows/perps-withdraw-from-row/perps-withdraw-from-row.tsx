@@ -147,7 +147,7 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
           accessibilityLabel={`${rowLabel}, ${selectedLabel}, ${selectedBalance}`}
           keyLabel={rowLabel}
           onPress={() => setIsSheetVisible(true)}
-          selectButtonProps={{ placeholder: selectedLabel }}
+          selectButtonProps={{}}
           testID={PerpsWithdrawFromSelectorsIDs.ROW}
           value={selectedLabel}
           valueStartAccessory={

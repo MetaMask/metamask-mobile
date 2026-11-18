@@ -90,9 +90,6 @@ export default function ManageNetworksComponent() {
             name={networkName}
           />
         }
-        textProps={{
-          numberOfLines: 1,
-        }}
         onPress={switchNetwork}
         twClassName="self-start my-4"
       />

@@ -31,7 +31,6 @@ export const RankingFilterSelector: React.FC<RankingFilterSelectorProps> = ({
 }) => (
   <SelectButton
     size={SelectButtonSize.Md}
-    placeholder={getRankingLabel(value)}
     value={getRankingLabel(value)}
     onPress={onPress}
     testID={testID}

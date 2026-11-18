@@ -50,7 +50,6 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
     <SelectButton
       size={SelectButtonSize.Sm}
       variant={SelectButtonVariant.Primary}
-      placeholder={currentProvider.name}
       value={currentProvider.name}
       onPress={handlePress}
       testID={testID}

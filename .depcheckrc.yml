@@ -178,6 +178,11 @@ ignores:
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'
 
+  # Alias target for the MMDS preview builds (design-system#1696): the patched
+  # @metamask-previews/design-system-react-native imports the @metamask/... name,
+  # and the direct alias keeps that resolution at the project root.
+  - '@metamask/design-system-shared'
+
   # Consumed by the Yarn plugin and agent hooks, outside of app source
   - '@metamask/tooling-insight'
 

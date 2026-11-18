@@ -100,7 +100,6 @@ const TokenView = ({
         <SelectButton
           testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
           variant={SelectButtonVariant.Primary}
-          placeholder={selectedNetworkName}
           value={selectedNetworkName}
           startAccessory={
             selectedNetwork ? (
@@ -111,7 +110,6 @@ const TokenView = ({
               />
             ) : undefined
           }
-          textProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
           twClassName="shrink-0"
           onPress={openNetworkSelector}
         />
