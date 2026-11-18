@@ -264,7 +264,7 @@ describe('usePerpsActions', () => {
     });
   });
 
-  it('passes null symbol through to usePerpsMarketForAsset', () => {
+  it('passes an empty symbol to usePerpsMarketForAsset when symbol is null', () => {
     // Arrange
     mockUsePerpsMarketForAsset.mockReturnValue({
       hasPerpsMarket: false,
@@ -277,7 +277,7 @@ describe('usePerpsActions', () => {
     renderHook(() => usePerpsActions({ symbol: null }));
 
     // Assert
-    expect(mockUsePerpsMarketForAsset).toHaveBeenCalledWith(null, false);
+    expect(mockUsePerpsMarketForAsset).toHaveBeenCalledWith('', false);
   });
 
   it('does not navigate when marketData is null even if called', () => {

@@ -90,8 +90,10 @@ export const usePerpsActions = ({
     token?.rwaData?.ticker ||
     (typeof fetchedTicker === 'string' ? fetchedTicker : '');
 
+  const perpSymbol = rwaTicker || symbol || '';
+
   const { hasPerpsMarket, marketData, isLoading, error } =
-    usePerpsMarketForAsset(symbol && (rwaTicker || symbol), Boolean(rwaTicker));
+    usePerpsMarketForAsset(perpSymbol, Boolean(rwaTicker));
 
   const navigateToOrder = useCallback(
     (direction: OrderDirection) => {
