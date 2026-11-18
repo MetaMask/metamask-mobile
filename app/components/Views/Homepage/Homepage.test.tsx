@@ -1,6 +1,7 @@
 import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
 import { screen } from '@testing-library/react-native';
+import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
@@ -998,7 +999,7 @@ describe('Homepage', () => {
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      expect(screen.getByText('Collectibles')).toBeOnTheScreen();
+      expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
     });
 
     it('leaves Collectibles out of the sections when its flag is disabled', () => {
@@ -1008,7 +1009,9 @@ describe('Homepage', () => {
 
       expect(callBySectionName('collectibles')).toBeUndefined();
       expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
-      expect(screen.queryByText('Collectibles')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText(strings('collectibles.title')),
+      ).not.toBeOnTheScreen();
     });
   });
 
