@@ -710,6 +710,114 @@ describe('usePerpsOrderForm', () => {
       );
     });
 
+    it('sizes from available to trade instead of venue withdrawable', () => {
+      const withdrawableAccount = {
+        spendableBalance: '400',
+        withdrawableBalance: '400',
+        marginUsed: '200',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalBalance: '1000',
+      };
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: withdrawableAccount,
+        isInitialLoading: false,
+      });
+      const withdrawableForm = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...withdrawableAccount,
+          crossMarginSummary: {
+            accountValue: '1000',
+            maintenanceMargin: '100',
+            marginUsed: '200',
+            notional: '2000',
+          },
+        },
+        isInitialLoading: false,
+      });
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.balanceForValidation).toBe(800);
+      expect(withdrawableForm.result.current.balanceForValidation).toBe(400);
+      expect(result.current.maxPossibleAmount).toBeGreaterThan(
+        withdrawableForm.result.current.maxPossibleAmount,
+      );
+    });
+
+    it('raises available to trade when the live account value rises', () => {
+      const account = {
+        spendableBalance: '400',
+        withdrawableBalance: '400',
+        marginUsed: '200',
+        unrealizedPnl: '50',
+        returnOnEquity: '0.1',
+        totalBalance: '1000',
+        crossMarginSummary: {
+          accountValue: '1000',
+          maintenanceMargin: '100',
+          marginUsed: '200',
+          notional: '2000',
+        },
+      };
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account,
+        isInitialLoading: false,
+      });
+
+      const { result, rerender } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.balanceForValidation).toBe(800);
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...account,
+          crossMarginSummary: {
+            ...account.crossMarginSummary,
+            accountValue: '1100',
+          },
+        },
+        isInitialLoading: false,
+      });
+      rerender({});
+
+      expect(result.current.balanceForValidation).toBe(900);
+    });
+
+    it('keeps a selected payment balance ahead of available to trade', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '400',
+          withdrawableBalance: '400',
+          marginUsed: '200',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '1000',
+          crossMarginSummary: {
+            accountValue: '1000',
+            maintenanceMargin: '100',
+            marginUsed: '200',
+            notional: '2000',
+          },
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ effectiveAvailableBalance: 125 }),
+        { wrapper: createWrapper() },
+      );
+
+      expect(result.current.balanceForValidation).toBe(125);
+    });
+
     it('sets amount to maxPossibleAmount when available balance times leverage is less than default amount', () => {
       // Arrange - Set low available balance
       mockUsePerpsLiveAccount.mockReturnValue({

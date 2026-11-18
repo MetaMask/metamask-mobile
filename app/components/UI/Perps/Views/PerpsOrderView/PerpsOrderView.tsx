@@ -225,6 +225,7 @@ import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
+import { getOrderAvailableToTrade } from '../../utils/crossMarginSummary';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -2523,9 +2524,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // A funded Perps balance is this view's default funding source and the
   // shared selection only reads the EOA token balance, so hold it back until
   // the live account proves the Perps balance cannot cover the order.
-  const perpsSpendableBalance = Number.parseFloat(
-    account?.spendableBalance?.toString() ?? '0',
-  );
+  const perpsSpendableBalance = getOrderAvailableToTrade(account);
   useMoneyAccountDepositAndOrder({
     disable:
       !isOpenComplete ||
@@ -2713,12 +2712,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (isMoneyAccountSelected) {
       payWithName = strings('confirm.pay_with_bottom_sheet.money_account');
     }
-    // The picker and margin checks use spendable balance. totalBalance still
-    // includes margin locked by open positions and orders.
+    // Perps balance on the order form is available to trade. totalBalance
+    // still includes margin locked by open positions and orders. Withdraw
+    // surfaces are the only place that show venue withdrawable.
     const payWithBalance = formatPerpsFiat(
-      isPayTokenPerpsBalance
-        ? (account?.spendableBalance ?? '0')
-        : payTokenBalanceUsd,
+      isPayTokenPerpsBalance ? perpsSpendableBalance : payTokenBalanceUsd,
       { ranges: PRICE_RANGES_MINIMAL_VIEW },
     );
     const marginDisplay =

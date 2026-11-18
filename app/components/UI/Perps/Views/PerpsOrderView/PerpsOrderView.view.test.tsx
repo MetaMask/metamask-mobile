@@ -48,6 +48,7 @@ import {
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
+  createCrossMarginAccountForViews,
   createEthMarketForViews,
   createFundedAccountForViews,
   createLongPositionForViews,
@@ -1081,6 +1082,73 @@ describe('PerpsOrderView', () => {
           { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('shows available to trade on the pay with row instead of venue withdrawable', async () => {
+      const withdrawableBalance = '400';
+      const availableToTrade = 800;
+      const availableLabel = formatPerpsFiat(availableToTrade, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      });
+      const withdrawableLabel = formatPerpsFiat(withdrawableBalance, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...chartPeriodOverrides,
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsTradeWithAnyTokenIsEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        initialParams: tradeSheetParams,
+        streamOverrides: {
+          account: {
+            ...createCrossMarginAccountForViews({
+              balance: withdrawableBalance,
+              accountValue: '1000',
+              maintenanceMargin: '100',
+              marginUsed: '200',
+              notional: '2000',
+            }),
+            totalBalance: '1000',
+          },
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByLabelText(
+          `${strings('confirm.label.pay_with')}, ${strings(
+            'perps.adjust_margin.perps_balance',
+          )} (${availableLabel})`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByLabelText(
+          `${strings('confirm.label.pay_with')}, ${strings(
+            'perps.adjust_margin.perps_balance',
+          )} (${withdrawableLabel})`,
+        ),
+      ).toBeNull();
     });
 
     it('leaves the sheet for the market page as soon as the order is submitted', async () => {

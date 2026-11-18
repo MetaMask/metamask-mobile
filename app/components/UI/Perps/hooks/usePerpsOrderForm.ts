@@ -31,6 +31,7 @@ import {
   getTriggerMarketSlippageCapPrice,
 } from '../utils/orderSizing';
 import { canonicalizeOrderPrice } from '../utils/triggerOrderValidation';
+import { getOrderAvailableToTrade } from '../utils/crossMarginSummary';
 import { resolvePerpsMaxSlippageBps } from '../constants/slippageConfig';
 
 /**
@@ -189,11 +190,17 @@ export function usePerpsOrderForm(
   const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
   const perpsMode = useSelector(selectPerpsMode);
 
-  const spendableBalance = Number.parseFloat(
+  // A wallet or Money Account payment caps size at that balance. Perps
+  // balance uses available to trade, not the venue withdrawable amount the
+  // controller stores on spendableBalance.
+  const perpsAvailableToTrade = getOrderAvailableToTrade(account);
+  const parsedPaymentBalance =
     effectiveAvailableBalanceParam != null
-      ? effectiveAvailableBalanceParam.toString()
-      : (account?.spendableBalance?.toString() ?? '0'),
-  );
+      ? Number.parseFloat(effectiveAvailableBalanceParam.toString())
+      : Number.NaN;
+  const spendableBalance = Number.isFinite(parsedPaymentBalance)
+    ? parsedPaymentBalance
+    : perpsAvailableToTrade;
 
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
   const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;

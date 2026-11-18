@@ -28,6 +28,7 @@ import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
+import { getOrderAvailableToTrade } from '../../utils/crossMarginSummary';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -113,7 +114,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     enabled: isVisible && isOpenOrderPriceEdit,
   });
   const isAccountReady = !isAccountLoading && account !== null;
-  const spendableBalance = Number.parseFloat(account?.spendableBalance ?? '0');
+  const spendableBalance = getOrderAvailableToTrade(account);
 
   useEffect(() => {
     if (isVisible) {

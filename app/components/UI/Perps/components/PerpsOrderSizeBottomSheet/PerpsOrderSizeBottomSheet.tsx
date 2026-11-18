@@ -25,6 +25,7 @@ import { MAX_PERPS_INPUT_DIGITS } from '../../constants/perpsConfig';
 import { useMinimumOrderAmount } from '../../hooks/useMinimumOrderAmount';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
+import { getOrderAvailableToTrade } from '../../utils/crossMarginSummary';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -97,7 +98,7 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
   // Treat a still-loading / missing account like unloaded market data — hold
   // confirm rather than coercing null → 0 and skipping the margin check.
   const isAccountReady = !isAccountLoading && account !== null;
-  const spendableBalance = Number.parseFloat(account?.spendableBalance ?? '0');
+  const spendableBalance = getOrderAvailableToTrade(account);
   const isInputReady = isMarketDataReady && isAccountReady;
 
   useEffect(() => {

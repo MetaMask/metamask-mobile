@@ -15,6 +15,7 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
+import { getOrderAvailableToTrade } from '../utils/crossMarginSummary';
 
 /**
  * Hook to get all payment tokens for Perps, including:
@@ -34,13 +35,11 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   // Use ref to store previous token array
   const previousTokensRef = useRef<PerpsToken[]>([]);
 
-  // Get Hyperliquid account balance from the reshaped balance contract.
-  // `spendableBalance` is the Unified-aware tradeable amount.
+  // Order-entry Perps balance is available to trade. Withdraw surfaces keep
+  // the venue withdrawable amount.
   const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
-  const hyperliquidBalance = Number.parseFloat(
-    account?.spendableBalance?.toString() || '0',
-  );
+  const hyperliquidBalance = getOrderAvailableToTrade(account);
 
   // Get all chain IDs to search for tokens (exclude Hyperliquid chains)
   const allChainIds = useMemo(() => {

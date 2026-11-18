@@ -817,7 +817,9 @@ describe('usePerpsProOrderForm', () => {
     it('formats spendable balance as "$amount available" when connected', () => {
       const { result } = renderProForm();
 
-      expect(result.current.availableBalance).toMatch(/^\$500 available$/);
+      expect(result.current.availableBalance).toBe(
+        strings('perps.pro_order_form.available_balance', { amount: '$500' }),
+      );
     });
 
     it('shows the unavailable placeholder before Perps is initialized', () => {
@@ -825,7 +827,9 @@ describe('usePerpsProOrderForm', () => {
 
       const { result } = renderProForm();
 
-      expect(result.current.availableBalance).toBe('-- available');
+      expect(result.current.availableBalance).toBe(
+        strings('perps.pro_order_form.available_balance_unavailable'),
+      );
     });
   });
 

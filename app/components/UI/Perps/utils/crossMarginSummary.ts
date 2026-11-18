@@ -58,6 +58,50 @@ const toFiniteNumber = (value: string | undefined): number | undefined => {
 };
 
 /**
+ * USD that can collateralize a new order on a cross account.
+ *
+ * Hyperliquid's venue `withdrawable` is smaller than this while a cross
+ * position is open, because a withdrawal keeps a maintenance buffer. The
+ * order form uses account value minus margin used, which is
+ * `crossMarginSummary.totalMarginUsed` before the adapter renames it to
+ * `marginUsed`. The result follows the live account stream, so mark price,
+ * deposits, withdrawals, and position changes move it.
+ *
+ * @returns The free cross collateral, or undefined when the summary is missing
+ * or either figure is not a finite decimal. Negative free collateral is 0.
+ */
+export const getCrossAvailableToTrade = (
+  crossMarginSummary:
+    | Pick<CrossMarginSummary, 'accountValue' | 'marginUsed'>
+    | undefined,
+): number | undefined => {
+  const accountValue = toFiniteNumber(crossMarginSummary?.accountValue);
+  const marginUsed = toFiniteNumber(crossMarginSummary?.marginUsed);
+  if (accountValue === undefined || marginUsed === undefined) {
+    return undefined;
+  }
+  return Math.max(0, accountValue - marginUsed);
+};
+
+/**
+ * Balance the order form can size and display as available to trade.
+ *
+ * A published cross summary wins over `spendableBalance`. The controller
+ * currently sets spendable equal to venue withdrawable, which understates
+ * what a cross account can still trade. Without a summary, spendable remains
+ * the cap. Withdraw surfaces keep reading `withdrawableBalance`.
+ */
+export const getOrderAvailableToTrade = (
+  account:
+    | Pick<AccountState, 'spendableBalance' | 'crossMarginSummary'>
+    | null
+    | undefined,
+): number =>
+  getCrossAvailableToTrade(account?.crossMarginSummary) ??
+  toFiniteNumber(account?.spendableBalance) ??
+  0;
+
+/**
  * Stream throttle for the cross margin summary from the UX matrix in
  * `app/util/deviceCapability/README.md`. Only a 2G or 3G connection changes
  * it: low-end hardware polls rarely, other hardware debounces. A `null` tier
