@@ -973,6 +973,7 @@
     "vbaAutorampListFetchedAt": null,
     "vbaCustomerAbilities": null,
     "userRegion": null,
+    "userSelectedProviderId": null,
     "countries": {
       "data": [],
       "selected": null,
