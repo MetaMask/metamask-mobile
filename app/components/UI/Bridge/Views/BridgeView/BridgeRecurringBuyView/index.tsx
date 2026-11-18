@@ -475,6 +475,7 @@ const BridgeRecurringBuyViewContent = ({
         <BridgeRecurringBuyFooterView
           onPreviewOrder={handlePreviewOrder}
           label={previewOrderLabel}
+          destinationTokenSymbol={destToken?.symbol}
           isPreviewDisabled={
             !scheduleValidation.isValid ||
             !feeTokenValidation.isValid ||
