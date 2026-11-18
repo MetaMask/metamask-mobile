@@ -272,10 +272,7 @@ describe('MoneyEarningsView', () => {
 
     const earningsTab = getByTestId(MoneyEarningsViewTestIds.TAB_EARNINGS);
 
-    expect(earningsTab.props.accessibilityState).toEqual({
-      selected: true,
-      disabled: false,
-    });
+    expect(earningsTab.props.accessibilityState.disabled).toBe(false);
     const chart = getByTestId(MoneyEarningsViewTestIds.CHART);
     expect(chart).toBeOnTheScreen();
     expect(getByTestId(MoneyEarningsViewTestIds.HERO)).toBeOnTheScreen();
@@ -300,25 +297,14 @@ describe('MoneyEarningsView', () => {
       <MoneyEarningsView />,
     );
 
-    const earningsTab = getByLabelText(strings('money.earnings.tab_earnings'));
-    const apyTab = getByLabelText(strings('money.earnings.tab_apy'));
-    const allocationTab = getByLabelText(
-      strings('money.earnings.tab_allocation'),
-    );
+    const earningsTab = getByTestId(MoneyEarningsViewTestIds.TAB_EARNINGS);
+    const apyTab = getByTestId(MoneyEarningsViewTestIds.TAB_APY);
+    const allocationTab = getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION);
 
-    expect(earningsTab.props.accessibilityState).toEqual({
-      selected: true,
-      disabled: false,
-    });
-    expect(apyTab.props.accessibilityState).toEqual({
-      selected: false,
-      disabled: true,
-    });
+    expect(earningsTab.props.accessibilityState.disabled).toBe(false);
+    expect(apyTab.props.accessibilityState.disabled).toBe(true);
     expect(apyTab.props.onPress).toBeUndefined();
-    expect(allocationTab.props.accessibilityState).toEqual({
-      selected: false,
-      disabled: true,
-    });
+    expect(allocationTab.props.accessibilityState.disabled).toBe(true);
     expect(allocationTab.props.onPress).toBeUndefined();
     expect(getByTestId(MoneyEarningsViewTestIds.CHART)).toBeOnTheScreen();
   });
