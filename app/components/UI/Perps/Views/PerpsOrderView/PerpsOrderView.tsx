@@ -115,6 +115,7 @@ import {
   type InputMethod,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -305,6 +306,8 @@ interface OrderRouteParams {
   chartLibrary?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
+  /** Provider whose same-symbol position locks this order's margin mode. */
+  providerId?: PerpsProviderType;
   useBottomSheet?: boolean;
 }
 
@@ -696,8 +699,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
   // Check if user has an existing position for this market
-  const { existingPosition: currentMarketPosition } = useHasExistingPosition({
+  const {
+    existingPosition: currentMarketPosition,
+    isLoading: isCurrentPositionLoading,
+  } = useHasExistingPosition({
     asset: orderForm.asset || '',
+    // Ignore another provider's same-symbol position.
+    providerId: route.params?.providerId,
     loadOnMount: true,
   });
 
@@ -2909,9 +2917,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 showAutoClose={!hideTPSL}
                 margin={marginDisplay}
                 marginMode={
-                  currentMarketPosition?.leverage?.type === 'cross'
-                    ? 'cross'
-                    : 'isolated'
+                  isCurrentPositionLoading
+                    ? undefined
+                    : currentMarketPosition?.leverage?.type === 'cross'
+                      ? 'cross'
+                      : 'isolated'
                 }
                 liquidationPrice={tradeSheetLiquidationPrice}
                 liquidationDistance={tradeSheetLiquidationDistance}

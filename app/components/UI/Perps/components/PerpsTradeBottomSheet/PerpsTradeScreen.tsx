@@ -21,7 +21,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { MarginMode, OrderType } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type MarginMode,
+  type OrderType,
+} from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -81,8 +85,9 @@ interface PerpsTradeScreenProps {
   /**
    * Margin mode of the order this sheet is placing. An open position locks
    * the venue to that position's mode; a new lite order stays isolated.
+   * Omitted while the position stream has not resolved.
    */
-  marginMode: MarginMode;
+  marginMode?: MarginMode;
   /** Formatted liquidation price, or a fallback when there is nothing to show. */
   liquidationPrice: string;
   /** Formatted distance from the entry price to liquidation (e.g. `30.05%`). */
@@ -349,6 +354,14 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const marginModeLabel =
+    marginMode === undefined
+      ? PERPS_CONSTANTS.FallbackDataDisplay
+      : strings(
+          marginMode === 'cross'
+            ? 'perps.margin_mode.cross_title'
+            : 'perps.margin_mode.isolated_title',
+        );
   const { denomination, setDenomination } = usePerpsSizeDenomination();
   // A USD amount typed before the price can project coin must stay in USD
   // until the keypad closes. Flipping to coin on the price tick would reseed
@@ -730,11 +743,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   label={strings('perps.order.margin')}
                   accessibilityLabel={`${strings(
                     'perps.order.margin',
-                  )}, ${strings(
-                    marginMode === 'cross'
-                      ? 'perps.margin_mode.cross_title'
-                      : 'perps.margin_mode.isolated_title',
-                  )}, ${margin}. ${strings(
+                  )}, ${marginModeLabel}, ${margin}. ${strings(
                     'perps.trade_sheet.margin_info_accessibility_label',
                   )}`}
                   labelEndAccessory={

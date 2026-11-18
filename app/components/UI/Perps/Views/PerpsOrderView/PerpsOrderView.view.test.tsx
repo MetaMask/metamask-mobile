@@ -1899,6 +1899,89 @@ describe('PerpsOrderView', () => {
     ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
   });
 
+  it('labels the lite trade sheet Isolated when no position is open', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: {
+        ...existingCrossPositionStream,
+        positions: [],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+  });
+
+  it('holds the lite margin label until a cross position arrives', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: {
+        ...existingCrossPositionStream,
+        positions: null,
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.queryByText(strings('perps.margin_mode.cross_title')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.margin_mode.isolated_title')),
+    ).not.toBeOnTheScreen();
+
+    await act(async () => {
+      stream.emitPositions(existingCrossPositionStream.positions);
+    });
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+  });
+
+  it('labels the lite trade sheet from the route provider when the same symbol is open elsewhere', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        ...existingCrossOrderParams,
+        useBottomSheet: true,
+        providerId: 'lighter',
+      },
+      streamOverrides: {
+        ...existingCrossPositionStream,
+        positions: [
+          {
+            ...existingCrossPositionStream.positions[0],
+            providerId: 'hyperliquid',
+            leverage: { value: 10, type: 'cross' },
+          },
+          {
+            ...existingCrossPositionStream.positions[0],
+            providerId: 'lighter',
+            leverage: { value: 10, type: 'isolated' },
+          },
+        ],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+  });
+
   describe('market order liquidity', () => {
     const bookLevel = (price: number, size: number): OrderBookLevel => ({
       price: String(price),

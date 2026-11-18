@@ -323,6 +323,19 @@ describe('PerpsTradeScreen errors', () => {
     expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
   });
 
+  it('holds the margin label until the position stream resolves', () => {
+    render(<PerpsTradeScreen {...defaultProps} marginMode={undefined} />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent('--');
+    expect(
+      screen.getByLabelText('Margin, --, $3.41. About margin'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Cross')).not.toBeOnTheScreen();
+  });
+
   it('shows the payment asset icon beside the pay with value', () => {
     render(
       <PerpsTradeScreen
