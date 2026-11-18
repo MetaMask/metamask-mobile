@@ -16,14 +16,6 @@ export enum FirstQuoteFlushVariant {
   Treatment = 'treatment',
 }
 
-export const selectFirstQuoteFlushVariant = (state: RootState): string =>
-  resolveABTestAssignment(
-    selectRemoteFeatureFlags(state),
-    FIRST_QUOTE_FLUSH_AB_KEY,
-    Object.values(FirstQuoteFlushVariant),
-    selectFeatureFlagThresholdGroups(state),
-  ).variantName;
-
 export const selectFirstQuoteAbTestVariant = (
   state: RootState,
   flagKey: string,

@@ -21,8 +21,9 @@ import getUIStartupSpan from '../Performance/UIStartup';
 
 import ReduxService from '../redux';
 import {
+  FIRST_QUOTE_FLUSH_AB_KEY,
   FirstQuoteFlushVariant,
-  selectFirstQuoteFlushVariant,
+  selectFirstQuoteAbTestVariant,
 } from '../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
@@ -45,8 +46,10 @@ const getPersistedAnalyticsId = (state: unknown): unknown =>
     ?.AnalyticsController?.analyticsId;
 
 const isFirstQuoteFlushTreatment = (): boolean =>
-  selectFirstQuoteFlushVariant(ReduxService.store.getState()) ===
-  FirstQuoteFlushVariant.Treatment;
+  selectFirstQuoteAbTestVariant(
+    ReduxService.store.getState(),
+    FIRST_QUOTE_FLUSH_AB_KEY,
+  ) === FirstQuoteFlushVariant.Treatment;
 
 export class EngineService {
   private engineInitialized = false;
