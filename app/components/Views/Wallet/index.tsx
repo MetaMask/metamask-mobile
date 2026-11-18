@@ -2,7 +2,6 @@ import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -15,6 +14,7 @@ import {
   useBalanceRefresh,
   useHomepageEntryPoint,
 } from './hooks';
+import { usePrefetchMoneyAccountPlusSubscriptions } from '../../../hooks/usePrefetchMoneyAccountPlusSubscriptions';
 
 import {
   ActivityIndicator,
@@ -78,6 +78,7 @@ import {
   Text as CustomText,
   TextColor,
   TextVariant,
+  toast,
 } from '@metamask/design-system-react-native';
 
 import {
@@ -91,11 +92,6 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
-import {
-  ToastContext,
-  ToastVariants,
-  ButtonIconVariant,
-} from '../../../component-library/components/Toast';
 import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
@@ -361,6 +357,9 @@ const Wallet = ({
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
+  // Fills SubscriptionController before the accounts menu or profile drawer
+  // opens, so the Orange row can use the stored membership.
+  usePrefetchMoneyAccountPlusSubscriptions();
   const appNavigation = useNavigation<AppNavigationProp>();
   const { navigate } = appNavigation;
   useMoneyMfaHomePrompt();
@@ -412,7 +411,6 @@ const Wallet = ({
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const { toastRef } = useContext(ToastContext);
   useArcUsageNoticeToast();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -650,39 +648,22 @@ const Wallet = ({
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
-    const toast = toastRef?.current;
     storePrivacyPolicyShownDate();
-    toast?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings(`privacy_policy.toast_message`),
-          isBold: true,
-        },
-      ],
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toast?.closeToast();
-        },
-      },
-      linkButtonOptions: {
-        label: strings(`privacy_policy.toast_read_more`),
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toast?.closeToast();
-          void Linking.openURL(CONSENSYS_PRIVACY_POLICY);
-        },
-      },
+    toast({
+      title: strings('privacy_policy.toast_message'),
       hasNoTimeout: true,
+      onClose: storePrivacyPolicyClickedOrClosed,
+      actionButtonLabel: strings('privacy_policy.toast_read_more'),
+      actionButtonOnPress: () => {
+        storePrivacyPolicyClickedOrClosed();
+        toast.dismiss();
+        void Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+      },
     });
   }, [
     storePrivacyPolicyShownDate,
     shouldShowNewPrivacyToast,
     storePrivacyPolicyClickedOrClosed,
-    toastRef,
   ]);
 
   const homeGrowthBanner = useHomeGrowthBanner();
