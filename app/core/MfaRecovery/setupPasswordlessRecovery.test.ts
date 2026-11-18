@@ -98,7 +98,7 @@ describe('setupPasswordlessRecovery', () => {
     const dependencies = createDependencies({
       authConnection: AuthConnection.Google,
       userId: 'google-user',
-      envelope: { v: 1, vaultAuthPubKey: 'key' },
+      envelope: { v: 1, vaultAuthPubKey: 'key', passwordAuthPubKey: 'key' },
     });
 
     const result = await setupPasswordlessRecovery(dependencies);

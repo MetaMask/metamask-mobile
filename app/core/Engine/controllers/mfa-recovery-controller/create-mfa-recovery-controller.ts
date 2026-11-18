@@ -3,6 +3,8 @@ import {
   MfaRecoveryController,
   type MfaRecoveryControllerMessenger,
   type MfaRecoveryControllerState,
+  type RecoveryAuthProvider,
+  type RecoveryLockProvider,
 } from '@metamask/mfa-recovery-controller';
 import {
   createCubistSessionTokenProvider,
@@ -13,16 +15,17 @@ import { tryGetCubistEscrowConfig } from './config';
 import { RecoveryIdentifierRouter } from './auth/identifier-auth-provider';
 import type { SocialIdTokenProvider } from './auth/social-identifier-auth-provider';
 import type { PasskeyAssertionGetter } from './auth/passkey-identifier-auth-provider';
-import {
-  createPendingOperationEncryptor,
-  createPendingOperationKeyGetter,
-} from './pending-operation-encryptor';
+import { createPendingOperationEncryptor } from './pending-operation-encryptor';
 
 export interface CreateMfaRecoveryControllerOptions
   extends SessionTokenProviderOptions {
   messenger: MfaRecoveryControllerMessenger;
   state?: Partial<MfaRecoveryControllerState>;
   isEnabled: () => boolean;
+  /** Requests Auth API approvals. */
+  authProvider: RecoveryAuthProvider;
+  /** Holds the per-profile recovery lease. */
+  lockProvider: RecoveryLockProvider;
   /** Issues provider ID tokens bound to a nonce, for social identifiers. */
   getSocialIdToken: SocialIdTokenProvider;
   /** Runs the platform passkey assertion ceremony, for passkey identifiers. */
@@ -37,6 +40,8 @@ export function createMfaRecoveryController({
   messenger,
   state,
   isEnabled,
+  authProvider,
+  lockProvider,
   getSocialIdToken,
   getPasskeyAssertion,
   ...sessionTokenOptions
@@ -53,12 +58,13 @@ export function createMfaRecoveryController({
   return new MfaRecoveryController({
     messenger,
     state,
+    authProvider,
+    lockProvider,
     identifierAuthProvider: new RecoveryIdentifierRouter({
       getPasskeyAssertion,
       getSocialIdToken,
     }),
     escrows: [escrow],
-    encryptor: createPendingOperationEncryptor(),
-    getPendingOperationKey: createPendingOperationKeyGetter(),
+    pendingOperationEncryptor: createPendingOperationEncryptor(),
   });
 }

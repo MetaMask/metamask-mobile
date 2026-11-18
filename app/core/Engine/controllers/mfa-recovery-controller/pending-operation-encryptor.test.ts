@@ -1,61 +1,49 @@
-import {
-  createPendingOperationEncryptor,
-  createPendingOperationKeyGetter,
-} from './pending-operation-encryptor';
+import { createPendingOperationEncryptor } from './pending-operation-encryptor';
 
-const mockImportKey = jest.fn();
 const mockEncryptWithKey = jest.fn();
 const mockDecryptWithKey = jest.fn();
 const mockGenerateSalt = jest.fn();
 const mockKeyFromPassword = jest.fn();
-const mockExportKey = jest.fn();
 
 jest.mock('../../../Encryptor', () => ({
   DERIVATION_OPTIONS_MINIMUM_OWASP2023: { algorithm: 'PBKDF2' },
   Encryptor: jest.fn().mockImplementation(() => ({
-    importKey: mockImportKey,
     encryptWithKey: mockEncryptWithKey,
     decryptWithKey: mockDecryptWithKey,
     generateSalt: mockGenerateSalt,
     keyFromPassword: mockKeyFromPassword,
-    exportKey: mockExportKey,
   })),
 }));
 
 describe('createPendingOperationEncryptor', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('exposes the Encryptor key helpers', () => {
-    const encryptor = createPendingOperationEncryptor();
-
-    expect(encryptor.importKey).toBe(mockImportKey);
-    expect(encryptor.encryptWithKey).toBe(mockEncryptWithKey);
-    expect(encryptor.decryptWithKey).toBe(mockDecryptWithKey);
-  });
-});
-
-describe('createPendingOperationKeyGetter', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
     mockGenerateSalt
       .mockReturnValueOnce('salt-a')
       .mockReturnValueOnce('salt-b');
     mockKeyFromPassword.mockResolvedValue({ key: 'material' });
-    mockExportKey.mockResolvedValue('serialized-key');
+    mockEncryptWithKey.mockResolvedValue({ cipher: 'c', iv: 'i' });
+    mockDecryptWithKey.mockResolvedValue({ operation: 'register' });
   });
 
-  it('generates and caches a serialized pending-operation key', async () => {
-    const getKey = createPendingOperationKeyGetter();
+  it('encrypts and decrypts with one in-memory key', async () => {
+    const encryptor = createPendingOperationEncryptor();
+    const operation = { operation: 'register' } as never;
 
-    const first = await getKey();
-    const second = await getKey();
+    const ciphertext = await encryptor.encrypt(operation);
+    const decrypted = await encryptor.decrypt(ciphertext);
 
-    expect(first).toBe('serialized-key');
-    expect(second).toBe('serialized-key');
-    expect(mockGenerateSalt).toHaveBeenCalledTimes(2);
-    expect(mockKeyFromPassword).toHaveBeenCalledWith('salt-a', 'salt-b', true);
-    expect(mockExportKey).toHaveBeenCalledTimes(1);
+    expect(ciphertext).toBe(JSON.stringify({ cipher: 'c', iv: 'i' }));
+    expect(decrypted).toStrictEqual({ operation: 'register' });
+    expect(mockKeyFromPassword).toHaveBeenCalledTimes(1);
+    expect(mockKeyFromPassword).toHaveBeenCalledWith('salt-a', 'salt-b');
+    expect(mockEncryptWithKey).toHaveBeenCalledWith(
+      { key: 'material' },
+      operation,
+    );
+    expect(mockDecryptWithKey).toHaveBeenCalledWith(
+      { key: 'material' },
+      { cipher: 'c', iv: 'i' },
+    );
   });
 });
