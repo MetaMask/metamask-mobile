@@ -29,12 +29,20 @@ const UNFREEZE_TRIGGER_PATH = 'unfreeze';
 const CARD_FRONT_ASSET_NAME = 'DigitalCard-NewBrand';
 
 /**
+ * Vertical offset between the card's centre and the artboard's centre, as a
+ * fraction of the rendered artboard height (positive = the card sits below
+ * the artboard centre). Measured from the simulator: the card sat ~150pt
+ * too low at scale 3 in a 702pt-tall render.
+ */
+const CARD_CENTRE_Y_OFFSET_FRACTION = 150 / 702;
+
+/**
  * How much wider the RiveView box is vs the static card, to compensate for
  * the artboard's padding around the card (the ice effects need room to
  * overflow outside the card boundary). Tuned on the simulator; adjust if
  * the card renders at the wrong size.
  */
-const ARTBOARD_TO_CARD_SCALE = 3;
+const ARTBOARD_TO_CARD_SCALE = 3.5;
 
 const styles = StyleSheet.create({
   hidden: {
@@ -162,6 +170,9 @@ const CardFreezeUnfreezeAnimation = ({
   const riveViewWidth = width * ARTBOARD_TO_CARD_SCALE;
   const riveViewHeight = riveViewWidth / aspectRatio;
   const overflowX = (riveViewWidth - width) / 2;
+  // Shift the RiveView up so the card's centre (not the artboard's centre)
+  // aligns with where the static card sits.
+  const verticalShift = CARD_CENTRE_Y_OFFSET_FRACTION * riveViewHeight;
 
   return (
     <Box style={styles.overflowVisible} testID={testID}>
@@ -188,6 +199,7 @@ const CardFreezeUnfreezeAnimation = ({
               width: riveViewWidth,
               height: riveViewHeight,
               marginLeft: -overflowX,
+              marginTop: -verticalShift,
             },
             !isRiveReady && styles.hidden,
           ]}

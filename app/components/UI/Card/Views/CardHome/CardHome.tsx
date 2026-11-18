@@ -1085,49 +1085,51 @@ const CardHome = () => {
               </Box>
             )}
 
-            <CardHomeActionButtonRow
-              isGlass={isGlassSurface}
-              isTightTop={
-                !isLoading && walletEntry === 'push' && !isUkMigrationForced
-              }
-              add={
-                showAddFundsAction
-                  ? {
-                      onPress: actions.addFundsAction,
-                      disabled:
-                        !isSwapEnabled && !primaryToken?.isMoneyAccountEntry,
-                    }
-                  : undefined
-              }
-              details={
-                actionVisibility.details
-                  ? {
-                      onPress: actions.viewCardDetailsAction,
-                      isShowingDetails: isCardDetailsVisible,
-                    }
-                  : undefined
-              }
-              pin={
-                actionVisibility.pin
-                  ? {
-                      onPress: actions.viewPinAction,
-                      disabled: actions.isPinLoading,
-                    }
-                  : undefined
-              }
-              freeze={
-                actionVisibility.freeze
-                  ? {
-                      onPress: actions.handleToggleFreeze,
-                      isFrozen: isFrozen && isAuthenticated,
-                      disabled: isFreezeLoading,
-                    }
-                  : undefined
-              }
-            />
+            <Box twClassName="z-10">
+              <CardHomeActionButtonRow
+                isGlass={isGlassSurface}
+                isTightTop={
+                  !isLoading && walletEntry === 'push' && !isUkMigrationForced
+                }
+                add={
+                  showAddFundsAction
+                    ? {
+                        onPress: actions.addFundsAction,
+                        disabled:
+                          !isSwapEnabled && !primaryToken?.isMoneyAccountEntry,
+                      }
+                    : undefined
+                }
+                details={
+                  actionVisibility.details
+                    ? {
+                        onPress: actions.viewCardDetailsAction,
+                        isShowingDetails: isCardDetailsVisible,
+                      }
+                    : undefined
+                }
+                pin={
+                  actionVisibility.pin
+                    ? {
+                        onPress: actions.viewPinAction,
+                        disabled: actions.isPinLoading,
+                      }
+                    : undefined
+                }
+                freeze={
+                  actionVisibility.freeze
+                    ? {
+                        onPress: actions.handleToggleFreeze,
+                        isFrozen: isFrozen && isAuthenticated,
+                        disabled: isFreezeLoading,
+                      }
+                    : undefined
+                }
+              />
+            </Box>
 
             {showHomeSegments && (
-              <Box twClassName="px-4 mt-4 mb-4">
+              <Box twClassName="px-4 mt-4 mb-4 z-10">
                 <SegmentedControl
                   value={activeHomeSegment}
                   onChange={(value) =>
