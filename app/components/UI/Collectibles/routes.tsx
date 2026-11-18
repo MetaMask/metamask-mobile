@@ -7,11 +7,6 @@ import CollectiblesPackScreen from './views/CollectiblesPackScreen';
 
 const Stack = createNativeStackNavigator<CollectiblesStackParamList>();
 
-/**
- * Collectibles screens. Keep this a plain list of screens and options so it
- * maps to an Expo Router `_layout.tsx` later. The buy sheet is registered in
- * MainNavigator so it opens over Home.
- */
 function CollectiblesScreenStack() {
   return (
     <Stack.Navigator

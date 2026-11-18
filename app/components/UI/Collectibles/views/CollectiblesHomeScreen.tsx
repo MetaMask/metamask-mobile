@@ -11,7 +11,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 
-/** Placeholder for the Collectibles main page until GAC-72. */
 function CollectiblesHomeScreen() {
   const tw = useTailwind();
   const navigation = useNavigation();
