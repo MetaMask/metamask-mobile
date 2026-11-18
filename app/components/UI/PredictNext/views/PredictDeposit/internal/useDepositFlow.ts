@@ -42,8 +42,6 @@ interface UseDepositFlowOptions {
   addressPollIntervalMs: number;
 }
 
-const call = Engine.controllerMessenger.call.bind(Engine.controllerMessenger);
-
 const logError = (error: unknown, message: string): void => {
   Logger.error(ensureError(error, 'PredictNext.deposit'), message);
 };
@@ -111,22 +109,38 @@ export const useDepositFlow = ({
     (from: PredictHex): DepositWorkflowDeps => ({
       funding: {
         prepareDeposit: (params) =>
-          call('PredictFundingService:prepareDeposit', venueId, params, {
-            kind: 'user-approved',
-          }),
+          Engine.controllerMessenger.call(
+            'PredictFundingService:prepareDeposit',
+            venueId,
+            params,
+            {
+              kind: 'user-approved',
+            },
+          ),
         getDeposit: (operationId) =>
-          call('PredictFundingService:getDeposit', venueId, operationId),
+          Engine.controllerMessenger.call(
+            'PredictFundingService:getDeposit',
+            venueId,
+            operationId,
+          ),
         listOpenDeposits: () =>
-          call('PredictFundingService:listOpenDeposits', venueId),
+          Engine.controllerMessenger.call(
+            'PredictFundingService:listOpenDeposits',
+            venueId,
+          ),
         reportDepositTransfer: (operationId, params) =>
-          call(
+          Engine.controllerMessenger.call(
             'PredictFundingService:reportDepositTransfer',
             venueId,
             operationId,
             params,
           ),
         cancelDeposit: (operationId) =>
-          call('PredictFundingService:cancelDeposit', venueId, operationId),
+          Engine.controllerMessenger.call(
+            'PredictFundingService:cancelDeposit',
+            venueId,
+            operationId,
+          ),
       },
       executor,
       network: environment.network,
@@ -207,7 +221,7 @@ export const useDepositFlow = ({
   const cancelOpenDeposit = useCallback(
     async (deposit: PredictDepositOperation): Promise<boolean> => {
       try {
-        await call(
+        await Engine.controllerMessenger.call(
           'PredictFundingService:cancelDeposit',
           venueId,
           deposit.operationId,
