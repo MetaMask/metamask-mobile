@@ -1,6 +1,6 @@
 import React from 'react';
-import { strings } from '../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../util/intl';
+import { strings } from '../../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import {
   getPerpsCompletedStepCount,
   getPerpsStepLabels,
@@ -10,7 +10,7 @@ import {
   ActivityDetailsStepTimeline,
   type ActivityDetailsStep,
   type ActivityDetailsStepExplorerTarget,
-} from './ActivityDetailsStepTimeline';
+} from '../../components/ActivityDetailsStepTimeline';
 
 function formatStepTimestamp(timestamp: number): string {
   const date = new Date(timestamp);

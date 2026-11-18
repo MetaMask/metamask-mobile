@@ -328,6 +328,32 @@ const isTransientPriceHistoryError = (error: Error): boolean =>
   );
 
 /**
+ * Polymarket's names for the Chainlink TWAP variants of its 1h and daily crypto
+ * windows. `hourly` and `daily` are the Binance variants: they return the
+ * Binance open even when the TWAP parameters are set. The other windows use one
+ * name for both.
+ */
+const TWAP_CRYPTO_PRICE_VARIANTS: Record<string, string> = {
+  hourly: 'onehour',
+  daily: 'oneday',
+};
+
+/**
+ * The `variant` to send to Polymarket's crypto price endpoints.
+ *
+ * @param variant - Variant derived from the series recurrence.
+ * @param referenceWindow - TWAP lookback window; undefined for a spot market.
+ * @returns The variant that matches the market's price source.
+ */
+const resolveCryptoPriceVariant = (
+  variant: string,
+  referenceWindow: number | undefined,
+): string =>
+  referenceWindow === undefined
+    ? variant
+    : (TWAP_CRYPTO_PRICE_VARIANTS[variant] ?? variant);
+
+/**
  * TTL for cached account states. Deployed wallets are stable, so a longer TTL
  * is safe; a "not deployed" result is expected to change (e.g. right after a
  * first deposit) and must expire quickly so a transient RPC failure or race
@@ -1644,9 +1670,9 @@ export class PolymarketProvider implements PredictProvider {
   public async getCryptoPriceHistory(
     params: GetCryptoPriceHistoryParams,
   ): Promise<CryptoPriceHistoryPoint[]> {
-    const { symbol, eventStartTime, variant, endDate, twapWindowSeconds } =
-      params;
+    const { symbol, eventStartTime, endDate, twapWindowSeconds } = params;
     const referenceWindow = resolveReferencePriceWindow(twapWindowSeconds);
+    const variant = resolveCryptoPriceVariant(params.variant, referenceWindow);
 
     try {
       const normalizedSymbol = symbol.trim().toUpperCase();
@@ -1738,7 +1764,7 @@ export class PolymarketProvider implements PredictProvider {
       const queryParams = new URLSearchParams({
         symbol: params.symbol,
         eventStartTime: params.eventStartTime,
-        variant: params.variant,
+        variant: resolveCryptoPriceVariant(params.variant, referenceWindow),
         endDate: params.endDate,
       });
       if (referenceWindow !== undefined) {
