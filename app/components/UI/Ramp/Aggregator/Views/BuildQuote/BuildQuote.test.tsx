@@ -1720,7 +1720,7 @@ describe('BuildQuote View', () => {
   });
 
   describe('Tron Max quick amount race condition', () => {
-    let savedBalanceBN: bigint | undefined;
+    let savedBalanceBN: bigint | null | undefined;
     let savedOffRampNonEvmEnabled: boolean;
 
     beforeEach(() => {
@@ -1766,8 +1766,11 @@ describe('BuildQuote View', () => {
       // While Max is resolving, press 75%
       fireEvent.press(getByRoleButton('75%'));
 
-      // Resolve Max with a value
-      maxResolve({ amount: '1000' });
+      // Resolve Max with a value and wait for it to settle
+      await act(async () => {
+        maxResolve({ amount: '1000' });
+        await maxPromise;
+      });
 
       // Amount should be 75% of balance, not the Max result
       const balanceBN = mockUseBalanceValues.balanceBN as bigint;
@@ -1804,8 +1807,11 @@ describe('BuildQuote View', () => {
       // While Max is resolving, user types a number
       fireEvent.press(getByRoleButton('5'));
 
-      // Resolve Max with a different value
-      maxResolve({ amount: '1000' });
+      // Resolve Max with a different value and wait for it to settle
+      await act(async () => {
+        maxResolve({ amount: '1000' });
+        await maxPromise;
+      });
 
       // Amount should be the user's input (5), not the Max result
       // Use exact match to ensure it's the typed value, not the fallback 5.36385
