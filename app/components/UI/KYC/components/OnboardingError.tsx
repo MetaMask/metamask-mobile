@@ -19,6 +19,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 
 export const KycOnboardingErrorSelectorsIDs = {
   CONTAINER: 'kyc-onboarding-error-container',
@@ -122,6 +123,11 @@ const KycOnboardingError = ({
         return;
       }
 
+      fireImpact(
+        action === 'primary'
+          ? ImpactMoment.PrimaryCTA
+          : ImpactMoment.SecondaryCTA,
+      );
       setPendingAction(action);
       try {
         await onPress();
