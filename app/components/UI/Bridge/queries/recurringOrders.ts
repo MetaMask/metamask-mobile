@@ -1,4 +1,5 @@
 import type {
+  GetRecurringOrderQuery,
   GetRecurringOrdersByAssetQuery,
   RecurringOrdersQueryParams,
   RecurringSwapsQueryParams,
@@ -8,14 +9,17 @@ export type {
   RecurringSwapsQueryParams,
 } from '../api/recurringOrders.types';
 
-export const RECURRING_ORDERS_STALE_TIME = 5 * 60 * 1000;
+export const RECURRING_ORDERS_STALE_TIME = 0;
 export const RECURRING_ORDERS_PAGE_LIMIT = 20;
 export const RECURRING_SWAPS_PAGE_LIMIT = 20;
 export const RECURRING_ORDERS_QUERY_KEY =
   'RecurringOrdersDataService:getRecurringOrders' as const;
+export const RECURRING_ORDER_QUERY_KEY =
+  'RecurringOrdersDataService:getRecurringOrder' as const;
 export const RECURRING_ORDERS_BY_ASSET_QUERY_KEY =
   'RecurringOrdersDataService:getRecurringOrdersByAsset' as const;
 
+export type RecurringOrderQueryParams = Readonly<GetRecurringOrderQuery>;
 export type RecurringOrdersByAssetQueryParams =
   Readonly<GetRecurringOrdersByAssetQuery>;
 export type RecurringOrdersQueryKey = readonly [
@@ -28,6 +32,13 @@ export type RecurringOrdersByAssetQueryKey = readonly [
 ];
 
 export const recurringOrdersQueries = {
+  getRecurringOrder: (
+    orderId: string,
+    { accountAddress }: RecurringOrderQueryParams,
+  ) => ({
+    queryKey: [RECURRING_ORDER_QUERY_KEY, orderId, { accountAddress }] as const,
+    staleTime: RECURRING_ORDERS_STALE_TIME,
+  }),
   getRecurringOrders: ({
     walletAddress,
     orderStates,

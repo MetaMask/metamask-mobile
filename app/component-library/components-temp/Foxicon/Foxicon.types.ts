@@ -8,10 +8,10 @@ export const FoxiconVariant = {
   Beanie: 'beanie',
   Chrome: 'chrome',
   Football: 'football',
+  Frozen: 'frozen',
   Goth: 'goth',
   Hearts: 'hearts',
   Laser: 'laser',
-  Magma: 'magma',
   Nerd: 'nerd',
   Vr: 'vr',
   Zombie: 'zombie',
@@ -21,17 +21,17 @@ export type FoxiconVariant =
   (typeof FoxiconVariant)[keyof typeof FoxiconVariant];
 
 /**
- * Variants from the first Foxicon artwork that have no counterpart in the
- * current set. They stay valid so saved avatars keep rendering, and draw
- * {@link FOXICON_FALLBACK_VARIANT} instead.
+ * Looks with no artwork in the current set, including ones dropped after an
+ * earlier build shipped them. They stay valid so saved avatars keep rendering,
+ * and draw {@link FOXICON_FALLBACK_VARIANT} instead.
  */
 export const RetiredFoxiconVariant = {
   Angel: 'angel',
   Base: 'base',
   Cannibal: 'cannibal',
   Cyborg: 'cyborg',
-  Frozen: 'frozen',
   Gentleman: 'gentleman',
+  Magma: 'magma',
   Pirate: 'pirate',
   Royal: 'royal',
   Superhero: 'superhero',

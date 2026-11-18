@@ -35,6 +35,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  IDOS_TERMS_AND_CONDITIONS_URL,
   SUMSUB_BIOMETRICS_CONSENT_URL,
   SUMSUB_PERSONAL_DATA_PROCESSING_URL,
   SUMSUB_PRIVACY_NOTICE_URL,
@@ -402,6 +403,7 @@ const KycPartnerTerms = ({
                   strings('kyc.partner_terms.agreement_terms'),
                   findDisclaimerByKeyword(idos, 'terms'),
                   KycPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK,
+                  IDOS_TERMS_AND_CONDITIONS_URL,
                 ),
                 color: TextColor.PrimaryDefault,
               },

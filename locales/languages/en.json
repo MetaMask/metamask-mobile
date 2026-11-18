@@ -1140,6 +1140,7 @@
       "feature_arrives_title": "Arrives in {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Arrives in a few business days",
       "feature_arrives_title_pix": "Arrives in seconds",
+      "feature_arrives_title_eur": "Arrives in seconds to 1 business day",
       "feature_arrives_description": "Funds arrive as soon as your transfer clears.",
       "feature_set_up_title": "Set up once, use anytime",
       "feature_set_up_description": "Save these details as a payee in your banking app.",
@@ -1192,7 +1193,8 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brazilian real",
-        "usd": "US dollar"
+        "usd": "US dollar",
+        "eur": "Euro"
       }
     },
     "vba_details": {
@@ -1209,6 +1211,9 @@
       "routing_number_label": "Routing number",
       "account_number_label": "Account number",
       "bank_name_label": "Bank name",
+      "iban_label": "IBAN",
+      "bic_label": "BIC",
+      "payment_reference_label": "Payment reference",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "copy_all_button": "Copy all details",
@@ -1247,7 +1252,7 @@
     },
     "partner_terms": {
       "title": "Our verification partners",
-      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "description": "idOS verifies your identity and works with Sumsub to complete it.",
       "section_title": "Terms and privacy",
       "idos_group_title": "idOS",
       "sumsub_group_title": "Sumsub",
@@ -1256,7 +1261,7 @@
       "sumsub_notice": "Sumsub Notice of Personal Data Processing",
       "sumsub_privacy_notice": "Privacy Notice",
       "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
-      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in the {{privacyNotice}}.",
       "biometric_consent_privacy_notice": "idOS Privacy Notice",
       "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
       "agreement_terms": "idOS Terms and Conditions",
@@ -1491,6 +1496,7 @@
         "entry": "Entry",
         "exit": "Exit",
         "cost": "Cost",
+        "margin": "Margin",
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
@@ -1889,6 +1895,7 @@
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Select an account",
+      "linked_account": "Linked account",
       "link_account_change_footnote": "You can change your linked account every 30 days.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
@@ -9844,6 +9851,7 @@
       "get_started": {
         "title": "Convert to digital dollars",
         "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "description_with_currency": "Send {{currency}} from your bank and get mUSD in your Money account. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
@@ -11703,7 +11711,7 @@
     "card_onboarding": {
       "title": "Spend anywhere",
       "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
-      "apply_now_button": "Get card",
+      "apply_now_button": "Get Card",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
@@ -12888,6 +12896,7 @@
       "entered": "Entered",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
+      "create_username": "Create a username",
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",
       "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
@@ -13064,6 +13073,8 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
+      "stats_pnl_gap_amount": "+{{pnlGap}}",
+      "stats_pnl_gap_to_prize_suffix": "to win {{place}} place",
       "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
@@ -13332,7 +13343,10 @@
     "switch_to_metamask_default_rpc": "Switch to MetaMask default RPC",
     "check_network_connectivity": "Check your network connectivity.",
     "check_network_connectivity_or": "Check your network connectivity or",
-    "updated_to_metamask_default": "Updated to MetaMask default"
+    "updated_to_metamask_default": "Updated to MetaMask default",
+    "slow_network_title": "Slow connection",
+    "slow_network_description": "Data may take longer to load.",
+    "dismiss_slow_network": "Dismiss slow connection banner"
   },
   "trending": {
     "title": "Explore",
@@ -13699,6 +13713,7 @@
       "load_error": "Couldn't load your allowances.",
       "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
       "unavailable": "Member pricing isn't available right now.",
+      "paused": "Member pricing is paused while your membership is deactivated.",
       "retry": "Try again"
     },
     "physical_card": {
@@ -13732,6 +13747,9 @@
         "title": "Your membership is cancelled",
         "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
         "action": "Renew membership"
+      },
+      "pending_cancel": {
+        "description": "Resume before {{date}} to keep 7% APY, 3% mUSD back, and more."
       }
     },
     "earned": {
@@ -13755,10 +13773,13 @@
       "paying_with": "Paying with",
       "money_account": "Money account",
       "renews_on": "Renews on",
+      "ends_on": "Ends on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
       "manage": "Manage plan",
       "invoices": "Invoices",
+      "invoices_in_progress": "Opening invoices",
+      "invoices_failed": "We couldn't open your invoices. Try again.",
       "contact_support": "Contact support",
       "cancel_membership": "Cancel membership",
       "cancel_not_allowed": "Cancellation isn't available right now.",
@@ -13779,7 +13800,13 @@
       "keep_membership": "Keep Orange",
       "cancel": "Cancel membership",
       "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
-      "cancellation_failed": "We couldn't cancel your membership. Please try again."
+      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
+      "post_cancel_sheet": {
+        "title": "Your membership is canceled",
+        "period_end_description": "Renew before {{date}} to continue receiving {{apy}} APY, {{rate}} mUSD back, and more.",
+        "immediate_description": "Your membership has ended, so you no longer have {{apy}} APY, {{rate}} mUSD back, or other membership benefits.",
+        "got_it": "Got it"
+      }
     }
   },
   "pro_subscription": {
@@ -13789,6 +13816,8 @@
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Upgrade",
     "join_error": "We couldn't start your Orange membership. Try again.",
+    "join_error_geo_blocked": "MetaMask Orange isn't available in your location, so we couldn't start your membership.",
+    "join_error_feature_disabled": "MetaMask Orange isn't available right now, so we couldn't start your membership.",
     "join_orange": "Join Orange",
     "start_free_trial": "Start free trial",
     "free_trial_description": "No commitment, cancel anytime",
