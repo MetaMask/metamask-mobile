@@ -114,7 +114,7 @@ const buildController = (
   baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
-  showPostTradeShareHint: false,
+  isBelowPostTradeShareMinimum: false,
   isConfirmDisabled: false,
   confirmButtonState: 'idle',
   getButtonLabel: () => 'Buy',

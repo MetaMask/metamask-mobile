@@ -68,16 +68,19 @@ const toPositionAsset = (
  * @param tokenAddress - Position token address or CAIP-19 id.
  * @param chain - CAIP-2 chain of the position token, used when `tokenAddress`
  * is not a CAIP-19 id.
+ * @param quoteTokens - Quote-token list to check against. Defaults to the
+ * cached list.
  * @returns Whether post-trade sharing must be skipped for this token.
  */
 export const isUnsupportedPostTradeAsset = (
   tokenAddress: string,
   chain: CaipChainId,
+  quoteTokens:
+    | QuoteTokensResponse
+    | undefined = ReactQueryService.queryClient.getQueryData<QuoteTokensResponse>(
+    QUOTE_TOKENS_QUERY_KEY,
+  ),
 ): boolean => {
-  const quoteTokens =
-    ReactQueryService.queryClient.getQueryData<QuoteTokensResponse>(
-      QUOTE_TOKENS_QUERY_KEY,
-    );
   if (!quoteTokens) {
     return false;
   }

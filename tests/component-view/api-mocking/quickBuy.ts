@@ -104,7 +104,36 @@ export function setupQuickBuyApiMock(): void {
   });
 }
 
+type MessengerCall = typeof Engine.controllerMessenger.call;
+let baseMessengerCall: MessengerCall | undefined;
+
+/**
+ * Serves `SocialService:fetchQuoteTokens` from the CV Engine messenger mock.
+ * Tokens on the list are never posted to Social, so Quick Buy hides the post
+ * minimum hint for them.
+ *
+ * @param stablecoins - Quote-token stablecoin asset ids.
+ */
+export function mockQuickBuyQuoteTokens(stablecoins: string[] = []): void {
+  const call = jest.mocked(Engine.controllerMessenger.call);
+  baseMessengerCall ??= call.getMockImplementation() as MessengerCall;
+  const fallback = baseMessengerCall;
+  call.mockImplementation(((action: string, ...args: unknown[]) =>
+    action === 'SocialService:fetchQuoteTokens'
+      ? Promise.resolve({ natives: ['eip155:1/slip44:60'], stablecoins })
+      : Reflect.apply(fallback, Engine.controllerMessenger, [
+          action,
+          ...args,
+        ])) as MessengerCall);
+}
+
 export function clearQuickBuyApiMocks(): void {
+  if (baseMessengerCall) {
+    jest
+      .mocked(Engine.controllerMessenger.call)
+      .mockImplementation(baseMessengerCall);
+    baseMessengerCall = undefined;
+  }
   jest.mocked(globalThis.fetch).mockRestore?.();
   teardownNock();
 }

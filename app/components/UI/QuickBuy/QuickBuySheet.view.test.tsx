@@ -1,6 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import { merge } from 'lodash';
 import {
+  act,
   fireEvent,
   waitFor,
   within,
@@ -18,6 +19,8 @@ import { describeForPlatforms } from '../../../../tests/component-view/platform'
 import {
   clearQuickBuyApiMocks,
   createQuickBuyFetchedQuote,
+  mockQuickBuyQuoteTokens,
+  QUICK_BUY_USDC_ASSET_ID,
   setupQuickBuyApiMock,
 } from '../../../../tests/component-view/api-mocking/quickBuy';
 import { renderQuickBuySheet } from '../../../../tests/component-view/renderers/quickBuy';
@@ -49,6 +52,21 @@ const BASE_NETWORK_OPTION = 'network-option-eip155:8453';
 const SLIPPAGE_ROUTE = {
   name: Routes.BRIDGE.MODALS.ROOT,
   Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
+};
+
+const POST_TRADE_SHARE_HINT_ENABLED = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          quickBuyPostTradeShareHintEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
 };
 
 const typeAmount = (screen: Pick<RenderAPI, 'getByTestId'>, digits: string) => {
@@ -194,21 +212,9 @@ describeForPlatforms('QuickBuySheet', () => {
   });
 
   it('shows the post minimum hint on an empty amount when the remote flag is on', async () => {
+    mockQuickBuyQuoteTokens();
     const screen = renderQuickBuySheet({
-      overrides: {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                quickBuyPostTradeShareHintEnabled: {
-                  enabled: true,
-                  minimumVersion: '0.0.0',
-                },
-              },
-            },
-          },
-        },
-      },
+      overrides: POST_TRADE_SHARE_HINT_ENABLED,
     });
 
     await waitForSheetReady(screen);
@@ -218,6 +224,25 @@ describeForPlatforms('QuickBuySheet', () => {
         QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT,
       ),
     ).toHaveTextContent('Buy $10 to post');
+  });
+
+  it('hides the post minimum hint for a token that is never posted', async () => {
+    mockQuickBuyQuoteTokens([QUICK_BUY_USDC_ASSET_ID]);
+    const screen = renderQuickBuySheet({
+      overrides: POST_TRADE_SHARE_HINT_ENABLED,
+    });
+
+    await waitForSheetReady(screen);
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialService:fetchQuoteTokens',
+      );
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
   });
 
   it('hides the post minimum hint when the remote flag is missing', async () => {

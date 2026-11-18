@@ -48,6 +48,15 @@ describe('isUnsupportedPostTradeAsset', () => {
     expect(isUnsupportedPostTradeAsset(BASE_USDC, BASE)).toBe(false);
   });
 
+  it('checks a provided quote-token list instead of the cache', () => {
+    expect(isUnsupportedPostTradeAsset(ZERO_ADDRESS, BASE, quoteTokens)).toBe(
+      true,
+    );
+    expect(isUnsupportedPostTradeAsset(BASE_TOKEN, BASE, quoteTokens)).toBe(
+      false,
+    );
+  });
+
   it.each<[string, string, CaipChainId]>([
     ['EVM stablecoin address', BASE_USDC, BASE],
     ['EVM stablecoin CAIP-19 id', `${BASE}/erc20:${BASE_USDC}`, BASE],
