@@ -189,6 +189,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/key-tree": {
+      "type": "non-breaking",
+      "previewVersion": "11.0.0-preview-7410208d2"
+    }
+  },
   "resolutions": {
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",

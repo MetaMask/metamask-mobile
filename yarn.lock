@@ -10668,9 +10668,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/key-tree@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@metamask/key-tree@npm:11.0.0"
+"@metamask/key-tree@npm:@metamask-previews/key-tree@11.0.0-preview-7410208d2":
+  version: 11.0.0-preview-7410208d2
+  resolution: "@metamask-previews/key-tree@npm:11.0.0-preview-7410208d2"
   dependencies:
     "@metamask/byte-utils": "npm:^0.1.0"
     "@metamask/cryptography": "npm:^1.1.2"
@@ -10678,8 +10678,8 @@ __metadata:
     "@metamask/type-utils": "npm:^0.1.0"
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
-    "@scure/base": "npm:^1.2.6"
-  checksum: 10/3193979cb12ad20940790fd897b09e06da69e15b8d65bf716ed12a12eed68f51157b787e93c81ed41388139e1f68ee9874bc71596df4a681ec70ec9502aa36e2
+    "@scure/base": "npm:^2.4.0"
+  checksum: 10/5715ff2a7e748b7a0c88f0a1116fc551a962e91e58f1158db1672709ff18456e929f9f5a3bc92ef88859dc28069e60cf6c53e846c346423cc2512403a2d512b9
   languageName: node
   linkType: hard
 
@@ -15729,6 +15729,13 @@ __metadata:
   version: 1.2.6
   resolution: "@scure/base@npm:1.2.6"
   checksum: 10/c1a7bd5e0b0c8f94c36fbc220f4a67cc832b00e2d2065c7d8a404ed81ab1c94c5443def6d361a70fc382db3496e9487fb9941728f0584782b274c18a4bed4187
+  languageName: node
+  linkType: hard
+
+"@scure/base@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "@scure/base@npm:2.4.0"
+  checksum: 10/acf3f04119fdba33365e387110edc01585616fe81e96b1b9685fc2e3970736c204613f94614d7b8f4a63d1d31b8b155405eed0ac7afb27d57cdaaf5ea76eb857
   languageName: node
   linkType: hard
 
