@@ -814,7 +814,7 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('availableBalance', () => {
-    it('formats spendable balance as "$amount available" when connected', () => {
+    it('formats available to trade with the available balance copy when connected', () => {
       const { result } = renderProForm();
 
       expect(result.current.availableBalance).toBe(
