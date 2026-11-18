@@ -225,6 +225,16 @@ export type SocialPostFailureReason =
   | 'timeout'
   | 'min_balance'
   | 'unknown';
+/** Coarse reason when profile create/update fails during onboarding. */
+export type SocialProfileSaveFailureReason =
+  | 'username_taken'
+  | 'username_invalid'
+  | 'conflict'
+  | 'auth'
+  | 'rate_limit'
+  | 'network'
+  | 'ineligible_account'
+  | 'unknown';
 export type SocialBlockedSubmitReason =
   | 'empty_caption'
   | 'no_position'
@@ -252,15 +262,21 @@ export interface SocialUIInteractionProperties
   /** Only sent with `copy_trade_blocked`. */
   blocked_reason?: SocialBlockedReason;
   /**
-   * Profile onboarding path. Sent on intro `button_clicked`, `x_sign_in`, and
+   * Profile onboarding path. Sent on intro/continue/ready `button_clicked`,
+   * terms sheet events, `x_sign_in`, `username_claimed`, and
    * `onboarding_completed`.
    */
   path?: SocialOnboardingPath;
   /**
-   * `onboarding_completed` only. True when the claimed handle is still the
-   * linked X username.
+   * True when the claimed handle is still the linked X username. Sent on
+   * `onboarding_completed` and the X-identity use-X-username toggle.
    */
   uses_x_username?: boolean;
+  /**
+   * `username_claimed` with `outcome: failed` only. Coarse create/update
+   * failure bucket for Ready drop-off.
+   */
+  profile_save_failure_reason?: SocialProfileSaveFailureReason;
   amount_usd?: number;
   metamask_fee?: number;
   /** Composer interactions only. */

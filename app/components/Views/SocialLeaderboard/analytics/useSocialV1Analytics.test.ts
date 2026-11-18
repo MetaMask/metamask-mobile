@@ -187,6 +187,42 @@ describe('useSocialAnalytics', () => {
     );
 
     mockTrack.mockClear();
+    result.current(Interaction.USERNAME_CLAIMED, {
+      outcome: Outcome.SUCCESS,
+      path: SocialEvent.Path.X,
+      step: SocialEvent.Step.X_IDENTITY,
+    });
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      {
+        interaction_type: Interaction.USERNAME_CLAIMED,
+        screen_name: Screen.PROFILE_ONBOARDING,
+        outcome: Outcome.SUCCESS,
+        path: SocialEvent.Path.X,
+        step: SocialEvent.Step.X_IDENTITY,
+      },
+    );
+
+    mockTrack.mockClear();
+    result.current(Interaction.USERNAME_CLAIMED, {
+      outcome: Outcome.FAILED,
+      path: SocialEvent.Path.MANUAL,
+      step: SocialEvent.Step.READY,
+      profile_save_failure_reason: 'network',
+    });
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      {
+        interaction_type: Interaction.USERNAME_CLAIMED,
+        screen_name: Screen.PROFILE_ONBOARDING,
+        outcome: Outcome.FAILED,
+        path: SocialEvent.Path.MANUAL,
+        step: SocialEvent.Step.READY,
+        profile_save_failure_reason: 'network',
+      },
+    );
+
+    mockTrack.mockClear();
     result.current(Interaction.ONBOARDING_COMPLETED, {
       outcome: Outcome.SUCCESS,
       path: SocialEvent.Path.MANUAL,
