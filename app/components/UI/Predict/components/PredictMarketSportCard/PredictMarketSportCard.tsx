@@ -281,7 +281,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       activeOpacity={0.9}
     >
       <Box
-        twClassName={`bg-muted rounded-[12px] overflow-hidden ${isCompact ? 'h-full' : ''}`}
+        // Prototype: carousel cards get a full 1px border.muted at the wrapper's 16px radius.
+        twClassName={`bg-muted overflow-hidden ${isCompact ? 'h-full rounded-2xl border border-muted' : 'rounded-[12px]'}`}
       >
         {onDismiss && (
           <Box twClassName="absolute top-3 right-3 z-10">

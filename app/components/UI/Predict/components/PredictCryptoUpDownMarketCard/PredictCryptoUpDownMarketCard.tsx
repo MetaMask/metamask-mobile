@@ -1331,9 +1331,12 @@ const PredictCryptoUpDownMarketCard: React.FC<
         onPress={handleCardPress}
         accessibilityLabel={cardTitle}
         accessibilityRole="button"
-        style={tw.style('h-full rounded-xl bg-muted overflow-hidden')}
+        // Prototype: full 1px border.muted at the carousel's 16px radius; p-[15px] keeps the p-4 footprint.
+        style={tw.style(
+          'h-full rounded-2xl border border-muted bg-muted overflow-hidden',
+        )}
       >
-        <Box twClassName="flex-1 p-4 items-center justify-between">
+        <Box twClassName="flex-1 p-[15px] items-center justify-between">
           <Box twClassName="items-center">
             <LiveStatus
               compact

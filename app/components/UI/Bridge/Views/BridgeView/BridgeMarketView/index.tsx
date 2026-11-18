@@ -16,7 +16,7 @@ import {
   TokenInputAreaType,
 } from '../../../components/TokenInputArea';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import {
   selectSourceAmount,
@@ -676,13 +676,15 @@ const BridgeMarketViewContent = ({
               </Box>
             ) : null}
             {shouldShowDiscoveryFeed && shouldShowRobinhoodBanner ? (
-              // Prototype: mt-3 + the inputs' 12px bottom padding = 24px above the banner.
-              <Box twClassName="mt-3">
+              // Prototype: full-width SectionDivider with 32px visible on each side (SP-02).
+              // Above: mt-5 + the inputs' 12px bottom padding; below: mb-8 to the banner.
+              <>
+                <SectionDivider marginVertical={0} twClassName="mt-5 mb-8" />
                 <RobinhoodBanner
                   onDismiss={dismissRobinhoodBanner}
                   onPress={handleRobinhoodBannerPress}
                 />
-              </Box>
+              </>
             ) : null}
             {shouldShowDiscoveryFeed ? (
               <SwapDiscoveryFeed
