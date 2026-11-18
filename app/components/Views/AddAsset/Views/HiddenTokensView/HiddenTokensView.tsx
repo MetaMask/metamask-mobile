@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { formatChainIdToHex } from '@metamask/bridge-controller';
 import {
   SafeAreaView,
@@ -29,7 +30,11 @@ import emptyStateDefiLight from '../../../../../images/empty-state-defi-light.pn
 import emptyStateDefiDark from '../../../../../images/empty-state-defi-dark.png';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import { getAssetsInfo } from '../../../../../selectors/assets/assets-controller';
+import {
+  getAssetsBalance,
+  getAssetsInfo,
+} from '../../../../../selectors/assets/assets-controller';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectMultichainAssetsMetadata } from '../../../../../selectors/multichain/multichain';
 import { createCaipAssetImageUrl } from '../../../../UI/TokenDetails/components/useAssetVisibility';
 import { getCaipChainIdFromAssetId } from '../../../../UI/Trending/components/TrendingTokenRowItem/utils';
@@ -96,13 +101,32 @@ const HiddenTokensView = () => {
   const emptyImage = useAssetFromTheme(emptyStateDefiLight, emptyStateDefiDark);
   const rows = useHiddenAssetRows();
 
-  const handleUnhide = useCallback(async (assetId: CaipAssetType) => {
-    try {
-      await Engine.context.AssetsController.unhideAsset(assetId);
-    } catch (error) {
-      Logger.error(error as Error, 'HiddenTokensView: unhideAsset failed');
-    }
-  }, []);
+  const assetsBalance = useSelector(getAssetsBalance);
+  const internalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+
+  const handleUnhide = useCallback(
+    async (assetId: CaipAssetType) => {
+      try {
+        const { AssetsController } = Engine.context;
+        const accountId = internalAccountByScope(
+          getCaipChainIdFromAssetId(assetId) as SupportedCaipChainId,
+        )?.id;
+        // Hiding a custom token removes it from customAssets, so unhiding a
+        // token without a balance would leave it unlisted. Re-add it instead
+        // (this also clears the hidden flag; stored metadata is kept).
+        if (accountId && !Number(assetsBalance[accountId]?.[assetId]?.amount)) {
+          await AssetsController.addCustomAsset(accountId, assetId);
+        } else {
+          await AssetsController.unhideAsset(assetId);
+        }
+      } catch (error) {
+        Logger.error(error as Error, 'HiddenTokensView: unhideAsset failed');
+      }
+    },
+    [assetsBalance, internalAccountByScope],
+  );
 
   const renderItem = useCallback<ListRenderItem<HiddenAssetRow>>(
     ({ item }) => (

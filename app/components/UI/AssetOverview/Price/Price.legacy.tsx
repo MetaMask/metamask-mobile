@@ -12,8 +12,6 @@ import { Box } from '@metamask/design-system-react-native';
 import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
-
-import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
@@ -36,7 +34,6 @@ export interface PriceLegacyProps {
   chartNavigationButtons?: TimePeriod[];
   onTimePeriodChange?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  useAmbientColor?: boolean;
   hasInsufficientCoverage?: boolean;
 }
 
@@ -51,7 +48,6 @@ const PriceLegacy = ({
   chartNavigationButtons = [],
   onTimePeriodChange,
   onPriceDirectionChange,
-  useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
@@ -116,28 +112,21 @@ const PriceLegacy = ({
   const ambientSuccessGreen = isLightMode
     ? LIGHT_MODE_SUCCESS_GREEN
     : theme.colors.success.default;
+  const ambientErrorRed = theme.colors.error.default;
 
   // Initial ambient color for chart/buttons - based on non-hover price diff
-  const initialAmbientColor = useMemo(() => {
-    if (!useAmbientColor) return undefined;
-    return priceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, priceDiff, ambientSuccessGreen]);
+  const initialAmbientColor = useMemo(
+    () => (priceDiff >= 0 ? ambientSuccessGreen : ambientErrorRed),
+    [priceDiff, ambientSuccessGreen, ambientErrorRed],
+  );
 
   // Dynamic ambient color for price diff text only - changes during chart hover
-  const ambientColor = useMemo(() => {
-    if (!useAmbientColor) return undefined;
-    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
+  const ambientColor = useMemo(
+    () => (displayDiff >= 0 ? ambientSuccessGreen : ambientErrorRed),
+    [displayDiff, ambientSuccessGreen, ambientErrorRed],
+  );
 
-  const getPriceDiffStyle = () => {
-    if (ambientColor) {
-      return { color: ambientColor };
-    }
-    if (isLightMode && displayDiff > 0) {
-      return { color: LIGHT_MODE_SUCCESS_GREEN };
-    }
-    return undefined;
-  };
+  const getPriceDiffStyle = () => ({ color: ambientColor });
 
   return (
     <>

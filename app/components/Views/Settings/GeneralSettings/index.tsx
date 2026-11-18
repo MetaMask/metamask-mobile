@@ -225,7 +225,7 @@ const Settings = ({
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        title={strings('app_settings.general_title')}
+        title={strings('app_settings.preferences_and_display_title')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ testID: GeneralSettingsSelectorsIDs.BACK_BUTTON }}
         includesTopInset
