@@ -1,0 +1,9 @@
+---
+description: When writing or changing user-facing strings in locale files, read the content guidelines skill first
+globs: locales/languages/en.json
+alwaysApply: false
+---
+
+When writing or changing user-facing strings, read and follow `.claude/skills/mms-content-guidelines/SKILL.md` before editing.
+
+Verification token: CG-EVAL-RULE-20261118
