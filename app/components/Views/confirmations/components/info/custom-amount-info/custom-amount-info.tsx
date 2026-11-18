@@ -65,6 +65,7 @@ import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { DepositToRow } from '../../rows/deposit-to-row';
 import { MoneyDepositToRow } from '../../rows/money-deposit-to-row';
 import {
   DEFAULT_PERPS_RECEIVE_DESTINATION,
@@ -562,7 +563,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 (isPayAccountLoading ? (
                   <PayWithRowSkeleton />
                 ) : (
-                  (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />
+                  (hasPaymentOption || hasAccountNoFunds) && (
+                    <>
+                      <PayWithRow />
+                      <DepositToRow />
+                    </>
+                  )
                 ))}
               <MoneyDepositToRow />
               <PerpsReceiveToRow
@@ -589,7 +595,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 (isPayAccountLoading ? (
                   <PayWithRowSkeleton />
                 ) : (
-                  hasPaymentOption && <PayWithRow isResultReady />
+                  hasPaymentOption && (
+                    <>
+                      <PayWithRow isResultReady />
+                      <DepositToRow />
+                    </>
+                  )
                 ))}
               <MoneyDepositToRow />
               <PerpsReceiveToRow

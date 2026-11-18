@@ -32,6 +32,7 @@ export const ConfirmationRowComponentIDs = {
   ADVANCED_DETAILS: 'advanced-details',
   APPROVE_ROW: 'approve-row',
   BRIDGE_TIME: 'bridge-time',
+  DEPOSIT_TO: 'deposit-to',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
   GAS_FEE_TOKEN_PILL: 'selected-gas-fee-token',
