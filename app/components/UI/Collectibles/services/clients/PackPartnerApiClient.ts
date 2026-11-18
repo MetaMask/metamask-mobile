@@ -21,8 +21,11 @@ import {
   PpGeneratePackResponseStruct,
   PpGeneratePacksResponseStruct,
   PpMachineStruct,
+  PpInventoryNftStruct,
   PpInventoryResponseStruct,
+  PpWinnerStruct,
   PpWinnersResponseStruct,
+  type PpInventoryNft,
   type PpWinner,
   PpMachinesResponseStruct,
   PpOpenPackAwardedStruct,
@@ -150,7 +153,11 @@ export interface PackPartnerApi {
       cursor?: string;
     },
     options?: PackPartnerReadOptions,
-  ): Promise<Infer<typeof PpInventoryResponseStruct>>;
+  ): Promise<
+    Omit<Infer<typeof PpInventoryResponseStruct>, 'nfts'> & {
+      nfts: PpInventoryNft[];
+    }
+  >;
   /** GET /machines (all machines, including private and closed ones). */
   getMachines(options?: PackPartnerReadOptions): Promise<PpMachine[]>;
   /** GET /status */
@@ -441,15 +448,17 @@ export const createPackPartnerApi = ({
   const getRecentOpenings: PackPartnerApi['getRecentOpenings'] = async (
     filters,
     options,
-  ) =>
-    parseResponse(
+  ) => {
+    const body = parseResponse(
       PpWinnersResponseStruct,
       await callCollectibles({
         path: `/getAllWinners${toQueryString({ ...filters, count: filters.count ?? RECENT_OPENINGS_LIMIT })}`,
         signal: options?.signal,
       }),
       'GET /getAllWinners',
-    ).data;
+    );
+    return parseItems(PpWinnerStruct, body.data);
+  };
 
   const getInventory: PackPartnerApi['getInventory'] = async (
     { code, cursor },
@@ -469,7 +478,7 @@ export const createPackPartnerApi = ({
         context: 'GET /getNfts',
       });
     }
-    return body;
+    return { ...body, nfts: parseItems(PpInventoryNftStruct, body.nfts) };
   };
 
   const getStatus: PackPartnerApi['getStatus'] = async (options) =>

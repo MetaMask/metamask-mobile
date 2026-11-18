@@ -8,6 +8,7 @@ import {
   machineSealed80,
   nftWon,
   inventoryNft,
+  recentOpening,
   openPackAwarded,
   openPackPending,
   packStatus,
@@ -120,6 +121,37 @@ describe('createPackPartnerApi', () => {
       );
     });
 
+    it('keeps valid public openings in feed order when a record is malformed', async () => {
+      const next = { ...recentOpening, winner: 'AnotherWallet' };
+      const { api } = setup({
+        responses: [
+          createResponse(200, {
+            success: true,
+            data: [
+              recentOpening,
+              { ...recentOpening, created_at: 'invalid' },
+              next,
+            ],
+          }),
+        ],
+      });
+
+      await expect(api.getRecentOpenings({})).resolves.toEqual([
+        recentOpening,
+        next,
+      ]);
+    });
+
+    it.each([
+      { success: false, data: [] },
+      { success: true, data: null },
+    ])('rejects a malformed public openings response', async (body) => {
+      const { api } = setup({ responses: [createResponse(200, body)] });
+      await expect(api.getRecentOpenings({})).rejects.toMatchObject({
+        code: 'INVALID_RESPONSE',
+      });
+    });
+
     it('requests twenty openings across all packs by default', async () => {
       const { api, fetchMock } = setup({
         responses: [createResponse(200, { success: true, data: [] })],
@@ -134,7 +166,11 @@ describe('createPackPartnerApi', () => {
   });
   describe('getInventory', () => {
     it('reads a bounded page and encodes the pack and cursor', async () => {
-      const body = { nfts: [inventoryNft], hasMore: true, nextCursor: 'next' };
+      const body = {
+        nfts: [null, inventoryNft],
+        hasMore: true,
+        nextCursor: 'next',
+      };
       const { api, fetchMock } = setup({
         responses: [createResponse(200, body)],
       });
@@ -144,41 +180,55 @@ describe('createPackPartnerApi', () => {
         cursor: '450_mint&next',
       });
 
-      expect(result).toEqual(body);
+      expect(result).toEqual({ ...body, nfts: [inventoryNft] });
       expect(getRequest(fetchMock)).toMatchObject({
         method: 'GET',
         url: 'https://gacha.test/api/getNfts?code=pokemon_25&cursor=450_mint%26next&limit=20',
       });
     });
 
-    it('rejects a malformed inventory item', async () => {
-      const body = {
-        nfts: [{ ...inventoryNft, nft_address: 123 }],
-        hasMore: false,
-      };
+    it.each([
+      { reason: 'an invalid list', body: { nfts: null, hasMore: false } },
+      {
+        reason: 'an absent next cursor',
+        body: { nfts: [inventoryNft], hasMore: true },
+      },
+      {
+        reason: 'the current cursor',
+        body: { nfts: [inventoryNft], hasMore: true, nextCursor: 'current' },
+      },
+    ])('rejects $reason', async ({ body }) => {
       const { api } = setup({ responses: [createResponse(200, body)] });
 
-      const result = api.getInventory({ code: 'pokemon_25' });
+      const result = api.getInventory({
+        code: 'pokemon_25',
+        cursor: 'current',
+      });
 
-      await expect(result).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+      await expect(result).rejects.toMatchObject({
+        code: 'INVALID_RESPONSE',
+      });
     });
 
-    it.each([undefined, 'current'])(
-      'rejects a non-advancing inventory cursor (%j)',
-      async (nextCursor) => {
-        const body = { nfts: [inventoryNft], hasMore: true, nextCursor };
-        const { api } = setup({ responses: [createResponse(200, body)] });
+    it('preserves the next cursor when every item on the page is malformed', async () => {
+      const { api } = setup({
+        responses: [
+          createResponse(200, {
+            nfts: [{ ...inventoryNft, nft_address: 123 }],
+            hasMore: true,
+            nextCursor: 'next',
+          }),
+        ],
+      });
 
-        const result = api.getInventory({
-          code: 'pokemon_25',
-          cursor: 'current',
-        });
-
-        await expect(result).rejects.toMatchObject({
-          code: 'INVALID_RESPONSE',
-        });
-      },
-    );
+      await expect(
+        api.getInventory({ code: 'pokemon_25' }),
+      ).resolves.toMatchObject({
+        nfts: [],
+        hasMore: true,
+        nextCursor: 'next',
+      });
+    });
 
     it('accepts an empty last page', async () => {
       const { api } = setup({

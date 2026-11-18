@@ -2,9 +2,9 @@
  * Runtime validation of the PackPartner API payloads.
  *
  * Objects use `type()` so unknown fields are tolerated, and every field that
- * is not strictly needed is `optional`/`nullable`. Services validate list items:
- * the catalogue skips malformed machines; holdings reject incomplete lists
- * so reconciliation never removes a card because its metadata was rejected.
+ * is not strictly needed is `optional`/`nullable`. The client skips malformed
+ * items in public catalogues, openings and pack pools. Wallet holdings require
+ * a complete list so reconciliation cannot remove a card with malformed metadata.
  */
 import {
   array,
@@ -42,7 +42,7 @@ const NonEmptyStringStruct = refine(
 const AttributeValueStruct = coerce(
   string(),
   union([number(), boolean()]),
-  (value) => String(value),
+  String,
 );
 
 /** Lower-cased tier name, as used by `/machines`. */
@@ -185,7 +185,7 @@ export type PpWinner = Infer<typeof PpWinnerStruct>;
 
 export const PpWinnersResponseStruct = type({
   success: literal(true),
-  data: array(PpWinnerStruct),
+  data: array(unknown()),
 });
 
 // ---------- GET /getNfts ----------
@@ -201,7 +201,7 @@ export const PpInventoryNftStruct = type({
 export type PpInventoryNft = Infer<typeof PpInventoryNftStruct>;
 
 export const PpInventoryResponseStruct = type({
-  nfts: array(PpInventoryNftStruct),
+  nfts: array(unknown()),
   hasMore: boolean(),
   nextCursor: maybe(string()),
 });

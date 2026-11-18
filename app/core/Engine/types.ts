@@ -1,3 +1,8 @@
+import {
+  PackPartnerDataService,
+  type PackPartnerDataServiceActions,
+  type PackPartnerDataServiceEvents,
+} from '../../components/UI/Collectibles/services/data/PackPartnerDataService';
 // The `SamplePetnamesController` is only registered when
 // `INCLUDE_SAMPLE_FEATURE=true` (see Engine.ts and messengers/index.ts), so
 // this import must stay `import type` to avoid pulling the runtime module
@@ -734,6 +739,7 @@ export type GlobalActions =
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
+  | PackPartnerDataServiceActions
   | CollectiblesControllerActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
@@ -853,6 +859,7 @@ export type GlobalEvents =
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | PackPartnerDataServiceEvents
   | CollectiblesControllerEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
@@ -1003,6 +1010,7 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  PackPartnerDataService: PackPartnerDataService;
   CollectiblesController: CollectiblesController;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
@@ -1200,6 +1208,7 @@ export type MessengerClientsToInitialize =
   | 'TransactionPayController'
   | 'PerpsController'
   | 'PredictController'
+  | 'PackPartnerDataService'
   | 'CollectiblesController'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'

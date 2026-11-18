@@ -9,10 +9,11 @@ import {
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
 import type { AssetsControllerState } from '@metamask/assets-controller';
-import { Hex } from '@metamask/utils';
+import { createDeferredPromise, Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
+import { EarnController } from '@metamask/earn-controller';
 import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault, clearAllVaultBackups } from '../BackupVault';
@@ -132,6 +133,8 @@ describe('Engine', () => {
 
   beforeEach(() => {
     ReduxService.store = configureStore({});
+    // Earn startup fetches live lending markets, outside Engine orchestration.
+    jest.spyOn(EarnController.prototype, 'init').mockResolvedValue();
   });
 
   afterEach(async () => {
@@ -485,6 +488,48 @@ describe('Engine', () => {
     await engine.destroyEngineInstance();
     const newEngine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine).not.toStrictEqual(newEngine);
+  });
+
+  it('awaits collection storage cleanup before destroying service messengers', async () => {
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const cleanup = createDeferredPromise<void>();
+    const service = engine.context.PackPartnerDataService;
+    const clearCache = jest
+      .spyOn(service, 'clearCache')
+      .mockReturnValueOnce(cleanup.promise);
+    const destroy = jest.spyOn(service, 'destroy');
+
+    const destroying = Engine.destroyEngine();
+
+    expect(clearCache).toHaveBeenCalledTimes(1);
+    expect(destroy).not.toHaveBeenCalled();
+    cleanup.resolve();
+    await destroying;
+    expect(destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it('finishes clearing wallet data and destroys services when collection storage fails', async () => {
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const failure = new Error('Collection storage unavailable');
+    const service = engine.context.PackPartnerDataService;
+    jest.spyOn(service, 'clearCache').mockRejectedValueOnce(failure);
+    const clearCollectibles = jest.spyOn(
+      engine.context.CollectiblesController,
+      'clearState',
+    );
+    const clearTokens = jest.spyOn(
+      engine.context.TokensController,
+      'resetState',
+    );
+    const destroy = jest.spyOn(service, 'destroy');
+
+    const destroying = Engine.destroyEngine();
+
+    await expect(destroying).rejects.toThrow(failure.message);
+    expect(clearCollectibles).toHaveBeenCalledTimes(1);
+    expect(clearTokens).toHaveBeenCalledTimes(1);
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(EngineClass.instance).toBeNull();
   });
 
   // Use this to keep the unit test initial background state fixture up-to-date

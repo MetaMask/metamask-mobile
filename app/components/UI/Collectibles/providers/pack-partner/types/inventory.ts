@@ -23,7 +23,9 @@ export type PackPartnerInventoryCard = Pick<
   sourcePackCode?: string;
 };
 
-export interface PackPartnerInventoryPage {
+// Type aliases retain the implicit JSON object shape required by BaseDataService.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PackPartnerInventoryPage = {
   cards: PackPartnerInventoryCard[];
   nextCursor?: string;
-}
+};

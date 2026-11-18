@@ -16,6 +16,7 @@ and navigation presentation belong to `collectibles-rest`. Keep provider hooks
 independent of those helpers; expose structured data/errors and controller commands.
 
 - Client calls own HTTP validation only; never add generic transaction retries.
+- Read `services/data/README.md` before changing cache or storage. The data service owns server reads and collection snapshots; transaction orchestration arrives in 2.3.
 - Keep plural Collectibles feature names and neutral PackPartner vendor names.
 - Direct API keys are temporary pending the proxy: `PACK_PARTNER_DEVNET_API_KEY` is local development/devnet only. Never add a mainnet key or put it in CI/shared/release builds; keep the HTTP-client guard for explicit options too. Remove the workaround once proxy authentication is configured.
 - Never commit private endpoints/keys or a filesystem dependency on a local Snap.
