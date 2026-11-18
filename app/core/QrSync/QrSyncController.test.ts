@@ -121,7 +121,7 @@ const createSessionRequest = (
 });
 
 const createSyncReadyWireMessage = (
-  options: { privateKeyOnly?: boolean } = {},
+  options: { privateKeyOnly?: boolean; includeImportSummary?: boolean } = {},
 ): QrSyncSyncReadyMessage => {
   if (options.privateKeyOnly) {
     return {
@@ -176,6 +176,27 @@ const createSyncReadyWireMessage = (
           ],
         },
       ],
+      ...(options.includeImportSummary
+        ? {
+            qrSyncImportSummary: {
+              wallets: [
+                {
+                  id: 'demo-wallet-1',
+                  name: 'Wallet 1',
+                  accounts: [
+                    { id: 'demo-wallet-1/0', name: 'Account 1' },
+                    { id: 'demo-wallet-1/1', name: 'Account 2' },
+                  ],
+                },
+                {
+                  id: 'demo-wallet-2',
+                  name: 'Wallet 2',
+                  accounts: [{ id: 'demo-wallet-2/0', name: 'Account 3' }],
+                },
+              ],
+            },
+          }
+        : {}),
     },
   };
 };
@@ -542,7 +563,10 @@ describe('QrSyncController', () => {
 
       await startSession(controller, walletClient);
 
-      walletClient.emit('message', createSyncReadyWireMessage());
+      walletClient.emit(
+        'message',
+        createSyncReadyWireMessage({ includeImportSummary: true }),
+      );
       await flushPromises();
 
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
@@ -571,6 +595,18 @@ describe('QrSyncController', () => {
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       );
+      expect(controller.state.importSummary?.wallets).toEqual([
+        expect.objectContaining({
+          name: 'Wallet 1',
+          accounts: expect.arrayContaining([
+            expect.objectContaining({ name: 'Account 1' }),
+          ]),
+        }),
+        expect.objectContaining({
+          name: 'Wallet 2',
+          accounts: [expect.objectContaining({ name: 'Account 3' })],
+        }),
+      ]);
       expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
         type: QrSyncActionTypes.SYNC_COMPLETED,
         version: QrSyncMessageVersion.V1,

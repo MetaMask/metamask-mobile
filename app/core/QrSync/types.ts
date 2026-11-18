@@ -1,5 +1,6 @@
 import type { AccountTreePayload } from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
+import type { Json } from '@metamask/utils';
 
 import {
   QrSyncActionTypes,
@@ -96,12 +97,31 @@ export type QrSyncSyncOfferMessage = QrSyncMessage<QrSyncOffer> & {
   data: QrSyncOffer;
 };
 
+export type QrSyncImportSummaryAccount = Record<string, Json> & {
+  id: string;
+  name: string;
+};
+
+export type QrSyncImportSummaryWallet = Record<string, Json> & {
+  id: string;
+  name: string;
+  accounts: QrSyncImportSummaryAccount[];
+};
+
+export type QrSyncImportSummaryPayload = Record<string, Json> & {
+  wallets: QrSyncImportSummaryWallet[];
+};
+
+export type QrSyncReadyData = AccountTreePayload & {
+  qrSyncImportSummary?: QrSyncImportSummaryPayload;
+};
+
 /** Wire message sent by extension with the account tree import payload. */
 export interface QrSyncSyncReadyMessage {
   type: typeof QrSyncActionTypes.SYNC_READY;
   version: QrSyncMessageVersion;
   deadline: number;
-  data: AccountTreePayload;
+  data: QrSyncReadyData;
 }
 
 /** E2E-only: plaintext SRP sync-ready inject payload (HAS_TEST_OVERRIDES). */

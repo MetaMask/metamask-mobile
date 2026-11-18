@@ -72,6 +72,18 @@ export const selectQrSyncImportMnemonic = createSelector(
 export const selectQrSyncImportSummary = createSelector(
   selectQrSyncControllerState,
   (qrSyncState): QrSyncImportSummary => {
+    if (qrSyncState.importSummary) {
+      const { wallets } = qrSyncState.importSummary;
+      return {
+        accountCount: wallets.reduce(
+          (total, wallet) => total + wallet.accounts.length,
+          0,
+        ),
+        walletCount: wallets.length,
+        wallets,
+      };
+    }
+
     const payload =
       qrSyncState.provisioningMetadata ?? qrSyncState.pendingSecretImports;
     const wallets =

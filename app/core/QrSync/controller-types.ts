@@ -13,6 +13,7 @@ import type { KeyringControllerWithKeyringV2Action } from '@metamask/keyring-con
 import type {
   QrSyncConnectionStatus,
   QrSyncError,
+  QrSyncImportSummaryPayload,
   QrSyncOtpDisplay,
   QrSyncPhase,
   QrSyncProvisioningStatus,
@@ -31,6 +32,8 @@ export type QrSyncControllerState = {
   pendingSecretImports: AccountTreePayload | null;
   /** Persisted secrets-stripped payload for Phase C metadata provisioning. */
   provisioningMetadata: AccountTreePayload | null;
+  /** Display-only wallet grouping supplied by the extension picker. */
+  importSummary: QrSyncImportSummaryPayload | null;
   provisioningStatus: QrSyncProvisioningStatus | null;
   otp: QrSyncOtpDisplay | null;
   error: QrSyncError | null;

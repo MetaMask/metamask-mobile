@@ -22,6 +22,7 @@ import type {
   QrSyncConnectionStatus,
   QrSyncError,
   QrSyncErrorCode,
+  QrSyncImportSummaryPayload,
   QrSyncPhase,
   QrSyncServiceEvent,
   QrSyncTestSyncReadyPayload,
@@ -136,6 +137,12 @@ const metadata: StateMetadata<QrSyncControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
+  importSummary: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
   provisioningStatus: {
     persist: true,
     includeInDebugSnapshot: false,
@@ -150,6 +157,7 @@ export const defaultQrSyncControllerState: QrSyncControllerState = {
   syncFlow: null,
   pendingSecretImports: null,
   provisioningMetadata: null,
+  importSummary: null,
   provisioningStatus: null,
   otp: null,
   error: null,
@@ -531,10 +539,14 @@ export class QrSyncController extends BaseController<
     const isSyncReady =
       routedMessage.event.type === QrSyncActionTypes.SYNC_READY;
     let syncReadySnapshot: AccountTreeSnapshot | null = null;
+    let syncReadyImportSummary: QrSyncImportSummaryPayload | null = null;
     if (isSyncReady) {
       const { pendingPayload: wirePayload } = routedMessage;
       if (wirePayload) {
-        syncReadySnapshot = await AccountTreeSnapshot.deserialize(wirePayload);
+        const { qrSyncImportSummary, ...accountTreePayload } = wirePayload;
+        syncReadyImportSummary = qrSyncImportSummary ?? null;
+        syncReadySnapshot =
+          await AccountTreeSnapshot.deserialize(accountTreePayload);
       }
     }
 
@@ -549,6 +561,7 @@ export class QrSyncController extends BaseController<
           state.provisioningMetadata = syncReadySnapshot
             .stripSecrets()
             .serialize();
+          state.importSummary = syncReadyImportSummary;
           state.provisioningStatus =
             QrSyncProvisioningStatuses.AWAITING_PASSWORD;
         });
