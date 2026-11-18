@@ -90,30 +90,24 @@ const PredictRootParamsProbe = () => {
 };
 
 /**
- * The Order Flow over a probe screen. With `remoteFeatureFlags`, the
- * Predict root route is registered as a params probe, for the sheet's ways
- * out of the PredictNext stack.
+ * The Order Flow over a probe screen, with the Predict root route registered
+ * as a params probe for the sheet's ways out of the PredictNext stack.
  */
 export const renderPredictOrderFlow = (
   Component: React.ComponentType,
   { remoteFeatureFlags }: { remoteFeatureFlags?: Record<string, unknown> } = {},
 ) =>
-  remoteFeatureFlags
-    ? renderScreenWithRoutes(
-        withOrderFlow(Component),
-        { name: PredictNextRoutes.HOME },
-        [{ name: Routes.PREDICT.ROOT, Component: PredictRootParamsProbe }],
-        {
-          state: initialStatePredictNext()
-            .withRemoteFeatureFlags(remoteFeatureFlags)
-            .build(),
-        },
-      )
-    : renderComponentViewScreen(
-        withOrderFlow(Component),
-        { name: PredictNextRoutes.HOME },
-        { state: initialStatePredictNext().build() },
-      );
+  renderScreenWithRoutes(
+    withOrderFlow(Component),
+    { name: PredictNextRoutes.HOME },
+    [{ name: Routes.PREDICT.ROOT, Component: PredictRootParamsProbe }],
+    {
+      state: (remoteFeatureFlags
+        ? initialStatePredictNext().withRemoteFeatureFlags(remoteFeatureFlags)
+        : initialStatePredictNext()
+      ).build(),
+    },
+  );
 
 export const renderPredictNext = (
   privacyMode = false,

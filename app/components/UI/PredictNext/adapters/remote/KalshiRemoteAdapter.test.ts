@@ -120,7 +120,7 @@ describe('KalshiRemoteAdapter', () => {
 
     expect(result).toEqual({
       venueId: 'kalshi',
-      actions: ['buy', 'sell', 'deposit'],
+      actions: ['buy', 'sell'],
       feeds: {
         sports: 'sports-football-nfl-games',
         'nfl-games': 'sports-football-nfl-games',
@@ -144,13 +144,15 @@ describe('KalshiRemoteAdapter', () => {
     const { actions } = await adapter.marketData.fetchVenueCatalog();
 
     // Buy and sell are served by the trading capability, deposit by the
-    // funding capability. predictConfig.venues.kalshi.features.deposit gates
-    // the deposit client flow, not the catalog. There is no Claim capability.
+    // funding capability. KALSHI_STATIC_VENUE_CATALOG leaves 'deposit' off by
+    // default until the catalog enables it (PRED-1403);
+    // PREDICT_FUNDING_IMPLEMENTATIONS.next + catalog actions gate the flow.
+    // There is no Claim capability.
     expect(typeof adapter.trading.previewOrder).toBe('function');
     expect(typeof adapter.trading.commitOrder).toBe('function');
     expect(typeof adapter.funding.prepareDeposit).toBe('function');
     expect(adapter).not.toHaveProperty('claims');
-    expect([...actions].sort()).toEqual(['buy', 'deposit', 'sell']);
+    expect([...actions].sort()).toEqual(['buy', 'sell']);
   });
 
   it('parses canonical Events from the Predict API', async () => {

@@ -8,16 +8,18 @@
  * Kalshi V1: American football discovery, search, and buy and sell, plus the
  * Politics topic Feeds (Trump, Congress, Iran). The Categories are Sports and
  * Politics; `politics` is the Politics Category's Feed, which for V1 is Trump. No Claim (Kalshi settles
- * automatically). Deposit is listed (PRED-1161), but the client flow runs
- * only while `predictConfig.venues.kalshi.features.deposit` is on (see
- * `resolvePredictFunding`). No Withdraw until PRED-1163. `sports` is the Venue's
+ * automatically). Deposit stays off by default (`'deposit'` omitted from
+ * `actions`) until it is added to the catalog or `PRED-1403` ships the dynamic
+ * catalog; the client flow only runs when both
+ * `PREDICT_FUNDING_IMPLEMENTATIONS.next` and the catalog `actions` include
+ * `'deposit'` (see `resolvePredictFunding`). No Withdraw until PRED-1163. `sports` is the Venue's
  * general sports discovery Feed, which for V1 is NFL Games. Each Politics key
  * maps to the Feed ID of the same name (va-mmcx-predict-api#71). PRED-1403
  * replaces this with the Predict API catalog behind the same adapter method.
  */
 export const KALSHI_STATIC_VENUE_CATALOG = {
   venueId: 'kalshi',
-  actions: ['buy', 'sell', 'deposit'],
+  actions: ['buy', 'sell'],
   feeds: {
     sports: 'sports-football-nfl-games',
     'nfl-games': 'sports-football-nfl-games',

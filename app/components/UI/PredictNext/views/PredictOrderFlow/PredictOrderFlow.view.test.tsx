@@ -1158,7 +1158,7 @@ describe('PredictOrderFlow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('offers Add funds under an insufficient_balance quote when Kalshi deposits are on', async () => {
+  it('offers Add funds under an insufficient_balance quote when the Kalshi catalog includes deposit', async () => {
     stubFetch(() => ({
       status: 422,
       body: {
@@ -1166,18 +1166,11 @@ describe('PredictOrderFlow', () => {
         message: 'Estimated total debit exceeds the available balance.',
       },
     }));
-    renderPredictOrderFlow(BuyProbe, {
-      remoteFeatureFlags: {
-        predictConfig: {
-          enabled: true,
-          venues: {
-            polymarket: { enabled: false },
-            kalshi: { enabled: true, features: { deposit: true } },
-          },
-          venueSelection: { enabled: false },
-        },
-      },
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'deposit'],
     });
+    renderPredictOrderFlow(BuyProbe);
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
     await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
     typeAmount('20');
@@ -1198,7 +1191,7 @@ describe('PredictOrderFlow', () => {
     expect(screen.queryByTestId(PredictOrderFlowTestIds.SHEET)).toBeNull();
   });
 
-  it('offers no Add funds under an insufficient_balance quote while Kalshi deposits are off', async () => {
+  it('offers no Add funds under an insufficient_balance quote while the Kalshi catalog omits deposit', async () => {
     stubFetch(() => ({
       status: 422,
       body: {

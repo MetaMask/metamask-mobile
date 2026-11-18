@@ -13,10 +13,6 @@ import {
 
 export const DEFAULT_KALSHI_AUTH_PROFILE_ID = 'kalshi-a2t-v1';
 
-export interface PredictVenueFeatures {
-  deposit?: boolean;
-}
-
 /**
  * Rollout input to Active Venue resolution. See `docs/active-venue.md`.
  */
@@ -28,10 +24,7 @@ export interface PredictConfig {
   enabled: boolean;
   /** Per-Venue rollout; turning a Venue off is also its kill switch. */
   venues: {
-    polymarket: {
-      enabled: boolean;
-      features?: PredictVenueFeatures;
-    };
+    polymarket: { enabled: boolean };
     /**
      * `authProfileId` selects a bundled authentication profile (see
      * `resolveBundledAuthenticationProfile`) by id. Remote configuration may
@@ -40,11 +33,7 @@ export interface PredictConfig {
      * `DEFAULT_KALSHI_AUTH_PROFILE_ID`. An id this build does not bundle
      * leaves Kalshi authentication off.
      */
-    kalshi: {
-      enabled: boolean;
-      authProfileId?: string;
-      features?: PredictVenueFeatures;
-    };
+    kalshi: { enabled: boolean; authProfileId?: string };
   };
   /** Whether a Venue Selection Preference is honored. */
   venueSelection: { enabled: boolean };
@@ -60,22 +49,14 @@ export const DEFAULT_PREDICT_CONFIG: PredictConfig = {
 };
 
 const enabledSchema = object({ enabled: boolean() });
-const venueFeaturesSchema = object({
-  deposit: optional(boolean()),
-});
-const polymarketSchema = object({
-  enabled: boolean(),
-  features: optional(venueFeaturesSchema),
-});
 const kalshiSchema = object({
   enabled: boolean(),
   authProfileId: optional(string()),
-  features: optional(venueFeaturesSchema),
 });
 const predictConfigSchema = object({
   enabled: boolean(),
   venues: object({
-    polymarket: polymarketSchema,
+    polymarket: enabledSchema,
     kalshi: kalshiSchema,
   }),
   venueSelection: enabledSchema,
@@ -88,15 +69,6 @@ export const parsePredictConfig = (value: unknown): PredictConfig => {
     return DEFAULT_PREDICT_CONFIG;
   }
 };
-
-/**
- * Returns the per-Venue feature flags from `config` for `venue`.
- * Only `next` implementation Venues read these flags; `legacy` Venues ignore them.
- */
-export const getVenueFeatures = (
-  config: PredictConfig,
-  venue: keyof PredictConfig['venues'],
-): PredictVenueFeatures | undefined => config.venues[venue].features;
 
 /**
  * Resolves the bundled Kalshi authentication profile the config selects,

@@ -7,6 +7,7 @@ import { focusManager, onlineManager } from '@tanstack/react-query';
 import {
   composePredictNextOrderService,
   composePredictNextPortfolioTrading,
+  configurePredictNextCatalog,
   configurePredictNextFeeds,
   makePredictNextPlayerPropsEvent,
   makePredictNextPosition,
@@ -22,6 +23,7 @@ import {
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 // eslint-disable-next-line import-x/no-namespace -- spy on named `endTrace` export
 import * as Trace from '../../../../../util/trace';
@@ -191,7 +193,7 @@ describe('PredictPortfolioScreen', () => {
     expect(view.queryByText(/%/u)).not.toBeOnTheScreen();
   });
 
-  it('offers Add funds only when Kalshi deposits are on, and opens the deposit', async () => {
+  it('offers Add funds only when the Kalshi catalog includes deposit, and opens the deposit', async () => {
     const off = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
     await off.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
     expect(
@@ -199,21 +201,11 @@ describe('PredictPortfolioScreen', () => {
     ).not.toBeOnTheScreen();
     off.unmount();
 
-    const view = renderPredictPortfolioScreen(
-      { venueId: KALSHI_VENUE_ID },
-      false,
-      undefined,
-      {
-        predictConfig: {
-          enabled: true,
-          venues: {
-            polymarket: { enabled: false },
-            kalshi: { enabled: true, features: { deposit: true } },
-          },
-          venueSelection: { enabled: false },
-        },
-      },
-    );
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'deposit'],
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
     await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
 
     fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS));

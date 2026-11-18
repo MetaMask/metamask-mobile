@@ -260,7 +260,7 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('offers no funding actions while Kalshi deposits are off', async () => {
+  it('offers no funding actions while the Kalshi catalog omits deposit', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
@@ -272,19 +272,12 @@ describe('PredictHome', () => {
     expect(view.queryByText('Withdraw')).not.toBeOnTheScreen();
   });
 
-  it('opens the Kalshi deposit from Add funds when Kalshi deposits are on', async () => {
-    const view = renderPredictNext(false, {
-      remoteFeatureFlags: {
-        predictConfig: {
-          enabled: true,
-          venues: {
-            polymarket: { enabled: false },
-            kalshi: { enabled: true, features: { deposit: true } },
-          },
-          venueSelection: { enabled: false },
-        },
-      },
+  it('opens the Kalshi deposit from Add funds when the Kalshi catalog includes deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'deposit'],
     });
+    const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
     fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
