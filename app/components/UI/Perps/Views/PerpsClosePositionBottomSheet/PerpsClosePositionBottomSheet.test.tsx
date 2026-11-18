@@ -568,6 +568,31 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(siblings.indexOf(cursor)).toBeLessThan(siblings.indexOf(input));
     });
 
+    it('places the empty limit price cursor after the currency symbol', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      const currency = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURRENCY,
+      );
+      const cursor = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR,
+      );
+      const input = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+      );
+      const rowNodes = utils
+        .getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW)
+        .findAll((node) => typeof node.type === 'string');
+
+      expect(currency).toHaveTextContent('$');
+      expect(input).toHaveTextContent('0.00');
+      expect(rowNodes.indexOf(currency)).toBeGreaterThan(-1);
+      expect(rowNodes.indexOf(currency)).toBeLessThan(rowNodes.indexOf(cursor));
+      expect(rowNodes.indexOf(cursor)).toBeLessThan(rowNodes.indexOf(input));
+    });
+
     it('keeps the limit price cursor visible after digits are entered', () => {
       const utils = renderSheet();
 
@@ -578,7 +603,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         utils.getByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
         ),
-      ).toHaveTextContent('$3,100');
+      ).toHaveTextContent('3,100');
       expect(
         utils.getByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR,
@@ -626,7 +651,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         utils.getByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
         ),
-      ).toHaveTextContent('$0.00');
+      ).toHaveTextContent('0.00');
     });
 
     it('prompts to set a price instead of showing a zero limit after Done', () => {
@@ -756,7 +781,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         utils.getByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
         ),
-      ).toHaveTextContent('$3,100');
+      ).toHaveTextContent('3,100');
     });
 
     it('hides the limit price field again when switching back to market', () => {

@@ -56,16 +56,16 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
     ? value
     : formatLimitPriceInput(EMPTY_LIMIT_PRICE_DRAFT);
 
-  // A suffix-currency draft (`1.234,50 $` in German) keeps the caret after the
-  // digits, where it blinks in prefix-currency locales. Digits end before the
-  // first trailing run of non-numeric characters (the currency symbol).
-  const currencySuffixMatch = hasValue
-    ? /\s*[^\d.,\s]+\s*$/u.exec(displayValue)
-    : null;
-  const digitsValue = currencySuffixMatch
-    ? displayValue.slice(0, currencySuffixMatch.index)
-    : displayValue;
-  const currencySuffix = currencySuffixMatch?.[0] ?? '';
+  // Split the currency symbol off the digits so the caret sits next to the
+  // digits in prefix (`$1,234.50`) and suffix (`1.234,50 $`) locales alike:
+  // before them while the draft is empty, after them once a price is typed.
+  const currencyPrefix = /^\s*[^\d.,\s]+\s*/u.exec(displayValue)?.[0] ?? '';
+  const afterPrefix = displayValue.slice(currencyPrefix.length);
+  const currencySuffix = /\s*[^\d.,\s]+\s*$/u.exec(afterPrefix)?.[0] ?? '';
+  const digitsValue = afterPrefix.slice(
+    0,
+    afterPrefix.length - currencySuffix.length,
+  );
 
   const cursor = isEditing ? (
     <Animated.View
@@ -109,41 +109,39 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
               </Text>
             ) : (
               <>
-                {!hasValue ? cursor : null}
-                {currencySuffix ? (
-                  <>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={priceColor}
-                      testID={
-                        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
-                      }
-                    >
-                      {digitsValue}
-                    </Text>
-                    {cursor}
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={priceColor}
-                      testID={
-                        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURRENCY
-                      }
-                    >
-                      {currencySuffix}
-                    </Text>
-                  </>
-                ) : (
+                {currencyPrefix ? (
                   <Text
                     variant={TextVariant.BodyMd}
                     color={priceColor}
                     testID={
-                      PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
+                      PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURRENCY
                     }
                   >
-                    {displayValue}
+                    {currencyPrefix}
                   </Text>
-                )}
-                {hasValue && !currencySuffix ? cursor : null}
+                ) : null}
+                {hasValue ? null : cursor}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={priceColor}
+                  testID={
+                    PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
+                  }
+                >
+                  {digitsValue}
+                </Text>
+                {hasValue ? cursor : null}
+                {currencySuffix ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={priceColor}
+                    testID={
+                      PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURRENCY
+                    }
+                  >
+                    {currencySuffix}
+                  </Text>
+                ) : null}
               </>
             )}
           </Box>
