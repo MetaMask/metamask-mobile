@@ -229,7 +229,9 @@ module.exports = {
         // ratchet to 'error' once the BN.js → BigInt migration is complete).
         // Pairs with the `import-x/no-restricted-paths` fence on
         // `app/util/number/index.js` in the app import-fence override below.
-        '@typescript-eslint/no-deprecated': 'warn',
+        // Oxlint owns this rule. It is a warning in .oxlintrc.json and runs
+        // in type-aware mode (oxlint-tsgolint), so it is off here.
+        '@typescript-eslint/no-deprecated': 'off',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [

@@ -1,6 +1,9 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript"],
+  "options": {
+    "typeAware": true
+  },
   "categories": {
     "correctness": "off",
     "suspicious": "off",
@@ -41,6 +44,7 @@
     "react/rules-of-hooks": "error",
     "typescript/explicit-function-return-type": "warn",
     "typescript/no-empty-object-type": "warn",
+    "typescript/no-deprecated": "warn",
     "no-unused-vars": [
       "warn",
       {
@@ -57,7 +61,8 @@
     {
       "files": ["*.js", "*.jsx"],
       "rules": {
-        "no-unused-vars": "off"
+        "no-unused-vars": "off",
+        "typescript/no-deprecated": "off"
       }
     }
   ]

@@ -829,6 +829,7 @@
     "nyc": "^15.1.0",
     "openai": "^6.25.0",
     "oxlint": "^1.93.0",
+    "oxlint-tsgolint": "^7.0.2007",
     "patch-package": "^6.2.2",
     "playwright": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
     "prettier": "^3.6.2",
