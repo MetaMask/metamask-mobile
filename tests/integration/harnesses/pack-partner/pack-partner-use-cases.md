@@ -1,12 +1,32 @@
-# Pack Partner read-service use cases
+# Collectibles / PackPartner use cases
 
-| Flow                                    | Primary layer | Observable outcome                                                                             |
-| --------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------- |
-| Catalogue, inventory and openings reads | Integration   | Validated HTTP payloads become query results; concurrent reads coalesce.                       |
-| Owned collection pagination             | Integration   | All pages load as one complete collection; failed pages do not publish a partial snapshot.     |
-| Snapshot, restart and offline read      | Integration   | Standard StorageService restores the last complete collection, isolated by wallet and network. |
-| Reset during a write                    | Integration   | Earlier writes drain before deletion; old wallet data cannot reappear.                         |
-| Read retries and cancellation           | Integration   | Only read policy retries; cancellation does not publish stale results.                         |
+| Flow                                                                 | Primary layer | Observable outcome                                                                                                                                         |
+| -------------------------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public catalogue → purchase → Snap signature → reveal                | Integration   | Provider request shapes and opaque transaction passthrough open the pack; the card is the operation's result; no signed bytes in state.                    |
+| Catalogue price → purchase signature                                 | Integration   | The Snap signs the pack's `priceAmount` (USDC base units); a malformed or zero amount fails before HTTP or signing.                                        |
+| Award with a cached owned-card read                                  | Integration   | The cards API is read again and `cacheUpdated:<hash>` republishes the owned cards with the new card.                                                       |
+| Owned-card background entry collected → award                        | Integration   | The provider refresh still re-reads the owned cards and a UI query observer shows the new card.                                                            |
+| Multipack / Turbo → restart                                          | Integration   | Each pack is signed once; Turbo payouts appear on the results; persisted results complete without HTTP or signing.                                         |
+| Collection snapshot → restart / offline / failed refresh             | Integration   | Real StorageService with its memory adapter; last complete collection survives restart, wallet/network scope is isolated, and reset drains earlier writes. |
+| Owned cards per account                                              | Integration   | The data service reads the PackPartner cards API without embedding offers; controller state is never written.                                              |
+| Interrupted reveal → restart → recovery                              | Integration   | The same paid pack opens without another purchase or signature.                                                                                            |
+| Submitted purchase → persisted projection → restart                  | Integration   | The projection holds no signed bytes; recovery resolves the memo through `/pack/status` without signing or submitting again.                               |
+| Persisted submitted purchase → wallet unlock                         | Integration   | The unlock event resumes the purchase by memo; nothing is signed or submitted.                                                                             |
+| Submission attempt → lost response → restart within opening window   | Integration   | The purchase stays `submitted` and cannot be dismissed until the opening succeeds; no payment is sent twice.                                               |
+| Submitted purchase → pack status unpaid after the 2 h opening window | Integration   | The purchase becomes `expired` from its pack status, without polling `/openPack`.                                                                          |
+| Confirmed payment → restart after the opening window                 | Integration   | A paid pack stays `paid` (`OPEN_PENDING`) while its pack status is paid or still unpaid, then opens from the delivered pack status.                        |
+| Submission refused with 4xx                                          | Integration   | Submission stays uncertain until pack status resolves it; an HTTP error alone never proves non-payment.                                                    |
+| Legacy `signed` purchase → restart                                   | Integration   | Restored as `submitted` without its signed bytes, with a `priceAmount` derived from its price; recovered by memo, never submitted.                         |
+| Buyback → completion                                                 | Integration   | Fresh offer check, Snap receives the caller's NFT standard, the receipt is `completed`; owned-card and offer reads are refreshed.                          |
+| Fresh offer below the cached offer                                   | Integration   | `OFFER_CHANGED`, nothing signed, and the cached offer read is republished with the new amount.                                                             |
+| Buyback transaction → refund below confirmed amount                  | Integration   | `OFFER_CHANGED`, nothing signed, no buyback operation stored.                                                                                              |
+| Bulk sale → signing rejection → retry                                | Integration   | Completed sales are kept and skipped; only unsold cards are signed again.                                                                                  |
+| Submitted buyback → restart → `/buyback/check`                       | Integration   | The sale stays pending until the check completes it; nothing is signed or submitted again.                                                                 |
+| Pending buyback → `/buyback/check` reports it does not exist         | Integration   | The operation is forgotten and a new sale can start.                                                                                                       |
+| Pending buyback → retry from the card                                | Integration   | The retry resolves through `/buyback/check` only, without signing or submitting.                                                                           |
+| Pending buyback → sale status check while a purchase waits           | Integration   | `checkSales` completes the sale through `/buyback/check` alone, without opening, polling or signing the purchase.                                          |
+| Buyback quote → interrupted signature → restart                      | Integration   | A known unsubmitted quote is replaced by a new sale.                                                                                                       |
+| Wallet reset during pack generation or signing                       | Integration   | No stale state is restored and no signed transaction is submitted for the reset wallet.                                                                    |
+| Owned-card read mapping, offer window, retries                       | Integration   | Covered by `PackPartnerDataService.integration.test.ts`.                                                                                                   |
 
-Tests use the real client, data service, query bridge and storage messenger with
-HTTP and disk I/O mocked. No product screen or device transaction is involved.
+Layer choice: these flows test Collectibles controller/provider/data-service contracts, without screen rendering or device behavior. Unit tests retain exhaustive local transition and schema cases.

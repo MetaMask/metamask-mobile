@@ -239,22 +239,6 @@ describe('persistConfig', () => {
       jest.clearAllMocks();
     });
 
-    it('discovers Collectibles state through its registered stateChanged event', async () => {
-      jest
-        .mocked(FilesystemStorage.getItem)
-        .mockImplementation(async (key) =>
-          key === 'persist:CollectiblesController'
-            ? JSON.stringify({ _persist: { version } })
-            : undefined,
-        );
-
-      const result = await ControllerStorage.getAllPersistedState();
-
-      expect(result).toEqual({
-        backgroundState: { CollectiblesController: {} },
-      });
-    });
-
     it('returns empty backgroundState for fresh install (no persisted data)', async () => {
       (FilesystemStorage.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -409,6 +393,31 @@ describe('persistConfig', () => {
           message: 'Failed to gather controller states',
         }),
       );
+    });
+  });
+
+  it('persists and restores Collectibles through the standard controller file', async () => {
+    const files = new Map<string, string>();
+    jest
+      .mocked(FilesystemStorage.getItem)
+      .mockImplementation(async (key) => files.get(key));
+    jest
+      .mocked(FilesystemStorage.setItem)
+      .mockImplementation(async (key, value) => {
+        files.set(key, value);
+      });
+    const state = {
+      packPartnerEnvironment: 'devnet',
+      packPartner: { operations: {}, sales: {} },
+    };
+    const persist = createPersistController();
+
+    await persist(state, 'CollectiblesController');
+    const restored = await ControllerStorage.getAllPersistedState();
+
+    expect([...files.keys()]).toEqual(['persist:CollectiblesController']);
+    expect(restored).toEqual({
+      backgroundState: { CollectiblesController: state },
     });
   });
 

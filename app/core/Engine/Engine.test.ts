@@ -1366,6 +1366,37 @@ describe('Engine', () => {
   });
 
   describe('resetState', () => {
+    // The CV and domain integration harnesses replace Engine. Exercise the
+    // real Engine reset ordering here, isolating the asynchronous Snap cleanup.
+    it('invalidates Collectibles work before waiting for the Snap reset', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const snapReset = createDeferredPromise<void>();
+      const clearSnap = jest
+        .spyOn(engine.context.SnapController, 'clearState')
+        .mockReturnValueOnce(snapReset.promise);
+      const clearCollectibles = jest.spyOn(
+        engine.context.CollectiblesController,
+        'clearState',
+      );
+      const clearReads = [engine.context.PackPartnerDataService].map(
+        (service) => jest.spyOn(service, 'clearCache'),
+      );
+
+      const reset = engine.resetState();
+
+      expect(clearCollectibles).toHaveBeenCalledWith();
+      expect(clearCollectibles.mock.invocationCallOrder[0]).toBeLessThan(
+        clearSnap.mock.invocationCallOrder[0],
+      );
+      clearReads.forEach((clearCache) => {
+        expect(clearCache.mock.invocationCallOrder[0]).toBeLessThan(
+          clearSnap.mock.invocationCallOrder[0],
+        );
+      });
+      snapReset.resolve();
+      await reset;
+    });
+
     it('calls MoneyAccountController.clearState', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest

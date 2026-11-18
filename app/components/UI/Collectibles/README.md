@@ -46,47 +46,45 @@ Visibility does not depend on the selected account or its network. See the
 
 ## Pack Partner integration
 
-Step 2.1 introduces the validated `PackPartnerApiClient`, transport errors,
-response schemas, shared contracts and environment configuration. The client
-supports the read and transaction endpoints; it does not schedule reads, cache
-responses, sign transactions or automatically replay financial commands.
-All settlement amounts are exact decimal strings of USDC base units (six decimals).
+This PR builds on module initialization. It adds the Pack Partner client, cached
+reads, transaction workflow and persisted operation journal. React hooks arrive in step 2.4.
+The placeholder screen and homepage entry remain unchanged. Social and Collectibles
+API services, mocks and product screens belong to later PRs.
 
-Step 2.2 adds `PackPartnerDataService`, extending `BaseDataService`, and registers
-it in Engine with its messenger and query keys. It owns read caching, coalescing,
-bounded read retries and collection-only persistence through `StorageService`.
-The catalogue stays transient; a complete owned collection is loaded in pages of
-500 and its last successful snapshot is restored for offline display. Reset clears
-snapshots and drains writes before service messengers are destroyed.
-See [read-service policies](services/data/README.md).
+The provider boundary has no toast, localized error copy, onboarding state,
+portfolio totals or wallet navigation changes. The provider exposes structured data and operation state; future views choose how to present results. The controller exposes
+`sellCard` through its messenger without depending on a mounted toaster or screen.
+The UI sale adapter, translations and display helpers belong to `collectibles-rest`.
+USDC base-unit conversion remains here because provider reads and signing use it.
 
-The controller remains the empty initialization shell. Transaction orchestration
-and its journal arrive in step 2.3; React hooks and balance reads arrive in 2.4.
-The homepage entry and placeholder screen are unchanged.
+```text
+Read actions → PackPartnerDataService → PackPartnerApiClient
+Commands → CollectiblesController → PackPartnerProvider → PackPartnerApiClient
+```
 
-## Controller registration and persistence
+The provider keeps the existing `PackPartnerProvider` naming used by the client,
+models and companion Snap. Application-facing types are aliases of Pack Partner
+models, not duplicate schemas or runtime mappers.
 
-`CollectiblesController` extends `BaseController` with an empty state. Engine
-creates its messenger and controller, passes `persistedState.CollectiblesController`
-(or the default state), and exposes it through `Engine.context` and `Engine.state`.
-The standard `getState` action and `stateChanged` event connect it to Redux and
-the existing controller storage discovery. Wallet reset calls `clearState`.
-Controller state is excluded from exported state logs.
+### Controller registration and persistence
 
-This preserves the standard persistence and restoration wiring. There are no
-persisted fields yet: `metadata` is empty, so `EngineService` has nothing to write
-to disk. Future state fields must declare their persistence metadata and default
-values. Do not introduce a custom storage implementation, immediate disk flush,
-or migration from the unreleased Gacha prototype.
+Engine registers `CollectiblesController` through its messenger and registers
+`PackPartnerDataService` as a stateless service.
+The controller persists an environment-isolated journal of purchases,
+openings, reveal progress and buybacks through standard controller metadata and
+Engine storage. Signed transaction bytes stay in memory. Unlock triggers recovery
+by memo; no financial network request is started during initialization.
 
-Implementation references:
+Display data stays outside the controller. The read service persists only the last
+successful complete owned collection through the standard `StorageService`, keyed
+by environment and wallet. Reset clears that snapshot and invalidates in-flight
+work before asynchronous Snap cleanup; storage cleanup finishes before services
+are destroyed. There is no migration from the unreleased Gacha prototype.
 
-- [Engine initializer](../../../core/Engine/controllers/collectibles-controller/index.ts)
-- [Messenger registration](../../../core/Engine/messengers/collectibles-controller-messenger/index.ts)
-- [Engine persistence](../../../core/EngineService/EngineService.ts)
-- [Controller storage](../../../store/persistConfig/index.ts)
+See [read and command policies](services/data/README.md) and
+[recovery guarantees](services/data/recovery-persistence.md).
 
-### Environment
+### Environment and signing
 
 `MM_COLLECTIBLES_ENVIRONMENT` selects `devnet` or `mainnet`. When unset, development
 builds default to devnet and other builds to mainnet. Configure
@@ -95,7 +93,15 @@ local configuration. Empty endpoints disable partner calls; see `.js.env.example
 
 `PACK_PARTNER_DEVNET_API_KEY` is a **temporary local-development workaround until the proxy is configured**. Set it only in the ignored local `.js.env`, never in CI, shared builds or release configuration. The client sends `x-api-key` only in a development build on devnet, and only to the packs API, never the cards API. Mainnet and release builds ignore any key, including an explicit client option; there is no mainnet key variable. An empty key preserves public access. Remove this workaround when authentication moves behind the proxy. Configuration and transport tests cover the development/environment combinations.
 
-Signing is not wired at this step. The published Solana Snap dependency is unchanged.
+USDC transaction amounts are decimal strings of base units (six decimals).
+Balance hooks and the devnet balance adapter arrive in step 2.4.
+
+Signing requires the companion Snap's `signPackPartnerBuy` and
+`signPackPartnerBuyback` methods. This branch retains the repository's published
+Snap dependency; it does not commit a developer filesystem dependency. Until a
+release contains those methods, purchases fail with `SNAP_UNSUPPORTED`. Real
+purchase validation requires the coordinated Snap release or an explicit local
+build override; automated tests mock signing and never spend funds.
 
 Collectibles does not extend QuickBuy. Future product screens must disable Buy
 when Solana USDC is insufficient and keep alternate-token payment disabled until
@@ -118,9 +124,14 @@ These rules follow from it:
   [component scaffold](../../../../.agents/skills/mms-component-scaffold/SKILL.md)
   requires one. Never use `export *` in either: Metro does not tree-shake
   barrels, so importing one symbol evaluates the whole file at startup.
-- **Internal files have explicit names and direct imports.** Provider contracts,
-  schemas, constants and utilities have named files; do not introduce barrels.
-  Shared contracts are not duplicate runtime schemas or mappers.
+- **Internal files have explicit names and direct imports.** Use
+  `selectors/account.ts`, `selectors/packPartner.ts`, `types/packPartner.ts`,
+  `schemas/packPartner.ts`, `constants/packPartner.ts` and
+  `constants/environment.ts` inside the provider. Import `PackPartnerProvider`
+  from `PackPartnerProvider.ts` and journal helpers from `state.ts`; there is no
+  provider barrel. Application type aliases live in `types/collectibles.ts`;
+  this compile-time contract is the deliberate alias boundary, not a runtime
+  aggregator. Do not replace a deleted barrel with a differently named one.
 - **Composition wiring is listed, not re-exported.** Engine init, its
   messenger, `Engine.types` and the navigation param list have to reach inside
   the module. They are named in the fence's composition allowlist, so the
@@ -135,16 +146,16 @@ services. Preserve the initialization branch's public entry points.
 
 ## Test layer placement
 
-Client, schema and amount tests exercise transport and pure validation with HTTP
-mocked. There is no new screen behavior requiring component-view or device tests.
-Service integration tests run the real HTTP validation, `BaseDataService`,
-query bridge and `StorageService` with HTTP and disk I/O substituted. They cover
-cache policy, full pagination, offline restart and reset races. Engine tests cover
-registration and storage cleanup ordering. They do not prove native disk durability.
+Integration tests exercise real client validation, service caching/storage and
+controller/provider workflows with HTTP, Snap and storage boundaries mocked.
+Unit tests cover parsers, amounts, guard contracts, state restoration. Hooks and their query harness arrive in step 2.4. Existing
+init component-view tests remain the navigation regression check. No device E2E
+or real transaction is required for this extraction.
 
 ```sh
-yarn jest app/components/UI/Collectibles/services app/components/UI/Collectibles/providers --runInBand --coverage=false
-yarn jest -c jest.config.integration.js app/components/UI/Collectibles/services --runInBand --coverage=false
+yarn jest app/components/UI/Collectibles/providers app/components/UI/Collectibles/controllers app/components/UI/Collectibles/services app/core/Engine/controllers/collectibles-controller app/core/Engine/controllers/collectibles-data-services-init.test.ts app/core/Engine/messengers/collectibles-controller-messenger app/core/Engine/messengers/collectibles-data-services-messenger.test.ts --runInBand --coverage=false
+yarn jest -c jest.config.integration.js app/components/UI/Collectibles --runInBand --coverage=false
+yarn jest -c jest.config.view.js app/components/Views/Homepage/Sections/Collectibles --runInBand --coverage=false
 ```
 
 ### Test conventions

@@ -26,6 +26,7 @@ export const mockedEngine = {
     }),
   },
   context: {
+    CollectiblesController: {},
     AccountsController: {
       state: {
         internalAccounts: {

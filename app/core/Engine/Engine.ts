@@ -1361,7 +1361,8 @@ export class Engine {
     // Remove all permissions.
     PermissionController?.clearState?.();
 
-    // Clear read caches before asynchronous cleanup can yield.
+    // Invalidate signed Collectibles work before asynchronous cleanup can yield.
+    CollectiblesController.clearState();
     const collectiblesCacheReset =
       this.context.PackPartnerDataService.clearCache();
     await Promise.all([collectiblesCacheReset, SnapController.clearState()]);
@@ -1437,9 +1438,6 @@ export class Engine {
     // The Venue Selection Preference and the last Active Venue are device
     // Venue history, not the next person's choice.
     PredictVenueController.clearState();
-
-    // Collectibles:
-    CollectiblesController.clearState();
   };
 
   removeAllListeners() {

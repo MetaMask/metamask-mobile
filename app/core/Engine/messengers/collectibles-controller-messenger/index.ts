@@ -11,10 +11,12 @@ import {
 import type { RootMessenger } from '../../types';
 
 /**
- * Connects Collectibles to Engine without granting external controller access.
+ * Messenger of the CollectiblesController. The Solana Snap request signs
+ * purchases and buybacks; the data-service invalidation refreshes the reads a
+ * terminal outcome changed; the unlock event resumes interrupted operations.
  *
- * @param rootMessenger - The Engine messenger.
- * @returns The Collectibles controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The CollectiblesController messenger.
  */
 export function getCollectiblesControllerMessenger(
   rootMessenger: RootMessenger<
@@ -22,8 +24,17 @@ export function getCollectiblesControllerMessenger(
     MessengerEvents<CollectiblesControllerMessenger>
   >,
 ): CollectiblesControllerMessenger {
-  return new Messenger({
+  const messenger: CollectiblesControllerMessenger = new Messenger({
     namespace: COLLECTIBLES_CONTROLLER_NAME,
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: [
+      'SnapController:handleRequest',
+      'PackPartnerDataService:invalidateQueries',
+    ],
+    events: ['KeyringController:unlock'],
+    messenger,
+  });
+  return messenger;
 }

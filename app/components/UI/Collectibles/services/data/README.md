@@ -21,11 +21,18 @@ Follows ADR 0020 and PredictNext's read-service / workflow separation.
 
 ## Commands are not cached reads
 
-This service exposes server reads only. Financial commands must use the validated
-client directly: generated payments expire, submission failures can be ambiguous,
-and read-cache retry policies must never replay a payment. The provider/controller
-workflow and its recovery journal arrive in step 2.3. The controller at this step
-still has only its initialization state; collection snapshots belong solely to
-`StorageService`, scoped by wallet and environment.
+`CollectiblesController` delegates commands to `PackPartnerProvider`, which uses
+its own instance of the same validated API client. Generated payments expire;
+creating or submitting transactions must not inherit read-cache or automatic retry
+policies. An uncertain broadcast is reconciled by its memo, not replaced with a
+new payment. Opening uses bounded, explicit same-memo polling. Buyback creation
+uses a fresh offer and validates the expected refund. Recovery observes existing
+operations. Terminal outcomes invalidate affected owned-card and quote families.
 
-Social and Collectibles API services are outside this stack.
+The client owns transport and response validation. The provider owns transaction
+orchestration and reconciliation; the DataService owns display reads. This is the
+same distinction as PredictNext's order workflow, with Pack Partner-specific
+expiry, submission uncertainty and buyback acceptance constraints.
+
+See [recovery and persistence](recovery-persistence.md) for the journal contract.
+Social and Collectibles API read services are intentionally absent from this PR.
