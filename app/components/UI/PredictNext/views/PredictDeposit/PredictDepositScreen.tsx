@@ -352,6 +352,7 @@ export const PredictDepositScreen = (): React.JSX.Element => {
       {sheet ? (
         <DepositInProgressSheet
           deposit={sheet.deposit}
+          hasSubmittedTransfer={flow.hasSubmittedTransfer(sheet.deposit)}
           isCancelling={sheet.isCancelling}
           cancelFailed={sheet.cancelFailed}
           onContinue={continueOpenDeposit}

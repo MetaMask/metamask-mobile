@@ -24,4 +24,17 @@ export {
   type DepositOutcome,
   type DepositWorkflowDeps,
 } from './deposit/runDeposit';
+export {
+  clearAllSessionDepositTransfers,
+  clearSessionDepositTransfer,
+  clearSessionDepositTransfersForOperation,
+  findMatchingDepositTransaction,
+  getSessionDepositTransfer,
+  isKnownFailedDepositHash,
+  recordSessionDepositTransfer,
+  waitForPendingDepositTransaction,
+  type DepositTransactionMessenger,
+  type ExistingDepositTransfer,
+} from './deposit/reconcileDepositTransfer';
+export { checkDepositPlan } from './deposit/checkDepositPlan';
 export { toUsdcBaseUnits } from './deposit/usdcTransfer';

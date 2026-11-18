@@ -1,3 +1,4 @@
+import { TransactionStatus } from '@metamask/transaction-controller';
 import type { PredictDepositNetwork } from '../../config/depositEnvironment';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
@@ -7,6 +8,7 @@ import type {
   PredictDepositTransferParams,
   PredictFundingPlan,
   PredictHex,
+  PredictTimestamp,
 } from '../../types';
 import {
   checkDepositPlan,
@@ -16,6 +18,7 @@ import type {
   DepositTransferExecutor,
   SubmittedDepositTransfer,
 } from './depositTransferExecutor';
+import type { ExistingDepositTransfer } from './reconcileDepositTransfer';
 import { decodeUsdcTransfer, toUsdcBaseUnits } from './usdcTransfer';
 
 /**
@@ -53,6 +56,30 @@ export interface DepositWorkflowDeps {
   /** Whether the wallet's error means the user rejected the transfer. */
   isUserRejection: (error: unknown) => boolean;
   logError: (error: unknown, message: string) => void;
+  /**
+   * Looks up an already-created wallet transfer for this deposit and identity
+   * (either already submitted/confirmed with a hash, or still pending
+   * approval/signing) before broadcasting a new one.
+   */
+  findExistingTransfer?: (query: {
+    operationId: string;
+    from: PredictHex;
+    plan: PredictFundingPlan;
+    createdAt: PredictTimestamp;
+  }) => ExistingDepositTransfer | undefined;
+  /** Called once a transfer pays the plan and is ready to report. */
+  onTransferSubmitted?: (info: {
+    operationId: string;
+    from: PredictHex;
+    plan: PredictFundingPlan;
+    transfer: SubmittedDepositTransfer;
+  }) => void;
+  /** Called once `reportDepositTransfer` settles the transfer on the backend. */
+  onTransferReported?: (info: {
+    operationId: string;
+    from: PredictHex;
+    plan: PredictFundingPlan;
+  }) => void;
 }
 
 /**
@@ -168,10 +195,76 @@ const awaitFundingPlan = async (
 };
 
 /**
+ * In-instance memory of submitted transfers keyed by `deps.funding`, so a
+ * repeat `payDeposit` after a lost `reportDepositTransfer` reuses the hash
+ * instead of broadcasting a second transfer.
+ */
+const submittedByFunding = new WeakMap<
+  DepositFunding,
+  Map<string, SubmittedDepositTransfer>
+>();
+
+const transferMemoryKey = (
+  from: PredictHex,
+  operationId: string,
+  plan: PredictFundingPlan,
+): string => {
+  const baseUnits = toUsdcBaseUnits(plan.amount)?.toString() ?? plan.amount;
+  return [
+    from.toLowerCase(),
+    operationId,
+    plan.chainId,
+    plan.tokenContract.toLowerCase(),
+    plan.depositAddress.toLowerCase(),
+    baseUnits,
+  ].join(':');
+};
+
+const getRecordedTransfer = (
+  funding: DepositFunding,
+  from: PredictHex,
+  operationId: string,
+  plan: PredictFundingPlan,
+): SubmittedDepositTransfer | undefined =>
+  submittedByFunding
+    .get(funding)
+    ?.get(transferMemoryKey(from, operationId, plan));
+
+const recordTransfer = (
+  funding: DepositFunding,
+  from: PredictHex,
+  operationId: string,
+  plan: PredictFundingPlan,
+  transfer: SubmittedDepositTransfer,
+): void => {
+  let map = submittedByFunding.get(funding);
+  if (!map) {
+    map = new Map();
+    submittedByFunding.set(funding, map);
+  }
+  map.set(transferMemoryKey(from, operationId, plan), transfer);
+};
+
+const extractPlan = (deposit: PredictDepositOperation): PredictFundingPlan => {
+  const { next } = deposit;
+  if (next?.kind !== 'wallet_transfer') {
+    throw new Error('Expected wallet_transfer Funding Plan');
+  }
+  return {
+    chainId: next.chainId,
+    tokenContract: next.tokenContract,
+    amount: next.amount,
+    depositAddress: next.depositAddress,
+    planExpiresAt: next.planExpiresAt,
+  };
+};
+
+/**
  * Pays an open deposit's Funding Plan: checks the plan against the amount
- * the user approved and the build's constants, sends the transfer, checks
- * the submitted call data still pays the plan, and reports the hash. A
- * refused plan, a rejection or a failed transfer cancels the deposit.
+ * the user approved and the build's constants, reconciles any already-created
+ * transfer for the deposit and identity before sending a new one, checks the
+ * submitted call data still pays the plan, and reports the hash. A refused
+ * plan, a rejection or a failed transfer cancels the deposit.
  */
 export const payDeposit = async (
   deps: DepositWorkflowDeps,
@@ -184,32 +277,65 @@ export const payDeposit = async (
     walletAddresses: deps.walletAddresses,
     now: deps.now(),
   });
-  if (!check.ok) {
+  if (!check.ok && check.reason !== 'expiry') {
     await cancelQuietly(deps, deposit);
     return { kind: 'plan_mismatch', reason: check.reason };
   }
-  const { plan } = check;
+  const plan = check.ok ? check.plan : extractPlan(deposit);
+
+  const recorded = getRecordedTransfer(
+    deps.funding,
+    deps.from,
+    deposit.operationId,
+    plan,
+  );
+  const existingFromDeps = deps.findExistingTransfer?.({
+    operationId: deposit.operationId,
+    from: deps.from,
+    plan,
+    createdAt: deposit.createdAt,
+  });
+  const existing: ExistingDepositTransfer | undefined =
+    existingFromDeps ??
+    (recorded ? { kind: 'submitted', transfer: recorded } : undefined);
+
+  if (
+    !check.ok &&
+    (!existing ||
+      (existing.kind === 'pending' &&
+        existing.status === TransactionStatus.unapproved))
+  ) {
+    await cancelQuietly(deps, deposit);
+    return { kind: 'plan_mismatch', reason: check.reason };
+  }
 
   let submitted: SubmittedDepositTransfer;
-  try {
-    submitted = await deps.executor.send({
-      from: deps.from,
-      chainId: plan.chainId,
-      tokenContract: plan.tokenContract,
-      recipient: plan.depositAddress,
-      amount: plan.amount,
-    });
-  } catch (error) {
-    await cancelQuietly(deps, deposit);
-    if (deps.isUserRejection(error)) {
-      return { kind: 'rejected' };
+  if (existing?.kind === 'submitted') {
+    submitted = existing.transfer;
+  } else {
+    try {
+      submitted =
+        existing?.kind === 'pending'
+          ? await existing.wait()
+          : await deps.executor.send({
+              from: deps.from,
+              chainId: plan.chainId,
+              tokenContract: plan.tokenContract,
+              recipient: plan.depositAddress,
+              amount: plan.amount,
+            });
+    } catch (error) {
+      await cancelQuietly(deps, deposit);
+      if (deps.isUserRejection(error)) {
+        return { kind: 'rejected' };
+      }
+      deps.logError(error, 'PredictNext: the deposit transfer failed');
+      return {
+        kind: 'failed',
+        stage: 'transfer',
+        error: PredictError.from(PredictErrorCode.DEPOSIT_FAILED),
+      };
     }
-    deps.logError(error, 'PredictNext: the deposit transfer failed');
-    return {
-      kind: 'failed',
-      stage: 'transfer',
-      error: PredictError.from(PredictErrorCode.DEPOSIT_FAILED),
-    };
   }
 
   if (!paysPlan(submitted, plan)) {
@@ -226,11 +352,24 @@ export const payDeposit = async (
     };
   }
 
+  recordTransfer(deps.funding, deps.from, deposit.operationId, plan, submitted);
+  deps.onTransferSubmitted?.({
+    operationId: deposit.operationId,
+    from: deps.from,
+    plan,
+    transfer: submitted,
+  });
+
   try {
     const reported = await deps.funding.reportDepositTransfer(
       deposit.operationId,
       { txHash: submitted.txHash, chainId: plan.chainId },
     );
+    deps.onTransferReported?.({
+      operationId: deposit.operationId,
+      from: deps.from,
+      plan,
+    });
     return { kind: 'submitted', deposit: reported, reported: true };
   } catch (error) {
     if (

@@ -5,6 +5,7 @@ import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { PredictError, PredictErrorCode } from '../errors';
 import type { VenueFundingAdapter } from '../adapters/types';
+import { clearAllSessionDepositTransfers } from '../funding';
 import { portfolioQueries } from '../queries/portfolioQueries';
 import type {
   PredictDepositApproval,
@@ -336,6 +337,7 @@ export class PredictFundingService {
     this.#generation += 1;
     this.#known.clear();
     this.#preparing.clear();
+    clearAllSessionDepositTransfers(this.#venueId);
   }
 
   destroy(): void {

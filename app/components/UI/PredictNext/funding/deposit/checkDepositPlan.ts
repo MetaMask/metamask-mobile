@@ -94,13 +94,6 @@ export const checkDepositPlan = (
   if (!isValidHexAddress(plan.depositAddress)) {
     return { ok: false, reason: 'address' };
   }
-  const expiresAt = Date.parse(plan.planExpiresAt);
-  if (
-    Number.isNaN(expiresAt) ||
-    expiresAt - expected.now <= DEPOSIT_PLAN_MIN_REMAINING_MS
-  ) {
-    return { ok: false, reason: 'expiry' };
-  }
   if (sameAddress(plan.depositAddress, ZERO_ADDRESS)) {
     return { ok: false, reason: 'recipient_zero' };
   }
@@ -113,6 +106,13 @@ export const checkDepositPlan = (
     )
   ) {
     return { ok: false, reason: 'recipient_own_account' };
+  }
+  const expiresAt = Date.parse(plan.planExpiresAt);
+  if (
+    Number.isNaN(expiresAt) ||
+    expiresAt - expected.now <= DEPOSIT_PLAN_MIN_REMAINING_MS
+  ) {
+    return { ok: false, reason: 'expiry' };
   }
   return { ok: true, plan };
 };

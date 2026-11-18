@@ -30,16 +30,24 @@ const styles = StyleSheet.create({
   },
 });
 
-const describeDeposit = (deposit: PredictDepositOperation | null): string => {
+const describeDeposit = (
+  deposit: PredictDepositOperation | null,
+  hasSubmittedTransfer = false,
+): string => {
   if (!deposit) {
     return strings('predict_next.deposit.in_progress.unknown');
   }
   const amount = formatUsd(deposit.amount);
   switch (deposit.status) {
     case 'awaiting_transfer':
-      return strings('predict_next.deposit.in_progress.awaiting_transfer', {
-        amount,
-      });
+      return strings(
+        hasSubmittedTransfer
+          ? 'predict_next.deposit.in_progress.processing'
+          : 'predict_next.deposit.in_progress.awaiting_transfer',
+        {
+          amount,
+        },
+      );
     case 'under_review':
       return strings('predict_next.deposit.in_progress.under_review', {
         amount,
@@ -60,6 +68,8 @@ const describeDeposit = (deposit: PredictDepositOperation | null): string => {
 interface DepositInProgressSheetProps {
   /** The open deposit, or null when it could not be read. */
   deposit: PredictDepositOperation | null;
+  /** Whether a transfer for this deposit already went out and only needs reporting. */
+  hasSubmittedTransfer?: boolean;
   isCancelling: boolean;
   cancelFailed: boolean;
   onContinue: (deposit: PredictDepositOperation) => void;
@@ -69,12 +79,14 @@ interface DepositInProgressSheetProps {
 
 /**
  * The open deposit that blocked a new one (`deposit_in_progress`). A deposit
- * still waiting for its transfer can be paid now or cancelled; any other is
+ * still waiting for its transfer can be paid now or cancelled; one whose
+ * transfer already went out can only continue to report its hash; any other is
  * only shown. The status line that opens this sheet from Home and Portfolio,
  * resume and observation are PRED-1189.
  */
 export const DepositInProgressSheet = ({
   deposit,
+  hasSubmittedTransfer = false,
   isCancelling,
   cancelFailed,
   onContinue,
@@ -124,7 +136,7 @@ export const DepositInProgressSheet = ({
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                 >
-                  {describeDeposit(deposit)}
+                  {describeDeposit(deposit, hasSubmittedTransfer)}
                 </Text>
                 {cancelFailedText ? (
                   <Text
@@ -147,17 +159,19 @@ export const DepositInProgressSheet = ({
                     >
                       {strings('predict_next.deposit.in_progress.continue')}
                     </Button>
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      size={ButtonSize.Lg}
-                      isFullWidth
-                      isLoading={isCancelling}
-                      isDisabled={isCancelling}
-                      onPress={() => onCancel(payable)}
-                      testID={PredictDepositScreenTestIds.IN_PROGRESS_CANCEL}
-                    >
-                      {strings('predict_next.deposit.in_progress.cancel')}
-                    </Button>
+                    {hasSubmittedTransfer ? null : (
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        size={ButtonSize.Lg}
+                        isFullWidth
+                        isLoading={isCancelling}
+                        isDisabled={isCancelling}
+                        onPress={() => onCancel(payable)}
+                        testID={PredictDepositScreenTestIds.IN_PROGRESS_CANCEL}
+                      >
+                        {strings('predict_next.deposit.in_progress.cancel')}
+                      </Button>
+                    )}
                   </Box>
                 ) : (
                   <Button

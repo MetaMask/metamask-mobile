@@ -1,3 +1,4 @@
+import { TransactionStatus } from '@metamask/transaction-controller';
 import { BASE_DEPOSIT_NETWORK } from '../../config/depositEnvironment';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
@@ -441,6 +442,130 @@ describe('payDeposit', () => {
       error: refused,
     });
     expect(funding.cancelDeposit).not.toHaveBeenCalled();
+  });
+
+  it('reconciles a lost report on retry without sending a second wallet transfer', async () => {
+    const deposit = awaitingTransfer();
+    const reportDepositTransfer = jest
+      .fn()
+      .mockRejectedValueOnce(PredictError.from(PredictErrorCode.NETWORK_ERROR))
+      .mockResolvedValueOnce(transferReported());
+    const { deps, executor } = setup({
+      funding: {
+        prepareDeposit: jest.fn(async () => deposit),
+        reportDepositTransfer,
+      },
+    });
+
+    const firstOutcome = await start(deps);
+    const secondOutcome = await payDeposit(deps, deposit, AMOUNT);
+
+    expect(firstOutcome).toStrictEqual({
+      kind: 'submitted',
+      deposit,
+      reported: false,
+    });
+    expect(secondOutcome).toStrictEqual({
+      kind: 'submitted',
+      deposit: transferReported(),
+      reported: true,
+    });
+    expect(executor.send).toHaveBeenCalledTimes(1);
+    expect(reportDepositTransfer).toHaveBeenCalledTimes(2);
+    expect(reportDepositTransfer).toHaveBeenLastCalledWith(OPERATION_ID, {
+      txHash: HASH,
+      chainId: 8453,
+    });
+  });
+
+  it('reports an existing submitted transfer recovered from the wallet even near expiry without sending again', async () => {
+    const deposit = awaitingTransfer({
+      planExpiresAt: '2026-11-13T12:01:00.000Z',
+    });
+    const { deps, funding, executor } = setup();
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'submitted',
+      transfer: paying(),
+    }));
+
+    const outcome = await payDeposit(deps, deposit, AMOUNT);
+
+    expect(outcome).toStrictEqual({
+      kind: 'submitted',
+      deposit: transferReported(),
+      reported: true,
+    });
+    expect(executor.send).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
+      txHash: HASH,
+      chainId: 8453,
+    });
+  });
+
+  it('waits for an existing pending transfer instead of sending a second one', async () => {
+    const deposit = awaitingTransfer();
+    const { deps, funding, executor } = setup();
+    const wait = jest.fn(async () => paying());
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.signed,
+      wait,
+    }));
+
+    const outcome = await payDeposit(deps, deposit, AMOUNT);
+
+    expect(outcome).toStrictEqual({
+      kind: 'submitted',
+      deposit: transferReported(),
+      reported: true,
+    });
+    expect(wait).toHaveBeenCalledTimes(1);
+    expect(executor.send).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
+      txHash: HASH,
+      chainId: 8453,
+    });
+  });
+
+  it('cancels the deposit when an existing pending transfer is rejected by the user', async () => {
+    const deposit = awaitingTransfer();
+    const { deps, funding, executor } = setup();
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.unapproved,
+      wait: jest.fn(async () => {
+        throw Object.assign(new Error('User rejected'), { code: 4001 });
+      }),
+    }));
+
+    await expect(payDeposit(deps, deposit, AMOUNT)).resolves.toStrictEqual({
+      kind: 'rejected',
+    });
+    expect(executor.send).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
+    expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
+  });
+
+  it('refuses an unapproved pending transfer when the plan has two minutes or less left', async () => {
+    const deposit = awaitingTransfer({
+      planExpiresAt: '2026-11-13T12:01:30.000Z',
+    });
+    const { deps, funding, executor } = setup();
+    const wait = jest.fn(async () => paying());
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.unapproved,
+      wait,
+    }));
+
+    await expect(payDeposit(deps, deposit, AMOUNT)).resolves.toStrictEqual({
+      kind: 'plan_mismatch',
+      reason: 'expiry',
+    });
+    expect(wait).not.toHaveBeenCalled();
+    expect(executor.send).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
   });
 });
 

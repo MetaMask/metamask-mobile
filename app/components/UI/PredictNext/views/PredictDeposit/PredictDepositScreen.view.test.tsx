@@ -2,9 +2,14 @@ import '../../../../../../tests/component-view/mocks';
 import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { providerErrors } from '@metamask/rpc-errors';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { renderPredictDepositScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import { mockPredictNextMessenger } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
@@ -15,6 +20,8 @@ import {
   type PredictDepositEnvironment,
 } from '../../config/depositEnvironment';
 import { PredictError, PredictErrorCode } from '../../errors';
+import { clearAllSessionDepositTransfers } from '../../funding';
+import { PredictNextRoutes } from '../../navigation/routes';
 import type {
   PredictAmount,
   PredictDepositOperation,
@@ -141,6 +148,8 @@ describe('PredictDepositScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearAllSessionDepositTransfers();
+    Engine.context.TransactionController.state.transactions = [];
     announceForAccessibility = jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(() => undefined);
@@ -149,6 +158,8 @@ describe('PredictDepositScreen', () => {
   });
 
   afterEach(() => {
+    clearAllSessionDepositTransfers();
+    Engine.context.TransactionController.state.transactions = [];
     announceForAccessibility.mockRestore();
     netInfoMock.__resetMockNetInfo();
     jest.restoreAllMocks();
@@ -179,14 +190,14 @@ describe('PredictDepositScreen', () => {
     expect(view.getByTestId(TestIds.AMOUNT)).toHaveTextContent('$25');
     await addFunds(view);
 
-    expect(await view.findByTestId(TestIds.PROCESSING)).toBeTruthy();
+    expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
     expect(
       view.getByText(
         strings('predict_next.deposit.processing_description', {
           amount: '$25.00',
         }),
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(prepareDeposit).toHaveBeenCalledWith(
       KALSHI_VENUE_ID,
       {
@@ -218,7 +229,9 @@ describe('PredictDepositScreen', () => {
     );
 
     fireEvent.press(view.getByTestId(TestIds.DONE));
-    expect(await view.findByTestId('route-PredictNextHome')).toBeTruthy();
+    expect(
+      await view.findByTestId(getRouteProbeTestId(PredictNextRoutes.HOME)),
+    ).toBeOnTheScreen();
   });
 
   it('simulates the transfer on a dev build and never touches the wallet', async () => {
@@ -237,7 +250,7 @@ describe('PredictDepositScreen', () => {
     await typeAmount(view, '25');
     await addFunds(view);
 
-    expect(await view.findByTestId(TestIds.PROCESSING)).toBeTruthy();
+    expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
     expect(
       Engine.context.TransactionController.addTransaction,
     ).not.toHaveBeenCalled();
@@ -266,7 +279,7 @@ describe('PredictDepositScreen', () => {
     );
     expect(view.getByTestId(TestIds.CONTINUE)).toBeDisabled();
     fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('delete')));
-    expect(view.queryByTestId(TestIds.ALERT)).toBeNull();
+    expect(view.queryByTestId(TestIds.ALERT)).not.toBeOnTheScreen();
     expect(view.getByTestId(TestIds.CONTINUE)).toBeEnabled();
   });
 
@@ -331,7 +344,7 @@ describe('PredictDepositScreen', () => {
           amount: '$40.00',
         }),
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       Engine.context.TransactionController.addTransaction,
     ).not.toHaveBeenCalled();
@@ -340,7 +353,7 @@ describe('PredictDepositScreen', () => {
     });
     expect(cancelDeposit).toHaveBeenCalledWith(KALSHI_VENUE_ID, 'op-1');
     await waitFor(() =>
-      expect(view.queryByTestId(TestIds.IN_PROGRESS)).toBeNull(),
+      expect(view.queryByTestId(TestIds.IN_PROGRESS)).not.toBeOnTheScreen(),
     );
   });
 
@@ -579,5 +592,228 @@ describe('PredictDepositScreen', () => {
     expect(
       view.getByText(strings('predict_next.deposit.processing_title')),
     ).toHaveProp('accessibilityRole', 'header');
+  });
+
+  it('reconciles a lost transfer report on re-entry and Continue without sending a second wallet transfer', async () => {
+    const openDeposit = makeDeposit({ amount: '25.00' });
+    const prepareDeposit = jest
+      .fn()
+      .mockResolvedValueOnce(openDeposit)
+      .mockRejectedValueOnce(
+        PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS, {
+          metadata: { depositOperationId: openDeposit.operationId },
+        }),
+      );
+    const reportDepositTransfer = jest
+      .fn()
+      .mockRejectedValueOnce(PredictError.from(PredictErrorCode.NETWORK_ERROR))
+      .mockResolvedValueOnce({ ...openDeposit, status: 'processing' });
+    mockFunding({
+      'PredictFundingService:prepareDeposit': prepareDeposit,
+      'PredictFundingService:listOpenDeposits': async () => [openDeposit],
+      'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
+    });
+    jest
+      .mocked(Engine.context.TransactionController.addTransaction)
+      .mockImplementation(async (txParams) => {
+        const meta = {
+          id: 'tx-1',
+          chainId: '0x2105',
+          networkClientId: 'base-mainnet',
+          status: TransactionStatus.submitted,
+          hash: TX_HASH,
+          time: Date.now(),
+          type: TransactionType.tokenMethodTransfer,
+          txParams,
+        } as TransactionMeta;
+        Engine.context.TransactionController.state.transactions = [meta];
+        return {
+          result: Promise.resolve(TX_HASH),
+          transactionMeta: meta,
+        } as never;
+      });
+    const firstView = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+
+    await typeAmount(firstView, '25');
+    await addFunds(firstView);
+    expect(await firstView.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
+    fireEvent.press(firstView.getByTestId(TestIds.DONE));
+    expect(
+      await firstView.findByTestId(getRouteProbeTestId(PredictNextRoutes.HOME)),
+    ).toBeOnTheScreen();
+    firstView.unmount();
+
+    const secondView = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+    await typeAmount(secondView, '10');
+    await addFunds(secondView);
+    await secondView.findByTestId(TestIds.IN_PROGRESS);
+    expect(
+      secondView.getByText(
+        strings('predict_next.deposit.in_progress.processing', {
+          amount: '$25.00',
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      secondView.queryByTestId(TestIds.IN_PROGRESS_CANCEL),
+    ).not.toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(secondView.getByTestId(TestIds.IN_PROGRESS_CONTINUE));
+    });
+
+    expect(await secondView.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
+    expect(
+      Engine.context.TransactionController.addTransaction,
+    ).toHaveBeenCalledTimes(1);
+    expect(reportDepositTransfer).toHaveBeenCalledTimes(2);
+    expect(reportDepositTransfer).toHaveBeenLastCalledWith(
+      KALSHI_VENUE_ID,
+      'op-1',
+      { txHash: TX_HASH, chainId: BASE_DEPOSIT_NETWORK.chainId },
+    );
+  });
+
+  it('reports an already-submitted unreported transfer from TransactionController on Continue without calling the wallet', async () => {
+    const openDeposit = makeDeposit({ amount: '25.00' });
+    const reportDepositTransfer = jest.fn(async () => ({
+      ...openDeposit,
+      status: 'processing',
+    }));
+    Engine.context.TransactionController.state.transactions = [
+      {
+        id: 'tx-persisted',
+        chainId: '0x2105',
+        networkClientId: 'base-mainnet',
+        status: TransactionStatus.confirmed,
+        hash: TX_HASH,
+        time: Date.parse(openDeposit.createdAt) + 1000,
+        type: TransactionType.tokenMethodTransfer,
+        txParams: {
+          from: '0x0000000000000000000000000000000000000001',
+          to: USDC,
+          data: TRANSFER_25_USDC,
+          value: '0x0',
+        },
+      } as TransactionMeta,
+    ];
+    mockFunding({
+      'PredictFundingService:prepareDeposit': async () => {
+        throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
+      },
+      'PredictFundingService:listOpenDeposits': async () => [openDeposit],
+      'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
+    });
+    const view = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+
+    await typeAmount(view, '10');
+    await addFunds(view);
+    await view.findByTestId(TestIds.IN_PROGRESS);
+    expect(
+      view.queryByTestId(TestIds.IN_PROGRESS_CANCEL),
+    ).not.toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(view.getByTestId(TestIds.IN_PROGRESS_CONTINUE));
+    });
+
+    expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
+    expect(
+      Engine.context.TransactionController.addTransaction,
+    ).not.toHaveBeenCalled();
+    expect(reportDepositTransfer).toHaveBeenCalledWith(
+      KALSHI_VENUE_ID,
+      'op-1',
+      { txHash: TX_HASH, chainId: BASE_DEPOSIT_NETWORK.chainId },
+    );
+  });
+
+  it('waits for an existing pending transaction on Continue instead of adding a second transfer', async () => {
+    const openDeposit = makeDeposit({ amount: '25.00' });
+    const reportDepositTransfer = jest.fn(async () => ({
+      ...openDeposit,
+      status: 'processing',
+    }));
+    const pendingTx = {
+      id: 'tx-pending',
+      chainId: '0x2105',
+      networkClientId: 'base-mainnet',
+      status: TransactionStatus.unapproved,
+      time: Date.parse(openDeposit.createdAt) + 1000,
+      type: TransactionType.tokenMethodTransfer,
+      txParams: {
+        from: '0x0000000000000000000000000000000000000001',
+        to: USDC,
+        data: TRANSFER_25_USDC,
+        value: '0x0',
+      },
+    } as TransactionMeta;
+    Engine.context.TransactionController.state.transactions = [pendingTx];
+    const listeners = new Map<string, Set<(...args: never[]) => void>>();
+    jest.spyOn(Engine.controllerMessenger, 'subscribe').mockImplementation(((
+      event: string,
+      handler: (...args: never[]) => void,
+    ) => {
+      let set = listeners.get(event);
+      if (!set) {
+        set = new Set();
+        listeners.set(event, set);
+      }
+      set.add(handler);
+    }) as never);
+    jest.spyOn(Engine.controllerMessenger, 'unsubscribe').mockImplementation(((
+      event: string,
+      handler: (...args: never[]) => void,
+    ) => {
+      listeners.get(event)?.delete(handler);
+    }) as never);
+    mockFunding({
+      'PredictFundingService:prepareDeposit': async () => {
+        throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
+      },
+      'PredictFundingService:listOpenDeposits': async () => [openDeposit],
+      'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
+    });
+    const view = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+
+    await typeAmount(view, '10');
+    await addFunds(view);
+    await view.findByTestId(TestIds.IN_PROGRESS);
+    await act(async () => {
+      fireEvent.press(view.getByTestId(TestIds.IN_PROGRESS_CONTINUE));
+      const submittedTx = {
+        ...pendingTx,
+        status: TransactionStatus.submitted,
+        hash: TX_HASH,
+      };
+      Engine.context.TransactionController.state.transactions = [submittedTx];
+      for (const handler of listeners.get(
+        'TransactionController:transactionSubmitted',
+      ) ?? []) {
+        (handler as (payload: { transactionMeta: TransactionMeta }) => void)({
+          transactionMeta: submittedTx,
+        });
+      }
+    });
+
+    expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
+    expect(
+      Engine.context.TransactionController.addTransaction,
+    ).not.toHaveBeenCalled();
+    expect(reportDepositTransfer).toHaveBeenCalledWith(
+      KALSHI_VENUE_ID,
+      'op-1',
+      { txHash: TX_HASH, chainId: BASE_DEPOSIT_NETWORK.chainId },
+    );
   });
 });
