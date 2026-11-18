@@ -378,6 +378,9 @@ export class CardController extends BaseController<
   readonly #sha256: CardSha256;
   readonly #isBasicFunctionalityEnabled: () => boolean;
   #cardLinksFetchPromise: Promise<void> | null = null;
+  #cardLinkBackfillPromise: Promise<void> | null = null;
+  /** Providers whose backfill was rejected this session. A failure stays out, so the next trigger retries. */
+  #cardLinkBackfillAttempted = new Set<CardProviderId>();
   #cardLinksGeneration = 0;
   #cardLinksWriteRevision = 0;
   #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
@@ -714,7 +717,10 @@ export class CardController extends BaseController<
       cardLinks !== null &&
       cardLinksFetchedAt !== null &&
       Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
-    if (isFresh && !force) return;
+    if (isFresh && !force) {
+      await this.#backfillSessionCardLink();
+      return;
+    }
 
     if (!this.#cardLinksFetchPromise) {
       const read = this.#doFetchCardLinks().finally(() => {
@@ -753,6 +759,143 @@ export class CardController extends BaseController<
       s.cardLinks = links;
       s.cardLinksFetchedAt = Date.now();
     });
+    await this.#backfillSessionCardLink();
+  }
+
+  #clearCardLinkBackfill(): void {
+    this.#cardLinkBackfillAttempted.clear();
+    this.#cardLinkBackfillPromise = null;
+  }
+
+  /**
+   * A restored provider session never passes through login, so it never writes
+   * a card link. Once this session has both a fresh link read and card home
+   * data, create the missing row. One backfill runs at a time.
+   */
+  async #backfillSessionCardLink(): Promise<void> {
+    if (!this.#cardLinkBackfillPromise) {
+      const run = this.#doBackfillSessionCardLink().finally(() => {
+        if (this.#cardLinkBackfillPromise === run) {
+          this.#cardLinkBackfillPromise = null;
+        }
+      });
+      this.#cardLinkBackfillPromise = run;
+    }
+    await this.#cardLinkBackfillPromise;
+  }
+
+  async #doBackfillSessionCardLink(): Promise<void> {
+    try {
+      if (!this.#isCardLinkApiEnabled()) return;
+
+      const {
+        isAuthenticated,
+        activeProviderId,
+        cardLinks,
+        cardLinksFetchedAt,
+        cardHomeData,
+        cardHomeDataStatus,
+        cardHomeDataFetchedThisSession,
+      } = this.state;
+      const readIsFresh =
+        cardLinksFetchedAt !== null &&
+        Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
+      if (
+        !isAuthenticated ||
+        !activeProviderId ||
+        !readIsFresh ||
+        cardLinks === null ||
+        cardHomeDataStatus !== 'success' ||
+        !cardHomeDataFetchedThisSession ||
+        cardLinks.some((link) => link.provider === activeProviderId) ||
+        this.#cardLinkBackfillAttempted.has(activeProviderId)
+      ) {
+        return;
+      }
+
+      const home = cardHomeData as {
+        card?: unknown;
+        account?: { verificationStatus?: string };
+        primaryFundingAsset?: { walletAddress?: string };
+      } | null;
+      const status: CardLinkWriteStatus =
+        home?.card != null || home?.account?.verificationStatus === 'VERIFIED'
+          ? 'active'
+          : 'onboarding';
+      const address = await this.#backfillLinkedAccountAddress(
+        activeProviderId,
+        home?.primaryFundingAsset?.walletAddress,
+      );
+      const providerCardholderId =
+        await this.#storedCardholderId(activeProviderId);
+
+      if (!this.state.isAuthenticated) return;
+      if (this.#cardLinkBackfillAttempted.has(activeProviderId)) return;
+
+      const outcome = await this.#writeCardLink(
+        activeProviderId,
+        status,
+        {
+          address,
+          providerCardholderId,
+          promptWalletProof: false,
+        },
+        '#backfillSessionCardLink',
+      );
+      if (outcome === 'rejected') {
+        this.#cardLinkBackfillAttempted.add(activeProviderId);
+      }
+      if (outcome !== 'skipped') {
+        this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
+          provider: activeProviderId,
+          outcome,
+          source: 'session',
+        });
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: '#backfillSessionCardLink' },
+        },
+      });
+    }
+  }
+
+  async #backfillLinkedAccountAddress(
+    provider: CardProviderId,
+    baanxWalletAddress: string | undefined,
+  ): Promise<string | undefined> {
+    let candidate = baanxWalletAddress;
+    if (provider === CardProviderIds.Immersve) {
+      try {
+        candidate = (await CardTokenStore.get(provider))?.accountAddress;
+      } catch {
+        return undefined;
+      }
+    }
+    if (!candidate) return undefined;
+    return this.#ownedEvmAddress(candidate) ?? undefined;
+  }
+
+  #ownedEvmAddress(address: string): string | null {
+    const bare = (
+      address.includes(':')
+        ? address.slice(address.lastIndexOf(':') + 1)
+        : address
+    ).toLowerCase();
+    if (!bare) return null;
+    const accounts = Object.values(
+      this.messenger.call('AccountsController:getState').internalAccounts
+        .accounts,
+    );
+    return (
+      accounts.find(
+        (account) =>
+          isEthAccount(account) && account.address.toLowerCase() === bare,
+      )?.address ?? null
+    );
   }
 
   #trackCardLinkEvent(
@@ -1237,6 +1380,7 @@ export class CardController extends BaseController<
           s.cardHomeDataError = null;
         });
         this.#lastFetchedAt = Date.now();
+        await this.#backfillSessionCardLink();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
@@ -2116,6 +2260,7 @@ export class CardController extends BaseController<
     await this.clearTokens();
     this.invalidateFetch();
     this.#invalidateRedeemWithdrawal();
+    this.#clearCardLinkBackfill();
     this.update((s) => {
       s.isAuthenticated = false;
       s.providerUserId = null;
@@ -2196,6 +2341,7 @@ export class CardController extends BaseController<
       this.#cardLinksGeneration += 1;
       this.#cardLinksFetchPromise = null;
       this.#cardLinkWriteQueues = {};
+      this.#clearCardLinkBackfill();
       this.update(() => ({ ...defaultCardControllerState }));
 
       ReduxService.store.dispatch(resetCardState());
