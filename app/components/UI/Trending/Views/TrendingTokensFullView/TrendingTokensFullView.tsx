@@ -191,30 +191,30 @@ const TrendingTokensFullView = () => {
     filterLowQuality: true,
   });
 
-  const trendingTokens = useMemo(() => {
-    const safeResults = filterRiskyTokens(searchResults);
+  const isSearchActive = !!filters.searchQuery?.trim();
 
-    if (safeResults.length === 0) {
+  const trendingTokens = useMemo(() => {
+    const results = isSearchActive
+      ? searchResults
+      : filterRiskyTokens(searchResults);
+
+    if (results.length === 0) {
       return [];
     }
 
-    if (filters.searchQuery?.trim()) {
-      return safeResults;
-    }
-
-    if (!filters.selectedPriceChangeOption) {
-      return safeResults;
+    if (isSearchActive || !filters.selectedPriceChangeOption) {
+      return results;
     }
 
     return sortTrendingTokens(
-      safeResults,
+      results,
       filters.selectedPriceChangeOption,
       filters.priceChangeSortDirection,
       filters.selectedTimeOption,
     );
   }, [
     searchResults,
-    filters.searchQuery,
+    isSearchActive,
     filters.selectedPriceChangeOption,
     filters.priceChangeSortDirection,
     filters.selectedTimeOption,
@@ -301,7 +301,7 @@ const TrendingTokensFullView = () => {
       testID="24h-button"
       onPress={handle24hPress}
       label={filters.selectedTimeOption}
-      disabled={!!filters.searchQuery?.trim()}
+      disabled={isSearchActive}
     />
   );
 
