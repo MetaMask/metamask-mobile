@@ -1093,7 +1093,7 @@ describe('PolyBoltCryptoFeed', () => {
       expect(jest.mocked(captureMessage)).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps provider on spot frames when retrying TWAP from a shared frame', () => {
+    it('resends Chainlink spot with provider and TWAP without provider when a shared frame hits bad_filter', () => {
       jest.mocked(captureMessage).mockClear();
       const { socket } = connectWith([spot('eth'), twap('btc')]);
       socket.send.mockClear();
@@ -1110,6 +1110,16 @@ describe('PolyBoltCryptoFeed', () => {
         {
           op: 'subscribe',
           rid: 's3',
+          subscriptions: [
+            {
+              channel: 'price.crypto',
+              filter: { symbol: 'ethusd', provider: 'chainlink' },
+            },
+          ],
+        },
+        {
+          op: 'subscribe',
+          rid: 's4',
           subscriptions: [
             {
               channel: 'price.crypto.twap',
@@ -1130,6 +1140,157 @@ describe('PolyBoltCryptoFeed', () => {
           },
         }),
       );
+    });
+
+    it('does not resend a rejected shared frame entry that another frame already carries', () => {
+      const eth = spot('eth');
+      const btcTwap = twap('btc');
+      const { feed, socket } = connectWith([eth, btcTwap]);
+      feed.setSubscriptions([btcTwap]);
+      feed.setSubscriptions([btcTwap, eth]);
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's5',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('omits provider when unsubscribing a TWAP subscription subscribed without provider', () => {
+      const { feed, socket } = connectWith([spot('eth'), twap('btc')]);
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+      socket.send.mockClear();
+
+      feed.setSubscriptions([spot('eth')]);
+
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'unsubscribe',
+          rid: 'u5',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('allows a removed TWAP subscription to retry without provider when resubscribed on the same connection', () => {
+      const { feed, socket } = connectWith([spot('eth'), twap('btc')]);
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+      feed.setSubscriptions([spot('eth')]);
+      feed.setSubscriptions([spot('eth'), twap('btc')]);
+      const resubscribeRid = subscribeFrames(socket).slice(-1)[0].rid;
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: resubscribeRid,
+      });
+
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's7',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('keeps provider on spot when unsubscribing alongside a no-provider TWAP', () => {
+      const { feed, socket } = connectWith([
+        spot('sol'),
+        spot('eth'),
+        twap('btc'),
+      ]);
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+      socket.send.mockClear();
+
+      feed.setSubscriptions([spot('sol')]);
+
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'unsubscribe',
+          rid: 'u5',
+          subscriptions: [
+            {
+              channel: 'price.crypto',
+              filter: { symbol: 'ethusd', provider: 'chainlink' },
+            },
+          ],
+        },
+        {
+          op: 'unsubscribe',
+          rid: 'u6',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('does not resend a rejected shared frame when chainlinkUnavailable is set', () => {
+      const { feed, socket } = connectWith([spot('eth'), twap('btc')]);
+      feed.setSubscriptions([spot('eth'), twap('btc'), spot('sol')]);
+      socket.receive(keyRequired('s3'));
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+
+      expect(socket.send).not.toHaveBeenCalled();
     });
 
     it('keeps bad_filter behaviour unchanged for a pinned spot frame', () => {

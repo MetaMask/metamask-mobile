@@ -208,6 +208,10 @@ export class PolyBoltCryptoFeed {
   // pre-enforcement window.
   private readonly retriedTwapWithoutProvider: Set<string> = new Set();
 
+  // Latest subscribe rid sent per wireKey on this connection, so a rejected
+  // unpinned frame does not resend an entry another frame already put on the wire.
+  private readonly latestSubscribeRid: Map<string, string> = new Map();
+
   // Unpinned bad_filter warnings already sent (keyed without rid), so a
   // reconnect loop cannot spam Sentry.
   private readonly warnedBadFilters: Set<string> = new Set();
@@ -310,6 +314,7 @@ export class PolyBoltCryptoFeed {
     this.pendingFrames.clear();
     this.handledBadFilterRids.clear();
     this.retriedTwapWithoutProvider.clear();
+    this.latestSubscribeRid.clear();
     this.listener.onConnectionChange();
   }
 
@@ -346,6 +351,11 @@ export class PolyBoltCryptoFeed {
     this.loggedProviderMismatches.forEach((id) => {
       if (!currentIds.has(id)) {
         this.loggedProviderMismatches.delete(id);
+      }
+    });
+    this.retriedTwapWithoutProvider.forEach((id) => {
+      if (!currentIds.has(id)) {
+        this.retriedTwapWithoutProvider.delete(id);
       }
     });
     this.warnedBadFilters.forEach((key) => {
@@ -438,6 +448,7 @@ export class PolyBoltCryptoFeed {
     this.pendingFrames.clear();
     this.handledBadFilterRids.clear();
     this.retriedTwapWithoutProvider.clear();
+    this.latestSubscribeRid.clear();
     this.ownerServed.clear();
     this.chainlinkUnavailable = false;
     this.reportedErrorCodes.clear();
@@ -616,7 +627,23 @@ export class PolyBoltCryptoFeed {
     const added = next.filter(
       (subscription) => !previousKeys.has(this.wireKey(subscription)),
     );
-    this.sendSubscriptionFrame('unsubscribe', this.uniqueByWireKey(removed));
+    const uniqueRemoved = this.uniqueByWireKey(removed);
+    const isTwapWithoutProvider = (
+      subscription: PolyBoltSubscription,
+    ): boolean =>
+      subscription.channel === 'price.crypto.twap' &&
+      this.retriedTwapWithoutProvider.has(subscriptionId(subscription));
+    this.sendSubscriptionFrame(
+      'unsubscribe',
+      uniqueRemoved.filter(
+        (subscription) => !isTwapWithoutProvider(subscription),
+      ),
+    );
+    this.sendSubscriptionFrame(
+      'unsubscribe',
+      uniqueRemoved.filter(isTwapWithoutProvider),
+      false,
+    );
     this.sendSubscribe(added);
   }
 
@@ -664,6 +691,14 @@ export class PolyBoltCryptoFeed {
       }
     }
     this.pendingFrames.set(rid, { op, subscriptions: [...subscriptions] });
+    subscriptions.forEach((subscription) => {
+      const key = this.wireKey(subscription);
+      if (op === 'subscribe') {
+        this.latestSubscribeRid.set(key, rid);
+      } else {
+        this.latestSubscribeRid.delete(key);
+      }
+    });
     this.send({
       op,
       rid,
@@ -821,6 +856,9 @@ export class PolyBoltCryptoFeed {
     }
 
     this.ownerServed.add(subscriptionId(subscription));
+    if (typeof message.rid === 'string') {
+      this.latestSubscribeRid.set(this.wireKey(subscription), message.rid);
+    }
     this.logProviderMismatch(subscription, served ?? 'none named in ack');
   }
 
@@ -828,7 +866,8 @@ export class PolyBoltCryptoFeed {
    * Polymarket's docs disagree on whether a binance pin is honoured, ignored
    * or rejected. When it is rejected, fall back to Chainlink so the market
    * keeps a live price. For unpinned rejections (such as TWAP), warn Sentry
-   * once and retry TWAP subscriptions once without `provider`.
+   * once, retry TWAP subscriptions once without `provider`, and resend active
+   * non-TWAP entries from a rejected shared frame with their provider.
    */
   private handleBadFilter(message: Record<string, unknown>): void {
     const subscription = this.takePendingPin(message.rid);
@@ -876,7 +915,7 @@ export class PolyBoltCryptoFeed {
     this.warnBadFilterOnce(message, channel, symbol, resolvedSubscriptions);
 
     if (frame?.op === 'subscribe' && !this.chainlinkUnavailable) {
-      this.retryTwapWithoutProvider(frame.subscriptions);
+      this.resendRejectedUnpinnedFrame(frame.subscriptions, message.rid);
     }
   }
 
@@ -950,28 +989,55 @@ export class PolyBoltCryptoFeed {
     });
   }
 
-  private retryTwapWithoutProvider(
+  private resendRejectedUnpinnedFrame(
     subscriptions: PolyBoltSubscription[],
+    rejectedRid: unknown,
   ): void {
+    const rid = typeof rejectedRid === 'string' ? rejectedRid : undefined;
     const activeIds = new Set(this.subscriptions.map(subscriptionId));
-    const retries = subscriptions.filter((subscription) => {
+    const activeWireKeys = new Set(
+      this.subscriptions.map((subscription) => this.wireKey(subscription)),
+    );
+    const hasTwap = subscriptions.some(
+      (subscription) => subscription.channel === 'price.crypto.twap',
+    );
+    const isAlreadyOnWire = (subscription: PolyBoltSubscription): boolean => {
+      const latestRid = this.latestSubscribeRid.get(this.wireKey(subscription));
+      return latestRid !== undefined && latestRid !== rid;
+    };
+
+    const nonTwapRetries = hasTwap
+      ? subscriptions.filter(
+          (subscription) =>
+            subscription.channel !== 'price.crypto.twap' &&
+            activeWireKeys.has(this.wireKey(subscription)) &&
+            !isAlreadyOnWire(subscription),
+        )
+      : [];
+    const twapRetries = subscriptions.filter((subscription) => {
       if (subscription.channel !== 'price.crypto.twap') {
         return false;
       }
       const id = subscriptionId(subscription);
-      return activeIds.has(id) && !this.retriedTwapWithoutProvider.has(id);
+      return (
+        activeIds.has(id) &&
+        !this.retriedTwapWithoutProvider.has(id) &&
+        !isAlreadyOnWire(subscription)
+      );
     });
-    if (retries.length === 0) {
-      return;
-    }
 
-    retries.forEach((subscription) => {
-      this.retriedTwapWithoutProvider.add(subscriptionId(subscription));
-    });
-    // Fallback for the pre-enforcement window: after 2026-11-30 a filter
-    // without a provider is itself refused with 4011, and that refusal is
-    // handled elsewhere and reported.
-    this.sendSubscriptionFrame('subscribe', retries, false);
+    if (nonTwapRetries.length > 0) {
+      this.sendSubscriptionFrame('subscribe', nonTwapRetries);
+    }
+    if (twapRetries.length > 0) {
+      twapRetries.forEach((subscription) => {
+        this.retriedTwapWithoutProvider.add(subscriptionId(subscription));
+      });
+      // Fallback for the pre-enforcement window: after 2026-11-30 a filter
+      // without a provider is itself refused with 4011, and that refusal is
+      // handled elsewhere and reported.
+      this.sendSubscriptionFrame('subscribe', twapRetries, false);
+    }
   }
 
   /**
