@@ -33,8 +33,6 @@ jest.mock('../../../../core/Engine', () => ({
     VendorOnboardingController: {
       refreshStep: jest.fn(),
       acceptTerms: jest.fn(),
-      startAccountLink: jest.fn(),
-      verifyAccountLink: jest.fn(),
       startSession: jest.fn(),
       fetchSessionDisclaimers: jest.fn(),
       acceptSessionDisclaimers: jest.fn(),
@@ -100,20 +98,18 @@ const typeInto = (screen: ReturnType<typeof render>, value: string) =>
   );
 
 /**
- * Walks to the link code screen the way a user reaches it.
+ * Walks through MetaMask MFA to the Kalshi email field.
  *
- * The code screen is the phone's own state, not a step, so it cannot be
- * rendered directly: the email has to be sent first.
+ * The email field is the phone's own state on `confirm_identity`.
  *
- * @returns The rendered screen, showing the code field.
+ * @returns The rendered screen, showing the email field.
  */
-async function reachLinkCode() {
-  const screen = render('account_link');
-  typeInto(screen, 'a@b.co');
+async function reachEmail() {
+  const screen = render('confirm_identity');
   fireEvent.press(primary(screen));
-  // Wait for the code screen itself: the escape hatch back to the email
-  // only exists there, so finding it proves the switch happened.
-  await screen.findByText('Use another email');
+  await screen.findByText(
+    'Kalshi creates your account with this email and sends you a code. It can differ from your MetaMask email.',
+  );
   return screen;
 }
 
@@ -124,7 +120,6 @@ describe('KalshiOnboarding', () => {
     flow.refreshStep.mockResolvedValue('vendor_terms');
     for (const name of [
       'acceptTerms',
-      'startAccountLink',
       'startSession',
       'acceptSessionDisclaimers',
       'submitPhone',
@@ -134,7 +129,6 @@ describe('KalshiOnboarding', () => {
     ]) {
       flow[name].mockResolvedValue('identity_provider');
     }
-    flow.verifyAccountLink.mockResolvedValue({ step: 'confirm_identity' });
     flow.launchProviderFlow.mockResolvedValue('submitted');
     flow.fetchSessionDisclaimers.mockResolvedValue({
       idOS: [{ key: 'idos', version: '1', consented: false }],
@@ -143,7 +137,10 @@ describe('KalshiOnboarding', () => {
     });
     service.getGeoCountry.mockResolvedValue('USA');
     service.fetchVendorDisclaimers.mockResolvedValue(TERMS);
-    mockVerifyOrEnroll.mockResolvedValue({ token: { accessToken: 'aal2' } });
+    mockVerifyOrEnroll.mockResolvedValue({
+      token: { accessToken: 'aal2' },
+      credentials: [],
+    });
   });
 
   it('asks kyc-api for the step when it opens, and shows nothing to do yet', async () => {
@@ -158,10 +155,14 @@ describe('KalshiOnboarding', () => {
 
   it('keeps going when kyc-api cannot be reached', async () => {
     flow.refreshStep.mockRejectedValue(new Error('offline'));
-    const screen = render('account_link');
+    const screen = render('confirm_identity');
 
     await waitFor(() => expect(flow.refreshStep).toHaveBeenCalled());
-    expect(screen.getByText('Your email')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'MetaMask confirms it’s you. Next you’ll choose the email Kalshi uses.',
+      ),
+    ).toBeOnTheScreen();
   });
 
   describe('terms', () => {
@@ -193,105 +194,39 @@ describe('KalshiOnboarding', () => {
     });
   });
 
-  describe('account link', () => {
-    it('sends the trimmed email', async () => {
-      const screen = render('account_link');
-      typeInto(screen, '  a@b.co ');
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() =>
-        expect(flow.startAccountLink).toHaveBeenCalledWith({
-          vendor: 'kalshi',
-          email: 'a@b.co',
-        }),
-      );
-    });
-
-    it('does not send an empty email', () => {
-      const screen = render('account_link');
-
-      expect(primary(screen).props.accessibilityState?.disabled).toBe(true);
-      expect(flow.startAccountLink).not.toHaveBeenCalled();
-    });
-
-    it('verifies the code', async () => {
-      const screen = await reachLinkCode();
-      typeInto(screen, ' 888888 ');
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() =>
-        expect(flow.verifyAccountLink).toHaveBeenCalledWith({
-          vendor: 'kalshi',
-          code: '888888',
-        }),
-      );
-    });
-
-    it('lets a mistyped email be corrected', async () => {
-      const screen = await reachLinkCode();
-
-      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
-
-      // Back on the email screen, prefilled, with the step unchanged. The
-      // server still says `account_link`; only the phone knows which of the
-      // two screens the user is on, so only the phone can go back.
-      expect(
-        await screen.findByText(
-          'Kalshi creates your account with this email and sends you a code.',
-        ),
-      ).toBeOnTheScreen();
-      // Prefilled, so correcting a typo does not mean retyping it all.
-      expect(screen.getByDisplayValue('a@b.co')).toBeOnTheScreen();
-    });
-
-    it('asks for the second code when Kalshi wants one', async () => {
-      flow.verifyAccountLink.mockResolvedValue({
-        step: 'account_link',
-        mfaMethod: 'sms',
-      });
-      const screen = await reachLinkCode();
-      typeInto(screen, '888888');
-
-      fireEvent.press(primary(screen));
-
-      expect(
-        await screen.findByText(
-          'Kalshi texted you a second code. Enter it here.',
-        ),
-      ).toBeOnTheScreen();
-      // The field is empty again, so there is nothing to send yet.
-      expect(primary(screen).props.accessibilityState?.disabled).toBe(true);
-    });
-  });
-
   describe('confirm with MetaMask', () => {
-    it('opens the session with the MFA token', async () => {
+    it('holds the MFA token, then creates the session with the typed email', async () => {
+      mockVerifyOrEnroll.mockResolvedValue({
+        token: { accessToken: 'aal2' },
+        credentials: [{ type: 'email_otp', email: 'mm@b.co' }],
+      });
       const screen = render('confirm_identity');
 
+      fireEvent.press(primary(screen));
+
+      expect(await screen.findByDisplayValue('mm@b.co')).toBeOnTheScreen();
+      expect(flow.startSession).not.toHaveBeenCalled();
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({ methods: ['email_otp'] }),
+      );
+
+      typeInto(screen, '  kalshi@b.co ');
       fireEvent.press(primary(screen));
 
       await waitFor(() =>
         expect(flow.startSession).toHaveBeenCalledWith({
           vendor: 'kalshi',
           aal2Token: 'aal2',
+          email: 'kalshi@b.co',
         }),
-      );
-      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
-        expect.objectContaining({ methods: ['email_otp'] }),
       );
     });
 
-    it('never sends an email the user typed', async () => {
-      // The address Kalshi registers comes from the verified token, so the
-      // Kalshi account and the MetaMask account cannot diverge.
-      const screen = render('confirm_identity');
+    it('does not send an empty email', async () => {
+      const screen = await reachEmail();
 
-      fireEvent.press(primary(screen));
-
-      await waitFor(() => expect(flow.startSession).toHaveBeenCalled());
-      expect(flow.startSession.mock.calls[0][0]).not.toHaveProperty('email');
+      expect(primary(screen).props.accessibilityState?.disabled).toBe(true);
+      expect(flow.startSession).not.toHaveBeenCalled();
     });
 
     it('says so when MetaMask returns no token', async () => {
@@ -334,14 +269,24 @@ describe('KalshiOnboarding', () => {
       );
     });
 
-    it('sends a new email code on request', async () => {
+    it('signs a corrected email into a new link on the same session', async () => {
       const screen = render('identity_email_code');
       await screen.findByText('Check your email');
 
       fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
+      expect(
+        await screen.findByText(
+          'Kalshi creates your account with this email and sends you a code. It can differ from your MetaMask email.',
+        ),
+      ).toBeOnTheScreen();
+      typeInto(screen, '  other@b.co ');
+      fireEvent.press(primary(screen));
 
       await waitFor(() =>
-        expect(flow.resendEmailCode).toHaveBeenCalledWith({ vendor: 'kalshi' }),
+        expect(flow.resendEmailCode).toHaveBeenCalledWith({
+          vendor: 'kalshi',
+          email: 'other@b.co',
+        }),
       );
     });
 
@@ -565,13 +510,13 @@ describe('KalshiOnboarding', () => {
 
   describe('errors', () => {
     it('shows what went wrong with the status and code', async () => {
-      flow.startAccountLink.mockRejectedValue(
+      flow.startSession.mockRejectedValue(
         Object.assign(new Error('Kalshi refused'), {
           status: 409,
           code: 'onboarding_conflict',
         }),
       );
-      const screen = render('account_link');
+      const screen = await reachEmail();
       typeInto(screen, 'a@b.co');
 
       fireEvent.press(primary(screen));
@@ -582,8 +527,8 @@ describe('KalshiOnboarding', () => {
     });
 
     it('shows a plain message for something that is not an error', async () => {
-      flow.startAccountLink.mockRejectedValue('nope');
-      const screen = render('account_link');
+      flow.startSession.mockRejectedValue('nope');
+      const screen = await reachEmail();
       typeInto(screen, 'a@b.co');
 
       fireEvent.press(primary(screen));
@@ -594,8 +539,8 @@ describe('KalshiOnboarding', () => {
     });
 
     it('clears the message when the user tries again', async () => {
-      flow.startAccountLink.mockRejectedValueOnce(new Error('first'));
-      const screen = render('account_link');
+      flow.startSession.mockRejectedValueOnce(new Error('first'));
+      const screen = await reachEmail();
       typeInto(screen, 'a@b.co');
       fireEvent.press(primary(screen));
       await screen.findByText('first');
@@ -609,7 +554,7 @@ describe('KalshiOnboarding', () => {
   });
 
   it('goes back', () => {
-    const screen = render('account_link');
+    const screen = render('confirm_identity');
 
     fireEvent.press(screen.getByText('Back'));
 

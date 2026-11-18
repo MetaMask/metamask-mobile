@@ -1,7 +1,11 @@
 import { KYC_STEPS } from '@metamask/kyc-controller';
 import { deriveKalshiScreen } from './kalshiScreen';
 
-const context = { linkCodeSent: false, phoneCodeSent: false };
+const context = {
+  emailEntry: false,
+  editingEmail: false,
+  phoneCodeSent: false,
+};
 
 describe('deriveKalshiScreen', () => {
   it('shows a loading screen before kyc-api answers', () => {
@@ -11,7 +15,6 @@ describe('deriveKalshiScreen', () => {
 
   it.each([
     ['vendor_terms', 'terms'],
-    ['account_link', 'email'],
     ['confirm_identity', 'confirm'],
     ['identity_email_code', 'email_code'],
     ['identity_provider', 'sumsub'],
@@ -26,33 +29,35 @@ describe('deriveKalshiScreen', () => {
     }
   });
 
-  describe('account_link', () => {
-    it('asks for the email first', () => {
+  it('treats the removed account link step as an error', () => {
+    expect(deriveKalshiScreen('account_link' as never, 'none', context)).toBe(
+      'error',
+    );
+  });
+
+  describe('confirm_identity', () => {
+    it('asks MetaMask to confirm first', () => {
+      expect(deriveKalshiScreen('confirm_identity', 'none', context)).toBe(
+        'confirm',
+      );
+    });
+
+    it('then asks for the Kalshi email, still before a session exists', () => {
       expect(
-        deriveKalshiScreen('account_link', 'none', {
+        deriveKalshiScreen('confirm_identity', 'none', {
           ...context,
-          linkCodeSent: false,
+          emailEntry: true,
         }),
       ).toBe('email');
     });
+  });
 
-    it('then for the code, on the same step, once it was sent', () => {
+  describe('identity_email_code', () => {
+    it('goes back to the email so a mistyped address can be signed again', () => {
       expect(
-        deriveKalshiScreen('account_link', 'none', {
+        deriveKalshiScreen('identity_email_code', 'none', {
           ...context,
-          linkCodeSent: true,
-        }),
-      ).toBe('link_code');
-    });
-
-    it('goes back to the email when the phone clears the code state', () => {
-      // kyc-api cannot do this: it only knows the account is not linked, and
-      // Kalshi never says the address was wrong. Without the phone keeping
-      // this, a mistyped email would be a dead end.
-      expect(
-        deriveKalshiScreen('account_link', 'none', {
-          ...context,
-          linkCodeSent: false,
+          editingEmail: true,
         }),
       ).toBe('email');
     });

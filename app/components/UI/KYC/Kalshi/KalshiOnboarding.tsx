@@ -10,7 +10,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type {
-  KycAccountLinkMfaMethod,
   KycCatalogDocument,
   KycConsentDocument,
   KycDisclaimer,
@@ -88,15 +87,11 @@ const SCREEN_COPY: Record<
   },
   email: {
     title: 'Your email',
-    body: 'Kalshi creates your account with this email and sends you a code.',
-  },
-  link_code: {
-    title: 'Confirm the link',
-    body: `Enter the code Kalshi emailed you. Demo: ${KALSHI_KYC_VENDOR.demoValues.code}.`,
+    body: 'Kalshi creates your account with this email and sends you a code. It can differ from your MetaMask email.',
   },
   confirm: {
     title: 'Confirm with MetaMask',
-    body: 'MetaMask confirms your email, then idOS opens your identity check for Kalshi.',
+    body: 'MetaMask confirms it’s you. Next you’ll choose the email Kalshi uses.',
   },
   email_code: {
     title: 'Check your email',
@@ -132,17 +127,6 @@ const SCREEN_COPY: Record<
   },
 };
 
-const mfaHint = (method: KycAccountLinkMfaMethod): string => {
-  switch (method) {
-    case 'sms':
-      return 'Kalshi texted you a second code. Enter it here.';
-    case 'email':
-      return 'Kalshi emailed you a second code. Enter it here.';
-    default:
-      return 'Enter the code from your authenticator app.';
-  }
-};
-
 const FIELDS: Partial<
   Record<KalshiScreen, { placeholder: string; keyboard: string }>
 > = {
@@ -150,15 +134,13 @@ const FIELDS: Partial<
   phone: { placeholder: '+18888888888', keyboard: 'phone-pad' },
   email_code: { placeholder: '888888', keyboard: 'number-pad' },
   phone_code: { placeholder: '888888', keyboard: 'number-pad' },
-  link_code: { placeholder: '888888', keyboard: 'number-pad' },
 };
 
 /**
  * Kalshi onboarding through `VendorOnboardingController`. One screen that shows
  * whatever step kyc-api says the user is on, so it resumes wherever they left
- * off, on any device. The phone keeps nothing that kyc-api can work out: the
- * email, the phone code state and the MFA hint only live while this screen is
- * open.
+ * off, on any device. The phone keeps the MFA token, the typed Kalshi email
+ * and the phone-code field only while this screen is open.
  */
 const KalshiOnboarding = () => {
   const tw = useTailwind();
@@ -166,11 +148,13 @@ const KalshiOnboarding = () => {
   const { verifyOrEnroll } = useMfa();
   const flowState = useSelector(selectKalshiFlow);
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
-  const [linkCodeSent, setLinkCodeSent] = useState(false);
+  const [emailEntry, setEmailEntry] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
+  /** Held from MetaMask MFA until the Kalshi email is submitted. */
+  const [aal2Token, setAal2Token] = useState<string>();
   /** Carried into the field on the next screen change, then forgotten. */
   const prefill = useRef<string | undefined>(undefined);
   const [linkedEmail, setLinkedEmail] = useState<string>();
-  const [mfaMethod, setMfaMethod] = useState<KycAccountLinkMfaMethod>();
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -178,7 +162,8 @@ const KalshiOnboarding = () => {
   const step = flowState?.step;
   const status = flowState?.status ?? 'none';
   const screen = deriveKalshiScreen(step, status, {
-    linkCodeSent,
+    emailEntry,
+    editingEmail,
     phoneCodeSent,
   });
   const { VendorOnboardingController } = Engine.context;
@@ -278,44 +263,8 @@ const KalshiOnboarding = () => {
       });
     });
 
-  // Kalshi's account comes first: the phone signs Kalshi's intent and link,
-  // kyc-api passes them on, and Kalshi emails a code.
-  const submitEmail = () =>
-    run(async () => {
-      const email = input.trim();
-      await VendorOnboardingController.startAccountLink({
-        vendor: VENDOR,
-        email,
-      });
-      setLinkedEmail(email);
-      setLinkCodeSent(true);
-      setInput('');
-    });
-
-  /**
-   * Goes back to the email screen so a mistyped address can be corrected.
-   *
-   * kyc-api cannot do this: once the link has started it only knows the
-   * account is not linked yet, and Kalshi never tells us the address was
-   * wrong. Without this the user would be stuck on the code screen.
-   */
-  const editLinkEmail = () => {
-    prefill.current = linkedEmail ?? '';
-    setLinkCodeSent(false);
-  };
-
-  const submitLinkCode = () =>
-    run(async () => {
-      const result = await VendorOnboardingController.verifyAccountLink({
-        vendor: VENDOR,
-        code: input.trim(),
-      });
-      setMfaMethod(result.mfaMethod);
-      setInput('');
-    });
-
-  // Then MetaMask confirms the email and kyc-api opens the UKYC session for
-  // the Kalshi user it recorded.
+  // MetaMask MFA first. The token is held until the user submits the Kalshi
+  // email, which is what creates the session.
   const confirmWithMetaMask = () =>
     run(async () => {
       const result = await verifyOrEnroll({
@@ -323,17 +272,61 @@ const KalshiOnboarding = () => {
         verifyWith: 'email_otp',
         reason: { operation: 'ukyc.kalshi.verifyEmail', presentation: 'card' },
       });
-      const aal2Token = result.token?.accessToken;
-      if (!aal2Token) {
+      const token = result.token?.accessToken;
+      if (!token) {
         throw new Error('MetaMask could not confirm your email.');
       }
-      // kyc-api reads the session's email from this token, so the address
-      // Kalshi registers is the one MetaMask verified, not one typed here.
-      await VendorOnboardingController.startSession({
-        vendor: VENDOR,
-        aal2Token,
-      });
+      const emailCredential = result.credentials?.find(
+        (credential) => credential.type === 'email_otp',
+      );
+      const verified =
+        emailCredential?.type === 'email_otp'
+          ? emailCredential.email
+          : undefined;
+      prefill.current = verified ?? '';
+      setAal2Token(token);
+      setEmailEntry(true);
     });
+
+  /**
+   * Submits the Kalshi email.
+   *
+   * Before a session exists this creates one, and the phone signs the
+   * enrollment intent and `users/link` into that request. On the code step
+   * it signs a new `users/link` for a corrected address.
+   */
+  const submitEmail = () =>
+    run(async () => {
+      const email = input.trim();
+      if (editingEmail || step === 'identity_email_code') {
+        await VendorOnboardingController.resendEmailCode({
+          vendor: VENDOR,
+          email,
+        });
+        setEditingEmail(false);
+      } else {
+        if (!aal2Token) {
+          throw new Error('MetaMask could not confirm your email.');
+        }
+        await VendorOnboardingController.startSession({
+          vendor: VENDOR,
+          aal2Token,
+          email,
+        });
+        setEmailEntry(false);
+      }
+      setLinkedEmail(email);
+    });
+
+  /**
+   * Goes back to the email field so a mistyped address can be corrected.
+   *
+   * The session already exists. Submitting signs a new `users/link` on it.
+   */
+  const editLinkEmail = () => {
+    prefill.current = linkedEmail ?? '';
+    setEditingEmail(true);
+  };
 
   const submitEmailCode = () =>
     run(() =>
@@ -342,9 +335,6 @@ const KalshiOnboarding = () => {
         code: input.trim(),
       }),
     );
-
-  const resendEmailCode = () =>
-    run(() => VendorOnboardingController.resendEmailCode({ vendor: VENDOR }));
 
   const submitPhone = () =>
     run(async () => {
@@ -403,8 +393,6 @@ const KalshiOnboarding = () => {
             : undefined;
         case 'email':
           return { label: 'Continue', onPress: submitEmail };
-        case 'link_code':
-          return { label: 'Confirm', onPress: submitLinkCode };
         case 'confirm':
           return {
             label: 'Confirm with MetaMask',
@@ -426,19 +414,17 @@ const KalshiOnboarding = () => {
       }
       // The handlers close over the current input and terms.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [screen, terms, input, linkedEmail, navigation]);
+    }, [screen, terms, input, linkedEmail, aal2Token, navigation]);
 
   const secondary: { label: string; onPress: () => void } | undefined =
     screen === 'email_code'
-      ? { label: 'Send a new code', onPress: resendEmailCode }
+      ? { label: 'Use another email', onPress: editLinkEmail }
       : screen === 'phone_code'
         ? {
             label: 'Use another number',
             onPress: () => setPhoneCodeSent(false),
           }
-        : screen === 'link_code'
-          ? { label: 'Use another email', onPress: editLinkEmail }
-          : undefined;
+        : undefined;
 
   const copy = screen === 'loading' ? undefined : SCREEN_COPY[screen];
 
@@ -470,9 +456,7 @@ const KalshiOnboarding = () => {
               color={TextColor.TextAlternative}
               twClassName="mt-2"
             >
-              {screen === 'link_code' && mfaMethod
-                ? mfaHint(mfaMethod)
-                : copy.body}
+              {copy.body}
             </Text>
           </>
         )}

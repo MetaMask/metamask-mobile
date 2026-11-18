@@ -3,7 +3,7 @@ import {
   type VendorOnboardingControllerMessenger,
 } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
-import { createKalshiAccountLinkAdapter } from '../../../../components/UI/KYC/Kalshi/kalshiAccountLinkAdapter';
+import { createKalshiVendorRequestSigner } from '../../../../components/UI/KYC/Kalshi/kalshiVendorRequestSigner';
 import { sumsubLauncher } from './sumSubLauncher';
 
 /**
@@ -11,8 +11,8 @@ import { sumsubLauncher } from './sumSubLauncher';
  *
  * The controller follows the onboarding step kyc-api decides for a vendor and
  * keeps only that step and the session id. Platform-specific parts are
- * injected: the SumSub SDK, and Kalshi's device-signed account link calls,
- * which run on the phone.
+ * injected: the SumSub SDK, and the signer for Kalshi calls the relay
+ * forwards. The signer does not send those calls.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.
@@ -27,7 +27,7 @@ export const vendorOnboardingControllerInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     state: persistedState.VendorOnboardingController,
     sumsubLauncher,
-    accountLinkAdapters: { kalshi: createKalshiAccountLinkAdapter() },
+    vendorRequestSigners: { kalshi: createKalshiVendorRequestSigner() },
   });
 
   return { controller };

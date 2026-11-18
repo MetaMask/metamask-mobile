@@ -194,6 +194,7 @@
     "@metamask/network-controller": "^38.0.0",
     "@metamask/analytics-controller": "^4.2.0",
     "@metamask/geolocation-controller": "^2.0.0",
+    "@metamask/kyc-controller@npm:^0.16.0": "patch:@metamask-previews/kyc-controller@npm%3A0.16.0-preview-9726c3b7f#~/.yarn/patches/@metamask-kyc-controller-npm-0.16.0-passthru.patch",
     "@metamask/utils": "^12.0.1",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",

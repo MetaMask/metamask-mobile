@@ -7,9 +7,8 @@ import type { KycStep, KycStepStatus } from '@metamask/kyc-controller';
 export type KalshiScreen =
   | 'loading'
   | 'terms'
-  | 'email'
-  | 'link_code'
   | 'confirm'
+  | 'email'
   | 'email_code'
   | 'phone'
   | 'phone_code'
@@ -22,13 +21,15 @@ export type KalshiScreen =
 /**
  * What the phone knows beyond the step.
  *
- * kyc-api decides steps, not screens. Where a step covers an address and
- * the code sent to it, only the phone can know which of the two the user is
- * looking at — and only the phone can take them back to correct a typo.
+ * MetaMask MFA and the Kalshi email both happen before the session exists,
+ * on `confirm_identity`. Changing the email happens on the code step. Only
+ * the phone knows which of those screens is showing.
  */
 export interface KalshiScreenContext {
-  /** The link code was sent, so the code screen follows the email screen. */
-  linkCodeSent: boolean;
+  /** MetaMask MFA finished, so the email field is showing. */
+  emailEntry: boolean;
+  /** On the code step, the user went back to change the address. */
+  editingEmail: boolean;
   /** The phone code was sent from this screen and is being entered. */
   phoneCodeSent: boolean;
 }
@@ -53,15 +54,10 @@ export function deriveKalshiScreen(
       return 'loading';
     case 'vendor_terms':
       return 'terms';
-    case 'account_link':
-      // The email and its code are one step. Kalshi has no way to tell us
-      // the address was wrong, so the phone keeps the code screen and the
-      // way back to the email on its own side.
-      return context.linkCodeSent ? 'link_code' : 'email';
     case 'confirm_identity':
-      return 'confirm';
+      return context.emailEntry ? 'email' : 'confirm';
     case 'identity_email_code':
-      return 'email_code';
+      return context.editingEmail ? 'email' : 'email_code';
     case 'identity_phone':
       return context.phoneCodeSent ? 'phone_code' : 'phone';
     case 'identity_provider':
