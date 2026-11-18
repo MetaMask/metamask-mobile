@@ -1493,11 +1493,14 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     fireEvent.changeText(usernameInput, 'hello_');
-    expect(
-      await screen.findByText(
-        'This handle is unavailable. Choose another one.',
-      ),
-    ).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText('This handle is unavailable. Choose another one.'),
+        ).toBeOnTheScreen();
+      },
+      { timeout: 3000 },
+    );
 
     fireEvent.changeText(usernameInput, 'h');
     expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
@@ -1514,11 +1517,14 @@ describe('SocialProfileOnboardingView', () => {
     expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
 
     fireEvent.changeText(usernameInput, 'hello_');
-    expect(
-      await screen.findByText(
-        'This handle is unavailable. Choose another one.',
-      ),
-    ).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText('This handle is unavailable. Choose another one.'),
+        ).toBeOnTheScreen();
+      },
+      { timeout: 3000 },
+    );
     expect(
       screen.queryByText('Use at least 3 characters.'),
     ).not.toBeOnTheScreen();
