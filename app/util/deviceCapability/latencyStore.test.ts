@@ -326,6 +326,55 @@ describe('latencyStore', () => {
     expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });
 
+  describe('getSettledLatencySnapshot', () => {
+    it('keeps slow after a background clear', () => {
+      [8000, 8000].forEach((duration) => record(duration));
+
+      emitAppState('background');
+
+      expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+      expect(store.getSettledLatencySnapshot()).toBe('SLOW');
+    });
+
+    it('keeps slow after a transport change', () => {
+      [8000, 8000].forEach((duration) => record(duration));
+
+      emitNetInfo(netInfoState('cellular', true, { cellularGeneration: '4g' }));
+
+      expect(store.getSettledLatencySnapshot()).toBe('SLOW');
+    });
+
+    it('moves to ok once slow is released', () => {
+      [8000, 8000].forEach((duration) => record(duration));
+      emitAppState('background');
+      emitAppState('active');
+
+      [300, 300, 300].forEach((duration) => record(duration));
+
+      expect(store.getSettledLatencySnapshot()).toBe('OK');
+    });
+
+    it('resets to unknown and notifies when the device goes offline', () => {
+      [8000, 8000].forEach((duration) => record(duration));
+      emitAppState('background');
+      const listener = jest.fn();
+      store.subscribeLatency(listener);
+
+      emitNetInfo(netInfoState('none', false));
+
+      expect(store.getSettledLatencySnapshot()).toBe('UNKNOWN');
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('reports the network tier from the latest NetInfo event', () => {
+    expect(store.getNetworkTierSnapshot()).toBe('WIFI');
+
+    emitNetInfo(netInfoState('cellular', true, { cellularGeneration: '3g' }));
+
+    expect(store.getNetworkTierSnapshot()).toBe('SLOW_CELLULAR');
+  });
+
   it('uses the HIGH thresholds for a HIGH hardware row', () => {
     expect(store.getLatencyThresholds()).toEqual({
       hungMs: 8000,

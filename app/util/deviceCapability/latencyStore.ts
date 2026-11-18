@@ -11,11 +11,19 @@ import {
   readCellularGeneration,
 } from './computeNetworkTier';
 import { LATENCY_SAMPLE_SIZE, LATENCY_THRESHOLDS } from './thresholds';
-import type { HardwareTier, LatencyBucket, LatencyThresholds } from './types';
+import type {
+  HardwareTier,
+  LatencyBucket,
+  LatencyThresholds,
+  NetworkTier,
+} from './types';
 
 // Module memory only: samples are never dispatched to Redux or persisted.
 let samples: number[] = [];
 let bucket: LatencyBucket = 'UNKNOWN';
+// Last `OK` / `SLOW` reading. Survives resume and transport clears, resets offline.
+let settledBucket: LatencyBucket = 'UNKNOWN';
+let networkTier: NetworkTier | null = null;
 let thresholds: LatencyThresholds = LATENCY_THRESHOLDS.MID;
 // Starts true: until the first NetInfo event the transport is unknown, so
 // cold-start samples (recorded before any NetInfo callback) are dropped.
@@ -29,10 +37,13 @@ let sampleEpoch = 0;
 const listeners = new Set<() => void>();
 
 function setBucket(next: LatencyBucket): void {
-  if (next === bucket) {
+  const nextSettled =
+    next === 'UNKNOWN' && !isTransportNone ? settledBucket : next;
+  if (next === bucket && nextSettled === settledBucket) {
     return;
   }
   bucket = next;
+  settledBucket = nextSettled;
   listeners.forEach((listener) => {
     // A throwing subscriber must not reject the caller's `fetch`.
     try {
@@ -89,6 +100,19 @@ export function getLatencySnapshot(): LatencyBucket {
   return bucket;
 }
 
+/**
+ * Last `OK` or `SLOW` reading. Unlike `getLatencySnapshot`, it does not reset
+ * on resume or a transport change, only when the device goes offline.
+ */
+export function getSettledLatencySnapshot(): LatencyBucket {
+  return settledBucket;
+}
+
+/** Network tier from the latest NetInfo event, or `null` before the first one. */
+export function getNetworkTierSnapshot(): NetworkTier | null {
+  return networkTier;
+}
+
 /** Hardware-row cutoffs selected by `startLatencyMonitoring`. */
 export function getLatencyThresholds(): LatencyThresholds {
   return thresholds;
@@ -138,7 +162,8 @@ export function startLatencyMonitoring(
       previousNetInfoKey !== undefined && key !== previousNetInfoKey;
     previousNetInfoKey = key;
     const wasTransportNone = isTransportNone;
-    isTransportNone = computeNetworkTier(input) === 'NONE';
+    networkTier = computeNetworkTier(input);
+    isTransportNone = networkTier === 'NONE';
     // `wasTransportNone` covers leaving NONE without a transport key change
     // (reachability false → true on the same transport): in-flight fetches
     // span the offline gap, so their elapsed time is not a latency signal.

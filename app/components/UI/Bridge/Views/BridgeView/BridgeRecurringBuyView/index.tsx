@@ -6,7 +6,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   FeatureId,
@@ -68,6 +68,11 @@ import {
   getAdvancedOrderTradeProperties,
 } from '../../../utils/advancedOrders';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import {
+  RECURRING_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+  RECURRING_ORDERS_REFETCH_INTERVAL,
+} from '../../../constants/recurringOrders';
 
 const OPEN_ORDER_STATES = [RecurringOrderState.Open];
 const HISTORY_ORDER_STATES = [
@@ -89,6 +94,7 @@ const BridgeRecurringBuyViewContent = ({
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const isScreenFocused = useIsFocused();
   const inputRef = useRef<TokenInputAreaRef>(null);
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
@@ -126,7 +132,15 @@ const BridgeRecurringBuyViewContent = ({
       undefined)
     : undefined;
   const networkTier = useNetworkTier();
+  const hardwareTier = getHardwareTier();
   const isRemoteDataEnabled = networkTier !== 'NONE';
+  let ordersRefetchInterval: number | undefined =
+    RECURRING_ORDERS_REFETCH_INTERVAL;
+  if (networkTier === 'NONE' || !isScreenFocused) {
+    ordersRefetchInterval = undefined;
+  } else if (hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR') {
+    ordersRefetchInterval = RECURRING_ORDERS_CONSTRAINED_REFETCH_INTERVAL;
+  }
   const feeTokenValidation = useSentinelFeeTokenValidation({
     chainId: orderChainId,
     sourceAssetId,
@@ -148,12 +162,20 @@ const BridgeRecurringBuyViewContent = ({
     chainId: ordersNetworkFilter,
     enabled:
       isRemoteDataEnabled && recurringOrdersTab === OrdersTabKey.OpenOrders,
+    refetchInterval:
+      recurringOrdersTab === OrdersTabKey.OpenOrders
+        ? ordersRefetchInterval
+        : undefined,
   });
   const historyQuery = useRecurringOrders({
     walletAddress,
     orderStates: HISTORY_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: isRemoteDataEnabled && recurringOrdersTab === OrdersTabKey.History,
+    refetchInterval:
+      recurringOrdersTab === OrdersTabKey.History
+        ? ordersRefetchInterval
+        : undefined,
   });
   const activeOrdersQuery =
     recurringOrdersTab === OrdersTabKey.OpenOrders

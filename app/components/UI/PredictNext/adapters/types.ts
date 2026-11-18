@@ -5,6 +5,10 @@ import type {
   FetchSearchParams,
   PredictActivityPage,
   PredictBalance,
+  PredictDepositApproval,
+  PredictDepositOperation,
+  PredictDepositParams,
+  PredictDepositTransferParams,
   PredictEntityId,
   PredictEvent,
   PredictFeed,
@@ -99,4 +103,39 @@ export interface VenueMarketDataAdapter {
     params: FetchSearchParams,
     options?: PredictReadOptions,
   ): Promise<PredictSearchResults>;
+}
+
+/**
+ * A Venue's deposit routes. Every method answers canonical deposit
+ * operations; none hands out request bytes or transaction data.
+ */
+export interface VenueFundingAdapter {
+  /**
+   * Starts a deposit and, unless `clientOperationId` already created one,
+   * signs the venue's address request with the device key and creates it.
+   * Signing needs the explicit user approval. Answers the deposit with its
+   * next step, usually the Funding Plan.
+   */
+  prepareDeposit(
+    params: PredictDepositParams,
+    approval: PredictDepositApproval,
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation>;
+  getDeposit(
+    operationId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation>;
+  /** Deposits that are not final yet, oldest first. */
+  listOpenDeposits(
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation[]>;
+  reportDepositTransfer(
+    operationId: string,
+    params: PredictDepositTransferParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation>;
+  cancelDeposit(
+    operationId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation>;
 }
