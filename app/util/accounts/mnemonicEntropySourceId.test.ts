@@ -11,7 +11,7 @@ const account = (
     type: EthAccountType.Eoa,
     metadata: { keyring: { type: keyringType } },
     options: { entropySource },
-  }) as InternalAccount;
+  }) as unknown as InternalAccount;
 
 describe('mnemonicEntropySourceId', () => {
   it('returns the entropy source id of an HD account', () => {
