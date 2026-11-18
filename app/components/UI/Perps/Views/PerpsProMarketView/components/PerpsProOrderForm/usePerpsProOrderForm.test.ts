@@ -296,6 +296,7 @@ let mockMarketData: {
   maxLeverage: number;
   onlyIsolated?: true;
   marginMode?: 'strictIsolated' | 'noCross';
+  marginTableId?: number;
 } | null = {
   szDecimals: 3,
   maxLeverage: 40,
@@ -4111,7 +4112,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.liquidationPrice).toBe('--');
     });
 
-    it('keeps the Cross liquidation price unknown until the account publishes spot collateral', () => {
+    it('estimates from account value until spot collateral is published', () => {
       mockLiveAccount = {
         crossMarginSummary: {
           accountValue: '50',
@@ -4126,7 +4127,72 @@ describe('usePerpsProOrderForm', () => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toBe('--');
+      expect(result.current.summary.liquidationPrice).toBe('~$75,949');
+    });
+
+    it('shows no liquidation price when the cross position cannot be liquidated', () => {
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '5000',
+          maintenanceMargin: '0',
+          marginUsed: '0',
+          notional: '0',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe(
+        strings('perps.cross_position.no_liquidation_price'),
+      );
+    });
+
+    it('estimates a Cross liquidation price while adding to an open position', () => {
+      mockExistingPosition = {
+        size: '0.01',
+        leverage: { type: 'cross', value: 5 },
+      };
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toMatch(/^\$/);
+      expect(result.current.summary.liquidationPrice).not.toBe('--');
+    });
+
+    it('labels a tiered market liquidation price as approximate', () => {
+      mockMarketData = { szDecimals: 3, maxLeverage: 40, marginTableId: 56 };
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('~$75,949');
     });
 
     it('keeps the liquidation estimate for an isolated order when Cross is available', () => {

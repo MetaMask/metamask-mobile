@@ -2142,24 +2142,29 @@ export const usePerpsProOrderForm = ({
     isCalculating: isLiquidationCalculating,
   } = usePerpsLiquidationPrice(liquidationPriceParams);
   // A Cross order liquidates against the whole cross account, so it is
-  // estimated from the account's cross collateral and maintenance margin. It
-  // stays unknown when the order adds to a position or is a Scale ladder.
+  // estimated from the account's cross collateral and maintenance margin,
+  // including an order that changes an open position. A Scale ladder stays
+  // unknown.
   const { account: liveAccount } = usePerpsLiveAccount({
-    enabled: marginMode === 'cross',
+    // Subscribe before Cross is selected so the estimate is ready on the
+    // first frame of a cross order.
+    enabled: isCrossMarginAvailableForMarket || marginMode === 'cross',
   });
-  const crossLiquidationPrice = useMemo(() => {
+  const crossLiquidationEstimate = useMemo(() => {
     // The default max leverage would estimate against the wrong maintenance
     // margin, so wait for the market's own.
     const marketMaxLeverage = marketData?.maxLeverage;
+    const existingSignedSize = Number.parseFloat(
+      currentMarketPosition?.size ?? '0',
+    );
     if (
       marginMode !== 'cross' ||
       isScaleOrder ||
-      currentMarketPosition ||
-      marketMaxLeverage === undefined
+      typeof marketMaxLeverage !== 'number'
     ) {
-      return '';
+      return { status: 'unknown' as const };
     }
-    const estimate = estimateCrossLiquidationPrice({
+    return estimateCrossLiquidationPrice({
       entryPrice: effectivePrice,
       size: Number.parseFloat(positionSize),
       isLong: orderForm.direction === 'long',
@@ -2167,20 +2172,26 @@ export const usePerpsProOrderForm = ({
       crossMarginSummary: liveAccount?.crossMarginSummary,
       spotCollateral: liveAccount?.spotCollateral,
       providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
+      existingSignedSize,
+      marginTableId: marketData?.marginTableId,
     });
-    return estimate === undefined ? '' : new BigNumber(estimate).toFixed();
   }, [
     marginMode,
     isScaleOrder,
-    currentMarketPosition,
+    currentMarketPosition?.size,
     effectivePrice,
     positionSize,
     orderForm.direction,
     marketData?.maxLeverage,
+    marketData?.marginTableId,
     liveAccount?.crossMarginSummary,
     liveAccount?.spotCollateral,
     market.providerId,
   ]);
+  const crossLiquidationPrice =
+    crossLiquidationEstimate.status === 'price'
+      ? new BigNumber(crossLiquidationEstimate.price).toFixed()
+      : '';
   const liquidationPrice =
     marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;
 
@@ -2618,7 +2629,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? ''
+        ? crossLiquidationPrice
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
     marketPrice: assetData.price,
@@ -4183,10 +4194,21 @@ export const usePerpsProOrderForm = ({
       effectiveMarginRequired !== undefined && effectiveMarginRequired !== null
         ? formatMargin(effectiveMarginRequired)
         : PERPS_CONSTANTS.FallbackDataDisplay;
-    const orderLiquidationDisplay =
-      hasValidAmount && liquidationPrice
-        ? formatLiquidation(liquidationPrice)
-        : PERPS_CONSTANTS.FallbackDataDisplay;
+    let orderLiquidationDisplay: string = PERPS_CONSTANTS.FallbackDataDisplay;
+    if (marginMode === 'cross') {
+      if (hasValidAmount && crossLiquidationEstimate.status === 'price') {
+        const formatted = formatLiquidation(crossLiquidationEstimate.price);
+        orderLiquidationDisplay = crossLiquidationEstimate.approximate
+          ? strings('perps.order.approximate_price', { price: formatted })
+          : formatted;
+      } else if (hasValidAmount && crossLiquidationEstimate.status === 'none') {
+        orderLiquidationDisplay = strings(
+          'perps.cross_position.no_liquidation_price',
+        );
+      }
+    } else if (hasValidAmount && liquidationPrice) {
+      orderLiquidationDisplay = formatLiquidation(liquidationPrice);
+    }
 
     let margin = orderMarginDisplay;
     let liquidationPriceDisplay = orderLiquidationDisplay;
@@ -4237,6 +4259,7 @@ export const usePerpsProOrderForm = ({
     effectiveMarginRequired,
     hasValidAmount,
     liquidationPrice,
+    crossLiquidationEstimate,
     marginMode,
     estimatedSlippagePctDisplay,
     maxSlippageBps,
