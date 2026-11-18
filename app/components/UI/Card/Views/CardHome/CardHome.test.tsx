@@ -4217,6 +4217,35 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('Freeze animation persistence', () => {
+    it('shows the freeze animation for a card that loads already frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+
+      render();
+
+      // The freeze animation renders in place of the static card art
+      // (the CARD_ART wrapper stays, wrapping the animation).
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show the freeze animation for an unfrozen card', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+    });
+  });
+
   describe('KYC Status Verification', () => {
     beforeEach(() => {
       jest.clearAllMocks();
