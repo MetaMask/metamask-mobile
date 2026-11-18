@@ -51,7 +51,9 @@ describeForPlatforms('CollectiblesSection', () => {
     },
   );
 
-  it('hides the section when the remote flag is disabled', async () => {
+  // Unlike the unit flag gate, this checks a live kill switch after the section
+  // is visible, without remounting the homepage.
+  it('removes the visible section when the remote flag is disabled while the homepage is open', async () => {
     const { store } = renderCollectiblesSectionWithRoutes();
     await screen.findByTestId(CollectiblesSectionTestIds.CONTAINER);
 
