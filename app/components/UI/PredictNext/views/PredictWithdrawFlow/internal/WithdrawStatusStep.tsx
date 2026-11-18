@@ -145,13 +145,23 @@ export const WithdrawStatusStep = ({
 
   // A status reached by polling is asynchronous: screen readers hear the new
   // outcome without having to re-explore the screen.
-  useWithdrawAnnouncement(
-    rejection
-      ? `${rejection.title}. ${rejection.body}`
-      : receipt.needsManualReview
-        ? `${strings('predict_next.withdraw.status.manual_review.title')}. ${strings('predict_next.withdraw.status.manual_review.body')}`
-        : `${copy?.title ?? ''}${isSettled && withdrawn !== null ? `. ${withdrawn}` : ''}`,
-  );
+  let announcement: string;
+  if (rejection) {
+    announcement = `${rejection.title}. ${rejection.body}`;
+  } else if (receipt.needsManualReview) {
+    const manualReviewTitle = strings(
+      'predict_next.withdraw.status.manual_review.title',
+    );
+    const manualReviewBody = strings(
+      'predict_next.withdraw.status.manual_review.body',
+    );
+    announcement = `${manualReviewTitle}. ${manualReviewBody}`;
+  } else if (isSettled && withdrawn !== null) {
+    announcement = `${copy?.title ?? ''}. ${withdrawn}`;
+  } else {
+    announcement = copy?.title ?? '';
+  }
+  useWithdrawAnnouncement(announcement);
 
   if (rejection) {
     return (

@@ -65,14 +65,19 @@ export const WithdrawAmountStep = ({
     amountIssue === null ? null : amountIssueCopy(amountIssue),
   );
 
-  const balanceCopy =
-    balanceStatus === 'loading'
-      ? strings('predict_next.withdraw.balance_loading')
-      : balanceStatus === 'unavailable' || availableBalance === undefined
-        ? strings('predict_next.withdraw.balance_unavailable')
-        : strings('predict_next.withdraw.available_balance', {
-            amount: balanceLabel(availableBalance),
-          });
+  let balanceCopy: string;
+  if (balanceStatus === 'loading') {
+    balanceCopy = strings('predict_next.withdraw.balance_loading');
+  } else if (
+    balanceStatus === 'unavailable' ||
+    availableBalance === undefined
+  ) {
+    balanceCopy = strings('predict_next.withdraw.balance_unavailable');
+  } else {
+    balanceCopy = strings('predict_next.withdraw.available_balance', {
+      amount: balanceLabel(availableBalance),
+    });
+  }
 
   return (
     <Box twClassName="flex-1 items-center justify-center px-6">

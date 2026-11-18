@@ -46,7 +46,10 @@ import type {
 } from '../../types';
 
 import { PredictWithdrawFlowTestIds } from './internal/PredictWithdrawFlow.testIds';
-import { WithdrawAmountStep } from './internal/WithdrawAmountStep';
+import {
+  WithdrawAmountStep,
+  type WithdrawBalanceStatus,
+} from './internal/WithdrawAmountStep';
 import { WithdrawConfirmStep } from './internal/WithdrawConfirmStep';
 import { WithdrawStatusStep } from './internal/WithdrawStatusStep';
 import { useWithdrawAnnouncement } from './internal/useWithdrawAnnouncement';
@@ -267,11 +270,12 @@ export const PredictWithdrawScreen = () => {
 
   const { input } = state;
   const availableBalance = balanceQuery.data?.available;
-  const balanceStatus = balanceQuery.isPending
-    ? 'loading'
-    : availableBalance === undefined
-      ? 'unavailable'
-      : 'ready';
+  let balanceStatus: WithdrawBalanceStatus;
+  if (balanceQuery.isPending) {
+    balanceStatus = 'loading';
+  } else {
+    balanceStatus = availableBalance === undefined ? 'unavailable' : 'ready';
+  }
   const isOffline = networkTier === 'NONE';
   const isLowHardware = getHardwareTier() === 'LOW';
   const amountIssue = withdrawAmountIssue(input.amount, availableBalance);
