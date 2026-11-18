@@ -107,6 +107,12 @@ import {
   startOAuthLifecycleTracking,
 } from '../../../core/OAuthService/oauthLifecycleTracking';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import {
+  buildOidcIdentifier,
+  canUseMfaPasswordUnlock as evaluateCanUseMfaPasswordUnlock,
+} from '../../../core/MfaRecovery';
+import Engine from '../../../core/Engine';
+import { selectMoneyEnableMfaFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { isSentryEnabled, setupSentry } from '../../../util/sentry/utils';
@@ -264,6 +270,7 @@ const Onboarding = () => {
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
   const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
+  const isMoneyMfaEnabledFlag = useSelector(selectMoneyEnableMfaFlag);
   const walletSetupAttributionAnalyticsProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -1128,7 +1135,7 @@ const Onboarding = () => {
         beginSocialLoginLoading(provider);
         const loginHandlerOptions =
           provider === AuthConnection.Telegram
-            ? { telegramLoginEnabled: true }
+            ? { telegramLoginEnabled: isTelegramLoginEnabled }
             : undefined;
         try {
           const loginHandler = createLoginHandler(
@@ -1158,14 +1165,53 @@ const Onboarding = () => {
             is_rehydration: (!createWallet).toString(),
           });
 
+          // Money MFA password unlock (left-hand social unlock): one
+          // authenticateIdentifier login → seedless authenticate, routed
+          // through OAuthService so loginInProgress / rehydration / TOPRF /
+          // Sentry spans match handleOAuthLogin. Keep the existing OAuth start
+          // when the Money MFA flag is off, for create-wallet, when local
+          // seedless state does not match this provider, or when
+          // MfaRecoveryController failed to init (optional on Engine).
+          // Intended for the 2FA rollout: with the flag on and a matching
+          // existing seedless wallet, every social rehydration uses this path.
+          const seedlessState =
+            Engine.context.SeedlessOnboardingController?.state;
+          const hasMfaRecoveryController = Boolean(
+            Engine.context.MfaRecoveryController,
+          );
+          const canUseMfaPasswordUnlock = evaluateCanUseMfaPasswordUnlock({
+            isMoneyMfaEnabled: isMoneyMfaEnabledFlag,
+            createWallet,
+            seedlessUserId: seedlessState?.userId,
+            seedlessAuthConnection: seedlessState?.authConnection,
+            provider,
+            hasMfaRecoveryController,
+          });
+
           try {
-            const result = await OAuthLoginService.handleOAuthLogin(
-              loginHandler,
-              !createWallet,
-              // Nest provider-login / get-auth-tokens / seedless-authenticate spans under
-              // the social-login attempt so backend + web3auth time shows in the journey.
-              socialLoginTraceCtx.current,
-            );
+            const result = canUseMfaPasswordUnlock
+              ? await OAuthLoginService.handleMfaSeedlessPasswordUnlock(
+                  {
+                    // Provider OIDC subject is discovered from the ID token
+                    // after login. Seedless userId is the auth-server subject
+                    // and must not be used as identifier.value.
+                    identifier: buildOidcIdentifier({
+                      authConnection: provider,
+                    }),
+                    expectedSeedlessUserId: seedlessState.userId as string,
+                    authConnection: provider,
+                    clientId: loginHandler.options.clientId,
+                  },
+                  !createWallet,
+                  socialLoginTraceCtx.current,
+                )
+              : await OAuthLoginService.handleOAuthLogin(
+                  loginHandler,
+                  !createWallet,
+                  // Nest provider-login / get-auth-tokens / seedless-authenticate spans under
+                  // the social-login attempt so backend + web3auth time shows in the journey.
+                  socialLoginTraceCtx.current,
+                );
             handlePostSocialLogin(
               result as OAuthLoginResult,
               createWallet,
@@ -1233,6 +1279,7 @@ const Onboarding = () => {
       handleExistingUser,
       isGoogleLoginIosUnsupportedBlockingEnabled,
       isTelegramLoginEnabled,
+      isMoneyMfaEnabledFlag,
     ],
   );
 

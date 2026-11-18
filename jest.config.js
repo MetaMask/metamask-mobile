@@ -146,6 +146,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/design-system-twrnc-preset',
   '@metamask/design-system-react-native',
   '@metamask/messenger',
+  '@metamask/mfa-recovery-controller',
   '@metamask/native-utils',
   '@metamask/perps-controller',
   '@metamask/json-rpc-engine',

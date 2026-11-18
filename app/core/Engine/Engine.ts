@@ -143,6 +143,7 @@ import { nftDetectionControllerInit } from './controllers/nft-detection-controll
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
+import { mfaRecoveryControllerInit } from './controllers/mfa-recovery-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
@@ -342,6 +343,7 @@ export class Engine {
         WebSocketService: WebSocketServiceInit,
         AuthenticationController: authenticationControllerInit,
         UserStorageController: userStorageControllerInit,
+        MfaRecoveryController: mfaRecoveryControllerInit,
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
@@ -694,6 +696,11 @@ export class Engine {
       KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
+      // Omitted when init fails so Engine still starts; Onboarding falls back
+      // to classic OAuth when the controller is absent.
+      ...(messengerClientsByName.MfaRecoveryController && {
+        MfaRecoveryController: messengerClientsByName.MfaRecoveryController,
+      }),
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1620,6 +1627,7 @@ export default {
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
+      MfaRecoveryController,
       QrSyncController,
     } = instance.context;
 
@@ -1700,6 +1708,9 @@ export default {
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
+      ...(MfaRecoveryController && {
+        MfaRecoveryController: MfaRecoveryController.state,
+      }),
       QrSyncController: QrSyncController.state,
     };
   },

@@ -14,7 +14,7 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -98,7 +98,13 @@ import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import {
+  selectSeedlessOnboardingAuthConnection,
+  selectSeedlessOnboardingUserId,
+} from '../../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../../selectors/analyticsController';
+import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
+import { runDevMfaSocialUnlock } from '../../../core/MfaRecovery';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
@@ -113,6 +119,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
   const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
+  const authConnection =
+    useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
+  const seedlessUserId = useSelector(selectSeedlessOnboardingUserId);
+  const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
   const analyticsId = useSelector(selectAnalyticsId);
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
@@ -773,6 +783,20 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setPassword('');
   };
 
+  /**
+   * Local-only: validate left-hand MFA recovery on the locked rehydrate screen
+   * (where seedless userId already exists). Not for production.
+   */
+  const handleDevMfaSocialUnlock = useCallback(async () => {
+    await runDevMfaSocialUnlock({
+      authConnection,
+      seedlessUserId,
+      telegramLoginEnabled: isTelegramLoginEnabled,
+      setLoading,
+      setError,
+    });
+  }, [authConnection, seedlessUserId, isTelegramLoginEnabled]);
+
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
@@ -871,6 +895,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             {strings('login.other_methods')}
           </Button>
         )}
+        {__DEV__ ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ctaSize}
+            onPress={handleDevMfaSocialUnlock}
+            isDisabled={finalLoading}
+            isLoading={loading}
+            isFullWidth
+            testID="dev-mfa-social-unlock-button"
+          >
+            DEV: MFA social unlock
+          </Button>
+        ) : null}
       </OnboardingLoginCanvas>
     </ErrorBoundary>
   );

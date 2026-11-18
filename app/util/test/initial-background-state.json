@@ -1032,6 +1032,10 @@
     },
     "orders": []
   },
+  "MfaRecoveryController": {
+    "lockId": null,
+    "pendingOperation": null
+  },
   "MoneyAccountController": {
     "moneyAccounts": {},
     "defaultMoneyAccountId": null

@@ -2737,6 +2737,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cubist-labs/cubesigner-sdk@npm:^0.4.284":
+  version: 0.4.284
+  resolution: "@cubist-labs/cubesigner-sdk@npm:0.4.284"
+  dependencies:
+    "@hpke/core": "npm:^1.2.7"
+    openapi-fetch: "npm:0.8.2"
+    zod: "npm:^4.3.6"
+  dependenciesMeta:
+    "@hpke/core":
+      optional: true
+  checksum: 10/cb98a4b0062dedc7bb4754ca96b49c5f8057ad91a8f7719f33090ccb6df32005d22efcf62ee848aaa690bba41b0ddb2d7f5fb980c6f612a76747ce63f373fd64
+  languageName: node
+  linkType: hard
+
 "@dabh/diagnostics@npm:^2.0.8":
   version: 2.0.8
   resolution: "@dabh/diagnostics@npm:2.0.8"
@@ -7364,6 +7378,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hpke/common@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "@hpke/common@npm:1.13.0"
+  checksum: 10/b849e800fe449ce1dcac03c2d96428d20b6fcc9b761a61ea732b895713106bd5534ad2031840ff03181464dff1e80bf975018e7fe9dbd922bde988e81816589b
+  languageName: node
+  linkType: hard
+
+"@hpke/core@npm:^1.2.7":
+  version: 1.10.1
+  resolution: "@hpke/core@npm:1.10.1"
+  dependencies:
+    "@hpke/common": "npm:^1.13.0"
+  checksum: 10/455d0bf72fb6654251034b1eb3282ce9302c61b90a1e0ef9df73945004a25edfdc734fdf576a1bcb4ea3b9efb1ce3c55f935cfa6ea833baad97aad7e1b881101
+  languageName: node
+  linkType: hard
+
 "@httptoolkit/httpolyglot@npm:^2.2.1":
   version: 2.2.1
   resolution: "@httptoolkit/httpolyglot@npm:2.2.1"
@@ -9559,23 +9589,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/auth-network-utils@npm:^0.3.0":
-  version: 0.3.1
-  resolution: "@metamask/auth-network-utils@npm:0.3.1"
-  dependencies:
-    "@noble/curves": "npm:^1.8.1"
-    "@noble/hashes": "npm:^1.7.1"
-    "@toruslabs/bs58": "npm:^1.0.0"
-    "@toruslabs/constants": "npm:^15.0.0"
-    "@toruslabs/eccrypto": "npm:^6.1.0"
-    bn.js: "npm:^5.2.1"
-    elliptic: "npm:^6.6.1"
-    json-stable-stringify-without-jsonify: "npm:^1.0.1"
-    loglevel: "npm:^1.9.2"
-  checksum: 10/6b4f105b03e5231ae3ed448e8423cd6681e49db1be7ebe20232e0b5eee8bce08e3565dbe890837abc9158b417c65d06279b676f226c52ffc81ef5f50f6d87428
-  languageName: node
-  linkType: hard
-
 "@metamask/auth-network-utils@npm:^0.4.0":
   version: 0.4.0
   resolution: "@metamask/auth-network-utils@npm:0.4.0"
@@ -10938,6 +10951,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/mfa-recovery-controller@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@metamask/mfa-recovery-controller@npm:0.1.0"
+  dependencies:
+    "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/cryptography": "npm:^1.1.2"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.1.2"
+    "@metamask/seedless-onboarding-controller": "npm:^12.1.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.2"
+    json-stable-stringify: "npm:^1.3.0"
+  checksum: 10/21cd65e10716da1c310f2a8323abc8da68e51c19ae9633794871f894216c165d4d24e7695fce51104e05f71b8aacc73b9bda51c7dd3f85af0bb6ea208102d9f3
+  languageName: node
+  linkType: hard
+
 "@metamask/mfa-wallet-cl24@npm:^0.2.0":
   version: 0.2.0
   resolution: "@metamask/mfa-wallet-cl24@npm:0.2.0"
@@ -11846,23 +11876,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "@metamask/seedless-onboarding-controller@npm:12.0.0"
+"@metamask/seedless-onboarding-controller@npm:^12.0.0, @metamask/seedless-onboarding-controller@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "@metamask/seedless-onboarding-controller@npm:12.1.0"
   dependencies:
-    "@metamask/analytics-controller": "npm:^4.0.0"
-    "@metamask/auth-network-utils": "npm:^0.3.0"
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/analytics-controller": "npm:^4.3.1"
+    "@metamask/auth-network-utils": "npm:^0.4.0"
+    "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/keyring-controller": "npm:^28.1.0"
+    "@metamask/cryptography": "npm:^1.1.2"
+    "@metamask/keyring-controller": "npm:^28.2.2"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/toprf-secure-backup": "npm:^1.1.0"
-    "@metamask/utils": "npm:^12.0.0"
-    "@noble/ciphers": "npm:^1.3.0"
+    "@metamask/utils": "npm:^12.0.2"
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/290517239aa8ab2063335aa08337466dc7f01c7f6711980f4bc456f10cce8b8c24e6667811cecc536b3c1cb9e1eb9b350dace24b51ffb6e0ff42b5565852e880
+  checksum: 10/ff01fd8fda8814d96da82a3c53916710f13d9254ee656fc207329d854f188653814411a1f7bb530d56a628d2782abb14d23084e0c63ad360caf1d3409a94934d
   languageName: node
   linkType: hard
 
@@ -20063,7 +20093,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@toruslabs/eccrypto@npm:^6.1.0, @toruslabs/eccrypto@npm:^6.2.0":
+"@toruslabs/eccrypto@npm:^6.2.0":
   version: 6.2.0
   resolution: "@toruslabs/eccrypto@npm:6.2.0"
   dependencies:
@@ -36523,7 +36553,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-stable-stringify@npm:^1.1.1":
+"json-stable-stringify@npm:^1.1.1, json-stable-stringify@npm:^1.3.0":
   version: 1.3.0
   resolution: "json-stable-stringify@npm:1.3.0"
   dependencies:
@@ -38419,6 +38449,7 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^1.0.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
+    "@metamask/mfa-recovery-controller": "npm:^0.1.0"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
@@ -38462,7 +38493,7 @@ __metadata:
     "@metamask/sample-controllers": "npm:^6.1.0"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:^12.0.0"
+    "@metamask/seedless-onboarding-controller": "npm:^12.1.0"
     "@metamask/selected-network-controller": "npm:^27.1.0"
     "@metamask/sentinel-api-service": "npm:^2.1.0"
     "@metamask/shield-controller": "npm:^7.1.2"
@@ -41269,6 +41300,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"openapi-fetch@npm:0.8.2":
+  version: 0.8.2
+  resolution: "openapi-fetch@npm:0.8.2"
+  dependencies:
+    openapi-typescript-helpers: "npm:^0.0.5"
+  checksum: 10/28da01ec9c748e1fa085e9d79d991c852c1291f33e103d8b1f1b17e5c2b51c41d94b56a7ed676e4485e83cd557df8e187374092bdf0b310d4504404aa49e5bc5
+  languageName: node
+  linkType: hard
+
 "openapi-fetch@npm:^0.13.5":
   version: 0.13.7
   resolution: "openapi-fetch@npm:0.13.7"
@@ -41282,6 +41322,13 @@ __metadata:
   version: 0.0.15
   resolution: "openapi-typescript-helpers@npm:0.0.15"
   checksum: 10/63f8f0b8464aed3e5c6910428bd14839bd5c1dd6ddf841bcea9d5f536a6e03e942a028202920da1a8b1ed9e4304c6fca14943d01a8adff2942d1254a229b8c70
+  languageName: node
+  linkType: hard
+
+"openapi-typescript-helpers@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "openapi-typescript-helpers@npm:0.0.5"
+  checksum: 10/1c1024e552af9f3bdf3ab7a76bd7208f783f9af53b9cfebc86984e700e85df071a73cf5f560cb295a547a0dc88ccd87a689a7fd286781e3b04716af8aa583898
   languageName: node
   linkType: hard
 
@@ -52747,7 +52794,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.4.3, zod@npm:^4.6.6":
+"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.3.6, zod@npm:^4.4.3, zod@npm:^4.6.6":
   version: 4.6.7
   resolution: "zod@npm:4.6.7"
   checksum: 10/3ca8b8d6bb401538e59504c543db629ea7beaa775e504c3f22269b406fdffbf1431c856d59a597bf66d8487e4d2be12b03a55d76fc2c63d9f046eae1ca173bca
