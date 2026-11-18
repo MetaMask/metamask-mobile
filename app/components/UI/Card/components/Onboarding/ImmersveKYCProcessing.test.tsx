@@ -43,9 +43,13 @@ jest.mock('react-redux', () => ({
 
 // Capture the onClose callback the screen registers on the KYC modal so tests
 // can simulate the webview being closed.
-let mockCapturedOnClose: ((completed?: boolean) => void) | null = null;
+let mockCapturedOnClose:
+  | ((completed?: boolean, options?: { reopen?: boolean }) => void)
+  | null = null;
 jest.mock('../ImmersveKYCModal/ImmersveKYCModal', () => ({
-  setImmersveKycOnClose: (cb: (completed?: boolean) => void) => {
+  setImmersveKycOnClose: (
+    cb: (completed?: boolean, options?: { reopen?: boolean }) => void,
+  ) => {
     mockCapturedOnClose = cb;
   },
   clearImmersveKycOnClose: () => {
@@ -1458,5 +1462,81 @@ describe('ImmersveKYCProcessing', () => {
       provider: CardProviderIds.Immersve,
       screen: CardScreens.COMPLETE,
     });
+  });
+
+  it('opens a fresh KYC url when the webview asks to reopen', () => {
+    const stale = { type: 'kyc' as const, url: KYC_URL };
+    setNextAction(stale);
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+    mockNavigate.mockClear();
+
+    act(() => {
+      mockCapturedOnClose?.(false, { reopen: true });
+    });
+
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-reopen-button')).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    setNextAction({
+      type: 'kyc',
+      url: 'https://verify.immersve.com/fresh',
+    });
+    rerender(<ImmersveKYCProcessing />);
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
+        url: 'https://verify.immersve.com/fresh',
+        redirectUrl: KYC_REDIRECT_URL,
+      },
+    );
+  });
+
+  it('shows the polled result instead of reopening when it is not another KYC url', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+    mockNavigate.mockClear();
+
+    act(() => {
+      mockCapturedOnClose?.(false, { reopen: true });
+    });
+    setNextAction(fundingAction);
+    rerender(<ImmersveKYCProcessing />);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(getByTestId(CompleteSelectors.TITLE)).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+  });
+
+  it('shows try again when the reopen poll fails', () => {
+    const stale = { type: 'kyc' as const, url: KYC_URL };
+    setNextAction(stale);
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+
+    act(() => {
+      mockCapturedOnClose?.(false, { reopen: true });
+    });
+    setNextAction(stale, 'Something went wrong');
+    rerender(<ImmersveKYCProcessing />);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    expect(getByTestId('immersve-kyc-processing-retry-button')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });

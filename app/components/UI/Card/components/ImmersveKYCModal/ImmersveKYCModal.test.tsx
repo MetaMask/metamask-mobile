@@ -1,6 +1,12 @@
 import React from 'react';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Linking, Platform } from 'react-native';
+import {
+  AccessibilityInfo,
+  AppState,
+  Linking,
+  Platform,
+  type AppStateStatus,
+} from 'react-native';
 import { RESULTS } from 'react-native-permissions';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -13,6 +19,7 @@ import ImmersveKYCModal, {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitCardFlow = jest.fn();
 const mockAddListener = jest.fn(
   (
     _eventName: string,
@@ -23,6 +30,14 @@ const mockAddListener = jest.fn(
   ) => jest.fn(),
 );
 const mockRequestMultiple = jest.fn();
+const mockCheckMultiple = jest.fn();
+const mockGetCameraPermissionStatus = jest.fn((): string => 'granted');
+const mockGetMicrophonePermissionStatus = jest.fn((): string => 'granted');
+const mockRequestCameraPermission = jest.fn(() => Promise.resolve('granted'));
+const mockRequestMicrophonePermission = jest.fn(() =>
+  Promise.resolve('granted'),
+);
+let mockAppStateChange: ((state: AppStateStatus) => void) | undefined;
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -59,16 +74,55 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ActualReact = jest.requireActual('react');
-  const { Text: RNText, TouchableOpacity } = jest.requireActual('react-native');
+  const {
+    Text: RNText,
+    TouchableOpacity,
+    View,
+  } = jest.requireActual('react-native');
   return {
     // The glass header's ButtonIconGlass reads this enum at module load.
     ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
       .ButtonIconSize,
+    Box: ({
+      children,
+      testID,
+    }: React.PropsWithChildren<{ testID?: string }>): React.ReactElement =>
+      ActualReact.createElement(View, { testID }, children),
+    BoxAlignItems: { Center: 'Center' },
+    BoxJustifyContent: { Center: 'Center' },
     Text: ({
       children,
       testID,
     }: React.PropsWithChildren<{ testID?: string }>) =>
       ActualReact.createElement(RNText, { testID }, children),
+    TitleStandard: ({
+      title,
+      bottomLabel,
+      titleProps,
+      bottomLabelProps,
+      topAccessory,
+    }: {
+      title?: string;
+      bottomLabel?: string;
+      titleProps?: { testID?: string };
+      bottomLabelProps?: { testID?: string };
+      topAccessory?: React.ReactNode;
+    }): React.ReactElement =>
+      ActualReact.createElement(
+        View,
+        null,
+        topAccessory,
+        ActualReact.createElement(
+          RNText,
+          { testID: titleProps?.testID },
+          title,
+        ),
+        ActualReact.createElement(
+          RNText,
+          { testID: bottomLabelProps?.testID },
+          bottomLabel,
+        ),
+      ),
     Button: ({
       children,
       onPress,
@@ -95,12 +149,33 @@ jest.mock('@metamask/design-system-react-native', () => {
         'Close',
       ),
     ButtonVariant: { Primary: 'Primary' },
-    ButtonSize: { Md: 'Md' },
+    ButtonSize: { Md: 'Md', Lg: 'Lg' },
     TextVariant: { BodyMd: 'BodyMd' },
+    TextColor: { TextAlternative: 'TextAlternative' },
     IconSize: { Xl: 'Xl' },
     Spinner: () => null,
   };
 });
+
+jest.mock('../Onboarding/ImmersveVerifyingIdentityAnimation', () => {
+  const ActualReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (): React.ReactElement =>
+      ActualReact.createElement(View, {
+        testID: 'immersve-verifying-identity-animation',
+      }),
+  };
+});
+
+jest.mock('../../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotion: (): boolean => true,
+}));
+
+jest.mock('../../hooks/useExitCardFlow', () => ({
+  useExitCardFlow: (): jest.Mock => mockExitCardFlow,
+}));
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
@@ -129,6 +204,16 @@ jest.mock('react-native-permissions', () => ({
     LIMITED: 'limited',
   },
   requestMultiple: (...args: unknown[]) => mockRequestMultiple(...args),
+  checkMultiple: (...args: unknown[]) => mockCheckMultiple(...args),
+}));
+
+jest.mock('react-native-vision-camera', () => ({
+  Camera: {
+    getCameraPermissionStatus: () => mockGetCameraPermissionStatus(),
+    getMicrophonePermissionStatus: () => mockGetMicrophonePermissionStatus(),
+    requestCameraPermission: () => mockRequestCameraPermission(),
+    requestMicrophonePermission: () => mockRequestMicrophonePermission(),
+  },
 }));
 
 let capturedProps: {
@@ -206,6 +291,23 @@ describe('ImmersveKYCModal', () => {
     clearImmersveKycOnClose();
     Platform.OS = 'android';
     mockRequestMultiple.mockResolvedValue(grantedStatuses);
+    mockCheckMultiple.mockResolvedValue(grantedStatuses);
+    mockGetCameraPermissionStatus.mockReturnValue('granted');
+    mockGetMicrophonePermissionStatus.mockReturnValue('granted');
+    mockRequestCameraPermission.mockResolvedValue('granted');
+    mockRequestMicrophonePermission.mockResolvedValue('granted');
+    mockAppStateChange = undefined;
+    jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation((): void => undefined);
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((type, handler) => {
+        if (type === 'change') {
+          mockAppStateChange = handler as (state: AppStateStatus) => void;
+        }
+        return { remove: jest.fn() };
+      });
   });
 
   afterEach(() => {
@@ -240,14 +342,19 @@ describe('ImmersveKYCModal', () => {
     expect(getByTestId('immersve-kyc-header-logo')).toBeTruthy();
   });
 
-  it('renders the WebView on iOS without requesting permissions, hiding Immersve chrome', () => {
+  it('checks camera and microphone on iOS before showing the WebView', async () => {
     Platform.OS = 'ios';
 
     const { getByTestId } = render(<ImmersveKYCModal />);
 
     expect(mockRequestMultiple).not.toHaveBeenCalled();
-    expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
-    expect(capturedProps.injectedJavaScript).toBeUndefined();
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
+    });
+    expect(mockGetCameraPermissionStatus).toHaveBeenCalled();
+    expect(mockGetMicrophonePermissionStatus).toHaveBeenCalled();
+    expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+    expect(capturedProps.injectedJavaScript).toContain('getUserMedia');
     expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
       'session-progress-header',
     );
@@ -260,6 +367,54 @@ describe('ImmersveKYCModal', () => {
     expect(getByTestId('immersve-kyc-header-logo')).toBeTruthy();
   });
 
+  it('prompts for camera and microphone on iOS when they are not determined', async () => {
+    Platform.OS = 'ios';
+    mockGetCameraPermissionStatus.mockReturnValue('not-determined');
+    mockGetMicrophonePermissionStatus.mockReturnValue('not-determined');
+
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
+    });
+
+    expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1);
+    expect(mockRequestMicrophonePermission).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers settings on iOS when camera access is denied, and continues once it is granted', async () => {
+    Platform.OS = 'ios';
+    mockGetCameraPermissionStatus
+      .mockReturnValueOnce('denied')
+      .mockReturnValueOnce('granted');
+    mockGetMicrophonePermissionStatus
+      .mockReturnValueOnce('granted')
+      .mockReturnValueOnce('granted');
+    const openSettingsSpy = jest
+      .spyOn(Linking, 'openSettings')
+      .mockResolvedValue(undefined);
+
+    const { getByTestId, queryByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-open-settings-button')).toBeTruthy();
+    });
+    expect(queryByTestId('immersve-kyc-webview')).toBeNull();
+    expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId('immersve-kyc-open-settings-button'));
+    expect(openSettingsSpy).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      mockAppStateChange?.('background');
+      mockAppStateChange?.('active');
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
+    });
+  });
+
   it('shows a permission error and does not mount the WebView when denied', async () => {
     mockRequestMultiple.mockResolvedValue(deniedStatuses);
 
@@ -270,8 +425,15 @@ describe('ImmersveKYCModal', () => {
     });
 
     expect(queryByTestId('immersve-kyc-webview')).toBeNull();
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.permission_title',
+    );
+    expect(getByTestId('immersve-kyc-error-illustration')).toBeTruthy();
     expect(getByTestId('immersve-kyc-error-text').props.children).toBe(
       'card.card_onboarding.immersve_kyc_modal.permission_error',
+    );
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      'card.card_onboarding.immersve_kyc_modal.permission_title. card.card_onboarding.immersve_kyc_modal.permission_error',
     );
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
@@ -306,52 +468,66 @@ describe('ImmersveKYCModal', () => {
     });
   });
 
-  it('opens settings on retry while the permission is still blocked', async () => {
+  it('offers settings when the OS will not prompt again, without opening them yet', async () => {
     const openSettingsSpy = jest
       .spyOn(Linking, 'openSettings')
       .mockResolvedValue(undefined);
     mockRequestMultiple.mockResolvedValue(blockedStatuses);
 
-    const { getByTestId } = render(<ImmersveKYCModal />);
+    const { getByTestId, queryByTestId } = render(<ImmersveKYCModal />);
 
     await waitFor(() => {
-      expect(getByTestId('immersve-kyc-retry-button')).toBeTruthy();
+      expect(getByTestId('immersve-kyc-open-settings-button')).toBeTruthy();
     });
 
-    // Not on the first failure — only once the user asks to try again.
+    expect(queryByTestId('immersve-kyc-webview')).toBeNull();
     expect(openSettingsSpy).not.toHaveBeenCalled();
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.permission_title',
+    );
+    expect(getByTestId('immersve-kyc-error-illustration')).toBeTruthy();
+    expect(getByTestId('immersve-kyc-error-text').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.permission_settings_description',
+    );
+    expect(
+      getByTestId('immersve-kyc-open-settings-button').props.children,
+    ).toContain('card.card_onboarding.immersve_kyc_modal.open_settings');
 
-    fireEvent.press(getByTestId('immersve-kyc-retry-button'));
+    fireEvent.press(getByTestId('immersve-kyc-open-settings-button'));
 
-    await waitFor(() => {
-      expect(openSettingsSpy).toHaveBeenCalled();
-    });
-
+    expect(openSettingsSpy).toHaveBeenCalledTimes(1);
+    expect(mockRequestMultiple).toHaveBeenCalledTimes(1);
     openSettingsSpy.mockRestore();
   });
 
-  it('does not open settings on retry once the permission has been granted', async () => {
+  it('loads the webview when access is granted in settings', async () => {
     const openSettingsSpy = jest
       .spyOn(Linking, 'openSettings')
       .mockResolvedValue(undefined);
-    mockRequestMultiple
-      .mockResolvedValueOnce(blockedStatuses)
-      .mockResolvedValueOnce(grantedStatuses);
+    mockRequestMultiple.mockResolvedValue(blockedStatuses);
+    mockCheckMultiple.mockResolvedValue(grantedStatuses);
 
-    const { getByTestId } = render(<ImmersveKYCModal />);
+    const { getByTestId, queryByTestId } = render(<ImmersveKYCModal />);
 
     await waitFor(() => {
-      expect(getByTestId('immersve-kyc-retry-button')).toBeTruthy();
+      expect(getByTestId('immersve-kyc-open-settings-button')).toBeTruthy();
     });
 
-    fireEvent.press(getByTestId('immersve-kyc-retry-button'));
+    await act(async () => {
+      mockAppStateChange?.('background');
+      mockAppStateChange?.('active');
+    });
 
     await waitFor(() => {
       expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
     });
 
+    expect(mockCheckMultiple).toHaveBeenCalledWith([
+      'android.permission.CAMERA',
+      'android.permission.RECORD_AUDIO',
+    ]);
+    expect(queryByTestId('immersve-kyc-open-settings-button')).toBeNull();
     expect(openSettingsSpy).not.toHaveBeenCalled();
-    openSettingsSpy.mockRestore();
   });
 
   it('keeps the WebView mounted and logs when the page reports a non-camera error', async () => {
@@ -390,8 +566,61 @@ describe('ImmersveKYCModal', () => {
     );
   });
 
-  it('shows an error and logs when the page reports a getUserMedia failure', async () => {
-    const { getByTestId } = render(<ImmersveKYCModal />);
+  it.each(['NotAllowedError', 'SecurityError'])(
+    'treats a %s from getUserMedia as a permission denial and asks for a fresh link',
+    async (message) => {
+      const onClose = jest.fn();
+      setImmersveKycOnClose(onClose);
+      const { getByTestId, queryByTestId } = render(<ImmersveKYCModal />);
+
+      await waitFor(() => {
+        expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
+      });
+
+      await act(async () => {
+        capturedProps.onMessage?.({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'immersve-kyc-error',
+              source: 'getUserMedia',
+              message,
+              host: 'verify.immersve.com',
+            }),
+          },
+        });
+      });
+
+      expect(getByTestId('immersve-kyc-error-text').props.children).toBe(
+        'card.card_onboarding.immersve_kyc_modal.permission_error',
+      );
+      expect(queryByTestId('immersve-kyc-webview')).toBeNull();
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'handleMessage',
+              source: 'getUserMedia',
+              message,
+              pageHost: 'verify.immersve.com',
+            }),
+          }),
+        }),
+      );
+
+      fireEvent.press(getByTestId('immersve-kyc-retry-button'));
+
+      expect(onClose).toHaveBeenCalledWith(false, { reopen: true });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('immersve-kyc-webview')).toBeNull();
+      expect(mockRequestMultiple).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('keeps a non-permission getUserMedia failure on the load error and still asks for a fresh link', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    const { getByTestId, queryByTestId } = render(<ImmersveKYCModal />);
 
     await waitFor(() => {
       expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
@@ -403,27 +632,26 @@ describe('ImmersveKYCModal', () => {
           data: JSON.stringify({
             type: 'immersve-kyc-error',
             source: 'getUserMedia',
-            message: 'NotAllowedError',
+            message: 'NotFoundError',
             host: 'verify.immersve.com',
           }),
         },
       });
     });
 
-    expect(getByTestId('immersve-kyc-error-container')).toBeTruthy();
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.objectContaining({
-        context: expect.objectContaining({
-          data: expect.objectContaining({
-            method: 'handleMessage',
-            source: 'getUserMedia',
-            message: 'NotAllowedError',
-            pageHost: 'verify.immersve.com',
-          }),
-        }),
-      }),
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.load_error_title',
     );
+    expect(getByTestId('immersve-kyc-error-illustration')).toBeTruthy();
+    expect(getByTestId('immersve-kyc-error-text').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.load_error',
+    );
+
+    fireEvent.press(getByTestId('immersve-kyc-retry-button'));
+
+    expect(onClose).toHaveBeenCalledWith(false, { reopen: true });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(queryByTestId('immersve-kyc-webview')).toBeNull();
   });
 
   it('shows an error when the document load times out', async () => {
@@ -544,6 +772,84 @@ describe('ImmersveKYCModal', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
+  it('leaves card setup from a permission error instead of returning to processing', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    mockRequestMultiple.mockResolvedValue(deniedStatuses);
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-error-container')).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId('immersve-kyc-close-button'));
+
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+      ]),
+    );
+  });
+
+  it('leaves card setup from a load error instead of returning to processing', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(capturedProps.onHttpError).toBeDefined();
+    });
+
+    await act(async () => {
+      capturedProps.onHttpError?.({ nativeEvent: { statusCode: 502 } });
+    });
+
+    fireEvent.press(getByTestId('immersve-kyc-close-button'));
+
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+      ]),
+    );
+  });
+
+  it('leaves card setup when back is pressed on a permission error, and ignores the exit pop', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    mockRequestMultiple.mockResolvedValue(deniedStatuses);
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-error-container')).toBeTruthy();
+    });
+
+    const preventDefault = jest.fn();
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
+
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    const exitPopPreventDefault = jest.fn();
+    getBeforeRemoveListener()({
+      preventDefault: exitPopPreventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
+
+    expect(exitPopPreventDefault).not.toHaveBeenCalled();
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+  });
+
   it('returns to the processing screen when the close button is pressed', async () => {
     const onClose = jest.fn();
     setImmersveKycOnClose(onClose);
@@ -568,10 +874,13 @@ describe('ImmersveKYCModal', () => {
 
   it.each(['GO_BACK', 'POP'])(
     're-polls once when %s removes the screen, without going back again',
-    (type) => {
+    async (type) => {
       const onClose = jest.fn();
       setImmersveKycOnClose(onClose);
       render(<ImmersveKYCModal />);
+      await act(async () => {
+        await Promise.resolve();
+      });
       const preventDefault = jest.fn();
 
       getBeforeRemoveListener()({
@@ -595,10 +904,13 @@ describe('ImmersveKYCModal', () => {
     },
   );
 
-  it('lets a programmatic reset remove the screen without a re-poll', () => {
+  it('lets a programmatic reset remove the screen without a re-poll', async () => {
     const onClose = jest.fn();
     setImmersveKycOnClose(onClose);
     render(<ImmersveKYCModal />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     const preventDefault = jest.fn();
 
     getBeforeRemoveListener()({
