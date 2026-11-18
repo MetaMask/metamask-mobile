@@ -68,6 +68,11 @@ import type { PreferencesState } from '@metamask/preferences-controller';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { CardControllerState } from '../../../app/core/Engine/controllers/card-controller/types.ts';
 import { applyStateLogOmittedFields } from './state-log-omitted-fields.ts';
+import {
+  referralMeWithInvitedBenefit,
+  REWARDS_MONEY_E2E_PROFILE_ID,
+  REWARDS_MONEY_SUBSCRIPTION_ID,
+} from '../../api-mocking/mock-responses/rewards-money.ts';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -2427,6 +2432,38 @@ class FixtureBuilder {
         _persist: { version: -1, rehydrated: true },
       },
     });
+    return this;
+  }
+
+  withRewardsMoneyReferee() {
+    const referralMe = referralMeWithInvitedBenefit();
+    const { backgroundState } = this.fixture.state.engine;
+    backgroundState.RewardsController = {
+      ...(backgroundState.RewardsController as object),
+      activeAccount: {
+        account: `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
+        hasOptedIn: true,
+        subscriptionId: REWARDS_MONEY_SUBSCRIPTION_ID,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      },
+    };
+    backgroundState.RewardsMoneyController = {
+      ...(backgroundState.RewardsMoneyController as object),
+      referralMe: {
+        [REWARDS_MONEY_E2E_PROFILE_ID]: { lastFetched: 1, payload: referralMe },
+      },
+    };
+    this.fixture.state.rewardsMoney = {
+      ...(this.fixture.state.rewardsMoney as object),
+      referralMe: {
+        [REWARDS_MONEY_E2E_PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: referralMe,
+        },
+      },
+    };
     return this;
   }
 

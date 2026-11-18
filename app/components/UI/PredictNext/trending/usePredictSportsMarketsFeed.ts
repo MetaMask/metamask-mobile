@@ -32,14 +32,15 @@ interface UsePredictSportsMarketsFeedOptions {
  * The Sports tab's All Sports list. The legacy branch passes
  * `useSportsMarketsFeed` through unchanged: its pills, lazy per-sport fetches,
  * pagination and refresh. While the Active Venue resolves, and for next
- * Venues until PRED-1408, it has no pills and no markets and the legacy hook
- * stays disabled. Callers leave the list out while
- * `usePredictTrendingSupported` is false.
+ * Venues, it has no pills and no markets and the legacy hook stays disabled:
+ * its sports are Polymarket tags, not Feed keys a next Venue can map. Callers
+ * leave the list out while `usePredictTrendingSupported('allSports')` is
+ * false.
  */
 export const usePredictSportsMarketsFeed = ({
   refresh,
 }: UsePredictSportsMarketsFeedOptions = {}): PredictSportsMarketsFeed => {
-  const isSupported = usePredictTrendingSupported();
+  const isSupported = usePredictTrendingSupported('allSports');
   const legacy = useSportsMarketsFeed({ refresh, enabled: isSupported });
 
   if (!isSupported) return UNSUPPORTED;

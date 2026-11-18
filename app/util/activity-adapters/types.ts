@@ -4,7 +4,7 @@
  */
 import type {
   ActivityItem as ClientUtilsActivityItem,
-  ActivityKind as ClientUtilsActivityKind,
+  ActivityKind,
   Fee as ActivityFee,
   PerpsOrderKind,
   TokenAmount as ClientUtilsTokenAmount,
@@ -13,28 +13,11 @@ import type { TriggerOrderType } from '@metamask/perps-controller';
 import type { CaipChainId } from '@metamask/utils';
 
 export type {
+  ActivityKind,
   PerpsOrderKind,
   Status,
   Fee as ActivityFee,
 } from '@metamask/client-utils';
-
-/*
- * Local kinds (PRED-1405): kinds mobile renders before `@metamask/client-utils`
- * ships them. Each maps to the client-utils kind whose item shape it reuses.
- * When a client-utils bump adds a kind, delete its entry here.
- */
-interface LocalActivityKindShapes {
-  predictionSettled: 'predictionClaimWinnings';
-}
-
-type LocalActivityKind = keyof LocalActivityKindShapes;
-
-export type ActivityKind = ClientUtilsActivityKind | LocalActivityKind;
-
-/** The client-utils kind whose item shape `Kind` uses. */
-type ShapeKindOf<Kind extends ActivityKind> = Kind extends LocalActivityKind
-  ? LocalActivityKindShapes[Kind]
-  : Kind;
 
 export type TokenAmount = ClientUtilsTokenAmount & {
   /**
@@ -154,7 +137,7 @@ type ActivityItemForKind<T, Kind extends ActivityKind> = T extends {
   type: infer ActivityType;
   data: infer D;
 }
-  ? ShapeKindOf<Kind> extends Extract<ActivityType, ClientUtilsActivityKind>
+  ? Kind extends Extract<ActivityType, ActivityKind>
     ? Omit<T, 'type' | 'data'> & {
         type: Kind;
         data: WithMobileTokenAmount<D> & ActivityDataExtras<Kind>;

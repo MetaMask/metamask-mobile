@@ -4,6 +4,7 @@ import {
   selectCardActiveProviderId,
   selectImmersveFundingChannelForSelectedCountry,
   selectImmersveMoneyAccountMode,
+  selectMoneyAccountVedaTokenConfig,
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
   selectIsMoneyAccountCardLinkInProgress,
@@ -19,6 +20,7 @@ import {
   selectCardHomeDataStatus,
   selectCardHomeDataError,
   selectCardHomeDataFetchedThisSession,
+  selectIsCardHomeDataResolved,
   selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
@@ -317,6 +319,35 @@ describe('CardController selectors', () => {
       );
 
       expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('builds the Veda config from the Money account channel, not cardFeature', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'immersve' },
+        CARD_FEATURE_WITHOUT_VEDA,
+        fundingFlags,
+      );
+
+      expect(selectMoneyAccountVedaTokenConfig(state)).toEqual({
+        caipChainId: 'eip155:143',
+        address: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+        decimals: 6,
+        delegationContract: '0x2222222222222222222222222222222222222222',
+      });
+    });
+
+    it('keeps the cardFeature Veda token when the provider is not in Money account mode', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'baanx' },
+        MONAD_VEDA_FEATURE_FLAG,
+        fundingFlags,
+      );
+
+      expect(selectMoneyAccountVedaTokenConfig(state)).toEqual({
+        caipChainId: 'eip155:143',
+        address: VEDA_ADDRESS,
+        decimals: 6,
+      });
     });
   });
 
@@ -840,6 +871,52 @@ describe('selectCardHomeDataFetchedThisSession', () => {
   });
 });
 
+describe('selectIsCardHomeDataResolved', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEthAccount.mockReturnValue(true);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns true when the home data fetch succeeded', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+
+  it('returns true when data is already present during a refresh', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+
+  it('returns false while an authenticated user is still loading', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(false);
+  });
+
+  it('returns true for an unauthenticated non-cardholder even while idle', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: [],
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+});
+
 describe('selectIsCardStateResolved', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -931,6 +1008,59 @@ describe('selectIsCardStateResolved', () => {
       isAuthenticated: false,
       cardholderAccounts: ['eip155:0:0xabc'],
     });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns true while idle when stored links are closed only', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState(
+      {
+        cardHomeDataStatus: 'idle',
+        isAuthenticated: false,
+        cardholderAccounts: ['eip155:0:0xabc'],
+        cardLinks: [
+          {
+            provider: 'baanx',
+            status: 'closed',
+            linkedAccountRef: null,
+            closedReason: 'migrated',
+            migratedToProvider: 'immersve',
+            linkedAt: '2026-09-01T00:00:00.000Z',
+            updatedAt: '2026-09-01T00:00:00.000Z',
+          },
+        ],
+      },
+      undefined,
+      { cardLinkApi: { enabled: true, minimumVersion: '0.0.0' } },
+    );
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns false while idle for a labelled account when card links are off', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState(
+      {
+        cardHomeDataStatus: 'idle',
+        isAuthenticated: false,
+        cardholderAccounts: ['eip155:0:0xabc'],
+      },
+      undefined,
+      { cardLinkApi: { enabled: false, minimumVersion: '0.0.0' } },
+    );
+    expect(selectIsCardHomeDataResolved(state)).toBe(false);
     expect(selectIsCardStateResolved(state)).toBe(false);
   });
 });
@@ -1104,6 +1234,31 @@ describe('selectCardPrimaryToken', () => {
     const token = selectCardPrimaryToken(state);
     expect(token?.isMoneyAccountEntry).toBe(false);
     expect(token?.displaySymbol).toBeUndefined();
+  });
+
+  it('flags a moneyAccount funding source even when the token is not the selected Veda config', () => {
+    const homeData: CardHomeData = {
+      ...mockCardHomeData,
+      primaryFundingAsset: {
+        ...mockPrimaryAsset,
+        symbol: 'USDC',
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        chainId: 'eip155:8453',
+        fundingSourceType: 'moneyAccount',
+      },
+    } as unknown as CardHomeData;
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      CARD_FEATURE_WITHOUT_VEDA,
+    );
+
+    const token = selectCardPrimaryToken(state);
+
+    expect(token?.isMoneyAccountEntry).toBe(true);
+    expect(token?.displaySymbol).toBe('mUSD');
   });
 });
 

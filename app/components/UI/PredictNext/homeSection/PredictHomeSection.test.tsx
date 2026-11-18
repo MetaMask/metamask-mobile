@@ -40,7 +40,7 @@ jest.mock('./internal/next/NextPredictHomeSection', () => {
   return {
     NextPredictHomeSection: mockForwardRef<
       SectionRefreshHandle,
-      { sectionIndex: number; totalSectionsLoaded: number }
+      { sectionIndex: number; totalSectionsLoaded: number; mode?: string }
     >((props, ref) => {
       mockNextProps(props);
       useImperativeHandle(ref, () => ({ refresh: mockNextRefresh }));
@@ -105,17 +105,26 @@ describe('PredictHomeSection', () => {
     expect(mockNextProps).toHaveBeenCalledWith({
       sectionIndex: 2,
       totalSectionsLoaded: 5,
+      mode: 'default',
     });
     await ref.current?.refresh();
     expect(mockNextRefresh).toHaveBeenCalledTimes(1);
   });
 
+  it('passes sports mode through to the next section for Kalshi', () => {
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
+
+    renderSection('sports');
+
+    expect(screen.getByTestId('next-section')).toBeOnTheScreen();
+    expect(mockNextProps).toHaveBeenCalledWith({
+      sectionIndex: 2,
+      totalSectionsLoaded: 5,
+      mode: 'sports',
+    });
+  });
+
   it.each<[string, ActiveVenueResolution, 'default' | 'sports']>([
-    [
-      'Kalshi is active in sports mode',
-      { status: 'ready', venue: 'kalshi', source: 'rollout' },
-      'sports',
-    ],
     ['the Active Venue is resolving', { status: 'resolving' }, 'default'],
   ])(
     'renders nothing and leaves the ref empty while %s',

@@ -27,6 +27,7 @@ import {
   logIn,
   passwordSet,
   setMoneyOnboardingSeen,
+  setMoneySplashSeen,
 } from '../../actions/user';
 import { clearOnboarding } from '../../actions/onboarding';
 import {
@@ -5156,6 +5157,9 @@ describe('Authentication', () => {
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearOnboarding());
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setMoneyOnboardingSeen(false),
+      );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setMoneySplashSeen(false),
       );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });

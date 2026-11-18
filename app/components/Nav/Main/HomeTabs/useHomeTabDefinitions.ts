@@ -14,9 +14,10 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
-import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../UI/Money/hooks/useMoneyHomeNavigation';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
 import { navigateToSocialTab } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { SocialEvent } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { NATIVE_TAB_ICONS } from './homeTabs.icons';
 import { shouldHideRewardsTabBar } from './homeTabs.mappers';
 import type { HomeTabDefinition } from './homeTabs.types';
@@ -25,6 +26,7 @@ export interface UseHomeTabDefinitionsParams {
   isMoneyAccountVisible: boolean;
   showSocialTab: boolean;
   isSocialV1Enabled: boolean;
+  canOpenSocialTabDirectly: boolean;
   showSocialTabNewBadge: boolean;
   trackMoneyTabPress: () => void;
 }
@@ -49,11 +51,12 @@ export const useHomeTabDefinitions = ({
   isMoneyAccountVisible,
   showSocialTab,
   isSocialV1Enabled,
+  canOpenSocialTabDirectly,
   showSocialTabNewBadge,
   trackMoneyTabPress,
 }: UseHomeTabDefinitionsParams): UseHomeTabDefinitionsResult => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const accountsLength = useSelector(selectAccountsLength);
   const chainId = useSelector(selectChainId);
 
@@ -160,9 +163,15 @@ export const useHomeTabDefinitions = ({
       nativeIcon: NATIVE_TAB_ICONS.social,
       freezeOnBlur: false,
       showNewBadge: showSocialTabNewBadge,
-      // UIKit selects a native tab before `tabPress`. Social V1 has to refuse
-      // that selection so the profile gate can open onboarding instead.
-      ...(isSocialV1Enabled ? { tabBarSelectionEnabled: false } : null),
+      // UIKit selects a native tab before `tabPress`. Social V1 refuses that
+      // selection only while a gate has to open instead, because a refused tap
+      // makes the Liquid Glass highlight slide there, back, and there again.
+      ...(isSocialV1Enabled && !canOpenSocialTabDirectly
+        ? { tabBarSelectionEnabled: false }
+        : null),
+      ...(isSocialV1Enabled
+        ? { initialParams: { source: SocialEvent.Source.NAV_TAB } }
+        : null),
     };
 
     if (isSocialV1Enabled) {
@@ -184,6 +193,7 @@ export const useHomeTabDefinitions = ({
     ];
   }, [
     accountsLength,
+    canOpenSocialTabDirectly,
     chainId,
     createEventBuilder,
     isMoneyAccountVisible,
@@ -231,7 +241,23 @@ export const useHomeTabDefinitions = ({
               break;
           }
         },
-        ...(tab.onLeave ? { blur: tab.onLeave } : null),
+        ...(tab.onLeave || tab.initialParams
+          ? {
+              blur: () => {
+                tab.onLeave?.();
+                // A native tab tap re-sends the tab's current params after
+                // `tabPress`, so restore the tap defaults once another tab
+                // is selected.
+                if (!tab.initialParams) {
+                  return;
+                }
+                const state = navigation.getState();
+                if (state.routes[state.index]?.name !== tab.name) {
+                  navigation.setParams(tab.initialParams);
+                }
+              },
+            }
+          : null),
       }),
     [navigateToMoneyHome, trackBottomNavPress],
   );

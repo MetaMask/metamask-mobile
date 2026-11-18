@@ -49,7 +49,7 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.background.default,
     },
     accountInfoCardWrapper: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
       paddingBottom: 12,
     },
     containerTighten: {

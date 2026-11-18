@@ -1,6 +1,7 @@
 import { colors } from '../../../../styles/common';
 import {
   getPerpsProChooserIconColors,
+  getPerpsProPillBorderGradientColors,
   getPerpsProPillGradientColors,
   getPerpsProPillShimmerColors,
   PERPS_PRO_CANDLESTICK_DARK,
@@ -8,6 +9,9 @@ import {
   PERPS_PRO_GOLD,
   PERPS_PRO_ICON_TILE_DARK,
   PERPS_PRO_ICON_TILE_LIGHT,
+  PRO_PILL_BORDER_GRADIENT_END,
+  PRO_PILL_BORDER_GRADIENT_LOCATIONS,
+  PRO_PILL_BORDER_GRADIENT_START,
 } from './perpsModeColors';
 
 const GOLD_DEEP = colors.perpsProGoldDeep;
@@ -64,8 +68,32 @@ describe('getPerpsProPillShimmerColors', () => {
 });
 
 describe('PERPS_PRO_GOLD', () => {
-  it('outlines the Pro pill in bright gold', () => {
+  it('keeps bright gold as the shared Pro stop', () => {
     expect(PERPS_PRO_GOLD).toBe(GOLD_BRIGHT);
+  });
+});
+
+describe('getPerpsProPillBorderGradientColors', () => {
+  it('runs the light-theme outline from bright gold down to deep gold', () => {
+    expect(getPerpsProPillBorderGradientColors(false)).toEqual([
+      GOLD_BRIGHT,
+      GOLD_BRIGHT,
+      GOLD_DEEP,
+    ]);
+  });
+
+  it('runs the dark-theme outline from pale gold down to bright gold', () => {
+    expect(getPerpsProPillBorderGradientColors(true)).toEqual([
+      GOLD_PALE,
+      GOLD_PALE,
+      GOLD_BRIGHT,
+    ]);
+  });
+
+  it('follows the glass sheen, top-center to bottom-left', () => {
+    expect(PRO_PILL_BORDER_GRADIENT_START).toEqual({ x: 0.5, y: 0 });
+    expect(PRO_PILL_BORDER_GRADIENT_END).toEqual({ x: 0, y: 1 });
+    expect(PRO_PILL_BORDER_GRADIENT_LOCATIONS).toEqual([0, 0.5, 1]);
   });
 });
 

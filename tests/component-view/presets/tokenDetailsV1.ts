@@ -2,6 +2,10 @@ import type { RootState } from '../../../app/reducers';
 import type { TokenDetailsV1TabKey } from '../../../app/components/UI/TokenDetails/constants/constants';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import { createStateFixture } from '../stateFixture';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../app/components/Views/SocialLeaderboard/SocialV1View/abTestConfig';
 
 interface InitialStateTokenDetailsV1Options {
   deterministicFiat?: boolean;
@@ -45,6 +49,9 @@ export const initialStateTokenDetailsV1 = (
           : {}),
       },
       aiSocialLeaderboardEnabled: versionFlag(options?.socialEnabled === true),
+      [SOCIAL_V1_AB_KEY]: options?.socialEnabled
+        ? SocialV1Variant.Treatment
+        : SocialV1Variant.Control,
     })
     .withOverrides({
       engine: {

@@ -32,9 +32,8 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
 
 /**
  * Both layouts share this header. The symbol sits beside a side tag, a caption
- * sits under it, and the P&L sits on the right. Closed cards use the caption
- * for when the position settled (`Closed · 2 hr ago`, `Sold · 2 hr ago`) and
- * omit the spot side tag.
+ * sits under it, and the P&L sits on the right. A closed card uses a neutral
+ * tag (`Closed 15x Short`, `Sold`) and keeps the relative age under the symbol.
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';
 
@@ -85,11 +84,46 @@ const sideTagLabel = ({
   return side ? strings(SIDE_I18N[side]) : '';
 };
 
+/** `Closed 15x Short` for a perp, `Sold` for a spot. */
+const closedTagLabel = ({
+  direction,
+  leverageLabel,
+}: Pick<PositionCardHeaderProps, 'direction' | 'leverageLabel'>): string => {
+  if (!direction) {
+    return strings('social_leaderboard.feed.position_card.sold');
+  }
+  const detail = [leverageLabel, strings(DIRECTION_I18N[direction])]
+    .filter(Boolean)
+    .join(' ');
+  return [strings('social_leaderboard.feed.position_card.closed'), detail]
+    .filter(Boolean)
+    .join(' ');
+};
+
 const isBullish = ({
   direction,
   side,
 }: Pick<PositionCardHeaderProps, 'direction' | 'side'>): boolean =>
   direction ? direction === 'long' : side !== 'sell';
+
+export const POSITION_CARD_HEADER_PLACEHOLDER_TEST_ID =
+  'position-card-header-placeholder';
+
+/**
+ * Holds a line's height while its figure is not priced yet, so the card is as
+ * tall before prices load as after.
+ */
+const LinePlaceholder: React.FC<{ variant: TextVariant }> = ({ variant }) => (
+  <Text
+    variant={variant}
+    fontWeight={FontWeight.Medium}
+    accessibilityElementsHidden
+    importantForAccessibility="no-hide-descendants"
+    testID={POSITION_CARD_HEADER_PLACEHOLDER_TEST_ID}
+  >
+    {' '}
+  </Text>
+);
 
 const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
   const {
@@ -101,7 +135,14 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     subtitleLabel,
     live,
   } = props;
-  const tagLabel = sideTagLabel(props);
+  const tagLabel =
+    props.layout === 'closed' ? closedTagLabel(props) : sideTagLabel(props);
+  const tagSeverity =
+    props.layout === 'closed'
+      ? TagSeverity.Neutral
+      : isBullish(props)
+        ? TagSeverity.Success
+        : TagSeverity.Danger;
 
   return (
     <Box
@@ -129,12 +170,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {symbol}
           </Text>
           {tagLabel ? (
-            <Tag
-              severity={
-                isBullish(props) ? TagSeverity.Success : TagSeverity.Danger
-              }
-              twClassName="shrink-0"
-            >
+            <Tag severity={tagSeverity} twClassName="shrink-0">
               {tagLabel}
             </Tag>
           ) : null}
@@ -159,6 +195,9 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {subtitleLabel}
           </Text>
         ) : null}
+        {subtitleLabel ? null : (
+          <LinePlaceholder variant={TextVariant.BodyXs} />
+        )}
       </Box>
       {/* Capped rather than free-growing: a six-figure P&L would otherwise take
         the row and squeeze the symbol it belongs to down to an ellipsis. */}
@@ -192,6 +231,9 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {pnlValueLabel}
           </Text>
         ) : null}
+        {pnlValueLabel ? null : (
+          <LinePlaceholder variant={TextVariant.BodySm} />
+        )}
         {pnlLabel && live ? (
           <AnimatedNumericText
             animated={!live.reduceMotion}
@@ -213,6 +255,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {pnlLabel}
           </Text>
         ) : null}
+        {pnlLabel ? null : <LinePlaceholder variant={TextVariant.BodyXs} />}
       </Box>
     </Box>
   );

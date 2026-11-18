@@ -82,7 +82,7 @@ import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
-import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
+import { getBridgeTokenBadgeLabel } from '../../utils/getBridgeTokenBadgeLabel';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -131,6 +131,12 @@ export interface BridgeTokenSelectorContentProps {
    */
   hostManagesNetworkFilter?: boolean;
   /**
+   * Seeds the search query on mount, for hosts that unmount the picker while
+   * the user changes network and want the query restored.
+   */
+  initialSearchString?: string;
+  onSearchStringChange?: (searchString: string) => void;
+  /**
    * Scroll component for the token list. Hosts that render the picker inside a
    * bottom sheet pass a gesture-handler ScrollView so list scrolling does not
    * fight the sheet's drag-to-dismiss gesture.
@@ -146,7 +152,7 @@ interface BridgeTokenSelectorRowProps {
   token: BridgeToken;
   isSelected: boolean;
   isNoFeeAsset: boolean;
-  showStockBadge: boolean;
+  badgeLabel?: string;
   onTokenPress: (token: BridgeToken) => void;
   onInfoPress: (token: BridgeToken) => void;
 }
@@ -156,7 +162,7 @@ const BridgeTokenSelectorRow = React.memo(
     token,
     isSelected,
     isNoFeeAsset,
-    showStockBadge,
+    badgeLabel,
     onTokenPress,
     onInfoPress,
   }: BridgeTokenSelectorRowProps) => {
@@ -179,7 +185,7 @@ const BridgeTokenSelectorRow = React.memo(
         onPress={onTokenPress}
         networkImageSource={networkImageSource}
         isNoFeeAsset={isNoFeeAsset}
-        showStockBadge={showStockBadge}
+        badgeLabel={badgeLabel}
       >
         <ButtonIcon
           iconName={IconName.Info}
@@ -254,15 +260,21 @@ export const BridgeTokenSelectorContent: React.FC<
   onOpenNetworkList,
   renderScrollComponent,
   hostManagesNetworkFilter = false,
+  initialSearchString = '',
+  onSearchStringChange,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [searchString, setSearchString] = useState<string>('');
+  const [searchString, setSearchString] = useState<string>(initialSearchString);
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
   const flatListRef = useRef<FlashListRef<BridgeToken | null>>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
+
+  useEffect(() => {
+    onSearchStringChange?.(searchString);
+  }, [searchString, onSearchStringChange]);
 
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const isWatchlistFilterActive = isWatchlistEnabled && showWatchlistOnly;
@@ -365,7 +377,9 @@ export const BridgeTokenSelectorContent: React.FC<
   }, [hostManagesNetworkFilter, dispatch, initialFilter]);
 
   // Ref to track if we need to re-search after chain change
-  const shouldResearchAfterChainChange = useRef(false);
+  const shouldResearchAfterChainChange = useRef(
+    initialSearchString.trim().length >= MIN_SEARCH_LENGTH,
+  );
 
   // Track the last chain ID to detect changes
   const lastChainIdRef = useRef(selectedChainId);
@@ -953,7 +967,7 @@ export const BridgeTokenSelectorContent: React.FC<
           onTokenPress={(token) => handleWatchlistTokenPress(token, index)}
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
-          showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
+          badgeLabel={getBridgeTokenBadgeLabel(item, isRWAEnabled)}
         />
       );
     },
@@ -1098,7 +1112,7 @@ export const BridgeTokenSelectorContent: React.FC<
 
   return (
     <>
-      <Box twClassName="px-4 pb-3">
+      <Box twClassName="px-4 pt-1 pb-3">
         <TextFieldSearch
           value={searchString}
           onChangeText={handleSearchTextChange}

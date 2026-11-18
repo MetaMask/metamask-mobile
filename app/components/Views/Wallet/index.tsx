@@ -20,7 +20,6 @@ import {
   ActivityIndicator,
   DeviceEventEmitter,
   Linking,
-  RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
   unstable_batchedUpdates,
@@ -97,7 +96,6 @@ import {
   ToastVariants,
   ButtonIconVariant,
 } from '../../../component-library/components/Toast';
-import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
@@ -165,6 +163,7 @@ import { navigateToExploreSearch } from './walletSearchNavigation';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
+import PullToRefresh from './components/PullToRefresh/PullToRefresh';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -184,9 +183,7 @@ import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBann
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import AppConstants from '../../../core/AppConstants';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
-///: END:ONLY_INCLUDE_IF
 import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
 import { useWalletHomeOnboardingChecklistTradePress } from '../../UI/WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistTradePress';
 import {
@@ -210,8 +207,6 @@ import { Carousel } from '../../UI/Carousel';
 import { useMoneyMfaHomePrompt } from '../../UI/Money/hooks/useMoneyMfaHomePrompt';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createProfileDrawerNavDetails } from '../SocialProfile/ProfileDrawer';
 import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
@@ -454,14 +449,12 @@ const Wallet = ({
   // Hook for handling non-EVM asset sending. `useSendNonEvmAsset` stabilizes
   // `asset` internally, so `sendNonEvmAsset`'s identity stays stable across
   // `Wallet` re-renders without needing to memoize this object here.
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const { sendNonEvmAsset } = useSendNonEvmAsset({
     asset: {
       chainId: chainId as string,
       address: undefined,
     },
   });
-  ///: END:ONLY_INCLUDE_IF
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
@@ -533,7 +526,6 @@ const Wallet = ({
         location: ActionLocation.HOME,
       });
 
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
       const wasHandledAsNonEvm = await sendNonEvmAsset(
         InitSendLocation.HomePage,
@@ -541,45 +533,30 @@ const Wallet = ({
       if (wasHandledAsNonEvm) {
         return;
       }
-      ///: END:ONLY_INCLUDE_IF
 
       navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
       console.error('Error initiating send flow:', error);
       navigateToSendPage({ location: InitSendLocation.HomePage });
     }
-  }, [
-    trackEvent,
-    createEventBuilder,
-    navigateToSendPage,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    sendNonEvmAsset,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [trackEvent, createEventBuilder, navigateToSendPage, sendNonEvmAsset]);
 
   /** Navigation-only send for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
   const onSendWithoutTracking = useCallback(async () => {
     try {
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       const wasHandledAsNonEvm = await sendNonEvmAsset(
         InitSendLocation.HomePage,
       );
       if (wasHandledAsNonEvm) {
         return;
       }
-      ///: END:ONLY_INCLUDE_IF
 
       navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
       console.error('Error initiating send flow:', error);
       navigateToSendPage({ location: InitSendLocation.HomePage });
     }
-  }, [
-    navigateToSendPage,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    sendNonEvmAsset,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [navigateToSendPage, sendNonEvmAsset]);
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -590,10 +567,6 @@ const Wallet = ({
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
-
-  const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
-
-  const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
@@ -614,23 +587,15 @@ const Wallet = ({
   }, []);
 
   useEffect(() => {
-    // do not prompt for social login flow
     if (
-      !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
-      isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
     ) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.EXPERIENCE_ENHANCER,
       });
     }
-  }, [
-    isSocialLogin,
-    isDataCollectionForMarketingEnabled,
-    isParticipatingInMetaMetrics,
-    navigate,
-  ]);
+  }, [isDataCollectionForMarketingEnabled, navigate]);
 
   const checkAndNavigateToPerpsGTM = useCallback(async () => {
     const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
@@ -643,10 +608,21 @@ const Wallet = ({
   }, [navigate]);
 
   useEffect(() => {
-    if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
+    // With basic functionality off the Perps modal stack only renders its
+    // "turn it back on" empty state, which would block the wallet.
+    if (
+      basicFunctionalityEnabled &&
+      isPerpsFlagEnabled &&
+      isPerpsGTMModalEnabled
+    ) {
       void checkAndNavigateToPerpsGTM();
     }
-  }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
+  }, [
+    basicFunctionalityEnabled,
+    isPerpsFlagEnabled,
+    isPerpsGTMModalEnabled,
+    checkAndNavigateToPerpsGTM,
+  ]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 
@@ -904,12 +880,8 @@ const Wallet = ({
   }, [navigation, trackEvent]);
 
   const handleAccountHubPress = useCallback(() => {
-    if (isSocialV1Enabled) {
-      navigation.navigate(...createProfileDrawerNavDetails({}));
-      return;
-    }
     navigation.navigate(Routes.ACCOUNT_HUB_VIEW);
-  }, [navigation, isSocialV1Enabled]);
+  }, [navigation]);
 
   // Social V1 hides the account name in the header, so switching accounts moves
   // to this row pinned under the header.
@@ -919,10 +891,6 @@ const Wallet = ({
 
   const handleAccountSelectorPress = useCallback(() => {
     navigation.navigate(...createAccountSelectorNavDetails({}));
-  }, [navigation]);
-
-  const handleProfilePress = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_PROFILE.DRAWER);
   }, [navigation]);
 
   const handleRewardsPress = useCallback(() => {
@@ -1142,7 +1110,6 @@ const Wallet = ({
       handleCardPress={handleCardPress}
       handleHamburgerPress={handleHamburgerPress}
       handleRewardsPress={handleRewardsPress}
-      handleProfilePress={handleProfilePress}
       touchAreaSlop={touchAreaSlop}
       headerActionButtonsContainerStyle={styles.headerActionButtonsContainer}
       headerAccountPickerStyle={styles.headerAccountPickerStyle}
@@ -1195,12 +1162,8 @@ const Wallet = ({
     ) : null;
 
   const networkConnectionBanner = useNetworkConnectionBanner();
-  const isNetworkConnectionBannerVisible =
-    (networkConnectionBanner.status === 'degraded' ||
-      networkConnectionBanner.status === 'unavailable') &&
-    Boolean(networkConnectionBanner.network);
   const hasBannerContent =
-    !basicFunctionalityEnabled || isNetworkConnectionBannerVisible;
+    !basicFunctionalityEnabled || networkConnectionBanner.isVisible;
   const bannerContent = hasBannerContent ? (
     <View
       style={styles.banner}
@@ -1464,9 +1427,17 @@ const Wallet = ({
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
                 >
-                  <ConditionalScrollView
+                  <PullToRefresh
                     ref={scrollViewRef}
-                    isScrollEnabled
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    indicatorTopInset={viewportTopInset}
+                    refreshControlTopInset={floatingHeaderInset}
+                    indicatorBottomInset={
+                      isFloatingJsHeader || isNativeHeader
+                        ? FLOATING_HEADER_BALANCE_TOP_GAP
+                        : 0
+                    }
                     scrollViewProps={{
                       testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
                       contentInsetAdjustmentBehavior: isNativeHeader
@@ -1476,15 +1447,6 @@ const Wallet = ({
                       showsVerticalScrollIndicator: false,
                       onScroll: handleHomepageScroll,
                       scrollEventThrottle: 16,
-                      refreshControl: (
-                        <RefreshControl
-                          progressViewOffset={floatingHeaderInset}
-                          colors={[colors.primary.default]}
-                          tintColor={colors.icon.default}
-                          refreshing={refreshing}
-                          onRefresh={handleRefresh}
-                        />
-                      ),
                     }}
                   >
                     {portfolioHeader}
@@ -1494,7 +1456,7 @@ const Wallet = ({
                         balanceBreakdownSectionProps
                       }
                     />
-                  </ConditionalScrollView>
+                  </PullToRefresh>
                 </HomepageScrollContext.Provider>
               </View>
             </>

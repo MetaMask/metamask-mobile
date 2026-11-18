@@ -1,12 +1,15 @@
 import type { CreateProfileParams } from '@metamask/profile-controller';
 import type { CaipAccountId } from '@metamask/utils';
 import {
-  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-  DEFAULT_PROFILE_AVATAR_PRESET_ID,
+  PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
   toFoxiconAvatarUrl,
 } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
 import { generateUsername, MAX_USERNAME_LENGTH } from './generateUsername';
+
+/** The length the profile API accepts for a display name. */
+export const MAX_DISPLAY_NAME_LENGTH = 50;
 
 /** X account returned by ProfileController.connectX during onboarding. */
 export interface XOnboardingIdentity {
@@ -14,9 +17,6 @@ export interface XOnboardingIdentity {
   displayName: string;
   avatarUrl: string | null;
 }
-
-/** Used when the signed-in session has no profile id yet. The mock service accepts it. */
-export const SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID = 'social-v1-profile';
 
 export type ProfileOnboardingPath = 'manual' | 'x';
 
@@ -87,6 +87,19 @@ export const displayNameFromUsername = (value: string): string =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 
+const pickRandom = <Item>(items: readonly Item[]): Item =>
+  items[Math.floor(Math.random() * items.length)];
+
+/** Middle of the color strip. The entrance glide looks uneven on the ends. */
+const STARTING_COLOR_COUNT = 3;
+const startingColorIndex = Math.floor(
+  (PROFILE_AVATAR_BACKGROUNDS.length - STARTING_COLOR_COUNT) / 2,
+);
+const STARTING_AVATAR_BACKGROUNDS = PROFILE_AVATAR_BACKGROUNDS.slice(
+  startingColorIndex,
+  startingColorIndex + STARTING_COLOR_COUNT,
+);
+
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   const username = generateUsername();
   return {
@@ -99,8 +112,8 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     xUsername: null,
     xDisplayName: null,
     xAvatarUrl: null,
-    avatarPresetId: DEFAULT_PROFILE_AVATAR_PRESET_ID,
-    avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+    avatarPresetId: pickRandom(PROFILE_AVATAR_PRESETS).id,
+    avatarBackgroundId: pickRandom(STARTING_AVATAR_BACKGROUNDS).id,
     linkedAccountId: null,
     linkedAccountAddress: null,
     shareTradingActivity: true,

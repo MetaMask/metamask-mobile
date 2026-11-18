@@ -34,9 +34,11 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { getHomepageBalanceColor } from './HomepageBalanceBreakdownHero';
 import { getSliceLabel } from './homepageBalanceBreakdown.constants';
+import { SLICE_ORDER } from '../../BalanceBreakdown/constants';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockInitiateMoneyDeposit = jest.fn();
 const mockTrackMoneyButtonClicked = jest.fn();
 const mockNavigateToPerpsHome = jest.fn();
@@ -95,15 +97,14 @@ jest.mock('../../context/HomepageScrollContext', () => ({
   }),
 }));
 
-jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
+jest.mock('../../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
 }));
-
-jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: () => ({
-    initiateDeposit: mockInitiateMoneyDeposit,
+jest.mock('../../../../UI/Money/hooks/useMoneyDepositNavigation', () => ({
+  useMoneyDepositNavigation: () => ({
+    navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
   }),
 }));
 
@@ -214,6 +215,43 @@ describe('HomepageBalanceBreakdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInitiateMoneyDeposit.mockResolvedValue(undefined);
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      if (!mockIsMoneyAccountGeoEligible) {
+        mockNavigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        });
+        track?.({
+          button_intent: 'go_to_money_home',
+          redirect_target: 'money_geo_block_sheet',
+        });
+        return;
+      }
+
+      track?.({
+        button_intent: 'go_to_money_home',
+        redirect_target: 'money_home',
+      });
+    });
+    mockNavigateToMoneyDeposit.mockImplementation(
+      async ({ track, ...options }) => {
+        if (!mockIsMoneyAccountGeoEligible) {
+          track?.({
+            button_intent: 'add_money',
+            redirect_target: 'money_geo_block_sheet',
+          });
+          mockNavigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+          });
+          return;
+        }
+
+        track?.({
+          button_intent: 'add_money',
+          redirect_target: 'money_deposit',
+        });
+        await mockInitiateMoneyDeposit(options);
+      },
+    );
     I18n.locale = 'en-US';
     mockPrivacyMode = false;
     mockIsWalletHomeOnboardingActive = false;
@@ -369,6 +407,53 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       queryByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
     ).not.toBeOnTheScreen();
+  });
+
+  it('separates the allocation rows from the content above with a divider', () => {
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROWS_DIVIDER),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the rows block and divider when no allocation rows are visible', () => {
+    const emptySlice = { valueFiat: 0, percentOfTotal: 0 };
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        money: makeSlice('money', { isVisible: false }),
+        tokens: makeSlice('tokens', emptySlice),
+        perps: makeSlice('perps', emptySlice),
+        predict: makeSlice('predict', emptySlice),
+        defi: makeSlice('defi', emptySlice),
+      },
+    });
+
+    const { queryByTestId } = render(<HomepageBalanceBreakdown />);
+
+    SLICE_ORDER.forEach((key) => {
+      expect(
+        queryByTestId(HomepageBalanceBreakdownTestIds.ROW(key)),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROWS),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROWS_DIVIDER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the Money APY as success text on a neutral muted tag', () => {
+    const { getByTestId, getByText } = render(<HomepageBalanceBreakdown />);
+
+    expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveStyle({
+      backgroundColor: mockTheme.colors.background.muted,
+    });
+    expect(getByText('4.1% APY')).toHaveStyle({
+      color: mockTheme.colors.success.default,
+    });
   });
 
   it('renders an amount-only aggregate delta without a legacy percentage', () => {
@@ -752,7 +837,9 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
     });
-    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({
+      analyticsContext: expect.any(Object),
+    });
   });
 
   it('keeps Money Add visible and shows an error warning for failed rows', () => {

@@ -14,7 +14,6 @@ import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Text,
   TextVariant,
@@ -22,6 +21,9 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface AccountPermissionsConfirmRevokeAllProps {
   route: {
@@ -37,6 +39,7 @@ interface AccountPermissionsConfirmRevokeAllProps {
 const AccountPermissionsConfirmRevokeAll = (
   props: AccountPermissionsConfirmRevokeAllProps,
 ) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     hostInfo: {
       metadata: { origin: hostname },
@@ -78,9 +81,9 @@ const AccountPermissionsConfirmRevokeAll = (
   return (
     <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View style={styles.container}>
-        <BottomSheetHeader>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader}>
           {strings('accounts.disconnect_all')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMd}>
             {strings('accounts.reconnect_notice', {

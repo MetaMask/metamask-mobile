@@ -2,6 +2,7 @@ import Engine from '../../../../core/Engine';
 
 interface ProfileBlockOptions {
   profileId: string;
+  reason?: string;
 }
 
 interface TraderBlockMessenger {
@@ -20,9 +21,16 @@ const getMessenger = (): TraderBlockMessenger =>
  * Call as a member expression so the messenger keeps its `this` binding.
  *
  * @param profileId - Clicker profile id (UUID) of the trader.
+ * @param reason - Report category stored on the block. Omit for a plain block.
  */
-export const blockTrader = (profileId: string): Promise<void> =>
-  getMessenger().call('SocialService:block', { profileId });
+export const blockTrader = (
+  profileId: string,
+  reason?: string,
+): Promise<void> =>
+  getMessenger().call('SocialService:block', {
+    profileId,
+    ...(reason ? { reason } : {}),
+  });
 
 /**
  * Removes the current user's block on a trader. A no-op when not blocked.
