@@ -114,6 +114,42 @@ const getRoutesUnderDestination = (state: NavigationState): ResetRoute[] => {
 };
 
 /**
+ * Keys of screens this reset keeps. A key in this set is still on the stack
+ * after the reset, so it cannot also be copied onto the onboarding route.
+ */
+const collectKeptRouteKeys = (routes: readonly ResetRoute[]): Set<string> => {
+  const keptKeys = new Set<string>();
+  for (const keptRoute of routes) {
+    if (keptRoute.key) {
+      keptKeys.add(keptRoute.key);
+    }
+  }
+  return keptKeys;
+};
+
+/**
+ * Key of the onboarding route this reset removes, searched from the top of
+ * the stack. Reusing that key keeps the native screen mounted. A key that
+ * stays under the caller is left alone so it is not on two routes.
+ */
+const findReusableOnboardingRouteKey = (
+  routes: NavigationState['routes'],
+  keptKeys: ReadonlySet<string>,
+): string | undefined => {
+  for (let index = routes.length - 1; index >= 0; index -= 1) {
+    const candidate = routes[index];
+    if (
+      candidate?.name === Routes.RAMP.VBA_ONBOARDING &&
+      candidate.key &&
+      !keptKeys.has(candidate.key)
+    ) {
+      return candidate.key;
+    }
+  }
+  return undefined;
+};
+
+/**
  * Keeps every screen up to and including the one that opened onboarding, then
  * the current onboarding destination. Back returns to the caller, and the
  * caller's own back still has its previous screen.
@@ -147,23 +183,10 @@ export const openAsOnlyOnboardingRoute = (
 
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
       const routesUnderDestination = getRoutesUnderDestination(state);
-      const keptKeys = new Set(
-        routesUnderDestination.flatMap((keptRoute) =>
-          keptRoute.key ? [keptRoute.key] : [],
-        ),
+      const onboardingRouteKey = findReusableOnboardingRouteKey(
+        state.routes,
+        collectKeptRouteKeys(routesUnderDestination),
       );
-      let onboardingRouteKey: string | undefined;
-      for (let index = state.routes.length - 1; index >= 0; index -= 1) {
-        const candidate = state.routes[index];
-        if (
-          candidate?.name === Routes.RAMP.VBA_ONBOARDING &&
-          candidate.key &&
-          !keptKeys.has(candidate.key)
-        ) {
-          onboardingRouteKey = candidate.key;
-          break;
-        }
-      }
       current.dispatch(
         CommonActions.reset({
           index: routesUnderDestination.length,
