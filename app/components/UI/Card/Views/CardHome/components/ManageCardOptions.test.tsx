@@ -75,6 +75,7 @@ const renderComponent = (
     hasAlertOnlyState?: boolean;
     isAuthenticated?: boolean;
     showHowToUseApplePay?: boolean;
+    hideQuickActionRows?: boolean;
   } = {},
 ) =>
   render(
@@ -111,6 +112,7 @@ const renderComponent = (
       isSpendingLimitActive
       onChangeAsset={jest.fn()}
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
+      hideQuickActionRows={overrides.hideQuickActionRows}
       onCashback={jest.fn()}
       onTravel={jest.fn()}
       onTransactionHistory={overrides.onTransactionHistory}
@@ -499,6 +501,36 @@ describe('ManageCardOptions view PIN gating', () => {
     );
 
     expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
+  });
+});
+
+describe('ManageCardOptions quick-action row seam', () => {
+  it('hides the View details, View PIN and Freeze rows when the quick-action row covers them', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hideQuickActionRows: true },
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
+    // The freeze row mock drops the toggle's rightElement, so assert the row.
+    expect(queryByTestId('freeze-card-list-item')).toBeNull();
+  });
+
+  it('keeps the rows when the quick-action row is not showing them', () => {
+    const { getByTestId, queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hideQuickActionRows: false },
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
+    // The toggle testID is not exposed by the row mock; assert the row.
+    expect(queryByTestId('freeze-card-list-item')).toBeOnTheScreen();
   });
 });
 
