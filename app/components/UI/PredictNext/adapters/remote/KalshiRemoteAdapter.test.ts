@@ -144,8 +144,8 @@ describe('KalshiRemoteAdapter', () => {
     const { actions } = await adapter.marketData.fetchVenueCatalog();
 
     // Buy and sell are served by the trading capability, deposit by the
-    // funding capability. predictConfig.kalshiDepositsEnabled gates the
-    // deposit client flow, not the catalog. There is no Claim capability.
+    // funding capability. predictConfig.venues.kalshi.features.deposit gates
+    // the deposit client flow, not the catalog. There is no Claim capability.
     expect(typeof adapter.trading.previewOrder).toBe('function');
     expect(typeof adapter.trading.commitOrder).toBe('function');
     expect(typeof adapter.funding.prepareDeposit).toBe('function');

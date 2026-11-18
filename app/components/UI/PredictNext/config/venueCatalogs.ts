@@ -9,7 +9,7 @@
  * Politics topic Feeds (Trump, Congress, Iran). The Categories are Sports and
  * Politics; `politics` is the Politics Category's Feed, which for V1 is Trump. No Claim (Kalshi settles
  * automatically). Deposit is listed (PRED-1161), but the client flow runs
- * only while `predictConfig.kalshiDepositsEnabled` is on (see
+ * only while `predictConfig.venues.kalshi.features.deposit` is on (see
  * `resolvePredictFunding`). No Withdraw until PRED-1163. `sports` is the Venue's
  * general sports discovery Feed, which for V1 is NFL Games. Each Politics key
  * maps to the Feed ID of the same name (va-mmcx-predict-api#71). PRED-1403

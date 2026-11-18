@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectPredictAvailability } from '../availability/selectPredictAvailability';
 import { resolveVenueCapabilities } from '../capabilities/venueCapabilities';
+import { getVenueFeatures } from '../config/predictConfig';
 import type { PredictConfiguredVenue } from '../implementation/types';
 import type { PredictVenueId } from '../types';
 import { selectActiveVenue } from '../implementation/activeVenue';
@@ -23,8 +24,8 @@ const getBundledCapabilities = (venue: PredictConfiguredVenue) =>
  * Whether the Active Venue's deposit is the legacy Polymarket deposit, and it
  * may be offered: Predict is available, the descriptor lists `deposit`, and
  * the legacy implementation serves the Venue. False while Kalshi is active,
- * whatever `kalshiDepositsEnabled` says: the Kalshi deposit is a different
- * flow.
+ * whatever `venues.kalshi.features?.deposit` says: the Kalshi deposit is a
+ * different flow. Also unaffected by `venues.polymarket.features?.deposit`.
  */
 export const selectPredictLegacyDepositAvailable = createSelector(
   selectPredictAvailability,
@@ -35,7 +36,7 @@ export const selectPredictLegacyDepositAvailable = createSelector(
       available,
       activeVenue,
       getCapabilities: getBundledCapabilities,
-      kalshiDepositsEnabled: config.kalshiDepositsEnabled === true,
+      getVenueFeatures: (venue) => getVenueFeatures(config, venue),
     });
     return (
       resolution.status === 'ready' && resolution.implementation === 'legacy'

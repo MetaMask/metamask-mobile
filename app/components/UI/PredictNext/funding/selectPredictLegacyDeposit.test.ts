@@ -112,11 +112,18 @@ describe('selectPredictLegacyDepositAvailable', () => {
     },
   );
 
-  it('is false while Kalshi is active with kalshiDepositsEnabled on', () => {
+  it('is false while Kalshi is active with venues.kalshi.features.deposit on', () => {
     expect(
       selectPredictLegacyDepositAvailable(
         rootState({
-          predictConfig: { ...config(true, true), kalshiDepositsEnabled: true },
+          predictConfig: {
+            enabled: true,
+            venues: {
+              polymarket: { enabled: true },
+              kalshi: { enabled: true, features: { deposit: true } },
+            },
+            venueSelection: { enabled: true },
+          },
           venueState: {
             ...NO_VENUE_STATE,
             venueSelectionPreference: 'kalshi',
@@ -126,18 +133,25 @@ describe('selectPredictLegacyDepositAvailable', () => {
     ).toBe(false);
   });
 
-  it('stays true for Polymarket with kalshiDepositsEnabled on', () => {
-    expect(
-      selectPredictLegacyDepositAvailable(
-        rootState({
-          predictConfig: {
-            ...config(true, false),
-            kalshiDepositsEnabled: true,
-          },
-        }),
-      ),
-    ).toBe(true);
-  });
+  it.each([undefined, {}, { deposit: false }, { deposit: true }])(
+    'stays true for Polymarket regardless of venues.polymarket.features (%j)',
+    (features) => {
+      expect(
+        selectPredictLegacyDepositAvailable(
+          rootState({
+            predictConfig: {
+              enabled: true,
+              venues: {
+                polymarket: { enabled: true, features },
+                kalshi: { enabled: false, features: { deposit: true } },
+              },
+              venueSelection: { enabled: true },
+            },
+          }),
+        ),
+      ).toBe(true);
+    },
+  );
 
   it('is false while the Active Venue is resolving', () => {
     expect(

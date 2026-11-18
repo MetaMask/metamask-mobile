@@ -279,10 +279,9 @@ describe('PredictHome', () => {
           enabled: true,
           venues: {
             polymarket: { enabled: false },
-            kalshi: { enabled: true },
+            kalshi: { enabled: true, features: { deposit: true } },
           },
           venueSelection: { enabled: false },
-          kalshiDepositsEnabled: true,
         },
       },
     });
