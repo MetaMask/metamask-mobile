@@ -205,6 +205,16 @@ describe('setupPasswordlessRecovery', () => {
     expect(dependencies.mfaRecovery.register).not.toHaveBeenCalled();
   });
 
+  it('asks to re-enroll when no approved passkey was recorded', async () => {
+    const dependencies = createDependencies();
+    jest.mocked(dependencies.mfaRecovery.isTrusted).mockResolvedValue(false);
+
+    await expect(setupPasswordlessRecovery(dependencies)).rejects.toMatchObject(
+      { code: 'passkey_not_trusted' },
+    );
+    expect(dependencies.mfaRecovery.register).not.toHaveBeenCalled();
+  });
+
   it('links the social login, then registers it once Auth approves it', async () => {
     const dependencies = createDependencies();
     jest

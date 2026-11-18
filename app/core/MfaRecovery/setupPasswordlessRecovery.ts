@@ -240,7 +240,12 @@ async function selectApprovedIdentifiers(
     }
   }
   if (!passkey) {
-    throw new PasswordlessRecoverySetupError('passkey_not_enrolled');
+    // A passkey whose recording failed works for MFA only: re-enroll it.
+    throw new PasswordlessRecoverySetupError(
+      approved.some(({ type }) => type === 'passkey')
+        ? 'passkey_not_trusted'
+        : 'passkey_not_enrolled',
+    );
   }
   const social = findSocialIdentifier(approved, state);
   if (!social) {
