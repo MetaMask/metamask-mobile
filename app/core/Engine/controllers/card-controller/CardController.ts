@@ -6,6 +6,7 @@ import {
   type Hex,
   type Json,
 } from '@metamask/utils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   TransactionType,
   type TransactionMeta,
@@ -475,12 +476,31 @@ export class CardController extends BaseController<
   #subscribeToEvents(): void {
     this.messenger.subscribe('AuthenticationController:profileSignIn', () => {
       if (this.resetInProgress) return;
-      this.#fetchCardLinksWithLogging('#onProfileSignIn/fetchCardLinks');
+      // Pairing can change the canonical profile, so a cached read is stale.
+      this.#fetchCardLinksWithLogging('#onProfileSignIn/fetchCardLinks', {
+        force: true,
+      });
     });
+
+    // isSignedIn is persisted, so this runs on the change to signed in: the
+    // first sign-in after an SRP import, or a sign-in after a sign-out.
+    this.messenger.subscribe(
+      'AuthenticationController:stateChange',
+      (isSignedIn: boolean) => {
+        if (isSignedIn && !this.resetInProgress) {
+          this.#fetchCardLinksWithLogging('#onSignIn/fetchCardLinks');
+        }
+      },
+      (state) => state.isSignedIn,
+    );
 
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
-      this.#fetchCardLinksWithLogging('#onUnlock/fetchCardLinks');
+      // Restore publishes unlock before the new keyrings are in state, and
+      // the bearer token cannot be resolved until an HD keyring is there.
+      if (this.#hasHdKeyring()) {
+        this.#fetchCardLinksWithLogging('#onUnlock/fetchCardLinks');
+      }
       this.validateAndRefreshSession()
         .then(({ isAuthenticated }) => {
           if (isAuthenticated && !this.resetInProgress) {
@@ -698,13 +718,25 @@ export class CardController extends BaseController<
     });
   }
 
-  #fetchCardLinksWithLogging(method: string): void {
-    this.fetchCardLinks().catch((error) =>
+  #fetchCardLinksWithLogging(
+    method: string,
+    options?: { force?: boolean },
+  ): void {
+    this.fetchCardLinks(options).catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card' },
         context: { name: 'CardController', data: { method } },
       }),
     );
+  }
+
+  #hasHdKeyring(): boolean {
+    try {
+      const { keyrings } = this.messenger.call('KeyringController:getState');
+      return keyrings.some((keyring) => keyring.type === KeyringTypes.hd);
+    } catch {
+      return false;
+    }
   }
 
   async fetchCardLinks({

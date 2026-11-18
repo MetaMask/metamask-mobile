@@ -81,7 +81,7 @@ function setup({
   state = {},
   getBearerToken = jest.fn().mockResolvedValue('token-1'),
   signPersonalMessage = jest.fn().mockResolvedValue(undefined),
-  keyrings = [],
+  keyrings = [{ type: 'HD Key Tree', accounts: [SELECTED_ADDRESS] }],
   provider = {},
   remoteFeatureFlags = {},
 }: Setup = {}) {
@@ -539,6 +539,46 @@ describe('CardController card links', () => {
       expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
     });
 
+    it('reads links again when profile pairing changes a fresh cache', async () => {
+      const { controller, cardService, subscriptions } = setup({
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
+      });
+
+      await controller.fetchCardLinks();
+      expect(cardService.getCardLinks).not.toHaveBeenCalled();
+
+      subscriptions['AuthenticationController:profileSignIn']();
+      await flush();
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches links when the profile becomes signed in', async () => {
+      const { cardService, subscriptions } = setup();
+
+      subscriptions['AuthenticationController:stateChange'](true);
+      await flush();
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch links when the profile signs out', async () => {
+      const { cardService, subscriptions } = setup();
+
+      subscriptions['AuthenticationController:stateChange'](false);
+      await flush();
+
+      expect(cardService.getCardLinks).not.toHaveBeenCalled();
+    });
+
+    it('selects isSignedIn from the authentication state', () => {
+      const { selectors } = setup();
+      const select = selectors['AuthenticationController:stateChange'];
+
+      expect(select({ isSignedIn: true })).toBe(true);
+      expect(select({ isSignedIn: false })).toBe(false);
+    });
+
     it('fetches on wallet unlock', async () => {
       const { cardService, subscriptions } = setup();
       jest.spyOn(CardTokenStore, 'get').mockResolvedValue(null);
@@ -547,6 +587,18 @@ describe('CardController card links', () => {
       await flush();
 
       expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not read links on unlock before an HD keyring is stored', async () => {
+      const { cardService, subscriptions } = setup({ keyrings: [] });
+      jest.spyOn(CardTokenStore, 'get').mockResolvedValue(null);
+      (Logger.error as jest.Mock).mockClear();
+
+      subscriptions['KeyringController:unlock']();
+      await flush();
+
+      expect(cardService.getCardLinks).not.toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 

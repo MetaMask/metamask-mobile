@@ -219,6 +219,7 @@ type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
   | RemoteFeatureFlagControllerStateChangeEvent
   | KeyringControllerUnlockEvent
+  | AuthenticationController.AuthenticationControllerStateChangeEvent
   | AuthenticationController.AuthenticationControllerProfileSignInEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent;
