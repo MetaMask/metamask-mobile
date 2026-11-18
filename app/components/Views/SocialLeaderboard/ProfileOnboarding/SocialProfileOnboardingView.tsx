@@ -672,6 +672,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const profileCreatedRef = useRef(false);
   /** Fingerprint of the profile already stored on the server. */
   const serverProfileFingerprintRef = useRef<string | null>(null);
+  /** Last ineligible draft fingerprint that already emitted a failed claim. */
+  const trackedIneligibleFingerprintRef = useRef<string | null>(null);
   const syncPromiseRef = useRef<Promise<void> | null>(null);
   const startSyncRef = useRef<() => Promise<void>>(async () => undefined);
   const connectAbortRef = useRef<AbortController | null>(null);
@@ -1398,7 +1400,13 @@ const SocialProfileOnboardingView: React.FC = () => {
         return;
       }
       if (writeResult === 'ineligible') {
-        if (!hadProfile) {
+        // Keep looping so a later eligible draft (new account pick) can write.
+        // Only emit the failed claim once per fingerprint to avoid spam.
+        if (
+          !hadProfile &&
+          trackedIneligibleFingerprintRef.current !== fingerprint
+        ) {
+          trackedIneligibleFingerprintRef.current = fingerprint;
           trackInteractionRef.current(Interaction.USERNAME_CLAIMED, {
             outcome: Outcome.FAILED,
             path: onboardingPathFor(currentDraft.path),
@@ -1406,8 +1414,7 @@ const SocialProfileOnboardingView: React.FC = () => {
             profile_save_failure_reason: 'ineligible_account',
           });
         }
-        setIsSubmitting(false);
-        return;
+        continue;
       }
       serverProfileFingerprintRef.current = fingerprint;
       if (!hadProfile) {
@@ -1440,11 +1447,9 @@ const SocialProfileOnboardingView: React.FC = () => {
           publishCreatedProfile(draftRef.current);
           return undefined;
         }
-        if (
-          latest &&
-          serverProfileFingerprintRef.current &&
-          serverProfileFingerprintRef.current !== latest
-        ) {
+        // Restart when Ready still has a draft to write — including after an
+        // ineligible in-flight write where nothing was saved yet.
+        if (latest && serverProfileFingerprintRef.current !== latest) {
           return startSync();
         }
         return undefined;
