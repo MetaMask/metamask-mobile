@@ -60,18 +60,25 @@ interface StackController {
 }
 
 /**
- * Leaves KYC for Money home. KYC screens call this through an `onExit`
- * prop so the destination stays with the VBA caller.
+ * Leaves onboarding for the Money home already on the main stack.
+ * KYC screens, the account-create error, and VBA details Done all use this.
  *
- * @param navigation - Navigation from the KYC screen's VBA adapter.
+ * React Navigation 7 pushes another Home when `navigate` omits `{ pop: true }`.
+ * The next entry then keeps that Home and can copy the onboarding route key.
+ *
+ * @param navigation - Navigation from the screen that is leaving.
  */
 export const exitVbaOnboardingToMoneyHome = (
   navigation: AppNavigationProp,
 ): void => {
-  navigation.navigate(Routes.HOME_TABS, {
-    screen: Routes.MONEY.ROOT,
-    params: { screen: Routes.MONEY.HOME },
-  });
+  navigation.navigate(
+    Routes.HOME_TABS,
+    {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    },
+    { pop: true },
+  );
 };
 
 type ResetRoute = PartialState<NavigationState>['routes'][number];
@@ -113,7 +120,8 @@ const getRoutesUnderDestination = (state: NavigationState): ResetRoute[] => {
  *
  * A step change that is already inside onboarding resets that stack in place.
  * Resetting the root route without its existing key destroys the native screen,
- * and the splash shows through that gap.
+ * and the splash shows through that gap. The reused key is one this reset
+ * removes. Copying a key that stays under the caller puts it on two routes.
  */
 export const openAsOnlyOnboardingRoute = (
   navigation: AppNavigationProp,
@@ -138,19 +146,31 @@ export const openAsOnlyOnboardingRoute = (
     }
 
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
-      const existingOnboardingRoute = state.routes.find(
-        (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
-      );
       const routesUnderDestination = getRoutesUnderDestination(state);
+      const keptKeys = new Set(
+        routesUnderDestination.flatMap((keptRoute) =>
+          keptRoute.key ? [keptRoute.key] : [],
+        ),
+      );
+      let onboardingRouteKey: string | undefined;
+      for (let index = state.routes.length - 1; index >= 0; index -= 1) {
+        const candidate = state.routes[index];
+        if (
+          candidate?.name === Routes.RAMP.VBA_ONBOARDING &&
+          candidate.key &&
+          !keptKeys.has(candidate.key)
+        ) {
+          onboardingRouteKey = candidate.key;
+          break;
+        }
+      }
       current.dispatch(
         CommonActions.reset({
           index: routesUnderDestination.length,
           routes: [
             ...routesUnderDestination,
             {
-              ...(existingOnboardingRoute?.key
-                ? { key: existingOnboardingRoute.key }
-                : {}),
+              ...(onboardingRouteKey ? { key: onboardingRouteKey } : {}),
               name: Routes.RAMP.VBA_ONBOARDING,
               state: { index: 0, routes: [route] },
             },
