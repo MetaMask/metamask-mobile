@@ -385,15 +385,27 @@ const CardHome = () => {
   });
 
   const [showFreezeAnimation, setShowFreezeAnimation] = useState(false);
-  // Show the Rive freeze/unfreeze animation when a freeze or unfreeze
-  // succeeds; the static card art returns after the Melt plays out (~3s).
+  // While the card is frozen, the Rive view holds the Freeze pose (no
+  // timeout — the static art only returns after the unfreeze Melt plays
+  // out). A card that loads already frozen also activates the animation.
   useEffect(() => {
     if (actions.freeze.isSuccess || actions.unfreeze.isSuccess) {
       setShowFreezeAnimation(true);
-      const timer = setTimeout(() => setShowFreezeAnimation(false), 4000);
-      return () => clearTimeout(timer);
+      // Only the unfreeze success schedules a return to static — the Melt
+      // plays for ~3s before the card art swaps back.
+      if (actions.unfreeze.isSuccess) {
+        const timer = setTimeout(() => setShowFreezeAnimation(false), 4000);
+        return () => clearTimeout(timer);
+      }
     }
   }, [actions.freeze.isSuccess, actions.unfreeze.isSuccess]);
+
+  // A card that loads already frozen activates the animation at mount.
+  useEffect(() => {
+    if (isFrozen && isAuthenticated && !isLoading) {
+      setShowFreezeAnimation(true);
+    }
+  }, [isFrozen, isAuthenticated, isLoading]);
 
   const [isSpendingLimitWarningDismissed, setIsSpendingLimitWarningDismissed] =
     useState(false);
