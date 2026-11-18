@@ -1,10 +1,5 @@
 import Engine from '../../../core/Engine';
-import { forgetPendingPasskey } from '../../../core/MfaRecovery/trustPasskey';
 import { removeMfaCredential } from './removeMfaCredential';
-
-jest.mock('../../../core/MfaRecovery/trustPasskey', () => ({
-  forgetPendingPasskey: jest.fn(),
-}));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -37,7 +32,6 @@ describe('removeMfaCredential', () => {
       reason: { operation: 'settings.removeAuthenticatorApp' },
     });
     expect(untrustPasskey).not.toHaveBeenCalled();
-    expect(forgetPendingPasskey).not.toHaveBeenCalled();
   });
 
   it('stops trusting a passkey before removing it', async () => {
@@ -50,7 +44,6 @@ describe('removeMfaCredential', () => {
       ),
     ).rejects.toThrow('offline');
 
-    expect(forgetPendingPasskey).toHaveBeenCalledWith('cred');
     expect(untrustPasskey).toHaveBeenCalledWith('cred');
     expect(removeCredential).not.toHaveBeenCalled();
   });

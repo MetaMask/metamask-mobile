@@ -43,7 +43,10 @@ function createDependencies(
   } = {
     mfaRecovery: {
       trustIdentifier: jest.fn(async () => undefined),
-      isTrusted: jest.fn(async () => true),
+      // Like the controller method, it only works called on the controller.
+      isTrusted: jest.fn(async function (this: unknown) {
+        return this === record.mfaRecovery;
+      }),
       register: jest.fn(async () => undefined),
       abort: jest.fn(async () => undefined),
       getIdentifiers: jest.fn(async () => ({
@@ -72,7 +75,6 @@ function createDependencies(
     toprf: TOPRF,
     cubistAuthAudience: 'gamma.signer.cubist.dev',
     randomBytes: (length) => new Uint8Array(length).fill(4),
-    retryPendingPasskeys: jest.fn(async () => undefined),
     registeredSecretHash: {
       get: jest.fn(async () => savedHash),
       set: jest.fn(async (hash: string) => {
@@ -91,7 +93,6 @@ describe('setupPasswordlessRecovery', () => {
 
     expect(result).toBe('enabled');
     expect(dependencies.verifyMfa).toHaveBeenCalledTimes(1);
-    expect(dependencies.retryPendingPasskeys).toHaveBeenCalledTimes(1);
     expect(dependencies.linkSocialLogin).not.toHaveBeenCalled();
     expect(dependencies.mfaRecovery.abort).toHaveBeenCalledTimes(1);
     expect(dependencies.mfaRecovery.trustIdentifier).toHaveBeenCalledWith({

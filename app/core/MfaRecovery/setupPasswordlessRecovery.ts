@@ -67,8 +67,6 @@ export interface PasswordlessRecoverySetupDependencies {
   /** Audience Cubist accepts on the identifier approval. */
   cubistAuthAudience: string;
   randomBytes: (length: number) => Uint8Array;
-  /** Records the enrolled passkeys whose recording failed earlier. */
-  retryPendingPasskeys: () => Promise<void>;
   /** Hash of the secret this device registered, kept on the device. */
   registeredSecretHash: {
     get: () => Promise<string | null>;
@@ -123,8 +121,6 @@ export async function setupPasswordlessRecovery(
       stage = 'reading_identifiers';
       approved = await readApprovedIdentifiers(dependencies);
     }
-    stage = 'trusting_passkeys';
-    await dependencies.retryPendingPasskeys();
     stage = 'trusting_social_login';
     await dependencies.mfaRecovery.trustIdentifier(
       getSocialWitness(dependencies.seedless.state),
@@ -231,11 +227,14 @@ function describeFailure(stage: string, error: unknown): string {
 async function selectApprovedIdentifiers(
   approved: readonly MfaApprovalIdentifier[],
   state: Pick<SeedlessOnboardingControllerState, 'authConnection' | 'userId'>,
-  { isTrusted }: Pick<PasswordlessRecoverySetupMfa, 'isTrusted'>,
+  mfaRecovery: Pick<PasswordlessRecoverySetupMfa, 'isTrusted'>,
 ): Promise<Identifier[]> {
   let passkey: MfaApprovalIdentifier | undefined;
   for (const identifier of approved) {
-    if (identifier.type === 'passkey' && (await isTrusted(identifier))) {
+    if (
+      identifier.type === 'passkey' &&
+      (await mfaRecovery.isTrusted(identifier))
+    ) {
       passkey = identifier;
       break;
     }

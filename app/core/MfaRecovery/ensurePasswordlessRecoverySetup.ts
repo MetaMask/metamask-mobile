@@ -14,7 +14,6 @@ import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboa
 import { verifyOrEnroll } from '../../util/identity/mfa/useMfa';
 import Logger from '../../util/Logger';
 import { linkSocialLogin } from './linkSocialLogin';
-import { retryPendingPasskeys } from './trustPasskey';
 import {
   PasswordlessRecoverySetupError,
   setupPasswordlessRecovery,
@@ -127,7 +126,6 @@ async function runEnsurePasswordlessRecoverySetup(): Promise<EnsurePasswordlessR
         cubistAuthAudience: getCubistConfig().authAudience,
         randomBytes: (length) =>
           new Uint8Array(QuickCrypto.randomBytes(length)),
-        retryPendingPasskeys,
         registeredSecretHash,
       });
 

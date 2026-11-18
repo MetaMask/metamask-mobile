@@ -80,10 +80,7 @@ describe('mobileMfaControllerAdapter', () => {
     expect(
       await mobileMfaControllerAdapter.completeCredentialEnrollment(request),
     ).toStrictEqual([]);
-    expect(trustPasskey).toHaveBeenCalledWith({
-      credentialId: 'cred',
-      attestationObject: 'att',
-    });
+    expect(trustPasskey).toHaveBeenCalledWith('att');
   });
 
   it('forwards beginCredentialVerification with its request', async () => {
