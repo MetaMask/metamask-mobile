@@ -190,18 +190,21 @@ export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'] as const;
 /**
  * Whether Rewards opt-in is allowed for the live GeolocationController location.
  *
- * `null` while the lookup has not finished, so the CTA stays held. `true` when
- * the lookup errored or resolved to UNKNOWN. A settled location is blocked when
- * it starts with UK, GB, or GI.
+ * `null` only when there is no known location and the lookup has not finished,
+ * so the CTA stays held. A known location stays in force during a refresh and
+ * after a failed refresh, because the controller keeps the previous location
+ * and only sets `status: 'error'`. That location is blocked when it starts
+ * with UK, GB, or GI. `true` when the lookup errored or resolved to UNKNOWN
+ * with no usable location.
  */
 export const selectOptinAllowedForGeo = createSelector(
   selectGeolocationLocation,
   selectGeolocationStatus,
   (location, status): boolean | null => {
-    if (!status || status === 'idle' || status === 'loading') {
-      return null;
-    }
-    if (status === 'error' || !location || location === UNKNOWN_LOCATION) {
+    if (!location || location === UNKNOWN_LOCATION) {
+      if (!status || status === 'idle' || status === 'loading') {
+        return null;
+      }
       return true;
     }
     const normalized = location.toUpperCase();

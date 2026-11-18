@@ -239,6 +239,11 @@ const renderSheet = async (
 };
 
 describe('AcceptInviteSheet', () => {
+  const engineWithState = Engine as unknown as {
+    state?: Record<string, unknown>;
+  };
+  let engineStateBeforeTest: Record<string, unknown> | undefined;
+
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -247,7 +252,16 @@ describe('AcceptInviteSheet', () => {
     jest.useRealTimers();
   });
 
+  afterEach(() => {
+    if (engineStateBeforeTest === undefined) {
+      delete engineWithState.state;
+      return;
+    }
+    engineWithState.state = engineStateBeforeTest;
+  });
+
   beforeEach(() => {
+    engineStateBeforeTest = engineWithState.state;
     jest.clearAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({

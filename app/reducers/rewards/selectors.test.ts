@@ -1040,23 +1040,44 @@ describe('Rewards selectors', () => {
         },
       }) as RootState;
 
-    it('returns null while geolocation is missing, idle, or loading', () => {
+    it('returns null while there is no known location and the lookup has not finished', () => {
       expect(selectOptinAllowedForGeo(stateWithGeo(undefined, undefined))).toBe(
         null,
       );
       expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'idle'))).toBe(
         null,
       );
-      expect(selectOptinAllowedForGeo(stateWithGeo('US', 'loading'))).toBe(
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'loading'))).toBe(
+        null,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'loading'))).toBe(
         null,
       );
     });
 
-    it('returns true when geolocation errored or resolved to UNKNOWN', () => {
-      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'error'))).toBe(true);
+    it('keeps a known location in force while a refresh is loading', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('US', 'loading'))).toBe(
+        true,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'loading'))).toBe(
+        false,
+      );
+    });
+
+    it('fails open when the lookup errors or resolves to UNKNOWN with no usable location', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'error'))).toBe(
+        true,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'error'))).toBe(
+        true,
+      );
       expect(
         selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'complete')),
       ).toBe(true);
+    });
+
+    it('keeps a blocked location blocked when a later refresh fails', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'error'))).toBe(false);
     });
 
     it('returns false when a settled location starts with a blocked region', () => {

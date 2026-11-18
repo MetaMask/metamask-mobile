@@ -87,8 +87,9 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
     disabledReason = accountRefusalReason;
   }
 
-  // Null means geolocation has not finished. Hold the CTA for that gap. A
-  // lookup that errored, or resolved to UNKNOWN, is allowed and does not block.
+  // Null means there is no known location yet. Hold the CTA for that gap. A
+  // known location stays in force during a refresh and after a failed refresh.
+  // Error or UNKNOWN with no usable location is allowed.
   const geoNotResolved = optinAllowedForGeo === null && !accountRefusalReason;
   const geoAllowsOptIn = optinAllowedForGeo === true;
 

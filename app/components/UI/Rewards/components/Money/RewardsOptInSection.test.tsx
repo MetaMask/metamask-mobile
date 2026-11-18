@@ -147,8 +147,31 @@ describe('RewardsOptInSection', () => {
     ).toBe(true);
   });
 
-  it('still allows opt-in when the geo check fails', () => {
+  it('keeps the region block when a refresh fails on a blocked location', () => {
     mockGeoLocation = 'GB';
+    mockGeoStatus = 'error';
+
+    const { getByTestId, getByText, queryByText } = render(
+      <RewardsOptInSection localizedText={LOCALIZED_TEXT} />,
+    );
+
+    fireEvent.press(getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION));
+
+    expect(mockOptin).not.toHaveBeenCalled();
+    expect(
+      getByText(
+        'Rewards are not supported in your region yet. We are working on expanding access, so check back later.',
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('Rewards terms apply.')).not.toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('allows opt-in when the lookup fails with no known location', () => {
+    mockGeoLocation = undefined;
     mockGeoStatus = 'error';
 
     const { getByTestId, getByText } = render(
