@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import type { QueryClient } from '@tanstack/react-query';
 import { Pressable, Text } from 'react-native';
 import {
   useNavigation,
@@ -60,6 +61,8 @@ interface RenderVbaOptions {
   location?: string;
   flagEnabled?: boolean;
   overrides?: DeepPartial<RootState>;
+  /** A caller-owned query client, for tests that seed the cache first. */
+  queryClient?: QueryClient;
 }
 
 const VbaTermsCaller = () => {
@@ -154,6 +157,8 @@ export const renderVbaVendorTerms = (options: RenderVbaOptions = {}) => {
     { name: VbaOnboardingRoutes.VENDOR_TERMS },
     [{ name: VbaOnboardingRoutes.EMAIL }, { name: VbaOnboardingRoutes.ERROR }],
     { state: buildVbaState(options) },
+    undefined,
+    options.queryClient,
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
   return result;
