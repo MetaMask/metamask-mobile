@@ -11705,7 +11705,7 @@
     "card_onboarding": {
       "title": "Spend anywhere",
       "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
-      "apply_now_button": "Get card",
+      "apply_now_button": "Get Card",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
@@ -12890,6 +12890,7 @@
       "entered": "Entered",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
+      "create_username": "Create a username",
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",
       "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
@@ -13066,6 +13067,8 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
+      "stats_pnl_gap_amount": "+{{pnlGap}}",
+      "stats_pnl_gap_to_prize_suffix": "to win {{place}} place",
       "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
@@ -13707,6 +13710,7 @@
       "load_error": "Couldn't load your allowances.",
       "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
       "unavailable": "Member pricing isn't available right now.",
+      "paused": "Member pricing is paused while your membership is deactivated.",
       "retry": "Try again"
     },
     "physical_card": {
@@ -13740,6 +13744,9 @@
         "title": "Your membership is cancelled",
         "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
         "action": "Renew membership"
+      },
+      "pending_cancel": {
+        "description": "Resume before {{date}} to keep 7% APY, 3% mUSD back, and more."
       }
     },
     "earned": {
@@ -13763,6 +13770,7 @@
       "paying_with": "Paying with",
       "money_account": "Money account",
       "renews_on": "Renews on",
+      "ends_on": "Ends on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
       "manage": "Manage plan",
