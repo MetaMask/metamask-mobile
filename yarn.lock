@@ -10655,19 +10655,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/key-tree@npm:^10.1.1":
-  version: 10.1.1
-  resolution: "@metamask/key-tree@npm:10.1.1"
-  dependencies:
-    "@metamask/scure-bip39": "npm:^2.1.1"
-    "@metamask/utils": "npm:^11.0.1"
-    "@noble/curves": "npm:^1.8.1"
-    "@noble/hashes": "npm:^1.3.2"
-    "@scure/base": "npm:^1.0.0"
-  checksum: 10/29b2db7f2626414f6147e6a25aae16b1a012485aa394fb6ad2b3f26519455dae7e6e6fdd502f279e1924251b7058a853982297f37761372ed034db5f150fc720
-  languageName: node
-  linkType: hard
-
 "@metamask/key-tree@npm:@metamask-previews/key-tree@11.0.0-preview-7410208d2":
   version: 11.0.0-preview-7410208d2
   resolution: "@metamask-previews/key-tree@npm:11.0.0-preview-7410208d2"
@@ -10680,6 +10667,19 @@ __metadata:
     "@noble/hashes": "npm:^1.8.0"
     "@scure/base": "npm:^2.4.0"
   checksum: 10/5715ff2a7e748b7a0c88f0a1116fc551a962e91e58f1158db1672709ff18456e929f9f5a3bc92ef88859dc28069e60cf6c53e846c346423cc2512403a2d512b9
+  languageName: node
+  linkType: hard
+
+"@metamask/key-tree@npm:^10.1.1":
+  version: 10.1.1
+  resolution: "@metamask/key-tree@npm:10.1.1"
+  dependencies:
+    "@metamask/scure-bip39": "npm:^2.1.1"
+    "@metamask/utils": "npm:^11.0.1"
+    "@noble/curves": "npm:^1.8.1"
+    "@noble/hashes": "npm:^1.3.2"
+    "@scure/base": "npm:^1.0.0"
+  checksum: 10/29b2db7f2626414f6147e6a25aae16b1a012485aa394fb6ad2b3f26519455dae7e6e6fdd502f279e1924251b7058a853982297f37761372ed034db5f150fc720
   languageName: node
   linkType: hard
 
