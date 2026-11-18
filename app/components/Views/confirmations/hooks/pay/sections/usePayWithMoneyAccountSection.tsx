@@ -87,7 +87,9 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     isPerpsMoneyAccountNoFeeRouteEnabled &&
     hasTransactionType(transactionMeta, [
       TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
       TransactionType.perpsDepositAndOrder,
+      TransactionType.perpsLighterDepositAndOrder,
     ]);
 
   const handlePress = useCallback(() => {
