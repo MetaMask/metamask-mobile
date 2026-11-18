@@ -776,44 +776,82 @@ describe('EarningsChart', () => {
   it('updates selection while dragging and clears on release', () => {
     const { getByTestId, queryByTestId } = renderChart();
     const plot = getByTestId(MoneyEarningsViewTestIds.CHART_PLOT);
+    let timestamp = 1_000;
+    const buildResponderEvent = (locationX: number) => {
+      const eventTimestamp = timestamp;
+      timestamp += 10;
+      return {
+        nativeEvent: {
+          locationX,
+          locationY: 80,
+          pageX: locationX,
+          pageY: 80,
+          identifier: 0,
+          target: 0,
+          timestamp: eventTimestamp,
+          touches: [{ identifier: 0, pageX: locationX, pageY: 80 }],
+        },
+        touchHistory: {
+          indexOfSingleActiveTouch: 0,
+          mostRecentTimeStamp: eventTimestamp,
+          numberActiveTouches: 1,
+          touchBank: [
+            {
+              touchActive: true,
+              startPageX: locationX,
+              startPageY: 80,
+              startTimeStamp: eventTimestamp,
+              currentPageX: locationX,
+              currentPageY: 80,
+              currentTimeStamp: eventTimestamp,
+              previousPageX: locationX,
+              previousPageY: 80,
+              previousTimeStamp: eventTimestamp,
+            },
+          ],
+        },
+      };
+    };
 
-    fireEvent(plot, 'layout', {
-      nativeEvent: { layout: { width: 300 } },
-    });
+    fireLayout(plot, 300);
     fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)), 'pressIn');
-    fireEvent(plot, 'responderGrant', createResponderEvent(150, 80));
-    fireEvent(plot, 'responderMove', createResponderEvent(250, 80));
+    act(() => {
+      plot.props.onMoveShouldSetResponderCapture(buildResponderEvent(150));
+      plot.props.onResponderGrant(buildResponderEvent(150));
+      plot.props.onResponderMove(buildResponderEvent(250));
+    });
 
     expect(
       getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)).props
-        .accessibilityState,
-    ).toEqual({
-      selected: false,
-      disabled: false,
-    });
+        .accessibilityState.selected,
+    ).toBe(false);
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)).props
+        .accessibilityState.disabled,
+    ).toBe(false);
     expect(
       getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(2)).props
-        .accessibilityState,
-    ).toEqual({
-      selected: false,
-      disabled: true,
-    });
+        .accessibilityState.selected,
+    ).toBe(false);
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(2)).props
+        .accessibilityState.disabled,
+    ).toBe(true);
     expect(queryByTestId(MoneyEarningsViewTestIds.CHART_PILL)).toBeNull();
 
-    fireEvent(plot, 'responderRelease', createResponderEvent(250, 80));
+    act(() => {
+      plot.props.onResponderRelease(buildResponderEvent(250));
+    });
     expect(queryByTestId(MoneyEarningsViewTestIds.CHART_PILL)).toBeNull();
   });
 
-  it('only claims predominantly horizontal movement', () => {
+  it('claims movement while parent scrolling is paused', () => {
     const { getByTestId } = renderChart();
     const plot = getByTestId(MoneyEarningsViewTestIds.CHART_PLOT);
 
     expect(
-      plot.props.onMoveShouldSetResponderCapture({}, { dx: 20, dy: 5 }),
+      plot.props.onMoveShouldSetResponderCapture(createResponderEvent(20, 5)),
     ).toBe(true);
-    expect(
-      plot.props.onMoveShouldSetResponderCapture({}, { dx: 5, dy: 20 }),
-    ).toBe(false);
   });
 
   it('renders precise positive sub-cent earnings in the held pill', () => {
