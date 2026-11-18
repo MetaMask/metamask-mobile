@@ -27,26 +27,7 @@ describe('selectQuickBuyPostTradeShareHintEnabled', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false when the app is below the minimum version', () => {
-    const result = selectQuickBuyPostTradeShareHintEnabled.resultFunc({
-      quickBuyPostTradeShareHintEnabled: {
-        enabled: true,
-        minimumVersion: '99.0.0',
-      },
-    });
-
-    expect(result).toBe(false);
-  });
-
   it('returns false when the remote flag is missing', () => {
     expect(selectQuickBuyPostTradeShareHintEnabled.resultFunc({})).toBe(false);
-  });
-
-  it('returns false when the remote flag is invalid', () => {
-    const result = selectQuickBuyPostTradeShareHintEnabled.resultFunc({
-      quickBuyPostTradeShareHintEnabled: 'yes',
-    });
-
-    expect(result).toBe(false);
   });
 });

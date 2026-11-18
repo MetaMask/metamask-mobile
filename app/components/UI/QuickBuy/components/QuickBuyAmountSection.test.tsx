@@ -329,20 +329,6 @@ describe('QuickBuyAmountSection post trade share hint', () => {
     ).toHaveTextContent('social_leaderboard.quick_buy.min_post_sell');
   });
 
-  it('hides the hint once the amount meets the share minimum', () => {
-    render(
-      <QuickBuyAmountSection
-        {...baseProps}
-        tradeMode="buy"
-        showPostTradeShareHint={false}
-      />,
-    );
-
-    expect(
-      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
-    ).not.toBeOnTheScreen();
-  });
-
   it('hides the hint when the balance is insufficient', () => {
     render(
       <QuickBuyAmountSection

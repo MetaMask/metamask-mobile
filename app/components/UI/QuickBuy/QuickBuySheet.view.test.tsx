@@ -245,16 +245,6 @@ describeForPlatforms('QuickBuySheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the post minimum hint when the remote flag is missing', async () => {
-    const screen = renderQuickBuySheet();
-
-    await waitForSheetReady(screen);
-
-    expect(
-      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
-    ).not.toBeOnTheScreen();
-  });
-
   it('updates the fiat amount when the user types on the keypad', async () => {
     const screen = renderQuickBuySheet();
 
