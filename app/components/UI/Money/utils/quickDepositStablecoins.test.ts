@@ -75,22 +75,24 @@ describe('quickDepositStablecoins', () => {
     );
   });
 
-  it('shows USDC over a larger USDT or mUSD balance, then USDT, then mUSD', () => {
+  it('prefers the largest total, then USDC, USDT, mUSD', () => {
     const main = CHAIN_IDS.MAINNET;
     expect(
       row({
         [main]: {
-          [ETH_USDC]: raw('4', 6),
-          [ETH_USDT]: raw('20', 6),
-          [MUSD]: raw('40', 6),
+          [ETH_USDC]: raw('10', 6),
+          [ETH_USDT]: raw('10', 6),
+          [MUSD]: raw('10', 6),
         },
-      })?.intent,
-    ).toBe('addUsdc');
+      })?.symbol,
+    ).toBe('USDC');
     expect(
-      row({ [main]: { [ETH_USDT]: raw('10', 6), [MUSD]: raw('40', 6) } })
+      row({ [main]: { [ETH_USDT]: raw('10', 6), [MUSD]: raw('10', 6) } })
         ?.intent,
     ).toBe('addUsdt');
-    expect(row({ [main]: { [MUSD]: raw('9', 6) } })?.intent).toBe('addMusd');
+    expect(
+      row({ [main]: { [ETH_USDC]: raw('4', 6), [MUSD]: raw('9', 6) } })?.intent,
+    ).toBe('addMusd');
   });
 
   it('hides empty, unsponsored, testnet, non-EVM, and unconfigured balances', () => {
