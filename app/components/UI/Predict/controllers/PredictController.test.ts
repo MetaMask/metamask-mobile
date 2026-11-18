@@ -380,6 +380,7 @@ describe('PredictController', () => {
       beforeSignClaim: jest.fn(),
       publishClaim: jest.fn(),
       syncDepositWalletBalanceAllowanceForDepositTransaction: jest.fn(),
+      refreshCryptoPriceFeedCredentials: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     mockPolymarketProvider.getAccountState.mockResolvedValue({
@@ -541,6 +542,15 @@ describe('PredictController', () => {
         jest.fn().mockReturnValue(DEFAULT_REMOTE_FEATURE_FLAG_STATE),
     );
 
+    rootMessenger.registerInitialEventPayload({
+      eventType: 'RemoteFeatureFlagController:stateChange',
+      getPayload: () => [
+        (mocks.getRemoteFeatureFlagState?.() ??
+          DEFAULT_REMOTE_FEATURE_FLAG_STATE) as never,
+        [],
+      ],
+    });
+
     rootMessenger.registerActionHandler(
       'SubscriptionController:getBenefits',
       mocks.getBenefits ??
@@ -696,6 +706,81 @@ describe('PredictController', () => {
 
       expect(typeof constructorArgs.getFeatureFlags).toBe('function');
       expect(() => constructorArgs.getFeatureFlags?.()).not.toThrow();
+    });
+
+    it('hands the crypto price feed a new Chainlink key only when predictCryptoPriceFeed changes', () => {
+      withController(({ messenger }) => {
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).not.toHaveBeenCalled();
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: {
+              ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
+              predictLiveSports: {
+                enabled: true,
+                leagues: [],
+              },
+            },
+            cacheTimestamp: 1,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).not.toHaveBeenCalled();
+
+        const updatedFlags = {
+          ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
+          predictLiveSports: {
+            enabled: true,
+            leagues: [],
+          },
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            chainlinkApiKey: 'test-chainlink-key',
+          },
+        };
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: updatedFlags,
+            cacheTimestamp: 2,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).toHaveBeenCalledTimes(1);
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: {
+              ...updatedFlags,
+              predictWithAnyToken: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+            cacheTimestamp: 3,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('subscribes to transaction events in constructor', () => {

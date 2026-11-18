@@ -2,6 +2,7 @@ import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
+import { captureMessage } from '@sentry/react-native';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
@@ -4413,6 +4414,87 @@ describe('parseCryptoPriceProvider', () => {
     expect(parsePolymarketEvents([event], 'crypto')[0]).toEqual(
       expect.objectContaining({ cryptoPriceProvider: 'binance' }),
     );
+  });
+
+  describe('a crypto up/down market without a known vendor', () => {
+    const cryptoEvent = (
+      id: string,
+      resolutionSource?: string,
+    ): PolymarketApiEvent => ({
+      id,
+      slug: 'btc-updown-5m-1763000000',
+      title: 'Bitcoin Up or Down',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: 'series',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down 5m',
+          recurrence: '5m',
+        },
+      ],
+      markets: [{ ...createPolymarketApiMarket(), resolutionSource }],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+    });
+
+    beforeEach(() => {
+      jest.mocked(captureMessage).mockClear();
+    });
+
+    it.each([
+      ['an unknown', 'unknown-source-event', 'https://pythdata.app/BTC'],
+      ['a missing', 'missing-source-event', undefined],
+    ])(
+      'warns Sentry once for %s resolution source',
+      (_case, id, resolutionSource) => {
+        const event = cryptoEvent(id, resolutionSource);
+
+        parsePolymarketEvents([event], 'crypto');
+        parsePolymarketEvents([event], 'crypto');
+
+        expect(jest.mocked(captureMessage).mock.calls).toEqual([
+          [
+            'Polymarket: crypto market settles on an unknown vendor',
+            {
+              level: 'warning',
+              tags: { feature: 'Predict', provider: 'polymarket' },
+              contexts: {
+                parsePolymarketEvents: {
+                  marketId: id,
+                  slug: 'btc-updown-5m-1763000000',
+                  symbol: 'BTC',
+                  resolutionSource: resolutionSource ?? null,
+                  defaultProvider: 'chainlink',
+                },
+              },
+            },
+          ],
+        ]);
+      },
+    );
+
+    it('does not warn for a known vendor or a market that is not crypto up/down', () => {
+      parsePolymarketEvents(
+        [
+          cryptoEvent(
+            'chainlink-source-event',
+            'https://data.chain.link/streams/btc-usd',
+          ),
+          { ...cryptoEvent('not-crypto-event'), tags: [] },
+        ],
+        'crypto',
+      );
+
+      expect(jest.mocked(captureMessage)).not.toHaveBeenCalled();
+    });
   });
 });
 

@@ -159,6 +159,7 @@ import {
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
+import type { PolyBoltCredentials } from './polyboltCryptoFeed';
 import {
   getPolymarketProtocolForMarketVersion,
   getProtocolWithdrawTokenAddress,
@@ -369,6 +370,11 @@ export class PolymarketProvider implements PredictProvider {
   #marketVersionsByOutcomeTokenId: Map<string, Promise<string>> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
+  /**
+   * CLOB credentials the crypto price feed last authenticated with, kept so a
+   * Chainlink key that arrives or rotates later can reach PolyBolt.
+   */
+  #cryptoFeedClobCredentials: ApiKeyCreds | undefined;
   #optimisticPositionUpdatesByAddress = new Map<
     string,
     Map<string, OptimisticPositionUpdate>
@@ -4065,9 +4071,10 @@ export class PolymarketProvider implements PredictProvider {
           return;
         }
 
+        this.#cryptoFeedClobCredentials = credentials;
         websocketManager.useCryptoFeed({
           mode: 'polybolt',
-          credentials,
+          credentials: this.#withChainlinkApiKey(credentials),
         });
         unsubscribe = options
           ? websocketManager.subscribeToCryptoPrices(symbols, callback, options)
@@ -4082,6 +4089,32 @@ export class PolymarketProvider implements PredictProvider {
     return () => {
       cancelled = true;
       unsubscribe();
+    };
+  }
+
+  /**
+   * Hands the crypto price feed the current Chainlink key from remote flags.
+   * Call it when the flags change: PolyBolt reads the key only from a
+   * connection's first auth frame, so a key that arrives or rotates opens a
+   * new connection. An unchanged key does nothing.
+   */
+  public refreshCryptoPriceFeedCredentials(): void {
+    if (!this.#cryptoFeedClobCredentials) {
+      return;
+    }
+
+    WebSocketManager.getInstance().updateCryptoFeedCredentials(
+      this.#withChainlinkApiKey(this.#cryptoFeedClobCredentials),
+    );
+  }
+
+  #withChainlinkApiKey(credentials: ApiKeyCreds): PolyBoltCredentials {
+    const { chainlinkApiKey } = this.#getFeatureFlags();
+    return {
+      apiKey: credentials.apiKey,
+      secret: credentials.secret,
+      passphrase: credentials.passphrase,
+      ...(chainlinkApiKey && { chainlinkApiKey }),
     };
   }
 
