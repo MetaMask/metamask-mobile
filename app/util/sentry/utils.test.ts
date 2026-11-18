@@ -1610,17 +1610,6 @@ describe('setupSentry', () => {
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
     });
 
-    it.each([-0.1, 1.5, '0.5', null])(
-      'ignores an invalid remote rate (%s)',
-      async (rate) => {
-        setPlatformOS('android');
-        setRemoteRates({ [TraceName.SwapQuoteFetch]: { android: rate } });
-        const { tracesSampler } = await getInitOptions();
-
-        expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
-      },
-    );
-
     it('keeps full sampling in dev builds even with a remote rate', async () => {
       globalWithDev.__DEV__ = true;
       setPlatformOS('android');

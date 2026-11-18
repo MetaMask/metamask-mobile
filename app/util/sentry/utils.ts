@@ -26,7 +26,7 @@ import {
   isDiskSpaceSentryReport,
 } from './diskSpaceSentry';
 import { ReduxStore } from '../../core/redux';
-import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController';
+import { selectSentryTransactionSampleRates } from '../../selectors/featureFlagController/sentry';
 import { OTA_VERSION } from '../../constants/ota';
 
 /**
@@ -669,21 +669,15 @@ export function getNavIntegration(): ReturnType<
 }
 
 /**
- * Reads the remote `sentry.transactionSampleRates[name][Platform.OS]` rate for
- * a root transaction (setting one changes Sentry volume and cost). Undefined
- * until the store has loaded flags, or when the value is not a number in
- * [0, 1].
+ * Remote `sentry.transactionSampleRates[name][Platform.OS]` rate for a root
+ * transaction (setting one changes Sentry volume and cost). Undefined until
+ * the store has loaded flags; the sampler must not throw.
  */
 function getRemoteTraceSampleRate(name: string): number | undefined {
   try {
-    const { sentry } = selectRemoteFeatureFlags(store.getState()) as {
-      sentry?: {
-        transactionSampleRates?: Record<string, Record<string, unknown>>;
-      };
-    };
-    const rate = sentry?.transactionSampleRates?.[name]?.[Platform.OS];
-    const isValidRate = typeof rate === 'number' && rate >= 0 && rate <= 1;
-    return isValidRate ? rate : undefined;
+    return selectSentryTransactionSampleRates(store.getState())[name]?.[
+      Platform.OS
+    ];
   } catch {
     return undefined;
   }
