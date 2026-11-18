@@ -36,9 +36,10 @@ const renderWithdrawFlow = (privacyMode = false) =>
         enabled: true,
         venues: {
           polymarket: { enabled: false },
-          kalshi: { enabled: true, withdrawalsEnabled: true },
+          kalshi: { enabled: true },
         },
         venueSelection: { enabled: false },
+        kalshiWithdrawalsEnabled: true,
       },
     },
   });

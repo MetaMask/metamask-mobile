@@ -67,7 +67,8 @@ const renderWithdrawAvailable = ({
   jest.mocked(selectPredictAvailability).mockReturnValue(available);
   jest.mocked(useVenueCapabilities).mockReturnValue(capabilities);
   jest.mocked(selectPredictConfig).mockReturnValue({
-    venues: { kalshi: { withdrawalsEnabled: kalshiWithdrawalsEnabled } },
+    kalshiDepositsEnabled: false,
+    kalshiWithdrawalsEnabled,
   } as never);
 
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -141,7 +142,7 @@ describe('usePredictWithdrawAvailable', () => {
     });
   });
 
-  it('hides the entry point while venues.kalshi.withdrawalsEnabled is off', () => {
+  it('hides the entry point while kalshiWithdrawalsEnabled is off', () => {
     const { result } = renderWithdrawAvailable({
       activeVenue: KALSHI_ACTIVE,
       capabilities: descriptor(KALSHI_ID, ['withdraw']),
