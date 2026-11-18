@@ -95,7 +95,7 @@ index 68e03bd76c322bdca2155ac291d116e1a950df24..8d10f41a3e81a43efbd1e076f74724a9
          const getPressableStyle = ({ pressed, }) => {
              const baseStyle = tw.style(baseClassName, twClassName, pressed && 'bg-pressed');
 diff --git a/dist/components/FilterButton/FilterButton.cjs b/dist/components/FilterButton/FilterButton.cjs
-index 6a289068dbc784be3bfc938397ce83154c1ab4e4..f48a0577c55fac811455ef62fe2fbbd661322003 100644
+index 6a289068dbc784be3bfc938397ce83154c1ab4e4..ae3d61a3d430dc1e294c19ace1f55a5ffe8ef066 100644
 --- a/dist/components/FilterButton/FilterButton.cjs
 +++ b/dist/components/FilterButton/FilterButton.cjs
 @@ -42,6 +42,11 @@ const FilterButton = ({ children, textProps, startIconProps, endIconProps, value
@@ -106,7 +106,7 @@ index 6a289068dbc784be3bfc938397ce83154c1ab4e4..f48a0577c55fac811455ef62fe2fbbd6
 +    const showsSurface = !effectiveIsSelected && !filterButtonGroup?.isSegmented;
 +    const containerTwClassName = showsSurface
 +        ? (pressed) => `${pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted'} border border-muted ${typeof twClassName === 'function' ? twClassName(pressed) : twClassName}`
-+        : twClassName;
++        : (pressed) => `border-transparent ${typeof twClassName === 'function' ? twClassName(pressed) : twClassName}`;
      const handlePress = (event) => {
          if (usesGroupSelection &&
              filterButtonGroup !== null &&
@@ -120,7 +120,7 @@ index 6a289068dbc784be3bfc938397ce83154c1ab4e4..f48a0577c55fac811455ef62fe2fbbd6
              : {
                  ...textProps,
 diff --git a/dist/components/FilterButton/FilterButton.mjs b/dist/components/FilterButton/FilterButton.mjs
-index 99dfe3ff6b4f3486a74a05aa8a31565aec19eec0..ab8e59957da6d4f967f3143e2fdf742fa7b3e3a9 100644
+index 99dfe3ff6b4f3486a74a05aa8a31565aec19eec0..525354bbb49584105d88a7f9db5cac11d45cc464 100644
 --- a/dist/components/FilterButton/FilterButton.mjs
 +++ b/dist/components/FilterButton/FilterButton.mjs
 @@ -23,6 +23,11 @@ export const FilterButton = ({ children, textProps, startIconProps, endIconProps
@@ -131,7 +131,7 @@ index 99dfe3ff6b4f3486a74a05aa8a31565aec19eec0..ab8e59957da6d4f967f3143e2fdf742f
 +    const showsSurface = !effectiveIsSelected && !filterButtonGroup?.isSegmented;
 +    const containerTwClassName = showsSurface
 +        ? (pressed) => `${pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted'} border border-muted ${typeof twClassName === 'function' ? twClassName(pressed) : twClassName}`
-+        : twClassName;
++        : (pressed) => `border-transparent ${typeof twClassName === 'function' ? twClassName(pressed) : twClassName}`;
      const handlePress = (event) => {
          if (usesGroupSelection &&
              filterButtonGroup !== null &&
