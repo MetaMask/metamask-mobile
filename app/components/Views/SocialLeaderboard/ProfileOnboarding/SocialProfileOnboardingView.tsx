@@ -152,6 +152,9 @@ const PROFILE_ONBOARDING_SOURCE = 'SocialProfileOnboardingView';
 /**
  * Report a profile-onboarding failure with `feature:social` tags. Attaches
  * `profileId` on context/extras when the session has one (not as a Sentry tag).
+ *
+ * Fire and forget: the profile id lookup runs in the background and nothing
+ * here can throw into, or delay, the flow that failed.
  */
 const reportProfileOnboardingFailure = (
   error: unknown,
@@ -159,12 +162,10 @@ const reportProfileOnboardingFailure = (
     operation,
     extraMessage,
     endpoint,
-    profileId: knownProfileId,
   }: {
     operation: string;
     extraMessage: string;
     endpoint?: SocialEndpoint;
-    profileId?: string;
   },
 ): void => {
   const report = (profileId?: string) => {
@@ -178,14 +179,9 @@ const reportProfileOnboardingFailure = (
     });
   };
 
-  if (knownProfileId) {
-    report(knownProfileId);
-    return;
-  }
-
-  void getSocialProfileId()
-    .then((profileId) => report(profileId))
-    .catch(() => report());
+  getSocialProfileId()
+    .then(report, () => report())
+    .catch(() => undefined);
 };
 
 /**
@@ -674,6 +670,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const serverProfileFingerprintRef = useRef<string | null>(null);
   /** Last ineligible draft fingerprint that already emitted a failed claim. */
   const trackedIneligibleFingerprintRef = useRef<string | null>(null);
+  /** The account step already reported its selected account to analytics. */
+  const linkedAccountSelectionTrackedRef = useRef(false);
   const syncPromiseRef = useRef<Promise<void> | null>(null);
   const startSyncRef = useRef<() => Promise<void>>(async () => undefined);
   const connectAbortRef = useRef<AbortController | null>(null);
@@ -735,28 +733,25 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, [existingProfileLookupResult, openExistingProfile]);
 
   useEffect(() => {
-    let autoSelectedPath: ProfileOnboardingPath | null = null;
-    setDraft((current) => {
-      const next = withEligibleLinkedAccount(current, accounts);
-      if (next === current) {
-        return current;
-      }
-      if (
-        !current.linkedAccountId &&
-        next.linkedAccountId &&
-        !current.linkedAccountSelectionCleared
-      ) {
-        autoSelectedPath = next.path;
-      }
-      return next;
-    });
-    if (autoSelectedPath) {
-      trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED, {
-        path: onboardingPathFor(autoSelectedPath),
-        step: Step.ACCOUNT,
-      });
+    setDraft((current) => withEligibleLinkedAccount(current, accounts));
+  }, [accounts]);
+
+  // Analytics only. The account is preselected long before the account step,
+  // so report it once when that step shows it, unless the user picked first.
+  useEffect(() => {
+    if (
+      step !== 'account' ||
+      !draft.linkedAccountId ||
+      linkedAccountSelectionTrackedRef.current
+    ) {
+      return;
     }
-  }, [accounts, trackInteraction]);
+    linkedAccountSelectionTrackedRef.current = true;
+    trackInteractionRef.current(Interaction.LINKED_ACCOUNT_SELECTED, {
+      path: onboardingPathFor(draft.path),
+      step: Step.ACCOUNT,
+    });
+  }, [draft.linkedAccountId, draft.path, step]);
 
   const cancelConnectX = useCallback(() => {
     connectAbortRef.current?.abort();
@@ -1366,14 +1361,14 @@ const SocialProfileOnboardingView: React.FC = () => {
         writeResult = await writeOnboardingProfile(currentDraft);
       } catch (error) {
         const operation = hadProfile ? 'update_profile' : 'create_profile';
-        const profileId = await getSocialProfileId().catch(() => undefined);
+        // Not awaited: the reporter looks up the profile id in the background
+        // so the error UI below is never delayed by logging.
         reportProfileOnboardingFailure(error, {
           operation,
           extraMessage: hadProfile
             ? 'Profile onboarding update profile failed'
             : 'Profile onboarding create profile failed',
           endpoint: operation,
-          profileId,
         });
         if (!hadProfile) {
           trackInteractionRef.current(Interaction.USERNAME_CLAIMED, {
@@ -1424,8 +1419,10 @@ const SocialProfileOnboardingView: React.FC = () => {
           step: currentDraft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
         });
       }
-      // Publish even if the user left Ready during the write — otherwise local
-      // save and `onboarding_completed` never fire after `username_claimed`.
+      if (stepRef.current !== 'ready') {
+        setIsSubmitting(false);
+        return;
+      }
       if (fingerprintForDraft(draftRef.current) !== fingerprint) {
         continue;
       }
@@ -1447,9 +1444,11 @@ const SocialProfileOnboardingView: React.FC = () => {
           publishCreatedProfile(draftRef.current);
           return undefined;
         }
-        // Restart when Ready still has a draft to write — including after an
-        // ineligible in-flight write where nothing was saved yet.
-        if (latest && serverProfileFingerprintRef.current !== latest) {
+        if (
+          latest &&
+          serverProfileFingerprintRef.current &&
+          serverProfileFingerprintRef.current !== latest
+        ) {
           return startSync();
         }
         return undefined;
@@ -1820,6 +1819,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                       }));
                     }}
                     onSelect={(account) => {
+                      linkedAccountSelectionTrackedRef.current = true;
                       trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED, {
                         path: onboardingPathFor(draft.path),
                         step: Step.ACCOUNT,
@@ -1903,11 +1903,6 @@ const SocialProfileOnboardingView: React.FC = () => {
                       isLoading={isSubmitting}
                       isDisabled={isSubmitting}
                       onPress={() => {
-                        trackInteraction(Interaction.BUTTON_CLICKED, {
-                          step: Step.READY,
-                          path: onboardingPathFor(draft.path),
-                          outcome: Outcome.FAILED,
-                        });
                         createOnboardingProfile().catch(() => undefined);
                       }}
                       testID={

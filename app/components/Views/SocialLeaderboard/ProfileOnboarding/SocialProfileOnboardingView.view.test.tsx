@@ -9,7 +9,11 @@
  */
 
 import '../../../../../tests/component-view/mocks';
-import type { Profile } from '@metamask/profile-controller';
+import {
+  ProfileApiErrorCode,
+  ProfileServiceError,
+  type Profile,
+} from '@metamask/profile-controller';
 import NetInfo from '@react-native-community/netinfo';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
@@ -25,7 +29,9 @@ import type NetInfoMock from '../../../../__mocks__/@react-native-community/neti
 import { AccountCellIds } from '../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
+import { analytics } from '../../../../util/analytics/analytics';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { updateBgState } from '../../../../core/redux/slices/engine';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
@@ -3170,6 +3176,229 @@ describe('SocialProfileOnboardingView', () => {
       expect(
         Engine.context.ProfileController.createProfile,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Social UI Interaction analytics', () => {
+    let trackEvent: jest.SpiedFunction<typeof analytics.trackEvent>;
+
+    /** Properties of every onboarding interaction of one type, in order. */
+    const interactionsOfType = (interactionType: string) =>
+      trackEvent.mock.calls
+        .map(([event]) => event)
+        .filter(
+          (event) =>
+            event.name === MetaMetricsEvents.SOCIAL_UI_INTERACTION.category &&
+            event.properties?.screen_name === 'profile_onboarding' &&
+            event.properties?.interaction_type === interactionType,
+        )
+        .map((event) => event.properties);
+
+    const connectXFromIntro = async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+        ),
+      ).toBeOnTheScreen();
+    };
+
+    beforeEach(() => {
+      trackEvent = jest.spyOn(analytics, 'trackEvent');
+    });
+
+    afterEach(() => {
+      trackEvent.mockRestore();
+    });
+
+    it('tracks the manual path from the intro tap to the Ready button', async () => {
+      await renderOnboarding([{ name: Routes.HOME_TABS }], { socialV1: true });
+
+      await reachReadyStep();
+      await leaveReadyStep();
+
+      expect(
+        await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).toBeOnTheScreen();
+      expect(interactionsOfType('button_clicked')).toEqual([
+        expect.objectContaining({ step: 'intro', path: 'manual' }),
+        expect.objectContaining({ step: 'username', path: 'manual' }),
+        expect.objectContaining({ step: 'avatar', path: 'manual' }),
+        expect.objectContaining({ step: 'account', path: 'manual' }),
+        expect.objectContaining({
+          step: 'ready',
+          path: 'manual',
+          outcome: 'success',
+        }),
+      ]);
+      expect(interactionsOfType('linked_account_selected')).toEqual([
+        expect.objectContaining({ step: 'account', path: 'manual' }),
+      ]);
+      expect(interactionsOfType('username_claimed')).toEqual([
+        expect.objectContaining({
+          outcome: 'success',
+          path: 'manual',
+          step: 'username',
+        }),
+      ]);
+      expect(interactionsOfType('onboarding_completed')).toEqual([
+        expect.objectContaining({
+          outcome: 'success',
+          path: 'manual',
+          uses_x_username: false,
+          traders_followed_count: 0,
+        }),
+      ]);
+    });
+
+    it('tracks the X path from the intro tap to the created profile', async () => {
+      signIn();
+      await renderOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }], {
+        socialV1: true,
+      });
+
+      await connectXFromIntro();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      await waitFor(() => expect(letsGoDisabled()).toBe(false));
+
+      expect(interactionsOfType('button_clicked')).toEqual([
+        expect.objectContaining({ step: 'intro', path: 'x' }),
+        expect.objectContaining({ step: 'x_identity', path: 'x' }),
+        expect.objectContaining({ step: 'account', path: 'x' }),
+      ]);
+      expect(interactionsOfType('x_sign_in')).toEqual([
+        expect.objectContaining({ outcome: 'success', path: 'x' }),
+      ]);
+      expect(interactionsOfType('username_claimed')).toEqual([
+        expect.objectContaining({
+          outcome: 'success',
+          path: 'x',
+          step: 'x_identity',
+        }),
+      ]);
+      expect(interactionsOfType('onboarding_completed')).toEqual([
+        expect.objectContaining({
+          outcome: 'success',
+          path: 'x',
+          uses_x_username: true,
+        }),
+      ]);
+    });
+
+    it('tracks a failed X sign-in when the profile API rejects the connect', async () => {
+      jest
+        .mocked(Engine.context.ProfileController.getXAuthorizationUrl)
+        .mockRejectedValueOnce(new Error('network'));
+      await renderOnboarding([], { socialV1: true });
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_ERROR,
+        ),
+      ).toBeOnTheScreen();
+      expect(interactionsOfType('x_sign_in')).toEqual([
+        expect.objectContaining({ outcome: 'failed', path: 'x' }),
+      ]);
+    });
+
+    it('tracks the use-X-username switch on the X identity step', async () => {
+      signIn();
+      await renderOnboarding([], { socialV1: true });
+      await connectXFromIntro();
+
+      fireEvent(
+        within(
+          screen.getByTestId(
+            SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+          ),
+        ).getByRole('switch'),
+        'valueChange',
+        false,
+      );
+
+      expect(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
+      ).toBeOnTheScreen();
+      expect(interactionsOfType('profile_edited')).toEqual([
+        expect.objectContaining({
+          step: 'x_identity',
+          path: 'x',
+          uses_x_username: false,
+        }),
+      ]);
+    });
+
+    it('tracks a refused profile create as a failed claim with its reason', async () => {
+      jest
+        .mocked(Engine.context.ProfileController.createProfile)
+        .mockRejectedValue(
+          new ProfileServiceError(409, 'failed to create profile: 409', {
+            code: ProfileApiErrorCode.UsernameTaken,
+          }),
+        );
+      await renderOnboarding([{ name: Routes.HOME_TABS }], { socialV1: true });
+
+      await reachReadyStep();
+
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.RETRY_CREATE_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(interactionsOfType('username_claimed')).toEqual([
+        expect.objectContaining({
+          outcome: 'failed',
+          path: 'manual',
+          step: 'ready',
+          profile_save_failure_reason: 'username_taken',
+        }),
+      ]);
+      expect(interactionsOfType('onboarding_completed')).toEqual([]);
+    });
+
+    it('tracks the chosen path on the terms sheet', async () => {
+      await resetSocialTermsAcceptance();
+      await renderOnboarding([], { socialV1: true });
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+        ),
+      );
+      agreeToTerms();
+
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.USERNAME_STEP,
+        ),
+      ).toBeOnTheScreen();
+      expect(interactionsOfType('sheet_displayed')).toEqual([
+        expect.objectContaining({ step: 'terms', path: 'manual' }),
+      ]);
+      expect(interactionsOfType('button_clicked')).toEqual([
+        expect.objectContaining({ step: 'intro', path: 'manual' }),
+        expect.objectContaining({
+          step: 'terms',
+          path: 'manual',
+          outcome: 'success',
+        }),
+      ]);
     });
   });
 });
