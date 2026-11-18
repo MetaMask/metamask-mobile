@@ -1545,6 +1545,7 @@ describe('setupSentry', () => {
   describe('tracesSampler', () => {
     let replacedOS: jest.ReplaceProperty<typeof Platform.OS> | undefined;
     const setPlatformOS = (os: typeof Platform.OS) => {
+      replacedOS?.restore();
       replacedOS = jest.replaceProperty(Platform, 'OS', os);
     };
     const globalWithDev = global as typeof global & { __DEV__: boolean };
@@ -1582,66 +1583,41 @@ describe('setupSentry', () => {
       globalWithDev.__DEV__ = false;
     });
 
-    it('uses the override rate for a listed trace on its platform (Swap Quote Fetch on Android)', async () => {
+    it('inherits the parent decision, else uses tracesSampleRate, without a remote rate', async () => {
       setPlatformOS('android');
-      const { tracesSampler } = await getInitOptions();
-
-      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
-    });
-
-    it('falls back to tracesSampleRate when the override has no rate for the platform (Swap Quote Fetch on iOS)', async () => {
-      setPlatformOS('ios');
       const { tracesSampler, tracesSampleRate } = await getInitOptions();
 
       expect(tracesSampleRate).toBe(0.03);
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: true }),
+      ).toBe(true);
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: false }),
+      ).toBe(false);
     });
 
-    it.each(['android', 'ios'] as const)(
-      'falls back to tracesSampleRate for traces without an override (%s)',
-      async (os) => {
-        setPlatformOS(os);
-        const { tracesSampler } = await getInitOptions();
+    it('uses the remote rate for the current platform ahead of the parent decision', async () => {
+      setRemoteRates({ [TraceName.SwapQuoteFetch]: { android: 0.25 } });
 
-        expect(tracesSampler({ name: 'SomeRoute' })).toBe(0.03);
-      },
-    );
-
-    it.each([true, false])(
-      'inherits the parent decision (%s) unless a per-name rate pins it',
-      async (parentSampled) => {
-        setPlatformOS('android');
-        const { tracesSampler } = await getInitOptions();
-
-        expect(tracesSampler({ name: 'SomeRoute', parentSampled })).toBe(
-          parentSampled,
-        );
-        expect(
-          tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled }),
-        ).toBe(0.25);
-      },
-    );
-
-    it('prefers the remote sentry.transactionSampleRates rate over the built-in one', async () => {
       setPlatformOS('android');
-      setRemoteRates({
-        [TraceName.SwapQuoteFetch]: { android: 0.5 },
-        SomeRoute: { android: 0 },
-      });
       const { tracesSampler } = await getInitOptions();
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: false }),
+      ).toBe(0.25);
 
-      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.5);
-      expect(tracesSampler({ name: 'SomeRoute', parentSampled: true })).toBe(0);
+      setPlatformOS('ios');
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
     });
 
     it.each([-0.1, 1.5, '0.5', null])(
-      'ignores an invalid remote rate (%s) and uses the built-in one',
+      'ignores an invalid remote rate (%s)',
       async (rate) => {
         setPlatformOS('android');
         setRemoteRates({ [TraceName.SwapQuoteFetch]: { android: rate } });
         const { tracesSampler } = await getInitOptions();
 
-        expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
+        expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
       },
     );
 

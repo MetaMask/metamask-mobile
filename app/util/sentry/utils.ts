@@ -669,20 +669,10 @@ export function getNavIntegration(): ReturnType<
 }
 
 /**
- * Per-platform sample rates for root transactions, keyed by trace name.
- * Add an entry to raise or lower a trace's rate (this changes Sentry volume
- * and cost).
- */
-const TRACE_SAMPLE_RATE_OVERRIDES: Partial<
-  Record<TraceName, Partial<Record<typeof Platform.OS, number>>>
-> = {
-  [TraceName.SwapQuoteFetch]: { android: 0.25 },
-};
-
-/**
- * Reads the remote `sentry.transactionSampleRates[name][Platform.OS]` rate,
- * which wins over TRACE_SAMPLE_RATE_OVERRIDES. Undefined until the store has
- * loaded flags, or when the value is not a number in [0, 1].
+ * Reads the remote `sentry.transactionSampleRates[name][Platform.OS]` rate for
+ * a root transaction (setting one changes Sentry volume and cost). Undefined
+ * until the store has loaded flags, or when the value is not a number in
+ * [0, 1].
  */
 function getRemoteTraceSampleRate(name: string): number | undefined {
   try {
@@ -756,10 +746,7 @@ export async function setupSentry(
           return 1;
         }
         return (
-          getRemoteTraceSampleRate(name) ??
-          TRACE_SAMPLE_RATE_OVERRIDES[name as TraceName]?.[Platform.OS] ??
-          parentSampled ??
-          tracesSampleRate
+          getRemoteTraceSampleRate(name) ?? parentSampled ?? tracesSampleRate
         );
       },
       profilesSampleRate: 1.0,
