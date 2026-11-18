@@ -33,6 +33,8 @@ jest.mock('react-redux', () => ({
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key, params) => {
     if (key === 'perps.position.card.tpsl_count_multiple' && params?.count) {
       return `${params.count} orders`;

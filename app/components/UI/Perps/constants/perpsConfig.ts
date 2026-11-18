@@ -557,17 +557,6 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
 /** Order form "available to trade" update throttle, matching its other live values. */
 export const PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS = 1000;
 
-/**
- * Providers whose venue reports available to trade. Core's contract is that a
- * provider without the venue value never invokes the subscription callback, so
- * the value stays unknown; until perps-controller exposes per-provider stream
- * capabilities, this mirrors the providers that implement
- * `subscribeToAvailableToTrade`. The order form falls back to the account-wide
- * spendable balance for the rest instead of a permanent placeholder.
- */
-export const PERPS_AVAILABLE_TO_TRADE_PROVIDERS: ReadonlySet<string> = new Set([
-  'hyperliquid',
-]);
 /** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;
 

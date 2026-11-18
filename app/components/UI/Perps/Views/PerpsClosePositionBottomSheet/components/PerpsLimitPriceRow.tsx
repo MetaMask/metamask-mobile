@@ -96,10 +96,15 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
-            testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT}
           >
             {isEmptyInReview ? (
-              <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.ErrorDefault}
+                testID={
+                  PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
+                }
+              >
                 {strings('perps.order.set_price')}
               </Text>
             ) : (
@@ -107,16 +112,34 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
                 {!hasValue ? cursor : null}
                 {currencySuffix ? (
                   <>
-                    <Text variant={TextVariant.BodyMd} color={priceColor}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={priceColor}
+                      testID={
+                        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
+                      }
+                    >
                       {digitsValue}
                     </Text>
                     {cursor}
-                    <Text variant={TextVariant.BodyMd} color={priceColor}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={priceColor}
+                      testID={
+                        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURRENCY
+                      }
+                    >
                       {currencySuffix}
                     </Text>
                   </>
                 ) : (
-                  <Text variant={TextVariant.BodyMd} color={priceColor}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={priceColor}
+                    testID={
+                      PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
+                    }
+                  >
                     {displayValue}
                   </Text>
                 )}

@@ -8,6 +8,8 @@ import { KLIPY_STATIC_GIF_EXAMPLE } from './klipyGifComment';
 import { getPositionCardMode } from './positionCardMode';
 
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 

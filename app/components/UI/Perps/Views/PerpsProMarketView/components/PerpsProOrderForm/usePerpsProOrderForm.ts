@@ -165,7 +165,6 @@ import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
   MAX_PERPS_INPUT_DIGITS,
-  PERPS_AVAILABLE_TO_TRADE_PROVIDERS,
   PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
   PERPS_TWAP_UI_CONFIG,
   PROVIDER_CONFIG,
@@ -3892,25 +3891,20 @@ export const usePerpsProOrderForm = ({
     orderForm.direction === 'short'
       ? availableToTrade?.short
       : availableToTrade?.long;
-  const availableBalance = useMemo(() => {
-    // A provider without a venue value never reports one (Core contract), so
-    // the venue figure would stay a placeholder forever; the account-wide
-    // spendable balance keeps the label meaningful there.
-    if (!PERPS_AVAILABLE_TO_TRADE_PROVIDERS.has(market.providerId ?? '')) {
-      return strings('perps.pro_order_form.available_to_trade', {
-        amount: formatPerpsFiat(spendableBalance, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        }),
-      });
-    }
-    return availableToTradeForSide === undefined
-      ? strings('perps.pro_order_form.available_to_trade_unknown')
-      : strings('perps.pro_order_form.available_to_trade', {
-          amount: formatPerpsFiat(availableToTradeForSide, {
-            ranges: PRICE_RANGES_MINIMAL_VIEW,
+  // A provider without a venue value never reports one (Core contract), and an
+  // omitted providerId routes to the default provider, so an unknown value
+  // keeps the placeholder instead of showing the account-wide balance.
+  const availableBalance = useMemo(
+    () =>
+      availableToTradeForSide === undefined
+        ? strings('perps.pro_order_form.available_to_trade_unknown')
+        : strings('perps.pro_order_form.available_to_trade', {
+            amount: formatPerpsFiat(availableToTradeForSide, {
+              ranges: PRICE_RANGES_MINIMAL_VIEW,
+            }),
           }),
-        });
-  }, [availableToTradeForSide, market.providerId, spendableBalance]);
+    [availableToTradeForSide],
+  );
 
   const isTriggerOrderUnavailable =
     isTriggerOrderType(orderForm.type) &&

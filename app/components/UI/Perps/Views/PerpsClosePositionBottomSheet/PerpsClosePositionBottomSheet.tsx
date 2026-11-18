@@ -12,7 +12,11 @@ import {
   ButtonVariant,
   SectionDivider,
 } from '@metamask/design-system-react-native';
-import { type OrdinaryOrderType } from '@metamask/perps-controller';
+import {
+  // Locale-independent: PerpsAmountDisplay parses and localizes it once.
+  formatPositionSize as formatCanonicalPositionSize,
+  type OrdinaryOrderType,
+} from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
@@ -25,7 +29,6 @@ import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
-import { formatPositionSize } from '../../utils/formatUtils';
 import {
   formatCombinedFeePercentage,
   formatOriginalCombinedFeePercentage,
@@ -217,7 +220,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         tokenAmount={
           showTokenAmount && isInputFocused
             ? amountKeypadValue
-            : formatPositionSize(liveCloseAmount, szDecimals)
+            : formatCanonicalPositionSize(liveCloseAmount, szDecimals)
         }
         hasError={displayedErrors.length > 0}
         tokenSymbol={position.symbol}

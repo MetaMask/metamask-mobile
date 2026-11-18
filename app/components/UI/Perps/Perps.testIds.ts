@@ -1266,6 +1266,7 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   ORDER_TYPE_MARKET: 'close-position-bottom-sheet-order-type-market',
   ORDER_TYPE_LIMIT: 'close-position-bottom-sheet-order-type-limit',
   LIMIT_PRICE_INPUT: 'close-position-bottom-sheet-limit-price-input',
+  LIMIT_PRICE_CURRENCY: 'close-position-bottom-sheet-limit-price-currency',
   LIMIT_PRICE_ROW: 'close-position-bottom-sheet-limit-price-row',
   LIMIT_PRICE_CURSOR: 'close-position-bottom-sheet-limit-price-cursor',
   LIMIT_PRESET_MID: 'close-position-bottom-sheet-limit-preset-mid',

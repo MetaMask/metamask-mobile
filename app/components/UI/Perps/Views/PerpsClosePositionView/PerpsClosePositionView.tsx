@@ -18,6 +18,8 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
+  // Locale-independent: PerpsAmountDisplay parses and localizes it once.
+  formatPositionSize as formatCanonicalPositionSize,
   getPerpsDisplaySymbol,
   isStrategyOrderType,
 } from '@metamask/perps-controller';
@@ -167,7 +169,7 @@ const PerpsClosePositionView: React.FC = () => {
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
+          tokenAmount={formatCanonicalPositionSize(liveCloseAmount, szDecimals)}
           hasError={filteredErrors.length > 0}
           tokenSymbol={position.symbol}
           showMaxAmount={false}

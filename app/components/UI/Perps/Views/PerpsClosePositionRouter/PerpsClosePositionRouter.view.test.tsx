@@ -446,6 +446,29 @@ describe('PerpsClosePositionRouter', () => {
       expect(await findPnlRow()).toHaveTextContent('+$100 (+12.0%)');
     });
 
+    it('shows a fractional close size once in German, not re-parsed to zero', async () => {
+      const originalLocale = I18n.locale;
+      I18n.locale = 'de';
+      try {
+        renderTreatmentSheet(createLongPositionForViews({ size: '0.5' }));
+
+        // Fiat primary: the token amount is the secondary line.
+        expect(await screen.findByText('0,5 ETH')).toBeOnTheScreen();
+
+        fireEvent.press(
+          screen.getByTestId(
+            PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+          ),
+        );
+
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+        ).toHaveTextContent('0,5');
+      } finally {
+        I18n.locale = originalLocale;
+      }
+    });
+
     it('shows a German limit price draft with one currency symbol', async () => {
       const originalLocale = I18n.locale;
       I18n.locale = 'de';
@@ -468,14 +491,24 @@ describe('PerpsClosePositionRouter', () => {
           screen.getByTestId(
             PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
           ),
-        ).toHaveTextContent('2.600, $');
+        ).toHaveTextContent('2.600,');
+        expect(
+          screen.getByTestId(
+            PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURRENCY,
+          ),
+        ).toHaveTextContent('$');
 
         pressKeys(['KEY_5', 'KEY_0']);
         expect(
           screen.getByTestId(
             PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
           ),
-        ).toHaveTextContent('2.600,50 $');
+        ).toHaveTextContent('2.600,50');
+        expect(
+          screen.getByTestId(
+            PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURRENCY,
+          ),
+        ).toHaveTextContent('$');
         expect(
           screen.getByTestId(
             PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,

@@ -6,6 +6,8 @@ import {
 } from './positionDisplay';
 
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => {
     if (key === 'perps.market.long') {
       return 'Long';

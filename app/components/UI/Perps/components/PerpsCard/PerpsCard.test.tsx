@@ -45,6 +45,8 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => {
     if (key === 'perps.order.long_label' || key === 'perps.market.long') {
       return 'Long';
