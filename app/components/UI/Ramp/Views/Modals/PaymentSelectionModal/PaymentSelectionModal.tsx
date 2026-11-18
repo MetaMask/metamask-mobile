@@ -45,6 +45,7 @@ import {
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import MicaDisclaimer from '../../../components/MicaDisclaimer';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -308,6 +309,13 @@ function PaymentSelectionModal() {
             }}
           />
           {renderListContent()}
+          <MicaDisclaimer
+            termsIds={
+              quotesForAllPayments.success.find(
+                (q) => q.quote?.paymentMethod === selectedPaymentMethod?.id,
+              )?.quote?.termsIds
+            }
+          />
         </View>
         {selectedProvider ? (
           <Box
