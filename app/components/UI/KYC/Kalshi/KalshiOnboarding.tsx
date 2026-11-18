@@ -35,6 +35,7 @@ import { useMfa } from '../../../../util/identity/mfa';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
 import { KALSHI_KYC_VENDOR } from '../vendors/kalshi';
 import { deriveKalshiScreen, type KalshiScreen } from './kalshiScreen';
+import { runKalshiSignedAction } from './kalshiVendorRequestSigner';
 import { nextWaitingPollDelayMs } from './waitingPoll';
 
 const VENDOR = KALSHI_KYC_VENDOR.id;
@@ -299,20 +300,24 @@ const KalshiOnboarding = () => {
     run(async () => {
       const email = input.trim();
       if (editingEmail || step === 'identity_email_code') {
-        await VendorOnboardingController.resendEmailCode({
-          vendor: VENDOR,
-          email,
-        });
+        await runKalshiSignedAction(() =>
+          VendorOnboardingController.resendEmailCode({
+            vendor: VENDOR,
+            email,
+          }),
+        );
         setEditingEmail(false);
       } else {
         if (!aal2Token) {
           throw new Error('MetaMask could not confirm your email.');
         }
-        await VendorOnboardingController.startSession({
-          vendor: VENDOR,
-          aal2Token,
-          email,
-        });
+        await runKalshiSignedAction(() =>
+          VendorOnboardingController.startSession({
+            vendor: VENDOR,
+            aal2Token,
+            email,
+          }),
+        );
         setEmailEntry(false);
       }
       setLinkedEmail(email);
@@ -330,10 +335,12 @@ const KalshiOnboarding = () => {
 
   const submitEmailCode = () =>
     run(() =>
-      VendorOnboardingController.submitEmailCode({
-        vendor: VENDOR,
-        code: input.trim(),
-      }),
+      runKalshiSignedAction(() =>
+        VendorOnboardingController.submitEmailCode({
+          vendor: VENDOR,
+          code: input.trim(),
+        }),
+      ),
     );
 
   const submitPhone = () =>

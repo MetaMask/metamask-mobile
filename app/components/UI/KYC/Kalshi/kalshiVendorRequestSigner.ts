@@ -89,6 +89,64 @@ const toSignedCall = (
 };
 
 /**
+ * Kalshi refused the A2T inside the signed envelope.
+ *
+ * The same code the onboarding client used before it dropped the token and
+ * signed the call again.
+ */
+const REJECTED_A2T = 'venue_authorization_invalid';
+
+/**
+ * Whether Kalshi rejected the A2T on this attempt.
+ *
+ * kyc-api puts the relay's code on the error message or `code`.
+ *
+ * @param error - The failure from the signed controller call.
+ * @returns Whether this was a rejected A2T.
+ */
+const isRejectedA2t = (error: unknown): boolean => {
+  if (typeof error === 'string') {
+    return error.includes(REJECTED_A2T);
+  }
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  const { message, code } = error as { message?: unknown; code?: unknown };
+  return [message, code].some(
+    (value) => typeof value === 'string' && value.includes(REJECTED_A2T),
+  );
+};
+
+/**
+ * Runs a signed Kalshi step, and signs it once more after a rejected A2T.
+ *
+ * The first attempt uses the cached token. `venue_authorization_invalid`
+ * drops that token the way the account-link client did, and the next call
+ * signs with a new one. A second rejection is returned as it is.
+ *
+ * @param action - The controller call that signs and sends.
+ * @returns Whatever the call returned.
+ */
+export const runKalshiSignedAction = async <Result>(
+  action: () => Promise<Result>,
+): Promise<Result> => {
+  try {
+    return await action();
+  } catch (error) {
+    if (!isRejectedA2t(error)) {
+      throw error;
+    }
+    try {
+      getEngine().controllerMessenger.call('PredictDeviceAuthService:clear');
+    } catch {
+      // The next attempt still signs. A failed clear leaves the stale token,
+      // and that attempt fails the same way the old client did.
+    }
+    return action();
+  }
+};
+
+/**
  * Signs Kalshi calls for `VendorOnboardingController`.
  *
  * Core decides which calls to sign and sends them to kyc-api. kyc-api

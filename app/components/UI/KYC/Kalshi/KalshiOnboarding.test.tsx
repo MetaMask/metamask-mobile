@@ -28,26 +28,30 @@ jest.mock('../utils/toSumSubLocale', () => ({
   toSumSubLocale: () => 'en',
 }));
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    VendorOnboardingController: {
-      refreshStep: jest.fn(),
-      acceptTerms: jest.fn(),
-      startSession: jest.fn(),
-      fetchSessionDisclaimers: jest.fn(),
-      acceptSessionDisclaimers: jest.fn(),
-      launchProviderFlow: jest.fn(),
-      submitPhone: jest.fn(),
-      submitPhoneCode: jest.fn(),
-      submitEmailCode: jest.fn(),
-      resendEmailCode: jest.fn(),
+jest.mock('../../../../core/Engine', () => {
+  const engine = {
+    controllerMessenger: { call: jest.fn() },
+    context: {
+      VendorOnboardingController: {
+        refreshStep: jest.fn(),
+        acceptTerms: jest.fn(),
+        startSession: jest.fn(),
+        fetchSessionDisclaimers: jest.fn(),
+        acceptSessionDisclaimers: jest.fn(),
+        launchProviderFlow: jest.fn(),
+        submitPhone: jest.fn(),
+        submitPhoneCode: jest.fn(),
+        submitEmailCode: jest.fn(),
+        resendEmailCode: jest.fn(),
+      },
+      KycService: {
+        getGeoCountry: jest.fn(),
+        fetchVendorDisclaimers: jest.fn(),
+      },
     },
-    KycService: {
-      getGeoCountry: jest.fn(),
-      fetchVendorDisclaimers: jest.fn(),
-    },
-  },
-}));
+  };
+  return { __esModule: true, default: engine };
+});
 
 const flow = Engine.context.VendorOnboardingController as unknown as Record<
   string,
@@ -509,6 +513,24 @@ describe('KalshiOnboarding', () => {
   });
 
   describe('errors', () => {
+    it('signs again once after Kalshi rejects the A2T', async () => {
+      flow.startSession.mockRejectedValueOnce(
+        Object.assign(new Error('Kalshi refused the token'), {
+          code: 'venue_authorization_invalid',
+        }),
+      );
+      const screen = await reachEmail();
+      typeInto(screen, 'a@b.co');
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() => expect(flow.startSession).toHaveBeenCalledTimes(2));
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'PredictDeviceAuthService:clear',
+      );
+      expect(screen.queryByTestId(KalshiOnboardingTestIds.ERROR)).toBeNull();
+    });
+
     it('shows what went wrong with the status and code', async () => {
       flow.startSession.mockRejectedValue(
         Object.assign(new Error('Kalshi refused'), {
