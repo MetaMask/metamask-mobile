@@ -703,6 +703,8 @@ describe('MoneyAddMoneySheet', () => {
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         deposit_intent: intent,
+        deposit_token_symbol: symbol,
+        deposit_token_chain_id: CHAIN_IDS.BASE,
       });
     });
 

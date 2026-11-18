@@ -122,13 +122,24 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it('adds mm_pay_deposit_intent for a stored addUsdc batch', async () => {
-    setMoneyAccountDepositIntent('0xabc', 'addUsdc');
-    request.transactionMeta.type = TransactionType.moneyAccountDeposit;
-    request.transactionMeta.batchId = '0xabc';
-
-    const result = await getMetaMaskPayProperties(request);
-    expect(result.properties.mm_pay_deposit_intent).toBe('addUsdc');
+  it('stamps mm_pay_deposit_intent on every transaction lifecycle event', async () => {
+    const events = [
+      TRANSACTION_EVENTS.TRANSACTION_ADDED,
+      TRANSACTION_EVENTS.TRANSACTION_APPROVED,
+      TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
+      TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
+      TRANSACTION_EVENTS.TRANSACTION_REJECTED,
+    ];
+    for (const intent of ['addUsdc', 'addUsdt', 'addMusd'] as const) {
+      setMoneyAccountDepositIntent('0xabc', intent);
+      for (const eventType of events) {
+        request.eventType = eventType;
+        request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+        request.transactionMeta.batchId = '0xabc';
+        const result = await getMetaMaskPayProperties(request);
+        expect(result.properties.mm_pay_deposit_intent).toBe(intent);
+      }
+    }
     clearMoneyAccountDepositIntent('0xabc');
   });
 

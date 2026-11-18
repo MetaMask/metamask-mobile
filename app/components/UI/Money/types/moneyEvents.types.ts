@@ -49,6 +49,10 @@ export type MoneySurfaceClickedEventProperties = MoneyRedirectEventProperties &
   Partial<MoneyLocationEventProperties> & {
     /** Funding intent for the dynamic stablecoin row. */
     deposit_intent?: 'addUsdc' | 'addUsdt' | 'addMusd';
+    /** Stablecoin shown on the row that was tapped. */
+    deposit_token_symbol?: 'USDC' | 'USDT' | 'mUSD';
+    /** Chain of the pay token prefilled for that tap. */
+    deposit_token_chain_id?: string;
   };
 
 export type MoneyTokenSurfaceClickedEventProperties =

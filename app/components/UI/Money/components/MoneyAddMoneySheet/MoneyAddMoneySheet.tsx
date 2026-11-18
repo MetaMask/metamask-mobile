@@ -188,6 +188,8 @@ const MoneyAddMoneySheetContent: React.FC = () => {
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         deposit_intent: option.intent,
+        deposit_token_symbol: option.symbol,
+        deposit_token_chain_id: option.preferredPaymentToken.chainId,
       });
 
       startDeposit({
