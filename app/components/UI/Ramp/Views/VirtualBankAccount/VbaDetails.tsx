@@ -27,6 +27,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { playSelection } from '../../../../../util/haptics';
 import type { RootState } from '../../../../../reducers';
 import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
@@ -772,6 +773,7 @@ const VbaDetails = () => {
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
       Clipboard.setString(value);
+      playSelection().catch(() => undefined);
       AccessibilityInfo.announceForAccessibility(
         strings('virtual_bank_account.vba_details.copied_label', {
           field: label,
@@ -809,6 +811,7 @@ const VbaDetails = () => {
   const handleCopyAll = useCallback(() => {
     const message = formatBankDetailsForCopy(rows);
     Clipboard.setString(message);
+    playSelection().catch(() => undefined);
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.copied_all_label'),
     );

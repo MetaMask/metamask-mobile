@@ -10,6 +10,7 @@ import { useReduceMotionState } from '../../../Money/hooks/useReduceMotion';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { VerifiedCheckAnimationSelectors } from '../../components/VerifiedCheckAnimation.testIds';
 import { VERIFIED_SUCCESS_ENTRANCE_TIMEOUT_MS } from '../../hooks/useVerifiedSuccessCascade';
+import { playSuccessNotification } from '../../../../../util/haptics';
 
 jest.mock('../../hooks/useTrackKycResultViewed');
 
@@ -23,6 +24,10 @@ jest.mock('../../../../../hooks/useNetworkTier', () => ({
 
 jest.mock('../../../../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(() => 'HIGH'),
+}));
+
+jest.mock('../../../../../util/haptics', () => ({
+  playSuccessNotification: jest.fn(() => Promise.resolve()),
 }));
 
 const mockUseReduceMotionState = jest.mocked(useReduceMotionState);
@@ -162,5 +167,24 @@ describe('KycIdentityVerified', () => {
       'pointerEvents',
       'auto',
     );
+  });
+
+  it('plays a success haptic when the static checkmark is shown', () => {
+    renderWithProvider(
+      <KycIdentityVerified onExit={jest.fn()} onContinue={jest.fn()} />,
+    );
+
+    expect(playSuccessNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays a success haptic when the verified tick starts', () => {
+    mockUseReduceMotionState.mockReturnValue(false);
+    mockUseNetworkTier.mockReturnValue('WIFI');
+
+    renderWithProvider(
+      <KycIdentityVerified onExit={jest.fn()} onContinue={jest.fn()} />,
+    );
+
+    expect(playSuccessNotification).toHaveBeenCalledTimes(1);
   });
 });
