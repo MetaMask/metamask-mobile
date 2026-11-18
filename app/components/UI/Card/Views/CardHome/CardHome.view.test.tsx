@@ -545,13 +545,14 @@ describe('CardHome', () => {
       });
     });
 
-    it('does not show logout on Card home after the footer loads', async () => {
-      const { findByTestId, queryByTestId } = renderCardHomeView();
+    it('does not show contact support or logout on the main screen; they live in the More sheet', async () => {
+      const { queryByTestId } = renderCardHomeView();
 
+      // Both items moved behind the header's More button; neither appears
+      // on the main screen without opening the sheet.
       expect(
-        await findByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
-      ).toBeOnTheScreen();
-
+        queryByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+      ).not.toBeOnTheScreen();
       expect(
         queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
       ).not.toBeOnTheScreen();
