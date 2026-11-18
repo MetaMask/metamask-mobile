@@ -1061,6 +1061,38 @@ describe('PolyBoltCryptoFeed', () => {
       ]);
     });
 
+    it('grows the reconnect backoff while auth keeps failing and resets it once authed', () => {
+      const { socket } = connectWith([chainlinkBtc], listener(), keyed);
+      const expectReconnectAfter = (delayMs: number): MockSocket => {
+        const opened = mockSockets.length;
+        jest.advanceTimersByTime(delayMs - 1);
+        expect(mockSockets).toHaveLength(opened);
+        jest.advanceTimersByTime(1);
+        expect(mockSockets).toHaveLength(opened + 1);
+        const next = mockSockets[opened];
+        next.open();
+        return next;
+      };
+
+      socket.receive({ op: 'error', code: 'auth_required' });
+      let current = expectReconnectAfter(1_000);
+      current.receive({ op: 'error', code: 'auth_required' });
+      current = expectReconnectAfter(2_000);
+      current.receive({ op: 'error', code: 'auth_unavailable' });
+      jest.advanceTimersByTime(4_000);
+      expect(authFrames(current)).toHaveLength(1);
+      current = expectReconnectAfter(8_000);
+      current.receive({ op: 'error', code: 'auth_required' });
+      current = expectReconnectAfter(16_000);
+      current.receive({ op: 'error', code: 'auth_unavailable' });
+      jest.advanceTimersByTime(30_000);
+      current = expectReconnectAfter(30_000);
+
+      current.receive({ op: 'authed', rid: 'a1' });
+      current.receive({ op: 'error', code: 'auth_required' });
+      expectReconnectAfter(1_000);
+    });
+
     it('never logs the key', () => {
       const logSpy = jest.spyOn(DevLogger, 'log');
       const { feed, socket } = connectWith(

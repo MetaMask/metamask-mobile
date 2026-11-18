@@ -397,8 +397,10 @@ export class PolyBoltCryptoFeed {
       return;
     }
 
+    // The backoff resets on `authed`, not here: with a Chainlink key each
+    // failed auth opens a new socket, so a reset on open would retry at the
+    // first step forever while the server refuses auth.
     this.socket.onopen = () => {
-      this.reconnectAttempts = 0;
       this.sendAuth();
     };
 
@@ -645,6 +647,7 @@ export class PolyBoltCryptoFeed {
   private handleOp(message: Record<string, unknown>): void {
     if (message.op === 'authed') {
       this.authed = true;
+      this.reconnectAttempts = 0;
       this.listener.onConnectionChange();
       this.sendSubscribe(this.subscriptions);
       return;
