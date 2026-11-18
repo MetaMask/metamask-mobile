@@ -1060,7 +1060,10 @@ describe('SocialFeedPostShell', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.PERPS.MODALS.ROOT,
           expect.objectContaining({
-            params: expect.objectContaining({ source: 'social_trending' }),
+            params: expect.objectContaining({
+              source: 'social_trending',
+              isCopyTrade: true,
+            }),
           }),
         );
       });
@@ -1108,6 +1111,7 @@ describe('SocialFeedPostShell', () => {
             source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
+            isCopyTrade: true,
             copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
           },
         });

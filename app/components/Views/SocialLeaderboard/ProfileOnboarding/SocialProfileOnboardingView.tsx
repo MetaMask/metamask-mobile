@@ -1191,10 +1191,17 @@ const SocialProfileOnboardingView: React.FC = () => {
   };
 
   const publishCreatedProfile = (current: ProfileOnboardingDraft) => {
+    const isFirstPublish = !profileCreatedRef.current;
     saveLocalSocialProfile(buildOnboardedSocialProfile(current));
     profileCreatedRef.current = true;
     setProfileCreated(true);
     setIsSubmitting(false);
+    if (isFirstPublish) {
+      trackInteractionRef.current(Interaction.ONBOARDING_COMPLETED, {
+        outcome: Outcome.SUCCESS,
+        traders_followed_count: 0,
+      });
+    }
   };
 
   const runSync = async (): Promise<void> => {
