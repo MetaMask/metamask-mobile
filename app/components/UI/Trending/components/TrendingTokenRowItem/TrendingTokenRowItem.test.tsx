@@ -951,7 +951,11 @@ describe('TrendingTokenRowItem', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           StackActions.push(
             'Asset',
-            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+            expect.objectContaining({
+              isNative: true,
+              isETH: true,
+              isStaked: false,
+            }),
           ),
         ),
       );

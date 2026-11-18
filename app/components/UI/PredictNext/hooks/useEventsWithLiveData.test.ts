@@ -650,6 +650,95 @@ describe('useEventsWithLiveData', () => {
     ]);
   });
 
+  describe('visible scope', () => {
+    const [m1, m2] = marketIds(eventA);
+    const visible = (
+      ...ids: readonly PredictEntityId[]
+    ): LiveMarketWatchScope => ({ type: 'visible', marketIds: ids });
+    const renderVisible = (marketScope: LiveMarketWatchScope) =>
+      renderHook(
+        (props: { marketScope: LiveMarketWatchScope }) =>
+          useEventsWithLiveData(venueId, [eventA], props),
+        { initialProps: { marketScope } },
+      );
+
+    it('carries the visible ids on the watch and the matching unwatch', () => {
+      const { unmount } = renderVisible(visible(m1));
+
+      unmount();
+
+      expect(mockCall.mock.calls).toEqual([
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+      ]);
+    });
+
+    it('re-scopes by watching the new ids before releasing the old ones', () => {
+      const { rerender } = renderVisible(visible(m1));
+
+      rerender({ marketScope: visible(m1, m2) });
+      rerender({ marketScope: visible(m2) });
+
+      // Watch first, so the Event never drops to zero watchers between the
+      // two calls; the service turns each pair into a Market-level diff.
+      expect(mockCall.mock.calls).toEqual([
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1, m2) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m2) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1, m2) }],
+      ]);
+    });
+
+    it('does not re-scope when a re-render names the same ids', () => {
+      const { rerender } = renderVisible(visible(m1, m2));
+      mockCall.mockClear();
+
+      rerender({ marketScope: visible(m1, m2) });
+      rerender({ marketScope: visible(m2, m1, m2) });
+
+      expect(mockCall).not.toHaveBeenCalled();
+    });
+
+    it('keeps an empty visible list distinct from the all scope', () => {
+      const { rerender } = renderVisible(visible());
+
+      rerender({ marketScope: 'all' });
+
+      expect(scopeCalls()).toEqual([
+        [WATCH, { marketScope: visible() }],
+        [WATCH, { marketScope: 'all' }],
+        [UNWATCH, { marketScope: visible() }],
+      ]);
+    });
+
+    it('applies quotes for every Market of the Event, not only the visible ones', () => {
+      const { result } = renderVisible(visible(m1));
+      const onQuote = listeners().get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as (quote: PredictQuote) => void;
+
+      act(() => {
+        onQuote({
+          venueId,
+          marketId: m2,
+          outcomes: [
+            {
+              id: eventA.markets[1].outcomes[0].id,
+              side: 'yes',
+              askPrice: '0.71' as PredictDecimal,
+            },
+            { id: eventA.markets[1].outcomes[1].id, side: 'no' },
+          ],
+          updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+        });
+      });
+
+      // A Market that just left the screen keeps its last live price.
+      expect(result.current[0].markets[1].outcomes[0].askPrice).toBe('0.71');
+    });
+  });
+
   it('keeps only card-visible quotes when marketScope is card', () => {
     const away = {
       ...makeMarket('live-away'),

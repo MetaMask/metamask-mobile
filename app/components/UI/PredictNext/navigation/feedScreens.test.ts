@@ -8,6 +8,7 @@ import {
   NFL_FEED_SCREEN_ID,
   POLITICS_FEED_SCREEN_ID,
   SPORTS_FEED_SCREEN_ID,
+  TRENDING_FEED_SCREEN_ID,
   getFeedScreen,
   getFeedScreenTab,
   resolveFeedScreenTabs,
@@ -106,6 +107,40 @@ describe('feedScreens', () => {
         { id: 'nfl', label: 'NFL', feedId: 'sports-football-nfl-games' },
         { id: 'ncaaf', label: 'NCAAF', feedId: 'sports-football-ncaa-games' },
       ]);
+    });
+
+    it('resolves the Trending tabs to the Games Feeds Home Trending ranks, NFL first', () => {
+      const capabilities = readyCapabilities({
+        'college-football-games': 'sports-football-ncaa-games',
+        'nfl-games': 'sports-football-nfl-games',
+        politics: 'politics-trump',
+      });
+
+      const result = resolveFeedScreenTabs(
+        TRENDING_FEED_SCREEN_ID,
+        capabilities,
+      );
+
+      expect(getFeedScreen(TRENDING_FEED_SCREEN_ID)?.title).toBe('Trending');
+      expect(result).toEqual([
+        { id: 'nfl', label: 'NFL', feedId: 'sports-football-nfl-games' },
+        { id: 'ncaaf', label: 'NCAAF', feedId: 'sports-football-ncaa-games' },
+      ]);
+    });
+
+    it('resolves no Trending tab for a Venue without either Games Feed', () => {
+      // A `trending` key alone backs no PredictNext Feed Screen tab.
+      const capabilities = readyCapabilities({
+        trending: 'trending',
+        'politics-trump': 'politics-trump',
+      });
+
+      const result = resolveFeedScreenTabs(
+        TRENDING_FEED_SCREEN_ID,
+        capabilities,
+      );
+
+      expect(result).toEqual([]);
     });
 
     it('omits a tab whose Feed key the Venue lacks', () => {

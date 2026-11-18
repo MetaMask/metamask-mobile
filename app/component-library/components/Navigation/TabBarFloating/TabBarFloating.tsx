@@ -134,6 +134,12 @@ const TabBarFloating = ({
           previousTabIndexRef.current = index;
         }
         options.callback?.();
+        // Lets a focused screen react to its own tab being tapped again.
+        navigation.emit({
+          type: 'tabPress',
+          target: route.key,
+          canPreventDefault: true,
+        });
         switch (options.rootScreenName) {
           case Routes.WALLET_VIEW:
             navigation.navigate(Routes.WALLET.HOME, {

@@ -63,6 +63,7 @@ import {
   FundingAssetStatus,
   CardProviderIds,
   type CardAction,
+  type CardAlert,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
@@ -99,6 +100,7 @@ import {
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
+import useSignedOutKycPending from './hooks/useSignedOutKycPending';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -134,6 +136,8 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
   fromCardOnboarding?: boolean;
+  /** Opened from the KYC timeout or pending notification while still in review. */
+  fromKycPending?: boolean;
 }
 
 const SETUP_ALERT_TYPES = new Set([
@@ -267,16 +271,36 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
-  const { canEnableCard, enableCard, provisioningView } =
-    useCardEnableCard(data);
+  const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
+    useCardEnableCard(data, { recheckOnFocus: true });
+  const isSetupReconciling = provisioningView === 'reconciling';
+
+  // Still in identity review with no signed-in Card account: show the pending
+  // banner and the waiting layout (no Add funds or card management).
+  const isSignedOutKycPending = useSignedOutKycPending(
+    route.params?.fromKycPending,
+  );
+  const alerts = useMemo<CardAlert[]>(() => {
+    const dataAlerts = data?.alerts ?? [];
+    if (
+      !isSignedOutKycPending ||
+      dataAlerts.some((a) => a.type === 'kyc_pending')
+    ) {
+      return dataAlerts;
+    }
+    return [{ type: 'kyc_pending', dismissable: false }, ...dataAlerts];
+  }, [data?.alerts, isSignedOutKycPending]);
 
   const effectiveActions = useMemo<CardAction[]>(() => {
+    if (isSignedOutKycPending) {
+      return [];
+    }
     const providerActions = data?.actions ?? [];
     return canEnableCard &&
       !providerActions.some((a) => a.type === 'enable_card')
       ? [...providerActions, { type: 'enable_card' }]
       : providerActions;
-  }, [data?.actions, canEnableCard]);
+  }, [data?.actions, canEnableCard, isSignedOutKycPending]);
 
   const hasSetupActions = effectiveActions.some(
     (a) => a.type === 'enable_card',
@@ -556,11 +580,16 @@ const CardHome = () => {
     handleOpenUkMigrationSheet();
   }, [handleOpenUkMigrationSheet, isLoading, isUkMigrationSoft]);
 
-  const hasSetupAlerts = (data?.alerts ?? []).some((a) =>
-    SETUP_ALERT_TYPES.has(a.type),
-  );
+  const hasSetupAlerts = alerts.some((a) => SETUP_ALERT_TYPES.has(a.type));
 
   const hasAlertOnlyState = hasSetupAlerts && effectiveActions.length === 0;
+
+  const showLinkMoneyAccountCta =
+    canLinkMoneyAccount &&
+    !isUkMigrationForced &&
+    !isLoading &&
+    !hasSetupActions &&
+    !hasSetupAlerts;
 
   const showSpendingLimitProgress =
     isAuthenticated &&
@@ -713,7 +742,7 @@ const CardHome = () => {
 
         <Box twClassName="mx-4 mt-2">
           <CardAlertSection
-            alerts={(data?.alerts ?? []).filter(
+            alerts={alerts.filter(
               (a) =>
                 !(
                   a.type === 'close_to_spending_limit' &&
@@ -783,32 +812,38 @@ const CardHome = () => {
           <Animated.View
             style={[tw.style('w-full relative'), arrival.cardStyle]}
           >
-            {arrival.usesRiveCard ? (
-              <MoneyCardTiltAnimation
-                key={arrival.revealKey}
-                isMetalCard={hasMetalCard}
-                fillWidth
-                playRevealOnMount={arrival.playReveal}
-                revealDelayMs={arrival.revealDelayMs}
-                testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
-              />
-            ) : (
-              <CardImageSection
-                isLoading={isLoading}
-                isCardDetailsLoading={
-                  actions.isCardDetailsLoading ||
-                  actions.isSensitiveDetailsLoading
-                }
-                cardDetailsImageUrl={actions.cardDetailsImageUrl}
-                isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
-                onImageLoad={actions.onCardDetailsImageLoad}
-                onImageError={actions.onCardDetailsImageError}
-                cardSensitiveDetails={actions.cardSensitiveDetails}
-                onCopyDetail={actions.copyCardDetail}
-                cardType={data?.card?.type}
-                cardStatus={data?.card?.status}
-              />
-            )}
+            {/* Muted while identity is in review, so the card doesn't look ready. */}
+            <Box
+              twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
+              testID={CardHomeSelectors.CARD_ART}
+            >
+              {arrival.usesRiveCard ? (
+                <MoneyCardTiltAnimation
+                  key={arrival.revealKey}
+                  isMetalCard={hasMetalCard}
+                  fillWidth
+                  playRevealOnMount={arrival.playReveal}
+                  revealDelayMs={arrival.revealDelayMs}
+                  testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
+                />
+              ) : (
+                <CardImageSection
+                  isLoading={isLoading || isSetupReconciling}
+                  isCardDetailsLoading={
+                    actions.isCardDetailsLoading ||
+                    actions.isSensitiveDetailsLoading
+                  }
+                  cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                  isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
+                  onImageLoad={actions.onCardDetailsImageLoad}
+                  onImageError={actions.onCardDetailsImageError}
+                  cardSensitiveDetails={actions.cardSensitiveDetails}
+                  onCopyDetail={actions.copyCardDetail}
+                  cardType={data?.card?.type}
+                  cardStatus={data?.card?.status}
+                />
+              )}
+            </Box>
           </Animated.View>
 
           {!hasSetupActions && !hasAlertOnlyState && (
@@ -821,6 +856,7 @@ const CardHome = () => {
               showInfoBadge={creditIncludedInBalance}
               onInfoPress={handleOpenCreditBalanceTooltip}
               infoBadgeTestID={CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON}
+              isUnavailable={primaryToken?.isUnavailable}
             />
           )}
 
@@ -858,6 +894,9 @@ const CardHome = () => {
                   isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
                   onAddFunds={actions.addFundsAction}
                   onEnableCard={enableCard ?? actions.enableCardAction}
+                  isEnableCardDisabled={
+                    isEnableCardPending || isSetupReconciling
+                  }
                 />
               </Box>
             )}
@@ -913,7 +952,7 @@ const CardHome = () => {
           </Box>
         )}
 
-        {canLinkMoneyAccount && !isUkMigrationForced && (
+        {showLinkMoneyAccountCta && (
           <>
             <Box twClassName="mb-6 mt-7">
               <MoneyMetaMaskCard

@@ -142,7 +142,9 @@ export const useLoadMoreOnScroll = ({
 }: UseLoadMoreOnScrollOptions) => {
   const scroll = useContext(TokenDetailsScrollContext);
   const onLoadMoreRef = useRef(onLoadMore);
-  onLoadMoreRef.current = onLoadMore;
+  useEffect(() => {
+    onLoadMoreRef.current = onLoadMore;
+  });
 
   useEffect(() => {
     if (!enabled || !scroll) {

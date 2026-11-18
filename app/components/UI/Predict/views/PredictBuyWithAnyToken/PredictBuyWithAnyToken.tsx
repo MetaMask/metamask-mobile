@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -18,7 +19,6 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
@@ -542,7 +542,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
-          twClassName="w-full py-4"
+          twClassName="w-full pt-6 pb-8"
         >
           <PredictBuyAmountSection
             currentValueUSDString={currentValueUSDString}
@@ -556,6 +556,13 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             isPlacingOrder={isPlacingOrder}
             hideAvailableBalance={isSheetMode}
           />
+          {shouldRenderInlineError && (
+            <PredictBuyError
+              errorMessage={
+                shouldSuppressInlineError ? undefined : errorMessage
+              }
+            />
+          )}
         </Box>
       ) : (
         <ScrollView
@@ -590,7 +597,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           </Box>
         </ScrollView>
       )}
-      {shouldRenderInlineError && (
+      {!isSheetMode && shouldRenderInlineError && (
         <PredictBuyError
           errorMessage={shouldSuppressInlineError ? undefined : errorMessage}
         />

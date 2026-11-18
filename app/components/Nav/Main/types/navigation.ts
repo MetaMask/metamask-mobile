@@ -47,7 +47,6 @@ export type AssetStackParamList = {
   Asset: AssetViewParams | undefined;
   SecurityTrust: TokenDetailsRouteParams & {
     isPricePositive?: boolean;
-    useAmbientColor?: boolean;
   };
   ContractSecurity: {
     token: TokenDetailsRouteParams;
@@ -201,7 +200,6 @@ export type TransactionsHomeParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsHomeParamList = {
-  RewardsOnboardingFlow: undefined;
   RewardsDashboard: undefined;
   RewardsMoneyDashboard: undefined;
 };

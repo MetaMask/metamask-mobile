@@ -340,6 +340,23 @@ describe('MoneyOnboardingView', () => {
       ).toBe(12);
     });
 
+    it('stretches the overlay copy across the full width', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TEXT_GROUP).props
+            .style,
+        ),
+      ).toEqual(
+        expect.objectContaining({
+          position: 'absolute',
+          left: 0,
+          right: 0,
+        }),
+      );
+    });
+
     it('uses small overlay text size preset on small devices', () => {
       setWindowDimensions({ height: 667, width: 375 });
 
@@ -1234,7 +1251,7 @@ describe('MoneyOnboardingView', () => {
       ).toBe(strings('money.rive_onboarding.step4_body'));
     });
 
-    it('renders step3 card_eligible body when user is not US unauthenticated non-cardholder', () => {
+    it('renders the spend anywhere body when user is not US unauthenticated non-cardholder', () => {
       mockIsUsUnauthenticatedNonCardholder = false;
 
       const { getByTestId } = renderMoneyOnboardingView();
@@ -1245,14 +1262,10 @@ describe('MoneyOnboardingView', () => {
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
-      ).toBe(
-        strings('money.rive_onboarding.step3_body_card_eligible', {
-          percentage: 3,
-        }),
-      );
+      ).toBe(strings('money.rive_onboarding.step3_body'));
     });
 
-    it('renders step3 card_ineligible body when user is US unauthenticated non-cardholder', () => {
+    it('renders the coming soon spend anywhere body when user is US unauthenticated non-cardholder', () => {
       mockIsUsUnauthenticatedNonCardholder = true;
 
       const { getByTestId } = renderMoneyOnboardingView();
@@ -1263,11 +1276,7 @@ describe('MoneyOnboardingView', () => {
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
-      ).toBe(
-        strings('money.rive_onboarding.step3_body_card_ineligible', {
-          percentage: 3,
-        }),
-      );
+      ).toBe(strings('money.rive_onboarding.step3_body_coming_soon'));
     });
   });
 });

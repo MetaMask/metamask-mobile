@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { Slider } from '@metamask/design-system-react-native';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
 
@@ -73,6 +73,19 @@ interface PerpsSliderProps {
   variant?: 'default' | 'compact';
   testID?: string;
   accessibilityLabel?: string;
+  /**
+   * Ignore track commits until this slider has a non-zero width.
+   *
+   * The order keypad and the amount slider occupy the same slot. Done unmounts
+   * the keypad and mounts the slider under the finger that released the
+   * button. Android delivers that touch before layout, and a 0-width track
+   * maps every position to 0%, which wipes the amount the keypad just
+   * committed. A fresh mount starts not laid out; a later real drag has a
+   * width and still commits.
+   */
+  ignoreUntilLayout?: boolean;
+  /** Host for the layout measurement `ignoreUntilLayout` waits on. */
+  layoutTestID?: string;
 }
 
 /**
@@ -92,7 +105,19 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   variant = 'default',
   testID,
   accessibilityLabel,
+  ignoreUntilLayout = false,
+  layoutTestID,
 }) => {
+  // A mount that opts in starts closed. The flag lives on the instance, so
+  // remounting the slider (keypad dismissed) waits for the new track's layout
+  // instead of inheriting the previous one.
+  const hasLaidOutRef = useRef(!ignoreUntilLayout);
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    if (event.nativeEvent.layout.width > 0) {
+      hasLaidOutRef.current = true;
+    }
+  }, []);
+
   const handleGrip = useCallback(() => {
     playImpact(ImpactMoment.SliderGrip);
   }, []);
@@ -149,12 +174,22 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       : 0;
 
   const handlePercentChange = useCallback(
-    (percent: number) => onValueChange(toDomain(percent)),
+    (percent: number) => {
+      if (!hasLaidOutRef.current) {
+        return;
+      }
+      onValueChange(toDomain(percent));
+    },
     [onValueChange, toDomain],
   );
 
   const handlePercentDragEnd = useCallback(
-    (percent: number) => onDragEnd?.(toDomain(percent)),
+    (percent: number) => {
+      if (!hasLaidOutRef.current) {
+        return;
+      }
+      onDragEnd?.(toDomain(percent));
+    },
     [onDragEnd, toDomain],
   );
 
@@ -177,11 +212,19 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     />
   );
 
+  const measuredSlider = ignoreUntilLayout ? (
+    <View testID={layoutTestID} onLayout={handleLayout}>
+      {slider}
+    </View>
+  ) : (
+    slider
+  );
+
   if (!isCompact) {
-    return slider;
+    return measuredSlider;
   }
 
-  return <View style={styles.compactScaler}>{slider}</View>;
+  return <View style={styles.compactScaler}>{measuredSlider}</View>;
 };
 
 export default PerpsSlider;

@@ -50,7 +50,7 @@ function TileCarousel<T>({
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-2.5')}
+          contentContainerStyle={tw.style('px-4 gap-3')}
           testID={testID}
         >
           {displayItems.map((item, index) => (

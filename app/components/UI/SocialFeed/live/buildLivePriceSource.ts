@@ -66,7 +66,12 @@ export function buildLivePriceSource(
   isClosed: boolean,
   derived: LivePriceDerivedFigures,
 ): SocialLivePriceSource | undefined {
-  const positionAmount = Math.abs(core.positionAmount);
+  // A perp's P&L moves with its leveraged size; `positionAmount` is margin-sized.
+  const positionAmount = Math.abs(
+    isPerpPosition(core)
+      ? (core.positionAmountWithLeverage ?? core.positionAmount)
+      : core.positionAmount,
+  );
   if (isClosed || !(positionAmount > 0)) {
     return undefined;
   }

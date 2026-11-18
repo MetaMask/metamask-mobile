@@ -1,7 +1,6 @@
 import React, { createRef } from 'react';
 import { render } from '@testing-library/react-native';
 import { brandColor } from '@metamask/design-tokens';
-import { colors } from '../../../styles/common';
 import { mockTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
 import OnboardingFoxLoader, {
@@ -61,14 +60,12 @@ describe('OnboardingFoxLoader', () => {
     expect(JSON.stringify(toJSON())).not.toContain('ActivityIndicator');
   });
 
-  it('uses the cream onboarding background in light mode', () => {
+  it('uses a white background in light mode', () => {
     const backgroundColor = getOnboardingFoxLoaderBackgroundColor(
       AppThemeKey.light,
     );
 
-    expect(backgroundColor).toBe(
-      colors.gettingStartedPageBackgroundColorLightMode,
-    );
+    expect(backgroundColor).toBe(brandColor.white);
   });
 
   it('uses a black background in dark mode', () => {

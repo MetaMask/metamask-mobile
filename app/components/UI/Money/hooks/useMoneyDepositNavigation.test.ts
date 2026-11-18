@@ -1,10 +1,17 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
+import {
+  useMoneyCtaDepositNavigation,
+  useMoneyDepositNavigation,
+} from './useMoneyDepositNavigation';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
 import Routes from '../../../../constants/navigation/Routes';
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
-import { selectMoneyEntryContext } from '../selectors/entry';
+import { MONEY_BUTTON_INTENTS, SCREEN_NAMES } from '../constants/moneyEvents';
+import {
+  selectMoneyCtaEntryContext,
+  selectMoneyEntryContext,
+} from '../selectors/entry';
 
 const mockNavigate = jest.fn();
 const mockInitiateDeposit = jest.fn();
@@ -20,6 +27,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../selectors/entry', () => ({
+  selectMoneyCtaEntryContext: jest.fn(),
   selectMoneyEntryContext: jest.fn(),
 }));
 
@@ -35,21 +43,28 @@ const setupSelectorMocks = ({
   hasSeenOnboarding = false,
   isOnboardingEnabled = true,
   accessBlockReason,
+  isSplashRedirectNeeded = false,
 }: {
   hasSeenOnboarding?: boolean;
   isOnboardingEnabled?: boolean;
   accessBlockReason?: 'feature_disabled' | 'geo_blocked';
+  isSplashRedirectNeeded?: boolean;
 } = {}) => {
+  const entryContext = {
+    accessBlockReason,
+    isOnboardingRedirectNeeded: !hasSeenOnboarding && isOnboardingEnabled,
+    isSplashRedirectNeeded,
+  };
   mockUseSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectMoneyEntryContext) {
+    if (
+      selector === selectMoneyEntryContext ||
+      selector === selectMoneyCtaEntryContext
+    ) {
       return mockSelectMoneyEntryContext({} as never);
     }
     return undefined;
   });
-  mockSelectMoneyEntryContext.mockReturnValue({
-    accessBlockReason,
-    isOnboardingRedirectNeeded: !hasSeenOnboarding && isOnboardingEnabled,
-  });
+  mockSelectMoneyEntryContext.mockReturnValue(entryContext);
 };
 
 describe('useMoneyDepositNavigation', () => {
@@ -114,6 +129,38 @@ describe('useMoneyDepositNavigation', () => {
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
       },
+    });
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('routes an unseen CTA deposit to the splash with the payment token', async () => {
+    setupSelectorMocks({
+      hasSeenOnboarding: true,
+      isSplashRedirectNeeded: true,
+    });
+    const track = jest.fn();
+    const preferredPaymentToken = {
+      address: '0xabc' as const,
+      chainId: '0x1' as const,
+    };
+    const { result } = renderHook(() => useMoneyCtaDepositNavigation());
+
+    await act(async () => {
+      await result.current.navigateToMoneyDeposit({
+        preferredPaymentToken,
+        track,
+      });
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH, {
+      postOnboardingRedirect: {
+        type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        preferredPaymentToken,
+      },
+    });
+    expect(track).toHaveBeenCalledWith({
+      redirect_target: SCREEN_NAMES.MONEY_SPLASH,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
     });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });

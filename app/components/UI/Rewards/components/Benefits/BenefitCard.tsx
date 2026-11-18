@@ -5,6 +5,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -109,6 +110,7 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {remainingTime}
@@ -120,6 +122,7 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
         {companyName ? (
           <Text
             variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
             twClassName="max-w-[40%]"
             numberOfLines={1}
@@ -138,7 +141,7 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
               width: BENEFIT_PREVIEW_CARD_WIDTH,
               height: BENEFIT_PREVIEW_CARD_HEIGHT,
             })
-          : tw.style('bg-section rounded-lg p-4 h-[154px]')
+          : tw.style('bg-section rounded-lg p-4')
       }
       disabled={disabled}
       onPress={() =>

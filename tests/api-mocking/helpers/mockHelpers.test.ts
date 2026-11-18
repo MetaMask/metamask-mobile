@@ -1,8 +1,12 @@
+import { getLocal, type Mockttp } from 'mockttp';
+
 import {
   filterProxiedRequests,
   formatProxiedRequestMatcher,
   processPostRequestBody,
   PostRequestMatchingOptions,
+  setupDefaultProfileNotFoundMock,
+  setupMockRequest,
   type SeenProxiedRequest,
 } from './mockHelpers.ts';
 
@@ -484,5 +488,73 @@ describe('filterProxiedRequests', () => {
     });
     expect(matches).toHaveLength(1);
     expect(matches[0]?.method).toBe('PUT');
+  });
+});
+
+describe('setupDefaultProfileNotFoundMock', () => {
+  let server: Mockttp;
+
+  const fetchThroughProxy = (target: string) =>
+    fetch(`${server.url}/proxy?url=${encodeURIComponent(target)}`);
+
+  beforeEach(async () => {
+    server = getLocal();
+    await server.start(0);
+    // Stand-in for the MockServerE2E proxy passthrough, which uses mockttp's
+    // default priority. The default profile mock must beat it.
+    await server
+      .forAnyRequest()
+      .matching((request) => request.path.startsWith('/proxy'))
+      .thenReply(200, 'passthrough');
+    await setupDefaultProfileNotFoundMock(server);
+  });
+
+  afterEach(async () => {
+    await server.stop();
+  });
+
+  it.each([
+    'https://profile.api.cx.metamask.io/v1/profiles/MOCK_SRP_IDENTIFIER_1',
+    'https://profile.api.cx.metamask.io/v1/profiles/3f2c8a0e-6b1d-4c2a-9e7f-1a2b3c4d5e6f',
+    'https://profile.dev-api.cx.metamask.io/v1/profiles/MOCK_SRP_IDENTIFIER_1',
+    'https://profile.uat-api.cx.metamask.io/v1/profiles/MOCK_SRP_IDENTIFIER_1',
+  ])('answers 404 for an unmocked profile lookup: %s', async (target) => {
+    const response = await fetchThroughProxy(target);
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({
+      code: 'PROFILE_NOT_FOUND',
+      message: 'Profile not found',
+    });
+  });
+
+  it.each([
+    'https://profile.api.cx.metamask.io/v1/profiles/username/availability',
+    'https://profile.api.cx.metamask.io/v1/profiles/bio/validity',
+    'https://profile.api.cx.metamask.io/v1/profiles/x/account',
+    'https://social.api.cx.metamask.io/v1/profiles/MOCK_SRP_IDENTIFIER_1',
+  ])('leaves other profile routes to the passthrough: %s', async (target) => {
+    const response = await fetchThroughProxy(target);
+
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.toBe('passthrough');
+  });
+
+  it('lets a test-specific mock override the default', async () => {
+    await setupMockRequest(server, {
+      requestMethod: 'GET',
+      url: 'https://profile.api.cx.metamask.io/v1/profiles/MOCK_SRP_IDENTIFIER_1',
+      responseCode: 200,
+      response: { profile_id: 'MOCK_SRP_IDENTIFIER_1' },
+    });
+
+    const response = await fetchThroughProxy(
+      'https://profile.api.cx.metamask.io/v1/profiles/MOCK_SRP_IDENTIFIER_1',
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      profile_id: 'MOCK_SRP_IDENTIFIER_1',
+    });
   });
 });

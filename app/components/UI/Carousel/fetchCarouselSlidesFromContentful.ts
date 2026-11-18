@@ -4,7 +4,6 @@ import { getVersion } from 'react-native-device-info';
 import { isProduction } from '../../../util/environment';
 import { CarouselSlide } from './types';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
-import { getContentPreviewToken } from '../../../actions/notification/helpers';
 
 export interface ContentfulCarouselSlideFields {
   headline: string;
@@ -23,17 +22,6 @@ export type ContentfulSlideSkeleton =
   EntrySkeletonType<ContentfulCarouselSlideFields>;
 
 export const getContentfulEnvironmentDetails = () => {
-  // If preview mode, then show preview prod master content
-  const previewToken = getContentPreviewToken();
-  if (previewToken) {
-    return {
-      environment: 'master',
-      domain: 'preview.contentful.com',
-      accessToken: previewToken,
-      spaceId: SPACE_ID(),
-    };
-  }
-
   const isProd = isProduction();
 
   // If production, show prod master content

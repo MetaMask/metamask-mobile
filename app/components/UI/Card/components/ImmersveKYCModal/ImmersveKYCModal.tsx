@@ -26,9 +26,7 @@ import {
 } from 'react-native-permissions';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { showCardExitConfirmation } from '../../hooks/useCardHeaderHandlers';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
@@ -130,11 +128,13 @@ export const IMMERSVE_KYC_UI_JS = `
 `;
 
 // The opener re-polls when the webview closes back onto it. Close and that
-// re-poll have to happen together: exit to the wallet tears the processing
-// screen down before focus returns, so useFocusEffect is not a reliable signal.
-let onCloseCallback: (() => void) | null = null;
+// re-poll have to happen together: a confirmed exit removes the processing
+// screen before focus returns, so useFocusEffect is not a reliable signal.
+let onCloseCallback: ((completed: boolean) => void) | null = null;
 
-export const setImmersveKycOnClose = (callback: () => void) => {
+export const setImmersveKycOnClose = (
+  callback: (completed: boolean) => void,
+) => {
   onCloseCallback = callback;
 };
 
@@ -161,7 +161,8 @@ const isAnyPermissionBlocked = (
 /**
  * Hosted Immersve-conducted KYC webview. Completion is detected by watching for navigation to `redirectUrl`
  * — the URL Immersve sends the user to on exit — after which the modal closes
- * and the progress screen re-polls spending-prerequisites.
+ * back onto the KYC screen. That screen re-polls spending-prerequisites and
+ * shows the result in place.
  *
  * On Android, Sumsub's getUserMedia only works after the app already holds
  * CAMERA + RECORD_AUDIO; otherwise WebView silently denies PermissionRequest
@@ -343,65 +344,51 @@ const ImmersveKYCModal: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [status, retryKey, reportError]);
 
-  // Completion redirect re-polls the opener so it can route forward. Manual
-  // exit goes to the wallet home via exitToWalletHome instead.
-  const closeModal = useCallback(() => {
-    // WebView can fire multiple navigation updates for the same redirect URL.
-    if (hasClosed.current) {
-      return;
-    }
-    hasClosed.current = true;
+  // Every close returns to the processing screen, which re-polls. The header
+  // X and the completion redirect call goBack. Android back and swipe are
+  // already that goBack, so they only notify — a second goBack would also
+  // pop the processing screen.
+  const closeWebview = useCallback(
+    (completed: boolean) => {
+      if (hasClosed.current) {
+        return;
+      }
+      hasClosed.current = true;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.KYC_WEBVIEW_COMPLETED,
-          }),
-        )
-        .build(),
-    );
-    onCloseCallback?.();
-    navigation.goBack();
-  }, [navigation, trackEvent, createEventBuilder]);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: completed
+                ? CardActions.KYC_WEBVIEW_COMPLETED
+                : CardActions.KYC_WEBVIEW_CLOSE,
+            }),
+          )
+          .build(),
+      );
+      onCloseCallback?.(completed);
+    },
+    [trackEvent, createEventBuilder],
+  );
 
-  const exitToWalletHome = useCallback(() => {
-    if (hasClosed.current) {
-      return;
-    }
-    hasClosed.current = true;
+  const dismissWebview = useCallback(
+    (completed: boolean) => {
+      closeWebview(completed);
+      navigation.goBack();
+    },
+    [closeWebview, navigation],
+  );
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.KYC_WEBVIEW_CLOSE,
-          }),
-        )
-        .build(),
-    );
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation, trackEvent, createEventBuilder]);
-
-  const confirmExit = useCallback(() => {
-    showCardExitConfirmation(exitToWalletHome);
-  }, [exitToWalletHome]);
-
-  // Hardware back and swipe skip the header X. Ask the same way, unless we
-  // already started a close (redirect goBack or a confirmed exit). A reset or
-  // navigate from the screen underneath (pending timeout, next onboarding
-  // step) must go through, or the exit alert replaces that navigation.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
       const { type } = event.data.action;
-      if (hasClosed.current || (type !== 'GO_BACK' && type !== 'POP')) {
+      if (type !== 'GO_BACK' && type !== 'POP') {
         return;
       }
-      event.preventDefault();
-      confirmExit();
+      closeWebview(false);
     });
     return unsubscribe;
-  }, [navigation, confirmExit]);
+  }, [navigation, closeWebview]);
 
   const handleRetry = useCallback(() => {
     trackEvent(
@@ -507,10 +494,10 @@ const ImmersveKYCModal: React.FC = () => {
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
       if (redirectUrl && navState.url.startsWith(redirectUrl)) {
-        closeModal();
+        dismissWebview(true);
       }
     },
-    [redirectUrl, closeModal],
+    [redirectUrl, dismissWebview],
   );
 
   const isErrorStatus = status === 'error' || status === 'permission-error';
@@ -531,7 +518,7 @@ const ImmersveKYCModal: React.FC = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        onClose={confirmExit}
+        onClose={() => dismissWebview(false)}
         closeButtonProps={{ testID: 'immersve-kyc-close-button' }}
         title={
           <ImmersveLogo

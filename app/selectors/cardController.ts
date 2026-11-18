@@ -329,21 +329,21 @@ export const selectIsCardHomeDataResolved = createSelector(
   selectCardHomeDataStatus,
   selectCardHomeData,
   selectIsCardAuthenticated,
-  selectIsCardholder,
-  (status, cardHomeData, isAuthenticated, isCardholder) =>
+  selectHasCard,
+  (status, cardHomeData, isAuthenticated, hasCard) =>
     status === 'success' ||
     cardHomeData !== null ||
-    (!isAuthenticated && !isCardholder),
+    (!isAuthenticated && !hasCard),
 );
 
 export const selectIsCardStateResolved = createSelector(
   selectIsCardHomeDataResolved,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
-  selectIsCardholder,
-  (homeDataResolved, verificationStatus, isAuthenticated, isCardholder) =>
+  selectHasCard,
+  (homeDataResolved, verificationStatus, isAuthenticated, hasCard) =>
     (homeDataResolved && (!isAuthenticated || verificationStatus !== null)) ||
-    (!isAuthenticated && !isCardholder),
+    (!isAuthenticated && !hasCard),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
@@ -398,15 +398,17 @@ const toFundingTokenWithVedaContext = (
   asset: Parameters<typeof toCardFundingToken>[0],
   vedaConfig: VedaTokenConfig | null,
 ): CardFundingToken => {
-  const isVedaEntry = isMoneyAccountEntry(
-    {
-      address: asset.address,
-      stagingTokenAddress: asset.stagingTokenAddress,
-      caipChainId: asset.chainId,
-      symbol: asset.symbol,
-    },
-    vedaConfig,
-  );
+  const isVedaEntry =
+    asset.fundingSourceType === 'moneyAccount' ||
+    isMoneyAccountEntry(
+      {
+        address: asset.address,
+        stagingTokenAddress: asset.stagingTokenAddress,
+        caipChainId: asset.chainId,
+        symbol: asset.symbol,
+      },
+      vedaConfig,
+    );
   return toCardFundingToken(
     asset,
     isVedaEntry,

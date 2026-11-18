@@ -30,6 +30,7 @@ import { getRouteParamsProbeTestId } from '../../../../../tests/component-view/r
 import {
   expectPredictNextGameCard,
   makePredictNextGameEvent,
+  makePredictNextMultiMarketEvent,
   messengerCall,
   mockPredictNextMessenger,
   nflEvents,
@@ -327,8 +328,8 @@ describeForPlatforms('Explore prediction sections', () => {
           home: 'Steelers',
           awayScore: '17',
           homeScore: '21',
-          awayQuote: /^Packers\s*· 41¢$/,
-          homeQuote: /^Steelers\s*· 59¢$/,
+          awayQuote: /^PAC\s*· 41¢$/,
+          homeQuote: /^STE\s*· 59¢$/,
         },
       );
       expect(
@@ -440,6 +441,48 @@ describeForPlatforms('Explore prediction sections', () => {
           item_clicked: NFL_1.id,
         },
       ]);
+    });
+
+    it('shows a non-game Event as the featured standard card, and orders from its rows', async () => {
+      const worldSeries = makePredictNextMultiMarketEvent();
+      const [, yankees] = worldSeries.markets;
+      kalshiFeed = [NFL_1, worldSeries];
+      const view = renderKalshiExplore();
+      await openKalshiSports(view);
+
+      const card = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', worldSeries.id),
+      );
+
+      expect(
+        within(card).getByTestId(PredictHomeTestIds.category(worldSeries.id)),
+      ).toHaveTextContent('SPORTS');
+      expect(
+        within(card).queryByTestId(`predict-next-event-live-${worldSeries.id}`),
+      ).not.toBeOnTheScreen();
+      expect(within(card).getByText(worldSeries.title)).toBeOnTheScreen();
+      const rows = within(card).getAllByTestId(/^predict-next-outcome-row-/);
+      expect(rows).toHaveLength(2);
+      expect(within(rows[0]).getByText('Dodgers')).toBeOnTheScreen();
+      expect(within(rows[0]).getByText('Leads')).toBeOnTheScreen();
+      expect(within(rows[1]).getByText('Yankees')).toBeOnTheScreen();
+      expect(within(rows[1]).getByText('Second')).toBeOnTheScreen();
+      expect(within(card).queryByText('Field')).not.toBeOnTheScreen();
+      expect(
+        within(card).queryAllByTestId(/avatar/, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveLength(0);
+
+      fireEvent.press(
+        within(card).getByTestId(
+          PredictHomeTestIds.marketOutcome(worldSeries.id, yankees.id),
+        ),
+      );
+
+      expect(
+        await view.findByTestId(PredictOrderFlowTestIds.SHEET),
+      ).toBeOnTheScreen();
     });
 
     it('watches the six carousel games with one listener per topic and one watch, and patches each card', async () => {
