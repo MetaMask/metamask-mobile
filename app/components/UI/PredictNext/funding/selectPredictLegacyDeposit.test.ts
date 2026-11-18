@@ -112,6 +112,33 @@ describe('selectPredictLegacyDepositAvailable', () => {
     },
   );
 
+  it('is false while Kalshi is active with kalshiDepositsEnabled on', () => {
+    expect(
+      selectPredictLegacyDepositAvailable(
+        rootState({
+          predictConfig: { ...config(true, true), kalshiDepositsEnabled: true },
+          venueState: {
+            ...NO_VENUE_STATE,
+            venueSelectionPreference: 'kalshi',
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('stays true for Polymarket with kalshiDepositsEnabled on', () => {
+    expect(
+      selectPredictLegacyDepositAvailable(
+        rootState({
+          predictConfig: {
+            ...config(true, false),
+            kalshiDepositsEnabled: true,
+          },
+        }),
+      ),
+    ).toBe(true);
+  });
+
   it('is false while the Active Venue is resolving', () => {
     expect(
       selectPredictLegacyDepositAvailable(

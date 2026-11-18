@@ -18,12 +18,15 @@ import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
 
 type MoneyApyInfoSheetVariant = 'default' | 'deposit';
 
 interface MoneyApyInfoSheetParams {
   apy?: number;
   variant?: MoneyApyInfoSheetVariant;
+  /** Vault status that drives premium and migration copy. */
+  vaultStatus?: MoneyVaultStatus;
 }
 
 const ApySection = ({ title, body }: { title: string; body: string }) => (
@@ -46,6 +49,7 @@ const MoneyApyInfoSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<MoneyApyInfoSheetParams>();
   const apy = params?.apy;
+  const vaultStatus = params?.vaultStatus ?? MoneyVaultStatus.Base;
   const { apyPercent: liveApyPercent } = useMoneyVaultApy({
     enabled: apy === undefined,
   });
@@ -61,6 +65,16 @@ const MoneyApyInfoSheet = () => {
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const isPremiumCopy = vaultStatus === MoneyVaultStatus.Premium;
+  const downgradingCopyKey =
+    vaultStatus === MoneyVaultStatus.Downgrading
+      ? 'money.apy_tooltip.migration_downgrading'
+      : undefined;
+  const migrationCopyKey =
+    vaultStatus === MoneyVaultStatus.Upgrading
+      ? 'money.apy_tooltip.migration_upgrading'
+      : downgradingCopyKey;
 
   return (
     <BottomSheet
@@ -99,6 +113,24 @@ const MoneyApyInfoSheet = () => {
             >
               {strings('money.apy_tooltip.lead')}
             </Text>
+            {isPremiumCopy && hasApy ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.apy_tooltip.paragraph_1_premium', {
+                  percentage: resolvedApy,
+                })}
+              </Text>
+            ) : null}
+            {migrationCopyKey ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings(migrationCopyKey)}
+              </Text>
+            ) : null}
           </Box>
           <ApySection
             title={strings('money.apy_tooltip.how_it_works_title')}

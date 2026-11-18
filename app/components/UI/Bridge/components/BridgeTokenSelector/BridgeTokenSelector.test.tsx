@@ -2811,6 +2811,34 @@ describe('BridgeTokenSelectorContent', () => {
     };
   });
 
+  describe('initialSearchString', () => {
+    it('restores the query and searches it on mount', async () => {
+      const { getByTestId } = renderContent({ initialSearchString: 'ETH' });
+
+      expect(getByTestId('bridge-token-search-input').props.value).toBe('ETH');
+      await waitFor(() => {
+        expect(mockSearchTokens).toHaveBeenCalledWith('ETH');
+      });
+    });
+
+    it('does not search on mount when the query is too short', () => {
+      renderContent({ initialSearchString: 'ET' });
+
+      expect(mockSearchTokens).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onSearchStringChange', () => {
+    it('reports the query when the user types', () => {
+      const onSearchStringChange = jest.fn();
+      const { getByTestId } = renderContent({ onSearchStringChange });
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'USD');
+
+      expect(onSearchStringChange).toHaveBeenLastCalledWith('USD');
+    });
+  });
+
   describe('balanceOnly', () => {
     it('disables the popular and search endpoints', () => {
       renderContent({ balanceOnly: true });

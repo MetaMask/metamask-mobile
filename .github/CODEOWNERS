@@ -9,8 +9,8 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 # Native projects (signing configs, entitlements, native dependencies)
-android/                                                    @MetaMask/mobile-platform
-ios/                                                        @MetaMask/mobile-platform
+/android/                                                   @MetaMask/mobile-platform
+/ios/                                                       @MetaMask/mobile-platform
 .ai-pr-analyzer/modes/dependency-audit-fix/                 @MetaMask/mobile-platform
 # Patches
 patches/@react-native-clipboard+clipboard+1.16.1.patch      @MetaMask/mobile-platform
@@ -539,6 +539,7 @@ app/util/activity-adapters/adapters/earn/                   @MetaMask/earn @Meta
 # Networks Team
 app/util/networks                                           @MetaMask/networks
 app/components/UI/NetworkMultiSelectorList                  @MetaMask/networks
+app/enablement/assets/                                      @MetaMask/networks
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

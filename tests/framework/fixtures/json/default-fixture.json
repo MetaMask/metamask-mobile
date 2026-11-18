@@ -451,8 +451,13 @@
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
           "cachedUserDataByProvider": {},
+          "defaultProvider": "hyperliquid",
           "depositInProgress": false,
           "depositRequests": [],
+          "effectiveProvider": "hyperliquid",
+          "hasExplicitDefaultProviderSelection": false,
+          "hasExplicitProviderSelection": false,
+          "hasMigratedToMultiProvider": false,
           "hasPlacedFirstOrder": {
             "mainnet": false,
             "testnet": false
@@ -824,6 +829,10 @@
       "lastKnownBalance": null,
       "lastLocalFlowConfirmedAt": null,
       "redeemable": null
+    },
+    "socialEarlyAccess": {
+      "profileId": null,
+      "hasAccess": false
     },
     "navigation": {
       "currentBottomNavRoute": "Wallet",

@@ -146,6 +146,59 @@ describe('MoneyApyInfoSheet', () => {
     );
   });
 
+  it('renders the premium copy when vaultStatus is premium', () => {
+    mockUseParams.mockReturnValue({
+      apy: DEFAULT_APY,
+      vaultStatus: 'premium',
+    });
+
+    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(
+      getByText(
+        strings('money.apy_tooltip.paragraph_1_premium', {
+          percentage: DEFAULT_APY,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the upgrading migration line when vaultStatus is upgrading', () => {
+    mockUseParams.mockReturnValue({
+      apy: DEFAULT_APY,
+      vaultStatus: 'upgrading',
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneyApyInfoSheet />,
+    );
+
+    expect(
+      getByText(strings('money.apy_tooltip.migration_upgrading')),
+    ).toBeOnTheScreen();
+    expect(getByText(strings('money.apy_tooltip.lead'))).toBeOnTheScreen();
+    expect(
+      queryByText(
+        strings('money.apy_tooltip.paragraph_1_premium', {
+          percentage: DEFAULT_APY,
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it('renders the downgrading migration line when vaultStatus is downgrading', () => {
+    mockUseParams.mockReturnValue({
+      apy: DEFAULT_APY,
+      vaultStatus: 'downgrading',
+    });
+
+    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(
+      getByText(strings('money.apy_tooltip.migration_downgrading')),
+    ).toBeOnTheScreen();
+  });
+
   it('omits the APY headline when APY is unavailable', () => {
     mockUseParams.mockReturnValue({});
     mockUseMoneyVaultApy.mockReturnValue({
