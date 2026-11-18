@@ -327,11 +327,14 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
-      ).toHaveProp('scrollEnabled', true);
-    });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+        ).toHaveProp('scrollEnabled', true);
+      },
+      { timeout: 5000 },
+    );
 
     fireEvent.press(
       screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
@@ -433,20 +436,26 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
-      ).toHaveProp('scrollEnabled', true);
-    });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+        ).toHaveProp('scrollEnabled', true);
+      },
+      { timeout: 5000 },
+    );
     fireEvent.press(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.SCRIM),
     );
 
-    await waitFor(() => {
-      expect(
-        screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
-      ).toBeNull();
-    });
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+        ).toBeNull();
+      },
+      { timeout: 5000 },
+    );
   });
 
   it('renders the author, comment, position card, and engagement row', () => {
@@ -1051,7 +1060,10 @@ describe('SocialFeedPostShell', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.PERPS.MODALS.ROOT,
           expect.objectContaining({
-            params: expect.objectContaining({ source: 'social_trending' }),
+            params: expect.objectContaining({
+              source: 'social_trending',
+              isCopyTrade: true,
+            }),
           }),
         );
       });
@@ -1099,6 +1111,7 @@ describe('SocialFeedPostShell', () => {
             source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
+            isCopyTrade: true,
             copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
           },
         });
