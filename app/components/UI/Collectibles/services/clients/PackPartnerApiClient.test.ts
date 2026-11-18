@@ -618,6 +618,32 @@ describe('createPackPartnerApi', () => {
     });
 
     it.each([
+      { signature: '', success: true },
+      { signature: ' \t\n', success: true },
+      { signature: '' },
+      { signature: ' \t\n' },
+    ])('rejects a blank signature in response %j', async (body) => {
+      const { api } = setup({ responses: [createResponse(200, body)] });
+
+      const result = api.submitTransaction({ signedTransaction: 'AQID' });
+
+      await expect(result).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    });
+
+    it('returns a non-blank signature when success is omitted', async () => {
+      const { api } = setup({
+        responses: [createResponse(200, { signature: 'sig' })],
+      });
+
+      const result = await api.submitTransaction({ signedTransaction: 'AQID' });
+
+      expect(result).toEqual({
+        signature: 'sig',
+        confirmationStatus: 'submitted',
+      });
+    });
+
+    it.each([
       [400, false],
       [403, false],
       [500, true],

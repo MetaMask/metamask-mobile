@@ -129,7 +129,7 @@ export const PpGeneratePacksResponseStruct = type({
 
 export const PpSubmitTransactionResponseStruct = type({
   success: maybe(boolean()),
-  signature: string(),
+  signature: NonEmptyStringStruct,
   /** `confirmed` | `finalized` | `submitted`. */
   confirmationStatus: maybe(string()),
 });

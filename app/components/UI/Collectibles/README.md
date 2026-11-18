@@ -54,6 +54,8 @@ All settlement amounts are exact decimal strings of USDC base units (six decimal
 Prepared packs require non-blank memos and transaction bytes, for both single
 and batch generation. Empty or whitespace-only values fail with `INVALID_RESPONSE`
 at the client boundary before being returned to a caller.
+Submission responses also require a non-blank signature, even when `success`
+is omitted; `success: false` still rejects the submission.
 
 The controller remains the empty initialization shell. Transaction orchestration
 and its journal arrive in step 2.3; React hooks and balance reads arrive in 2.4.
