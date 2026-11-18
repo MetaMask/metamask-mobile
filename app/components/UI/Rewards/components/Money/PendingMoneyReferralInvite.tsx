@@ -15,7 +15,6 @@ import { selectRewardsMoneyControllerEnabled } from '../../../../../selectors/fe
 import NavigationService from '../../../../../core/NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import { detectAppInstallation } from '../../../../../core/DeeplinkManager/util/deeplinks/deepLinkAnalytics';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { runAfterInteractions } from '../../utils/runAfterInteractions';
 import { usePendingSocialPreviewTarget } from '../../../../Views/SocialLeaderboard/TraderPreviewSheet/pendingSocialPreviewTarget';
@@ -68,7 +67,6 @@ const PendingMoneyReferralInvitePresenter = ({
 }: PresenterProps) => {
   const dispatch = useDispatch();
   const store = useStore<RootState>();
-  useGeoRewardsMetadata({ enabled: true });
   const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
   const answeredReferralCode = useSelector(selectAnsweredMoneyReferralCode);
 

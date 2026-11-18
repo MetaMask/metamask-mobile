@@ -200,9 +200,6 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: jest.fn(),
 }));
-jest.mock('../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
-}));
 jest.mock('../hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn(),
 }));

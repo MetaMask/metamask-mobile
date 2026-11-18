@@ -612,7 +612,6 @@ export function rewardsMoneyViewState({
       rewards: {
         ...pointsRewardsInitialState,
         candidateSubscriptionId: subscriptionId,
-        geoLocation,
       },
       ...(supportPreferenceSaved
         ? {
@@ -651,6 +650,14 @@ export function rewardsMoneyViewState({
               },
             },
           },
+          ...(geoLocation
+            ? {
+                GeolocationController: {
+                  location: geoLocation,
+                  status: 'complete' as const,
+                },
+              }
+            : {}),
           ...(subscriptionId
             ? {
                 RewardsController: {

@@ -11,7 +11,7 @@ import {
 } from '../../../../../reducers/rewardsMoney';
 import type { MoneyReferralEntryType } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
-import { setGeoRewardsMetadata } from '../../../../../reducers/rewards';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -31,7 +31,10 @@ const PROFILE_ID = 'profile-1';
 const KEYRING_ID = 'entropy-source-1';
 const TEST_IDS = ACCEPT_INVITE_SHEET_TEST_IDS;
 
-const sessionBackgroundState = (profileId: string) => ({
+const sessionBackgroundState = (
+  profileId: string,
+  geoLocation: string | null,
+) => ({
   AuthenticationController: {
     isSignedIn: true,
     srpSessionData: {
@@ -48,7 +51,27 @@ const sessionBackgroundState = (profileId: string) => ({
       },
     ],
   },
+  ...(geoLocation
+    ? {
+        GeolocationController: {
+          location: geoLocation,
+          status: 'complete' as const,
+        },
+      }
+    : {}),
 });
+
+const dispatchDeviceGeo = (
+  store: { dispatch: (action: unknown) => void },
+  location: string,
+) => {
+  const engine = Engine as unknown as { state?: Record<string, unknown> };
+  engine.state = {
+    ...(engine.state ?? {}),
+    GeolocationController: { location, status: 'complete' },
+  };
+  store.dispatch(updateBgState({ key: 'GeolocationController' }));
+};
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -115,11 +138,6 @@ jest.mock('../../hooks/useAcceptMoneyReferralCode', () => ({
   useAcceptMoneyReferralCode: () => mockUseAcceptMoneyReferralCode(),
 }));
 
-jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(() => ({
-    fetchGeoRewardsMetadata: jest.fn(),
-  })),
-}));
 const LOCALIZED_TEXT = {
   inviteTitle: 'Claim your invite',
   inviteMessageBody: 'Your friend sent you a code that earns you cashback.',
@@ -191,9 +209,10 @@ const renderSheetSync = (
       ? undefined
       : sessionOrOptions.entryType;
   const store = configureStore({
-    engine: { backgroundState: sessionBackgroundState(sessionProfileId) },
+    engine: {
+      backgroundState: sessionBackgroundState(sessionProfileId, geoLocation),
+    },
     rewardsMoney: { referralMe: referralMeEntries },
-    rewards: { geoLocation },
   });
   const view = render(
     <Provider store={store}>
@@ -842,12 +861,7 @@ describe('AcceptInviteSheet', () => {
     });
 
     await act(async () => {
-      store.dispatch(
-        setGeoRewardsMetadata({
-          geoLocation: 'GB',
-          optinAllowedForGeo: true,
-        }),
-      );
+      dispatchDeviceGeo(store, 'GB');
     });
 
     expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
@@ -886,12 +900,7 @@ describe('AcceptInviteSheet', () => {
     });
 
     await act(async () => {
-      store.dispatch(
-        setGeoRewardsMetadata({
-          geoLocation: 'GB',
-          optinAllowedForGeo: true,
-        }),
-      );
+      dispatchDeviceGeo(store, 'GB');
     });
 
     // acceptStartedRef keeps the sheet up; acceptAllowedForGeo must still
@@ -1124,12 +1133,7 @@ describe('AcceptInviteSheet', () => {
       expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
 
       await act(async () => {
-        store.dispatch(
-          setGeoRewardsMetadata({
-            geoLocation: 'GB',
-            optinAllowedForGeo: true,
-          }),
-        );
+        dispatchDeviceGeo(store, 'GB');
       });
 
       expect(queryByTestId(TEST_IDS.CONTAINER)).toBeNull();
@@ -1160,12 +1164,7 @@ describe('AcceptInviteSheet', () => {
       fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
       await act(async () => {
-        store.dispatch(
-          setGeoRewardsMetadata({
-            geoLocation: 'GB',
-            optinAllowedForGeo: true,
-          }),
-        );
+        dispatchDeviceGeo(store, 'GB');
       });
 
       expect(mockGoBack).not.toHaveBeenCalled();

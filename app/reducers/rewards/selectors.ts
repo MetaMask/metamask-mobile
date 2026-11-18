@@ -1,5 +1,10 @@
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { createSelector } from 'reselect';
 import type { RootState } from '..';
+import {
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../selectors/geolocationController';
 import { initialState } from '.';
 import { RewardsTab } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
@@ -176,17 +181,36 @@ export const selectSeasonWaysToEarn = (
 ): RootState['rewards']['seasonWaysToEarn'] =>
   state.rewards.seasonWaysToEarn ?? initialState.seasonWaysToEarn;
 
-export const selectGeoLocation = (state: RootState) =>
-  state.rewards.geoLocation;
+/**
+ * Regions where Rewards opt-in is blocked. A prefix matches subregions, so
+ * `UK` blocks `UK-ENG`.
+ */
+export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'] as const;
 
-export const selectOptinAllowedForGeo = (state: RootState) =>
-  state.rewards.optinAllowedForGeo;
-
-export const selectOptinAllowedForGeoLoading = (state: RootState) =>
-  state.rewards.optinAllowedForGeoLoading;
-
-export const selectOptinAllowedForGeoError = (state: RootState) =>
-  state.rewards.optinAllowedForGeoError;
+/**
+ * Whether Rewards opt-in is allowed for the live GeolocationController location.
+ *
+ * `null` while the lookup has not finished, so the CTA stays held. `true` when
+ * the lookup errored or resolved to UNKNOWN. A settled location is blocked when
+ * it starts with UK, GB, or GI.
+ */
+export const selectOptinAllowedForGeo = createSelector(
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+  (location, status): boolean | null => {
+    if (!status || status === 'idle' || status === 'loading') {
+      return null;
+    }
+    if (status === 'error' || !location || location === UNKNOWN_LOCATION) {
+      return true;
+    }
+    const normalized = location.toUpperCase();
+    const blocked = DEFAULT_BLOCKED_REGIONS.some((region) =>
+      normalized.startsWith(region),
+    );
+    return !blocked;
+  },
+);
 
 export const selectCandidateSubscriptionId = (state: RootState) =>
   state.rewards.candidateSubscriptionId;

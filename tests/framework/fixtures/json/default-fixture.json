@@ -913,7 +913,6 @@
       "campaignsLoading": false,
       "candidateSubscriptionId": null,
       "dismissedCampaignOutcomeToasts": {},
-      "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,
       "moneyAccountSweepstakesDrawProofs": {},
@@ -925,9 +924,6 @@
       "ondoCampaignLeaderboardPositions": {},
       "ondoCampaignLeaderboards": {},
       "ondoCampaignPortfolio": {},
-      "optinAllowedForGeo": null,
-      "optinAllowedForGeoError": false,
-      "optinAllowedForGeoLoading": false,
       "pendingDeeplink": null,
       "pendingMasSeriesOptIn": {
         "needsRetry": false,

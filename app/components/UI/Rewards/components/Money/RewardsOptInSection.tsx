@@ -16,15 +16,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
-import {
-  selectOptinAllowedForGeo,
-  selectOptinAllowedForGeoError,
-  selectOptinAllowedForGeoLoading,
-} from '../../../../../reducers/rewards/selectors';
+import { selectOptinAllowedForGeo } from '../../../../../reducers/rewards/selectors';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { strings } from '../../../../../../locales/i18n';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import useOptin from '../../hooks/useOptIn';
 import useRewardsToast from '../../hooks/useRewardsToast';
 
@@ -53,14 +48,8 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
     selectSelectedAccountGroupInternalAccounts,
   );
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
-  const optinAllowedForGeoLoading = useSelector(
-    selectOptinAllowedForGeoLoading,
-  );
-  const optinAllowedForGeoError = useSelector(selectOptinAllowedForGeoError);
   const { optin, optinError, optinLoading, clearOptinError } = useOptin();
   const { showToast, RewardsToastOptions } = useRewardsToast();
-
-  useGeoRewardsMetadata({});
 
   const accountRefusalReason = useMemo(() => {
     if (
@@ -98,15 +87,10 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
     disabledReason = accountRefusalReason;
   }
 
-  // Null with no error means the lookup has not finished. The fetch waits
-  // until after first paint, so hold the CTA for that gap. A finished check
-  // that failed leaves the answer unknown and does not block opt-in.
-  const geoNotResolved =
-    optinAllowedForGeo === null &&
-    !optinAllowedForGeoError &&
-    !accountRefusalReason;
-  const geoAllowsOptIn =
-    optinAllowedForGeo === true || Boolean(optinAllowedForGeoError);
+  // Null means geolocation has not finished. Hold the CTA for that gap. A
+  // lookup that errored, or resolved to UNKNOWN, is allowed and does not block.
+  const geoNotResolved = optinAllowedForGeo === null && !accountRefusalReason;
+  const geoAllowsOptIn = optinAllowedForGeo === true;
 
   useEffect(() => {
     if (!optinError) {
@@ -147,22 +131,12 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
           size: ButtonSize.Lg,
           twClassName: 'mt-3 self-stretch',
           accessibilityLabel: localizedText.invitedOptInAction,
-          isLoading:
-            optinLoading || optinAllowedForGeoLoading || geoNotResolved,
-          isDisabled:
-            optinLoading ||
-            optinAllowedForGeoLoading ||
-            geoNotResolved ||
-            Boolean(disabledReason),
+          isLoading: optinLoading || geoNotResolved,
+          isDisabled: optinLoading || geoNotResolved || Boolean(disabledReason),
           testID: REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION,
         }}
         onAction={() => {
-          if (
-            !geoAllowsOptIn ||
-            disabledReason ||
-            optinAllowedForGeoLoading ||
-            optinLoading
-          ) {
+          if (!geoAllowsOptIn || disabledReason || optinLoading) {
             return;
           }
           void optin({ bulkLink: true });

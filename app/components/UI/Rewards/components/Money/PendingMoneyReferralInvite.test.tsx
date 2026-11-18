@@ -14,7 +14,6 @@ import type { ReferralMeDto } from '../../../../../core/Engine/controllers/rewar
 import * as SettingsSelectors from '../../../../../selectors/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as RewardsMoneyFlagSelectors from '../../../../../selectors/featureFlagController/rewardsMoneyController';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { setPendingSocialPreviewTarget } from '../../../../Views/SocialLeaderboard/TraderPreviewSheet/pendingSocialPreviewTarget';
 import PendingMoneyReferralInvite, {
   MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS,
@@ -44,10 +43,6 @@ jest.mock('../../../../../core/NavigationService', () => ({
     },
     getCurrentRoute: () => mockGetCurrentRoute(),
   },
-}));
-
-jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
 }));
 
 jest.mock('../../hooks/useReferralMe', () => ({
@@ -123,7 +118,18 @@ const renderInvite = ({
       pendingReferralCode,
       isReferralLinkPending,
     },
-    rewards: { geoLocation },
+    ...(geoLocation
+      ? {
+          engine: {
+            backgroundState: {
+              GeolocationController: {
+                location: geoLocation,
+                status: 'complete' as const,
+              },
+            },
+          },
+        }
+      : {}),
   });
   const view = render(
     <Provider store={store}>
@@ -152,7 +158,6 @@ describe('PendingMoneyReferralInvite', () => {
   it('does nothing when no deeplink left a code', () => {
     renderInvite({ pendingReferralCode: null });
 
-    expect(useGeoRewardsMetadata).not.toHaveBeenCalled();
     expect(mockFetchReferralMe).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -166,7 +171,6 @@ describe('PendingMoneyReferralInvite', () => {
         { referralCode: 'KOL1', entryType: 'deeplink' },
       );
     });
-    expect(useGeoRewardsMetadata).toHaveBeenCalledWith({ enabled: true });
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
     expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
