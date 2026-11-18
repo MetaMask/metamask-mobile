@@ -22,24 +22,26 @@ describeForPlatforms('CollectiblesSection', () => {
     async ({ testID }) => {
       renderCollectiblesSectionWithRoutes();
 
-      expect(
-        await screen.findByText(
-          strings('collectibles.home_section.open_collectibles'),
-        ),
-      ).toBeOnTheScreen();
-      fireEvent.press(await screen.findByTestId(testID));
+      await screen.findByText(
+        strings('collectibles.home_section.open_collectibles'),
+      );
+      fireEvent.press(screen.getByTestId(testID));
 
-      expect(
-        await screen.findByTestId(CollectiblesHomeTestIds.CONTAINER),
-      ).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(CollectiblesHomeTestIds.CONTAINER),
+        ).toBeOnTheScreen();
+      });
       expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
       expect(screen.queryByRole('tab')).not.toBeOnTheScreen();
 
       fireEvent.press(screen.getByTestId(CollectiblesHomeTestIds.BACK_BUTTON));
 
-      expect(
-        await screen.findByTestId(CollectiblesSectionTestIds.CONTAINER),
-      ).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(CollectiblesSectionTestIds.CONTAINER),
+        ).toBeOnTheScreen();
+      });
       expect(
         screen.getByText(strings('collectibles.home_section.description')),
       ).toBeOnTheScreen();
