@@ -976,7 +976,12 @@ describe('resolvePredictFeatureFlags', () => {
     it.each([
       ['empty', ''],
       ['blank', '   '],
+      ['empty after trim', ' \t\n '],
       ['not a string', 42],
+      ['longer than 512 characters', 'k'.repeat(513)],
+      ['holding a control character', 'fake\u0007key'],
+      ['holding a tab inside it', 'fake\tkey'],
+      ['holding a non-ASCII character', 'fake-kéy'],
     ])('is undefined when the key is %s', (_label, chainlinkApiKey) => {
       mockVersionGate(true);
 
@@ -1007,6 +1012,24 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.chainlinkApiKey).toBe(fakeKey);
+    });
+
+    it('accepts a key of 512 printable ASCII characters', () => {
+      mockVersionGate(true);
+      const longKey = `a${' ~'.repeat(255)}z`;
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: longKey,
+          },
+        },
+      });
+
+      expect(longKey).toHaveLength(512);
+      expect(result.chainlinkApiKey).toBe(longKey);
     });
 
     it('unwraps the progressive rollout shape', () => {
