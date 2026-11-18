@@ -32,6 +32,7 @@ type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerExchangeSocialAccessTokenAction
   | UserStorageController.UserStorageControllerPerformGetStorageAllFeatureEntriesAction
   | UserStorageController.UserStorageControllerPerformSetStorageAction
+  | UserStorageController.UserStorageControllerPerformDeleteStorageAction
   | KeyringControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction;
 
@@ -60,6 +61,7 @@ export function getMfaRecoveryControllerInitMessenger(
       'AuthenticationController:exchangeSocialAccessToken',
       'UserStorageController:performGetStorageAllFeatureEntries',
       'UserStorageController:performSetStorage',
+      'UserStorageController:performDeleteStorage',
       'KeyringController:getState',
       'RemoteFeatureFlagController:getState',
     ],

@@ -3,7 +3,10 @@ import StorageWrapper from '../../store/storage-wrapper';
 import { retryPendingPasskeys, trustPasskey } from './trustPasskey';
 
 jest.mock('../Engine', () => ({
-  context: { MfaRecoveryController: { trustIdentifier: jest.fn() } },
+  context: {
+    AuthenticationController: { getSessionProfile: jest.fn() },
+    MfaRecoveryController: { trustIdentifier: jest.fn() },
+  },
 }));
 
 jest.mock('../../store/storage-wrapper', () => {
@@ -21,16 +24,26 @@ jest.mock('../../util/Logger', () => ({ error: jest.fn() }));
 const trustIdentifier = jest.mocked(
   Engine.context.MfaRecoveryController.trustIdentifier,
 );
-const pending = async () =>
+const getSessionProfile = jest.mocked(
+  Engine.context.AuthenticationController.getSessionProfile,
+);
+const useProfile = (profileId: string) =>
+  getSessionProfile.mockResolvedValue({ profileId } as never);
+const pending = async (profileId = 'profile-a') =>
   JSON.parse(
-    (await StorageWrapper.getItem('mfaRecoveryPendingPasskeyAttestations')) ??
-      '[]',
+    (await StorageWrapper.getItem(
+      `mfaRecoveryPendingPasskeyAttestations.${profileId}`,
+    )) ?? '[]',
   );
 
 describe('trustPasskey', () => {
   beforeEach(async () => {
     trustIdentifier.mockReset();
-    await StorageWrapper.setItem('mfaRecoveryPendingPasskeyAttestations', '[]');
+    useProfile('profile-a');
+    await StorageWrapper.setItem(
+      'mfaRecoveryPendingPasskeyAttestations.profile-a',
+      '[]',
+    );
   });
 
   it('records the passkey', async () => {
@@ -73,5 +86,17 @@ describe('trustPasskey', () => {
 
     await expect(retryPendingPasskeys()).rejects.toThrow('offline');
     expect(await pending()).toStrictEqual(['att']);
+  });
+
+  it('does not retry passkeys another profile left pending', async () => {
+    trustIdentifier.mockRejectedValueOnce(new Error('offline'));
+    await trustPasskey('att');
+    trustIdentifier.mockResolvedValue(undefined);
+    useProfile('profile-b');
+
+    await retryPendingPasskeys();
+
+    expect(trustIdentifier).toHaveBeenCalledTimes(1);
+    expect(await pending('profile-a')).toStrictEqual(['att']);
   });
 });

@@ -4,16 +4,24 @@ import { removeMfaCredential } from './removeMfaCredential';
 jest.mock('../../../core/Engine', () => ({
   context: {
     AuthenticationController: { removeCredential: jest.fn() },
+    MfaRecoveryController: { untrustPasskey: jest.fn() },
   },
 }));
 
-describe('removeMfaCredential', () => {
-  it('removes the method by its id', async () => {
-    const removeCredential = jest.mocked(
-      Engine.context.AuthenticationController.removeCredential,
-    );
-    removeCredential.mockResolvedValue([]);
+const removeCredential = jest.mocked(
+  Engine.context.AuthenticationController.removeCredential,
+);
+const untrustPasskey = jest.mocked(
+  Engine.context.MfaRecoveryController.untrustPasskey,
+);
 
+describe('removeMfaCredential', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    removeCredential.mockResolvedValue([]);
+  });
+
+  it('removes the method by its id', async () => {
     await removeMfaCredential(
       { id: 'totp', type: 'totp', status: 'active' },
       { operation: 'settings.removeAuthenticatorApp' },
@@ -23,5 +31,20 @@ describe('removeMfaCredential', () => {
       credentialId: 'totp',
       reason: { operation: 'settings.removeAuthenticatorApp' },
     });
+    expect(untrustPasskey).not.toHaveBeenCalled();
+  });
+
+  it('stops trusting a passkey before removing it', async () => {
+    untrustPasskey.mockRejectedValue(new Error('offline'));
+
+    await expect(
+      removeMfaCredential(
+        { id: 'cred', type: 'passkey', status: 'active' },
+        { operation: 'settings.removePasskey' },
+      ),
+    ).rejects.toThrow('offline');
+
+    expect(untrustPasskey).toHaveBeenCalledWith('cred');
+    expect(removeCredential).not.toHaveBeenCalled();
   });
 });

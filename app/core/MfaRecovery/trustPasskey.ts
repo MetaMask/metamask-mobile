@@ -2,11 +2,18 @@ import Engine from '../Engine';
 import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 
-/** Attestations of enrolled passkeys whose recording failed, kept to retry. */
-const PENDING_KEY = 'mfaRecoveryPendingPasskeyAttestations';
+/**
+ * Where attestations of enrolled passkeys whose recording failed are kept to
+ * retry. Per profile, so another wallet on this device never records them.
+ */
+const pendingKey = async (): Promise<string> => {
+  const { profileId } =
+    await Engine.context.AuthenticationController.getSessionProfile();
+  return `mfaRecoveryPendingPasskeyAttestations.${profileId}`;
+};
 
-const readPending = async (): Promise<string[]> =>
-  JSON.parse((await StorageWrapper.getItem(PENDING_KEY)) ?? '[]');
+const readPending = async (key: string): Promise<string[]> =>
+  JSON.parse((await StorageWrapper.getItem(key)) ?? '[]');
 
 const record = (attestationObject: string) =>
   Engine.context.MfaRecoveryController.trustIdentifier({
@@ -26,27 +33,27 @@ export async function trustPasskey(attestationObject: string): Promise<void> {
     await record(attestationObject);
   } catch (error) {
     Logger.error(error as Error, { tags: { feature: 'mfa' } });
-    const pending = await readPending();
+    const key = await pendingKey();
     await StorageWrapper.setItem(
-      PENDING_KEY,
-      JSON.stringify([...pending, attestationObject]),
+      key,
+      JSON.stringify([...(await readPending(key)), attestationObject]),
     );
   }
 }
 
 /**
- * Records the passkeys {@link trustPasskey} could not.
+ * Records the current profile's passkeys {@link trustPasskey} could not.
  *
  * @throws If a write still fails; the rest stay pending.
  */
 export async function retryPendingPasskeys(): Promise<void> {
-  const pending = await readPending();
-  for (const attestationObject of pending) {
+  const key = await pendingKey();
+  for (const attestationObject of await readPending(key)) {
     await record(attestationObject);
     // Reread: an enrollment may have added one meanwhile.
-    const remaining = (await readPending()).filter(
+    const remaining = (await readPending(key)).filter(
       (item) => item !== attestationObject,
     );
-    await StorageWrapper.setItem(PENDING_KEY, JSON.stringify(remaining));
+    await StorageWrapper.setItem(key, JSON.stringify(remaining));
   }
 }
