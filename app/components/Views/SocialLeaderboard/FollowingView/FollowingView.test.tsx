@@ -59,7 +59,9 @@ const mockFeedListState = {
   current: { showSkeleton: false, showEmpty: false, showRetry: false },
 };
 const mockUseFollowedTraders = jest.fn();
-const mockInvalidateFollowingFeed = jest.fn(() => Promise.resolve());
+const mockInvalidateFollowingFeed = jest.fn(
+  (_options?: { refetchType?: 'none' }) => Promise.resolve(),
+);
 const mockUsePopularTraders = jest.fn(
   (): UsePopularTradersResult => ({
     traders: [],
@@ -73,8 +75,8 @@ const mockUsePopularTraders = jest.fn(
 );
 
 jest.mock('../../../UI/SocialFeed/data/socialFeedQueries', () => ({
-  invalidateFollowingFeed: (...args: unknown[]) =>
-    mockInvalidateFollowingFeed(...args),
+  invalidateFollowingFeed: (options?: { refetchType?: 'none' }) =>
+    mockInvalidateFollowingFeed(options),
 }));
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
