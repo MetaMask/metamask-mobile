@@ -1,11 +1,25 @@
 import { Platform } from 'react-native';
 import { TransakEnvironment } from '@metamask/ramps-controller';
 import {
+  getTransakApiKey,
   getTransakEnvironment,
   transakServiceInit,
 } from './transak-service-init';
 
-const mockTransakService = jest.fn().mockImplementation((opts) => opts);
+let mockStoredApiKey: string | null = null;
+const mockSetApiKey = jest.fn((apiKey: string) => {
+  mockStoredApiKey = apiKey;
+});
+const mockTransakService = jest
+  .fn()
+  .mockImplementation((opts: { apiKey?: string }) => {
+    mockStoredApiKey = opts.apiKey ?? null;
+    return {
+      ...opts,
+      setApiKey: mockSetApiKey,
+      getApiKey: () => mockStoredApiKey,
+    };
+  });
 
 jest.mock('@metamask/ramps-controller', () => ({
   // Declared as a function (not an arrow) so `new TransakService()` works, and
@@ -33,9 +47,55 @@ jest.mock('./ramps-service-init', () => ({
   }),
 }));
 
+type StateChangeHandler = (state: {
+  remoteFeatureFlags: Record<string, unknown>;
+}) => void;
+
+function createInitMessenger(remoteFeatureFlags: Record<string, unknown> = {}) {
+  let onStateChange: StateChangeHandler | undefined;
+  const initMessenger = {
+    call: jest.fn(() => ({ remoteFeatureFlags })),
+    subscribe: jest.fn((_event: string, handler: StateChangeHandler) => {
+      onStateChange = handler;
+    }),
+  };
+  return {
+    initMessenger,
+    emitFlags: (flags: Record<string, unknown>) =>
+      onStateChange?.({ remoteFeatureFlags: flags }),
+  };
+}
+
+function initialize(remoteFeatureFlags?: Record<string, unknown>) {
+  const { initMessenger, emitFlags } = createInitMessenger(remoteFeatureFlags);
+  const mockMessenger = {} as never;
+  const result = transakServiceInit({
+    controllerMessenger: mockMessenger,
+    initMessenger,
+  } as never);
+  return { result, initMessenger, emitFlags, mockMessenger };
+}
+
 describe('transak-service-init', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('getTransakApiKey', () => {
+    it('returns the providerApiKey from depositConfig', () => {
+      expect(
+        getTransakApiKey({ depositConfig: { providerApiKey: 'key-1' } }),
+      ).toBe('key-1');
+    });
+
+    it.each([
+      ['no flags', undefined],
+      ['no depositConfig', {}],
+      ['a null key', { depositConfig: { providerApiKey: null } }],
+      ['an empty key', { depositConfig: { providerApiKey: '' } }],
+    ])('returns undefined for %s', (_label, flags) => {
+      expect(getTransakApiKey(flags as never)).toBeUndefined();
+    });
   });
 
   describe('getTransakEnvironment', () => {
@@ -70,10 +130,7 @@ describe('transak-service-init', () => {
     it('creates a TransakService with ios context', () => {
       Platform.OS = 'ios';
 
-      const mockMessenger = {} as never;
-      const result = transakServiceInit({
-        controllerMessenger: mockMessenger,
-      } as never);
+      const { result, mockMessenger } = initialize();
 
       expect(mockTransakService).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -90,10 +147,7 @@ describe('transak-service-init', () => {
     it('creates a TransakService with android context', () => {
       Platform.OS = 'android';
 
-      const mockMessenger = {} as never;
-      const result = transakServiceInit({
-        controllerMessenger: mockMessenger,
-      } as never);
+      const { result } = initialize();
 
       expect(mockTransakService).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -105,10 +159,7 @@ describe('transak-service-init', () => {
     });
 
     it('passes the environment from getTransakEnvironment', () => {
-      const mockMessenger = {} as never;
-      transakServiceInit({
-        controllerMessenger: mockMessenger,
-      } as never);
+      initialize();
 
       const calledWith = mockTransakService.mock.calls[0][0];
       expect(['PRODUCTION', 'STAGING', 'DEVELOPMENT']).toContain(
@@ -117,16 +168,79 @@ describe('transak-service-init', () => {
     });
 
     it('passes the app bundle id as the Transak referrer domain', () => {
-      const mockMessenger = {} as never;
-      transakServiceInit({
-        controllerMessenger: mockMessenger,
-      } as never);
+      initialize();
 
       expect(mockTransakService).toHaveBeenCalledWith(
         expect.objectContaining({
           referrerDomain: 'io.metamask',
         }),
       );
+    });
+
+    it('passes the API key from the current remote flags', () => {
+      const { initMessenger } = initialize({
+        depositConfig: { providerApiKey: 'startup-key' },
+      });
+
+      expect(initMessenger.call).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:getState',
+      );
+      expect(mockTransakService).toHaveBeenCalledWith(
+        expect.objectContaining({ apiKey: 'startup-key' }),
+      );
+    });
+
+    it('creates the service without an API key when the flag has none', () => {
+      initialize();
+
+      expect(mockTransakService.mock.calls[0][0].apiKey).toBeUndefined();
+    });
+
+    it('sets the API key when remote flags deliver one after startup', () => {
+      const { initMessenger, emitFlags } = initialize();
+
+      emitFlags({ depositConfig: { providerApiKey: 'fetched-key' } });
+
+      expect(initMessenger.subscribe).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:stateChange',
+        expect.any(Function),
+      );
+      expect(mockSetApiKey).toHaveBeenCalledTimes(1);
+      expect(mockSetApiKey).toHaveBeenCalledWith('fetched-key');
+    });
+
+    it('sets the API key again only when it changes', () => {
+      const { emitFlags } = initialize({
+        depositConfig: { providerApiKey: 'startup-key' },
+      });
+
+      emitFlags({ depositConfig: { providerApiKey: 'startup-key' } });
+      expect(mockSetApiKey).not.toHaveBeenCalled();
+
+      emitFlags({ depositConfig: { providerApiKey: 'rotated-key' } });
+      expect(mockSetApiKey).toHaveBeenCalledWith('rotated-key');
+    });
+
+    it('keeps the current API key when the flags drop it', () => {
+      const { emitFlags } = initialize({
+        depositConfig: { providerApiKey: 'startup-key' },
+      });
+
+      emitFlags({});
+
+      expect(mockSetApiKey).not.toHaveBeenCalled();
+    });
+
+    it('sets the flag key again when the service key was changed elsewhere', () => {
+      const { emitFlags } = initialize({
+        depositConfig: { providerApiKey: 'startup-key' },
+      });
+      mockStoredApiKey = 'other-key';
+
+      emitFlags({ depositConfig: { providerApiKey: 'startup-key' } });
+
+      expect(mockSetApiKey).toHaveBeenCalledTimes(1);
+      expect(mockSetApiKey).toHaveBeenCalledWith('startup-key');
     });
   });
 });
