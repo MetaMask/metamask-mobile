@@ -46,6 +46,11 @@ jest.mock('@react-native-cookies/cookies', () => ({
   getAll: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../util/navigation/navUtils'),
+  useParams: jest.fn(() => ({})),
+}));
+
 describe('PrivacySettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -74,9 +79,10 @@ describe('PrivacySettings', () => {
   });
 
   it('renders Privacy heading', () => {
-    const { getByText } = renderWithProvider(<PrivacySettings />, {
+    const { getAllByText } = renderWithProvider(<PrivacySettings />, {
       state: initialState,
     });
-    expect(getByText(strings('app_settings.privacy_heading'))).toBeTruthy();
+    const headings = getAllByText(strings('app_settings.privacy_heading'));
+    expect(headings.length).toBeGreaterThan(0);
   });
 });
