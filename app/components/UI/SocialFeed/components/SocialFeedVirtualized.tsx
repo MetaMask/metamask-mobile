@@ -24,6 +24,7 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type View, type ViewStyle } from 'react-native';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -228,6 +229,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   scrollTestID,
 }) => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
@@ -515,10 +517,12 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   );
   const listContentStyle = useMemo(
     () => [
-      tw.style('flex-grow pb-8'),
+      tw.style('flex-grow', {
+        paddingBottom: 24 + floatingTabBarInset,
+      }),
       contentTopInset > 0 ? { paddingTop: contentTopInset } : undefined,
     ],
-    [contentTopInset, tw],
+    [contentTopInset, floatingTabBarInset, tw],
   );
   const pendingPostsOverlayStyle = useAnimatedStyle(() => {
     const top =

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, Linking } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import {
@@ -24,7 +24,9 @@ import { formatSubscriptionFiat } from '../../../../../util/subscription/formatS
 let mockGoBack: jest.Mock;
 let mockNavigate: jest.Mock;
 const mockUnCancelSubscription = jest.fn();
+const mockGetBillingPortalUrl = jest.fn();
 const mockLoggerError = jest.fn();
+const BILLING_PORTAL_URL = 'https://billing.stripe.com/p/session/test';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -43,6 +45,8 @@ jest.mock('../../../../../core/Engine', () => ({
       SubscriptionController: {
         unCancelSubscription: (...args: unknown[]) =>
           mockUnCancelSubscription(...args),
+        getBillingPortalUrl: (...args: unknown[]) =>
+          mockGetBillingPortalUrl(...args),
       },
     },
   },
@@ -158,6 +162,8 @@ describe('Membership', () => {
     mockGoBack = jest.fn();
     mockNavigate = jest.fn();
     mockUnCancelSubscription.mockResolvedValue(undefined);
+    mockGetBillingPortalUrl.mockResolvedValue({ url: BILLING_PORTAL_URL });
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -296,6 +302,9 @@ describe('Membership', () => {
       const { getByTestId } = renderMembership();
 
       expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.renews_on')),
+      );
+      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
         toRegex('Jul 19, 2027'),
       );
     });
@@ -323,14 +332,6 @@ describe('Membership', () => {
       expect(getByTestId(MembershipTestIds.INVOICES_ROW)).toHaveTextContent(
         strings('pro_hub.membership.invoices'),
       );
-    });
-
-    it('renders the contact support row with correct label', () => {
-      const { getByTestId } = renderMembership();
-
-      expect(
-        getByTestId(MembershipTestIds.CONTACT_SUPPORT_ROW),
-      ).toHaveTextContent(strings('pro_hub.membership.contact_support'));
     });
 
     it('renders the cancel membership row with correct label', () => {
@@ -386,6 +387,115 @@ describe('Membership', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PRO_HUB.CANCEL_MEMBERSHIP,
+      );
+    });
+
+    it('opens the Stripe billing portal when invoices is pressed', async () => {
+      const { getByTestId, queryByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(mockGetBillingPortalUrl).toHaveBeenCalledTimes(1),
+      );
+      expect(Linking.openURL).toHaveBeenCalledWith(BILLING_PORTAL_URL);
+      expect(queryByTestId(MembershipTestIds.INVOICES_ERROR)).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows an error and does not open a URL when the portal request fails', async () => {
+      mockGetBillingPortalUrl.mockRejectedValueOnce(
+        new Error('request failed'),
+      );
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(getByTestId(MembershipTestIds.INVOICES_ERROR)).toHaveTextContent(
+          strings('pro_hub.membership.invoices_failed'),
+        ),
+      );
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: {
+            feature: 'money_account_plus',
+            operation: 'get_billing_portal_url',
+          },
+        }),
+      );
+    });
+
+    it('shows an error when the billing portal URL is not https', async () => {
+      mockGetBillingPortalUrl.mockResolvedValueOnce({
+        url: 'http://billing.stripe.com/p/session/test',
+      });
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(getByTestId(MembershipTestIds.INVOICES_ERROR)).toHaveTextContent(
+          strings('pro_hub.membership.invoices_failed'),
+        ),
+      );
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+
+    it('logs open failures under the open_billing_portal tag, not the request tag', async () => {
+      jest
+        .spyOn(Linking, 'openURL')
+        .mockRejectedValueOnce(new Error('no handler'));
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(getByTestId(MembershipTestIds.INVOICES_ERROR)).toHaveTextContent(
+          strings('pro_hub.membership.invoices_failed'),
+        ),
+      );
+      expect(mockGetBillingPortalUrl).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: {
+            feature: 'money_account_plus',
+            operation: 'open_billing_portal',
+          },
+        }),
+      );
+    });
+
+    it('does not request the portal again while the first request is in flight', async () => {
+      let resolvePortal: (value: { url: string }) => void = () => undefined;
+      mockGetBillingPortalUrl.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolvePortal = resolve;
+          }),
+      );
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(MembershipTestIds.INVOICES_ROW).props.accessibilityState,
+        ).toEqual({
+          disabled: true,
+          busy: true,
+        });
+      });
+      expect(mockGetBillingPortalUrl).toHaveBeenCalledTimes(1);
+
+      resolvePortal({ url: BILLING_PORTAL_URL });
+
+      await waitFor(() =>
+        expect(Linking.openURL).toHaveBeenCalledWith(BILLING_PORTAL_URL),
       );
     });
 
@@ -453,6 +563,15 @@ describe('Membership', () => {
       );
     });
 
+    it('shows Ends on while a period-end cancellation is scheduled', () => {
+      const { getByTestId } = renderMembership(pendingCancellation);
+
+      const renewsOnRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+
+      expect(renewsOnRow).toHaveTextContent(toRegex('Ends on'));
+      expect(renewsOnRow).not.toHaveTextContent('pro_hub.membership.ends_on');
+    });
+
     it('shows resume and uncancels the subscription when the period end is still ahead', async () => {
       const { getByTestId, queryByTestId } =
         renderMembership(pendingCancellation);
@@ -512,14 +631,31 @@ describe('Membership', () => {
       });
     });
 
+    it('says Ends on for a past-due plan that is still scheduled to cancel', () => {
+      const { getByTestId, queryByTestId } = renderMembership({
+        ...pendingCancellation,
+        status: SUBSCRIPTION_STATUSES.pastDue,
+      });
+
+      const renewsOnRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+
+      expect(renewsOnRow).toHaveTextContent(toRegex('Ends on'));
+      expect(renewsOnRow).not.toHaveTextContent('pro_hub.membership.ends_on');
+      expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
+      expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
+    });
+
     it('hides the membership action when the period end has passed', () => {
-      const { queryByTestId } = renderMembership({
+      const { getByTestId, queryByTestId } = renderMembership({
         ...pendingCancellation,
         currentPeriodEnd: '2020-01-01T00:00:00.000Z',
       });
 
       expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
       expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
+      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.renews_on')),
+      );
     });
 
     it('shows the resume error and does not navigate when uncancel fails', async () => {

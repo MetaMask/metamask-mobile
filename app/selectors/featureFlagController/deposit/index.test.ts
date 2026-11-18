@@ -4,7 +4,6 @@ import {
   selectRampsTransakWidgetUrlProxyEnabled,
   selectDepositEntrypointWalletActions,
   selectDepositEntrypoints,
-  selectDepositProviderApiKey,
   selectDepositProviderFrontendAuth,
   selectDepositMinimumVersionFlag,
   selectDepositActiveFlag,
@@ -50,20 +49,6 @@ describe('Deposit selectors', () => {
         mockEmptyRemoteFeatureFlags,
       );
       expect(result).toEqual({});
-    });
-  });
-
-  describe('selectDepositProviderApiKey', () => {
-    it('should return the providerApiKey when it exists', () => {
-      const result = selectDepositProviderApiKey.resultFunc(
-        mockRemoteFeatureFlags.depositConfig,
-      );
-      expect(result).toBe('test-api-key');
-    });
-
-    it('should return null when providerApiKey does not exist', () => {
-      const result = selectDepositProviderApiKey.resultFunc({});
-      expect(result).toBeNull();
     });
   });
 
