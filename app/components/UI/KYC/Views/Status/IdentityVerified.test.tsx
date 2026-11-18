@@ -179,6 +179,8 @@ describe('KycIdentityVerified', () => {
   });
 
   it('plays a success haptic when the static checkmark is shown', () => {
+    jest.mocked(playSuccessNotification).mockClear();
+
     renderWithProvider(
       <KycIdentityVerified onExit={jest.fn()} onContinue={jest.fn()} />,
     );
@@ -187,6 +189,7 @@ describe('KycIdentityVerified', () => {
   });
 
   it('plays a success haptic when the verified tick starts', () => {
+    jest.mocked(playSuccessNotification).mockClear();
     mockUseReduceMotionState.mockReturnValue(false);
     mockUseNetworkTier.mockReturnValue('WIFI');
 
