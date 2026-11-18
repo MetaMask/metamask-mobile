@@ -41,13 +41,18 @@ interface StartSwapQuoteFetchTraceParams {
 const toAssetId = (
   address?: string,
   chainId?: GenericQuoteRequest['srcChainId'],
-): ReturnType<typeof formatAddressToAssetId> =>
-  address === undefined
-    ? undefined
-    : formatAddressToAssetId(
-        normalizeTokenAddress(address, chainId as Hex),
-        chainId,
-      );
+): ReturnType<typeof formatAddressToAssetId> => {
+  try {
+    return address === undefined
+      ? undefined
+      : formatAddressToAssetId(
+          normalizeTokenAddress(address, chainId as Hex),
+          chainId,
+        );
+  } catch {
+    return undefined;
+  }
+};
 
 let activeTraceId: string | undefined;
 let stopWatchingQuotes: (() => void) | undefined;

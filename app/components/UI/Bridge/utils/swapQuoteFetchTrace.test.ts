@@ -135,6 +135,25 @@ describe('swapQuoteFetchTrace', () => {
     },
   );
 
+  it('keeps variant tags when token asset IDs cannot be built', () => {
+    swapQuoteFetchTrace.start({
+      srcChainId: '0x99999',
+      destChainId: '0x99999',
+      srcTokenAddress: '0x0000000000000000000000000000000000000000',
+      destTokenAddress: '0x0000000000000000000000000000000000000000',
+      isRefresh: false,
+    });
+
+    expect(annotateTraceByRequest).toHaveBeenCalledWith(
+      { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+      {
+        first_quote_flush_variant: 'control',
+        immediate_first_quote_fetch_variant: 'control',
+        yield_after_first_quote_variant: 'control',
+      },
+    );
+  });
+
   it('ends the active quote trace with an explicit result', () => {
     swapQuoteFetchTrace.start({
       srcChainId: sourceToken.chainId,
