@@ -13796,6 +13796,8 @@
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Upgrade",
     "join_error": "We couldn't start your Orange membership. Try again.",
+    "join_error_geo_blocked": "MetaMask Orange isn't available in your location, so we couldn't start your membership.",
+    "join_error_feature_disabled": "MetaMask Orange isn't available right now, so we couldn't start your membership.",
     "join_orange": "Join Orange",
     "start_free_trial": "Start free trial",
     "free_trial_description": "No commitment, cancel anytime",

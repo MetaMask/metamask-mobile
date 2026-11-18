@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
@@ -13,6 +14,7 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/visibility';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
@@ -61,6 +63,7 @@ const ProSubscription = () => {
 
   const proAccess = useMoneyAccountPlusAccess();
   const hasMembership = useHasProMembership();
+  const accessBlockReason = useSelector(selectMoneyAccountAccessBlockReason);
   const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
     ProSubscriptionScreen.Benefits,
   );
@@ -84,10 +87,21 @@ const ProSubscription = () => {
     };
   }, []);
 
-  // Dismiss when the Pro flag is off. A Plus status the hub can show already
-  // owns a membership, so send them to the hub instead of Benefits.
+  // Dismiss when the Pro flag is off, or when Money Account is blocked and
+  // the user has no membership. Unknown access waits so a restored member's
+  // fetch can finish before a blocked country closes checkout. A member still
+  // goes to Pro Hub, including while geolocation is loading, so they can cancel.
   useEffect(() => {
     if (proAccess === MoneyAccountPlusAccess.Disabled) {
+      navigation.goBack();
+      return;
+    }
+
+    if (
+      proAccess !== MoneyAccountPlusAccess.Unknown &&
+      accessBlockReason !== undefined &&
+      !hasMembership
+    ) {
       navigation.goBack();
       return;
     }
@@ -105,6 +119,7 @@ const ProSubscription = () => {
   }, [
     proAccess,
     hasMembership,
+    accessBlockReason,
     currentScreen,
     isCheckoutInProgress,
     navigation,
