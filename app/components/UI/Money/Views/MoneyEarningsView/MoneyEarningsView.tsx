@@ -17,7 +17,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Tab from '../../../../../component-library/components-temp/Tabs/Tab';
+import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
+import type { TabItem } from '../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
@@ -75,25 +76,29 @@ const MoneyEarningsView = (): React.ReactElement => {
     !hasMalformedHistory && isRecord(data)
       ? (data as InterestHistoryResponse)
       : undefined;
-  const tabs = [
+  const tabs: TabItem[] = [
     {
       key: 'earnings',
       label: strings('money.earnings.tab_earnings'),
+      content: null,
       testID: MoneyEarningsViewTestIds.TAB_EARNINGS,
     },
     {
       key: 'apy',
       label: strings('money.earnings.tab_apy'),
+      content: null,
       isDisabled: true,
       testID: MoneyEarningsViewTestIds.TAB_APY,
     },
     {
       key: 'allocation',
       label: strings('money.earnings.tab_allocation'),
+      content: null,
       isDisabled: true,
       testID: MoneyEarningsViewTestIds.TAB_ALLOCATION,
     },
   ];
+  const activeTabIndex = tabs.findIndex(({ key }) => key === activeTab);
 
   const selectedRangeData = useMemo(
     () => getSelectedRange(historicalEarningsResponse, selectedRange),
@@ -160,31 +165,12 @@ const MoneyEarningsView = (): React.ReactElement => {
         onBack={navigation.goBack}
         backButtonProps={{ testID: MoneyEarningsViewTestIds.BACK_BUTTON }}
       />
-      <Box twClassName="px-4 py-4">
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
-          {tabs.map(({ key, label, isDisabled = false, testID }) => {
-            const isActive = key === activeTab;
-
-            return (
-              <Box key={key}>
-                <Tab
-                  label={label}
-                  isActive={isActive}
-                  isDisabled={isDisabled}
-                  onPress={handleTabPress}
-                  testID={testID}
-                  accessibilityLabel={label}
-                  accessibilityRole="tab"
-                  accessibilityState={{
-                    selected: isActive,
-                    disabled: isDisabled,
-                  }}
-                />
-                {isActive ? <Box twClassName="h-0.5 bg-icon-default" /> : null}
-              </Box>
-            );
-          })}
-        </Box>
+      <Box twClassName="py-4">
+        <TabsBar
+          tabs={tabs}
+          activeIndex={activeTabIndex}
+          onTabPress={handleTabPress}
+        />
       </Box>
       {activeTab === 'earnings' ? (
         <ScrollView

@@ -9,7 +9,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
@@ -39,7 +38,6 @@ const EarningsSummary = ({
   lifetimeUsd,
   projectedOneYearUsd,
 }: EarningsSummaryProps): React.ReactElement => {
-  const tw = useTailwind();
   const rows: SummaryRow[] = [
     {
       label: strings('money.earnings.last_30_days'),
@@ -69,7 +67,7 @@ const EarningsSummary = ({
           key={label}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          style={tw.style('justify-between gap-4 py-3.5')}
+          twClassName="justify-between gap-4 py-4"
         >
           <Box twClassName="min-w-0 flex-1">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
