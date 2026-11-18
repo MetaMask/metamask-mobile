@@ -1149,6 +1149,17 @@ describe('MoneyHomeView', () => {
       );
     });
 
+    it('renders the kyc_retry card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_retry',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CONTAINER,
+      );
+    });
+
     it('renders the forced VBA card from the developer override', () => {
       const devGlobal = global as unknown as { __DEV__: boolean };
       const originalDev = devGlobal.__DEV__;
