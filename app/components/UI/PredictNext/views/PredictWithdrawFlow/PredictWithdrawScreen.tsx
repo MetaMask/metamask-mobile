@@ -12,11 +12,10 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
+  KeyValueRow,
   Text,
   TextColor,
   TextVariant,
@@ -447,23 +446,18 @@ export const PredictWithdrawScreen = () => {
               testID={PredictWithdrawFlowTestIds.OFFLINE_BANNER}
             />
           ) : null}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="justify-between gap-3"
+          <KeyValueRow
+            keyLabel={strings('predict_next.withdraw.receive_row')}
+            value={strings('predict_next.withdraw.receive_sandbox_wallet')}
+            valueTextProps={{
+              color: TextColor.TextAlternative,
+              testID: PredictWithdrawFlowTestIds.RECEIVE_VALUE,
+            }}
+            // KeyValueRow carries its own horizontal padding; the step already
+            // insets its content, so the row aligns with the button below.
+            twClassName="px-0"
             testID={PredictWithdrawFlowTestIds.RECEIVE}
-          >
-            <Text variant={TextVariant.BodyMd}>
-              {strings('predict_next.withdraw.receive_row')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              testID={PredictWithdrawFlowTestIds.RECEIVE_VALUE}
-            >
-              {strings('predict_next.withdraw.receive_sandbox_wallet')}
-            </Text>
-          </Box>
+          />
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
