@@ -21,9 +21,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
-import Foxicon, {
-  FoxiconVariant,
-} from '../../../../../component-library/components-temp/Foxicon';
+import MetaMaskFox from '../../../../../images/fox.svg';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -145,7 +143,7 @@ const PerpsSharePositionView = () => {
       </BottomSheetHeaderGlass>
       <ListItem
         isInteractive
-        avatar={<Foxicon variant={FoxiconVariant.Base} size={24} />}
+        avatar={<MetaMaskFox name="metamask-fox" width={24} height={24} />}
         title={strings('perps.share_position.post_to_metamask')}
         titleEndAccessory={
           <Tag severity={TagSeverity.Info}>

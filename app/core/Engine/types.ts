@@ -369,6 +369,11 @@ import {
   type PredictOrderServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictOrderService';
 import {
+  PredictFundingService,
+  type PredictFundingServiceActions,
+  type PredictFundingServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictFundingService';
+import {
   PredictDeviceAuthService,
   type PredictDeviceAuthServiceActions,
 } from '../../components/UI/PredictNext/services/PredictDeviceAuthService';
@@ -721,6 +726,7 @@ export type GlobalActions =
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
   | PredictOrderServiceActions
+  | PredictFundingServiceActions
   | PredictDeviceAuthServiceActions
   | PredictVenueControllerActions
   | RecurringOrdersDataServiceActions
@@ -837,6 +843,7 @@ export type GlobalEvents =
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
   | PredictOrderServiceEvents
+  | PredictFundingServiceEvents
   | PredictVenueControllerEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
@@ -990,6 +997,7 @@ export type MessengerClients = {
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
   PredictOrderService: PredictOrderService;
+  PredictFundingService: PredictFundingService;
   PredictDeviceAuthService: PredictDeviceAuthService;
   PredictVenueController: PredictVenueController;
   RecurringOrdersDataService: RecurringOrdersDataService;
@@ -1183,6 +1191,7 @@ export type MessengerClientsToInitialize =
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
   | 'PredictOrderService'
+  | 'PredictFundingService'
   | 'PredictDeviceAuthService'
   | 'PredictVenueController'
   | 'RecurringOrdersDataService'
