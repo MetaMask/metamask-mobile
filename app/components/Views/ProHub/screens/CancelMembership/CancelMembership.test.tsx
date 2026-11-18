@@ -181,37 +181,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// ─── Native animated event emitter ───────────────────────────────────────────
-// Re-rendering after a successful cancellation re-runs the native-driven
-// animation effects of the design-system buttons, which read
-// NativeAnimatedHelper.nativeEventEmitter.addListener. Give the animation
-// helper a no-op emitter for this suite. The path is the one React Native
-// currently ships; the shared test setup points at a stale path.
-
-const nativeAnimatedHelper = (
-  jest.requireActual(
-    'react-native/src/private/animated/NativeAnimatedHelper',
-  ) as { default: object }
-).default;
-const nativeAnimatedEmitter = {
-  addListener: (): { remove: () => void } => ({ remove: () => undefined }),
-  removeAllListeners: (): void => undefined,
-  removeSubscription: (): void => undefined,
-};
-Object.defineProperty(nativeAnimatedHelper, 'nativeEventEmitter', {
-  get: () => nativeAnimatedEmitter,
-  configurable: true,
-  enumerable: true,
-});
-
-// ─── Design system BottomSheet ───────────────────────────────────────────────
-// The real sheet animates with native events that jest does not provide. The
-// post-cancel sheet's content and buttons are still rendered and queryable.
+// ─── Design system animation ─────────────────────────────────────────────────
+// BottomSheet and Button drive native animations. Jest has no native animated
+// emitter, so both are plain views here. Press and disabled still work.
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactNative = jest.requireActual('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  const { View } = ReactNative;
+  const { Pressable, View } = ReactNative;
 
   return {
     ...actual,
@@ -222,6 +199,26 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       testID?: string;
     }) => <View testID={testID}>{children}</View>,
+    Button: ({
+      children,
+      onPress,
+      testID,
+      isDisabled,
+    }: {
+      children: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+      isDisabled?: boolean;
+    }) => (
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityState={{ disabled: Boolean(isDisabled) }}
+      >
+        {children}
+      </Pressable>
+    ),
   };
 });
 
