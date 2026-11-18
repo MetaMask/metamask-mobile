@@ -38,7 +38,7 @@ on:
         type: string
       build_name:
         description: >-
-          builds.yml build name (artifact names, env and signing come from it).
+          builds.yml build name (artifact names, env, secrets and signing come from it).
           Must be a build whose github_environment is `build-rc`, since a job environment
           cannot be resolved from a step output.
         required: false
@@ -263,6 +263,7 @@ jobs:
           const build = config.builds[process.env.BUILD_NAME];
           if (!build) { throw new Error('Unknown build name: ' + process.env.BUILD_NAME); }
           const signing = build.signing || {};
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing.aws_role || '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing.aws_secret || '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing.android_keystore_path || '') + '\n');
@@ -326,6 +327,8 @@ jobs:
           DONOR_OUTPUT: ${{ steps.donor.outputs.output }}
           REPACK_ANDROID_KEYSTORE_PATH: android/keystores/${{ steps.config.outputs.signing_android_keystore_path }}
           SIGNING_ENV_FILE: ${{ steps.signing.outputs.env-file }}
+          # Secret names this build requires (builds.yml), for validate-secrets-from-config.js.
+          CONFIG_SECRETS: ${{ steps.config.outputs.secrets_json }}
           # App secrets are mapped on this step only, so no other step can read them. The
           # same list is in build.yml, eas-update-platform.yml and
           # build-android-upload-to-testmu.yml; keep them in sync.
@@ -382,6 +385,8 @@ jobs:
           E2E_BYOA_AUTH_SECRET: ${{ endsWith(inputs.build_name, '-without-srp') && secrets.E2E_BYOA_AUTH_SECRET || '' }}
         run: |
           set -euo pipefail
+          # Fail before repacking if a secret builds.yml requires is missing or malformed.
+          node scripts/validate-secrets-from-config.js
           if [ "$PLATFORM" = "ios" ]; then
             # scripts/repack.js takes the iOS path whenever REPACK_SOURCE_IPA is set.
             export REPACK_SOURCE_IPA="$DONOR_PATH"

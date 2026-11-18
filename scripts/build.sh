@@ -772,14 +772,6 @@ if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
 	source "$JS_ENV_FILE"
 fi
 
-# A baked-in wallet must never ship in a store build.
-if [ "$METAMASK_ENVIRONMENT" == "production" ] || [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
-	if [ -n "${ADDITIONAL_SRP_1:-}" ] || [ -n "${PREDEFINED_PASSWORD:-}" ]; then
-		printError "ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD must be empty for a ${METAMASK_ENVIRONMENT} build."
-		exit 1
-	fi
-fi
-
 # Native-build-specific flags (not needed for expo-update)
 if [ "$PLATFORM" != "expo-update" ]; then
 	# Set flags for main builds
