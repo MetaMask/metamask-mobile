@@ -19,6 +19,7 @@ import { AdvancedViewSelectorsIDs } from './AdvancedView.testIds';
 import {
   FontWeight,
   Text,
+  TextColor,
   TextVariant,
   Button,
   ButtonSize,

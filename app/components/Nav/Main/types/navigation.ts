@@ -97,6 +97,8 @@ export type SettingsStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   SDKSessionsManager: undefined;
   SecuritySettings: undefined;
+  PrivacySettings: undefined;
+  TransactionsSettings: undefined;
   MfaSettings: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
