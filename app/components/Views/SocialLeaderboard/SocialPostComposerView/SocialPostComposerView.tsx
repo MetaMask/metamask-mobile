@@ -82,7 +82,10 @@ import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
 import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
-import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
+import {
+  extractHttpStatus,
+  reportSocialServiceFailure,
+} from '../../../../util/social/socialServiceTelemetry';
 import { addPendingPost } from '../pendingPosts/pendingPostsStore';
 import type {
   SocialV1FeedAuthor,
@@ -91,7 +94,10 @@ import type {
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
-import { withCreateSwapCommentTimeout } from './createSwapCommentTimeout';
+import {
+  CreateSwapCommentTimeoutError,
+  withCreateSwapCommentTimeout,
+} from './createSwapCommentTimeout';
 import { resolvePostFailureReason } from './resolvePostFailureReason';
 import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
 import {
@@ -750,6 +756,17 @@ const SocialPostComposerEditor: React.FC = () => {
         failure_reason: resolvePostFailureReason(error),
         ...tradeCorrelation,
       });
+      // The 7s timeout already reports itself from withCreateSwapCommentTimeout.
+      if (!(error instanceof CreateSwapCommentTimeoutError)) {
+        reportSocialServiceFailure(error, {
+          surface: 'post_composer',
+          operation: 'create_comment',
+          extraMessage: 'Social post composer create comment failed',
+          source: 'SocialPostComposerView',
+          endpoint: 'create_comment',
+          ...(profile?.profileId ? { profileId: profile.profileId } : {}),
+        });
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: ComponentLibraryIconName.Danger,
