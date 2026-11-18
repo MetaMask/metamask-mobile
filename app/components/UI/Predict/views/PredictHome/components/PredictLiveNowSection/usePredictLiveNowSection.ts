@@ -4,6 +4,8 @@ import {
   BTC_UP_OR_DOWN_5M_SERIES,
   ETH_UP_OR_DOWN_5M_SERIES,
   BTC_UP_OR_DOWN_15M_SERIES,
+  GOLD_UP_OR_DOWN_15M_SERIES,
+  SILVER_UP_OR_DOWN_15M_SERIES,
 } from '../../../../constants/liveNowCryptoSeries';
 import { useCurrentPredictMarketFromSeries } from '../../../../hooks/useCurrentPredictMarketFromSeries';
 import { usePredictMarketList } from '../../../../hooks/usePredictMarketList';
@@ -63,9 +65,10 @@ export interface UsePredictLiveNowSectionResult {
  * `query-results` renders query results directly. An empty query uses the
  * provider defaults for top open markets by 24-hour volume.
  *
- * Alongside, the BTC 5m / ETH 5m / BTC 15m Up/Down crypto markets are resolved
- * from their series and interleaved (`2 live, 1 crypto, ...`) by
- * {@link interleaveLiveNowMarkets} (crypto capped at 3).
+ * Alongside, the BTC 5m / ETH 5m / BTC 15m / Gold 15m / Silver 15m Up/Down
+ * markets are resolved from their series and interleaved
+ * (`2 live, 1 crypto, ...`) by {@link interleaveLiveNowMarkets} (crypto
+ * capped at 5).
  *
  * `priorityOrder` then pins matching `series.id` cards to the front of the
  * rail (use case: crypto Up/Down first). `prioritySlots` can instead insert a
@@ -147,12 +150,26 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
     series: BTC_UP_OR_DOWN_15M_SERIES,
     enabled: includeCrypto,
   });
+  const gold15m = useCurrentPredictMarketFromSeries({
+    series: GOLD_UP_OR_DOWN_15M_SERIES,
+    enabled: includeCrypto,
+  });
+  const silver15m = useCurrentPredictMarketFromSeries({
+    series: SILVER_UP_OR_DOWN_15M_SERIES,
+    enabled: includeCrypto,
+  });
 
   const cryptoMarkets = useMemo<PredictMarket[]>(() => {
     if (!includeCrypto) {
       return [];
     }
-    const resolvedMarkets = [btc5m.market, eth5m.market, btc15m.market].filter(
+    const resolvedMarkets = [
+      btc5m.market,
+      eth5m.market,
+      btc15m.market,
+      gold15m.market,
+      silver15m.market,
+    ].filter(
       (market): market is PredictMarket =>
         market !== undefined && isCryptoUpDown(market),
     );
@@ -163,6 +180,8 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
     btc5m.market,
     eth5m.market,
     btc15m.market,
+    gold15m.market,
+    silver15m.market,
     excludedMarketIds,
   ]);
 
@@ -186,7 +205,11 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
   ]);
 
   const isCryptoLoading =
-    btc5m.isLoading || eth5m.isLoading || btc15m.isLoading;
+    btc5m.isLoading ||
+    eth5m.isLoading ||
+    btc15m.isLoading ||
+    gold15m.isLoading ||
+    silver15m.isLoading;
 
   // Reveal the rail only once its primary content (the live list) has settled,
   // and — when crypto is enabled — the crypto series too. Crypto markets carry

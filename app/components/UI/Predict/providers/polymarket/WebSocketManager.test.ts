@@ -3251,6 +3251,91 @@ describe('WebSocketManager', () => {
       ]);
     });
 
+    it('serves gold and silver on price.equity next to BTC on price.crypto', () => {
+      const manager = WebSocketManager.getInstance();
+      const goldCallback = jest.fn();
+      const silverCallback = jest.fn();
+      const btcCallback = jest.fn();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: { apiKey: 'key', secret: 'secret', passphrase: 'pass' },
+      });
+
+      manager.subscribeToCryptoPrices(['xau/usd'], goldCallback, {
+        provider: 'chainlink',
+      });
+      manager.subscribeToCryptoPrices(['xag/usd'], silverCallback);
+      manager.subscribeToCryptoPrices(['btc/usd'], btcCallback);
+      const socket = openPolyboltSocket();
+
+      const subscriptions = socket.send.mock.calls
+        .map(([frame]) => JSON.parse(frame as string))
+        .filter((frame) => frame.op === 'subscribe')
+        .flatMap((frame) => frame.subscriptions);
+      expect(subscriptions).toEqual(
+        expect.arrayContaining([
+          { channel: 'price.equity', filter: { symbol: 'xauusd' } },
+          { channel: 'price.equity', filter: { symbol: 'xagusd' } },
+          { channel: 'price.crypto', filter: { symbol: 'btcusd' } },
+        ]),
+      );
+      expect(subscriptions).toHaveLength(3);
+
+      socket.simulateMessage({
+        v: 1,
+        channel: 'price.equity',
+        seq: 1,
+        ts: 1_000,
+        payload: {
+          symbol: 'xauusd',
+          value: 4029.91,
+          full_accuracy_value: '4029.91',
+          timestamp: 1_000,
+          market_status: 'open',
+          source: 'chainlink',
+        },
+      });
+      socket.simulateMessage(livePoint('chainlink', '100'));
+      jest.advanceTimersByTime(250);
+
+      expect(goldCallback).toHaveBeenCalledWith({
+        symbol: 'xau/usd',
+        price: 4029.91,
+        timestamp: 1_000,
+      });
+      expect(silverCallback).not.toHaveBeenCalled();
+      expect(btcCallback).toHaveBeenCalledTimes(1);
+      expect(btcCallback).toHaveBeenCalledWith({
+        symbol: 'btc/usd',
+        price: 100,
+        timestamp: 1_000,
+      });
+    });
+
+    it('unsubscribes gold from price.equity when its last listener leaves', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: { apiKey: 'key', secret: 'secret', passphrase: 'pass' },
+      });
+      const unsubscribeGold = manager.subscribeToCryptoPrices(
+        ['xau/usd'],
+        jest.fn(),
+      );
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const socket = openPolyboltSocket();
+
+      unsubscribeGold();
+
+      const unsubscribeFrames = socket.send.mock.calls
+        .map(([frame]) => JSON.parse(frame as string))
+        .filter((frame) => frame.op === 'unsubscribe');
+      expect(unsubscribeFrames).toHaveLength(1);
+      expect(unsubscribeFrames[0].subscriptions).toEqual([
+        { channel: 'price.equity', filter: { symbol: 'xauusd' } },
+      ]);
+    });
+
     const polyboltCredentials = {
       apiKey: 'key',
       secret: 'secret',

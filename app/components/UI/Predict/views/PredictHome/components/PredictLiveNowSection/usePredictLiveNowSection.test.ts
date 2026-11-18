@@ -11,9 +11,16 @@ import {
   BTC_UP_OR_DOWN_5M_SERIES,
   ETH_UP_OR_DOWN_5M_SERIES,
   BTC_UP_OR_DOWN_15M_SERIES,
+  GOLD_UP_OR_DOWN_15M_SERIES,
+  SILVER_UP_OR_DOWN_15M_SERIES,
 } from '../../../../constants/liveNowCryptoSeries';
 import type { PredictMarket, PredictMarketListParams } from '../../../../types';
-import { CRYPTO_TAG, UP_OR_DOWN_TAG } from '../../../../utils/cryptoUpDown';
+import {
+  CRYPTO_TAG,
+  GOLD_TAG,
+  SILVER_TAG,
+  UP_OR_DOWN_TAG,
+} from '../../../../utils/cryptoUpDown';
 import {
   usePredictLiveNowSection,
   LIVE_NOW_FETCH_LIMIT,
@@ -46,6 +53,13 @@ const createCryptoMarket = (id: string, seriesId = id): PredictMarket =>
     id,
     tags: [CRYPTO_TAG, UP_OR_DOWN_TAG],
     series: { id: seriesId, slug: 'crypto-up-or-down', recurrence: '5m' },
+  }) as unknown as PredictMarket;
+
+const createMetalMarket = (id: string, assetTag: string): PredictMarket =>
+  ({
+    id,
+    tags: ['finance', assetTag, UP_OR_DOWN_TAG],
+    series: { id, slug: `${assetTag}-up-or-down-15m`, recurrence: '15m' },
   }) as unknown as PredictMarket;
 
 const setLiveMarketList = (
@@ -344,6 +358,50 @@ describe('usePredictLiveNowSection', () => {
       'L6',
       'BTC15M',
     ]);
+  });
+
+  it('adds Gold and Silver 15m after the crypto series when they resolve', () => {
+    setUpDownEnabled(true);
+    setLiveMarketList({
+      markets: [
+        createLiveMarket('L1'),
+        createLiveMarket('L2'),
+        createLiveMarket('L3'),
+        createLiveMarket('L4'),
+      ],
+    });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('BTC5M'),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('ETH5M'),
+      [BTC_UP_OR_DOWN_15M_SERIES.id]: createCryptoMarket('BTC15M'),
+      [GOLD_UP_OR_DOWN_15M_SERIES.id]: createMetalMarket('GOLD15M', GOLD_TAG),
+      [SILVER_UP_OR_DOWN_15M_SERIES.id]: createMetalMarket(
+        'SILVER15M',
+        SILVER_TAG,
+      ),
+    });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual([
+      'L1',
+      'L2',
+      'BTC5M',
+      'L3',
+      'L4',
+      'ETH5M',
+      'BTC15M',
+      'GOLD15M',
+      'SILVER15M',
+    ]);
+    expect(mockUseCurrentPredictMarketFromSeries).toHaveBeenCalledWith({
+      series: GOLD_UP_OR_DOWN_15M_SERIES,
+      enabled: true,
+    });
+    expect(mockUseCurrentPredictMarketFromSeries).toHaveBeenCalledWith({
+      series: SILVER_UP_OR_DOWN_15M_SERIES,
+      enabled: true,
+    });
   });
 
   it('pins matching series to the front of the interleaved Live Now rail', () => {

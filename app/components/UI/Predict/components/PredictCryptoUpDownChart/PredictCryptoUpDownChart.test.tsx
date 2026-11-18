@@ -4,7 +4,9 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictCryptoUpDownChart, {
   CRYPTO_UP_DOWN_FORMAT_TIME,
   CRYPTO_UP_DOWN_FORMAT_VALUE,
+  METAL_UP_DOWN_FORMAT_VALUE,
   computeBottomPadding,
+  getCryptoUpDownFormatValue,
 } from './PredictCryptoUpDownChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import {
@@ -118,6 +120,25 @@ describe('PredictCryptoUpDownChart', () => {
     });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
     expect(chart.props.formatTime).toBe(CRYPTO_UP_DOWN_FORMAT_TIME);
+  });
+
+  it('formats gold axis and tooltip values in cents', () => {
+    const market = {
+      ...createMockMarket(),
+      slug: 'xau-updown-15m-1794338100',
+      tags: ['finance', 'gold', 'up-or-down'],
+    };
+
+    render(<PredictCryptoUpDownChart market={market} />);
+    fireEvent(
+      screen.getByTestId('predict-crypto-up-down-chart-container'),
+      'layout',
+      { nativeEvent: { layout: { height: 300 } } },
+    );
+
+    expect(screen.getByTestId('mock-liveline-chart').props.formatValue).toBe(
+      METAL_UP_DOWN_FORMAT_VALUE,
+    );
   });
 
   it('renders the connection-error state instead of the chart when connectionError is true', () => {
@@ -423,6 +444,51 @@ describe('PredictCryptoUpDownChart', () => {
     ])('formats %p as %p', (input, expected) => {
       expect(formatValue(input)).toBe(expected);
     });
+  });
+
+  describe('METAL_UP_DOWN_FORMAT_VALUE', () => {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    const formatValue = new Function('v', METAL_UP_DOWN_FORMAT_VALUE) as (
+      v: number,
+    ) => string;
+
+    it.each([
+      [0, '$0.00'],
+      [51.534, '$51.53'],
+      [51.536, '$51.54'],
+      [999.999, '$1,000.00'],
+      [4029.91, '$4,029.91'],
+      [4030.355, '$4,030.36'],
+      [1234567.891, '$1,234,567.89'],
+      [-4030.36, '-$4,030.36'],
+    ])('formats %p as %p', (input, expected) => {
+      expect(formatValue(input)).toBe(expected);
+    });
+
+    it('tells apart gridlines a 15-minute gold window spans', () => {
+      const labels = [4029.9, 4030, 4030.1, 4030.2, 4030.3, 4030.4].map(
+        formatValue,
+      );
+
+      expect(new Set(labels).size).toBe(labels.length);
+    });
+  });
+
+  describe('getCryptoUpDownFormatValue', () => {
+    it.each(['XAU', 'XAG', 'xau'])('uses cents for %s', (symbol) => {
+      expect(getCryptoUpDownFormatValue(symbol)).toBe(
+        METAL_UP_DOWN_FORMAT_VALUE,
+      );
+    });
+
+    it.each(['BTC', 'ETH', undefined])(
+      'keeps whole dollars for %s',
+      (symbol) => {
+        expect(getCryptoUpDownFormatValue(symbol)).toBe(
+          CRYPTO_UP_DOWN_FORMAT_VALUE,
+        );
+      },
+    );
   });
 
   describe('CRYPTO_UP_DOWN_FORMAT_TIME', () => {

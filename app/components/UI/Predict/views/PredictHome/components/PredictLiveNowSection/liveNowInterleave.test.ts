@@ -58,7 +58,7 @@ describe('interleaveLiveNowMarkets', () => {
 
     const result = interleaveLiveNowMarkets([], crypto);
 
-    expect(idsOf(result)).toEqual(['C1', 'C2', 'C3']);
+    expect(idsOf(result)).toEqual(['C1', 'C2', 'C3', 'C4', 'C5']);
     expect(result).toHaveLength(LIVE_NOW_MAX_CRYPTO);
   });
 
