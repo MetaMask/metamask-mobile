@@ -44,52 +44,8 @@ export function getRemoteFeatureFlagControllerInstanceOptions({
     }),
     // Apply default feature flag values here.
     defaultFeatureFlags: {
-      // Dev-only seed so the EUR market can be opened from Settings → Feature
-      // flag override before the LaunchDarkly flag exists. It defaults off, so
-      // `selectNeobankMarkets` behaves as if the flag were absent; production
-      // builds never include it.
-      ...(__DEV__
-        ? {
-            moneyMovementNeobankEur: {
-              enabled: false,
-              minimumVersion: '0.0.0',
-              currency: 'EUR',
-              // TRAM-4385 launch countries; Bulgaria is excluded.
-              regions: [
-                'AT',
-                'BE',
-                'HR',
-                'CY',
-                'CZ',
-                'DK',
-                'EE',
-                'FI',
-                'FR',
-                'DE',
-                'GR',
-                'HU',
-                'IS',
-                'IE',
-                'IT',
-                'LV',
-                'LI',
-                'LT',
-                'LU',
-                'MT',
-                'NL',
-                'NO',
-                'PL',
-                'PT',
-                'RO',
-                'SK',
-                'SI',
-                'ES',
-                'SE',
-              ],
-              layout: 'Sepa',
-            },
-          }
-        : {}),
+      // Example:
+      // 'feature-flag-name': true,
     },
     // Flags that are used in flows prior to authentication should be added here.
     metaMetricsFlags: [
