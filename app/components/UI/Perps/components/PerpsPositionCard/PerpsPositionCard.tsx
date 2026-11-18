@@ -36,15 +36,13 @@ import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags'
 import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import {
   getPerpsDisplaySymbol,
-  PERPS_DISPLAY_PRECISION,
   type Order,
   type Position,
 } from '@metamask/perps-controller';
 import {
-  formatFundingSinceOpen,
-  formatPercentage,
   formatPerpsFiat,
   formatPnl,
+  formatRoePercentage,
   formatPositionSize,
   formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -147,7 +145,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   // Funding cost (cumulative since open) formatting logic
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
   const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
-  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> neutral colour
+  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
 
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
   let fundingColorFromValue: TextColor = TextColor.TextDefault;
@@ -160,7 +158,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     ? TextColor.TextDefault
     : fundingColorFromValue;
 
-  const fundingDisplay = formatFundingSinceOpen(fundingSinceOpen);
+  const fundingSignPrefix = fundingSinceOpen >= 0 ? '-' : '+';
+  const fundingDisplay = isNearZeroFunding
+    ? '$0.00'
+    : `${fundingSignPrefix}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      })}`;
 
   const handleSizeToggle = () => {
     setShowSizeInUSD(!showSizeInUSD);
@@ -371,10 +374,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {formatPercentage(
-                  roePercentage,
-                  PERPS_DISPLAY_PRECISION.RoePercent,
-                )}
+                {formatRoePercentage(roePercentage, roe < 0)}
               </SensitiveText>
             </Card>
           </Box>

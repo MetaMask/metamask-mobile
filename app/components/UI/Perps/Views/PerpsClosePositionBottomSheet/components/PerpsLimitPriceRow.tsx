@@ -14,12 +14,13 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import { useBlinkingCursor } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { formatLimitPriceInput } from '../../../utils/formatUtils';
 
 /** Muted stand-in that reads as an input the keypad is waiting to fill. */
-const EMPTY_LIMIT_PRICE_DISPLAY = '0.00';
+const EMPTY_LIMIT_PRICE_DRAFT = '0.00';
 
 export interface PerpsLimitPriceRowProps {
-  /** Numeric portion only; the row renders its own `$`. */
+  /** The complete localized draft, currency included (`formatLimitPriceInput`). */
   value: string;
   hasValue: boolean;
   error: string;
@@ -51,6 +52,20 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
   }
 
   const isEmptyInReview = !hasValue && !isEditing;
+  const displayValue = hasValue
+    ? value
+    : formatLimitPriceInput(EMPTY_LIMIT_PRICE_DRAFT);
+
+  // A suffix-currency draft (`1.234,50 $` in German) keeps the caret after the
+  // digits, where it blinks in prefix-currency locales. Digits end before the
+  // first trailing run of non-numeric characters (the currency symbol).
+  const currencySuffixMatch = hasValue
+    ? /\s*[^\d.,\s]+\s*$/u.exec(displayValue)
+    : null;
+  const digitsValue = currencySuffixMatch
+    ? displayValue.slice(0, currencySuffixMatch.index)
+    : displayValue;
+  const currencySuffix = currencySuffixMatch?.[0] ?? '';
 
   const cursor = isEditing ? (
     <Animated.View
@@ -67,9 +82,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={`${strings('perps.order.limit_price')}, ${
-          isEmptyInReview
-            ? strings('perps.order.set_price')
-            : `$${hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}`
+          isEmptyInReview ? strings('perps.order.set_price') : displayValue
         }`}
         onPress={onPress}
         testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW}
@@ -83,36 +96,31 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
+            testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT}
           >
             {isEmptyInReview ? (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.ErrorDefault}
-                testID={
-                  PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
-                }
-              >
+              <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
                 {strings('perps.order.set_price')}
               </Text>
             ) : (
               <>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  $
-                </Text>
                 {!hasValue ? cursor : null}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={priceColor}
-                  testID={
-                    PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
-                  }
-                >
-                  {hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}
-                </Text>
-                {hasValue ? cursor : null}
+                {currencySuffix ? (
+                  <>
+                    <Text variant={TextVariant.BodyMd} color={priceColor}>
+                      {digitsValue}
+                    </Text>
+                    {cursor}
+                    <Text variant={TextVariant.BodyMd} color={priceColor}>
+                      {currencySuffix}
+                    </Text>
+                  </>
+                ) : (
+                  <Text variant={TextVariant.BodyMd} color={priceColor}>
+                    {displayValue}
+                  </Text>
+                )}
+                {hasValue && !currencySuffix ? cursor : null}
               </>
             )}
           </Box>

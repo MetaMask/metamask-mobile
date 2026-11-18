@@ -61,6 +61,8 @@ jest.mock('../../utils/formatUtils', () => ({
   parseCurrencyString: jest.fn((value) => value?.replace('$', '') || ''),
   formatPercentage: jest.requireActual('../../utils/formatUtils')
     .formatPercentage,
+  formatRoePercentage: jest.requireActual('../../utils/formatUtils')
+    .formatRoePercentage,
   PRICE_RANGES_MINIMAL_VIEW: [],
 }));
 jest.mock('../../../Rewards/hooks/useSeasonStatus', () => ({

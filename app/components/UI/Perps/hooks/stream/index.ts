@@ -11,6 +11,7 @@ export { usePerpsTopOfBook } from './usePerpsTopOfBook';
 export { usePerpsLiveFocusedPrice } from './usePerpsLiveFocusedPrice';
 export { usePerpsLiveCandles } from './usePerpsLiveCandles';
 export { usePerpsLiveOrderBook } from './usePerpsLiveOrderBook';
+export { usePerpsLiveAvailableToTrade } from './usePerpsLiveAvailableToTrade';
 
 // Export types for convenience
 export type { UsePerpsLivePricesOptions } from './usePerpsLivePrices';
@@ -26,6 +27,7 @@ export type {
   TopOfBookData,
 } from './usePerpsTopOfBook';
 export type { UsePerpsLiveFocusedPriceOptions } from './usePerpsLiveFocusedPrice';
+export type { UsePerpsLiveAvailableToTradeOptions } from './usePerpsLiveAvailableToTrade';
 export type {
   UsePerpsLiveCandlesOptions,
   UsePerpsLiveCandlesReturn,

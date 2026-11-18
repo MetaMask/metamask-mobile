@@ -188,13 +188,6 @@ export const CHASE_HISTORY_STATUSES: ReadonlySet<ChaseOrder['status']> =
 export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
   new Set([CHASE_ORDER_STATUS.Active, CHASE_ORDER_STATUS.TerminationPending]);
 
-/**
- * Decimal places used when displaying how far a position's current price sits
- * from its liquidation price, as a percentage. Whole-number rounding hid
- * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
- */
-export const LIQUIDATION_DISTANCE_DECIMALS = 2;
-
 /** Cross margin account ratio at and above which the account is elevated risk. */
 export const CROSS_MARGIN_RATIO_WARNING_THRESHOLD = 0.5;
 
@@ -223,7 +216,7 @@ export const PERPS_INFO_BUTTON_HIT_SLOP = 12;
  * Decimal places for the estimated and max slippage percentages in the order
  * forms. Mobile keeps its current 2 decimals while product decides whether it
  * moves to perps-controller's `PERPS_DISPLAY_PRECISION.SlippageEstimatePercent`
- * (4). Pending product answer (TAT-4571).
+ * (4). Pending a product decision.
  */
 export const PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS = 2;
 
@@ -561,6 +554,20 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
   orderBookExpanded: true,
   orderBookPosition: 'right',
 } as const;
+/** Order form "available to trade" update throttle, matching its other live values. */
+export const PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS = 1000;
+
+/**
+ * Providers whose venue reports available to trade. Core's contract is that a
+ * provider without the venue value never invokes the subscription callback, so
+ * the value stays unknown; until perps-controller exposes per-provider stream
+ * capabilities, this mirrors the providers that implement
+ * `subscribeToAvailableToTrade`. The order form falls back to the account-wide
+ * spendable balance for the rest instead of a permanent placeholder.
+ */
+export const PERPS_AVAILABLE_TO_TRADE_PROVIDERS: ReadonlySet<string> = new Set([
+  'hyperliquid',
+]);
 /** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;
 

@@ -184,6 +184,13 @@ jest.mock('../../hooks', () => ({
     isLoading: false,
     error: null,
   })),
+  usePerpsMarketData: jest.fn(() => ({
+    marketData: { szDecimals: 5 },
+    isLoading: false,
+    isProviderMetadataAvailable: true,
+    error: null,
+    refetch: jest.fn(),
+  })),
   usePositionManagement: jest.fn(() => ({
     showModifyActionSheet: false,
     modifyActionSheetRef: mockModifyActionSheetRef,

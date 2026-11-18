@@ -60,6 +60,7 @@ import {
 } from '@metamask/perps-controller';
 import {
   usePerpsMarkets,
+  usePerpsMarketData,
   usePerpsNavigation,
   usePositionManagement,
 } from '../../hooks';
@@ -129,6 +130,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Get market data for the header
   const { markets } = usePerpsMarkets();
+  // Venue size precision for base-currency order book totals.
+  const { marketData: marketMetadata } = usePerpsMarketData({
+    asset: symbol || '',
+    providerId: routeMarketData?.providerId,
+  });
   const market = useMemo(() => {
     if (!symbol) {
       return undefined;
@@ -715,6 +721,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             orderBook={orderBook}
             symbol={symbol || ''}
             unit={unitDisplay}
+            szDecimals={marketMetadata?.szDecimals}
             isLoading={isLoading}
             testID={PerpsOrderBookViewSelectorsIDs.TABLE}
           />

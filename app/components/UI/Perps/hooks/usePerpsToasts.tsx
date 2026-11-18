@@ -40,14 +40,13 @@ import {
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
-  PERPS_DISPLAY_PRECISION,
   PERPS_EVENT_VALUE,
   OrderDirection,
   getPerpsDisplaySymbol,
   type MarginModeLockReason,
   type Position,
 } from '@metamask/perps-controller';
-import { formatPercentage, formatPerpsFiat } from '../utils/formatUtils';
+import { formatRoePercentage, formatPerpsFiat } from '../utils/formatUtils';
 import {
   handlePerpsError,
   type OrderEditRejection,
@@ -1011,10 +1010,7 @@ const usePerpsToasts = (): {
                         }}
                       >
                         {' '}
-                        {formatPercentage(
-                          roeValue,
-                          PERPS_DISPLAY_PRECISION.RoePercent,
-                        )}
+                        {formatRoePercentage(roeValue, roeValue < 0)}
                       </Text>
                     </Text>,
                   ),
@@ -1085,10 +1081,7 @@ const usePerpsToasts = (): {
                         }}
                       >
                         {' '}
-                        {formatPercentage(
-                          roeValue,
-                          PERPS_DISPLAY_PRECISION.RoePercent,
-                        )}
+                        {formatRoePercentage(roeValue, roeValue < 0)}
                       </Text>
                     </Text>,
                   ),
