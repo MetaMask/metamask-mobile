@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useOptInToCampaign } from './useOptInToCampaign';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectProfileControllerProfile } from '../../../../selectors/profileController';
 import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 
 jest.mock('react-redux', () => ({
@@ -16,6 +17,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/profileController', () => ({
+  selectProfileControllerProfile: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
@@ -39,9 +44,12 @@ const SUB_ID = 'sub-123';
 const CAMPAIGN_ID = 'camp-456';
 const STATUS = { optedIn: true, participantCount: 42 };
 
-function setupSelectors(subscriptionId: string | null) {
+function setupSelectors(subscriptionId: string | null, username?: string) {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return subscriptionId;
+    if (selector === selectProfileControllerProfile) {
+      return username ? { profileId: 'profile-1', username } : undefined;
+    }
     return undefined;
   });
 }
@@ -93,6 +101,39 @@ describe('useOptInToCampaign', () => {
       status: STATUS,
     });
     expect(returnValue).toEqual(STATUS);
+  });
+
+  it('sends the profile username only when the profile has one', async () => {
+    setupSelectors(SUB_ID, ' ada ');
+    mockCall.mockResolvedValueOnce(STATUS as never);
+
+    const { result } = renderHook(() => useOptInToCampaign());
+    await act(async () => {
+      await result.current.optInToCampaign(CAMPAIGN_ID);
+    });
+
+    expect(mockCall).toHaveBeenCalledWith(
+      'RewardsController:optInToCampaign',
+      CAMPAIGN_ID,
+      SUB_ID,
+      'ada',
+    );
+  });
+
+  it('omits a blank profile username', async () => {
+    setupSelectors(SUB_ID, '   ');
+    mockCall.mockResolvedValueOnce(STATUS as never);
+
+    const { result } = renderHook(() => useOptInToCampaign());
+    await act(async () => {
+      await result.current.optInToCampaign(CAMPAIGN_ID);
+    });
+
+    expect(mockCall).toHaveBeenCalledWith(
+      'RewardsController:optInToCampaign',
+      CAMPAIGN_ID,
+      SUB_ID,
+    );
     expect(result.current.isOptingIn).toBe(false);
     expect(result.current.optInError).toBeUndefined();
   });
