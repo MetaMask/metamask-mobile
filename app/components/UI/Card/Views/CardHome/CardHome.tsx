@@ -20,6 +20,8 @@ import {
   IconColor,
   IconSize,
   Spinner,
+  SegmentedControl,
+  FilterButton,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
@@ -65,6 +67,7 @@ import {
   CardProviderIds,
   type CardAction,
   type CardAlert,
+  type CardTransaction,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
@@ -111,6 +114,8 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import CardImageSection from './components/CardImageSection';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
+import CardHomeRecentActivity from './components/CardHomeRecentActivity';
+import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions';
 import CardHomeActionButtonRow, {
   getCardHomeActionVisibility,
 } from './components/CardHomeActionButtonRow';
@@ -154,6 +159,12 @@ const SETUP_ALERT_TYPES = new Set([
   'allowance_revoked',
 ]);
 
+/** Local tabs under the action button row (active and frozen states only). */
+enum CardHomeSegment {
+  Activity = 'activity',
+  Manage = 'manage',
+}
+
 const CardHome = () => {
   // --- Data ---
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
@@ -181,6 +192,19 @@ const CardHome = () => {
   const theme = useTheme();
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
+  const recentTransactions = useCardRecentTransactions();
+  const [activeHomeSegment, setActiveHomeSegment] = useState<CardHomeSegment>(
+    CardHomeSegment.Manage,
+  );
+  const handleRecentTransactionPress = useCallback(
+    (transaction: CardTransaction) => {
+      navigation.navigate(Routes.CARD.TRANSACTION_DETAILS, {
+        transactionId: transaction.id,
+        transaction,
+      });
+    },
+    [navigation],
+  );
 
   const isSwapEnabled = useIsSwapEnabledForPriorityToken(
     data?.primaryFundingAsset?.walletAddress,
@@ -798,6 +822,23 @@ const CardHome = () => {
         isBlocked ||
         showVerificationPendingBanner));
 
+  // Activity / Manage segments only in the active and frozen states of a
+  // fully set-up card. Every other state keeps the management list as
+  // before, with no segments.
+  const showHomeSegments =
+    !isLoading &&
+    isAuthenticated &&
+    (data?.card?.status === CardStatus.ACTIVE ||
+      data?.card?.status === CardStatus.FROZEN) &&
+    !hasSetupActions &&
+    !hasSetupAlerts &&
+    !hasAlertOnlyState &&
+    !isUkMigrationForced;
+  const showRecentActivity =
+    showHomeSegments && activeHomeSegment === CardHomeSegment.Activity;
+  const showManageOptions =
+    !showHomeSegments || activeHomeSegment === CardHomeSegment.Manage;
+
   // --- Main render ---
   return (
     <Box twClassName="flex-1 bg-background-default">
@@ -1070,6 +1111,48 @@ const CardHome = () => {
               />
             )}
 
+            {showHomeSegments && (
+              <Box twClassName="px-4 mt-4 mb-4">
+                <SegmentedControl
+                  value={activeHomeSegment}
+                  onChange={(value) =>
+                    setActiveHomeSegment(value as CardHomeSegment)
+                  }
+                  isFullWidth
+                  testID={CardHomeSelectors.HOME_SEGMENTS}
+                >
+                  <FilterButton
+                    value={CardHomeSegment.Manage}
+                    testID={CardHomeSelectors.MANAGE_SEGMENT}
+                  >
+                    {strings('card.card_home.segments.manage')}
+                  </FilterButton>
+                  <FilterButton
+                    value={CardHomeSegment.Activity}
+                    testID={CardHomeSelectors.ACTIVITY_SEGMENT}
+                  >
+                    {strings('card.card_home.segments.activity')}
+                  </FilterButton>
+                </SegmentedControl>
+              </Box>
+            )}
+
+            {showRecentActivity && (
+              <CardHomeRecentActivity
+                transactions={recentTransactions}
+                onSeeAll={
+                  transactionHistoryDestination
+                    ? () =>
+                        actions.transactionHistoryAction(
+                          transactionHistoryDestination,
+                        )
+                    : undefined
+                }
+                onTransactionPress={handleRecentTransactionPress}
+                privacyMode={privacyMode}
+              />
+            )}
+
             {isAuthenticated &&
               credit.hasCredit &&
               !hasSetupActions &&
@@ -1118,7 +1201,10 @@ const CardHome = () => {
               </>
             )}
 
-            {isAuthenticated && !isBlocked && !isUkMigrationForced && (
+            {isAuthenticated &&
+              !isBlocked &&
+              !isUkMigrationForced &&
+              showManageOptions && (
               <ManageCardOptions
                 card={data?.card}
                 account={data?.account}

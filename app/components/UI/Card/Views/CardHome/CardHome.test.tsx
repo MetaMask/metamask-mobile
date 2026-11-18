@@ -93,6 +93,11 @@ import {
   type RegistrationSettingsResponse,
 } from '../../types';
 import type { TokenI } from '../../../Tokens/types';
+import {
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -370,6 +375,54 @@ jest.mock('./hooks/useCardEnableCard', () => ({
 
 jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
   useIsGlassSurfaceEnabled: () => false,
+}));
+
+const mockRecheckProvisioning = jest.fn();
+const mockUseCardRecentTransactions = jest.fn<CardTransaction[], []>(() => []);
+
+const mockActivityTransactions: CardTransaction[] = [
+  {
+    id: 'mock-tx-1',
+    providerId: 'baanx',
+    timestamp: Date.now(),
+    status: CardTransactionStatus.Pending,
+    type: CardTransactionType.Purchase,
+    isDebit: true,
+    billingAmount: { value: '6.45', currency: 'USD' },
+    merchant: { name: 'Pret A Manger' },
+    fundingSources: [],
+  },
+  {
+    id: 'mock-tx-2',
+    providerId: 'baanx',
+    timestamp: Date.now(),
+    status: CardTransactionStatus.Completed,
+    type: CardTransactionType.Purchase,
+    isDebit: true,
+    billingAmount: { value: '18.20', currency: 'USD' },
+    merchant: { name: 'Uber' },
+    fundingSources: [],
+  },
+  {
+    id: 'mock-tx-3',
+    providerId: 'baanx',
+    timestamp: Date.now(),
+    status: CardTransactionStatus.Completed,
+    type: CardTransactionType.Refund,
+    isDebit: false,
+    billingAmount: { value: '42.99', currency: 'USD' },
+    merchant: { name: 'Amazon' },
+    fundingSources: [],
+  },
+];
+
+jest.mock('../../hooks/useCardRecentTransactions', () => ({
+  useCardRecentTransactions: () => mockUseCardRecentTransactions(),
+}));
+
+const mockTransactionHistoryDestination = 'card' as 'card' | 'money' | null;
+jest.mock('../../hooks/useCardTransactionHistoryDestination', () => ({
+  useCardTransactionHistoryDestination: () => mockTransactionHistoryDestination,
 }));
 
 jest.mock('../../hooks/useCreditBalance', () => ({
@@ -804,6 +857,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Authentication required to resume spending on your card.',
       'card.password_bottomsheet.description_unfreeze':
         'Enter your wallet password to unfreeze your card.',
+      'card.card_home.segments.activity': 'Activity',
+      'card.card_home.segments.manage': 'Manage',
+      'card.card_home.recent_activity.see_all': 'See all',
+      'card.card_home.activity_empty_title': 'No transactions yet',
+      'card.card_home.activity_empty_description':
+        'Your card purchases will show here.',
       'card.card_home.manage_card_options.view_pin': 'View PIN',
       'card.card_home.manage_card_options.view_pin_description':
         'View your card PIN securely',
@@ -1296,8 +1355,8 @@ const CardHomeWithToast = () => (
 );
 
 // Helper: Render component with proper wrapper
-function render() {
-  return renderScreen(
+function render(options?: { segment?: 'activity' | 'manage' }) {
+  const view = renderScreen(
     withCardSDK(CardHomeWithToast),
     {
       name: Routes.CARD.HOME,
@@ -1310,6 +1369,27 @@ function render() {
       },
     },
   );
+  if (options?.segment) {
+    const segmentTestId =
+      options.segment === 'manage'
+        ? CardHomeSelectors.MANAGE_SEGMENT
+        : CardHomeSelectors.ACTIVITY_SEGMENT;
+    const expectedTestId =
+      options.segment === 'manage'
+        ? CardHomeSelectors.CHANGE_ASSET_BUTTON
+        : CardHomeSelectors.RECENT_ACTIVITY;
+    const segmentButton = screen.queryByTestId(segmentTestId);
+    if (segmentButton) {
+      fireEvent.press(segmentButton);
+      if (screen.queryByTestId(expectedTestId) == null) {
+        const control = screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS);
+        if (control) {
+          fireEvent(control, 'onChange', options.segment);
+        }
+      }
+    }
+  }
+  return view;
 }
 
 const authTransitionListeners = new Set<() => void>();
@@ -1362,6 +1442,7 @@ describe('CardHome Component', () => {
     mockIsSignedOutKycPending = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
+    mockUseCardRecentTransactions.mockReturnValue([]);
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -3667,6 +3748,206 @@ describe('CardHome Component', () => {
       expect(fetchSpy).toHaveBeenCalledWith();
 
       jest.mocked(useFocusEffect).mockImplementation(jest.fn());
+    });
+  });
+
+  describe('Home segments', () => {
+    const renderActiveAuthenticated = (options?: {
+      segment?: 'activity' | 'manage';
+    }) => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+      return render(options);
+    };
+
+    it('shows Manage by default, and the latest transactions after switching to Activity', () => {
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+      renderActiveAuthenticated();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.HOME_SEGMENTS),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.ACTIVITY_SEGMENT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.MANAGE_SEGMENT),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Activity')).toBeOnTheScreen();
+      expect(screen.getByText('Manage')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY),
+      ).toBeNull();
+
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.ACTIVITY_SEGMENT));
+      if (screen.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY) == null) {
+        fireEvent(
+          screen.getByTestId(CardHomeSelectors.HOME_SEGMENTS),
+          'onChange',
+          'activity',
+        );
+      }
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.RECENT_ACTIVITY),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Pret A Manger')).toBeOnTheScreen();
+      expect(screen.getByText('Amazon')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+      ).toBeNull();
+    });
+
+    it('keeps the management rows on the Manage segment', () => {
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+      renderActiveAuthenticated({ segment: 'manage' });
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+      ).toBeNull();
+    });
+
+    it('opens Transaction history from See all', () => {
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+      renderActiveAuthenticated({ segment: 'activity' });
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.TRANSACTION_HISTORY,
+      );
+    });
+
+    it('opens transaction details from a recent row', () => {
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+      renderActiveAuthenticated({ segment: 'activity' });
+      mockNavigate.mockClear();
+
+      fireEvent.press(screen.getByTestId('card-home-tx-mock-tx-1'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.TRANSACTION_DETAILS,
+        expect.objectContaining({
+          transactionId: 'mock-tx-1',
+          transaction: mockActivityTransactions[0],
+        }),
+      );
+    });
+
+    it('shows the empty state when there are no recent transactions', () => {
+      mockUseCardRecentTransactions.mockReturnValue([]);
+      renderActiveAuthenticated({ segment: 'activity' });
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('No transactions yet')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Your card purchases will show here.'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+      ).toBeNull();
+    });
+
+    it('shows the segments when the card is frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+
+      render({ segment: 'activity' });
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.HOME_SEGMENTS),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.RECENT_ACTIVITY),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the segments while the card still needs enabling', () => {
+      mockCanEnableCard = true;
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        warning: CardStateWarning.NoCard,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+
+      render();
+
+      expect(screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+    });
+
+    it('hides the segments while identity is in review', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        warning: CardStateWarning.NoCard,
+        kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+      });
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+
+      render();
+
+      expect(screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+    });
+
+    it('hides the segments when signed out during identity review', () => {
+      mockIsSignedOutKycPending = true;
+      setupMockSelectors({ isAuthenticated: false });
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+
+      render();
+
+      expect(screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+    });
+
+    it('hides the segments during forced UK migration', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+        ukMigrationState: {
+          phase: 'forced',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+      });
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+
+      render();
+
+      expect(screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
     });
   });
 
