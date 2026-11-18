@@ -702,7 +702,8 @@ jobs:
           # only the *-with-srp builds may bake them in (build.sh rejects them in store builds).
           ADDITIONAL_SRP_1: ${{ endsWith(inputs.build_name, '-with-srp') && secrets.IN_BUILD_SRP || '' }}
           PREDEFINED_PASSWORD: ${{ endsWith(inputs.build_name, '-with-srp') && secrets.E2E_PASSWORD || '' }}
-          E2E_BYOA_AUTH_SECRET: ${{ endsWith(inputs.build_name, '-without-srp') && secrets.E2E_BYOA_AUTH_SECRET || '' }}
+          # main-dev-without-srp does not mock OAuth, so it never had the BYOA secret.
+          E2E_BYOA_AUTH_SECRET: ${{ endsWith(inputs.build_name, '-without-srp') && inputs.build_name != 'main-dev-without-srp' && secrets.E2E_BYOA_AUTH_SECRET || '' }}
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 55

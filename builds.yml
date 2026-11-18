@@ -167,6 +167,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'main'
+
   # Beta (production APIs, RC signing; TestFlight / Play Store beta track)
   main-beta:
     github_environment: build-beta
@@ -175,6 +176,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'beta'
       METAMASK_BUILD_TYPE: 'main'
+
   # Release candidate
   main-rc:
     github_environment: build-rc
@@ -183,6 +185,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'rc'
       METAMASK_BUILD_TYPE: 'main'
+
   # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
@@ -208,6 +211,7 @@ builds:
       # selector override so Telegram seedless onboarding performance coverage
       # (TO-916) can see the button without depending on remote test flags.
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
+
   # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
@@ -241,6 +245,7 @@ builds:
       METAMASK_BUILD_TYPE: 'main'
       IS_BROWSERSTACK_BUILD: 'true'
       IS_SIM_BUILD: 'false'
+
   # Release candidate without pre-imported wallet — seedless onboarding (OAuthLoginHandlers mocked)
   # RC counterpart to main-rc-with-srp; used by performance tests that exercise the onboarding flow.
   main-rc-without-srp:
@@ -259,6 +264,7 @@ builds:
       # Keep Telegram seedless onboarding available for RC without-srp perf runs
       # even if remote flag delivery lags; selector reads MM_TELEGRAM_LOGIN_ENABLED.
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
+
   # Test builds
   main-test:
     github_environment: build-uat
@@ -272,6 +278,7 @@ builds:
       HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
+
   # E2E test builds (no Sentry)
   main-e2e:
     github_environment: build-e2e
@@ -285,6 +292,7 @@ builds:
       HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
+
   # Experimental builds
   main-exp:
     github_environment: build-exp
@@ -300,6 +308,7 @@ builds:
       # Ships the Lighter signer in nightly exp builds; LaunchDarkly
       # perps-lighter-provider-enabled controls who sees the provider selector.
       MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'true'
+
   # BrowserStack experimental builds — with pre-imported wallet
   main-exp-with-srp:
     github_environment: build-exp
@@ -312,6 +321,7 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+
   # BrowserStack experimental builds — seedless onboarding (OAuthLoginHandlers mocked)
   main-exp-without-srp:
     github_environment: build-exp
@@ -327,6 +337,7 @@ builds:
       OAUTH_BUILD_TYPE: 'main_uat'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
+
   # Dev-environment onboarding build. Same API hosts as main-dev, with no
   # baked SRP, so the app opens on the onboarding screen. Used by the
   # performance dev-onboarding suite on TestMu.
@@ -340,6 +351,7 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       IS_PERFORMANCE_TEST: 'true'
+
   # Local development / Expo development build (Runway .app for simulator)
   # Dev release build (Ex. For sideloading via Build Mobile App workflow)
   main-dev:
@@ -347,6 +359,7 @@ builds:
     signing: *signing_dev
     env:
       <<: *main_dev_env
+
   # Same app config as main-dev, but signed with the RC certificate so the IPA is
   # accepted by TestFlight.
   # iOS only.
@@ -357,6 +370,7 @@ builds:
     env:
       <<: *main_dev_env
       PROFILE: 'release'
+
   # Expo dev build (Debug, simulator + device — triggered on push to main)
   main-dev-expo:
     script_name: main-dev
@@ -376,6 +390,7 @@ builds:
       # TODO: Decouple configuration, profile, and build type
       PROFILE: 'development'
       DEV_OAUTH_CONFIG: 'true'
+
   # ---------------------------------------------------------------------------
   # FLASK BUILDS
   # ---------------------------------------------------------------------------
@@ -388,6 +403,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'flask'
+
   # Flask test builds
   flask-test:
     github_environment: build-flask-uat
@@ -401,6 +417,7 @@ builds:
       HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
+
   # Flask E2E test builds (no Sentry)
   flask-e2e:
     github_environment: build-flask-e2e
@@ -414,6 +431,7 @@ builds:
       HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
+
   # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
     github_environment: build-flask-uat

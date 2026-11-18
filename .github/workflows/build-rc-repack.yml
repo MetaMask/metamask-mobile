@@ -458,6 +458,7 @@ jobs:
       # same shape on Android.
       - name: Upload sourcemaps to Sentry
         env:
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
           PLATFORM: ${{ inputs.platform }}
           OUTPUT: ${{ steps.donor.outputs.output }}
           BUILD_NUMBER: ${{ inputs.build_number }}
