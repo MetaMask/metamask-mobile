@@ -1,4 +1,5 @@
 import { StatusTypes } from '@metamask/bridge-controller';
+import { toast } from '@metamask/design-system-react-native';
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 import {
@@ -40,10 +41,13 @@ jest.mock('../../../core/NavigationService', () => ({
   default: { navigation: { navigate: jest.fn() } },
 }));
 
-jest.mock('../../../core/ToastService', () => ({
-  __esModule: true,
-  default: { toastRef: { current: { closeToast: jest.fn() } } },
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('./quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
@@ -85,10 +89,6 @@ const setMultichainTransaction = (
   } as any;
 };
 
-const theme = { colors: {} } as unknown as Parameters<
-  typeof resolveQuickBuyTerminalToast
->[2];
-
 const historyItemWithStatus = (status: StatusTypes) => ({
   status: { status },
 });
@@ -126,16 +126,14 @@ describe('resolveQuickBuyTerminalToast', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('tx-1');
 
     expect(result).toBe(true);
     expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
       trade: buyTrade,
-      theme,
     });
-    expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+    expect(toast).toHaveBeenCalledWith({ kind: 'complete' });
     expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
   });
@@ -145,12 +143,11 @@ describe('resolveQuickBuyTerminalToast', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.FAILED),
     );
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('tx-1');
 
     expect(result).toBe(true);
-    expect(showToast).toHaveBeenCalledWith({ kind: 'failed' });
+    expect(toast).toHaveBeenCalledWith({ kind: 'failed' });
     expect(playErrorNotification).toHaveBeenCalledTimes(1);
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
   });
@@ -160,23 +157,20 @@ describe('resolveQuickBuyTerminalToast', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.PENDING),
     );
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('tx-1');
 
     expect(result).toBe(false);
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
   });
 
   it('returns false without reading history when the id is not tracked', () => {
-    const showToast = jest.fn();
-
-    const result = resolveQuickBuyTerminalToast('missing', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('missing');
 
     expect(result).toBe(false);
     expect(mockGetHistoryItem).not.toHaveBeenCalled();
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('fires only once for the same trade across concurrent terminal resolves', () => {
@@ -184,14 +178,13 @@ describe('resolveQuickBuyTerminalToast', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
-    const showToast = jest.fn();
 
-    const first = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
-    const second = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+    const first = resolveQuickBuyTerminalToast('tx-1');
+    const second = resolveQuickBuyTerminalToast('tx-1');
 
     expect(first).toBe(true);
     expect(second).toBe(false);
-    expect(showToast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the trade recognised as QuickBuy after settling so the delayed generic toast stays suppressed', () => {
@@ -200,7 +193,7 @@ describe('resolveQuickBuyTerminalToast', () => {
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
 
-    resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+    resolveQuickBuyTerminalToast('tx-1');
 
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
     expect(
@@ -215,14 +208,12 @@ describe('resolveQuickBuyTerminalToast', () => {
     trackQuickBuyTrade('sig-1', solanaTrade);
     mockGetHistoryItem.mockReturnValue(undefined);
     setMultichainTransaction('sig-1', KeyringTransactionStatus.Confirmed);
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('sig-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('sig-1');
 
     expect(result).toBe(true);
     expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
       trade: solanaTrade,
-      theme,
     });
     expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
@@ -232,12 +223,11 @@ describe('resolveQuickBuyTerminalToast', () => {
     trackQuickBuyTrade('sig-1', solanaTrade);
     mockGetHistoryItem.mockReturnValue(undefined);
     setMultichainTransaction('sig-1', KeyringTransactionStatus.Failed);
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('sig-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('sig-1');
 
     expect(result).toBe(true);
-    expect(showToast).toHaveBeenCalledWith({ kind: 'failed' });
+    expect(toast).toHaveBeenCalledWith({ kind: 'failed' });
     expect(playErrorNotification).toHaveBeenCalledTimes(1);
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
   });
@@ -246,24 +236,22 @@ describe('resolveQuickBuyTerminalToast', () => {
     trackQuickBuyTrade('sig-1', solanaTrade);
     mockGetHistoryItem.mockReturnValue(undefined);
     setMultichainTransaction('sig-1', KeyringTransactionStatus.Submitted);
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('sig-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('sig-1');
 
     expect(result).toBe(false);
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['sig-1']);
   });
 
   it('keeps tracking a Solana swap with no matching multichain tx yet', () => {
     trackQuickBuyTrade('sig-1', solanaTrade);
     mockGetHistoryItem.mockReturnValue(undefined);
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('sig-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('sig-1');
 
     expect(result).toBe(false);
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['sig-1']);
   });
 
@@ -273,12 +261,11 @@ describe('resolveQuickBuyTerminalToast', () => {
       historyItemWithStatus(StatusTypes.PENDING),
     );
     setMultichainTransaction('tx-1', KeyringTransactionStatus.Confirmed);
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('tx-1');
 
     expect(result).toBe(false);
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
   });
 
@@ -306,12 +293,11 @@ describe('resolveQuickBuyTerminalToast', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
-    const showToast = jest.fn();
 
-    const result = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+    const result = resolveQuickBuyTerminalToast('tx-1');
 
     expect(result).toBe(true);
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     expect(buildQuickBuyToastOptions).not.toHaveBeenCalled();
     expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     expect(getPostTradeShareSession()?.status).toBe('complete');
@@ -343,7 +329,7 @@ describe('resolveQuickBuyTerminalToast', () => {
       reportedSubmittedTxHash: '0xbridge-hash',
     });
 
-    resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+    resolveQuickBuyTerminalToast('tx-1');
 
     const session = getPostTradeShareSession();
     if (session?.product !== 'spot') {
@@ -381,7 +367,7 @@ describe('resolveQuickBuyTerminalToast', () => {
       },
     });
 
-    resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+    resolveQuickBuyTerminalToast('tx-1');
 
     const session = getPostTradeShareSession();
     if (session?.product !== 'spot') {
@@ -444,7 +430,7 @@ describe('resolveQuickBuyTerminalToast', () => {
       trackBridgeShare();
       mockGetHistoryItem.mockReturnValue(bridgeHistoryItem('0xdest-hash'));
 
-      const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      const result = resolveQuickBuyTerminalToast('tx-1');
 
       expect(result).toBe(true);
       expect(getSpotSession()).toEqual(
@@ -460,7 +446,7 @@ describe('resolveQuickBuyTerminalToast', () => {
       trackBridgeShare();
       mockGetHistoryItem.mockReturnValue(bridgeHistoryItem());
 
-      const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      const result = resolveQuickBuyTerminalToast('tx-1');
 
       expect(result).toBe(false);
       expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
@@ -471,10 +457,10 @@ describe('resolveQuickBuyTerminalToast', () => {
       jest.useFakeTimers();
       trackBridgeShare();
       mockGetHistoryItem.mockReturnValue(bridgeHistoryItem());
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
       mockGetHistoryItem.mockReturnValue(bridgeHistoryItem('0xdest-hash'));
 
-      const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      const result = resolveQuickBuyTerminalToast('tx-1');
       jest.advanceTimersByTime(QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS);
 
       expect(result).toBe(true);
@@ -486,7 +472,7 @@ describe('resolveQuickBuyTerminalToast', () => {
       jest.useFakeTimers();
       trackBridgeShare();
       mockGetHistoryItem.mockReturnValue(bridgeHistoryItem());
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
 
       jest.advanceTimersByTime(QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS);
 
@@ -517,17 +503,15 @@ describe('resolveQuickBuyTerminalToast', () => {
         },
       });
       mockGetHistoryItem.mockReturnValue(bridgeHistoryItem());
-      const showToast = jest.fn();
-      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+      resolveQuickBuyTerminalToast('tx-1');
 
       jest.advanceTimersByTime(QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS);
 
       expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
         trade: expect.anything(),
-        theme,
         linkButtonOptions: undefined,
       });
-      expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+      expect(toast).toHaveBeenCalledWith({ kind: 'complete' });
     });
 
     describe('bridged sells', () => {
@@ -574,7 +558,7 @@ describe('resolveQuickBuyTerminalToast', () => {
           sellBridgeHistoryItem('0xdest-hash'),
         );
 
-        const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+        const result = resolveQuickBuyTerminalToast('tx-1');
 
         expect(result).toBe(true);
         expect(getSpotSession()).toEqual(
@@ -590,7 +574,7 @@ describe('resolveQuickBuyTerminalToast', () => {
         trackSellShare();
         mockGetHistoryItem.mockReturnValue(sellBridgeHistoryItem());
 
-        const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+        const result = resolveQuickBuyTerminalToast('tx-1');
 
         expect(result).toBe(true);
         expect(getTrackedQuickBuyTradeIds()).toEqual([]);
@@ -616,7 +600,7 @@ describe('resolveQuickBuyTerminalToast', () => {
           sellBridgeHistoryItem('0xdest-hash'),
         );
 
-        resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+        resolveQuickBuyTerminalToast('tx-1');
         const [, params] = (buildQuickBuyToastOptions as jest.Mock).mock
           .calls[0];
         params.linkButtonOptions.onPress();
@@ -649,11 +633,11 @@ describe('resolveQuickBuyTerminalToast', () => {
       };
       trackQuickBuyTrade('tx-1', buyTrade);
       mockGetHistoryItem.mockReturnValue(bridgeItem);
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
       jest.clearAllTimers();
       clearAwaitingDestinationTxHashes();
 
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
       jest.advanceTimersByTime(QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS);
 
       expect(getTrackedQuickBuyTradeIds()).toEqual([]);
@@ -665,11 +649,10 @@ describe('resolveQuickBuyTerminalToast', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
-    const showToast = jest.fn();
 
-    resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+    resolveQuickBuyTerminalToast('tx-1');
 
-    expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+    expect(toast).toHaveBeenCalledWith({ kind: 'complete' });
   });
 
   describe('post-trade prompt', () => {
@@ -691,7 +674,7 @@ describe('resolveQuickBuyTerminalToast', () => {
         historyItemWithStatus(StatusTypes.COMPLETE),
       );
 
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
 
       expect(incrementShareSheetCount).toHaveBeenCalledWith('0xlinked', 'swap');
     });
@@ -706,7 +689,7 @@ describe('resolveQuickBuyTerminalToast', () => {
         historyItemWithStatus(StatusTypes.FAILED),
       );
 
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
 
       expect(incrementShareSheetCount).not.toHaveBeenCalled();
     });
@@ -736,11 +719,10 @@ describe('resolveQuickBuyTerminalToast', () => {
       mockGetHistoryItem.mockReturnValue(
         historyItemWithStatus(StatusTypes.COMPLETE),
       );
-      const showToast = jest.fn();
 
-      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+      resolveQuickBuyTerminalToast('tx-1');
 
-      expect(showToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(markClaimSheetSeen).toHaveBeenCalledWith('swap');
       expect(getPostTradeShareSession()).toEqual(
         expect.objectContaining({
@@ -757,7 +739,7 @@ describe('resolveQuickBuyTerminalToast', () => {
         historyItemWithStatus(StatusTypes.FAILED),
       );
 
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
 
       expect(markClaimSheetSeen).not.toHaveBeenCalled();
       expect(getPostTradeShareSession()?.status).toBe('failed');
@@ -777,7 +759,7 @@ describe('resolveQuickBuyTerminalToast', () => {
         reportedSubmittedTxHash: '0xhash',
       });
 
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
 
       const [, params] = (buildQuickBuyToastOptions as jest.Mock).mock.calls[0];
       expect(params.linkButtonOptions.label).toBe('Post to feed');
@@ -810,11 +792,10 @@ describe('resolveQuickBuyTerminalToast', () => {
         historyItemWithStatus(StatusTypes.COMPLETE),
       );
 
-      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      resolveQuickBuyTerminalToast('tx-1');
 
       expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
         trade: expect.anything(),
-        theme,
         linkButtonOptions: undefined,
       });
     });
