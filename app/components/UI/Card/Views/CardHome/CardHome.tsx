@@ -6,7 +6,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
+import {
+  Linking,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -20,6 +26,7 @@ import {
   IconColor,
   IconSize,
   Spinner,
+  IconName as MMDSIconName,
   SegmentedControl,
   FilterButton,
 } from '@metamask/design-system-react-native';
@@ -88,7 +95,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
-import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import type { WalletPassDevice } from '../../pushProvisioning/types';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
@@ -117,7 +123,7 @@ import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions
 import CardHomeActionButtonRow, {
   getCardHomeActionVisibility,
 } from './components/CardHomeActionButtonRow';
-import CardHomeFooter from './components/CardHomeFooter';
+import CardHomeMoreSheet from './components/CardHomeMoreSheet';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
@@ -157,6 +163,10 @@ const SETUP_ALERT_TYPES = new Set([
   'allowance_revoked',
 ]);
 
+/** MMDS Button Lg height (h-12) and the CardHome px-4 gutter. */
+const ADD_TO_WALLET_HEIGHT = 48;
+const ADD_TO_WALLET_SIDE_PADDING = 16;
+
 /** Local tabs under the action button row (active and frozen states only). */
 enum CardHomeSegment {
   Activity = 'activity',
@@ -188,6 +198,7 @@ const CardHome = () => {
   const theme = useTheme();
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
+  const { width: windowWidth } = useWindowDimensions();
   const recentTransactions = useCardRecentTransactions();
   const [activeHomeSegment, setActiveHomeSegment] = useState<CardHomeSegment>(
     CardHomeSegment.Manage,
@@ -685,6 +696,21 @@ const CardHome = () => {
   ]);
 
   const headerHandlers = useCardHeaderHandlers('back');
+  // Terms and Contact support live in a "More" sheet behind the header's
+  // vertical-ellipsis button, the same button Money home uses (MoneyHeader).
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
+  const moreButtonProps = useMemo(
+    () => ({
+      iconName: MMDSIconName.MoreVertical,
+      onPress: () => setIsMoreSheetOpen(true),
+      accessibilityLabel: strings('card.card_home.more_button_label'),
+      testID: CardHomeSelectors.MORE_BUTTON,
+      // Matches MoneyHeader: the default press fill covers the glass capsule.
+      twClassName: 'bg-transparent',
+    }),
+    [],
+  );
+
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   // Same flag and tiles as the Money home action row, so both read alike.
   const isGlassSurface = useIsGlassSurfaceEnabled(
@@ -722,6 +748,34 @@ const CardHome = () => {
       Boolean(actions.cardSensitiveDetails) ||
       Boolean(actions.cardDetailsImageUrl),
   });
+
+  // Terms and Contact support live in a "More" sheet behind the header's
+  // vertical-ellipsis button, the same button Money home uses (MoneyHeader).
+  const moreSheet = isMoreSheetOpen ? (
+    <CardHomeMoreSheet
+      onClose={() => setIsMoreSheetOpen(false)}
+      isAuthenticated={isAuthenticated}
+      supportEmail={supportEmail}
+      onContactSupport={handleContactIntercomSupport}
+      legalDocuments={
+        isImmersve && immersveLegalDocuments.length > 0
+          ? immersveLegalDocuments
+          : undefined
+      }
+      hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
+      showLegalDocumentsError={immersveLegalDocsUnavailable}
+      onRetryLegalDocuments={
+        immersveLegalDocsUnavailable
+          ? () => {
+              refetchImmersveLegalDocs().catch(() => {
+                // Error surfaces via hook state / sheet retry UI.
+              });
+            }
+          : undefined
+      }
+      onNavigateToCardTos={actions.navigateToCardTosPage}
+    />
+  ) : null;
 
   // --- Error state ---
   if (isError) {
@@ -821,6 +875,8 @@ const CardHome = () => {
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}
+        // Shown whenever the old footer links showed (every non-loading state).
+        endButtonIconProps={isLoading ? undefined : [moreButtonProps]}
       />
       <ScrollView
         style={tw.style('flex-1 bg-background-default')}
@@ -917,34 +973,6 @@ const CardHome = () => {
               />
             )}
 
-            {showSpendingLimitProgress &&
-              !isUkMigrationForced &&
-              data?.primaryFundingAsset && (
-                <Box twClassName="mx-4 mt-4">
-                  <SpendingLimitProgressBar
-                    isLoading={isLoading}
-                    decimals={data.primaryFundingAsset.decimals ?? 6}
-                    totalAllowance={
-                      data.primaryFundingAsset.originalSpendingCap ??
-                      data.primaryFundingAsset.spendingCap ??
-                      '0'
-                    }
-                    remainingAllowance={
-                      data.primaryFundingAsset.spendingCap ?? '0'
-                    }
-                    symbol={
-                      primaryToken?.displaySymbol ??
-                      data.primaryFundingAsset.symbol ??
-                      ''
-                    }
-                    privacyMode={privacyMode}
-                    hasOriginalAllowance={
-                      !!data.primaryFundingAsset.originalSpendingCap
-                    }
-                  />
-                </Box>
-              )}
-
             {/* Card art sits on the page at full content width (no panel). */}
             <Box twClassName="mt-4 mx-4">
               <Animated.View
@@ -1001,9 +1029,9 @@ const CardHome = () => {
             </Box>
 
             {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
-              <Box twClassName="w-full px-4 pt-4 items-center justify-center">
+              <Box twClassName="w-full px-4 pt-3 items-center justify-center">
                 {isProvisioning ? (
-                  <Box twClassName="py-3">
+                  <Box twClassName="h-12 items-center justify-center">
                     <Spinner
                       testID="push-provisioning-spinner"
                       spinnerIconProps={{ size: IconSize.Xl }}
@@ -1014,18 +1042,13 @@ const CardHome = () => {
                     onPress={isProvisioning ? undefined : initiateProvisioning}
                     buttonStyle="blackOutline"
                     buttonType="basic"
-                    borderRadius={4}
+                    // Match the MMDS Button Lg: full width, 48pt tall, pill corners.
+                    borderRadius={ADD_TO_WALLET_HEIGHT / 2}
+                    style={{
+                      width: windowWidth - ADD_TO_WALLET_SIDE_PADDING * 2,
+                      height: ADD_TO_WALLET_HEIGHT,
+                    }}
                   />
-                )}
-                {Platform.OS === 'ios' && !isCardInWallet && (
-                  <TextButton
-                    variant={TextVariant.BodySm}
-                    twClassName="mt-2"
-                    onPress={handleLearnMoreAboutApplePay}
-                    testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
-                  >
-                    {strings('card.apple_pay_usage.learn_more')}
-                  </TextButton>
                 )}
               </Box>
             )}
@@ -1166,6 +1189,16 @@ const CardHome = () => {
                 account={data?.account}
                 capabilities={capabilities}
                 isSpendingLimitActive={isSpendingLimitActive}
+                showLimitedSpendingAmounts={showSpendingLimitProgress}
+                spendingLimitRemaining={data?.primaryFundingAsset?.spendingCap}
+                spendingLimitTotal={
+                  data?.primaryFundingAsset?.originalSpendingCap ??
+                  data?.primaryFundingAsset?.spendingCap
+                }
+                spendingLimitSymbol={
+                  primaryToken?.displaySymbol ??
+                  data?.primaryFundingAsset?.symbol
+                }
                 isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
                 isAuthenticated={isAuthenticated}
                 isLoading={isLoading}
@@ -1226,30 +1259,7 @@ const CardHome = () => {
               />
             )}
 
-            <CardHomeFooter
-              isLoading={isLoading}
-              hasAlerts={hasAlertOnlyState}
-              hasSetupActions={hasSetupActions}
-              supportEmail={supportEmail}
-              onContactSupport={handleContactIntercomSupport}
-              legalDocuments={
-                isImmersve && immersveLegalDocuments.length > 0
-                  ? immersveLegalDocuments
-                  : undefined
-              }
-              hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
-              showLegalDocumentsError={immersveLegalDocsUnavailable}
-              onRetryLegalDocuments={
-                immersveLegalDocsUnavailable
-                  ? () => {
-                      refetchImmersveLegalDocs().catch(() => {
-                        // Error surfaces via hook state / footer retry UI.
-                      });
-                    }
-                  : undefined
-              }
-              onNavigateToCardTos={actions.navigateToCardTosPage}
-            />
+            {moreSheet}
 
             <CardScreenshotDeterrent
               enabled={
