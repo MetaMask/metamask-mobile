@@ -1491,6 +1491,7 @@
         "entry": "Entry",
         "exit": "Exit",
         "cost": "Cost",
+        "margin": "Margin",
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
