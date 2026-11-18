@@ -25,6 +25,7 @@ import {
   resolveVbaOnboarding,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 import {
   endVbaCufJourney,
   startVbaCufJourney,
@@ -85,9 +86,12 @@ const HERO_GRADIENT_ANGLE = 224;
  */
 const MoneyVbaHomeCard = ({
   variant,
+  sourceCurrency,
   onDismiss,
 }: {
   variant: MoneyVbaHomeCardVariant;
+  /** Market currency serving the user, when one resolved. */
+  sourceCurrency?: VbaSourceCurrency;
   /** Called after the dismissible variant hides itself. */
   onDismiss?: () => void;
 }) => {
@@ -210,7 +214,7 @@ const MoneyVbaHomeCard = ({
         variant === 'identity_verified' &&
         resolved.destinationId === 'identityVerified'
       ) {
-        openVbaAccountSetup(navigation, chooseCurrency);
+        openVbaAccountSetup(navigation, chooseCurrency, sourceCurrency);
         return;
       }
       navigateToVbaOnboardingDestination(
@@ -241,6 +245,7 @@ const MoneyVbaHomeCard = ({
     config,
     navigation,
     openSupportWithConsent,
+    sourceCurrency,
     trackButtonClicked,
     variant,
   ]);
@@ -261,6 +266,12 @@ const MoneyVbaHomeCard = ({
 
   const { cta } = config;
   const ctaLabel = strings(`${config.i18nPrefix}.cta`);
+  const description =
+    config.currencyDescriptionI18nKey && sourceCurrency
+      ? strings(config.currencyDescriptionI18nKey, {
+          currency: sourceCurrency,
+        })
+      : strings(`${config.i18nPrefix}.description`);
   const ctaButton = cta.isDisabled ? (
     <ButtonBase
       size={ButtonBaseSize.Lg}
@@ -327,7 +338,7 @@ const MoneyVbaHomeCard = ({
           color={TextColor.TextAlternative}
           testID={testIds.DESCRIPTION}
         >
-          {strings(`${config.i18nPrefix}.description`)}
+          {description}
         </Text>
       </Box>
       {config.isDismissible ? (

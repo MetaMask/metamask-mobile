@@ -19,6 +19,10 @@ import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import { playSelection } from '../../../../../util/haptics';
+import {
+  SocialEvent,
+  useSocialScreenAnalytics,
+} from '../../../../Views/SocialLeaderboard/analytics';
 import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
@@ -55,6 +59,10 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
   isActive = true,
 }) => {
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  useSocialScreenAnalytics(SocialEvent.Screen.TOKEN_DETAILS_HOLDERS, {
+    source: SocialEvent.Source.TOKEN_DETAILS_HOLDERS,
+    isActive,
+  });
   const {
     rows,
     isLoading,

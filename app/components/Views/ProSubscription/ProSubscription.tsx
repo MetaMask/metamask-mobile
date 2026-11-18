@@ -18,7 +18,9 @@ import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/vi
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
-  useMoneyAccountPlusAccess,
+  MoneyAccountPlusEntry,
+  resolveMoneyAccountPlusEntry,
+  useMoneyAccountPlusAccessState,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -61,7 +63,8 @@ const ProSubscription = () => {
       >
     >();
 
-  const proAccess = useMoneyAccountPlusAccess();
+  const { access: proAccess, isSubscriptionsSettled } =
+    useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
   const accessBlockReason = useSelector(selectMoneyAccountAccessBlockReason);
   const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
@@ -87,12 +90,20 @@ const ProSubscription = () => {
     };
   }, []);
 
+  // Same settled flag as the Orange row and Pro Hub. Access can already be
+  // Subscriber from a leftover entitlement while the refetch is in flight.
+  const entry = resolveMoneyAccountPlusEntry({
+    access: proAccess,
+    hasMembership,
+    isSubscriptionsSettled,
+  });
+
   // Dismiss when the Pro flag is off, or when Money Account is blocked and
   // the user has no membership. Unknown access waits so a restored member's
   // fetch can finish before a blocked country closes checkout. A member still
   // goes to Pro Hub, including while geolocation is loading, so they can cancel.
   useEffect(() => {
-    if (proAccess === MoneyAccountPlusAccess.Disabled) {
+    if (entry === MoneyAccountPlusEntry.Disabled) {
       navigation.goBack();
       return;
     }
@@ -110,13 +121,14 @@ const ProSubscription = () => {
     // become a member while Benefits is still mounted. Keep this screen up
     // until Success is showing.
     if (
-      hasMembership &&
+      entry === MoneyAccountPlusEntry.Hub &&
       currentScreen !== ProSubscriptionScreen.Success &&
       !isCheckoutInProgress
     ) {
       navigation.dispatch(openProHubFromSubscriptionModal);
     }
   }, [
+    entry,
     proAccess,
     hasMembership,
     accessBlockReason,
@@ -229,7 +241,8 @@ const ProSubscription = () => {
           still-loading fetch, sees Benefits instead of a blank page. */}
       {(currentScreen === ProSubscriptionScreen.Success ||
         isCheckoutInProgress ||
-        (!hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)) &&
+        (entry !== MoneyAccountPlusEntry.Hub &&
+          entry !== MoneyAccountPlusEntry.Disabled)) &&
         screenContent}
     </SafeAreaView>
   );

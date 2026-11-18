@@ -1140,6 +1140,7 @@
       "feature_arrives_title": "Arrives in {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Arrives in a few business days",
       "feature_arrives_title_pix": "Arrives in seconds",
+      "feature_arrives_title_eur": "Arrives in seconds to 1 business day",
       "feature_arrives_description": "Funds arrive as soon as your transfer clears.",
       "feature_set_up_title": "Set up once, use anytime",
       "feature_set_up_description": "Save these details as a payee in your banking app.",
@@ -1192,7 +1193,8 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brazilian real",
-        "usd": "US dollar"
+        "usd": "US dollar",
+        "eur": "Euro"
       }
     },
     "vba_details": {
@@ -1209,6 +1211,9 @@
       "routing_number_label": "Routing number",
       "account_number_label": "Account number",
       "bank_name_label": "Bank name",
+      "iban_label": "IBAN",
+      "bic_label": "BIC",
+      "payment_reference_label": "Payment reference",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "copy_all_button": "Copy all details",
@@ -1230,19 +1235,19 @@
       "step_take_selfie": "Take a selfie",
       "step_confirm_details": "Confirm your details",
       "step_answer_questions": "Answer a few questions",
-      "partner_title": "We partner with idOS to verify your identity.",
-      "benefit_reuse_title": "Verify once, reuse later.",
-      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
-      "benefit_control_title": "You control your data.",
-      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
-      "benefit_delete_title": "Delete anytime.",
-      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "partner_title": "We partner with idOS to verify your identity",
+      "benefit_reuse_title": "Verify once, reuse later",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verification, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data",
+      "benefit_control_description": "We only share your verification with a partner when you agree.",
+      "benefit_delete_title": "Delete anytime",
+      "benefit_delete_description": "Delete your verification anytime in Settings.",
       "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
       "agreement_terms_of_use": "Terms of Use",
       "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "agree_and_continue_button": "Agree and Continue",
+      "agree_and_continue_button": "Agree and continue",
       "learn_more": "Learn more"
     },
     "partner_terms": {
@@ -9846,6 +9851,7 @@
       "get_started": {
         "title": "Convert to digital dollars",
         "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "description_with_currency": "Send {{currency}} from your bank and get mUSD in your Money account. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
@@ -11705,7 +11711,7 @@
     "card_onboarding": {
       "title": "Spend anywhere",
       "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
-      "apply_now_button": "Get card",
+      "apply_now_button": "Get Card",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
@@ -12890,6 +12896,7 @@
       "entered": "Entered",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
+      "create_username": "Create a username",
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",
       "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
@@ -13066,6 +13073,8 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
+      "stats_pnl_gap_amount": "+{{pnlGap}}",
+      "stats_pnl_gap_to_prize_suffix": "to win {{place}} place",
       "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
@@ -13707,6 +13716,7 @@
       "load_error": "Couldn't load your allowances.",
       "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
       "unavailable": "Member pricing isn't available right now.",
+      "paused": "Member pricing is paused while your membership is deactivated.",
       "retry": "Try again"
     },
     "physical_card": {
@@ -13740,6 +13750,9 @@
         "title": "Your membership is cancelled",
         "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
         "action": "Renew membership"
+      },
+      "pending_cancel": {
+        "description": "Resume before {{date}} to keep 7% APY, 3% mUSD back, and more."
       }
     },
     "earned": {
@@ -13763,6 +13776,7 @@
       "paying_with": "Paying with",
       "money_account": "Money account",
       "renews_on": "Renews on",
+      "ends_on": "Ends on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
       "manage": "Manage plan",
@@ -13789,7 +13803,13 @@
       "keep_membership": "Keep Orange",
       "cancel": "Cancel membership",
       "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
-      "cancellation_failed": "We couldn't cancel your membership. Please try again."
+      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
+      "post_cancel_sheet": {
+        "title": "Your membership is canceled",
+        "period_end_description": "Renew before {{date}} to continue receiving {{apy}} APY, {{rate}} mUSD back, and more.",
+        "immediate_description": "Your membership has ended, so you no longer have {{apy}} APY, {{rate}} mUSD back, or other membership benefits.",
+        "got_it": "Got it"
+      }
     }
   },
   "pro_subscription": {
