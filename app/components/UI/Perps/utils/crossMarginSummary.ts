@@ -250,6 +250,64 @@ export const presentCrossLiquidationEstimate = ({
   };
 };
 
+export type OrderLiquidationContentKey =
+  | 'liquidation_price'
+  | CrossLiquidationContentKey;
+
+export interface OrderLiquidationRow {
+  display: string;
+  contentKey: OrderLiquidationContentKey;
+  /** Price string for TP/SL. Empty when a cross order has no price. */
+  rawPrice: string;
+  /** Numeric price for the distance label, when the row shows a price. */
+  distancePrice?: number;
+}
+
+/**
+ * Picks the order-row liquidation value. Cross uses the pre-trade estimate.
+ * Isolated keeps the controller price.
+ */
+export const selectOrderLiquidationRow = ({
+  isCrossOrder,
+  crossEstimate,
+  hasValidAmount,
+  isolatedPrice,
+}: {
+  isCrossOrder: boolean;
+  crossEstimate: CrossLiquidationEstimate;
+  hasValidAmount: boolean;
+  isolatedPrice: string;
+}): OrderLiquidationRow => {
+  if (isCrossOrder) {
+    const presented = presentCrossLiquidationEstimate({
+      estimate: crossEstimate,
+      hasValidAmount,
+    });
+    return {
+      display: presented.display,
+      contentKey: presented.contentKey,
+      rawPrice: presented.rawPrice,
+      distancePrice:
+        hasValidAmount && crossEstimate.status === 'price'
+          ? crossEstimate.price
+          : undefined,
+    };
+  }
+  const parsedIsolatedPrice = Number.parseFloat(isolatedPrice);
+  const hasIsolatedPrice =
+    hasValidAmount &&
+    Number.isFinite(parsedIsolatedPrice) &&
+    parsedIsolatedPrice > 0;
+  return {
+    display: hasIsolatedPrice
+      ? formatPerpsFiat(isolatedPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+      : PERPS_CONSTANTS.FallbackDataDisplay,
+    contentKey: 'liquidation_price',
+    rawPrice: isolatedPrice,
+    distancePrice: hasIsolatedPrice ? parsedIsolatedPrice : undefined,
+  };
+};
+
 export const getCrossMarginRatioTone = (
   ratio: number | undefined,
 ): CrossMarginRatioTone | undefined => {
