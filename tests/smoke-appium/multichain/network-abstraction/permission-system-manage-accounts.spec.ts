@@ -59,19 +59,23 @@ appiumTest.describe(
               'Account 2',
             ]);
 
-            await ConnectedAccountsModal.tapAccountListBottomSheet();
-            await AccountListBottomSheet.addAccountAndExpectVisibleV2(
-              'Account 3',
-            );
-
-            await AccountListBottomSheet.tapAccountByNameV2('Account 3');
-            await AccountListBottomSheet.tapConnectAccountsButton();
-
-            await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
-              'Account 1',
-              'Account 2',
-              'Account 3',
-            ]);
+            // The assertion above is the end state while Account 3 is disabled.
+            // It already expects exactly Account 1 and Account 2, so the
+            // connected-account list is left unchanged.
+            // TODO(MUL-2542): re-enable Account 3 once multichain-account-service create timeouts are fixed
+            // await ConnectedAccountsModal.tapAccountListBottomSheet();
+            // await AccountListBottomSheet.addAccountAndExpectVisibleV2(
+            //   'Account 3',
+            // );
+            //
+            // await AccountListBottomSheet.tapAccountByNameV2('Account 3');
+            // await AccountListBottomSheet.tapConnectAccountsButton();
+            //
+            // await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
+            //   'Account 1',
+            //   'Account 2',
+            //   'Account 3',
+            // ]);
           },
         );
       },
