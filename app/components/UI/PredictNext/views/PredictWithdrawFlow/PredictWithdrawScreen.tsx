@@ -357,10 +357,7 @@ export const PredictWithdrawScreen = () => {
       });
     } catch (error_) {
       const error = toPredictError(error_);
-      if (
-        error.code === PredictErrorCode.PREVIEW_EXPIRED ||
-        error.metadata?.bodyCode === 'preview_not_found'
-      ) {
+      if (error.code === PredictErrorCode.PREVIEW_EXPIRED) {
         dispatch({ type: 'commitFailed', error });
         return;
       }
@@ -375,8 +372,18 @@ export const PredictWithdrawScreen = () => {
           type: 'receipt',
           receipt: await service.observeWithdraw(venueId, preview.previewId),
         });
-      } catch {
-        dispatch({ type: 'outcomeUnknown', error });
+      } catch (recoveryError) {
+        const missingPreview = error.metadata?.bodyCode === 'preview_not_found';
+        const missingOperation =
+          recoveryError instanceof PredictError &&
+          recoveryError.metadata?.bodyCode === 'operation_not_found';
+        dispatch({
+          type:
+            missingPreview && missingOperation
+              ? 'commitFailed'
+              : 'outcomeUnknown',
+          error,
+        });
       }
     }
   }, [isOffline, service, state, venueId]);

@@ -591,6 +591,7 @@ describe('PredictWithdrawFlow', () => {
   it('returns to entry when the submitted preview was deleted without an operation', async () => {
     stubWithdrawals({
       commit: () => ({ status: 404, body: { code: 'preview_not_found' } }),
+      observe: () => ({ status: 404, body: { code: 'operation_not_found' } }),
     });
 
     renderPredictNext();
@@ -610,6 +611,36 @@ describe('PredictWithdrawFlow', () => {
     expect(
       screen.queryByTestId(PredictWithdrawFlowTestIds.RETRY),
     ).not.toBeOnTheScreen();
+    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+  });
+
+  it('recovers a concurrent operation before discarding a missing preview', async () => {
+    stubWithdrawals({
+      commit: () => ({ status: 404, body: { code: 'preview_not_found' } }),
+      observe: () => ({
+        body: receiptOf({
+          status: 'settled',
+          withdrawnAmount: '5.00',
+          resolvedAt: new Date().toISOString(),
+        }),
+      }),
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    fireEvent.press(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    );
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
+    ).toHaveTextContent('$5.00');
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.CONTINUE),
+    ).not.toBeOnTheScreen();
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID]);
     expect(previewBodies()).toEqual([{ amount: '5.00' }]);
   });
 
