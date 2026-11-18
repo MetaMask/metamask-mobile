@@ -7,6 +7,7 @@ import {
   handleKycStatusChangedForMetrics,
   handleVerificationStatusChangedForMetrics,
 } from './event-handlers/analytics';
+import { trace, TraceName } from '../../../../util/trace';
 import { sumsubLauncher } from './sumSubLauncher';
 import {
   KycController,
@@ -14,6 +15,13 @@ import {
   type KycControllerState,
 } from '@metamask/kyc-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  TraceName: {
+    KycProviderFlow: 'KYC Provider Flow',
+  },
+}));
 
 jest.mock('@metamask/kyc-controller', () => {
   class MockKycController {
@@ -117,6 +125,43 @@ describe('kycControllerInit', () => {
     kycControllerInit(getInitRequestMock());
 
     expect(getLastConstructorArgs()?.sumsubLauncher).toBe(sumsubLauncher);
+  });
+
+  it('passes trace to the controller', () => {
+    kycControllerInit(getInitRequestMock());
+
+    const traceProviderFlow = getLastConstructorArgs()?.trace as (
+      request: {
+        name: string;
+        op?: string;
+        startTime?: number;
+        tags?: Record<string, string>;
+      },
+      fn?: () => void,
+    ) => void;
+    const finish = jest.fn();
+
+    traceProviderFlow(
+      {
+        name: 'KYC Provider Flow',
+        op: 'kyc.operation',
+        startTime: 1,
+        tags: { feature: 'kyc', result: 'submitted' },
+      },
+      finish,
+    );
+
+    expect(trace).toHaveBeenCalledWith(
+      {
+        name: TraceName.KycProviderFlow,
+        data: undefined,
+        id: undefined,
+        startTime: 1,
+        tags: { feature: 'kyc', result: 'submitted' },
+        op: 'kyc.operation',
+      },
+      finish,
+    );
   });
 
   it('passes the analytics callbacks to the controller', () => {

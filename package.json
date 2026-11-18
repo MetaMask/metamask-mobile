@@ -191,6 +191,7 @@
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
+    "@metamask/kyc-controller": "npm:@metamask-previews/kyc-controller@0.16.0-preview-c62310f6e",
     "@metamask/network-controller": "^38.0.0",
     "@metamask/analytics-controller": "^4.2.0",
     "@metamask/geolocation-controller": "^2.0.0",
