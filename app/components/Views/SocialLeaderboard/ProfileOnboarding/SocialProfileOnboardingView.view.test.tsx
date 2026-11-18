@@ -104,6 +104,42 @@ const leaveProfileMembership = (store: {
   store.dispatch(updateBgState({ key: 'KeyringController' }));
 };
 
+const dropDefaultOnboardingAccount = (store: {
+  getState: () => {
+    engine: {
+      backgroundState: {
+        AccountTreeController: {
+          accountTree: {
+            wallets: Record<string, { groups: Record<string, unknown> }>;
+          };
+        };
+      };
+    };
+  };
+  dispatch: (action: ReturnType<typeof updateBgState>) => void;
+}) => {
+  const backgroundState = store.getState().engine.backgroundState;
+  const controller = backgroundState.AccountTreeController;
+  const walletId = 'entropy:wallet1';
+  const wallet = controller.accountTree.wallets[walletId];
+  const groups = { ...wallet.groups };
+  delete groups[`${walletId}/0`];
+  engineWithState.state = {
+    ...backgroundState,
+    AccountTreeController: {
+      ...controller,
+      accountTree: {
+        ...controller.accountTree,
+        wallets: {
+          ...controller.accountTree.wallets,
+          [walletId]: { ...wallet, groups },
+        },
+      },
+    },
+  } as unknown as typeof Engine.state;
+  store.dispatch(updateBgState({ key: 'AccountTreeController' }));
+};
+
 const openAccountStep = async () => {
   fireEvent.press(
     screen.getByTestId(
@@ -2181,6 +2217,68 @@ describe('SocialProfileOnboardingView', () => {
       Engine.context.ProfileController.createProfile,
     ).not.toHaveBeenCalled();
     expect(letsGoDisabled()).toBe(true);
+  });
+
+  it('creates the account chosen after the in-flight account leaves the profile', async () => {
+    let releaseSession: () => void = () => undefined;
+    let holdSession = false;
+    let sessionHeld = false;
+    jest
+      .mocked(Engine.context.AuthenticationController.getSessionProfile)
+      .mockImplementation(() => {
+        if (!holdSession || sessionHeld) {
+          return Promise.resolve(SIGNED_IN_SESSION);
+        }
+        sessionHeld = true;
+        return new Promise((resolve) => {
+          releaseSession = () => resolve(SIGNED_IN_SESSION);
+        });
+      });
+    const { store } = await renderOnboarding([{ name: Routes.HOME_TABS }], {
+      includeSecondEvmAccount: true,
+    });
+    await openAccountStep();
+    holdSession = true;
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      dropDefaultOnboardingAccount(store);
+    });
+    pressBack();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR),
+    );
+    fireEvent.press(
+      await screen.findByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-${SECOND_ONBOARDING_EVM_ACCOUNT.id}`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      releaseSession();
+    });
+
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.createProfile,
+      ).toHaveBeenCalledTimes(1);
+    });
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        linked_addresses: [`eip155:1:${SECOND_ONBOARDING_EVM_ACCOUNT.address}`],
+      }),
+    );
   });
 
   it('shows only the numbered username when the shuffled handle is taken', async () => {

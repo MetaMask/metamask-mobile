@@ -1201,8 +1201,7 @@ const SocialProfileOnboardingView: React.FC = () => {
         return;
       }
       if (writeResult === 'ineligible') {
-        setIsSubmitting(false);
-        return;
+        continue;
       }
       serverProfileFingerprintRef.current = fingerprint;
       if (!hadProfile) {
@@ -1607,6 +1606,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                         ...current,
                         linkedAccountId: account.id,
                         linkedAccountAddress: account.address,
+                        linkedAccountSelectionCleared: false,
                       }));
                     }}
                   />

@@ -44,6 +44,11 @@ export interface ProfileOnboardingDraft {
   avatarBackgroundId: string;
   linkedAccountId: string | null;
   linkedAccountAddress: string | null;
+  /**
+   * A chosen account left the eligible set. Reconciliation must leave the
+   * selection empty until the user picks another account.
+   */
+  linkedAccountSelectionCleared: boolean;
   shareTradingActivity: boolean;
 }
 
@@ -103,6 +108,7 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
     linkedAccountId: null,
     linkedAccountAddress: null,
+    linkedAccountSelectionCleared: false,
     shareTradingActivity: true,
   };
 };
@@ -123,6 +129,7 @@ export const startManualOnboarding = (
     ...initial,
     linkedAccountId: draft.linkedAccountId,
     linkedAccountAddress: draft.linkedAccountAddress,
+    linkedAccountSelectionCleared: draft.linkedAccountSelectionCleared,
   };
 };
 
@@ -247,8 +254,9 @@ export const onboardingProfileFingerprint = (
  * Keeps a draft account only while it is still in `accounts`.
  *
  * A selection that has left the eligible set is cleared, including when that
- * set is empty. A draft with no selection takes the first eligible account.
- * Returns the same draft when nothing changes.
+ * set is empty, and stays empty. The first eligible account is chosen only
+ * for a draft that has never had a selection. Returns the same draft when
+ * nothing changes.
  */
 export const withEligibleLinkedAccount = (
   draft: ProfileOnboardingDraft,
@@ -267,10 +275,11 @@ export const withEligibleLinkedAccount = (
       ...draft,
       linkedAccountId: null,
       linkedAccountAddress: null,
+      linkedAccountSelectionCleared: true,
     };
   }
   const firstAccount = accounts[0];
-  if (!firstAccount) {
+  if (!firstAccount || draft.linkedAccountSelectionCleared) {
     return draft;
   }
   return {

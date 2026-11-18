@@ -151,6 +151,23 @@ describe('profileOnboardingDraft', () => {
 
     expect(next.linkedAccountId).toBeNull();
     expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('leaves a cleared selection empty when another account is eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+    const accounts = [{ id: 'kept', address: '0xkept' }];
+
+    const cleared = withEligibleLinkedAccount(draft, accounts);
+    const again = withEligibleLinkedAccount(cleared, accounts);
+
+    expect(again.linkedAccountId).toBeNull();
+    expect(again.linkedAccountAddress).toBeNull();
+    expect(again).toBe(cleared);
   });
 
   it('clears the linked account when the eligible list is empty', () => {
@@ -164,6 +181,7 @@ describe('profileOnboardingDraft', () => {
 
     expect(next.linkedAccountId).toBeNull();
     expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
   });
 
   it('keeps a linked account that is still eligible', () => {
