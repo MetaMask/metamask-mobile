@@ -16,6 +16,7 @@ import type { SocialV1FeedPost } from '../types';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
+import { SocialFeedWindowOffsetContext } from './SocialFeedWindowOffsetContext';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 import {
   ImpactMoment,
@@ -226,6 +227,8 @@ const renderShell = (
       | 'my_profile';
     /** Turns on `aiSocialCommentTranslation` for this render. */
     translationEnabled?: boolean;
+    /** Provides `SocialFeedWindowOffsetContext`, as a Social V1 pager page does. */
+    windowOffsetY?: number;
   },
 ) => {
   const queryClient = new QueryClient({
@@ -234,7 +237,7 @@ const renderShell = (
   const showMockedFields =
     options && 'showMockedFields' in options ? options.showMockedFields : true;
   const renderTree = (currentPost: SocialV1FeedPost) => {
-    const shell = (
+    const postShell = (
       <SocialFeedPostShell
         post={currentPost}
         requireSocialTerms
@@ -245,6 +248,14 @@ const renderShell = (
         showCopyTrade={options?.showCopyTrade}
       />
     );
+    const shell =
+      options?.windowOffsetY === undefined ? (
+        postShell
+      ) : (
+        <SocialFeedWindowOffsetContext.Provider value={options.windowOffsetY}>
+          {postShell}
+        </SocialFeedWindowOffsetContext.Provider>
+      );
     return (
       <QueryClientProvider client={queryClient}>
         {showMockedFields === null ? (
@@ -373,6 +384,40 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toHaveStyle({ left: 16 });
   });
+
+  it.each([
+    ['outside a pager page', undefined, 300],
+    ['on an iOS pager page that starts below the safe area', 62, 362],
+  ])(
+    'opens the picker at the reaction row window position %s',
+    (_label, windowOffsetY, expectedTop) => {
+      jest
+        .spyOn(View.prototype, 'measureInWindow')
+        .mockImplementation(function measure(this: unknown, cb) {
+          const testID = (this as { props?: { testID?: string } }).props
+            ?.testID;
+          if (
+            testID === `${SocialFeedPostShellSelectorsIDs.REACTION_ROW}-post-1`
+          ) {
+            cb(16, 300, 200, 40);
+            return;
+          }
+          cb(200, 320, 36, 36);
+        });
+
+      renderShell(basePost(), { windowOffsetY });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+      ).toHaveStyle({ top: expectedTop });
+    },
+  );
 
   it('plays a light impact when the reaction tray opens', () => {
     renderShell(basePost({ reactions: [] }));
