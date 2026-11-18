@@ -14,6 +14,15 @@ export const MONEY_ACCOUNT_DEPOSIT_TYPES = [
   TransactionType.membershipSubscription,
 ];
 
+/**
+ * Custom amount confirmations whose amount is provided by the caller and
+ * cannot be edited by the user.
+ */
+export const FIXED_AMOUNT_TRANSACTION_TYPES = [
+  TransactionType.membershipSubscription,
+  TransactionType.solanaTest,
+];
+
 export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
@@ -26,6 +35,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.predictDepositAndOrder,
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
+  TransactionType.solanaTest,
   TransactionType.stakingClaim,
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
@@ -63,6 +73,7 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
   TransactionType.simpleSend,
+  TransactionType.solanaTest,
   TransactionType.stakingClaim,
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
@@ -143,6 +154,7 @@ export const MM_PAY_TRANSACTION_TYPES = [
   TransactionType.predictDeposit,
   TransactionType.predictDepositAndOrder,
   TransactionType.predictWithdraw,
+  TransactionType.solanaTest,
 ];
 
 /**
@@ -151,6 +163,7 @@ export const MM_PAY_TRANSACTION_TYPES = [
  */
 export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
   ...MONEY_ACCOUNT_DEPOSIT_TYPES,
+  TransactionType.solanaTest,
 ] as const;
 
 /**
@@ -164,4 +177,5 @@ export const PAY_TOKEN_REQUIRED_TRANSACTION_TYPES = [
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictDepositAndOrder,
+  TransactionType.solanaTest,
 ] as const;

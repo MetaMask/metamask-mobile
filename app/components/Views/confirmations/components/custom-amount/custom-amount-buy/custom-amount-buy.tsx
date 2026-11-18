@@ -16,6 +16,7 @@ import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigatio
 import { RAMPS_BUY_CUF_SURFACE } from '../../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { isEvmRequiredToken } from '../../../utils/transaction-pay';
 
 export function getBuyMessage(
   transactionMeta: TransactionMeta | undefined,
@@ -35,9 +36,9 @@ export function CustomAmountBuy() {
   const tokens = useAccountTokens({ includeNoBalance: true });
   const requiredTokens = useTransactionPayRequiredTokens();
 
-  const primaryRequiredToken = requiredTokens.find(
-    (token) => token.address !== getNativeTokenAddress(token.chainId),
-  );
+  const primaryRequiredToken = requiredTokens
+    .filter(isEvmRequiredToken)
+    .find((token) => token.address !== getNativeTokenAddress(token.chainId));
 
   const asset = tokens.find(
     (token) =>

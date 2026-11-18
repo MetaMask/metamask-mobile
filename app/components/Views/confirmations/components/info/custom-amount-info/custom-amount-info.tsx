@@ -89,6 +89,7 @@ import {
 } from '../../custom-amount/custom-amount-buy';
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
+import { FIXED_AMOUNT_TRANSACTION_TYPES } from '../../../constants/confirmations';
 import {
   Button,
   ButtonSize,
@@ -168,6 +169,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMembershipSubscription = hasTransactionType(transactionMeta, [
       TransactionType.membershipSubscription,
     ]);
+    const isFixedAmount = hasTransactionType(
+      transactionMeta,
+      FIXED_AMOUNT_TRANSACTION_TYPES,
+    );
 
     const {
       amountFiat,
@@ -214,10 +219,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isDepositPrefillLoading,
       skipDepositPrefill,
     });
-    // A fixed membership payment never opens amount entry, including on errors
+    // A fixed amount payment never opens amount entry, including on errors
     // or when the selected funding source cannot cover the payment.
     const stage =
-      isMembershipSubscription && amountStage === CustomAmountStage.AmountInput
+      isFixedAmount && amountStage === CustomAmountStage.AmountInput
         ? CustomAmountStage.NoQuote
         : amountStage;
 
@@ -229,7 +234,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
-    useMMPayNavigation(stage, setStage, isMembershipSubscription);
+    useMMPayNavigation(stage, setStage, isFixedAmount);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
     const hasPaymentOption =
@@ -495,10 +500,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 (isPrefillPending || isDepositPrefillLoading)
               }
               // Editable amounts remain an escape hatch from stalled quotes.
-              onPress={isMembershipSubscription ? undefined : handleAmountPress}
+              onPress={isFixedAmount ? undefined : handleAmountPress}
               disabled={!hasPaymentOption}
               showCursor={
-                !isMembershipSubscription &&
+                !isFixedAmount &&
                 stage === CustomAmountStage.AmountInput
               }
             />
@@ -605,7 +610,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {!isMembershipSubscription &&
+          {!isFixedAmount &&
             stage === CustomAmountStage.AmountInput &&
             (hasPaymentOption || hasAccountNoFunds || isPayAccountLoading) && (
               <DepositKeyboard
@@ -626,7 +631,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               />
             )}
           {showBuyButton && <CustomAmountBuy />}
-          {isMembershipSubscription &&
+          {isFixedAmount &&
           amountStage === CustomAmountStage.AmountInput ? (
             <Button
               variant={ButtonVariant.Primary}
