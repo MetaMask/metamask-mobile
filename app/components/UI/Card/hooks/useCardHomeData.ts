@@ -119,9 +119,16 @@ export const useCardHomeData = () => {
 
   const hasData = data !== null;
 
+  // Idle with no session never starts a fetch. Treating it as loading left
+  // the signed-out identity-review layout on a skeleton instead of the card.
+  const isAwaitingHomeData =
+    isCardAuthenticated &&
+    !hasData &&
+    (status === 'loading' || status === 'idle');
+
   return {
     data,
-    isLoading: !hasData && (status === 'loading' || status === 'idle'),
+    isLoading: isAwaitingHomeData,
     isRefreshing: hasData && status === 'loading',
     isError: !hasData && status === 'error',
     refetch,

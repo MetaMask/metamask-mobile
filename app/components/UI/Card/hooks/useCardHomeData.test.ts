@@ -254,6 +254,15 @@ describe('useCardHomeData', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
+    it('is false when logged out and status is idle', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: true,
+        isCardAuthenticated: false,
+      });
+      const { result } = renderHook(() => useCardHomeData());
+      expect(result.current.isLoading).toBe(false);
+    });
+
     it("is true when status is 'loading'", () => {
       setupSelectors(null, 'loading');
       const { result } = renderHook(() => useCardHomeData());

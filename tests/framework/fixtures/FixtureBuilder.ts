@@ -53,7 +53,8 @@ import {
   type TokenHolding,
 } from './mmpay-token-holdings-registry.ts';
 import type { AssetsControllerState } from '@metamask/assets-controller';
-import type { CaipAssetType } from '@metamask/utils';
+import { bytesToHex, type CaipAssetType } from '@metamask/utils';
+import { sha256 } from '@noble/hashes/sha2';
 import type {
   Fixture,
   ProviderConfig,
@@ -157,6 +158,18 @@ const LEGACY_ASSET_CONTROLLERS_STATE = {
   MultichainAssetsRatesController: { conversionRates: {} },
   TokenBalancesController: { tokenBalances: {} },
   TokenRatesController: { marketData: {} },
+};
+
+/**
+ * Same account ref CardController stores on a link: sha256 of the bare,
+ * lowercased address. Callers pass either `0x…` or a CAIP account id.
+ */
+const cardLinkAccountRef = (walletAddress: string): string | null => {
+  const bare = walletAddress.includes(':')
+    ? walletAddress.slice(walletAddress.lastIndexOf(':') + 1)
+    : walletAddress;
+  if (!bare) return null;
+  return bytesToHex(sha256(new TextEncoder().encode(bare.toLowerCase())));
 };
 
 /**
@@ -2310,7 +2323,8 @@ class FixtureBuilder {
    * Card home data is loaded only after the cardholder signs in.
    *
    * @param isAuthenticated - Whether the cardholder is authenticated (default: false).
-   * @param walletAddress - EVM address of the cardholder (default: standard fixture account).
+   * @param walletAddress - EVM address of the cardholder. Stored as the link's
+   * sha256 account ref (default: standard fixture account).
    * @returns - The FixtureBuilder instance for method chaining.
    */
   withCardController(
@@ -2326,7 +2340,7 @@ class FixtureBuilder {
           {
             provider: 'baanx',
             status: 'active',
-            linkedAccountRef: null,
+            linkedAccountRef: cardLinkAccountRef(walletAddress),
             closedReason: null,
             migratedToProvider: null,
             linkedAt: '2026-09-01T00:00:00.000Z',
