@@ -50,6 +50,8 @@ export const useWhatsHappeningLoadTrace = ({
   hasContent,
   error,
 }: UseWhatsHappeningLoadTraceParams): string | undefined => {
+  // Opted out of React Compiler: it drops the useMemo gate below, so trace()
+  // would restart on every render. Jest doesn't run the compiler.
   'use no memo';
   const traceId = getWhatsHappeningTraceId(source, stage);
 
