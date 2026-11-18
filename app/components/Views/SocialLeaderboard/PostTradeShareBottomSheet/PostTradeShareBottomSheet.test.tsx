@@ -248,13 +248,14 @@ describe('PostTradeShareBottomSheet', () => {
     });
   });
 
-  it('navigates to the composer with tradeInFlight on Share', () => {
+  it('opens a trader-address share that is not a copy trade as post_trade_swap', () => {
     const sessionId = beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
       status: 'complete',
       tradeInFlightChain: 'base',
       transactionHash: '0xabc',
+      traderAddress: '0xtrader',
       preview: {
         tokenSymbol: 'PUMP',
         tokenAddress: '0xpump',

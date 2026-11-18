@@ -4334,6 +4334,7 @@ export const runQuickBuyControllerCases = ({
             throw new Error('post-trade share session is not a spot session');
           }
           expect(session.copyTradeOrigin).toEqual(copyTradeOrigin);
+          expect(session.isCopyTrade).toBe(true);
           expect(session.traderAddress).toBe('0xTRADER');
           expect(session.owner).toBe('social-v1-feed');
         });

@@ -241,7 +241,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
               analyticsSource: session.analyticsSource,
               shareId: session.sessionId,
               spotComposerEntry:
-                session.copyTradeOrigin || session.traderAddress
+                session.isCopyTrade || session.copyTradeOrigin
                   ? SocialEvent.ComposerEntry.POST_TRADE_SPOT
                   : SocialEvent.ComposerEntry.POST_TRADE_SWAP,
             })

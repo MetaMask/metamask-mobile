@@ -1848,6 +1848,10 @@ export function useQuickBuyController(
                 : undefined,
             tradeInFlightChain,
             copyTradeOrigin,
+            isCopyTrade: isQuickBuyCopyTrade({
+              copyTradeOrigin,
+              isCopyTrade: analyticsContext.isCopyTrade,
+            }),
             ...(submittedTraderAddress
               ? { traderAddress: submittedTraderAddress }
               : {}),
