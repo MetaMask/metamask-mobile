@@ -169,6 +169,7 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import { AssetsHaveLoadedProvider } from '../../UI/Assets/hooks/useAssetsHaveLoaded';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -1447,13 +1448,15 @@ const Wallet = ({
                       scrollEventThrottle: 16,
                     }}
                   >
-                    {portfolioHeader}
-                    <Homepage
-                      ref={homepageRef}
-                      balanceBreakdownSectionProps={
-                        balanceBreakdownSectionProps
-                      }
-                    />
+                    <AssetsHaveLoadedProvider>
+                      {portfolioHeader}
+                      <Homepage
+                        ref={homepageRef}
+                        balanceBreakdownSectionProps={
+                          balanceBreakdownSectionProps
+                        }
+                      />
+                    </AssetsHaveLoadedProvider>
                   </PullToRefresh>
                 </HomepageScrollContext.Provider>
               </View>

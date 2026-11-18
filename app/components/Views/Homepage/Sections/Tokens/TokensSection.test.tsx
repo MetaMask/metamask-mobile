@@ -29,10 +29,15 @@ jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
 
 const mockUseIsZeroBalanceAccount = jest.fn();
 const mockUsePopularTokens = jest.fn();
+const mockUseAssetsHaveLoaded = jest.fn();
 
 jest.mock('./hooks', () => ({
   useIsZeroBalanceAccount: () => mockUseIsZeroBalanceAccount(),
   usePopularTokens: () => mockUsePopularTokens(),
+}));
+
+jest.mock('../../../../UI/Assets/hooks/useAssetsHaveLoaded', () => ({
+  useAssetsHaveLoaded: () => mockUseAssetsHaveLoaded(),
 }));
 
 const mockSortedTokenKeys = jest.fn();
@@ -349,6 +354,7 @@ describe('TokensSection', () => {
     jest.clearAllMocks();
     mockRefresh.mockResolvedValue(undefined);
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockUseAssetsHaveLoaded.mockReturnValue(true);
     mockSortedTokenKeys.mockReturnValue([]);
     mockPopularNetworks = ['eip155:1', '0xa'];
     // Default null: balance selectors not yet initialized (cold start).
@@ -379,6 +385,7 @@ describe('TokensSection', () => {
 
   it('only notifies Homepage after primary content becomes ready', () => {
     const onContentReadyChange = jest.fn();
+    mockUseAssetsHaveLoaded.mockReturnValue(false);
 
     const { rerender } = renderWithProvider(
       <TokensSection
@@ -390,6 +397,7 @@ describe('TokensSection', () => {
 
     expect(onContentReadyChange).not.toHaveBeenCalled();
 
+    mockUseAssetsHaveLoaded.mockReturnValue(true);
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
     rerender(

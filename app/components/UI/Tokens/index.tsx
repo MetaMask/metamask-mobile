@@ -44,6 +44,7 @@ import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
+import { useAssetsHaveLoaded } from '../Assets/hooks/useAssetsHaveLoaded';
 
 // Same delay as the Explore search, so typing does not re-filter on every key.
 const SEARCH_DEBOUNCE_MS = 200;
@@ -168,7 +169,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectMoneyHubEnabledFlag,
     );
 
-    const [hasInitialLoad, setHasInitialLoad] = useState(false);
+    const assetsHaveLoaded = useAssetsHaveLoaded();
     const hasTrackedScreenViewRef = useRef(false);
 
     // Memoize selector computation for better performance
@@ -208,17 +209,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       }, [forceUpdate]),
     );
 
-    // Mark as loaded once we have data (even if empty)
     useEffect(() => {
-      if (!hasInitialLoad && sortedTokenKeys) {
-        InteractionManager.runAfterInteractions(() => {
-          setHasInitialLoad(true);
-        });
-      }
-    }, [sortedTokenKeys, hasInitialLoad]);
-
-    useEffect(() => {
-      if (!isFullView || !hasInitialLoad || hasTrackedScreenViewRef.current)
+      if (!isFullView || !assetsHaveLoaded || hasTrackedScreenViewRef.current)
         return;
       hasTrackedScreenViewRef.current = true;
       trackEvent(
@@ -233,7 +225,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       );
     }, [
       isFullView,
-      hasInitialLoad,
+      assetsHaveLoaded,
       tokenKeysForList.length,
       showOnlyMusd,
       trackEvent,
@@ -270,7 +262,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const resultCount = searchedTokenKeys.length;
     useEffect(() => {
       const query = debouncedQuery.trim().toLowerCase();
-      if (!isFullView || !hasInitialLoad || !query) {
+      if (!isFullView || !assetsHaveLoaded || !query) {
         lastTrackedQueryRef.current = '';
         return;
       }
@@ -283,7 +275,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     }, [
       debouncedQuery,
       isFullView,
-      hasInitialLoad,
+      assetsHaveLoaded,
       resultCount,
       trackFiltering,
     ]);
@@ -308,7 +300,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
-      if (!hasInitialLoad || isDebouncing) {
+      if (!assetsHaveLoaded || isDebouncing) {
         if (hideLoadingSkeleton) {
           return null;
         }
@@ -368,7 +360,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         />
       );
     }, [
-      hasInitialLoad,
+      assetsHaveLoaded,
       isDebouncing,
       hideLoadingSkeleton,
       isFullView,

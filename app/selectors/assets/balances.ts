@@ -63,7 +63,7 @@ import {
 import type { NetworkConfig } from '@metamask/network-enablement-controller';
 import {
   selectAssetsControllerStateForBalances,
-  selectIsAssetsLoadingForSelectedAccountGroup,
+  selectAssetsHaveLoadedForSelectedAccountGroup,
 } from './assets-controller';
 import { augmentArcExcludedAssets } from '../../enablement/assets/arc';
 import { filterExcludedTokenBalances } from '../../enablement/assets/networks-customization';
@@ -526,17 +526,17 @@ export const selectAccountGroupBalanceForEmptyState = createDeepEqualSelector(
 );
 
 /**
- * Whether the selected account group has finished its first asset load and
- * holds a positive mainnet balance. Returns a boolean so subscribers skip
- * re-renders on price-only balance changes.
+ * Whether the selected account group has finished its asset load (initial +
+ * background) and holds a positive mainnet balance. Returns a boolean so
+ * subscribers skip re-renders on price-only balance changes.
  */
 export const selectIsAccountGroupFunded = createSelector(
   [
     selectAccountGroupBalanceForEmptyState,
-    selectIsAssetsLoadingForSelectedAccountGroup,
+    selectAssetsHaveLoadedForSelectedAccountGroup,
   ],
-  (balance, isLoading) =>
-    !isLoading && (balance?.totalBalanceInUserCurrency ?? 0) > 0,
+  (balance, assetsHaveLoaded) =>
+    assetsHaveLoaded && (balance?.totalBalanceInUserCurrency ?? 0) > 0,
 );
 
 // Balance change selectors (period: '1d' | '7d' | '30d')

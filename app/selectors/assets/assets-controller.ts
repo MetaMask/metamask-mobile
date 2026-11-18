@@ -1,5 +1,7 @@
 import { createSelector } from 'reselect';
 import {
+  getAccountGroupLoadingStatus,
+  getIsAssetsBackgroundLoadingForSelectedAccountGroup,
   getIsAssetsLoadingForSelectedAccountGroup,
   getDefaultAssetsControllerState,
   type AssetsControllerState,
@@ -17,6 +19,50 @@ const getAssetsController = (state: RootState): AssetsControllerState =>
 export const selectIsAssetsLoadingForSelectedAccountGroup = createSelector(
   [getAssetsController, selectAccountTreeControllerState],
   getIsAssetsLoadingForSelectedAccountGroup,
+);
+
+/**
+ * Whether the selected account group's complete asset load has settled.
+ *
+ * An absent initial status means the first load has not started yet — treating
+ * that as loaded briefly exposes placeholder zero balances. The account tree
+ * and background phase must also settle because SRP import discovers accounts
+ * asynchronously and background fetch supplies remaining RPC/Snap assets.
+ *
+ * @param state - Redux root state.
+ * @returns True once initial and background loads have settled.
+ */
+export const selectAssetsHaveLoadedForSelectedAccountGroup = createSelector(
+  [getAssetsController, selectAccountTreeControllerState],
+  (assetsController, accountTreeState): boolean => {
+    const selectedGroupId = accountTreeState?.selectedAccountGroup;
+    if (!selectedGroupId || accountTreeState.isAccountTreeSyncingInProgress) {
+      return false;
+    }
+
+    const statuses = Object.values(
+      getAccountGroupLoadingStatus(
+        {
+          assetsLoadingStatus: assetsController.assetsLoadingStatus,
+        },
+        accountTreeState,
+        selectedGroupId,
+      ),
+    );
+
+    const initialLoadHasSettled =
+      statuses.length > 0 && statuses.every((status) => status === 'loaded');
+    const backgroundLoadIsRunning =
+      getIsAssetsBackgroundLoadingForSelectedAccountGroup(
+        {
+          assetsBackgroundLoadingStatus:
+            assetsController.assetsBackgroundLoadingStatus,
+        },
+        accountTreeState,
+      );
+
+    return initialLoadHasSettled && !backgroundLoadIsRunning;
+  },
 );
 
 export const getCustomAssets = createSelector(

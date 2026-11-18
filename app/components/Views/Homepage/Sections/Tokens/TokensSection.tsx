@@ -22,7 +22,6 @@ import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
 import { makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance } from '../../../../../selectors/assets/assets-list';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
 import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet';
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
@@ -49,6 +48,7 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
 import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
+import { useAssetsHaveLoaded } from '../../../../UI/Assets/hooks/useAssetsHaveLoaded';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -94,7 +94,9 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
   ) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation<AppNavigationProp>();
-    const isZeroBalanceAccount = useIsZeroBalanceAccount();
+    const assetsHaveLoaded = useAssetsHaveLoaded();
+    const hasZeroBalance = useIsZeroBalanceAccount();
+    const isZeroBalanceAccount = assetsHaveLoaded && hasZeroBalance;
     const { popularNetworks } = useNetworkEnablement();
     const popularChainIdsKey = (popularNetworks ?? []).join(',');
     const popularChainIds = useMemo(
@@ -109,9 +111,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       [popularChainIds],
     );
     const sortedTokenKeys = useSelector(selectSortedTokenKeys);
-    const accountGroupBalance = useSelector(
-      selectAccountGroupBalanceForEmptyState,
-    );
     const privacyMode = useSelector(selectPrivacyMode);
     const { tokenListItemCta } = useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME);
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
@@ -154,11 +153,9 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     );
 
     const showTokensError = hasTokensError;
-    const isTokenListLoading =
-      !showTokensError &&
-      displayTokenKeys.length === 0 &&
-      sortedTokenKeys.length === 0 &&
-      accountGroupBalance == null;
+    // Keep skeletons up until initial + background asset loads settle so
+    // zero-value placeholders / empty popular-token prompts do not flash.
+    const isTokenListLoading = !showTokensError && !assetsHaveLoaded;
 
     const refresh = useCallback(async () => {
       if (isZeroBalanceAccount) {
