@@ -67,7 +67,8 @@ const Benefits = ({
 }: BenefitsProps) => {
   const tw = useTailwind();
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
-  const { isEligibleForTrial } = useMoneyAccountPlusTrialEligibility();
+  const { isEligibleForTrial, isLoading: isTrialEligibilityLoading } =
+    useMoneyAccountPlusTrialEligibility();
   const { startSubscription, isSubmitting, errorMessage } =
     useStartProSubscription();
   const [selectedPlan, setSelectedPlan] = useState<string>(
@@ -104,8 +105,14 @@ const Benefits = ({
     ({ plan, copy }) => plan.id === resolvedPlan && Boolean(copy.trialLabel),
   );
 
+  const isPlansLoading =
+    isLoading ||
+    (isTrialEligibilityLoading &&
+      !hasError &&
+      plusPricing.status !== PLUS_PRICING_STATUS.unavailable &&
+      plusPricing.status !== PLUS_PRICING_STATUS.malformed);
   const canSelectPlans =
-    !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
+    !isPlansLoading && !hasError && isPricingReady && visiblePlans.length > 0;
   const isCtaDisabled = !canSelectPlans || isSubmitting;
 
   const handleBenefitPress = useCallback((id: string) => {
@@ -221,7 +228,7 @@ const Benefits = ({
       </ScrollView>
 
       <Box twClassName="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
-        {isLoading ? (
+        {isPlansLoading ? (
           <Box
             twClassName="flex flex-col gap-y-4"
             testID={BenefitsTestIds.PRICING_LOADING}
@@ -341,11 +348,13 @@ const Benefits = ({
           isLoading={isSubmitting}
           isFullWidth
         >
-          {selectedPlanOffersTrial
-            ? strings('pro_subscription.start_free_trial')
-            : strings('pro_subscription.join_orange')}
+          {isPlansLoading
+            ? strings('pro_subscription.pricing.loading')
+            : selectedPlanOffersTrial
+              ? strings('pro_subscription.start_free_trial')
+              : strings('pro_subscription.join_orange')}
         </Button>
-        {selectedPlanOffersTrial ? (
+        {!isPlansLoading && selectedPlanOffersTrial ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}

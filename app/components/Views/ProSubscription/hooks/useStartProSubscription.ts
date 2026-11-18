@@ -194,7 +194,7 @@ export function buildConfirmMembershipRequestData(
  * reject it. Rejection propagates so the caller can treat it as a user cancel.
  *
  * @param plan - Checkout-ready Plus plan.
- * @param isTrial - Whether Benefits determined this user can start a trial.
+ * @param isTrial - Whether Benefits already loaded a trial for this user.
  */
 async function requestMembershipConsent(
   plan: SelectedPlusPlan,

@@ -14,6 +14,7 @@ import { useMoneyAccountPlusTrialEligibility } from './useMoneyAccountPlusTrialE
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     SubscriptionController: {
+      getSubscriptions: jest.fn(),
       isUserEligibleForTrial: jest.fn(),
     },
   },
@@ -40,6 +41,9 @@ const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
 const mockSelectCanonicalProfileId = jest.mocked(selectCanonicalProfileId);
 const mockSelectSeedlessOnboardingUserId = jest.mocked(
   selectSeedlessOnboardingUserId,
+);
+const mockGetSubscriptions = jest.mocked(
+  Engine.context.SubscriptionController.getSubscriptions,
 );
 const mockIsUserEligibleForTrial = jest.mocked(
   Engine.context.SubscriptionController.isUserEligibleForTrial,
@@ -73,6 +77,7 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     mockSelectIsUnlocked.mockReturnValue(true);
     mockSelectCanonicalProfileId.mockReturnValue('profile-a');
     mockSelectSeedlessOnboardingUserId.mockReturnValue('social-user-a');
+    mockGetSubscriptions.mockResolvedValue([]);
   });
 
   it('returns true when the controller reports a Money Account Plus trial', async () => {
@@ -105,6 +110,8 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     const { result } = renderEligibility();
 
     expect(result.current.isEligibleForTrial).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+    expect(mockGetSubscriptions).not.toHaveBeenCalled();
     expect(mockIsUserEligibleForTrial).not.toHaveBeenCalled();
   });
 
@@ -122,6 +129,40 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
 
     expect(result.current.isEligibleForTrial).toBe(false);
     expect(mockIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads subscriptions before asking whether the user can start a trial', async () => {
+    const callOrder: string[] = [];
+    mockGetSubscriptions.mockImplementation(async () => {
+      callOrder.push('subscriptions');
+      return [];
+    });
+    mockIsUserEligibleForTrial.mockImplementation(async () => {
+      callOrder.push('eligibility');
+      return false;
+    });
+
+    const { result } = renderEligibility();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(callOrder).toEqual(['subscriptions', 'eligibility']);
+    expect(result.current.isEligibleForTrial).toBe(false);
+  });
+
+  it('stays not eligible when loading subscriptions fails', async () => {
+    mockGetSubscriptions.mockRejectedValue(new Error('subscriptions'));
+
+    const { result } = renderEligibility();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isEligibleForTrial).toBe(false);
+    expect(mockIsUserEligibleForTrial).not.toHaveBeenCalled();
   });
 
   it('returns false when the signed-in profile changes until that profile is checked', async () => {
@@ -199,6 +240,8 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     const { result } = renderEligibility();
 
     expect(result.current.isEligibleForTrial).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+    expect(mockGetSubscriptions).not.toHaveBeenCalled();
     expect(mockIsUserEligibleForTrial).not.toHaveBeenCalled();
   });
 

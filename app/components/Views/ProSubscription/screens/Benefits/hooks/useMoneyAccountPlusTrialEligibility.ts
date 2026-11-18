@@ -36,6 +36,8 @@ export function getMoneyAccountPlusTrialEligibilityQueryKey(
 export interface MoneyAccountPlusTrialEligibility {
   /** True only after the controller reports this user can start a Plus trial. */
   isEligibleForTrial: boolean;
+  /** True while subscription history and the trial check are still loading. */
+  isLoading: boolean;
 }
 
 /**
@@ -44,15 +46,20 @@ export interface MoneyAccountPlusTrialEligibility {
  * social login, so the screen must not infer eligibility from pricing
  * `trialPeriodDays` or `trialedProducts` alone.
  *
+ * Subscription history is loaded inside the query, before the eligibility
+ * check. On a restored wallet `trialedProducts` is empty until that load
+ * finishes, so asking earlier would answer "eligible" and the screen would
+ * have to correct itself. The screen waits on `isLoading` and then shows
+ * the answer from this one check.
+ *
  * The check runs when the wallet is unlocked and either the canonical profile
  * id or the social-login user id is present. Profile sync can lag behind
  * social login, and the controller decides Plus eligibility from social auth,
- * not from the profile id. Fails closed while the check is in flight,
- * disabled, or rejected, so trial copy stays hidden until the controller
- * returns true. A disabled query still exposes cached `data`, so eligibility
- * also requires the check to be enabled for the current identity.
+ * not from the profile id. A disabled query still exposes cached `data`, so
+ * eligibility also requires the check to be enabled for the current identity.
  *
- * @returns Whether the user is eligible for a Money Account Plus trial.
+ * @returns Whether the user is eligible for a Money Account Plus trial, and
+ * whether that answer is still loading.
  */
 export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialEligibility {
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
@@ -61,15 +68,17 @@ export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialElig
   const canRequestEligibility =
     isUnlocked && Boolean(canonicalProfileId || socialLoginUserId);
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: getMoneyAccountPlusTrialEligibilityQueryKey(
       canonicalProfileId,
       socialLoginUserId,
     ),
-    queryFn: () =>
-      Engine.context.SubscriptionController.isUserEligibleForTrial(
+    queryFn: async () => {
+      await Engine.context.SubscriptionController.getSubscriptions();
+      return Engine.context.SubscriptionController.isUserEligibleForTrial(
         PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-      ),
+      );
+    },
     enabled: canRequestEligibility,
     retry: false,
     refetchOnWindowFocus: false,
@@ -78,5 +87,6 @@ export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialElig
 
   return {
     isEligibleForTrial: canRequestEligibility && data === true,
+    isLoading: canRequestEligibility && isLoading,
   };
 }
