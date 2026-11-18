@@ -278,8 +278,11 @@ jobs:
       # build.sh passes --emit-metadata, so dist/ holds both the exported bundle and the
       # published update. TARGET_COMMIT_HASH is the commit that was bundled; it can differ
       # from github.sha, which is what the attestation certificate records.
+      # The update is already live here, so attestation failures must not fail the job:
+      # a failed push invites a re-run, which would publish a second OTA.
       - name: Resolve published OTA update
         id: ota-update
+        continue-on-error: true
         run: |
           set -euo pipefail
           update=$(jq -ce --arg p "$OTA_PUSH_PLATFORM" '.updates[] | select(.platform == $p)' dist/eas-update-metadata.json)
@@ -302,6 +305,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attest OTA bundle
+        id: attest-ota
+        if: steps.ota-update.outcome == 'success'
+        continue-on-error: true
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: ${{ steps.ota-update.outputs.bundle-path }}
@@ -310,8 +316,14 @@ jobs:
 
       - name: Update summary
         if: success()
+        env:
+          ATTEST_OUTCOME: ${{ steps.attest-ota.outcome }}
         run: |
           PLATFORM_LABEL=$(echo "${OTA_PUSH_PLATFORM}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+          if [ "${ATTEST_OUTCOME}" != "success" ]; then
+            echo "::warning title=OTA bundle not attested::The update is live but has no attestation. Do not re-run this job; that publishes a second update."
+            echo "> ⚠️ **OTA bundle not attested.** The update is live. Do not re-run this job." >> "$GITHUB_STEP_SUMMARY"
+          fi
           {
             echo "### ✅ EAS Update Published Successfully (${PLATFORM_LABEL})"
             echo

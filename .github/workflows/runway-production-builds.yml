@@ -157,6 +157,17 @@ jobs:
             ${{ runner.temp }}/release/ios/*.ipa
             ${{ runner.temp }}/release/android/*.aab
 
+      # SLSA provenance records github.sha, the commit this workflow ran from. The binaries
+      # are built from built_commit_sha (the release PR head), which can differ.
+      - name: Attest built commit
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            ${{ runner.temp }}/release/ios/*.ipa
+            ${{ runner.temp }}/release/android/*.aab
+          predicate-type: https://github.com/MetaMask/metamask-mobile/attestations/release-build/v1
+          predicate: '{"commit":"${{ needs.build.outputs.built_commit_sha }}"}'
+
       # Catalogs the lockfiles in the source tree (yarn.lock, Podfile.lock, Gemfile.lock).
       - name: Generate CycloneDX SBOM
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
