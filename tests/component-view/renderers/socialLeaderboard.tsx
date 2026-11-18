@@ -330,11 +330,15 @@ const buildOnboardingAccountTree = (
  * Seeds `AccountTreeController` because `useLinkableSocialAccounts` reads
  * account groups (the production shape) rather than the flat account list.
  *
- * Pass `includeSecondEvmAccount` to add a second EVM account after the default.
+ * Pass `includeSecondEvmAccount` to add a second EVM account after the default,
+ * and `initialParams` to open it in a specific mode such as `termsOnly`.
  */
 export function renderSocialProfileOnboarding(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
-  options: { includeSecondEvmAccount?: boolean } = {},
+  options: {
+    includeSecondEvmAccount?: boolean;
+    initialParams?: Record<string, unknown>;
+  } = {},
 ) {
   const state = createStateFixture()
     .withMinimalAccounts()
@@ -419,6 +423,7 @@ export function renderSocialProfileOnboarding(
     { name: Routes.SOCIAL.PROFILE_ONBOARDING },
     extraRoutes,
     { state },
+    options.initialParams,
   );
 }
 

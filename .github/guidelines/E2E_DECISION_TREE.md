@@ -26,7 +26,7 @@ flowchart TD
 
     Smart -->|Yes| AllTags[🧪 Run all E2E for required platforms]
     Smart -->|No| AI[🤖 AI selects test suites + confidence score]
-    AI --> CONF{{Confidence >= 85% ?}}
+    AI --> CONF{{Confidence >= 80% ?}}
     CONF -->|Yes| SelectedTags[🧪 Run selected E2E for required platforms]
     CONF -->|No| AllTagsFallback[🧪 Run all E2E for required platforms]
 

@@ -5,6 +5,7 @@ import { UserActionType } from '../../../../actions/user/types';
 import {
   selectMoneyEarnBannerDismissedTokens,
   selectMoneyOnboardingSeen,
+  selectMoneySplashSeen,
 } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -53,6 +54,7 @@ const MOCK_ADDRESS = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
 
 interface SelectorMockOptions {
   hasSeenMoneyOnboarding?: boolean;
+  hasSeenMoneySplash?: boolean;
   isOnboardingEnabled?: boolean;
   /** Pass `null` to simulate no money account being available. */
   moneyAccount?: { address: string } | null;
@@ -68,6 +70,7 @@ interface SelectorMockOptions {
  */
 function setupSelectorMocks(options: SelectorMockOptions = {}) {
   const hasSeenMoneyOnboarding = options.hasSeenMoneyOnboarding ?? false;
+  const hasSeenMoneySplash = options.hasSeenMoneySplash ?? false;
   const isOnboardingEnabled = options.isOnboardingEnabled ?? true;
   // `null` means "no account", `undefined` (omitted) means use the default.
   const moneyAccount =
@@ -79,6 +82,7 @@ function setupSelectorMocks(options: SelectorMockOptions = {}) {
 
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectMoneyOnboardingSeen) return hasSeenMoneyOnboarding;
+    if (selector === selectMoneySplashSeen) return hasSeenMoneySplash;
     if (selector === selectMoneyOnboardingStepperAnimationEnabled)
       return isOnboardingEnabled;
     if (selector === selectPrimaryMoneyAccount) return moneyAccount;
@@ -156,6 +160,39 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
           type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+          payload: { seen: false },
+        }),
+      );
+    });
+  });
+
+  describe('splash seen state', () => {
+    it('displays splash seen as false when not seen', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: false });
+
+      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+      expect(getByText('Splash seen: false')).toBeOnTheScreen();
+    });
+
+    it('displays splash seen as true when seen', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: true });
+
+      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+      expect(getByText('Splash seen: true')).toBeOnTheScreen();
+    });
+
+    it('dispatches setMoneySplashSeen(false) when reset button is pressed', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: true });
+
+      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+      fireEvent.press(getByText('Reset splash screen'));
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: UserActionType.SET_MONEY_SPLASH_SEEN,
           payload: { seen: false },
         }),
       );

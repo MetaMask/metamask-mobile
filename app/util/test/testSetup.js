@@ -1023,6 +1023,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     BottomSheet,
+    // toast() throws unless <Toaster /> is mounted. Unit tests do not mount
+    // App's Toaster, so stub the imperative API on the module mock above.
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
   };
 });
 
@@ -1160,6 +1165,11 @@ global.crypto = {
     return arr;
   },
 };
+
+if (!window.crypto.subtle) {
+  // eslint-disable-next-line n/global-require
+  window.crypto.subtle = require('crypto').webcrypto.subtle;
+}
 
 // Mock Sentry to prevent initialization issues in tests
 jest.mock('@sentry/react-native', () => ({

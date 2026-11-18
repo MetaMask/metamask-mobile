@@ -10,7 +10,8 @@ import {
   type PredictOrderServiceEvents,
   type PredictOrderServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictOrderService';
-import type { RootMessenger } from '../types';
+import type { PredictDeviceAuthServiceActions } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
+import type { GlobalActions, GlobalEvents, RootMessenger } from '../types';
 
 /**
  * Get the messenger for the Predict Order service. This is scoped to the
@@ -42,8 +43,38 @@ export const getPredictOrderServiceMessenger = (
 
 export type PredictOrderServiceInitMessenger = Messenger<
   'PredictOrderServiceInit',
-  AuthenticationController.AuthenticationControllerGetBearerTokenAction,
-  never
+  | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | Extract<
+      GlobalActions,
+      {
+        type:
+          | 'AuthenticationController:getSessionProfile'
+          | 'AuthenticationController:getState'
+          | 'KeyringController:getState';
+      }
+    >
+  | Extract<
+      PredictDeviceAuthServiceActions,
+      {
+        type:
+          | 'PredictDeviceAuthService:signOperation'
+          | 'PredictDeviceAuthService:previewOperation'
+          | 'PredictDeviceAuthService:getApprovalGeneration'
+          | 'PredictDeviceAuthService:signRead'
+          | 'PredictDeviceAuthService:invalidateA2t';
+      }
+    >,
+  Extract<
+    GlobalEvents,
+    {
+      type:
+        | 'KeyringController:lock'
+        | 'KeyringController:unlock'
+        | 'AuthenticationController:stateChange'
+        | 'AuthenticationController:profileSignIn'
+        | 'RemoteFeatureFlagController:stateChange';
+    }
+  >
 >;
 
 export const getPredictOrderServiceInitMessenger = (
@@ -57,8 +88,24 @@ export const getPredictOrderServiceInitMessenger = (
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
-    events: [],
+    actions: [
+      'AuthenticationController:getBearerToken',
+      'AuthenticationController:getSessionProfile',
+      'AuthenticationController:getState',
+      'KeyringController:getState',
+      'PredictDeviceAuthService:signOperation',
+      'PredictDeviceAuthService:previewOperation',
+      'PredictDeviceAuthService:getApprovalGeneration',
+      'PredictDeviceAuthService:signRead',
+      'PredictDeviceAuthService:invalidateA2t',
+    ],
+    events: [
+      'KeyringController:lock',
+      'KeyringController:unlock',
+      'AuthenticationController:stateChange',
+      'AuthenticationController:profileSignIn',
+      'RemoteFeatureFlagController:stateChange',
+    ],
     messenger,
   });
   return messenger;

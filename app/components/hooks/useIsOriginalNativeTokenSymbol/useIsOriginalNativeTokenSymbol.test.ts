@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import useIsOriginalNativeTokenSymbol from './useIsOriginalNativeTokenSymbol';
 import { backgroundState } from '../../../../app/util/test/initial-root-state';
 import { useSafeChains } from '../useSafeChains';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import type { RootState } from '../../../reducers';
 
 jest.mock('react-redux', () => ({
@@ -325,5 +326,148 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     });
 
     expect(result.result.current).toBe(true);
+  });
+
+  it('matches the safe-chain symbol without regard to case', async () => {
+    mockSelectorState(
+      mockStateWithNetworks(['314'], { useSafeChainsListValidation: true }),
+    );
+
+    (useSafeChains as jest.Mock).mockReturnValue({
+      safeChains: [
+        {
+          chainId: 314,
+          nativeCurrency: { symbol: 'Fil' },
+          name: 'Filecoin',
+          rpc: [],
+        },
+      ],
+    });
+
+    let result!: RenderHookResult<boolean | null, unknown>;
+
+    await act(async () => {
+      result = renderHook(() =>
+        useIsOriginalNativeTokenSymbol('314', 'fIL', 'mainnet'),
+      );
+    });
+
+    expect(result.result.current).toBe(true);
+  });
+
+  it('matches a mapped currency symbol without regard to case', async () => {
+    mockSelectorState(
+      mockStateWithNetworks(['0x5'], { useSafeChainsListValidation: true }),
+    );
+
+    (useSafeChains as jest.Mock).mockReturnValue({
+      safeChains: [],
+    });
+
+    let result!: RenderHookResult<boolean | null, unknown>;
+
+    await act(async () => {
+      result = renderHook(() =>
+        useIsOriginalNativeTokenSymbol('0x5', 'goerlieth', 'goerli'),
+      );
+    });
+
+    expect(result.result.current).toBe(true);
+  });
+
+  it('returns true when the ticker is missing', async () => {
+    mockSelectorState(
+      mockStateWithNetworks(['314'], { useSafeChainsListValidation: true }),
+    );
+
+    (useSafeChains as jest.Mock).mockReturnValue({
+      safeChains: [
+        {
+          chainId: 314,
+          nativeCurrency: { symbol: 'FIL' },
+          name: 'Filecoin',
+          rpc: [],
+        },
+      ],
+    });
+
+    let result!: RenderHookResult<boolean | null, unknown>;
+
+    await act(async () => {
+      result = renderHook(() =>
+        useIsOriginalNativeTokenSymbol('314', undefined, 'mainnet'),
+      );
+    });
+
+    expect(result.result.current).toBe(true);
+  });
+
+  it('returns true for a non-EVM chain without comparing symbols', async () => {
+    mockSelectorState(
+      mockStateWithNetworks(['314'], { useSafeChainsListValidation: true }),
+    );
+    (isNonEvmChainId as jest.Mock).mockReturnValueOnce(true);
+
+    (useSafeChains as jest.Mock).mockReturnValue({
+      safeChains: [
+        {
+          chainId: 314,
+          nativeCurrency: { symbol: 'FIL' },
+          name: 'Filecoin',
+          rpc: [],
+        },
+      ],
+    });
+
+    let result!: RenderHookResult<boolean | null, unknown>;
+
+    await act(async () => {
+      result = renderHook(() =>
+        useIsOriginalNativeTokenSymbol('314', 'NOTFIL', 'mainnet'),
+      );
+    });
+
+    expect(result.result.current).toBe(true);
+  });
+
+  it('stays null while the safe chains list is still undefined', async () => {
+    mockSelectorState(
+      mockStateWithNetworks(['314'], { useSafeChainsListValidation: true }),
+    );
+
+    (useSafeChains as jest.Mock).mockReturnValue({});
+
+    let result!: RenderHookResult<boolean | null, unknown>;
+
+    await act(async () => {
+      result = renderHook(() =>
+        useIsOriginalNativeTokenSymbol('314', 'FIL', 'mainnet'),
+      );
+    });
+
+    expect(result.result.current).toBe(null);
+  });
+
+  it('returns false when the chain check throws', async () => {
+    mockSelectorState(
+      mockStateWithNetworks(['314'], { useSafeChainsListValidation: true }),
+    );
+    (isNonEvmChainId as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('chain check failed');
+    });
+
+    (useSafeChains as jest.Mock).mockReturnValue({
+      safeChains: [],
+    });
+
+    let result!: RenderHookResult<boolean | null, unknown>;
+
+    await act(async () => {
+      result = renderHook(() =>
+        useIsOriginalNativeTokenSymbol('314', 'FIL', 'mainnet'),
+      );
+    });
+
+    expect(result.result.current).toBe(false);
   });
 });

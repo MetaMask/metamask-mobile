@@ -4,12 +4,15 @@ import {
   type CaipAssetType,
   type CaipChainId,
 } from '@metamask/utils';
-import type {
-  FetchFeedOptions,
-  FetchTokenFeedOptions,
-  FetchTraderFeedOptions,
-  SocialFeedRealtimeScope,
-  TokenFeedChain,
+import {
+  SOCIAL_FEED_CHANNELS,
+  type FeedItem as CoreFeedItem,
+  type FeedScope,
+  type FetchFeedOptions,
+  type FetchTokenFeedOptions,
+  type FetchTraderFeedOptions,
+  type SocialFeedRealtimeScope,
+  type TokenFeedChain,
 } from '@metamask/social-controllers';
 import {
   FEED_CAIP2_CHAINS,
@@ -18,13 +21,7 @@ import {
 import { chainNameToId } from '../utils/chainMapping';
 import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 
-/**
- * The feed `SocialService:fetchFeed` serves: `following`, `following_v1`,
- * `leaderboard`, `all`, or `trending`. `following_v1` is the following feed in
- * the shape of `all`: one item per post, ordered by `occurredAt`. The installed
- * `@metamask/social-controllers` does not list it yet.
- */
-export type FeedScope = NonNullable<FetchFeedOptions['scope']> | 'following_v1';
+export type { FeedScope };
 
 /**
  * A slice of the social feed, as `SocialService:fetchFeed` filters it. Plain
@@ -278,11 +275,16 @@ export const toSocialFeedRequest = (
 const coversEveryFeedChain = (chains: readonly CaipChainId[]): boolean =>
   FEED_CAIP2_CHAINS.every((chain) => chains.includes(chain));
 
+const hasRealtimeChannel = (
+  scope: FeedScope,
+): scope is FeedScope & SocialFeedRealtimeScope =>
+  Object.prototype.hasOwnProperty.call(SOCIAL_FEED_CHANNELS, scope);
+
 /**
- * The socket channel that streams a request, or `null` when none does. Only
- * an unnarrowed `all` or `trending` feed qualifies: socket events are not
- * filtered by chain, asset or trader, so a narrowed feed would receive rows
- * it should not show. There is no channel for `following` or `leaderboard`.
+ * The socket channel that streams a request, or `null` when none does. A feed
+ * streams its scope's channel whenever the realtime service has one, whatever
+ * it narrows by; {@link toSocialFeedItemMatcher} keeps the channel's posts to
+ * the request's slice.
  */
 export const toSocialFeedRealtimeScope = (
   request: SocialFeedRequest | null,
@@ -290,16 +292,8 @@ export const toSocialFeedRealtimeScope = (
   if (request?.action !== 'SocialService:fetchFeed') {
     return null;
   }
-  const { scope, chains, assetIds, profileId, commentedOnly } = request.options;
-  if (
-    assetIds !== undefined ||
-    profileId !== undefined ||
-    commentedOnly === true ||
-    !coversEveryFeedChain(chains)
-  ) {
-    return null;
-  }
-  return scope === 'all' || scope === 'trending' ? scope : null;
+  const { scope } = request.options;
+  return hasRealtimeChannel(scope) ? scope : null;
 };
 
 /** The asset fields a feed row carries, as the social API names them. */
@@ -378,4 +372,53 @@ export const socialFeedSourceFromAsset = (
   }
   const assetId = toFeedAssetId(assetRef);
   return assetId ? { kind: 'token', assetId } : null;
+};
+
+/** The CAIP-2 chain of a social chain name, as a query's `chains` lists it. */
+const toFeedChainId = (chainName: string): CaipChainId | undefined =>
+  isHyperliquidAsset(chainName)
+    ? HYPERLIQUID_CAIP2_CHAIN_ID
+    : chainNameToId(chainName.trim());
+
+/**
+ * Whether a feed item falls in a `fetchFeed` request's slice: its chains,
+ * assets, trader and commented-only narrowing, matched the way the server
+ * applies them. Scope is not checked; the socket channel already is the scope.
+ * `null` when the request does not narrow, so every item matches.
+ */
+export const toSocialFeedItemMatcher = (
+  request: SocialFeedRequest | null,
+): ((item: CoreFeedItem) => boolean) | null => {
+  if (request?.action !== 'SocialService:fetchFeed') {
+    return null;
+  }
+  const { chains, assetIds, profileId, commentedOnly } = request.options;
+  const chainSet = coversEveryFeedChain(chains)
+    ? null
+    : new Set<string>(chains);
+  const assetSet = assetIds ? new Set<string>(assetIds) : null;
+  if (!chainSet && !assetSet && profileId === undefined && !commentedOnly) {
+    return null;
+  }
+  return (item) => {
+    if (profileId !== undefined && item.actor.profileId !== profileId) {
+      return false;
+    }
+    if (commentedOnly && !item.authorComment) {
+      return false;
+    }
+    if (chainSet) {
+      const chain = toFeedChainId(item.chain);
+      if (!chain || !chainSet.has(chain)) {
+        return false;
+      }
+    }
+    if (assetSet) {
+      const assetId = toFeedAssetId(item);
+      if (!assetId || !assetSet.has(assetId)) {
+        return false;
+      }
+    }
+    return true;
+  };
 };

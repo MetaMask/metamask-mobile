@@ -34,6 +34,13 @@ export interface FilterChipSectionProps<T extends string> {
 }
 
 /**
+ * The selected chip renders as a secondary button, which has a 1px border. The
+ * unselected chip renders as a tertiary button with `border-0`. Reserving the
+ * same transparent border on both keeps every chip the same size when selected.
+ */
+const CHIP_BORDER_TW_CLASS_NAME = 'border border-transparent';
+
+/**
  * Section of single-select filter chips. Reuses MMDS `FilterButtonGroup` /
  * `FilterButton` with `FilterButtonVariant.Secondary` to match the Perps
  * order-book config sheet. Chips wrap to multiple rows when they exceed the
@@ -76,6 +83,7 @@ const FilterChipSection = <T extends string>({
               value={option.id}
               size={FilterButtonSize.Sm}
               isSelected={option.id === value}
+              twClassName={CHIP_BORDER_TW_CLASS_NAME}
               testID={`${testID}-${option.id}`}
             >
               {option.leadingEmoji

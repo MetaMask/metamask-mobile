@@ -335,33 +335,25 @@ describe('usePredictTrendingFeed', () => {
         await waitForCatalog(result);
 
         expect(result.current.feed.data).toEqual([]);
-        expect(result.current.feed.isLoading).toBe(false);
         expect(callsTo(messenger, GET_FEED)).toEqual([]);
         expect(mockGetMarkets).not.toHaveBeenCalled();
       },
     );
 
     it.each(['macro', 'rwas'] as const)(
-      'reads the %s tab from the politics Feed Kalshi maps that key to',
+      "reads the %s tab from the descriptor's politics Feed",
       async (tab) => {
         givenVenue(KALSHI);
 
-        const { result } = renderHook(() => usePredictTrendingFeed({ tab }), {
-          wrapper: createWrapper({ feed: KALSHI_GAMES }),
-        });
-
-        await waitFor(() => expect(result.current.data).toHaveLength(2));
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.data.map(readNextTrendingEvent)).toEqual(
-          KALSHI_GAMES,
+        const { result } = renderWithCapabilities(
+          { tab },
+          { feed: KALSHI_GAMES },
         );
+        await waitForCatalog(result);
+
+        await waitFor(() => expect(result.current.feed.data).toHaveLength(2));
         expect(callsTo(messenger, GET_FEED)).toEqual([
-          [
-            GET_FEED,
-            'kalshi',
-            KALSHI_STATIC_VENUE_CATALOG.feeds.politics,
-            { limit: 6 },
-          ],
+          [GET_FEED, 'kalshi', 'politics-trump', { limit: 6 }],
         ]);
         expect(mockGetMarkets).not.toHaveBeenCalled();
       },

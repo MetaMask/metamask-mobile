@@ -221,48 +221,72 @@ describe('RpcEndpointSection', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the failover tag for an endpoint with a failover', () => {
+  const renderFailoverSection = (
+    rpcUrl: string,
+    isRpcFailoverEnabled: boolean,
+  ) => {
     const formHook = createRpcModalFormHook({
-      form: { rpcUrl: 'https://mainnet.infura.io/v3/key', chainId: '0x1' },
+      form: { rpcUrl, chainId: '0x1' },
       showMultiRpcAddModal: false,
       rpcModalShowForm: false,
     });
 
-    const { queryByText } = render(
+    return render(
       <RpcEndpointSection
         formHook={formHook}
         validation={createRpcValidation()}
         onValidationSuccess={jest.fn()}
-        isRpcFailoverEnabled
+        isRpcFailoverEnabled={isRpcFailoverEnabled}
         styles={styles}
         themeAppearance="light"
         placeholderTextColor={placeholderTextColor}
       />,
+    );
+  };
+
+  it('shows the failover tag and URL for an Infura endpoint with a failover', () => {
+    const { queryByText, queryByDisplayValue } = renderFailoverSection(
+      'https://mainnet.infura.io/v3/key',
+      true,
     );
 
     expect(queryByText(strings('app_settings.failover'))).toBeOnTheScreen();
+    expect(
+      queryByText(strings('app_settings.network_failover_rpc_url_label')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByDisplayValue('https://mainnet.quicknode.example'),
+    ).toBeOnTheScreen();
   });
 
-  it('hides the failover tag for an endpoint without a failover', () => {
-    const formHook = createRpcModalFormHook({
-      form: { rpcUrl: 'https://rpc1.example.com', chainId: '0x1' },
-      showMultiRpcAddModal: false,
-      rpcModalShowForm: false,
-    });
-
-    const { queryByText } = render(
-      <RpcEndpointSection
-        formHook={formHook}
-        validation={createRpcValidation()}
-        onValidationSuccess={jest.fn()}
-        isRpcFailoverEnabled
-        styles={styles}
-        themeAppearance="light"
-        placeholderTextColor={placeholderTextColor}
-      />,
+  it('hides the failover tag and URL for a custom RPC endpoint', () => {
+    const { queryByText, queryByDisplayValue } = renderFailoverSection(
+      'https://rpc1.example.com',
+      true,
     );
 
     expect(queryByText(strings('app_settings.failover'))).not.toBeOnTheScreen();
+    expect(
+      queryByText(strings('app_settings.network_failover_rpc_url_label')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByDisplayValue('https://mainnet.quicknode.example'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the failover tag and URL when failover is disabled', () => {
+    const { queryByText, queryByDisplayValue } = renderFailoverSection(
+      'https://mainnet.infura.io/v3/key',
+      false,
+    );
+
+    expect(queryByText(strings('app_settings.failover'))).not.toBeOnTheScreen();
+    expect(
+      queryByText(strings('app_settings.network_failover_rpc_url_label')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByDisplayValue('https://mainnet.quicknode.example'),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders RPC selector in edit mode', () => {

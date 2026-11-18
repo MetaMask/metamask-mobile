@@ -9,12 +9,14 @@ import {
   selectMusdConversionEducationSeen,
   selectMusdConversionAssetDetailCtasSeen,
   selectMoneyOnboardingSeen,
+  selectMoneySplashSeen,
   selectMoneyEarnBannerDismissedTokens,
   selectTokenOverviewChartType,
   selectTokenOverviewChartInterval,
   selectTokenIndicators,
   selectOnboardingStepperProgress,
   selectBridgeLimitTabSeen,
+  selectBridgeRecurringTabSeen,
 } from './selectors';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
@@ -28,12 +30,14 @@ const mockState = {
     musdConversionEducationSeen: false,
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
     moneyOnboardingSeen: false,
+    moneySplashSeen: false,
     moneyEarnBannerDismissedTokens: {} as Record<string, boolean>,
     tokenOverviewChartType: ChartType.Line as ChartType,
     tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
     tokenIndicators: [] as string[],
     onboardingStepperProgress: {} as Record<string, number>,
     bridgeLimitTabSeen: false,
+    bridgeRecurringTabSeen: false,
   },
 };
 
@@ -163,6 +167,33 @@ describe('user state selectors', () => {
       const { result } = renderHook(() =>
         useSelector(selectMoneyOnboardingSeen),
       );
+
+      expect(result.current).toBe(false);
+    });
+  });
+
+  describe('selectMoneySplashSeen', () => {
+    it('returns false when the splash has not been seen', () => {
+      mockState.user.moneySplashSeen = false;
+
+      const { result } = renderHook(() => useSelector(selectMoneySplashSeen));
+
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when the splash has been seen', () => {
+      mockState.user.moneySplashSeen = true;
+
+      const { result } = renderHook(() => useSelector(selectMoneySplashSeen));
+
+      expect(result.current).toBe(true);
+    });
+
+    it('defaults to false when moneySplashSeen is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.moneySplashSeen = undefined;
+
+      const { result } = renderHook(() => useSelector(selectMoneySplashSeen));
 
       expect(result.current).toBe(false);
     });
@@ -329,6 +360,29 @@ describe('user state selectors', () => {
 
       const { result } = renderHook(() =>
         useSelector(selectBridgeLimitTabSeen),
+      );
+
+      expect(result.current).toBe(false);
+    });
+  });
+
+  describe('selectBridgeRecurringTabSeen', () => {
+    it('returns true when the Recurring tab has been seen', () => {
+      mockState.user.bridgeRecurringTabSeen = true;
+
+      const { result } = renderHook(() =>
+        useSelector(selectBridgeRecurringTabSeen),
+      );
+
+      expect(result.current).toBe(true);
+    });
+
+    it('defaults to false when bridgeRecurringTabSeen is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.bridgeRecurringTabSeen = undefined;
+
+      const { result } = renderHook(() =>
+        useSelector(selectBridgeRecurringTabSeen),
       );
 
       expect(result.current).toBe(false);

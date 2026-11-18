@@ -2,15 +2,12 @@ import { REWARDS_VIEW_SELECTORS } from '../../../app/components/UI/Rewards/Views
 import Matchers from '../../framework/Matchers';
 import type { AppiumElement } from '../../framework/AppiumElement';
 
-/** Root container for Rewards onboarding (`OnboardingMainStep`). */
-export const REWARDS_ONBOARDING_STEP_CONTAINER = 'onboarding-step-container';
-
 /**
  * Rewards tab content surface.
  *
- * Non-opted-in accounts land on onboarding; opted-in accounts land on the
- * dashboard shell. Permanent dashboard body content is still evolving, so
- * performance gates should treat either of these as "content ready".
+ * Opted-in and not-yet-joined accounts both land on the dashboard shell.
+ * Permanent dashboard body content is still evolving, so performance gates
+ * should treat the shell as "content ready".
  */
 class RewardsView {
   get title(): Promise<AppiumElement> {
@@ -19,10 +16,6 @@ class RewardsView {
 
   get safeArea(): Promise<AppiumElement> {
     return Matchers.getElementByID(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW);
-  }
-
-  get onboardingStepContainer(): Promise<AppiumElement> {
-    return Matchers.getElementByID(REWARDS_ONBOARDING_STEP_CONTAINER);
   }
 
   get bottomSheetCloseButton(): Promise<AppiumElement> {

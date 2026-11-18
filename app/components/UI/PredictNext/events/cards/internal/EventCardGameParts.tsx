@@ -27,6 +27,7 @@ import {
 } from '../../game';
 import { TeamLogo as SharedTeamLogo } from '../../shared/ui';
 import { EventCard } from './EventCard';
+import { isEventLive } from './isEventLive';
 import {
   createGameCardProjection,
   type GameCardProjection,
@@ -132,6 +133,7 @@ const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
   const { event, game, projection } = useGameCard();
   const line = projection.status[variant];
   const featured = variant === 'featured';
+  const live = isEventLive(event);
 
   return (
     <Box
@@ -141,7 +143,7 @@ const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
       <Box
         twClassName={`flex-row items-center ${featured ? 'gap-1' : 'gap-2'}`}
       >
-        {game.status === 'in_progress' ? (
+        {live ? (
           <Box
             testID={`predict-next-game-live-dot-${event.id}`}
             twClassName={`${featured ? 'h-2 w-2' : 'h-2.5 w-2.5'} rounded-full bg-success-default`}
@@ -151,7 +153,7 @@ const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Bold}
           color={
-            game.status === 'in_progress'
+            live
               ? TextColor.SuccessDefault
               : featured && game.status === 'scheduled'
                 ? TextColor.TextDefault
@@ -247,6 +249,7 @@ const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
         color={TextColor.TextAlternative}
         numberOfLines={1}
         twClassName="text-center"
+        accessibilityLabel={team.name}
         testID={`predict-next-game-team-label-${event.id}-${selection}`}
       >
         {abbreviation}
@@ -283,7 +286,8 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
 /**
  * Two rounded segments sized by the Teams' share of the two prices. The
  * first Team's segment is neutral and the second takes its Team color, like
- * the featured quote buttons.
+ * the featured quote buttons. A side with no share draws no segment, so the
+ * gap is not left at the end of a full bar.
  */
 const ProbabilityBar = () => {
   const { colors: themeColors } = useTheme();
@@ -295,27 +299,33 @@ const ProbabilityBar = () => {
     return null;
   }
 
+  const secondShare = 100 - firstShare;
+
   return (
     <Box
       testID={`predict-next-game-bar-${event.id}`}
       twClassName="flex-row gap-1 px-4"
     >
-      <Box
-        testID={`predict-next-game-bar-${event.id}-${first}`}
-        twClassName="h-1 rounded-full"
-        style={{
-          flex: firstShare,
-          backgroundColor: themeColors.text.default,
-        }}
-      />
-      <Box
-        testID={`predict-next-game-bar-${event.id}-${second}`}
-        twClassName="h-1 rounded-full"
-        style={{
-          flex: 100 - firstShare,
-          backgroundColor: colors[second],
-        }}
-      />
+      {firstShare > 0 ? (
+        <Box
+          testID={`predict-next-game-bar-${event.id}-${first}`}
+          twClassName="h-1 rounded-full"
+          style={{
+            flex: firstShare,
+            backgroundColor: themeColors.text.default,
+          }}
+        />
+      ) : null}
+      {secondShare > 0 ? (
+        <Box
+          testID={`predict-next-game-bar-${event.id}-${second}`}
+          twClassName="h-1 rounded-full"
+          style={{
+            flex: secondShare,
+            backgroundColor: colors[second],
+          }}
+        />
+      ) : null}
     </Box>
   );
 };
@@ -427,7 +437,7 @@ const Actions = () => {
 };
 
 /**
- * "Team name · price" on one line. A long name truncates so the price always
+ * "Label · price" on one line. A long label truncates so the price always
  * shows.
  */
 const QuoteLabel = ({
@@ -469,15 +479,16 @@ const QuoteLabel = ({
 };
 
 /**
- * A featured quote: a 48px pill labelled "Team name · price". The first Team
+ * A featured quote: a 48px pill labelled "ABBR · price". The first Team
  * in the card's order gets the neutral primary pill, the second its Team
  * color.
  */
 const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, brandColors } = useTheme();
   const {
     event,
     team,
+    abbreviation,
     quote,
     formattedPrice,
     canOrder,
@@ -505,7 +516,7 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
         twClassName="w-full px-3"
         isDisabled
       >
-        {team.name}
+        {abbreviation}
       </Button>
     );
   }
@@ -523,7 +534,7 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
           { team: team.name, price: formattedPrice },
         )}
       >
-        <QuoteLabel name={team.name} price={formattedPrice} />
+        <QuoteLabel name={abbreviation} price={formattedPrice} />
       </Box>
     );
   }
@@ -545,7 +556,7 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
         twClassName="w-full px-3"
       >
         <QuoteLabel
-          name={team.name}
+          name={abbreviation}
           price={formattedPrice}
           color={TextColor.PrimaryInverse}
         />
@@ -553,20 +564,30 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
     );
   }
 
+  // The fill is the Team's own color, as on the compact quote. `teamColor` is
+  // the contrast-checked color for text on the card, which swaps a dark Team
+  // color for a theme color in dark mode. The label is white when it reaches
+  // 4.5:1 on the fill, otherwise the fixed dark ink (a pale Team color such as
+  // gold); a mid tone neither reads on is darkened just enough for white.
+  const { fill: fillColor, label: labelColor } = getReadableQuoteColors(
+    team.primaryColor ?? teamColor,
+    { light: themeColors.overlay.inverse, dark: brandColors.grey1000 },
+  );
+
   return (
     <Button
       testID={testID}
       variant={ButtonVariant.Primary}
       onPress={onPress}
       accessibilityLabel={accessibilityLabel}
-      style={{ backgroundColor: teamColor }}
+      style={{ backgroundColor: fillColor }}
       size={ButtonSize.Lg}
       twClassName="w-full px-3"
     >
       <QuoteLabel
-        name={team.name}
+        name={abbreviation}
         price={formattedPrice}
-        textColor={themeColors.overlay.inverse}
+        textColor={labelColor}
       />
     </Button>
   );
@@ -667,7 +688,7 @@ const SmallQuote = ({ selection }: { selection: GameSelection }) => {
  */
 const SmallTeamRow = ({ selection }: { selection: GameSelection }) => {
   const tw = useTailwind();
-  const { event, abbreviation, actions } = useTeam(selection);
+  const { event, team, abbreviation, actions } = useTeam(selection);
 
   return (
     <Box
@@ -687,6 +708,7 @@ const SmallTeamRow = ({ selection }: { selection: GameSelection }) => {
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
           twClassName="min-w-0 flex-1"
+          accessibilityLabel={team.name}
           testID={`predict-next-game-team-label-${event.id}-${selection}`}
         >
           {abbreviation}

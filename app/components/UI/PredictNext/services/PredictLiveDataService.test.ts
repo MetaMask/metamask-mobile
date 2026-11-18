@@ -188,6 +188,50 @@ describe('PredictLiveDataService', () => {
     service.destroy();
   });
 
+  it('subscribes only the visible Markets and re-scopes by their difference', async () => {
+    const markets = ['m-1', 'm-2', 'm-3', 'm-4'].map(
+      (marketIdValue) => marketIdValue as PredictEntityId,
+    );
+    const [m1, m2, m3, m4] = markets;
+    const { service, messenger, client } = createService({
+      event: {
+        ...liveGameEvent,
+        markets: markets.map((marketIdValue) => ({
+          ...liveGameEvent.markets[0],
+          id: marketIdValue,
+        })),
+      },
+    });
+    const call = (
+      action: 'watchEvents' | 'unwatchEvents',
+      ids: readonly PredictEntityId[],
+    ) =>
+      messenger.call(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:${action}`,
+        venueId,
+        [eventId],
+        { marketScope: { type: 'visible', marketIds: ids } },
+      );
+
+    call('watchEvents', [m1, m2]);
+    await flush();
+    expect(jest.mocked(client.subscribe).mock.calls).toEqual([
+      ['market', venueId, [m1, m2]],
+      ['game', venueId, [eventId]],
+    ]);
+
+    call('watchEvents', [m1, m3, m4]);
+    call('unwatchEvents', [m1, m2]);
+    expect(client.subscribe).toHaveBeenLastCalledWith('market', venueId, [
+      m3,
+      m4,
+    ]);
+    expect(jest.mocked(client.unsubscribe).mock.calls).toEqual([
+      ['market', venueId, [m2]],
+    ]);
+    service.destroy();
+  });
+
   it('rejects watches for another Venue', () => {
     const { service, messenger } = createService();
 

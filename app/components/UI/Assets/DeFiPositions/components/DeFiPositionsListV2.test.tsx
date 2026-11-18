@@ -365,6 +365,39 @@ describe('DeFiPositionsListV2', () => {
     );
   });
 
+  it('clears the refresh spinner and rethrows when refresh rejects', async () => {
+    const refreshError = new Error('refresh failed');
+    const refresh = jest.fn().mockRejectedValue(refreshError);
+    mockUseDeFiPositionsV2.mockReturnValue(
+      makeHookResult({
+        positions: [makePosition({})],
+        refresh,
+      }),
+    );
+
+    const { getByTestId } = renderComponent(true);
+    const onRefresh = getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST)
+      .props.refreshControl.props.onRefresh;
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await onRefresh();
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBe(refreshError);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(
+        getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST).props
+          .refreshControl.props.refreshing,
+      ).toBe(false);
+    });
+  });
+
   it('tracks the position screen viewed event once when ready in full view', () => {
     mockUseDeFiPositionsV2.mockReturnValue(
       makeHookResult({

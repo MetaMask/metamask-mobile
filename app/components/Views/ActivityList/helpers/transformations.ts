@@ -4,12 +4,13 @@
  * Local EVM transactions are handled separately by useLocalActivityItems.
  */
 import {
-  mapApiTransaction,
   mapKeyringTransaction,
+  mapV5ApiTransaction,
 } from '@metamask/client-utils';
 import {
   type V1TransactionByHashResponse,
-  type V4MultiAccountTransactionsResponse,
+  type V5MultiAccountTransactionsResponse,
+  type V5TransactionRecord,
 } from '@metamask/core-backend';
 import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
@@ -79,42 +80,40 @@ export function shouldSkipUnrelatedTransaction(
   );
 }
 
-/**
- * List gate. Drops excluded hashes, transactions the subject does not take
- * part in at the top level, and no-op self transfers.
- *
- * Details must not reuse this gate: the by-hash request always asks for
- * `includeValueTransfers`, so a plain receive the user explicitly opened would
- * be filtered out and render as not-found.
- */
-export function shouldSkipTransaction(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-  excludedTxHashes?: Set<string>,
+// Ported from Extension
+export function isZeroValueSelfSend(
+  transaction: V5TransactionRecord,
+  subjectAddress: string,
 ) {
-  return shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes);
+  const { tx, valueTransfers } = transaction;
+
+  return (
+    equalsIgnoreCase(tx.from, subjectAddress) &&
+    equalsIgnoreCase(tx.to ?? '', subjectAddress) &&
+    tx.value === '0' &&
+    !valueTransfers.length &&
+    (!tx.methodId || tx.methodId === '0x')
+  );
 }
 
-function transformApiTransactions(
-  address: string,
-  transactions: V1TransactionByHashResponse[],
-  excludedTxHashes?: Set<string>,
-): ActivityListItem[] {
-  const items: ActivityListItem[] = [];
-  const subjectAddress = address.toLowerCase();
+// Ported from Extension
+export function isExcludedTransactionHash(
+  transaction: V5TransactionRecord,
+  txHashes?: Set<string>,
+) {
+  return Boolean(
+    transaction.tx.id && txHashes?.has(transaction.tx.id.toLowerCase()),
+  );
+}
 
-  for (const tx of transactions) {
-    if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
-      continue;
-    }
-    const activity = mapApiTransaction({
-      subjectAddress,
-      transaction: tx,
-    }) as ActivityListItem;
-    items.push(classifyPooledStakingActivity(tx, activity));
-  }
+export function mapV5ActivityItem(transaction: V5TransactionRecord) {
+  const activity = mapV5ApiTransaction({ transaction }) as ActivityListItem;
+  const { chainId, to, methodId } = transaction.tx;
 
-  return items;
+  return classifyPooledStakingActivity(
+    { chainId: Number(chainId.split(':')[1]), to, methodId },
+    activity,
+  );
 }
 
 export function selectApiEvmTransactions({
@@ -124,11 +123,17 @@ export function selectApiEvmTransactions({
   address: string;
   excludedTxHashes?: Set<string>;
 }) {
-  return (data: InfiniteData<V4MultiAccountTransactionsResponse>) => ({
+  return (data: InfiniteData<V5MultiAccountTransactionsResponse>) => ({
     ...data,
     pages: data.pages.map((page) => ({
       ...page,
-      data: transformApiTransactions(address, page.data, excludedTxHashes),
+      data: page.data
+        .filter(
+          (transaction) =>
+            !isZeroValueSelfSend(transaction, address) &&
+            !isExcludedTransactionHash(transaction, excludedTxHashes),
+        )
+        .map(mapV5ActivityItem),
     })),
   });
 }
