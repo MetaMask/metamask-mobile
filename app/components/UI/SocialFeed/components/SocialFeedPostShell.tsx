@@ -15,7 +15,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
@@ -47,6 +53,7 @@ import ReactionPickerBalloon, {
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
 import SocialFeedGif from './SocialFeedGif';
+import { SocialFeedWindowOffsetContext } from './SocialFeedWindowOffsetContext';
 import { useSocialFeedTracking } from '../socialFeedTracking';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { socialFeedPostAnalytics } from '../utils/socialPositionAnalytics';
@@ -281,6 +288,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const { colors } = useTheme();
   const reactionRowRef = useRef<View>(null);
   const postRef = useRef<View>(null);
+  const windowOffsetY = useContext(SocialFeedWindowOffsetContext);
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
@@ -396,7 +404,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
       reactionRowRef.current?.measureInWindow((x, y, width, height) => {
         playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
-        setPickerAnchor({ x, y, width, height });
+        setPickerAnchor({ x, y: y + windowOffsetY, width, height });
         setPickerVisible(true);
         notifyPicker?.();
       });
@@ -405,6 +413,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       ensureSocialProfileOnboarding,
       ensureSocialTermsForInteraction,
       notifyPicker,
+      windowOffsetY,
     ],
   );
 
