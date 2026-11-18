@@ -21,7 +21,8 @@ import { PrivacySettingsParams } from './PrivacySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useParams } from '../../../../util/navigation/navUtils';
-import { CLEAR_BROWSER_HISTORY_SECTION } from './PrivacySettings.constants';
+
+const CLEAR_BROWSER_HISTORY_SECTION = 'clear-browser-history-section';
 import {
   Button,
   ButtonVariant,
@@ -90,7 +91,7 @@ function PrivacySettings() {
     setAnalyticsEnabled(isEnabled());
   }, [setAnalyticsEnabled, isEnabled]);
 
-  const scrollToSection = useCallback(() => {
+  function scrollToSection() {
     const scrollHost = scrollViewRef.current?.getNativeScrollRef();
     if (!scrollHost) return;
 
@@ -109,7 +110,7 @@ function PrivacySettings() {
       },
       () => null,
     );
-  }, [params?.scrollToSection]);
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -117,73 +118,77 @@ function PrivacySettings() {
 
       const task = InteractionManager.runAfterInteractions(scrollToSection);
       return () => task.cancel();
-    }, [scrollToSection, params?.scrollToSection]),
+    }, [params?.scrollToSection]),
   );
 
-  const toggleClearBrowserHistoryModal = () => {
+  function toggleClearBrowserHistoryModal() {
     setBrowserHistoryModalVisible(!browserHistoryModalVisible);
-  };
+  }
 
-  const renderClearBrowserHistorySection = () => (
-    <View style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {strings('app_settings.clear_browser_history_desc')}
-      </Text>
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.clear_history_desc')}
-      </Text>
-      <View style={styles.accessory}>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={toggleClearBrowserHistoryModal}
-          isDisabled={browserHistory.length === 0}
-        >
+  function renderClearBrowserHistorySection() {
+    return (
+      <View style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('app_settings.clear_browser_history_desc')}
-        </Button>
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          style={styles.desc}
+        >
+          {strings('app_settings.clear_history_desc')}
+        </Text>
+        <View style={styles.accessory}>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={toggleClearBrowserHistoryModal}
+            isDisabled={browserHistory.length === 0}
+          >
+            {strings('app_settings.clear_browser_history_desc')}
+          </Button>
+        </View>
       </View>
-    </View>
-  );
+    );
+  }
 
-  const clearBrowserHistory = () => {
+  function clearBrowserHistory() {
     dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
     toggleClearBrowserHistoryModal();
-  };
+  }
 
-  const renderHistoryModal = () => (
-    <ActionModal
-      modalVisible={browserHistoryModalVisible}
-      confirmText={strings('app_settings.clear')}
-      cancelText={strings('app_settings.reset_account_cancel_button')}
-      onCancelPress={toggleClearBrowserHistoryModal}
-      onRequestClose={toggleClearBrowserHistoryModal}
-      onConfirmPress={clearBrowserHistory}
-    >
-      <View style={styles.modalView}>
-        <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
-          {strings('app_settings.clear_browser_history_modal_title')}
-        </Text>
-        <Text variant={TextVariant.BodyMd} style={styles.modalText}>
-          {strings('app_settings.clear_browser_history_modal_message')}
-        </Text>
-      </View>
-    </ActionModal>
-  );
+  function renderHistoryModal() {
+    return (
+      <ActionModal
+        modalVisible={browserHistoryModalVisible}
+        confirmText={strings('app_settings.clear')}
+        cancelText={strings('app_settings.reset_account_cancel_button')}
+        onCancelPress={toggleClearBrowserHistoryModal}
+        onRequestClose={toggleClearBrowserHistoryModal}
+        onConfirmPress={clearBrowserHistory}
+      >
+        <View style={styles.modalView}>
+          <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
+            {strings('app_settings.clear_browser_history_modal_title')}
+          </Text>
+          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
+            {strings('app_settings.clear_browser_history_modal_message')}
+          </Text>
+        </View>
+      </ActionModal>
+    );
+  }
 
-  const toggleBasicFunctionality = () => {
+  function toggleBasicFunctionality() {
     if (isSocialLoginBasicFunctionalityLocked) {
       return;
     }
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
-  };
+  }
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>

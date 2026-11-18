@@ -29,7 +29,6 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/noti
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
-import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
@@ -167,14 +166,6 @@ const Settings: React.FC = () => {
           <AutoLock />
           <DeviceSecurityToggle />
           {!isBasicFunctionalityConsolidationEnabled && <BlockaidSettings />}
-          {isBasicFunctionalityConsolidationEnabled && (
-            <>
-              <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-                {strings('app_settings.transactions_subheading')}
-              </Text>
-              <BatchAccountBalanceSettings />
-            </>
-          )}
           {renderHint()}
         </View>
       </ScrollView>

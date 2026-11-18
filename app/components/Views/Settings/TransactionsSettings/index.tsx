@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Linking, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -60,10 +60,10 @@ function TransactionsSettings() {
     (state: any) => state.settings.showHexData,
   );
 
-  const trackMetricsEvent = (
+  function trackMetricsEvent(
     event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
     properties: Record<string, unknown>,
-  ) => {
+  ) {
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(event)
         .addProperties({
@@ -72,33 +72,33 @@ function TransactionsSettings() {
         })
         .build(),
     );
-  };
+  }
 
-  const toggleSmartTransactionsOptInStatus = (optInStatus: boolean) => {
+  function toggleSmartTransactionsOptInStatus(optInStatus: boolean) {
     const { PreferencesController } = Engine.context;
     PreferencesController.setSmartTransactionsOptInStatus(optInStatus);
 
     trackMetricsEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: optInStatus,
     });
-  };
+  }
 
-  const toggleShowHexData = (value: boolean) => {
+  function toggleShowHexData(value: boolean) {
     const { PreferencesController } = Engine.context;
     PreferencesController.setFeatureFlag('showHexData', value);
-  };
+  }
 
-  const openLinkAboutStx = () => {
+  function openLinkAboutStx() {
     Linking.openURL(AppConstants.URLS.SMART_TXS);
-  };
+  }
 
-  const toggleUseTransactionSimulations = (value: boolean) => {
+  function toggleUseTransactionSimulations(value: boolean) {
     const { PreferencesController } = Engine.context;
     PreferencesController.setUseTransactionSimulations(value);
-  };
+  }
 
-  const renderUseTransactionSimulations = useCallback(
-    () => (
+  function renderUseTransactionSimulations() {
+    return (
       <View style={styles.setting}>
         <View style={styles.titleContainer}>
           <Text
@@ -132,16 +132,8 @@ function TransactionsSettings() {
           />
         </Text>
       </View>
-    ),
-    [
-      colors,
-      styles,
-      useTransactionSimulations,
-      brandColors.white,
-      createEventBuilder,
-      trackEvent,
-    ],
-  );
+    );
+  }
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
@@ -192,7 +184,7 @@ function TransactionsSettings() {
             onValueChange={toggleShowHexData}
           />
 
-          {isBasicFunctionalityConsolidationEnabled && (
+          {!isBasicFunctionalityConsolidationEnabled && (
             <>
               <BatchAccountBalanceSettings />
               <SettingsToggleRow
