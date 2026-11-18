@@ -451,9 +451,10 @@ describe('Membership', () => {
     it('shows Ends on while a period-end cancellation is scheduled', () => {
       const { getByTestId } = renderMembership(pendingCancellation);
 
-      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex(strings('pro_hub.membership.ends_on')),
-      );
+      const renewsOnRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+
+      expect(renewsOnRow).toHaveTextContent('Ends on');
+      expect(renewsOnRow).not.toHaveTextContent('pro_hub.membership.ends_on');
     });
 
     it('shows resume and uncancels the subscription when the period end is still ahead', async () => {
@@ -521,9 +522,10 @@ describe('Membership', () => {
         status: SUBSCRIPTION_STATUSES.pastDue,
       });
 
-      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex(strings('pro_hub.membership.ends_on')),
-      );
+      const renewsOnRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+
+      expect(renewsOnRow).toHaveTextContent('Ends on');
+      expect(renewsOnRow).not.toHaveTextContent('pro_hub.membership.ends_on');
       expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
       expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
     });

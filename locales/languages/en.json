@@ -13691,6 +13691,9 @@
         "title": "Your membership is cancelled",
         "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
         "action": "Renew membership"
+      },
+      "pending_cancel": {
+        "description": "Resume before {{date}} to keep 7% APY, 3% mUSD back, and more."
       }
     },
     "earned": {

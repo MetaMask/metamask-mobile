@@ -402,6 +402,10 @@ describe('ProHub', () => {
   // ── Rendering ──────────────────────────────────────────────────────────────
 
   describe('Rendering', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('renders the pro hub container', () => {
       const { getByTestId } = renderProHub();
 
@@ -721,8 +725,6 @@ describe('ProHub', () => {
       expect(
         getByTestId(ProHubTestIds.MEMBERSHIP_RESUME_ERROR),
       ).toHaveTextContent(strings('pro_hub.membership.resume_failed'));
-
-      announceSpy.mockRestore();
     });
 
     it('renders the physical card banner with title and description', () => {

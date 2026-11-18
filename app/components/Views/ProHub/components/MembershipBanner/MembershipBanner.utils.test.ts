@@ -86,7 +86,7 @@ describe('getMembershipBannerModel', () => {
     expect(model.alert).toEqual({
       severity: BannerAlertSeverity.Warning,
       titleKey: 'pro_hub.membership_alert.cancelled.title',
-      descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+      descriptionKey: 'pro_hub.membership_alert.pending_cancel.description',
       descriptionValues: { date: 'Jan 15, 2099' },
       actionKey: 'pro_hub.membership.resume_membership',
       action: MembershipAlertAction.Resume,
@@ -106,6 +106,9 @@ describe('getMembershipBannerModel', () => {
     expect(model.statusKind).toBe(MembershipStatusKind.Active);
     expect(model.alert?.titleKey).toBe(
       'pro_hub.membership_alert.cancelled.title',
+    );
+    expect(model.alert?.descriptionKey).toBe(
+      'pro_hub.membership_alert.pending_cancel.description',
     );
     expect(model.alert?.action).toBe(MembershipAlertAction.Resume);
   });

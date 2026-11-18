@@ -156,18 +156,25 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
 };
 
 /**
- * Same cancelled copy as an ended plan, with Resume instead of Renew.
+ * Cancelled title, with resume copy instead of the renew description.
  *
  * Renew opens the subscription screen. A period-end cancel is still active,
  * so that screen sends the user back here. Resume uncancels in place.
  */
 const pendingCancellationAlert = (
   date: string | undefined,
-): MembershipAlert => ({
-  ...cancelledAlert(date),
-  actionKey: 'pro_hub.membership.resume_membership',
-  action: MembershipAlertAction.Resume,
-});
+): MembershipAlert => {
+  const alert = cancelledAlert(date);
+
+  return {
+    ...alert,
+    descriptionKey: alert.descriptionKey
+      ? 'pro_hub.membership_alert.pending_cancel.description'
+      : undefined,
+    actionKey: 'pro_hub.membership.resume_membership',
+    action: MembershipAlertAction.Resume,
+  };
+};
 
 /**
  * Active status plus the cancelled alert while a period-end cancel can still

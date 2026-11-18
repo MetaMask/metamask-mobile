@@ -94,7 +94,7 @@ describe('MembershipBanner', () => {
         ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Active),
       ),
     ).toHaveTextContent(
-      strings('pro_hub.membership_alert.cancelled.description', {
+      strings('pro_hub.membership_alert.pending_cancel.description', {
         date: 'Jan 15, 2099',
       }),
       { exact: false },
