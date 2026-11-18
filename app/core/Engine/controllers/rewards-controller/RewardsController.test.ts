@@ -21232,6 +21232,24 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockStatus);
     });
 
+    it('forwards a profile username to the data service', async () => {
+      const ctrl = new RewardsController({
+        messenger: optInToCampaignMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId, 'ada');
+
+      expect(optInToCampaignMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        mockCampaignId,
+        'ada',
+      );
+    });
+
     it('logs when opting in', async () => {
       const ctrl = new RewardsController({
         messenger: optInToCampaignMessenger,
@@ -21406,6 +21424,35 @@ describe('RewardsController', () => {
         campaignId: campaignA,
         subscriptionId: mockSubscriptionId,
       });
+    });
+
+    it('forwards one profile username to every campaign opt-in', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+        'ada',
+      );
+
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+        'ada',
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+        'ada',
+      );
     });
 
     it('re-seeds participant status cache so post-batch refetches hit cache', async () => {
