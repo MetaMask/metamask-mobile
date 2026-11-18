@@ -53,6 +53,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     AssetsController: {
       addCustomAsset: jest.fn(),
+      unhideAsset: jest.fn(),
     },
   },
 }));
@@ -335,6 +336,42 @@ describe('AddCustomToken', () => {
         MOCK_CAIP_ASSET,
         expect.objectContaining({ address: VALID_ADDRESS }),
       );
+    });
+
+    it('re-adds a hidden token as a custom asset instead of only unhiding it', async () => {
+      mockSelectInternalAccountByScope.mockReturnValue({
+        id: 'evm-account-id',
+        address: '0xabc',
+      });
+      const utils = renderWithProvider(<AddCustomToken chainId="0x1" />, {
+        state: {
+          ...mockInitialState,
+          engine: {
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              AssetsController: {
+                ...backgroundState.AssetsController,
+                assetPreferences: { [MOCK_CAIP_ASSET]: { hidden: true } },
+              },
+            },
+          },
+        },
+      });
+      await setupAndPressNext(utils);
+
+      const [, params] = mockPush.mock.calls[0];
+      await act(async () => {
+        await params.addTokenList();
+      });
+
+      expect(mockAddCustomAsset).toHaveBeenCalledWith(
+        'evm-account-id',
+        MOCK_CAIP_ASSET,
+        expect.objectContaining({ address: VALID_ADDRESS }),
+      );
+      expect(
+        Engine.context.AssetsController.unhideAsset,
+      ).not.toHaveBeenCalled();
     });
 
     // `handleAddCustomAsset` (useAssetVisibility) silently no-ops when there is
