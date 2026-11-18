@@ -1,11 +1,11 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import { strings } from '../../../../../../locales/i18n';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuse Perps explorer hook until shared perps utilities are extracted.
-import { usePerpsBlockExplorerUrl } from '../../../UI/Perps/hooks';
-import { ActivityDetailsWebviewButton } from './ActivityDetailsFooter';
+import { usePerpsBlockExplorerUrl } from '../../../../UI/Perps/hooks';
+import { ActivityDetailsWebviewButton } from '../../components/ActivityDetailsFooter';
 
 export function ActivityDetailsPerpsExplorerButton() {
   const selectedAccount = useSelector(
