@@ -1,10 +1,7 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import {
-  buildQuickDepositStablecoinOptions,
-  type AccountTokenBalances,
-} from './quickDepositStablecoins';
+import { buildQuickDepositStablecoinOptions } from './quickDepositStablecoins';
 
 const ETH_USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const ETH_USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -13,7 +10,7 @@ const BSC_USDT = '0x55d398326f99059ff775485246999027b3197955';
 const POLYGON_USDC = '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359';
 const MUSD = MUSD_TOKEN_ADDRESS.toLowerCase();
 
-const monadMusdFlag = {
+const flag = {
   chains: {
     eth: CHAIN_IDS.MAINNET,
     base: CHAIN_IDS.BASE,
@@ -45,29 +42,29 @@ const monadMusdFlag = {
 };
 
 const raw = (whole: string, decimals: number): Hex =>
-  `0x${(BigInt(whole) * BigInt(10) ** BigInt(decimals)).toString(16)}` as Hex;
+  `0x${(BigInt(whole) * 10n ** BigInt(decimals)).toString(16)}` as Hex;
 
-const build = (
-  accountBalances: AccountTokenBalances | undefined,
-  relayFlag: unknown = monadMusdFlag,
+const row = (
+  balances: Record<string, Record<string, string>>,
+  relayFlag: unknown = flag,
   blockedTokens?: object,
 ) =>
   buildQuickDepositStablecoinOptions({
     relayFlag,
-    accountBalances,
+    accountBalances: balances,
     blockedTokens: blockedTokens as never,
-  });
+  })[0];
 
 describe('quickDepositStablecoins', () => {
   it('sums the winner and prefills its largest chain', () => {
     expect(
-      build({
+      row({
         [CHAIN_IDS.MAINNET]: {
           [ETH_USDC]: raw('10', 6),
           [ETH_USDT]: raw('20', 6),
         },
         [CHAIN_IDS.BASE]: { [BASE_USDC]: raw('40', 6) },
-      })[0],
+      }),
     ).toEqual(
       expect.objectContaining({
         symbol: 'USDC',
@@ -79,55 +76,57 @@ describe('quickDepositStablecoins', () => {
   });
 
   it('prefers the largest total, then USDC, USDT, mUSD', () => {
+    const main = CHAIN_IDS.MAINNET;
     expect(
-      build({
-        [CHAIN_IDS.MAINNET]: {
+      row({
+        [main]: {
           [ETH_USDC]: raw('10', 6),
           [ETH_USDT]: raw('10', 6),
           [MUSD]: raw('10', 6),
         },
-      })[0]?.symbol,
+      })?.symbol,
     ).toBe('USDC');
     expect(
-      build({
-        [CHAIN_IDS.MAINNET]: { [ETH_USDT]: raw('10', 6), [MUSD]: raw('10', 6) },
-      })[0]?.intent,
+      row({ [main]: { [ETH_USDT]: raw('10', 6), [MUSD]: raw('10', 6) } })
+        ?.intent,
     ).toBe('addUsdt');
     expect(
-      build({
-        [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('4', 6), [MUSD]: raw('9', 6) },
-      })[0]?.intent,
+      row({ [main]: { [ETH_USDC]: raw('4', 6), [MUSD]: raw('9', 6) } })?.intent,
     ).toBe('addMusd');
   });
 
   it('hides empty, unsponsored, testnet, non-EVM, and unconfigured balances', () => {
-    const hidden = [
-      { [CHAIN_IDS.MAINNET]: { [ETH_USDC]: '0x0' } },
-      { [CHAIN_IDS.POLYGON]: { [POLYGON_USDC]: raw('80', 6) } },
-      { [CHAIN_IDS.SEPOLIA]: { [ETH_USDC]: raw('90', 6) } },
-      {
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': { [ETH_USDC]: raw('78', 6) },
-      },
+    const hidden: [Record<string, Record<string, string>>, unknown?][] = [
+      [{ [CHAIN_IDS.MAINNET]: { [ETH_USDC]: '0x0' } }],
+      [{ [CHAIN_IDS.POLYGON]: { [POLYGON_USDC]: raw('80', 6) } }],
+      [{ [CHAIN_IDS.SEPOLIA]: { [ETH_USDC]: raw('90', 6) } }],
+      [
+        {
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+            [ETH_USDC]: raw('78', 6),
+          },
+        },
+      ],
+      [{ [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('8', 6) } }, null],
     ];
-    hidden.forEach((balances) => expect(build(balances)).toEqual([]));
-    expect(
-      build({ [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('8', 6) } }, null),
-    ).toEqual([]);
+    hidden.forEach(([balances, relayFlag]) => {
+      expect(row(balances, relayFlag)).toBeUndefined();
+    });
   });
 
   it('reads 18-decimal BNB Chain USDT and skips a blocked chain', () => {
     expect(
-      build({ [CHAIN_IDS.BSC]: { [BSC_USDT]: raw('7', 18) } })[0]
-        ?.aggregatedBalance,
+      row({ [CHAIN_IDS.BSC]: { [BSC_USDT]: raw('7', 18) } })?.aggregatedBalance,
     ).toBe('7');
-    const blocked = build(
-      {
-        [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('12', 6) },
-        [CHAIN_IDS.BASE]: { [BASE_USDC]: raw('2', 6) },
-      },
-      monadMusdFlag,
-      { chainIds: [CHAIN_IDS.MAINNET], tokens: [] },
-    );
-    expect(blocked[0]?.aggregatedBalance).toBe('2');
+    expect(
+      row(
+        {
+          [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('12', 6) },
+          [CHAIN_IDS.BASE]: { [BASE_USDC]: raw('2', 6) },
+        },
+        flag,
+        { chainIds: [CHAIN_IDS.MAINNET], tokens: [] },
+      )?.aggregatedBalance,
+    ).toBe('2');
   });
 });

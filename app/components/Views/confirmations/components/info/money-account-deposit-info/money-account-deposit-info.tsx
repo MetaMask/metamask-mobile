@@ -35,31 +35,19 @@ export function MoneyAccountDepositInfo() {
   );
 
   const { createEventBuilder, trackEvent } = useAnalytics();
+  const depositIntent = params?.depositIntent;
+  const payChainId = params?.preferredPaymentToken?.chainId;
   useEffect(() => {
     trackEvent(
       createEventBuilder(CONFIRMATION_EVENTS.SCREEN_VIEWED)
         .addProperties({
           location: MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION,
-          ...(params?.depositIntent
-            ? {
-                mm_pay_deposit_intent: params.depositIntent,
-                ...(params.preferredPaymentToken
-                  ? {
-                      mm_pay_chain_presented:
-                        params.preferredPaymentToken.chainId,
-                    }
-                  : {}),
-              }
-            : {}),
+          ...(depositIntent ? { mm_pay_deposit_intent: depositIntent } : {}),
+          ...(payChainId ? { mm_pay_chain_presented: payChainId } : {}),
         })
         .build(),
     );
-  }, [
-    createEventBuilder,
-    params?.depositIntent,
-    params?.preferredPaymentToken,
-    trackEvent,
-  ]);
+  }, [createEventBuilder, depositIntent, payChainId, trackEvent]);
 
   return (
     <CustomAmountInfo

@@ -28,6 +28,7 @@ import {
 import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
+  type MoneyAccountDepositIntent,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
@@ -165,21 +166,16 @@ const mockUseMoneyAccountAvailability = jest.mocked(
 );
 const mockAssertMoneyAccountAccessible = jest.fn();
 const mockIsDepositPrefillEnabled = jest.fn(
-  (intent?: 'convert' | 'addMusd' | 'addUsdc' | 'addUsdt' | 'card') =>
-    intent === 'addMusd',
+  (intent?: MoneyAccountDepositIntent) => intent === 'addMusd',
 );
 
 function mockDepositPrefillEnabled(
-  isEnabled:
-    | boolean
-    | ((
-        intent?: 'convert' | 'addMusd' | 'addUsdc' | 'addUsdt' | 'card',
-      ) => boolean),
+  isEnabled: boolean | ((intent?: MoneyAccountDepositIntent) => boolean),
 ) {
   mockIsDepositPrefillEnabled.mockImplementation(
     typeof isEnabled === 'function'
       ? isEnabled
-      : (intent?: 'convert' | 'addMusd' | 'addUsdc' | 'addUsdt' | 'card') =>
+      : (intent?: MoneyAccountDepositIntent) =>
           intent === 'addMusd' ? true : isEnabled,
   );
   mockUseMoneyAccountDepositPrefillEnabled.mockReturnValue(
