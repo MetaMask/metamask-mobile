@@ -80,6 +80,11 @@ export function getAssetsControllerMessenger(
       'AccountTreeController:isInitialized',
       'ClientController:getState',
       'KeyringController:isUnlocked',
+      // assets-controller@20.4.x: AUS custom-token sync (get/set/import/hide)
+      'AuthenticatedUserStorageService:getUserAssets',
+      'AuthenticatedUserStorageService:setUserAssets',
+      'AuthenticatedUserStorageService:importTokens',
+      'AuthenticatedUserStorageService:hideTokens',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,
