@@ -233,7 +233,9 @@ const Membership = () => {
   }, [navigation]);
 
   const handleInvoices = useCallback(() => {
-    openInvoices();
+    // openInvoices reports its own failures, so the promise is intentionally not awaited.
+    // eslint-disable-next-line no-void -- openInvoices handles its own errors.
+    void openInvoices();
   }, [openInvoices]);
 
   const handleContactSupport = useCallback(() => {
