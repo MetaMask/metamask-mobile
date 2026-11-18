@@ -28,7 +28,9 @@ import {
   upsertStickyComment,
 } from './shared/pr-template-comment';
 
-const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github" , "cursor", "metamask-ci"];
+// GitHub Apps are detected by their GraphQL author type (Bot), so only bots
+// that run as regular user accounts need to be listed here.
+const knownBotUsers = ["metamaskbot", "sentry-io"];
 
 // GitHub App / bot logins that cannot be resolved as User in GraphQL (user(login:) returns null).
 // Issues/PRs from these actors still get full template and label checks; we only skip the org check.
@@ -85,11 +87,18 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // loginsExemptFromOrgCheck actors skip the org check but still get the template checks, so they never count as bots here.
+  const isLoginExempt = loginsExemptFromOrgCheck.includes(labelable?.author);
+  const authorIsBot =
+    !isLoginExempt &&
+    (labelable?.authorType === "Bot" ||
+      knownBotUsers.includes(labelable?.author));
+
   // If author is not part of the MetaMask organisation, add external contributor label.
-  // Skip org check for loginsExemptFromOrgCheck (e.g. issuebridge): GraphQL user(login) does not resolve apps, and we treat them as internal.
+  // GraphQL user(login) does not resolve apps, so bots and exempt logins are treated as internal.
   if (
-    !knownBots.includes(labelable?.author) &&
-    !loginsExemptFromOrgCheck.includes(labelable?.author) &&
+    !authorIsBot &&
+    !isLoginExempt &&
     !(await userBelongsToMetaMaskOrg(octokit, labelable?.author))
   ) {
     await addLabelToLabelable(octokit, labelable, externalContributorLabel);
@@ -102,7 +111,7 @@ async function main(): Promise<void> {
 
   // If labelable's author is a bot we skip the rest of the script, including the template checks as bots don't use templates.
   // Exception: For issues created the 'sentry-io' bot, we don't skip the rest of the script because there's a specific handling for those issues.
-  if (knownBots.includes(labelable.author) && labelable.author !== 'sentry-io') {
+  if (authorIsBot && labelable.author !== 'sentry-io') {
     console.log(`${labelable.type === LabelableType.PullRequest ? 'PR' : 'Issue'} was created by a bot (${labelable.author}). Skip template checks.`);
     process.exit(0); // Stop the process and exit with a success status code
   }

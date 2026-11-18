@@ -291,7 +291,10 @@ jest.mock('../resolveQuickBuyTerminalToast', () => ({
 
 jest.mock(
   '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
-  () => ({ usePostTradePromptResolver: jest.fn() }),
+  () => ({
+    usePostTradePromptResolver: jest.fn(),
+    useCanShareCopyTrade: jest.fn(),
+  }),
 );
 
 jest.mock(

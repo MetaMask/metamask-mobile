@@ -19,17 +19,17 @@ import {
 import {
   HexStringSchema as LimitOrderHexStringSchema,
   PreparedLimitOrderDelegationSchema,
+  LimitOrderDelegationsResponseSchema,
+  type LimitOrderDelegationsResponse,
 } from './limitOrders/getDelegations/schema';
-import { LimitOrderAssetSchema } from './limitOrders/create/schema';
 
 export const RecurringOrderState = {
   Open: 'OPEN',
   Completed: 'COMPLETED',
   Cancelled: 'CANCELLED',
-  Expired: 'EXPIRED',
 } as const;
 
-export const RecurringSwapState = {
+export const RecurringSwapStatus = {
   Submitted: 'SUBMITTED',
   Filled: 'FILLED',
   Skipped: 'SKIPPED',
@@ -40,23 +40,24 @@ export const RecurringOrderStateSchema = enums([
   RecurringOrderState.Open,
   RecurringOrderState.Completed,
   RecurringOrderState.Cancelled,
-  RecurringOrderState.Expired,
 ]);
 export type RecurringOrderState = Infer<typeof RecurringOrderStateSchema>;
 
-export const RecurringSwapStateSchema = enums([
-  RecurringSwapState.Submitted,
-  RecurringSwapState.Filled,
-  RecurringSwapState.Skipped,
-  RecurringSwapState.Failed,
+export const RecurringSwapStatusSchema = enums([
+  RecurringSwapStatus.Submitted,
+  RecurringSwapStatus.Filled,
+  RecurringSwapStatus.Skipped,
+  RecurringSwapStatus.Failed,
 ]);
-export type RecurringSwapState = Infer<typeof RecurringSwapStateSchema>;
+export type RecurringSwapStatus = Infer<typeof RecurringSwapStatusSchema>;
 
 export const RecurringSwapSkipReasonSchema = enums([
+  'not_enough_gas',
   'out_of_price_range',
   'insufficient_balance',
   'no_quotes_available',
   'needs_smart_account',
+  'execution_failed',
 ]);
 export type RecurringSwapSkipReason = Infer<
   typeof RecurringSwapSkipReasonSchema
@@ -81,8 +82,6 @@ export type CaipAccountId = Infer<typeof CaipAccountIdSchema>;
 export const CaipAssetIdSchema = CaipAssetTypeStruct;
 export type CaipAssetId = Infer<typeof CaipAssetIdSchema>;
 
-export const RecurringOrderAssetSchema = LimitOrderAssetSchema;
-
 export const HexStringSchema = LimitOrderHexStringSchema;
 export type HexString = Infer<typeof HexStringSchema>;
 
@@ -102,85 +101,12 @@ export const RecurringScheduleSchema = type({
 });
 export type RecurringSchedule = Infer<typeof RecurringScheduleSchema>;
 
-export const RecurringPriceRangeSchema = type({
-  side: enums(['src', 'dest']),
-  currency: enums(['usd']),
-  min: optional(FloatStringSchema),
-  max: optional(FloatStringSchema),
-});
-export type RecurringPriceRange = Infer<typeof RecurringPriceRangeSchema>;
-
-export const RecurringTimingDataSchema = type({
-  createdAt: IsoDateTimeSchema,
-  expiresAt: IsoDateTimeSchema,
-  endsAt: IsoDateTimeSchema,
-  startedAt: optional(IsoDateTimeSchema),
-  closedAt: optional(IsoDateTimeSchema),
-});
-export type RecurringTimingData = Infer<typeof RecurringTimingDataSchema>;
-
-export const RecurringFillDataSchema = type({
-  src: type({ amount: AtomicStringSchema }),
-  dest: type({ amount: AtomicStringSchema }),
-  count: number(),
-  averageExecutionPriceUsd: optional(FloatStringSchema),
-});
-export type RecurringFillData = Infer<typeof RecurringFillDataSchema>;
-
-export const RecurringOrderSchema = type({
-  id: string(),
-  clientOrderId: string(),
-  profileId: string(),
-  accountAddress: CaipAccountIdSchema,
-  state: RecurringOrderStateSchema,
-  src: type({
-    asset: RecurringOrderAssetSchema,
-    amount: AtomicStringSchema,
-  }),
-  dest: type({
-    asset: RecurringOrderAssetSchema,
-  }),
-  schedule: RecurringScheduleSchema,
-  priceRange: optional(RecurringPriceRangeSchema),
-  slippage: number(),
-  fillData: RecurringFillDataSchema,
-  hasAttemptIssue: boolean(),
-  timingData: RecurringTimingDataSchema,
-  isCancellable: boolean(),
-});
-export type RecurringOrder = Infer<typeof RecurringOrderSchema>;
-
-export const RecurringSwapSchema = type({
-  id: string(),
-  state: RecurringSwapStateSchema,
-  skipReason: optional(RecurringSwapSkipReasonSchema),
-  failureReason: optional(string()),
-  src: type({
-    asset: RecurringOrderAssetSchema,
-    amount: AtomicStringSchema,
-  }),
-  dest: type({
-    asset: RecurringOrderAssetSchema,
-    amount: AtomicStringSchema,
-    minAmount: optional(AtomicStringSchema),
-  }),
-  quoteId: optional(string()),
-  txHash: optional(HexStringSchema),
-  feeData: optional(record(string(), unknown())),
-  timingData: type({
-    scheduledAt: IsoDateTimeSchema,
-    executedAt: optional(IsoDateTimeSchema),
-  }),
-});
-export type RecurringSwap = Infer<typeof RecurringSwapSchema>;
-
 export const PrepareRecurringDelegationQuerySchema = type({
   clientOrderId: string(),
   accountAddress: CaipAccountIdSchema,
   srcAssetId: CaipAssetIdSchema,
   srcAmount: AtomicStringSchema,
   destAssetId: CaipAssetIdSchema,
-  slippage: number(),
   every: number(),
   unit: RecurringIntervalUnitSchema,
   repeatCount: number(),
@@ -189,56 +115,171 @@ export type PrepareRecurringDelegationQuery = Infer<
   typeof PrepareRecurringDelegationQuerySchema
 >;
 
-export const PreparedRecurringOrderSchema = type({
-  clientOrderId: string(),
-  accountAddress: CaipAccountIdSchema,
-  srcAssetId: CaipAssetIdSchema,
-  srcAmount: AtomicStringSchema,
-  destAssetId: CaipAssetIdSchema,
-  slippage: number(),
-  every: number(),
-  unit: RecurringIntervalUnitSchema,
-  repeatCount: number(),
-  expiresAt: number(),
-});
-export type PreparedRecurringOrder = Infer<typeof PreparedRecurringOrderSchema>;
+export const PrepareRecurringDelegationResponseSchema =
+  LimitOrderDelegationsResponseSchema;
+export type PrepareRecurringDelegationResponse = LimitOrderDelegationsResponse;
 
-export const PrepareRecurringDelegationResponseSchema = type({
-  chainId: CaipChainIdStruct,
-  delegationManager: HexStringSchema,
-  swapRouter: HexStringSchema,
-  approvalRequired: boolean(),
-  order: PreparedRecurringOrderSchema,
-  delegations: array(PreparedLimitOrderDelegationSchema),
+export const RecurringOrderPriceRangeSchema = type({
+  side: enums(['src', 'dest']),
+  currency: enums(['USD']),
+  min: optional(FloatStringSchema),
+  max: optional(FloatStringSchema),
 });
-export type PrepareRecurringDelegationResponse = Infer<
-  typeof PrepareRecurringDelegationResponseSchema
+export type RecurringOrderPriceRange = Infer<
+  typeof RecurringOrderPriceRangeSchema
 >;
 
 export const CreateRecurringOrderRequestSchema = type({
+  accountAddress: CaipAccountIdSchema,
   clientOrderId: string(),
-  chainId: number(),
-  slippage: number(),
+  src: type({
+    assetId: CaipAssetIdSchema,
+    amount: AtomicStringSchema,
+  }),
+  dest: type({
+    assetId: CaipAssetIdSchema,
+  }),
+  slippage: optional(number()),
   schedule: RecurringScheduleSchema,
-  priceRange: optional(RecurringPriceRangeSchema),
+  priceRange: optional(RecurringOrderPriceRangeSchema),
   delegations: array(PreparedLimitOrderDelegationSchema),
 });
 export type CreateRecurringOrderRequest = Infer<
   typeof CreateRecurringOrderRequestSchema
 >;
 
-export const CreateRecurringOrderResponseSchema = type({
+export const RecurringOrderCancelReasonSchema = enums([
+  'user',
+  'balance_exhausted',
+  'delegation_revoked',
+  'delegation_expired',
+]);
+export type RecurringOrderCancelReason = Infer<
+  typeof RecurringOrderCancelReasonSchema
+>;
+
+export const RecurringOrderWarningSchema = enums([
+  'insufficient_balance',
+  'expiring_soon',
+]);
+export type RecurringOrderWarning = Infer<typeof RecurringOrderWarningSchema>;
+
+export const RecurringOrderAssetSchema = type({
+  chainId: number(),
+  assetId: CaipAssetIdSchema,
+  name: string(),
+  symbol: string(),
+  address: string(),
+  decimals: number(),
+  iconUrl: optional(string()),
+  coingeckoId: optional(string()),
+  aggregators: array(string()),
+  occurrences: optional(number()),
+  fee: optional(number()),
+  metadata: optional(record(string(), unknown())),
+  price: optional(string()),
+});
+export type RecurringOrderAsset = Infer<typeof RecurringOrderAssetSchema>;
+
+export const RecurringAmountAndAssetSchema = type({
+  asset: RecurringOrderAssetSchema,
+  amount: AtomicStringSchema,
+  usd: optional(FloatStringSchema),
+});
+
+export const RecurringOrderSchema = type({
+  id: string(),
+  clientOrderId: string(),
+  profileId: string(),
+  account: CaipAccountIdSchema,
+  src: RecurringAmountAndAssetSchema,
+  dest: type({
+    asset: RecurringOrderAssetSchema,
+  }),
+  totalAmount: AtomicStringSchema,
+  schedule: RecurringScheduleSchema,
+  priceRange: optional(RecurringOrderPriceRangeSchema),
+  slippage: optional(number()),
+  fillData: type({
+    src: type({
+      amount: AtomicStringSchema,
+      usd: optional(FloatStringSchema),
+    }),
+    dest: type({
+      amount: AtomicStringSchema,
+      usd: optional(FloatStringSchema),
+    }),
+    count: number(),
+    skippedCount: number(),
+    failedCount: number(),
+    averageExecutionPriceUsd: optional(FloatStringSchema),
+  }),
+  state: RecurringOrderStateSchema,
+  timingData: type({
+    createdAt: IsoDateTimeSchema,
+    startsAt: IsoDateTimeSchema,
+    endsAt: IsoDateTimeSchema,
+    expiresAt: IsoDateTimeSchema,
+    nextSwapAt: optional(IsoDateTimeSchema),
+    closedAt: optional(IsoDateTimeSchema),
+  }),
+  warnings: array(RecurringOrderWarningSchema),
+  isCancellable: boolean(),
+  cancelReason: optional(RecurringOrderCancelReasonSchema),
+});
+export type RecurringOrder = Infer<typeof RecurringOrderSchema>;
+
+export const RecurringOrderEnvelopeSchema = type({
   order: RecurringOrderSchema,
 });
-export type CreateRecurringOrderResponse = Infer<
-  typeof CreateRecurringOrderResponseSchema
+export type RecurringOrderEnvelope = Infer<typeof RecurringOrderEnvelopeSchema>;
+
+export const RecurringOrderPageResponseSchema = type({
+  orders: array(RecurringOrderSchema),
+  endCursor: optional(string()),
+  hasNextPage: boolean(),
+  total: number(),
+});
+export type RecurringOrderPageResponse = Infer<
+  typeof RecurringOrderPageResponseSchema
 >;
+
+export const RecurringSwapSchema = type({
+  id: string(),
+  slotNumber: number(),
+  status: RecurringSwapStatusSchema,
+  skipReason: optional(RecurringSwapSkipReasonSchema),
+  failureReason: optional(string()),
+  src: RecurringAmountAndAssetSchema,
+  dest: RecurringAmountAndAssetSchema,
+  txHash: optional(HexStringSchema),
+  quoteId: optional(string()),
+  timingData: type({
+    scheduledAt: IsoDateTimeSchema,
+    executedAt: IsoDateTimeSchema,
+  }),
+  feeData: optional(record(string(), unknown())),
+});
+export type RecurringSwap = Infer<typeof RecurringSwapSchema>;
+
+export const RecurringSwapPageResponseSchema = type({
+  swaps: array(RecurringSwapSchema),
+  endCursor: optional(string()),
+  hasNextPage: boolean(),
+  total: number(),
+});
+export type RecurringSwapPageResponse = Infer<
+  typeof RecurringSwapPageResponseSchema
+>;
+
+export const CreateRecurringOrderResponseSchema = RecurringOrderEnvelopeSchema;
+export type CreateRecurringOrderResponse = RecurringOrderEnvelope;
 
 export const ListRecurringOrdersQuerySchema = type({
   accountAddress: CaipAccountIdSchema,
   states: optional(array(RecurringOrderStateSchema)),
   chainIds: optional(array(CaipChainIdStruct)),
-  asset: optional(CaipAssetIdSchema),
+  assetId: optional(CaipAssetIdSchema),
   limit: optional(number()),
   after: optional(string()),
 });
@@ -246,24 +287,17 @@ export type ListRecurringOrdersQuery = Infer<
   typeof ListRecurringOrdersQuerySchema
 >;
 
-export const ListRecurringOrdersResponseSchema = type({
-  orders: array(RecurringOrderSchema),
-  endCursor: optional(string()),
-  hasNextPage: boolean(),
-});
-export type ListRecurringOrdersResponse = Infer<
-  typeof ListRecurringOrdersResponseSchema
->;
+export const ListRecurringOrdersResponseSchema =
+  RecurringOrderPageResponseSchema;
+export type ListRecurringOrdersResponse = RecurringOrderPageResponse;
 
 export const GetRecurringOrderQuerySchema = type({
   accountAddress: CaipAccountIdSchema,
 });
 export type GetRecurringOrderQuery = Infer<typeof GetRecurringOrderQuerySchema>;
 
-export const GetRecurringOrderResponseSchema = RecurringOrderSchema;
-export type GetRecurringOrderResponse = Infer<
-  typeof GetRecurringOrderResponseSchema
->;
+export const GetRecurringOrderResponseSchema = RecurringOrderEnvelopeSchema;
+export type GetRecurringOrderResponse = RecurringOrderEnvelope;
 
 export const ListRecurringSwapsQuerySchema = type({
   accountAddress: CaipAccountIdSchema,
@@ -274,14 +308,8 @@ export type ListRecurringSwapsQuery = Infer<
   typeof ListRecurringSwapsQuerySchema
 >;
 
-export const ListRecurringSwapsResponseSchema = type({
-  swaps: array(RecurringSwapSchema),
-  endCursor: optional(string()),
-  hasNextPage: boolean(),
-});
-export type ListRecurringSwapsResponse = Infer<
-  typeof ListRecurringSwapsResponseSchema
->;
+export const ListRecurringSwapsResponseSchema = RecurringSwapPageResponseSchema;
+export type ListRecurringSwapsResponse = RecurringSwapPageResponse;
 
 export const CancelRecurringOrderQuerySchema = type({
   accountAddress: CaipAccountIdSchema,
@@ -290,12 +318,8 @@ export type CancelRecurringOrderQuery = Infer<
   typeof CancelRecurringOrderQuerySchema
 >;
 
-export const CancelRecurringOrderResponseSchema = type({
-  order: RecurringOrderSchema,
-});
-export type CancelRecurringOrderResponse = Infer<
-  typeof CancelRecurringOrderResponseSchema
->;
+export const CancelRecurringOrderResponseSchema = RecurringOrderEnvelopeSchema;
+export type CancelRecurringOrderResponse = RecurringOrderEnvelope;
 
 export const RecurringApiErrorCodeSchema = string();
 export type RecurringApiErrorCode = Infer<typeof RecurringApiErrorCodeSchema>;

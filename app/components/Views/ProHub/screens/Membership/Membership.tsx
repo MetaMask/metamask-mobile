@@ -23,6 +23,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { PAYMENT_TYPES } from '@metamask/subscription-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -80,7 +81,9 @@ const InfoRow = ({ label, value, testID }: InfoRowProps) => (
 
 interface ManageRowProps {
   label: string;
-  onPress: () => void;
+  description?: string;
+  descriptionTestID?: string;
+  onPress?: () => void;
   testID?: string;
   isDisabled?: boolean;
   isBusy?: boolean;
@@ -88,42 +91,62 @@ interface ManageRowProps {
 
 const ManageRow = ({
   label,
+  description,
+  descriptionTestID,
   onPress,
   testID,
   isDisabled,
   isBusy,
-}: ManageRowProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    testID={testID}
-    accessibilityRole="button"
-    accessibilityState={{
-      disabled: Boolean(isDisabled),
-      busy: Boolean(isBusy),
-    }}
-    disabled={isDisabled}
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="py-4"
+}: ManageRowProps): React.JSX.Element => {
+  const isInactive = Boolean(isDisabled) || !onPress;
+  // A busy row is temporarily disabled. Only a row that cannot be pressed
+  // shows the lock.
+  const showsLock = isInactive && !isBusy;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityState={{
+        disabled: isInactive,
+        busy: Boolean(isBusy),
+      }}
+      disabled={isInactive}
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        fontWeight={FontWeight.Medium}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="gap-3 py-4"
       >
-        {label}
-      </Text>
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
-  </TouchableOpacity>
-);
+        <Box twClassName="flex-1 gap-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            color={isInactive ? TextColor.TextMuted : TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+          >
+            {label}
+          </Text>
+          {description ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextMuted}
+              testID={descriptionTestID}
+            >
+              {description}
+            </Text>
+          ) : null}
+        </Box>
+        <Icon
+          name={showsLock ? IconName.Lock : IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={isInactive ? IconColor.IconMuted : IconColor.IconAlternative}
+        />
+      </Box>
+    </TouchableOpacity>
+  );
+};
 
 interface MembershipActionRowProps {
   action: MembershipManageAction;
@@ -150,12 +173,26 @@ const MembershipActionRow = ({
     );
   }
 
-  if (action === MembershipManageAction.Cancel) {
+  if (
+    action === MembershipManageAction.Cancel ||
+    action === MembershipManageAction.CancelBlocked
+  ) {
+    const isBlocked = action === MembershipManageAction.CancelBlocked;
+
     return (
       <ManageRow
         label={strings('pro_hub.membership.cancel_membership')}
-        onPress={onCancel}
+        description={
+          isBlocked
+            ? strings('pro_hub.membership.cancel_not_allowed')
+            : undefined
+        }
+        descriptionTestID={
+          isBlocked ? MembershipTestIds.CANCEL_NOT_ALLOWED : undefined
+        }
+        onPress={isBlocked ? undefined : onCancel}
         testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
+        isDisabled={isBlocked}
       />
     );
   }
@@ -187,6 +224,9 @@ const Membership = () => {
     errorMessage: invoicesErrorMessage,
   } = useOpenMembershipInvoices();
   const manageAction = getMembershipManageAction(subscription);
+  const showMoneyAccountIcon =
+    subscription !== undefined &&
+    subscription.paymentMethod.type !== PAYMENT_TYPES.byCard;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -366,13 +406,18 @@ const Membership = () => {
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-x-2"
               >
-                <Box twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center">
-                  <Icon
-                    name={IconName.AttachMoney}
-                    size={IconSize.Sm}
-                    twClassName="text-accent04-dark font-bold"
-                  />
-                </Box>
+                {showMoneyAccountIcon ? (
+                  <Box
+                    testID={MembershipTestIds.PAYING_WITH_MONEY_ICON}
+                    twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center"
+                  >
+                    <Icon
+                      name={IconName.AttachMoney}
+                      size={IconSize.Sm}
+                      twClassName="text-accent04-dark font-bold"
+                    />
+                  </Box>
+                ) : null}
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}

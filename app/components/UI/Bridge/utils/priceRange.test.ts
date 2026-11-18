@@ -73,7 +73,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'dest',
-      currency: 'usd',
+      currency: 'USD',
       min: '0.1087654321',
       max: '1342.77451853376',
     });
@@ -92,7 +92,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'src',
-      currency: 'usd',
+      currency: 'USD',
       min: '108',
       max: undefined,
     });
@@ -111,7 +111,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'dest',
-      currency: 'usd',
+      currency: 'USD',
       min: '1800.25',
       max: '2200.75',
     });

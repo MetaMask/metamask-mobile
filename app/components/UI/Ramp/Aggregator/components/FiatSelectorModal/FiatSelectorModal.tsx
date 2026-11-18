@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
@@ -25,6 +24,9 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './FiatSelectorModal.styles.ts';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const MAX_RESULTS = 20;
 
@@ -39,6 +41,7 @@ export const createFiatSelectorModalNavigationDetails =
   );
 
 function FiatSelectorModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<FiatCurrency>>(null);
 
@@ -135,7 +138,9 @@ function FiatSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('fiat_on_ramp_aggregator.select_region_currency')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

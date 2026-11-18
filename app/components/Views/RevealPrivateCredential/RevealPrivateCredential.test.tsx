@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -10,6 +11,7 @@ import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
+import Routes from '../../../constants/navigation/Routes';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
@@ -1592,6 +1594,30 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('done action', () => {
+    it('returns to wallet home when done is pressed from Wallet Details', async () => {
+      mockRouteParams = { returnToWalletHomeOnDone: true };
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
+      const { getByTestId } = renderWithProviders(<RevealPrivateCredential />);
+
+      await completeSecurityQuiz(getByTestId);
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+          ),
+        ).toBeOnTheScreen();
+      });
+      const doneButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+      );
+      fireEvent.press(doneButton);
+
+      expect(mockNavigationReturn?.dispatch).toHaveBeenCalledWith(
+        StackActions.popTo(Routes.ONBOARDING.HOME_NAV),
+      );
+    });
+
     it('navigates back and tracks SRP_DONE_CTA when done is pressed after unlock', async () => {
       const mockCancel = jest.fn();
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });

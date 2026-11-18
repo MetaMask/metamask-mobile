@@ -130,13 +130,14 @@ const pricing: PricingResponse = {
 };
 
 const createStoreState = (
-  membershipSubscription: Subscription = subscription,
+  membershipSubscription: Subscription | null = subscription,
 ) =>
   ({
     engine: {
       backgroundState: {
         SubscriptionController: {
-          subscriptions: [membershipSubscription],
+          subscriptions:
+            membershipSubscription === null ? [] : [membershipSubscription],
           trialedProducts: [],
           pricing,
         },
@@ -145,7 +146,7 @@ const createStoreState = (
   }) as unknown as RootState;
 
 const renderMembership = (
-  membershipSubscription: Subscription = subscription,
+  membershipSubscription: Subscription | null = subscription,
 ) =>
   render(
     <Provider store={configureStore(createStoreState(membershipSubscription))}>
@@ -257,11 +258,51 @@ describe('Membership', () => {
       );
     });
 
+    it('hides the money icon beside a card payment', () => {
+      const { queryByTestId } = renderMembership();
+
+      expect(
+        queryByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeNull();
+    });
+
+    it('shows the money icon beside a Money account payment', () => {
+      const { getByTestId } = renderMembership({
+        ...subscription,
+        paymentMethod: {
+          type: PAYMENT_TYPES.byCrypto,
+          crypto: {
+            payerAddress: '0x1111111111111111111111111111111111111111',
+            chainId: '0x1',
+            tokenSymbol: 'USDC',
+          },
+        },
+      });
+
+      expect(getByTestId(MembershipTestIds.PAYING_WITH_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.money_account')),
+      );
+      expect(
+        getByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the money icon when membership data is unavailable', () => {
+      const { getByTestId, queryByTestId } = renderMembership(null);
+
+      expect(getByTestId(MembershipTestIds.PAYING_WITH_ROW)).toHaveTextContent(
+        toRegex('--'),
+      );
+      expect(
+        queryByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeNull();
+    });
+
     it('renders the renews on row with renewal date', () => {
       const { getByTestId } = renderMembership();
 
       expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex('Jul 20, 2027'),
+        toRegex('Jul 19, 2027'),
       );
     });
   });
@@ -304,6 +345,40 @@ describe('Membership', () => {
       expect(
         getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW),
       ).toHaveTextContent(strings('pro_hub.membership.cancel_membership'));
+    });
+
+    it.each([
+      CANCEL_TYPES.NOT_ALLOWED,
+      CANCEL_TYPES.NOT_ALLOWED_PENDING_VERIFICATION,
+    ])(
+      'renders the cancel row disabled with a not allowed message when cancelType is %s',
+      (cancelType) => {
+        const { getByTestId, queryByTestId } = renderMembership({
+          ...subscription,
+          cancelType,
+        });
+
+        const cancelRow = getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW);
+        expect(cancelRow).toHaveTextContent(
+          strings('pro_hub.membership.cancel_membership'),
+          { exact: false },
+        );
+        expect(cancelRow.props.accessibilityState).toEqual(
+          expect.objectContaining({ disabled: true }),
+        );
+        expect(
+          getByTestId(MembershipTestIds.CANCEL_NOT_ALLOWED),
+        ).toHaveTextContent(strings('pro_hub.membership.cancel_not_allowed'));
+        expect(
+          queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW),
+        ).toBeNull();
+      },
+    );
+
+    it('does not show a not allowed message when cancellation is allowed', () => {
+      const { queryByTestId } = renderMembership();
+
+      expect(queryByTestId(MembershipTestIds.CANCEL_NOT_ALLOWED)).toBeNull();
     });
   });
 
@@ -402,6 +477,17 @@ describe('Membership', () => {
       await waitFor(() =>
         expect(Linking.openURL).toHaveBeenCalledWith(BILLING_PORTAL_URL),
       );
+    });
+
+    it('does not navigate when the disabled cancel row is pressed', () => {
+      const { getByTestId } = renderMembership({
+        ...subscription,
+        cancelType: CANCEL_TYPES.NOT_ALLOWED,
+      });
+
+      fireEvent.press(getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate before any row is pressed', () => {

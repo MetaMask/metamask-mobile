@@ -115,6 +115,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   inviteReferralCode: 'Referral code',
   inviteDecline: 'Decline',
   inviteAccept: 'Accept',
+  inviteTermsLearnMore: 'Learn more',
+  inviteTermsUrl: 'https://example.com/terms',
   inviteAcceptedEyebrow: 'You are in',
   inviteAcceptedTitle: 'Invite accepted',
   inviteAcceptedBody: 'Invite accepted body',

@@ -99,7 +99,7 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
 
   return (
     <Box
-      twClassName="mt-3 gap-3 px-4 pt-4"
+      twClassName="gap-3 px-4 pt-4"
       testID={REFERER_HERO_CARD_TEST_IDS.CONTAINER}
     >
       {errorSource ? (

@@ -3,8 +3,8 @@
  *
  * The live shape is owned by ops `REFERRAL_SHARE_URL_TEMPLATE` on the API.
  * This constant is only the client fallback for a null template, and must not
- * be used to reject a server-supplied URL. Money share is not the points path
- * `buildReferralUrl` builds (`link.metamask.io/rewards?referral=`).
+ * be used to reject a server-supplied URL. Money share is
+ * `link.metamask.io/home?ref=`.
  */
 export const MONEY_SHARE_HOME_REF_BASE = 'https://link.metamask.io/home?ref=';
 

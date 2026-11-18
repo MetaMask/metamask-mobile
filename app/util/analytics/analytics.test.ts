@@ -221,7 +221,7 @@ describe('analytics', () => {
               ...initialRootState.engine.backgroundState
                 .RemoteFeatureFlagController,
               remoteFeatureFlags: {
-                assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+                swapsSWAPS5094AbtestQuickBuyEntrypoints: 'treatment_1',
               },
               localOverrides: {},
             },
@@ -245,10 +245,10 @@ describe('analytics', () => {
             source: 'wallet',
             active_ab_tests: [
               {
-                key: 'assetsASSETS3205AbtestAmbientPriceColor',
-                value: 'treatment',
+                key: 'swapsSWAPS5094AbtestQuickBuyEntrypoints',
+                value: 'treatment_1',
                 key_value_pair:
-                  'assetsASSETS3205AbtestAmbientPriceColor=treatment',
+                  'swapsSWAPS5094AbtestQuickBuyEntrypoints=treatment_1',
               },
             ],
           },

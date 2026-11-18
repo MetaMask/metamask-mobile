@@ -1,5 +1,8 @@
 import type React from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialSurfaceLocation } from '../SocialFeedSurface';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
@@ -81,6 +84,8 @@ export interface SocialFeedContentProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Lets a host refresh the feed from its own pull-to-refresh control. */
   refreshRef?: React.Ref<SocialFeedRefreshHandle>;
+  /** Lets the host react to skeleton, empty, and retry, for example padding. */
+  onListStateChange?: (state: SocialFeedListState) => void;
 }
 
 export interface SocialFeedRefreshHandle {
@@ -128,6 +133,10 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   enabled?: boolean;
   /** Where the pull-to-refresh spinner starts, for hosts with a fixed header. */
   refreshProgressViewOffset?: number;
+  /** Top padding for the list content, for hosts with a floating header. */
+  contentTopInset?: number;
+  /** Top offset for the floating new-posts pill, below a fixed header. */
+  pendingPostsTopOffset?: number | SharedValue<number>;
   /** Host scroll handler, composed with the feed's own. */
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialFeedPageHandle>;

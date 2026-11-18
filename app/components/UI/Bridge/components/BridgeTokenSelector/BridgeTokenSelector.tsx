@@ -131,6 +131,12 @@ export interface BridgeTokenSelectorContentProps {
    */
   hostManagesNetworkFilter?: boolean;
   /**
+   * Seeds the search query on mount, for hosts that unmount the picker while
+   * the user changes network and want the query restored.
+   */
+  initialSearchString?: string;
+  onSearchStringChange?: (searchString: string) => void;
+  /**
    * Scroll component for the token list. Hosts that render the picker inside a
    * bottom sheet pass a gesture-handler ScrollView so list scrolling does not
    * fight the sheet's drag-to-dismiss gesture.
@@ -254,15 +260,21 @@ export const BridgeTokenSelectorContent: React.FC<
   onOpenNetworkList,
   renderScrollComponent,
   hostManagesNetworkFilter = false,
+  initialSearchString = '',
+  onSearchStringChange,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [searchString, setSearchString] = useState<string>('');
+  const [searchString, setSearchString] = useState<string>(initialSearchString);
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
   const flatListRef = useRef<FlashListRef<BridgeToken | null>>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
+
+  useEffect(() => {
+    onSearchStringChange?.(searchString);
+  }, [searchString, onSearchStringChange]);
 
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const isWatchlistFilterActive = isWatchlistEnabled && showWatchlistOnly;
@@ -365,7 +377,9 @@ export const BridgeTokenSelectorContent: React.FC<
   }, [hostManagesNetworkFilter, dispatch, initialFilter]);
 
   // Ref to track if we need to re-search after chain change
-  const shouldResearchAfterChainChange = useRef(false);
+  const shouldResearchAfterChainChange = useRef(
+    initialSearchString.trim().length >= MIN_SEARCH_LENGTH,
+  );
 
   // Track the last chain ID to detect changes
   const lastChainIdRef = useRef(selectedChainId);
