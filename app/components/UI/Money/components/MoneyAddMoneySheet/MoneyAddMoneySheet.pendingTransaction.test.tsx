@@ -17,6 +17,7 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 
 const PENDING_TX_ID = 'pending-tx-from-elsewhere';
 
@@ -150,6 +151,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/moneyAccountController', () => ({
   ...jest.requireActual('../../../../../selectors/moneyAccountController'),
   selectPrimaryMoneyAccount: jest.fn(() => mockPrimaryMoneyAccount),
@@ -173,6 +179,17 @@ jest.mock('../../../../../selectors/tokenBalancesController', () => ({
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
+
+jest.mock('../../hooks/useMoneyAccountAvailability', () => ({
+  ...jest.requireActual('../../hooks/useMoneyAccountAvailability'),
+  useMoneyAccountAvailability: jest.fn(() => ({
+    accessBlockReason: undefined,
+    isMoneyAccountAccessible: true,
+    assertMoneyAccountAccessible: jest.fn(),
+  })),
+  useMoneyAccountAccessRedirect: jest.fn(() => true),
+}));
+
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
@@ -213,6 +230,7 @@ const originalRequestAnimationFrame = global.requestAnimationFrame;
 describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectMoneyAccountAccessBlockReason).mockReturnValue(undefined);
     // Reset the module-level binding so a prior test's setter can't leak in.
     unmountSheet = () => undefined;
     global.requestAnimationFrame = jest.fn((callback) => {
@@ -280,13 +298,15 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     // deposit flow runs in one step, so the user reaches the Add funds
     // confirmation instead of being stranded on Money home.
     await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
-    expect(addTransactionBatch).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.CONFIRMATIONS_ROOT,
-      expect.objectContaining({
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      }),
-    );
+    await waitFor(() => {
+      expect(addTransactionBatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
+    });
   });
 
   it('navigates to the Add funds flow when no transaction is pending (control)', async () => {
@@ -300,12 +320,14 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     expect(
       jest.mocked(Engine.context.ApprovalController.rejectRequest),
     ).not.toHaveBeenCalled();
-    expect(addTransactionBatch).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.CONFIRMATIONS_ROOT,
-      expect.objectContaining({
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      }),
-    );
+    await waitFor(() => {
+      expect(addTransactionBatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
+    });
   });
 });

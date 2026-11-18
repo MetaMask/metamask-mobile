@@ -702,6 +702,205 @@ describe('useCursorPaginatedList', () => {
     }
   });
 
+  it('does not retry a later page the data service already retried', async () => {
+    (captureException as jest.Mock).mockClear();
+    const retried = new RewardsMoneyHttpError('busy', 503, undefined, 2, true);
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValue(retried);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(result.current.error).toBe('busy');
+      expect(result.current.isLoadingMore).toBe(false);
+      expect(captureException).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('retries a failed later page only as often as laterPageRetryLimit allows', async () => {
+    (captureException as jest.Mock).mockClear();
+    const stuck = new Error('boom');
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValue(stuck);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+        laterPageRetryLimit: 1,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+      expect(captureException).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(2_000);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(result.current.isLoadingMore).toBe(false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('keeps isLoadingMore true while a later-page retry waits', async () => {
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(PAGE_2);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+      expect(result.current.isLoadingMore).toBe(true);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2_000);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+      expect(result.current.isLoadingMore).toBe(false);
+      expect(result.current.items).toEqual([
+        ...PAGE_1.results,
+        ...PAGE_2.results,
+      ]);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('clears isLoadingMore when a refresh drops a waiting later-page retry', async () => {
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(PAGE_1);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(result.current.isLoadingMore).toBe(true);
+
+      await act(async () => {
+        result.current.refresh();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(result.current.isLoadingMore).toBe(false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('retries a failed load-more with the same cursor', async () => {
     const fetchPage = jest
       .fn()
@@ -875,11 +1074,11 @@ describe('useCursorPaginatedList', () => {
     }
   });
 
-  it('refetches a 30 second busy failure once and does not arm again', async () => {
+  it('refetches a 30 second 429 once and does not arm again', async () => {
     jest.useFakeTimers();
     (captureException as jest.Mock).mockClear();
     try {
-      const busy = new RewardsMoneyHttpError('busy', 503, undefined, 30);
+      const busy = new RewardsMoneyHttpError('busy', 429, undefined, 30);
       const fetchPage = jest
         .fn()
         .mockRejectedValueOnce(busy)
@@ -915,6 +1114,80 @@ describe('useCursorPaginatedList', () => {
           context: 'cursorPaginatedList.fetch_failed',
         },
       });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not refetch a statement timeout and reports it now', async () => {
+    jest.useFakeTimers();
+    (captureException as jest.Mock).mockClear();
+    try {
+      const timeout = new RewardsMoneyHttpError('slow', 503, undefined, 30);
+      const fetchPage = jest.fn().mockRejectedValue(timeout);
+
+      const { result } = renderHook(() =>
+        useCursorPaginatedList<Item>({
+          enabled: true,
+          resetKey: 'key',
+          feature: 'rewards',
+          fetchPage,
+        }),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.error).toBe('slow');
+      expect(captureException).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(61_000);
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not refetch a first page the data service already retried', async () => {
+    jest.useFakeTimers();
+    (captureException as jest.Mock).mockClear();
+    try {
+      const retried = new RewardsMoneyHttpError(
+        'busy',
+        503,
+        undefined,
+        2,
+        true,
+      );
+      const fetchPage = jest.fn().mockRejectedValue(retried);
+
+      const { result } = renderHook(() =>
+        useCursorPaginatedList<Item>({
+          enabled: true,
+          resetKey: 'key',
+          feature: 'rewards',
+          fetchPage,
+        }),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.error).toBe('busy');
+      expect(captureException).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(10_000);
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(1);
     } finally {
       jest.useRealTimers();
     }

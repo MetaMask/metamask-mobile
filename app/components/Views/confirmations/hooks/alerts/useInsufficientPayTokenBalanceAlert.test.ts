@@ -1164,6 +1164,93 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
   });
 
+  describe('money account withdraw with an empty balance', () => {
+    beforeEach(() => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountWithdraw,
+      } as unknown as TransactionMeta);
+    });
+
+    it('shows the Money-specific message when the money balance is zero', () => {
+      moneyAccountBalanceRawMock = '0';
+
+      const { result } = runHook({ pendingAmountUsd: '1' });
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings('alert_system.money_account_no_funds.message'),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('shows the Money-specific message for a sub-cent money balance', () => {
+      moneyAccountBalanceRawMock = '1000'; // $0.001
+
+      const { result } = runHook({ pendingAmountUsd: '1' });
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings('alert_system.money_account_no_funds.message'),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('returns no alert when the money balance covers the input', () => {
+      moneyAccountBalanceRawMock = '5000000'; // $5
+
+      const { result } = runHook({ pendingAmountUsd: '1' });
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('shows the generic message when the money balance is funded but insufficient', () => {
+      moneyAccountBalanceRawMock = '5000000'; // $5
+
+      const { result } = runHook({ pendingAmountUsd: '10' });
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings(
+            'alert_system.insufficient_pay_token_balance.message',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('shows the generic message for other flows with a zero balance', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.perpsDeposit,
+      } as unknown as TransactionMeta);
+      moneyAccountBalanceRawMock = '0';
+
+      const { result } = runHook({ pendingAmountUsd: '1' });
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings(
+            'alert_system.insufficient_pay_token_balance.message',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+  });
+
   describe('non MetaMask Pay transaction', () => {
     beforeEach(() => {
       // A plain ERC-20 send: the pay controller still derives a required token

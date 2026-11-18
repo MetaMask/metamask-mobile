@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PerpsMode } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { selectPerpsProModeEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import { selectPerpsMode } from '../../../../UI/Perps/selectors/perpsController';
 import {
@@ -47,7 +48,10 @@ describe('useHomepageDiscoveryPillsNavigation', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsProModeEnabledFlag) return false;
       if (selector === selectPerpsMode) return PerpsMode.Lite;
-      return undefined;
+      // Other selectors, such as Predict's Active Venue, read the default state.
+      return (selector as (state: unknown) => unknown)({
+        engine: { backgroundState },
+      });
     });
   });
 
@@ -66,7 +70,10 @@ describe('useHomepageDiscoveryPillsNavigation', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsProModeEnabledFlag) return true;
       if (selector === selectPerpsMode) return PerpsMode.Pro;
-      return undefined;
+      // Other selectors, such as Predict's Active Venue, read the default state.
+      return (selector as (state: unknown) => unknown)({
+        engine: { backgroundState },
+      });
     });
 
     const { result } = renderHook(() => useHomepageDiscoveryPillsNavigation());

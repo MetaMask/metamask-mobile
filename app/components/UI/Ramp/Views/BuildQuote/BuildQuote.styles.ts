@@ -1,8 +1,13 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { amountFontSize: number };
+}) => {
+  const { theme, vars } = params;
+  const { amountFontSize } = vars;
+
   return StyleSheet.create({
     content: {
       flex: 1,
@@ -22,10 +27,17 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     cursor: {
-      width: 2,
-      marginHorizontal: 1,
-      alignSelf: 'center',
-      backgroundColor: theme.colors.primary.default,
+      width: 1,
+      height: Math.round(amountFontSize * 0.95),
+      backgroundColor: theme.colors.text.muted,
+      // Android renders glyphs lower than iOS in a line box equal to fontSize.
+      transform: [
+        {
+          translateY: Math.round(
+            amountFontSize * (Platform.OS === 'android' ? 0.02 : -0.04),
+          ),
+        },
+      ],
     },
     actionSection: {
       paddingBottom: 16,

@@ -2,6 +2,7 @@ import {
   selectGeolocationControllerState,
   selectGeolocationLocation,
   selectGeolocationStatus,
+  selectIsCopyTradeAllowed,
   selectIsUserInAsia,
 } from '.';
 import type { RootState } from '../../reducers';
@@ -124,6 +125,110 @@ describe('geolocationController selectors', () => {
 
     it('returns false when GeolocationController is absent', () => {
       expect(selectIsUserInAsia({} as RootState)).toBe(false);
+    });
+  });
+
+  describe('selectIsCopyTradeAllowed', () => {
+    it('returns true for a completed non-UK location', () => {
+      const state = buildState({ location: 'FR', status: 'complete' });
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        true,
+      );
+    });
+
+    it('returns false for a completed UK location', () => {
+      const state = buildState({ location: 'GB', status: 'complete' });
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        false,
+      );
+    });
+
+    it('returns false while geolocation is loading', () => {
+      const state = buildState({ location: 'FR', status: 'loading' });
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('selectIsCopyTradeAllowed with socialCopyTradeGeoBlockedCountries', () => {
+    const buildStateWithFlag = (
+      geolocationController: Record<string, unknown>,
+      blockedRegions: unknown,
+    ): {
+      engine: {
+        backgroundState: Record<string, unknown>;
+      };
+    } => ({
+      engine: {
+        backgroundState: {
+          GeolocationController: geolocationController,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              socialCopyTradeGeoBlockedCountries: { blockedRegions },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns false for a region under a country in the remote list', () => {
+      const state = buildStateWithFlag(
+        { location: 'US-CA', status: 'complete' },
+        ['US', 'CA-ON'],
+      );
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        false,
+      );
+    });
+
+    it('returns false for a region in the remote list', () => {
+      const state = buildStateWithFlag(
+        { location: 'CA-ON', status: 'complete' },
+        ['US', 'CA-ON'],
+      );
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        false,
+      );
+    });
+
+    it('returns true for a location not in the remote list', () => {
+      const state = buildStateWithFlag({ location: 'GB', status: 'complete' }, [
+        'US',
+        'CA-ON',
+      ]);
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        true,
+      );
+    });
+
+    it('returns true for the UK when the remote list is empty', () => {
+      const state = buildStateWithFlag(
+        { location: 'GB', status: 'complete' },
+        [],
+      );
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        true,
+      );
+    });
+
+    it('returns false for the UK when the remote flag is malformed', () => {
+      const state = buildStateWithFlag(
+        { location: 'GB', status: 'complete' },
+        'US',
+      );
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        false,
+      );
     });
   });
 });

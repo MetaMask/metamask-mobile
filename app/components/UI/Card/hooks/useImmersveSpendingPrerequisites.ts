@@ -86,8 +86,9 @@ export const useImmersveSpendingPrerequisites = ({
     }
 
     // After a failure: cool down, then auto-retry a few times so transient
-    // outages can recover (e.g. ImmersveKYCProcessing has no retry button).
-    // This avoids hitting the provider every pollInterval during an outage.
+    // outages can recover before ImmersveKYCProcessing's Try again is the
+    // only way forward. This avoids hitting the provider every pollInterval
+    // during an outage.
     if (state.error) {
       if (consecutiveFailuresRef.current >= MAX_CONSECUTIVE_POLL_FAILURES) {
         return undefined;

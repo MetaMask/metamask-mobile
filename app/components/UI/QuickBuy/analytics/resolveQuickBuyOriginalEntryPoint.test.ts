@@ -13,6 +13,12 @@ describe('resolveQuickBuyOriginalEntryPointFromProfile', () => {
     );
   });
 
+  it('maps explore_perps to the trader_profile entry point', () => {
+    expect(resolveQuickBuyOriginalEntryPointFromProfile('explore_perps')).toBe(
+      'trader_profile',
+    );
+  });
+
   it('maps notification to notification', () => {
     expect(resolveQuickBuyOriginalEntryPointFromProfile('notification')).toBe(
       'notification',
@@ -66,6 +72,18 @@ describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
   it('returns undefined for unknown sources', () => {
     expect(
       resolveQuickBuyOriginalEntryPointFromPositionSource('asset_details'),
+    ).toBeUndefined();
+  });
+
+  it('does not accept the Social feed tab sources as original_entry_point', () => {
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('social_trending'),
+    ).toBeUndefined();
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('social_following'),
+    ).toBeUndefined();
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('social_live_trades'),
     ).toBeUndefined();
   });
 });

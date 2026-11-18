@@ -25,12 +25,7 @@ export const useSwitchTokens = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo();
-  const {
-    onSetRpcTarget,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    onNonEvmNetworkChange,
-    ///: END:ONLY_INCLUDE_IF
-  } = useSwitchNetworks({
+  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId: selectedEvmChainId,
     selectedNetworkName,

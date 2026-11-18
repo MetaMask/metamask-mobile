@@ -1,8 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDispatch, useStore } from 'react-redux';
+import type { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { resetBridgeState } from '../../../../core/redux/slices/bridge';
+import {
+  type BridgeState,
+  resetBridgeState,
+  setDestToken,
+  setIsDestTokenManuallySet,
+  setSourceAmount,
+  setSourceAmountAsMax,
+  setSourceToken,
+} from '../../../../core/redux/slices/bridge';
 import Engine from '../../../../core/Engine';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { useSocialLeaderboardAnalytics } from '../../../Views/SocialLeaderboard/analytics';
 import {
   buildQuickBuySharedAnalyticsProperties,
@@ -17,6 +27,29 @@ type QuickBuyDismissStage =
 type AmountSelectionMethod =
   (typeof QuickBuyEventValues.AMOUNT_SELECTION_METHOD)[keyof typeof QuickBuyEventValues.AMOUNT_SELECTION_METHOD];
 
+function restoreBridgeInputs(
+  dispatch: ReturnType<typeof useDispatch>,
+  prior: BridgeState,
+) {
+  const {
+    sourceToken,
+    destToken,
+    sourceAmount,
+    isMaxSourceAmount,
+    isDestTokenManuallySet,
+  } = prior;
+  if (sourceToken) dispatch(setSourceToken(sourceToken));
+  if (destToken) dispatch(setDestToken(destToken));
+  if (sourceAmount) {
+    dispatch(
+      isMaxSourceAmount
+        ? setSourceAmountAsMax(sourceAmount)
+        : setSourceAmount(sourceAmount),
+    );
+  }
+  if (isDestTokenManuallySet) dispatch(setIsDestTokenManuallySet(true));
+}
+
 export interface QuickBuyAnalyticsRefs {
   dismissStageRef: React.MutableRefObject<QuickBuyDismissStage>;
   tradeSubmittedRef: React.MutableRefObject<boolean>;
@@ -30,6 +63,7 @@ export function useQuickBuyAnalytics(
   caip19: string,
   analyticsContext: QuickBuyAnalyticsContext,
   tradeMode?: QuickBuyTradeMode,
+  copyTradeOrigin?: CopyTradeOrigin,
 ): {
   refs: QuickBuyAnalyticsRefs;
   trackAmountSelected: (
@@ -64,6 +98,11 @@ export function useQuickBuyAnalytics(
   );
   const submitStartedAtRef = useRef<number | null>(null);
   const shouldResetBridgeOnUnmountRef = useRef(true);
+  // QuickBuy shares the bridge slice with a possibly still-mounted BridgeView;
+  // capture its inputs before QuickBuy overwrites them so dismiss can restore them.
+  // Read once without subscribing: QuickBuy dispatches these on every amount change.
+  const store = useStore<RootState>();
+  const [priorBridgeState] = useState(() => store.getState().bridge);
 
   const resolvedTraderAddress =
     analyticsContext?.traderAddress ?? traderAddress;
@@ -72,6 +111,7 @@ export function useQuickBuyAnalytics(
     source: analyticsSource,
     originalEntryPoint,
     marketCap,
+    isCopyTrade,
   } = analyticsContext ?? {};
 
   const sharedAnalyticsProps = useMemo(
@@ -80,8 +120,16 @@ export function useQuickBuyAnalytics(
         source: analyticsSource,
         originalEntryPoint,
         marketCap,
+        isCopyTrade,
+        copyTradeOrigin,
       }),
-    [analyticsSource, originalEntryPoint, marketCap],
+    [
+      analyticsSource,
+      originalEntryPoint,
+      marketCap,
+      isCopyTrade,
+      copyTradeOrigin,
+    ],
   );
 
   // Dismiss cleanup must run only on unmount. `sharedAnalyticsProps` updates when
@@ -97,6 +145,7 @@ export function useQuickBuyAnalytics(
         if (Engine.context.BridgeController?.resetState) {
           Engine.context.BridgeController.resetState();
         }
+        restoreBridgeInputs(dispatch, priorBridgeState);
       }
       if (!tradeSubmittedRef.current && resolvedTraderAddress && caip19) {
         const numeric = Number(lastTrackedAmountRef.current);
@@ -110,7 +159,7 @@ export function useQuickBuyAnalytics(
         });
       }
     },
-    [dispatch, resolvedTraderAddress, caip19, track],
+    [dispatch, priorBridgeState, resolvedTraderAddress, caip19, track],
   );
 
   const trackAmountSelected = useCallback(

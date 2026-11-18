@@ -3,5 +3,6 @@ export const authKeys = {
   initiate: () => [...authKeys.all(), 'initiate'] as const,
   submit: () => [...authKeys.all(), 'submit'] as const,
   stepAction: () => [...authKeys.all(), 'step-action'] as const,
+  requestEmailCode: () => [...authKeys.all(), 'request-email-code'] as const,
   logout: () => [...authKeys.all(), 'logout'] as const,
 };

@@ -12,12 +12,7 @@ import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
-import {
-  HeaderBase,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { ButtonIconSize, IconName } from '@metamask/design-system-react-native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import type { QrSyncPhase } from '../../../core/QrSync/types';
@@ -37,8 +32,10 @@ import {
   selectQrSyncPresentation,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
+import HeaderBaseGlass from '../../../component-library/components-temp/HeaderBaseGlass';
 
 const DEVICE_LINKED_WAIT_PHASES: ReadonlySet<QrSyncPhase> = new Set([
   QrSyncPhases.AWAITING_SYNC_READY,
@@ -91,6 +88,7 @@ export const createQRScannerNavDetails =
 const QRTabSwitcher = () => {
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const messenger = useMessenger<RouteMessengerInstance>();
   const { onScanError, onScanSuccess, onStartScan, origin } =
     route.params as QRTabSwitcherParams;
@@ -286,15 +284,19 @@ const QRTabSwitcher = () => {
         />
       ) : null}
 
-      <HeaderBase
-        style={[styles.overlay, styles.header]}
-        endAccessory={
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            onPress={goBack}
-          />
-        }
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating
+        backdrop="none"
+        containerStyle={isGlassHeader ? styles.overlay : undefined}
+        style={isGlassHeader ? styles.header : [styles.overlay, styles.header]}
+        twClassName="px-2"
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          size: ButtonIconSize.Md,
+          onPress: goBack,
+          testID: 'qr-scanner-back-button',
+        }}
       />
 
       {/* QR scanner interface - camera view only */}

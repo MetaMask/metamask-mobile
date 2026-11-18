@@ -47,6 +47,7 @@ import { useFetchPopularTokens } from '../useFetchPopularTokens';
 import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
 import type { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import type { SwapsLimitOrderExpirationMinutes } from '../../constants/limitOrders';
+import type { RecurringState } from '../../utils/recurringSchedule';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -71,6 +72,10 @@ export interface BridgeRouteParams {
   initialTab?: BridgeTabKey;
   initialLimitOrderExpirationMinutes?: SwapsLimitOrderExpirationMinutes;
   initialLimitOrderPriceTolerance?: string;
+  initialRecurringSchedule?: Pick<
+    RecurringState,
+    'everyValue' | 'everyUnit' | 'repeatCount'
+  >;
   scrollToTopOnNav?: boolean;
   autoFocusSourceAmountInput?: boolean;
   /**

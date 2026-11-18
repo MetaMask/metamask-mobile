@@ -1,7 +1,9 @@
 import React from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 
+import { getFontSizeForInputLength } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { mockTheme } from '../../../../../util/theme';
 import AlertAmountInput from './AlertAmountInput';
 import {
   getAlertAmountCursorTestId,
@@ -43,5 +45,25 @@ describe('AlertAmountInput', () => {
       true,
     );
     expect(getByTestId('interactive-prefix')).toHaveProp('accessible', true);
+  });
+
+  it('sizes the cursor to the amount', () => {
+    const { getByTestId, getByText } = render(
+      <AlertAmountInput hasInput testID={TEST_ID} text="42" />,
+    );
+
+    const fontSize = getFontSizeForInputLength(2 + 2);
+
+    expect(getByTestId(getAlertAmountCursorTestId(TEST_ID))).toHaveStyle({
+      backgroundColor: mockTheme.colors.text.muted,
+      height: Math.round(fontSize * 0.95),
+      marginHorizontal: 0,
+      transform: [{ translateY: Math.round(fontSize * -0.04) }],
+      width: 1,
+    });
+    expect(StyleSheet.flatten(getByText('4').props.style)).toMatchObject({
+      fontSize,
+      lineHeight: fontSize,
+    });
   });
 });

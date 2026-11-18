@@ -34,10 +34,6 @@ export const createCustomNetworkStyles = (params: { colors: Colors }) =>
     nameAndTagContainer: {
       flexDirection: 'column',
     },
-    tagLabelBelowName: {
-      marginTop: 4,
-      alignSelf: 'flex-start',
-    },
     // reset margin and padding for the icon
     icon: {
       margin: 0,

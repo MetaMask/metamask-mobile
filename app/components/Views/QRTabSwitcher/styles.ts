@@ -19,7 +19,6 @@ const createStyles = (theme: Theme) => {
       position: 'absolute',
       width: '100%',
       top: navbarTop,
-      paddingHorizontal: 16,
     },
     text: {
       ...(theme.typography.sBodyMD as TextStyle),

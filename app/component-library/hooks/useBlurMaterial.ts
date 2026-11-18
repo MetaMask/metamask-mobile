@@ -6,11 +6,15 @@ import {
   getRememberedReduceTransparency,
   rememberReduceTransparency,
 } from './reduceTransparencyMemory';
+import { getHardwareTier } from '../../util/deviceCapability';
 import { useTheme } from '../../util/theme';
 import { AppThemeKey } from '../../util/theme/models';
 
 const isBlurModuleLinked = (): boolean =>
   Boolean(requireOptionalNativeModule<object>('ExpoBlur'));
+
+// A live blur is too heavy for low-memory devices, so they get the opaque fill.
+const isLowEndDevice = (): boolean => getHardwareTier() === 'LOW';
 
 export type BlurColorScheme = 'light' | 'dark';
 
@@ -39,10 +43,12 @@ export const useBlurMaterial = (): UseBlurMaterialResult => {
   >(getRememberedReduceTransparency);
 
   const [isModuleLinked] = useState(isBlurModuleLinked);
-  const isSupportedPlatform = Platform.OS === 'ios' && isModuleLinked;
+  const [isLowEnd] = useState(isLowEndDevice);
+  const isSupportedDevice =
+    Platform.OS === 'ios' && isModuleLinked && !isLowEnd;
 
   useEffect(() => {
-    if (!isSupportedPlatform) {
+    if (!isSupportedDevice) {
       return undefined;
     }
 
@@ -64,14 +70,13 @@ export const useBlurMaterial = (): UseBlurMaterialResult => {
       isActive = false;
       subscription.remove();
     };
-  }, [isSupportedPlatform]);
+  }, [isSupportedDevice]);
 
   const colorScheme: BlurColorScheme =
     themeAppearance === AppThemeKey.dark ? 'dark' : 'light';
 
   return {
-    isBlurAvailable:
-      isSupportedPlatform && prefersReducedTransparency === false,
+    isBlurAvailable: isSupportedDevice && prefersReducedTransparency === false,
     colorScheme,
     tint:
       colorScheme === 'dark'

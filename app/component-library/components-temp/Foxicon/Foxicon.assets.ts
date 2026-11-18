@@ -1,34 +1,32 @@
 import { AssetByFoxiconVariant, FoxiconVariant } from './Foxicon.types';
-import agentSVG from './assets/agent.svg';
-import angelSVG from './assets/angel.svg';
-import astroSVG from './assets/astro.svg';
-import baseSVG from './assets/base.svg';
-import cannibalSVG from './assets/cannibal.svg';
-import cyborgSVG from './assets/cyborg.svg';
-import frozenSVG from './assets/frozen.svg';
-import gentlemanSVG from './assets/gentleman.svg';
-import gothSVG from './assets/goth.svg';
-import nerdSVG from './assets/nerd.svg';
-import pirateSVG from './assets/pirate.svg';
-import royalSVG from './assets/royal.svg';
-import superheroSVG from './assets/superhero.svg';
-import vrSVG from './assets/vr.svg';
-import zombieSVG from './assets/zombie.svg';
+import agentPNG from './assets/agent.png';
+import astroPNG from './assets/astro.png';
+import athletePNG from './assets/athlete.png';
+import aviatorPNG from './assets/aviator.png';
+import beaniePNG from './assets/beanie.png';
+import chromePNG from './assets/chrome.png';
+import footballPNG from './assets/football.png';
+import frozenPNG from './assets/frozen.png';
+import gothPNG from './assets/goth.png';
+import heartsPNG from './assets/hearts.png';
+import laserPNG from './assets/laser.png';
+import nerdPNG from './assets/nerd.png';
+import vrPNG from './assets/vr.png';
+import zombiePNG from './assets/zombie.png';
 
 export const assetByFoxiconVariant: AssetByFoxiconVariant = {
-  [FoxiconVariant.Agent]: agentSVG,
-  [FoxiconVariant.Angel]: angelSVG,
-  [FoxiconVariant.Astro]: astroSVG,
-  [FoxiconVariant.Base]: baseSVG,
-  [FoxiconVariant.Cannibal]: cannibalSVG,
-  [FoxiconVariant.Cyborg]: cyborgSVG,
-  [FoxiconVariant.Frozen]: frozenSVG,
-  [FoxiconVariant.Gentleman]: gentlemanSVG,
-  [FoxiconVariant.Goth]: gothSVG,
-  [FoxiconVariant.Nerd]: nerdSVG,
-  [FoxiconVariant.Pirate]: pirateSVG,
-  [FoxiconVariant.Royal]: royalSVG,
-  [FoxiconVariant.Superhero]: superheroSVG,
-  [FoxiconVariant.Vr]: vrSVG,
-  [FoxiconVariant.Zombie]: zombieSVG,
+  [FoxiconVariant.Agent]: agentPNG,
+  [FoxiconVariant.Astro]: astroPNG,
+  [FoxiconVariant.Athlete]: athletePNG,
+  [FoxiconVariant.Aviator]: aviatorPNG,
+  [FoxiconVariant.Beanie]: beaniePNG,
+  [FoxiconVariant.Chrome]: chromePNG,
+  [FoxiconVariant.Football]: footballPNG,
+  [FoxiconVariant.Frozen]: frozenPNG,
+  [FoxiconVariant.Goth]: gothPNG,
+  [FoxiconVariant.Hearts]: heartsPNG,
+  [FoxiconVariant.Laser]: laserPNG,
+  [FoxiconVariant.Nerd]: nerdPNG,
+  [FoxiconVariant.Vr]: vrPNG,
+  [FoxiconVariant.Zombie]: zombiePNG,
 };

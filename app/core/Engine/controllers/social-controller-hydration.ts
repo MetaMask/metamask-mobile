@@ -1,5 +1,6 @@
 import Engine from '../../Engine';
 import Logger from '../../../util/Logger';
+import { syncFollowingState } from '../../../util/social/followingSync';
 
 const logHydrationError = (err: unknown) => {
   Logger.error(err as Error, {
@@ -34,7 +35,7 @@ export async function hydrateSocialFollowing(): Promise<void> {
       return;
     }
 
-    await messenger.call('SocialController:updateFollowing');
+    await syncFollowingState();
   } catch (err) {
     logHydrationError(err);
   }

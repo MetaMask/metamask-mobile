@@ -134,15 +134,39 @@ const givenPredict = ({
   jest.mocked(useActiveVenue).mockReturnValue(venue);
 };
 
+const mockMessengerCall = jest.fn();
+
+const KALSHI_SUMMARY = {
+  venueId: 'kalshi',
+  currency: 'USD',
+  availableBalance: '123.13',
+  positionsValue: '45.00',
+  claimableValue: '0',
+  totalValue: '168.13',
+  unrealizedPnl: '3.75',
+  asOf: '2026-10-23T12:00:05.120Z',
+  complete: true,
+};
+
+/** Legacy reads bring their own query functions; canonical reads use the
+ * default one, which calls the messenger as the app's UI query client does. */
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: Infinity,
+        queryFn: ({ queryKey }) =>
+          mockMessengerCall(...(queryKey as [string, ...unknown[]])),
+      },
+    },
   });
   return ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 const expectNothingRead = () => {
+  expect(mockMessengerCall).not.toHaveBeenCalled();
   expect(mockGetBalance).not.toHaveBeenCalled();
   expect(mockGetPositions).not.toHaveBeenCalled();
   expect(mockEnsurePolygonNetworkExists).not.toHaveBeenCalled();
@@ -176,6 +200,7 @@ describe('usePredictPortfolioValue', () => {
       expect(result.current.value.valueUsd).toBe(
         result.current.legacy.portfolioValue,
       );
+      expect(mockMessengerCall).not.toHaveBeenCalled();
     });
 
     it('is ready at zero for an empty legacy portfolio', async () => {
@@ -216,14 +241,38 @@ describe('usePredictPortfolioValue', () => {
   });
 
   describe('while the next implementation is active', () => {
-    it('is unavailable rather than the legacy value', () => {
+    it("is the Venue's Portfolio Summary total, never the legacy value", async () => {
       givenPredict({ venue: KALSHI });
+      mockMessengerCall.mockResolvedValue(KALSHI_SUMMARY);
 
       const { result } = renderHook(() => usePredictPortfolioValue(), {
         wrapper: createWrapper(),
       });
 
-      expect(result.current).toEqual({ status: 'unavailable' });
+      expect(result.current).toEqual({ status: 'loading' });
+      await waitFor(() =>
+        expect(result.current).toEqual({ status: 'ready', valueUsd: 168.13 }),
+      );
+      expect(mockMessengerCall.mock.calls).toEqual([
+        ['PredictPortfolioService:getPortfolioSummary', 'kalshi'],
+      ]);
+    });
+
+    it('switches branch in the render that changes the Venue', async () => {
+      givenPredict();
+      mockMessengerCall.mockReturnValue(new Promise(() => undefined));
+      const { result, rerender } = renderHook(
+        () => usePredictPortfolioValue(),
+        { wrapper: createWrapper() },
+      );
+      await waitFor(() =>
+        expect(result.current).toEqual({ status: 'ready', valueUsd: 41.75 }),
+      );
+
+      givenPredict({ venue: KALSHI });
+      rerender(undefined);
+
+      expect(result.current).toEqual({ status: 'loading' });
     });
 
     it('never ensures Polygon or reads the legacy portfolio', async () => {
@@ -247,6 +296,7 @@ describe('usePredictPortfolioValue', () => {
     await expectInactiveHookHasNoSideEffects({
       useInactiveHook: usePredictPortfolioValue,
       sideEffects: [
+        mockMessengerCall,
         mockEnsurePolygonNetworkExists,
         mockGetBalance,
         mockGetPositions,

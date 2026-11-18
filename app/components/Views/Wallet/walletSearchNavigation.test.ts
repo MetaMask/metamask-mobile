@@ -21,7 +21,9 @@ describe('navigateToExploreSearch', () => {
     navigateToExploreSearch(navigation as unknown as AppNavigationProp, false);
 
     expect(trackExploreSearchOpened).toHaveBeenCalledWith('home');
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH, {
+      entryPoint: 'home',
+    });
   });
 
   it('passes the home handoff params for treatment users', () => {
@@ -38,7 +40,7 @@ describe('navigateToExploreSearch', () => {
       true,
     );
 
-    expect(trackExploreSearchOpened).not.toHaveBeenCalled();
+    expect(trackExploreSearchOpened).toHaveBeenCalledWith('home');
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH, {
       entryPoint: 'home',
       initialQuery: '0xabc',

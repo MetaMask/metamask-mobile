@@ -58,28 +58,65 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const controller = new RampsController(options);
 
   let orderSubscriptionsRegistered = false;
+  let walletUnlocked = false;
 
   const registerOrderSubscriptions = (): void => {
     if (orderSubscriptionsRegistered) {
       return;
     }
     orderSubscriptionsRegistered = true;
-    initMessenger.subscribe(
-      'RampsController:orderStatusChanged',
-      handleOrderStatusChangedForNotifications,
-    );
+    // Stopping the poller does not cancel a request already in flight, so a
+    // transition can still arrive just after the wallet locks. No toast on the
+    // lock screen.
+    initMessenger.subscribe('RampsController:orderStatusChanged', (event) => {
+      if (walletUnlocked) {
+        handleOrderStatusChangedForNotifications(event);
+      }
+    });
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForMetrics,
     );
   };
 
+  // Order polling raises purchase toasts, so it only runs while the wallet is
+  // unlocked. Polling started at init would keep toasting on the lock screen.
+  let controllerInitialized = false;
+
+  const syncOrderPolling = (): void => {
+    if (controllerInitialized && walletUnlocked) {
+      controller.startOrderPolling();
+    } else {
+      controller.stopOrderPolling();
+    }
+  };
+
+  const registerLockSubscriptions = (): void => {
+    initMessenger.subscribe('KeyringController:unlock', () => {
+      walletUnlocked = true;
+      syncOrderPolling();
+    });
+    initMessenger.subscribe('KeyringController:lock', () => {
+      walletUnlocked = false;
+      syncOrderPolling();
+    });
+    try {
+      walletUnlocked =
+        initMessenger.call('KeyringController:getState').isUnlocked === true;
+    } catch {
+      // Keyring not available yet - the unlock event will start polling.
+      walletUnlocked = false;
+    }
+  };
+
   const startRampsController = (): void => {
     registerOrderSubscriptions();
+    registerLockSubscriptions();
     controller
       .init()
       .then(() => {
-        controller.startOrderPolling();
+        controllerInitialized = true;
+        syncOrderPolling();
       })
       .catch(() => {
         // Initialization failed - error state will be available via selectors

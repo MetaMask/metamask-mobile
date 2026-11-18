@@ -23,11 +23,11 @@ const microdepositsQueryKey = (address: string) =>
  *
  * Microdeposits are cumulative, settle nothing on-chain, and appear at most a
  * few times during onboarding, so this is one small fetch per minute. It only
- * runs for profiles that can actually receive one: an approved KYC decision,
- * or a Money wallet that already registered with the provider or holds an
- * autoramp. Users who have not onboarded (and users whose KYC state did not
- * survive a reinstall) would otherwise pay for a request that can only return
- * an empty list.
+ * runs for profiles that can actually receive one: a provider-final approved
+ * KYC decision, or a Money wallet that already registered with the provider
+ * or holds an autoramp. Users who have not onboarded (and users whose KYC
+ * state did not survive a reinstall) would otherwise pay for a request that
+ * can only return an empty list.
  *
  * 404 (no MoonPay customer yet) already resolves to an empty list in
  * `NeoBankService.getMicrodeposits`.
@@ -48,9 +48,7 @@ export function useMoneyMicrodeposits(address?: string): {
       state.engine?.backgroundState?.KeyringController?.isUnlocked ?? false,
   );
   const sessionStatus = useSelector(selectKycSessionStatus);
-  const kycApproved =
-    sessionStatus?.finalStatus === 'approved' ||
-    sessionStatus?.kycStatus === 'approved';
+  const kycApproved = sessionStatus?.finalStatus === 'approved';
   // Registration or an autoramp is durable evidence that onboarding happened,
   // even when the persisted KYC session is gone.
   const hasVbaEvidence = useSelector((state: RootState) => {

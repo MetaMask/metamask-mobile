@@ -49,6 +49,8 @@ const newOverrides = [
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
       'app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx',
+      'tests/component-view/helpers/perpsViewTestHelpers.ts',
+      'tests/component-view/presets/perpsTwoExchangePresets.test.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/util/test/utils.js',
@@ -101,6 +103,8 @@ const newOverrides = [
       'app/constants/bridge.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
+      // iOS Hermes liveness probe reads HERMES_CDP_ORIGIN at runtime
+      'tests/llm-workflow/ios/hermes-health.ts',
       'app/core/apiEnv.ts',
       'app/core/coreBackendApiUrls.ts',
       'app/core/coreBackendApiUrls.test.ts',

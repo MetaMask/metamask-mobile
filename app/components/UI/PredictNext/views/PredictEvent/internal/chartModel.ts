@@ -12,6 +12,11 @@ export interface ChartSeries {
   label: string;
   color: string;
   data: readonly ChartPoint[];
+  /**
+   * Value the end label shows instead of the last plotted one, until
+   * scrubbed. `null` shows a dash: the series has a live value, but not now.
+   */
+  endValue?: number | null;
 }
 
 export interface ChartEndpoint {

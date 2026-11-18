@@ -20,6 +20,7 @@ import {
   type PerpsProviderType,
   type TwapOrder,
   type TwapOrderFill,
+  PERPS_EVENT_PROPERTY,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
 import type { ComponentType } from 'react';
@@ -31,6 +32,7 @@ import {
 } from '../../../../../../tests/component-view/platform';
 import {
   createBtcMarketForViews,
+  createCrossMarginAccountForViews,
   createFundedAccountForViews,
   createEthMarketForViews,
   createLongPositionForViews,
@@ -41,6 +43,7 @@ import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
@@ -4695,6 +4698,42 @@ describe('PerpsProMarketView header actions', () => {
       await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
   });
+
+  it('badges the wallet button from a critical cross margin ratio and opens the balance sheet', async () => {
+    renderPerpsProMarketView({
+      crossMarginEnabled: true,
+      streamOverrides: {
+        account: createCrossMarginAccountForViews({
+          maintenanceMargin: '800',
+          marginUsed: '800',
+          notional: '2000',
+        }),
+      },
+    });
+
+    const walletButton = await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON,
+    );
+
+    expect(walletButton).toHaveProp(
+      'accessibilityLabel',
+      `${strings('perps.market_details.wallet')}, ${strings(
+        'perps.crossMarginSummary.account_ratio',
+      )}`,
+    );
+    expect(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON}-risk-badge`,
+        { includeHiddenElements: true },
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(walletButton);
+
+    expect(
+      await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
 });
 
 describe('Pro market order liquidity', () => {
@@ -5636,6 +5675,76 @@ describe('Pro market Lighter limit order take profit and stop loss', () => {
       ),
     ).toBeOnTheScreen();
     await waitFor(() => expect(submit).toBeDisabled());
+  });
+});
+
+describe('PerpsProMarketView section header button location', () => {
+  const market = createEthMarketForViews();
+
+  const screenViewedEvent = (trackEventSpy: jest.SpyInstance) =>
+    trackEventSpy.mock.calls
+      .map(
+        ([event]) =>
+          event as {
+            name?: string;
+            properties?: Record<string, unknown>;
+          },
+      )
+      .find(
+        (event) =>
+          event.name === MetaMetricsEvents.PERPS_SCREEN_VIEWED.category,
+      );
+
+  it('forwards button_location on Perp Screen Viewed for a section header tap', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      renderPerpsProMarketView({
+        initialParams: {
+          market,
+          source: 'home_section',
+          button_location: 'perps_section_header',
+        },
+      });
+
+      await waitFor(() => {
+        expect(screenViewedEvent(trackEventSpy)?.properties).toEqual(
+          expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: 'perps_section_header',
+            source: 'home_section',
+          }),
+        );
+      });
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('omits button_location on Perp Screen Viewed when the route param is absent', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      renderPerpsProMarketView({
+        initialParams: {
+          market,
+          source: 'home_section',
+        },
+      });
+
+      await waitFor(() => {
+        expect(screenViewedEvent(trackEventSpy)).toEqual(
+          expect.objectContaining({
+            name: MetaMetricsEvents.PERPS_SCREEN_VIEWED.category,
+          }),
+        );
+      });
+
+      expect(screenViewedEvent(trackEventSpy)?.properties).not.toHaveProperty(
+        PERPS_EVENT_PROPERTY.BUTTON_LOCATION,
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
   });
 });
 

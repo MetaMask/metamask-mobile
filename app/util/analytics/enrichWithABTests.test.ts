@@ -9,8 +9,11 @@ import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
-import { PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY } from '../../components/UI/Perps/abTestConfig';
-import { EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY } from '../../components/UI/TokenDetails/components/abTestConfig';
+import {
+  PERPS_HEADER_AB_TEST_KEY,
+  PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+} from '../../components/UI/Perps/abTestConfig';
+import { EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY } from '../../components/UI/TokenDetails/components/abTestConfig';
 import { COMPONENT_NAMES } from '../../components/UI/Money/constants/moneyEventLocations';
 
 describe('enrichWithABTests', () => {
@@ -24,15 +27,15 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+      swapsSWAPS5094AbtestQuickBuyEntrypoints: 'treatment_1',
     });
 
     expect(result.properties).toMatchObject({
       screen: 'wallet',
       active_ab_tests: [
         createActiveABTestAssignment(
-          'assetsASSETS3205AbtestAmbientPriceColor',
-          'treatment',
+          'swapsSWAPS5094AbtestQuickBuyEntrypoints',
+          'treatment_1',
         ),
       ],
     });
@@ -150,7 +153,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+      swapsSWAPS5094AbtestQuickBuyEntrypoints: 'treatment',
     });
 
     expect(result.properties).toEqual({
@@ -158,60 +161,40 @@ describe('enrichWithABTests', () => {
     });
   });
 
-  it.each([
-    MetaMetricsEvents.MONEY_SURFACE_VIEWED,
-    MetaMetricsEvents.MONEY_TOOLTIP_CLICKED,
-    MetaMetricsEvents.MONEY_BUTTON_CLICKED,
-  ])(
-    'attributes %s to the Asset Overview balance CTA experiment',
-    (eventName) => {
-      const event = AnalyticsEventBuilder.createEventBuilder(eventName)
-        .addProperties({
-          component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
-        })
-        .build();
-
-      const result = enrichWithABTests(event, {
-        [EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY]: 'treatment',
-      });
-
-      expect(result.properties.active_ab_tests).toEqual([
-        createActiveABTestAssignment(
-          EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-          'treatment',
-        ),
-      ]);
-    },
-  );
-
-  it.each([
-    MetaMetricsEvents.MONEY_SURFACE_VIEWED,
-    MetaMetricsEvents.MONEY_TOOLTIP_CLICKED,
-    MetaMetricsEvents.MONEY_BUTTON_CLICKED,
-  ])(
-    'does not attribute unrelated %s events to the balance CTA experiment',
-    (eventName) => {
-      const event = AnalyticsEventBuilder.createEventBuilder(eventName)
-        .addProperties({
-          component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
-        })
-        .build();
-
-      const result = enrichWithABTests(event, {
-        [EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY]: 'treatment',
-      });
-
-      expect(result.properties.active_ab_tests).toBeUndefined();
-    },
-  );
-
-  it('does not attribute Token Details Opened without balance CTA eligibility context', () => {
+  it('attributes stablecoin footer Money Button Clicked events to the stablecoin footer experiment', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.TOKEN_DETAILS_OPENED,
-    ).build();
+      MetaMetricsEvents.MONEY_BUTTON_CLICKED,
+    )
+      .addProperties({
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
+        token_symbol: 'USDC',
+      })
+      .build();
 
     const result = enrichWithABTests(event, {
-      [EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY]: 'treatment',
+      [EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+        'treatment',
+      ),
+    ]);
+  });
+
+  it('does not attribute aToken footer Money Button Clicked events to the stablecoin footer experiment', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.MONEY_BUTTON_CLICKED,
+    )
+      .addProperties({
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
+        token_symbol: 'aUSDC',
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      [EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY]: 'treatment',
     });
 
     expect(result.properties.active_ab_tests).toBeUndefined();
@@ -235,12 +218,12 @@ describe('enrichWithABTests', () => {
     ).build();
 
     const result = enrichWithABTests(event, {
-      assetsASSETS3205AbtestAmbientPriceColor: { name: 'control' },
+      swapsSWAPS5094AbtestQuickBuyEntrypoints: { name: 'control' },
     });
 
     expect(result.properties.active_ab_tests).toEqual([
       createActiveABTestAssignment(
-        'assetsASSETS3205AbtestAmbientPriceColor',
+        'swapsSWAPS5094AbtestQuickBuyEntrypoints',
         'control',
       ),
     ]);
@@ -442,7 +425,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      assetsASSETS3205AbtestAmbientPriceColor: 'control',
+      swapsSWAPS5094AbtestQuickBuyEntrypoints: 'control',
     });
 
     expect(result.properties.button_type).toBe('card');
@@ -569,6 +552,38 @@ describe('enrichWithABTests', () => {
 
       const result = enrichWithABTests(event, {
         [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toBeUndefined();
+    });
+  });
+
+  describe('Perps header market list', () => {
+    it('attaches the assignment to pro-mode screen and trade events', () => {
+      const screenViewed = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      )
+        .addProperties({ perps_mode: 'pro', source: 'home_section' })
+        .build();
+
+      const result = enrichWithABTests(screenViewed, {
+        [PERPS_HEADER_AB_TEST_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(PERPS_HEADER_AB_TEST_KEY, 'treatment'),
+      ]);
+    });
+
+    it('does not attach the assignment to lite-mode Perps events', () => {
+      const screenViewed = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      )
+        .addProperties({ perps_mode: 'lite', source: 'home_section' })
+        .build();
+
+      const result = enrichWithABTests(screenViewed, {
+        [PERPS_HEADER_AB_TEST_KEY]: 'treatment',
       });
 
       expect(result.properties.active_ab_tests).toBeUndefined();
