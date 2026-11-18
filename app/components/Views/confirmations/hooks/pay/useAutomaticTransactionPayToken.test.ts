@@ -1201,8 +1201,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     expect(setPayTokenMock).toHaveBeenCalledTimes(1);
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -1250,8 +1249,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     expect(setPayTokenMock).toHaveBeenCalledTimes(1);
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -2039,8 +2037,7 @@ describe('useAutomaticTransactionPayToken', () => {
         // (TOKEN_ADDRESS_2); they resolve to the required destination token
         // (TOKEN_ADDRESS_1) so quotes can be fetched.
         expect(setPayTokenMock).not.toHaveBeenCalledWith({
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
+          assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
         });
         expect(setPayTokenMock).toHaveBeenCalledWith({
           assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
