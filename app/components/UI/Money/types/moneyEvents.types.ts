@@ -47,8 +47,8 @@ export type MoneyRedirectEventProperties = {
 
 export type MoneySurfaceClickedEventProperties = MoneyRedirectEventProperties &
   Partial<MoneyLocationEventProperties> & {
-    /** Funding intent for quick-deposit rows, so USDC can be split from mUSD. */
-    deposit_intent?: 'addUsdc';
+    /** Funding intent for the dynamic stablecoin row. */
+    deposit_intent?: 'addUsdc' | 'addUsdt' | 'addMusd';
   };
 
 export type MoneyTokenSurfaceClickedEventProperties =

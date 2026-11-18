@@ -223,7 +223,7 @@ appiumTest.describe(
             await MoneyHomeView.expectMoneyHomeVisible();
             await MoneyHomeView.tapAdd();
             await MoneyAddMoneySheet.expectVisible();
-            await MoneyAddMoneySheet.tapMoveUsdc();
+            await MoneyAddMoneySheet.tapMoveStablecoin();
 
             await TransactionPayConfirmation.expectPayWithRowLoaded();
             await Assertions.expectElementToHaveText(

@@ -241,7 +241,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Debit card or Apple Pay')).toBeOnTheScreen();
     expect(getByText('Bank transfer')).toBeOnTheScreen();
     expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
+      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
     ).toBeNull();
     expect(queryByText('External address')).toBeNull();
     // Bank transfer is live with a "No fees" badge; External address row is gone.
@@ -463,7 +463,7 @@ describe('MoneyAddMoneySheet', () => {
       getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
+      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
     ).toBeNull();
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
@@ -653,69 +653,68 @@ describe('MoneyAddMoneySheet', () => {
     ]);
   });
 
-  describe('USDC quick deposit', () => {
-    const BASE_USDC_ADDRESS =
-      '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as const;
+  describe('stablecoin quick deposit', () => {
+    const tokenAddress = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as const;
 
-    const usdcOption: QuickDepositStablecoinOption = {
-      symbol: 'USDC',
+    const option = (
+      symbol: QuickDepositStablecoinOption['symbol'],
+      intent: QuickDepositStablecoinOption['intent'],
+    ): QuickDepositStablecoinOption => ({
+      symbol,
+      intent,
       aggregatedBalance: '65',
       preferredPaymentToken: {
-        address: BASE_USDC_ADDRESS,
+        address: tokenAddress,
         chainId: CHAIN_IDS.BASE,
       },
-    };
+    });
 
-    it('shows the USDC row with the held balance when the account holds USDC', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
+    it.each([
+      ['USDC', 'addUsdc'],
+      ['USDT', 'addUsdt'],
+      ['mUSD', 'addMusd'],
+    ] as const)('shows %s and deposits with %s', (symbol, intent) => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([
+        option(symbol, intent),
+      ]);
 
-      const { getByTestId, getByText, queryByText } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <MoneyAddMoneySheet />,
       );
 
       expect(
-        getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
+        getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
       ).toBeOnTheScreen();
       expect(getByText('$65.00')).toBeOnTheScreen();
-      expect(getByText('USDC')).toBeOnTheScreen();
-      expect(queryByText('mUSD')).toBeNull();
-      expect(queryByText('USDT')).toBeNull();
-    });
+      expect(getByText(symbol)).toBeOnTheScreen();
 
-    it('hides the USDC row when the account holds no USDC', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([]);
-
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyAddMoneySheet />,
+      fireEvent.press(
+        getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
       );
 
-      expect(
-        queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
-      ).toBeNull();
-      expect(
-        getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
-      ).toBeOnTheScreen();
-    });
-
-    it('opens MetaMask Pay with the addUsdc intent and records the row tap', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
-
-      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION));
-
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
-        intent: 'addUsdc',
+        intent,
         preferredPaymentToken: {
-          address: BASE_USDC_ADDRESS,
+          address: tokenAddress,
           chainId: CHAIN_IDS.BASE,
         },
       });
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_USDC,
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-        deposit_intent: 'addUsdc',
+        deposit_intent: intent,
       });
+    });
+
+    it('hides the stablecoin row, including Add mUSD, when the account holds none', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([]);
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <MoneyAddMoneySheet />,
+      );
+      expect(
+        queryByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
+      ).toBeNull();
+      expect(queryByText('Add mUSD')).toBeNull();
     });
   });
 

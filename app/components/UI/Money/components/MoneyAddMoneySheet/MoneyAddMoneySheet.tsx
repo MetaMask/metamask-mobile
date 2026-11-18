@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
-import { createProjectLogger, Hex } from '@metamask/utils';
+import { createProjectLogger } from '@metamask/utils';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -182,17 +182,17 @@ const MoneyAddMoneySheetContent: React.FC = () => {
     startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
-  const depositHeldUsdc = useCallback(
-    (preferredPaymentToken: { address: Hex; chainId: Hex }) => {
+  const depositHeldStablecoin = useCallback(
+    (option: (typeof quickDepositStablecoins)[number]) => {
       trackSurfaceClicked({
-        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_USDC,
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-        deposit_intent: 'addUsdc',
+        deposit_intent: option.intent,
       });
 
       startDeposit({
-        intent: 'addUsdc',
-        preferredPaymentToken,
+        intent: option.intent,
+        preferredPaymentToken: option.preferredPaymentToken,
       });
     },
     [startDeposit, trackSurfaceClicked],
@@ -249,23 +249,21 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       : []),
   ];
 
-  // Plus icon, masked dollar amount, USDC symbol. Hidden when the account
-  // holds no USDC on a chain this deposit can use.
-  const usdcOptions: MoneySheetOption[] = quickDepositStablecoins.map(
+  const stablecoinOptions: MoneySheetOption[] = quickDepositStablecoins.map(
     (option) => ({
       label: {
         maskedText: moneyFormatUsd(new BigNumber(option.aggregatedBalance)),
-        suffix: strings('money.add_money_sheet.quick_deposit_usdc'),
+        suffix: option.symbol,
       },
       icon: IconName.Add,
-      onPress: () => depositHeldUsdc(option.preferredPaymentToken),
-      testID: MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION,
+      onPress: () => depositHeldStablecoin(option),
+      testID: MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION,
     }),
   );
 
   const options: MoneySheetOption[] = [
     ...baseOptions,
-    ...usdcOptions,
+    ...stablecoinOptions,
     ...comingSoonBankAccountOptions,
   ];
 

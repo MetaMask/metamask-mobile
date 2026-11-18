@@ -24,8 +24,10 @@ class MoneyAddMoneySheet {
     );
   }
 
-  get moveUsdcOption(): Promise<AppiumElement> {
-    return Matchers.getElementByID(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION);
+  get moveStablecoinOption(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION,
+    );
   }
 
   get bankAccountRow(): Promise<AppiumElement> {
@@ -60,9 +62,9 @@ class MoneyAddMoneySheet {
     });
   }
 
-  async tapMoveUsdc(): Promise<void> {
-    await Gestures.waitAndTap(this.moveUsdcOption, {
-      elemDescription: 'Add money sheet - USDC option',
+  async tapMoveStablecoin(): Promise<void> {
+    await Gestures.waitAndTap(this.moveStablecoinOption, {
+      elemDescription: 'Add money sheet - stablecoin option',
     });
   }
 }
