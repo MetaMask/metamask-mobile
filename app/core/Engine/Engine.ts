@@ -1334,11 +1334,18 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      ProfileMetricsController,
+      ProfileMetricsService,
       PredictOrderService,
       PredictPortfolioService,
       PredictDeviceAuthService,
       PredictVenueController,
     } = this.context;
+
+    // Wait for any in-flight profile metrics poll before clearing its state
+    // and resetting the circuit breakers for the next wallet.
+    await ProfileMetricsController.clearState();
+    ProfileMetricsService.resetCircuitBreakers();
 
     // Remove all permissions.
     PermissionController?.clearState?.();
