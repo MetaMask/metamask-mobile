@@ -49,6 +49,7 @@ import { useTransactionPayFiatPayment } from '../../../hooks/pay/useTransactionP
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useTransactionPayAccountLoading } from '../../../hooks/pay/useTransactionPayAccountLoading';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../confirm/confirm-component';
@@ -243,6 +244,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+    const isPayAccountLoading = useTransactionPayAccountLoading();
 
     const { toastRef } = useContext(ToastContext);
 
@@ -461,6 +463,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const showBuyButton =
       (!hasPaymentOption || hasAccountNoFunds) &&
       !hideBuyForNoFunds &&
+      !isPayAccountLoading &&
       !isDepositPrefillEnabled;
 
     const alertMessage =
@@ -555,7 +558,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 onSourceChange={setPerpsWithdrawSource}
               />
               {disablePay !== true &&
-                (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
+                (isPayAccountLoading ? (
+                  <PayWithRowSkeleton />
+                ) : (
+                  (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />
+                ))}
               <PerpsReceiveToRow
                 destination={perpsReceiveDestination}
                 onDestinationChange={setPerpsReceiveDestination}
@@ -576,9 +583,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 source={perpsWithdrawSource}
                 onSourceChange={setPerpsWithdrawSource}
               />
-              {disablePay !== true && hasPaymentOption && (
-                <PayWithRow isResultReady />
-              )}
+              {disablePay !== true &&
+                (isPayAccountLoading ? (
+                  <PayWithRowSkeleton />
+                ) : (
+                  hasPaymentOption && <PayWithRow isResultReady />
+                ))}
               <PerpsReceiveToRow
                 destination={perpsReceiveDestination}
                 onDestinationChange={setPerpsReceiveDestination}
@@ -597,7 +607,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {!isMembershipSubscription &&
             stage === CustomAmountStage.AmountInput &&
-            (hasPaymentOption || hasAccountNoFunds) && (
+            (hasPaymentOption || hasAccountNoFunds || isPayAccountLoading) && (
               <DepositKeyboard
                 hidePercentageButtons={
                   Boolean(selectedFiatPaymentMethodId) ||

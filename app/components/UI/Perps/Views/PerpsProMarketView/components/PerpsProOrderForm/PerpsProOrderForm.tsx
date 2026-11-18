@@ -17,6 +17,7 @@ import {
   IconSize,
   KeyValueRow,
   SegmentedControl,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -497,6 +498,7 @@ const PerpsProOrderForm = ({
   isOrderBookCollapsed = false,
   onExpandOrderBook,
   marginModeLabel,
+  marginModeTag,
   onMarginModePress,
   leverageLabel,
   onLeveragePress,
@@ -792,6 +794,29 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked || !onMarginModePress}
               twClassName="flex-1 rounded-xl bg-muted"
               textProps={{ variant: TextVariant.BodySm }}
+              endAccessory={
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  accessible={false}
+                >
+                  {marginModeTag ? (
+                    <Tag
+                      severity={marginModeTag.severity}
+                      testID={ids.MARGIN_MODE_TAG}
+                    >
+                      {marginModeTag.label}
+                    </Tag>
+                  ) : null}
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Sm}
+                    color={IconColor.IconDefault}
+                    testID={`${ids.MARGIN_MODE_BUTTON}-chevron`}
+                  />
+                </Box>
+              }
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
@@ -802,6 +827,12 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked || !onLeveragePress}
               twClassName="flex-1 rounded-xl bg-muted px-2"
               textProps={{ variant: TextVariant.BodySm }}
+              endIconName={IconName.ArrowDown}
+              endIconProps={{
+                size: IconSize.Sm,
+                color: IconColor.IconDefault,
+                testID: `${ids.LEVERAGE_BUTTON}-chevron`,
+              }}
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}
