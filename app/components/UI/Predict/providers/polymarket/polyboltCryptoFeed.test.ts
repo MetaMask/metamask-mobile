@@ -1142,6 +1142,122 @@ describe('PolyBoltCryptoFeed', () => {
       );
     });
 
+    it('retries TWAP without provider when spot is acked before TWAP hits bad_filter on the same rid, and streams both', () => {
+      const { socket, handlers } = connectWith([spot('btc'), twap('btc')]);
+      expect(subscribeFrames(socket)).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's2',
+          subscriptions: [
+            {
+              channel: 'price.crypto',
+              filter: { symbol: 'btcusd', provider: 'chainlink' },
+            },
+            {
+              channel: 'price.crypto.twap',
+              filter: {
+                symbol: 'btcusd',
+                window_seconds: 60,
+                provider: 'chainlink',
+              },
+            },
+          ],
+        },
+      ]);
+      socket.send.mockClear();
+
+      socket.receive({ op: 'subscribed', channel: 'price.crypto', rid: 's2' });
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        message: 'unknown field provider',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's3',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        },
+      ]);
+
+      socket.receive({
+        op: 'subscribed',
+        channel: 'price.crypto.twap',
+        rid: 's3',
+      });
+      socket.receive({
+        channel: 'price.crypto.twap',
+        payload: {
+          symbol: 'btcusd',
+          timestamp: 2_000,
+          window_seconds: 60,
+          full_accuracy_value: '64000.5',
+          source: 'chainlink',
+        },
+      });
+      socket.receive(livePoint('chainlink', '64001'));
+
+      expect(handlers.onLive).toHaveBeenCalledWith('price.crypto.twap', {
+        symbol: 'btc/usd',
+        price: 64000.5,
+        timestamp: 2_000,
+        twapWindowSeconds: 60,
+      });
+      expect(handlers.onLive).toHaveBeenCalledWith('price.crypto', {
+        symbol: 'btc/usd',
+        price: 64001,
+        timestamp: 1_000,
+      });
+    });
+
+    it('does not resend a spot entry refused with bad_filter after TWAP was acked on the same rid', () => {
+      const { socket } = connectWith([spot('btc'), twap('btc')]);
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'subscribed',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        channel: 'price.crypto',
+        rid: 's2',
+      });
+
+      expect(socket.send).not.toHaveBeenCalled();
+    });
+
+    it('stops tracking a shared frame once every entry is acked', () => {
+      const { socket } = connectWith([spot('btc'), spot('eth'), twap('btc')]);
+      socket.send.mockClear();
+
+      socket.receive({ op: 'subscribed', channel: 'price.crypto', rid: 's2' });
+      socket.receive({ op: 'subscribed', rid: 's2' });
+      socket.receive({
+        op: 'subscribed',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        channel: 'price.crypto.twap',
+        rid: 's2',
+      });
+
+      expect(socket.send).not.toHaveBeenCalled();
+    });
+
     it('does not resend a rejected shared frame entry that another frame already carries', () => {
       const eth = spot('eth');
       const btcTwap = twap('btc');

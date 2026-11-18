@@ -67,7 +67,10 @@ interface SocketCloseEvent {
 
 interface PendingFrame {
   op: 'subscribe' | 'unsubscribe';
-  subscriptions: PolyBoltSubscription[];
+  // Entries not yet acknowledged or refused, in send order. PolyBolt answers
+  // each entry on its own, echoing the frame rid and the channel but not the
+  // symbol, so an answer resolves the first unresolved entry on its channel.
+  unresolved: PolyBoltSubscription[];
 }
 
 /**
@@ -692,7 +695,7 @@ export class PolyBoltCryptoFeed {
         this.pendingFrames.delete(oldestRid);
       }
     }
-    this.pendingFrames.set(rid, { op, subscriptions: [...subscriptions] });
+    this.pendingFrames.set(rid, { op, unresolved: [...subscriptions] });
     subscriptions.forEach((subscription) => {
       const key = this.wireKey(subscription);
       if (op === 'subscribe') {
@@ -761,7 +764,7 @@ export class PolyBoltCryptoFeed {
     }
 
     if (message.op === 'unsubscribed') {
-      this.takePendingFrame(message.rid);
+      this.resolvePendingEntry(message);
       return;
     }
 
@@ -783,7 +786,7 @@ export class PolyBoltCryptoFeed {
       // Every filter names a provider, so this is a client bug. Resending the
       // same frame would fail the same way.
       this.takePendingPin(message.rid);
-      this.takePendingFrame(message.rid);
+      this.resolvePendingEntry(message);
       this.reportErrorOnce(message);
       return;
     }
@@ -823,6 +826,31 @@ export class PolyBoltCryptoFeed {
     return frame;
   }
 
+  /**
+   * Resolves the entry a per-item ack or error answers, and stops tracking the
+   * frame once every entry is answered. The other entries stay tracked, so a
+   * later `bad_filter` with the same rid can still retry them.
+   */
+  private resolvePendingEntry(message: Record<string, unknown>): void {
+    const { rid } = message;
+    if (typeof rid !== 'string') {
+      return;
+    }
+
+    const frame = this.pendingFrames.get(rid);
+    if (!frame) {
+      return;
+    }
+
+    const index = frame.unresolved.findIndex(
+      (subscription) => subscription.channel === message.channel,
+    );
+    frame.unresolved.splice(Math.max(index, 0), 1);
+    if (frame.unresolved.length === 0) {
+      this.pendingFrames.delete(rid);
+    }
+  }
+
   private takePendingPin(rid: unknown): PolyBoltSubscription | undefined {
     if (typeof rid !== 'string') {
       return undefined;
@@ -846,7 +874,7 @@ export class PolyBoltCryptoFeed {
    */
   private handleSubscribedAck(message: Record<string, unknown>): void {
     const subscription = this.takePendingPin(message.rid);
-    this.takePendingFrame(message.rid);
+    this.resolvePendingEntry(message);
     if (!subscription?.provider) {
       return;
     }
@@ -869,7 +897,8 @@ export class PolyBoltCryptoFeed {
    * or rejected. When it is rejected, fall back to Chainlink so the market
    * keeps a live price. For unpinned rejections (such as TWAP), warn Sentry
    * once, retry TWAP subscriptions once without `provider`, and resend active
-   * non-TWAP entries from a rejected shared frame with their provider.
+   * non-TWAP entries of a rejected shared frame that no ack answered yet, with
+   * their provider.
    */
   private handleBadFilter(message: Record<string, unknown>): void {
     const subscription = this.takePendingPin(message.rid);
@@ -901,7 +930,7 @@ export class PolyBoltCryptoFeed {
     }
 
     const resolvedSubscriptions = frame
-      ? this.resolveRejectedSubscriptions(frame.subscriptions, message.channel)
+      ? this.resolveRejectedSubscriptions(frame.unresolved, message.channel)
       : [];
     const symbol = this.formatRejectedSymbols(resolvedSubscriptions);
     const channel =
@@ -917,7 +946,7 @@ export class PolyBoltCryptoFeed {
     this.warnBadFilterOnce(message, channel, symbol, resolvedSubscriptions);
 
     if (frame?.op === 'subscribe' && !this.chainlinkUnavailable) {
-      this.resendRejectedUnpinnedFrame(frame.subscriptions, message.rid);
+      this.resendRejectedUnpinnedFrame(frame.unresolved, message.rid);
     }
   }
 
@@ -1052,7 +1081,7 @@ export class PolyBoltCryptoFeed {
    */
   private handleChainlinkKeyRequired(message: Record<string, unknown>): void {
     this.takePendingPin(message.rid);
-    this.takePendingFrame(message.rid);
+    this.resolvePendingEntry(message);
     this.chainlinkUnavailable = true;
     this.reportErrorOnce(message, {
       hasChainlinkApiKey: Boolean(this.credentials?.chainlinkApiKey),
