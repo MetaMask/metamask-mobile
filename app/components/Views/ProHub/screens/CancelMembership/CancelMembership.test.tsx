@@ -896,7 +896,7 @@ describe('CancelMembership', () => {
       expect(
         getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),
       ).toHaveTextContent(
-        strings('pro_hub.cancel_membership.post_cancel_sheet.period_end_title'),
+        strings('pro_hub.cancel_membership.post_cancel_sheet.title'),
       );
       expect(
         getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
@@ -967,7 +967,7 @@ describe('CancelMembership', () => {
       expect(
         getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),
       ).toHaveTextContent(
-        strings('pro_hub.cancel_membership.post_cancel_sheet.immediate_title'),
+        strings('pro_hub.cancel_membership.post_cancel_sheet.title'),
       );
       expect(
         getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),

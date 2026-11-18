@@ -87,7 +87,7 @@ describe('CancelPostCancelSheet', () => {
     expect(
       getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),
     ).toHaveTextContent(
-      strings('pro_hub.cancel_membership.post_cancel_sheet.immediate_title'),
+      strings('pro_hub.cancel_membership.post_cancel_sheet.title'),
     );
     expect(
       getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),

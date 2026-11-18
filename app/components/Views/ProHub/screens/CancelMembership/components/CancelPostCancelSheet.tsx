@@ -46,11 +46,7 @@ const CancelPostCancelSheet = ({
 }: CancelPostCancelSheetProps) => {
   const isImmediate = content.timing === CANCELLATION_TIMINGS.IMMEDIATE;
 
-  const title = strings(
-    isImmediate
-      ? 'pro_hub.cancel_membership.post_cancel_sheet.immediate_title'
-      : 'pro_hub.cancel_membership.post_cancel_sheet.period_end_title',
-  );
+  const title = strings('pro_hub.cancel_membership.post_cancel_sheet.title');
   const description = isImmediate
     ? strings(
         'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',

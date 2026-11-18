@@ -13787,9 +13787,8 @@
       "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
       "cancellation_failed": "We couldn't cancel your membership. Please try again.",
       "post_cancel_sheet": {
-        "period_end_title": "Your membership is canceled",
+        "title": "Your membership is canceled",
         "period_end_description": "Renew before {{date}} to continue receiving {{apy}} APY, {{rate}} mUSD back, and more.",
-        "immediate_title": "Your membership is canceled",
         "immediate_description": "Your membership has ended, so you no longer have {{apy}} APY, {{rate}} mUSD back, or other membership benefits.",
         "got_it": "Got it"
       }
