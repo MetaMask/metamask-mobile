@@ -69,7 +69,6 @@ describe('useSharedPositionPreview', () => {
     expect(resolveSharedSocialPosition).toHaveBeenCalledWith(
       'position-1',
       'trader-1',
-      expect.any(String),
     );
     expect(mapPositionToFeedItem).toHaveBeenCalledWith(POSITION, '', {
       author: AUTHOR,

@@ -33,9 +33,16 @@ const PREPARE_QUERY = MOCK_RECURRING_PREPARE_QUERY;
 const PREPARE_RESPONSE =
   createMockPrepareRecurringDelegationResponse(PREPARE_QUERY);
 const CREATE_REQUEST: CreateRecurringOrderRequest = {
+  accountAddress: PREPARE_QUERY.accountAddress,
   clientOrderId: PREPARE_QUERY.clientOrderId,
-  chainId: 1,
-  slippage: PREPARE_QUERY.slippage,
+  src: {
+    assetId: PREPARE_QUERY.srcAssetId,
+    amount: PREPARE_QUERY.srcAmount,
+  },
+  dest: {
+    assetId: PREPARE_QUERY.destAssetId,
+  },
+  slippage: 0.5,
   schedule: {
     every: PREPARE_QUERY.every,
     unit: PREPARE_QUERY.unit,
@@ -43,17 +50,21 @@ const CREATE_REQUEST: CreateRecurringOrderRequest = {
   },
   delegations: PREPARE_RESPONSE.delegations,
 };
+const API_ORDER = MOCK_RECURRING_OPEN_ORDER;
+const API_SWAP = MOCK_RECURRING_OPEN_ORDER_SWAPS[0];
 const ORDERS_RESPONSE = {
-  orders: [MOCK_RECURRING_OPEN_ORDER],
+  orders: [API_ORDER],
   endCursor: 'next-orders',
   hasNextPage: true,
+  total: 1,
 };
 const SWAPS_RESPONSE = {
-  swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
+  swaps: [API_SWAP],
   endCursor: 'next-swaps',
   hasNextPage: true,
+  total: 1,
 };
-const CANCEL_RESPONSE = { order: MOCK_RECURRING_OPEN_ORDER };
+const ORDER_RESPONSE = { order: API_ORDER };
 
 function createResponse(
   body: unknown,
@@ -92,7 +103,7 @@ describe('recurring orders API client', () => {
     },
     {
       name: 'create',
-      response: { order: MOCK_RECURRING_OPEN_ORDER },
+      response: ORDER_RESPONSE,
       invoke: () =>
         recurringOrdersApiClient.createRecurringOrder(CREATE_REQUEST),
       contentType: true,
@@ -108,7 +119,7 @@ describe('recurring orders API client', () => {
     },
     {
       name: 'get one',
-      response: MOCK_RECURRING_OPEN_ORDER,
+      response: ORDER_RESPONSE,
       invoke: () =>
         recurringOrdersApiClient.getRecurringOrder(
           MOCK_RECURRING_OPEN_ORDER.id,
@@ -128,7 +139,7 @@ describe('recurring orders API client', () => {
     },
     {
       name: 'cancel',
-      response: CANCEL_RESPONSE,
+      response: ORDER_RESPONSE,
       invoke: () =>
         recurringOrdersApiClient.cancelRecurringOrder(
           MOCK_RECURRING_OPEN_ORDER.id,
@@ -181,7 +192,6 @@ describe('recurring orders API client', () => {
       srcAssetId: PREPARE_QUERY.srcAssetId,
       srcAmount: PREPARE_QUERY.srcAmount,
       destAssetId: PREPARE_QUERY.destAssetId,
-      slippage: '0.5',
       every: '2',
       unit: 'day',
       repeatCount: '4',
@@ -191,7 +201,7 @@ describe('recurring orders API client', () => {
 
   it.each([200, 201])('accepts create response status %s', async (status) => {
     globalFetchSpy.mockResolvedValue(
-      createResponse({ order: MOCK_RECURRING_OPEN_ORDER }, { status }),
+      createResponse(ORDER_RESPONSE, { status }),
     );
 
     const result =
@@ -204,7 +214,7 @@ describe('recurring orders API client', () => {
     expect(url).toBe(`${MOCK_BASE_URL}/v2/orders/recurring`);
     expect(options.method).toBe('POST');
     expect(JSON.parse(options.body as string)).toStrictEqual(CREATE_REQUEST);
-    expect(result.order).toStrictEqual(MOCK_RECURRING_OPEN_ORDER);
+    expect(result.order).toStrictEqual(API_ORDER);
   });
 
   it('serializes repeated list filters and the opaque cursor', async () => {
@@ -214,7 +224,7 @@ describe('recurring orders API client', () => {
       accountAddress: MOCK_RECURRING_ACCOUNT,
       states: [RecurringOrderState.Completed, RecurringOrderState.Cancelled],
       chainIds: ['eip155:1', 'eip155:56'],
-      asset: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+      assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
       limit: 20,
       after: 'opaque-orders-cursor',
     });
@@ -232,12 +242,17 @@ describe('recurring orders API client', () => {
       'eip155:1',
       'eip155:56',
     ]);
-    expect(url.searchParams.get('asset')).toBe(
+    expect(url.searchParams.get('assetId')).toBe(
       MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
     );
     expect(url.searchParams.get('limit')).toBe('20');
     expect(url.searchParams.get('after')).toBe('opaque-orders-cursor');
-    expect(result).toStrictEqual(ORDERS_RESPONSE);
+    expect(result).toStrictEqual({
+      orders: [API_ORDER],
+      endCursor: 'next-orders',
+      hasNextPage: true,
+      total: 1,
+    });
   });
 
   it.each([
@@ -247,8 +262,9 @@ describe('recurring orders API client', () => {
         recurringOrdersApiClient.getRecurringOrder('order/id', {
           accountAddress: MOCK_RECURRING_ACCOUNT,
         }),
-      response: MOCK_RECURRING_OPEN_ORDER,
+      response: ORDER_RESPONSE,
       path: '/v2/orders/recurring/order%2Fid',
+      method: 'GET',
     },
     {
       name: 'list swaps',
@@ -258,6 +274,7 @@ describe('recurring orders API client', () => {
         }),
       response: SWAPS_RESPONSE,
       path: '/v2/orders/recurring/order%2Fid/swaps',
+      method: 'GET',
     },
     {
       name: 'cancel',
@@ -265,18 +282,24 @@ describe('recurring orders API client', () => {
         recurringOrdersApiClient.cancelRecurringOrder('order/id', {
           accountAddress: MOCK_RECURRING_ACCOUNT,
         }),
-      response: CANCEL_RESPONSE,
+      response: ORDER_RESPONSE,
       path: '/v2/orders/recurring/order%2Fid',
+      method: 'DELETE',
     },
   ])(
     'encodes the order id and account on $name',
-    async ({ invoke, response, path }) => {
+    async ({ invoke, response, path, method }) => {
       globalFetchSpy.mockResolvedValue(createResponse(response));
 
       await invoke();
 
-      const url = new URL(globalFetchSpy.mock.calls[0][0]);
+      const [requestUrl, options] = globalFetchSpy.mock.calls[0] as [
+        string,
+        RequestInit,
+      ];
+      const url = new URL(requestUrl);
       expect(url.pathname).toBe(path);
+      expect(options.method).toBe(method);
       expect(url.searchParams.get('accountAddress')).toBe(
         MOCK_RECURRING_ACCOUNT,
       );
@@ -298,7 +321,12 @@ describe('recurring orders API client', () => {
     const url = new URL(globalFetchSpy.mock.calls[0][0]);
     expect(url.searchParams.get('limit')).toBe('50');
     expect(url.searchParams.get('after')).toBe('opaque-swaps-cursor');
-    expect(result).toStrictEqual(SWAPS_RESPONSE);
+    expect(result).toStrictEqual({
+      swaps: [API_SWAP],
+      endCursor: 'next-swaps',
+      hasNextPage: true,
+      total: 1,
+    });
   });
 
   it.each([400, 401, 403, 404, 409, 500])(
@@ -347,9 +375,7 @@ describe('recurring orders API client', () => {
   });
 
   it('rejects a malformed successful response', async () => {
-    globalFetchSpy.mockResolvedValue(
-      createResponse({ orders: [MOCK_RECURRING_OPEN_ORDER] }),
-    );
+    globalFetchSpy.mockResolvedValue(createResponse({ orders: [API_ORDER] }));
 
     await expect(
       recurringOrdersApiClient.getRecurringOrders({

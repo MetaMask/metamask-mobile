@@ -1,5 +1,8 @@
 import { useNetInfo } from '@react-native-community/netinfo';
-import { computeNetworkTier } from '../util/deviceCapability/computeNetworkTier';
+import {
+  computeNetworkTier,
+  readCellularGeneration,
+} from '../util/deviceCapability/computeNetworkTier';
 import type { NetworkTier } from '../util/deviceCapability/types';
 
 export type { NetworkTier };
@@ -10,7 +13,8 @@ export interface NetworkTierState {
 }
 
 /**
- * Current network tier derived from `useNetInfo()`.
+ * Current network tier derived from `useNetInfo()`. Transport / generation
+ * only; measured slowness is `useNetworkLatency()`.
  *
  * Adds no extra NetInfo listener beyond the calling component's subscription.
  */
@@ -35,15 +39,4 @@ export function useNetworkTierState(): NetworkTierState {
     tier,
     isResolved: tier !== null || (type !== null && type !== 'unknown'),
   };
-}
-
-function readCellularGeneration(
-  details: ReturnType<typeof useNetInfo>['details'],
-): string | null {
-  if (!details || !('cellularGeneration' in details)) {
-    return null;
-  }
-
-  const { cellularGeneration } = details;
-  return typeof cellularGeneration === 'string' ? cellularGeneration : null;
 }

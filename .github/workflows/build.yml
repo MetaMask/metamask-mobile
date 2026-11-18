@@ -284,7 +284,8 @@ jobs:
       upload-artifact: ${{ needs.prepare.outputs.should_cache != 'true' }}
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
-      runner_provider: ${{ inputs.runner_provider }}
+      # Must match the build job's provider: the node_modules tarball/cache is only valid on the same fleet.
+      runner_provider: ${{ needs.prepare.outputs.build_runner_provider }}
       cache_mode: ${{ needs.prepare.outputs.cache_mode }}
 
   # Build

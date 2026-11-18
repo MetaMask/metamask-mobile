@@ -231,25 +231,30 @@ const OptinMetrics = () => {
         .build(),
     );
 
-    metrics.trackEvent(
-      metrics
-        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-        .addProperties({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]:
-            Boolean(isMarketingChecked),
-          is_metrics_opted_in: isBasicUsageChecked,
-          location: 'onboarding_metametrics',
-          updated_after_onboarding: false,
-          ...(accountType && { account_type: accountType }),
-        })
-        .build(),
-    );
+    // Marketing consent signals only go out while MetaMetrics is on, the same
+    // way the settings screen gates them. The marketing choice itself is kept
+    // in state above, whatever this toggle says.
+    if (isBasicUsageChecked) {
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+          .addProperties({
+            [UserProfileProperty.HAS_MARKETING_CONSENT]:
+              Boolean(isMarketingChecked),
+            is_metrics_opted_in: isBasicUsageChecked,
+            location: 'onboarding_metametrics',
+            updated_after_onboarding: false,
+            ...(accountType && { account_type: accountType }),
+          })
+          .build(),
+      );
 
-    await metrics.identify({
-      ...generateDeviceAnalyticsMetaData(),
-      ...generateUserSettingsAnalyticsMetaData(),
-      [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
-    });
+      await metrics.identify({
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+        [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
+      });
+    }
 
     // track onboarding events that were stored before user opted in
     // only if the user eventually opts in.
@@ -320,22 +325,12 @@ const OptinMetrics = () => {
   );
 
   const handleBasicUsageToggle = useCallback(() => {
-    setIsBasicUsageChecked((prevValue) => {
-      const newValue = !prevValue;
-      if (!newValue) {
-        setIsMarketingChecked(false);
-      }
-      return newValue;
-    });
+    setIsBasicUsageChecked((prev) => !prev);
   }, []);
 
   const handleMarketingToggle = useCallback(() => {
-    if (isBasicUsageChecked) {
-      setIsMarketingChecked((prev) => !prev);
-    }
-  }, [isBasicUsageChecked]);
-
-  const isMarketingDisabled = !isBasicUsageChecked;
+    setIsMarketingChecked((prev) => !prev);
+  }, []);
 
   /**
    * Content size change event for the ScrollView.
@@ -461,10 +456,7 @@ const OptinMetrics = () => {
                 variant={ContentVariant.MultiLine}
                 isSelected={isMarketingChecked}
                 onPress={handleMarketingToggle}
-                disabled={isMarketingDisabled}
-                twClassName={`rounded-xl border border-muted ${
-                  isMarketingDisabled ? 'opacity-50' : ''
-                }`}
+                twClassName="rounded-xl border border-muted"
                 title={strings('privacy_policy.checkbox_marketing')}
                 description={strings('privacy_policy.checkbox')}
                 testID={
