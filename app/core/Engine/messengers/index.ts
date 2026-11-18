@@ -1,3 +1,4 @@
+import { getPackPartnerDataServiceMessenger } from './collectibles-data-services-messenger';
 import { noop } from 'lodash';
 import {
   getAccountTreeControllerInitMessenger,
@@ -306,6 +307,10 @@ export const MESSENGER_FACTORIES = {
   },
   PredictController: {
     getMessenger: getPredictControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PackPartnerDataService: {
+    getMessenger: getPackPartnerDataServiceMessenger,
     getInitMessenger: noop,
   },
   CollectiblesController: {
