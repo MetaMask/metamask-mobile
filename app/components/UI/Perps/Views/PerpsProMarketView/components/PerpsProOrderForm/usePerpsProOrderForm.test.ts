@@ -4072,7 +4072,9 @@ describe('usePerpsProOrderForm', () => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toBe('--');
+      expect(result.current.summary.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
     });
 
     it('waits for market max leverage before estimating a Cross liquidation price', () => {
@@ -4093,7 +4095,9 @@ describe('usePerpsProOrderForm', () => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toBe('--');
+      expect(result.current.summary.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
     });
 
     it('estimates from account value until spot collateral is published', () => {
@@ -4204,7 +4208,7 @@ describe('usePerpsProOrderForm', () => {
     it('keeps the liquidation estimate for an isolated order when Cross is available', () => {
       const { result } = renderWithCrossMargin();
 
-      expect(result.current.summary.liquidationPrice).toMatch(/\$/);
+      expect(result.current.summary.liquidationPrice).toBe('$80,000');
     });
 
     it('does not flag the stop loss against the isolated liquidation estimate for a Cross order', () => {
