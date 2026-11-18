@@ -14,7 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -25,7 +25,10 @@ import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagCont
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
-import { resolvePostComposerAnalyticsSource } from './resolvePostComposerAnalyticsSource';
+import {
+  resolvePostComposerAnalyticsSource,
+  resolvePostComposerEntry,
+} from './resolvePostComposerAnalyticsSource';
 import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 
@@ -42,9 +45,15 @@ const PrivateComposerContent: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const routeParams = route.params as SocialPostComposerViewParams | undefined;
+  const composerEntry = resolvePostComposerEntry(routeParams);
+  const composerAnalytics = useMemo(
+    () => (composerEntry ? { composer_entry: composerEntry } : undefined),
+    [composerEntry],
+  );
   const trackInteraction = useSocialScreenAnalytics(Screen.POST_COMPOSER, {
     source: resolvePostComposerAnalyticsSource(routeParams),
     outcome: Outcome.EMPTY,
+    properties: composerAnalytics,
   });
 
   const handleClose = useCallback(() => {

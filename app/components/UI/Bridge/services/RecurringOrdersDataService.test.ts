@@ -8,6 +8,7 @@ import {
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../api/recurringSwaps.mock';
 import { RecurringOrderState } from '../api/recurringOrders.types';
 import type {
+  RecurringOrderQueryParams,
   RecurringOrdersByAssetQueryParams,
   RecurringOrdersQueryParams,
   RecurringSwapsQueryParams,
@@ -19,11 +20,15 @@ import {
 
 jest.mock('../api/recurringOrders.client', () => ({
   recurringOrdersApiClient: {
+    getRecurringOrder: jest.fn(),
     getRecurringOrders: jest.fn(),
     getRecurringSwaps: jest.fn(),
   },
 }));
 
+const mockGetRecurringOrder = jest.mocked(
+  recurringOrdersApiClient.getRecurringOrder,
+);
 const mockGetRecurringOrders = jest.mocked(
   recurringOrdersApiClient.getRecurringOrders,
 );
@@ -39,6 +44,9 @@ const PARAMS: RecurringOrdersQueryParams = {
 const ASSET_PARAMS: RecurringOrdersByAssetQueryParams = {
   walletAddress: '0x1234567890123456789012345678901234567890',
   assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+};
+const ORDER_PARAMS: RecurringOrderQueryParams = {
+  accountAddress: MOCK_RECURRING_ACCOUNT,
 };
 const SWAPS_PARAMS: RecurringSwapsQueryParams = {
   accountAddress: MOCK_RECURRING_ACCOUNT,
@@ -66,6 +74,24 @@ describe('RecurringOrdersDataService', () => {
     services.push(service);
     return service;
   }
+
+  it('forwards order and account parameters to the recurring-order transport', async () => {
+    mockGetRecurringOrder.mockResolvedValue({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+    const service = buildService();
+
+    const result = await service.getRecurringOrder(
+      MOCK_RECURRING_OPEN_ORDER.id,
+      { accountAddress: MOCK_RECURRING_ACCOUNT },
+    );
+
+    expect(mockGetRecurringOrder).toHaveBeenCalledWith(
+      MOCK_RECURRING_OPEN_ORDER.id,
+      { accountAddress: MOCK_RECURRING_ACCOUNT },
+    );
+    expect(result.order).toBe(MOCK_RECURRING_OPEN_ORDER);
+  });
 
   it('forwards query parameters to the recurring-orders transport', async () => {
     mockGetRecurringOrders.mockResolvedValue({
@@ -223,5 +249,71 @@ describe('RecurringOrdersDataService', () => {
     expect(secondPage.swaps).toStrictEqual([
       MOCK_RECURRING_OPEN_ORDER_SWAPS[1],
     ]);
+  });
+
+  it('fetches current order reads on every request', async () => {
+    mockGetRecurringOrder
+      .mockResolvedValueOnce({ order: MOCK_RECURRING_OPEN_ORDER })
+      .mockResolvedValueOnce({ order: MOCK_RECURRING_OPEN_ORDER_2 });
+    mockGetRecurringOrders
+      .mockResolvedValueOnce({
+        orders: [MOCK_RECURRING_OPEN_ORDER],
+        hasNextPage: false,
+        total: 1,
+      })
+      .mockResolvedValueOnce({
+        orders: [MOCK_RECURRING_OPEN_ORDER],
+        hasNextPage: false,
+        total: 1,
+      })
+      .mockResolvedValueOnce({
+        orders: [MOCK_RECURRING_OPEN_ORDER_2],
+        hasNextPage: false,
+        total: 1,
+      })
+      .mockResolvedValueOnce({
+        orders: [MOCK_RECURRING_OPEN_ORDER_2],
+        hasNextPage: false,
+        total: 1,
+      });
+    mockGetRecurringSwaps
+      .mockResolvedValueOnce({
+        swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
+        hasNextPage: false,
+        total: 1,
+      })
+      .mockResolvedValueOnce({
+        swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[1]],
+        hasNextPage: false,
+        total: 1,
+      });
+    jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+    const service = buildService();
+
+    await service.getRecurringOrder(MOCK_RECURRING_OPEN_ORDER.id, ORDER_PARAMS);
+    await service.getRecurringOrders(PARAMS);
+    await service.getRecurringOrdersByAsset(ASSET_PARAMS);
+    await service.getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER.id, SWAPS_PARAMS);
+    const refreshedOrder = await service.getRecurringOrder(
+      MOCK_RECURRING_OPEN_ORDER.id,
+      ORDER_PARAMS,
+    );
+    const refreshedOrders = await service.getRecurringOrders(PARAMS);
+    const refreshedByAsset =
+      await service.getRecurringOrdersByAsset(ASSET_PARAMS);
+    const refreshedSwaps = await service.getRecurringSwaps(
+      MOCK_RECURRING_OPEN_ORDER.id,
+      SWAPS_PARAMS,
+    );
+
+    expect(refreshedOrder.order).toBe(MOCK_RECURRING_OPEN_ORDER_2);
+    expect(refreshedOrders.orders).toStrictEqual([MOCK_RECURRING_OPEN_ORDER_2]);
+    expect(refreshedByAsset).toStrictEqual([MOCK_RECURRING_OPEN_ORDER_2]);
+    expect(refreshedSwaps.swaps).toStrictEqual([
+      MOCK_RECURRING_OPEN_ORDER_SWAPS[1],
+    ]);
+    expect(mockGetRecurringOrder).toHaveBeenCalledTimes(2);
+    expect(mockGetRecurringOrders).toHaveBeenCalledTimes(4);
+    expect(mockGetRecurringSwaps).toHaveBeenCalledTimes(2);
   });
 });

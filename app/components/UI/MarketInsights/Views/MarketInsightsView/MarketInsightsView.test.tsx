@@ -304,6 +304,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     Icon: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 

@@ -49,6 +49,8 @@ const newOverrides = [
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
       'app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx',
+      'tests/component-view/helpers/perpsViewTestHelpers.ts',
+      'tests/component-view/presets/perpsTwoExchangePresets.test.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/util/test/utils.js',
