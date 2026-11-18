@@ -13,7 +13,8 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
-import { Hex } from '@metamask/utils';
+import { Hex, parseCaipAssetType } from '@metamask/utils';
+import { formatChainIdToHex } from '@metamask/bridge-controller';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import { BigNumber } from 'bignumber.js';
@@ -32,6 +33,39 @@ import { isTransactionPayWithdraw } from './transaction';
 interface ResolvedPayTokenRequest {
   address: Hex;
   chainId: Hex;
+}
+
+/**
+ * Extracts the EVM address and hex chainId from a TransactionPaymentToken's CAIP-19 assetId.
+ * Returns undefined if the assetId is not a valid CAIP asset type.
+ *
+ * @param payToken - The payment token with a CAIP-19 assetId
+ * @returns Object with address and chainId in hex format, or undefined if invalid
+ */
+export function getPayTokenAddressAndChainId(
+  payToken: TransactionPaymentToken | undefined,
+): { address: Hex; chainId: Hex } | undefined {
+  if (!payToken?.assetId) {
+    return undefined;
+  }
+
+  try {
+    const { chainId: caipChainId, assetReference } = parseCaipAssetType(
+      payToken.assetId,
+    );
+    const hexChainId = formatChainIdToHex(caipChainId);
+
+    return {
+      address: assetReference as Hex,
+      chainId: hexChainId,
+    };
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      `Failed to parse CAIP assetId: ${payToken.assetId}`,
+    );
+    return undefined;
+  }
 }
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
@@ -173,6 +207,7 @@ export function getAvailableTokens({
   fiatPayment?: TransactionFiatPayment;
 }): AssetType[] {
   const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
+  const payTokenInfo = getPayTokenAddressAndChainId(payToken);
 
   return tokens
     .filter((token) => {
@@ -186,8 +221,9 @@ export function getAvailableTokens({
       }
 
       const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
+        payTokenInfo &&
+        payTokenInfo.address.toLowerCase() === token.address.toLowerCase() &&
+        payTokenInfo.chainId === token.chainId;
 
       if (isSelected) {
         return true;
@@ -217,8 +253,9 @@ export function getAvailableTokens({
 
       const isSelected = hasFiatPayment
         ? false
-        : payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-          payToken?.chainId === token.chainId;
+        : payTokenInfo &&
+          payTokenInfo.address.toLowerCase() === token.address.toLowerCase() &&
+          payTokenInfo.chainId === token.chainId;
 
       return {
         ...token,

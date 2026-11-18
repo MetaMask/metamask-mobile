@@ -4,6 +4,7 @@ import { Hex } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
+import { getPayTokenAddressAndChainId } from '../../utils/transaction-pay';
 
 const ZERO_ADDRESS = '0x0' as Hex;
 
@@ -15,22 +16,23 @@ export function usePayTokenAccountBalance(): {
   balanceRaw: string;
 } {
   const { payToken } = useTransactionPayToken();
+  const payTokenInfo = getPayTokenAddressAndChainId(payToken);
   const accountTokens = useAccountTokens({ includeNoBalance: true });
   const usdRate = useTokenFiatRate(
-    (payToken?.address ?? ZERO_ADDRESS) as Hex,
-    (payToken?.chainId ?? ZERO_ADDRESS) as Hex,
+    (payTokenInfo?.address ?? ZERO_ADDRESS) as Hex,
+    (payTokenInfo?.chainId ?? ZERO_ADDRESS) as Hex,
     'usd',
   );
 
   return useMemo(() => {
-    if (!payToken) {
+    if (!payToken || !payTokenInfo) {
       return { balanceUsd: '0', balanceRaw: '0' };
     }
 
     const matchingToken = accountTokens.find(
       (t) =>
-        t.address?.toLowerCase() === payToken.address.toLowerCase() &&
-        t.chainId === payToken.chainId,
+        t.address?.toLowerCase() === payTokenInfo.address.toLowerCase() &&
+        t.chainId === payTokenInfo.chainId,
     );
 
     if (!matchingToken?.rawBalance) {
@@ -50,5 +52,5 @@ export function usePayTokenAccountBalance(): {
       : (payToken.balanceUsd ?? '0');
 
     return { balanceUsd, balanceRaw: rawBalanceDecimal };
-  }, [payToken, accountTokens, usdRate]);
+  }, [payToken, payTokenInfo, accountTokens, usdRate]);
 }

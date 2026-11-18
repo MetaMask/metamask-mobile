@@ -8,7 +8,10 @@ import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  getTokenAddress,
+  getPayTokenAddressAndChainId,
+} from '../../utils/transaction-pay';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 import {
   TransactionType,
@@ -32,13 +35,14 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const targetTokenAddress = getTokenAddress(transaction);
   const isWithdraw = isTransactionPayWithdraw(transaction);
 
+  const payTokenInfo = getPayTokenAddressAndChainId(payToken);
   const fiatRequests = useMemo(
     () =>
-      payToken && targetTokenAddress
+      payTokenInfo && targetTokenAddress
         ? [
             {
-              chainId: payToken.chainId,
-              address: payToken.address,
+              chainId: payTokenInfo.chainId,
+              address: payTokenInfo.address,
             },
             {
               chainId: chainId as Hex,
@@ -46,7 +50,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
             },
           ]
         : [],
-    [chainId, payToken, targetTokenAddress],
+    [chainId, payTokenInfo, targetTokenAddress],
   );
 
   const fiatRates = useTokenFiatRates(fiatRequests);

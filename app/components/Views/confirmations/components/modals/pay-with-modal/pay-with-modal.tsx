@@ -23,7 +23,10 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
+import {
+  getAvailableTokens,
+  getPayTokenAddressAndChainId,
+} from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -138,10 +141,11 @@ export function PayWithModal() {
       // override (e.g. Money Account). This is deliberately done here rather
       // than when the picker is opened, so closing the picker without
       // choosing a token leaves the previous selection intact.
+      const payTokenInfo = getPayTokenAddressAndChainId(payToken);
       if (
-        payToken &&
-        payToken.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
+        payTokenInfo &&
+        payTokenInfo.address.toLowerCase() === token.address.toLowerCase() &&
+        payTokenInfo.chainId.toLowerCase() === token.chainId?.toLowerCase()
       ) {
         close(() => {
           clearPaymentOverride();

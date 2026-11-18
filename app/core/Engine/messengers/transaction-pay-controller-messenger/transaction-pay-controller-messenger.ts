@@ -30,6 +30,8 @@ export function getTransactionPayControllerMessenger(
 
   rootMessenger.delegate({
     actions: [
+      'AccountTreeController:getAccountContext',
+      'AccountTreeController:getAccountGroupObject',
       'AccountsController:getState',
       'AssetsController:getState',
       'GasFeeController:getState',

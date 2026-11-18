@@ -274,8 +274,13 @@ describe('Transaction Pay Utils', () => {
       const result = getAvailableTokens({
         tokens: [tokenWithZeroBalance] as AssetType[],
         payToken: {
-          address: TOKEN_MOCK.address as Hex,
-          chainId: TOKEN_MOCK.chainId as Hex,
+          assetId: `eip155:1/erc20:${TOKEN_MOCK.address}`,
+          balanceFiat: '$0.00',
+          balanceHuman: '0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          decimals: TOKEN_MOCK.decimals,
+          symbol: TOKEN_MOCK.symbol,
         } as TransactionPaymentToken,
       });
 
@@ -409,8 +414,13 @@ describe('Transaction Pay Utils', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
           payToken: {
-            address: TOKEN_MOCK.address as Hex,
-            chainId: TOKEN_MOCK.chainId as Hex,
+            assetId: `eip155:1/erc20:${TOKEN_MOCK.address}`,
+            balanceFiat: '$1.23',
+            balanceHuman: '1.23',
+            balanceRaw: '1230000000000000000',
+            balanceUsd: '1.23',
+            decimals: TOKEN_MOCK.decimals,
+            symbol: TOKEN_MOCK.symbol,
           } as TransactionPaymentToken,
           fiatPayment: { selectedPaymentMethodId: 'pm-card' },
         });
@@ -423,8 +433,13 @@ describe('Transaction Pay Utils', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
           payToken: {
-            address: TOKEN_MOCK.address as Hex,
-            chainId: TOKEN_MOCK.chainId as Hex,
+            assetId: `eip155:1/erc20:${TOKEN_MOCK.address}`,
+            balanceFiat: '$1.23',
+            balanceHuman: '1.23',
+            balanceRaw: '1230000000000000000',
+            balanceUsd: '1.23',
+            decimals: TOKEN_MOCK.decimals,
+            symbol: TOKEN_MOCK.symbol,
           } as TransactionPaymentToken,
           fiatPayment: {},
         });

@@ -1,6 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { Hex } from '@metamask/utils';
-import { isMatchingPayToken } from '../../utils/transaction-pay';
+import {
+  isMatchingPayToken,
+  getPayTokenAddressAndChainId,
+} from '../../utils/transaction-pay';
 import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
@@ -42,10 +45,14 @@ export function usePayWithSelectedToken({
     if (!payToken) {
       return undefined;
     }
+    const payTokenInfo = getPayTokenAddressAndChainId(payToken);
+    if (!payTokenInfo) {
+      return undefined;
+    }
     return {
-      address: payToken.address,
+      address: payTokenInfo.address,
       balanceUsd: payToken.balanceUsd,
-      chainId: payToken.chainId,
+      chainId: payTokenInfo.chainId,
       symbol: payToken.symbol,
     };
   }, [payToken]);

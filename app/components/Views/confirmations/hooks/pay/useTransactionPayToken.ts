@@ -5,6 +5,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import { useCallback } from 'react';
@@ -18,6 +19,8 @@ import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/mon
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Logger from '../../../../../util/Logger';
+import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { getPayTokenAddressAndChainId } from '../../utils/transaction-pay';
 
 export function useTransactionPayToken(): {
   isNative?: boolean;
@@ -36,8 +39,10 @@ export function useTransactionPayToken(): {
     (token) => !token.skipIfBalance,
   );
 
+  const payTokenInfo = getPayTokenAddressAndChainId(payToken);
   const isNative =
-    payToken && payToken?.address === getNativeTokenAddress(payToken?.chainId);
+    payTokenInfo &&
+    payTokenInfo.address === getNativeTokenAddress(payTokenInfo.chainId);
 
   const setPayToken = useCallback(
     (newPayToken: { address: Hex; chainId: Hex }) => {
@@ -53,10 +58,18 @@ export function useTransactionPayToken(): {
       }).catch(noop);
 
       try {
+        const caipChainId = toEvmCaipChainId(newPayToken.chainId);
+        const assetId = toAssetId(newPayToken.address, caipChainId);
+
+        if (!assetId) {
+          throw new Error(
+            `Failed to convert address ${newPayToken.address} and chainId ${newPayToken.chainId} to CAIP-19 asset ID`,
+          );
+        }
+
         TransactionPayController.updatePaymentToken({
           transactionId: transactionId as string,
-          tokenAddress: newPayToken.address,
-          chainId: newPayToken.chainId,
+          assetId,
         });
 
         syncMoneyAccountWithdrawTransfer(transactionMeta, newPayToken);
