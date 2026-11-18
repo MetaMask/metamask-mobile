@@ -1038,7 +1038,7 @@ const CardHome = () => {
               >
                 {/* Muted while identity is in review, so the card doesn't look ready. */}
                 <Box
-                  twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
+                  twClassName={`overflow-visible ${isSignedOutKycPending ? 'opacity-50' : ''}`}
                   testID={CardHomeSelectors.CARD_ART}
                 >
                   {showFreezeAnimation ? (

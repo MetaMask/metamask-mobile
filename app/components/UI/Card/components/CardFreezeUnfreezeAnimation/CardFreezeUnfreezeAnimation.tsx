@@ -28,9 +28,20 @@ const UNFREEZE_TRIGGER_PATH = 'unfreeze';
 /** Out-of-band asset the .riv file references for the card face art. */
 const CARD_FRONT_ASSET_NAME = 'DigitalCard-NewBrand';
 
+/**
+ * How much wider the RiveView box is vs the static card, to compensate for
+ * the artboard's padding around the card (the ice effects need room to
+ * overflow outside the card boundary). Tuned on the simulator; adjust if
+ * the card renders at the wrong size.
+ */
+const ARTBOARD_TO_CARD_SCALE = 3;
+
 const styles = StyleSheet.create({
   hidden: {
     opacity: 0,
+  },
+  overflowVisible: {
+    overflow: 'visible',
   },
 });
 
@@ -39,7 +50,7 @@ export interface CardFreezeUnfreezeAnimationProps {
   isFrozen: boolean;
   /** Static art shown while the Rive view loads, on error, or under Reduce Motion. */
   fallbackSource: ImageSourcePropType;
-  /** Aspect ratio for sizing (artboard is 1192×754). */
+  /** The static card's rendered width (the animation matches this size). */
   width: number;
   testID?: string;
 }
@@ -54,6 +65,10 @@ export interface CardFreezeUnfreezeAnimationProps {
  *
  * The card face (`cardFront` on the view model) is supplied out-of-band via
  * the referenced-assets mechanism — the .riv file's embedded copy is empty.
+ *
+ * The trigger fires lazily: the desired state is queued until the view model
+ * instance and its trigger property are both available, so a freeze that
+ * happens at mount is not dropped by the async view model load.
  */
 const CardFreezeUnfreezeAnimation = ({
   isFrozen,
@@ -91,27 +106,39 @@ const CardFreezeUnfreezeAnimation = ({
     setHasRiveError(true);
   }, []);
 
-  // Fire the freeze or unfreeze trigger whenever the frozen state changes.
+  // -- Trigger firing -------------------------------------------------------
+  // The desired state (freeze vs unfreeze) is queued in a ref. The trigger
+  // fires when the view model instance AND its trigger property are both
+  // available — not at mount, which races the async view model load.
+
   const hasFiredRef = useRef(false);
   const isFrozenRef = useRef(isFrozen);
   isFrozenRef.current = isFrozen;
 
-  const { trigger: fireFreezeTrigger } = useRiveTrigger(
-    FREEZE_TRIGGER_PATH,
-    viewModelInstance,
-  );
-  const { trigger: fireUnfreezeTrigger } = useRiveTrigger(
-    UNFREEZE_TRIGGER_PATH,
-    viewModelInstance,
-  );
+  const { trigger: fireFreezeTrigger, error: freezeTriggerError } =
+    useRiveTrigger(FREEZE_TRIGGER_PATH, viewModelInstance);
+  const { trigger: fireUnfreezeTrigger, error: unfreezeTriggerError } =
+    useRiveTrigger(UNFREEZE_TRIGGER_PATH, viewModelInstance);
+
   const fireFreezeRef = useRef(fireFreezeTrigger);
   fireFreezeRef.current = fireFreezeTrigger;
   const fireUnfreezeRef = useRef(fireUnfreezeTrigger);
   fireUnfreezeRef.current = fireUnfreezeTrigger;
 
+  // Fire the queued trigger once the view model instance resolves and the
+  // trigger property is available (the hooks report an error when the
+  // property is not found — a non-null error means the property isn't ready).
+  const canFire =
+    Boolean(viewModelInstance) &&
+    freezeTriggerError === null &&
+    unfreezeTriggerError === null;
+
   useEffect(() => {
-    // The initial mount fires the matching trigger so an already-frozen card
-    // shows its frozen pose (an accepted replay for the load-time state).
+    if (!canFire) {
+      return;
+    }
+    // The initial resolution fires the matching trigger so an
+    // already-frozen card shows its frozen pose.
     if (!hasFiredRef.current) {
       hasFiredRef.current = true;
       if (isFrozenRef.current) {
@@ -124,17 +151,24 @@ const CardFreezeUnfreezeAnimation = ({
     } else {
       fireUnfreezeRef.current?.();
     }
-  }, [isFrozen]);
+  }, [canFire, isFrozen]);
 
+  // -- Size -----------------------------------------------------------------
+  // The artboard (1192×754) has padding around the card for the ice effects.
+  // The RiveView box is scaled up so the card inside matches the static
+  // card's rendered size; the ice effects overflow via the parent's
+  // overflow: visible.
   const aspectRatio = 1192 / 754;
-  const size = { width, height: width / aspectRatio };
+  const riveViewWidth = width * ARTBOARD_TO_CARD_SCALE;
+  const riveViewHeight = riveViewWidth / aspectRatio;
+  const overflowX = (riveViewWidth - width) / 2;
 
   return (
-    <Box style={size} testID={testID}>
+    <Box style={styles.overflowVisible} testID={testID}>
       {!isRiveReady && (
         <Image
           source={fallbackSource}
-          style={StyleSheet.absoluteFill}
+          style={[{ width, height: width / (851 / 540) }]}
           resizeMode="contain"
           accessible={false}
         />
@@ -148,7 +182,15 @@ const CardFreezeUnfreezeAnimation = ({
           autoPlay
           fit={Fit.Contain}
           alignment={Alignment.Center}
-          style={[size, !isRiveReady && styles.hidden]}
+          dataBind={viewModelInstance}
+          style={[
+            {
+              width: riveViewWidth,
+              height: riveViewHeight,
+              marginLeft: -overflowX,
+            },
+            !isRiveReady && styles.hidden,
+          ]}
           onError={handleError}
         />
       )}
