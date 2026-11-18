@@ -24,7 +24,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import {
   Box,
-  ButtonFilter,
+  FilterButton,
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -315,33 +315,36 @@ function OrdersList() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={tw.style('flex-row gap-2')}
           >
-            <ButtonFilter
+            <FilterButton
               twClassName="min-w-0"
               onPress={() => setCurrentFilter('ALL')}
-              isActive={currentFilter === 'ALL'}
+              isSelected={currentFilter === 'ALL'}
+              accessibilityState={{ selected: currentFilter === 'ALL' }}
               size={ButtonBaseSize.Md}
               accessibilityLabel={strings('fiat_on_ramp_aggregator.All')}
             >
               {strings('fiat_on_ramp_aggregator.All')}
-            </ButtonFilter>
-            <ButtonFilter
+            </FilterButton>
+            <FilterButton
               twClassName="min-w-0"
               onPress={() => setCurrentFilter('PURCHASE')}
-              isActive={currentFilter === 'PURCHASE'}
+              isSelected={currentFilter === 'PURCHASE'}
+              accessibilityState={{ selected: currentFilter === 'PURCHASE' }}
               size={ButtonBaseSize.Md}
               accessibilityLabel={strings('fiat_on_ramp_aggregator.Purchased')}
             >
               {strings('fiat_on_ramp_aggregator.Purchased')}
-            </ButtonFilter>
-            <ButtonFilter
+            </FilterButton>
+            <FilterButton
               twClassName="min-w-0"
               onPress={() => setCurrentFilter('SELL')}
-              isActive={currentFilter === 'SELL'}
+              isSelected={currentFilter === 'SELL'}
+              accessibilityState={{ selected: currentFilter === 'SELL' }}
               size={ButtonBaseSize.Md}
               accessibilityLabel={strings('fiat_on_ramp_aggregator.Sold')}
             >
               {strings('fiat_on_ramp_aggregator.Sold')}
-            </ButtonFilter>
+            </FilterButton>
           </ScrollView>
         </Box>
       }

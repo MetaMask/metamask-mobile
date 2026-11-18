@@ -248,6 +248,29 @@ describe('OrdersList', () => {
     expect(screen.getByRole('button', { name: 'Sold' })).toBeOnTheScreen();
   });
 
+  it('exposes only the current filter as selected to assistive tech', () => {
+    render(<OrdersList />);
+    expect(
+      screen.getByRole('button', { name: 'All' }).props.accessibilityState
+        .selected,
+    ).toBe(true);
+    expect(
+      screen.getByRole('button', { name: 'Purchased' }).props.accessibilityState
+        .selected,
+    ).toBe(false);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
+
+    expect(
+      screen.getByRole('button', { name: 'Sold' }).props.accessibilityState
+        .selected,
+    ).toBe(true);
+    expect(
+      screen.getByRole('button', { name: 'All' }).props.accessibilityState
+        .selected,
+    ).toBe(false);
+  });
+
   it('renders buy only correctly when pressing buy filter', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
