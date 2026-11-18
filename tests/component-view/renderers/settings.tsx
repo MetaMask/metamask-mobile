@@ -7,6 +7,7 @@ import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import GeneralSettings from '../../../app/components/Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../../app/components/Views/Settings/AdvancedSettings';
+import DeveloperOptions from '../../../app/components/Views/Settings/DeveloperOptions';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStateSettings } from '../presets/settings';
 
@@ -87,4 +88,19 @@ export const renderAdvancedSettingsWithBackRoute = (
     AdvancedSettings as unknown as React.ComponentType,
     Routes.SETTINGS.ADVANCED_SETTINGS,
     options,
+  );
+
+export const renderDeveloperOptions = () =>
+  renderComponentViewScreen(
+    DeveloperOptions,
+    { name: Routes.SETTINGS.DEVELOPER_OPTIONS },
+    {
+      state: buildSettingsState({
+        overrides: {
+          engine: {
+            backgroundState: { MoneyAccountController: { moneyAccounts: {} } },
+          },
+        },
+      }),
+    },
   );

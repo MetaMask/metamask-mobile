@@ -29,6 +29,8 @@ import NotificationsDeveloperOptionsSection from '../../../UI/Notification/Devel
 import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import NewWalletDeveloperOptionsSection from './NewWalletDeveloperOptionsSection';
+import WatchOnlyDeveloperOptionsSection from './WatchOnlyDeveloperOptionsSection';
+import { isWatchOnlyAccountsBuildEnabled } from '../../../../constants/featureFlags';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
@@ -109,6 +111,9 @@ const DeveloperOptions = () => {
         <NotificationsDeveloperOptionsSection />
         {isSocialLeaderboardEnabled && (
           <SocialLeaderboardDeveloperOptionsSection />
+        )}
+        {isWatchOnlyAccountsBuildEnabled() && (
+          <WatchOnlyDeveloperOptionsSection />
         )}
         <HapticsDeveloperOptionsSection />
         <NewWalletDeveloperOptionsSection />

@@ -179,6 +179,7 @@ import { complianceControllerInit } from './controllers/compliance/compliance-co
 import { kycServiceInit } from './controllers/kyc/kyc-service-init';
 import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
+import { watchOnlyAccountServiceInit } from './controllers/watch-only-account-service/watch-only-account-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
@@ -394,6 +395,7 @@ export class Engine {
         KycController: kycControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
+        WatchOnlyAccountService: watchOnlyAccountServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -694,6 +696,13 @@ export class Engine {
       KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
+      // Only constructed in dev builds with the watch-only gate on.
+      ...(messengerClientsByName.WatchOnlyAccountService
+        ? {
+            WatchOnlyAccountService:
+              messengerClientsByName.WatchOnlyAccountService,
+          }
+        : {}),
     };
 
     const childControllers = Object.assign({}, this.context);

@@ -100,6 +100,7 @@ import {
   CHASE_METAMETRICS_PROPERTY,
 } from '../../../constants/chaseAnalytics';
 import usePerpsToasts from '../../../hooks/usePerpsToasts';
+import { useWatchOnlyGuard } from '../../../../../hooks/useWatchOnlyGuard';
 import { registerVisibleChaseOrderHandles } from '../../../services/ChaseOrderVisibility';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import PerpsProActivityFilterSheet from './PerpsProActivityFilterSheet';
@@ -262,6 +263,7 @@ const PerpsProPositionsPanel = ({
   const { track } = usePerpsEventTracking();
   const { cancelOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { guard: guardWatchOnly } = useWatchOnlyGuard();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
   const isTwapPlacementEnabled = useSelector(selectPerpsProTwapEnabledFlag);
   const { chaseOrders, reconcileCanceledChaseOrder } = usePerpsChaseOrders({
@@ -955,7 +957,7 @@ const PerpsProPositionsPanel = ({
 
   const handleTerminateChase = useCallback(
     async (order: ChaseOrder) => {
-      if (terminatingChaseHandle) return;
+      if (terminatingChaseHandle || guardWatchOnly()) return;
       setTerminatingChaseHandle(order.handle);
       try {
         const result = await cancelOrder({
@@ -1033,6 +1035,7 @@ const PerpsProPositionsPanel = ({
     [
       activeProvider,
       cancelOrder,
+      guardWatchOnly,
       perpsNetwork,
       PerpsToastOptions.orderManagement.shared.cancellationFailed,
       reconcileAcceptedChaseCancellation,

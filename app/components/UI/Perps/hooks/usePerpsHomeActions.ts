@@ -27,6 +27,7 @@ import { RootState } from '../../../../reducers';
 import { usePerpsWithdrawConfirmation } from './usePerpsWithdrawConfirmation';
 import { isUserRejectedError } from '../utils/isUserRejectedError';
 import { useComplianceGate } from '../../Compliance';
+import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
   createDepositConfirmationGuard,
@@ -108,6 +109,8 @@ export const usePerpsHomeActions = (
   );
   const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
   const { gate } = useComplianceGate(selectedAddress);
+  // Withdraw skips the compliance gate, so it checks watch-only on its own.
+  const { guard: guardWatchOnly } = useWatchOnlyGuard();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -283,6 +286,10 @@ export const usePerpsHomeActions = (
   ]);
 
   const handleWithdraw = useCallback(async () => {
+    if (guardWatchOnly()) {
+      return;
+    }
+
     // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -346,6 +353,7 @@ export const usePerpsHomeActions = (
       setIsProcessing(false);
     }
   }, [
+    guardWatchOnly,
     isEligible,
     navigation,
     perpsWithdrawConfig.enabled,
