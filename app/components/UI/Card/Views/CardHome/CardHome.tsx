@@ -116,9 +116,11 @@ import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
+import cardArtFallbackPng from '../../../../../images/mm_card_regular.png';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
 import CardHomeRecentActivity from './components/CardHomeRecentActivity';
+import CardFreezeUnfreezeAnimation from '../../components/CardFreezeUnfreezeAnimation';
 import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions';
 import CardHomeActionButtonRow, {
   getCardHomeActionVisibility,
@@ -381,6 +383,17 @@ const CardHome = () => {
     rawTokenBalance: primaryToken?.rawTokenBalance,
     rawFiatNumber: primaryToken?.rawFiatNumber,
   });
+
+  const [showFreezeAnimation, setShowFreezeAnimation] = useState(false);
+  // Show the Rive freeze/unfreeze animation when a freeze or unfreeze
+  // succeeds; the static card art returns after the Melt plays out (~3s).
+  useEffect(() => {
+    if (actions.freeze.isSuccess || actions.unfreeze.isSuccess) {
+      setShowFreezeAnimation(true);
+      const timer = setTimeout(() => setShowFreezeAnimation(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [actions.freeze.isSuccess, actions.unfreeze.isSuccess]);
 
   const [isSpendingLimitWarningDismissed, setIsSpendingLimitWarningDismissed] =
     useState(false);
@@ -983,7 +996,14 @@ const CardHome = () => {
                   twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
                   testID={CardHomeSelectors.CARD_ART}
                 >
-                  {arrival.usesRiveCard ? (
+                  {showFreezeAnimation ? (
+                    <CardFreezeUnfreezeAnimation
+                      isFrozen={isFrozen && isAuthenticated}
+                      fallbackSource={cardArtFallbackPng}
+                      width={windowWidth - 32}
+                      testID={CardHomeSelectors.CARD_FREEZE_RIVE}
+                    />
+                  ) : arrival.usesRiveCard ? (
                     <MoneyCardTiltAnimation
                       key={arrival.revealKey}
                       isMetalCard={hasMetalCard}

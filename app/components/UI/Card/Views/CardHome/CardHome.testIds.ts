@@ -67,6 +67,7 @@ export const CardHomeSelectors = {
   CREDIT_BALANCE_INFO_BUTTON: 'credit-balance-info-button',
   CREDIT_BANNER: 'credit-banner',
   CARD_ARRIVAL_RIVE: 'card-arrival-rive',
+  CARD_FREEZE_RIVE: 'card-freeze-rive',
   UK_MIGRATION_REQUIRED_BANNER: 'card-home-uk-migration-required-banner',
   UK_MIGRATION_SOFT_BANNER: 'card-home-uk-migration-soft-banner',
   TRANSACTION_HISTORY_ITEM: 'card-transaction-history-item',
