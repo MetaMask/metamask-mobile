@@ -107,6 +107,32 @@ describe('usePerpsMarketForAsset', () => {
     });
   });
 
+  it('matches an RWA ticker against HIP-3 markets only', async () => {
+    mockGetMarkets.mockResolvedValue([
+      { name: 'MSFT', maxLeverage: 3 },
+      { name: 'xyz:MSFT', maxLeverage: 10 },
+    ]);
+
+    const { result } = renderHook(() => usePerpsMarketForAsset('msft', true));
+
+    await waitFor(() => {
+      expect(result.current.hasPerpsMarket).toBe(true);
+    });
+    expect(mockGetMarkets).toHaveBeenCalledWith({ standalone: true });
+    expect(result.current.marketData?.symbol).toBe('xyz:MSFT');
+  });
+
+  it('does not match HIP-3 markets for a token without rwaData', async () => {
+    mockGetMarkets.mockResolvedValue([{ name: 'xyz:TSLA', maxLeverage: 10 }]);
+
+    const { result } = renderHook(() => usePerpsMarketForAsset('TSLA'));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.hasPerpsMarket).toBe(false);
+  });
+
   it('handles errors gracefully', async () => {
     mockGetMarkets.mockRejectedValue(new Error('Network error'));
 

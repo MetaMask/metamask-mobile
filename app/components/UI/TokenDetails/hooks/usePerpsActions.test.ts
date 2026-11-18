@@ -1,10 +1,21 @@
 import { renderHook } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { usePerpsActions } from './usePerpsActions';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import { useIsPerpsProModeActive } from '../../Perps/utils/perpsModeSwitch';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../Perps/hooks/usePerpsScreenVsBottomSheetAbTest';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../queries/tokenAssetQuery', () => ({
+  useTokenAssetDetails: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -26,6 +37,9 @@ jest.mock('../../Perps/hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
 const mockNavigate = jest.fn();
 const mockUseNavigation = jest.mocked(useNavigation);
 const mockUsePerpsMarketForAsset = jest.mocked(usePerpsMarketForAsset);
+const mockUseTokenAssetDetails = jest.mocked(useTokenAssetDetails);
+const mockUseSelector = jest.mocked(useSelector);
+let mockBasicFunctionalityEnabled = true;
 const mockUseIsPerpsProModeActive = jest.mocked(useIsPerpsProModeActive);
 const mockUsePerpsScreenVsBottomSheetAbTest = jest.mocked(
   usePerpsScreenVsBottomSheetAbTest,
@@ -39,6 +53,17 @@ describe('usePerpsActions', () => {
       useBottomSheet: false,
     });
     mockUseNavigation.mockReturnValue({ navigate: mockNavigate } as never);
+    mockBasicFunctionalityEnabled = true;
+    mockUseSelector.mockImplementation((selector) =>
+      selector === selectBasicFunctionalityEnabled
+        ? mockBasicFunctionalityEnabled
+        : true,
+    );
+    mockUseTokenAssetDetails.mockReturnValue({
+      asset: null,
+      isLoading: false,
+      isError: false,
+    });
   });
 
   it('returns undefined handlePerpsAction when no market exists', () => {
@@ -252,7 +277,7 @@ describe('usePerpsActions', () => {
     renderHook(() => usePerpsActions({ symbol: null }));
 
     // Assert
-    expect(mockUsePerpsMarketForAsset).toHaveBeenCalledWith(null);
+    expect(mockUsePerpsMarketForAsset).toHaveBeenCalledWith(null, false);
   });
 
   it('does not navigate when marketData is null even if called', () => {
@@ -291,5 +316,78 @@ describe('usePerpsActions', () => {
     // Assert
     expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBe('Network error');
+  });
+  describe('RWA tokens', () => {
+    const noMarket = {
+      hasPerpsMarket: false,
+      marketData: null,
+      isLoading: false,
+      error: null,
+    };
+    const robinhoodMsft = {
+      address: '0x1111111111111111111111111111111111111111',
+      chainId: '0x1237',
+    };
+
+    beforeEach(() => {
+      mockUsePerpsMarketForAsset.mockReturnValue(noMarket);
+    });
+
+    it('matches HIP-3 markets by the rwaData ticker fetched for the token', () => {
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: { rwaData: { ticker: 'MSFT' } } as never,
+        isLoading: false,
+        isError: false,
+      });
+
+      renderHook(() =>
+        usePerpsActions({ symbol: 'MSFT', token: robinhoodMsft }),
+      );
+
+      expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(
+        expect.stringContaining('0x1111111111111111111111111111111111111111'),
+        expect.anything(),
+      );
+      expect(mockUsePerpsMarketForAsset).toHaveBeenLastCalledWith('MSFT', true);
+    });
+
+    it('uses exact symbol matching when the token has no rwaData', () => {
+      renderHook(() =>
+        usePerpsActions({ symbol: 'AAPL', token: robinhoodMsft }),
+      );
+
+      expect(mockUsePerpsMarketForAsset).toHaveBeenLastCalledWith(
+        'AAPL',
+        false,
+      );
+    });
+
+    it('holds the market lookup and reports loading while rwaData is fetched', () => {
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: null,
+        isLoading: true,
+        isError: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsActions({ symbol: 'MSFT', token: robinhoodMsft }),
+      );
+
+      expect(mockUsePerpsMarketForAsset).toHaveBeenLastCalledWith(null, false);
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('skips the rwaData fetch when basic functionality is off', () => {
+      mockBasicFunctionalityEnabled = false;
+
+      renderHook(() =>
+        usePerpsActions({ symbol: 'MSFT', token: robinhoodMsft }),
+      );
+
+      expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(
+        null,
+        expect.anything(),
+      );
+    });
   });
 });

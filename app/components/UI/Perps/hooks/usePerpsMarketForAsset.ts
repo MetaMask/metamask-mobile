@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
@@ -60,7 +63,8 @@ export const _clearMarketExistenceCache = (): void => {
  * - Uses standalone mode - works without full perps initialization (no wallet/WebSocket)
  * - Handles symbol normalization (ETH on any chain maps to ETH perp)
  *
- * @param symbol - Token symbol (e.g., 'ETH', 'BTC')
+ * @param symbol - Token symbol (e.g., 'ETH', 'BTC') or RWA ticker (e.g., 'MSFT')
+ * @param isRwaAsset - Match the ticker against HIP-3 markets (e.g., 'xyz:MSFT') instead of exact names
  * @returns Object with hasPerpsMarket, marketData, isLoading, error
  *
  * @example
@@ -74,6 +78,7 @@ export const _clearMarketExistenceCache = (): void => {
  */
 export const usePerpsMarketForAsset = (
   symbol: string | undefined | null,
+  isRwaAsset = false,
 ): UsePerpsMarketForAssetResult => {
   const { getMarkets } = usePerpsTrading();
   const perpsNetwork = usePerpsNetwork();
@@ -88,7 +93,9 @@ export const usePerpsMarketForAsset = (
   const lookupSymbol = symbol?.toUpperCase() ?? null;
 
   // Create cache key with network context to avoid stale data when switching networks
-  const cacheKey = lookupSymbol ? `${lookupSymbol}_${perpsNetwork}` : null;
+  const cacheKey = lookupSymbol
+    ? `${lookupSymbol}_${perpsNetwork}_${isRwaAsset ? 'rwa' : 'exact'}`
+    : null;
 
   const [state, setState] = useState<{
     hasPerpsMarket: boolean;
@@ -149,20 +156,27 @@ export const usePerpsMarketForAsset = (
     try {
       // Single lightweight API call with standalone mode
       // standalone: true bypasses full initialization (no wallet/WebSocket needed)
-      const markets = await getMarkets({
-        symbols: [lookupSymbol],
-        standalone: true,
-      });
+      const markets = await getMarkets(
+        isRwaAsset
+          ? { standalone: true }
+          : { symbols: [lookupSymbol], standalone: true },
+      );
 
       // Verify this response matches current request (prevents stale updates)
       if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
         return;
       }
 
-      // Find exact match by symbol
-      const matchedMarket = markets.find(
-        (market) => market.name.toUpperCase() === lookupSymbol,
-      );
+      const matchedMarket = markets.find((market) => {
+        if (!isRwaAsset) {
+          return market.name.toUpperCase() === lookupSymbol;
+        }
+        const displaySymbol = getPerpsDisplaySymbol(market.name);
+        return (
+          displaySymbol !== market.name &&
+          displaySymbol.toUpperCase() === lookupSymbol
+        );
+      });
 
       const exists = matchedMarket !== undefined;
 
@@ -216,7 +230,7 @@ export const usePerpsMarketForAsset = (
           err instanceof Error ? err.message : 'Failed to check perps market',
       });
     }
-  }, [lookupSymbol, cacheKey, getMarkets]);
+  }, [lookupSymbol, cacheKey, getMarkets, isRwaAsset]);
 
   // Effect to check market existence
   useEffect(() => {
