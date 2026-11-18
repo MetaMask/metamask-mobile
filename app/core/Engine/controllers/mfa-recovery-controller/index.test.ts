@@ -1,6 +1,7 @@
 import {
   AuthApiRecoveryAuthProvider,
   RecoveryRegistrationLockProvider,
+  UserStorageTrustedIdentifierStore,
 } from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { isMfaRecoveryConfigured } from './config';
@@ -31,6 +32,7 @@ jest.mock('@metamask/messenger', () => ({
 jest.mock('@metamask/mfa-recovery-controller', () => ({
   AuthApiRecoveryAuthProvider: jest.fn(),
   RecoveryRegistrationLockProvider: jest.fn(),
+  UserStorageTrustedIdentifierStore: jest.fn(),
 }));
 
 const mockCreate = jest.mocked(createMfaRecoveryController);
@@ -70,6 +72,29 @@ describe('mfaRecoveryControllerInit', () => {
         messenger: controllerMessenger,
         state: { pendingOperation: null, other: 'keep' },
       }),
+    );
+  });
+
+  it('keeps trusted identifiers in user storage', () => {
+    mfaRecoveryControllerInit({
+      controllerMessenger,
+      initMessenger,
+      persistedState: {},
+    } as never);
+
+    expect(initMessenger.delegate).toHaveBeenCalledWith({
+      actions: [
+        'UserStorageController:performGetStorageAllFeatureEntries',
+        'UserStorageController:performSetStorage',
+        'UserStorageController:performDeleteStorage',
+      ],
+      messenger: { kind: 'store' },
+    });
+    expect(UserStorageTrustedIdentifierStore).toHaveBeenCalledWith({
+      messenger: { kind: 'store' },
+    });
+    expect(mockCreate.mock.calls[0][0].trustedIdentifierStore).toBe(
+      jest.mocked(UserStorageTrustedIdentifierStore).mock.instances[0],
     );
   });
 

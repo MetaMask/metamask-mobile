@@ -3,7 +3,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import type {
+  AuthenticationController,
+  UserStorageController,
+} from '@metamask/profile-sync-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { KeyringControllerGetStateAction } from '@metamask/keyring-controller';
 import type { MfaRecoveryControllerMessenger } from '@metamask/mfa-recovery-controller';
@@ -27,6 +30,8 @@ type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
   | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | AuthenticationController.AuthenticationControllerExchangeSocialAccessTokenAction
+  | UserStorageController.UserStorageControllerPerformGetStorageAllFeatureEntriesAction
+  | UserStorageController.UserStorageControllerPerformSetStorageAction
   | KeyringControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction;
 
@@ -53,6 +58,8 @@ export function getMfaRecoveryControllerInitMessenger(
       'AuthenticationController:refreshCanonicalProfileId',
       'AuthenticationController:requestMfaApproval',
       'AuthenticationController:exchangeSocialAccessToken',
+      'UserStorageController:performGetStorageAllFeatureEntries',
+      'UserStorageController:performSetStorage',
       'KeyringController:getState',
       'RemoteFeatureFlagController:getState',
     ],

@@ -1,5 +1,6 @@
 import type {
   Identifier,
+  IdentifierWitness,
   MfaRecoveryController,
 } from '@metamask/mfa-recovery-controller';
 import type {
@@ -11,7 +12,7 @@ import type {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
 } from '@metamask/seedless-onboarding-controller';
-import { bytesToHex } from '@metamask/utils';
+import { bytesToHex, sha256 } from '@metamask/utils';
 import type { ToprfRecoveryConfig } from '../Engine/controllers/mfa-recovery-controller/config';
 import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/constants';
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
@@ -30,6 +31,7 @@ const SOCIAL_IDENTIFIER_ISSUERS: Readonly<Record<string, string>> = {
 
 export type PasswordlessRecoverySetupMfa = Pick<
   MfaRecoveryController,
+  | 'trustIdentifier'
   | 'register'
   | 'abort'
   | 'getIdentifiers'
@@ -43,7 +45,7 @@ export type PasswordlessRecoverySetupSeedless = Pick<
 > & {
   state: Pick<
     SeedlessOnboardingControllerState,
-    'envelope' | 'authConnection' | 'userId'
+    'envelope' | 'authConnection' | 'userId' | 'socialLoginEmail'
   >;
 };
 
@@ -64,6 +66,13 @@ export interface PasswordlessRecoverySetupDependencies {
   /** Audience Cubist accepts on the identifier approval. */
   cubistAuthAudience: string;
   randomBytes: (length: number) => Uint8Array;
+  /** Records the enrolled passkeys whose recording failed earlier. */
+  retryPendingPasskeys: () => Promise<void>;
+  /** Hash of the secret this device registered, kept on the device. */
+  registeredSecretHash: {
+    get: () => Promise<string | null>;
+    set: (hash: string) => Promise<void>;
+  };
 }
 
 export type PasswordlessRecoverySetupResult = 'already_enabled' | 'enabled';
@@ -117,6 +126,12 @@ export async function setupPasswordlessRecovery(
       approved,
       dependencies.seedless.state,
     );
+    stage = 'trusting_passkeys';
+    await dependencies.retryPendingPasskeys();
+    stage = 'trusting_social_login';
+    await dependencies.mfaRecovery.trustIdentifier(
+      getSocialWitness(dependencies.seedless.state),
+    );
     // A failed attempt leaves an authorizing mutation. Drop it before retrying.
     stage = 'clearing_pending_setup';
     await dependencies.mfaRecovery.abort();
@@ -136,11 +151,24 @@ export async function setupPasswordlessRecovery(
         dependencies,
         withPasskeyVerifier(passkey),
       );
+      // A compromised Auth API can register a secret it chose. Seal only
+      // with the secret this device generated.
+      if (
+        (await hashSecret(recoverySecret)) !==
+        (await dependencies.registeredSecretHash.get())
+      ) {
+        throw new PasswordlessRecoverySetupError(
+          'recovery_registered_elsewhere',
+        );
+      }
     } else {
       recoverySecret = new Uint8Array(
         dependencies.randomBytes(RECOVERY_SECRET_LENGTH),
       );
       stage = 'registering_recovery_secret';
+      await dependencies.registeredSecretHash.set(
+        await hashSecret(recoverySecret),
+      );
       await dependencies.mfaRecovery.register(recoverySecret, identifiers);
     }
     stage = 'opening_recovery_session';
@@ -182,6 +210,10 @@ async function readRegisteredSecret(
   }
 }
 
+async function hashSecret(secret: Uint8Array): Promise<string> {
+  return bytesToHex(await sha256(secret));
+}
+
 /** Names the failed step and the error, with secrets removed. */
 function describeFailure(stage: string, error: unknown): string {
   const name = error instanceof Error ? error.name : typeof error;
@@ -209,6 +241,28 @@ function selectApprovedIdentifiers(
     );
   }
   return [passkey, social];
+}
+
+/**
+ * The social login this device signed in with, from the seedless state rather
+ * than Auth, so recovery rejects a social identifier Auth added. The escrow
+ * identifies Google by email and Apple by `sub`.
+ */
+function getSocialWitness(
+  state: Pick<
+    SeedlessOnboardingControllerState,
+    'authConnection' | 'userId' | 'socialLoginEmail'
+  >,
+): IdentifierWitness {
+  const namespace = state.authConnection
+    ? SOCIAL_IDENTIFIER_ISSUERS[state.authConnection]
+    : undefined;
+  const identity =
+    state.authConnection === 'apple' ? state.userId : state.socialLoginEmail;
+  if (!namespace || !identity) {
+    throw new PasswordlessRecoverySetupError('social_identity_unknown');
+  }
+  return { type: 'social', namespace, identity };
 }
 
 function findSocialIdentifier(

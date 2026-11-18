@@ -3,6 +3,7 @@ import type {
   VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../../core/Engine';
+import { trustPasskey } from '../../../core/MfaRecovery/trustPasskey';
 import { MfaFlowError } from './engine/errors';
 import type { MfaControllerAdapter } from './engine/types';
 
@@ -11,10 +12,18 @@ export const mobileMfaControllerAdapter: MfaControllerAdapter = {
     Engine.context.AuthenticationController.refreshEnrolledCredentials(),
   beginCredentialEnrollment: (request) =>
     Engine.context.AuthenticationController.beginCredentialEnrollment(request),
-  completeCredentialEnrollment: (request) =>
-    Engine.context.AuthenticationController.completeCredentialEnrollment(
-      request,
-    ),
+  completeCredentialEnrollment: async (request) => {
+    const credentials =
+      await Engine.context.AuthenticationController.completeCredentialEnrollment(
+        request,
+      );
+    if (request.proof.type === 'passkey') {
+      // Recovery only accepts passkeys a user device recorded, so a
+      // compromised Auth API cannot add its own.
+      await trustPasskey(request.proof.attestation.response.attestationObject);
+    }
+    return credentials;
+  },
   beginCredentialVerification: (request) =>
     Engine.context.AuthenticationController.beginCredentialVerification(
       request,

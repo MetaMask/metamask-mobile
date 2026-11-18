@@ -5,6 +5,7 @@ import {
   type MfaRecoveryControllerState,
   type RecoveryAuthProvider,
   type RecoveryLockProvider,
+  type RecoveryTrustedIdentifierStore,
 } from '@metamask/mfa-recovery-controller';
 import {
   createCubistSessionTokenProvider,
@@ -30,6 +31,8 @@ export interface CreateMfaRecoveryControllerOptions
   getSocialIdToken: SocialIdTokenProvider;
   /** Runs the platform passkey assertion ceremony, for passkey identifiers. */
   getPasskeyAssertion: PasskeyAssertionGetter;
+  /** Stores the identifiers user devices recorded. */
+  trustedIdentifierStore: RecoveryTrustedIdentifierStore;
 }
 
 /**
@@ -44,6 +47,7 @@ export function createMfaRecoveryController({
   lockProvider,
   getSocialIdToken,
   getPasskeyAssertion,
+  trustedIdentifierStore,
   ...sessionTokenOptions
 }: CreateMfaRecoveryControllerOptions): MfaRecoveryController {
   const getClient = createCubistClientGetter({
@@ -64,6 +68,7 @@ export function createMfaRecoveryController({
       getPasskeyAssertion,
       getSocialIdToken,
     }),
+    trustedIdentifierStore,
     escrows: [escrow],
     pendingOperationEncryptor: createPendingOperationEncryptor(),
   });

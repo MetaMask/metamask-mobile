@@ -2,11 +2,13 @@ import { Messenger } from '@metamask/messenger';
 import {
   AuthApiRecoveryAuthProvider,
   RecoveryRegistrationLockProvider,
+  UserStorageTrustedIdentifierStore,
   type AuthApiRecoveryAuthProviderMessenger,
   type MfaRecoveryController,
   type MfaRecoveryControllerMessenger,
   type MfaRecoveryControllerState,
   type RecoveryRegistrationLockProviderMessenger,
+  type UserStorageTrustedIdentifierStoreMessenger,
 } from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
@@ -44,6 +46,20 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
       isMfaRecoveryConfigured()
     );
   };
+
+  const trustedIdentifierStoreMessenger: UserStorageTrustedIdentifierStoreMessenger =
+    new Messenger({
+      namespace: 'UserStorageTrustedIdentifierStore',
+      parent: initMessenger,
+    });
+  initMessenger.delegate({
+    actions: [
+      'UserStorageController:performGetStorageAllFeatureEntries',
+      'UserStorageController:performSetStorage',
+      'UserStorageController:performDeleteStorage',
+    ],
+    messenger: trustedIdentifierStoreMessenger,
+  });
 
   const authProviderMessenger: AuthApiRecoveryAuthProviderMessenger =
     new Messenger({
@@ -100,6 +116,9 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
         'AuthenticationController:exchangeSocialAccessToken',
       ),
     getPasskeyAssertion: mobilePasskeyAdapter.get,
+    trustedIdentifierStore: new UserStorageTrustedIdentifierStore({
+      messenger: trustedIdentifierStoreMessenger,
+    }),
     getSocialIdToken: async (nonce) => {
       // Dynamic import: OAuthService imports Engine, which imports this module.
       const { default: OAuthService } = await import(
