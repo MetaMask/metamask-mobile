@@ -24,7 +24,7 @@ const network = useNetworkTier(); // 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' 
 
 Keep the two values **separate**. Do not fold them into one “worst of RAM and network” flag.
 
-Measured fetch latency is a separate signal, `useNetworkLatency()` (`'UNKNOWN' | 'OK' | 'SLOW'`). It never changes the network tier. Do not reimplement its cutoffs. See [`app/util/deviceCapability/README.md`](../../app/util/deviceCapability/README.md).
+Measured fetch latency is a separate signal, `useNetworkLatency()` (`'UNKNOWN' | 'OK' | 'SLOW'`). It never changes the network tier. Do not reimplement its cutoffs. For UI that must survive an app resume (e.g. a banner), use `useSettledNetworkLatency()`: it keeps the last `OK` / `SLOW` reading, while `useNetworkLatency()` resets to `UNKNOWN`. See [`app/util/deviceCapability/README.md`](../../app/util/deviceCapability/README.md).
 
 `null` means unknown — never treat it as LOW, offline, or `'NONE'`. `'NONE'` is known no usable internet.
 
