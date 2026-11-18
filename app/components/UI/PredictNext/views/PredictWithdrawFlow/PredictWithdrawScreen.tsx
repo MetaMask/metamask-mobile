@@ -3,6 +3,7 @@ import {
   type RouteProp,
   useNavigation,
   useRoute,
+  usePreventRemove,
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScrollView } from 'react-native';
@@ -86,6 +87,7 @@ type WithdrawFlowState =
       input: WithdrawAmountInput;
       preview: PredictWithdrawPreview;
       receipt: PredictWithdrawReceipt | null;
+      error: PredictError | null;
     };
 
 type WithdrawFlowAction =
@@ -96,6 +98,8 @@ type WithdrawFlowAction =
   | { type: 'confirm' }
   | { type: 'committed'; receipt: PredictWithdrawReceipt }
   | { type: 'commitFailed'; error: PredictError }
+  | { type: 'retryCommit' }
+  | { type: 'outcomeUnknown'; error: PredictError }
   | { type: 'back' }
   | { type: 'receipt'; receipt: PredictWithdrawReceipt };
 
@@ -144,6 +148,7 @@ const reduceWithdrawConfirm = (
         input: state.input,
         preview: state.preview,
         receipt: null,
+        error: null,
       };
     case 'back':
       return {
@@ -164,7 +169,11 @@ const reduceWithdrawStatus = (
   switch (action.type) {
     case 'committed':
     case 'receipt':
-      return { ...state, receipt: action.receipt };
+      return { ...state, receipt: action.receipt, error: null };
+    case 'retryCommit':
+      return { ...state, error: null };
+    case 'outcomeUnknown':
+      return { ...state, error: action.error };
     case 'commitFailed':
       // An expired quote can never be committed again, so the retry that
       // makes sense is a new quote: keep the amount, drop the stale Preview.
@@ -175,12 +184,7 @@ const reduceWithdrawStatus = (
             isRequesting: false,
             error: action.error,
           }
-        : {
-            phase: 'confirm',
-            input: state.input,
-            preview: state.preview,
-            error: action.error,
-          };
+        : { ...state, error: action.error };
     default:
       return state;
   }
@@ -259,6 +263,17 @@ export const PredictWithdrawScreen = () => {
     input.amount.length > 0;
   const isKeypadLocked =
     state.phase !== 'input' || state.isRequesting || isOffline;
+  const isOutcomeUnknown = state.phase === 'status' && state.receipt === null;
+
+  // A lost reply is not a failed withdrawal. Keep this preview reachable until
+  // its receipt is recovered; a new preview would mint another idempotency key.
+  usePreventRemove(isOutcomeUnknown, ({ data }) => {
+    // Session resets may replace the navigator; ordinary Back must not lose
+    // the only reference to a potentially submitted withdrawal.
+    if (!['GO_BACK', 'POP', 'POP_TO_TOP'].includes(data.action.type)) {
+      navigation.dispatch(data.action);
+    }
+  });
 
   const close = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -322,11 +337,15 @@ export const PredictWithdrawScreen = () => {
   /** Commits by reference: the phone sends the Preview id and nothing else,
    * and the receipt it returns is the operation's state from now on. */
   const handleConfirm = useCallback(async () => {
-    if (state.phase !== 'confirm' || isOffline) {
+    if (
+      isOffline ||
+      (state.phase !== 'confirm' &&
+        !(state.phase === 'status' && state.receipt === null && state.error))
+    ) {
       return;
     }
     const { preview } = state;
-    dispatch({ type: 'confirm' });
+    dispatch({ type: state.phase === 'confirm' ? 'confirm' : 'retryCommit' });
     try {
       dispatch({
         type: 'committed',
@@ -336,8 +355,25 @@ export const PredictWithdrawScreen = () => {
         ),
       });
     } catch (error_) {
-      Logger.log('PredictNext: the Withdraw Commit failed', error_);
-      dispatch({ type: 'commitFailed', error: toPredictError(error_) });
+      const error = toPredictError(error_);
+      if (error.code === PredictErrorCode.PREVIEW_EXPIRED) {
+        dispatch({ type: 'commitFailed', error });
+        return;
+      }
+      if (error.code === PredictErrorCode.UNAUTHENTICATED) {
+        dispatch({ type: 'outcomeUnknown', error });
+        return;
+      }
+      // The POST may have executed even when its response was lost. Read the
+      // same operation first, and only ever retry this preview if that fails.
+      try {
+        dispatch({
+          type: 'receipt',
+          receipt: await service.observeWithdraw(venueId, preview.previewId),
+        });
+      } catch {
+        dispatch({ type: 'outcomeUnknown', error });
+      }
     }
   }, [isOffline, service, state, venueId]);
 
@@ -477,7 +513,11 @@ export const PredictWithdrawScreen = () => {
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                {strings('predict_next.withdraw.submitting')}
+                {strings(
+                  state.error
+                    ? 'predict_next.withdraw.outcome_unknown'
+                    : 'predict_next.withdraw.submitting',
+                )}
               </Text>
             </Box>
           )}
@@ -487,10 +527,19 @@ export const PredictWithdrawScreen = () => {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            onPress={close}
-            testID={PredictWithdrawFlowTestIds.DONE}
+            onPress={state.receipt ? close : handleConfirm}
+            isDisabled={!state.receipt && (!state.error || isOffline)}
+            testID={
+              state.receipt
+                ? PredictWithdrawFlowTestIds.DONE
+                : PredictWithdrawFlowTestIds.RETRY
+            }
           >
-            {strings('predict_next.withdraw.status.done')}
+            {strings(
+              state.receipt
+                ? 'predict_next.withdraw.status.done'
+                : 'predict_next.withdraw.retry',
+            )}
           </Button>
         </Box>
       </>
@@ -508,8 +557,17 @@ export const PredictWithdrawScreen = () => {
           isFloating={false}
           includesTopInset
           title={strings('predict_next.withdraw.title')}
-          onBack={state.phase === 'confirm' ? handleBack : close}
-          backButtonProps={{ testID: PredictWithdrawFlowTestIds.BACK }}
+          onBack={
+            isOutcomeUnknown
+              ? undefined
+              : state.phase === 'confirm'
+                ? handleBack
+                : close
+          }
+          backButtonProps={{
+            testID: PredictWithdrawFlowTestIds.BACK,
+            isDisabled: isOutcomeUnknown,
+          }}
         />
       </Box>
       <Box twClassName="flex-1">

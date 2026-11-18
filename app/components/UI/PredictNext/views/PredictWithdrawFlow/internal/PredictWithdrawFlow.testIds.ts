@@ -18,6 +18,7 @@ export const PredictWithdrawFlowTestIds = {
   STATUS_AMOUNT: 'predict-withdraw-status-amount',
   STATUS_REJECTION: 'predict-withdraw-status-rejection',
   DONE: 'predict-withdraw-done',
+  RETRY: 'predict-withdraw-retry',
   ERROR: 'predict-withdraw-error',
   /** The status panel for one receipt status, e.g. `…-status-settled`. */
   status: (status: string) => `predict-withdraw-status-${status}`,

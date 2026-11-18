@@ -90,8 +90,8 @@ const stubWithdrawals = ({
   observe = () => ({ body: receiptOf() }),
 }: {
   preview?: (body: { amount?: string; sweepAll?: true }) => FetchReply;
-  commit?: () => FetchReply;
-  observe?: () => FetchReply;
+  commit?: () => FetchReply | Promise<FetchReply>;
+  observe?: () => FetchReply | Promise<FetchReply>;
 } = {}) => {
   fetchMock.mockImplementation(async (url, init) => {
     const href = String(url);
@@ -103,10 +103,10 @@ const stubWithdrawals = ({
       return reply(preview(body));
     }
     if (COMMIT_URL.test(href)) {
-      return reply(commit());
+      return reply(await commit());
     }
     if (OBSERVE_URL.test(href) && init?.method === 'GET') {
-      return reply(observe());
+      return reply(await observe());
     }
     return reply({ status: 404, body: { code: 'not_found' } });
   });
@@ -590,6 +590,10 @@ describe('PredictWithdrawFlow', () => {
 
   it('retries the same approved quote after a transient commit failure', async () => {
     let commitCount = 0;
+    const observe = jest.fn(() => ({
+      status: 404,
+      body: { code: 'operation_not_found' },
+    }));
     stubWithdrawals({
       commit: () =>
         commitCount++ === 0
@@ -602,6 +606,7 @@ describe('PredictWithdrawFlow', () => {
                 resolvedAt: new Date().toISOString(),
               }),
             },
+      observe,
     });
 
     renderPredictNext();
@@ -613,21 +618,94 @@ describe('PredictWithdrawFlow', () => {
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
 
     expect(
-      await screen.findByTestId(PredictWithdrawFlowTestIds.ERROR),
-    ).toHaveTextContent(
-      strings('predict_next.withdraw.error.venue_unavailable'),
-    );
+      await screen.findByTestId(PredictWithdrawFlowTestIds.SUBMITTING),
+    ).toHaveTextContent(strings('predict_next.withdraw.outcome_unknown'));
     expect(
-      screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    ).not.toBeOnTheScreen();
     expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+    expect(observe).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId(PredictWithdrawFlowTestIds.BACK)).toBeDisabled();
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.BACK));
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.CONTINUE),
+    ).not.toBeOnTheScreen();
 
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.RETRY));
 
     expect(
       await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
     ).toHaveTextContent('$5.00');
     expect(commitPreviewIds()).toEqual([PREVIEW_ID, PREVIEW_ID]);
+  });
+
+  it('recovers an accepted withdrawal after the commit response is lost', async () => {
+    const observe = jest.fn(() => ({
+      body: receiptOf({
+        status: 'settled',
+        withdrawnAmount: '5.00',
+        resolvedAt: new Date().toISOString(),
+      }),
+    }));
+    stubWithdrawals({
+      commit: () => {
+        throw new TypeError('Connection lost after submission');
+      },
+      observe,
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    fireEvent.press(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    );
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
+    ).toHaveTextContent('$5.00');
+    expect(observe).toHaveBeenCalledTimes(1);
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID]);
+    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByTestId(PredictWithdrawFlowTestIds.DONE)).toBeEnabled();
+  });
+
+  it('retains the submitted preview while both commit and recovery are unavailable', async () => {
+    stubWithdrawals({
+      commit: () => {
+        throw new TypeError('Connection lost');
+      },
+      observe: () => {
+        throw new TypeError('Still offline');
+      },
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    fireEvent.press(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    );
+
+    expect(
+      await screen.findByText(strings('predict_next.withdraw.outcome_unknown')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId(PredictWithdrawFlowTestIds.BACK)).toBeDisabled();
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.DONE),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.RETRY));
+
+    expect(
+      await screen.findByText(strings('predict_next.withdraw.outcome_unknown')),
+    ).toBeOnTheScreen();
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID, PREVIEW_ID]);
+    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
   });
 
   it('reports an unavailable venue on the preview', async () => {

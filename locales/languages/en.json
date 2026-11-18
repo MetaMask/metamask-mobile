@@ -4159,6 +4159,8 @@
       "confirm": "Confirm",
       "back": "Back",
       "submitting": "Submitting...",
+      "outcome_unknown": "We couldn't confirm this withdrawal. Retry to recover the same withdrawal, not start another.",
+      "retry": "Check withdrawal",
       "amount_row": "Amount",
       "network_row": "Network",
       "destination_row": "To",

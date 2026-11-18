@@ -48,7 +48,7 @@ Build the parts and variants required by the active vertical slice. Do not creat
 
 ### Withdrawal privacy and recovery
 
-Withdrawal entry, confirmation, and status mask account balances and payout details with MMDS `SensitiveText` while privacy mode is on. User-entered amounts remain visible during entry. An expired quote returns to amount entry with the amount retained; Continue requests a new quote before another commit. Other commit errors keep the approved quote available for retry.
+Withdrawal entry, confirmation, and status mask account balances and payout details with MMDS `SensitiveText` while privacy mode is on. User-entered amounts remain visible during entry. An expired quote returns to amount entry with the amount retained; Continue requests a new quote before another commit. Other commit errors first read the submitted preview's receipt. If recovery also fails, the screen retains that preview and blocks Back and Done. Check withdrawal retries the same preview, never a new withdrawal. A lock or identity change does not start recovery with the replacement session.
 
 The withdrawal reducer groups transitions by phase. Unsupported actions leave the current state unchanged. Receipt updates share one transition, and manual-review guidance replaces the ordinary status description.
 
