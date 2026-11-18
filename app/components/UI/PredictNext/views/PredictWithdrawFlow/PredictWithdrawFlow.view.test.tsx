@@ -588,6 +588,31 @@ describe('PredictWithdrawFlow', () => {
     expect(commitBodies()).toEqual([{}, {}]);
   });
 
+  it('returns to entry when the submitted preview was deleted without an operation', async () => {
+    stubWithdrawals({
+      commit: () => ({ status: 404, body: { code: 'preview_not_found' } }),
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    fireEvent.press(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    );
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.ERROR),
+    ).toHaveTextContent(strings('predict_next.withdraw.error.generic'));
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.RETRY),
+    ).not.toBeOnTheScreen();
+    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+  });
+
   it('retries the same approved quote after a transient commit failure', async () => {
     let commitCount = 0;
     const observe = jest.fn(() => ({

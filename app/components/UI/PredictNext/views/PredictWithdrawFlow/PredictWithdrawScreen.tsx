@@ -175,9 +175,10 @@ const reduceWithdrawStatus = (
     case 'outcomeUnknown':
       return { ...state, error: action.error };
     case 'commitFailed':
-      // An expired quote can never be committed again, so the retry that
-      // makes sense is a new quote: keep the amount, drop the stale Preview.
-      return action.error.code === PredictErrorCode.PREVIEW_EXPIRED
+      // Expired or deleted previews cannot create a new operation. Keep the
+      // amount, but require a fresh quote before another confirmation.
+      return action.error.code === PredictErrorCode.PREVIEW_EXPIRED ||
+        action.error.metadata?.bodyCode === 'preview_not_found'
         ? {
             phase: 'input',
             input: state.input,
@@ -356,7 +357,10 @@ export const PredictWithdrawScreen = () => {
       });
     } catch (error_) {
       const error = toPredictError(error_);
-      if (error.code === PredictErrorCode.PREVIEW_EXPIRED) {
+      if (
+        error.code === PredictErrorCode.PREVIEW_EXPIRED ||
+        error.metadata?.bodyCode === 'preview_not_found'
+      ) {
         dispatch({ type: 'commitFailed', error });
         return;
       }
