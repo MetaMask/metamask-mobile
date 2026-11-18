@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
-import { useMusdBalance } from '../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../Ramp/hooks/useRegionHasFiatProvider';
 import { useMoneyAccountDepositAssetId } from '../../Money/hooks/useMoneyAccountDepositAssetId';
@@ -10,10 +9,6 @@ import { useHasActionableAddMoneyOptions } from './useHasActionableAddMoneyOptio
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../Earn/hooks/useMusdBalance', () => ({
-  useMusdBalance: jest.fn(),
 }));
 
 jest.mock('../../../Views/confirmations/hooks/pay/useMMPayFiatConfig', () => ({
@@ -29,9 +24,6 @@ jest.mock('../../Money/hooks/useMoneyAccountDepositAssetId', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
-  typeof useMusdBalance
->;
 const mockUseMMPayFiatConfig = useMMPayFiatConfig as jest.MockedFunction<
   typeof useMMPayFiatConfig
 >;
@@ -50,14 +42,10 @@ function setDefaults({
   hasAnyCryptoBalance = false,
   enabledTransactionTypes = [] as TransactionType[],
   regionHasFiatProvider = false,
-  hasMusdBalanceOnAnyChain = false,
-  fiatBalanceAggregated = '0',
 }: {
   hasAnyCryptoBalance?: boolean;
   enabledTransactionTypes?: TransactionType[];
   regionHasFiatProvider?: boolean;
-  hasMusdBalanceOnAnyChain?: boolean;
-  fiatBalanceAggregated?: string;
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectHasAnyNonZeroTokenBalance) {
@@ -65,10 +53,6 @@ function setDefaults({
     }
     return undefined;
   });
-  mockUseMusdBalance.mockReturnValue({
-    fiatBalanceAggregated,
-    hasMusdBalanceOnAnyChain,
-  } as ReturnType<typeof useMusdBalance>);
   mockUseMMPayFiatConfig.mockReturnValue({
     enabledTransactionTypes,
   } as ReturnType<typeof useMMPayFiatConfig>);
@@ -82,7 +66,7 @@ describe('useHasActionableAddMoneyOptions', () => {
     setDefaults();
   });
 
-  it('returns false when no crypto, fiat deposit, or mUSD path is available', () => {
+  it('returns false when no crypto or fiat deposit path is available', () => {
     const { result } = renderHook(() => useHasActionableAddMoneyOptions());
 
     expect(result.current).toBe(false);
@@ -123,36 +107,6 @@ describe('useHasActionableAddMoneyOptions', () => {
     setDefaults({
       enabledTransactionTypes: [],
       regionHasFiatProvider: true,
-    });
-
-    const { result } = renderHook(() => useHasActionableAddMoneyOptions());
-
-    expect(result.current).toBe(false);
-  });
-
-  it('returns true when mUSD balance exists on any chain', () => {
-    setDefaults({ hasMusdBalanceOnAnyChain: true });
-
-    const { result } = renderHook(() => useHasActionableAddMoneyOptions());
-
-    expect(result.current).toBe(true);
-  });
-
-  it('returns true when aggregated mUSD fiat balance is greater than zero', () => {
-    setDefaults({
-      hasMusdBalanceOnAnyChain: false,
-      fiatBalanceAggregated: '12.50',
-    });
-
-    const { result } = renderHook(() => useHasActionableAddMoneyOptions());
-
-    expect(result.current).toBe(true);
-  });
-
-  it('returns false when aggregated mUSD fiat balance is not a positive number', () => {
-    setDefaults({
-      hasMusdBalanceOnAnyChain: false,
-      fiatBalanceAggregated: 'not-a-number',
     });
 
     const { result } = renderHook(() => useHasActionableAddMoneyOptions());

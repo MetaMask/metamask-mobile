@@ -34,7 +34,10 @@ import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   getDepositPrefillAmountInputType,
   MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
@@ -72,7 +75,9 @@ export function useTransactionCustomAmount({
   );
   const isAddMusdFlow =
     isMoneyAccountDeposit &&
-    getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
+    isFullBalanceDepositIntent(
+      getMoneyAccountDepositIntent(transactionMeta?.batchId),
+    );
 
   const isMembershipSubscription = hasTransactionType(transactionMeta, [
     TransactionType.membershipSubscription,

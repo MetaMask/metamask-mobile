@@ -179,4 +179,22 @@ describe('MoneyAccountDepositInfo', () => {
       expect.objectContaining({ name: 'Confirmation Screen Viewed' }),
     );
   });
+
+  it.each(['addUsdc', 'addUsdt', 'addMusd'] as const)(
+    'adds mm_pay_deposit_intent when Pay opens for %s',
+    (depositIntent) => {
+      mockUseParams.mockReturnValue({
+        depositIntent,
+        preferredPaymentToken: { address: '0xabc', chainId: '0x2105' },
+      });
+
+      render(<MoneyAccountDepositInfo />);
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION,
+        mm_pay_deposit_intent: depositIntent,
+        mm_pay_chain_presented: '0x2105',
+      });
+    },
+  );
 });
