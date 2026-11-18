@@ -85,6 +85,96 @@ const terminalBackendFlags = (enabled: boolean) => ({
 describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   let unwire: (() => void) | undefined;
   beforeEach(resetMarginModeControllerMocks);
+
+  it('starts a market with no saved margin mode on Isolated', async () => {
+    renderPerpsCrossMarginOrderFormPanel({
+      streamOverrides: { positions: [] },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+        strings('perps.margin_mode.isolated_title'),
+      ),
+    );
+  });
+
+  it('shows the saved Cross margin mode when the next ticket has no position', async () => {
+    const { store } = renderPerpsCrossMarginOrderFormPanel({
+      streamOverrides: {
+        positions: [],
+        account: createFundedAccountForViews('1000'),
+      },
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              tradeConfigurations: {
+                mainnet: {
+                  hyperliquid: {
+                    ETH: { marginMode: 'cross' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    unwire = wirePerpsControllerForStore(store);
+
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+        strings('perps.margin_mode.cross_title'),
+      ),
+    );
+  });
+
+  it('keeps Cross on the next order ticket after the trader closes the position', async () => {
+    const { store } = renderPerpsCrossMarginOrderFormPanel({
+      streamOverrides: {
+        positions: [],
+        account: createFundedAccountForViews('1000'),
+      },
+    });
+    unwire = wirePerpsControllerForStore(store);
+    await openMarginModeSheet();
+    await selectCrossMarginMode();
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+        strings('perps.margin_mode.cross_title'),
+      ),
+    );
+    const savedConfigurations =
+      store.getState().engine.backgroundState.PerpsController
+        .tradeConfigurations;
+
+    cleanup();
+    unwire();
+    unwire = undefined;
+
+    const remounted = renderPerpsCrossMarginOrderFormPanel({
+      streamOverrides: {
+        positions: [],
+        account: createFundedAccountForViews('1000'),
+      },
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              tradeConfigurations: savedConfigurations,
+            },
+          },
+        },
+      },
+    });
+    unwire = wirePerpsControllerForStore(remounted.store);
+
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+        strings('perps.margin_mode.cross_title'),
+      ),
+    );
+  });
   afterEach(() => {
     cleanup();
     unwire?.();

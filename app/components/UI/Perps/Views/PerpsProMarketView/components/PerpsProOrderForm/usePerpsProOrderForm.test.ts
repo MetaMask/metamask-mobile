@@ -601,6 +601,17 @@ jest.mock('../../../../hooks/usePerpsSavePendingConfig', () => ({
   usePerpsSavePendingConfig: jest.fn(),
 }));
 
+const mockSavedMarginModes = new Map<string, 'isolated' | 'cross'>();
+const mockSaveMarginMode = jest.fn();
+jest.mock('../../../../hooks/usePerpsSavedMarginMode', () => ({
+  usePerpsSavedMarginMode: (symbol: string, providerId?: string) => ({
+    savedMarginMode: mockSavedMarginModes.get(`${providerId ?? ''}:${symbol}`),
+    saveMarginMode: (marginMode: 'isolated' | 'cross') => {
+      mockSaveMarginMode(symbol, marginMode, providerId);
+    },
+  }),
+}));
+
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -809,6 +820,7 @@ describe('usePerpsProOrderForm', () => {
     mockExecuteOrder.mockResolvedValue({ success: true });
     mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
     mockMarginModeLockRefreshing = false;
+    mockSavedMarginModes.clear();
     mockChaseOrders = [];
     mockGetChaseOrders.mockResolvedValue([]);
   });
@@ -3964,6 +3976,12 @@ describe('usePerpsProOrderForm', () => {
       act(() => {
         result.current.onMarginModeSelect('cross');
       });
+
+      expect(mockSaveMarginMode).toHaveBeenCalledWith(
+        'BTC',
+        'cross',
+        'hyperliquid',
+      );
       await act(async () => {
         await result.current.onPlaceOrderPress();
       });
@@ -4722,6 +4740,51 @@ describe('usePerpsProOrderForm', () => {
       rerender({ isScreenFocused: true });
 
       expect(mockRefreshMarginModeLock).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the saved Cross margin mode after the cross position closes', () => {
+      mockSavedMarginModes.set('hyperliquid:BTC', 'cross');
+      mockExistingPosition = { leverage: { type: 'cross', value: 5 } };
+      const { result, rerender } = renderWithCrossMargin();
+
+      expect(result.current.marginMode).toBe('cross');
+
+      mockExistingPosition = null;
+      rerender({});
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(result.current.isMarginModeLocked).toBe(false);
+    });
+
+    it('keeps a saved Cross margin mode after an account switch', () => {
+      mockSavedMarginModes.set('hyperliquid:BTC', 'cross');
+      const { result, rerender } = renderWithCrossMargin();
+
+      mockSelectedAddress = '0xaccount-b';
+      rerender({});
+
+      expect(result.current.marginMode).toBe('cross');
+    });
+
+    it('uses Isolated for a market with no saved margin mode', () => {
+      mockSavedMarginModes.set('hyperliquid:ETH', 'cross');
+
+      const { result } = renderWithCrossMargin();
+
+      expect(result.current.marginMode).toBe('isolated');
+    });
+
+    it('drops a saved Cross margin mode after fresh metadata restricts Cross', () => {
+      mockSavedMarginModes.set('hyperliquid:BTC', 'cross');
+      mockMarketData = { szDecimals: 3, maxLeverage: 40, onlyIsolated: true };
+      const { result, rerender } = renderWithCrossMargin();
+
+      expect(result.current.marginMode).toBe('isolated');
+
+      mockMarketData = { szDecimals: 3, maxLeverage: 40 };
+      rerender({});
+
+      expect(result.current.marginMode).toBe('isolated');
     });
 
     it('keeps the picker free without an open position', () => {

@@ -110,6 +110,7 @@ import {
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import { usePerpsFeeDisplayAbTest } from '../../../../hooks/usePerpsFeeDisplayAbTest';
 import { usePerpsMarginModeLock } from '../../../../hooks/usePerpsMarginModeLock';
+import { usePerpsSavedMarginMode } from '../../../../hooks/usePerpsSavedMarginMode';
 import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
@@ -1063,10 +1064,16 @@ export const usePerpsProOrderForm = ({
     !marketData.onlyIsolated &&
     !marketData.marginMode;
   // Loading is temporary uncertainty, not a change to the trader's choice.
-  // Clear the choice only when the gate or fresh metadata rules out Cross.
+  // Clear the in-memory pick only when the gate or fresh metadata rules out
+  // Cross. A missing metadata read is not a restriction.
   const isCrossMarginUnsupported =
     !isCrossMarginAvailable ||
     !isProviderMetadataAvailable ||
+    (!isMarketDataLoading &&
+      !!marketData &&
+      !!(marketData.onlyIsolated || marketData.marginMode));
+  const isSavedMarginModeRuledOut =
+    !isCrossMarginAvailable ||
     (!isMarketDataLoading &&
       !!marketData &&
       !!(marketData.onlyIsolated || marketData.marginMode));
@@ -1079,12 +1086,22 @@ export const usePerpsProOrderForm = ({
     perpsAccountAddress,
     network,
   ]);
+  const { savedMarginMode, saveMarginMode } = usePerpsSavedMarginMode(
+    symbol,
+    market.providerId,
+  );
   const [marginModeSelection, setMarginModeSelection] = useState<{
     contextKey: string;
     marginMode: MarginMode;
   } | null>(null);
-  // Forget the pick on a context change or restriction, so switching back
-  // does not revive it. A metadata reload in the same context keeps it.
+  // Markets whose saved mode was ruled out this visit. A later visit reads
+  // the controller again, so closing a position does not clear the preference.
+  const [ruledOutSavedMarginSymbols, setRuledOutSavedMarginSymbols] = useState<
+    ReadonlySet<string>
+  >(() => new Set());
+  // Forget the in-memory pick on a context change or restriction, so switching
+  // back does not revive it. A metadata reload in the same context keeps it.
+  // The saved per-market mode still applies when this visit has no pick.
   useEffect(() => {
     setMarginModeSelection((selection) =>
       !isCrossMarginUnsupported &&
@@ -1093,18 +1110,48 @@ export const usePerpsProOrderForm = ({
         : null,
     );
   }, [marginModeContextKey, isCrossMarginUnsupported]);
+  useEffect(() => {
+    if (!isSavedMarginModeRuledOut) {
+      return;
+    }
+    setRuledOutSavedMarginSymbols((current) => {
+      if (current.has(symbol)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.add(symbol);
+      return next;
+    });
+  }, [isSavedMarginModeRuledOut, symbol]);
+  const persistedMarginMode =
+    !ruledOutSavedMarginSymbols.has(symbol) &&
+    (savedMarginMode === 'cross' || savedMarginMode === 'isolated')
+      ? savedMarginMode
+      : undefined;
   const selectedMarginMode: MarginMode =
     !isCrossMarginUnsupported &&
     marginModeSelection?.contextKey === marginModeContextKey
       ? marginModeSelection.marginMode
-      : 'isolated';
+      : !isCrossMarginUnsupported && persistedMarginMode
+        ? persistedMarginMode
+        : 'isolated';
   const onMarginModeSelect = useCallback(
-    (nextMarginMode: MarginMode) =>
+    (nextMarginMode: MarginMode) => {
       setMarginModeSelection({
         contextKey: marginModeContextKey,
         marginMode: nextMarginMode,
-      }),
-    [marginModeContextKey],
+      });
+      setRuledOutSavedMarginSymbols((current) => {
+        if (!current.has(symbol)) {
+          return current;
+        }
+        const next = new Set(current);
+        next.delete(symbol);
+        return next;
+      });
+      saveMarginMode(nextMarginMode);
+    },
+    [marginModeContextKey, saveMarginMode, symbol],
   );
   const {
     lock: marginModeLock,
