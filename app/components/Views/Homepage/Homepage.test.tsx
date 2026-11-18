@@ -993,7 +993,7 @@ describe('Homepage', () => {
       });
     });
 
-    it('renders the Collectibles section when its flag is enabled without a Solana account', () => {
+    it('renders the Collectibles section when its flag is enabled', () => {
       mockCollectiblesSection(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
