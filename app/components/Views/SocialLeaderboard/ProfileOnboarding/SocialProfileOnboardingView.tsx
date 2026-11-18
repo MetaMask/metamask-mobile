@@ -64,6 +64,10 @@ import {
   XAuthErrorType,
 } from '../../../../core/XAuthService';
 import { getSocialProfileId } from '../../../../util/social/getSocialProfileId';
+import {
+  reportSocialServiceFailure,
+  type SocialEndpoint,
+} from '../../../../util/social/socialServiceTelemetry';
 import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
@@ -137,6 +141,47 @@ const EXISTING_PROFILE_LOOKUP_QUERY_KEY = [
   'social',
   'profileOnboardingExistingProfile',
 ] as const;
+
+const PROFILE_ONBOARDING_SOURCE = 'SocialProfileOnboardingView';
+
+/**
+ * Report a profile-onboarding failure with `feature:social` tags. Attaches
+ * `profileId` on context/extras when the session has one (not as a Sentry tag).
+ */
+const reportProfileOnboardingFailure = (
+  error: unknown,
+  {
+    operation,
+    extraMessage,
+    endpoint,
+    profileId: knownProfileId,
+  }: {
+    operation: string;
+    extraMessage: string;
+    endpoint?: SocialEndpoint;
+    profileId?: string;
+  },
+): void => {
+  const report = (profileId?: string) => {
+    reportSocialServiceFailure(error, {
+      surface: 'profile_onboarding',
+      operation,
+      extraMessage,
+      source: PROFILE_ONBOARDING_SOURCE,
+      ...(endpoint !== undefined && { endpoint }),
+      ...(profileId ? { profileId } : {}),
+    });
+  };
+
+  if (knownProfileId) {
+    report(knownProfileId);
+    return;
+  }
+
+  void getSocialProfileId()
+    .then((profileId) => report(profileId))
+    .catch(() => report());
+};
 
 /**
  * `superseded` means a newer check started before this one finished. That is
@@ -766,7 +811,12 @@ const SocialProfileOnboardingView: React.FC = () => {
               ),
             };
         }
-      } catch {
+      } catch (error) {
+        reportProfileOnboardingFailure(error, {
+          operation: 'check_username',
+          extraMessage: 'Profile onboarding username availability check failed',
+          endpoint: 'check_username',
+        });
         return {
           status: 'error',
           claimError: strings(
@@ -923,6 +973,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         ) {
           return;
         }
+        reportProfileOnboardingFailure(error, {
+          operation: 'connect_x',
+          extraMessage: 'Profile onboarding X connect failed',
+          endpoint: 'connect_x',
+        });
         setConnectXError(
           error instanceof XAuthError
             ? getXConnectError(error)
@@ -1225,6 +1280,16 @@ const SocialProfileOnboardingView: React.FC = () => {
       try {
         writeResult = await writeOnboardingProfile(currentDraft);
       } catch (error) {
+        const operation = hadProfile ? 'update_profile' : 'create_profile';
+        const profileId = await getSocialProfileId().catch(() => undefined);
+        reportProfileOnboardingFailure(error, {
+          operation,
+          extraMessage: hadProfile
+            ? 'Profile onboarding update profile failed'
+            : 'Profile onboarding create profile failed',
+          endpoint: operation,
+          profileId,
+        });
         if (stepRef.current === 'ready') {
           setFinishError(
             getProfileCreateErrorCopy(error) ??
