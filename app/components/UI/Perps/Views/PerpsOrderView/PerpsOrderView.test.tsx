@@ -7574,14 +7574,11 @@ describe('PerpsOrderView', () => {
       );
     });
 
-    it('posts no intent for an order opened outside a social post', () => {
-      // No copy-trade promise is created on this path. Awaiting async `act`
-      // keeps flushing macrotasks until that queue drains, so the test hits
-      // the 5s timeout instead of asserting.
+    it('posts no intent for an order opened outside a social post', async () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      act(() => {
-        getOnSuccess()(undefined, { success: true, orderId: '42' });
+      await act(async () => {
+        await getOnSuccess()(undefined, { success: true, orderId: '42' });
       });
 
       expect(mockMessengerCall).not.toHaveBeenCalled();
