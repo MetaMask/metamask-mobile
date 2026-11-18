@@ -21,6 +21,11 @@ import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
+import {
+  PredictFundingService,
+  type PredictFundingServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictFundingService';
+import type { PredictFundingServiceInitMessenger } from '../messengers/predict-funding-service-messenger';
 import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-live-data-service-messenger';
 import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
 import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
@@ -242,4 +247,42 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
     cleanupRecovery();
   });
   return { controller };
+};
+
+export const predictFundingServiceInit: MessengerClientInitFunction<
+  PredictFundingService,
+  PredictFundingServiceMessenger,
+  PredictFundingServiceInitMessenger
+> = ({ controllerMessenger, initMessenger }) => {
+  // Deposit composition lives here, at the Engine composition root, with
+  // its own client: deposit calls are single-flight workflow calls, never
+  // cached reads.
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: getPredictApiUrl(),
+      clientVersion: packageJSON.version,
+      getBearerToken: () =>
+        initMessenger.call('AuthenticationController:getBearerToken'),
+      // The deposit address request is device-signed (funding.deposit).
+      signOperation: (operation, input) =>
+        initMessenger.call(
+          'PredictDeviceAuthService:signOperation',
+          operation,
+          input,
+        ),
+      invalidateSigningSession: () =>
+        initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
+    }),
+    {
+      getApprovalGeneration: () =>
+        initMessenger.call('PredictDeviceAuthService:getApprovalGeneration'),
+    },
+  );
+  return {
+    controller: new PredictFundingService({
+      messenger: controllerMessenger,
+      funding: adapter.funding,
+      venueId: adapter.venueId,
+    }),
+  };
 };

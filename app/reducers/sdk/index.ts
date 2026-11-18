@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/default-param-last */
-import { SDKState } from 'app/actions/sdk/state';
+import { SDKState } from '../../actions/sdk/state';
 import { ActionType, Action } from '../../actions/sdk';
 
 // sdk reducers

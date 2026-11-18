@@ -43,6 +43,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'PredictLiveDataService',
   'PredictPortfolioService',
   'PredictOrderService',
+  'PredictFundingService',
   'PredictDeviceAuthService',
   'RecurringOrdersDataService',
   'LimitOrdersDataService',

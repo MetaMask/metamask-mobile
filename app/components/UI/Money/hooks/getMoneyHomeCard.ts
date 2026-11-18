@@ -47,9 +47,11 @@ export interface MoneyHomeCardInputs {
 /**
  * Picks the single Money home card from the rendering table.
  *
- * KYC status cards render once eligibility resolves. Everything else waits
- * for both balances. Get started and Identity verified give way once the
- * Money account is funded. A usable autoramp shows nothing until then.
+ * In-progress and retry KYC cards render once eligibility resolves, including
+ * while balances are still loading. The terminal rejection card does too,
+ * until the user dismisses it. Everything else waits for both balances. Get
+ * started and Identity verified give way once the Money account is funded. A
+ * usable autoramp shows nothing until then.
  *
  * @param inputs - Eligibility, balances, VBA card, and card-step state.
  * @returns The one card to mount, or `none`.
@@ -63,6 +65,7 @@ export function getMoneyHomeCard(inputs: MoneyHomeCardInputs): MoneyHomeCard {
   if (
     vbaCard.type === 'finish_verification' ||
     vbaCard.type === 'kyc_pending' ||
+    vbaCard.type === 'kyc_retry' ||
     (vbaCard.type === 'kyc_decision' && !inputs.isKycDecisionDismissed)
   ) {
     return { type: 'vba', variant: vbaCard.type };

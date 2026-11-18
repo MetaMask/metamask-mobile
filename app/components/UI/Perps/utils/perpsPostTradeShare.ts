@@ -102,18 +102,45 @@ const priceLabel = (price: string | undefined): string | undefined => {
   return formatTradeUnitPrice(value);
 };
 
+/**
+ * Cost of a filled order: filled size times average fill price. The same
+ * product the card's Entry is built from, so Cost and Entry agree. Undefined
+ * when the result has no fill, so the caller can fall back to the typed amount.
+ */
+const fillCostLabel = ({
+  filledSize,
+  entryPrice,
+}: {
+  filledSize?: string;
+  entryPrice?: string;
+}): string | undefined => {
+  const size = Number(filledSize);
+  const price = Number(entryPrice);
+  if (
+    !Number.isFinite(size) ||
+    size <= 0 ||
+    !Number.isFinite(price) ||
+    price <= 0
+  ) {
+    return undefined;
+  }
+  return formatUsd(size * price);
+};
+
 export const buildPerpsPostTradePreview = ({
   asset,
   direction,
   leverage,
   amountUsd,
   entryPrice,
+  filledSize,
 }: {
   asset: string;
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
   entryPrice?: string;
+  filledSize?: string;
 }): SocialPostPerpsPreview => ({
   product: 'perps',
   tokenSymbol: getPerpsDisplaySymbol(asset),
@@ -121,7 +148,7 @@ export const buildPerpsPostTradePreview = ({
   tokenAddress: asset,
   direction,
   leverageLabel: leverage != null && leverage > 0 ? `${leverage}x` : undefined,
-  costLabel: usdLabel(amountUsd),
+  costLabel: fillCostLabel({ filledSize, entryPrice }) ?? usdLabel(amountUsd),
   entryPriceLabel: priceLabel(entryPrice),
 });
 
@@ -313,17 +340,23 @@ export const failPerpsPostTradeShare = (
  * A missing oid clears the open session and returns false, so the sheet does
  * not show Order failed and the caller can fall back to the perps toast. A
  * session the user already closed also returns false. A close passes its
- * `preview` from {@link withPerpsCloseFill}; an open passes its `entryPrice`.
+ * `preview` from {@link withPerpsCloseFill}; an open passes its `entryPrice`
+ * and `filledSize`.
+ *
+ * The pending card shows the typed amount. Once the order has filled, Cost and
+ * Entry are replaced with the fill (filled size times average price).
  */
 export const completePerpsPostTradeShare = (
   sessionId: string | undefined,
   {
     orderId,
     entryPrice,
+    filledSize,
     preview,
   }: {
     orderId: string | undefined;
     entryPrice?: string;
+    filledSize?: string;
     preview?: SocialPostPerpsPreview;
   },
 ): boolean => {
@@ -346,13 +379,20 @@ export const completePerpsPostTradeShare = (
     return false;
   }
   const entryPriceLabel = priceLabel(entryPrice);
+  const costLabel = fillCostLabel({ filledSize, entryPrice });
+  const hasFillLabels =
+    entryPriceLabel !== undefined || costLabel !== undefined;
   return patchPostTradeShareSession(sessionId, {
     status: 'complete',
     orderId,
     preview:
       preview ??
-      (entryPriceLabel
-        ? { ...session.preview, entryPriceLabel }
+      (hasFillLabels
+        ? {
+            ...session.preview,
+            ...(costLabel !== undefined ? { costLabel } : {}),
+            ...(entryPriceLabel !== undefined ? { entryPriceLabel } : {}),
+          }
         : session.preview),
   });
 };

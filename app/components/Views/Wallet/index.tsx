@@ -15,6 +15,7 @@ import {
   useBalanceRefresh,
   useHomepageEntryPoint,
 } from './hooks';
+import { usePrefetchMoneyAccountPlusSubscriptions } from '../../../hooks/usePrefetchMoneyAccountPlusSubscriptions';
 
 import {
   ActivityIndicator,
@@ -360,6 +361,9 @@ const Wallet = ({
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
+  // Fills SubscriptionController before the accounts menu or profile drawer
+  // opens, so the Orange row can use the stored membership.
+  usePrefetchMoneyAccountPlusSubscriptions();
   const appNavigation = useNavigation<AppNavigationProp>();
   const { navigate } = appNavigation;
   const scrollViewRef = useRef<ScrollView>(null);
@@ -606,10 +610,21 @@ const Wallet = ({
   }, [navigate]);
 
   useEffect(() => {
-    if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
+    // With basic functionality off the Perps modal stack only renders its
+    // "turn it back on" empty state, which would block the wallet.
+    if (
+      basicFunctionalityEnabled &&
+      isPerpsFlagEnabled &&
+      isPerpsGTMModalEnabled
+    ) {
       checkAndNavigateToPerpsGTM();
     }
-  }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
+  }, [
+    basicFunctionalityEnabled,
+    isPerpsFlagEnabled,
+    isPerpsGTMModalEnabled,
+    checkAndNavigateToPerpsGTM,
+  ]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 
@@ -1149,12 +1164,8 @@ const Wallet = ({
     ) : null;
 
   const networkConnectionBanner = useNetworkConnectionBanner();
-  const isNetworkConnectionBannerVisible =
-    (networkConnectionBanner.status === 'degraded' ||
-      networkConnectionBanner.status === 'unavailable') &&
-    Boolean(networkConnectionBanner.network);
   const hasBannerContent =
-    !basicFunctionalityEnabled || isNetworkConnectionBannerVisible;
+    !basicFunctionalityEnabled || networkConnectionBanner.isVisible;
   const bannerContent = hasBannerContent ? (
     <View
       style={styles.banner}
