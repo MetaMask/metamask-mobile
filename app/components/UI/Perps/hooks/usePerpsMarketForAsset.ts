@@ -281,6 +281,7 @@ export const usePerpsMarketForAsset = (
     // Check if already cached (includes network context)
     const cached = marketExistenceCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      ++requestIdRef.current;
       setState({
         hasPerpsMarket: cached.exists,
         marketData: cached.data,

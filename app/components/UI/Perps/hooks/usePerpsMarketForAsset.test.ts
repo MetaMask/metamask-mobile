@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -209,5 +209,39 @@ describe('usePerpsMarketForAsset', () => {
       expect(result.current.marketData?.symbol).toBe('BTC');
     });
     expect(result.current.hasPerpsMarket).toBe(true);
+  });
+
+  it('keeps a cached RWA match when a pending exact lookup resolves later', async () => {
+    mockGetMarkets.mockResolvedValueOnce([
+      { name: 'xyz:MSFT', maxLeverage: 10 },
+    ]);
+    const seeded = renderHook(() => usePerpsMarketForAsset('MSFT', true));
+    await waitFor(() => {
+      expect(seeded.result.current.hasPerpsMarket).toBe(true);
+    });
+    seeded.unmount();
+
+    let resolveExact: ((value: unknown) => void) | undefined;
+    mockGetMarkets.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveExact = resolve;
+        }),
+    );
+    const { result, rerender } = renderHook(
+      ({ isRwaAsset }) => usePerpsMarketForAsset('MSFT', isRwaAsset),
+      { initialProps: { isRwaAsset: false } },
+    );
+    await waitFor(() => {
+      expect(resolveExact).toBeDefined();
+    });
+
+    rerender({ isRwaAsset: true });
+    await act(async () => {
+      resolveExact?.([]);
+    });
+
+    expect(result.current.hasPerpsMarket).toBe(true);
+    expect(result.current.marketData?.symbol).toBe('xyz:MSFT');
   });
 });
