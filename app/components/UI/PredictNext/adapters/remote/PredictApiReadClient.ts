@@ -120,6 +120,7 @@ export interface PredictApiReadTransport {
     venueId: PredictVenueId,
     previewId: string,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<unknown>;
   observeWithdraw(
     venueId: PredictVenueId,
@@ -210,6 +211,13 @@ export interface PredictApiReadClientOptions {
   /** Drops the cached A2T after `venue_authorization_invalid`. */
   invalidateSigningSession?: () => void;
 }
+
+/** A caller-visible cancellation, never a venue or transport failure. */
+const abortedError = (): Error => {
+  const aborted = new Error('The request was aborted.');
+  aborted.name = 'AbortError';
+  return aborted;
+};
 
 const parseBaseUrl = (baseUrl?: string): URL | undefined => {
   if (!baseUrl) {
@@ -532,6 +540,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     previewId: string,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<unknown> {
     const controller = new AbortController();
     const abort = () => controller.abort();
@@ -545,6 +554,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         ['v1', 'venues', venueId, 'withdrawals', previewId, 'commit'],
         {},
         { ...options, signal: controller.signal },
+        onDispatch,
       );
     } finally {
       clearTimeout(deadline);
@@ -733,6 +743,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     deviceAuth?: DeviceAuthHeader,
     signed?: ProposedRead,
   ): Promise<Response> {
+    // A read aborted while its token or signature resolved must not go out
+    // either: an observation can replay a stored submission.
+    if (options?.signal?.aborted) {
+      throw abortedError();
+    }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
@@ -864,17 +879,16 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     segments: readonly string[],
     body: PredictApiPostBody,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
     // A write aborted while its token resolved must not go out: the token
     // may already belong to whoever replaced the Predict User.
     if (options?.signal?.aborted) {
-      const aborted = new Error('The request was aborted.');
-      aborted.name = 'AbortError';
-      throw aborted;
+      throw abortedError();
     }
     return this.#parseBody(
-      await this.#post(segments, body, bearerToken, options),
+      await this.#post(segments, body, bearerToken, options, onDispatch),
     );
   }
 
@@ -883,12 +897,18 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     body: PredictApiPostBody,
     bearerToken: string,
     options?: PredictReadOptions,
+    onDispatch?: () => void,
   ): Promise<Response> {
+    // A read aborted while its token or signature resolved must not go out
+    // either: an observation can replay a stored submission.
+    if (options?.signal?.aborted) {
+      throw abortedError();
+    }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
-    return this.#fetch(url.toString(), {
+    const request: RequestInit = {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -899,7 +919,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       signal: options?.signal,
-    });
+    };
+    onDispatch?.();
+    return this.#fetch(url.toString(), request);
   }
 
   /**
@@ -921,9 +943,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
     const bearerToken = await this.#resolveBearerToken();
     if (options?.signal?.aborted) {
-      const aborted = new Error('The request was aborted.');
-      aborted.name = 'AbortError';
-      throw aborted;
+      throw abortedError();
     }
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),

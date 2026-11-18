@@ -1701,7 +1701,32 @@ describe('KalshiRemoteAdapter', () => {
         adapter.venueId,
         withdrawPreviewId,
         undefined,
+        undefined,
       );
+    });
+
+    it('forwards the commit dispatch notification unchanged', async () => {
+      const onDispatch = jest.fn();
+      client.commitWithdraw.mockImplementationOnce(
+        async (_venueId, _previewId, _options, notify) => {
+          notify?.();
+          return receiptPayload;
+        },
+      );
+
+      await adapter.funding.commitWithdraw(
+        withdrawPreviewId,
+        undefined,
+        onDispatch,
+      );
+
+      expect(client.commitWithdraw).toHaveBeenCalledWith(
+        adapter.venueId,
+        withdrawPreviewId,
+        undefined,
+        onDispatch,
+      );
+      expect(onDispatch).toHaveBeenCalledTimes(1);
     });
 
     it('observes the receipt without committing again', async () => {

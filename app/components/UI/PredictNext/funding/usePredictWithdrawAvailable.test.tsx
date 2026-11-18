@@ -55,18 +55,23 @@ const renderWithdrawAvailable = ({
   available = true,
   capabilities,
   venueId = KALSHI_ID,
+  kalshiWithdrawalsEnabled = true,
 }: {
   activeVenue: ActiveVenueResolution;
   available?: boolean;
   capabilities: PredictVenueCapabilities;
   venueId?: PredictVenueId;
+  kalshiWithdrawalsEnabled?: boolean;
 }) => {
   jest.mocked(useActiveVenue).mockReturnValue(activeVenue);
   jest.mocked(selectPredictAvailability).mockReturnValue(available);
   jest.mocked(useVenueCapabilities).mockReturnValue(capabilities);
   jest
     .mocked(selectPredictConfig)
-    .mockReturnValue({ kalshiDepositsEnabled: false } as never);
+    .mockReturnValue({
+      kalshiDepositsEnabled: false,
+      kalshiWithdrawalsEnabled,
+    } as never);
 
   const wrapper = ({ children }: { children: ReactNode }) => (
     <NextVenueProvider venueId={venueId}>{children}</NextVenueProvider>
@@ -136,6 +141,19 @@ describe('usePredictWithdrawAvailable', () => {
     expect(result.current).toEqual({
       status: 'unavailable',
       reason: 'resolving',
+    });
+  });
+
+  it('hides the entry point while kalshiWithdrawalsEnabled is off', () => {
+    const { result } = renderWithdrawAvailable({
+      activeVenue: KALSHI_ACTIVE,
+      capabilities: descriptor(KALSHI_ID, ['withdraw']),
+      kalshiWithdrawalsEnabled: false,
+    });
+
+    expect(result.current).toEqual({
+      status: 'unavailable',
+      reason: 'notImplemented',
     });
   });
 });

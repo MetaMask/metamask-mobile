@@ -28,6 +28,14 @@ import { PredictWithdrawFlowTestIds } from './internal/PredictWithdrawFlow.testI
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
+/** The screen only offers Withdraw while its own rollout flag is on. */
+const renderWithdrawFlow = (privacyMode = false) =>
+  renderPredictNext(privacyMode, {
+    remoteFeatureFlags: {
+      predictConfig: { kalshiWithdrawalsEnabled: true },
+    },
+  });
+
 const DESTINATION_ADDRESS = '0xcDe7CE585799F1FCA8a37C7599935ea275819B9c';
 const PREVIEW_ID = 'b3c2a1d0-1111-4222-8333-444455556666';
 /** A quote the screen obtains after the first one expires. */
@@ -219,7 +227,7 @@ describe('PredictWithdrawFlow', () => {
       }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -244,7 +252,7 @@ describe('PredictWithdrawFlow', () => {
       }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -272,7 +280,7 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('rejects an amount below the one dollar minimum without calling the backend', async () => {
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('0.50');
 
@@ -289,7 +297,7 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('rejects an amount above the available balance without calling the backend', async () => {
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('20.00');
 
@@ -303,7 +311,7 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('exposes the keyed amount as the amount display value', async () => {
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     const display = () => screen.getByTestId(PredictAmountEntryTestIds.DISPLAY);
 
@@ -321,7 +329,7 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('sends a trailing-dot amount without the dot', async () => {
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.');
 
@@ -335,7 +343,7 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('shows the destination read-only with the sandbox wallet notice', async () => {
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     // The payout account is the Venue's, so the entry step names it and
     // offers nothing to change.
@@ -386,7 +394,7 @@ describe('PredictWithdrawFlow', () => {
       { amount: '$12.34' },
     );
 
-    renderPredictNext(true);
+    renderWithdrawFlow(true);
     await openWithdrawFlow();
 
     const availableBalance = screen.getByTestId(
@@ -405,7 +413,7 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('shows the available balance in plain text when privacy mode is off', async () => {
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
 
     expect(
@@ -425,7 +433,7 @@ describe('PredictWithdrawFlow', () => {
       return Promise.resolve(undefined);
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
 
     expect(
@@ -438,7 +446,7 @@ describe('PredictWithdrawFlow', () => {
   it('disables Continue and shows the offline banner with no connection', async () => {
     netInfoMock.__setMockNetInfo({ type: 'none', isInternetReachable: false });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
 
@@ -473,7 +481,7 @@ describe('PredictWithdrawFlow', () => {
       }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -512,7 +520,7 @@ describe('PredictWithdrawFlow', () => {
       }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -546,7 +554,7 @@ describe('PredictWithdrawFlow', () => {
       }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -580,7 +588,7 @@ describe('PredictWithdrawFlow', () => {
             },
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -632,7 +640,7 @@ describe('PredictWithdrawFlow', () => {
       observe: () => ({ status: 404, body: { code: 'operation_not_found' } }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -664,7 +672,7 @@ describe('PredictWithdrawFlow', () => {
       }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -692,7 +700,7 @@ describe('PredictWithdrawFlow', () => {
       observe,
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -725,7 +733,7 @@ describe('PredictWithdrawFlow', () => {
       observe,
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -757,7 +765,7 @@ describe('PredictWithdrawFlow', () => {
       },
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -807,7 +815,7 @@ describe('PredictWithdrawFlow', () => {
       }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -831,7 +839,7 @@ describe('PredictWithdrawFlow', () => {
       ).length;
     stubWithdrawals();
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -864,7 +872,7 @@ describe('PredictWithdrawFlow', () => {
           }),
         }),
       });
-      renderPredictNext();
+      renderWithdrawFlow();
       await openWithdrawFlow();
       typeAmount('5.00');
       fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -898,7 +906,7 @@ describe('PredictWithdrawFlow', () => {
         body: { code: 'venue_account_not_enabled' },
       }),
     });
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -924,7 +932,7 @@ describe('PredictWithdrawFlow', () => {
         },
         observe,
       });
-      renderPredictNext();
+      renderWithdrawFlow();
       await openWithdrawFlow();
       typeAmount('5.00');
       fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -955,7 +963,7 @@ describe('PredictWithdrawFlow', () => {
       commit: () => ({ status: 401, body: { code: 'unauthenticated' } }),
       observe,
     });
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -979,7 +987,7 @@ describe('PredictWithdrawFlow', () => {
       preview: () => ({ status: 503, body: { code: 'venue_unavailable' } }),
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
     await openWithdrawFlow();
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
@@ -1004,7 +1012,7 @@ describe('PredictWithdrawFlow', () => {
       actions: ['buy', 'sell'],
     });
 
-    renderPredictNext();
+    renderWithdrawFlow();
 
     await screen.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
     expect(

@@ -46,9 +46,7 @@ export type PredictFundingServiceInitMessenger = Messenger<
   | Extract<
       GlobalActions,
       {
-        type:
-          | 'AuthenticationController:getState'
-          | 'KeyringController:getState';
+        type: 'AuthenticationController:getState';
       }
     >
   | Extract<
@@ -65,7 +63,6 @@ export type PredictFundingServiceInitMessenger = Messenger<
     {
       type:
         | 'KeyringController:lock'
-        | 'KeyringController:unlock'
         | 'AuthenticationController:stateChange'
         | 'AuthenticationController:profileSignIn';
     }
@@ -94,14 +91,12 @@ export const getPredictFundingServiceInitMessenger = (
     actions: [
       'AuthenticationController:getBearerToken',
       'AuthenticationController:getState',
-      'KeyringController:getState',
       'PredictDeviceAuthService:signOperation',
       'PredictDeviceAuthService:getApprovalGeneration',
       'PredictDeviceAuthService:invalidateA2t',
     ],
     events: [
       'KeyringController:lock',
-      'KeyringController:unlock',
       'AuthenticationController:stateChange',
       'AuthenticationController:profileSignIn',
     ],
