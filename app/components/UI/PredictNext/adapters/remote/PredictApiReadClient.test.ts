@@ -1,5 +1,6 @@
 import Logger from '../../../../../util/Logger';
 import type {
+  PredictAmount,
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
@@ -1184,5 +1185,100 @@ describe('PredictApiReadClient', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(signRead).not.toHaveBeenCalled();
     expect(signOperation).not.toHaveBeenCalled();
+  });
+
+  describe('withdrawals', () => {
+    const previewId = 'b3c2a1d0-1111-4222-8333-444455556666';
+    const bearerOnlyClient = () => {
+      const signRead = jest.fn();
+      const signOperation = jest.fn();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRead,
+        signOperation,
+      });
+      return { signRead, signOperation };
+    };
+
+    it('quotes a fixed amount with owner bearer auth only', async () => {
+      const { signRead, signOperation } = bearerOnlyClient();
+      fetchMock.mockResolvedValueOnce(createResponse({ json: { ok: true } }));
+
+      await client.fetchWithdrawPreview(venueId, {
+        amount: '5.00' as PredictAmount,
+      });
+
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(new URL(url as string).pathname).toBe(
+        '/api/v1/venues/kalshi/withdrawals/preview',
+      );
+      expect(init).toMatchObject({
+        method: 'POST',
+        headers: { Authorization: 'Bearer secret-token' },
+        body: JSON.stringify({ amount: '5.00' }),
+      });
+      expect(signRead).not.toHaveBeenCalled();
+      expect(signOperation).not.toHaveBeenCalled();
+    });
+
+    it('quotes a sweep without an amount field', async () => {
+      bearerOnlyClient();
+      fetchMock.mockResolvedValueOnce(createResponse({ json: { ok: true } }));
+
+      await client.fetchWithdrawPreview(venueId, { sweepAll: true });
+
+      const [, init] = fetchMock.mock.calls[0];
+      expect(init).toMatchObject({ body: JSON.stringify({ sweepAll: true }) });
+    });
+
+    it('commits a preview by reference with an empty body', async () => {
+      bearerOnlyClient();
+      fetchMock.mockResolvedValueOnce(createResponse({ json: { ok: true } }));
+
+      await client.commitWithdraw(venueId, previewId);
+
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(new URL(url as string).pathname).toBe(
+        `/api/v1/venues/kalshi/withdrawals/${previewId}/commit`,
+      );
+      expect(init).toMatchObject({
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+    });
+
+    it('reads the receipt without a body or a signature', async () => {
+      const { signRead } = bearerOnlyClient();
+      fetchMock.mockResolvedValueOnce(createResponse({ json: { ok: true } }));
+
+      await client.observeWithdraw(venueId, previewId);
+
+      const [url, init] = fetchMock.mock.calls[0];
+      const parsed = new URL(url as string);
+      expect(parsed.pathname).toBe(
+        `/api/v1/venues/kalshi/withdrawals/${previewId}`,
+      );
+      expect(parsed.search).toBe('');
+      expect(init).toMatchObject({ method: 'GET' });
+      expect(signRead).not.toHaveBeenCalled();
+    });
+
+    it('does not send a quote whose signal aborted while the token resolved', async () => {
+      bearerOnlyClient();
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(
+        client.fetchWithdrawPreview(
+          venueId,
+          { sweepAll: true },
+          { signal: controller.signal },
+        ),
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
   });
 });

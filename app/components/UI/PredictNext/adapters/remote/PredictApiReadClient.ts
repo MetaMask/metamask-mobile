@@ -21,6 +21,7 @@ import type {
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
+  PredictAmount,
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
@@ -103,6 +104,22 @@ export interface PredictApiReadTransport {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  fetchWithdrawPreview(
+    venueId: PredictVenueId,
+    params: FetchWithdrawPreviewBody,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  commitWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  observeWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+
   /** Starts a deposit without a signature. The route stores nothing and
    * answers the values to sign, or the deposit a repeated key created. */
   startDeposit(
@@ -140,6 +157,23 @@ export interface PredictApiReadTransport {
   ): Promise<unknown>;
 }
 
+/** Wire shape of a Withdraw Preview request: exactly one of a fixed amount or
+ * a sweep. The backend's strict schema rejects any other key, so a client
+ * identity, destination, or idempotency key can never be smuggled in. */
+export type FetchWithdrawPreviewBody =
+  | { amount: PredictAmount }
+  | { sweepAll: true };
+
+/** A JSON body this client posts. Undefined posts no body at all. */
+type PredictApiPostBody =
+  | FetchOrderPreviewParams
+  | FetchOrderCommitParams
+  | FetchWithdrawPreviewBody
+  | PredictDepositParams
+  | PredictDepositTransferParams
+  | Record<string, never>
+  | undefined;
+
 type PredictApiReadQueryParams = FetchFeedParams &
   Partial<FetchSearchParams> & {
     range?: PredictMarketHistoryRange;
@@ -147,14 +181,6 @@ type PredictApiReadQueryParams = FetchFeedParams &
     sort?: FetchPositionsParams['sort'];
     state?: 'unresolved' | 'open';
   };
-
-/** A JSON body this client posts. Undefined posts no body at all. */
-type PredictApiPostBody =
-  | FetchOrderPreviewParams
-  | FetchOrderCommitParams
-  | PredictDepositParams
-  | PredictDepositTransferParams
-  | undefined;
 
 export interface PredictApiReadClientOptions {
   baseUrl?: string;
@@ -450,6 +476,23 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   }
 
   /**
+   * Quotes one Withdraw Preview. Bearer-only: the backend resolves the payout
+   * destination and owns the idempotency key, so the phone sends the amount
+   * shape and nothing else.
+   */
+  fetchWithdrawPreview(
+    venueId: PredictVenueId,
+    params: FetchWithdrawPreviewBody,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'withdrawals', 'preview'],
+      params,
+      options,
+    );
+  }
+
+  /**
    * The first deposit call: bearer-only, with no signature. The route
    * stores nothing and calls nothing. It answers the `sign_request` step,
    * or the stored deposit when `clientOperationId` was used before.
@@ -462,6 +505,23 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     return this.#postAuthenticated(
       ['v1', 'venues', venueId, 'deposits'],
       { amount: params.amount, clientOperationId: params.clientOperationId },
+      options,
+    );
+  }
+
+  /**
+   * Commits a Withdraw Preview by reference only. The body is `{}`: every
+   * executable detail comes from the stored, expiring Preview the
+   * authenticated profile owns.
+   */
+  commitWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'withdrawals', previewId, 'commit'],
+      {},
       options,
     );
   }
@@ -503,6 +563,20 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   ): Promise<unknown> {
     return this.#get(
       ['v1', 'venues', venueId, 'deposits', operationId],
+      undefined,
+      options,
+    );
+  }
+
+  /** The withdrawal's receipt. Never submits: a `pending` or `processing`
+   * operation is resolved from the backend's own venue reads. */
+  observeWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'withdrawals', previewId],
       undefined,
       options,
     );
@@ -842,11 +916,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         intent,
         signing,
         send,
-        async (response) => ({
-          status: response.status,
-          code: response.ok
+        async (sent) => ({
+          status: sent.status,
+          code: sent.ok
             ? undefined
-            : await this.#extractErrorCode(response.clone()),
+            : await this.#extractErrorCode(sent.clone()),
         }),
       );
       return await this.#parseBody(response);

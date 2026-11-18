@@ -3,19 +3,35 @@ import type { DataServiceInvalidateQueriesAction } from '@metamask/base-data-ser
 import type { Json } from '@metamask/utils';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
 import type { VenueFundingAdapter } from '../adapters/types';
-import { portfolioQueries } from '../queries/portfolioQueries';
+import {
+  portfolioQueries,
+  portfolioQueryFamilies,
+} from '../queries/portfolioQueries';
 import type {
   PredictDepositApproval,
   PredictDepositOperation,
   PredictDepositParams,
   PredictDepositStatus,
   PredictDepositTransferParams,
+  PredictReadOptions,
   PredictVenueId,
+  PredictWithdrawPreview,
+  PredictWithdrawPreviewParams,
+  PredictWithdrawReceipt,
+  PredictWithdrawReceiptStatus,
 } from '../types';
+import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_FUNDING_SERVICE_NAME = 'PredictFundingService' as const;
+
+/** Receipt statuses that end the Withdraw workflow with a known outcome, so
+ * the balance reads must be refreshed. `rejected` ended before money moved. */
+const TERMINAL_WITHDRAW_STATUSES: Partial<
+  Record<PredictWithdrawReceiptStatus, true>
+> = { settled: true, failed: true, returned: true };
 
 /** Statuses after which a deposit needs nothing more from the app. Only
  * `failed` is final: see {@link stageOf}. */
@@ -138,8 +154,9 @@ export type PredictFundingServiceActions =
   | PredictFundingServiceListOpenDepositsAction
   | PredictFundingServiceReportDepositTransferAction
   | PredictFundingServiceCancelDepositAction
-  // Consumed action: a completed deposit changed the Balance. The cache
-  // itself stays owned by the portfolio service.
+  // Consumed action: a Deposit that completes, or a Withdrawal that leaves
+  // or returns money, changed the Balance. The cache itself stays owned by
+  // the portfolio service.
   | DataServiceInvalidateQueriesAction<'PredictPortfolioService'>;
 
 /**
@@ -172,11 +189,12 @@ export interface PredictFundingServiceOptions {
 }
 
 /**
- * Owns the deposit workflow for one Venue: starting and signing a deposit,
- * reading it, reporting its transfer and cancelling it. The backend's
- * deposit operation is the record; this service keeps only what it needs
- * in memory to announce each resolution once, and nothing about a deposit
- * is persisted on the phone.
+ * Owns the funding workflows for one Venue.
+ *
+ * **Deposits.** Starting and signing a deposit, reading it, reporting its
+ * transfer and cancelling it. The backend's deposit operation is the record;
+ * this service keeps only what it needs in memory to announce each
+ * resolution once, and nothing about a deposit is persisted on the phone.
  *
  * **One deposit per key.** Repeated `prepareDeposit` calls with one
  * `clientOperationId` share the call in flight. The backend also answers a
@@ -192,9 +210,18 @@ export interface PredictFundingServiceOptions {
  * a call sent after the answer the service last took arrived. The caller
  * still gets every answer as the backend sent it.
  *
+ * **Withdrawals.** The server quote, the Commit of an approved quote, and the
+ * receipt read a surface polls. The phone supplies no identity, destination,
+ * or idempotency key — the backend owns all three — so a retry only ever
+ * references `previewId`, and repeated Commits converge on one operation.
+ * Observation belongs to the surface: {@link useWithdrawReceipt} polls this
+ * service only while the Withdraw sheet is mounted, and nothing is persisted.
+ *
  * **Identity.** {@link PredictFundingService.clearState} forgets every
- * deposit and detaches calls in flight, so nothing the previous person
- * started is announced for the next one.
+ * deposit and detaches calls in flight, and
+ * {@link PredictFundingService.abandon} forgets every receipt transition
+ * this session saw, so nothing the previous person started is announced or
+ * read for the next one.
  */
 export class PredictFundingService {
   readonly #messenger: PredictFundingServiceMessenger;
@@ -207,8 +234,13 @@ export class PredictFundingService {
   #clock = 0;
   /** `prepareDeposit` calls in flight, by `clientOperationId`. */
   readonly #preparing = new Map<string, Promise<PredictDepositOperation>>();
-  /** Bumped by `clearState`: answers to older calls are not tracked. */
+  /** The last status each Preview's receipt reported, so a balance read is
+   * invalidated once per transition rather than once per poll. */
+  readonly #statusByPreview = new Map<string, PredictWithdrawReceiptStatus>();
+  /** Bumped by `clearState` and `abandon`: answers to older calls are not
+   * tracked, and a session that quoted a Preview cannot commit it. */
   #generation = 0;
+  #cleanupLifecycle?: () => void;
 
   constructor({ messenger, funding, venueId }: PredictFundingServiceOptions) {
     this.#messenger = messenger;
@@ -327,6 +359,71 @@ export class PredictFundingService {
     return this.#track(await this.#funding.cancelDeposit(operationId), ticket);
   }
 
+  /** Quotes one Withdrawal. Never cached: the quote carries the destination
+   * the backend resolved and the expiry it set. */
+  async requestWithdrawPreview(
+    venueId: PredictVenueId,
+    params: PredictWithdrawPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawPreview> {
+    this.#assertVenue(venueId);
+    const generation = this.#generation;
+    const preview = await withPredictNextTrace(
+      {
+        method: 'requestWithdrawPreview',
+        name: TraceName.PredictNextWithdrawPreview,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId: this.#venueId },
+        data: { mode: this.#modeOf(params) },
+      },
+      () => this.#funding.previewWithdraw(params, options),
+    );
+    this.#assertNotAbandoned(generation);
+    return preview;
+  }
+
+  /** Commits a quoted Withdrawal by reference only. The sheet is the one
+   * caller and fences a second tap, so there is nothing to coalesce. */
+  async commitWithdrawPreview(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawReceipt> {
+    this.#assertVenue(venueId);
+    const generation = this.#generation;
+    const receipt = await withPredictNextTrace(
+      {
+        method: 'commitWithdrawPreview',
+        name: TraceName.PredictNextWithdrawCommit,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId: this.#venueId },
+        resultData: (result) => ({ status: result.status }),
+      },
+      () => this.#funding.commitWithdraw(previewId, options),
+    );
+    this.#assertNotAbandoned(generation);
+    // Recording invalidates the balance reads the receipt's status implies,
+    // exactly as an observation transition does.
+    this.#recordStatus(receipt);
+    return receipt;
+  }
+
+  /** Reads the canonical receipt. Never submits: an unresolved operation is
+   * resolved by the backend's own venue reads. A surface calls this on its
+   * backoff schedule while it is mounted. */
+  async observeWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawReceipt> {
+    this.#assertVenue(venueId);
+    const generation = this.#generation;
+    const receipt = await this.#funding.observeWithdraw(previewId, options);
+    this.#assertNotAbandoned(generation);
+    this.#recordStatus(receipt);
+    return receipt;
+  }
+
   /**
    * Forgets every deposit this process saw and detaches calls in flight.
    * Engine `resetState` calls it when the wallet, and so the Predict User,
@@ -338,8 +435,30 @@ export class PredictFundingService {
     this.#preparing.clear();
   }
 
+  /**
+   * Abandons every Withdrawal this session knows about. Called when the
+   * platform replaces the Predict User: the operations belong to somebody
+   * else, so the service must neither read their receipts nor refresh the
+   * balance reads they describe.
+   */
+  abandon(): void {
+    this.#generation += 1;
+    this.#statusByPreview.clear();
+  }
+
+  /** Runtime composition registers the subscriptions it owns around this
+   * service, so destroying the service releases them too. */
+  setLifecycleCleanup(cleanup: () => void): void {
+    this.#cleanupLifecycle = cleanup;
+  }
+
   destroy(): void {
+    // Nothing may read a deposit or a Withdrawal once the service is gone: a
+    // destroyed Engine must not read the previous person's receipt.
+    this.abandon();
     this.clearState();
+    this.#cleanupLifecycle?.();
+    this.#cleanupLifecycle = undefined;
     this.#messenger.unregisterActionHandler(
       'PredictFundingService:prepareDeposit',
     );
@@ -411,6 +530,33 @@ export class PredictFundingService {
     }
   }
 
+  /** The receipt a Commit or an observation produced becomes the state the
+   * sheet renders, and a status transition invalidates the balance reads. */
+  #recordStatus(receipt: PredictWithdrawReceipt): void {
+    const previous = this.#statusByPreview.get(receipt.previewId);
+    this.#statusByPreview.set(receipt.previewId, receipt.status);
+    // One invalidation per transition: entering `processing` means the
+    // account balance moved, and a terminal status settles what is left.
+    if (previous === receipt.status) {
+      return;
+    }
+    if (
+      receipt.status === 'processing' ||
+      TERMINAL_WITHDRAW_STATUSES[receipt.status] === true
+    ) {
+      this.#invalidateFundingReads();
+    }
+  }
+
+  /** Fire-and-forget: a Withdrawal that enters or leaves `processing`
+   * changed Balance and Summary. A failed invalidation must not fail the
+   * committed Withdrawal; the reads stay stale only until their next fetch. */
+  #invalidateFundingReads(): void {
+    for (const family of portfolioQueryFamilies(this.#venueId)) {
+      this.#invalidateFamily(family).catch(() => undefined);
+    }
+  }
+
   async #invalidateFamily(family: [string, ...Json[]]): Promise<void> {
     try {
       await this.#messenger.call('PredictPortfolioService:invalidateQueries', {
@@ -418,15 +564,29 @@ export class PredictFundingService {
       });
     } catch (error) {
       Logger.error(
-        ensureError(error, 'PredictFundingService.invalidateBalanceReads'),
-        'PredictNext: failed to refresh the Balance after a deposit',
+        ensureError(error, 'PredictFundingService.invalidateFundingReads'),
+        'PredictNext: failed to refresh balance reads after funding',
       );
     }
   }
 
+  #modeOf(params: PredictWithdrawPreviewParams): 'fixed' | 'sweep_all' {
+    return 'sweepAll' in params ? 'sweep_all' : 'fixed';
+  }
+
   #assertVenue(venueId: PredictVenueId): void {
     if (venueId !== this.#venueId) {
-      throw PredictError.from(PredictErrorCode.UNSUPPORTED_VENUE);
+      throw PredictError.from(PredictErrorCode.UNSUPPORTED_VENUE, {
+        metadata: { venueId },
+      });
+    }
+  }
+
+  #assertNotAbandoned(generation: number): void {
+    if (generation !== this.#generation) {
+      // The session that quoted the Preview is gone; the same code the
+      // backend uses for a rejected token keeps this out of user copy.
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
     }
   }
 }

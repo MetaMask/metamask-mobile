@@ -41,6 +41,9 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   listOpenDeposits: jest.fn(),
   reportDepositTransfer: jest.fn(),
   cancelDeposit: jest.fn(),
+  fetchWithdrawPreview: jest.fn(),
+  commitWithdraw: jest.fn(),
+  observeWithdraw: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter funding', () => {

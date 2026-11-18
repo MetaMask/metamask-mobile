@@ -11,6 +11,7 @@ import type {
 } from '../../../components/UI/PredictNext/services/PredictFundingService';
 import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import type { PredictDeviceAuthServiceActions } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
+import type { GlobalActions, GlobalEvents } from '../types';
 import {
   getPredictFundingServiceInitMessenger,
   getPredictFundingServiceMessenger,
@@ -43,7 +44,7 @@ describe('getPredictFundingServiceMessenger', () => {
     expect(handler).toHaveBeenCalledWith(KALSHI_VENUE_ID);
   });
 
-  it('delegates the portfolio invalidation action to the service messenger', async () => {
+  it('delegates only the balance-family invalidation action it consumes', async () => {
     const rootMessenger = getRootMessenger();
     const invalidateQueries = jest.fn().mockResolvedValue(undefined);
     rootMessenger.registerActionHandler(
@@ -65,7 +66,27 @@ describe('getPredictFundingServiceMessenger', () => {
 });
 
 describe('getPredictFundingServiceInitMessenger', () => {
-  it('delegates the bearer token and the deposit signer', async () => {
+  it('delegates the bearer token used by the unauthenticated-withdraw routes', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      AuthenticationController.AuthenticationControllerGetBearerTokenAction,
+      never
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    rootMessenger.registerActionHandler(
+      'AuthenticationController:getBearerToken',
+      jest.fn().mockResolvedValue('bearer-token'),
+    );
+
+    const initMessenger = getPredictFundingServiceInitMessenger(
+      rootMessenger as never,
+    );
+
+    await expect(
+      initMessenger.call('AuthenticationController:getBearerToken'),
+    ).resolves.toBe('bearer-token');
+  });
+
+  it('delegates the bearer token and the device signer the deposit routes need', async () => {
     const root = new Messenger<
       MockAnyNamespace,
       | AuthenticationController.AuthenticationControllerGetBearerTokenAction
@@ -107,5 +128,61 @@ describe('getPredictFundingServiceInitMessenger', () => {
     expect(signOperation).toHaveBeenCalledWith('funding.deposit', {
       confirmed: true,
     });
+  });
+
+  it('delegates the identity events that abandon observation', () => {
+    const rootMessenger = new Messenger<MockAnyNamespace, never, GlobalEvents>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const initMessenger = getPredictFundingServiceInitMessenger(
+      rootMessenger as unknown as Messenger<
+        MockAnyNamespace,
+        GlobalActions,
+        GlobalEvents
+      >,
+    );
+    const abandon = jest.fn();
+
+    initMessenger.subscribe('KeyringController:lock', abandon);
+    initMessenger.subscribe('KeyringController:unlock', abandon);
+    initMessenger.subscribe('AuthenticationController:stateChange', abandon);
+    initMessenger.subscribe('AuthenticationController:profileSignIn', abandon);
+    rootMessenger.publish('KeyringController:lock');
+
+    expect(abandon).toHaveBeenCalledTimes(1);
+  });
+
+  it('delegates the session state actions a session change needs', () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      GlobalActions | PredictDeviceAuthServiceActions,
+      never
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const signedIn = { isSignedIn: true } as never;
+    const keyringState = { isUnlocked: true } as never;
+    const invalidateA2t = jest.fn();
+    rootMessenger.registerActionHandler(
+      'AuthenticationController:getState',
+      () => signedIn,
+    );
+    rootMessenger.registerActionHandler(
+      'KeyringController:getState',
+      () => keyringState,
+    );
+    rootMessenger.registerActionHandler(
+      'PredictDeviceAuthService:invalidateA2t',
+      invalidateA2t,
+    );
+    const initMessenger = getPredictFundingServiceInitMessenger(
+      rootMessenger as never,
+    );
+
+    expect(initMessenger.call('AuthenticationController:getState')).toBe(
+      signedIn,
+    );
+    expect(initMessenger.call('KeyringController:getState')).toBe(keyringState);
+    initMessenger.call('PredictDeviceAuthService:invalidateA2t');
+
+    expect(invalidateA2t).toHaveBeenCalledTimes(1);
   });
 });

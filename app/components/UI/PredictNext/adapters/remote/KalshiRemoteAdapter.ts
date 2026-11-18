@@ -10,6 +10,13 @@ import {
   parsePredictUnresolvedOrdersPage,
 } from '../../contracts/v1/trading';
 import {
+  parsePredictDepositOperation,
+  parsePredictDepositStart,
+  parsePredictOpenDeposits,
+  parsePredictWithdrawPreview,
+  parsePredictWithdrawReceipt,
+} from '../../contracts/v1/funding';
+import {
   parsePredictEvent,
   parsePredictFeed,
   parsePredictMarketHistory,
@@ -17,11 +24,6 @@ import {
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { parsePredictVenueCatalog } from '../../contracts/v1/venueCatalog';
-import {
-  parsePredictDepositOperation,
-  parsePredictDepositStart,
-  parsePredictOpenDeposits,
-} from '../../contracts/v1/funding';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
@@ -34,6 +36,7 @@ import type {
   PredictDepositOperation,
   PredictOrderReview,
   PredictVenueId,
+  PredictWithdrawReceipt,
 } from '../../types';
 import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
 import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
@@ -88,6 +91,7 @@ const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> =
     venue_profile_update_required: PredictErrorCode.APP_UPDATE_REQUIRED,
     venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
     geo_blocked: PredictErrorCode.GEO_BLOCKED,
+    amount_below_minimum: PredictErrorCode.AMOUNT_BELOW_MINIMUM,
     invalid_request: PredictErrorCode.INVALID_RESPONSE,
     unauthorized: PredictErrorCode.UNAUTHENTICATED,
     venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
@@ -248,6 +252,22 @@ const mapError = (
  * every other caller takes the Venue from the Active Venue, a route, or an
  * intent. */
 export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
+
+/** Parses a receipt and re-checks the ownership the parser cannot know: a
+ * response must describe the Preview this session asked about, in this
+ * Venue. Both the Commit and the receipt read go through it, so the two can
+ * never drift apart. */
+const parseOwnWithdrawReceipt = (
+  value: unknown,
+  venueId: PredictVenueId,
+  previewId: string,
+): PredictWithdrawReceipt => {
+  const receipt = parsePredictWithdrawReceipt(value);
+  if (receipt.venueId !== venueId || receipt.previewId !== previewId) {
+    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+  }
+  return receipt;
+};
 
 export interface KalshiOrderSigningDependencies {
   getApprovalGeneration: () => number | undefined;
@@ -547,7 +567,50 @@ export class KalshiRemoteAdapter {
       }
       return deposit;
     };
+    // Withdrawals are bearer-only and server-pinned: the backend owns the
+    // destination, the expiry, and the idempotency key, so there is nothing
+    // for the adapter to pin locally.
     this.funding = {
+      previewWithdraw: async (params, options) => {
+        try {
+          const value = await client.fetchWithdrawPreview(
+            this.venueId,
+            params,
+            options,
+          );
+          const result = parsePredictWithdrawPreview(value);
+          if (result.venueId !== this.venueId) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error, 'preview');
+        }
+      },
+      commitWithdraw: async (previewId, options) => {
+        try {
+          const value = await client.commitWithdraw(
+            this.venueId,
+            previewId,
+            options,
+          );
+          return parseOwnWithdrawReceipt(value, this.venueId, previewId);
+        } catch (error) {
+          return mapError(error, 'commit');
+        }
+      },
+      observeWithdraw: async (previewId, options) => {
+        try {
+          const value = await client.observeWithdraw(
+            this.venueId,
+            previewId,
+            options,
+          );
+          return parseOwnWithdrawReceipt(value, this.venueId, previewId);
+        } catch (error) {
+          return mapError(error, 'observe');
+        }
+      },
       prepareDeposit: async (params, approval, options) => {
         // Copy before the network await: later form edits are not approval.
         params = {
