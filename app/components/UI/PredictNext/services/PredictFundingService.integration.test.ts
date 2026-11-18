@@ -182,7 +182,13 @@ describe('PredictNext Withdraw workflow', () => {
           },
         },
         [COMMIT_PATH]: {
-          body: receiptOf('processing', { idempotencyKey: 'server-owned-key' }),
+          // The receipt restates the sweep the quote approved; a fixed
+          // receipt here would contradict the pinned intent.
+          body: receiptOf('processing', {
+            mode: 'sweep_all',
+            requestedAmount: undefined,
+            idempotencyKey: 'server-owned-key',
+          }),
         },
       }),
     );
@@ -210,6 +216,7 @@ describe('PredictNext Withdraw workflow', () => {
     let available = '12.00';
     const harness = buildHarness(
       routePredictApi({
+        [PREVIEW_PATH]: { body: previewBody },
         [COMMIT_PATH]: { body: receiptOf('processing') },
         [OBSERVE_PATH]: { body: receiptOf('settled') },
         [BALANCE_PATH]: () => ({ body: balanceBody(available) }),
@@ -228,6 +235,11 @@ describe('PredictNext Withdraw workflow', () => {
     ]);
     await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
 
+    // Committing references an approved quote: the service pins it at request
+    // time, so a commit for an unquoted preview is refused by design.
+    await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+      amount: '5.00' as PredictAmount,
+    });
     await service.commitWithdrawPreview(KALSHI_VENUE_ID, PREVIEW_ID);
     expect(invalidationCalls()).toEqual(families);
     available = '7.00';
@@ -302,7 +314,7 @@ describe('PredictNext Withdraw workflow', () => {
 
     const pending = service.observeWithdraw(KALSHI_VENUE_ID, PREVIEW_ID);
     await requested;
-    service.abandon();
+    service.changeIdentity();
     release({ body: receiptOf('settled') });
 
     await expect(pending).rejects.toMatchObject({

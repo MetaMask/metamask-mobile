@@ -111,6 +111,7 @@ describe('resolvePredictFunding', () => {
       activeVenue: active('polymarket'),
       getCapabilities: () => ({ status: 'loading' }),
       kalshiDepositsEnabled: false,
+      kalshiWithdrawalsEnabled: false,
     });
 
     expect(result).toStrictEqual({
@@ -284,6 +285,7 @@ describe('resolvePredictFunding', () => {
             getCapabilities: () =>
               descriptor('kalshi', ['buy', 'sell', action]),
             kalshiDepositsEnabled: false,
+            kalshiWithdrawalsEnabled: false,
           }),
         ).toStrictEqual({ status: 'unavailable', reason: 'resolving' });
       },
@@ -299,6 +301,7 @@ describe('resolvePredictFunding', () => {
             getCapabilities: () =>
               descriptor('kalshi', ['buy', 'sell', action]),
             kalshiDepositsEnabled: false,
+            kalshiWithdrawalsEnabled: false,
           }),
         ).toStrictEqual({ status: 'unavailable', reason: 'unavailable' });
       },

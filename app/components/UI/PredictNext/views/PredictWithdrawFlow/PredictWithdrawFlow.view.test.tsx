@@ -779,7 +779,7 @@ describe('PredictWithdrawFlow', () => {
     expect(screen.getByTestId(PredictWithdrawFlowTestIds.BACK)).toBeDisabled();
     const backListener = hardwareBack.mock.calls
       .filter(([event]) => event === 'hardwareBackPress')
-      .slice(-1)[0]?.[1];
+      .slice(-1)[0]?.[1] as (() => boolean | null | undefined) | undefined;
     expect(backListener).toBeDefined();
     act(() => {
       backListener?.();

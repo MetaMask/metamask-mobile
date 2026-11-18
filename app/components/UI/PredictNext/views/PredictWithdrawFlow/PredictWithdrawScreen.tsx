@@ -10,7 +10,7 @@ import {
   AccessibilityInfo,
   findNodeHandle,
   ScrollView,
-  Text as NativeText,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -268,7 +268,7 @@ export const PredictWithdrawScreen = () => {
     withdrawFlowReducer,
     initialWithdrawFlowState,
   );
-  const phaseHeadingRef = useRef<NativeText>(null);
+  const phaseHeadingRef = useRef<View>(null);
   useEffect(() => {
     const heading = findNodeHandle(phaseHeadingRef.current);
     if (heading !== null) {
@@ -701,14 +701,15 @@ export const PredictWithdrawScreen = () => {
         />
       </Box>
       <Box twClassName="flex-1">
-        <Text
-          ref={phaseHeadingRef}
-          accessibilityRole="header"
-          variant={TextVariant.HeadingSm}
-          twClassName="px-4 pt-4"
-        >
-          {strings(`predict_next.withdraw.phase.${state.phase}`)}
-        </Text>
+        <View ref={phaseHeadingRef} collapsable={false}>
+          <Text
+            accessibilityRole="header"
+            variant={TextVariant.HeadingSm}
+            twClassName="px-4 pt-4"
+          >
+            {strings(`predict_next.withdraw.phase.${state.phase}`)}
+          </Text>
+        </View>
         {renderInput()}
         {renderConfirm()}
         {renderStatus()}
