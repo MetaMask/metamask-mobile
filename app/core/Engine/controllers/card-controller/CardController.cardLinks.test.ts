@@ -9,7 +9,11 @@ import type {
   CardControllerState,
   CardLink,
 } from './types';
-import type { ICardProvider } from './provider-types';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+  type ICardProvider,
+} from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import Logger from '../../../../util/Logger';
 
@@ -601,6 +605,7 @@ describe('CardController card links', () => {
         provider: 'baanx',
         outcome: 'written',
         source: 'session',
+        change: 'created',
       });
     });
 
@@ -671,7 +676,89 @@ describe('CardController card links', () => {
       );
     });
 
-    it('skips when any row already exists for the provider', async () => {
+    it('upgrades an onboarding row to active and keeps its account ref', async () => {
+      const { controller, cardService, signPersonalMessage } = setup({
+        keyrings: [{ type: 'Ledger Hardware', accounts: [SELECTED_ADDRESS] }],
+        state: sessionHome({
+          cardLinks: [
+            link({
+              status: 'onboarding',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        }),
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(signPersonalMessage).not.toHaveBeenCalled();
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', providerCardholderId: 'holder-1' },
+        'token-1',
+      );
+      expect(mockTrackEvent.mock.calls[0][0].properties).toStrictEqual({
+        provider: 'baanx',
+        outcome: 'written',
+        source: 'session',
+        change: 'upgraded',
+      });
+    });
+
+    it('attaches an account ref when upgrading a row that has none', async () => {
+      const { controller, cardService } = setup({
+        state: sessionHome({
+          cardLinks: [link({ status: 'onboarding', linkedAccountRef: null })],
+        }),
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        {
+          status: 'active',
+          providerCardholderId: 'holder-1',
+          linkedAccountRef: refFor(SELECTED_ADDRESS),
+        },
+        'token-1',
+      );
+    });
+
+    it('leaves an active row alone when home data has no card', async () => {
+      const { controller, cardService } = setup({
+        state: sessionHome({
+          cardLinks: [link({ status: 'active' })],
+          cardHomeData: {
+            card: null,
+            account: { verificationStatus: 'PENDING' },
+          } as unknown as CardControllerState['cardHomeData'],
+        }),
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+    });
+
+    it('leaves an onboarding row alone when the provider has not reported a card', async () => {
+      const { controller, cardService } = setup({
+        state: sessionHome({
+          cardLinks: [link({ status: 'onboarding' })],
+          cardHomeData: {
+            card: null,
+            account: { verificationStatus: 'PENDING' },
+          } as unknown as CardControllerState['cardHomeData'],
+        }),
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+    });
+
+    it('leaves a closed row alone', async () => {
       const { controller, cardService } = setup({
         state: sessionHome({ cardLinks: [link({ status: 'closed' })] }),
       });
@@ -792,6 +879,108 @@ describe('CardController card links', () => {
       await controller.fetchCardLinks();
 
       expect(cardService.putCardLink).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('recording a created card', () => {
+    const created = { cardId: 'card-1' };
+    const storedTokens = {
+      accessToken: 'at',
+      accessTokenExpiresAt: Date.now() + 60_000,
+      location: 'international',
+      cardholderAccountId: 'holder-1',
+      accountAddress: SELECTED_ADDRESS,
+    };
+
+    beforeEach(() => {
+      jest.spyOn(CardTokenStore, 'get').mockResolvedValue(storedTokens);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('writes an active link without an account ref when the card is created', async () => {
+      const createCard = jest.fn().mockResolvedValue(created);
+      const { controller, cardService, signPersonalMessage } = setup({
+        provider: {
+          createCard,
+          validateTokens: jest.fn().mockReturnValue('valid'),
+        },
+        state: { activeProviderId: 'immersve' },
+      });
+
+      await expect(controller.createCard('fs-1')).resolves.toStrictEqual(
+        created,
+      );
+      await flush();
+
+      expect(signPersonalMessage).not.toHaveBeenCalled();
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'immersve',
+        { status: 'active', providerCardholderId: 'holder-1' },
+        'token-1',
+      );
+    });
+
+    it('writes an active link when the card already exists and still throws', async () => {
+      const conflict = new CardProviderError(
+        CardProviderErrorCode.Conflict,
+        'exists',
+      );
+      const createCard = jest.fn().mockRejectedValue(conflict);
+      const { controller, cardService } = setup({
+        provider: {
+          createCard,
+          validateTokens: jest.fn().mockReturnValue('valid'),
+        },
+        state: { activeProviderId: 'immersve' },
+      });
+
+      await expect(controller.createCard('fs-1')).rejects.toBe(conflict);
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'immersve',
+        { status: 'active', providerCardholderId: 'holder-1' },
+        'token-1',
+      );
+    });
+
+    it('does not write when card creation fails', async () => {
+      const createCard = jest.fn().mockRejectedValue(new Error('upstream'));
+      const { controller, cardService } = setup({
+        provider: {
+          createCard,
+          validateTokens: jest.fn().mockReturnValue('valid'),
+        },
+        state: { activeProviderId: 'immersve' },
+      });
+
+      await expect(controller.createCard('fs-1')).rejects.toThrow('upstream');
+      await flush();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+    });
+
+    it('does not write when cardLinkApi is off', async () => {
+      const createCard = jest.fn().mockResolvedValue(created);
+      const { controller, cardService } = setup({
+        flagEnabled: false,
+        provider: {
+          createCard,
+          validateTokens: jest.fn().mockReturnValue('valid'),
+        },
+        state: { activeProviderId: 'immersve' },
+      });
+
+      await expect(controller.createCard('fs-1')).resolves.toStrictEqual(
+        created,
+      );
+      await flush();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
     });
   });
 

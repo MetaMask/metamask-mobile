@@ -770,7 +770,8 @@ export class CardController extends BaseController<
   /**
    * A restored provider session never passes through login, so it never writes
    * a card link. Once this session has both a fresh link read and card home
-   * data, create the missing row. One backfill runs at a time.
+   * data, create the missing row or move an onboarding row to active. A closed
+   * row is the server's decision and is left alone. One backfill runs at a time.
    */
   async #backfillSessionCardLink(): Promise<void> {
     if (!this.#cardLinkBackfillPromise) {
@@ -807,7 +808,6 @@ export class CardController extends BaseController<
         cardLinks === null ||
         cardHomeDataStatus !== 'success' ||
         !cardHomeDataFetchedThisSession ||
-        cardLinks.some((link) => link.provider === activeProviderId) ||
         this.#cardLinkBackfillAttempted.has(activeProviderId)
       ) {
         return;
@@ -822,10 +822,27 @@ export class CardController extends BaseController<
         home?.card != null || home?.account?.verificationStatus === 'VERIFIED'
           ? 'active'
           : 'onboarding';
-      const address = await this.#backfillLinkedAccountAddress(
-        activeProviderId,
-        home?.primaryFundingAsset?.walletAddress,
+      const existing = latestByUpdatedAt(
+        cardLinks.filter((link) => link.provider === activeProviderId),
       );
+      // Status only moves forward. An active row is already current, and an
+      // onboarding row stays until the provider reports a card.
+      if (existing?.status === 'closed') return;
+      if (
+        existing &&
+        (existing.status === 'active' || status === 'onboarding')
+      ) {
+        return;
+      }
+
+      // A row that already names an account keeps that ref. Sending another
+      // address would replace it and ask for a signature.
+      const address = existing?.linkedAccountRef
+        ? undefined
+        : await this.#backfillLinkedAccountAddress(
+            activeProviderId,
+            home?.primaryFundingAsset?.walletAddress,
+          );
       const providerCardholderId =
         await this.#storedCardholderId(activeProviderId);
 
@@ -850,6 +867,7 @@ export class CardController extends BaseController<
           provider: activeProviderId,
           outcome,
           source: 'session',
+          change: existing ? 'upgraded' : 'created',
         });
       }
     } catch (error) {
@@ -2841,7 +2859,33 @@ export class CardController extends BaseController<
         'Card creation not supported',
       );
     }
-    return this.#withAuthRetry((tokens) => createCard(fundingSourceId, tokens));
+    const pid = this.state.activeProviderId;
+    try {
+      const result = await this.#withAuthRetry((tokens) =>
+        createCard(fundingSourceId, tokens),
+      );
+      this.#recordCreatedCard(pid);
+      return result;
+    } catch (error) {
+      if (
+        error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.Conflict
+      ) {
+        this.#recordCreatedCard(pid);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * The card now exists at the provider. Record it active without an address,
+   * so an existing account ref stays put and no wallet is asked to sign.
+   */
+  #recordCreatedCard(provider: CardProviderId | null): void {
+    if (!provider) return;
+    this.#recordProviderMilestone(provider, 'active', {}, 'createCard').catch(
+      () => undefined,
+    );
   }
 
   async getContactDetails(): Promise<CardContactDetails> {
