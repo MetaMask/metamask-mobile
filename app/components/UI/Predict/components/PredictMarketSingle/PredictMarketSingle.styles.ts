@@ -17,6 +17,14 @@ const styleSheet = (params: {
       backgroundColor: theme.colors.background.section,
       borderRadius: 12,
       padding: 16,
+      // Prototype: carousel cards get a solid 1px border.muted, radius matching
+      // the carousel's rounded-2xl clip; padding trimmed 1px for the border.
+      ...(vars.isCarousel && {
+        borderRadius: 16,
+        padding: 15,
+        borderWidth: 1,
+        borderColor: theme.colors.border.muted,
+      }),
       marginTop: 0,
       marginBottom: vars.isCarousel ? 0 : 12,
     },

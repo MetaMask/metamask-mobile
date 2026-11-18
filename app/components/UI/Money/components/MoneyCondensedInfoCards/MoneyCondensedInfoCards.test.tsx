@@ -134,10 +134,10 @@ describe('MoneyCondensedInfoCards', () => {
       expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
     });
 
-    it('draws every card on glass when isGlass is set', () => {
-      const { getAllByTestId } = render(<MoneyCondensedInfoCards isGlass />);
+    it('keeps opaque section cards even when isGlass is set (prototype)', () => {
+      const { queryAllByTestId } = render(<MoneyCondensedInfoCards isGlass />);
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(3);
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
     });
   });
 });

@@ -676,10 +676,13 @@ const BridgeMarketViewContent = ({
               </Box>
             ) : null}
             {shouldShowDiscoveryFeed && shouldShowRobinhoodBanner ? (
-              <RobinhoodBanner
-                onDismiss={dismissRobinhoodBanner}
-                onPress={handleRobinhoodBannerPress}
-              />
+              // Prototype: mt-3 + the inputs' 12px bottom padding = 24px above the banner.
+              <Box twClassName="mt-3">
+                <RobinhoodBanner
+                  onDismiss={dismissRobinhoodBanner}
+                  onPress={handleRobinhoodBannerPress}
+                />
+              </Box>
             ) : null}
             {shouldShowDiscoveryFeed ? (
               <SwapDiscoveryFeed

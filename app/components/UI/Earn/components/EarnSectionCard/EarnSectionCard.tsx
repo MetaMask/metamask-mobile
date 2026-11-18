@@ -25,7 +25,7 @@ const EarnSectionCard = ({
       testID={testID}
       style={({ pressed }) =>
         tw.style(
-          'h-[174px] w-[160px] flex-col justify-between rounded-xl bg-muted p-4',
+          'h-[174px] w-[160px] flex-col justify-between rounded-xl border border-muted bg-muted p-4',
           pressed && 'opacity-70',
         )
       }

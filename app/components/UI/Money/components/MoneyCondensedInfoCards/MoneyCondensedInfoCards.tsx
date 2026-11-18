@@ -18,12 +18,12 @@ import musdCoinImage from '../../../../../images/mm_usd.png';
 import whatYouGetImage from '../../../../../images/mm_what_you_get.png';
 import { Image, ImageProps } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 
 interface MoneyCondensedInfoCardsProps {
   onHowItWorksPress?: () => void;
   onMusdPress?: () => void;
   onWhatYouGetPress?: () => void;
+  /** Prototype: ignored; the cards are always solid background.section. */
   isGlass?: boolean;
 }
 
@@ -32,13 +32,11 @@ const CondensedCard = ({
   title,
   onPress,
   testID,
-  isGlass,
 }: {
   image: Pick<ImageProps, 'source' | 'style' | 'testID'>;
   title: string;
   onPress?: () => void;
   testID: string;
-  isGlass: boolean;
 }) => {
   const tw = useTailwind();
 
@@ -71,16 +69,19 @@ const CondensedCard = ({
   );
 
   return (
-    <Pressable onPress={onPress} testID={testID}>
-      <BoxGlass
-        isGlass={isGlass}
-        radiusClassName="rounded-xl"
-        isInteractive
-        hasSheen
-        style={tw.style('flex-row items-center p-4 gap-4')}
-      >
-        {content}
-      </BoxGlass>
+    // Prototype: solid background.section card with 1px border.muted (no glass).
+    // p-[15px] + 1px border keeps the previous p-4 footprint.
+    <Pressable
+      onPress={onPress}
+      testID={testID}
+      style={({ pressed }) =>
+        tw.style(
+          'flex-row items-center gap-4 rounded-xl border border-muted bg-section p-[15px]',
+          pressed && 'opacity-70',
+        )
+      }
+    >
+      {content}
     </Pressable>
   );
 };
@@ -89,14 +90,12 @@ const MoneyCondensedInfoCards = ({
   onHowItWorksPress,
   onMusdPress,
   onWhatYouGetPress,
-  isGlass = false,
 }: MoneyCondensedInfoCardsProps) => (
   <Box
     twClassName="px-4 py-3 gap-3"
     testID={MoneyCondensedInfoCardsTestIds.CONTAINER}
   >
     <CondensedCard
-      isGlass={isGlass}
       image={{
         source: howItWorksImage,
         style: { height: 58, width: 58 },
@@ -107,7 +106,6 @@ const MoneyCondensedInfoCards = ({
       testID={MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD}
     />
     <CondensedCard
-      isGlass={isGlass}
       image={{
         source: musdCoinImage,
         style: { height: 48, width: 48 },
@@ -118,7 +116,6 @@ const MoneyCondensedInfoCards = ({
       testID={MoneyCondensedInfoCardsTestIds.MUSD_CARD}
     />
     <CondensedCard
-      isGlass={isGlass}
       image={{
         source: whatYouGetImage,
         style: { height: 66, width: 66 },
