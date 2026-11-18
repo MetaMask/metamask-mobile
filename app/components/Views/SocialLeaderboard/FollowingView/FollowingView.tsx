@@ -218,7 +218,10 @@ const FollowingView: React.FC<FollowingViewProps> = ({
     { tab_name: Tab.FOLLOWING, source },
     isActive,
   );
-  const prepareRefresh = useCallback(() => invalidateFollowingFeed(), []);
+  const prepareRefresh = useCallback(
+    () => invalidateFollowingFeed({ refetchType: 'none' }),
+    [],
+  );
   const handleRefresh = useCallback(() => {
     trackInteraction(Interaction.REFRESH);
     setHoldSuggestions(false);

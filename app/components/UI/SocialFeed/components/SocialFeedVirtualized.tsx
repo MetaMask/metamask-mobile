@@ -395,13 +395,16 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   // state once the refreshed feed is the one on screen.
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    // The minimum overlaps the cache drop and the one reload. Starting it
+    // after prepareRefresh would hold the spinner for a second past that reload.
+    const minimumRefresh = waitForMinimumRefresh();
     try {
       if (prepareRefresh) {
         await prepareRefresh();
       }
       await Promise.all([
         enabled ? refreshWithPendingPosts() : undefined,
-        waitForMinimumRefresh(),
+        minimumRefresh,
       ]);
       onRefresh?.();
     } finally {

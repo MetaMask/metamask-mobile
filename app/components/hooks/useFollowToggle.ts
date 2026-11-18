@@ -292,8 +292,21 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         // The V1 Following feed stays cached so a viewer can follow several
         // traders before it reloads. FollowingView refreshes it on return
         // and before a pull-to-refresh refetch. The older following feed
-        // still reloads with the follow lists.
-        await invalidateFollowingQuery();
+        // reloads with the follow lists, in the background, so the count
+        // commit and the analytics event do not wait on that refetch.
+        invalidateFollowingQuery().catch((err: unknown) => {
+          reportSocialServiceFailure(
+            err,
+            {
+              surface: 'follow',
+              operation: 'invalidate_following_feed',
+              extraMessage: 'Following feed refresh failed',
+              source: 'useFollowToggle',
+              endpoint: 'feed',
+            },
+            { breadcrumb: false },
+          );
+        });
         if (requestEpoch !== followToggleSessionEpoch) {
           return;
         }

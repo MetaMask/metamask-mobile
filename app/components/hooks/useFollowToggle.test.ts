@@ -201,6 +201,26 @@ describe('useFollowToggle', () => {
       });
     });
 
+    it('records the follow while the feed reload is still in flight', async () => {
+      mockInvalidateQueries.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow({
+          source: 'leaderboard',
+          traderAddress: '0xabc',
+          traderUsername: 'alice',
+          traderRank: 3,
+          traderAvatarUri: 'https://example.com/avatar.png',
+        });
+      });
+
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+    });
+
     it('refreshes the older following feed and leaves the v1 feed cached', async () => {
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
@@ -420,6 +440,7 @@ describe('useFollowToggleMany', () => {
       followed: [],
       unfollowed: [],
     });
+    mockInvalidateQueries.mockResolvedValue(undefined);
   });
 
   it('tracks follow state independently per trader id', async () => {

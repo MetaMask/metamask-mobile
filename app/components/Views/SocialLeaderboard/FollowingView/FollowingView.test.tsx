@@ -73,7 +73,8 @@ const mockUsePopularTraders = jest.fn(
 );
 
 jest.mock('../../../UI/SocialFeed/data/socialFeedQueries', () => ({
-  invalidateFollowingFeed: () => mockInvalidateFollowingFeed(),
+  invalidateFollowingFeed: (...args: unknown[]) =>
+    mockInvalidateFollowingFeed(...args),
 }));
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
@@ -420,6 +421,9 @@ describe('FollowingView', () => {
     });
 
     expect(mockInvalidateFollowingFeed).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateFollowingFeed).toHaveBeenCalledWith({
+      refetchType: 'none',
+    });
     expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
     expect(
       screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
