@@ -318,6 +318,23 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations', () => ({
   })),
 }));
 
+const mockHomepagePerpsHomeSlot = jest.fn();
+jest.mock('./Sections/Perpetuals/HomepagePerpsHomeSlot', () => {
+  const ReactLib = jest.requireActual('react');
+  const { default: ActualHomepagePerpsHomeSlot } = jest.requireActual(
+    './Sections/Perpetuals/HomepagePerpsHomeSlot',
+  );
+  return {
+    __esModule: true,
+    default: ReactLib.forwardRef(
+      (props: Record<string, unknown>, ref: unknown) => {
+        mockHomepagePerpsHomeSlot(props);
+        return <ActualHomepagePerpsHomeSlot {...props} ref={ref} />;
+      },
+    ),
+  };
+});
+
 const mockBalanceBreakdownSection = jest.fn();
 jest.mock('./Sections/BalanceBreakdown', () => {
   const { View } = jest.requireActual('react-native');
@@ -489,6 +506,19 @@ describe('Homepage', () => {
     expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
       isEnabled: true,
     });
+  });
+
+  it('passes the device tiers to the Perps section', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockHomepagePerpsHomeSlot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deviceCapability: expect.objectContaining({
+          hardwareTier: 'MID',
+          networkTier: 'WIFI',
+        }),
+      }),
+    );
   });
 
   it('keeps the shared provider inert when Perps is disabled', () => {
