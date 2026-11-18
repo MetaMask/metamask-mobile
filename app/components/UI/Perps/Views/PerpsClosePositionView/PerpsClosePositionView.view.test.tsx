@@ -14,7 +14,10 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { addWatchOnlyKeyring } from '../../../../../util/test/watchOnlyKeyring';
+import {
+  addWatchOnlyKeyring,
+  removeWatchOnlyKeyring,
+} from '../../../../../util/test/watchOnlyKeyring';
 import { resetPerpsCloseLocksForTests } from '../../hooks/usePerpsClosePosition';
 import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import {
@@ -733,11 +736,7 @@ describe('PerpsClosePositionView', () => {
   );
 
   describe('watch-only account', () => {
-    const { keyrings } = Engine.context.KeyringController.state;
-
-    afterEach(() => {
-      keyrings.splice(0, keyrings.length);
-    });
+    afterEach(removeWatchOnlyKeyring);
 
     it('keeps the watch-only refusal when the account turns watch-only while the form is open', async () => {
       const position = createLongPositionForViews();

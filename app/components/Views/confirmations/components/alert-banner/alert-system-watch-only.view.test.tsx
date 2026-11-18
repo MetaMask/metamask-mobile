@@ -7,6 +7,7 @@ import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/Hardw
 import { renderComponentViewScreen } from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { withWatchOnlyKeyring } from '../../../../../util/test/watchOnlyKeyring';
+import { withWatchOnlyBuildEnabled } from '../../../../../util/test/watchOnlyBuildEnv';
 import { transferConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import { AlertsContextProvider } from '../../context/alert-system-context';
@@ -35,17 +36,8 @@ function WatchOnlyAlertHarness() {
 }
 
 describeForPlatforms('Alert system (watch-only account)', () => {
-  const originalEnv = { ...process.env };
+  withWatchOnlyBuildEnabled();
   withWatchOnlyKeyring(TRANSFER_SENDER);
-
-  beforeEach(() => {
-    process.env.METAMASK_ENVIRONMENT = 'dev';
-    process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED = 'true';
-  });
-
-  afterEach(() => {
-    process.env = { ...originalEnv };
-  });
 
   it('blocks a send from a watch-only account', async () => {
     const { getByTestId, getByText } = renderComponentViewScreen(

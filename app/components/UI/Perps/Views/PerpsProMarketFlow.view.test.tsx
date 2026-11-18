@@ -38,6 +38,8 @@ import {
 import { wirePerpsControllerForStore } from '../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import { renderPerpsProMarketView } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { clearPendingPerpsCufTraces } from '../utils/perpsCufTrace';
+import { withWatchOnlyKeyring } from '../../../../util/test/watchOnlyKeyring';
+import { strings } from '../../../../../locales/i18n';
 import {
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
@@ -468,4 +470,33 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       ).not.toBeOnTheScreen();
     },
   );
+
+  describe('watch-only account', () => {
+    withWatchOnlyKeyring();
+
+    itForPlatforms(
+      'refuses an open order cancel with the watch-only message and sends no request',
+      async () => {
+        const cancelOrder = jest.mocked(
+          Engine.context.PerpsController.cancelOrder,
+        );
+        cancelOrder.mockClear();
+        renderProMarketScenario({ includeToasts: true });
+        await findPositionsPanel();
+        await openOrdersTab();
+        const ethOrderRow = await screen.findByTestId(
+          getPerpsProOrderRowSelector('ETH', 0),
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+
+        fireEvent.press(within(ethOrderRow).getByTestId(panelIds.ORDER_CANCEL));
+
+        expect(
+          await screen.findByText(strings('watch_only.blocked_message')),
+        ).toBeOnTheScreen();
+        expect(cancelOrder).not.toHaveBeenCalled();
+      },
+    );
+  });
 });

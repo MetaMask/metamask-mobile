@@ -38,6 +38,7 @@ import { usePerpsSharePosition } from './usePerpsSharePosition';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
+import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
 
 const PRO_MARKET_SOURCE = PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN;
 const PRO_MARKET_BUTTON_LOCATION =
@@ -97,6 +98,7 @@ export const usePerpsProPositionsPanelActions =
     const { cancelOrder } = usePerpsTrading();
     const { handleUpdateTPSL } = usePerpsTPSLUpdate();
     const { showToast, PerpsToastOptions } = usePerpsToasts();
+    const { guard: guardWatchOnly } = useWatchOnlyGuard();
     const { playImpact } = useHaptics();
     const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
@@ -335,7 +337,12 @@ export const usePerpsProPositionsPanelActions =
         onOrderCanceled?: (order: Order) => void | Promise<void>,
       ) => {
         // Mirror openEditSheet: block cancel while another cancel or edit is in flight.
-        if (!isOrderCancelable(order) || cancelingOrderId || editingOrderId) {
+        if (
+          !isOrderCancelable(order) ||
+          cancelingOrderId ||
+          editingOrderId ||
+          guardWatchOnly()
+        ) {
           return;
         }
 
@@ -398,6 +405,7 @@ export const usePerpsProPositionsPanelActions =
         cancelOrder,
         cancelingOrderId,
         editingOrderId,
+        guardWatchOnly,
         isOrderCancelable,
         playImpact,
         showToast,
