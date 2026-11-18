@@ -91,7 +91,7 @@ function PrivacySettings() {
     setAnalyticsEnabled(isEnabled());
   }, [setAnalyticsEnabled, isEnabled]);
 
-  function scrollToSection() {
+  const scrollToSection = useCallback(() => {
     const scrollHost = scrollViewRef.current?.getNativeScrollRef();
     if (!scrollHost) return;
 
@@ -110,7 +110,7 @@ function PrivacySettings() {
       },
       () => null,
     );
-  }
+  }, [params?.scrollToSection]);
 
   useFocusEffect(
     useCallback(() => {
@@ -118,7 +118,7 @@ function PrivacySettings() {
 
       const task = InteractionManager.runAfterInteractions(scrollToSection);
       return () => task.cancel();
-    }, [params?.scrollToSection]),
+    }, [scrollToSection, params?.scrollToSection]),
   );
 
   function toggleClearBrowserHistoryModal() {

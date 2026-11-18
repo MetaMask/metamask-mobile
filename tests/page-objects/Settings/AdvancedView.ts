@@ -19,9 +19,6 @@ class AdvancedSettingsView {
     );
   }
 
-  get smartTransactionsToggle(): Promise<AppiumElement> {
-    return Matchers.getElementByID(AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH);
-  }
 
   get resetAccountButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
@@ -42,11 +39,6 @@ class AdvancedSettingsView {
     });
   }
 
-  async tapSmartTransactionSwitch(): Promise<void> {
-    await Gestures.waitAndTap(this.smartTransactionsToggle, {
-      elemDescription: 'Smart Transactions Toggle in Advanced Settings',
-    });
-  }
 
   async scrollToShowFiatOnTestnetsToggle(): Promise<void> {
     await Gestures.scrollToElement(

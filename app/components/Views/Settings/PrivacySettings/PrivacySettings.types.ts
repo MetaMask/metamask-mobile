@@ -1,5 +1,5 @@
 export type PrivacySettingsScrollSection = 'metametrics' | 'data-collection';
 
-export type PrivacySettingsParams = {
+export interface PrivacySettingsParams {
   scrollToSection?: PrivacySettingsScrollSection;
-};
+}

@@ -5,8 +5,10 @@ import { useSelector } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
-import { selectSmartTransactionsOptInStatus } from '../../../../selectors/preferencesController';
-import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
+import {
+  selectSmartTransactionsOptInStatus,
+  selectUseTransactionSimulations,
+} from '../../../../selectors/preferencesController';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   FontWeight,
