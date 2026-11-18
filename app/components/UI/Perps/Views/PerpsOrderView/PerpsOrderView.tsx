@@ -174,7 +174,10 @@ import {
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { translatePerpsError } from '../../utils/translatePerpsError';
-import { estimateCrossLiquidationPrice } from '../../utils/crossMarginSummary';
+import {
+  estimateCrossLiquidationPrice,
+  presentCrossLiquidationEstimate,
+} from '../../utils/crossMarginSummary';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
@@ -2623,7 +2626,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // formula does not describe it. Estimate from the cross account instead.
   const crossLiquidationEstimate = useMemo(() => {
     const marketMaxLeverage = marketData?.maxLeverage;
-    if (!isCrossOrder || typeof marketMaxLeverage !== 'number') {
+    if (
+      !isCrossOrder ||
+      isCurrentPositionLoading ||
+      typeof marketMaxLeverage !== 'number'
+    ) {
       return { status: 'unknown' as const };
     }
     return estimateCrossLiquidationPrice({
@@ -2648,34 +2655,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     account?.spotCollateral,
     liquidationProviderId,
     currentMarketPosition?.size,
+    isCurrentPositionLoading,
   ]);
-  const formatOrderLiquidationPrice = (price: number | string) =>
-    formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
-  let liquidationInfoContentKey: PerpsTooltipContentKey = 'liquidation_price';
-  let orderFormLiquidationPrice = liquidationPrice;
-  let crossLiquidationPriceDisplay: string | undefined;
-  if (isCrossOrder) {
-    if (hasValidAmount && crossLiquidationEstimate.status === 'price') {
-      const formatted = formatOrderLiquidationPrice(
-        crossLiquidationEstimate.price,
-      );
-      crossLiquidationPriceDisplay = crossLiquidationEstimate.approximate
-        ? strings('perps.order.approximate_price', { price: formatted })
-        : formatted;
-      orderFormLiquidationPrice = String(crossLiquidationEstimate.price);
-      liquidationInfoContentKey = 'cross_liquidation_price';
-    } else if (hasValidAmount && crossLiquidationEstimate.status === 'none') {
-      crossLiquidationPriceDisplay = strings(
-        'perps.cross_position.no_liquidation_price',
-      );
-      orderFormLiquidationPrice = '';
-      liquidationInfoContentKey = 'cross_no_liquidation_price';
-    } else {
-      crossLiquidationPriceDisplay = PERPS_CONSTANTS.FallbackDataDisplay;
-      orderFormLiquidationPrice = '';
-      liquidationInfoContentKey = 'cross_liquidation_estimate_unavailable';
-    }
-  }
+  const presentedCrossLiquidation = isCrossOrder
+    ? presentCrossLiquidationEstimate({
+        estimate: crossLiquidationEstimate,
+        hasValidAmount,
+      })
+    : undefined;
+  const liquidationInfoContentKey: PerpsTooltipContentKey =
+    presentedCrossLiquidation?.contentKey ?? 'liquidation_price';
+  const orderFormLiquidationPrice =
+    presentedCrossLiquidation?.rawPrice ?? liquidationPrice;
+  const crossLiquidationPriceDisplay = presentedCrossLiquidation?.display;
 
   const {
     doesStopLossRiskLiquidation,

@@ -4030,7 +4030,9 @@ describe('usePerpsProOrderForm', () => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toBe('--');
+      expect(result.current.summary.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
     });
 
     // 0.002 BTC at $90,000 with a 40x max leverage (1/80 maintenance):
@@ -4171,8 +4173,30 @@ describe('usePerpsProOrderForm', () => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toMatch(/^\$/);
-      expect(result.current.summary.liquidationPrice).not.toBe('--');
+      // 0.012 BTC at $90,000. 50 collateral, 8.75 other maintenance, 13.5 result maintenance.
+      expect(result.current.summary.liquidationPrice).toBe('$87,658');
+    });
+
+    it('keeps the Cross liquidation price unknown while positions are loading', () => {
+      mockPositionStreamLoading = true;
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
     });
 
     it('labels a tiered market liquidation price as approximate', () => {

@@ -1,4 +1,5 @@
-import type { AccountState } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type AccountState } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
   estimateCrossLiquidationPrice,
@@ -6,6 +7,7 @@ import {
   getCrossMarginRatioAlertLabel,
   getCrossMarginRatioTone,
   getCrossMarginSummaryThrottleMs,
+  presentCrossLiquidationEstimate,
 } from './crossMarginSummary';
 import {
   CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
@@ -240,6 +242,37 @@ describe('crossMarginSummary', () => {
           maxLeverage: 0,
         }),
       ).toEqual({ status: 'unknown' });
+    });
+  });
+
+  describe('presentCrossLiquidationEstimate', () => {
+    it('formats a price, the no-liquidation state, and the fallback dash', () => {
+      expect(
+        presentCrossLiquidationEstimate({
+          estimate: {
+            status: 'price',
+            price: 2183.6007130124776,
+            approximate: false,
+          },
+          hasValidAmount: true,
+        }),
+      ).toEqual({
+        display: '$2,183.6',
+        rawPrice: '2183.6007130124776',
+        contentKey: 'cross_liquidation_price',
+      });
+      expect(
+        presentCrossLiquidationEstimate({
+          estimate: { status: 'none' },
+          hasValidAmount: true,
+        }).display,
+      ).toBe(strings('perps.cross_position.no_liquidation_price'));
+      expect(
+        presentCrossLiquidationEstimate({
+          estimate: { status: 'unknown' },
+          hasValidAmount: true,
+        }).display,
+      ).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
     });
   });
 

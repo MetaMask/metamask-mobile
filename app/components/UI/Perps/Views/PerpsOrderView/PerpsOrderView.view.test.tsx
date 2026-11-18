@@ -58,7 +58,6 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
-import { estimateCrossLiquidationPrice } from '../../utils/crossMarginSummary';
 import {
   formatPercentage,
   formatPerpsFiat,
@@ -1729,26 +1728,8 @@ describe('PerpsOrderView', () => {
     maxLeverage: 50,
     marginTableId: 25,
   };
-  const crossOrderSize = Number.parseFloat(
-    calculatePositionSize({ amount: '120', price: 2500, szDecimals: 2 }),
-  );
-  const crossLiquidationEstimate = estimateCrossLiquidationPrice({
-    entryPrice: 2500,
-    size: crossOrderSize,
-    isLong: true,
-    maxLeverage: 50,
-    crossMarginSummary: crossAccount.crossMarginSummary,
-    spotCollateral: '0',
-    providerId: 'hyperliquid',
-    existingSignedSize: 2.5,
-    marginTableId: 25,
-  });
-  const expectedCrossLiquidationPrice =
-    crossLiquidationEstimate.status === 'price'
-      ? formatPerpsFiat(crossLiquidationEstimate.price, {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        })
-      : '';
+  // 2.55 ETH at $2,500. $1,000 collateral, $137.50 other maintenance, $63.75 result maintenance.
+  const expectedCrossLiquidationPrice = '$2,183.6';
   const existingCrossPositionStream = {
     account: crossAccount,
     positions: [
@@ -1828,7 +1809,6 @@ describe('PerpsOrderView', () => {
       await waitForDeferredOrderData();
       emitEthPrice(stream);
 
-      expect(crossLiquidationEstimate.status).toBe('price');
       await waitFor(() => {
         expect(
           screen.getByTestId(
@@ -1888,7 +1868,6 @@ describe('PerpsOrderView', () => {
       await waitForDeferredOrderData();
       emitEthPrice(stream);
 
-      expect(crossLiquidationEstimate.status).toBe('price');
       await waitFor(() => {
         expect(
           screen.getByTestId(
