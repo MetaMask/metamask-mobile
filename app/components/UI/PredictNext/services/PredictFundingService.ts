@@ -594,6 +594,14 @@ export class PredictFundingService {
     for (const transport of this.#commitTransports) {
       transport.abort();
     }
+    // A Commit aborted before dispatch never left the phone, so the next
+    // confirm must start its own POST instead of joining that doomed promise.
+    // A dispatched Commit stays joinable: it may already be at the venue.
+    for (const previewId of this.#committing.keys()) {
+      if (this.#previews.get(previewId)?.dispatched !== true) {
+        this.#committing.delete(previewId);
+      }
+    }
   }
 
   /** Detaches the previous identity, leaving dispatched mutations alive until

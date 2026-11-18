@@ -412,6 +412,38 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(invalidateQueries).not.toHaveBeenCalled();
     });
 
+    it('starts a fresh commit after lock aborts an undelivered one', async () => {
+      const service = await quotedServiceWith();
+      commitWithdraw.mockImplementationOnce(
+        (_previewId, options) =>
+          new Promise<PredictWithdrawReceipt>((_resolve, reject) => {
+            options?.signal?.addEventListener('abort', () => {
+              reject(
+                Object.assign(new Error('The request was aborted.'), {
+                  name: 'AbortError',
+                }),
+              );
+            });
+          }),
+      );
+      const first = service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
+      await Promise.resolve();
+
+      service.stopObserving();
+      const firstRejection = expect(first).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+
+      // The person confirms again while the aborted promise is still pending,
+      // which is where the lock window used to hand them that rejection.
+      commitWithdraw.mockResolvedValueOnce(receipt('processing'));
+      await expect(
+        service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toMatchObject({ status: 'processing' });
+      await firstRejection;
+      expect(commitWithdraw).toHaveBeenCalledTimes(2);
+    });
+
     it('keeps a dispatched transport alive but drops its result on identity change', async () => {
       const service = await quotedServiceWith();
       const gate = deferred<PredictWithdrawReceipt>();
