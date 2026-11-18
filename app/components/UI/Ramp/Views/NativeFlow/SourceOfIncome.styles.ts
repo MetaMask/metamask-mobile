@@ -1,0 +1,35 @@
+import { StyleSheet } from 'react-native';
+import type { Theme } from '../../../../../util/theme/models';
+
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
+    scrollView: {
+      flex: 1,
+    },
+    content: {
+      padding: 16,
+      paddingBottom: 32,
+    },
+    section: {
+      marginBottom: 20,
+    },
+    description: {
+      color: colors.text.alternative,
+    },
+    button: {
+      marginTop: 8,
+    },
+    errorBanner: {
+      marginBottom: 16,
+    },
+    poweredBy: {
+      marginTop: 24,
+      alignSelf: 'center',
+    },
+  });
+};
+
+export default styleSheet;

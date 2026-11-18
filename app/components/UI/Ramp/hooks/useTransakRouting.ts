@@ -973,6 +973,29 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             );
             const formsRequired = additionalRequirements?.formsRequired || [];
 
+            // MiCA/EEA: CONSENT form (one-time for existing EEA users)
+            const consentForm = formsRequired.find((f) => f.type === 'CONSENT');
+            if (consentForm) {
+              navigation.navigate(Routes.RAMP.MICA_CONSENT, {
+                quote,
+                ...(baseRouteParams ?? {}),
+              });
+              return;
+            }
+
+            // MiCA/EEA: SOURCE_OF_INCOME form (EEA users)
+            const sourceOfIncomeForm = formsRequired.find(
+              (f) => f.type === 'SOURCE_OF_INCOME',
+            );
+            if (sourceOfIncomeForm) {
+              navigation.navigate(Routes.RAMP.SOURCE_OF_INCOME, {
+                quote,
+                metadata: sourceOfIncomeForm.metadata || {},
+                ...(baseRouteParams ?? {}),
+              });
+              return;
+            }
+
             const purposeOfUsageForm = formsRequired.find(
               (f) => f.type === 'PURPOSE_OF_USAGE',
             );

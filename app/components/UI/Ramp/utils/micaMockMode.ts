@@ -1,0 +1,181 @@
+/**
+ * MiCA/EEA Mock Mode for Development
+ *
+ * Allows testing the full EU native Transak flow on a simulator without Transak
+ * staging support. Off by default.
+ *
+ * HOW TO ENABLE:
+ * Set environment variable before building:
+ * ```
+ * export MICA_MOCK_MODE=true
+ * ```
+ * Then rebuild the app. Verify mock mode is active by checking logs on the
+ * MiCA consent screen.
+ *
+ * WHAT IT DOES:
+ * 1. Returns mock CONSENT and SOURCE_OF_INCOME forms from getAdditionalRequirements
+ * 2. Fakes successful submission of consent and source of income
+ * 3. Injects transak-native provider for EU regions when it's missing from the API
+ *
+ * This is DEV-ONLY and excluded from production builds.
+ */
+
+import type {
+  TransakAdditionalRequirementsResponse,
+  TransakSourceOfIncomeFormMetadata,
+} from '../types/micaTypes';
+import Logger from '../../../../util/Logger';
+
+// Read from build-time environment variable (set before building, not at runtime)
+const MICA_MOCK_MODE_ENABLED =
+  process.env.MICA_MOCK_MODE === 'true' && __DEV__;
+
+export function isMicaMockModeEnabled(): boolean {
+  return MICA_MOCK_MODE_ENABLED;
+}
+
+/**
+ * Mock CONSENT form response for existing EEA users.
+ */
+export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
+  Logger.log('[MiCA Mock] Returning mock CONSENT form');
+  return {
+    formsRequired: [
+      {
+        type: 'CONSENT',
+        metadata: {},
+      },
+    ],
+  };
+}
+
+/**
+ * Mock SOURCE_OF_INCOME form response with EEA fields.
+ */
+export function getMockSourceOfIncomeForm(): TransakAdditionalRequirementsResponse {
+  Logger.log('[MiCA Mock] Returning mock SOURCE_OF_INCOME form');
+  const metadata: TransakSourceOfIncomeFormMetadata = {
+    sourceOfFundsTypeOptions: [
+      { name: 'Salary payments', value: 'salary_payment' },
+      { name: 'Savings', value: 'savings' },
+      { name: 'Property sale', value: 'property_sale' },
+      { name: 'Sale of crypto', value: 'sale_of_crypto' },
+      { name: 'Inheritance', value: 'inheritance' },
+      { name: 'Pension', value: 'pension' },
+      { name: 'Loan', value: 'loan' },
+      { name: 'Dividends', value: 'dividends' },
+      { name: 'Gift or donation', value: 'gift_or_donation' },
+      { name: 'Income from services provided', value: 'income_from_services_provided' },
+      { name: 'Stock/Share sale', value: 'stock_share_sale' },
+    ],
+    employmentStatusOptions: [
+      { name: 'Student', value: 'student' },
+      { name: 'Retired', value: 'retired' },
+      { name: 'Unemployed', value: 'unemployed' },
+      { name: 'Self Employed', value: 'self_employed' },
+      { name: 'Junior/Entry-Level Employee', value: 'junior_entry_level_employee' },
+      { name: 'Mid-Level Employee', value: 'mid_level_employee' },
+      { name: 'Management Role', value: 'management_role' },
+      { name: 'Executive Role', value: 'executive_role' },
+    ],
+    countryOfCitizenshipOptions: [
+      { name: 'Germany', value: 'DE' },
+      { name: 'France', value: 'FR' },
+      { name: 'Austria', value: 'AT' },
+      { name: 'Belgium', value: 'BE' },
+      { name: 'Spain', value: 'ES' },
+      { name: 'Italy', value: 'IT' },
+      { name: 'Netherlands', value: 'NL' },
+      { name: 'Portugal', value: 'PT' },
+      { name: 'Ireland', value: 'IE' },
+      { name: 'Poland', value: 'PL' },
+    ],
+  };
+
+  return {
+    formsRequired: [
+      {
+        type: 'SOURCE_OF_INCOME',
+        metadata,
+      },
+    ],
+  };
+}
+
+/**
+ * Mock successful consent submission.
+ */
+export async function mockSubmitMicaConsent(
+  consentedAt: string,
+): Promise<{ status: 'SUBMITTED' }> {
+  Logger.log('[MiCA Mock] Faking consent submission', { consentedAt });
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return { status: 'SUBMITTED' };
+}
+
+/**
+ * Mock successful source of income submission.
+ */
+export async function mockSubmitSourceOfIncome(data: {
+  monthlyVolume: string;
+  sourceOfFundsType: string;
+  employmentStatus?: string;
+  countryOfCitizenship?: string;
+}): Promise<void> {
+  Logger.log('[MiCA Mock] Faking source of income submission', data);
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+}
+
+/**
+ * Injects transak-native provider into the providers list for EU regions when
+ * it's missing (due to server-side excludeEuTransakNative setting).
+ *
+ * Returns the original list unchanged when:
+ * - Mock mode is off
+ * - transak-native already exists
+ * - Region is not EU
+ */
+export function injectMockNativeProviderIfNeeded(
+  providers: Array<{ id: string; name: string; type?: string }>,
+  regionCode: string,
+): Array<{ id: string; name: string; type?: string }> {
+  if (!isMicaMockModeEnabled()) {
+    return providers;
+  }
+
+  // List of EEA country codes (non-exhaustive, add more as needed for testing)
+  const EEA_COUNTRIES = [
+    'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
+    'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
+    'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO',
+  ];
+
+  const isEEA = EEA_COUNTRIES.includes(regionCode.toUpperCase());
+  if (!isEEA) {
+    return providers;
+  }
+
+  // Check if transak-native or transak-native-staging already exists
+  const hasNative = providers.some((p) =>
+    p.id?.includes('transak-native'),
+  );
+  if (hasNative) {
+    return providers;
+  }
+
+  Logger.log('[MiCA Mock] Injecting transak-native provider for EU region', {
+    regionCode,
+  });
+
+  // Inject the native provider at the beginning
+  return [
+    {
+      id: '/providers/transak-native-staging',
+      name: 'Transak (Native - Mock)',
+      type: 'native',
+    },
+    ...providers,
+  ];
+}
