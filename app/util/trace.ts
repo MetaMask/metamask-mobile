@@ -146,6 +146,9 @@ export enum TraceName {
   SwapQuoteFetch = 'Swap Quote Fetch',
   SwapTokenSearch = 'Swap Token Search',
   SwapPopularTokensFetch = 'Swap Popular Tokens Fetch',
+  RecurringOrdersListReady = 'Recurring Orders List Ready',
+  RecurringOrderCreate = 'Recurring Order Create',
+  RecurringOrderCancel = 'Recurring Order Cancel',
   Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
@@ -302,6 +305,7 @@ export enum TraceName {
   PredictNextSearchEvents = 'PredictNext Search Events',
   PredictNextOrderPreview = 'PredictNext Order Preview',
   PredictNextOrderCommit = 'PredictNext Order Commit',
+  PredictNextLiveDataConnect = 'PredictNext Live Data Connect',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -380,6 +384,7 @@ export enum TraceOperation {
   // Swap/Bridge
   BridgeScreenPerformance = 'bridge.screen.performance',
   BridgeDataFetch = 'bridge.data_fetch',
+  BridgeExecution = 'bridge.execution',
   // Accounts
   AccountCreate = 'account.create',
   AccountDiscover = 'account.discover',

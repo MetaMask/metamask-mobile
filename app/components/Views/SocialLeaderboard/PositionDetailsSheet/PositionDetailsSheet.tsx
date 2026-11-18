@@ -28,6 +28,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { useIsCopyTradeAllowed } from '../../../UI/SocialFeed/hooks/useIsCopyTradeAllowed';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { useIsMemeToken } from '../../../UI/TokenDetails/hooks/useIsMemeToken';
@@ -61,9 +62,11 @@ import {
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import {
   SocialEvent,
+  getSocialEventSource,
   useSocialAnalytics,
   useSocialScreenAnalytics,
 } from '../analytics';
+import { resolveQuickBuyOriginalEntryPointFromPositionSource } from '../../../UI/QuickBuy/analytics/resolveQuickBuyOriginalEntryPoint';
 import { buildSocialPositionAnalytics } from '../../../UI/SocialFeed/utils/socialPositionAnalytics';
 import { playSelection } from '../../../../util/haptics';
 import {
@@ -139,6 +142,7 @@ const PositionDetailsSheet = () => {
   // `null` (unknown) is treated as online; only a confirmed `NONE` skips the
   // price fetch and the line draw.
   const networkTier = useNetworkTier();
+  const copyTradeAllowed = useIsCopyTradeAllowed();
   const isNetworkAvailable = networkTier !== 'NONE';
 
   // The caller's flag describes its snapshot; a newer copy carries its own.
@@ -358,12 +362,12 @@ const PositionDetailsSheet = () => {
         traderName: author.username,
         traderAddress: author.address,
         traderAvatarUri: author.avatarUri ?? undefined,
-        source: 'trader_feed',
+        source: getSocialEventSource(orderSource) ?? 'trader_feed',
         viewerProfileId: profile?.profileId ?? undefined,
         viewerAddress: profile?.linkedAccountAddress ?? undefined,
       });
     });
-  }, [author, closeThen, navigation, profile]);
+  }, [author, closeThen, navigation, orderSource, profile]);
 
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const { isSharing, runShare } = useSocialShareInProgress();
@@ -487,9 +491,14 @@ const PositionDetailsSheet = () => {
   );
 
   const openPerpsMarketOrder = useCallback(
-    (direction: PerpDirection, leverage?: number) => {
+    (direction: PerpDirection, leverage?: number, isCopyTrade = false) => {
       if (!data.perpTradeSymbol) return;
-      openPerpsOrder({ direction, asset: data.perpTradeSymbol, leverage });
+      openPerpsOrder({
+        direction,
+        asset: data.perpTradeSymbol,
+        leverage,
+        ...(isCopyTrade ? { isCopyTrade: true } : {}),
+      });
     },
     [data.perpTradeSymbol, openPerpsOrder],
   );
@@ -515,35 +524,38 @@ const PositionDetailsSheet = () => {
     [openQuickBuy, trackInteraction],
   );
 
-  const handleCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsAccepted()) {
-      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
-        blocked_reason: BlockedReason.TERMS,
-      });
-      return;
-    }
-    if (!ensureSocialProfileOnboarding()) {
-      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
-        blocked_reason: BlockedReason.PROFILE_ONBOARDING,
-      });
-      return;
-    }
-    trackInteraction(Interaction.COPY_TRADE_TAPPED);
-    if (data.isPerp) {
-      openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage);
-      return;
-    }
-    openQuickBuy('buy', true);
-  }, [
-    data.isPerp,
-    data.perpDirection,
-    data.leverage,
-    ensureSocialProfileOnboarding,
-    ensureSocialTermsAccepted,
-    openPerpsMarketOrder,
-    openQuickBuy,
-    trackInteraction,
-  ]);
+  const handleCopyTrade = useCallback(
+    function copyTrade(): void {
+      if (!ensureSocialTermsAccepted(copyTrade)) {
+        trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+          blocked_reason: BlockedReason.TERMS,
+        });
+        return;
+      }
+      if (!ensureSocialProfileOnboarding()) {
+        trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+          blocked_reason: BlockedReason.PROFILE_ONBOARDING,
+        });
+        return;
+      }
+      trackInteraction(Interaction.COPY_TRADE_TAPPED);
+      if (data.isPerp) {
+        openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage, true);
+        return;
+      }
+      openQuickBuy('buy', true);
+    },
+    [
+      data.isPerp,
+      data.perpDirection,
+      data.leverage,
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openPerpsMarketOrder,
+      openQuickBuy,
+      trackInteraction,
+    ],
+  );
 
   const fillMarketCapPerPrice =
     !data.isPerp && position ? deriveMarketCapPerPrice(position) : null;
@@ -606,6 +618,7 @@ const PositionDetailsSheet = () => {
       isClosed={data.isClosed}
       isOwnPost={isOwnPost}
       canSell={Boolean(heldBalance)}
+      showCopyTrade={copyTradeAllowed}
       onCopyTrade={handleCopyTrade}
       onPerpsOrder={handlePerpsOrder}
       onSpotTrade={handleSpotTrade}
@@ -670,7 +683,6 @@ const PositionDetailsSheet = () => {
             <PositionSheetPriceHeader
               assetName={data.assetName}
               isPerp={data.isPerp}
-              leverage={data.leverage}
               valueLabel={headerLabel}
               isMarketCapMode={headlineIsMarketCap}
               changePercent={headerChange}
@@ -714,7 +726,9 @@ const PositionDetailsSheet = () => {
           traderAddress={author.address}
           marketCap={data.marketCap}
           source={orderSource ?? 'trader_feed'}
-          originalEntryPoint="trader_feed"
+          originalEntryPoint={resolveQuickBuyOriginalEntryPointFromPositionSource(
+            orderSource,
+          )}
           // An open position reads as buy, so an own open position reports the
           // pressed action instead (sell or buy).
           isTraderPositionClosed={

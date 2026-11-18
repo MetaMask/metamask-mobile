@@ -23,6 +23,7 @@ import {
   setSourceAmount,
 } from '../../../../../../core/redux/slices/bridge';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import { BridgeTabKey } from '../BridgeView.constants';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
 import { RecurringIntervalSheetSelectorsIDs } from '../../../components/RecurringIntervalSheet';
 import { RecurringRepeatInfoSheetSelectorsIDs } from '../../../components/RecurringRepeatInfoSheet';
@@ -137,6 +138,11 @@ function renderRecurringPriceRangeView({
   });
 }
 
+// The pressed page mounts as a preview before the tab commits, and the
+// Recurring token defaults are only applied once it does. Without an `idle`
+// event the commit waits on a real-time fallback that a slow runner can push
+// past a `waitFor` timeout, so settle the pager and wait for the previous
+// page to be swapped out.
 async function openRecurringTab(
   renderResult: ReturnType<typeof renderBridgeView>,
 ) {
@@ -148,6 +154,26 @@ async function openRecurringTab(
     expect(
       renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
     ).toBeOnTheScreen();
+  });
+  await settlePager(renderResult);
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(
+        `${BridgeViewSelectorsIDs.TAB_PAGE_SKELETON}-${BridgeTabKey.Market}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+}
+
+// The native pager never reports that it stopped scrolling in Jest, and the
+// previous tab stays mounted until it does.
+async function settlePager(renderResult: ReturnType<typeof renderBridgeView>) {
+  await act(async () => {
+    fireEvent(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT),
+      'pageScrollStateChanged',
+      { nativeEvent: { pageScrollState: 'idle' } },
+    );
   });
 }
 
@@ -194,9 +220,7 @@ function assertRecurringOrderSummary(
       order.fillData.src.amount,
       order.src.asset.decimals,
     )} / ${formatRecurringTokenAmount(
-      (
-        BigInt(order.src.amount) * BigInt(order.schedule.repeatCount)
-      ).toString(),
+      order.totalAmount,
       order.src.asset.decimals,
     )} ${order.src.asset.symbol} (${filledPercent}%)`,
   );
@@ -305,9 +329,7 @@ function assertRecurringOrderRow(
     row.queryByText(strings('bridge.limit.expired')),
   ).not.toBeOnTheScreen();
 
-  const isClosedUnfilled =
-    order.state === RecurringOrderState.Cancelled ||
-    order.state === RecurringOrderState.Expired;
+  const isClosedUnfilled = order.state === RecurringOrderState.Cancelled;
   expect(row.getByTestId(OpenOrderRowSelectorsIDs.TITLE)).toHaveStyle({
     color: isClosedUnfilled
       ? lightTheme.colors.text.alternative
@@ -700,6 +722,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     fireEvent.press(
       renderResult.getByTestId(BridgeViewSelectorsIDs.MARKET_TAB),
     );
+    await settlePager(renderResult);
     await waitFor(() => {
       expect(
         renderResult.queryByTestId(
@@ -1142,6 +1165,40 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
     });
 
+    it('shows the recurring minimum until the source amount reaches it', async () => {
+      const renderResult = renderRecurringPriceRangeView({
+        currentCurrency: 'eur',
+      });
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      act(() => {
+        renderResult.store.dispatch(setSourceAmount('0.01'));
+      });
+
+      await waitFor(() => {
+        const confirmButton = renderResult.getByTestId(
+          BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+        );
+        expect(confirmButton).toHaveTextContent(
+          strings('bridge.recurring.min_order_amount', { amount: '€90.00' }),
+        );
+        expect(confirmButton.props.accessibilityState.disabled).toBe(true);
+      });
+
+      act(() => {
+        renderResult.store.dispatch(setSourceAmount('0.05'));
+      });
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+          ),
+        ).toHaveTextContent(strings('bridge.recurring.preview_order'));
+      });
+    });
+
     it('hides amount quick picks when the every field uses the shared keypad', async () => {
       const renderResult = renderBridgeView();
 
@@ -1349,7 +1406,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         orderStates: [
           RecurringOrderState.Completed,
           RecurringOrderState.Cancelled,
-          RecurringOrderState.Expired,
         ],
       }),
     );
@@ -1386,7 +1442,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toBe(true);
 
     await act(async () => {
-      resolveRequest({ orders: [], hasNextPage: false });
+      resolveRequest({ orders: [], hasNextPage: false, total: 0 });
       await refreshPromise;
     });
 

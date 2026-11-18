@@ -28,7 +28,6 @@ import {
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 import Logger from '../../../../../util/Logger';
 
@@ -122,7 +121,7 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
 }));
 jest.mock('../../../../../selectors/cardController', () => ({
-  selectIsCardholder: () => mockIsCardholder(),
+  selectHasCard: () => mockIsCardholder(),
   selectCardHomeDataStatus: () => mockCardHomeDataStatus(),
   selectIsCardStateResolved: () => mockIsCardStateResolved(),
   selectCardActiveProviderId: () => 'baanx',
@@ -213,6 +212,16 @@ describe('MoneyOnboardingCard', () => {
   });
 
   describe('visibility guard', () => {
+    it('does not start a positions poll of its own', () => {
+      setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({
+        positionsRefetchInterval: false,
+      });
+    });
+
     it('returns null when currentStep equals MONEY_ONBOARDING_TOTAL_STEPS', () => {
       setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
 

@@ -9,6 +9,7 @@ export {
 } from './usePerpsTopMovers';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsProvider } from './usePerpsProvider';
+export { usePerpsProviderLogoIds } from './usePerpsProviderLogoIds';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 export { usePerpsTrading } from './usePerpsTrading';

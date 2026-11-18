@@ -14,7 +14,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { createProjectLogger } from '@metamask/utils';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   IconName,
   Text,
@@ -55,10 +54,13 @@ import {
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const log = createProjectLogger('money-add-money-sheet');
 
 const MoneyAddMoneySheetContent: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
@@ -276,11 +278,14 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.add_money_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.list}>
         <MoneySheetOptionsList options={options} />
       </View>

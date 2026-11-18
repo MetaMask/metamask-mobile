@@ -77,6 +77,7 @@ export const PerpsTradeLeverageScreen: React.FC<
 export type PerpsInlineInfoContentKey =
   | 'margin'
   | 'liquidation_price'
+  | 'cross_liquidation_estimate_unavailable'
   | 'liquidation_distance';
 
 interface PerpsInlineInfoScreenProps {

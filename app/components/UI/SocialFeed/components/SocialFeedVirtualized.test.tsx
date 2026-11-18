@@ -9,8 +9,10 @@ import { useIsFocused } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import type { FlashListProps } from '@shopify/flash-list';
 import React from 'react';
-import { FlatList, RefreshControl, Text } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text } from 'react-native';
+import { FloatingTabBarInsetContext } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
 import {
+  makeMutable,
   useAnimatedScrollHandler,
   useComposedEventHandler,
 } from 'react-native-reanimated';
@@ -295,6 +297,23 @@ describe('SocialFeedVirtualized', () => {
   afterEach(() => {
     jest.useRealTimers();
     jest.restoreAllMocks();
+  });
+
+  it('pads the list clear of the floating tab bar', () => {
+    render(
+      <FloatingTabBarInsetContext.Provider value={84}>
+        <SocialFeedVirtualized
+          {...query}
+          location="social_following"
+          scrollMode="virtualized"
+          scrollTestID="feed-scroll"
+        />
+      </FloatingTabBarInsetContext.Provider>,
+    );
+
+    expect(StyleSheet.flatten(getList().props.contentContainerStyle)).toEqual(
+      expect.objectContaining({ paddingBottom: 108 }),
+    );
   });
 
   it('renders posts with a divider below every post but the last', () => {
@@ -630,6 +649,38 @@ describe('SocialFeedVirtualized', () => {
     expect(
       screen.UNSAFE_getByType(RefreshControl).props.progressViewOffset,
     ).toBe(120);
+  });
+
+  it('applies contentTopInset as top padding on the list container', () => {
+    renderFeed({ contentTopInset: 144 });
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId('feed-scroll').props.contentContainerStyle,
+      ),
+    ).toEqual(expect.objectContaining({ paddingTop: 144 }));
+  });
+
+  it('offsets the pending posts pill container below the floating header', () => {
+    renderFeed({ pendingPostsTopOffset: 96 });
+    const pillOverlay = screen.UNSAFE_getAllByProps({
+      pointerEvents: 'box-none',
+    })[0];
+
+    expect(StyleSheet.flatten(pillOverlay.props.style)).toEqual(
+      expect.objectContaining({ top: 96 }),
+    );
+  });
+
+  it('tracks a shared pendingPostsTopOffset for the floating pill container', () => {
+    renderFeed({ pendingPostsTopOffset: makeMutable(112) });
+    const pillOverlay = screen.UNSAFE_getAllByProps({
+      pointerEvents: 'box-none',
+    })[0];
+
+    expect(StyleSheet.flatten(pillOverlay.props.style)).toEqual(
+      expect.objectContaining({ top: 112 }),
+    );
   });
 
   it('refreshes through the refresh control', async () => {

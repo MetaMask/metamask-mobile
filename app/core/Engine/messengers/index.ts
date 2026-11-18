@@ -55,6 +55,10 @@ import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
 } from './predict-order-service-messenger';
+import {
+  getPredictFundingServiceInitMessenger,
+  getPredictFundingServiceMessenger,
+} from './predict-funding-service-messenger';
 import { getPredictVenueControllerMessenger } from './predict-venue-controller-messenger';
 import {
   getPredictDeviceAuthServiceInitMessenger,
@@ -110,7 +114,10 @@ import {
   getRampsControllerInitMessenger,
 } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
-import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
+import {
+  getTransakServiceInitMessenger,
+  getTransakServiceMessenger,
+} from './transak-service-messenger/transak-service-messenger';
 import { getNeoBankServiceMessenger } from './neo-bank-service-messenger/neo-bank-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
@@ -319,6 +326,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictOrderServiceMessenger,
     getInitMessenger: getPredictOrderServiceInitMessenger,
   },
+  PredictFundingService: {
+    getMessenger: getPredictFundingServiceMessenger,
+    getInitMessenger: getPredictFundingServiceInitMessenger,
+  },
   PredictVenueController: {
     getMessenger: getPredictVenueControllerMessenger,
     getInitMessenger: noop,
@@ -377,7 +388,7 @@ export const MESSENGER_FACTORIES = {
   },
   TransakService: {
     getMessenger: getTransakServiceMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getTransakServiceInitMessenger,
   },
   NeoBankService: {
     getMessenger: getNeoBankServiceMessenger,

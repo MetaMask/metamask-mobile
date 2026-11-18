@@ -2,6 +2,7 @@ import React from 'react';
 import { render, within } from '@testing-library/react-native';
 import PerpsProMarketStatsBar from './PerpsProMarketStatsBar';
 import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import { Text, TextColor } from '@metamask/design-system-react-native';
@@ -171,6 +172,22 @@ describe('PerpsProMarketStatsBar', () => {
     expect(
       getByText(`${FUNDING_RATE_CONFIG.ZeroDisplay} / 39:24`),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps a missing funding rate in the default color', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: PERPS_CONSTANTS.FallbackPercentageDisplay,
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) =>
+        textElement.props.children ===
+        `${PERPS_CONSTANTS.FallbackPercentageDisplay} / 39:24`,
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
   });
 
   it('displays a positive threshold funding rate in success color', () => {
