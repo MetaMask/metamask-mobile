@@ -4150,6 +4150,7 @@
     }
   },
   "predict": {
+    "basic_functionality_disabled_title": "Predictions is not available",
     "title": "MetaMask Predictions",
     "game_status": {
       "live": "LIVE",
@@ -11589,6 +11590,7 @@
     "continue_button": "Continue"
   },
   "card": {
+    "basic_functionality_disabled_title": "Card is not available",
     "card": "MetaMask Card",
     "card_button_enabled_toast": "You can now sign up for MetaMask Card!",
     "card_button_already_enabled_toast": "You already have a MetaMask Card linked to this account.",

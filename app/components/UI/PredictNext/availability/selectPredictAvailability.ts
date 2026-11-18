@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectPredictEnabledFlag } from '../../Predict/selectors/featureFlags';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectActiveVenue } from '../implementation/activeVenue';
 import { getRolloutVenues } from '../implementation/resolveActiveVenue';
 import type { PredictConfiguredVenue } from '../implementation/types';
@@ -23,6 +24,9 @@ const isVenueAvailable = (
  * resolving it is true only if every candidate is available, so an entry
  * point never appears and then disappears.
  *
+ * Requires basic functionality: when BFT is off, remote flags empty out and
+ * Predict would otherwise fall back to env/defaults and stay visible.
+ *
  * Availability only: Account Readiness and eligibility gate actions, not
  * browsing; Venue Status covers degraded browsing and Venue Capabilities
  * cover feature support, each as its own projection.
@@ -31,7 +35,16 @@ export const selectPredictAvailability = createSelector(
   selectPredictEnabledFlag,
   selectPredictConfig,
   selectActiveVenue,
-  (legacyAvailable, config, activeVenue): boolean => {
+  selectBasicFunctionalityEnabled,
+  (
+    legacyAvailable,
+    config,
+    activeVenue,
+    basicFunctionalityEnabled,
+  ): boolean => {
+    if (!basicFunctionalityEnabled) {
+      return false;
+    }
     const venues =
       activeVenue.status === 'ready'
         ? [activeVenue.venue]

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectCanSignTransactions } from '../../../../../../selectors/accountsController';
+import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../../../../UI/Ramp/constants/rampsBuyCufTags';
@@ -22,6 +23,9 @@ const BuyButton = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const label = strings('homepage.action_buttons.buy');
 
   const handlePress = useCallback(() => {
@@ -33,6 +37,10 @@ const BuyButton = ({
     });
     goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.HOME });
   }, [actionPosition, createEventBuilder, goToBuy, label, trackEvent]);
+
+  if (!isBasicFunctionalityEnabled) {
+    return null;
+  }
 
   return (
     <HomepageActionButton

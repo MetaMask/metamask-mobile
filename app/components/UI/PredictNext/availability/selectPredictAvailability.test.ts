@@ -114,6 +114,19 @@ describe('selectPredictAvailability', () => {
     },
   );
 
+  it('is unavailable when basic functionality is off', () => {
+    const state = {
+      ...rootState(
+        { enabled: true, minimumVersion: '0.0.1' },
+        config(false, true),
+        NO_VENUE_STATE,
+      ),
+      settings: { basicFunctionalityEnabled: false },
+    };
+
+    expect(selectPredictAvailability(state)).toBe(false);
+  });
+
   it.each([
     ['every candidate is available', true],
     ['a candidate is unavailable', false],

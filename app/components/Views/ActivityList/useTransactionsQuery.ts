@@ -6,6 +6,7 @@ import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllConfiguredEvmCaipNetworks } from '../../../selectors/networkController';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectApiEvmTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
 import { selectExcludedActivityTransactionHashes } from '../../../selectors/transactionController';
@@ -30,6 +31,9 @@ export const useTransactionsQuery = () => {
   // Predict enabling Polygon) never collapses the Activity feed to one network.
   const networks = useSelector(selectAllConfiguredEvmCaipNetworks);
   const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const accountIds = useMemo(
     () =>
       evmAddress
@@ -53,7 +57,10 @@ export const useTransactionsQuery = () => {
   return useInfiniteQuery({
     ...queryOptions,
     select: selectFn,
-    enabled: accountIds.length > 0 && networks.length > 0,
+    enabled:
+      isBasicFunctionalityEnabled &&
+      accountIds.length > 0 &&
+      networks.length > 0,
     staleTime: 5 * MINUTE,
     retry: false,
   });

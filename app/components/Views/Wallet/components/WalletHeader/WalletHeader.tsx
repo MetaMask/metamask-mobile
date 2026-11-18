@@ -43,6 +43,7 @@ import WalletHeaderAccountPickerRow from './WalletHeaderAccountPickerRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
 import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -108,6 +109,11 @@ const WalletHeader = ({
   const hasAccountsMenuAttention = useAccountsMenuAttention();
   const searchBarRef = useRef<View>(null);
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const showActivityButton =
+    isMoneyAccountVisible && isBasicFunctionalityEnabled;
 
   const measureSearchOrigin = useCallback(
     (callback: (origin?: SearchOrigin) => void) => {
@@ -357,7 +363,7 @@ const WalletHeader = ({
               accessibilityLabel={strings('wallet.search_accessibility_label')}
               hitSlop={touchAreaSlop}
             />
-            {isMoneyAccountVisible && (
+            {showActivityButton && (
               <ButtonIcon
                 iconProps={{ color: MMDSIconColor.IconDefault }}
                 onPress={handleActivityPress}
@@ -417,7 +423,7 @@ const WalletHeader = ({
           twClassName="h-12 gap-2"
           accessible={false}
         >
-          {isMoneyAccountVisible ? (
+          {showActivityButton ? (
             <ButtonIcon
               iconProps={{ color: MMDSIconColor.IconDefault }}
               onPress={handleActivityPress}
@@ -426,12 +432,12 @@ const WalletHeader = ({
               testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
               hitSlop={touchAreaSlop}
             />
-          ) : (
+          ) : !isMoneyAccountVisible ? (
             <CardButton
               onPress={handleCardPress}
               touchAreaSlop={touchAreaSlop}
             />
-          )}
+          ) : null}
         </Box>
       }
       twClassName="pl-3 pr-3 gap-2"

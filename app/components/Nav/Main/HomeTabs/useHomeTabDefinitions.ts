@@ -10,6 +10,7 @@ import { buildBottomNavClickedProperties } from '../../../../core/Analytics/even
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { getDecimalChainId } from '../../../../util/networks';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
@@ -59,6 +60,9 @@ export const useHomeTabDefinitions = ({
   const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const accountsLength = useSelector(selectAccountsLength);
   const chainId = useSelector(selectChainId);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
 
   const trackBottomNavPress = useCallback(
     (iconKey: TabBarIconKey) => {
@@ -174,12 +178,19 @@ export const useHomeTabDefinitions = ({
         : null),
     };
 
+    // Money stays; Activity is removed entirely when basic functionality is off.
+    const moneyOrActivity = isMoneyAccountVisible
+      ? money
+      : isBasicFunctionalityEnabled
+        ? activity
+        : null;
+
     if (isSocialV1Enabled) {
       return [
         home,
         explore,
         browser,
-        isMoneyAccountVisible ? money : activity,
+        ...(moneyOrActivity ? [moneyOrActivity] : []),
         social,
       ];
     }
@@ -188,7 +199,7 @@ export const useHomeTabDefinitions = ({
       home,
       explore,
       browser,
-      isMoneyAccountVisible ? money : activity,
+      ...(moneyOrActivity ? [moneyOrActivity] : []),
       ...(showSocialTab ? [social] : [rewards]),
     ];
   }, [
@@ -196,6 +207,7 @@ export const useHomeTabDefinitions = ({
     canOpenSocialTabDirectly,
     chainId,
     createEventBuilder,
+    isBasicFunctionalityEnabled,
     isMoneyAccountVisible,
     isSocialV1Enabled,
     showSocialTab,

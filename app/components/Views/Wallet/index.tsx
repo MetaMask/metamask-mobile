@@ -458,7 +458,6 @@ const Wallet = ({
     },
   });
 
-  const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
 
   /**
@@ -569,6 +568,7 @@ const Wallet = ({
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
+  const displayBuyButton = basicFunctionalityEnabled;
 
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
