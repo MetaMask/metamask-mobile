@@ -11,7 +11,7 @@ export const IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY =
 export const YIELD_AFTER_FIRST_QUOTE_AB_KEY =
   'swapsSWAPS5348AbtestYieldAfterFirstQuote';
 
-export enum FirstQuoteFlushVariant {
+export enum FirstQuoteAbTestVariant {
   Control = 'control',
   Treatment = 'treatment',
 }
@@ -23,6 +23,6 @@ export const selectFirstQuoteAbTestVariant = (
   resolveABTestAssignment(
     selectRemoteFeatureFlags(state),
     flagKey,
-    Object.values(FirstQuoteFlushVariant),
+    Object.values(FirstQuoteAbTestVariant),
     selectFeatureFlagThresholdGroups(state),
   ).variantName;

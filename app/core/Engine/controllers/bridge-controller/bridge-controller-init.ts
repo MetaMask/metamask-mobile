@@ -19,7 +19,7 @@ import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
 import {
-  FirstQuoteFlushVariant,
+  FirstQuoteAbTestVariant,
   IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY,
   YIELD_AFTER_FIRST_QUOTE_AB_KEY,
   selectFirstQuoteAbTestVariant,
@@ -92,12 +92,12 @@ export const bridgeControllerInit: MessengerClientInitFunction<
         selectFirstQuoteAbTestVariant(
           ReduxService.store.getState(),
           IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY,
-        ) === FirstQuoteFlushVariant.Treatment,
+        ) === FirstQuoteAbTestVariant.Treatment,
       getShouldYieldAfterFirstQuote: () =>
         selectFirstQuoteAbTestVariant(
           ReduxService.store.getState(),
           YIELD_AFTER_FIRST_QUOTE_AB_KEY,
-        ) === FirstQuoteFlushVariant.Treatment,
+        ) === FirstQuoteAbTestVariant.Treatment,
     });
 
     return { controller: bridgeController };

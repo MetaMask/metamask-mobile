@@ -22,7 +22,7 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import {
   FIRST_QUOTE_FLUSH_AB_KEY,
-  FirstQuoteFlushVariant,
+  FirstQuoteAbTestVariant,
   selectFirstQuoteAbTestVariant,
 } from '../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig';
 import NavigationService from '../NavigationService';
@@ -49,7 +49,7 @@ const isFirstQuoteFlushTreatment = (): boolean =>
   selectFirstQuoteAbTestVariant(
     ReduxService.store.getState(),
     FIRST_QUOTE_FLUSH_AB_KEY,
-  ) === FirstQuoteFlushVariant.Treatment;
+  ) === FirstQuoteAbTestVariant.Treatment;
 
 export class EngineService {
   private engineInitialized = false;
