@@ -9,6 +9,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import { strings } from '../../../../../../locales/i18n';
+import useMoneyPremiumVaultRate from '../../../../UI/Money/hooks/useMoneyPremiumVaultRate';
 import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
 import { CANCEL_REASONS } from './CancelMembership.constants';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
@@ -29,6 +30,11 @@ import CancelPostCancelSheet, {
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelStayStep from './components/CancelStayStep';
 
+/** Cashback stays fixed until the membership API exposes the rate. */
+const POST_CANCEL_CASHBACK_RATE = '3%';
+/** Shown when the premium vault rate is not in the cache yet. */
+const MISSING_PREMIUM_APY = '—';
+
 const CANCEL_STEPS = {
   REASON: 'reason',
   STAY: 'stay',
@@ -39,6 +45,11 @@ type CancelStep = (typeof CANCEL_STEPS)[keyof typeof CANCEL_STEPS];
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  // Pro Hub already observes this query. Reuse the cache and skip a second poll.
+  const { ratePercentFormatted } = useMoneyPremiumVaultRate({
+    refetchInterval: false,
+  });
+  const postCancelApy = ratePercentFormatted ?? MISSING_PREMIUM_APY;
   const [orderedReasons] = useState(() => shuffleCancelReasons(CANCEL_REASONS));
   const [step, setStep] = useState<CancelStep>(CANCEL_STEPS.REASON);
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
@@ -244,6 +255,8 @@ const CancelMembership = () => {
       {cancelOutcome && (
         <CancelPostCancelSheet
           {...cancelOutcome}
+          apy={postCancelApy}
+          rate={POST_CANCEL_CASHBACK_RATE}
           onConfirm={handleCancelOutcomeConfirm}
         />
       )}

@@ -23,6 +23,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+const PREMIUM_APY = '7.1%';
+const CASHBACK_RATE = '3%';
+
 const renderSheet = (
   content: CancelPostCancelSheetContent = {
     timing: CANCELLATION_TIMINGS.PERIOD_END,
@@ -31,7 +34,12 @@ const renderSheet = (
 ) => {
   const onConfirm = jest.fn();
   const utils = render(
-    <CancelPostCancelSheet {...content} onConfirm={onConfirm} />,
+    <CancelPostCancelSheet
+      {...content}
+      apy={PREMIUM_APY}
+      rate={CASHBACK_RATE}
+      onConfirm={onConfirm}
+    />,
   );
   return { ...utils, onConfirm };
 };
@@ -66,7 +74,7 @@ describe('CancelPostCancelSheet', () => {
     ).toHaveTextContent(
       strings(
         'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
-        { date: 'Jul 20, 2027' },
+        { date: 'Jul 20, 2027', apy: PREMIUM_APY, rate: CASHBACK_RATE },
       ),
     );
   });
@@ -89,6 +97,7 @@ describe('CancelPostCancelSheet', () => {
     ).toHaveTextContent(
       strings(
         'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',
+        { apy: PREMIUM_APY, rate: CASHBACK_RATE },
       ),
     );
   });

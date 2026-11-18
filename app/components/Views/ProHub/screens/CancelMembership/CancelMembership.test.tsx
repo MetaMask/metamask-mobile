@@ -23,7 +23,17 @@ import configureStore from '../../../../../util/test/configureStore';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
 import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+import useMoneyPremiumVaultRate from '../../../../UI/Money/hooks/useMoneyPremiumVaultRate';
 import { strings } from '../../../../../../locales/i18n';
+
+const PREMIUM_APY = '7.1%';
+const CASHBACK_RATE = '3%';
+
+const mockUseMoneyPremiumVaultRate = jest.mocked(useMoneyPremiumVaultRate);
+jest.mock('../../../../UI/Money/hooks/useMoneyPremiumVaultRate', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -232,6 +242,12 @@ describe('CancelMembership', () => {
     mockAddListener.mockReturnValue(jest.fn());
     mockGetSubscriptionByProduct.mockReturnValue(PLUS_SUBSCRIPTION);
     mockCancelSubscription.mockResolvedValue(undefined);
+    mockUseMoneyPremiumVaultRate.mockReturnValue({
+      vaultRateQuery: { data: undefined },
+      rate: '0.071',
+      ratePercent: 7.1,
+      ratePercentFormatted: PREMIUM_APY,
+    } as ReturnType<typeof useMoneyPremiumVaultRate>);
   });
 
   afterEach(() => {
@@ -890,7 +906,49 @@ describe('CancelMembership', () => {
       ).toHaveTextContent(
         strings(
           'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
-          { date: formatSubscriptionPeriodEnd(CURRENT_PERIOD_END) ?? '' },
+          {
+            date: formatSubscriptionPeriodEnd(CURRENT_PERIOD_END) ?? '',
+            apy: PREMIUM_APY,
+            rate: CASHBACK_RATE,
+          },
+        ),
+      );
+    });
+
+    it('reads the cached premium vault rate without starting another poll', () => {
+      renderScreen();
+
+      expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
+        refetchInterval: false,
+      });
+    });
+
+    it('uses an em dash when the premium vault rate is unavailable', async () => {
+      mockUseMoneyPremiumVaultRate.mockReturnValue({
+        vaultRateQuery: { data: undefined },
+        rate: undefined,
+        ratePercent: undefined,
+        ratePercentFormatted: undefined,
+      } as ReturnType<typeof useMoneyPremiumVaultRate>);
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+      ).toHaveTextContent(
+        strings(
+          'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
+          {
+            date: formatSubscriptionPeriodEnd(CURRENT_PERIOD_END) ?? '',
+            apy: '—',
+            rate: CASHBACK_RATE,
+          },
         ),
       );
     });
@@ -919,6 +977,7 @@ describe('CancelMembership', () => {
       ).toHaveTextContent(
         strings(
           'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',
+          { apy: PREMIUM_APY, rate: CASHBACK_RATE },
         ),
       );
     });

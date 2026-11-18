@@ -26,6 +26,10 @@ export type CancelPostCancelSheetContent =
 
 export type CancelPostCancelSheetProps = CancelPostCancelSheetContent & {
   onConfirm: () => void;
+  /** Formatted premium vault APY, for example `7.1%`. */
+  apy: string;
+  /** Formatted cashback rate, for example `3%`. */
+  rate: string;
 };
 
 /**
@@ -36,6 +40,8 @@ export type CancelPostCancelSheetProps = CancelPostCancelSheetContent & {
  */
 const CancelPostCancelSheet = ({
   onConfirm,
+  apy,
+  rate,
   ...content
 }: CancelPostCancelSheetProps) => {
   const isImmediate = content.timing === CANCELLATION_TIMINGS.IMMEDIATE;
@@ -48,10 +54,11 @@ const CancelPostCancelSheet = ({
   const description = isImmediate
     ? strings(
         'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',
+        { apy, rate },
       )
     : strings(
         'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
-        { date: content.periodEndDate },
+        { date: content.periodEndDate, apy, rate },
       );
 
   return (
