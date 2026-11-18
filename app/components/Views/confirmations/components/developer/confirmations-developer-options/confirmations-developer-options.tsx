@@ -79,7 +79,7 @@ export function ConfirmationsDeveloperOptions() {
         variant={TextVariant.HeadingLg}
         style={styles.heading}
       >
-        Test Confirmations
+        Confirmations
       </Text>
       <Box twClassName="mt-4 gap-2">
         {isMoneyAccountDepositEnabled && (
