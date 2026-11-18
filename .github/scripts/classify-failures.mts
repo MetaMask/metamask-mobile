@@ -713,10 +713,12 @@ if (blockedBy) {
     partitionRetryableBlockerCascadeJobs({
       jobs: otherJobs,
       getCategory: (jobName) => matchCategory(jobName).category,
+      isUnmatched: (jobName) => matchCategory(jobName).unmatched,
     });
 
   // Always-retryable jobs (E2E) are classified individually for logging,
   // but they always return retryable when a blocker is also retryable.
+  // Unmatched jobs are classified here too, so they stay non-retryable.
   for (const job of alwaysRetryableJobs) {
     console.log(`  Classifying after retryable blocker: ${job.name}`);
     const result = classifyJob(job);
