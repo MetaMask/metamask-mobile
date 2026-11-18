@@ -10,19 +10,27 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { useIsFiatPaymentAvailable } from '../pay/useIsFiatPaymentAvailable';
 import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
+import { useTransactionPayAccountLoading } from '../pay/useTransactionPayAccountLoading';
 
 export function useAccountNoFundsAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
   const { hasTokens } = useTransactionPayAvailableTokens();
   const isFiatAvailable = useIsFiatPaymentAvailable();
   const isLoading = useIsTransactionPayLoading();
+  const isPayAccountLoading = useTransactionPayAccountLoading();
 
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
 
   return useMemo(() => {
-    if (!isMoneyAccountDeposit || hasTokens || isFiatAvailable || isLoading) {
+    if (
+      !isMoneyAccountDeposit ||
+      hasTokens ||
+      isFiatAvailable ||
+      isLoading ||
+      isPayAccountLoading
+    ) {
       return NO_ALERTS;
     }
 
@@ -35,5 +43,11 @@ export function useAccountNoFundsAlert(): Alert[] {
         isBlocking: true,
       },
     ];
-  }, [isMoneyAccountDeposit, hasTokens, isFiatAvailable, isLoading]);
+  }, [
+    isMoneyAccountDeposit,
+    hasTokens,
+    isFiatAvailable,
+    isLoading,
+    isPayAccountLoading,
+  ]);
 }
