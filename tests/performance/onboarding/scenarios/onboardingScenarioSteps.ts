@@ -43,9 +43,6 @@ type Tracker = Parameters<typeof captureOnboardingTtc>[0];
 const tracker = (context: ScenarioCodeContext) =>
   context.performanceTracker as Tracker;
 
-/** An SRP (or other secret) from the environment; fails with the name only. */
-export const secretEnv = (name: string): string => requireSecretEnv(name);
-
 /** The onboarding/import password from TestConstants; fails without echoing anything. */
 export function scenarioPassword(kind: 'onboarding' | 'import'): string {
   const password = getPasswordForScenario(kind);
@@ -66,6 +63,16 @@ const visible =
       element(),
       timeout ? { timeout } : {},
     );
+
+/** The original specs' onboarding password entry, up to the warning. */
+async function createOnboardingPassword(): Promise<void> {
+  const password = scenarioPassword('onboarding');
+  await CreatePasswordView.enterPassword(password);
+  await CreatePasswordView.reEnterPassword(password);
+  await AppiumGestures.hideKeyboard();
+  await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
+}
 
 /** `[check: code=...]` ends, each the original's own assertion. */
 export const ONBOARDING_CHECKS: Record<string, () => Promise<unknown>> = {
@@ -128,21 +135,21 @@ export const ONBOARDING_STEPS: Record<
   (context: ScenarioCodeContext) => Promise<unknown>
 > = {
   'Import the SRP 2 wallet in onboarding': () =>
-    onboardingFlowImportSRPPlaywright(secretEnv('TEST_SRP_2')),
+    onboardingFlowImportSRPPlaywright(requireSecretEnv('TEST_SRP_2')),
   'Import the SRP 3 wallet in onboarding': () =>
-    onboardingFlowImportSRPPlaywright(secretEnv('TEST_SRP_3')),
+    onboardingFlowImportSRPPlaywright(requireSecretEnv('TEST_SRP_3')),
   // tests/constants/money.js: MONEY_NEW_USER_SRP = TEST_SRP_1, MONEY_FUNDED_USER_SRP = TEST_SRP_3.
   'Import the Money new-user wallet in onboarding': () =>
-    onboardingFlowImportSRPPlaywright(secretEnv('TEST_SRP_1')),
+    onboardingFlowImportSRPPlaywright(requireSecretEnv('TEST_SRP_1')),
   'Import the Money funded-user wallet in onboarding': () =>
-    onboardingFlowImportSRPPlaywright(secretEnv('TEST_SRP_3')),
+    onboardingFlowImportSRPPlaywright(requireSecretEnv('TEST_SRP_3')),
   'Log in to the wallet as an onboarding user': () =>
     loginToAppPlaywright({ scenarioType: 'onboarding' }),
   'Tap I have an existing wallet on the onboarding screen': () =>
     OnboardingView.tapHaveAnExistingWallet(),
   'Enter SRP 3 and continue on the import screen': async () => {
     await ImportWalletView.typeSecretRecoveryPhrase(
-      secretEnv('TEST_SRP_3'),
+      requireSecretEnv('TEST_SRP_3'),
       true,
     );
     await AppiumGestures.hideKeyboard();
@@ -167,22 +174,11 @@ export const ONBOARDING_STEPS: Record<
     },
   'Create the onboarding password, confirm the warning and choose Remind me later':
     async () => {
-      const password = scenarioPassword('onboarding');
-      await CreatePasswordView.enterPassword(password);
-      await CreatePasswordView.reEnterPassword(password);
-      await AppiumGestures.hideKeyboard();
-      await CreatePasswordView.tapCreatePasswordButton();
-      await CreatePasswordView.tapPasswordWarningConfirmButton();
+      await createOnboardingPassword();
       await ProtectYourWalletView.tapRemindMeLater();
     },
-  'Create the onboarding password and confirm the warning': async () => {
-    const password = scenarioPassword('onboarding');
-    await CreatePasswordView.enterPassword(password);
-    await CreatePasswordView.reEnterPassword(password);
-    await AppiumGestures.hideKeyboard();
-    await CreatePasswordView.tapCreatePasswordButton();
-    await CreatePasswordView.tapPasswordWarningConfirmButton();
-  },
+  'Create the onboarding password and confirm the warning': () =>
+    createOnboardingPassword(),
   'Tap Agree on MetaMetrics and dismiss the questionnaire, push sheet, Predict and protect-wallet modals':
     async () => {
       await MetaMetricsOptInView.tapAgreeButton();
@@ -244,17 +240,6 @@ export function seedlessOptions(provider: SeedlessProvider) {
     telegram: () => OnboardingSheet.tapTelegramLoginButton(),
   }[provider];
   const password = () => scenarioPassword('onboarding');
-  const firstOf = <T>(promises: Promise<T>[]) =>
-    new Promise<T>((resolve, reject) => {
-      let rejected = 0;
-      promises.forEach((p) =>
-        p.then(resolve).catch(() => {
-          rejected += 1;
-          if (rejected === promises.length)
-            reject(new Error('All screen detection promises failed'));
-        }),
-      );
-    });
   return {
     codeSteps: {
       ...ONBOARDING_STEPS,
@@ -342,7 +327,8 @@ export function seedlessOptions(provider: SeedlessProvider) {
           },
         ),
       'seedless-post-oauth': async () => {
-        postOauth = await firstOf([
+        // The first screen to show wins, like the original's race.
+        postOauth = await Promise.any([
           CreatePasswordView.isVisible().then(() => 'new_user' as const),
           SocialLoginView.isAccountFoundScreenVisible().then(
             () => 'existing_user' as const,

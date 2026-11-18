@@ -5,8 +5,7 @@
 # scope. `git push` is rejected while GitHub checks whether the push creates or
 # updates a workflow, even when the commit only changes scenario caches.
 # The Git Data API writes one commit of the changed *.scenario.cache.json files
-# (and a reworded *.scenario.md when a repairable heal has one) and never sends
-# a workflow file.
+# and never sends a workflow file.
 set -euo pipefail
 
 : "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
@@ -20,140 +19,77 @@ if [[ ! -f "$BODY_FILE" ]]; then
   exit 1
 fi
 
-case "$HEAL_BRANCH" in
-  perf-scenario-heal/*) ;;
-  *)
-    echo "::error::Refusing to create unexpected branch name: $HEAL_BRANCH"
-    exit 1
-    ;;
-esac
+if [[ "$HEAL_BRANCH" != perf-scenario-heal/* ]]; then
+  echo "::error::Refusing to create unexpected branch name: $HEAL_BRANCH"
+  exit 1
+fi
 
-# Run a GitHub API call. On failure print a fixed message plus the response
-# body (never the token) and exit.
-capture() {
+# Run a GitHub API call that must return a sha. On failure print a fixed
+# message plus the response (never the token) to stderr and exit; gh writes
+# its own error body to stderr.
+api_sha() {
   local what="$1"
   shift
-  local err out status
-  err="$(mktemp)"
-  set +e
-  out="$("$@" 2>"$err")"
-  status=$?
-  set -e
-  if [[ $status -ne 0 ]]; then
-    echo "::error::${what}"
-    if [[ -s "$err" ]]; then
-      cat "$err" >&2
-    fi
-    rm -f "$err"
+  local out=''
+  if ! out="$(gh api "$@")" || [[ ! "$out" =~ ^[0-9a-fA-F]{40}$ ]]; then
+    echo "::error::${what}" >&2
+    if [[ -n "$out" ]]; then echo "$out" >&2; fi
     exit 1
   fi
-  rm -f "$err"
   printf '%s' "$out"
 }
 
-require_sha() {
-  local value="$1"
-  local what="$2"
-  if [[ ! "$value" =~ ^[0-9a-fA-F]{40}$ ]]; then
-    echo "::error::GitHub API did not return a sha for ${what}."
-    if [[ -n "$value" ]]; then
-      echo "$value"
-    fi
+# Only scenario caches may be published. Anything else aborts before the API.
+git add -- 'tests/performance/**/*.scenario.cache.json'
+mapfile -t files < <(git diff --cached --name-only --diff-filter=ACMR)
+for file in "${files[@]}"; do
+  if [[ "$file" != tests/performance/*.scenario.cache.json ]]; then
+    echo "::error::Refusing to publish ${file}. A heal commit may only contain *.scenario.cache.json."
     exit 1
   fi
-}
-
-# Only the files a heal is allowed to change. Anything else aborts before the API.
-git add -- 'tests/performance/**/*.scenario.cache.json' 'tests/performance/**/*.scenario.md'
+done
 if [[ -n "$(git status --porcelain --untracked-files=no | grep -v '^[AM] ' || true)" ]]; then
-  echo "::error::Unexpected changes outside scenario caches and Markdown; not opening a PR."
+  echo "::error::Unexpected changes outside scenario caches; not opening a PR."
   git status --porcelain
   exit 1
 fi
-
-mapfile -t files < <(git diff --cached --name-only --diff-filter=ACMR)
 if [[ ${#files[@]} -eq 0 ]]; then
-  echo "::error::No scenario cache or Markdown changes to publish."
+  echo "::error::No scenario cache changes to publish."
   exit 1
 fi
 
-for file in "${files[@]}"; do
-  case "$file" in
-    tests/performance/*.scenario.cache.json) ;;
-    tests/performance/*.scenario.md) ;;
-    *)
-      echo "::error::Refusing to publish ${file}. A heal commit may only contain *.scenario.cache.json or *.scenario.md."
-      exit 1
-      ;;
-  esac
-done
+repo_api="repos/${GITHUB_REPOSITORY}"
+base_sha="$(api_sha "Failed to read HEAD of ${BASE_REF}." "${repo_api}/commits/${BASE_REF}" --jq .sha)"
 
-base_sha="$(capture "Failed to read HEAD of ${BASE_REF}." \
-  gh api "repos/${GITHUB_REPOSITORY}/commits/${BASE_REF}" --jq .sha)"
-require_sha "$base_sha" "HEAD of ${BASE_REF}"
-
-set +e
-create_out="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
-  -f ref="refs/heads/${HEAL_BRANCH}" \
-  -f sha="$base_sha" 2>&1)"
-create_status=$?
-set -e
-if [[ $create_status -ne 0 ]]; then
-  if [[ "$create_out" == *"Reference already exists"* ]]; then
-    echo "Branch ${HEAL_BRANCH} already exists; updating its files."
-  else
+if ! create_out="$(gh api --method POST "${repo_api}/git/refs" \
+  -f ref="refs/heads/${HEAL_BRANCH}" -f sha="$base_sha" 2>&1)"; then
+  if [[ "$create_out" != *"Reference already exists"* ]]; then
     echo "::error::Failed to create ${HEAL_BRANCH}."
     echo "$create_out"
     exit 1
   fi
+  echo "Branch ${HEAL_BRANCH} already exists; updating its files."
 fi
 
-tip="$(capture "Failed to read tip of ${HEAL_BRANCH}." \
-  gh api "repos/${GITHUB_REPOSITORY}/commits/${HEAL_BRANCH}" --jq .sha)"
-require_sha "$tip" "tip of ${HEAL_BRANCH}"
-base_tree="$(capture "Failed to read tree of ${tip}." \
-  gh api "repos/${GITHUB_REPOSITORY}/git/commits/${tip}" --jq .tree.sha)"
-require_sha "$base_tree" "tree of ${tip}"
+tip="$(api_sha "Failed to read tip of ${HEAL_BRANCH}." "${repo_api}/commits/${HEAL_BRANCH}" --jq .sha)"
+base_tree="$(api_sha "Failed to read tree of ${tip}." "${repo_api}/git/commits/${tip}" --jq .tree.sha)"
 
 entries='[]'
 for file in "${files[@]}"; do
   b64="$(base64 -w 0 "$file" 2>/dev/null || base64 < "$file" | tr -d '\n')"
-  blob_payload="$(jq -n --arg content "$b64" '{content:$content, encoding:"base64"}')"
-  blob_sha="$(capture "Failed to create blob for ${file}." \
-    gh api --method POST "repos/${GITHUB_REPOSITORY}/git/blobs" --input - --jq .sha <<< "$blob_payload")"
-  require_sha "$blob_sha" "blob ${file}"
-  entries="$(jq -n \
-    --argjson entries "$entries" \
-    --arg path "$file" \
-    --arg sha "$blob_sha" \
+  blob_sha="$(jq -n --arg content "$b64" '{content:$content, encoding:"base64"}' |
+    api_sha "Failed to create blob for ${file}." --method POST "${repo_api}/git/blobs" --input - --jq .sha)"
+  entries="$(jq -n --argjson entries "$entries" --arg path "$file" --arg sha "$blob_sha" \
     '$entries + [{path:$path, mode:"100644", type:"blob", sha:$sha}]')"
 done
 
-tree_payload="$(jq -n --arg base_tree "$base_tree" --argjson tree "$entries" '{base_tree:$base_tree, tree:$tree}')"
-tree_sha="$(capture "Failed to create heal tree." \
-  gh api --method POST "repos/${GITHUB_REPOSITORY}/git/trees" --input - --jq .sha <<< "$tree_payload")"
-require_sha "$tree_sha" "heal tree"
-
-commit_payload="$(jq -n \
-  --arg message "$PR_TITLE" \
-  --arg tree "$tree_sha" \
-  --arg parent "$tip" \
-  '{message:$message, tree:$tree, parents:[$parent]}')"
-commit_sha="$(capture "Failed to create heal commit." \
-  gh api --method POST "repos/${GITHUB_REPOSITORY}/git/commits" --input - --jq .sha <<< "$commit_payload")"
-require_sha "$commit_sha" "heal commit"
-
-set +e
-updated="$(gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/heads/${HEAL_BRANCH}" \
-  -f sha="$commit_sha" -F force=false --jq .object.sha 2>&1)"
-update_status=$?
-set -e
-if [[ $update_status -ne 0 ]]; then
-  echo "::error::Failed to point ${HEAL_BRANCH} at ${commit_sha}."
-  echo "$updated"
-  exit 1
-fi
-require_sha "$updated" "updated ${HEAL_BRANCH}"
+tree_sha="$(jq -n --arg base_tree "$base_tree" --argjson tree "$entries" '{base_tree:$base_tree, tree:$tree}' |
+  api_sha "Failed to create heal tree." --method POST "${repo_api}/git/trees" --input - --jq .sha)"
+commit_sha="$(jq -n --arg message "$PR_TITLE" --arg tree "$tree_sha" --arg parent "$tip" \
+  '{message:$message, tree:$tree, parents:[$parent]}' |
+  api_sha "Failed to create heal commit." --method POST "${repo_api}/git/commits" --input - --jq .sha)"
+api_sha "Failed to point ${HEAL_BRANCH} at ${commit_sha}." --method PATCH \
+  "${repo_api}/git/refs/heads/${HEAL_BRANCH}" -f sha="$commit_sha" -F force=false --jq .object.sha > /dev/null
 
 pr_url="$(gh pr create --repo "$GITHUB_REPOSITORY" --draft \
   --base "$BASE_REF" --head "$HEAL_BRANCH" \

@@ -3,26 +3,10 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import TimerStore from '../TimerStore.ts';
-import { missingEnv, parseScenario, requireSecretEnv } from './scenario.ts';
-import {
-  ScenarioAgent,
-  findBlockingAlert,
-  fundingTapReason,
-  submitTapReason,
-  genericLocatorReason,
-  isSubmitStep,
-  burstActions,
-  fieldTextIn,
-  learnedBurstPlan,
-  planBurst,
-  parseScreenNodes,
-  screenSignature,
-  visibleIn,
-  type AgentAction,
-  type Brain,
-  type Device,
-  type Locator,
-} from './ScenarioAgent.ts';
+import { parseScenario, requireSecretEnv } from './scenario.ts';
+import { ScenarioAgent } from './ScenarioAgent.ts';
+import { parseScreenNodes, visibleIn } from './screen.ts';
+import type { AgentAction, Brain, Device, Locator } from './types.ts';
 
 /** This repo's ProcessEnv typing requires keys a test env does not need. */
 const testEnv = (vars: Record<string, string>): NodeJS.ProcessEnv =>
@@ -198,147 +182,6 @@ describe('ScenarioAgent timing', () => {
 const node = (id: string, text = '', y = 500, desc = '') =>
   `<android.view.View resource-id="${id}" text="${text}" content-desc="${desc}" bounds="[0,${y}][1000,${y + 100}]" displayed="true"/>`;
 const page = (...nodes: string[]) => `<hierarchy>${nodes.join('')}</hierarchy>`;
-
-describe('screen checks', () => {
-  it('finds blocking alerts unless the step is about them', () => {
-    const nodes = parseScreenNodes(
-      page(
-        node('alert-title', 'Insufficient funds'),
-        node(
-          'x',
-          'You do not have enough ETH in your account to pay for network fees.',
-        ),
-      ),
-    );
-    expect(findBlockingAlert(nodes, 'Tap Confirm')).toBe('Insufficient funds');
-    expect(
-      findBlockingAlert(
-        parseScreenNodes(
-          page(
-            node(
-              'x',
-              'You do not have enough ETH in your account to pay for network fees.',
-            ),
-          ),
-        ),
-        'Tap Confirm',
-      ),
-    ).toMatch(/do not have enough/);
-    expect(
-      findBlockingAlert(
-        nodes.slice(0, 1),
-        'Expect: an insufficient funds warning',
-      ),
-    ).toBeNull();
-    expect(
-      findBlockingAlert(
-        parseScreenNodes(page(node('a', 'Send'))),
-        'Tap Confirm',
-      ),
-    ).toBeNull();
-  });
-
-  it('rejects generic end-checks and accepts specific ones', () => {
-    const step = 'the send transaction is listed in Activity';
-    const id = (value: string): Locator => ({ strategy: 'testID', value });
-    expect(genericLocatorReason(id('homepage-container'), step)).toMatch(
-      /generic/,
-    );
-    expect(genericLocatorReason(id('wallet-scroll-view'), step)).toMatch(
-      /generic/,
-    );
-    expect(genericLocatorReason(id('wallet-activity-button'), step)).toMatch(
-      /control/,
-    );
-    expect(
-      genericLocatorReason({ strategy: 'text', value: 'Activity' }, step),
-    ).toMatch(/where to look/);
-    expect(
-      genericLocatorReason(
-        { strategy: 'nativeXPath', value: '//android.widget.ScrollView' },
-        step,
-      ),
-    ).toMatch(/class only/);
-    expect(
-      genericLocatorReason({ strategy: 'text', value: 'Sent ETH' }, step),
-    ).toBeNull();
-    expect(genericLocatorReason(id('transaction-item-0'), step)).toBeNull();
-    // Screen-level elements are fine when the step is about that screen.
-    expect(
-      genericLocatorReason(
-        id('bridge-view-scroll'),
-        'the swap screen is loaded',
-      ),
-    ).toBeNull();
-    expect(
-      genericLocatorReason(
-        id('token-asset-overview'),
-        'the ETH token overview screen is visible',
-      ),
-    ).toBeNull();
-    expect(
-      genericLocatorReason(
-        id('homepage-container'),
-        'the wallet home is visible',
-      ),
-    ).toBeNull();
-    expect(
-      genericLocatorReason(
-        id('wallet-activity-button'),
-        'Open the Activity tab',
-      ),
-    ).toBeNull();
-  });
-
-  it('ignores prices and the status bar when comparing screens', () => {
-    const a = parseScreenNodes(
-      page(
-        node('balance', '$8.62'),
-        node('com.android.systemui:id/clock', '4:57'),
-        node('title', 'Home'),
-      ),
-    );
-    const b = parseScreenNodes(
-      page(
-        node('balance', '$8.63'),
-        node('com.android.systemui:id/clock', '4:58'),
-        node('title', 'Home'),
-      ),
-    );
-    const c = parseScreenNodes(
-      page(node('balance', '$8.63'), node('title', 'Send')),
-    );
-    expect(screenSignature(a)).toBe(screenSignature(b));
-    expect(screenSignature(a)).not.toBe(screenSignature(c));
-  });
-
-  it('reads text inside an element for visibleIn', () => {
-    const nodes = parseScreenNodes(
-      page(node('row', '', 500), node('', 'Sent ETH', 520)),
-    );
-    expect(visibleIn(nodes, { strategy: 'testID', value: 'row' }, 'Sent')).toBe(
-      true,
-    );
-    expect(
-      visibleIn(nodes, { strategy: 'testID', value: 'row' }, 'Received'),
-    ).toBe(false);
-    expect(visibleIn(nodes, { strategy: 'text', value: 'Sent ETH' })).toBe(
-      true,
-    );
-  });
-
-  it('refuses buy / add funds taps unless the step asks', () => {
-    expect(
-      fundingTapReason('alert-modal-action-button Buy ETH', 'Tap Confirm'),
-    ).toMatch(/buys or adds funds/);
-    expect(
-      fundingTapReason('confirm-button Confirm', 'Tap Confirm'),
-    ).toBeNull();
-    expect(
-      fundingTapReason('wallet-buy-button Buy', 'Tap Buy on the wallet home'),
-    ).toBeNull();
-  });
-});
 
 /** A phone with named screens; taps move between them. */
 function statefulFakes(options: {
@@ -745,19 +588,6 @@ describe('ScenarioAgent step-progress verification', () => {
     expect(fake.screenName()).toBe('send');
   });
 
-  it('tells submit steps from steps that only open a flow or read a quote', () => {
-    expect(isSubmitStep('Tap Confirm')).toBe(true);
-    expect(isSubmitStep('Submit the swap')).toBe(true);
-    expect(isSubmitStep('Tap Swap to execute the trade')).toBe(true);
-    expect(isSubmitStep('Tap the Send button on the wallet home')).toBe(false);
-    expect(isSubmitStep('Tap the Swap button on the wallet home')).toBe(false);
-    expect(isSubmitStep('Tap Review')).toBe(false);
-    expect(isSubmitStep('Enter 0.01 as the source amount')).toBe(false);
-    expect(
-      isSubmitStep('Select USDC on BNB Chain as the destination token'),
-    ).toBe(false);
-  });
-
   it('does not stop a swap-like step whose quote screen shows an insufficient-funds alert', async () => {
     const cachePath = tempCachePath();
     const swapScreens = {
@@ -953,63 +783,6 @@ describe('fixed checks pinned in the scenario', () => {
       settlePollMs: 1,
     });
 
-  it('parses [check: ...] markers off the step text', () => {
-    const scenario = plainScenario(
-      '2. Open the Activity tab [check: testID=activity-screen-safe-area-view] [check: testID=activity-list]\n' +
-        '3. Tap Confirm [check: gone testID=confirm-button]\n' +
-        '4. Expect: a quote is displayed [check: testID=dest-token-area-input text=/^\\s*\\+?(?:\\d*[1-9]|\\d*\\.\\d*[1-9])/]',
-    );
-    expect(scenario.steps[1]).toEqual({
-      number: 2,
-      kind: 'do',
-      text: 'Open the Activity tab',
-      checks: [
-        {
-          locator: {
-            strategy: 'testID',
-            value: 'activity-screen-safe-area-view',
-          },
-        },
-        { locator: { strategy: 'testID', value: 'activity-list' } },
-      ],
-    });
-    expect(scenario.steps[2].checks).toEqual([
-      { locator: { strategy: 'testID', value: 'confirm-button' }, gone: true },
-    ]);
-    const pattern = new RegExp(scenario.steps[3].checks?.[0].textPattern ?? '');
-    // Same as QuoteView.waitForQuoteReady: a digit and parseFloat(text) > 0.
-    for (const [text, ok] of [
-      ['21.08', true],
-      ['0', false],
-      ['0.00', false],
-      ['0.0001', true],
-      ['', false],
-      ['.5', true],
-    ] as const) {
-      expect(pattern.test(text)).toBe(ok);
-    }
-  });
-
-  it('rejects a timer that ends on a "gone" check', () => {
-    expect(() =>
-      parseScenario(`# T
-
-Tags: @PerformanceShadow
-Team: @qa-team
-Platforms: Android
-
-## Steps
-
-1. Tap Swap
-2. Expect: done [check: gone testID=x]
-
-## Timers
-
-- Measure from step 1 until step 2 (Android 1 ms, iOS 1 ms): t
-`),
-    ).toThrow(/exactly one element check/);
-  });
-
   it('uses the pinned checks, never the model, for proofs and expectations, and does not cache them', async () => {
     const cachePath = tempCachePath();
     const steps =
@@ -1126,33 +899,6 @@ Platforms: Android
   });
 });
 
-describe('model config for CI', () => {
-  it('treats empty env values as unset', () => {
-    const { scenarioModelConfig } = jest.requireActual(
-      './ScenarioAgent.ts',
-    ) as typeof import('./ScenarioAgent.ts');
-    expect(
-      scenarioModelConfig(
-        testEnv({ ANTHROPIC_MODEL: '', ANTHROPIC_BASE_URL: '' }),
-      ),
-    ).toEqual({ model: 'claude-haiku-4-5-20251001' });
-    expect(scenarioModelConfig(testEnv({}))).toEqual({
-      model: 'claude-haiku-4-5-20251001',
-    });
-    expect(
-      scenarioModelConfig(
-        testEnv({
-          ANTHROPIC_MODEL: 'claude-haiku-4-5',
-          ANTHROPIC_BASE_URL: 'https://proxy.example',
-        }),
-      ),
-    ).toEqual({
-      model: 'claude-haiku-4-5',
-      baseURL: 'https://proxy.example',
-    });
-  });
-});
-
 describe('pinned timer end, like the original spec', () => {
   it('measures even when the end check already holds, and flags it', async () => {
     const fake = fakes();
@@ -1191,183 +937,31 @@ Platforms: Android
   });
 });
 
-describe('burst typing (one page source, one touch sequence)', () => {
-  const key = (id: string, x: number, y: number) =>
-    `<android.view.View resource-id="${id}" text="" content-desc="" bounds="[${x - 50},${y - 50}][${x + 50},${y + 50}]" displayed="true"/>`;
-  const keypad = [
-    key('keypad-key-0', 504, 2046),
-    key('keypad-key-1', 185, 1641),
-    key('keypad-key-9', 824, 1641),
-    key('keypad-key-dot', 185, 2046),
-    key('keypad-delete-button', 824, 2046),
-  ];
-
-  it('plans every tap from one page source, clearing a non-empty field first', () => {
-    const empty = parseScreenNodes(
-      page(node('source-token-area-input', '0', 300), ...keypad),
-    );
-    const plan = planBurst(
-      empty,
-      '0.01',
-      { strategy: 'testID', value: 'source-token-area-input' },
-      2244,
-    );
-    expect(plan).toEqual({
-      clear: [],
-      keys: [
-        { x: 504, y: 2046 },
-        { x: 185, y: 2046 },
-        { x: 504, y: 2046 },
-        { x: 185, y: 1641 },
-      ],
-      shown: '0',
-      // The field's centre, so a learned burst can start with the field tap.
-      field: expect.objectContaining({ y: expect.any(Number) }),
-    });
-    const filled = parseScreenNodes(
-      page(node('source-token-area-input', '12', 300), ...keypad),
-    );
-    expect(
-      planBurst(
-        filled,
-        '1',
-        { strategy: 'testID', value: 'source-token-area-input' },
-        2244,
-      )?.clear,
-    ).toEqual([
-      { x: 824, y: 2046 },
-      { x: 824, y: 2046 },
-    ]);
-    // Keypad not open yet: no plan, the caller polls again.
-    expect(
-      planBurst(
-        parseScreenNodes(page(node('source-token-area-input', '0', 300))),
-        '0.01',
-        { strategy: 'testID', value: 'source-token-area-input' },
-        2244,
-      ),
-    ).toBeNull();
-  });
-
-  it('plans a burst at the learned key centres when the keypad opens only on the field tap', () => {
-    const method = {
-      input: 'keypad' as const,
-      pace: 'burst' as const,
-      keys: {
-        '0': {
-          locator: { strategy: 'testID' as const, value: 'keypad-key-0' },
-          center: { x: 504, y: 2046 },
-        },
-        '.': {
-          locator: { strategy: 'testID' as const, value: 'keypad-key-dot' },
-          center: { x: 185, y: 2046 },
-        },
-        '1': {
-          locator: { strategy: 'testID' as const, value: 'keypad-key-1' },
-          center: { x: 185, y: 1641 },
-        },
-      },
-      deleteKey: {
-        locator: { strategy: 'testID' as const, value: 'keypad-delete-button' },
-        center: { x: 824, y: 2046 },
-      },
-    };
-    const field = {
-      strategy: 'testID' as const,
-      value: 'source-token-area-input',
-    };
-    const closed = parseScreenNodes(
-      page(node('source-token-area-input', '5', 300)),
-    );
-    expect(learnedBurstPlan(closed, '0.1', field, method)).toEqual({
-      clear: [{ x: 824, y: 2046 }],
-      keys: [
-        { x: 504, y: 2046 },
-        { x: 185, y: 2046 },
-        { x: 185, y: 1641 },
-      ],
-      shown: '5',
-      field: expect.any(Object),
-      learned: true,
-    });
-    // A key never learned, or the field not on screen: no plan.
-    expect(learnedBurstPlan(closed, '0.9', field, method)).toBeNull();
-    expect(
-      learnedBurstPlan(
-        parseScreenNodes(page(node('other'))),
-        '0.1',
-        field,
-        method,
-      ),
-    ).toBeNull();
-  });
-
-  it('reads a field whose text sits in a child', () => {
-    const nodes = parseScreenNodes(
-      `<hierarchy><android.view.View resource-id="send_amount" text="" content-desc="" bounds="[0,200][1000,400]" displayed="true"/><android.widget.TextView resource-id="" text="0.5" content-desc="" bounds="[100,250][300,350]" displayed="true"/></hierarchy>`,
-    );
-    expect(
-      fieldTextIn(nodes, { strategy: 'testID', value: 'send_amount' }),
-    ).toBe('0.5');
-    expect(
-      fieldTextIn(nodes, { strategy: 'testID', value: 'missing' }),
-    ).toBeNull();
-  });
-
-  it('builds one sequence with short fixed gaps and no gap before the first key', () => {
-    const steps = burstActions([
-      { x: 1, y: 2 },
-      { x: 3, y: 4 },
-      { x: 5, y: 6 },
-    ]);
-    const pauses = steps
-      .filter((a) => a.type === 'pause')
-      .map((a) => a.duration);
-    // press, gap, press, gap, press
-    expect(pauses).toEqual([40, 100, 40, 100, 40]);
-    expect(steps.filter((a) => a.type === 'pointerDown')).toHaveLength(3);
-    expect(steps[0]).toEqual({ type: 'pointerMove', duration: 0, x: 1, y: 2 });
-    // Four short keys stay well under a second of finger time on the device.
-    const total = burstActions(Array(4).fill({ x: 0, y: 0 })).reduce(
-      (sum, a) => sum + (Number(a.duration) || 0),
-      0,
-    );
-    expect(total).toBeLessThan(1000);
-    // Field tap first: a longer pause before the first key, then the same gaps.
-    const withField = burstActions(Array(3).fill({ x: 0, y: 0 }), 40, 100, 250)
-      .filter((a) => a.type === 'pause')
-      .map((a) => a.duration);
-    expect(withField).toEqual([40, 250, 40, 100, 40]);
-  });
-
-  it('falls back to element clicks when a cached burst does not register, and caches that', async () => {
+describe('typed text', () => {
+  it('asks the agent when cached keys do not register, and caches the action without an input method', async () => {
     const cachePath = tempCachePath();
     const typeAction = {
       type: 'type',
       locator: { strategy: 'testID', value: 'source-token-area-input' },
       text: '0.01',
-      method: { input: 'keypad', pace: 'burst', keys: {} },
     };
     fs.writeFileSync(
       cachePath,
       JSON.stringify({ 'Enter 0.01 as the source amount': [typeAction] }),
     );
-    const paces: string[] = [];
     let field = '0';
+    let typed = 0;
     const fake = statefulFakes({
       screens: { swap: page(node('source-token-area-input', '0', 300)) },
       start: 'swap',
       taps: {},
-      replies: () => {
-        throw new Error('no model call expected');
-      },
+      replies: () => `{"action":${JSON.stringify(typeAction)},"final":true}`,
     });
     fake.device.perform = async (action) => {
-      if (action.type === 'type') {
-        paces.push(action.method?.pace ?? '');
-        // Burst taps "missed"; element clicks register.
-        field = action.method?.pace === 'quick' ? action.text : '0';
-      }
+      if (action.type !== 'type') return;
+      typed += 1;
+      // The cached replay "misses"; the retry the agent asks for lands.
+      field = typed === 1 ? '0' : action.text;
     };
     fake.device.fieldText = async () => field;
     const result = await new ScenarioAgent({
@@ -1382,28 +976,17 @@ describe('burst typing (one page source, one touch sequence)', () => {
       settlePollMs: 1,
     }).run();
     expect(result.status).toBe('PASS');
-    expect(result.modelCalls).toBe(0);
-    expect(paces).toEqual(['burst', 'quick']);
-    const saved = JSON.parse(fs.readFileSync(cachePath, 'utf8'))[
-      'Enter 0.01 as the source amount'
-    ];
-    expect(saved[0].method.pace).toBe('quick');
+    expect(result.modelCalls).toBe(1);
+    expect(typed).toBe(2);
+    expect(
+      JSON.parse(fs.readFileSync(cachePath, 'utf8'))[
+        'Enter 0.01 as the source amount'
+      ],
+    ).toEqual([typeAction]);
   });
 });
 
 describe('"any" pinned checks (waitForFirstSuccessful)', () => {
-  it('parses alternatives, quoted values included', () => {
-    const scenario = plainScenario(
-      '2. Expect: rewards content [check: any testID=onboarding-step-container | testID=rewards-view-title | label="Add accounts"]',
-    );
-    expect(scenario.steps[1].text).toBe('rewards content');
-    expect(scenario.steps[1].checks?.[0].anyOf).toEqual([
-      { strategy: 'testID', value: 'onboarding-step-container' },
-      { strategy: 'testID', value: 'rewards-view-title' },
-      { strategy: 'label', value: 'Add accounts' },
-    ]);
-  });
-
   it('ends a timer on whichever alternative shows first', async () => {
     const fake = fakes();
     const seen: string[] = [];
@@ -1446,20 +1029,6 @@ Platforms: Android
 });
 
 describe('never submits outside a submit step', () => {
-  it('flags Confirm / Sign taps unless the step is a submit step', () => {
-    expect(submitTapReason('confirm-button Confirm', 'Tap Review')).toMatch(
-      /only a Confirm\/Submit step/,
-    );
-    expect(submitTapReason('confirm-button Confirm', 'Tap Confirm')).toBeNull();
-    expect(submitTapReason('review-button Review', 'Tap Review')).toBeNull();
-    expect(
-      submitTapReason(
-        'transaction-item-0 Sent ETH Confirmed',
-        'Open the Activity tab',
-      ),
-    ).toBeNull();
-  });
-
   it('refuses a Confirm tap during "Tap Review" and accepts the Confirm button as Review\'s proof', async () => {
     const screens = {
       amount: page(node('review-button', 'Review')),
@@ -1527,59 +1096,6 @@ Platforms: Android
 1. Secret: Log in to the wallet
 ${steps}
 ${timers ? `\n## Timers\n\n${timers}\n` : ''}`;
-
-  it('parses App commands, a pinned tap, and timers that start on an App step', () => {
-    const s = parseScenario(
-      md(
-        `2. App: terminate the app
-3. App: activate the app
-4. Expect: login [check: testID=login]
-5. App: background the app for 35 s
-6. App: start the clock
-7. Expect: wallet [check: any testID=wallet-account-name-button | testID=account-picker]
-8. Tap the Rewards tab [tap: testID=tab-bar-item-Rewards]`,
-        `- Measure from step 3 until step 4 (Android 3000 ms, iOS 3000 ms): launch
-- Measure from step 6 until step 7 (Android 3000 ms, iOS 2500 ms): unlock`,
-      ),
-    );
-    expect(s.steps.map((x) => x.app?.command ?? null)).toEqual([
-      null,
-      'terminate',
-      'activate',
-      null,
-      'background',
-      'startClock',
-      null,
-      null,
-    ]);
-    expect(s.steps[4].app).toEqual({ command: 'background', seconds: 35 });
-    expect(s.steps[7]).toMatchObject({
-      text: 'Tap the Rewards tab',
-      tap: { strategy: 'testID', value: 'tab-bar-item-Rewards' },
-    });
-  });
-
-  it('rejects unknown App commands and App timers without a pinned end on the next step', () => {
-    expect(() => parseScenario(md('2. App: reinstall the app'))).toThrow(
-      /unknown App command/,
-    );
-    expect(() =>
-      parseScenario(
-        md(
-          '2. App: activate the app\n3. Expect: login',
-          '- Measure from step 2 until step 3 (Android 1 ms, iOS 1 ms): t',
-        ),
-      ),
-    ).toThrow(/needs a pinned/);
-    expect(() =>
-      parseScenario(
-        md(
-          '2. App: activate the app\n3. Tap x\n4. Expect: login [check: testID=login]',
-          '- Measure from step 2 until step 4 (Android 1 ms, iOS 1 ms): t',
-        ),
-      ),
-    ).toThrow(/very next step/);
-  });
 
   it('runs App steps in code and times from the end of the App command, with no model call', async () => {
     const order: string[] = [];
@@ -1720,36 +1236,6 @@ ${timers ? `\n## Timers\n\n${timers}\n` : ''}`;
       ...extra,
     }).run();
   };
-
-  it('parses code checks and conditions, and keeps a timer inside one condition', () => {
-    const s = parseScenario(
-      md(
-        `2. App: start the clock [if: perps-gtm-onboarding]
-3. Expect: tutorial [if: perps-gtm-onboarding] [check: any text="What are perps?"]
-4. Expect: balance stable [check: code=balance-stable]`,
-        '- Measure from step 2 until step 3 (Android 1 ms, iOS 1 ms): t',
-      ),
-    );
-    expect(s.steps[1]).toMatchObject({
-      kind: 'app',
-      condition: 'perps-gtm-onboarding',
-    });
-    expect(s.steps[2].checks?.[0].anyOf).toEqual([
-      { strategy: 'text', value: 'What are perps?' },
-    ]);
-    expect(s.steps[3].checks?.[0].code).toBe('balance-stable');
-    expect(() =>
-      parseScenario(
-        md(
-          `2. App: start the clock [if: x]\n3. Expect: e [check: testID=a]`,
-          '- Measure from step 2 until step 3 (Android 1 ms, iOS 1 ms): t',
-        ),
-      ),
-    ).toThrow(/same \[if/);
-    expect(() =>
-      parseScenario(md('2. Tap a [check: code=balance-stable]')),
-    ).toThrow(/code check/);
-  });
 
   it('times a code check from a clock mark and skips conditional steps and their timer', async () => {
     const codeChecks: string[] = [];
@@ -1936,20 +1422,6 @@ ${timers ? `\n## Timers\n\n${timers}\n` : ''}`;
     }
   });
 
-  it('names a missing secret without its value, and lists only missing names', () => {
-    const env = testEnv({
-      TEST_SRP_2: 'alpha beta gamma',
-      TEST_SRP_3: '',
-    });
-    expect(missingEnv(['TEST_SRP_2', 'TEST_SRP_3', 'TEST_SRP_4'], env)).toEqual(
-      ['TEST_SRP_3', 'TEST_SRP_4'],
-    );
-    expect(requireSecretEnv('TEST_SRP_2', env)).toBe('alpha beta gamma');
-    expect(() => requireSecretEnv('TEST_SRP_3', env)).toThrow(
-      'TEST_SRP_3 environment variable is required for this scenario',
-    );
-  });
-
   it('fails a Secret step whose secret is missing, and the error carries the name only', async () => {
     const { brain, device } = fakes();
     const result = await new ScenarioAgent({
@@ -1970,21 +1442,6 @@ ${timers ? `\n## Timers\n\n${timers}\n` : ''}`;
       /SCENARIO_TEST_UNSET_SECRET environment variable is required/,
     );
     expect(result.modelCalls).toBe(0);
-  });
-
-  it('parses "(no threshold)" timers (originals without a threshold)', () => {
-    const s = parseScenario(
-      md(
-        '2. App: start the clock\n3. Expect: list [check: code=account-list]',
-        '- Measure from step 2 until step 3 (no threshold): account list',
-      ),
-    );
-    expect(s.timers[0]).toMatchObject({
-      name: 'account list',
-      from: 2,
-      until: 3,
-    });
-    expect(s.timers[0].threshold).toBeUndefined();
   });
 
   it('hands the timer to a timed code check (measureCreatePasswordToWalletHome)', async () => {

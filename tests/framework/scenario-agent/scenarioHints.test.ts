@@ -14,7 +14,9 @@ import {
 } from './scenarioHints';
 
 const strings = (source: Record<string, unknown>): string[] =>
-  Object.values(source).filter((value): value is string => typeof value === 'string');
+  Object.values(source).filter(
+    (value): value is string => typeof value === 'string',
+  );
 
 const digits = [...'0123456789'].map((digit) => `keypad-key-${digit}`);
 
@@ -115,10 +117,7 @@ describe('resolveScenarioHints', () => {
       'warm-start-login-to-wallet.scenario.md': strings(WalletViewSelectorsIDs),
       'warm-start-to-login.scenario.md': strings(WalletViewSelectorsIDs),
     };
-    const dir = path.resolve(
-      __dirname,
-      '../../performance/login/scenarios',
-    );
+    const dir = path.resolve(__dirname, '../../performance/login/scenarios');
     for (const [file, hints] of Object.entries(expected)) {
       const scenario = parseScenario(
         fs.readFileSync(path.join(dir, file), 'utf8'),

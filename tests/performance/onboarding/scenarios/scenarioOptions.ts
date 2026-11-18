@@ -5,9 +5,9 @@ import {
 import {
   ONBOARDING_CHECKS,
   ONBOARDING_STEPS,
-  secretEnv,
   seedlessOptions,
 } from './onboardingScenarioSteps';
+import { requireSecretEnv } from '../../../framework/scenario-agent/scenario';
 import PerpsMarketDetailsView from '../../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsMarketListView from '../../../page-objects/Perps/PerpsMarketListView';
 import PerpsOrderView from '../../../page-objects/Perps/PerpsOrderView';
@@ -18,9 +18,7 @@ import {
 } from '../../../flows/perps.flow';
 import type { ScenarioTestOptions } from '../../../framework/scenario-agent/scenarioTest';
 
-const onboarding = (
-  extra: ScenarioTestOptions = {},
-): ScenarioTestOptions => ({
+const onboarding = (extra: ScenarioTestOptions = {}): ScenarioTestOptions => ({
   codeSteps: ONBOARDING_STEPS,
   codeChecks: ONBOARDING_CHECKS,
   ...extra,
@@ -53,7 +51,9 @@ export const ONBOARDING_SCENARIO_OPTIONS: Record<string, ScenarioTestOptions> =
       codeSteps: {
         'Import the SRP 4 wallet in onboarding and select the account for this device':
           async ({ currentDeviceDetails }) => {
-            await onboardingFlowImportSRPPlaywright(secretEnv('TEST_SRP_4'));
+            await onboardingFlowImportSRPPlaywright(
+              requireSecretEnv('TEST_SRP_4'),
+            );
             // Perps needs one account per device so parallel runs do not clash.
             await selectAccountByDevice(
               currentDeviceDetails.deviceName as string,

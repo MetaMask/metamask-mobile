@@ -6,11 +6,13 @@ import {
 describe('scenario coverage', () => {
   it('accepts a built-in login secret and a registry code step', () => {
     expect(secretStepHasCodePath('Log in to the wallet')).toBe(true);
+    expect(secretStepHasCodePath('Enter the second SRP and continue')).toBe(
+      true,
+    );
     expect(
-      secretStepHasCodePath('Enter the second SRP and continue'),
-    ).toBe(true);
-    expect(
-      secretStepHasCodePath('Unlock on the login screen with the login password'),
+      secretStepHasCodePath(
+        'Unlock on the login screen with the login password',
+      ),
     ).toBe(true);
     expect(
       secretStepHasCodePath('Tap the BTC market row', {
