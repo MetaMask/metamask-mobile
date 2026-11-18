@@ -17,7 +17,7 @@ const INTENT: Record<QuickDepositSymbol, QuickDepositIntent> = {
   USDT: 'addUsdt',
   mUSD: 'addMusd',
 };
-const RANK: Record<QuickDepositSymbol, number> = { USDC: 0, USDT: 1, mUSD: 2 };
+const PRIORITY: readonly QuickDepositSymbol[] = ['USDC', 'USDT', 'mUSD'];
 const EIGHTEEN = new Set([
   '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
   '0x55d398326f99059ff775485246999027b3197955',
@@ -111,20 +111,11 @@ export const buildQuickDepositStablecoinOptions = ({
     });
   }
 
-  const winner = [...totals.entries()].reduce<
-    [QuickDepositSymbol, SymbolTotal] | undefined
-  >(
-    (best, candidate) =>
-      !best ||
-      candidate[1].total.isGreaterThan(best[1].total) ||
-      (candidate[1].total.isEqualTo(best[1].total) &&
-        RANK[candidate[0]] < RANK[best[0]])
-        ? candidate
-        : best,
-    undefined,
+  const symbol = PRIORITY.find((candidate) =>
+    totals.get(candidate)?.total.isGreaterThan(0),
   );
-  if (!winner?.[1].total.isGreaterThan(0)) return [];
-  const [symbol, total] = winner;
+  const total = symbol && totals.get(symbol);
+  if (!symbol || !total) return [];
   return [
     {
       symbol,
