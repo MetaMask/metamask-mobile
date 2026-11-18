@@ -22,6 +22,8 @@ import {
 import { getMfaRecoveryErrorCode } from '../../../../core/Engine/controllers/mfa-recovery-controller/errors';
 import { authEnv } from '../../../../core/apiEnv';
 import { linkSocialLogin } from '../../../../core/MfaRecovery/linkSocialLogin';
+import { registeredSecretHash } from '../../../../core/MfaRecovery/ensurePasswordlessRecoverySetup';
+import { retryPendingPasskeys } from '../../../../core/MfaRecovery/trustPasskey';
 import {
   PasswordlessRecoverySetupError,
   setupPasswordlessRecovery,
@@ -86,6 +88,8 @@ const PasswordlessRecoveryDeveloperOptionsSection = () => {
         cubistAuthAudience: getCubistConfig().authAudience,
         randomBytes: (length) =>
           new Uint8Array(QuickCrypto.randomBytes(length)),
+        retryPendingPasskeys,
+        registeredSecretHash,
       });
       setMessage(resultMessage(result));
     } catch (error) {

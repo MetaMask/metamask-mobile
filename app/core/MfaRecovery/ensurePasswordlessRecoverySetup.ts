@@ -23,6 +23,13 @@ import {
 
 const REGISTERED_SECRET_HASH_KEY = 'mfaRecoveryRegisteredSecretHash';
 
+export const registeredSecretHash = {
+  get: async () =>
+    (await StorageWrapper.getItem(REGISTERED_SECRET_HASH_KEY)) ?? null,
+  set: (hash: string) =>
+    StorageWrapper.setItem(REGISTERED_SECRET_HASH_KEY, hash),
+};
+
 /** MFA kit reason — must use a `settings.*` entry point. */
 const MFA_SETUP_REASON = {
   operation: 'settings.passwordless_recovery_setup' as const,
@@ -121,12 +128,7 @@ async function runEnsurePasswordlessRecoverySetup(): Promise<EnsurePasswordlessR
         randomBytes: (length) =>
           new Uint8Array(QuickCrypto.randomBytes(length)),
         retryPendingPasskeys,
-        registeredSecretHash: {
-          get: async () =>
-            (await StorageWrapper.getItem(REGISTERED_SECRET_HASH_KEY)) ?? null,
-          set: (hash) =>
-            StorageWrapper.setItem(REGISTERED_SECRET_HASH_KEY, hash),
-        },
+        registeredSecretHash,
       });
 
     Logger.log('Passwordless recovery setup finished', { status: result });
