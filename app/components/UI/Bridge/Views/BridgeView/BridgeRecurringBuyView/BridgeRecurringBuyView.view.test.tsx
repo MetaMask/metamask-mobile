@@ -975,7 +975,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
-  it('shows Max is 24 when every exceeds the hour unit max', async () => {
+  it('shows only the hourly max when every also exceeds the duration limit', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -983,14 +983,15 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     fireEvent.press(
       renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
     );
-    fireEvent.press(renderResult.getByTestId('keypad-key-2'));
-    fireEvent.press(renderResult.getByTestId('keypad-key-5'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-9'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-9'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-9'));
     await waitFor(() => {
       expect(
         renderResult.getByTestId(
           RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
         ),
-      ).toHaveDisplayValue('25');
+      ).toHaveDisplayValue('999');
     });
 
     expect(
