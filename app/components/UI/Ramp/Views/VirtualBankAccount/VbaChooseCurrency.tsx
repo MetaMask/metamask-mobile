@@ -31,11 +31,13 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 const CURRENCY_FLAGS: Record<VbaSourceCurrency, string> = {
   BRL: '🇧🇷',
   USD: '🇺🇸',
+  EUR: '🇪🇺',
 };
 
 const CURRENCY_NAME_KEYS: Record<VbaSourceCurrency, string> = {
   BRL: 'virtual_bank_account.choose_currency.currencies.brl',
   USD: 'virtual_bank_account.choose_currency.currencies.usd',
+  EUR: 'virtual_bank_account.choose_currency.currencies.eur',
 };
 
 const getCurrencyName = (currency: VbaSourceCurrency): string =>
@@ -43,9 +45,11 @@ const getCurrencyName = (currency: VbaSourceCurrency): string =>
 
 /**
  * Lets the user pick the account currency after identity verification. Only
- * shown when `moneyMovementNeobank.chooseCurrency` is true. The pick does not
- * change the currency that gets created; that still comes from the open market
- * for the effective location.
+ * shown when `moneyMovementNeobank.chooseCurrency` is true and no open market
+ * resolved the currency, which in production never happens: a resolved market
+ * has one currency, so `openVbaAccountSetup` skips this screen. The pick does
+ * not change the currency that gets created; that still comes from the open
+ * market for the effective location.
  */
 const VbaChooseCurrency = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
