@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react-native';
-import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   CardTransactionStatus,
   CardTransactionType,
+  type CardTransaction,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   CARD_RECENT_TRANSACTIONS_LIMIT,
