@@ -19,6 +19,7 @@ The performance framework lives under the `tests/` directory alongside the rest 
 - [Quality Gates & Thresholds](#quality-gates--thresholds)
 - [Page Object Model](#page-object-model)
 - [Shared Flows](#shared-flows)
+- [Interrupting Screens](#interrupting-screens)
 - [Environment Variables](#environment-variables)
 - [Reports and Metrics](#reports-and-metrics)
 - [Aggregated Reports](#aggregated-reports)
@@ -541,6 +542,10 @@ await loginToAppPlaywright();
 await loginToAppPlaywright({ scenarioType: 'login' });
 ```
 
+In performance runs, login ends with a short settle window that dismisses
+known interrupting sheets before `test_body` starts. See
+[Interrupting Screens](#interrupting-screens).
+
 ### `onboardingFlowImportSRPPlaywright(srp)`
 
 Complete onboarding flow for importing a wallet:
@@ -572,6 +577,123 @@ await AppiumContextHelpers.switchToNativeContext();
 // Switch to a specific web/dapp context
 await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
 ```
+
+## Interrupting Screens
+
+Marketing and onboarding sheets can slide over a flow the test did not open
+them in. For example, on the preloaded-wallet BrowserStack app
+`dataCollectionForMarketing` is `null`, so the Experience Enhancer consent
+sheet ("Help us enhance your experience", **No thanks** / **I agree**) slides
+up about 2s after Unlock. The performance fixture enables an
+**interrupting-screen guard** that dismisses these sheets, so tests do not fail
+because of them.
+
+### How it works
+
+The guard is serial. It never polls in the background, because WebDriver
+commands on one Appium session are not safely concurrent. It runs at two
+points:
+
+1. **Post-login settle window.** `loginToAppPlaywright` waits for wallet home,
+   then polls the page source for known screens for
+   `INTERRUPTING_SCREEN_SETTLE_MS` (default 4000ms). This happens inside the
+   `login` phase, before `test_body` starts, and each screen that appears is
+   dismissed.
+2. **Dismiss and retry once.** When `Gestures.tap` / `Gestures.waitAndTap` or
+   `Assertions.expectElementToBeVisible` / `AppiumAssertions.expectElementToBeVisible`
+   fails, the guard reads the page source once:
+   - If a screen from the **registry** is present, it taps that screen's
+     non-consenting control and retries the original action once.
+   - Otherwise, if the **AI fallback** is enabled, it sends the screenshot and
+     page source to Claude. The model says whether an unrelated overlay is
+     blocking the flow and which control dismisses it without consenting. The
+     guard taps that control and retries the original action once.
+   - If nothing is dismissed, the original error is rethrown unchanged.
+
+Presence probes (`Utilities.isElementVisible`, `isOptionalElementVisible`,
+ready-state polling) skip the guard, because an absent element is an expected
+result there.
+
+The registry and AI paths are both limited:
+
+- The registry lists only "No thanks" / "Not now" / "Remind me later" /
+  close controls. A unit test checks every entry against the safety rules.
+- The AI path runs only when `AI_LOCATOR_RECOVERY_ENABLED=true` and
+  `ANTHROPIC_API_KEY` are both set (the same opt-in as
+  [AI locator recovery](../framework/ai-locator/README.md)). It refuses
+  secret-bearing screens before taking a screenshot. It is limited to 3 model
+  calls per test. The suggested control is tapped only if its locator, the
+  model's label and the on-device text are all free of accept / agree /
+  confirm / sign / buy / continue / enable-type words, and at least one of
+  them reads like a dismissal.
+- Settle dismisses at most 5 screens. Each screen gets at most 2 failed
+  dismiss attempts.
+
+### Timing
+
+Guard time never counts toward a metric:
+
+- All guard time (page source reads, taps, model calls) is removed from every
+  running `TimerHelper` / `TimerStore` timer
+  (`TimerStore.excludeFromActiveTimers`). Overhead tracking is suspended while
+  the guard runs, so the guard's own polls are not subtracted twice.
+- The phase timings attachment shows guard time as two extra phases:
+  `interrupting_screens_settle` and `interrupting_screens_recovery`. These
+  overlap their enclosing phase (for example `login`) and are a breakdown, not
+  additional time.
+- Each dismissal is attached to the test as
+  `interrupting-screen-dismissed-<screen>` (JSON with `source: registry | ai`,
+  `trigger`, `locator`, `durationMs`, `duringActiveTimer`). When
+  `duringActiveTimer` is `true`, the dismissal itself was excluded, but the
+  failed wait before it was not, so review that metric.
+
+### Adding a screen to the registry
+
+Promote a screen when an `interrupting-screen-dismissed-*` attachment with
+`source: "ai"` keeps appearing, or when you know a sheet can interrupt flows.
+Add it to `INTERRUPTING_SCREEN_REGISTRY` in
+`tests/framework/interrupting-screens/InterruptingScreenRegistry.ts`:
+
+```typescript
+import { MySheetSelectorsIDs } from '../../../app/components/Views/MySheet/MySheet.testIds';
+
+{
+  name: 'my-promo-sheet',
+  // Any of these in the page source means the sheet is up.
+  detect: [testID(MySheetSelectorsIDs.CONTAINER)],
+  // Non-consenting controls, tried in order.
+  dismiss: [testID(MySheetSelectorsIDs.NOT_NOW_BUTTON), text('Not now')],
+},
+```
+
+- Reuse the component's `*.testIds.ts` constants. Use `text()` only when the
+  screen has no testID.
+- `detect` must be unique to the sheet. A container or title testID works
+  best.
+- `dismiss` must never consent, enable, accept or buy. The registry unit test
+  fails if it does.
+- Run `yarn jest tests/framework/interrupting-screens`.
+
+### Disabling
+
+Set `INTERRUPTING_SCREEN_GUARD_ENABLED=false` to turn the guard off. Set
+`INTERRUPTING_SCREEN_SETTLE_MS=0` to keep the dismiss-and-retry path but skip
+the post-login window. Outside the performance fixture (Appium smoke), the
+guard is never configured and every hook is a no-op.
+
+### Verifying on BrowserStack
+
+1. Run the login project against the preloaded-wallet app
+   (`BROWSERSTACK_ANDROID_APP_URL`): `yarn run-system-tests:android-login`.
+   Add `AI_LOCATOR_RECOVERY_ENABLED=true` and `ANTHROPIC_API_KEY` to also
+   exercise the AI fallback.
+2. In the Playwright report, check that the test passed and has an
+   `interrupting-screen-dismissed-experience-enhancer-marketing-consent`
+   attachment with `trigger: "settle"`.
+3. In the BrowserStack video, check that the sheet slides up after Unlock and
+   is closed with **No thanks** before the measured steps start.
+4. In `appium-phase-timings`, check that `interrupting_screens_settle` is
+   present and that the step timers do not include it.
 
 ## Environment Variables
 
