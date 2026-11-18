@@ -253,6 +253,35 @@ describe('InterruptingScreenGuard', () => {
     });
   });
 
+  describe('capturePageSource', () => {
+    it('hands the page source to onPageSource', async () => {
+      const adapter = createAdapter([WALLET_HOME]);
+      const onPageSource = jest.fn();
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({ onPageSource });
+
+      await guard.capturePageSource('wallet-home-timeout');
+
+      expect(onPageSource).toHaveBeenCalledWith(
+        'wallet-home-timeout',
+        WALLET_HOME,
+      );
+    });
+
+    it('never hands over a secret-bearing page source', async () => {
+      const adapter = createAdapter([
+        '<android.widget.EditText resource-id="srp-input-word-1" text="abandon"/>',
+      ]);
+      const onPageSource = jest.fn();
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({ onPageSource });
+
+      await guard.capturePageSource('wallet-home-timeout');
+
+      expect(onPageSource).not.toHaveBeenCalled();
+    });
+  });
+
   describe('retryAfterInterruption', () => {
     it('runs the action once when it succeeds', async () => {
       const adapter = createAdapter([EXPERIENCE_ENHANCER]);

@@ -602,7 +602,10 @@ points:
    `login` phase, before `test_body` starts, and each screen that appears is
    dismissed. A sheet that is already up hides the wallet chrome, so the
    wallet-home wait (`waitForWalletHomePlaywright`) itself checks for known
-   screens every 2s while it polls. If it still times out, it gets one
+   screens after every failed readiness pass. A dismissal extends the wait by
+   15s so readiness is re-checked (on TestMu a pass with the sheet up takes
+   about 16s and the dismiss tap about 15s). On timeout the page source is
+   attached as `page-source-wallet-home-timeout`, and the wait gets one
    dismiss-and-retry (AI fallback included).
 2. **Dismiss and retry once.** When `Gestures.tap` / `Gestures.waitAndTap` or
    `Assertions.expectElementToBeVisible` / `AppiumAssertions.expectElementToBeVisible`

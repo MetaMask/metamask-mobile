@@ -15,6 +15,7 @@ import {
   isSafeDismissControl,
   type InterruptionRecoveryProvider,
 } from '../ai-locator/ClaudeInterruptionRecoveryProvider.ts';
+import { pageSourceContainsSecrets } from '../ai-locator/ClaudeLocatorRecoveryProvider.ts';
 import {
   findInterruptingScreensInPageSource,
   INTERRUPTING_SCREEN_REGISTRY,
@@ -75,6 +76,8 @@ export interface InterruptingScreenGuardConfig {
   aiProvider?: InterruptionRecoveryProvider;
   maxAiAttemptsPerTest?: number;
   onDismissed?: (event: InterruptingScreenDismissal) => Promise<void> | void;
+  /** Receives diagnostic page sources (e.g. on a wallet-home timeout). */
+  onPageSource?: (label: string, pageSource: string) => Promise<void> | void;
 }
 
 export interface SettleOptions {
@@ -312,6 +315,28 @@ export class InterruptingScreenGuard {
         pageSource !== null &&
         this.#dismissFirstKnownScreen(pageSource, 'wait-failure', intent)
       );
+    });
+  }
+
+  /**
+   * Hands the current page source to `onPageSource` for diagnosis, unless the
+   * screen can expose secrets. No-op when the guard is inactive.
+   */
+  async capturePageSource(label: string): Promise<void> {
+    const onPageSource = this.#config?.onPageSource;
+    if (!this.isActive() || !onPageSource) {
+      return;
+    }
+    await this.#runExcluded(INTERRUPTING_SCREEN_RECOVERY_PHASE, async () => {
+      const pageSource = await this.#safePageSource();
+      if (pageSource === null || pageSourceContainsSecrets(pageSource)) {
+        return;
+      }
+      try {
+        await onPageSource(label, pageSource);
+      } catch (error) {
+        logger.debug(`onPageSource callback failed: ${errorMessage(error)}`);
+      }
     });
   }
 

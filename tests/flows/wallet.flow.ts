@@ -57,39 +57,39 @@ import {
   isWalletHomeReadyOnAndroidStable,
   isWalletHomeReadyOnAppium,
 } from './wallet-home-readiness';
+import { waitForWalletHomeReady } from './wallet-home-wait';
 
 const logger = createLogger({
   name: 'WalletFlow',
 });
 
-const WALLET_HOME_POLL_INTERVAL_MS = 250;
-/** Spacing between page-source reads for interrupting sheets while waiting. */
-const WALLET_HOME_INTERRUPTION_CHECK_INTERVAL_MS = 2_000;
 const WALLET_HOME_INTENT = 'wait for wallet home';
 
 const pollWalletHome = async (timeout: number): Promise<void> => {
-  const deadline = Date.now() + timeout;
   const isAndroid = PlatformDetector.isAndroid();
   const platform = isAndroid ? 'Android' : 'iOS';
-  let nextInterruptionCheckAt =
-    Date.now() + WALLET_HOME_INTERRUPTION_CHECK_INTERVAL_MS;
 
-  while (Date.now() < deadline) {
-    if (await isWalletHomeReadyOnAppium()) {
-      logger.debug(`Wallet home ready on ${platform}`);
-      return;
-    }
-    if (isAndroid) {
-      await dismissAndroidSystemOverlaysPlaywright();
-    }
-    if (Date.now() >= nextInterruptionCheckAt) {
-      await interruptingScreenGuard.dismissKnownScreen(WALLET_HOME_INTENT);
-      nextInterruptionCheckAt =
-        Date.now() + WALLET_HOME_INTERRUPTION_CHECK_INTERVAL_MS;
-    }
-    await sleep(WALLET_HOME_POLL_INTERVAL_MS);
+  const ready = await waitForWalletHomeReady(
+    {
+      isReady: isWalletHomeReadyOnAppium,
+      onNotReady: async () => {
+        if (isAndroid) {
+          await dismissAndroidSystemOverlaysPlaywright();
+        }
+      },
+      dismissInterruption: () =>
+        interruptingScreenGuard.dismissKnownScreen(WALLET_HOME_INTENT),
+      sleep,
+      now: () => Date.now(),
+    },
+    { timeoutMs: timeout },
+  );
+  if (ready) {
+    logger.debug(`Wallet home ready on ${platform}`);
+    return;
   }
 
+  await interruptingScreenGuard.capturePageSource('wallet-home-timeout');
   throw new Error(
     `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
   );
@@ -107,8 +107,10 @@ const pollWalletHome = async (timeout: number): Promise<void> => {
  *
  * A sheet that slides up after Unlock (e.g. Experience Enhancer) hides the
  * wallet chrome, so readiness can never pass while it is up. In performance
- * runs the interrupting-screen guard dismisses known sheets during the wait
- * and, on timeout, gets one dismiss-and-retry (AI fallback included).
+ * runs the interrupting-screen guard checks for known sheets after every
+ * failed readiness pass, and a dismissal extends the deadline so readiness is
+ * re-checked. On timeout it attaches the page source and gets one
+ * dismiss-and-retry (AI fallback included).
  */
 export const waitForWalletHomePlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),

@@ -96,6 +96,11 @@ export const performanceTrackerFixture = {
             body: JSON.stringify(event),
             contentType: 'application/json',
           }),
+        onPageSource: (label, pageSource) =>
+          testInfo.attach(`page-source-${label}`, {
+            body: pageSource,
+            contentType: 'application/xml',
+          }),
       });
     } else {
       logger.info(
