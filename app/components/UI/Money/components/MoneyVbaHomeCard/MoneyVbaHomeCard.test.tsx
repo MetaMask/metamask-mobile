@@ -1,5 +1,10 @@
 import React from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyVbaHomeCard from './MoneyVbaHomeCard';
@@ -36,7 +41,7 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
@@ -269,6 +274,77 @@ describe('MoneyVbaHomeCard', () => {
     );
     expect(getByTestId(testIds.CTA_BUTTON)).toHaveTextContent(
       strings(`${expectations.i18nPrefix}.cta`),
+    );
+  });
+
+  /**
+   * Title face is a narrow render contract. Component-view drives Redux and
+   * does not assert design-system font props, so this stays on the unit suite.
+   */
+  describe('title typography', () => {
+    const originalLocale = I18n.locale;
+    const originalOS = Platform.OS;
+
+    afterEach(() => {
+      I18n.locale = originalLocale;
+      Platform.OS = originalOS;
+    });
+
+    it.each(VARIANTS)(
+      'renders the %s title in the hero face at DisplayMd',
+      (variant) => {
+        I18n.locale = 'en';
+
+        const { getByRole } = render(<MoneyVbaHomeCard variant={variant} />);
+        const title = getByRole('header', {
+          name: strings(`${VARIANT_EXPECTATIONS[variant].i18nPrefix}.title`),
+        });
+
+        expect(title).toHaveStyle({
+          fontFamily: 'GrotzecCond-Bold',
+          fontSize: 32,
+          lineHeight: 32,
+          letterSpacing: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          marginBottom: 0,
+        });
+      },
+    );
+
+    it.each(VARIANTS)(
+      'keeps the %s title line height at 32px on Android',
+      (variant) => {
+        I18n.locale = 'en';
+        Platform.OS = 'android';
+
+        const { getByRole } = render(<MoneyVbaHomeCard variant={variant} />);
+        const title = getByRole('header', {
+          name: strings(`${VARIANT_EXPECTATIONS[variant].i18nPrefix}.title`),
+        });
+
+        expect(title).toHaveStyle({ lineHeight: 32 });
+        expect(title).not.toHaveStyle({ lineHeight: 35.2 });
+      },
+    );
+
+    it.each(VARIANTS)(
+      'renders the %s title in the system face when Grotzec does not cover the locale',
+      (variant) => {
+        I18n.locale = 'ja';
+
+        const { getByRole } = render(<MoneyVbaHomeCard variant={variant} />);
+        const title = getByRole('header', {
+          name: strings(`${VARIANT_EXPECTATIONS[variant].i18nPrefix}.title`),
+        });
+
+        expect(title).toHaveStyle({
+          fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+          fontWeight: '700',
+          fontSize: 24,
+          lineHeight: 32,
+        });
+      },
     );
   });
 

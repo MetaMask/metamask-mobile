@@ -13,6 +13,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -42,6 +43,7 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import MarketingMomentTitle from '../../../MarketingMomentTitle';
 import {
   MONEY_VBA_HOME_CARD_CONFIG,
   type MoneyVbaHomeCardVariant,
@@ -73,8 +75,11 @@ const HERO_GRADIENT_ANGLE = 224;
 /**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, identity_verified, account_is_ready, kyc_pending,
- * finish_verification, kyc_decision); all per-variant differences — copy, analytics names, CTA
- * treatment, hero art and optional Rive hero — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
+ * finish_verification, kyc_decision). Every title uses
+ * {@link MarketingMomentTitle} at DisplayMd so Grotzec locales get the hero
+ * face and other locales fall back. Remaining per-variant differences — copy,
+ * analytics names, CTA treatment, hero art and optional Rive hero — live in
+ * {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
  * this card remains visible, then opens the resolved onboarding destination.
@@ -89,6 +94,7 @@ const MoneyVbaHomeCard = ({
   /** Called after the dismissible variant hides itself. */
   onDismiss?: () => void;
 }) => {
+  const tw = useTailwind();
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
   const navigation = useNavigation<AppNavigationProp>();
@@ -294,14 +300,16 @@ const MoneyVbaHomeCard = ({
         )}
       </LinearGradient>
       <Box twClassName="gap-1 py-4">
-        <Text
-          variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Bold}
+        <MarketingMomentTitle
+          variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
+          // `style` wins over `twClassName` inside MarketingMomentTitle.
+          // These classes match the StepperCard title line box.
+          style={tw.style('leading-[32px] tracking-[0px] py-0 mb-0')}
           testID={testIds.TITLE}
         >
           {strings(`${config.i18nPrefix}.title`)}
-        </Text>
+        </MarketingMomentTitle>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
