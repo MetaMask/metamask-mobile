@@ -111,6 +111,7 @@ describe('resolvePredictFunding', () => {
       activeVenue: active('polymarket'),
       getCapabilities: () => ({ status: 'loading' }),
       kalshiDepositsEnabled: false,
+      kalshiWithdrawalsEnabled: false,
     });
 
     expect(result).toStrictEqual({
