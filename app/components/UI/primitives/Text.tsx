@@ -1,11 +1,10 @@
 import React from 'react';
 import {
   Text as DSText,
-  type TextProps as DSTextProps,
+  type TextProps,
 } from '@metamask/design-system-react-native';
 
-// The design system only takes twClassName for now; this maps className to it.
-interface Props extends DSTextProps {
+interface Props extends TextProps {
   className?: string;
 }
 

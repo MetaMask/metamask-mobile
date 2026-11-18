@@ -1,13 +1,9 @@
 import React from 'react';
-import {
-  Pressable as RNPressable,
-  type PressableProps as RNPressableProps,
-} from 'react-native';
+import { Pressable as RNPressable, type PressableProps } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-interface Props extends Omit<RNPressableProps, 'style'> {
+interface Props extends Omit<PressableProps, 'style'> {
   className?: string;
-  /** Extra classes while pressed, e.g. "opacity-70". */
   pressedClassName?: string;
 }
 

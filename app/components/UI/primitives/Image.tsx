@@ -1,11 +1,8 @@
 import React from 'react';
-import {
-  Image as ExpoImage,
-  type ImageProps as ExpoImageProps,
-} from 'expo-image';
+import { Image as ExpoImage, type ImageProps } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-interface Props extends ExpoImageProps {
+interface Props extends ImageProps {
   className?: string;
 }
 
