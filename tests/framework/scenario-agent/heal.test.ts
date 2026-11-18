@@ -13,7 +13,7 @@ import {
   type ScenarioOutcome,
 } from './heal.ts';
 import { parseScenario } from './scenario.ts';
-import type { AgentRunResult } from './ScenarioAgent.ts';
+import type { AgentRunResult } from './types.ts';
 
 /** Keys already proposed by open heal PR bodies. */
 const proposedKeys = (bodies: string[]) =>

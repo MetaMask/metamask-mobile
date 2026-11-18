@@ -59,7 +59,7 @@ export interface ScenarioStep {
 }
 
 /** Reads an `App:` step's text; null when it names no known command. */
-export function parseAppCommand(text: string): AppCommand | null {
+function parseAppCommand(text: string): AppCommand | null {
   const t = text.trim().toLowerCase();
   if (/^terminate\b/.test(t)) return { command: 'terminate' };
   if (/^(?:activate|launch|relaunch|foreground)\b/.test(t))
@@ -97,7 +97,7 @@ function parseAny(body: string): StepCheck {
 }
 
 /** Splits trailing `[check: ...]` markers off a step's text. */
-export function extractChecks(raw: string): {
+function extractChecks(raw: string): {
   text: string;
   checks: StepCheck[];
 } {
@@ -217,39 +217,29 @@ export function parseScenario(markdown: string): Scenario {
           `Expected step ${steps.length + 1}, found step ${number}`,
         );
       }
-      const prefix = match[2]?.toLowerCase();
-      const kind =
-        prefix === 'expect'
-          ? 'expect'
-          : prefix === 'secret'
-            ? 'secret'
-            : prefix === 'app'
-              ? 'app'
-              : 'do';
+      const kind = (match[2]?.toLowerCase() ?? 'do') as ScenarioStep['kind'];
       let body = match[3].trim();
-      const ifMatch = IF.exec(body);
-      const condition = ifMatch?.[1].toLowerCase();
-      if (ifMatch) {
-        body = (
-          body.slice(0, ifMatch.index) +
-          body.slice(ifMatch.index + ifMatch[0].length)
-        ).trim();
-      }
-      const tapMatch = TAP.exec(body);
-      let tap: StepCheck['locator'] | undefined;
-      if (tapMatch) {
-        tap = {
-          strategy: tapMatch[1] as StepCheck['locator']['strategy'],
-          value: tapMatch[2] ?? tapMatch[3],
-        };
-        body = (
-          body.slice(0, tapMatch.index) +
-          body.slice(tapMatch.index + tapMatch[0].length)
-        ).trim();
-        if (kind !== 'do')
-          problems.push(
-            `Step ${number}: only plain action steps can pin a tap`,
-          );
+      /** Removes the first match of `marker` from the step text. */
+      const cut = (marker: RegExp) => {
+        const found = marker.exec(body);
+        if (found) {
+          body = (
+            body.slice(0, found.index) +
+            body.slice(found.index + found[0].length)
+          ).trim();
+        }
+        return found;
+      };
+      const condition = cut(IF)?.[1].toLowerCase();
+      const tapMatch = cut(TAP);
+      const tap: StepCheck['locator'] | undefined = tapMatch
+        ? {
+            strategy: tapMatch[1] as StepCheck['locator']['strategy'],
+            value: tapMatch[2] ?? tapMatch[3],
+          }
+        : undefined;
+      if (tap && kind !== 'do') {
+        problems.push(`Step ${number}: only plain action steps can pin a tap`);
       }
       let parsed: ReturnType<typeof extractChecks>;
       try {

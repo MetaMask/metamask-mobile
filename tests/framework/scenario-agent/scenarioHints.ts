@@ -5,7 +5,7 @@ import { QuoteViewSelectorIDs } from '../../selectors/Bridge/QuoteView.selectors
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
 /** A testID module member: a constant, or a function that builds one. */
-export type HintMember = string | ((argument: string) => string);
+type HintMember = string | ((argument: string) => string);
 
 export interface HintCatalog {
   /** `Module` spreads its string values; `Module.member` reads one. */
@@ -34,7 +34,7 @@ const stringMembers = (
 };
 
 /** The modules the scenario specs used to import. Hint text names these. */
-export const SCENARIO_HINT_CATALOG: HintCatalog = {
+const SCENARIO_HINT_CATALOG: HintCatalog = {
   modules: {
     WalletViewSelectorsIDs: stringMembers(WalletViewSelectorsIDs),
     TokenOverviewSelectorsIDs: stringMembers(TokenOverviewSelectorsIDs),

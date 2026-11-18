@@ -1,11 +1,12 @@
-import type { Scenario } from './scenario';
+import type { ScenarioStep } from './scenario';
 
 export type BuiltinSecretStep = 'second-srp' | 'login-screen' | 'login';
 
 /** The built-in Secret paths in `scenarioTest`, in the order they are tried. */
 export function builtinSecretStep(text: string): BuiltinSecretStep | null {
   if (/second (?:srp|secret recovery phrase)/i.test(text)) return 'second-srp';
-  if (/login screen/i.test(text) && /password/i.test(text)) return 'login-screen';
+  if (/login screen/i.test(text) && /password/i.test(text))
+    return 'login-screen';
   if (/log ?in|unlock/i.test(text)) return 'login';
   return null;
 }
@@ -36,7 +37,9 @@ export interface ScenarioRegistryEntry {
 export function scenarioCoverageProblems(
   markdownFiles: readonly string[],
   registry: Record<string, ScenarioRegistryEntry>,
-  scenarioFor: (file: string) => Pick<Scenario, 'steps'>,
+  scenarioFor: (file: string) => {
+    steps: Pick<ScenarioStep, 'kind' | 'text'>[];
+  },
 ): string[] {
   const files = new Set(markdownFiles);
   const problems: string[] = [];
@@ -50,9 +53,7 @@ export function scenarioCoverageProblems(
     for (const step of scenario.steps) {
       if (step.kind !== 'secret') continue;
       if (!secretStepHasCodePath(step.text, registry[file]?.codeSteps)) {
-        problems.push(
-          `${file}: Secret step "${step.text}" has no code path`,
-        );
+        problems.push(`${file}: Secret step "${step.text}" has no code path`);
       }
     }
   }

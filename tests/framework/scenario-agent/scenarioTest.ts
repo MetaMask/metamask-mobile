@@ -9,15 +9,20 @@ import {
   parseScenario,
   requireSecretEnv,
   type AppCommand,
+  type Scenario,
 } from './scenario';
-import { ScenarioAgent, type StepCache } from './ScenarioAgent';
+import { ScenarioAgent } from './ScenarioAgent';
+import type { StepCache } from './types';
 import {
   buildScenarioOutcome,
   OUTCOME_FILE_PREFIX,
   type ScenarioOutcome,
 } from './heal';
-import { builtinSecretStep, scenarioCoverageProblems } from './scenarioCoverage';
-import { KEYPAD_HINTS, resolveScenarioHints } from './scenarioHints';
+import {
+  builtinSecretStep,
+  scenarioCoverageProblems,
+} from './scenarioCoverage';
+import { resolveScenarioHints } from './scenarioHints';
 import QualityGatesValidator from '../quality-gates/QualityGatesValidator';
 import {
   enableHermesAppProfiling,
@@ -32,32 +37,13 @@ import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import { resolvePerpsGtmOnboardingModalEnabled } from '../../flows/perps.flow.js';
 import { fetchProductionFeatureFlags } from '../../performance/feature-flag-helper.js';
 
-/**
- * `[check: code=name]` waits: the original specs' own helpers, for ends that
- * are not one element.
- */
-const CODE_CHECKS: Record<string, () => Promise<unknown>> = {
-  'balance-stable': () => WalletView.waitForBalanceToStabilize(),
-  'account-sync-complete': () =>
-    AccountListBottomSheet.waitForAccountSyncToComplete(),
-  // ImportWalletView.isScreenTitleVisible(false): "Import a wallet" text.
-  'import-srp-screen': () => ImportWalletView.isScreenTitleVisible(false),
-};
-
-/** Same environment default as perps-add-funds.spec.ts. */
-const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
-
-/**
- * Registers one Playwright test for a `*.scenario.md` file. The cache sits
- * next to it as `*.scenario.cache.json`. `hints` are Page Object testIDs
- * offered to the model.
- */
 /** What a scenario's own code steps get from the Playwright fixture. */
 export interface ScenarioCodeContext {
   currentDeviceDetails: { platform: 'android' | 'ios'; deviceName?: string };
   performanceTracker: unknown;
 }
 
+/** Per-scenario code paths, keyed by Markdown file name in each area's registry. */
 export interface ScenarioTestOptions {
   /**
    * `Secret:` steps this scenario runs with the original spec's helpers,
@@ -83,35 +69,72 @@ export interface ScenarioTestOptions {
   skip?: string;
 }
 
-export { missingEnv };
+/**
+ * `[check: code=name]` waits: the original specs' own helpers, for ends that
+ * are not one element.
+ */
+const CODE_CHECKS: Record<string, () => Promise<unknown>> = {
+  'balance-stable': () => WalletView.waitForBalanceToStabilize(),
+  'account-sync-complete': () =>
+    AccountListBottomSheet.waitForAccountSyncToComplete(),
+  // ImportWalletView.isScreenTitleVisible(false): "Import a wallet" text.
+  'import-srp-screen': () => ImportWalletView.isScreenTitleVisible(false),
+};
+
+/** Same environment default as perps-add-funds.spec.ts. */
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 /** Uploaded by HyperExecute with the performance reports. */
 const OUTCOME_DIR = path.resolve(__dirname, '../../reporters/reports');
 
-/** The outcome an earlier attempt of this job wrote, or null. */
-const readOutcome = (outcomePath: string): ScenarioOutcome | null => {
+const readJson = <T>(file: string): T | null => {
   try {
-    return JSON.parse(fs.readFileSync(outcomePath, 'utf8')) as ScenarioOutcome;
+    return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
   } catch {
     return null;
   }
 };
 
-const readCache = (cachePath: string): StepCache | null =>
-  fs.existsSync(cachePath)
-    ? (JSON.parse(fs.readFileSync(cachePath, 'utf8')) as StepCache)
-    : null;
+/** The built-in Secret paths (see scenarioCoverage.builtinSecretStep). */
+async function runBuiltinSecretStep(text: string): Promise<void> {
+  switch (builtinSecretStep(text)) {
+    case 'second-srp':
+      // import-multiple-srps: the second SRP from the environment, typed by
+      // ImportWalletView; never on a screen sent to the model.
+      await ImportWalletView.typeSecretRecoveryPhrase(
+        requireSecretEnv('TEST_SRP_2'),
+        false,
+      );
+      await AppiumGestures.hideKeyboard();
+      await ImportWalletView.tapContinueButton(false);
+      return;
+    case 'login-screen':
+      // On the login screen already (after a relaunch): the same LoginView
+      // calls as the launch-time originals.
+      await LoginView.enterPassword(getPasswordForScenario('login'));
+      await LoginView.tapLoginButton();
+      return;
+    case 'login':
+      await loginToAppPlaywright();
+      // Some originals (cold start) never arm profiling.
+      if (!/without profiling/i.test(text)) await enableHermesAppProfiling();
+      return;
+    default:
+      throw new Error(`No code path for secret step "${text}"`);
+  }
+}
 
-export function scenarioTest(
+/**
+ * Registers one Playwright test for a parsed `*.scenario.md`. The cache sits
+ * next to it as `*.scenario.cache.json`.
+ */
+function scenarioTest(
   scenarioPath: string,
-  hints: unknown[],
+  scenario: Scenario,
   options: ScenarioTestOptions = {},
 ): void {
-  const scenario = parseScenario(fs.readFileSync(scenarioPath, 'utf8'));
-  const vocabulary = hints.filter(
-    (value): value is string => typeof value === 'string',
-  );
+  const hints = resolveScenarioHints(scenario.hints);
 
   test.describe(scenario.tags.join(' '), () => {
     // Model calls and code checks between steps take longer than the
@@ -138,18 +161,27 @@ export function scenarioTest(
           !scenario.platforms.includes(currentDeviceDetails.platform),
           `Runs on ${scenario.platforms.join(', ')} only`,
         );
+        const context: ScenarioCodeContext = {
+          currentDeviceDetails:
+            currentDeviceDetails as ScenarioCodeContext['currentDeviceDetails'],
+          performanceTracker,
+        };
 
         // perps-add-funds fetches production flags before login, so the
         // network call is not part of any timed window.
-        const needsPerpsFlags = scenario.steps.some(
+        const productionFeatureFlags = scenario.steps.some(
           (s) => s.condition === 'perps-gtm-onboarding',
-        );
-        const productionFeatureFlags = needsPerpsFlags
+        )
           ? await fetchProductionFeatureFlags('main', testEnvironment)
           : null;
+        const conditions: Record<string, () => Promise<boolean>> = {
+          'perps-gtm-onboarding': async () =>
+            resolvePerpsGtmOnboardingModalEnabled(productionFeatureFlags),
+          ...options.conditions,
+        };
 
         const cachePath = scenarioPath.replace(/\.md$/, '.cache.json');
-        const cacheBefore = readCache(cachePath);
+        const cacheBefore = readJson<StepCache>(cachePath);
         const outcomePath = path.join(
           OUTCOME_DIR,
           `${OUTCOME_FILE_PREFIX}${path.basename(scenarioPath, '.scenario.md')}.json`,
@@ -158,14 +190,15 @@ export function scenarioTest(
         // would report no drift. Keep the cache from before the first attempt.
         const cacheBaseline =
           testInfo.retry > 0
-            ? (readOutcome(outcomePath)?.cacheBaseline ?? cacheBefore)
+            ? (readJson<ScenarioOutcome>(outcomePath)?.cacheBaseline ??
+              cacheBefore)
             : cacheBefore;
         const result = await new ScenarioAgent({
           scenario,
           platform: currentDeviceDetails.platform,
           cachePath,
           tracker: performanceTracker,
-          hints: vocabulary,
+          hints,
           runCodeCheck: async (name) => {
             const check = options.codeChecks?.[name] ?? CODE_CHECKS[name];
             if (!check) throw new Error(`No code path for check "${name}"`);
@@ -178,50 +211,15 @@ export function scenarioTest(
             return true;
           },
           evaluateCondition: async (name) => {
-            const own = options.conditions?.[name];
-            if (own) return own();
-            if (name === 'perps-gtm-onboarding') {
-              return resolvePerpsGtmOnboardingModalEnabled(
-                productionFeatureFlags,
-              );
-            }
-            throw new Error(`No code path for condition "${name}"`);
+            const condition = conditions[name];
+            if (!condition)
+              throw new Error(`No code path for condition "${name}"`);
+            return condition();
           },
           runSecretStep: async (text) => {
             const own = options.codeSteps?.[text];
-            if (own) {
-              await own({
-                currentDeviceDetails:
-                  currentDeviceDetails as ScenarioCodeContext['currentDeviceDetails'],
-                performanceTracker,
-              });
-              return;
-            }
-            switch (builtinSecretStep(text)) {
-              case 'second-srp': {
-                // import-multiple-srps: the second SRP from the environment,
-                // typed by ImportWalletView; never on a screen sent to the model.
-                const srp = requireSecretEnv('TEST_SRP_2');
-                await ImportWalletView.typeSecretRecoveryPhrase(srp, false);
-                await AppiumGestures.hideKeyboard();
-                await ImportWalletView.tapContinueButton(false);
-                return;
-              }
-              case 'login-screen':
-                // On the login screen already (after a relaunch): the same
-                // LoginView calls as the launch-time originals.
-                await LoginView.enterPassword(getPasswordForScenario('login'));
-                await LoginView.tapLoginButton();
-                return;
-              case 'login':
-                await loginToAppPlaywright();
-                // Some originals (cold start) never arm profiling.
-                if (!/without profiling/i.test(text))
-                  await enableHermesAppProfiling();
-                return;
-              default:
-                throw new Error(`No code path for secret step "${text}"`);
-            }
+            if (own) await own(context);
+            else await runBuiltinSecretStep(text);
           },
           runAppStep: async (app: AppCommand) => {
             switch (app.command) {
@@ -258,7 +256,7 @@ export function scenarioTest(
           cacheBefore,
           cacheBaseline,
           attempt: testInfo.retry,
-          cacheAfter: readCache(cachePath),
+          cacheAfter: readJson<StepCache>(cachePath),
           thresholdViolations: gates.violations.map((v) => v.message),
         });
         fs.mkdirSync(OUTCOME_DIR, { recursive: true });
@@ -275,9 +273,6 @@ export function scenarioTest(
   });
 }
 
-/** In-app amount keypad keys (QuoteView.getKeypadKey / SendView numpad). */
-export { KEYPAD_HINTS };
-
 /**
  * Registers every matching `*.scenario.md` in a directory. Throws when the
  * registry names a missing file or a Secret step has no code path.
@@ -288,27 +283,31 @@ export function registerScenarioDirectory(options: {
   include: (file: string) => boolean;
   registry: Record<string, ScenarioTestOptions>;
 }): void {
-  const markdownFiles = fs
-    .readdirSync(options.directory)
-    .filter((file) => file.endsWith('.scenario.md'))
-    .sort();
+  const scenarios = new Map(
+    fs
+      .readdirSync(options.directory)
+      .filter((file) => file.endsWith('.scenario.md'))
+      .sort()
+      .map((file) => [
+        file,
+        parseScenario(
+          fs.readFileSync(path.join(options.directory, file), 'utf8'),
+        ),
+      ]),
+  );
   const problems = scenarioCoverageProblems(
-    markdownFiles,
+    [...scenarios.keys()],
     options.registry,
-    (file) =>
-      parseScenario(
-        fs.readFileSync(path.join(options.directory, file), 'utf8'),
-      ),
+    (file) => scenarios.get(file) as Scenario,
   );
   if (problems.length > 0) {
     throw new Error(`Scenario registry:\n  - ${problems.join('\n  - ')}`);
   }
-  for (const file of markdownFiles.filter(options.include)) {
-    const scenarioPath = path.join(options.directory, file);
-    const scenario = parseScenario(fs.readFileSync(scenarioPath, 'utf8'));
+  for (const [file, scenario] of scenarios) {
+    if (!options.include(file)) continue;
     scenarioTest(
-      scenarioPath,
-      resolveScenarioHints(scenario.hints),
+      path.join(options.directory, file),
+      scenario,
       options.registry[file],
     );
   }

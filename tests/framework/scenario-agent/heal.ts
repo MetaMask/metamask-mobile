@@ -1,5 +1,5 @@
 import { parseScenario, type Scenario } from './scenario.ts';
-import type { AgentAction, AgentRunResult, StepCache } from './ScenarioAgent.ts';
+import type { AgentAction, AgentRunResult, StepCache } from './types.ts';
 
 /**
  * What one scenario run left behind for CI: enough to judge the failure and,
