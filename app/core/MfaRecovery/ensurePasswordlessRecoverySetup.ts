@@ -8,6 +8,7 @@ import {
 } from '../Engine/controllers/mfa-recovery-controller/config';
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
 import ReduxService from '../redux';
+import StorageWrapper from '../../store/storage-wrapper';
 import { selectMfaRecoveryEnabled } from '../../selectors/featureFlagController/mfaRecovery';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { verifyOrEnroll } from '../../util/identity/mfa/useMfa';
@@ -18,6 +19,15 @@ import {
   setupPasswordlessRecovery,
   type PasswordlessRecoverySetupResult,
 } from './setupPasswordlessRecovery';
+
+const REGISTERED_SECRET_HASH_KEY = 'mfaRecoveryRegisteredSecretHash';
+
+export const registeredSecretHash = {
+  get: async () =>
+    (await StorageWrapper.getItem(REGISTERED_SECRET_HASH_KEY)) ?? null,
+  set: (hash: string) =>
+    StorageWrapper.setItem(REGISTERED_SECRET_HASH_KEY, hash),
+};
 
 /** MFA kit reason — must use a `settings.*` entry point. */
 const MFA_SETUP_REASON = {
@@ -116,6 +126,7 @@ async function runEnsurePasswordlessRecoverySetup(): Promise<EnsurePasswordlessR
         cubistAuthAudience: getCubistConfig().authAudience,
         randomBytes: (length) =>
           new Uint8Array(QuickCrypto.randomBytes(length)),
+        registeredSecretHash,
       });
 
     Logger.log('Passwordless recovery setup finished', { status: result });

@@ -1,4 +1,5 @@
 import Engine from '../../../core/Engine';
+import { trustPasskey } from '../../../core/MfaRecovery/trustPasskey';
 import {
   createSocialLoginControllerAdapter,
   mobileMfaControllerAdapter,
@@ -20,6 +21,10 @@ jest.mock('../../../core/Engine', () => ({
       completeSocialLoginVerification: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../core/MfaRecovery/trustPasskey', () => ({
+  trustPasskey: jest.fn(),
 }));
 
 const controller = jest.mocked(Engine.context.AuthenticationController);
@@ -52,6 +57,30 @@ describe('mobileMfaControllerAdapter', () => {
     expect(controller.completeCredentialEnrollment).toHaveBeenCalledWith(
       request,
     );
+    expect(trustPasskey).not.toHaveBeenCalled();
+  });
+
+  it('records an enrolled passkey for recovery', async () => {
+    controller.completeCredentialEnrollment.mockResolvedValue([]);
+    const request = {
+      flowId: 'flow',
+      proof: {
+        type: 'passkey' as const,
+        attestation: {
+          id: 'cred',
+          rawId: 'cred',
+          type: 'public-key' as const,
+          clientExtensionResults: {},
+          response: { clientDataJSON: 'cd', attestationObject: 'att' },
+        },
+      },
+      reason,
+    };
+
+    expect(
+      await mobileMfaControllerAdapter.completeCredentialEnrollment(request),
+    ).toStrictEqual([]);
+    expect(trustPasskey).toHaveBeenCalledWith('att');
   });
 
   it('forwards beginCredentialVerification with its request', async () => {

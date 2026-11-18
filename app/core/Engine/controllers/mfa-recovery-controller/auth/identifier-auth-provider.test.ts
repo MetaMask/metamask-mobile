@@ -6,9 +6,11 @@ jest.mock('./passkey-identifier-auth-provider', () => ({
   PlatformPasskeyIdentifierAuthProvider: jest
     .fn()
     .mockImplementation(({ get }) => ({
-      getKeyBoundIdentifierToken: jest.fn(async (params) => ({
-        ...params,
-        providerAssertion: await get({ challenge: 'c' }),
+      getKeyBoundIdentifierLogin: jest.fn(async (params) => ({
+        token: {
+          ...params,
+          providerAssertion: await get({ challenge: 'c' }),
+        },
       })),
     })),
 }));
@@ -17,9 +19,11 @@ jest.mock('./social-identifier-auth-provider', () => ({
   SocialIdentifierAuthProvider: jest
     .fn()
     .mockImplementation(({ getIdToken }) => ({
-      getKeyBoundIdentifierToken: jest.fn(async (params) => ({
-        ...params,
-        providerAssertion: await getIdToken('nonce'),
+      getKeyBoundIdentifierLogin: jest.fn(async (params) => ({
+        token: {
+          ...params,
+          providerAssertion: await getIdToken('nonce'),
+        },
       })),
     })),
 }));
@@ -51,14 +55,14 @@ describe('RecoveryIdentifierRouter', () => {
       getSocialIdToken: jest.fn(),
     });
 
-    const result = await router.getKeyBoundIdentifierToken({
+    const result = await router.getKeyBoundIdentifierLogin({
       identifier: PASSKEY,
       proofPublicKey,
       requestHash,
     });
 
     expect(getPasskeyAssertion).toHaveBeenCalledTimes(1);
-    expect(result.providerAssertion).toEqual({
+    expect(result.token.providerAssertion).toEqual({
       id: 'assertion',
       response: {},
     });
@@ -71,14 +75,14 @@ describe('RecoveryIdentifierRouter', () => {
       getSocialIdToken,
     });
 
-    const result = await router.getKeyBoundIdentifierToken({
+    const result = await router.getKeyBoundIdentifierLogin({
       identifier: SOCIAL,
       proofPublicKey,
       requestHash,
     });
 
     expect(getSocialIdToken).toHaveBeenCalledWith('nonce');
-    expect(result.providerAssertion).toBe('social-id-token');
+    expect(result.token.providerAssertion).toBe('social-id-token');
   });
 
   it('rejects unsupported identifier types', async () => {
@@ -88,7 +92,7 @@ describe('RecoveryIdentifierRouter', () => {
     });
 
     await expect(
-      router.getKeyBoundIdentifierToken({
+      router.getKeyBoundIdentifierLogin({
         identifier: {
           type: 'siwe',
           namespace: 'eip155:1',

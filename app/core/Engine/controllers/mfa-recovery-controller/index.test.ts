@@ -1,3 +1,8 @@
+import {
+  AuthApiRecoveryAuthProvider,
+  RecoveryRegistrationLockProvider,
+  UserStorageTrustedIdentifierStore,
+} from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { isMfaRecoveryConfigured } from './config';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
@@ -8,6 +13,7 @@ jest.mock('../../../../selectors/featureFlagController/mfaRecovery', () => ({
 }));
 
 jest.mock('./config', () => ({
+  getRegistrationUrl: () => 'https://registration.test',
   isMfaRecoveryConfigured: jest.fn(),
 }));
 
@@ -19,6 +25,16 @@ jest.mock('../../../../util/identity/mfa/passkeyAdapter', () => ({
   mobilePasskeyAdapter: { get: jest.fn() },
 }));
 
+jest.mock('@metamask/messenger', () => ({
+  Messenger: jest.fn(() => ({ kind: 'store' })),
+}));
+
+jest.mock('@metamask/mfa-recovery-controller', () => ({
+  AuthApiRecoveryAuthProvider: jest.fn(),
+  RecoveryRegistrationLockProvider: jest.fn(),
+  UserStorageTrustedIdentifierStore: jest.fn(),
+}));
+
 const mockCreate = jest.mocked(createMfaRecoveryController);
 const mockSelectEnabled = jest.mocked(selectMfaRecoveryEnabled.resultFunc);
 const mockIsConfigured = jest.mocked(isMfaRecoveryConfigured);
@@ -28,6 +44,7 @@ describe('mfaRecoveryControllerInit', () => {
   const controllerMessenger = { kind: 'controller' };
   const initMessenger = {
     call: jest.fn(),
+    delegate: jest.fn(),
   };
 
   beforeEach(() => {
@@ -55,6 +72,62 @@ describe('mfaRecoveryControllerInit', () => {
         messenger: controllerMessenger,
         state: { pendingOperation: null, other: 'keep' },
       }),
+    );
+  });
+
+  it('keeps trusted identifiers in user storage', () => {
+    mfaRecoveryControllerInit({
+      controllerMessenger,
+      initMessenger,
+      persistedState: {},
+    } as never);
+
+    expect(initMessenger.delegate).toHaveBeenCalledWith({
+      actions: [
+        'UserStorageController:performGetStorageAllFeatureEntries',
+        'UserStorageController:performSetStorage',
+        'UserStorageController:performDeleteStorage',
+      ],
+      messenger: { kind: 'store' },
+    });
+    expect(UserStorageTrustedIdentifierStore).toHaveBeenCalledWith({
+      messenger: { kind: 'store' },
+    });
+    expect(mockCreate.mock.calls[0][0].trustedIdentifierStore).toBe(
+      jest.mocked(UserStorageTrustedIdentifierStore).mock.instances[0],
+    );
+  });
+
+  it('wires the Auth API approvals and the registration service lock', () => {
+    mfaRecoveryControllerInit({
+      controllerMessenger,
+      initMessenger,
+      persistedState: {},
+    } as never);
+    const options = mockCreate.mock.calls[0][0];
+
+    expect(initMessenger.delegate).toHaveBeenCalledWith({
+      actions: [
+        'AuthenticationController:refreshCanonicalProfileId',
+        'AuthenticationController:requestMfaApproval',
+      ],
+      messenger: { kind: 'store' },
+    });
+    expect(initMessenger.delegate).toHaveBeenCalledWith({
+      actions: [
+        'AuthenticationController:getBearerToken',
+        'AuthenticationController:refreshCanonicalProfileId',
+      ],
+      messenger: { kind: 'store' },
+    });
+    expect(options.authProvider).toBe(
+      jest.mocked(AuthApiRecoveryAuthProvider).mock.instances[0],
+    );
+    expect(RecoveryRegistrationLockProvider).toHaveBeenCalledWith(
+      expect.objectContaining({ baseUrl: 'https://registration.test' }),
+    );
+    expect(options.lockProvider).toBe(
+      jest.mocked(RecoveryRegistrationLockProvider).mock.instances[0],
     );
   });
 

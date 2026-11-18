@@ -3,7 +3,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import type {
+  AuthenticationController,
+  UserStorageController,
+} from '@metamask/profile-sync-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { KeyringControllerGetStateAction } from '@metamask/keyring-controller';
 import type { MfaRecoveryControllerMessenger } from '@metamask/mfa-recovery-controller';
@@ -16,24 +19,20 @@ type AllowedEvents = MessengerEvents<MfaRecoveryControllerMessenger>;
 export function getMfaRecoveryControllerMessenger(
   rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): MfaRecoveryControllerMessenger {
-  const messenger: MfaRecoveryControllerMessenger = new Messenger({
+  return new Messenger({
     namespace: 'MfaRecoveryController',
     parent: rootMessenger,
   });
-  rootMessenger.delegate({
-    actions: [
-      'AuthenticationController:refreshCanonicalProfileId',
-      'AuthenticationController:requestMfaApproval',
-    ],
-    messenger,
-  });
-  return messenger;
 }
 
 type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
+  | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | AuthenticationController.AuthenticationControllerExchangeSocialAccessTokenAction
+  | UserStorageController.UserStorageControllerPerformGetStorageAllFeatureEntriesAction
+  | UserStorageController.UserStorageControllerPerformSetStorageAction
+  | UserStorageController.UserStorageControllerPerformDeleteStorageAction
   | KeyringControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction;
 
@@ -58,7 +57,11 @@ export function getMfaRecoveryControllerInitMessenger(
     actions: [
       'AuthenticationController:getBearerToken',
       'AuthenticationController:refreshCanonicalProfileId',
+      'AuthenticationController:requestMfaApproval',
       'AuthenticationController:exchangeSocialAccessToken',
+      'UserStorageController:performGetStorageAllFeatureEntries',
+      'UserStorageController:performSetStorage',
+      'UserStorageController:performDeleteStorage',
       'KeyringController:getState',
       'RemoteFeatureFlagController:getState',
     ],

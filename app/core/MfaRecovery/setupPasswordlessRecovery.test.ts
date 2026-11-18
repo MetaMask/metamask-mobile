@@ -1,5 +1,6 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { bytesToHex, sha256 } from '@metamask/utils';
 import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/constants';
 import { LinkSocialLoginError } from './linkSocialLogin';
 import {
@@ -21,6 +22,8 @@ const SOCIAL: Identifier = {
   verifier: { issuer: 'https://accounts.google.com' },
 };
 
+const hashOf = async (secret: Uint8Array) => bytesToHex(await sha256(secret));
+
 const TOPRF = {
   aal2Audience: 'dev-node.web3auth.io',
   authConnectionId: 'mm-recovery-dev-aal2-common',
@@ -31,12 +34,19 @@ function createDependencies(
   state: PasswordlessRecoverySetupDependencies['seedless']['state'] = {
     authConnection: AuthConnection.Google,
     userId: 'google-user',
+    socialLoginEmail: 'user@example.com',
   },
 ): PasswordlessRecoverySetupDependencies & { seenSecret?: Uint8Array } {
+  let savedHash: string | null = null;
   const record: PasswordlessRecoverySetupDependencies & {
     seenSecret?: Uint8Array;
   } = {
     mfaRecovery: {
+      trustIdentifier: jest.fn(async () => undefined),
+      // Like the controller method, it only works called on the controller.
+      isTrusted: jest.fn(async function (this: unknown) {
+        return this === record.mfaRecovery;
+      }),
       register: jest.fn(async () => undefined),
       abort: jest.fn(async () => undefined),
       getIdentifiers: jest.fn(async () => ({
@@ -65,6 +75,12 @@ function createDependencies(
     toprf: TOPRF,
     cubistAuthAudience: 'gamma.signer.cubist.dev',
     randomBytes: (length) => new Uint8Array(length).fill(4),
+    registeredSecretHash: {
+      get: jest.fn(async () => savedHash),
+      set: jest.fn(async (hash: string) => {
+        savedHash = hash;
+      }),
+    },
   };
   return record;
 }
@@ -79,6 +95,11 @@ describe('setupPasswordlessRecovery', () => {
     expect(dependencies.verifyMfa).toHaveBeenCalledTimes(1);
     expect(dependencies.linkSocialLogin).not.toHaveBeenCalled();
     expect(dependencies.mfaRecovery.abort).toHaveBeenCalledTimes(1);
+    expect(dependencies.mfaRecovery.trustIdentifier).toHaveBeenCalledWith({
+      type: 'social',
+      namespace: 'https://accounts.google.com',
+      identity: 'user@example.com',
+    });
     expect(dependencies.mfaRecovery.register).toHaveBeenCalledWith(
       expect.any(Uint8Array),
       [PASSKEY, SOCIAL],
@@ -94,11 +115,70 @@ describe('setupPasswordlessRecovery', () => {
     );
   });
 
+  it('registers a trusted passkey when Auth lists an untrusted one first', async () => {
+    const dependencies = createDependencies();
+    const extensionPasskey: Identifier = { ...PASSKEY, value: 'cred-ext' };
+    jest.mocked(dependencies.requestMfaApproval).mockResolvedValue({
+      approval: 'aal2-token',
+      expiresIn: 60,
+      identifiers: [extensionPasskey, PASSKEY, SOCIAL],
+    });
+    jest
+      .mocked(dependencies.mfaRecovery.isTrusted)
+      .mockImplementation(
+        async (identifier) => identifier !== extensionPasskey,
+      );
+
+    await setupPasswordlessRecovery(dependencies);
+
+    expect(dependencies.mfaRecovery.register).toHaveBeenCalledWith(
+      expect.any(Uint8Array),
+      [PASSKEY, SOCIAL],
+    );
+  });
+
+  it('records the Apple login by its sub', async () => {
+    const dependencies = createDependencies({
+      authConnection: AuthConnection.Apple,
+      userId: 'apple-sub',
+    });
+    jest.mocked(dependencies.requestMfaApproval).mockResolvedValue({
+      approval: 'aal2-token',
+      expiresIn: 60,
+      identifiers: [
+        PASSKEY,
+        { ...SOCIAL, namespace: 'https://appleid.apple.com' },
+      ],
+    });
+
+    await setupPasswordlessRecovery(dependencies);
+
+    expect(dependencies.mfaRecovery.trustIdentifier).toHaveBeenCalledWith({
+      type: 'social',
+      namespace: 'https://appleid.apple.com',
+      identity: 'apple-sub',
+    });
+  });
+
+  it('stops before registration when the social identity is unknown', async () => {
+    const dependencies = createDependencies({
+      authConnection: AuthConnection.Google,
+      userId: 'google-user',
+    });
+
+    const error = await setupPasswordlessRecovery(dependencies).catch(
+      (caught: unknown) => caught,
+    );
+
+    expect(error).toMatchObject({ code: 'social_identity_unknown' });
+    expect(dependencies.mfaRecovery.register).not.toHaveBeenCalled();
+  });
+
   it('does nothing when the vault is already sealed', async () => {
     const dependencies = createDependencies({
       authConnection: AuthConnection.Google,
       userId: 'google-user',
-      envelope: { v: 1, vaultAuthPubKey: 'key' },
+      envelope: { v: 1, vaultAuthPubKey: 'key', passwordAuthPubKey: 'key' },
     });
 
     const result = await setupPasswordlessRecovery(dependencies);
@@ -122,6 +202,16 @@ describe('setupPasswordlessRecovery', () => {
 
     expect(error).toBeInstanceOf(PasswordlessRecoverySetupError);
     expect(error).toMatchObject({ code: 'passkey_not_enrolled' });
+    expect(dependencies.mfaRecovery.register).not.toHaveBeenCalled();
+  });
+
+  it('asks to re-enroll when no approved passkey was recorded', async () => {
+    const dependencies = createDependencies();
+    jest.mocked(dependencies.mfaRecovery.isTrusted).mockResolvedValue(false);
+
+    await expect(setupPasswordlessRecovery(dependencies)).rejects.toMatchObject(
+      { code: 'passkey_not_trusted' },
+    );
     expect(dependencies.mfaRecovery.register).not.toHaveBeenCalled();
   });
 
@@ -215,9 +305,50 @@ describe('setupPasswordlessRecovery', () => {
     });
   });
 
+  it('saves the hash of the secret before registering it', async () => {
+    const dependencies = createDependencies();
+    jest
+      .mocked(dependencies.mfaRecovery.register)
+      .mockImplementation(async () => {
+        expect(await dependencies.registeredSecretHash.get()).toBe(
+          await hashOf(new Uint8Array(RECOVERY_SECRET_LENGTH).fill(4)),
+        );
+      });
+
+    await setupPasswordlessRecovery(dependencies);
+
+    expect(dependencies.mfaRecovery.register).toHaveBeenCalledTimes(1);
+  });
+
+  it('refuses a registered secret this device did not generate', async () => {
+    const dependencies = createDependencies();
+    await dependencies.registeredSecretHash.set(
+      await hashOf(new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9)),
+    );
+    jest.mocked(dependencies.mfaRecovery.getIdentifiers).mockResolvedValue({
+      identifiers: [PASSKEY, SOCIAL],
+      epoch: 1,
+      authIdentifiers: [],
+    });
+    jest
+      .mocked(dependencies.mfaRecovery.authenticateIdentifier)
+      .mockResolvedValue({ session: 'auth' } as never);
+    jest.mocked(dependencies.mfaRecovery.getRecoverySecret).mockResolvedValue({
+      recoverySecret: new Uint8Array(RECOVERY_SECRET_LENGTH).fill(7),
+    } as never);
+
+    const error = await setupPasswordlessRecovery(dependencies).catch(
+      (caught: unknown) => caught,
+    );
+
+    expect(error).toMatchObject({ code: 'recovery_registered_elsewhere' });
+    expect(dependencies.seedless.migrateToEnvelope).not.toHaveBeenCalled();
+  });
+
   it('reuses a previously registered recovery secret when the escrow epoch is set', async () => {
     const dependencies = createDependencies();
     const registeredSecret = new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9);
+    await dependencies.registeredSecretHash.set(await hashOf(registeredSecret));
     jest.mocked(dependencies.mfaRecovery.getIdentifiers).mockResolvedValue({
       identifiers: [PASSKEY, SOCIAL],
       epoch: 1,

@@ -1,5 +1,6 @@
 import type {
-  Identifier,
+  KeyBoundIdentifierLogin,
+  KeyBoundIdentifierTokenRequest,
   RecoveryIdentifierAuthProvider,
 } from '@metamask/mfa-recovery-controller';
 import { MfaRecoveryControllerError } from '../errors';
@@ -11,10 +12,6 @@ import {
   SocialIdentifierAuthProvider,
   type SocialIdTokenProvider,
 } from './social-identifier-auth-provider';
-
-type KeyBoundIdentifierToken = Awaited<
-  ReturnType<RecoveryIdentifierAuthProvider['getKeyBoundIdentifierToken']>
->;
 
 export interface RecoveryIdentifierRouterOptions {
   /** Runs the platform passkey assertion ceremony. */
@@ -49,11 +46,9 @@ export class RecoveryIdentifierRouter
     ]);
   }
 
-  async getKeyBoundIdentifierToken(params: {
-    identifier: Identifier;
-    proofPublicKey: Uint8Array;
-    requestHash: string;
-  }): Promise<KeyBoundIdentifierToken> {
+  async getKeyBoundIdentifierLogin(
+    params: KeyBoundIdentifierTokenRequest,
+  ): Promise<KeyBoundIdentifierLogin> {
     const provider = this.#providers.get(params.identifier.type);
     if (!provider) {
       throw new MfaRecoveryControllerError(
@@ -61,6 +56,6 @@ export class RecoveryIdentifierRouter
         'unsupported_identifier_type',
       );
     }
-    return await provider.getKeyBoundIdentifierToken(params);
+    return await provider.getKeyBoundIdentifierLogin(params);
   }
 }

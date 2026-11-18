@@ -16,6 +16,10 @@ export const removeMfaCredential = async (
   credential: EnrolledCredential,
   reason: TokenReason,
 ): Promise<void> => {
+  if (credential.type === 'passkey') {
+    // First, so a failure cannot leave a removed passkey trusted for recovery.
+    await Engine.context.MfaRecoveryController.untrustPasskey(credential.id);
+  }
   await Engine.context.AuthenticationController.removeCredential({
     credentialId: credential.id,
     reason,
