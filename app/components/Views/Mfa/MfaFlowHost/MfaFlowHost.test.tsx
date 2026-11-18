@@ -220,7 +220,7 @@ describe('MfaFlowHost', () => {
     });
   });
 
-  it('shows the intro, sets up email, then verifies it and returns the token', async () => {
+  it('sets up email without an intro, then verifies it and returns the token', async () => {
     const controller = createController();
     const { outcome } = await start(
       {
@@ -230,12 +230,8 @@ describe('MfaFlowHost', () => {
       },
       controller,
     );
-    const { getByTestId, getByText } = renderHost();
+    const { getByTestId } = renderHost();
 
-    expect(getByText('Why we ask')).toBeOnTheScreen();
-    await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
-    });
     fireEvent.changeText(
       getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
       'a@b.co',

@@ -15,23 +15,31 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ProHubTestIds } from '../../ProHub.testIds';
-import type {
+import {
   MembershipAlertAction,
-  MembershipBannerModel,
+  type MembershipBannerModel,
 } from './MembershipBanner.utils';
 
 interface MembershipBannerProps {
   testID?: string;
   model: MembershipBannerModel;
   onAction: (action: MembershipAlertAction) => void;
+  /** True while a pending cancellation is being uncancelled. */
+  isActionBusy?: boolean;
+  /** Shown under the alert when resume fails. */
+  actionErrorMessage?: string | null;
 }
 
 const MembershipBanner = ({
   testID = ProHubTestIds.MEMBERSHIP_BANNER,
   model,
   onAction,
+  isActionBusy = false,
+  actionErrorMessage = null,
 }: MembershipBannerProps) => {
   const membershipAlert = model.alert;
+  const isResumeBusy =
+    isActionBusy && membershipAlert?.action === MembershipAlertAction.Resume;
 
   return (
     <Card
@@ -83,10 +91,27 @@ const MembershipBanner = ({
           actionButtonOnPress={() => onAction(membershipAlert.action)}
           actionButtonProps={{
             testID: ProHubTestIds.MEMBERSHIP_ALERT_ACTION(model.statusKind),
+            isDisabled: isResumeBusy,
+            isLoading: isResumeBusy,
+            loadingText: isResumeBusy
+              ? strings('pro_hub.membership.resume_in_progress')
+              : undefined,
           }}
           twClassName="mt-3"
           testID={ProHubTestIds.MEMBERSHIP_ALERT_BANNER(model.statusKind)}
         />
+      ) : null}
+      {actionErrorMessage ? (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          testID={ProHubTestIds.MEMBERSHIP_RESUME_ERROR}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          twClassName="mt-2"
+        >
+          {actionErrorMessage}
+        </Text>
       ) : null}
     </Card>
   );

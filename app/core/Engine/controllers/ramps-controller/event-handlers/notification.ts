@@ -25,6 +25,21 @@ export function shouldShowOrderStatusToast(
   return true;
 }
 
+/**
+ * Order and status pairs already toasted in this app session.
+ *
+ * The controller republishes `orderStatusChanged` on every poll when it cannot
+ * persist a fetched status for a stored order (TRAM-4452), so the transition
+ * check above is not enough on its own to keep a settled order from toasting
+ * again.
+ */
+const toastedOrderStatuses = new Set<string>();
+
+/** Clears the once-per-session toast record. Tests only. */
+export function resetToastedOrderStatuses(): void {
+  toastedOrderStatuses.clear();
+}
+
 export function handleOrderStatusChangedForNotifications({
   order,
   previousStatus,
@@ -35,6 +50,12 @@ export function handleOrderStatusChangedForNotifications({
   if (!shouldShowOrderStatusToast(previousStatus, order.status)) {
     return;
   }
+
+  const toastKey = `${order.providerOrderId}:${order.status}`;
+  if (toastedOrderStatuses.has(toastKey)) {
+    return;
+  }
+  toastedOrderStatuses.add(toastKey);
 
   showV2OrderToast({
     orderId: order.providerOrderId,

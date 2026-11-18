@@ -1,9 +1,9 @@
 import { ImageSourcePropType } from 'react-native';
+import { toast } from '@metamask/design-system-react-native';
 import {
   handleShowNetworkActiveToast,
   shouldShowNetworkListToast,
 } from './utils';
-import { ToastVariants } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
 import {
   clearSuppressedNetworkAddedToast,
@@ -12,12 +12,15 @@ import {
   suppressNextNetworkAddedToast,
 } from '../../../util/networks/networkToastSuppression';
 
-describe('handleShowNetworkActiveToast', () => {
-  const mockToastRef = {
-    current: {
-      showToast: jest.fn(),
-    },
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
+});
+
+describe('handleShowNetworkActiveToast', () => {
   const mockNetworkName = 'Ethereum Mainnet';
   const mockNetworkImage: ImageSourcePropType = {
     uri: 'https://example.com/eth.png',
@@ -29,119 +32,69 @@ describe('handleShowNetworkActiveToast', () => {
   });
 
   it('shows toast when not on bridge route', () => {
-    // Arrange
     const isOnBridgeRoute = false;
 
-    // Act
     handleShowNetworkActiveToast(
       isOnBridgeRoute,
-      mockToastRef,
       mockNetworkName,
       mockNetworkImage,
     );
 
-    // Assert
-    expect(mockToastRef.current.showToast).toHaveBeenCalledTimes(1);
-    expect(mockToastRef.current.showToast).toHaveBeenCalledWith({
-      variant: ToastVariants.Network,
-      labelOptions: [
-        {
-          label: `${mockNetworkName} `,
-          isBold: true,
-        },
-        { label: strings('toast.now_active') },
-      ],
-      networkImageSource: mockNetworkImage,
-    });
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: `${mockNetworkName} ${strings('toast.now_active')}`,
+        showCloseButton: false,
+      }),
+    );
   });
 
   it('does not show toast when on bridge route', () => {
-    // Arrange
     const isOnBridgeRoute = true;
 
-    // Act
     handleShowNetworkActiveToast(
       isOnBridgeRoute,
-      mockToastRef,
       mockNetworkName,
       mockNetworkImage,
     );
 
-    // Assert
-    expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
-  it('handles undefined toastRef gracefully when not on bridge route', () => {
-    // Arrange
-    const isOnBridgeRoute = false;
-    const undefinedToastRef = undefined;
-
-    // Act & Assert - should not throw
-    expect(() =>
-      handleShowNetworkActiveToast(
-        isOnBridgeRoute,
-        undefinedToastRef,
-        mockNetworkName,
-        mockNetworkImage,
-      ),
-    ).not.toThrow();
-  });
-
-  it('handles toastRef with null current when not on bridge route', () => {
-    // Arrange
-    const isOnBridgeRoute = false;
-    const nullCurrentToastRef = { current: null };
-
-    // Act & Assert - should not throw
-    expect(() =>
-      handleShowNetworkActiveToast(
-        isOnBridgeRoute,
-        nullCurrentToastRef,
-        mockNetworkName,
-        mockNetworkImage,
-      ),
-    ).not.toThrow();
-  });
-
-  it('formats network name with space and bold styling', () => {
-    // Arrange
+  it('formats network name with now-active copy', () => {
     const isOnBridgeRoute = false;
     const customNetworkName = 'Polygon';
 
-    // Act
     handleShowNetworkActiveToast(
       isOnBridgeRoute,
-      mockToastRef,
       customNetworkName,
       mockNetworkImage,
     );
 
-    // Assert
-    const calledWith = mockToastRef.current.showToast.mock.calls[0][0];
-    expect(calledWith.labelOptions[0]).toEqual({
-      label: `${customNetworkName} `,
-      isBold: true,
-    });
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: `${customNetworkName} ${strings('toast.now_active')}`,
+      }),
+    );
   });
 
-  it('passes through network image source correctly', () => {
-    // Arrange
+  it('passes through network image source as start accessory', () => {
     const isOnBridgeRoute = false;
     const customNetworkImage: ImageSourcePropType = {
       uri: 'https://example.com/polygon.png',
     };
 
-    // Act
     handleShowNetworkActiveToast(
       isOnBridgeRoute,
-      mockToastRef,
       mockNetworkName,
       customNetworkImage,
     );
 
-    // Assert
-    const calledWith = mockToastRef.current.showToast.mock.calls[0][0];
-    expect(calledWith.networkImageSource).toBe(customNetworkImage);
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        startAccessory: expect.anything(),
+      }),
+    );
   });
 });
 

@@ -50,6 +50,8 @@ export interface SpotPostTradeShareSession extends PostTradeShareSessionBase {
   tradeMode: QuickBuyTradeMode;
   /** Post being copied, so a failed swap can reopen Quick Buy with the same intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  /** True when Quick Buy was opened from Copy trade, not from an ordinary Buy. */
+  isCopyTrade?: boolean;
   /** Trader copied by this swap. Restored when Try again reopens Quick Buy. */
   traderAddress?: string;
   /** Screen that should reopen Quick Buy after a failure. */

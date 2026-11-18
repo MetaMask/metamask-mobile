@@ -1656,12 +1656,19 @@ describe('PredictOrderFlow', () => {
   });
 
   it('keeps the original previewId after a failed commit even when the quote later expires', async () => {
+    // The sheet arms a real-time expiry timer when the quote lands, so the
+    // quote must outlive the same worker stall SHEET_LOAD absorbs, or it can
+    // expire before Review or Approve is pressed.
+    let quoteExpiresAt = 0;
     stubFetch(
-      () => ({
-        body: makePreview({
-          expiresAt: new Date(Date.now() + 4000).toISOString(),
-        }),
-      }),
+      () => {
+        quoteExpiresAt = Date.now() + SHEET_LOAD.timeout;
+        return {
+          body: makePreview({
+            expiresAt: new Date(quoteExpiresAt).toISOString(),
+          }),
+        };
+      },
       {
         commit: () => ({
           status: 500,
@@ -1681,8 +1688,16 @@ describe('PredictOrderFlow', () => {
       screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
     ).toBeOnTheScreen();
 
-    await act(() => new Promise((resolve) => setTimeout(resolve, 4500)));
+    // Armed after the sheet's expiry timer and due later, so that timer has
+    // fired and re-rendered the expired quote before this resolves.
+    await act(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(resolve, Math.max(0, quoteExpiresAt - Date.now()) + 500),
+        ),
+    );
 
+    expect(Date.now()).toBeGreaterThan(quoteExpiresAt);
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
     ).toBeOnTheScreen();
