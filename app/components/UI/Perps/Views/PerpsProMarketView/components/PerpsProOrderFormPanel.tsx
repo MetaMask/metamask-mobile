@@ -2,24 +2,14 @@ import { Box, TagSeverity } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import {
   getPerpsDisplaySymbol,
-  type MarginMode,
   type OrderType,
   type PerpsMarketData,
   type PerpsProviderType,
   type TriggerOrderType,
 } from '@metamask/perps-controller';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { setPerpsCrossMarginConfirmed } from '../../../../../../actions/settings';
-import { selectHasConfirmedCrossMargin } from '../../../selectors/crossMarginConfirmation';
-import { selectPerpsSelectedAccountAddress } from '../../../selectors/selectedAccountAddress';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
@@ -52,6 +42,7 @@ import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDurationBottomSheet';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
+import { usePerpsProCrossMarginConfirm } from './PerpsProOrderForm/usePerpsProCrossMarginConfirm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
 
 const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
@@ -314,52 +305,22 @@ const PerpsProOrderFormPanel = ({
 
   const { styles } = useStyles(createStyles, {});
 
-  const dispatch = useDispatch();
-  const hasConfirmedCrossMargin = useSelector(selectHasConfirmedCrossMargin);
-  const selectedAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
   const openMarginMode = useCallback(() => {
     refreshMarginModeLock();
     setIsMarginModeVisible(true);
   }, [refreshMarginModeLock]);
-  // Switching to Cross needs the trader to acknowledge its risks first. The
-  // confirm sheet opens once the margin mode sheet has finished closing.
-  const isCrossConfirmPendingRef = useRef(false);
-  const [isCrossConfirmVisible, setIsCrossConfirmVisible] = useState(false);
+  const {
+    isCrossConfirmVisible,
+    onMarginModeSelect: handleMarginModeSelect,
+    onMarginModeSheetClosed,
+    closeCrossConfirm,
+    confirmCrossMargin,
+  } = usePerpsProCrossMarginConfirm({ marginMode, onMarginModeSelect });
   const closeMarginMode = useCallback(() => {
     setIsMarginModeVisible(false);
-    if (isCrossConfirmPendingRef.current) {
-      isCrossConfirmPendingRef.current = false;
-      setIsCrossConfirmVisible(true);
-    }
-  }, []);
-  const handleMarginModeSelect = useCallback(
-    (nextMarginMode: MarginMode) => {
-      if (
-        nextMarginMode === 'cross' &&
-        marginMode !== 'cross' &&
-        !hasConfirmedCrossMargin
-      ) {
-        isCrossConfirmPendingRef.current = true;
-        return;
-      }
-      onMarginModeSelect(nextMarginMode);
-    },
-    [hasConfirmedCrossMargin, marginMode, onMarginModeSelect],
-  );
-  const closeCrossConfirm = useCallback(
-    () => setIsCrossConfirmVisible(false),
-    [],
-  );
-  // Only an explicit confirm is remembered. Dismissing the sheet leaves the
-  // account unconfirmed so it reopens the next time Cross is selected.
-  const confirmCrossMargin = useCallback(() => {
-    setIsCrossConfirmVisible(false);
-    if (selectedAccountAddress) {
-      dispatch(setPerpsCrossMarginConfirmed(selectedAccountAddress));
-    }
-    onMarginModeSelect('cross');
-  }, [dispatch, onMarginModeSelect, selectedAccountAddress]);
+    onMarginModeSheetClosed();
+  }, [onMarginModeSheetClosed]);
 
   const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
     usePerpsCrossMarginSummary({ enabled: isCrossMarginAvailableForMarket });

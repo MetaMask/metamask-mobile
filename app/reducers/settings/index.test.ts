@@ -47,8 +47,10 @@ describe('settingsReducer', () => {
         settingsReducer(initialState, setPerpsCrossMarginConfirmed(undefined)),
       ).toBe(initialState);
     });
+  });
 
-    it('forgets confirmations when the wallet is deleted', () => {
+  describe('wallet deletion', () => {
+    it('forgets the Perps cross margin confirmations', () => {
       const confirmed = settingsReducer(
         getInitialState(),
         setPerpsCrossMarginConfirmed('0xabc'),
@@ -59,9 +61,7 @@ describe('settingsReducer', () => {
           .perpsCrossMarginConfirmedAccounts,
       ).toStrictEqual({});
     });
-  });
 
-  describe('wallet deletion', () => {
     it('clears a pending migration notice and cohort membership', () => {
       const state = settingsReducer(getMigratedState(), clearOnboarding());
 

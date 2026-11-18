@@ -23,6 +23,7 @@ import {
 import {
   crossMarginMarketInfo,
   openMarginModeSheet,
+  pressMarginModeOption,
   resetMarginModeControllerMocks,
   selectCrossMarginMode,
 } from '../../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
@@ -293,25 +294,16 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     );
   });
 
-  it('asks for the Cross confirmation only once per account', async () => {
+  it('asks for the Cross confirmation only on the first Cross selection', async () => {
     renderPerpsCrossMarginOrderFormPanel();
     await openMarginModeSheet();
     await selectCrossMarginMode();
 
     await openMarginModeSheet();
-    await waitFor(() =>
-      expect(screen.getByTestId(marginIds.ISOLATED_OPTION)).toBeEnabled(),
-    );
-    fireEvent.press(screen.getByTestId(marginIds.ISOLATED_OPTION));
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await pressMarginModeOption(marginIds.ISOLATED_OPTION);
 
     await openMarginModeSheet();
-    await waitFor(() =>
-      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-    );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
 
     await waitFor(() =>
       expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
@@ -324,10 +316,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   it('reopens the Cross confirmation when the user goes back instead of confirming', async () => {
     renderPerpsCrossMarginOrderFormPanel();
     await openMarginModeSheet();
-    await waitFor(() =>
-      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-    );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
     await screen.findByTestId(confirmIds.CONTAINER);
     fireEvent.press(screen.getByTestId(confirmIds.GO_BACK_BUTTON));
     await waitFor(() =>
@@ -338,10 +327,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     );
 
     await openMarginModeSheet();
-    await waitFor(() =>
-      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-    );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
 
     await screen.findByTestId(confirmIds.CONTAINER);
   });

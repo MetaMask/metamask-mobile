@@ -35,6 +35,7 @@ import {
 import { selectPerpsProvider } from '../../../selectors/perpsController';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 const mockUseSelector = jest.fn();
+const mockDispatch = jest.fn();
 const selectorValues = new Map<unknown, unknown>();
 const mockUsePerpsProvider = jest.fn();
 const mockUseIsPerpsProModeActive = jest.fn();
@@ -44,7 +45,7 @@ const mockCheckOrderCapability = jest.fn().mockResolvedValue(true);
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
-  useDispatch: () => jest.fn(),
+  useDispatch: () => mockDispatch,
 }));
 
 jest.mock('../../../utils/perpsModeSwitch', () => ({
