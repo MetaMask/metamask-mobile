@@ -205,7 +205,9 @@ describe('MoneyTransferSheet', () => {
   it('renders the sheet title', () => {
     const { getByText } = renderWithProvider(<MoneyTransferSheet />);
 
-    expect(getByText(strings('money.transfer_sheet.move_title'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.transfer_sheet.move_title')),
+    ).toBeOnTheScreen();
   });
 
   it('renders all five list items', () => {
