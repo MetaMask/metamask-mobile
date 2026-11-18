@@ -413,23 +413,20 @@ jobs:
       inputs.channel == 'production'
     permissions:
       contents: read
-      id-token: write # token exchange for the team approval check
+      pull-requests: read # release PR merge state
     runs-on: ubuntu-latest
     steps:
-      - name: Get token
-        id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
+      - name: Checkout scripts
+        uses: actions/checkout@v6
         with:
-          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
-          permissions: |
-            members: read
+          sparse-checkout: .github/scripts
 
-      - name: Await approval from mobile release team
-        uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
-        with:
-          team: release-team
-          pr-number: ${{ needs.validate-pr.outputs.pr_number }}
-          token: ${{ steps.get-token.outputs.token }}
+      - name: Require the release PR to meet the stable branch rules
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.validate-pr.outputs.pr_number }}
+          EXPECTED_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
+        run: .github/scripts/verify-release-pr-mergeable.sh
 
   push-update-ios:
     name: Push EAS Update (iOS)
@@ -454,7 +451,8 @@ jobs:
       (inputs.platform == 'all' || inputs.platform == 'ios')
     permissions:
       contents: read
-      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
+      id-token: write # AWS OIDC role assumption and Sigstore signing in eas-update-platform.yml
+      attestations: write # OTA bundle attestation in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: ios
@@ -490,7 +488,8 @@ jobs:
       (inputs.platform == 'all' || inputs.platform == 'android')
     permissions:
       contents: read
-      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
+      id-token: write # AWS OIDC role assumption and Sigstore signing in eas-update-platform.yml
+      attestations: write # OTA bundle attestation in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: android

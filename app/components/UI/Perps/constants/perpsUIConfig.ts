@@ -45,3 +45,17 @@ export const FIXED_BOTTOM_CONTAINER_BASE_HEIGHT =
   FIXED_BOTTOM_CONTAINER_PADDING +
   FIXED_BOTTOM_CONTAINER_BUTTON_HEIGHT +
   FIXED_BOTTOM_CONTAINER_PADDING;
+
+/** Diameter of the exchange marks beside the available balance. */
+export const PERPS_AVAILABLE_BALANCE_LOGO_SIZE = 16;
+
+/**
+ * Upper pixel bounds for mapping a logo size onto AvatarNetworkSize.
+ * Xs is 16, then 24, 32, and 40.
+ */
+export const PERPS_PROVIDER_LOGO_AVATAR_MAX_PX = {
+  Xs: 16,
+  Sm: 24,
+  Md: 32,
+  Lg: 40,
+} as const;

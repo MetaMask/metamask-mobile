@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   ButtonsAlignment,
@@ -27,6 +26,8 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { strings } from '../../../../../locales/i18n';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useTokenListFilteringEvent } from '../hooks/useTokenListFilteringEvent';
 import { DEFAULT_TOKEN_SORT_CONFIG, type SortOrder } from '../util/sortAssets';
@@ -87,6 +88,7 @@ export const TokenSortBottomSheet = () => {
   const { searchQuery } = useParams<TokenSortParams>();
   const trackFiltering = useTokenListFilteringEvent();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [draftOptionId, setDraftOptionId] = useState<SortOptionId>(
     getSortOption(tokenSortConfig).id,
   );
@@ -152,13 +154,14 @@ export const TokenSortBottomSheet = () => {
       onOpen={() => setIsReady(true)}
       isInteractable={isReady}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: WalletViewSelectorsIDs.SORT_CLOSE }}
         testID={WalletViewSelectorsIDs.SORT_BY}
       >
         {strings('wallet.sort_by')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {SORT_OPTIONS.map((option) => {
         const isSelected = draftOptionId === option.id;
         return (

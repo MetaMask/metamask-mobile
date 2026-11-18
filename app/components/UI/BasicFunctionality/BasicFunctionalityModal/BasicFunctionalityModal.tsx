@@ -13,7 +13,7 @@ import Checkbox from '../../../../component-library/components/Checkbox/Checkbox
 import { useSelector } from 'react-redux';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import createStyles from '../../Notification/Modal/styles';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../../reducers';
 import Icon, {
   IconColor,
   IconName,

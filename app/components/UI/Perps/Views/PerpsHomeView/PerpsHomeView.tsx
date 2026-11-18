@@ -5,7 +5,13 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, Modal, NativeScrollEvent } from 'react-native';
+import {
+  View,
+  Modal,
+  NativeScrollEvent,
+  Pressable,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -42,6 +48,7 @@ import {
   formatPnl,
   formatPercentage,
   formatPerpsBalance,
+  formatCrossMarginRatio,
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -52,6 +59,7 @@ import {
   usePerpsHomeSectionTracking,
   usePerpsMode,
 } from '../../hooks';
+import { usePerpsSectionNearViewport } from '../../hooks/usePerpsSectionNearViewport';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
@@ -62,6 +70,7 @@ import {
   LEARN_MORE_CONFIG,
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
+  PERPS_LIVE_TRADES_CONFIG,
 } from '../../constants/perpsConfig';
 import {
   selectPerpsFeedbackEnabledFlag,
@@ -87,6 +96,10 @@ import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
+import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
+import PerpsCrossMarginRatioBanner from '../../components/PerpsCrossMarginRatioBanner';
+import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
+import { getCrossMarginRatioAlert } from '../../utils/crossMarginSummary';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
@@ -96,6 +109,7 @@ import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
+import PerpsAvailableBalanceLabel from '../../components/PerpsAvailableBalanceLabel';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
@@ -147,6 +161,7 @@ import PerpsProducts from '../../components/PerpsProducts';
 import PerpsExploreSection from '../../components/PerpsExploreSection';
 import { buildExploreTabs } from '../../components/PerpsExploreSection/buildExploreTabs';
 import { usePerpsHomeExploreAbTest } from '../../hooks/usePerpsHomeExploreAbTest';
+import { usePerpsLiveTradesAbTest } from '../../hooks/usePerpsLiveTradesAbTest';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsSocialFeedSection from '../../components/PerpsSocialFeedSection';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
@@ -318,6 +333,27 @@ const PerpsHomeView = () => {
   const { handleSectionLayout, handleScroll, resetTracking } =
     usePerpsHomeSectionTracking();
 
+  const { showLiveTrades } = usePerpsLiveTradesAbTest();
+  const {
+    isNearViewport: isSocialFeedNearViewport,
+    handleLayout: handleSocialFeedNearViewportLayout,
+    handleScroll: handleSocialFeedNearViewportScroll,
+  } = usePerpsSectionNearViewport({
+    enabled: showLiveTrades,
+    marginPx: PERPS_LIVE_TRADES_CONFIG.NearViewportMarginPx,
+  });
+  const trackSocialFeedLayout = useMemo(
+    () => handleSectionLayout('social_feed'),
+    [handleSectionLayout],
+  );
+  const handleSocialFeedLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      trackSocialFeedLayout(event);
+      handleSocialFeedNearViewportLayout(event);
+    },
+    [handleSocialFeedNearViewportLayout, trackSocialFeedLayout],
+  );
+
   // Bridge analytics handler into the Reanimated worklet via onScrollEvent
   const handleScrollEvent = useCallback(
     (scrollY: number, viewportHeight: number) => {
@@ -327,8 +363,9 @@ const PerpsHomeView = () => {
           layoutMeasurement: { width: 0, height: viewportHeight },
         } as NativeScrollEvent,
       });
+      handleSocialFeedNearViewportScroll(scrollY, viewportHeight);
     },
-    [handleScroll],
+    [handleScroll, handleSocialFeedNearViewportScroll],
   );
   // `useAnimatedScrollHandler` may retain the first worklet closure. Keep the
   // RN callback stable while forwarding each event to the latest tracker.
@@ -380,6 +417,44 @@ const PerpsHomeView = () => {
   const spendableBalance = perpsAccount?.spendableBalance || '0';
   const totalBn = BigNumber(totalBalance);
   const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
+
+  const {
+    isCrossMarginEnabled,
+    accountRatio: crossMarginRatio,
+    tone: crossMarginTone,
+  } = usePerpsCrossMarginSummary();
+  const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
+  const openBalanceSheet = useCallback(
+    () => setIsBalanceSheetVisible(true),
+    [],
+  );
+  const closeBalanceSheet = useCallback(
+    () => setIsBalanceSheetVisible(false),
+    [],
+  );
+  const crossMarginBannerSeverity = getCrossMarginRatioAlert(crossMarginTone);
+
+  let availableBalance: React.ReactNode;
+  if (!isBalanceEmpty) {
+    const availableBalanceLabel = (
+      <PerpsAvailableBalanceLabel
+        spendableBalance={spendableBalance}
+        isHidden={privacyMode}
+        variant={TextVariant.BodySm}
+      />
+    );
+    availableBalance = isCrossMarginEnabled ? (
+      <Pressable
+        onPress={openBalanceSheet}
+        accessibilityRole="button"
+        testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
+      >
+        {availableBalanceLabel}
+      </Pressable>
+    ) : (
+      availableBalanceLabel
+    );
+  }
 
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
@@ -966,8 +1041,10 @@ const PerpsHomeView = () => {
       {
         key: 'social-feed',
         visible: isSocialFeedVisible,
-        onLayout: handleSectionLayout('social_feed'),
-        content: <PerpsSocialFeedSection />,
+        onLayout: handleSocialFeedLayout,
+        content: (
+          <PerpsSocialFeedSection isNearViewport={isSocialFeedNearViewport} />
+        ),
       },
       {
         key: 'crypto',
@@ -1144,6 +1221,8 @@ const PerpsHomeView = () => {
       isProductsVisible,
       isTopMoversVisible,
       isSocialFeedVisible,
+      handleSocialFeedLayout,
+      isSocialFeedNearViewport,
       isRecentlyAddedVisible,
       recentlyAddedMarkets,
       handleRecentlyAddedMarketPress,
@@ -1345,33 +1424,21 @@ const PerpsHomeView = () => {
                 </SensitiveText>
               ) : undefined
             }
-            bottomLabel={
-              !isBalanceEmpty ? (
-                <Box flexDirection={BoxFlexDirection.Row}>
-                  <SensitiveText
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    isHidden={privacyMode}
-                    length={SensitiveTextLength.Short}
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                    }
-                  >
-                    {formatPerpsBalance(spendableBalance)}
-                  </SensitiveText>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {' '}
-                    {strings('perps.available')}
-                  </Text>
-                </Box>
-              ) : undefined
-            }
+            bottomLabel={availableBalance}
             twClassName="px-4 pb-3"
           />
         </PerpsMarketBalanceActions>
+
+        {crossMarginBannerSeverity && crossMarginRatio !== undefined && (
+          <Box twClassName="px-4 pb-3">
+            <PerpsCrossMarginRatioBanner
+              ratio={formatCrossMarginRatio(crossMarginRatio)}
+              severity={crossMarginBannerSeverity}
+              isRatioHidden={privacyMode}
+              testID={PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER}
+            />
+          </Box>
+        )}
 
         <PerpsCompetitionBanner
           isGlass={isGlass}
@@ -1428,6 +1495,14 @@ const PerpsHomeView = () => {
           onClose={handleCloseAllSheetClose}
         />
       )}
+
+      {isBalanceSheetVisible ? (
+        <PerpsBalanceBottomSheet
+          isVisible
+          onClose={closeBalanceSheet}
+          buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
+        />
+      ) : null}
 
       {/* Cancel All Orders Bottom Sheet */}
       {showCancelAllSheet && (

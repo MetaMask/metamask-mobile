@@ -8,7 +8,10 @@ import {
   getShareSheetCount,
   hasSeenClaimSheet,
 } from '../../../../util/social/postTradePromptStorage';
-import { usePostTradePromptResolver } from './usePostTradePromptResolver';
+import {
+  useCanShareCopyTrade,
+  usePostTradePromptResolver,
+} from './usePostTradePromptResolver';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -123,5 +126,62 @@ describe('usePostTradePromptResolver', () => {
     const { result } = renderHook(() => usePostTradePromptResolver());
 
     expect(result.current('swap')).toEqual({ kind: 'none' });
+  });
+});
+
+describe('useCanShareCopyTrade', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when the linked account is in the selected group', () => {
+    mockSelectors();
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(true);
+  });
+
+  it('returns false when the linked account is not in the selected group', () => {
+    mockSelectors({ selectedGroup: [otherAccount] });
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(false);
+  });
+
+  it('returns false when the linked wallet is not in this wallet', () => {
+    mockSelectors({
+      linkedEvmAddress: '0x3333333333333333333333333333333333333333',
+    });
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(false);
+  });
+
+  it('returns false when there is no linked address', () => {
+    mockSelectors({ linkedEvmAddress: null });
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(false);
+  });
+
+  it('returns false when Social V1 is off', () => {
+    mockSelectors({ enabled: false });
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+
+    expect(result.current()).toBe(false);
+  });
+
+  it('does not read the share-sheet count', () => {
+    mockSelectors();
+
+    const { result } = renderHook(() => useCanShareCopyTrade());
+    result.current();
+
+    expect(getShareSheetCount).not.toHaveBeenCalled();
   });
 });

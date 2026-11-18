@@ -19,6 +19,11 @@ import type {
   PredictMarketDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
 import type {
+  PredictFundingServiceActions,
+  PredictFundingServiceEvents,
+  PredictFundingServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictFundingService';
+import type {
   PredictPortfolioServiceActions,
   PredictPortfolioServiceEvents,
   PredictPortfolioServiceMessenger,
@@ -38,13 +43,25 @@ import type {
   RootExtendedMessenger,
 } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { getPredictApiUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import { store } from '../../../store';
 import {
+  predictFundingServiceInit,
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
+
+jest.mock(
+  '../../../components/UI/PredictNext/config/predictClusterUrls',
+  () => {
+    const actual = jest.requireActual(
+      '../../../components/UI/PredictNext/config/predictClusterUrls',
+    );
+    return { ...actual, getPredictApiUrl: jest.fn(actual.getPredictApiUrl) };
+  },
+);
 
 jest.mock('../../../store', () => ({
   store: { subscribe: jest.fn() },
@@ -186,6 +203,77 @@ describe('Predict service initialization', () => {
       'AuthenticationController:getBearerToken',
     );
     controller.destroy();
+  });
+
+  it('registers the deposit actions on the Engine root messenger', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      PredictFundingServiceActions,
+      PredictFundingServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const controllerMessenger: PredictFundingServiceMessenger = new Messenger({
+      namespace: 'PredictFundingService',
+      parent: rootMessenger,
+    });
+    const call = jest.fn().mockResolvedValue('test-bearer-token');
+    const request = {
+      ...buildMessengerClientInitRequestMock(
+        rootMessenger as unknown as RootExtendedMessenger,
+      ),
+      controllerMessenger,
+      initMessenger: { call } as never,
+    };
+    const { controller } = predictFundingServiceInit(request);
+
+    const result = rootMessenger.call(
+      'PredictFundingService:listOpenDeposits',
+      'kalshi' as never,
+    );
+
+    // No Predict API URL in tests: the call fails as unavailable.
+    await expect(result).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    expect(call).toHaveBeenCalledWith(
+      'AuthenticationController:getBearerToken',
+    );
+    controller.destroy();
+  });
+
+  it('sends deposit calls to the cluster-aware Predict API URL', async () => {
+    jest
+      .mocked(getPredictApiUrl)
+      .mockReturnValueOnce('https://predict.example');
+    const fetchSpy = jest
+      .spyOn(global, 'fetch')
+      .mockRejectedValue(new Error('offline'));
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      PredictFundingServiceActions,
+      PredictFundingServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const controllerMessenger: PredictFundingServiceMessenger = new Messenger({
+      namespace: 'PredictFundingService',
+      parent: rootMessenger,
+    });
+    const request = {
+      ...buildMessengerClientInitRequestMock(
+        rootMessenger as unknown as RootExtendedMessenger,
+      ),
+      controllerMessenger,
+      initMessenger: {
+        call: jest.fn().mockResolvedValue('test-bearer-token'),
+      } as never,
+    };
+    const { controller } = predictFundingServiceInit(request);
+
+    await rootMessenger
+      .call('PredictFundingService:listOpenDeposits', 'kalshi' as never)
+      .catch(() => undefined);
+
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toMatch(
+      /^https:\/\/predict\.example\//u,
+    );
+    controller.destroy();
+    fetchSpy.mockRestore();
   });
 
   it('cancels uncommitted Previews when the Active Venue changes', () => {
