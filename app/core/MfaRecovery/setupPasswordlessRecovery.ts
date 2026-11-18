@@ -32,6 +32,7 @@ const SOCIAL_IDENTIFIER_ISSUERS: Readonly<Record<string, string>> = {
 export type PasswordlessRecoverySetupMfa = Pick<
   MfaRecoveryController,
   | 'trustIdentifier'
+  | 'isTrusted'
   | 'register'
   | 'abort'
   | 'getIdentifiers'
@@ -122,15 +123,16 @@ export async function setupPasswordlessRecovery(
       stage = 'reading_identifiers';
       approved = await readApprovedIdentifiers(dependencies);
     }
-    const identifiers = selectApprovedIdentifiers(
-      approved,
-      dependencies.seedless.state,
-    );
     stage = 'trusting_passkeys';
     await dependencies.retryPendingPasskeys();
     stage = 'trusting_social_login';
     await dependencies.mfaRecovery.trustIdentifier(
       getSocialWitness(dependencies.seedless.state),
+    );
+    const identifiers = await selectApprovedIdentifiers(
+      approved,
+      dependencies.seedless.state,
+      dependencies.mfaRecovery,
     );
     // A failed attempt leaves an authorizing mutation. Drop it before retrying.
     stage = 'clearing_pending_setup';
@@ -223,13 +225,21 @@ function describeFailure(stage: string, error: unknown): string {
 
 /**
  * Uses Auth's identifiers unchanged. Adding fields, including a passkey
- * verifier, makes the recovery controller reject the mutation.
+ * verifier, makes the recovery controller reject the mutation. Picks a trusted
+ * passkey: Auth also lists passkeys other clients never recorded.
  */
-function selectApprovedIdentifiers(
+async function selectApprovedIdentifiers(
   approved: readonly MfaApprovalIdentifier[],
   state: Pick<SeedlessOnboardingControllerState, 'authConnection' | 'userId'>,
-): Identifier[] {
-  const passkey = approved.find((identifier) => identifier.type === 'passkey');
+  { isTrusted }: Pick<PasswordlessRecoverySetupMfa, 'isTrusted'>,
+): Promise<Identifier[]> {
+  let passkey: MfaApprovalIdentifier | undefined;
+  for (const identifier of approved) {
+    if (identifier.type === 'passkey' && (await isTrusted(identifier))) {
+      passkey = identifier;
+      break;
+    }
+  }
   if (!passkey) {
     throw new PasswordlessRecoverySetupError('passkey_not_enrolled');
   }

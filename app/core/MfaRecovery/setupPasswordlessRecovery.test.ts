@@ -43,6 +43,7 @@ function createDependencies(
   } = {
     mfaRecovery: {
       trustIdentifier: jest.fn(async () => undefined),
+      isTrusted: jest.fn(async () => true),
       register: jest.fn(async () => undefined),
       abort: jest.fn(async () => undefined),
       getIdentifiers: jest.fn(async () => ({
@@ -110,6 +111,28 @@ describe('setupPasswordlessRecovery', () => {
     expect(dependencies.seedless.runMigrations).toHaveBeenCalledTimes(1);
     expect(dependencies.seenSecret).toStrictEqual(
       new Uint8Array(RECOVERY_SECRET_LENGTH).fill(4),
+    );
+  });
+
+  it('registers a trusted passkey when Auth lists an untrusted one first', async () => {
+    const dependencies = createDependencies();
+    const extensionPasskey: Identifier = { ...PASSKEY, value: 'cred-ext' };
+    jest.mocked(dependencies.requestMfaApproval).mockResolvedValue({
+      approval: 'aal2-token',
+      expiresIn: 60,
+      identifiers: [extensionPasskey, PASSKEY, SOCIAL],
+    });
+    jest
+      .mocked(dependencies.mfaRecovery.isTrusted)
+      .mockImplementation(
+        async (identifier) => identifier !== extensionPasskey,
+      );
+
+    await setupPasswordlessRecovery(dependencies);
+
+    expect(dependencies.mfaRecovery.register).toHaveBeenCalledWith(
+      expect.any(Uint8Array),
+      [PASSKEY, SOCIAL],
     );
   });
 
