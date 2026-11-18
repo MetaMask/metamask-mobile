@@ -125,68 +125,121 @@ describe('crossMarginSummary', () => {
     ])(
       'finds where equity meets maintenance margin (long: %s)',
       (isLong, expected) => {
-        expect(
-          estimateCrossLiquidationPrice({ ...params, isLong }),
-        ).toBeCloseTo(expected, 4);
+        const estimate = estimateCrossLiquidationPrice({ ...params, isLong });
+
+        expect(estimate.status).toBe('price');
+        if (estimate.status === 'price') {
+          expect(estimate.price).toBeCloseTo(expected, 4);
+          expect(estimate.approximate).toBe(false);
+        }
       },
     );
 
-    it('returns undefined on a venue other than Hyperliquid', () => {
+    it('returns unknown on a venue other than Hyperliquid', () => {
       expect(
         estimateCrossLiquidationPrice({
           ...params,
           isLong: false,
           providerId: 'lighter',
         }),
-      ).toBeUndefined();
+      ).toEqual({ status: 'unknown' });
     });
 
-    it('returns undefined when the long cannot be liquidated', () => {
+    it('returns none when the long cannot be liquidated', () => {
       expect(
         estimateCrossLiquidationPrice({
           ...params,
           isLong: true,
           crossMarginSummary: { ...crossMarginSummary, accountValue: '5000' },
         }),
-      ).toBeUndefined();
+      ).toEqual({ status: 'none' });
     });
 
-    it('counts spot collateral and stays unknown while it is not published', () => {
+    it('returns none when the order closes the position', () => {
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: false,
+          size: 4,
+          existingSignedSize: 4,
+        }),
+      ).toEqual({ status: 'none' });
+    });
+
+    it('replaces the open position maintenance with the resulting size', () => {
+      // 4 long already open, buying 6 more. Existing maintenance at 1% is 4,
+      // so 254 of reported maintenance leaves 250 on other positions. The
+      // resulting size of 10 then matches the base case.
+      const estimate = estimateCrossLiquidationPrice({
+        ...params,
+        isLong: true,
+        size: 6,
+        existingSignedSize: 4,
+        crossMarginSummary: { ...crossMarginSummary, maintenanceMargin: '254' },
+      });
+
+      expect(estimate.status).toBe('price');
+      if (estimate.status === 'price') {
+        expect(estimate.price).toBeCloseTo(25.2525, 4);
+      }
+    });
+
+    it('counts spot collateral and stays approximate while it is not published', () => {
       // 500 of spot lifts the short's liquidation from 173.2673 to 222.7723
       const withSpot = estimateCrossLiquidationPrice({
         ...params,
         isLong: false,
         spotCollateral: '500',
       });
+      const withoutSpot = estimateCrossLiquidationPrice({
+        ...params,
+        isLong: true,
+        spotCollateral: undefined,
+      });
 
-      expect(withSpot).toBeCloseTo(222.7723, 4);
-      expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: true,
-          spotCollateral: undefined,
-        }),
-      ).toBeUndefined();
+      expect(withSpot.status).toBe('price');
+      if (withSpot.status === 'price') {
+        expect(withSpot.price).toBeCloseTo(222.7723, 4);
+        expect(withSpot.approximate).toBe(false);
+      }
+      expect(withoutSpot.status).toBe('price');
+      if (withoutSpot.status === 'price') {
+        expect(withoutSpot.approximate).toBe(true);
+      }
     });
 
-    it('returns undefined without a cross summary, size, or max leverage', () => {
+    it('marks tiered markets approximate', () => {
+      const estimate = estimateCrossLiquidationPrice({
+        ...params,
+        isLong: true,
+        marginTableId: 56,
+      });
+
+      expect(estimate.status).toBe('price');
+      if (estimate.status === 'price') {
+        expect(estimate.approximate).toBe(true);
+        expect(estimate.price).toBeCloseTo(25.2525, 4);
+      }
+    });
+
+    it('returns unknown without a cross summary, size, or max leverage', () => {
       expect(
         estimateCrossLiquidationPrice({
           ...params,
           isLong: true,
           crossMarginSummary: undefined,
         }),
-      ).toBeUndefined();
+      ).toEqual({ status: 'unknown' });
       expect(
         estimateCrossLiquidationPrice({ ...params, isLong: true, size: 0 }),
-      ).toBeUndefined();
+      ).toEqual({ status: 'unknown' });
       expect(
         estimateCrossLiquidationPrice({
           ...params,
           isLong: true,
           maxLeverage: 0,
         }),
-      ).toBeUndefined();
+      ).toEqual({ status: 'unknown' });
     });
   });
 

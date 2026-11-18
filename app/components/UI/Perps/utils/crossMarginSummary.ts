@@ -84,16 +84,33 @@ export const getCrossMarginSummaryThrottleMs = ({
 };
 
 /**
- * Estimates where a new cross position liquidates: the price at which the
- * cross collateral, after the position's P&L, falls to the maintenance margin
- * of the existing cross positions plus the new one. Maintenance margin is half
- * the initial margin at the market's max leverage, which is Hyperliquid's
- * rule, so other venues get no estimate. TAT-4668 moves this to
- * perps-controller.
+ * Hyperliquid margin-table ids below this are one tier whose max leverage is
+ * the table id. Ids at or above it need `meta.marginTables`, which this
+ * client does not have, so the estimate uses the asset max leverage and is
+ * marked approximate. TAT-4668 moves the estimate to perps-controller.
+ */
+const HYPERLIQUID_TIERED_MARGIN_TABLE_ID = 50;
+
+export type CrossLiquidationEstimate =
+  | { status: 'unknown' }
+  | { status: 'none' }
+  | { status: 'price'; price: number; approximate: boolean };
+
+/**
+ * Pre-trade cross liquidation estimate.
  *
- * @returns The liquidation price, or undefined when an input is missing (the
- * spot collateral included) or the position cannot be liquidated at a
- * positive price.
+ * `liq_price = price − side × margin_available / position_size / (1 − l × side)`
+ * with `l = 1 / (2 × maxLeverage)` and
+ * `margin_available = cross collateral − maintenance of every other position
+ * − maintenance of the resulting position at the entry price`.
+ *
+ * An order that adds to or reduces a position uses the resulting size. Spot
+ * collateral that is not published yet is left out and the price is marked
+ * approximate, so the row still shows an estimate. A non-positive price means
+ * the position cannot be liquidated.
+ *
+ * @returns `unknown` when an input is missing, `none` when no positive
+ * liquidation price exists, or the price.
  */
 export const estimateCrossLiquidationPrice = ({
   entryPrice,
@@ -103,22 +120,36 @@ export const estimateCrossLiquidationPrice = ({
   crossMarginSummary,
   spotCollateral,
   providerId,
+  existingSignedSize = 0,
+  marginTableId,
 }: {
   entryPrice: number;
   /** Unsigned order size in base units. */
   size: number;
+  /** Direction of the order, not of the position it leaves behind. */
   isLong: boolean;
   maxLeverage: number;
   crossMarginSummary: CrossMarginSummary | undefined;
-  /** `AccountState.spotCollateral`: undefined while it is not known yet. */
+  /**
+   * `AccountState.spotCollateral`. Undefined while it is not known yet; the
+   * estimate then uses cross account value alone and is approximate.
+   */
   spotCollateral: string | undefined;
   /** Venue that takes the order. */
   providerId: PerpsProviderType;
-}): number | undefined => {
+  /** Signed size already open on this market. Positive is long. */
+  existingSignedSize?: number;
+  /** Hyperliquid `marginTableId`. Tiered tables make the price approximate. */
+  marginTableId?: number;
+}): CrossLiquidationEstimate => {
   if (providerId !== 'hyperliquid') {
-    return undefined;
+    return { status: 'unknown' };
   }
-  const collateral = getCrossCollateral(crossMarginSummary, spotCollateral);
+  const spotIsKnown = spotCollateral !== undefined;
+  const collateral = getCrossCollateral(
+    crossMarginSummary,
+    spotIsKnown ? spotCollateral : '0',
+  );
   const maintenanceMargin = toFiniteNumber(
     crossMarginSummary?.maintenanceMargin,
   );
@@ -127,20 +158,38 @@ export const estimateCrossLiquidationPrice = ({
     maintenanceMargin === undefined ||
     !(entryPrice > 0) ||
     !(size > 0) ||
-    !(maxLeverage > 0)
+    !(maxLeverage > 0) ||
+    !Number.isFinite(existingSignedSize)
   ) {
-    return undefined;
+    return { status: 'unknown' };
   }
-  const side = isLong ? 1 : -1;
+  const signedOrder = (isLong ? 1 : -1) * size;
+  const signedResult = existingSignedSize + signedOrder;
+  const resultSize = Math.abs(signedResult);
+  if (!(resultSize > 0)) {
+    return { status: 'none' };
+  }
   const maintenanceFraction = 1 / (2 * maxLeverage);
-  const marginAvailable =
-    collateral - maintenanceMargin - size * entryPrice * maintenanceFraction;
+  const existingMaintenance =
+    Math.abs(existingSignedSize) * entryPrice * maintenanceFraction;
+  const otherMaintenance = Math.max(0, maintenanceMargin - existingMaintenance);
+  const resultMaintenance = resultSize * entryPrice * maintenanceFraction;
+  const marginAvailable = collateral - otherMaintenance - resultMaintenance;
+  const side = signedResult > 0 ? 1 : -1;
   const liquidationPrice =
     entryPrice -
-    (side * marginAvailable) / size / (1 - maintenanceFraction * side);
-  return Number.isFinite(liquidationPrice) && liquidationPrice > 0
-    ? liquidationPrice
-    : undefined;
+    (side * marginAvailable) / resultSize / (1 - maintenanceFraction * side);
+  if (!Number.isFinite(liquidationPrice) || liquidationPrice <= 0) {
+    return { status: 'none' };
+  }
+  const tieredMarket =
+    marginTableId !== undefined &&
+    marginTableId >= HYPERLIQUID_TIERED_MARGIN_TABLE_ID;
+  return {
+    status: 'price',
+    price: liquidationPrice,
+    approximate: !spotIsKnown || tieredMarket,
+  };
 };
 
 export const getCrossMarginRatioTone = (
