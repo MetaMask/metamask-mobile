@@ -315,6 +315,9 @@ describe('PredictWithdrawFlow', () => {
     expect(
       screen.getByTestId(PredictWithdrawFlowTestIds.AMOUNT_ERROR),
     ).toHaveTextContent('The minimum withdrawal is $1.00.');
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.AMOUNT_ERROR),
+    ).toHaveProp('accessibilityRole', 'alert');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     await act(async () => undefined);
@@ -534,6 +537,9 @@ describe('PredictWithdrawFlow', () => {
     expect(
       await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_REJECTION),
     ).toHaveTextContent('Verification required');
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.STATUS_REJECTION),
+    ).toHaveProp('accessibilityRole', 'header');
     expect(
       screen.getByText(
         strings(
@@ -834,6 +840,9 @@ describe('PredictWithdrawFlow', () => {
     expect(
       await screen.findByTestId(PredictWithdrawFlowTestIds.status('settled')),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('predict_next.withdraw.status.settled.title')),
+    ).toHaveProp('accessibilityRole', 'header');
     expect(announce).toHaveBeenCalledWith('Withdrawal sent. $5.00');
   });
 
@@ -866,6 +875,7 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('reports an unavailable venue on the preview', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
     stubWithdrawals({
       preview: () => ({ status: 503, body: { code: 'venue_unavailable' } }),
     });
@@ -878,6 +888,13 @@ describe('PredictWithdrawFlow', () => {
     expect(
       await screen.findByTestId(PredictWithdrawFlowTestIds.ERROR),
     ).toHaveTextContent(
+      'The venue is unavailable right now. Try again in a moment.',
+    );
+    expect(screen.getByTestId(PredictWithdrawFlowTestIds.ERROR)).toHaveProp(
+      'accessibilityRole',
+      'alert',
+    );
+    expect(announce).toHaveBeenCalledWith(
       'The venue is unavailable right now. Try again in a moment.',
     );
   });
