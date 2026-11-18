@@ -120,6 +120,7 @@ import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictOrderServiceInit,
+  predictFundingServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
 import { predictDeviceAuthServiceInit } from './controllers/predict-device-auth-service-init';
@@ -358,6 +359,7 @@ export class Engine {
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         PredictOrderService: predictOrderServiceInit,
+        PredictFundingService: predictFundingServiceInit,
         PredictDeviceAuthService: predictDeviceAuthServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
@@ -658,6 +660,7 @@ export class Engine {
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictFundingService: messengerClientsByName.PredictFundingService,
       PredictDeviceAuthService: messengerClientsByName.PredictDeviceAuthService,
       PredictVenueController: messengerClientsByName.PredictVenueController,
       RecurringOrdersDataService:
@@ -1340,6 +1343,7 @@ export class Engine {
       ClaimsController,
       KycController,
       PredictOrderService,
+      PredictFundingService,
       PredictPortfolioService,
       PredictDeviceAuthService,
       PredictVenueController,
@@ -1388,12 +1392,25 @@ export class Engine {
     KycController.clearState();
 
     // PredictNext account state. A wallet reset replaces the Predict User
-    // within one process, so the previous person's account reads and their
-    // Order observation must not outlive it. Commits are abandoned before the
+    // within one process, so the previous person's account reads, their
+    // Order observation and the deposits the funding service remembers must
+    // not outlive it. Commits are abandoned before the
     // reads are dropped, so no receipt can refill the cache afterwards. The
+    // reset then clears the durable dispatch journal, so the previous person's
+    // unresolved references cannot be rediscovered by a later session. The
     // Venue-scoped market-data and live-data caches carry public data and stay.
     try {
-      PredictOrderService.abandonCommits();
+      await PredictOrderService.reset();
+    } catch (error) {
+      // reset() fences observation before it rethrows, so a journal that cannot
+      // be cleared must never skip dropping the account reads below.
+      Logger.error(
+        ensureError(error, 'Engine.resetState'),
+        'Engine: failed to clear the PredictNext order dispatch journal',
+      );
+    }
+    try {
+      PredictFundingService.clearState();
       await PredictPortfolioService.clearAccountData();
     } catch (error) {
       // Housekeeping a replaced person must never break the reset itself.

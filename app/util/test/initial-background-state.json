@@ -474,6 +474,11 @@
   },
   "PerpsController": {
     "activeProvider": "hyperliquid",
+    "defaultProvider": "hyperliquid",
+    "effectiveProvider": null,
+    "hasExplicitDefaultProviderSelection": false,
+    "hasExplicitProviderSelection": false,
+    "hasMigratedToMultiProvider": false,
     "isTestnet": false,
     "initializationState": "uninitialized",
     "initializationError": null,

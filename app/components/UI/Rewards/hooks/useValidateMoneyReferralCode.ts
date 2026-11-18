@@ -41,6 +41,41 @@ export interface UseValidateMoneyReferralCodeResult {
 }
 
 /**
+ * Validates a referral code once, without debouncing. Resolves to an empty
+ * string when the code is valid, otherwise to the error to show. A 429, or a
+ * 503 still busy after the one retry, is rethrown so the caller can read its
+ * status; any other failure resolves to {@link MONEY_REFERRAL_CODE_UNKNOWN_ERROR}.
+ */
+export const validateMoneyReferralCode = async (
+  code: string,
+): Promise<string> => {
+  const refinedCode = normalizeMoneyReferralCode(code);
+
+  if (!isMoneyReferralCodeFormatValid(refinedCode)) {
+    return strings('rewards.error_messages.invalid_referral_code');
+  }
+
+  try {
+    const result = await Engine.controllerMessenger.call(
+      'RewardsMoneyController:validateReferralCode',
+      refinedCode,
+    );
+    if (!result.success) {
+      return strings('rewards.error_messages.invalid_referral_code');
+    }
+    return '';
+  } catch (error) {
+    if (
+      error instanceof RewardsMoneyHttpError &&
+      (error.status === 429 || error.status === 503)
+    ) {
+      throw error;
+    }
+    return MONEY_REFERRAL_CODE_UNKNOWN_ERROR;
+  }
+};
+
+/**
  * Validates Rewards Money referral codes.
  *
  * Debounces backend validation for codes that pass the server's format
@@ -70,36 +105,6 @@ export const useValidateMoneyReferralCode = (
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
-    }
-  }, []);
-
-  const validateCode = useCallback(async (code: string): Promise<string> => {
-    const refinedCode = normalizeMoneyReferralCode(code);
-
-    if (!isMoneyReferralCodeFormatValid(refinedCode)) {
-      return strings('rewards.error_messages.invalid_referral_code');
-    }
-
-    try {
-      const result = await Engine.controllerMessenger.call(
-        'RewardsMoneyController:validateReferralCode',
-        refinedCode,
-      );
-      if (!result.success) {
-        return strings('rewards.error_messages.invalid_referral_code');
-      }
-      return '';
-    } catch (error) {
-      // A 429 or a 503 that is still busy after the one retry is not an
-      // unknown failure. Accept reads the status. Every other failure is
-      // still "validation could not run".
-      if (
-        error instanceof RewardsMoneyHttpError &&
-        (error.status === 429 || error.status === 503)
-      ) {
-        throw error;
-      }
-      return MONEY_REFERRAL_CODE_UNKNOWN_ERROR;
     }
   }, []);
 
@@ -197,7 +202,7 @@ export const useValidateMoneyReferralCode = (
   return {
     referralCode,
     setReferralCode,
-    validateCode,
+    validateCode: validateMoneyReferralCode,
     isValidating,
     isValid,
     isUnknownError,

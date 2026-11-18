@@ -5,6 +5,14 @@ import { View } from 'react-native';
 import TokenDetailsFeedTab from './FeedTab';
 import { SocialFeed, type SocialFeedProps } from '../../../SocialFeed';
 
+jest.mock('../../../../Views/SocialLeaderboard/analytics', () => ({
+  SocialEvent: {
+    Screen: { TOKEN_DETAILS_FEED: 'token_details_feed' },
+    Source: { TOKEN_DETAILS_FEED: 'token_details_feed' },
+  },
+  useSocialScreenAnalytics: jest.fn(),
+}));
+
 jest.mock(
   '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation',
   () => ({
@@ -28,7 +36,6 @@ jest.mock('../../../SocialFeed', () => {
 });
 
 const mockFeed = jest.mocked(SocialFeed);
-
 const assetId =
   'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933' as CaipAssetType;
 
@@ -55,18 +62,24 @@ describe('TokenDetailsFeedTab', () => {
     );
   });
 
-  it('asks for every trader on a native asset chain', () => {
-    render(
-      <TokenDetailsFeedTab assetId={'eip155:1/slip44:60' as CaipAssetType} />,
-    );
+  it('queries a native asset the same way as a token', () => {
+    const nativeAssetId = 'eip155:1/slip44:60' as CaipAssetType;
+
+    render(<TokenDetailsFeedTab assetId={nativeAssetId} />);
 
     expect(feedProps()).toEqual(
       expect.objectContaining({
-        scope: 'leaderboard',
+        scope: 'all',
         chains: ['eip155:1'],
+        assetIds: [nativeAssetId],
       }),
     );
-    expect(feedProps()).not.toHaveProperty('assetIds');
+  });
+
+  it('streams new posts on the shared feed', () => {
+    render(<TokenDetailsFeedTab assetId={assetId} />);
+
+    expect(feedProps().realtime).toBe(true);
   });
 
   it('hands the copy-trade handler to the feed', () => {

@@ -58,6 +58,7 @@ import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePa
 import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
+import { useTransactionPayAccountLoading } from '../../../hooks/pay/useTransactionPayAccountLoading';
 import { mockTheme } from '../../../../../../util/theme';
 import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { ConfirmationFirstFrameProvider } from '../../../context/confirmation-first-frame-context';
@@ -74,6 +75,7 @@ const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
 jest.mock('../../../hooks/alerts/useAccountNoFundsAlert');
+jest.mock('../../../hooks/pay/useTransactionPayAccountLoading');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -400,6 +402,9 @@ describe('CustomAmountInfo', () => {
   );
   const setIsConfirmationSubmittingMock = jest.fn();
   const useAccountNoFundsAlertMock = jest.mocked(useAccountNoFundsAlert);
+  const useTransactionPayAccountLoadingMock = jest.mocked(
+    useTransactionPayAccountLoading,
+  );
 
   const useRouteMock = jest.mocked(useRoute);
 
@@ -497,6 +502,7 @@ describe('CustomAmountInfo', () => {
     useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: false });
     usePayWithMoneyAccountSectionMock.mockReturnValue(null);
     useAccountNoFundsAlertMock.mockReturnValue([]);
+    useTransactionPayAccountLoadingMock.mockReturnValue(false);
 
     setControllerTransactions([]);
   });
@@ -2246,6 +2252,42 @@ describe('CustomAmountInfo', () => {
 
       // With an account override in the Loading stage, the buy section must
       // stay hidden to avoid a flash before the review renders.
+      expect(
+        queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
+  });
+
+  describe('while the selected pay account is loading', () => {
+    beforeEach(() => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      useTransactionAccountOverrideMock.mockReturnValue('0xoverride' as never);
+      useTransactionPayAccountLoadingMock.mockReturnValue(true);
+    });
+
+    it('renders the pay with skeleton and keyboard', () => {
+      const { getByTestId, getByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('pay-with-row-skeleton')).toBeOnTheScreen();
+      expect(getByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
+    });
+
+    it('hides the buy section', () => {
+      const { queryByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
       expect(
         queryByText(strings('confirm.custom_amount.buy_button')),
       ).toBeNull();

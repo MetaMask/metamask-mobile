@@ -7,49 +7,21 @@ import {
   selectHasEntitlement,
   type CachedLastSelectedPaymentMethod,
   type ProductType,
-  type SubscriptionStatus,
   type Subscription,
   type SubscriptionBenefitsState,
   type SubscriptionControllerState,
 } from '@metamask/subscription-controller';
 import { RootState } from '../reducers';
+import {
+  isActiveSubscriptionStatus,
+  isHubMembershipSubscriptionStatus,
+  isManageableSubscriptionStatus,
+} from '../util/subscription/moneyAccountPlusStatus';
 import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/screens/Benefits/utils/mapMoneyAccountPlusPricing';
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
 
-/**
- * Statuses that grant subscription benefits. Mirrors Core's
- * `ACTIVE_SUBSCRIPTION_STATUSES`, which is not part of the package's public
- * exports.
- */
-export const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.active,
-  SUBSCRIPTION_STATUSES.trialing,
-  SUBSCRIPTION_STATUSES.provisional,
-]);
-/**
- * Statuses under which the user still holds a subscription they can manage.
- * Extends the active set with `paused`, which grants no benefits but must
- * still reach Pro Hub so the user can fix the payment problem or cancel.
- */
-const EXISTING_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  ...ACTIVE_SUBSCRIPTION_STATUSES,
-  SUBSCRIPTION_STATUSES.paused,
-]);
-/**
- * Plus statuses Pro Hub can render. Matches `getMembershipBannerModel`:
- * active, trialing, provisional, and awaiting funds show Active; past due
- * shows Overdue; paused and unpaid show Deactivated. Canceled, incomplete,
- * and incomplete-expired stay on the join label and Benefits.
- */
-const MEMBERSHIP_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  ...ACTIVE_SUBSCRIPTION_STATUSES,
-  SUBSCRIPTION_STATUSES.awaitingFunds,
-  SUBSCRIPTION_STATUSES.pastDue,
-  SUBSCRIPTION_STATUSES.paused,
-  SUBSCRIPTION_STATUSES.unpaid,
-]);
 const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
 
 /**
@@ -137,7 +109,7 @@ export const selectIsMoneyAccountPlusSubscriber = createSelector(
   (subscriptions) =>
     subscriptions.some(
       (subscription) =>
-        ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+        isActiveSubscriptionStatus(subscription.status) &&
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
     ),
 );
@@ -158,7 +130,7 @@ export const selectHasMoneyAccountPlusMembership = createSelector(
     subscriptions.some(
       (subscription) =>
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS) &&
-        MEMBERSHIP_SUBSCRIPTION_STATUSES.has(subscription.status),
+        isHubMembershipSubscriptionStatus(subscription.status),
     ),
 );
 
@@ -176,7 +148,7 @@ export const selectHasExistingMoneyAccountPlusSubscription = createSelector(
   (subscriptions) =>
     subscriptions.some(
       (subscription) =>
-        EXISTING_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+        isManageableSubscriptionStatus(subscription.status) &&
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
     ),
 );

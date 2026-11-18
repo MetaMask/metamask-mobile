@@ -80,6 +80,7 @@ export interface LeaderboardShellTabPageProps {
   /** Clears the applied Leaderboard filters. The type chip is kept. */
   onClearFilters?: () => void;
   onTypeChange?: (type: SocialTypeFilter) => void;
+  contentTopInset?: number;
 }
 
 /**
@@ -98,6 +99,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   isFilterActive = false,
   onClearFilters,
   onTypeChange,
+  contentTopInset = 0,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -202,6 +204,8 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     [onTypeChange],
   );
 
+  const listTopPadding = 16 + contentTopInset;
+
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
       {hasBeenActive && (
@@ -222,9 +226,12 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
               virtualizedListProps={{
                 style: tw.style('flex-1'),
                 showsVerticalScrollIndicator: false,
-                contentContainerStyle: tw.style(
-                  `pt-4 pb-[${24 + floatingTabBarInset}px]`,
-                ),
+                contentContainerStyle: [
+                  tw.style(`pt-4 pb-[${24 + floatingTabBarInset}px]`),
+                  contentTopInset > 0
+                    ? { paddingTop: listTopPadding }
+                    : undefined,
+                ],
                 onScroll,
                 scrollEventThrottle: 16,
                 testID: TopTradersViewSelectorsIDs.TRADER_LIST,
@@ -234,6 +241,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                     tintColor={colors.icon.default}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
+                    progressViewOffset={listTopPadding}
                   />
                 ),
                 listHeaderComponent: (
