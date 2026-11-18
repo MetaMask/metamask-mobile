@@ -414,7 +414,7 @@ describe('DeFiSection', () => {
       expect(screen.getByText('uniswap')).toBeOnTheScreen();
     });
 
-    it('counts cached positions as demand when the section becomes visible', () => {
+    it('does not mark cached positions as ready before the first fetch', () => {
       let isVisible = false;
       mockUseSectionViewportVisible.mockImplementation(() => ({
         isVisible,
@@ -434,7 +434,7 @@ describe('DeFiSection', () => {
 
       expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          contentReady: true,
+          contentReady: false,
           demandStarted: false,
         }),
       );
@@ -444,7 +444,7 @@ describe('DeFiSection', () => {
 
       expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          contentReady: true,
+          contentReady: false,
           demandStarted: true,
         }),
       );
