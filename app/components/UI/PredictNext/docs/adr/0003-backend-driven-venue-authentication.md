@@ -11,19 +11,27 @@ input for [#37727](https://github.com/MetaMask/metamask-mobile/pull/37727)
 (PRED-1370) and PRED-1362.
 
 Implementation status: the initial Engine capability is implemented for the
-bundled Kalshi P-256 profile and opaque A2T issuance. It keeps the current
-two-signature exchange (SRP challenge plus device proof), accepts the preferred
-`{ a2t, expiresIn }` response and temporary absolute-`exp` response without
-decoding token claims, and owns lock/profile/flag/reset invalidation. Generic
-request signing and remotely supplied signing profiles remain future work; the
-service intentionally exposes no arbitrary-byte signing action. The bundled
-profile now selects the allowlisted `device-p256-salt-v1` implementation and
-pins its stable key slot, proof prefix, and issuer paths. That implementation
-fixes the public-key encoding, signature encoding, 16-byte salt, and SHA-256
-commitment.
+bundled Kalshi P-256 profile and opaque A2T issuance. The two-signature
+exchange this ADR described (SRP challenge plus device proof) has been
+replaced by a simpler one from the MM Auth team: the phone posts the device
+public key and salt once to MetaMask Auth with the wallet's bearer token, and
+Auth returns the A2T in one call. The issuer is Hydra-signed RS256, which
+Kalshi now accepts. The session reads `{ access_token, expires_in, token_type }`
+without decoding token claims, and owns lock/profile/flag/reset invalidation.
+Generic request signing and remotely supplied signing profiles remain future
+work; the service intentionally exposes no arbitrary-byte signing action.
+The bundled profile now selects the allowlisted `device-p256-salt-v1`
+implementation and pins its stable key slot.
+That implementation fixes the public-key encoding, signature encoding,
+16-byte salt, and SHA-256 commitment.
 Storage is derived internally from the key slot, so profiles cannot redirect
 keychain access. Remote configuration may select a bundled profile ID but
 cannot override those instructions.
+
+Historical note: the sections below describing the SRP challenge, the device
+proof-of-possession signature, and open question 3 record the superseded
+design. The nonce commitment (`base64url(SHA-256(public key || salt))`) and
+the trust it places in MetaMask Auth's single-call exchange remain accurate.
 
 ## Context
 
@@ -88,7 +96,7 @@ sequenceDiagram
   UI->>Signer: sign(signing request, confirmed intent)
   Signer->>Signer: L1 and L2 checks against the pinned profile
   opt no valid A2T
-    Signer->>Auth: token exchange (SRP signature, device proof)
+    Signer->>Auth: token exchange (bearer token, device public key + salt)
     Auth-->>Signer: A2T, expiresIn
   end
   Signer->>Signer: RFC 9421 signature with phone-owned fields
@@ -224,7 +232,7 @@ L1 applies to every request and L2 applies to every mutation. L0 is rejected.
 | It changes an order's side, count or price                                                                              | L2 binding on order routes                                                        |
 | It returns an order to sign when the user only opened their portfolio                                                   | L1 signature class check                                                          |
 | It swaps the payout wallet at activation, which redirects every later withdrawal                                        | L2 binding of `/isv/wallet/register` to the selected account                      |
-| It sends the phone to a fake issuer, collects the SRP signature and replays it at MetaMask Auth with its own device key | The issuer URL is pinned                                                          |
+| It sends the phone to a fake issuer, collects the bearer token and exchanges it for an A2T pinned to its own device key | The issuer URL is pinned (https, from the build or `MM_API_ENV`)                  |
 | It relays the token exchange and substitutes its own device key                                                         | The phone calls MetaMask Auth directly                                            |
 | It reassigns a Venue to a wallet-key profile so the wallet key signs                                                    | The Venue-to-profile mapping is pinned, and each key signs under one profile only |
 | It replays a signed request                                                                                             | A 60 s expiry, and an idempotency key set by the phone                            |
@@ -235,9 +243,9 @@ L1 applies to every request and L2 applies to every mutation. L0 is rejected.
 ## Open questions
 
 1. **Deposit addresses.** The relay can replace the address in Kalshi's response. Kalshi's spec allows device-signed requests to go "directly to Kalshi or through MetaMask's backend". Does this one route call Kalshi directly, or does AppSec accept trusting the Predict API for it?
-2. **ES256 or RS256.** Kalshi's spec says "Only ES256 over P-256 is accepted" for the A2T. Slack says RS256 has been live on demo since 2026-10-22. Settle this before MetaMask Auth builds its endpoint.
-3. **SRP message binding.** The accepted challenge is MetaMask Auth's SRP login message from `createSrpLoginRawMessage` in profile-sync-controller `flow-srp`: `metamask:<nonce>:<srpIdentifier>` with an optional `:primary` or `:secondary`. A signature over that string is also a valid login signature for an auth-API nonce, so whoever serves the challenge can complete a login as the user. The message still omits the device public key and salt. Ask MetaMask Auth for a dedicated prefix that names both, and that Auth rejects on the login endpoint.
-4. **Token renewal.** The A2T lives 300 s, and today every renewal needs a new SRP signature from the snap. Can MetaMask Auth renew with the device proof alone after the first issuance?
+2. ~~**ES256 or RS256.**~~ Settled: Kalshi accepts the RS256 A2T that MetaMask Auth issues. The RSA keys and their `kid`s are published at `https://oidc.<env>.cx.metamask.io/.well-known/jwks.json`, and Kalshi pins `iss` and that JWKS.
+3. ~~**SRP message binding.**~~ Superseded: MM Auth's single-call token exchange removed the SRP signature from A2T issuance, so the login-replay concern no longer applies to this flow.
+4. **Token renewal.** Renewal is the same call as the first issuance: the wallet's bearer token plus the device public key and salt, for the A2T lifetime MetaMask Auth configures on its Hydra client. The session caches the token and refreshes 60 s before `expires_in`. Nothing is signed on the phone, so renewal survives a locked message-signing Snap.
 5. **Where the pins live.** The app bundle is the strongest option. Remote feature flags are a separate trust domain from the Predict API, so they could carry settings that only make the checks stricter, like a shorter lifetime or a disabled route. The authority, issuer and binding map stay in the bundle.
 6. **Reads.** Each signed read costs a round trip to get the request built. The phone could build reads from the pinned route template, or the Predict API could return several signing requests in one response.
 

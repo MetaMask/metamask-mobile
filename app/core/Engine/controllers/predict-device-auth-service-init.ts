@@ -1,6 +1,4 @@
-import { HandlerType } from '@metamask/snaps-utils';
-import type { SnapId } from '@metamask/snaps-sdk';
-
+import { getPredictDeviceAuthIssuerUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import {
   parsePredictConfig,
   resolveSelectedAuthProfile,
@@ -14,26 +12,6 @@ import {
 import type { PredictDeviceAuthServiceInitMessenger } from '../messengers/predict-device-auth-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
 
-const MESSAGE_SIGNING_SNAP_ID: SnapId =
-  'npm:@metamask/message-signing-snap' as SnapId;
-const DEV_ISSUER_URL = 'https://predict-api.dev-api.cx.metamask.io';
-
-export const resolvePredictDeviceAuthIssuerUrl = (
-  isDevelopment: boolean,
-  override: string | undefined,
-): string | undefined => {
-  if (!isDevelopment) {
-    return undefined;
-  }
-  if (typeof override === 'string' && override.trim().length > 0) {
-    return override;
-  }
-  return DEV_ISSUER_URL;
-};
-
-const getConfiguredIssuerUrl = (): string | undefined =>
-  resolvePredictDeviceAuthIssuerUrl(__DEV__, process.env.MM_A2T_URL);
-
 export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   PredictDeviceAuthService,
   PredictDeviceAuthServiceMessenger,
@@ -43,17 +21,6 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     const state = initMessenger.call('RemoteFeatureFlagController:getState');
     return parsePredictConfig(state.remoteFeatureFlags?.predictConfig);
   };
-
-  const invokeMessageSigningSnap = (
-    method: string,
-    params?: Record<string, unknown>,
-  ): Promise<unknown> =>
-    initMessenger.call('SnapController:handleRequest', {
-      snapId: MESSAGE_SIGNING_SNAP_ID,
-      origin: 'metamask',
-      handler: HandlerType.OnRpcRequest,
-      request: params ? { method, params } : { method },
-    });
 
   // Cached canonical profile id. Bearer-token reads refresh it from
   // getSessionProfile, and profileSignIn writes it when pairing changes the
@@ -79,7 +46,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   ).isSignedIn;
   const controller = new PredictDeviceAuthService(controllerMessenger, {
     getProfile: () => resolveSelectedAuthProfile(readConfig()),
-    getIssuerUrl: getConfiguredIssuerUrl,
+    getIssuerUrl: getPredictDeviceAuthIssuerUrl,
     getAccessToken: async () => {
       const accessToken = await initMessenger.call(
         'AuthenticationController:getBearerToken',
@@ -88,22 +55,6 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
       return accessToken;
     },
     getCanonicalProfileId: () => canonicalProfileId,
-    getSrpIdentifier: async () => {
-      const identifier = await invokeMessageSigningSnap('getPublicKey');
-      if (typeof identifier !== 'string' || identifier.length === 0) {
-        throw new Error('SRP identifier was not available');
-      }
-      return identifier;
-    },
-    signSrpMessage: async (message) => {
-      const signature = await invokeMessageSigningSnap('signMessage', {
-        message,
-      });
-      if (typeof signature !== 'string' || signature.length === 0) {
-        throw new Error('SRP signature was not available');
-      }
-      return signature;
-    },
     isEnabled: () => resolveVenueAuthProfile(readConfig()) !== undefined,
     isUnlocked: () =>
       initMessenger.call('KeyringController:getState').isUnlocked,

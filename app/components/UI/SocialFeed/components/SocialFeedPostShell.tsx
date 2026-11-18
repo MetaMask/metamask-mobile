@@ -15,12 +15,23 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -42,6 +53,7 @@ import ReactionPickerBalloon, {
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
 import SocialFeedGif from './SocialFeedGif';
+import { SocialFeedWindowOffsetContext } from './SocialFeedWindowOffsetContext';
 import { useSocialFeedTracking } from '../socialFeedTracking';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { socialFeedPostAnalytics } from '../utils/socialPositionAnalytics';
@@ -61,6 +73,7 @@ export interface SocialFeedPostShellProps {
   onReactionInteraction?: (
     action: 'added' | 'removed',
     emotion: string,
+    subject?: { post_id?: string; author_trader_id?: string },
   ) => void;
   onReactionPickerOpened?: () => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
@@ -151,7 +164,8 @@ interface SocialFeedPostFooterProps {
   onToggleEmotion: (emotion: string) => void;
   onBurstAnchor: (nonce: number, frame: EmojiWindowFrame) => void;
   onOpenPicker: () => void;
-  reactionAnchorRef: React.RefObject<View | null>;
+  /** The chip row. The picker opens from its leading edge. */
+  reactionRowRef: React.RefObject<View | null>;
   emojiColor: string;
 }
 
@@ -166,7 +180,7 @@ const SocialFeedPostFooter = ({
   onToggleEmotion,
   onBurstAnchor,
   onOpenPicker,
-  reactionAnchorRef,
+  reactionRowRef,
   emojiColor,
 }: SocialFeedPostFooterProps) => {
   if (!canReact && copyCount === undefined) {
@@ -184,9 +198,12 @@ const SocialFeedPostFooter = ({
     >
       {canReact ? (
         <Box
+          ref={reactionRowRef}
+          collapsable={false}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={2}
+          testID={`${SocialFeedPostShellSelectorsIDs.REACTION_ROW}-${postId}`}
           twClassName="flex-1 min-w-0 flex-wrap"
         >
           {chips.map((reaction) => (
@@ -203,24 +220,20 @@ const SocialFeedPostFooter = ({
               testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${postId}-${reaction.emotion}`}
             />
           ))}
-          <View ref={reactionAnchorRef} collapsable={false}>
-            <ButtonBase
-              size={ButtonBaseSize.Sm}
-              twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
-              accessibilityLabel={strings(
-                'social_leaderboard.feed.add_reaction',
-              )}
-              onPress={onOpenPicker}
-              testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${postId}`}
-            >
-              <EmojiAddIcon
-                width={16}
-                height={16}
-                color={emojiColor}
-                name="emoji-add"
-              />
-            </ButtonBase>
-          </View>
+          <ButtonBase
+            size={ButtonBaseSize.Sm}
+            twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
+            accessibilityLabel={strings('social_leaderboard.feed.add_reaction')}
+            onPress={onOpenPicker}
+            testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${postId}`}
+          >
+            <EmojiAddIcon
+              width={16}
+              height={16}
+              color={emojiColor}
+              name="emoji-add"
+            />
+          </ButtonBase>
         </Box>
       ) : null}
 
@@ -273,8 +286,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const notifyPicker = onReactionPickerOpened ?? tracked.onReactionPickerOpened;
   const tw = useTailwind();
   const { colors } = useTheme();
-  const reactionAnchorRef = useRef<View>(null);
+  const reactionRowRef = useRef<View>(null);
   const postRef = useRef<View>(null);
+  const windowOffsetY = useContext(SocialFeedWindowOffsetContext);
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
@@ -388,8 +402,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         return;
       }
 
-      reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
-        setPickerAnchor({ x, y, width, height });
+      reactionRowRef.current?.measureInWindow((x, y, width, height) => {
+        playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
+        setPickerAnchor({ x, y: y + windowOffsetY, width, height });
         setPickerVisible(true);
         notifyPicker?.();
       });
@@ -398,6 +413,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       ensureSocialProfileOnboarding,
       ensureSocialTermsForInteraction,
       notifyPicker,
+      windowOffsetY,
     ],
   );
 
@@ -406,9 +422,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   }, []);
 
   const toggleEmotion = useCallback(
-    function toggle(emotion: string): void {
+    function toggle(emotion: string, withHaptic = true): void {
       if (
-        !ensureSocialTermsForInteraction(() => toggle(emotion)) ||
+        !ensureSocialTermsForInteraction(() => toggle(emotion, withHaptic)) ||
         !ensureSocialProfileOnboarding() ||
         isPending
       ) {
@@ -418,7 +434,20 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       if (userReaction !== emotion) {
         celebrateReaction(emotion);
       }
-      notifyReaction?.(userReaction === emotion ? 'removed' : 'added', emotion);
+      notifyReaction?.(
+        userReaction === emotion ? 'removed' : 'added',
+        emotion,
+        {
+          ...(post.commentId ? { post_id: post.commentId } : {}),
+          ...(post.item.author.id
+            ? { author_trader_id: post.item.author.id }
+            : {}),
+        },
+      );
+      // The tray emoji already plays this tick before it calls onPick.
+      if (withHaptic) {
+        playSelection().catch(() => undefined);
+      }
       pickEmotion(emotion).catch(() => undefined);
     },
     [
@@ -428,14 +457,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       isPending,
       notifyReaction,
       pickEmotion,
+      post.commentId,
+      post.item.author.id,
       userReaction,
     ],
   );
 
   const handlePick = useCallback(
     (emotion: string) => {
-      setPickerVisible(false);
-      toggleEmotion(emotion);
+      toggleEmotion(emotion, false);
     },
     [toggleEmotion],
   );
@@ -558,7 +588,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
               onToggleEmotion={toggleEmotion}
               onBurstAnchor={placeBurst}
               onOpenPicker={openPicker}
-              reactionAnchorRef={reactionAnchorRef}
+              reactionRowRef={reactionRowRef}
               emojiColor={colors.icon.alternative}
             />
           ) : null}

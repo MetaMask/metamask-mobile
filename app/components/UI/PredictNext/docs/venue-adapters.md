@@ -26,9 +26,9 @@ Structural presence is executable truth. Product capability metadata may control
 
 ## Public and account-scoped data
 
-Public Feed, Event, Category, Series, Sports/Game context, Market, Outcome, Volume, image, Bid Price, Ask Price, and Venue Status reads are scoped by `venueId`. The first Kalshi browse slice is deliberately unauthenticated and does not require a selected wallet or fake Venue Session.
+Feed, Event, Category, Series, Sports/Game context, Market, Outcome, Volume, image, Bid Price, Ask Price, Venue Status, and Venue catalog reads are scoped by `venueId`. Every Predict API read sends a MetaMask bearer token; none requires a selected wallet or fake Venue Session.
 
-A later account-scoped route must use explicit required authentication. Do not opportunistically attach identity to public reads unless the contract and cache scope are intentionally personalized.
+Account-scoped routes use explicit required authentication. Do not opportunistically attach identity beyond the bearer token to public reads unless the contract and cache scope are intentionally personalized.
 
 Account Readiness, Account Setup, portfolio, trading, and funding are account-scoped. Product modules use a session-bound client or equivalent narrow handle; they never receive credentials or raw Venue sessions.
 
