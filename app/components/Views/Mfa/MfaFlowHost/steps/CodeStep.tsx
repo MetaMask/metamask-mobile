@@ -72,7 +72,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     setValue: setCode,
   });
   const secondsLeft = useSecondsUntil(state.resendAvailableAt);
-  const { busy, error, codeResent, resendAvailableAt } = state;
+  const { busy, error, codeResent } = state;
   const { codeSent } = step;
   // Authenticator app codes are on the user's app, so nothing is sent or
   // resent.
@@ -109,19 +109,6 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
       focusInput();
     }
   }, [error, codeResent, focusInput]);
-
-  // The first email code of a flow can hit the cooldown left by the previous
-  // one.
-  useEffect(() => {
-    if (
-      !isTotp &&
-      !codeSent &&
-      resendAvailableAt !== undefined &&
-      secondsLeft === 0
-    ) {
-      onAction({ type: 'resend', trigger: 'auto' });
-    }
-  }, [isTotp, codeSent, resendAvailableAt, secondsLeft, onAction]);
 
   // Submits a complete code once it was sent, so digits typed or pasted while
   // it was still sending are not left on screen.
@@ -192,13 +179,25 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
         seconds: secondsLeft,
       });
     }
-    return strings(busy && !codeSent ? 'mfa.otp.sending' : 'mfa.otp.resend');
+    if (busy && !codeSent) {
+      return strings('mfa.otp.sending');
+    }
+    // A first code that hit the resend limit is sent when the user asks.
+    return strings(codeSent ? 'mfa.otp.resend' : 'mfa.otp.send');
   };
   const canResend = !isCoolingDown && !busy;
 
   const getDescription = () => {
     if (isTotp) {
       return strings('mfa.otp.description_totp');
+    }
+    // A first code that hit the resend limit isn't sent until the user asks.
+    if (!codeSent) {
+      return step.email
+        ? strings('mfa.otp.description_unsent_with_email', {
+            email: maskEmail(step.email),
+          })
+        : strings('mfa.otp.description_unsent');
     }
     return step.email
       ? strings('mfa.otp.description_with_email', {

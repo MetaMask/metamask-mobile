@@ -34,6 +34,7 @@ export interface ConfirmMembershipContentProps {
   renewDate: string;
   isTrial?: boolean;
   billedOn?: string;
+  isConfirming: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -45,6 +46,7 @@ export function ConfirmMembershipContent({
   renewDate,
   isTrial = false,
   billedOn = '',
+  isConfirming,
   onClose,
   onConfirm,
 }: ConfirmMembershipContentProps) {
@@ -58,7 +60,11 @@ export function ConfirmMembershipContent({
           <TotalRow totalAmount={totalAmount} />
           <BilledOnRow isTrial={isTrial} billedOn={billedOn} />
         </Box>
-        <ConfirmButton isTrial={isTrial} onPress={onConfirm} />
+        <ConfirmButton
+          isTrial={isTrial}
+          isConfirming={isConfirming}
+          onPress={onConfirm}
+        />
         <Disclaimer
           isTrial={isTrial}
           isAnnual={isAnnual}
@@ -207,9 +213,11 @@ function BilledOnRow({
 
 function ConfirmButton({
   isTrial,
+  isConfirming,
   onPress,
 }: {
   isTrial: boolean;
+  isConfirming: boolean;
   onPress: () => void;
 }) {
   return (
@@ -218,6 +226,8 @@ function ConfirmButton({
       size={ButtonSize.Lg}
       endIconName={IconName.Lock}
       onPress={onPress}
+      isDisabled={isConfirming}
+      isLoading={isConfirming}
       isFullWidth
       testID={ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON}
     >

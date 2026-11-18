@@ -131,7 +131,6 @@ async function prepareRecurringDelegation(
     srcAssetId: query.srcAssetId,
     srcAmount: query.srcAmount,
     destAssetId: query.destAssetId,
-    slippage: String(query.slippage),
     every: String(query.every),
     unit: query.unit,
     repeatCount: String(query.repeatCount),
@@ -168,7 +167,7 @@ async function getRecurringOrders(
   query.chainIds?.forEach((chainId) =>
     searchParams.append('chainIds', chainId),
   );
-  if (query.asset) searchParams.set('asset', query.asset);
+  if (query.assetId) searchParams.set('assetId', query.assetId);
   if (query.limit !== undefined) {
     searchParams.set('limit', String(query.limit));
   }

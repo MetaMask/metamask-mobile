@@ -7,8 +7,6 @@ import {
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { mapPositionToFeedItem } from '../SocialPostComposerView/mapPositionToFeedItem';
 
-const LOG_PREFIX = '[TraderPreviewSheet]';
-
 /**
  * Query for a shared position preview. The link handler prefetches it so the
  * sheet usually opens with the card already loaded.
@@ -19,8 +17,7 @@ export const buildSharedPositionPreviewQuery = (
 ) => ({
   queryKey: ['SocialTraderPreview:sharedPosition', positionId, traderId],
   queryFn: async (): Promise<SharedSocialPosition | null> =>
-    (await resolveSharedSocialPosition(positionId, traderId, LOG_PREFIX)) ??
-    null,
+    (await resolveSharedSocialPosition(positionId, traderId)) ?? null,
 });
 
 export interface SharedPositionPreview {

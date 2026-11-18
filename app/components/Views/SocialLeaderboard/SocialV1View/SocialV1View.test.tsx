@@ -24,6 +24,8 @@ import { SocialFeedRealtimeSelectorsIDs } from '../../../UI/SocialFeed/component
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 import type { SocialShellTab } from '../shell/types';
 import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass';
+import { backdropFadeOpacity } from '../../../../component-library/components-temp/HeaderGlass/test-utils';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockOpenComposer = jest.fn();
@@ -281,6 +283,7 @@ jest.mock('../../../../hooks/useNetworkTier', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: () => true,
+  selectHasSocialV1Access: () => true,
 }));
 
 jest.mock('../TopTradersView', () => {
@@ -346,9 +349,23 @@ jest.mock('react-native-reanimated', () => {
   return {
     ...Reanimated,
     useReducedMotion: jest.fn(() => false),
+    interpolate: (
+      value: number,
+      input: readonly number[],
+      output: readonly number[],
+    ) => {
+      const [inMin, inMax] = input;
+      const [outMin, outMax] = output;
+      if (inMax === inMin) {
+        return outMin;
+      }
+      const clamped = Math.max(inMin, Math.min(inMax, value));
+      const ratio = (clamped - inMin) / (inMax - inMin);
+      return outMin + ratio * (outMax - outMin);
+    },
     // The stock mock resets shared values every render, freezes derived
     // values, and ignores scroll handlers, so a scrolled tab could never
-    // reach the divider's visible branch.
+    // reach the scroll-driven header backdrop and tabs bar states.
     useSharedValue: (init: unknown) => {
       const ReactActual = jest.requireActual('react') as typeof import('react');
       const ref = ReactActual.useRef<{ value: unknown } | null>(null);
@@ -454,23 +471,139 @@ describe('SocialV1View', () => {
     expect(mockUseQuoteTokensQuery).toHaveBeenCalledWith(true);
   });
 
-  it('shows the tab divider only after the feed is scrolled', () => {
+  it('floats the header with a glass backdrop that fades in as the feed scrolls', () => {
     const { rerender } = renderWithProvider(<SocialV1View />);
-    const divider = screen.getByTestId(
-      SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER,
-    );
 
-    expect(divider).toHaveStyle({ opacity: 0 });
+    expect(
+      backdropFadeOpacity(screen.getByTestId(FLOATING_HEADER_FADE_TEST_ID)),
+    ).toBe(0);
 
     fireEvent.scroll(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
-      { nativeEvent: { contentOffset: { y: 12, x: 0 } } },
+      { nativeEvent: { contentOffset: { y: 128, x: 0 } } },
     );
     rerender(<SocialV1View />);
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER),
-    ).toHaveStyle({ opacity: 1 });
+      backdropFadeOpacity(screen.getByTestId(FLOATING_HEADER_FADE_TEST_ID)),
+    ).toBe(1);
+  });
+
+  it('scrolls the tabs bar away as the active feed scrolls', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 36, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    expect(getTranslateY()).toBe(-36);
+  });
+
+  it('pins the tabs bar at rest when the feed overscrolls negatively', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: -25, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    const translateY = StyleSheet.flatten(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+    )?.transform?.[0]?.translateY;
+    expect(Math.abs(translateY ?? 0)).toBe(0);
+  });
+
+  it('resets scroll position to the top when switching tabs by tapping', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 90, x: 0 } } },
+    );
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    rerender(<SocialV1View />);
+    settlePager();
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    mockFeedScrollToOffset.mockClear();
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 80, x: 0 } } },
+    );
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+  });
+
+  it('resets scroll position to the top when switching tabs by swiping', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 90, x: 0 } } },
+    );
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 1 } });
+    });
+    rerender(<SocialV1View />);
+    settlePager();
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    mockFeedScrollToOffset.mockClear();
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 80, x: 0 } } },
+    );
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 0 } });
+    });
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
   });
 
   it('scrolls the active page to the top when its tab is tapped again', () => {
@@ -640,6 +773,10 @@ describe('SocialV1View', () => {
         onCopyTrade: expect.any(Function),
         requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'trending' }),
+        contentTopInset: expect.any(Number),
+        pendingPostsTopOffset: expect.objectContaining({
+          value: expect.any(Number),
+        }),
         testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
         scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
       }),

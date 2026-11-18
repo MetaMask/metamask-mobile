@@ -1,4 +1,4 @@
-import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
+import { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 
 // this function is used to sample the data points to be displayed on the chart
 // it will return a maximum of 100 data points

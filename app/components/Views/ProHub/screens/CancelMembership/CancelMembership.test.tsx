@@ -2,6 +2,7 @@ import React from 'react';
 import { BackHandler } from 'react-native';
 import { Provider } from 'react-redux';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
   CANCELLATION_REASONS,
   CANCEL_TYPES,
@@ -67,6 +68,18 @@ jest.mock('../../../../../util/Logger', () => ({
     error: (...args: unknown[]) => mockLoggerError(...args),
   },
 }));
+
+const getOnPress = (button: ReactTestInstance): (() => void) => {
+  let current: ReactTestInstance | null = button;
+  while (current) {
+    const { onPress } = current.props as { onPress?: () => void };
+    if (typeof onPress === 'function') {
+      return onPress;
+    }
+    current = current.parent;
+  }
+  throw new Error('onPress handler not found');
+};
 
 const CURRENT_PERIOD_END = '2027-07-20T12:00:00.000Z';
 const PLUS_SUBSCRIPTION: Subscription = {
@@ -440,6 +453,36 @@ describe('CancelMembership', () => {
       expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
+  });
+
+  it('cancels once when confirm is pressed twice before the request settles', async () => {
+    let resolveCancel: (() => void) | undefined;
+    mockCancelSubscription.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveCancel = () => resolve();
+      }),
+    );
+    const { getByTestId } = renderScreen();
+    const cancelButton = getByTestId(CancelMembershipTestIds.CANCEL_BUTTON);
+    const pressCancel = getOnPress(cancelButton);
+
+    act(() => {
+      pressCancel();
+      pressCancel();
+    });
+
+    expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveCancel?.();
+    });
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      ).toBeOnTheScreen(),
+    );
+    expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('cancels at period end without a reason when the survey is skipped', async () => {

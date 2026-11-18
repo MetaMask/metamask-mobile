@@ -10,9 +10,9 @@ import { Image } from 'react-native';
 import AvatarSocial from '../../../../../component-library/components-temp/AvatarSocial';
 import { FOXICON_SIZE_BY_AVATARBASE_SIZE } from '../../../../../component-library/components-temp/AvatarSocial/AvatarSocial.constants';
 import Foxicon from '../../../../../component-library/components-temp/Foxicon';
-import superheroAvatar from '../../../../../images/socialV1/superhero.png';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+  FALLBACK_PROFILE_AVATAR,
   getProfileAvatarBackground,
   getProfileAvatarPreset,
 } from '../avatarPresets';
@@ -70,7 +70,6 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   accessibilityLabel,
 }) => {
   const tw = useTailwind();
-  const preset = getProfileAvatarPreset(avatarPresetId);
   const diameterPx = diameter ?? SIZE_PX[size];
   const sizeClassName = diameter ? '' : SIZE_CLASS[size];
   const sizeStyle = diameter
@@ -88,27 +87,19 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     );
   }
 
-  if (!preset) {
-    return (
-      <Image
-        source={superheroAvatar}
-        accessibilityLabel={accessibilityLabel}
-        style={tw.style(sizeClassName, 'rounded-full', sizeStyle)}
-        testID={testID}
-      />
-    );
-  }
-
-  const background =
-    getProfileAvatarBackground(avatarBackgroundId) ??
-    getProfileAvatarBackground(DEFAULT_PROFILE_AVATAR_BACKGROUND_ID);
+  const preset = getProfileAvatarPreset(avatarPresetId);
+  const presetId = preset?.id ?? FALLBACK_PROFILE_AVATAR.avatarPresetId;
+  const background = preset
+    ? (getProfileAvatarBackground(avatarBackgroundId) ??
+      getProfileAvatarBackground(DEFAULT_PROFILE_AVATAR_BACKGROUND_ID))
+    : getProfileAvatarBackground(FALLBACK_PROFILE_AVATAR.avatarBackgroundId);
   const artTestID = testID ? `${testID}-art` : undefined;
   const avatarBaseSize = AVATAR_BASE_SIZE_BY_PX.get(diameterPx);
 
   if (avatarBaseSize && background) {
     return (
       <AvatarSocial
-        variant={preset.id}
+        variant={presetId}
         backgroundColor={background.id}
         size={avatarBaseSize}
         testID={testID}
@@ -126,7 +117,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       testID={testID}
       accessibilityLabel={accessibilityLabel}
     >
-      <Foxicon variant={preset.id} size={diameterPx} testID={artTestID} />
+      <Foxicon variant={presetId} size={diameterPx} testID={artTestID} />
     </Box>
   );
 };

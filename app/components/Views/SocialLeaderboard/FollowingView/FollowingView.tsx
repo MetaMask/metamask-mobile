@@ -7,7 +7,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import {
   SOCIAL_TRACE_TABS,
   type SocialPerformanceContext,
@@ -69,6 +72,8 @@ export interface FollowingViewProps {
   /** Clears the applied Following filters. */
   onClearFilters?: () => void;
   appliedFilters?: SocialShellFilters;
+  contentTopInset?: number;
+  pendingPostsTopOffset?: number | SharedValue<number>;
   testID?: string;
   scrollTestID?: string;
 }
@@ -90,6 +95,8 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   isFilterActive = false,
   onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
+  contentTopInset,
+  pendingPostsTopOffset,
   testID,
   scrollTestID,
 }) => {
@@ -243,6 +250,9 @@ const FollowingView: React.FC<FollowingViewProps> = ({
           onRefresh={handleRefresh}
           performance={feedPerformance}
           onScroll={onScroll}
+          contentTopInset={contentTopInset}
+          refreshProgressViewOffset={contentTopInset}
+          pendingPostsTopOffset={pendingPostsTopOffset}
           pageRef={feedPageRef}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}

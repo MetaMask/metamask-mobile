@@ -132,6 +132,8 @@ const predictCompositionGroups = {
     'app/core/Engine/controllers/predict-venue-controller-init.ts',
     'app/core/Engine/messengers/predict-device-auth-service-messenger.test.ts',
     'app/core/Engine/messengers/predict-device-auth-service-messenger.ts',
+    'app/core/Engine/messengers/predict-funding-service-messenger.test.ts',
+    'app/core/Engine/messengers/predict-funding-service-messenger.ts',
     'app/core/Engine/messengers/predict-live-data-service-messenger.test.ts',
     'app/core/Engine/messengers/predict-live-data-service-messenger.ts',
     'app/core/Engine/messengers/predict-market-data-service-messenger.test.ts',
