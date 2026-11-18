@@ -37,6 +37,7 @@ import OldButton, {
 import { TextVariant as LibraryTextVariant } from '../../../../component-library/components/Texts/Text';
 import BatchAccountBalanceSettings from '../BatchAccountBalanceSettings';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function TransactionsSettings() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
@@ -118,6 +119,7 @@ function TransactionsSettings() {
           style={styles.desc}
         >
           {strings('app_settings.simulation_details_description')}
+          {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
           <OldButton
             variant={ButtonVariants.Link}
             size={OldButtonSize.Auto}

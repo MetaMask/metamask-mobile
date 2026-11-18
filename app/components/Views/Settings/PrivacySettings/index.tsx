@@ -49,6 +49,7 @@ import {
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function PrivacySettings() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { isEnabled } = useAnalytics();
@@ -116,6 +117,7 @@ function PrivacySettings() {
     useCallback(() => {
       if (!params?.scrollToSection) return;
 
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       const task = InteractionManager.runAfterInteractions(scrollToSection);
       return () => task.cancel();
     }, [scrollToSection, params?.scrollToSection]),
@@ -161,7 +163,8 @@ function PrivacySettings() {
 
   function renderHistoryModal() {
     return (
-      <ActionModal
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+    <ActionModal
         modalVisible={browserHistoryModalVisible}
         confirmText={strings('app_settings.clear')}
         cancelText={strings('app_settings.reset_account_cancel_button')}
