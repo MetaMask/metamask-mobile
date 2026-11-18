@@ -317,45 +317,6 @@ describe('useBrazeBanner', () => {
   });
 
   describe('control banner state', () => {
-    it('transitions to control when the warm-cache probe returns a control banner', async () => {
-      mockGetBannerForPlacement.mockResolvedValue(
-        makeBanner({ isControl: true, bannerName: 'campaign-abc' }),
-      );
-
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      await waitFor(() => expect(result.current.status).toBe('control'));
-
-      expect(result.current.banner).toBeNull();
-    });
-
-    it('transitions to control for a control banner event without properties', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireBannerEvent([
-        {
-          ...makeBanner({ isControl: true }),
-          properties: {},
-        },
-      ]);
-
-      expect(result.current.status).toBe('control');
-      expect(result.current.banner).toBeNull();
-    });
-
-    it('keeps control status across repeated control banner events', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireBannerEvent([
-        makeBanner({ isControl: true, trackingId: 'control-1' }),
-      ]);
-      fireBannerEvent([
-        makeBanner({ isControl: true, trackingId: 'control-2' }),
-      ]);
-
-      expect(result.current.status).toBe('control');
-    });
-
     it('stays empty for a control banner from another placement', async () => {
       mockGetBannerForPlacement.mockResolvedValue(
         makeBanner({ isControl: true, placementId: 'other-placement' }),

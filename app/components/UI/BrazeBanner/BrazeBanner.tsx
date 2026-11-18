@@ -25,19 +25,10 @@ interface BrazeBannerProps {
 /**
  * Orchestrates the Braze banner lifecycle for a given placement ID.
  *
- * Subscribes to `bannerCardsUpdated`, manages loading/visible/empty/dismissed
- * state via `useBrazeBanner`, logs impressions, clicks, and selects, and
- * delegates all visual rendering to `BrazeBannerCard` (swap out for another
- * renderer if needed).
+ * Uses `useBrazeBanner` to resolve the placement and `BrazeBannerCard` to
+ * render a visible banner. Logs impressions and clicks for the placement.
  * MetaMask deeplinks use the shared deeplink pipeline; external web links open
  * with the OS browser.
- *
- * State machine (managed by `useBrazeBanner`):
- * - `loading`   → nothing rendered, waits for a valid banner
- * - `visible`   → BrazeBannerCard rendered
- * - `control`   → returns null; logs one impression for the control group
- * - `empty`     → returns null (no campaign / timeout reached)
- * - `dismissed` → returns null immediately; Braze owns re-eligibility
  */
 const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
   const tw = useTailwind();
@@ -53,13 +44,11 @@ const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
   } = useBrazeBanner(placementId);
 
   useEffect(() => {
-    if (status === 'visible') {
-      logBrazeBannerImpression(placementId, eventProperties);
-    } else if (status === 'control') {
-      // Braze records control-group exposure through an impression even
-      // though nothing renders. Repeated control events keep the same status,
-      // so this runs once per mount.
-      logBrazeBannerImpression(placementId, null);
+    if (status === 'visible' || status === 'control') {
+      logBrazeBannerImpression(
+        placementId,
+        status === 'control' ? null : eventProperties,
+      );
     }
   }, [status, placementId, eventProperties]);
 

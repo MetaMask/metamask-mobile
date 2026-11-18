@@ -79,23 +79,6 @@ function logBrazeBannerDebug(
 /**
  * Drives the BrazeBanner state machine.
  *
- * States: `loading → visible`, `loading → control`, `loading → empty`,
- * `visible → dismissed`.
- *
- * - `loading`   Skeleton shown; waiting for the first valid banner event.
- * - `visible`   A banner is ready to render.
- * - `control`   The placement resolved to a control banner. Renders nothing;
- * the renderer logs one impression for Braze control-group exposure.
- * - `empty`     No renderable banner for this placement.
- * - `dismissed` User dismissed this mount; renders nothing until next mount.
- *
- * Control-group behaviour:
- * - A control banner renders nothing, but the renderer logs one Braze banner
- * impression per mount so Braze records control-group exposure.
- * - Repeated control events keep the same `control` status, so the impression
- * effect does not run twice.
- * - No click or dismissal is logged because nothing is rendered.
- *
  * Dismissal behaviour:
  * - Hides immediately for this mount (in-memory).
  * - Calls `Braze.dismissBanner` so Braze records the close and applies campaign re-eligibility.
@@ -120,7 +103,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   // still be replaced without changing the reserved layout slot.
   const initialBannerWindowOpenRef = useRef(true);
 
-  // Timeout to stop showing the loading skeleton and render nothing if no banner is available.
   const noResponseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -144,21 +126,30 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     }
   }, []);
 
-  /**
-   * Evaluate a banner from any source (warm-cache probe or listener event).
-   * Returns `true` if the banner was accepted and state updated.
-   */
   const handleBanner = useCallback(
     (candidate: Banner | null, source: BrazeBannerSource) => {
       if (dismissedRef.current) return;
 
       // null means no cached/available banner — stay in loading state and
-      // wait for a bannerCardsUpdated event or the skeleton timeout.
+      // wait for a bannerCardsUpdated event or the startup timeout.
       if (candidate === null) {
         logBrazeBannerDebug(
           'No candidate banner available yet',
           placementId,
           null,
+        );
+        return;
+      }
+
+      if (
+        source === 'event' &&
+        currentBannerTrackingIdRef.current === null &&
+        !initialBannerWindowOpenRef.current
+      ) {
+        logBrazeBannerDebug(
+          'Ignoring late initial banner after startup window',
+          placementId,
+          candidate,
         );
         return;
       }
@@ -173,24 +164,17 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
           return;
         }
 
-        const isControlForPlacement =
-          candidate.isControl && candidate.placementId === placementId;
-
         logBrazeBannerDebug(
           'Control or mismatched placement banner resolves without rendering',
           placementId,
           candidate,
         );
-        // A control-group assignment resolves to `control` so the renderer
-        // logs one impression without rendering. Repeated events keep the same
-        // status, so the impression effect does not run again. A mismatched
-        // placement is a plain `empty` result.
-        clearNoResponseTimeout();
-        currentBannerTrackingIdRef.current = null;
-        setBanner(null);
-        setStatus(isControlForPlacement ? 'control' : 'empty');
-        // Content determination is finished: no banner will be shown. Settle
-        // the span now instead of letting it run until unmount.
+        // Keep the timeout armed until the window closes or a variant fills the slot.
+        if (candidate.placementId === placementId) {
+          setStatus('control');
+        } else {
+          setStatus((prev) => (prev === 'loading' ? 'empty' : prev));
+        }
         endBrazeTrace({
           success: false,
           reason: 'empty',
@@ -208,19 +192,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
           candidate,
         );
         return; // wait for a meaningful banner
-      }
-
-      if (
-        source === 'event' &&
-        currentBannerTrackingIdRef.current === null &&
-        !initialBannerWindowOpenRef.current
-      ) {
-        logBrazeBannerDebug(
-          'Ignoring late initial banner after startup window',
-          placementId,
-          candidate,
-        );
-        return;
       }
 
       if (candidate.trackingId === currentBannerTrackingIdRef.current) {
@@ -277,9 +248,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       (event: { banners: Banner[] }) => {
         if (dismissedRef.current) return;
 
-        // Control banners carry no renderable content and may omit
-        // properties, so match them by placement alone; variant banners still
-        // need a body to be meaningful.
         const match = event.banners.find(
           (b) =>
             b.placementId === placementId &&
@@ -302,8 +270,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       },
     );
 
-    // Fallback: if neither the warm-cache probe nor the SDK event resolves
-    // within the window, stop showing the loading skeleton and render nothing.
     noResponseTimeoutRef.current = setTimeout(() => {
       if (!dismissedRef.current) {
         initialBannerWindowOpenRef.current = false;
