@@ -175,6 +175,9 @@ describe('useStartProSubscription', () => {
       status: 'trialing',
     });
     mockedApprovalAdd.mockResolvedValue(undefined);
+    (
+      Engine.context as { TransactionPayController?: unknown }
+    ).TransactionPayController = undefined;
     mockedUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
@@ -298,14 +301,18 @@ describe('useStartProSubscription', () => {
       balance: '10000000',
       requiredBalance: '49990000',
     });
-    mockedWaitForMembershipTopUp.mockReturnValue({
-      promise: new Promise((resolve) => {
-        resolveTopUp = () => resolve({ id: 'tx-1' } as never);
-      }),
-      cancel: mockCancelTopUp,
-    });
     mockedStartSubscription.mockResolvedValue({
       status: SUBSCRIPTION_STATUSES.provisional,
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise((resolve) => {
+        resolveTopUp = () =>
+          resolve({
+            id: 'tx-1',
+            metamaskPay: { fiat: { orderId: 'order-1' } },
+          } as never);
+      }),
+      cancel: mockCancelTopUp,
     });
 
     const { result } = renderHook(() => useStartProSubscription());
@@ -343,6 +350,65 @@ describe('useStartProSubscription', () => {
     });
     await expect(startPromise).resolves.toEqual({
       outcome: StartProSubscriptionOutcome.Processing,
+    });
+  });
+
+  it('returns ready when a crypto top-up is still provisional', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '10000000',
+      requiredBalance: '49990000',
+    });
+    mockedStartSubscription.mockResolvedValue({
+      status: SUBSCRIPTION_STATUSES.provisional,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).resolves.toEqual({
+        outcome: StartProSubscriptionOutcome.Ready,
+      });
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+  });
+
+  it('returns processing when a selected card funds a provisional plan', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '49990000',
+    });
+    mockedStartSubscription.mockResolvedValue({
+      status: SUBSCRIPTION_STATUSES.provisional,
+    });
+    (
+      Engine.context as {
+        TransactionPayController?: {
+          state: {
+            transactionData: Record<
+              string,
+              { fiatPayment?: { selectedPaymentMethodId?: string } }
+            >;
+          };
+        };
+      }
+    ).TransactionPayController = {
+      state: {
+        transactionData: {
+          'tx-1': { fiatPayment: { selectedPaymentMethodId: 'card' } },
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).resolves.toEqual({
+        outcome: StartProSubscriptionOutcome.Processing,
+      });
     });
   });
 
