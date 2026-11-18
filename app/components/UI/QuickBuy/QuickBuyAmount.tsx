@@ -47,11 +47,7 @@ const QuickBuyAmount: React.FC = () => {
     isPostTradeShareHintEnabled &&
     quoteTokens !== undefined &&
     isBelowPostTradeShareMinimum &&
-    !isUnsupportedPostTradeAsset(
-      target.tokenAddress,
-      target.chain,
-      quoteTokens,
-    );
+    !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.
   const handleHeadlinePress = useCallback(() => {
