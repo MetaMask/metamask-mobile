@@ -113,7 +113,6 @@ import {
   selectIsCardAuthenticated,
   selectHasCard,
   selectCardLastUnauthenticatedReason,
-  selectCardholderAccounts,
   selectCardUserLocation,
   selectCardHomeDataStatus,
   selectMoneyAccountVedaTokenConfig,
@@ -889,7 +888,6 @@ function setupMockSelectors(
     depositActive: boolean;
     depositMinVersion: string;
     chainId: string;
-    cardholderAccounts: string[];
     selectedAccount: typeof mockSelectedInternalAccount;
     isAuthenticated: boolean;
     hasCard: boolean;
@@ -920,7 +918,6 @@ function setupMockSelectors(
     depositActive: true,
     depositMinVersion: '0.9.0',
     chainId: '0xe708',
-    cardholderAccounts: [mockCurrentAddress],
     selectedAccount: mockSelectedInternalAccount,
     isAuthenticated: true,
     hasCard: true,
@@ -951,7 +948,6 @@ function setupMockSelectors(
     if (selector === selectDepositActiveFlag) return config.depositActive;
     if (selector === selectDepositMinimumVersionFlag)
       return config.depositMinVersion;
-    if (selector === selectCardholderAccounts) return config.cardholderAccounts;
     if (selector === selectIsCardAuthenticated) return config.isAuthenticated;
     if (selector === selectHasCard) return config.hasCard;
     if (selector === selectCardLastUnauthenticatedReason)
@@ -981,8 +977,6 @@ function setupMockSelectors(
       typeof selector === 'function' ? selector.toString() : '';
     if (selectorString.includes('selectSelectedInternalAccount'))
       return config.selectedAccount;
-    if (selectorString.includes('selectCardholderAccounts'))
-      return config.cardholderAccounts;
 
     return [];
   });

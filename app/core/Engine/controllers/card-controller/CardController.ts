@@ -124,7 +124,6 @@ import {
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import {
-  readCardFeatureFlag,
   readCardLinkApiEnabled,
   readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
@@ -144,8 +143,6 @@ import type { CardApiSupportedRegionsResponse } from './services/card-supported-
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
 
-const CARDHOLDER_BATCH_SIZE = 50;
-const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 const ACCOUNT_LOOKUP_MISS_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCOUNT_LOOKUP_TIMEOUT_MS = 2000;
@@ -251,12 +248,6 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
-  cardholderAccounts: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: true,
-  },
   providerData: {
     persist: true,
     includeInDebugSnapshot: false,
@@ -329,12 +320,6 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: false,
   },
-  cardLinksSeeded: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: false,
-  },
   cardLinkApiBlocked: {
     persist: false,
     includeInDebugSnapshot: true,
@@ -349,7 +334,6 @@ export const defaultCardControllerState: CardControllerState = {
   isAuthenticated: false,
   providerUserId: null,
   lastUnauthenticatedReason: null,
-  cardholderAccounts: [],
   providerData: {},
   cardHomeData: null,
   cardHomeDataAddress: null,
@@ -362,7 +346,6 @@ export const defaultCardControllerState: CardControllerState = {
   accountLookupCache: {},
   cardLinks: null,
   cardLinksFetchedAt: null,
-  cardLinksSeeded: false,
   cardLinkApiBlocked: false,
 };
 
@@ -383,7 +366,6 @@ export class CardController extends BaseController<
   private readonly cardService: CardService;
   private currentSession: CardAuthSession | null = null;
   private refreshPromise: Promise<CardAuthTokens | null> | null = null;
-  #cardholderCheckTimer: ReturnType<typeof setTimeout> | undefined;
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private redeemGeneration = 0;
@@ -396,8 +378,6 @@ export class CardController extends BaseController<
   readonly #sha256: CardSha256;
   readonly #isBasicFunctionalityEnabled: () => boolean;
   #cardLinksFetchPromise: Promise<void> | null = null;
-  #cardLinkSeedPromise: Promise<void> | null = null;
-  #cardLinkSeedAttempted = false;
   #cardLinksGeneration = 0;
   #cardLinksWriteRevision = 0;
   #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
@@ -497,7 +477,6 @@ export class CardController extends BaseController<
 
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
-      this.#triggerCardholderCheck();
       this.#fetchCardLinksWithLogging('#onUnlock/fetchCardLinks');
       this.validateAndRefreshSession()
         .then(({ isAuthenticated }) => {
@@ -513,13 +492,12 @@ export class CardController extends BaseController<
         );
     });
 
-    // Re-check when the account tree changes (account added/removed) or the
-    // selected group changes. Membership alone misses a pure selection switch.
+    // Account added or removed, or the selected group changed. Membership
+    // alone misses a pure selection switch.
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
         if (this.resetInProgress) return;
-        this.#triggerCardholderCheck();
         this.#handleAccountSwitch();
         this.#invalidateNotFoundLookupCache();
       },
@@ -597,49 +575,6 @@ export class CardController extends BaseController<
     this.#invalidateAndClear();
   }
 
-  #triggerCardholderCheck(): void {
-    // Debounce: coalesce rapid consecutive triggers (e.g. KeyringController:unlock
-    // and AccountTreeController:stateChange both fire on wallet unlock) into a
-    // single API call. The account list is sampled inside the callback so it
-    // always reflects the latest state.
-    if (this.#cardholderCheckTimer !== undefined) {
-      clearTimeout(this.#cardholderCheckTimer);
-    }
-    this.#cardholderCheckTimer = setTimeout(() => {
-      this.#cardholderCheckTimer = undefined;
-
-      const { internalAccounts } = this.messenger.call(
-        'AccountsController:getState',
-      );
-      const evmAccounts = Object.values(internalAccounts.accounts).filter(
-        (acc) => isEthAccount(acc),
-      );
-      if (!evmAccounts.length) return;
-
-      const caipAccountIds = evmAccounts.map(
-        (acc) => `eip155:0:${acc.address}` as `${string}:${string}:${string}`,
-      );
-
-      const featureState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const cardFeature = readCardFeatureFlag(featureState.remoteFeatureFlags);
-      const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
-      if (!accountsApiUrl) return;
-
-      this.checkCardholderAccounts(caipAccountIds, accountsApiUrl).catch(
-        (error) =>
-          Logger.error(error as Error, {
-            tags: { feature: 'card' },
-            context: {
-              name: 'CardController',
-              data: { method: '#triggerCardholderCheck' },
-            },
-          }),
-      );
-    }, 50);
-  }
-
   /**
    * Records the user's pre-authentication location selection.
    * Written to providerData[activeProviderId].location — the same field
@@ -676,8 +611,6 @@ export class CardController extends BaseController<
     if (providerChanged) {
       this.#invalidateAndClear();
     }
-    this.#cardLinkSeedAttempted = false;
-    this.#seedCardLinkIfNeededWithLogging();
   }
 
   #resolveProviderForCountry(country: string): CardProviderId {
@@ -689,80 +622,6 @@ export class CardController extends BaseController<
       featureState.remoteFeatureFlags,
       country,
     );
-  }
-
-  /**
-   * Checks which CAIP-10 account IDs are MetaMask Card holders and stores
-   * the result in controller state. Processes up to 150 accounts (3 × 50).
-   * Public for testability.
-   */
-  async checkCardholderAccounts(
-    caipAccountIds: `${string}:${string}:${string}`[],
-    accountsApiUrl: string,
-  ): Promise<void> {
-    if (!caipAccountIds?.length || !accountsApiUrl) return;
-
-    const batches = this.#createBatches(
-      caipAccountIds,
-      CARDHOLDER_BATCH_SIZE,
-      CARDHOLDER_MAX_BATCHES,
-    );
-
-    const settled = await Promise.allSettled(
-      batches.map((batch) => this.#fetchCardholderBatch(batch, accountsApiUrl)),
-    );
-
-    const results: string[] = [];
-    let anySucceeded = false;
-    for (const outcome of settled) {
-      if (outcome.status === 'fulfilled') {
-        anySucceeded = true;
-        results.push(...outcome.value);
-      } else {
-        Logger.error(outcome.reason as Error, {
-          tags: { feature: 'card', operation: 'checkCardholderAccounts' },
-          context: {
-            name: 'CardController',
-            data: { accountCount: caipAccountIds.length },
-          },
-        });
-      }
-    }
-
-    // Only update state if at least one batch succeeded. A total failure
-    // (e.g. network outage) should leave the existing cached list intact.
-    if (anySucceeded) {
-      this.update((s) => {
-        s.cardholderAccounts = results;
-      });
-      this.#seedCardLinkIfNeededWithLogging();
-    }
-  }
-
-  async #fetchCardholderBatch(
-    accountIds: string[],
-    accountsApiUrl: string,
-  ): Promise<string[]> {
-    const url = new URL('v1/metadata', accountsApiUrl);
-    url.searchParams.set('accountIds', accountIds.join(',').toLowerCase());
-    url.searchParams.set('label', 'card_user');
-    const response = await fetch(url.toString());
-    if (!response.ok)
-      throw new Error(`Cardholder API error: ${response.status}`);
-    const data = await response.json();
-    return (data.is as string[]) ?? [];
-  }
-
-  #createBatches<T>(items: T[], size: number, maxBatches: number): T[][] {
-    const batches: T[][] = [];
-    for (
-      let i = 0;
-      i < items.length && batches.length < maxBatches;
-      i += size
-    ) {
-      batches.push(items.slice(i, i + size));
-    }
-    return batches;
   }
 
   // -- Card links --
@@ -855,10 +714,7 @@ export class CardController extends BaseController<
       cardLinks !== null &&
       cardLinksFetchedAt !== null &&
       Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
-    if (isFresh && !force) {
-      await this.#seedCardLinkIfNeeded();
-      return;
-    }
+    if (isFresh && !force) return;
 
     if (!this.#cardLinksFetchPromise) {
       const read = this.#doFetchCardLinks().finally(() => {
@@ -897,111 +753,6 @@ export class CardController extends BaseController<
       s.cardLinks = links;
       s.cardLinksFetchedAt = Date.now();
     });
-    await this.#seedCardLinkIfNeeded();
-  }
-
-  #seedCardLinkIfNeededWithLogging(): void {
-    this.#seedCardLinkIfNeeded().catch((error) =>
-      Logger.error(error as Error, {
-        tags: { feature: 'card' },
-        context: {
-          name: 'CardController',
-          data: { method: '#seedCardLinkIfNeeded' },
-        },
-      }),
-    );
-  }
-
-  async #seedCardLinkIfNeeded(): Promise<void> {
-    const {
-      cardLinks,
-      cardLinksFetchedAt,
-      cardLinksSeeded,
-      cardholderAccounts,
-    } = this.state;
-    const readIsFresh =
-      cardLinksFetchedAt !== null &&
-      Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
-    if (
-      cardLinksSeeded ||
-      this.#cardLinkSeedAttempted ||
-      !readIsFresh ||
-      cardLinks === null ||
-      cardLinks.length > 0 ||
-      cardholderAccounts.length === 0 ||
-      !this.#isCardLinkApiEnabled()
-    ) {
-      return;
-    }
-
-    if (!this.#cardLinkSeedPromise) {
-      const seed = this.#doSeedCardLink(
-        this.#preferSelectedCardholderAccount(cardholderAccounts),
-      ).finally(() => {
-        if (this.#cardLinkSeedPromise === seed) {
-          this.#cardLinkSeedPromise = null;
-        }
-      });
-      this.#cardLinkSeedPromise = seed;
-    }
-    await this.#cardLinkSeedPromise;
-  }
-
-  #preferSelectedCardholderAccount(cardholderAccounts: string[]): string {
-    const selected = this.#getSelectedEvmAddress();
-    return (
-      cardholderAccounts.find(
-        (caipId) =>
-          selected !== null && this.#caipAddressEquals(caipId, selected),
-      ) ?? cardholderAccounts[0]
-    );
-  }
-
-  #caipAddressEquals(caipAccountId: string, address: string): boolean {
-    const bare = caipAccountId.slice(caipAccountId.lastIndexOf(':') + 1);
-    return bare.toLowerCase() === address.toLowerCase();
-  }
-
-  #isCardholderAccount(address: string): boolean {
-    return this.state.cardholderAccounts.some((caipId) =>
-      this.#caipAddressEquals(caipId, address),
-    );
-  }
-
-  async #doSeedCardLink(caipAccountId: string): Promise<void> {
-    const country = this.state.selectedCountry;
-    if (!country) return;
-
-    this.#cardLinkSeedAttempted = true;
-    const providerForCountry = this.#resolveProviderForCountry(country);
-    if (country === 'GB' || providerForCountry !== CardProviderIds.Baanx) {
-      this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
-        provider: CardProviderIds.Baanx,
-        outcome: 'skipped',
-        skip_reason: country === 'GB' ? 'gb' : 'not_baanx',
-      });
-      return;
-    }
-
-    const generation = this.#cardLinksGeneration;
-    const outcome = await this.#writeCardLink(
-      CardProviderIds.Baanx,
-      'active',
-      { address: caipAccountId },
-      '#seedCardLinkIfNeeded',
-    );
-    if (outcome !== 'skipped') {
-      this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
-        provider: CardProviderIds.Baanx,
-        outcome,
-      });
-    }
-    if (generation !== this.#cardLinksGeneration) return;
-    if (outcome === 'written' || outcome === 'rejected') {
-      this.update((s) => {
-        s.cardLinksSeeded = true;
-      });
-    }
   }
 
   #trackCardLinkEvent(
@@ -1159,7 +910,7 @@ export class CardController extends BaseController<
     provider: CardProviderId,
     phase: CardLinkWriteStatus,
   ): void {
-    // Resolved when the queued write runs, so a seed ahead of it is visible.
+    // Resolved when the queued write runs, so a write ahead of it is visible.
     this.#writeCardLink(
       provider,
       phase,
@@ -1181,11 +932,10 @@ export class CardController extends BaseController<
   // Writes for one provider run in order, so a slow `onboarding` PUT cannot
   // land after `active` and replace the stored row with the older state.
   // card-api replaces linkedAccountRef on every write that carries one, so a
-  // login from a non-cardholder account must not move the ref off the card.
+  // login sends the selected account only when the stored link has no ref yet.
   #loginAccountForLinkedRef(provider: CardProviderId): string | null {
     const selected = this.#getSelectedEvmAddress();
     if (!selected) return null;
-    if (this.#isCardholderAccount(selected)) return selected;
     const { cardLinks, cardLinksFetchedAt } = this.state;
     const linksAreFresh =
       cardLinks !== null &&
@@ -2445,13 +2195,7 @@ export class CardController extends BaseController<
       this.#invalidateRedeemWithdrawal();
       this.#cardLinksGeneration += 1;
       this.#cardLinksFetchPromise = null;
-      this.#cardLinkSeedPromise = null;
       this.#cardLinkWriteQueues = {};
-      this.#cardLinkSeedAttempted = false;
-      if (this.#cardholderCheckTimer !== undefined) {
-        clearTimeout(this.#cardholderCheckTimer);
-        this.#cardholderCheckTimer = undefined;
-      }
       this.update(() => ({ ...defaultCardControllerState }));
 
       ReduxService.store.dispatch(resetCardState());

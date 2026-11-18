@@ -335,7 +335,6 @@ describe('CardController', () => {
       isAuthenticated: true,
       providerUserId: null,
       lastUnauthenticatedReason: null,
-      cardholderAccounts: [],
       providerData: {},
       cardHomeData: null,
       cardHomeDataAddress: null,
@@ -348,7 +347,6 @@ describe('CardController', () => {
       accountLookupCache: {},
       cardLinks: null,
       cardLinksFetchedAt: null,
-      cardLinksSeeded: false,
       cardLinkApiBlocked: false,
     });
   });
@@ -367,7 +365,6 @@ describe('CardController', () => {
     expect(controller.state.selectedCountry).toBe('GB');
     expect(controller.state.activeProviderId).toBe('baanx');
     expect(controller.state.isAuthenticated).toBe(false);
-    expect(controller.state.cardholderAccounts).toStrictEqual([]);
     expect(controller.state.providerData).toStrictEqual({});
   });
 
@@ -381,16 +378,12 @@ describe('CardController', () => {
         selectedCountry: 'US',
         activeProviderId: 'baanx',
         isAuthenticated: true,
-        cardholderAccounts: ['eip155:1:0xabc'],
         providerData: {
           baanx: { location: 'us' },
         },
       },
     });
 
-    expect(controller.state.cardholderAccounts).toStrictEqual([
-      'eip155:1:0xabc',
-    ]);
     expect(controller.state.providerData).toStrictEqual({
       baanx: { location: 'us' },
     });
@@ -924,7 +917,6 @@ describe('CardController — auth methods', () => {
       const { controller } = buildMultiProviderController({
         isAuthenticated: true,
         selectedCountry: 'US',
-        cardholderAccounts: ['eip155:1:0xabc'],
         providerData: { baanx: { location: 'us' } },
       });
 
@@ -1775,122 +1767,6 @@ describe('CardController — event subscriptions', () => {
   });
 });
 
-describe('CardController — checkCardholderAccounts', () => {
-  const accountsApiUrl = 'https://accounts.api.example.com/';
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    global.fetch = jest.fn();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it('stores cardholder accounts returned by the API', async () => {
-    const caipIds = [
-      'eip155:0:0xabc' as `${string}:${string}:${string}`,
-      'eip155:0:0xdef' as `${string}:${string}:${string}`,
-    ];
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({ is: ['eip155:0:0xabc'] }),
-    });
-
-    const provider = buildMockProvider();
-    const controller = buildController(provider);
-
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
-
-    expect(controller.state.cardholderAccounts).toStrictEqual([
-      'eip155:0:0xabc',
-    ]);
-  });
-
-  it('stores empty array when API returns no cardholder accounts', async () => {
-    const caipIds = ['eip155:0:0xabc' as `${string}:${string}:${string}`];
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({ is: [] }),
-    });
-
-    const provider = buildMockProvider();
-    const controller = buildController(provider);
-
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
-
-    expect(controller.state.cardholderAccounts).toStrictEqual([]);
-  });
-
-  it('is a no-op when caipAccountIds is empty', async () => {
-    const provider = buildMockProvider();
-    const controller = buildController(provider);
-
-    await controller.checkCardholderAccounts([], accountsApiUrl);
-
-    expect(global.fetch).not.toHaveBeenCalled();
-    expect(controller.state.cardholderAccounts).toStrictEqual([]);
-  });
-
-  it('leaves state unchanged and logs error when API call fails', async () => {
-    const caipIds = ['eip155:0:0xabc' as `${string}:${string}:${string}`];
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: false,
-      status: 500,
-    });
-
-    const provider = buildMockProvider();
-    const controller = buildController(provider, {
-      cardholderAccounts: ['eip155:0:0xprev'],
-    });
-
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
-
-    expect(controller.state.cardholderAccounts).toStrictEqual([
-      'eip155:0:0xprev',
-    ]);
-  });
-
-  it('batches requests for more than BATCH_SIZE accounts', async () => {
-    const caipIds = Array.from(
-      { length: 55 },
-      (_, i) =>
-        `eip155:0:0x${i.toString(16).padStart(4, '0')}` as `${string}:${string}:${string}`,
-    );
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({ is: [] }),
-    });
-
-    const provider = buildMockProvider();
-    const controller = buildController(provider);
-
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
-
-    // 55 accounts → 2 batches (50 + 5)
-    expect(global.fetch).toHaveBeenCalledTimes(2);
-  });
-
-  it('caps at MAX_BATCHES (3) even with more than 150 accounts', async () => {
-    const caipIds = Array.from(
-      { length: 160 },
-      (_, i) =>
-        `eip155:0:0x${i.toString(16).padStart(4, '0')}` as `${string}:${string}:${string}`,
-    );
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({ is: [] }),
-    });
-
-    const provider = buildMockProvider();
-    const controller = buildController(provider);
-
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
-
-    expect(global.fetch).toHaveBeenCalledTimes(3);
-  });
-});
-
 describe('CardController — fetchCardHomeData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -2384,7 +2260,6 @@ describe('CardController — fetchCardHomeData', () => {
       providers: { baanx: provider },
       state: {
         activeProviderId: 'baanx',
-        cardholderAccounts: [`eip155:59144:${cardholderAddress}`],
       },
     });
 

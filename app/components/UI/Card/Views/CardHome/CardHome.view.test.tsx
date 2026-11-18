@@ -487,8 +487,16 @@ describe('CardHome', () => {
               backgroundState: {
                 CardController: {
                   isAuthenticated: false,
-                  cardholderAccounts: [
-                    'eip155:0:0x0000000000000000000000000000000000000001',
+                  cardLinks: [
+                    {
+                      provider: 'baanx',
+                      status: 'active',
+                      linkedAccountRef: null,
+                      closedReason: null,
+                      migratedToProvider: null,
+                      linkedAt: '2026-09-01T00:00:00.000Z',
+                      updatedAt: '2026-09-01T00:00:00.000Z',
+                    },
                   ],
                 },
                 AssetsController: {

@@ -2322,14 +2322,25 @@ class FixtureBuilder {
         selectedCountry: null,
         providerData: {},
         isAuthenticated,
-        cardholderAccounts: [`eip155:0:${walletAddress}`],
+        cardLinks: [
+          {
+            provider: 'baanx',
+            status: 'active',
+            linkedAccountRef: null,
+            closedReason: null,
+            migratedToProvider: null,
+            linkedAt: '2026-09-01T00:00:00.000Z',
+            updatedAt: '2026-09-01T00:00:00.000Z',
+          },
+        ],
+        cardLinksFetchedAt: Date.now(),
         activeProviderId: 'baanx',
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
+          cardLinkApi: { enabled: true, minimumVersion: '0.0.0' },
           cardFeature: {
             constants: {
-              accountsApiUrl: 'https://accounts.api.cx.metamask.io',
               onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
             },
             chains: {

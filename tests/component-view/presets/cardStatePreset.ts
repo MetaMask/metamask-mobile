@@ -79,7 +79,18 @@ export const initialStateCard = () =>
         backgroundState: {
           CardController: {
             isAuthenticated: true,
-            cardholderAccounts: [`eip155:0:${DEFAULT_WALLET_ADDRESS}`],
+            cardLinks: [
+              {
+                provider: 'baanx',
+                status: 'active',
+                linkedAccountRef: null,
+                closedReason: null,
+                migratedToProvider: null,
+                linkedAt: '2026-09-01T00:00:00.000Z',
+                updatedAt: '2026-09-01T00:00:00.000Z',
+              },
+            ],
+            cardLinksFetchedAt: 1,
             activeProviderId: 'baanx',
             providerData: { baanx: { location: 'us' } },
             cardHomeData: defaultCardHomeData,
@@ -90,6 +101,7 @@ export const initialStateCard = () =>
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               cardFeature: defaultCardFeatureFlag,
+              cardLinkApi: { enabled: true, minimumVersion: '0.0.0' },
               metalCardCheckoutEnabled: null,
             },
           },

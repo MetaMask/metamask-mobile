@@ -7,10 +7,8 @@ import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import {
   selectIsCardAuthenticated,
-  selectCardholderAccounts,
-  selectCardEntryRouting,
+  selectHasCard,
 } from '../../../../../selectors/cardController';
-import { trackCardLinkRoutingDisagreement } from '../../../../../components/UI/Card/util/trackCardLinkRoutingDisagreement';
 
 jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../redux', () => ({
@@ -37,9 +35,6 @@ jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/cardController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
-jest.mock(
-  '../../../../../components/UI/Card/util/trackCardLinkRoutingDisagreement',
-);
 
 const flushMicrotasks = async () => {
   for (let i = 0; i < 5; i++) {
@@ -49,38 +44,26 @@ const flushMicrotasks = async () => {
 
 describe('handleCardOnboarding', () => {
   const mockGetState = jest.fn();
-  const mockDispatch = jest.fn();
   const mockNavigate = jest.fn();
   const mockDevLogger = DevLogger.log as jest.Mock;
   const mockLoggerError = Logger.error as jest.Mock;
 
-  const mockCardholderAddress = '0x1234567890abcdef1234567890abcdef12345678';
-  const mockCardholderCaipId = `eip155:0:${mockCardholderAddress}`;
+  const mockLinkedAddress = '0x1234567890abcdef1234567890abcdef12345678';
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
 
     (ReduxService.store.getState as jest.Mock) = mockGetState;
-    (ReduxService.store.dispatch as jest.Mock) = mockDispatch;
     mockGetState.mockReturnValue({});
 
     NavigationService.navigation = {
       navigate: mockNavigate,
     } as unknown as typeof NavigationService.navigation;
 
-    // Default mocks
-    (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
     (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(false);
-    (selectCardEntryRouting as unknown as jest.Mock).mockImplementation(
-      (state) => ({
-        hasCard:
-          (selectCardholderAccounts as unknown as jest.Mock)(state).length > 0,
-        provider: null,
-        source: 'legacy',
-        disagreesWithLegacy: false,
-      }),
-    );
+    (selectHasCard as unknown as jest.Mock).mockReturnValue(false);
+    mockFindLinkedAccountAddress.mockResolvedValue(mockLinkedAddress);
   });
 
   afterEach(() => {
@@ -88,18 +71,16 @@ describe('handleCardOnboarding', () => {
     jest.clearAllMocks();
   });
 
-  describe('navigation behavior', () => {
-    describe('when user is authenticated and has card-linked account', () => {
-      beforeEach(() => {
-        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
-          true,
-        );
-        (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderCaipId,
-        ]);
-      });
+  describe('when the user is authenticated', () => {
+    beforeEach(() => {
+      (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(true);
+    });
 
-      it('navigates to Card Home with showDeeplinkToast param', () => {
+    it.each([true, false])(
+      'navigates to Card Home with a toast when hasCard is %s',
+      (hasCard) => {
+        (selectHasCard as unknown as jest.Mock).mockReturnValue(hasCard);
+
         handleCardOnboarding();
         jest.runAllTimers();
 
@@ -107,171 +88,26 @@ describe('handleCardOnboarding', () => {
           screen: Routes.CARD.HOME,
           params: {
             screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
+            params: { showDeeplinkToast: true },
           },
         });
-      });
-
-      it('switches to first cardholder account', () => {
-        handleCardOnboarding();
-
-        expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
-          mockCardholderAddress,
-        );
-      });
-
-      it('logs the account switch', () => {
-        handleCardOnboarding();
-
-        expect(mockDevLogger).toHaveBeenCalledWith(
-          '[handleCardOnboarding] Switching to first cardholder account:',
-          mockCardholderAddress,
-        );
-      });
-    });
-
-    describe('when user is authenticated but has no card-linked account', () => {
-      beforeEach(() => {
-        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
-          true,
-        );
-        (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
-      });
-
-      it('navigates to Card Home with showDeeplinkToast param', () => {
-        handleCardOnboarding();
-        jest.runAllTimers();
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
-          },
-        });
-      });
-
-      it('does not switch account', () => {
-        handleCardOnboarding();
-
+        expect(mockFindLinkedAccountAddress).not.toHaveBeenCalled();
         expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when user is not authenticated but has card-linked account', () => {
-      beforeEach(() => {
-        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
-          false,
-        );
-        (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderCaipId,
-        ]);
-      });
-
-      it('navigates to Card login', () => {
-        handleCardOnboarding();
-        jest.runAllTimers();
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.AUTHENTICATION,
-          },
-        });
-      });
-
-      it('switches to first cardholder account', () => {
-        handleCardOnboarding();
-
-        expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
-          mockCardholderAddress,
-        );
-      });
-    });
-
-    describe('when user is not authenticated and has no card-linked account', () => {
-      beforeEach(() => {
-        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
-          false,
-        );
-        (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
-      });
-
-      it('navigates to Card Welcome', () => {
-        handleCardOnboarding();
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
-      });
-
-      it('does not switch account', () => {
-        handleCardOnboarding();
-
-        expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
-      });
-
-      it('logs navigation to Card Welcome', () => {
-        handleCardOnboarding();
-
-        expect(mockDevLogger).toHaveBeenCalledWith(
-          '[handleCardOnboarding] Navigating to Card Welcome (onboarding)',
-        );
-      });
-    });
-
-    describe('with multiple cardholder accounts', () => {
-      const secondCardholderAddress =
-        '0xabcdef1234567890abcdef1234567890abcdef12';
-
-      beforeEach(() => {
-        (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderCaipId,
-          `eip155:0:${secondCardholderAddress}`,
-        ]);
-      });
-
-      it('switches to first cardholder account only', () => {
-        handleCardOnboarding();
-
-        expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
-          mockCardholderAddress,
-        );
-        expect(Engine.setSelectedAddress).not.toHaveBeenCalledWith(
-          secondCardholderAddress,
-        );
-      });
-    });
+      },
+    );
   });
 
-  describe('when routed by card links', () => {
-    const linksRouting = {
-      hasCard: true,
-      provider: 'immersve',
-      source: 'card_links',
-      disagreesWithLegacy: false,
-    };
-
+  describe('when the user is logged out and has a card link', () => {
     beforeEach(() => {
-      (selectCardEntryRouting as unknown as jest.Mock).mockReturnValue(
-        linksRouting,
-      );
+      (selectHasCard as unknown as jest.Mock).mockReturnValue(true);
     });
 
-    it('switches to the account matching the link, then navigates to Card login', async () => {
-      mockFindLinkedAccountAddress.mockResolvedValue(mockCardholderAddress);
-
+    it('switches to the linked account, then navigates to Card login', async () => {
       handleCardOnboarding();
       await flushMicrotasks();
       jest.runAllTimers();
 
-      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
-        mockCardholderAddress,
-      );
+      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(mockLinkedAddress);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
         params: { screen: Routes.CARD.AUTHENTICATION },
@@ -291,42 +127,24 @@ describe('handleCardOnboarding', () => {
         params: { screen: Routes.CARD.AUTHENTICATION },
       });
     });
+  });
 
-    it('ignores the legacy cardholder list', async () => {
-      (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-        `eip155:0:0xlegacy`,
-      ]);
-      mockFindLinkedAccountAddress.mockResolvedValue(null);
-
+  describe('when the user is logged out and has no card link', () => {
+    it('navigates to Card Welcome without switching accounts', () => {
       handleCardOnboarding();
-      await flushMicrotasks();
-      jest.runAllTimers();
-
-      expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
-    });
-
-    it('sends the user to Card Welcome when the links say there is no card', () => {
-      (selectCardEntryRouting as unknown as jest.Mock).mockReturnValue({
-        ...linksRouting,
-        hasCard: false,
-        provider: null,
-      });
-
-      handleCardOnboarding();
-      jest.runAllTimers();
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.WELCOME,
       });
       expect(mockFindLinkedAccountAddress).not.toHaveBeenCalled();
+      expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
     });
 
-    it('reports the routing decision for the disagreement metric', () => {
+    it('logs navigation to Card Welcome', () => {
       handleCardOnboarding();
 
-      expect(trackCardLinkRoutingDisagreement).toHaveBeenCalledWith(
-        linksRouting,
-        'deeplink_card_onboarding',
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        '[handleCardOnboarding] Navigating to Card Welcome (onboarding)',
       );
     });
   });
@@ -368,40 +186,28 @@ describe('handleCardOnboarding', () => {
       });
     });
 
-    describe('when account switch fails', () => {
+    describe('when the linked-account switch fails', () => {
       const switchError = new Error('Account switch failed');
 
       beforeEach(() => {
-        (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderCaipId,
-        ]);
+        (selectHasCard as unknown as jest.Mock).mockReturnValue(true);
         (Engine.setSelectedAddress as jest.Mock).mockImplementation(() => {
           throw switchError;
         });
       });
 
-      it('logs the error but continues', () => {
+      it('logs the error and still navigates to Card login', async () => {
         handleCardOnboarding();
-
-        expect(mockDevLogger).toHaveBeenCalledWith(
-          '[handleCardOnboarding] Error switching account:',
-          switchError,
-        );
-        expect(mockLoggerError).toHaveBeenCalledWith(
-          switchError,
-          '[handleCardOnboarding] Failed to switch to cardholder account',
-        );
-      });
-
-      it('still navigates to Card login', () => {
-        handleCardOnboarding();
+        await flushMicrotasks();
         jest.runAllTimers();
 
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          switchError,
+          '[switchToLinkedCardAccount] Failed to switch to linked card account',
+        );
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.AUTHENTICATION,
-          },
+          params: { screen: Routes.CARD.AUTHENTICATION },
         });
       });
     });

@@ -351,7 +351,7 @@ describe('CardController card links', () => {
 
     it('does not let an in-flight GET replace a newer write', async () => {
       const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+        state: {},
       });
       const stale = deferred<CardLink[]>();
       const current = [
@@ -375,7 +375,7 @@ describe('CardController card links', () => {
 
     it('keeps the write when the read after it fails', async () => {
       const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+        state: {},
       });
       const stale = deferred<CardLink[]>();
       cardService.getCardLinks
@@ -425,7 +425,7 @@ describe('CardController card links', () => {
 
     it('treats 403 CARD_LINK_CLIENT_NOT_ALLOWED as the flag being off', async () => {
       const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+        state: {},
       });
       cardService.getCardLinks.mockRejectedValue(
         apiError(403, { code: 'CARD_LINK_CLIENT_NOT_ALLOWED' }),
@@ -516,7 +516,7 @@ describe('CardController card links', () => {
 
     it('does not seed when the fetch fails', async () => {
       const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+        state: {},
       });
       cardService.getCardLinks.mockRejectedValue(apiError(503));
 
@@ -543,263 +543,6 @@ describe('CardController card links', () => {
       await flush();
 
       expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('seeding an existing cardholder', () => {
-    it('seeds once when the read is empty and the card_user label is positive', async () => {
-      const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
-      });
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
-      expect(cardService.putCardLink).toHaveBeenCalledWith(
-        'baanx',
-        { status: 'active', linkedAccountRef: refFor(CARDHOLDER_ADDRESS) },
-        'token-1',
-      );
-      expect(controller.state.cardLinksSeeded).toBe(true);
-      expect(controller.state.cardLinks).toStrictEqual([
-        link({ provider: 'baanx', status: 'active' }),
-      ]);
-    });
-
-    it('tracks Card Link Seeded with the outcome and no account data', async () => {
-      const { controller } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
-      });
-
-      await controller.fetchCardLinks();
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      const [event] = mockTrackEvent.mock.calls[0];
-      expect(event.name).toBe('Card Link Seeded');
-      expect(event.properties).toStrictEqual({
-        provider: 'baanx',
-        outcome: 'written',
-      });
-    });
-
-    it('tracks a failed seed attempt', async () => {
-      const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
-      });
-      cardService.putCardLink.mockRejectedValue(apiError(503));
-
-      await controller.fetchCardLinks();
-
-      const [event] = mockTrackEvent.mock.calls[0];
-      expect(event.properties).toMatchObject({ outcome: 'failed' });
-    });
-
-    it('does not track a seed event when no seed is needed', async () => {
-      const { controller } = setup({ state: { cardholderAccounts: [] } });
-
-      await controller.fetchCardLinks();
-
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
-
-    it('never seeds twice', async () => {
-      const { controller, cardService } = setup({
-        state: {
-          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
-          cardLinksSeeded: true,
-        },
-      });
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-    });
-
-    it('writes nothing when the card_user label is negative', async () => {
-      const { controller, cardService } = setup({
-        state: { cardholderAccounts: [] },
-      });
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-      expect(controller.state.cardLinks).toStrictEqual([]);
-      expect(controller.state.cardLinksSeeded).toBe(false);
-    });
-
-    it('does not seed when the profile already has links', async () => {
-      const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
-      });
-      cardService.getCardLinks.mockResolvedValue([link()]);
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-    });
-
-    it('does not seed, and reads again next time, when no stored link is readable', async () => {
-      const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
-      });
-      cardService.getCardLinks.mockResolvedValue(null);
-
-      await controller.fetchCardLinks();
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-      expect(cardService.getCardLinks).toHaveBeenCalledTimes(2);
-      expect(controller.state.cardLinks).toBeNull();
-    });
-
-    it('seeds when the label arrives after an empty read', async () => {
-      const { controller, cardService } = setup();
-      await controller.fetchCardLinks();
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-
-      global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ is: [`eip155:0:${CARDHOLDER_ADDRESS}`] }),
-      }) as unknown as typeof fetch;
-      await controller.checkCardholderAccounts(
-        [`eip155:0:${CARDHOLDER_ADDRESS}`],
-        'https://accounts.example',
-      );
-      await flush();
-
-      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
-      expect(controller.state.cardLinksSeeded).toBe(true);
-    });
-
-    it('does not retry a failed seed in the same session', async () => {
-      const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
-      });
-      cardService.putCardLink.mockRejectedValueOnce(apiError(503));
-
-      await controller.fetchCardLinks();
-      expect(controller.state.cardLinksSeeded).toBe(false);
-
-      await controller.fetchCardLinks({ force: true });
-      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not seed from a stale empty read when the fetch fails', async () => {
-      const { controller, cardService } = setup({
-        state: {
-          cardLinks: [],
-          cardLinksFetchedAt: Date.now() - 25 * 60 * 60 * 1000,
-          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
-        },
-      });
-      cardService.getCardLinks.mockRejectedValue(apiError(503));
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-    });
-
-    it('seeds with the selected account when it is a cardholder account', async () => {
-      const { controller, cardService } = setup({
-        state: {
-          cardholderAccounts: [
-            `eip155:0:${CARDHOLDER_ADDRESS}`,
-            `eip155:0:${SELECTED_ADDRESS.toLowerCase()}`,
-          ],
-        },
-      });
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).toHaveBeenCalledWith(
-        'baanx',
-        { status: 'active', linkedAccountRef: refFor(SELECTED_ADDRESS) },
-        'token-1',
-      );
-    });
-
-    it('waits for a country, then seeds a Baanx country', async () => {
-      const { controller, cardService } = setup({
-        state: {
-          selectedCountry: null,
-          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
-        },
-      });
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-
-      controller.setSelectedCountry('US');
-      await flush();
-
-      expect(cardService.putCardLink).toHaveBeenCalledWith(
-        'baanx',
-        { status: 'active', linkedAccountRef: refFor(CARDHOLDER_ADDRESS) },
-        'token-1',
-      );
-    });
-
-    it('does not seed a GB cardholder', async () => {
-      const { controller, cardService } = setup({
-        state: {
-          selectedCountry: 'GB',
-          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
-        },
-      });
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-      expect(controller.state.cardLinksSeeded).toBe(false);
-      const [event] = mockTrackEvent.mock.calls[0];
-      expect(event.properties).toStrictEqual({
-        provider: 'baanx',
-        outcome: 'skipped',
-        skip_reason: 'gb',
-      });
-    });
-
-    it('does not seed when the country resolves to Immersve', async () => {
-      const { controller, cardService } = setup({
-        remoteFeatureFlags: {
-          cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
-          cardImmersveCountries: ['FR'],
-        },
-        state: {
-          selectedCountry: 'FR',
-          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
-        },
-      });
-
-      await controller.fetchCardLinks();
-
-      expect(cardService.putCardLink).not.toHaveBeenCalled();
-      const [event] = mockTrackEvent.mock.calls[0];
-      expect(event.properties).toMatchObject({
-        outcome: 'skipped',
-        skip_reason: 'not_baanx',
-      });
-    });
-
-    it('ends the seed on a 400 without retrying it', async () => {
-      const { controller, cardService } = setup({
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
-      });
-      cardService.putCardLink.mockRejectedValue(apiError(400));
-
-      await controller.fetchCardLinks();
-      await controller.fetchCardLinks({ force: true });
-
-      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
-      expect(controller.state.cardLinksSeeded).toBe(true);
-      expect(Logger.error).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent.mock.calls[0][0].properties).toStrictEqual({
-        provider: 'baanx',
-        outcome: 'rejected',
-      });
     });
   });
 
@@ -1031,7 +774,6 @@ describe('CardController card links', () => {
       const { controller, cardService } = setup({
         provider: { submitCredentials },
         state: {
-          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
           cardLinks: [link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) })],
         },
       });
@@ -1056,7 +798,7 @@ describe('CardController card links', () => {
       );
     });
 
-    it('picks the login account when the write runs, so it cannot replace a seed ahead of it', async () => {
+    it('does not attach a ref from a login queued behind a write that stored one', async () => {
       const submitCredentials = jest.fn().mockResolvedValue({
         done: true,
         tokenSet: {
@@ -1067,15 +809,15 @@ describe('CardController card links', () => {
       });
       const { controller, cardService } = setup({
         provider: { submitCredentials },
-        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
       });
       jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
       jest.spyOn(CardTokenStore, 'get').mockResolvedValue(null);
-      let finishSeed!: (value: CardLink) => void;
+      let finishFirst!: (value: CardLink) => void;
       cardService.putCardLink.mockImplementationOnce(
         () =>
           new Promise<CardLink>((resolve) => {
-            finishSeed = resolve;
+            finishFirst = resolve;
           }),
       );
       (controller as unknown as { currentSession: unknown }).currentSession = {
@@ -1084,15 +826,18 @@ describe('CardController card links', () => {
         _metadata: {},
       };
 
-      const seed = controller.fetchCardLinks();
+      const first = controller.recordProviderOnboardingStarted({
+        provider: 'baanx',
+        address: SELECTED_ADDRESS,
+      });
       await flush();
       await controller.submitCredentials({
         type: 'email_password',
         email: 'e',
         password: 'p',
       });
-      finishSeed(link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) }));
-      await seed;
+      finishFirst(link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) }));
+      await first;
       await flush();
 
       expect(cardService.putCardLink).toHaveBeenCalledTimes(2);
@@ -1115,7 +860,6 @@ describe('CardController card links', () => {
       const { controller, cardService } = setup({
         provider: { submitCredentials },
         state: {
-          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
           cardLinks: [
             link({ updatedAt: '2026-09-01T00:00:00.000Z' }),
             link({
@@ -1159,7 +903,6 @@ describe('CardController card links', () => {
       const { controller, cardService } = setup({
         provider: { submitCredentials },
         state: {
-          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
           cardLinks: [
             link({
               provider: 'immersve',
@@ -1228,7 +971,7 @@ describe('CardController card links', () => {
       );
     });
 
-    it('sends linkedAccountRef on Baanx login when the selected account is a cardholder account', async () => {
+    it('sends linkedAccountRef on Baanx login when the fresh link has none', async () => {
       const submitCredentials = jest.fn().mockResolvedValue({
         done: true,
         tokenSet: {
@@ -1240,8 +983,8 @@ describe('CardController card links', () => {
       const { controller, cardService } = setup({
         provider: { submitCredentials },
         state: {
-          cardholderAccounts: [`eip155:0:${SELECTED_ADDRESS.toLowerCase()}`],
-          cardLinks: [link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) })],
+          cardLinks: [link({ linkedAccountRef: null })],
+          cardLinksFetchedAt: Date.now(),
         },
       });
       jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
@@ -1775,7 +1518,6 @@ describe('CardController card links', () => {
       state: {
         cardLinks: [link()],
         cardLinksFetchedAt: Date.now(),
-        cardLinksSeeded: true,
       },
     });
     jest.spyOn(CardTokenStore, 'get').mockResolvedValue(null);
@@ -1784,7 +1526,6 @@ describe('CardController card links', () => {
 
     expect(controller.state.cardLinks).toBeNull();
     expect(controller.state.cardLinksFetchedAt).toBeNull();
-    expect(controller.state.cardLinksSeeded).toBe(false);
   });
 
   it('keeps card links out of state logs', () => {
@@ -1800,7 +1541,6 @@ describe('CardController card links', () => {
 
     expect(logged).not.toHaveProperty('cardLinks');
     expect(logged).toMatchObject({
-      cardLinksSeeded: false,
       cardLinkApiBlocked: false,
     });
     expect(controller.metadata.cardLinks).toStrictEqual({

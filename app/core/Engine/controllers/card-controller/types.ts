@@ -152,8 +152,6 @@ export type CardControllerState = {
   providerUserId: string | null;
   /** Last reason the active provider session became unauthenticated. */
   lastUnauthenticatedReason: CardUnauthenticatedReason | null;
-  /** CAIP-10 account IDs that are card holders. */
-  cardholderAccounts: string[];
   /**
    * Per-provider persistent data keyed by provider ID.
    * Values are JSON-serializable objects (e.g. `{ location: 'us' }`).
@@ -189,7 +187,6 @@ export type CardControllerState = {
   /** `null` until fetched; `[]` means never linked. */
   cardLinks: CardLink[] | null;
   cardLinksFetchedAt: number | null;
-  cardLinksSeeded: boolean;
   /** Card API refused this client version (403); treated as the flag being off. */
   cardLinkApiBlocked: boolean;
 };

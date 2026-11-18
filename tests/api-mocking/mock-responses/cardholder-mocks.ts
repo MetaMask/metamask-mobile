@@ -1,5 +1,4 @@
 import { TestSpecificMock } from '../../framework/types.ts';
-import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder.ts';
 import { setupMockRequest } from '../helpers/mockHelpers.ts';
 import { createGeolocationResponse } from './ramps/responses/ramps-geolocation.ts';
 import { RAMPS_NETWORKS_RESPONSE } from './ramps/responses/ramps-networks-response.ts';
@@ -46,7 +45,6 @@ const clientConfig = {
       },
       cardFeature: {
         constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
           onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
         },
         chains: {
@@ -102,6 +100,10 @@ const clientConfig = {
             },
           },
         },
+      },
+      cardLinkApi: {
+        enabled: true,
+        minimumVersion: '0.0.0',
       },
     },
   ],
@@ -319,10 +321,18 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/metadata\?.*$/,
-    response: {
-      is: [`eip155:0:${DEFAULT_FIXTURE_ACCOUNT.toLowerCase()}`],
-    },
+    url: /^https:\/\/card\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v1\/card\/links$/,
+    response: [
+      {
+        provider: 'baanx',
+        status: 'active',
+        linkedAccountRef: null,
+        closedReason: null,
+        migratedToProvider: null,
+        linkedAt: '2026-09-01T00:00:00.000Z',
+        updatedAt: '2026-09-01T00:00:00.000Z',
+      },
+    ],
     responseCode: 200,
   });
 
