@@ -484,11 +484,15 @@ export class CardController extends BaseController<
 
     // isSignedIn is persisted, so this runs on the change to signed in: the
     // first sign-in after an SRP import, or a sign-in after a sign-out.
+    // Forced, because a wallet reset can leave the previous wallet's cached
+    // links behind when its Card cleanup does not run.
     this.messenger.subscribe(
       'AuthenticationController:stateChange',
       (isSignedIn: boolean) => {
         if (isSignedIn && !this.resetInProgress) {
-          this.#fetchCardLinksWithLogging('#onSignIn/fetchCardLinks');
+          this.#fetchCardLinksWithLogging('#onSignIn/fetchCardLinks', {
+            force: true,
+          });
         }
       },
       (state) => state.isSignedIn,
@@ -550,7 +554,9 @@ export class CardController extends BaseController<
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
       (_cardLinkApiKey: string) => {
-        if (this.resetInProgress) return;
+        // Keyrings are empty while locked and before onboarding, so the
+        // bearer token cannot be resolved yet. The next unlock or sign-in reads.
+        if (this.resetInProgress || !this.#hasHdKeyring()) return;
         this.#fetchCardLinksWithLogging('#onCardLinkApiFlagChange');
       },
       (state) => JSON.stringify(state.remoteFeatureFlags?.cardLinkApi ?? null),
@@ -752,6 +758,13 @@ export class CardController extends BaseController<
     if (isFresh && !force) {
       await this.#backfillSessionCardLink();
       return;
+    }
+
+    // A forced read must not join one that started earlier: that result can
+    // belong to the previous profile. Wait for it, then read again. Two forced
+    // callers still share the second read.
+    if (force && this.#cardLinksFetchPromise) {
+      await this.#cardLinksFetchPromise.catch(() => undefined);
     }
 
     if (!this.#cardLinksFetchPromise) {

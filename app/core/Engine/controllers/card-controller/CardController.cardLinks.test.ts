@@ -338,6 +338,26 @@ describe('CardController card links', () => {
       expect(cardService.getCardLinks).not.toHaveBeenCalled();
     });
 
+    it('reads again when forced during an in-flight fetch', async () => {
+      const { controller, cardService } = setup();
+      const pendingGet = deferred<CardLink[]>();
+      cardService.getCardLinks
+        .mockImplementationOnce(() => pendingGet.promise)
+        .mockResolvedValueOnce([]);
+
+      const first = controller.fetchCardLinks();
+      await flush();
+      const joined = controller.fetchCardLinks();
+      const forced = controller.fetchCardLinks({ force: true });
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+
+      pendingGet.resolve([]);
+      await Promise.all([first, joined, forced]);
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(2);
+    });
+
     it('refetches a stale result, or when forced', async () => {
       const dayAgo = Date.now() - 24 * 60 * 60 * 1000 - 1;
       const stale = setup({
@@ -497,6 +517,15 @@ describe('CardController card links', () => {
       expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
     });
 
+    it('does not read links when the cardLinkApi flag changes before a wallet exists', async () => {
+      const { cardService, subscriptions } = setup({ keyrings: [] });
+
+      subscriptions['RemoteFeatureFlagController:stateChange']('{}');
+      await flush();
+
+      expect(cardService.getCardLinks).not.toHaveBeenCalled();
+    });
+
     it('ignores a cardLinkApi flag change while a reset is in progress', async () => {
       const { controller, cardService, subscriptions } = setup();
 
@@ -555,6 +584,20 @@ describe('CardController card links', () => {
 
     it('fetches links when the profile becomes signed in', async () => {
       const { cardService, subscriptions } = setup();
+
+      subscriptions['AuthenticationController:stateChange'](true);
+      await flush();
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+    });
+
+    it('reads links on sign-in even when the cache is fresh', async () => {
+      const { controller, cardService, subscriptions } = setup({
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
+      });
+
+      await controller.fetchCardLinks();
+      expect(cardService.getCardLinks).not.toHaveBeenCalled();
 
       subscriptions['AuthenticationController:stateChange'](true);
       await flush();
