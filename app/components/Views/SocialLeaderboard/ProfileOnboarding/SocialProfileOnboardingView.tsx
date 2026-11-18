@@ -132,7 +132,11 @@ import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
-const { Interaction, Outcome, Screen, Step } = SocialEvent;
+const { Interaction, Outcome, Path, Screen, Step } = SocialEvent;
+
+const onboardingPathFor = (
+  path: ProfileOnboardingPath,
+): (typeof Path)[keyof typeof Path] => (path === 'x' ? Path.X : Path.MANUAL);
 // Future live source: https://metamask.com/terms-of-use
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
@@ -957,6 +961,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         if (controller.signal.aborted) {
           return;
         }
+        trackInteraction(Interaction.X_SIGN_IN, {
+          path: Path.X,
+          outcome: Outcome.SUCCESS,
+          step: Step.INTRO,
+        });
         setDraft((current) =>
           applyXOnboardingProfile(current, {
             username: xProfile.username,
@@ -966,13 +975,25 @@ const SocialProfileOnboardingView: React.FC = () => {
         );
         setStep('x-identity');
       } catch (error) {
-        if (
-          controller.signal.aborted ||
-          (error instanceof XAuthError &&
-            error.type === XAuthErrorType.UserCancelled)
-        ) {
+        if (controller.signal.aborted) {
           return;
         }
+        if (
+          error instanceof XAuthError &&
+          error.type === XAuthErrorType.UserCancelled
+        ) {
+          trackInteraction(Interaction.X_SIGN_IN, {
+            path: Path.X,
+            outcome: Outcome.CANCELLED,
+            step: Step.INTRO,
+          });
+          return;
+        }
+        trackInteraction(Interaction.X_SIGN_IN, {
+          path: Path.X,
+          outcome: Outcome.FAILED,
+          step: Step.INTRO,
+        });
         reportProfileOnboardingFailure(error, {
           operation: 'connect_x',
           extraMessage: 'Profile onboarding X connect failed',
@@ -993,10 +1014,14 @@ const SocialProfileOnboardingView: React.FC = () => {
       }
     };
     connect().catch(() => undefined);
-  }, [cancelConnectX, playSelection]);
+  }, [cancelConnectX, playSelection, trackInteraction]);
 
   const requestPath = useCallback(
     (path: ProfileOnboardingPath) => {
+      trackInteraction(Interaction.BUTTON_CLICKED, {
+        step: Step.INTRO,
+        path: onboardingPathFor(path),
+      });
       if (hasAcceptedSocialTerms()) {
         if (path === 'x') {
           beginConnectX();
@@ -1255,6 +1280,8 @@ const SocialProfileOnboardingView: React.FC = () => {
       trackInteractionRef.current(Interaction.ONBOARDING_COMPLETED, {
         outcome: Outcome.SUCCESS,
         traders_followed_count: 0,
+        path: onboardingPathFor(current.path),
+        uses_x_username: current.useXUsername,
       });
     }
   };
@@ -1316,10 +1343,8 @@ const SocialProfileOnboardingView: React.FC = () => {
           step: currentDraft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
         });
       }
-      if (stepRef.current !== 'ready') {
-        setIsSubmitting(false);
-        return;
-      }
+      // Publish even if the user left Ready during the write — otherwise local
+      // save and `onboarding_completed` never fire after `username_claimed`.
       if (fingerprintForDraft(draftRef.current) !== fingerprint) {
         continue;
       }
