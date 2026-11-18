@@ -166,9 +166,6 @@ const cvDynamicMockBan = (message) => ({
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    project: './tsconfig.json',
-  },
   extends: [
     '@react-native',
     'eslint:recommended',
@@ -232,6 +229,15 @@ module.exports = {
         // Oxlint owns this rule. It is a warning in .oxlintrc.json and runs
         // in type-aware mode (oxlint-tsgolint), so it is off here.
         '@typescript-eslint/no-deprecated': 'off',
+        // Oxlint owns these five too, as errors. The shared config turns
+        // them on and they need type information. ESLint no longer loads the
+        // TypeScript project (no parserOptions.project), so a rule that needs
+        // type information throws if it is turned on here.
+        '@typescript-eslint/no-array-delete': 'off',
+        '@typescript-eslint/no-for-in-array': 'off',
+        '@typescript-eslint/no-meaningless-void-operator': 'off',
+        '@typescript-eslint/no-unnecessary-qualifier': 'off',
+        '@typescript-eslint/no-unsafe-unary-minus': 'off',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [

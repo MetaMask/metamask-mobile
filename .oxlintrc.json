@@ -38,6 +38,11 @@
     "app/declarations/**"
   ],
   "rules": {
+    "typescript/no-array-delete": "error",
+    "typescript/no-for-in-array": "error",
+    "typescript/no-meaningless-void-operator": "error",
+    "typescript/no-unnecessary-qualifier": "error",
+    "typescript/no-unsafe-unary-minus": "error",
     "typescript/no-wrapper-object-types": "error",
     "typescript/prefer-enum-initializers": "error",
     "no-loss-of-precision": "error",
