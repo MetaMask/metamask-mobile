@@ -279,6 +279,37 @@ describe('SocialV1View copy trade', () => {
     ).toHaveBeenCalled();
   });
 
+  it.each([
+    {
+      name: 'geolocation is the UK',
+      geolocation: { location: 'GB', status: 'complete' as const },
+    },
+    {
+      name: 'geolocation has not resolved',
+      geolocation: { location: 'UNKNOWN', status: 'loading' as const },
+    },
+  ])('hides Copy trade when $name', async ({ geolocation }) => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute], {
+      overrides: {
+        engine: {
+          backgroundState: {
+            ...eligibleOverrides.engine.backgroundState,
+            GeolocationController: geolocation,
+          },
+        },
+      },
+    });
+
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    await trendingPage.findByTestId(
+      `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
+    );
+
+    expect(trendingPage.queryByTestId(copyTradeButtonTestId)).toBeNull();
+  });
+
   it('shows the open perp copy-trade card after the feed loads', async () => {
     renderSocialV1ViewWithRoutes([perpsModalsRoute], {
       overrides: eligibleOverrides,

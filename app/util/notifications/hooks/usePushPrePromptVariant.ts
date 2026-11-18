@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getIsNotificationEnabledByDefaultFeatureFlag } from '../../../selectors/notifications';
 import {
@@ -7,18 +7,18 @@ import {
 } from '../../../selectors/onboarding';
 import { selectDataCollectionForMarketingEnabled } from '../../../selectors/engagement';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import { selectAnalyticsEnabled } from '../../../selectors/analyticsController';
 import {
   selectIsReferralLinkPending,
   selectPendingMoneyReferralCode,
 } from '../../../reducers/rewardsMoney/selectors';
 import Logger from '../../Logger';
 import {
-  hasPushPrePromptBeenShown,
-  setPushPrePromptShown,
+  hasPushPrePromptBeenAnswered,
+  setPushPrePromptAnswered,
 } from '../constants/notification-storage-keys';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { resolveNativePushPermissionStatus } from '../utils/push-notification-status';
+import { useIsHomeUnobstructed } from './useIsHomeUnobstructed';
 
 export type PushPrePromptVariant =
   | 'push_permission'
@@ -34,27 +34,24 @@ interface PushPrePromptResolutionState {
 
 interface PushPrePromptEligibility {
   canShowPrePrompt: boolean;
-  hasPrePromptBeenShown: boolean;
+  hasPrePromptBeenAnswered: boolean;
   hasMarketingConsent: boolean;
   isMarketingConsentResolutionPending: boolean;
-  isMetaMetricsEnabled: boolean;
   pendingSocialLoginMarketingConsentBackfill: string | null;
 }
 
 const getResolutionKey = ({
   canShowPrePrompt,
-  hasPrePromptBeenShown,
+  hasPrePromptBeenAnswered,
   hasMarketingConsent,
   isMarketingConsentResolutionPending,
-  isMetaMetricsEnabled,
   pendingSocialLoginMarketingConsentBackfill,
 }: PushPrePromptEligibility) =>
   [
     `canShowPrePrompt:${canShowPrePrompt}`,
-    `hasPrePromptBeenShown:${hasPrePromptBeenShown}`,
+    `hasPrePromptBeenAnswered:${hasPrePromptBeenAnswered}`,
     `hasMarketingConsent:${hasMarketingConsent}`,
     `isMarketingConsentResolutionPending:${isMarketingConsentResolutionPending}`,
-    `isMetaMetricsEnabled:${isMetaMetricsEnabled}`,
     `pendingSocialLoginMarketingConsentBackfill:${
       pendingSocialLoginMarketingConsentBackfill ?? 'null'
     }`,
@@ -75,7 +72,7 @@ interface PushPrePromptResolutionResult {
 const resolvePrePromptVariant = async (
   eligibility: PushPrePromptEligibility,
 ): Promise<PushPrePromptResolutionResult> => {
-  if (eligibility.hasPrePromptBeenShown) {
+  if (eligibility.hasPrePromptBeenAnswered) {
     return {
       nativeOsPermissionEnabled: null,
       variant: null,
@@ -107,17 +104,6 @@ const resolvePrePromptVariant = async (
     };
   }
 
-  // The marketing-consent sheet must never appear when MetaMetrics is off —
-  // confirming it would call enableMarketingConsent(), which is a no-op when
-  // metrics is off, so the sheet would achieve nothing. More importantly, we
-  // never want these sheets to be a backdoor to toggling MetaMetrics.
-  if (!eligibility.isMetaMetricsEnabled) {
-    return {
-      nativeOsPermissionEnabled,
-      variant: null,
-    };
-  }
-
   if (
     eligibility.isMarketingConsentResolutionPending ||
     eligibility.pendingSocialLoginMarketingConsentBackfill
@@ -139,8 +125,8 @@ const resolvePrePromptVariant = async (
  *
  * The pre-prompt presenter uses this hook to decide between the push permission
  * prompt, the marketing consent prompt, or no prompt. The hook keeps the UI in
- * a resolving state while it checks local "already shown" storage and native
- * push permission, then exposes helpers for marking the prompt as shown and
+ * a resolving state while it checks local response storage and native
+ * push permission, then exposes helpers for recording an answer and
  * hiding it after the user dismisses or completes the flow.
  *
  * Eligibility is shared by both prompts. Once eligible, native OS push
@@ -149,9 +135,10 @@ const resolvePrePromptVariant = async (
  */
 export function usePushPrePromptVariant(): {
   isResolving: boolean;
+  isHomeUnobstructed: boolean;
   nativeOsPermissionEnabled: boolean | null;
   variant: PushPrePromptVariant;
-  markShown: () => Promise<void>;
+  markAnswered: () => Promise<void>;
   dismiss: () => void;
 } {
   // Two independent gates:
@@ -170,7 +157,6 @@ export function usePushPrePromptVariant(): {
   const hasMarketingConsent = useSelector(
     selectDataCollectionForMarketingEnabled,
   );
-  const isMetaMetricsEnabled = Boolean(useSelector(selectAnalyticsEnabled));
   const pendingSocialLoginMarketingConsentBackfill = useSelector(
     selectPendingSocialLoginMarketingConsentBackfill,
   );
@@ -180,6 +166,10 @@ export function usePushPrePromptVariant(): {
   const hasPendingMoneyReferralCode = Boolean(
     useSelector(selectPendingMoneyReferralCode),
   );
+
+  // The pre-prompt waits until home is unobstructed, so it never opens over the
+  // trade tray, a screen the user pushed, or anything else presented on top.
+  const isHomeUnobstructed = useIsHomeUnobstructed();
 
   const [startupMarketingConsent, setStartupMarketingConsent] = useState<
     boolean | null
@@ -211,30 +201,27 @@ export function usePushPrePromptVariant(): {
     isNotificationsByDefaultFlagOn &&
     isBasicFunctionalityEnabled &&
     !isReferralLinkPending &&
-    !hasPendingMoneyReferralCode;
+    !hasPendingMoneyReferralCode &&
+    isHomeUnobstructed;
 
   // Storage resets should affect the next app session/remount, not reopen the
   // pre-prompt while this root is already mounted.
-  const hasPrePromptBeenShownRef = useRef<boolean | null>(null);
-  if (hasPrePromptBeenShownRef.current === null) {
-    hasPrePromptBeenShownRef.current = hasPushPrePromptBeenShown();
-  }
-  const hasPrePromptBeenShown = hasPrePromptBeenShownRef.current;
+  const [hasPrePromptBeenAnswered, setHasPrePromptBeenAnswered] = useState(
+    hasPushPrePromptBeenAnswered,
+  );
 
   const eligibility = useMemo<PushPrePromptEligibility>(
     () => ({
       canShowPrePrompt,
-      hasPrePromptBeenShown,
+      hasPrePromptBeenAnswered,
       hasMarketingConsent: startupHasMarketingConsent,
       isMarketingConsentResolutionPending,
-      isMetaMetricsEnabled,
       pendingSocialLoginMarketingConsentBackfill,
     }),
     [
       canShowPrePrompt,
-      hasPrePromptBeenShown,
+      hasPrePromptBeenAnswered,
       isMarketingConsentResolutionPending,
-      isMetaMetricsEnabled,
       startupHasMarketingConsent,
       pendingSocialLoginMarketingConsentBackfill,
     ],
@@ -297,9 +284,9 @@ export function usePushPrePromptVariant(): {
     };
   }, [eligibility, resolutionKey]);
 
-  const markShown = useCallback(async () => {
-    hasPrePromptBeenShownRef.current = true;
-    await setPushPrePromptShown();
+  const markAnswered = useCallback(async () => {
+    setHasPrePromptBeenAnswered(true);
+    await setPushPrePromptAnswered();
   }, []);
 
   const dismiss = useCallback(() => {
@@ -320,7 +307,8 @@ export function usePushPrePromptVariant(): {
   return {
     dismiss,
     isResolving: isCurrentResolution ? resolutionState.isResolving : true,
-    markShown,
+    isHomeUnobstructed,
+    markAnswered,
     nativeOsPermissionEnabled: isCurrentResolution
       ? resolutionState.nativeOsPermissionEnabled
       : null,

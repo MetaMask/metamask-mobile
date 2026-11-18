@@ -2,9 +2,10 @@ import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
+import { useFeedAgeNow } from '../hooks/useFeedAgeNow';
 import { useLiveCardHeader } from '../live/useLiveCardHeader';
 import type { SocialV1FeedItem } from '../types';
-import { formatFeedPostAge } from '../utils/formatters';
+import { formatFeedPostAge, formatHoldDuration } from '../utils/formatters';
 import { isCopyTradeable } from '../utils/copyTrade';
 import { getPositionCardMode } from '../utils/positionCardMode';
 import CopyTradeButton from './CopyTradeButton';
@@ -46,6 +47,11 @@ export interface PositionCardBodyProps {
    * it because the trader is posting their own position. Defaults to `true`.
    */
   showCopyTrade?: boolean;
+  /**
+   * Wall-clock instant for an open hold. The feed passes the row clock so the
+   * label moves without rebuilding the post.
+   */
+  now?: number;
 }
 
 const statId = getSocialFeedPositionCardStatTestId;
@@ -143,12 +149,25 @@ const closedStats = (item: {
  * Dark mode washes the card with the P&L hue. Open and closed cards share the
  * muted 1px border.
  */
+/** Open holds tick from their first fill. A baked label is the fallback. */
+const openHoldTimeLabel = (
+  item: { holdStartedAtMs?: number; holdTimeLabel?: string },
+  now?: number,
+): string | undefined => {
+  if (item.holdStartedAtMs == null) {
+    return item.holdTimeLabel;
+  }
+  return formatHoldDuration((now ?? Date.now()) - item.holdStartedAtMs);
+};
+
 export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   item,
   onCopyTrade,
   expanded = false,
   showCopyTrade = true,
+  now,
 }) => {
+  const clock = useFeedAgeNow(now);
   const header = useLiveCardHeader(
     item.id,
     item.variant === 'perpsOpen' ||
@@ -186,7 +205,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
       {
         key: 'holdTime',
         label: strings('social_leaderboard.feed.position_card.hold_time'),
-        value: item.holdTimeLabel,
+        value: openHoldTimeLabel(item, clock),
         testID: statId(item.id, 'holdTime'),
       },
       {
@@ -289,7 +308,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
         comment={item.comment}
         now={now}
       >
-        <PositionCardBody item={item} onCopyTrade={onCopyTrade} />
+        <PositionCardBody item={item} onCopyTrade={onCopyTrade} now={now} />
       </FeedPost>
       {geoBlockSheet}
     </>

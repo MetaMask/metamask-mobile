@@ -22,10 +22,14 @@ import {
   ListItemMultiSelect,
   Text,
   TextVariant,
+  TextButton,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { useNetworkName } from '../../../../UI/Trending/hooks/useNetworkName/useNetworkName';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
-import { ImportAsset } from '../../utils/utils';
+import { getImportAssetKey, ImportAsset } from '../../utils/utils';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 
 interface Props {
   /**
@@ -45,63 +49,59 @@ interface Props {
    */
   searchQuery: string;
   /**
-   * Name of the network
-   */
-  networkName?: string;
-  /**
-   * Set of already added token addresses (lowercase)
+   * Set of already added tokens, keyed with `getImportAssetKey`
    */
   alreadyAddedTokens?: Set<string>;
   /**
    * Whether the search results are loading
    */
   isLoading?: boolean;
+  /**
+   * When provided, the empty state offers to add a custom token
+   */
+  onAddCustomToken?: () => void;
 }
 
 interface SearchTokenResultRowProps {
   item: ImportAsset;
   isSelected: boolean;
   isAlreadyAdded: boolean;
-  networkName?: string;
   onSelect: (asset: ImportAsset) => void;
 }
 
 const getTokenSearchRowKey = (token: ImportAsset) =>
   `${token.chainId}-${token.address.toLowerCase()}`;
 
-const TokenAvatar = ({
-  asset,
-  networkName,
-}: {
-  asset: ImportAsset;
-  networkName?: string;
-}) => (
-  <BadgeWrapper
-    position={BadgeWrapperPosition.BottomRight}
-    badge={
-      <BadgeNetwork
-        src={NetworkBadgeSource(asset.chainId as `0x${string}`)}
-        name={networkName}
-        twClassName="h-5 w-5"
-      />
-    }
-  >
-    {asset.image ? (
-      <AvatarToken
-        name={asset.symbol}
-        src={{ uri: asset.image }}
-        size={AvatarTokenSize.Lg}
-      />
-    ) : null}
-  </BadgeWrapper>
-);
+const TokenAvatar = ({ asset }: { asset: ImportAsset }) => {
+  const networkName = useNetworkName([formatChainIdToCaip(asset.chainId)]);
+
+  return (
+    <BadgeWrapper
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        <BadgeNetwork
+          src={NetworkBadgeSource(asset.chainId as `0x${string}`)}
+          name={networkName}
+          twClassName="h-5 w-5"
+        />
+      }
+    >
+      {asset.image ? (
+        <AvatarToken
+          name={asset.symbol}
+          src={{ uri: asset.image }}
+          size={AvatarTokenSize.Lg}
+        />
+      ) : null}
+    </BadgeWrapper>
+  );
+};
 
 const SearchTokenResultRow = React.memo(
   ({
     item,
     isSelected,
     isAlreadyAdded,
-    networkName,
     onSelect,
   }: SearchTokenResultRowProps) => {
     const isChecked = isSelected || isAlreadyAdded;
@@ -115,7 +115,7 @@ const SearchTokenResultRow = React.memo(
         accessibilityState={{ checked: isChecked, disabled: isAlreadyAdded }}
         onPress={() => onSelect(item)}
         testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
-        avatar={<TokenAvatar asset={item} networkName={networkName} />}
+        avatar={<TokenAvatar asset={item} />}
         title={item.name}
         titleProps={{
           fontWeight: FontWeight.Medium,
@@ -159,9 +159,9 @@ const SearchTokenResults = ({
   handleSelectAsset,
   selectedAsset,
   searchQuery,
-  networkName,
   alreadyAddedTokens,
   isLoading = false,
+  onAddCustomToken,
 }: Props) => {
   const tw = useTailwind();
   const tokensImage = useAssetFromTheme(
@@ -169,8 +169,13 @@ const SearchTokenResults = ({
     emptyStateDefiDark,
   );
 
-  const selectedAddresses = useMemo(
-    () => new Set(selectedAsset.map((token) => token.address)),
+  const selectedKeys = useMemo(
+    () =>
+      new Set(
+        selectedAsset.map((token) =>
+          getImportAssetKey(token.chainId, token.address),
+        ),
+      ),
     [selectedAsset],
   );
 
@@ -181,22 +186,24 @@ const SearchTokenResults = ({
 
   const renderItem = useCallback<ListRenderItem<ImportAsset>>(
     ({ item }) => {
-      const { address } = item;
-      const isSelected = selectedAddresses.has(address);
+      const { address, chainId } = item;
+      const assetKey = getImportAssetKey(chainId, address);
+      const isSelected = selectedKeys.has(assetKey);
+      // Native tokens are inherent to their chain, so they are always "added".
       const isAlreadyAdded =
-        alreadyAddedTokens?.has(address.toLowerCase()) ?? false;
+        address.toLowerCase() === NATIVE_SWAPS_TOKEN_ADDRESS.toLowerCase() ||
+        (alreadyAddedTokens?.has(assetKey) ?? false);
 
       return (
         <SearchTokenResultRow
           item={item}
           isSelected={isSelected}
           isAlreadyAdded={isAlreadyAdded}
-          networkName={networkName}
           onSelect={handleSelectAsset}
         />
       );
     },
-    [selectedAddresses, alreadyAddedTokens, networkName, handleSelectAsset],
+    [selectedKeys, alreadyAddedTokens, handleSelectAsset],
   );
 
   // Show skeleton loaders when loading
@@ -206,6 +213,8 @@ const SearchTokenResults = ({
         data={Array(5).fill(null)}
         renderItem={() => <TokenSkeleton />}
         keyExtractor={(_, index) => `skeleton-${index}`}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
       />
     );
   }
@@ -227,6 +236,15 @@ const SearchTokenResults = ({
             ? strings('token.tokens_empty_description')
             : strings('token.no_tokens_found')}
         </Text>
+        {onAddCustomToken && searchQuery.trim().length > 0 ? (
+          <TextButton
+            onPress={onAddCustomToken}
+            twClassName="mt-2 text-center"
+            testID={ImportTokenViewSelectorsIDs.EMPTY_STATE_CUSTOM_TOKEN_BUTTON}
+          >
+            {strings('add_asset.add_custom_token_cta')}
+          </TextButton>
+        ) : null}
       </Box>
     );
   }
@@ -236,6 +254,8 @@ const SearchTokenResults = ({
       data={searchResults}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
+      keyboardDismissMode="on-drag"
+      keyboardShouldPersistTaps="handled"
     />
   );
 };

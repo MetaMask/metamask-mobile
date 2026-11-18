@@ -26,13 +26,15 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
     selectedReceiveToken,
     handleSelectReceiveToken,
     setActiveScreen,
+    tokenSearchQuery,
+    setTokenSearchQuery,
   } = useQuickBuyContext();
   const isSell = tradeMode === 'sell';
 
-  const handleBack = useCallback(
-    () => setActiveScreen('amount'),
-    [setActiveScreen],
-  );
+  const handleBack = useCallback(() => {
+    setTokenSearchQuery('');
+    setActiveScreen('amount');
+  }, [setActiveScreen, setTokenSearchQuery]);
 
   const handleSelect = useCallback(
     (token: BridgeToken) => {
@@ -41,6 +43,7 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
       } else {
         handleSelectSourceToken(token);
       }
+      setTokenSearchQuery('');
       setActiveScreen('amount');
     },
     [
@@ -48,6 +51,7 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
       handleSelectReceiveToken,
       handleSelectSourceToken,
       setActiveScreen,
+      setTokenSearchQuery,
     ],
   );
 
@@ -76,6 +80,8 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
         excludeToken={positionTokenFromSetup}
         onOpenNetworkList={() => setActiveScreen('selectNetwork')}
         hostManagesNetworkFilter
+        initialSearchString={tokenSearchQuery}
+        onSearchStringChange={setTokenSearchQuery}
         renderScrollComponent={GestureHandlerScrollView}
       />
     </>

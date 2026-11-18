@@ -18,7 +18,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
   BottomSheet,
-  BottomSheetHeader,
   ContentVariant,
   FontWeight,
   ListItemSelect,
@@ -29,6 +28,9 @@ import {
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { Region } from '../../types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -58,6 +60,7 @@ export const createRegionSelectorModalNavigationDetails =
   );
 
 function RegionSelectorModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<Region>>(null);
@@ -222,12 +225,13 @@ function RegionSelectorModal() {
       keyboardAvoidingViewEnabled={false}
       testID="region-selector-modal"
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: 'region-selector-close-button' }}
       >
         {strings('card.card_onboarding.region_selector.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch
           value={searchString}

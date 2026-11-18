@@ -4,7 +4,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import SearchTokenResults from './SearchTokenResults';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { ImportAsset } from '../../utils/utils';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
+import { getImportAssetKey, ImportAsset } from '../../utils/utils';
 
 jest.mock('../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../util/networks'),
@@ -35,7 +36,6 @@ const defaultProps = {
   handleSelectAsset: mockHandleSelectAsset,
   selectedAsset: [] as ImportAsset[],
   searchQuery: '',
-  networkName: 'Ethereum',
   alreadyAddedTokens: undefined as Set<string> | undefined,
   isLoading: false,
 };
@@ -81,6 +81,43 @@ describe('SearchTokenResults', () => {
     ).toBeOnTheScreen();
   });
 
+  it('offers to add a custom token when a search has no results', () => {
+    const onAddCustomToken = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <SearchTokenResults
+        {...defaultProps}
+        searchResults={[]}
+        searchQuery="USDT"
+        onAddCustomToken={onAddCustomToken}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(
+      getByTestId(ImportTokenViewSelectorsIDs.EMPTY_STATE_CUSTOM_TOKEN_BUTTON),
+    );
+
+    expect(onAddCustomToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not offer a custom token when there is no search query', () => {
+    const { queryByTestId } = renderWithProvider(
+      <SearchTokenResults
+        {...defaultProps}
+        searchResults={[]}
+        searchQuery=""
+        onAddCustomToken={jest.fn()}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      queryByTestId(
+        ImportTokenViewSelectorsIDs.EMPTY_STATE_CUSTOM_TOKEN_BUTTON,
+      ),
+    ).toBeNull();
+  });
+
   it('renders token name and symbol from search results', () => {
     const { getByText } = renderComponent();
 
@@ -99,7 +136,9 @@ describe('SearchTokenResults', () => {
   });
 
   it('disables already-added tokens and does not call handleSelectAsset', () => {
-    const alreadyAddedTokens = new Set([mockToken.address]);
+    const alreadyAddedTokens = new Set([
+      getImportAssetKey(mockToken.chainId, mockToken.address),
+    ]);
 
     const { getByTestId } = renderComponent({
       alreadyAddedTokens,
@@ -118,6 +157,18 @@ describe('SearchTokenResults', () => {
 
     fireEvent.press(listItem);
     expect(mockHandleSelectAsset).not.toHaveBeenCalled();
+  });
+
+  it('treats the native token as already added', () => {
+    const { getByTestId } = renderComponent({
+      searchResults: [
+        { ...mockToken, address: NATIVE_SWAPS_TOKEN_ADDRESS },
+      ] as ImportAsset[],
+    });
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+    ).toBeDisabled();
   });
 
   it('keeps selection on the correct token when search results reorder', () => {

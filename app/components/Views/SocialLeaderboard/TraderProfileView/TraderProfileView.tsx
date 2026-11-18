@@ -15,6 +15,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
+  useIsFocused,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -150,6 +151,7 @@ const TraderProfileView = () => {
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const isFocused = useIsFocused();
 
   const {
     profile,
@@ -158,14 +160,18 @@ const TraderProfileView = () => {
     isFollowing,
     toggleFollow,
     refresh,
-  } = useTraderProfile(traderId, { refetchInterval: 30_000 });
+  } = useTraderProfile(traderId, {
+    refetchInterval: isFocused ? 30_000 : undefined,
+  });
   const {
     openPositions,
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
     refetch: refetchPositions,
-  } = useTraderPositions(traderId, { refetchInterval: 30_000 });
+  } = useTraderPositions(traderId, {
+    refetchInterval: isFocused ? 30_000 : undefined,
+  });
   const [activeTab, setActiveTab] = useState<TraderProfileTab>('posts');
   const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
 
@@ -261,7 +267,7 @@ const TraderProfileView = () => {
           });
         },
         buildSocialProfileOpenGraph(traderLabel),
-        async () =>
+        async ({ promoCode }) =>
           buildSocialProfileOgImageRequest({
             traderId,
             username: profile?.profile.name || traderName,
@@ -269,6 +275,7 @@ const TraderProfileView = () => {
             profile,
             closedPositions,
             nowMs: Date.now(),
+            promoCode,
           }),
       ),
     );

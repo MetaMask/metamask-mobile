@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
+import { accountsApiActivityListDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
@@ -29,7 +29,7 @@ const AccountsApiActivityItem = ({
   );
 
   const display = useMemo(
-    () => accountsApiActivityDisplayInfo(activity, enrichment),
+    () => accountsApiActivityListDisplayInfo(activity, enrichment),
     [activity, enrichment],
   );
 

@@ -8,8 +8,8 @@
  * The history itself comes from the index flaky-unit-test-index.yml builds
  * nightly on main. This stage used to derive it per PR, re-walking thousands
  * of ci.yml runs on every push to answer a question about a handful of files,
- * against a GraphQL budget shared with every other workflow. That walk now
- * happens once a night and this stage is a lookup, which is what lets the
+ * against the GITHUB_TOKEN request budget shared with every other workflow.
+ * That walk now happens once a night and this stage is a lookup, which lets the
  * window be 90 days instead of 14 and finish in seconds instead of minutes.
  *
  * Moved files are looked up under their prior paths too, since the index is

@@ -60,6 +60,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.push_provisioning.verification_pending_description':
         'Open the card in Apple Wallet to verify it on {{devices}}.',
       'card.push_provisioning.open_in_apple_wallet': 'Open in Apple Wallet',
+      'card.card_home.messages.setup_incomplete.title':
+        'Finish setting up your card',
+      'card.card_home.messages.setup_incomplete.descriptions.contact':
+        'Add your contact details to continue.',
+      'card.card_home.messages.setup_incomplete.descriptions.kyc':
+        'Verify your identity to continue.',
+      'card.card_home.messages.setup_incomplete.descriptions.expected_spend':
+        'Tell us how you plan to use your card to continue.',
+      'card.card_home.messages.setup_incomplete.descriptions.funding':
+        'Approve funding so you can start spending.',
+      'card.card_home.messages.setup_incomplete.descriptions.rejected':
+        "We couldn't verify your identity. Try again to continue.",
+      'card.card_home.messages.setup_incomplete.confirm_button_label':
+        'Continue',
     };
     let value = mockStrings[key] || key;
     if (params) {
@@ -409,5 +423,32 @@ describe('CardMessageBox', () => {
         expect(getByTestId('card-message-box')).toBeOnTheScreen();
       });
     });
+  });
+
+  describe('SetupIncomplete warning', () => {
+    it.each([
+      ['contact', 'Add your contact details to continue.'],
+      ['kyc', 'Verify your identity to continue.'],
+      ['expected_spend', 'Tell us how you plan to use your card to continue.'],
+      ['funding', 'Approve funding so you can start spending.'],
+      ['rejected', "We couldn't verify your identity. Try again to continue."],
+    ] as const)(
+      'describes the %s setup step and continues',
+      (step, description) => {
+        const { getByText, getByTestId } = renderWithProvider(() => (
+          <CardMessageBox
+            messageType={CardMessageBoxType.SetupIncomplete}
+            values={{ step }}
+            onConfirm={mockOnConfirm}
+          />
+        ));
+
+        expect(getByText('Finish setting up your card')).toBeOnTheScreen();
+        expect(getByText(description)).toBeOnTheScreen();
+
+        fireEvent.press(getByTestId('confirm-button'));
+        expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 });

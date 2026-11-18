@@ -14,6 +14,11 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import { ApprovalSummaryLine } from './approval-summary-line';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
+import { buildPermit2ApproveTransactionData } from '../../../__mocks__/helpers/approve';
+import {
+  approvalSpenderMock,
+  permit2TokenMock,
+} from '../../../__mocks__/controllers/transaction-controller-mock';
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../../../../../selectors/bridgeStatusController');
@@ -31,7 +36,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-function render(to = '0x999') {
+function render(to = '0x999', data?: string) {
   return renderWithProvider(
     <ApprovalSummaryLine
       transactionMeta={
@@ -41,7 +46,7 @@ function render(to = '0x999') {
           hash: '0x456',
           submittedTime: 1755719285723,
           type: TransactionType.tokenMethodApprove,
-          txParams: { from: '0x123', to },
+          txParams: { from: '0x123', to, data },
         } as unknown as TransactionMeta
       }
     />,
@@ -106,6 +111,23 @@ describe('ApprovalSummaryLine', () => {
     render();
 
     expect(useTokenWithBalanceMock).toHaveBeenCalledWith('0x999', '0x1');
+  });
+
+  it('uses the calldata token for Permit2 approvals', () => {
+    render(
+      '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+      buildPermit2ApproveTransactionData(
+        permit2TokenMock,
+        approvalSpenderMock,
+        100,
+        1746696740,
+      ),
+    );
+
+    expect(useTokenWithBalanceMock).toHaveBeenCalledWith(
+      permit2TokenMock,
+      '0x1',
+    );
   });
 
   it('renders branded mUSD symbol when registry token at the mUSD address has symbol MUSD', () => {

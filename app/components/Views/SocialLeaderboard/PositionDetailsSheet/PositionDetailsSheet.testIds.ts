@@ -19,6 +19,7 @@ export const PositionDetailsSheetSelectorsIDs = {
   CHART: 'position-details-sheet-chart',
   CHART_LINE: 'position-details-sheet-chart-line',
   CHART_LOADING: 'position-details-sheet-chart-loading',
+  CHART_RETRY: 'position-details-sheet-chart-retry',
   CHART_MARKER: 'position-details-sheet-chart-marker',
   CHART_TOOLTIP: 'position-details-sheet-chart-tooltip',
   CHART_SCRUB: 'position-details-sheet-chart-scrub',

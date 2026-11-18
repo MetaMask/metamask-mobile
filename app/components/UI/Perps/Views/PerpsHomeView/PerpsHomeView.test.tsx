@@ -36,6 +36,7 @@ import {
   PerpsHomeViewSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
 } from '../../Perps.testIds';
+import { createPerpsCrossMarginSummaryMock } from '../../__mocks__/perpsHooksMocks';
 import {
   HOME_SCREEN_CONFIG,
   SUPPORT_CONFIG,
@@ -307,6 +308,19 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
     isMultiProviderEnabled: false,
   })),
 }));
+
+const mockUsePerpsCrossMarginSummary = jest.fn(() =>
+  createPerpsCrossMarginSummaryMock(),
+);
+jest.mock('../../hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: () => mockUsePerpsCrossMarginSummary(),
+}));
+
+jest.mock('../../components/PerpsBalanceBottomSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ isVisible }: { isVisible: boolean }) =>
+    isVisible ? <View testID="mock-perps-balance-bottom-sheet" /> : null;
+});
 
 // Use real BigNumber library - mocking it causes issues with module initialization
 
@@ -623,6 +637,9 @@ const mockScrollTracking = () => ({
 const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
   .usePerpsLiveAccount as jest.Mock;
 
+const mockUsePerpsProvider = jest.requireMock('../../hooks/usePerpsProvider')
+  .usePerpsProvider as jest.Mock;
+
 const mockUseBottomSafeAreaInset = jest.requireMock('../../hooks')
   .useBottomSafeAreaInset as jest.Mock;
 
@@ -711,6 +728,10 @@ describe('PerpsHomeView', () => {
         returnOnEquity: '0',
       },
       isInitialLoading: false,
+    });
+    mockUsePerpsProvider.mockReturnValue({
+      isMultiProviderEnabled: false,
+      activeProvider: 'hyperliquid',
     });
   });
 

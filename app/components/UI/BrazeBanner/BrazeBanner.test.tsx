@@ -126,7 +126,6 @@ jest.mock('./BrazeBannerCard', () => {
 function makeRawProperties(props: {
   bannerName?: string;
   variantName?: string;
-  flushImmediately?: boolean;
   dismissable?: boolean;
   deeplink?: string;
   body?: string;
@@ -139,11 +138,6 @@ function makeRawProperties(props: {
     result.campaign_name = { type: 'string', value: props.bannerName };
   if (props.variantName !== undefined)
     result.variant_name = { type: 'string', value: props.variantName };
-  if (props.flushImmediately !== undefined)
-    result.flush_immediately = {
-      type: 'boolean',
-      value: props.flushImmediately,
-    };
   if (props.dismissable !== undefined)
     result.dismissable = { type: 'boolean', value: props.dismissable };
   if (props.deeplink !== undefined)
@@ -157,7 +151,6 @@ function makeBanner(
     placementId: string;
     bannerName: string;
     variantName: string;
-    flushImmediately: boolean;
     dismissable: boolean;
     deeplink: string;
     body: string;
@@ -172,7 +165,6 @@ function makeBanner(
     properties: makeRawProperties({
       bannerName: overrides.bannerName,
       variantName: overrides.variantName,
-      flushImmediately: overrides.flushImmediately,
       dismissable: overrides.dismissable,
       deeplink: overrides.deeplink,
       body: overrides.body,
@@ -384,11 +376,9 @@ describe('BrazeBanner', () => {
       ]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
-        TEST_PLACEMENT_ID,
-        { campaign_name: 'campaign-abc' },
-        false,
-      );
+      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+        campaign_name: 'campaign-abc',
+      });
       expect(mockParse).toHaveBeenCalledWith('metamask://portfolio', {
         origin: 'braze',
       });
@@ -409,7 +399,6 @@ describe('BrazeBanner', () => {
       expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
         TEST_PLACEMENT_ID,
         null,
-        false,
       );
       expect(mockParse).not.toHaveBeenCalled();
     });
@@ -422,11 +411,9 @@ describe('BrazeBanner', () => {
       fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
-        TEST_PLACEMENT_ID,
-        { campaign_name: 'campaign-abc' },
-        false,
-      );
+      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+        campaign_name: 'campaign-abc',
+      });
       expect(mockParse).not.toHaveBeenCalled();
     });
 
@@ -441,11 +428,10 @@ describe('BrazeBanner', () => {
       expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
         TEST_PLACEMENT_ID,
         null,
-        false,
       );
     });
 
-    it('passes variant_name and the immediate flush flag to the click logger', () => {
+    it('passes variant_name to the click logger', () => {
       const { getByTestId } = render(
         <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
       );
@@ -454,31 +440,14 @@ describe('BrazeBanner', () => {
         makeBanner({
           bannerName: 'campaign-abc',
           variantName: 'variant-1',
-          flushImmediately: true,
         }),
       ]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
-        TEST_PLACEMENT_ID,
-        { campaign_name: 'campaign-abc', variant_name: 'variant-1' },
-        true,
-      );
-    });
-
-    it('waits for the next batch when flush_immediately is not set', () => {
-      const { getByTestId } = render(
-        <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-      );
-
-      fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
-      fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
-
-      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
-        TEST_PLACEMENT_ID,
-        { campaign_name: 'campaign-abc' },
-        false,
-      );
+      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+        campaign_name: 'campaign-abc',
+        variant_name: 'variant-1',
+      });
     });
 
     it('does not log a select when deeplink is rejected by the allowlist', () => {

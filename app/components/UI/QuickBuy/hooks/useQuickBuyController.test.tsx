@@ -37,10 +37,6 @@ jest.mock('react-redux', () => ({
   shallowEqual: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/profileController', () => ({
-  selectIsProfileTradingActivityPrivate: jest.fn(),
-}));
-
 jest.mock('@react-navigation/native', () => {
   const navigate = jest.fn();
   return { useNavigation: () => ({ navigate }) };
@@ -295,7 +291,10 @@ jest.mock('../resolveQuickBuyTerminalToast', () => ({
 
 jest.mock(
   '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
-  () => ({ usePostTradePromptResolver: jest.fn() }),
+  () => ({
+    usePostTradePromptResolver: jest.fn(),
+    useCanShareCopyTrade: jest.fn(),
+  }),
 );
 
 jest.mock(
