@@ -257,6 +257,10 @@ const VARIANT_EXPECTATIONS: Record<
 describe('MoneyVbaHomeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks keeps the last mockReturnValue. The persisted-details
+    // case sets this to true, which would skip hydration on a later
+    // account_is_ready run.
+    mockCanOpenPersistedVbaDetails.mockReturnValue(false);
     mockChooseCurrency = false;
     mockResolve.mockResolvedValue({
       status: 'ready',
