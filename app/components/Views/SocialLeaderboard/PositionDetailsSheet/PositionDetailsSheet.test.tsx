@@ -815,7 +815,7 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityLabel,
-    ).toContain('40x');
+    ).not.toContain('40x');
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityHint,
@@ -1510,6 +1510,7 @@ describe('PositionDetailsSheet', () => {
         direction: 'short',
         asset: 'BTC',
         leverage: 40,
+        isCopyTrade: true,
       });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('PerpsModals');

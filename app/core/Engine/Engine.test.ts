@@ -1355,6 +1355,17 @@ describe('Engine', () => {
       expect(clearStateSpy).toHaveBeenCalled();
     });
 
+    it('calls MoneyAccountLifecycleController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountLifecycleController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
     it('calls SubscriptionController.clearState', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
@@ -1452,6 +1463,21 @@ describe('Engine', () => {
       expect(abandonSpy.mock.invocationCallOrder[0]).toBeLessThan(
         clearSpy.mock.invocationCallOrder[0],
       );
+    });
+
+    it('clears the deposits the funding service remembers', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+      const clearStateSpy = jest.spyOn(
+        engine.context.PredictFundingService,
+        'clearState',
+      );
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalledTimes(1);
     });
 
     it('purges PredictNext account data when the order journal cannot be cleared', async () => {

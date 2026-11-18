@@ -21,8 +21,13 @@ import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
+import {
+  PredictFundingService,
+  type PredictFundingServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictFundingService';
 import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-live-data-service-messenger';
 import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
+import type { PredictFundingServiceInitMessenger } from '../messengers/predict-funding-service-messenger';
 import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
 import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
 import { subscribeToActiveVenueChanges } from '../../../components/UI/PredictNext/implementation/subscribeToActiveVenueChanges';
@@ -240,6 +245,91 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
   controller.setLifecycleCleanup(() => {
     unsubscribeVenue();
     cleanupRecovery();
+  });
+  return { controller };
+};
+
+export const predictFundingServiceInit: MessengerClientInitFunction<
+  PredictFundingService,
+  PredictFundingServiceMessenger,
+  PredictFundingServiceInitMessenger
+> = ({ controllerMessenger, initMessenger, getState }) => {
+  // Funding composition lives here, at the Engine composition root, with its
+  // own client: funding calls are single-flight workflow calls, never cached
+  // reads. Deposits are device-signed (`funding.deposit`), while Withdrawals
+  // are bearer-only: Kalshi refuses device signatures on
+  // `/isv/withdraw/crypto`, and the backend resolves the user, the
+  // destination, and the idempotency key. So this client needs the deposit
+  // signing hooks and no dispatch journal.
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: getPredictApiUrl(),
+      clientVersion: packageJSON.version,
+      getBearerToken: () =>
+        initMessenger.call('AuthenticationController:getBearerToken'),
+      // The deposit address request is device-signed (funding.deposit).
+      signOperation: (operation, input) =>
+        initMessenger.call(
+          'PredictDeviceAuthService:signOperation',
+          operation,
+          input,
+        ),
+      invalidateSigningSession: () =>
+        initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
+    }),
+    {
+      getApprovalGeneration: () =>
+        initMessenger.call('PredictDeviceAuthService:getApprovalGeneration'),
+    },
+  );
+  const controller = new PredictFundingService({
+    messenger: controllerMessenger,
+    funding: adapter.funding,
+    venueId: adapter.venueId,
+  });
+
+  // Lock stops observation; replacing the identity also detaches funding state.
+  const stopObserving = () => controller.stopObserving();
+  const changeIdentity = () => controller.changeIdentity();
+  initMessenger.subscribe('KeyringController:lock', stopObserving);
+  initMessenger.subscribe(
+    'AuthenticationController:profileSignIn',
+    changeIdentity,
+  );
+  let signedIn = initMessenger.call(
+    'AuthenticationController:getState',
+  ).isSignedIn;
+  const authenticationChanged = () => {
+    const next = initMessenger.call(
+      'AuthenticationController:getState',
+    ).isSignedIn;
+    if (next !== signedIn) {
+      signedIn = next;
+      changeIdentity();
+    }
+  };
+  initMessenger.subscribe(
+    'AuthenticationController:stateChange',
+    authenticationChanged,
+  );
+  // An Active Venue change means the observed Withdrawals belong to a Venue
+  // this session no longer serves.
+  const unsubscribeVenue = subscribeToActiveVenueChanges(
+    { getState, subscribe: (listener) => store.subscribe(listener) },
+    changeIdentity,
+  );
+
+  controller.setLifecycleCleanup(() => {
+    initMessenger.unsubscribe('KeyringController:lock', stopObserving);
+    initMessenger.unsubscribe(
+      'AuthenticationController:profileSignIn',
+      changeIdentity,
+    );
+    initMessenger.unsubscribe(
+      'AuthenticationController:stateChange',
+      authenticationChanged,
+    );
+    unsubscribeVenue();
   });
   return { controller };
 };

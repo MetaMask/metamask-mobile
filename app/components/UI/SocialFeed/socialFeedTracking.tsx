@@ -54,6 +54,7 @@ interface SocialFeedTracking {
   onReactionInteraction?: (
     action: 'added' | 'removed',
     emotion: string,
+    subject?: { post_id?: string; author_trader_id?: string },
   ) => void;
   onReactionPickerOpened?: () => void;
   onAuthorTap?: (position: SocialPositionAnalyticsProperties) => void;

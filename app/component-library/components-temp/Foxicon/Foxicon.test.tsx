@@ -1,57 +1,63 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
-import Foxicon from './Foxicon';
-import { AssetByFoxiconVariant, FoxiconVariant } from './Foxicon.types';
-
-jest.mock('./Foxicon.assets', () => {
-  const { createElement } = jest.requireActual<typeof import('react')>('react');
-  const { Text } =
-    jest.requireActual<typeof import('react-native')>('react-native');
-  const { FoxiconVariant: variants } =
-    jest.requireActual<typeof import('./Foxicon.types')>('./Foxicon.types');
-
-  return {
-    assetByFoxiconVariant: Object.fromEntries(
-      Object.values(variants).map((variant) => [
-        variant,
-        ({
-          width,
-          height,
-          testID,
-        }: {
-          width: number;
-          height: number;
-          testID?: string;
-        }) => createElement(Text, { testID }, `${variant} ${width}x${height}`),
-      ]),
-    ),
-  };
-});
+import Foxicon, { isFoxiconVariant } from './Foxicon';
+import { assetByFoxiconVariant } from './Foxicon.assets';
+import {
+  FOXICON_FALLBACK_VARIANT,
+  FoxiconVariant,
+  RetiredFoxiconVariant,
+} from './Foxicon.types';
 
 describe('Foxicon', () => {
   it('renders the asset for the given variant at the given size', () => {
-    render(<Foxicon variant={FoxiconVariant.Zombie} size={64} />);
+    render(<Foxicon variant={FoxiconVariant.Zombie} size={64} testID="fox" />);
 
-    expect(screen.getByText('zombie 64x64')).toBeOnTheScreen();
+    expect(screen.getByTestId('fox')).toHaveProp(
+      'source',
+      assetByFoxiconVariant[FoxiconVariant.Zombie],
+    );
+    expect(screen.getByTestId('fox')).toHaveStyle({ width: 64, height: 64 });
   });
 
-  it('applies the provided testID', () => {
+  it.each(Object.values(RetiredFoxiconVariant))(
+    'renders the fallback asset for the retired %s variant',
+    (variant) => {
+      render(<Foxicon variant={variant} size={32} testID="fox" />);
+
+      expect(screen.getByTestId('fox')).toHaveProp(
+        'source',
+        assetByFoxiconVariant[FOXICON_FALLBACK_VARIANT],
+      );
+    },
+  );
+
+  it('renders the fallback asset for an unknown variant', () => {
     render(
-      <Foxicon variant={FoxiconVariant.Base} size={32} testID="custom-fox" />,
+      <Foxicon
+        variant={'not-a-fox' as FoxiconVariant}
+        size={32}
+        testID="fox"
+      />,
     );
 
-    expect(screen.getByTestId('custom-fox')).toBeOnTheScreen();
+    expect(screen.getByTestId('fox')).toHaveProp(
+      'source',
+      assetByFoxiconVariant[FOXICON_FALLBACK_VARIANT],
+    );
   });
 
   it.each(Object.values(FoxiconVariant))(
     'has an asset registered for the %s variant',
     (variant) => {
-      const { assetByFoxiconVariant } = jest.requireActual<{
-        assetByFoxiconVariant: AssetByFoxiconVariant;
-      }>('./Foxicon.assets');
-
       expect(assetByFoxiconVariant[variant]).toBeDefined();
+      expect(isFoxiconVariant(variant)).toBe(true);
     },
   );
+
+  it('does not treat retired, unknown, or missing variants as current', () => {
+    expect(isFoxiconVariant(RetiredFoxiconVariant.Base)).toBe(false);
+    expect(isFoxiconVariant('toString')).toBe(false);
+    expect(isFoxiconVariant(undefined)).toBe(false);
+  });
 });

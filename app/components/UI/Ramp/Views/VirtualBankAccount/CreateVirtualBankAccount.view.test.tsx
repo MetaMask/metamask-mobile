@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { StyleSheet } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { notifyManager } from '@tanstack/query-core';
 import Engine from '../../../../../core/Engine';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -18,6 +19,13 @@ import {
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { VbaOnboardingRoutes } from './routes';
+
+notifyManager.setScheduler((callback) => {
+  act(callback);
+});
+notifyManager.setNotifyFunction((callback) => {
+  act(callback);
+});
 
 const mockGetPaymentMethodsForContext = jest.mocked(
   Engine.context.RampsController.getPaymentMethodsForContext,
@@ -127,30 +135,19 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     },
   );
 
-  it('does not promise Pix timing before the user picks a currency', async () => {
-    const { getByText, queryByText } = renderVbaVendorTerms({
+  it('promises Pix timing when chooseCurrency is on, because the picker is skipped', async () => {
+    const { findByText } = renderVbaVendorTerms({
       location: 'BR',
       overrides: buildRolloutOverrides({ chooseCurrency: true }),
     });
 
-    await waitFor(() => {
-      expect(
-        getByText(
-          strings(
-            'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
-            { timeframe: '2 - 3 business days' },
-          ),
-        ),
-      ).toBeOnTheScreen();
-    });
-
     expect(
-      queryByText(
+      await findByText(
         strings(
           'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
         ),
       ),
-    ).toBeNull();
+    ).toBeOnTheScreen();
   });
 
   it('shows the live arrival timeframe and queries the catalog for a non-Pix VBA region', async () => {

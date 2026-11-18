@@ -109,7 +109,11 @@ describe('swapQuoteFetchTrace', () => {
 
   it.each([
     [
-      { swapsSWAPS5043AbtestFirstQuoteFlush: { name: 'treatment' } },
+      {
+        swapsSWAPS5043AbtestFirstQuoteFlush: { name: 'treatment' },
+        swapsSWAPS5347AbtestImmediateFirstQuoteFetch: { name: 'treatment' },
+        swapsSWAPS5348AbtestYieldAfterFirstQuote: { name: 'treatment' },
+      },
       'treatment',
     ],
     [{}, 'control'],
@@ -122,7 +126,11 @@ describe('swapQuoteFetchTrace', () => {
 
       expect(annotateTraceByRequest).toHaveBeenCalledWith(
         { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
-        { first_quote_flush_variant: variant },
+        {
+          first_quote_flush_variant: variant,
+          immediate_first_quote_fetch_variant: variant,
+          yield_after_first_quote_variant: variant,
+        },
       );
     },
   );

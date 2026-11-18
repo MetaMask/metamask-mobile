@@ -9,12 +9,27 @@
  */
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
-import { Linter } from 'eslint';
+import { Linter, Rule } from 'eslint';
+
+const require = createRequire(__filename);
+const componentViewPlugin = require('./eslint/component-view-plugin') as {
+  meta: { name: string; version: string };
+  rules: Record<string, Rule.RuleModule>;
+};
 
 const RULE = 'no-restricted-syntax';
+const PLUGIN_RULES = [
+  'component-view/no-restricted-syntax',
+  'component-view/no-bare-query-timeout',
+  'component-view/no-clear-all-mocks-without-reset',
+] as const;
 const REPO_ROOT = path.join(__dirname, '..');
+const VIEW_TEST_FILE =
+  'app/components/UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView.view.test.tsx';
+const HELPER_FILE = 'tests/component-view/platform.ts';
 
 interface FenceCase {
   name: string;
@@ -26,35 +41,56 @@ interface FenceCase {
 const FENCE_CASES: FenceCase[] = [
   {
     name: 'view test bans jest.mock of an unlisted module',
-    file: 'app/components/UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView.view.test.tsx',
+    file: VIEW_TEST_FILE,
     code: 'jest.mock("react");\n',
     message:
-      'Only Engine and react-native-device-info can be mocked in component-view tests.',
+      'Arbitrary jest.mock() is not allowed in a component-view test. Drive behaviour through Redux state, presets, and renderers, or intercept HTTP with tests/component-view/api-mocking (nock). Only Engine (core/Engine or core/Engine/Engine) and react-native-device-info may be mocked. See the mobile-testing skill: https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md',
   },
   {
     name: 'view test allows the Engine mock',
-    file: 'app/components/UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView.view.test.tsx',
+    file: VIEW_TEST_FILE,
     code: 'jest.mock("../../../core/Engine");\n',
     message: null,
   },
   {
     name: 'view test bans fake timers',
-    file: 'app/components/UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView.view.test.tsx',
+    file: VIEW_TEST_FILE,
     code: 'jest.useFakeTimers();\n',
     message:
-      'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+      'Component-view tests must not use fake timers. Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state. See the mobile-testing skill: https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md',
   },
   {
     name: 'component-view helper bans fake timers',
-    file: 'tests/component-view/platform.ts',
+    file: HELPER_FILE,
     code: 'jest.useFakeTimers();\n',
     message:
-      'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+      'Component-view tests must not use fake timers. Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state. See the mobile-testing skill: https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md',
   },
   {
-    name: 'component-view helper allows jest.mock',
-    file: 'tests/component-view/platform.ts',
+    name: 'component-view helper bans an arbitrary jest.mock',
+    file: HELPER_FILE,
     code: 'jest.mock("react");\n',
+    message:
+      'Arbitrary jest.mock() is not allowed in component-view helpers. Add a framework mock only in tests/component-view/mocks.ts, and only for Engine, react-native-device-info, expo-web-browser, generateDeviceAnalyticsMetaData, or react-native/Libraries/Animated/Easing. See the mobile-testing skill: https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md',
+  },
+  {
+    name: 'view test bans a dynamic jest.mock',
+    file: VIEW_TEST_FILE,
+    code: 'jest.mock(moduleName);\n',
+    message:
+      'Arbitrary jest.mock() is not allowed in a component-view test. Drive behaviour through Redux state, presets, and renderers, or intercept HTTP with tests/component-view/api-mocking (nock). Only Engine (core/Engine or core/Engine/Engine) and react-native-device-info may be mocked. See the mobile-testing skill: https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md',
+  },
+  {
+    name: 'component-view helper bans a dynamic jest.mock',
+    file: HELPER_FILE,
+    code: 'jest.mock(moduleName);\n',
+    message:
+      'Arbitrary jest.mock() is not allowed in component-view helpers. Add a framework mock only in tests/component-view/mocks.ts, and only for Engine, react-native-device-info, expo-web-browser, generateDeviceAnalyticsMetaData, or react-native/Libraries/Animated/Easing. See the mobile-testing skill: https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md',
+  },
+  {
+    name: 'component-view helper allows the mocks.ts Engine mock',
+    file: 'tests/component-view/mocks.ts',
+    code: "jest.mock('../../app/core/Engine');\n",
     message: null,
   },
   {
@@ -116,13 +152,16 @@ const FENCE_CASES: FenceCase[] = [
   },
 ];
 
+interface ResolvedConfig {
+  syntax: Record<string, Linter.RuleEntry | null>;
+  plugin: Record<string, Record<string, Linter.RuleEntry | null>>;
+}
+
 /**
  * Jest's vm cannot dynamically import eslint.config.mjs. Ask a plain Node
- * process for the rule ESLint would use for these files.
+ * process for the rules ESLint would use for these files.
  */
-const loadResolvedRules = (
-  files: string[],
-): Record<string, Linter.RuleEntry | null> => {
+const loadResolvedRules = (files: string[]): ResolvedConfig => {
   const unique = [...new Set(files)];
   const outPath = path.join(
     os.tmpdir(),
@@ -133,16 +172,22 @@ const { ESLint } = require('eslint');
 const fs = require('node:fs');
 const path = require('node:path');
 const files = ${JSON.stringify(unique)};
+const pluginRules = ${JSON.stringify(PLUGIN_RULES)};
 const cwd = ${JSON.stringify(REPO_ROOT)};
 const outPath = ${JSON.stringify(outPath)};
 const eslint = new ESLint({ cwd });
 (async () => {
-  const out = {};
+  const syntax = {};
+  const plugin = {};
   for (const file of files) {
     const config = await eslint.calculateConfigForFile(path.join(cwd, file));
-    out[file] = config.rules[${JSON.stringify(RULE)}] ?? null;
+    syntax[file] = config.rules[${JSON.stringify(RULE)}] ?? null;
+    plugin[file] = {};
+    for (const ruleId of pluginRules) {
+      plugin[file][ruleId] = config.rules[ruleId] ?? null;
+    }
   }
-  fs.writeFileSync(outPath, JSON.stringify(out));
+  fs.writeFileSync(outPath, JSON.stringify({ syntax, plugin }));
 })().catch((error) => {
   console.error(error);
   process.exit(1);
@@ -158,18 +203,17 @@ const eslint = new ESLint({ cwd });
       `Failed to resolve ESLint config (status ${result.status}).\n${result.stderr}`,
     );
   }
-  const parsed = JSON.parse(fs.readFileSync(outPath, 'utf8')) as Record<
-    string,
-    Linter.RuleEntry | null
-  >;
+  const parsed = JSON.parse(fs.readFileSync(outPath, 'utf8')) as ResolvedConfig;
   fs.unlinkSync(outPath);
   return parsed;
 };
 
-const resolvedRules = loadResolvedRules([
-  ...FENCE_CASES.map((item) => item.file),
-  'app/core/Engine/Engine.ts',
-]);
+const { syntax: resolvedRules, plugin: resolvedPluginRules } = loadResolvedRules(
+  [
+    ...FENCE_CASES.map((item) => item.file),
+    'app/core/Engine/Engine.ts',
+  ],
+);
 const linter = new Linter({ cwd: REPO_ROOT });
 
 const lintSyntax = (file: string, code: string): string[] => {
@@ -222,10 +266,12 @@ describe('no-restricted-syntax fences', () => {
       resolvedRules['tests/component-view/platform.ts'],
     );
 
-    expect(selectors).toHaveLength(3);
+    expect(selectors).toHaveLength(5);
     expect(selectors[0]).toBe('WithStatement');
     expect(selectors[1]).toBe('SequenceExpression');
     expect(selectors[2]).toContain('useFakeTimers');
+    expect(selectors[3]).toContain("property.name='mock'");
+    expect(selectors[4]).toContain("property.name='mock'");
   });
 
   it.each(FENCE_CASES)('$name', ({ file, code, message }) => {
@@ -236,5 +282,148 @@ describe('no-restricted-syntax fences', () => {
       return;
     }
     expect(messages).toContain(message);
+  });
+});
+
+interface FlakeCase {
+  name: string;
+  file: string;
+  ruleId: (typeof PLUGIN_RULES)[number];
+  code: string;
+  message: string | null;
+}
+
+const FLAKE_CASES: FlakeCase[] = [
+  {
+    name: 'view test warns on a bare timeout',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-bare-query-timeout',
+    code: 'await findByText("Token A", {}, { timeout: 5000 });\n',
+    message: 'A bare { timeout }',
+  },
+  {
+    name: 'view test allows a timeout with a boundary comment',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-bare-query-timeout',
+    code: 'await findByText("Token A", {}, { timeout: 5000 }); // quote debounce\n',
+    message: null,
+  },
+  {
+    name: 'view test allows a timeout whose shared constant names the boundary',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-bare-query-timeout',
+    code: `// Positions stream lags the first paint.
+const TIMEOUT_MS = 5000;
+await screen.findByTestId("header", {}, { timeout: TIMEOUT_MS });
+`,
+    message: null,
+  },
+  {
+    name: 'view test warns on clearAllMocks without a reset',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-clear-all-mocks-without-reset',
+    code: 'beforeEach(() => { jest.clearAllMocks(); });\n',
+    message: 'jest.clearAllMocks()',
+  },
+  {
+    name: 'view test allows clearAllMocks when the file resets implementations',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-clear-all-mocks-without-reset',
+    code: `beforeEach(() => {
+  jest.clearAllMocks();
+  engine.placeOrder.mockReset();
+});
+`,
+    message: null,
+  },
+  {
+    name: 'view test allows clearAllMocks when the file calls resetAllMocks',
+    file: HELPER_FILE,
+    ruleId: 'component-view/no-clear-all-mocks-without-reset',
+    code: `beforeEach(() => {
+  jest.clearAllMocks();
+  jest.resetAllMocks();
+});
+`,
+    message: null,
+  },
+  {
+    name: 'view test warns on findBy nested in waitFor',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-restricted-syntax',
+    code: 'await waitFor(() => findByTestId("row"));\n',
+    message: 'Do not nest findBy*',
+  },
+  {
+    name: 'view test allows waitFor with a synchronous query',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-restricted-syntax',
+    code: 'await waitFor(() => { expect(getByText("Token A")).toBeOnTheScreen(); });\n',
+    message: null,
+  },
+  {
+    name: 'view test warns on a non-zero setTimeout',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-restricted-syntax',
+    code: 'await new Promise((resolve) => setTimeout(resolve, 50));\n',
+    message: 'Do not sleep',
+  },
+  {
+    name: 'view test warns on sleep()',
+    file: HELPER_FILE,
+    ruleId: 'component-view/no-restricted-syntax',
+    code: 'await sleep(100);\n',
+    message: 'Do not sleep',
+  },
+  {
+    name: 'view test allows a zero-delay setTimeout flush',
+    file: VIEW_TEST_FILE,
+    ruleId: 'component-view/no-restricted-syntax',
+    code: 'await new Promise((resolve) => setTimeout(resolve, 0));\n',
+    message: null,
+  },
+];
+
+const lintPluginRule = (
+  file: string,
+  ruleId: (typeof PLUGIN_RULES)[number],
+  code: string,
+): string[] => {
+  const rule = resolvedPluginRules[file]?.[ruleId];
+  if (rule == null) {
+    throw new Error(`No ${ruleId} config was resolved for ${file}`);
+  }
+  return linter
+    .verify(
+      code,
+      {
+        files: ['**/*.{js,jsx,ts,tsx}'],
+        languageOptions: { ecmaVersion: 2022, sourceType: 'module' },
+        plugins: { 'component-view': componentViewPlugin },
+        rules: { [ruleId]: rule },
+      },
+      { filename: path.join(REPO_ROOT, file) },
+    )
+    .filter((message) => message.ruleId === ruleId)
+    .map((message) => message.message);
+};
+
+describe('component-view flake fences', () => {
+  it('does not apply the flake rules outside component-view files', () => {
+    const rules = resolvedPluginRules['app/core/Engine/Engine.ts'];
+
+    for (const ruleId of PLUGIN_RULES) {
+      expect(rules?.[ruleId] ?? null).toBeNull();
+    }
+  });
+
+  it.each(FLAKE_CASES)('$name', ({ file, ruleId, code, message }) => {
+    const messages = lintPluginRule(file, ruleId, code);
+
+    if (message === null) {
+      expect(messages).toStrictEqual([]);
+      return;
+    }
+    expect(messages.some((item) => item.includes(message))).toBe(true);
   });
 });
