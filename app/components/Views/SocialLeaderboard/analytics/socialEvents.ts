@@ -36,6 +36,11 @@ export const SocialEvent = {
     MY_PROFILE: 'my_profile',
     /** Social V1 profile of another trader. */
     TRADER_PROFILE: 'trader_profile',
+    /**
+     * Default Perps copy surface when the order is not opened from a Social
+     * tab. Matches `SocialEvent.Source.TRADER_FEED`.
+     */
+    TRADER_FEED: 'trader_feed',
     POSITION_DETAILS_SHEET: 'position_details_sheet',
     MANAGE_PROFILE: 'manage_profile',
     PROFILE_ONBOARDING: 'profile_onboarding',

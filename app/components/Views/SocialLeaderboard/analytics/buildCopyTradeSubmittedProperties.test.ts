@@ -39,4 +39,26 @@ describe('buildCopyTradeSubmittedProperties', () => {
       direction: SocialEvent.Direction.SHORT,
     });
   });
+
+  it.each([
+    ['trader_feed', SocialEvent.Screen.TRADER_FEED],
+    ['leaderboard', SocialEvent.Screen.LEADERBOARD],
+    ['social_following', SocialEvent.Screen.FOLLOWING],
+    ['social_live_trades', SocialEvent.Screen.LIVE_TRADES],
+    ['trader_profile', SocialEvent.Screen.TRADER_PROFILE],
+  ] as const)('attributes a %s copy to that screen', (source, screenName) => {
+    expect(
+      buildCopyTradeSubmittedProperties({
+        source,
+        asset: 'ETH',
+        direction: 'long',
+      }),
+    ).toEqual({
+      ...base,
+      screen_name: screenName,
+      source,
+      asset: 'ETH',
+      direction: SocialEvent.Direction.LONG,
+    });
+  });
 });
