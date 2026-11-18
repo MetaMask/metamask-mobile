@@ -77,6 +77,7 @@ import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAdd
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { getPayTokenAddressAndChainId } from '../../../../Views/confirmations/utils/transaction-pay';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -735,8 +736,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled && activeTransactionMeta,
   );
-  const payTokenIdentity = payToken
-    ? `${payToken.address}:${payToken.chainId}`
+  const payTokenInfo = getPayTokenAddressAndChainId(payToken);
+  const payTokenIdentity = payTokenInfo
+    ? `${payTokenInfo.address}:${payTokenInfo.chainId}`
     : '';
 
   // The Trade sheet's payment token picker is an inline screen, so there is
@@ -1210,9 +1212,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: hasCustomTokenSelected,
         [PERPS_ANALYTICS_SIZE_UNIT]: readShownSizeUnit(),
       };
-      if (hasCustomTokenSelected && payToken) {
-        consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
-        consideredProps[PERPS_EVENT_PROPERTY.FROM_CHAIN] = payToken.chainId;
+      if (hasCustomTokenSelected && payTokenInfo) {
+        consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken?.symbol;
+        consideredProps[PERPS_EVENT_PROPERTY.FROM_CHAIN] = payTokenInfo.chainId;
       }
       track(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED, consideredProps);
     }, 1000);
@@ -1274,8 +1276,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const quoteKey = JSON.stringify({
       asset: orderForm.asset,
       amount: orderForm.amount,
-      payToken: payToken
-        ? `${payToken.symbol ?? ''}:${payToken.chainId ?? ''}`
+      payToken: payTokenInfo
+        ? `${payToken?.symbol ?? ''}:${payTokenInfo.chainId ?? ''}`
         : null,
       payTotals,
       errorKey: blockingNoQuoteAlert?.key,

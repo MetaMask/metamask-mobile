@@ -16,6 +16,7 @@ import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { derivePerpsTradeAction } from './deriveTradeAction';
 import { toPerpsEntryAttribution } from './perpsAnalyticsAttribution';
 import type { MaxSlippageSource } from '../constants/slippageConfig';
+import { getPayTokenAddressAndChainId } from '../../../Views/confirmations/utils/transaction-pay';
 
 type OrderTrackingData = OrderParams['trackingData'];
 
@@ -108,10 +109,13 @@ export const buildPerpsOrderTrackingData = ({
   chartLibrary,
   tradeWithToken: Boolean(hasCustomTokenSelected),
   ...(hasCustomTokenSelected && payToken
-    ? {
-        mmPayTokenSelected: payToken.symbol ?? '',
-        mmPayNetworkSelected: String(payToken.chainId ?? ''),
-      }
+    ? (() => {
+        const payTokenInfo = getPayTokenAddressAndChainId(payToken);
+        return {
+          mmPayTokenSelected: payToken.symbol ?? '',
+          mmPayNetworkSelected: String(payTokenInfo?.chainId ?? ''),
+        };
+      })()
     : {}),
   vipTier: vipTier ?? undefined,
   vipDiscount: feeResults.feeDiscountPercentage,

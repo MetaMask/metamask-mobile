@@ -35,6 +35,7 @@ import { useConfirmationMetricEvents } from '../../../../Views/confirmations/hoo
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { getPayTokenAddressAndChainId } from '../../../../Views/confirmations/utils/transaction-pay';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -199,8 +200,9 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
   // when the selector opens. Comparing identity avoids misclassifying a
   // selection of a different token that shares a symbol as a dismissal. `null`
   // means no selector open is pending.
-  const payTokenIdentity = payToken
-    ? `${payToken.address}:${payToken.chainId}`
+  const payTokenInfo = getPayTokenAddressAndChainId(payToken);
+  const payTokenIdentity = payTokenInfo
+    ? `${payTokenInfo.address}:${payTokenInfo.chainId}`
     : '';
   const selectorOpenIdentityRef = useRef<string | null>(null);
 
