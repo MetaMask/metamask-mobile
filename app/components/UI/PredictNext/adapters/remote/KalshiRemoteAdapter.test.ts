@@ -155,9 +155,9 @@ describe('KalshiRemoteAdapter', () => {
   it('surfaces a catalog read failure instead of fabricating support', async () => {
     client.fetchVenueCatalog.mockRejectedValue(new PredictHttpError(503));
 
-    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toMatchObject(
-      { code: PredictErrorCode.VENUE_UNAVAILABLE },
-    );
+    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toMatchObject({
+      code: PredictErrorCode.VENUE_UNAVAILABLE,
+    });
   });
 
   it('rejects a malformed catalog instead of enabling partial support', async () => {
@@ -166,9 +166,9 @@ describe('KalshiRemoteAdapter', () => {
       actions: 'buy',
     });
 
-    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toMatchObject(
-      { code: PredictErrorCode.INVALID_RESPONSE },
-    );
+    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toMatchObject({
+      code: PredictErrorCode.INVALID_RESPONSE,
+    });
   });
 
   it('preserves a cancelled catalog read instead of mapping it to a failure', async () => {
