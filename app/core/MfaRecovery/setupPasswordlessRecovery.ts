@@ -1,6 +1,6 @@
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
-import { IdentifierNotApprovedError } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
-import { LinkSocialLoginError } from '../Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
+import { IdentifierNotApprovedError } from './services/mfa-recovery-service';
+import { LinkSocialLoginError } from './social-login/link-social-login';
 import { createMfaRecoveryService } from './engineBindings';
 import { redactForDisplay } from './redactForDisplay';
 

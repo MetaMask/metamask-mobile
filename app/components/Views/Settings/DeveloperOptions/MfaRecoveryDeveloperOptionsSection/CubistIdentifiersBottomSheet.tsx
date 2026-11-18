@@ -14,7 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { MIN_CUBIST_IDENTIFIERS } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/recovery-identifiers';
+import { MIN_CUBIST_IDENTIFIERS } from '../../../../../core/MfaRecovery/services/recovery-identifiers';
 
 export const CUBIST_IDENTIFIERS_SHEET_TEST_ID =
   'mfa-recovery-dev-cubist-identifiers-sheet';

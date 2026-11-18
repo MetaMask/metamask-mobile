@@ -1,6 +1,6 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
-import type { MfaRecoveryService } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from '../../../../../core/MfaRecovery/services/mfa-recovery-service';
 import {
   runMfaRecoveryFullRetrieval,
   type MfaRecoveryFullRetrievalDependencies,

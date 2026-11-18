@@ -8,7 +8,7 @@ import { MfaRecoveryControllerError } from '../../../../../core/Engine/controlle
 import type {
   MfaRecoveryRunIdentifiers,
   MfaRecoveryService,
-} from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+} from '../../../../../core/MfaRecovery/services/mfa-recovery-service';
 
 import { redactForDisplay } from '../../../../../core/MfaRecovery/redactForDisplay';
 

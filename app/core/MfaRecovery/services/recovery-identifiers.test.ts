@@ -1,5 +1,5 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
-import { createSiweIdentifier } from '../auth/identifiers';
+import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   findMissingCubistIdentifier,
   getCandidateIdentifiers,

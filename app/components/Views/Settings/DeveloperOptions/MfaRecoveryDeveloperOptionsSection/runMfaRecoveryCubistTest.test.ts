@@ -2,8 +2,8 @@ import type {
   Identifier,
   MfaRecoveryController,
 } from '@metamask/mfa-recovery-controller';
-import { MfaRecoveryService } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
-import { createMfaRecoveryServiceTestMessenger } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service-test-messenger';
+import { MfaRecoveryService } from '../../../../../core/MfaRecovery/services/mfa-recovery-service';
+import { createMfaRecoveryServiceTestMessenger } from '../../../../../core/MfaRecovery/services/mfa-recovery-service-test-messenger';
 import {
   getMfaRecoveryErrorDetail,
   runMfaRecoveryCubistRecover,

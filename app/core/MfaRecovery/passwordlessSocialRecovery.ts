@@ -1,7 +1,7 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import type { SecretMetadata } from '@metamask/seedless-onboarding-controller';
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
-import type { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from './services/mfa-recovery-service';
 import { redactForDisplay } from './redactForDisplay';
 
 /** Operation named on the Auth approvals this flow requests. */

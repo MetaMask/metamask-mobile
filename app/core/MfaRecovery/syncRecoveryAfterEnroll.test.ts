@@ -1,5 +1,5 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
-import type { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from './services/mfa-recovery-service';
 import { createMfaRecoveryService } from './engineBindings';
 import { PASSWORDLESS_RECOVERY_SETUP_OPERATION } from './setupPasswordlessRecovery';
 import { syncRecoveryAfterEnroll } from './syncRecoveryAfterEnroll';

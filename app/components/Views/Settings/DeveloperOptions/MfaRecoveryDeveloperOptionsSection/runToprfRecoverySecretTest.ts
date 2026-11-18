@@ -6,7 +6,7 @@ import {
   getMfaRecoveryStatus,
   type MfaRecoverySeedless,
   type MfaRecoveryStatus,
-} from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/recovery-setup';
+} from '../../../../../core/MfaRecovery/services/recovery-setup';
 
 const PUBLIC_KEY_MESSAGE = 'MetaMask TOPRF recovery secret test v1';
 

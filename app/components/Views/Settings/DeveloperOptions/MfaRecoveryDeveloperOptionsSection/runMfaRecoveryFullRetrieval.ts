@@ -3,7 +3,7 @@ import {
   type SeedlessOnboardingController,
 } from '@metamask/seedless-onboarding-controller';
 import { bytesToHex, sha256, stringToBytes } from '@metamask/utils';
-import type { MfaRecoveryService } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from '../../../../../core/MfaRecovery/services/mfa-recovery-service';
 
 /** The seedless controller methods the full retrieval reads and writes. */
 export type MfaRecoveryFullRetrievalSeedless = Pick<

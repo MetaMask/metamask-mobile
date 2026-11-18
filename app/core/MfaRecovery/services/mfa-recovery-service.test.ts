@@ -1,5 +1,5 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
-import { createSiweIdentifier } from '../auth/identifiers';
+import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import { linkSocialLogin } from '../social-login/link-social-login';
 import {
   IdentifierNotApprovedError,
@@ -48,7 +48,7 @@ const mockToprfConfig = {
 const mockCubistAuthAudience = 'cubist-auth-audience';
 const controllers: Record<string, unknown> = {};
 
-jest.mock('../config', () => ({
+jest.mock('../../Engine/controllers/mfa-recovery-controller/config', () => ({
   getToprfRecoveryConfig: () => mockToprfConfig,
   getCubistConfig: () => ({ authAudience: mockCubistAuthAudience }),
 }));
@@ -57,7 +57,7 @@ jest.mock('../social-login/link-social-login', () => ({
   linkSocialLogin: jest.fn(),
 }));
 
-jest.mock('../../../../apiEnv', () => ({
+jest.mock('../../apiEnv', () => ({
   authEnv: () => 'test-env',
 }));
 

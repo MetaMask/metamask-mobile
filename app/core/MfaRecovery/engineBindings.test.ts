@@ -15,14 +15,11 @@ jest.mock('../Engine/messengers/mfa-recovery-controller-messenger', () => ({
   })),
 }));
 
-jest.mock(
-  '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
-  () => ({
-    MfaRecoveryService: jest.fn(),
-  }),
-);
+jest.mock('./services/mfa-recovery-service', () => ({
+  MfaRecoveryService: jest.fn(),
+}));
 
-import { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import { MfaRecoveryService } from './services/mfa-recovery-service';
 import { getMfaRecoveryServiceMessenger } from '../Engine/messengers/mfa-recovery-controller-messenger';
 import {
   canProveSocialIdentifier,

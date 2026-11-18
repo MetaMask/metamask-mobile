@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import { isMfaRecoveryConfigured } from '../../../../../core/Engine/controllers/mfa-recovery-controller/config';
 import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagController/mfaRecovery';
-import { LinkSocialLoginError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
+import { LinkSocialLoginError } from '../../../../../core/MfaRecovery/social-login/link-social-login';
 import { SOCIAL_LINK_EMAIL_TEST_IDS } from '../../../shared/SocialLinkEmailBottomSheet';
 import MfaRecoveryDeveloperOptionsSection from './MfaRecoveryDeveloperOptionsSection';
 
@@ -38,13 +38,11 @@ const mockToprfConfig = {
 };
 
 jest.mock(
-  '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
+  '../../../../../core/MfaRecovery/services/mfa-recovery-service',
   () => {
     const actual = jest.requireActual<
-      typeof import('../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service')
-    >(
-      '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
-    );
+      typeof import('../../../../../core/MfaRecovery/services/mfa-recovery-service')
+    >('../../../../../core/MfaRecovery/services/mfa-recovery-service');
     class MockMfaRecoveryService extends actual.MfaRecoveryService {
       setUp = (identifiers: unknown) =>
         mockRunMfaRecoverySetup(this, identifiers);
@@ -61,14 +59,12 @@ jest.mock(
 jest.mock('../../../../../core/MfaRecovery/engineBindings', () => ({
   createMfaRecoveryService: (options: object) => {
     const { MfaRecoveryService } = jest.requireMock<
-      typeof import('../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service')
-    >(
-      '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
-    );
+      typeof import('../../../../../core/MfaRecovery/services/mfa-recovery-service')
+    >('../../../../../core/MfaRecovery/services/mfa-recovery-service');
     const { createMfaRecoveryServiceTestMessenger } = jest.requireActual<
-      typeof import('../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service-test-messenger')
+      typeof import('../../../../../core/MfaRecovery/services/mfa-recovery-service-test-messenger')
     >(
-      '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service-test-messenger',
+      '../../../../../core/MfaRecovery/services/mfa-recovery-service-test-messenger',
     );
     const { default: MockEngine } = jest.requireMock<{
       default: { context: Record<string, unknown> };
@@ -85,10 +81,10 @@ jest.mock('../../../../../core/MfaRecovery/engineBindings', () => ({
 }));
 
 jest.mock(
-  '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login',
+  '../../../../../core/MfaRecovery/social-login/link-social-login',
   () => ({
     ...jest.requireActual(
-      '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login',
+      '../../../../../core/MfaRecovery/social-login/link-social-login',
     ),
     linkSocialLogin: (dependencies: unknown) =>
       mockLinkSocialLogin(dependencies),

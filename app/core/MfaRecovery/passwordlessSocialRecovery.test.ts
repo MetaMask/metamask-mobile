@@ -4,7 +4,7 @@ import {
   SecretType,
 } from '@metamask/seedless-onboarding-controller';
 import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/constants';
-import type { MfaRecoveryService } from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from './services/mfa-recovery-service';
 import {
   PasswordlessRecoveryError,
   recoverWalletWithoutPassword,

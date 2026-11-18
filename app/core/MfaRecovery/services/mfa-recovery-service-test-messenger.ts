@@ -7,7 +7,7 @@ import {
 import {
   getMfaRecoveryServiceMessenger,
   MFA_RECOVERY_SERVICE_ACTIONS,
-} from '../../../messengers/mfa-recovery-controller-messenger';
+} from '../../Engine/messengers/mfa-recovery-controller-messenger';
 import type { MfaRecoveryServiceMessenger } from './mfa-recovery-service';
 
 /** Fake controllers keyed by controller name, as tests mock `Engine.context`. */

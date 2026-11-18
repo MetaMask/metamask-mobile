@@ -10,7 +10,7 @@ import type {
   KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
 import type { MfaRecoveryControllerMessenger } from '@metamask/mfa-recovery-controller';
-import type { MfaRecoveryServiceMessenger } from '../controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryServiceMessenger } from '../../MfaRecovery/services/mfa-recovery-service';
 import type { RootMessenger } from '../types';
 
 type AllowedActions = MessengerActions<MfaRecoveryControllerMessenger>;

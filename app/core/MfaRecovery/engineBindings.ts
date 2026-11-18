@@ -3,7 +3,7 @@ import {
   MfaRecoveryService,
   type MfaRecoveryServiceMessenger,
   type MfaRecoveryServiceOptions,
-} from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+} from './services/mfa-recovery-service';
 import { getMfaRecoveryServiceMessenger } from '../Engine/messengers/mfa-recovery-controller-messenger';
 import { PASSWORDLESS_RECOVERY_OPERATION } from './passwordlessSocialRecovery';
 

@@ -23,10 +23,9 @@ jest.mock('../../../../core/NavigationService', () => ({
   default: { navigation: { reset: jest.fn() } },
 }));
 
-jest.mock(
-  '../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
-  () => ({ MfaRecoveryService: jest.fn() }),
-);
+jest.mock('../../../../core/MfaRecovery/services/mfa-recovery-service', () => ({
+  MfaRecoveryService: jest.fn(),
+}));
 
 jest.mock('../../../../core/MfaRecovery/setupPasswordlessRecovery', () => {
   const actual = jest.requireActual(

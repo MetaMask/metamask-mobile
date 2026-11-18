@@ -2,7 +2,7 @@ import type { Identifier } from '@metamask/mfa-recovery-controller';
 import {
   createSiweIdentifier,
   createSocialIdentifier,
-} from '../auth/identifiers';
+} from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
 
 /** The identifier types recovery manages, in the order they are added. */
 export const CUBIST_IDENTIFIER_TYPES = ['siwe', 'passkey', 'social'] as const;

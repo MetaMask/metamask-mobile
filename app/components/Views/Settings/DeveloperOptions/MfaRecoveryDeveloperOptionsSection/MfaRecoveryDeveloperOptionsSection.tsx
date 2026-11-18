@@ -22,7 +22,7 @@ import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagCo
 import { useMfa } from '../../../../../util/identity/mfa/useMfa';
 import { clearPendingOperationForDev } from './clearPendingOperation';
 import { createSocialIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
-import { LinkSocialLoginError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
+import { LinkSocialLoginError } from '../../../../../core/MfaRecovery/social-login/link-social-login';
 import { redactForDisplay } from '../../../../../core/MfaRecovery/redactForDisplay';
 import CubistIdentifiersBottomSheet from './CubistIdentifiersBottomSheet';
 import MfaRecoveryOptionsBottomSheet, {
@@ -32,7 +32,7 @@ import {
   findMissingCubistIdentifier,
   getCandidateIdentifiers,
   type CubistIdentifierChangeResult,
-} from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/recovery-identifiers';
+} from '../../../../../core/MfaRecovery/services/recovery-identifiers';
 import {
   getMfaRecoveryErrorCode,
   getMfaRecoveryErrorDetail,
@@ -42,7 +42,7 @@ import {
   type MfaRecoveryRecoverResult,
   type MfaRecoveryTestStep,
 } from './runMfaRecoveryCubistTest';
-import type { MfaRecoveryService } from '../../../../../core/Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
+import type { MfaRecoveryService } from '../../../../../core/MfaRecovery/services/mfa-recovery-service';
 import { createMfaRecoveryService } from '../../../../../core/MfaRecovery/engineBindings';
 import {
   runMfaRecoveryFullRetrieval,

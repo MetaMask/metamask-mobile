@@ -3,8 +3,8 @@ import type {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
 } from '@metamask/seedless-onboarding-controller';
-import { SOCIAL_IDENTIFIER_ISSUERS } from '../auth/identifiers';
-import { MfaRecoveryControllerError } from '../errors';
+import { SOCIAL_IDENTIFIER_ISSUERS } from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
+import { MfaRecoveryControllerError } from '../../Engine/controllers/mfa-recovery-controller/errors';
 import { isSameIdentifier } from './recovery-identifiers';
 
 /** The seedless controller methods and state the recovery flows read. */

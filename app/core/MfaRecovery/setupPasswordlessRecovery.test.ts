@@ -4,8 +4,8 @@ import {
   IdentifierNotApprovedError,
   type MfaRecoveryService,
   type MfaRecoveryRunIdentifiers,
-} from '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service';
-import { LinkSocialLoginError } from '../Engine/controllers/mfa-recovery-controller/social-login/link-social-login';
+} from './services/mfa-recovery-service';
+import { LinkSocialLoginError } from './social-login/link-social-login';
 import { createMfaRecoveryService } from './engineBindings';
 import {
   PASSWORDLESS_RECOVERY_SETUP_OPERATION,

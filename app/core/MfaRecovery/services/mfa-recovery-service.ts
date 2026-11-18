@@ -26,15 +26,18 @@ import type {
   SeedlessOnboardingControllerSetLocalPasswordAction,
 } from '@metamask/seedless-onboarding-controller';
 import { bytesToHex } from '@metamask/utils';
-import { authEnv } from '../../../../apiEnv';
-import { createSiweIdentifier } from '../auth/identifiers';
+import { authEnv } from '../../apiEnv';
+import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   isProvablePasskeyIdentifier,
   withPasskeyVerifier,
-} from '../auth/passkey-identifier-auth-provider';
-import { getCubistConfig, getToprfRecoveryConfig } from '../config';
-import { RECOVERY_SECRET_LENGTH } from '../constants';
-import { MfaRecoveryControllerError } from '../errors';
+} from '../../Engine/controllers/mfa-recovery-controller/auth/passkey-identifier-auth-provider';
+import {
+  getCubistConfig,
+  getToprfRecoveryConfig,
+} from '../../Engine/controllers/mfa-recovery-controller/config';
+import { RECOVERY_SECRET_LENGTH } from '../../Engine/controllers/mfa-recovery-controller/constants';
+import { MfaRecoveryControllerError } from '../../Engine/controllers/mfa-recovery-controller/errors';
 import { linkSocialLogin } from '../social-login/link-social-login';
 import {
   getCandidateIdentifiers,
@@ -561,10 +564,10 @@ function toRunIdentifiers(
 }
 
 /** The run's account and the identifiers Auth approved for it. */
-type PreparedRun = {
+interface PreparedRun {
   address: string;
   authIdentifiers: Identifier[];
-};
+}
 
 /** Auth approved no identifier of the requested type for this profile. */
 export class IdentifierNotApprovedError extends MfaRecoveryControllerError {
