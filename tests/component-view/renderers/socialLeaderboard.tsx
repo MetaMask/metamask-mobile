@@ -19,10 +19,6 @@ import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
-import {
-  SOCIAL_V1_AB_KEY,
-  SocialV1Variant,
-} from '../../../app/constants/socialV1';
 import ReduxService from '../../../app/core/redux/ReduxService';
 import type { ReduxStore } from '../../../app/core/redux/types';
 import TopTradersView from '../../../app/components/Views/SocialLeaderboard/TopTradersView/TopTradersView';
@@ -339,28 +335,18 @@ const buildOnboardingAccountTree = (
  *
  * Pass `includeSecondEvmAccount` to add a second EVM account after the default,
  * and `initialParams` to open it in a specific mode such as `termsOnly`.
- * Pass `socialV1` to put the user in the Social V1 treatment, which is what
- * turns on Social V1 analytics.
  */
 export function renderSocialProfileOnboarding(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
   options: {
     includeSecondEvmAccount?: boolean;
     initialParams?: Record<string, unknown>;
-    socialV1?: boolean;
   } = {},
 ) {
-  const builder = createStateFixture()
+  const state = createStateFixture()
     .withMinimalAccounts()
     .withMinimalKeyringController()
-    .withMinimalMainnetNetwork();
-  if (options.socialV1) {
-    builder.withRemoteFeatureFlags({
-      aiSocialLeaderboardEnabled: { enabled: true, minimumVersion: '1.0.0' },
-      [SOCIAL_V1_AB_KEY]: SocialV1Variant.Treatment,
-    });
-  }
-  const state = builder
+    .withMinimalMainnetNetwork()
     .withOverrides({
       engine: {
         backgroundState: {
