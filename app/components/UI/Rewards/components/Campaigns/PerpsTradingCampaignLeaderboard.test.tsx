@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import PerpsTradingCampaignLeaderboard, {
   PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './PerpsTradingCampaignLeaderboard';
@@ -91,11 +92,35 @@ describe('PerpsTradingCampaignLeaderboard', () => {
     expect(getByTestId(TEST_IDS.POWERED_BY)).toBeDefined();
   });
 
-  it('navigates to in-app browser with HyperTracker attribution URL when brand is pressed', () => {
+  it('renders Powered by HyperTracker as muted body-sm subtext', () => {
     const { getByTestId } = render(
       <PerpsTradingCampaignLeaderboard {...defaultProps} />,
     );
-    fireEvent.press(getByTestId(TEST_IDS.HYPERTRACKER_LOGO));
+
+    const subtext = getByTestId(TEST_IDS.HYPERTRACKER_SUBTEXT);
+
+    expect(subtext.props.children).toEqual([
+      'rewards.perps_trading_campaign.leaderboard_powered_by_prefix',
+      'rewards.perps_trading_campaign.leaderboard_hypertracker_brand',
+    ]);
+    expect(subtext.props.accessibilityRole).toBe('link');
+  });
+
+  it('uses the alternative text color for the HyperTracker subtext', () => {
+    const { UNSAFE_getByProps } = render(
+      <PerpsTradingCampaignLeaderboard {...defaultProps} />,
+    );
+
+    expect(
+      UNSAFE_getByProps({ testID: TEST_IDS.HYPERTRACKER_SUBTEXT }).props.color,
+    ).toBe(TextColor.TextAlternative);
+  });
+
+  it('navigates to in-app browser with HyperTracker attribution URL when subtext is pressed', () => {
+    const { getByTestId } = render(
+      <PerpsTradingCampaignLeaderboard {...defaultProps} />,
+    );
+    fireEvent.press(getByTestId(TEST_IDS.HYPERTRACKER_SUBTEXT));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'BrowserHome',
