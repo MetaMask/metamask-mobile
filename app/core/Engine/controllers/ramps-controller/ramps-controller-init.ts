@@ -58,16 +58,21 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const controller = new RampsController(options);
 
   let orderSubscriptionsRegistered = false;
+  let walletUnlocked = false;
 
   const registerOrderSubscriptions = (): void => {
     if (orderSubscriptionsRegistered) {
       return;
     }
     orderSubscriptionsRegistered = true;
-    initMessenger.subscribe(
-      'RampsController:orderStatusChanged',
-      handleOrderStatusChangedForNotifications,
-    );
+    // Stopping the poller does not cancel a request already in flight, so a
+    // transition can still arrive just after the wallet locks. No toast on the
+    // lock screen.
+    initMessenger.subscribe('RampsController:orderStatusChanged', (event) => {
+      if (walletUnlocked) {
+        handleOrderStatusChangedForNotifications(event);
+      }
+    });
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForMetrics,
@@ -77,7 +82,6 @@ export const rampsControllerInit: MessengerClientInitFunction<
   // Order polling raises purchase toasts, so it only runs while the wallet is
   // unlocked. Polling started at init would keep toasting on the lock screen.
   let controllerInitialized = false;
-  let walletUnlocked = false;
 
   const syncOrderPolling = (): void => {
     if (controllerInitialized && walletUnlocked) {

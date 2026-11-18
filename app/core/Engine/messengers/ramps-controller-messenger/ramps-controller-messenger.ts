@@ -65,8 +65,10 @@ export type RampsControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the init messenger for the RampsController. Scoped to actions
- * needed during initialization (reading feature flags).
+ * Get the init messenger for the RampsController. Scoped to what is needed
+ * during initialization and by the init wiring: reading feature flags,
+ * reading the keyring lock state, and the keyring lock and unlock events that
+ * gate order polling.
  *
  * @param rootMessenger - The root messenger.
  * @returns The RampsControllerInitMessenger.

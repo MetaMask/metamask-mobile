@@ -40,6 +40,12 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
 
 const mockInit = jest.fn().mockResolvedValue(undefined);
 const mockStartOrderPolling = jest.fn();
+const mockHandleNotifications = jest.fn();
+
+jest.mock('./event-handlers/notification', () => ({
+  handleOrderStatusChangedForNotifications: (event: unknown): void =>
+    mockHandleNotifications(event),
+}));
 const mockStopOrderPolling = jest.fn();
 
 jest.mock('@metamask/ramps-controller', () => {
@@ -83,6 +89,18 @@ const getInitRampsDebugBridgeMock = (): jest.Mock =>
   ).initRampsDebugBridge;
 
 let mockIsUnlocked = false;
+
+const getOrderStatusChangedHandler = (
+  messenger: RampsControllerInitMessenger,
+): ((event: { order: never; previousStatus: never }) => void) => {
+  const entry = jest
+    .mocked(messenger.subscribe)
+    .mock.calls.find(([name]) => name === 'RampsController:orderStatusChanged');
+  return entry?.[1] as unknown as (event: {
+    order: never;
+    previousStatus: never;
+  }) => void;
+};
 
 const createMockInitMessenger = (): RampsControllerInitMessenger =>
   ({
@@ -239,11 +257,6 @@ describe('ramps controller init', () => {
     expect(rampsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 
-  // TRAM-3691: confirms the analytics/notification handlers have a SINGLE
-  // trigger — RampsController:orderStatusChanged. There is no addOrder/create
-  // subscription, so an already-terminal callback order (added via addOrder,
-  // never polled) never reaches the metrics handler. This is the mobile-side
-  // half of the root cause pinned by the core RampsController TRAM-3691 tests.
   describe('order polling lock gating', () => {
     it('does not poll when the wallet is locked at init', async () => {
       rampsControllerInit(initRequestMock);
@@ -296,8 +309,36 @@ describe('ramps controller init', () => {
       await waitFor(() => expect(mockStopOrderPolling).toHaveBeenCalled());
       expect(mockStartOrderPolling).not.toHaveBeenCalled();
     });
+
+    it('does not toast a transition that arrives while the wallet is locked', () => {
+      rampsControllerInit(initRequestMock);
+      const handler = getOrderStatusChangedHandler(
+        initRequestMock.initMessenger,
+      );
+
+      handler({ order: {} as never, previousStatus: 'PENDING' as never });
+
+      expect(mockHandleNotifications).not.toHaveBeenCalled();
+    });
+
+    it('toasts a transition while the wallet is unlocked', () => {
+      mockIsUnlocked = true;
+      rampsControllerInit(initRequestMock);
+      const handler = getOrderStatusChangedHandler(
+        initRequestMock.initMessenger,
+      );
+
+      handler({ order: {} as never, previousStatus: 'PENDING' as never });
+
+      expect(mockHandleNotifications).toHaveBeenCalledTimes(1);
+    });
   });
 
+  // TRAM-3691: confirms the analytics/notification handlers have a SINGLE
+  // trigger — RampsController:orderStatusChanged. There is no addOrder/create
+  // subscription, so an already-terminal callback order (added via addOrder,
+  // never polled) never reaches the metrics handler. This is the mobile-side
+  // half of the root cause pinned by the core RampsController TRAM-3691 tests.
   it('subscribes order handlers ONLY to RampsController:orderStatusChanged', () => {
     rampsControllerInit(initRequestMock);
 
