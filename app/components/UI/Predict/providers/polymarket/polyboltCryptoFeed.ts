@@ -589,7 +589,9 @@ export class PolyBoltCryptoFeed {
     // frame. Another auth frame here would leave Chainlink streams without
     // it, so authenticate again on a new connection.
     if (chainlinkApiKey && this.authFramesSent > 0) {
-      this.scheduleReconnect(this.nextBackoffDelay());
+      if (!this.reconnectTimer && !this.policyBlocked) {
+        this.scheduleReconnect(this.nextBackoffDelay());
+      }
       return;
     }
 
@@ -1033,9 +1035,10 @@ export class PolyBoltCryptoFeed {
       twapRetries.forEach((subscription) => {
         this.retriedTwapWithoutProvider.add(subscriptionId(subscription));
       });
-      // Fallback for the pre-enforcement window: after 2026-11-30 a filter
-      // without a provider is itself refused with 4011, and that refusal is
-      // handled elsewhere and reported.
+      // TODO: Remove this pre-2026-11-30 no-provider TWAP retry once PolyBolt
+      // enforces `provider_required` (4011) on 2026-11-30; after that date a
+      // filter without a provider is refused with 4011, handled elsewhere and
+      // reported.
       this.sendSubscriptionFrame('subscribe', twapRetries, false);
     }
   }
@@ -1115,7 +1118,21 @@ export class PolyBoltCryptoFeed {
   }
 
   private scheduleAuthRetry(): void {
-    if (this.authRetryTimer || this.authBlocked) {
+    if (this.authBlocked) {
+      return;
+    }
+
+    // With a Chainlink key already sent on this socket, retrying auth requires
+    // opening a new connection; schedule the reconnect directly so backoff
+    // advances once per retry instead of once here and again inside sendAuth.
+    if (this.credentials?.chainlinkApiKey && this.authFramesSent > 0) {
+      if (!this.reconnectTimer && !this.policyBlocked) {
+        this.scheduleReconnect(this.nextBackoffDelay());
+      }
+      return;
+    }
+
+    if (this.authRetryTimer) {
       return;
     }
 

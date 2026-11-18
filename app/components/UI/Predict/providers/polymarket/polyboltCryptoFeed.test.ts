@@ -1520,6 +1520,29 @@ describe('PolyBoltCryptoFeed', () => {
       ]);
     });
 
+    it('reconnects after a single backoff on auth_unavailable when a Chainlink key is set', () => {
+      const { socket } = connectWith([chainlinkBtc], listener(), keyed);
+
+      socket.receive({ op: 'error', code: 'auth_unavailable' });
+      socket.receive({ op: 'error', code: 'auth_unavailable' });
+      jest.advanceTimersByTime(999);
+      expect(authFrames(socket)).toHaveLength(1);
+      expect(mockSockets).toHaveLength(1);
+
+      jest.advanceTimersByTime(1);
+      expect(mockSockets).toHaveLength(2);
+      mockSockets[1].open();
+      expect(authFrames(mockSockets[1])).toEqual([
+        expect.objectContaining({ chainlink_api_key: fakeKey }),
+      ]);
+
+      mockSockets[1].receive({ op: 'error', code: 'auth_unavailable' });
+      jest.advanceTimersByTime(1_999);
+      expect(mockSockets).toHaveLength(2);
+      jest.advanceTimersByTime(1);
+      expect(mockSockets).toHaveLength(3);
+    });
+
     it('grows the reconnect backoff while auth keeps failing and resets it once authed', () => {
       const { socket } = connectWith([chainlinkBtc], listener(), keyed);
       const expectReconnectAfter = (delayMs: number): MockSocket => {
@@ -1538,13 +1561,12 @@ describe('PolyBoltCryptoFeed', () => {
       current.receive({ op: 'error', code: 'auth_required' });
       current = expectReconnectAfter(2_000);
       current.receive({ op: 'error', code: 'auth_unavailable' });
-      jest.advanceTimersByTime(4_000);
-      expect(authFrames(current)).toHaveLength(1);
-      current = expectReconnectAfter(8_000);
+      current = expectReconnectAfter(4_000);
       current.receive({ op: 'error', code: 'auth_required' });
+      current = expectReconnectAfter(8_000);
+      current.receive({ op: 'error', code: 'auth_unavailable' });
       current = expectReconnectAfter(16_000);
       current.receive({ op: 'error', code: 'auth_unavailable' });
-      jest.advanceTimersByTime(30_000);
       current = expectReconnectAfter(30_000);
 
       current.receive({ op: 'authed', rid: 'a1' });
