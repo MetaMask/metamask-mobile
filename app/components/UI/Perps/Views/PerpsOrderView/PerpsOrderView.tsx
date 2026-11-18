@@ -250,7 +250,13 @@ import {
   useCanShareCopyTrade,
   usePostTradePromptResolver,
 } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
-import { getSocialEventSource } from '../../../../Views/SocialLeaderboard/analytics/socialEvents';
+import {
+  SocialEvent,
+  getSocialEventSource,
+} from '../../../../Views/SocialLeaderboard/analytics/socialEvents';
+import { trackPostToFeedToast } from '../../../../Views/SocialLeaderboard/analytics/trackPostToFeedToast';
+import { buildCopyTradeSubmittedProperties } from '../../../../Views/SocialLeaderboard/analytics/buildCopyTradeSubmittedProperties';
+import { useSocialAnalytics } from '../../../../Views/SocialLeaderboard/analytics/useSocialV1Analytics';
 import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import {
   buildPerpsPostTradeComposerParams,
@@ -289,6 +295,7 @@ interface OrderRouteParams {
   stayOnCurrentScreen?: boolean;
   /** Social post being copied; a matching order records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  isCopyTrade?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section forwarded from market details */
@@ -451,6 +458,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
   const { track } = usePerpsEventTracking();
+  const { trackInteraction: trackSocialInteraction } = useSocialAnalytics();
   const { denomination: sizeDenomination } = usePerpsSizeDenomination();
   const sizeDenominationRef = useRef(sizeDenomination);
   useLayoutEffect(() => {
@@ -1391,7 +1399,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       'social_leaderboard.post_trade_share.post_to_feed',
                     ),
                     onPress: () => {
+                      const shareId = `share:${orderId}`;
                       ToastService.toastRef?.current?.closeToast();
+                      trackPostToFeedToast({
+                        composerEntry:
+                          SocialEvent.ComposerEntry.POST_TRADE_PERPS,
+                        source: shareAnalyticsSource,
+                        shareId,
+                        orderId,
+                      });
                       openPostTradeComposer(
                         buildPerpsPostTradeComposerParams({
                           orderId,
@@ -1403,6 +1419,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                             entryPrice: result?.averagePrice,
                             filledSize: result?.filledSize,
                           }),
+                          analyticsSource: shareAnalyticsSource,
+                          shareId,
                         }),
                       );
                     },
@@ -1423,6 +1441,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             }),
           { surface: 'trader_feed', source: 'PerpsOrderView' },
         );
+        if (route.params?.isCopyTrade === true || copyTradeOrigin) {
+          const amountUsd = Number.parseFloat(orderForm.amount);
+          trackSocialInteraction(
+            buildCopyTradeSubmittedProperties({
+              source,
+              asset: orderForm.asset,
+              direction: orderForm.direction,
+              ...(Number.isFinite(amountUsd) ? { amountUsd } : {}),
+              ...(orderId ? { orderId } : {}),
+              metamaskFeeUsd: feeResults.metamaskFee,
+            }),
+          );
+        }
       },
       onError: (error) => {
         // Error is already captured in usePerpsOrderExecution hook

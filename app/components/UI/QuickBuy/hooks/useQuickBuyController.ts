@@ -154,6 +154,7 @@ import {
 } from '../../Bridge/utils/getPriceImpactViewData';
 import { useGasFeeEstimates } from '../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { QuickBuyEventProperties, QuickBuyEventValues } from '../analytics';
+import { isQuickBuyCopyTrade } from '../analytics/isQuickBuyCopyTrade';
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
 import {
   trackQuickBuyTrade,
@@ -348,7 +349,13 @@ export function useQuickBuyController(
     trackTradeCompleted,
     markTradeSubmitted,
     preserveBridgeStateOnUnmount,
-  } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext, tradeMode);
+  } = useQuickBuyAnalytics(
+    traderAddress,
+    caip19,
+    analyticsContext,
+    tradeMode,
+    copyTradeOrigin,
+  );
   const [fiatAmount, setFiatAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
   // True when the user has committed the slider to 100% ("sell all"). In this
@@ -888,6 +895,8 @@ export function useQuickBuyController(
       amountUsd: quotedAmountUsd,
       source: analyticsContext?.source,
       originalEntryPoint: analyticsContext?.originalEntryPoint,
+      isCopyTrade: analyticsContext?.isCopyTrade,
+      copyTradeOrigin,
     }),
     [
       traderAddress,
@@ -895,6 +904,8 @@ export function useQuickBuyController(
       quotedAmountUsd,
       analyticsContext?.source,
       analyticsContext?.originalEntryPoint,
+      analyticsContext?.isCopyTrade,
+      copyTradeOrigin,
     ],
   );
 
@@ -1675,11 +1686,17 @@ export function useQuickBuyController(
           [QuickBuyEventProperties.CAIP19]: submittedCaip19,
           [QuickBuyEventProperties.ASSET_NAME]: submittedAssetName,
           ...(amountUsd !== undefined
-            ? { [QuickBuyEventProperties.AMOUNT_USD]: amountUsd }
+            ? {
+                [QuickBuyEventProperties.AMOUNT_USD]: amountUsd,
+                [QuickBuyEventProperties.METAMASK_FEE_USD]:
+                  (amountUsd * getMetamaskFeePercent(activeQuote)) / 100,
+              }
             : {}),
           [QuickBuyEventProperties.TRADE_TYPE]: tradeMode,
-          [QuickBuyEventProperties.IS_COPY_TRADE]:
-            Boolean(copyTradeOrigin) || analyticsContext.isCopyTrade === true,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: isQuickBuyCopyTrade({
+            copyTradeOrigin,
+            isCopyTrade: analyticsContext.isCopyTrade,
+          }),
           ...(submittedPayWith
             ? {
                 [QuickBuyEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
@@ -1795,6 +1812,7 @@ export function useQuickBuyController(
     const isForcedPostTradeShare = postTradeShare;
     const shouldForcePostTradeShare =
       isForcedPostTradeShare && canPostTradeShare && canShareCopyTrade();
+    const shareAnalyticsSource = getSocialEventSource(analyticsContext.source);
     const prompt = isForcedPostTradeShare
       ? undefined
       : resolvePostTradePrompt('swap');
@@ -1816,6 +1834,13 @@ export function useQuickBuyController(
         kind: 'post_to_feed_toast',
         tradeInFlightChain,
         preview: sharePreview,
+        isCopyTrade: isQuickBuyCopyTrade({
+          copyTradeOrigin,
+          isCopyTrade: analyticsContext.isCopyTrade,
+        }),
+        ...(shareAnalyticsSource
+          ? { analyticsSource: shareAnalyticsSource }
+          : {}),
       };
     }
     const isCreateProfilePrompt =
@@ -1825,7 +1850,6 @@ export function useQuickBuyController(
       ((shouldForcePostTradeShare ||
         trackedPostTradePrompt?.kind === 'share_sheet') &&
         Boolean(tradeInFlightChain));
-    const shareAnalyticsSource = getSocialEventSource(analyticsContext.source);
     const beginShareSession = () =>
       shouldPostTradeShare
         ? beginPostTradeShareSession({
@@ -1846,6 +1870,10 @@ export function useQuickBuyController(
                 : undefined,
             tradeInFlightChain,
             copyTradeOrigin,
+            isCopyTrade: isQuickBuyCopyTrade({
+              copyTradeOrigin,
+              isCopyTrade: analyticsContext.isCopyTrade,
+            }),
             ...(submittedTraderAddress
               ? { traderAddress: submittedTraderAddress }
               : {}),

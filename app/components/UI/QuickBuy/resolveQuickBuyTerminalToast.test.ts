@@ -630,6 +630,8 @@ describe('resolveQuickBuyTerminalToast', () => {
               tokenAddress: '0xrobinhood-token',
             },
             preview: sellPreview,
+            spotComposerEntry: 'post_trade_swap',
+            shareId: 'share:0xsource-hash',
           },
         );
       });
@@ -770,6 +772,7 @@ describe('resolveQuickBuyTerminalToast', () => {
           kind: 'post_to_feed_toast',
           tradeInFlightChain: 'ethereum',
           preview,
+          isCopyTrade: true,
         },
       });
       mockGetHistoryItem.mockReturnValue({
@@ -793,6 +796,8 @@ describe('resolveQuickBuyTerminalToast', () => {
             tokenAddress: '0xpepe',
           },
           preview,
+          spotComposerEntry: 'post_trade_spot',
+          shareId: 'share:0xhash',
         },
       );
     });
