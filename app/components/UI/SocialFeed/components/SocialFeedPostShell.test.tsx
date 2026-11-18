@@ -17,7 +17,11 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
-import { playSelection } from '../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import {
   REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
@@ -323,6 +327,11 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+      ).toHaveProp('scrollEnabled', true);
+    });
 
     fireEvent.press(
       screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
@@ -335,6 +344,43 @@ describe('SocialFeedPostShell', () => {
         screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
       ).toBeOnTheScreen();
     });
+  });
+
+  it('anchors the picker to the reaction row, not the add button', () => {
+    jest
+      .spyOn(View.prototype, 'measureInWindow')
+      .mockImplementation(function measure(this: unknown, cb) {
+        const testID = (this as { props?: { testID?: string } }).props?.testID;
+        if (
+          testID === `${SocialFeedPostShellSelectorsIDs.REACTION_ROW}-post-1`
+        ) {
+          cb(16, 300, 200, 40);
+          return;
+        }
+        cb(200, 320, 36, 36);
+      });
+
+    renderShell(basePost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toHaveStyle({ left: 16 });
+  });
+
+  it('plays a light impact when the reaction tray opens', () => {
+    renderShell(basePost({ reactions: [] }));
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('navigates to profile onboarding instead of opening the picker without a linked wallet', () => {
@@ -353,6 +399,7 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).not.toBeOnTheScreen();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('does not change an existing reaction without a linked wallet', async () => {
@@ -376,7 +423,7 @@ describe('SocialFeedPostShell', () => {
     expect(jest.mocked(removeCommentReaction)).not.toHaveBeenCalled();
   });
 
-  it('closes the balloon when the scrim is pressed', () => {
+  it('closes the balloon when the scrim is pressed', async () => {
     renderShell(basePost({ reactions: [] }));
 
     fireEvent.press(
@@ -386,13 +433,20 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
 
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+      ).toHaveProp('scrollEnabled', true);
+    });
     fireEvent.press(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.SCRIM),
     );
 
-    expect(
-      screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
-    ).toBeNull();
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+      ).toBeNull();
+    });
   });
 
   it('renders the author, comment, position card, and engagement row', () => {

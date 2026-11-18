@@ -1372,6 +1372,18 @@ describe('PerpsProOrderForm', () => {
       expect(scaleOrder.onSizeSkewInfoPress).toHaveBeenCalledTimes(1);
     });
 
+    it('renders the margin mode and leverage chevrons from Figma', () => {
+      renderForm();
+
+      expect(
+        screen.getByTestId(`${ids.MARGIN_MODE_BUTTON}-chevron`),
+      ).toHaveProp('name', IconName.ArrowDown);
+      expect(screen.getByTestId(`${ids.LEVERAGE_BUTTON}-chevron`)).toHaveProp(
+        'name',
+        IconName.ArrowDown,
+      );
+    });
+
     it('renders the order type chevron from Figma', () => {
       renderForm();
 
