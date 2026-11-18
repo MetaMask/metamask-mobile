@@ -17,7 +17,11 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
-import { playSelection } from '../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import {
   REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
@@ -323,6 +327,11 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+      ).toHaveProp('scrollEnabled', true);
+    });
 
     fireEvent.press(
       screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
@@ -362,6 +371,18 @@ describe('SocialFeedPostShell', () => {
     ).toHaveStyle({ left: 16 });
   });
 
+  it('plays a light impact when the reaction tray opens', () => {
+    renderShell(basePost({ reactions: [] }));
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+    expect(playSelection).not.toHaveBeenCalled();
+  });
+
   it('navigates to profile onboarding instead of opening the picker without a linked wallet', () => {
     mockEnsureSocialProfileOnboarding.mockImplementation(() => {
       mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
@@ -378,6 +399,7 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).not.toBeOnTheScreen();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('does not change an existing reaction without a linked wallet', async () => {
@@ -401,7 +423,7 @@ describe('SocialFeedPostShell', () => {
     expect(jest.mocked(removeCommentReaction)).not.toHaveBeenCalled();
   });
 
-  it('closes the balloon when the scrim is pressed', () => {
+  it('closes the balloon when the scrim is pressed', async () => {
     renderShell(basePost({ reactions: [] }));
 
     fireEvent.press(
@@ -411,13 +433,20 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
 
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+      ).toHaveProp('scrollEnabled', true);
+    });
     fireEvent.press(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.SCRIM),
     );
 
-    expect(
-      screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
-    ).toBeNull();
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+      ).toBeNull();
+    });
   });
 
   it('renders the author, comment, position card, and engagement row', () => {
@@ -617,6 +646,69 @@ describe('SocialFeedPostShell', () => {
         expect(particles.length).toBeLessThanOrEqual(7);
         expect(particles[0]).toHaveTextContent('🔥');
       });
+    });
+
+    it('plays a selection haptic when an existing chip is pressed', async () => {
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(screen.getByTestId(chipTestId)).toHaveProp(
+          'accessibilityState',
+          {
+            selected: true,
+          },
+        );
+      });
+    });
+
+    it('plays a selection haptic when the reader removes their chip', async () => {
+      jest.mocked(removeCommentReaction).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 1 }],
+        userReaction: null,
+      });
+      renderShell(
+        basePost({
+          reactions: [{ emotion: '🔥', count: 2 }],
+          userReaction: '🔥',
+        }),
+      );
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(screen.getByTestId(chipTestId)).toHaveProp(
+          'accessibilityState',
+          {
+            selected: false,
+          },
+        );
+      });
+    });
+
+    it('stays quiet when profile onboarding blocks the chip', () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValueOnce(false);
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).not.toHaveBeenCalled();
+      expect(reactToComment).not.toHaveBeenCalled();
+    });
+
+    it('stays quiet when a chip is pressed while a reaction is in flight', () => {
+      jest
+        .mocked(reactToComment)
+        .mockImplementationOnce(() => new Promise(() => undefined));
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('removes the reader from their own chip when it is pressed', async () => {

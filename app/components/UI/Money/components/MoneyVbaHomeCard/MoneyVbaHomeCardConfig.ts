@@ -63,6 +63,13 @@ interface MoneyVbaHomeCardConfig {
    * instead of `.description` when the host knows the user's market currency.
    */
   currencyDescriptionI18nKey?: string;
+  /**
+   * Stable CTA analytics label. When set, the tap sends this string as
+   * `label_en` and `label_localized` instead of resolving `${i18nPrefix}.cta`.
+   * Use it when the visible copy is shared with another card so the tap stays
+   * separately measurable. This is an identifier, not an i18n key.
+   */
+  analyticsCtaLabel?: string;
   /** Hero illustration shown above the copy. */
   heroArt: MoneyVbaHomeCardHeroArt;
   /**
@@ -188,6 +195,22 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
       className: 'bg-muted',
       textClassName: 'text-default',
       opensSupportArticle: true,
+    },
+  },
+  kyc_retry: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
+    source: 'vba-home-card-kyc-retry',
+    i18nPrefix: 'money.vba_home_card.finish_verification',
+    // Visible copy is shared with finish_verification. This identifier keeps
+    // the tap measurable apart from that card.
+    analyticsCtaLabel: 'money_vba_kyc_retry',
+    // Same identity-scan art as finish_verification. The orange X is the
+    // terminal rejection illustration and would still read as a final no.
+    heroArt: IDENTITY_HERO_ART,
+    cta: {
+      buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      className: 'bg-muted',
+      textClassName: 'text-default',
     },
   },
 };

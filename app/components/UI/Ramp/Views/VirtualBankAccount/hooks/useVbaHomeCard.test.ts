@@ -347,7 +347,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_pending' });
   });
 
-  it('renders the kyc_decision stub when finalStatus is rejected (decision rule 5)', () => {
+  it('renders the terminal kyc_decision card when finalStatus is rejected', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -360,7 +360,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_decision' });
   });
 
-  it('renders the kyc_decision stub when finalStatus is retry (decision rule 5)', () => {
+  it('renders the kyc_retry card when finalStatus is retry', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -369,7 +369,7 @@ describe('getVbaHomeCard', () => {
       }),
     });
 
-    expect(card).toEqual({ type: 'kyc_decision' });
+    expect(card).toEqual({ type: 'kyc_retry' });
   });
 
   it('renders kyc_pending when the relay kycStatus is pending (decision rule 5)', () => {
@@ -570,6 +570,15 @@ describe('getVbaHomeCard', () => {
         }),
       },
     ],
+    [
+      'kyc_retry',
+      {
+        sessionStatus: makeSession({
+          finalStatus: 'retry',
+          kycStatus: 'retry',
+        }),
+      },
+    ],
   ] as const)(
     'leaves %s unchanged whatever the details-viewed flag says',
     (type, overrides) => {
@@ -701,6 +710,23 @@ describe('useVbaHomeCard', () => {
     });
 
     expect(result.current).toEqual({ type: 'kyc_decision' });
+  });
+
+  it('honors a retry dev KYC status override as the needs-more-info card', async () => {
+    mockGetVbaKycStatusOverride.mockReturnValue('retry');
+    setupSelectors({
+      sessionStatus: makeSession({
+        finalStatus: 'pending',
+        kycStatus: 'new',
+      }),
+    });
+
+    const { result } = renderHook(() => useVbaHomeCard());
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current).toEqual({ type: 'kyc_retry' });
   });
 
   it('treats local vendor terms as not accepted while loading, then flips once accepted', async () => {

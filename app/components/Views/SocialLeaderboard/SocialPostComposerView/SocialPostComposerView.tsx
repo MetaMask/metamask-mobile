@@ -156,6 +156,9 @@ interface ImageInsertEvent {
   };
 }
 
+/** 32px disc plus 6px on each side, so the tap target meets the 44pt minimum. */
+const ATTACHMENT_CLOSE_HIT_SLOP = 6;
+
 const ComposerAttachmentCloseButton = ({
   onPress,
   accessibilityLabel,
@@ -165,15 +168,23 @@ const ComposerAttachmentCloseButton = ({
   accessibilityLabel: string;
   testID: string;
 }) => (
-  <ButtonIcon
-    iconName={IconName.Close}
-    size={ButtonIconSize.Md}
-    iconProps={{ color: IconColor.IconDefault }}
-    twClassName="absolute z-20 -top-3 -right-3 border-2 border-background-default bg-section"
-    onPress={onPress}
-    accessibilityLabel={accessibilityLabel}
-    testID={testID}
-  />
+  // React Native draws a border inside its view, so the ring is a 36px frame
+  // around the unchanged 32px disc. The offset keeps that disc where it was.
+  <Box
+    pointerEvents="box-none"
+    twClassName="absolute z-20 -top-3.5 -right-3.5 h-9 w-9 items-center justify-center rounded-full border-2 border-background-default"
+  >
+    <ButtonIcon
+      iconName={IconName.Close}
+      size={ButtonIconSize.Md}
+      iconProps={{ color: IconColor.IconDefault, size: IconSize.Md }}
+      hitSlop={ATTACHMENT_CLOSE_HIT_SLOP}
+      twClassName="bg-section"
+      onPress={onPress}
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
+    />
+  </Box>
 );
 
 interface ComposerChipProps {

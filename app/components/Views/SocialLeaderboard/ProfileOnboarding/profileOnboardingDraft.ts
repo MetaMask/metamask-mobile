@@ -44,6 +44,11 @@ export interface ProfileOnboardingDraft {
   avatarBackgroundId: string;
   linkedAccountId: string | null;
   linkedAccountAddress: string | null;
+  /**
+   * A chosen account left the eligible set. Reconciliation must leave the
+   * selection empty until the user picks another account.
+   */
+  linkedAccountSelectionCleared: boolean;
   shareTradingActivity: boolean;
 }
 
@@ -116,6 +121,7 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     avatarBackgroundId: pickRandom(STARTING_AVATAR_BACKGROUNDS).id,
     linkedAccountId: null,
     linkedAccountAddress: null,
+    linkedAccountSelectionCleared: false,
     shareTradingActivity: true,
   };
 };
@@ -136,6 +142,7 @@ export const startManualOnboarding = (
     ...initial,
     linkedAccountId: draft.linkedAccountId,
     linkedAccountAddress: draft.linkedAccountAddress,
+    linkedAccountSelectionCleared: draft.linkedAccountSelectionCleared,
   };
 };
 
@@ -254,6 +261,46 @@ export const onboardingProfileFingerprint = (
     avatar_url: params.avatar_url ?? null,
     trading_privacy: params.trading_privacy,
   });
+};
+
+/**
+ * Reconciles the draft's linked account with the accounts the profile can use.
+ *
+ * The current selection stays when that account is still eligible, and its
+ * address is refreshed if it changed. A selection that is no longer eligible
+ * is cleared and stays cleared, even when another account is available — the
+ * user picks the next one. A draft that has never had a selection gets the
+ * first eligible account. Returns the same draft when nothing changes.
+ */
+export const withEligibleLinkedAccount = (
+  draft: ProfileOnboardingDraft,
+  accounts: readonly { id: string; address: string }[],
+): ProfileOnboardingDraft => {
+  const selected = draft.linkedAccountId
+    ? accounts.find((account) => account.id === draft.linkedAccountId)
+    : undefined;
+  if (selected) {
+    return selected.address === draft.linkedAccountAddress
+      ? draft
+      : { ...draft, linkedAccountAddress: selected.address };
+  }
+  if (draft.linkedAccountId || draft.linkedAccountAddress) {
+    return {
+      ...draft,
+      linkedAccountId: null,
+      linkedAccountAddress: null,
+      linkedAccountSelectionCleared: true,
+    };
+  }
+  const firstAccount = accounts[0];
+  if (!firstAccount || draft.linkedAccountSelectionCleared) {
+    return draft;
+  }
+  return {
+    ...draft,
+    linkedAccountId: firstAccount.id,
+    linkedAccountAddress: firstAccount.address,
+  };
 };
 
 export const canContinueUsernameStep = (
