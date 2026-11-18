@@ -164,8 +164,11 @@ const useNetworkConnectionBanner = (): {
     const visibleDurationMs = takeVisibleDurationMs(slowEpisodeRef);
     if (visibleDurationMs !== null) {
       trackSlowNetworkEvent(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
-        { visible_duration_ms: visibleDurationMs },
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_HIDDEN,
+        {
+          trigger: 'auto',
+          duration_ms: visibleDurationMs,
+        },
       );
     }
   }, [settledLatency, trackSlowNetworkEvent]);
@@ -214,8 +217,11 @@ const useNetworkConnectionBanner = (): {
     const visibleDurationMs = takeVisibleDurationMs(slowEpisodeRef);
     if (visibleDurationMs !== null) {
       trackSlowNetworkEvent(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_DISMISSED,
-        { visible_duration_ms: visibleDurationMs },
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_HIDDEN,
+        {
+          trigger: 'user',
+          duration_ms: visibleDurationMs,
+        },
       );
     }
     const dismissedAt = Date.now();
