@@ -30,6 +30,8 @@ const styleSheet = (params: {
         backgroundColor,
         marginHorizontal: 16,
         borderRadius: 12,
+        borderWidth: 1,
+        borderColor: theme.colors.border.muted,
       } as const,
       style,
     ),
@@ -38,7 +40,8 @@ const styleSheet = (params: {
     },
     container: {
       flexDirection: 'row',
-      height: 60,
+      // 58 + 2px border keeps the 60px tile height
+      height: 58,
       alignItems: 'center',
     },
     label: {

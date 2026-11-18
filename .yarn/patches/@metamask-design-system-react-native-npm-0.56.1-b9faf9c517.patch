@@ -1,0 +1,224 @@
+diff --git a/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.cjs b/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.cjs
+index 50dec0ed0901764c43212648b8033e873c85986f..d53467c84fa1bdae3f177857e02b2afc58e2950e 100644
+--- a/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.cjs
++++ b/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.cjs
+@@ -48,7 +48,7 @@ const ButtonSecondary = ({ children, textProps, spinnerProps, startIconProps, en
+         else if (isDanger) {
+             backgroundClass =
+                 pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted';
+-            borderClass = 'border-transparent';
++            borderClass = 'border-muted';
+         }
+         else if (isInverse) {
+             backgroundClass =
+@@ -58,7 +58,7 @@ const ButtonSecondary = ({ children, textProps, spinnerProps, startIconProps, en
+         else {
+             backgroundClass =
+                 pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted';
+-            borderClass = 'border-transparent';
++            borderClass = 'border-muted';
+         }
+         return `${backgroundClass} ${borderClass} ${baseClasses}`;
+     }, [isInverse, isDanger, isLoading, twClassName]);
+diff --git a/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.mjs b/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.mjs
+index c1146abea3241cd5be177cdcaa8296b098c003ab..2fc12aac6ede7c097c238ccfcb86b6bf037d0ff6 100644
+--- a/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.mjs
++++ b/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.mjs
+@@ -29,7 +29,7 @@ export const ButtonSecondary = ({ children, textProps, spinnerProps, startIconPr
+         else if (isDanger) {
+             backgroundClass =
+                 pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted';
+-            borderClass = 'border-transparent';
++            borderClass = 'border-muted';
+         }
+         else if (isInverse) {
+             backgroundClass =
+@@ -39,7 +39,7 @@ export const ButtonSecondary = ({ children, textProps, spinnerProps, startIconPr
+         else {
+             backgroundClass =
+                 pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted';
+-            borderClass = 'border-transparent';
++            borderClass = 'border-muted';
+         }
+         return `${backgroundClass} ${borderClass} ${baseClasses}`;
+     }, [isInverse, isDanger, isLoading, twClassName]);
+diff --git a/dist/components/ButtonIcon/ButtonIcon.cjs b/dist/components/ButtonIcon/ButtonIcon.cjs
+index 20ae32f0d5c2d00f144227bc128ab59407c4ebc5..9bb77cb68b3856b1c68eed096b8ec781b531ea57 100644
+--- a/dist/components/ButtonIcon/ButtonIcon.cjs
++++ b/dist/components/ButtonIcon/ButtonIcon.cjs
+@@ -38,7 +38,7 @@ const ButtonIcon = ({ size = design_system_shared_1.ButtonIconSize.Md, iconName,
+         backgroundColor = 'bg-icon-default';
+     }
+     else if (variant === design_system_shared_1.ButtonIconVariant.Filled) {
+-        backgroundColor = isPressed ? 'bg-muted-pressed' : 'bg-muted';
++        backgroundColor = isPressed ? 'bg-muted-pressed border border-muted' : 'bg-muted border border-muted';
+     }
+     else if (isPressed) {
+         backgroundColor = 'bg-pressed';
+diff --git a/dist/components/ButtonIcon/ButtonIcon.mjs b/dist/components/ButtonIcon/ButtonIcon.mjs
+index 43ebf97535fb9bc174f19ca0753a4fb382ff68f0..09ef89f4a81a1d53a7bfac369bb463a14ea60049 100644
+--- a/dist/components/ButtonIcon/ButtonIcon.mjs
++++ b/dist/components/ButtonIcon/ButtonIcon.mjs
+@@ -19,7 +19,7 @@ export const ButtonIcon = ({ size = ButtonIconSize.Md, iconName, iconProps, isDi
+         backgroundColor = 'bg-icon-default';
+     }
+     else if (variant === ButtonIconVariant.Filled) {
+-        backgroundColor = isPressed ? 'bg-muted-pressed' : 'bg-muted';
++        backgroundColor = isPressed ? 'bg-muted-pressed border border-muted' : 'bg-muted border border-muted';
+     }
+     else if (isPressed) {
+         backgroundColor = 'bg-pressed';
+diff --git a/dist/components/Card/Card.cjs b/dist/components/Card/Card.cjs
+index e4034b1f7976bdaaeb3413c3b065333bbd622960..f1a2367327f20923924b8777d7b56086ba32d46d 100644
+--- a/dist/components/Card/Card.cjs
++++ b/dist/components/Card/Card.cjs
+@@ -9,7 +9,7 @@ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Card = ({ children, isInteractive = false, twClassName, style, accessibilityRole, ...props }) => {
+     const tw = (0, design_system_twrnc_preset_1.useTailwind)();
+-    const baseClassName = 'p-4 rounded-2xl bg-section';
++    const baseClassName = 'p-4 rounded-2xl bg-section border border-muted';
+     if (isInteractive) {
+         const getPressableStyle = ({ pressed, }) => {
+             const baseStyle = tw.style(baseClassName, twClassName, pressed && 'bg-pressed');
+diff --git a/dist/components/Card/Card.mjs b/dist/components/Card/Card.mjs
+index 68e03bd76c322bdca2155ac291d116e1a950df24..8d10f41a3e81a43efbd1e076f74724a9366d06fc 100644
+--- a/dist/components/Card/Card.mjs
++++ b/dist/components/Card/Card.mjs
+@@ -10,7 +10,7 @@ const React = $importDefault($React);
+ import { Pressable, View } from "react-native";
+ export const Card = ({ children, isInteractive = false, twClassName, style, accessibilityRole, ...props }) => {
+     const tw = useTailwind();
+-    const baseClassName = 'p-4 rounded-2xl bg-section';
++    const baseClassName = 'p-4 rounded-2xl bg-section border border-muted';
+     if (isInteractive) {
+         const getPressableStyle = ({ pressed, }) => {
+             const baseStyle = tw.style(baseClassName, twClassName, pressed && 'bg-pressed');
+diff --git a/dist/components/FilterButton/FilterButton.cjs b/dist/components/FilterButton/FilterButton.cjs
+index 6a289068dbc784be3bfc938397ce83154c1ab4e4..f48a0577c55fac811455ef62fe2fbbd661322003 100644
+--- a/dist/components/FilterButton/FilterButton.cjs
++++ b/dist/components/FilterButton/FilterButton.cjs
+@@ -42,6 +42,11 @@ const FilterButton = ({ children, textProps, startIconProps, endIconProps, value
+     const effectiveIsSelected = usesGroupSelection
+         ? filterButtonGroup.value === value
+         : isSelected;
++    // prototype: unselected pills get a muted fill + 1px border.muted (not inside SegmentedControl)
++    const showsSurface = !effectiveIsSelected && !filterButtonGroup?.isSegmented;
++    const containerTwClassName = showsSurface
++        ? (pressed) => `${pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted'} border border-muted ${typeof twClassName === 'function' ? twClassName(pressed) : twClassName}`
++        : twClassName;
+     const handlePress = (event) => {
+         if (usesGroupSelection &&
+             filterButtonGroup !== null &&
+@@ -54,7 +59,7 @@ const FilterButton = ({ children, textProps, startIconProps, endIconProps, value
+     const buttonVariant = effectiveIsSelected
+         ? SELECTED_BUTTON_VARIANT_BY_FILTER_VARIANT[effectiveVariant]
+         : design_system_shared_1.ButtonVariant.Tertiary;
+-    return (<Button_1.Button {...buttonBaseRest} variant={buttonVariant} size={effectiveSize} isFullWidth={effectiveIsFullWidth} isLoading={isLoading} children={children} onPress={handlePress} style={style} twClassName={twClassName} textProps={effectiveIsSelected
++    return (<Button_1.Button {...buttonBaseRest} variant={buttonVariant} size={effectiveSize} isFullWidth={effectiveIsFullWidth} isLoading={isLoading} children={children} onPress={handlePress} style={style} twClassName={containerTwClassName} textProps={effectiveIsSelected
+             ? textProps
+             : {
+                 ...textProps,
+diff --git a/dist/components/FilterButton/FilterButton.mjs b/dist/components/FilterButton/FilterButton.mjs
+index 99dfe3ff6b4f3486a74a05aa8a31565aec19eec0..ab8e59957da6d4f967f3143e2fdf742fa7b3e3a9 100644
+--- a/dist/components/FilterButton/FilterButton.mjs
++++ b/dist/components/FilterButton/FilterButton.mjs
+@@ -23,6 +23,11 @@ export const FilterButton = ({ children, textProps, startIconProps, endIconProps
+     const effectiveIsSelected = usesGroupSelection
+         ? filterButtonGroup.value === value
+         : isSelected;
++    // prototype: unselected pills get a muted fill + 1px border.muted (not inside SegmentedControl)
++    const showsSurface = !effectiveIsSelected && !filterButtonGroup?.isSegmented;
++    const containerTwClassName = showsSurface
++        ? (pressed) => `${pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted'} border border-muted ${typeof twClassName === 'function' ? twClassName(pressed) : twClassName}`
++        : twClassName;
+     const handlePress = (event) => {
+         if (usesGroupSelection &&
+             filterButtonGroup !== null &&
+@@ -35,7 +40,7 @@ export const FilterButton = ({ children, textProps, startIconProps, endIconProps
+     const buttonVariant = effectiveIsSelected
+         ? SELECTED_BUTTON_VARIANT_BY_FILTER_VARIANT[effectiveVariant]
+         : ButtonVariant.Tertiary;
+-    return (<Button {...buttonBaseRest} variant={buttonVariant} size={effectiveSize} isFullWidth={effectiveIsFullWidth} isLoading={isLoading} children={children} onPress={handlePress} style={style} twClassName={twClassName} textProps={effectiveIsSelected
++    return (<Button {...buttonBaseRest} variant={buttonVariant} size={effectiveSize} isFullWidth={effectiveIsFullWidth} isLoading={isLoading} children={children} onPress={handlePress} style={style} twClassName={containerTwClassName} textProps={effectiveIsSelected
+             ? textProps
+             : {
+                 ...textProps,
+diff --git a/dist/components/MainActionButton/MainActionButton.cjs b/dist/components/MainActionButton/MainActionButton.cjs
+index 0e21bd1272671df8f787da960793a162c3720c65..bc9d771747655a1bfb9c67148dec9f2a8dc2635b 100644
+--- a/dist/components/MainActionButton/MainActionButton.cjs
++++ b/dist/components/MainActionButton/MainActionButton.cjs
+@@ -12,7 +12,7 @@ const Text_1 = require("../Text/index.cjs");
+ const MainActionButton = ({ iconName, label, iconProps, labelProps, onPress, onPressIn, onPressOut, style, isDisabled = false, twClassName = '', ...props }) => {
+     const tw = (0, design_system_twrnc_preset_1.useTailwind)();
+     return (<ButtonAnimated_1.ButtonAnimated disabled={isDisabled} accessible onPress={!isDisabled ? onPress : undefined} onPressIn={!isDisabled ? onPressIn : undefined} onPressOut={!isDisabled ? onPressOut : undefined} style={({ pressed }) => {
+-            const baseStyle = tw.style('items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]', pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted', isDisabled ? 'opacity-50' : 'opacity-100', twClassName);
++            const baseStyle = tw.style('items-center justify-center rounded-2xl px-1 py-3 min-w-[68px] border border-muted', pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted', isDisabled ? 'opacity-50' : 'opacity-100', twClassName);
+             const additionalStyle = typeof style === 'function' ? style({ pressed }) : style;
+             return additionalStyle ? [baseStyle, additionalStyle] : [baseStyle];
+         }} {...props}>
+diff --git a/dist/components/MainActionButton/MainActionButton.mjs b/dist/components/MainActionButton/MainActionButton.mjs
+index 2e6e3432a507a3cf3448d120153988e62fdebd80..190a3053425c656d4f9d1c9c40ba55a89931028a 100644
+--- a/dist/components/MainActionButton/MainActionButton.mjs
++++ b/dist/components/MainActionButton/MainActionButton.mjs
+@@ -13,7 +13,7 @@ import { Text, FontWeight, TextColor, TextVariant } from "../Text/index.mjs";
+ export const MainActionButton = ({ iconName, label, iconProps, labelProps, onPress, onPressIn, onPressOut, style, isDisabled = false, twClassName = '', ...props }) => {
+     const tw = useTailwind();
+     return (<ButtonAnimated disabled={isDisabled} accessible onPress={!isDisabled ? onPress : undefined} onPressIn={!isDisabled ? onPressIn : undefined} onPressOut={!isDisabled ? onPressOut : undefined} style={({ pressed }) => {
+-            const baseStyle = tw.style('items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]', pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted', isDisabled ? 'opacity-50' : 'opacity-100', twClassName);
++            const baseStyle = tw.style('items-center justify-center rounded-2xl px-1 py-3 min-w-[68px] border border-muted', pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted', isDisabled ? 'opacity-50' : 'opacity-100', twClassName);
+             const additionalStyle = typeof style === 'function' ? style({ pressed }) : style;
+             return additionalStyle ? [baseStyle, additionalStyle] : [baseStyle];
+         }} {...props}>
+diff --git a/dist/components/SegmentedControl/SegmentedControl.cjs b/dist/components/SegmentedControl/SegmentedControl.cjs
+index b414d55b7fd11c558993afe6755005dbc07e11fe..2cc325218e7d4f6b06512572789d4fd38d45951a 100644
+--- a/dist/components/SegmentedControl/SegmentedControl.cjs
++++ b/dist/components/SegmentedControl/SegmentedControl.cjs
+@@ -34,6 +34,8 @@ const SegmentedControl = ({ value, onChange, size = design_system_shared_1.Segme
+         variant: design_system_shared_1.FilterButtonVariant.Secondary,
+         size,
+         isEqualWidth: isFullWidth,
++        // prototype: segments sit inside a bordered track; skip per-pill surface
++        isSegmented: true,
+     }), [value, onChange, size, isFullWidth]);
+     const widthClass = isFullWidth ? 'self-stretch' : 'self-start';
+     return (<design_system_shared_1.FilterButtonGroupContext.Provider value={contextValue}>
+diff --git a/dist/components/SegmentedControl/SegmentedControl.mjs b/dist/components/SegmentedControl/SegmentedControl.mjs
+index 72aecccbda05cc882c9ac8e4fbe46316a80da619..e76a6e020d456995edd6204c44c6cc22f5941ec3 100644
+--- a/dist/components/SegmentedControl/SegmentedControl.mjs
++++ b/dist/components/SegmentedControl/SegmentedControl.mjs
+@@ -15,6 +15,8 @@ export const SegmentedControl = ({ value, onChange, size = SegmentedControlSize.
+         variant: FilterButtonVariant.Secondary,
+         size,
+         isEqualWidth: isFullWidth,
++        // prototype: segments sit inside a bordered track; skip per-pill surface
++        isSegmented: true,
+     }), [value, onChange, size, isFullWidth]);
+     const widthClass = isFullWidth ? 'self-stretch' : 'self-start';
+     return (<FilterButtonGroupContext.Provider value={contextValue}>
+diff --git a/dist/components/SelectButton/SelectButton.cjs b/dist/components/SelectButton/SelectButton.cjs
+index 3f43835e395759cac8a2e394d151b0fd6f4d8db3..56a91bfb6b53ac48d516f5abd8b05792b05a698a 100644
+--- a/dist/components/SelectButton/SelectButton.cjs
++++ b/dist/components/SelectButton/SelectButton.cjs
+@@ -58,7 +58,7 @@ const SelectButton = ({ placeholder, value, textProps, startAccessory, endArrowD
+             ? `min-w-0 ${pressed || isLoading ? 'bg-pressed' : 'bg-transparent'} border-0 ${typeof twClassName === 'function'
+                 ? twClassName(pressed)
+                 : twClassName}`
+-            : `min-w-0 ${pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted'} border-transparent border ${typeof twClassName === 'function'
++            : `min-w-0 ${pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted'} border-muted border ${typeof twClassName === 'function'
+                 ? twClassName(pressed)
+                 : twClassName}`} textClassName={() => variant === design_system_shared_1.SelectButtonVariant.Tertiary ? '' : 'text-default'} iconClassName={() => variant === design_system_shared_1.SelectButtonVariant.Tertiary ? '' : 'text-default'} style={style}/>);
+ };
+diff --git a/dist/components/SelectButton/SelectButton.mjs b/dist/components/SelectButton/SelectButton.mjs
+index a5e17c20de8ec3479dc5c68fd81ba1c7e6bf43ce..f59883974b1a3b80bea908074f43e328f3367047 100644
+--- a/dist/components/SelectButton/SelectButton.mjs
++++ b/dist/components/SelectButton/SelectButton.mjs
+@@ -59,7 +59,7 @@ export const SelectButton = ({ placeholder, value, textProps, startAccessory, en
+             ? `min-w-0 ${pressed || isLoading ? 'bg-pressed' : 'bg-transparent'} border-0 ${typeof twClassName === 'function'
+                 ? twClassName(pressed)
+                 : twClassName}`
+-            : `min-w-0 ${pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted'} border-transparent border ${typeof twClassName === 'function'
++            : `min-w-0 ${pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted'} border-muted border ${typeof twClassName === 'function'
+                 ? twClassName(pressed)
+                 : twClassName}`} textClassName={() => variant === SelectButtonVariant.Tertiary ? '' : 'text-default'} iconClassName={() => variant === SelectButtonVariant.Tertiary ? '' : 'text-default'} style={style}/>);
+ };

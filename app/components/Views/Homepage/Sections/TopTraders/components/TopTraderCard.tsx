@@ -76,12 +76,12 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       testID={testID ?? getTopTraderCardTestId(trader.id)}
       style={({ pressed }) =>
         tw.style(
-          `relative w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl overflow-hidden`,
+          `relative w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl border border-muted overflow-hidden`,
           pressed && onTraderPress ? 'bg-muted-pressed' : 'bg-muted',
         )
       }
     >
-      <Box twClassName="gap-4 p-4">
+      <Box twClassName="gap-4 p-[15px]">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}

@@ -35,9 +35,12 @@ const styleSheet = (params: {
       color: colors.text.default,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      // 1px border.muted; padding trimmed 1px so the pill keeps its size
+      paddingHorizontal: 7,
+      paddingVertical: 3,
       borderRadius: 99,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
       ...(isPressed && {
         backgroundColor: colors.background.alternativePressed,
       }),

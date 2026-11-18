@@ -10053,7 +10053,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.56.1":
+"@metamask/design-system-react-native@npm:0.56.1":
   version: 0.56.1
   resolution: "@metamask/design-system-react-native@npm:0.56.1"
   dependencies:
@@ -10072,6 +10072,28 @@ __metadata:
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
   checksum: 10/86e531ac2a87ac5dd1d872ebba82126dadd65583b1659495d5ae7add89ac29bde3e8528373de833a8fe85d14593655ffda3d33366b7e5a5ee69e221c2093a4ed
+  languageName: node
+  linkType: hard
+
+"@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.56.1#~/.yarn/patches/@metamask-design-system-react-native-npm-0.56.1-b9faf9c517.patch":
+  version: 0.56.1
+  resolution: "@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.56.1#~/.yarn/patches/@metamask-design-system-react-native-npm-0.56.1-b9faf9c517.patch::version=0.56.1&hash=1815e1"
+  dependencies:
+    "@metamask/design-system-shared": "npm:^0.45.0"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.14.0
+    "@metamask/design-tokens": ^13.0.0
+    "@metamask/utils": ^11.12.1
+    expo-image: ">=3.0.0"
+    lodash: ^4.17.21
+    react: ">=18.2.0"
+    react-native: ">=0.76.0"
+    react-native-gesture-handler: ">=2.25.0"
+    react-native-reanimated: ">=4.2.0"
+    react-native-safe-area-context: ">=5.0.0"
+    react-native-worklets: ">=0.7.4"
+  checksum: 10/8b0f08d8240c6abd134ad6f17c40e29a5cdaff36a4928800ccefbabf8314f59f517793197269e6455ae4eb3d3deec6047c9257270b64019aebc7693a87d578f1
   languageName: node
   linkType: hard
 
