@@ -10655,7 +10655,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/key-tree@npm:10.1.1":
+"@metamask/key-tree@npm:^10.1.1":
   version: 10.1.1
   resolution: "@metamask/key-tree@npm:10.1.1"
   dependencies:
@@ -10680,19 +10680,6 @@ __metadata:
     "@noble/hashes": "npm:^1.8.0"
     "@scure/base": "npm:^1.2.6"
   checksum: 10/3193979cb12ad20940790fd897b09e06da69e15b8d65bf716ed12a12eed68f51157b787e93c81ed41388139e1f68ee9874bc71596df4a681ec70ec9502aa36e2
-  languageName: node
-  linkType: hard
-
-"@metamask/key-tree@patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch":
-  version: 10.1.1
-  resolution: "@metamask/key-tree@patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch::version=10.1.1&hash=40cbda"
-  dependencies:
-    "@metamask/scure-bip39": "npm:^2.1.1"
-    "@metamask/utils": "npm:^11.0.1"
-    "@noble/curves": "npm:^1.8.1"
-    "@noble/hashes": "npm:^1.3.2"
-    "@scure/base": "npm:^1.0.0"
-  checksum: 10/27e41df10066976063d91cfa66fa5dd2c9e460afd12e79550f72eb94ddcd9d3b6603922a57614e128dfefc14f93dcfbf493067e4a20ae57a754516ca4ba3834d
   languageName: node
   linkType: hard
 
