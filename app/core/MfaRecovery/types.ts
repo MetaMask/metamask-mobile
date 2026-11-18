@@ -2,9 +2,9 @@
  * Local mirrors of `@metamask/mfa-recovery-controller` identifier-auth /
  * seedless-unlock types for Mobile call sites. `authConnection` must use the
  * seedless-onboarding `AuthConnection` enum so the provider is assignable to
- * the preview package’s `RecoveryIdentifierAuthProvider`.
+ * Core’s `RecoveryIdentifierAuthProvider`.
  *
- * Matches Core MFA recovery after #11224 tip (`701acab40`):
+ * Matches Core MFA recovery:
  * one provider method (`getKeyBoundIdentifierLogin`); `authenticateIdentifier`
  * returns an `IdentifierSession` that may include `seedlessAuthData`.
  */
@@ -88,8 +88,7 @@ export interface IdentifierSession {
 
 /**
  * Minimal shape of `MfaRecoveryController.authenticateIdentifier` used by the
- * social password unlock path. Present on Engine only when the preview package
- * is wired locally for testing.
+ * social password unlock path. Present on Engine when MFA recovery init succeeds.
  */
 export interface MfaRecoveryControllerLike {
   authenticateIdentifier: (

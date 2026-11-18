@@ -77,6 +77,10 @@ describe('mfaRecoveryControllerInit', () => {
           getAuthenticatedProfileId: expect.any(Function),
           authorizeRecoveryRequest: expect.any(Function),
         }),
+        lockProvider: expect.objectContaining({
+          acquire: expect.any(Function),
+          release: expect.any(Function),
+        }),
         identifierAuthProvider: expect.objectContaining({
           getKeyBoundIdentifierLogin: expect.any(Function),
         }),
@@ -84,6 +88,7 @@ describe('mfaRecoveryControllerInit', () => {
           expect.objectContaining({
             id: 'left-path-stub',
             isAvailable: expect.any(Function),
+            getMutationReceipt: expect.any(Function),
           }),
         ],
         pendingOperationEncryptor: expect.objectContaining({
@@ -139,6 +144,13 @@ describe('mfaRecoveryControllerInit', () => {
       args.authProvider.authorizeRecoveryRequest({} as never),
     ).rejects.toThrow('authProvider.authorizeRecoveryRequest is not wired');
 
+    await expect(args.lockProvider.acquire('lock-1')).rejects.toThrow(
+      'lockProvider.acquire is not wired',
+    );
+    await expect(args.lockProvider.release('lock-1')).rejects.toThrow(
+      'lockProvider.release is not wired',
+    );
+
     const escrow = args.escrows[0];
     await expect(escrow.isAvailable()).resolves.toBe(false);
     await expect(escrow.generateChallenge({} as never)).rejects.toThrow(
@@ -147,6 +159,9 @@ describe('mfaRecoveryControllerInit', () => {
     await expect(escrow.getIdentifiers({} as never)).rejects.toThrow(
       'escrow.getIdentifiers is not wired',
     );
+    await expect(
+      escrow.getMutationReceipt({} as never, {} as never),
+    ).rejects.toThrow('escrow.getMutationReceipt is not wired');
     await expect(
       escrow.getSecret({} as never, {} as never, '' as never, {} as never),
     ).rejects.toThrow('escrow.getSecret is not wired');

@@ -4,14 +4,15 @@ import {
   type PendingOperationEncryptor,
   type RecoveryAuthProvider,
   type RecoveryEscrowProvider,
+  type RecoveryLockProvider,
 } from '@metamask/mfa-recovery-controller';
 import { createMoneyMfaOidcIdentifierAuthProvider } from '../../MfaRecovery';
 import Logger from '../../../util/Logger';
 import type { MessengerClientInitFunctionsByMessengerClientName } from '../types';
 
-const getMfaRecoveryPreviewVersion = (): string => {
+const getMfaRecoveryPackageVersion = (): string => {
   try {
-    // Local preview testing only — surfaces which Core preview is loaded.
+    // Surfaces which published MFA recovery package is loaded (Sentry tags).
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require('@metamask/mfa-recovery-controller/package.json')
       .version as string;
@@ -31,15 +32,16 @@ const leftPathNotWired = (surface: string, method: string): Promise<never> =>
  * Minimal Engine wiring for left-hand social unlock only:
  * `authenticateIdentifier` (AAL1) → seedless authenticate → password.
  *
- * Constructor still requires authProvider / escrows / pending encryptor;
- * those are stubs. Cubist and Auth API AAL2 approvals are out of scope.
+ * Constructor still requires authProvider / lockProvider / escrows / pending
+ * encryptor; those are stubs. Cubist and Auth API AAL2 approvals are out of
+ * scope.
  *
  * Same pattern as SamplePetnames: controller may be omitted when init fails so
  * Engine still starts (`MessengerClients.MfaRecoveryController` is optional).
  */
 export const mfaRecoveryControllerInit: MessengerClientInitFunctionsByMessengerClientName['MfaRecoveryController'] =
   ({ controllerMessenger, initMessenger, persistedState }) => {
-    const previewVersion = getMfaRecoveryPreviewVersion();
+    const packageVersion = getMfaRecoveryPackageVersion();
     try {
       const controller = new MfaRecoveryController({
         messenger: controllerMessenger,
@@ -47,6 +49,7 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunctionsByMessengerC
           | Partial<MfaRecoveryControllerState>
           | undefined,
         authProvider: createLeftPathAuthProviderStub(),
+        lockProvider: createLeftPathLockProviderStub(),
         identifierAuthProvider: createMoneyMfaOidcIdentifierAuthProvider({
           getRemoteFeatureFlags: () =>
             initMessenger.call('RemoteFeatureFlagController:getState')
@@ -64,7 +67,7 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunctionsByMessengerC
         tags: {
           feature: 'mfa',
           operation: 'mfa_recovery_controller_init',
-          previewVersion,
+          packageVersion,
         },
       });
       return { controller: undefined };
@@ -80,6 +83,13 @@ function createLeftPathAuthProviderStub(): RecoveryAuthProvider {
   };
 }
 
+function createLeftPathLockProviderStub(): RecoveryLockProvider {
+  return {
+    acquire: () => leftPathNotWired('lockProvider', 'acquire'),
+    release: () => leftPathNotWired('lockProvider', 'release'),
+  };
+}
+
 function createLeftPathEscrowStub(): RecoveryEscrowProvider {
   return {
     id: 'left-path-stub',
@@ -88,6 +98,7 @@ function createLeftPathEscrowStub(): RecoveryEscrowProvider {
     isAvailable: () => Promise.resolve(false),
     generateChallenge: () => leftPathNotWired('escrow', 'generateChallenge'),
     getIdentifiers: () => leftPathNotWired('escrow', 'getIdentifiers'),
+    getMutationReceipt: () => leftPathNotWired('escrow', 'getMutationReceipt'),
     getSecret: () => leftPathNotWired('escrow', 'getSecret'),
     applyMutation: () => leftPathNotWired('escrow', 'applyMutation'),
     verifyReceipt: () => leftPathNotWired('escrow', 'verifyReceipt'),

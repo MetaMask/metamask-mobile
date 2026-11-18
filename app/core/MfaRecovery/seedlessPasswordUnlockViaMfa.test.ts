@@ -66,7 +66,7 @@ const keyBoundSessionFields = {
   pkE: new Uint8Array(32),
 };
 
-/** Core tip `701acab40`: seedlessAuthData lives on the IdentifierSession. */
+/** seedlessAuthData lives on the IdentifierSession. */
 const sessionWithSeedless = (
   data: typeof seedlessAuthData | object = seedlessAuthData,
 ) => ({

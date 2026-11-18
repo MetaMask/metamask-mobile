@@ -44,7 +44,7 @@ const getMfaRecoveryController = (): MfaRecoveryControllerLike => {
   ).MfaRecoveryController;
   if (!controller) {
     throw new Error(
-      'MfaRecoveryController is not on Engine.context. For local testing, wire the mfa-recovery-controller preview (see .local-mfa-preview-testing/).',
+      'MfaRecoveryController is not on Engine.context (init may have failed).',
     );
   }
   return controller;
@@ -83,8 +83,7 @@ const toAuthResponse = (seedlessAuthData: SeedlessAuthData): AuthResponse => {
  * (prefer {@link OAuthService.handleMfaSeedlessPasswordUnlock}) own that
  * lifecycle so success is only marked after authenticate completes.
  *
- * Requires `Engine.context.MfaRecoveryController` (preview package wired locally
- * for testing; not committed to CI).
+ * Requires `Engine.context.MfaRecoveryController` (`@metamask/mfa-recovery-controller`).
  */
 export async function authenticateSeedlessViaMfaIdentifier(
   identifier: Identifier,
@@ -92,8 +91,8 @@ export async function authenticateSeedlessViaMfaIdentifier(
 ): Promise<SeedlessPasswordUnlockResult> {
   const MfaRecoveryController = getMfaRecoveryController();
 
-  // Core #11224 (`701acab40`): authenticateIdentifier returns IdentifierSession
-  // with optional seedlessAuthData on the session (not beside it).
+  // authenticateIdentifier returns IdentifierSession with optional
+  // seedlessAuthData on the session (not beside it).
   const session =
     await MfaRecoveryController.authenticateIdentifier(identifier);
   const { seedlessAuthData, ...recoverySession } = session;
