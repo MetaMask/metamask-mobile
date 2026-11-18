@@ -7,6 +7,8 @@ const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'perps.order_book.total': 'Total',

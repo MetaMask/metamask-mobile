@@ -864,6 +864,24 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
+    it('reads the default route for a market without a providerId', () => {
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, providerId: undefined },
+      );
+
+      expect(mockUsePerpsLiveAvailableToTrade).toHaveBeenLastCalledWith({
+        symbol: 'BTC',
+        providerId: undefined,
+      });
+      expect(result.current.availableBalance).toBe(unknownLabel);
+    });
+
     it('shows the controller value for the long side, not the withdrawable balance', () => {
       mockAvailableToTrade = {
         providerId: 'hyperliquid',

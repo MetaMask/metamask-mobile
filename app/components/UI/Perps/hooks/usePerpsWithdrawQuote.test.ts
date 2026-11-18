@@ -12,6 +12,8 @@ import { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'perps.withdrawal.amount_too_low' && params?.minAmount) {
       return `Amount must be greater than $${params.minAmount} to cover fees`;
@@ -167,9 +169,9 @@ describe('usePerpsWithdrawQuote', () => {
         { state: {} as DeepPartial<RootState> },
       );
 
-      // 1,000,000 less the $1 fee; sizes never group thousands.
+      // 1,000,000 less the $1 fee, grouped like other fiat amounts.
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        '999999 USDC',
+        '999,999 USDC',
       );
       expect(result.current.hasValidQuote).toBe(true);
     });

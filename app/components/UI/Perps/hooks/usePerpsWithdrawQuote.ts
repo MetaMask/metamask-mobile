@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import { formatPerpsUsdCents, formatPositionSize } from '../utils/formatUtils';
+import { formatPerpsFiat, formatPerpsUsdCents } from '../utils/formatUtils';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
   PERPS_DISPLAY_PRECISION,
@@ -104,8 +104,11 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER, // "$0.00"
       totalFees: totalFeesDisplay,
       estimatedTime,
-      receivingAmount: `${formatPositionSize(receivingAmount, {
-        decimals: PERPS_DISPLAY_PRECISION.Fee,
+      // A USDC amount: the fiat formatter without its currency symbol.
+      receivingAmount: `${formatPerpsFiat(receivingAmount, {
+        symbol: false,
+        minimumDecimals: 0,
+        maximumDecimals: PERPS_DISPLAY_PRECISION.Fee,
       })} USDC`,
     };
   }, [parsedAmount, isValid, withdrawalRoute, networkFeeAmount]);

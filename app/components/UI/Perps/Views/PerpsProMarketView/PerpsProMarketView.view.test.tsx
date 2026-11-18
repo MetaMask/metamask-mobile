@@ -5884,7 +5884,7 @@ describe('Pro order form available to trade', () => {
     expect(label).toHaveTextContent(unknownLabel);
   });
 
-  it('falls back to the spendable balance for a provider without a venue value', async () => {
+  it('keeps the placeholder for a provider without a venue value, not the spendable balance', async () => {
     jest
       .mocked(Engine.context.PerpsController.getOrderCapabilities)
       .mockResolvedValue({
@@ -5901,9 +5901,29 @@ describe('Pro order form available to trade', () => {
 
     const label = await screen.findByTestId(ids.AVAILABLE_BALANCE);
 
-    // A provider without a venue value never reports one, so the account-wide
-    // spendable balance stands in instead of a permanent placeholder.
-    expect(label).toHaveTextContent(availableLabel('$1,000'));
+    // A provider without a venue value never reports one (Core contract), so
+    // the account-wide balance is never relabelled as available to trade.
+    expect(label).toHaveTextContent(unknownLabel);
+  });
+
+  it('shows the venue value for a market without a providerId (default route)', async () => {
+    const { stream } = renderPerpsProMarketView({
+      initialParams: { market: { symbol: 'ETH' } },
+      streamOverrides: {
+        account: createFundedAccountForViews('1000'),
+      },
+    });
+
+    const label = await screen.findByTestId(ids.AVAILABLE_BALANCE);
+    expect(label).toHaveTextContent(unknownLabel);
+
+    act(() => {
+      stream.emitAvailableToTrade(ethAvailable('8.65', '9.65'), 'ETH');
+    });
+
+    expect(screen.getByTestId(ids.AVAILABLE_BALANCE)).toHaveTextContent(
+      availableLabel('$8.65'),
+    );
   });
 
   it('shows the long value, then the short value for a short order', async () => {
