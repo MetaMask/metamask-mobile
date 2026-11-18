@@ -33,6 +33,7 @@ export type InboundMessage =
   | SetSubPaneLayoutMessage
   | SetPositionLinesMessage
   | SetTradeMarkersMessage
+  | SetAvatarMarkersMessage
   | PulseTradeMarkerMessage
   | FocusTimeMessage
   | FetchOlderBarsResponseMessage;
@@ -158,6 +159,32 @@ export interface SetTradeMarkersMessage {
 export interface SetTradeMarkersPayload {
   /** Full marker set; RN sends every trade, not just the visible window. */
   markers: TradeMarker[] | null;
+}
+
+/**
+ * A follower avatar marker (ASSETS-4102). Like {@link TradeMarker} but carries
+ * the trader's avatar + name so the overlay can render a DOM `<img>` on top of
+ * the candle at `time` (unix ms). `intent` selects the buy/sell badge color.
+ */
+export interface AvatarMarker {
+  id: string | number;
+  time: number;
+  intent: 'enter' | 'exit';
+  price?: number;
+  /** Follower avatar URL. Non-http values fall back to initials. */
+  avatarUrl?: string;
+  /** Display name — used for the initials fallback. */
+  traderName?: string;
+}
+
+export interface SetAvatarMarkersMessage {
+  type: 'SET_AVATAR_MARKERS';
+  payload: SetAvatarMarkersPayload;
+}
+
+export interface SetAvatarMarkersPayload {
+  /** Full marker set; null or empty clears. */
+  markers: AvatarMarker[] | null;
 }
 
 export interface PulseTradeMarkerMessage {

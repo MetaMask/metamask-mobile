@@ -10,7 +10,7 @@ import { TimePeriod } from '../../../hooks/useTokenHistoricalPrices';
  * Single source of truth so native SVG and WebView blocks align.
  */
 export const TOKEN_OVERVIEW_CHART_HEIGHT =
-  Dimensions.get('screen').height * 0.25;
+  Dimensions.get('screen').height * 0.4;
 
 /** Minimum distributed price points to draw the legacy line chart (matches advanced fallback). */
 export const CHART_DATA_THRESHOLD = 3;

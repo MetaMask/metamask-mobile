@@ -115,6 +115,27 @@ export interface TradeMarker {
 }
 
 /**
+ * A follower avatar marker (ASSETS-4102) rendered on the candlestick chart as a
+ * DOM `<img>` on top of the candle at `time`. Unlike {@link TradeMarker} (a
+ * Drawing-API glyph), avatars need a real image, which TradingView's Drawing
+ * API can't render — so these are drawn via a DOM overlay in the WebView.
+ */
+export interface AvatarMarker {
+  /** Stable id used as the React key and DOM element key. */
+  id: string;
+  /** Unix timestamp in **milliseconds** (matches OHLCVBar.time). */
+  time: number;
+  /** `'enter'` = buy/open (green badge); `'exit'` = sell/close (red badge). */
+  intent: 'enter' | 'exit';
+  /** Optional Y anchor; falls back to the nearest bar's close when omitted. */
+  price?: number;
+  /** Follower avatar URL. Non-http values fall back to initials in the WebView. */
+  avatarUrl?: string;
+  /** Display name — used for the initials fallback when no image loads. */
+  traderName?: string;
+}
+
+/**
  * Colors for the position overlay lines, supplied by the consumer from its own
  * theme. Position lines are consumer-specific (currently Perps only), so the
  * colors are passed in rather than read from the shared chart `CONFIG.theme`.
@@ -186,6 +207,7 @@ export type RNToWebViewMessageType =
   | 'SET_SUB_PANE_LAYOUT'
   | 'SET_POSITION_LINES'
   | 'SET_TRADE_MARKERS'
+  | 'SET_AVATAR_MARKERS'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
   | 'SET_MA_VISIBILITY'
@@ -296,6 +318,11 @@ export interface SetTradeMarkersPayload {
   markers: TradeMarker[] | null;
 }
 
+export interface SetAvatarMarkersPayload {
+  /** Avatar markers to render. Empty array (or null) clears all. */
+  markers: AvatarMarker[] | null;
+}
+
 export interface RealtimeUpdatePayload {
   bar: OHLCVBar;
 }
@@ -371,6 +398,7 @@ export type RNToWebViewMessage =
   | { type: 'SET_SUB_PANE_LAYOUT'; payload: SetSubPaneLayoutPayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
+  | { type: 'SET_AVATAR_MARKERS'; payload: SetAvatarMarkersPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
   | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
@@ -667,6 +695,12 @@ export interface AdvancedChartProps {
    * array to clear. Synced declaratively via useEffect.
    */
   tradeMarkers?: TradeMarker[];
+  /**
+   * Follower avatar markers (ASSETS-4102) overlaid on the candlestick chart as
+   * DOM images on top of the candle at each `time`. Set to undefined or an
+   * empty array to clear. Synced declaratively via useEffect.
+   */
+  avatarMarkers?: AvatarMarker[];
   /** Colors for the position overlay lines, supplied by the consumer's theme. */
   positionLineColors?: PositionLineColors;
 

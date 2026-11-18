@@ -155,6 +155,10 @@ export interface TVTimeScale {
   setRightOffset(offset: number): void;
   barSpacingChanged(): TVSubscription;
   width?(): number;
+  /** Pixels per bar (continuous, unlike the bar-quantized visible range). */
+  barSpacing?(): number;
+  /** Bars of empty space between the last bar and the right border. */
+  rightOffset?(): number;
 }
 
 export interface TVCrosshairParams {

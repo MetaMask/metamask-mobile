@@ -59,6 +59,10 @@ import {
 import { registerTradeMarkerOverlay } from '../overlays/tradeMarkers';
 import { registerTradeMarkerPulseHandler } from '../overlays/tradeMarkers/animation';
 import { attachMarkerHitTest } from '../overlays/tradeMarkers/markerHitTest';
+import {
+  attachAvatarMarkerSync,
+  registerAvatarMarkerOverlay,
+} from '../overlays/avatarMarkers';
 import { registerFocusTimeOverlay } from '../overlays/focusTime';
 import { registerPositionLinesOverlay } from '../overlays/positionLines';
 import { slbScheduleInitialCentering } from '../overlays/socialLeaderboard';
@@ -145,6 +149,7 @@ export function bootstrap(): ChartConfig {
   });
 
   registerTradeMarkerOverlay();
+  registerAvatarMarkerOverlay();
   registerTradeMarkerPulseHandler();
   registerFocusTimeOverlay();
   registerPositionLinesOverlay();
@@ -190,6 +195,7 @@ export function bootstrap(): ChartConfig {
               attachCrosshairListener(chart);
               attachTapDismiss(widget);
               attachMarkerHitTest(widget, chart);
+              attachAvatarMarkerSync(widget, chart);
               attachVisibleRangeListeners(chart);
               chart
                 .selection()

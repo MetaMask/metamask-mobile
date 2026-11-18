@@ -9,6 +9,7 @@ import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import LinePriceChart from '../PriceChart/PriceChart';
 import LinePriceChartWithSocialMarkers from '../PriceChart/LinePriceChartWithSocialMarkers';
+import { useFollowingTokenCandleAvatarMarkers } from '../../Charts/socialMarkers';
 import { selectChartSocialMarkersEnabled } from '../../../../selectors/featureFlagController/chartSocialMarkers';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
@@ -227,6 +228,10 @@ export const PriceChartSection = ({
     visibleToMs,
   } = usePriceChartContext();
 
+  // Follower avatar markers for the candlestick chart (ASSETS-4102).
+  // Flag-gated inside the hook; returns [] when disabled / logged out / empty.
+  const candleAvatarMarkers = useFollowingTokenCandleAvatarMarkers(assetId);
+
   // The interval bar above the chart already adds 8px of bottom padding.
   let chartMarginTop = 'mt-3 ';
   if (isTechnicalIndicatorsEnabled) {
@@ -319,6 +324,7 @@ export const PriceChartSection = ({
             showVolume={showVolume}
             volumeOverlay
             chartType={chartType}
+            avatarMarkers={candleAvatarMarkers}
             indicators={showChartIndicators ? indicatorsArray : []}
             selectedMAs={showChartIndicators ? selectedMAs : []}
             subPaneHeightRatio={chartPresets.subPaneHeightRatio}

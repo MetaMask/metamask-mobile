@@ -89,6 +89,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       selectedMAs = [],
       positionLines,
       tradeMarkers,
+      avatarMarkers,
       positionLineColors,
       chartType,
       showVolume = false,
@@ -158,6 +159,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevTradeMarkersRef = useRef(tradeMarkers);
+    const prevAvatarMarkersRef = useRef(avatarMarkers);
     const prevPositionLineColorsRef = useRef(positionLineColors);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
@@ -983,6 +985,19 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: { markers: tradeMarkers ?? null },
       });
     }, [tradeMarkers, chartReadyCount, postMessage]);
+
+    // Sync avatarMarkers prop (follower avatars, ASSETS-4102). Reference-
+    // compared like tradeMarkers, so parents should memoize the array.
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+      if (avatarMarkers === prevAvatarMarkersRef.current) return;
+      prevAvatarMarkersRef.current = avatarMarkers;
+
+      postMessage({
+        type: 'SET_AVATAR_MARKERS',
+        payload: { markers: avatarMarkers ?? null },
+      });
+    }, [avatarMarkers, chartReadyCount, postMessage]);
 
     // Sync chartType prop
     useEffect(() => {
