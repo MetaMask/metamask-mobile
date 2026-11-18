@@ -339,7 +339,13 @@ export function useQuickBuyController(
     trackTradeCompleted,
     markTradeSubmitted,
     preserveBridgeStateOnUnmount,
-  } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext, tradeMode);
+  } = useQuickBuyAnalytics(
+    traderAddress,
+    caip19,
+    analyticsContext,
+    tradeMode,
+    copyTradeOrigin,
+  );
   const [fiatAmount, setFiatAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
   // True when the user has committed the slider to 100% ("sell all"). In this
@@ -880,6 +886,7 @@ export function useQuickBuyController(
       source: analyticsContext?.source,
       originalEntryPoint: analyticsContext?.originalEntryPoint,
       isCopyTrade: analyticsContext?.isCopyTrade,
+      copyTradeOrigin,
     }),
     [
       traderAddress,
@@ -888,6 +895,7 @@ export function useQuickBuyController(
       analyticsContext?.source,
       analyticsContext?.originalEntryPoint,
       analyticsContext?.isCopyTrade,
+      copyTradeOrigin,
     ],
   );
 

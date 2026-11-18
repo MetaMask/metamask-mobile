@@ -9,6 +9,14 @@ describe('buildQuickBuySharedAnalyticsProperties', () => {
       true,
     ],
     [{ source: 'asset_details' as const }, 'asset_details', false],
+    [
+      {
+        source: 'trader_feed' as const,
+        copyTradeOrigin: { commentId: 'comment-1' },
+      },
+      'trader_feed',
+      true,
+    ],
   ])('sets is_copy_trade from the sheet', (input, source, isCopyTrade) => {
     expect(buildQuickBuySharedAnalyticsProperties(input)).toEqual({
       [QuickBuyEventProperties.SOURCE]: source,

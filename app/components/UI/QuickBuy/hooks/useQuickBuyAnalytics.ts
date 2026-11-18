@@ -12,6 +12,7 @@ import {
   setSourceToken,
 } from '../../../../core/redux/slices/bridge';
 import Engine from '../../../../core/Engine';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { useSocialLeaderboardAnalytics } from '../../../Views/SocialLeaderboard/analytics';
 import {
   buildQuickBuySharedAnalyticsProperties,
@@ -62,6 +63,7 @@ export function useQuickBuyAnalytics(
   caip19: string,
   analyticsContext: QuickBuyAnalyticsContext,
   tradeMode?: QuickBuyTradeMode,
+  copyTradeOrigin?: CopyTradeOrigin,
 ): {
   refs: QuickBuyAnalyticsRefs;
   trackAmountSelected: (
@@ -119,8 +121,15 @@ export function useQuickBuyAnalytics(
         originalEntryPoint,
         marketCap,
         isCopyTrade,
+        copyTradeOrigin,
       }),
-    [analyticsSource, originalEntryPoint, marketCap, isCopyTrade],
+    [
+      analyticsSource,
+      originalEntryPoint,
+      marketCap,
+      isCopyTrade,
+      copyTradeOrigin,
+    ],
   );
 
   // Dismiss cleanup must run only on unmount. `sharedAnalyticsProps` updates when
