@@ -44,6 +44,7 @@ const mockCheckOrderCapability = jest.fn().mockResolvedValue(true);
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
+  useDispatch: () => jest.fn(),
 }));
 
 jest.mock('../../../utils/perpsModeSwitch', () => ({

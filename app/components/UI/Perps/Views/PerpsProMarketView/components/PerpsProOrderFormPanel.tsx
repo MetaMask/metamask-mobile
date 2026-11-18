@@ -16,7 +16,10 @@ import React, {
   useState,
 } from 'react';
 import type { ScrollView } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPerpsCrossMarginConfirmed } from '../../../../../../actions/settings';
+import { selectHasConfirmedCrossMargin } from '../../../selectors/crossMarginConfirmation';
+import { selectPerpsSelectedAccountAddress } from '../../../selectors/selectedAccountAddress';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
@@ -311,6 +314,9 @@ const PerpsProOrderFormPanel = ({
 
   const { styles } = useStyles(createStyles, {});
 
+  const dispatch = useDispatch();
+  const hasConfirmedCrossMargin = useSelector(selectHasConfirmedCrossMargin);
+  const selectedAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
   const openMarginMode = useCallback(() => {
     refreshMarginModeLock();
@@ -329,22 +335,31 @@ const PerpsProOrderFormPanel = ({
   }, []);
   const handleMarginModeSelect = useCallback(
     (nextMarginMode: MarginMode) => {
-      if (nextMarginMode === 'cross' && marginMode !== 'cross') {
+      if (
+        nextMarginMode === 'cross' &&
+        marginMode !== 'cross' &&
+        !hasConfirmedCrossMargin
+      ) {
         isCrossConfirmPendingRef.current = true;
         return;
       }
       onMarginModeSelect(nextMarginMode);
     },
-    [marginMode, onMarginModeSelect],
+    [hasConfirmedCrossMargin, marginMode, onMarginModeSelect],
   );
   const closeCrossConfirm = useCallback(
     () => setIsCrossConfirmVisible(false),
     [],
   );
+  // Only an explicit confirm is remembered. Dismissing the sheet leaves the
+  // account unconfirmed so it reopens the next time Cross is selected.
   const confirmCrossMargin = useCallback(() => {
     setIsCrossConfirmVisible(false);
+    if (selectedAccountAddress) {
+      dispatch(setPerpsCrossMarginConfirmed(selectedAccountAddress));
+    }
     onMarginModeSelect('cross');
-  }, [onMarginModeSelect]);
+  }, [dispatch, onMarginModeSelect, selectedAccountAddress]);
 
   const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
     usePerpsCrossMarginSummary({ enabled: isCrossMarginAvailableForMarket });

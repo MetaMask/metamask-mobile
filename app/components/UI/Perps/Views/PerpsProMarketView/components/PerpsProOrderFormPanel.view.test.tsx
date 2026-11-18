@@ -35,6 +35,7 @@ import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import PerpsTPSLView from '../../PerpsTPSLView/PerpsTPSLView';
 import {
+  PerpsCrossMarginConfirmBottomSheetSelectorsIDs as confirmIds,
   PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsOrderTypeBottomSheetSelectorsIDs as orderTypeIds,
   PerpsProOrderFormSelectorsIDs as formIds,
@@ -290,6 +291,59 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.pro_order_form.isolated'),
     );
+  });
+
+  it('asks for the Cross confirmation only once per account', async () => {
+    renderPerpsCrossMarginOrderFormPanel();
+    await openMarginModeSheet();
+    await selectCrossMarginMode();
+
+    await openMarginModeSheet();
+    await waitFor(() =>
+      expect(screen.getByTestId(marginIds.ISOLATED_OPTION)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(marginIds.ISOLATED_OPTION));
+    await waitFor(() =>
+      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
+    );
+
+    await openMarginModeSheet();
+    await waitFor(() =>
+      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+        strings('perps.margin_mode.cross_title'),
+      ),
+    );
+    expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen();
+  });
+
+  it('reopens the Cross confirmation when the user goes back instead of confirming', async () => {
+    renderPerpsCrossMarginOrderFormPanel();
+    await openMarginModeSheet();
+    await waitFor(() =>
+      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+    await screen.findByTestId(confirmIds.CONTAINER);
+    fireEvent.press(screen.getByTestId(confirmIds.GO_BACK_BUTTON));
+    await waitFor(() =>
+      expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen(),
+    );
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.pro_order_form.isolated'),
+    );
+
+    await openMarginModeSheet();
+    await waitFor(() =>
+      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+
+    await screen.findByTestId(confirmIds.CONTAINER);
   });
 
   it('shows the Cross warning instead of submitting an existing Cross position when the flag is off', async () => {
