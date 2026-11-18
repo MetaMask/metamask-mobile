@@ -21,7 +21,11 @@ import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import { getHardwareTier } from '../../../../util/deviceCapability';
-import { ImpactMoment, playImpact } from '../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -408,9 +412,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   }, []);
 
   const toggleEmotion = useCallback(
-    function toggle(emotion: string): void {
+    function toggle(emotion: string, withHaptic = true): void {
       if (
-        !ensureSocialTermsForInteraction(() => toggle(emotion)) ||
+        !ensureSocialTermsForInteraction(() => toggle(emotion, withHaptic)) ||
         !ensureSocialProfileOnboarding() ||
         isPending
       ) {
@@ -421,6 +425,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         celebrateReaction(emotion);
       }
       notifyReaction?.(userReaction === emotion ? 'removed' : 'added', emotion);
+      // The tray emoji already plays this tick before it calls onPick.
+      if (withHaptic) {
+        playSelection().catch(() => undefined);
+      }
       pickEmotion(emotion).catch(() => undefined);
     },
     [
@@ -436,7 +444,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   const handlePick = useCallback(
     (emotion: string) => {
-      toggleEmotion(emotion);
+      toggleEmotion(emotion, false);
     },
     [toggleEmotion],
   );
