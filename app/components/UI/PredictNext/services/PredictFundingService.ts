@@ -21,11 +21,9 @@ export const PREDICT_FUNDING_SERVICE_NAME = 'PredictFundingService' as const;
 
 /** Receipt statuses that end the Withdraw workflow with a known outcome, so
  * the balance reads must be refreshed. `rejected` ended before money moved. */
-const TERMINAL_WITHDRAW_STATUSES: readonly PredictWithdrawReceiptStatus[] = [
-  'settled',
-  'failed',
-  'returned',
-];
+const TERMINAL_WITHDRAW_STATUSES: Partial<
+  Record<PredictWithdrawReceiptStatus, true>
+> = { settled: true, failed: true, returned: true };
 
 export type PredictFundingServiceActions =
   // Consumed action: a Withdrawal that leaves or returns money changes the
@@ -33,14 +31,10 @@ export type PredictFundingServiceActions =
   // service.
   DataServiceInvalidateQueriesAction<'PredictPortfolioService'>;
 
-/** A Withdrawal publishes nothing: its outcome is the receipt a subscribed
- * surface renders, and the balance reads it refreshes. */
-export type PredictFundingServiceEvents = never;
-
 export type PredictFundingServiceMessenger = Messenger<
   typeof PREDICT_FUNDING_SERVICE_NAME,
   PredictFundingServiceActions,
-  PredictFundingServiceEvents
+  never
 >;
 
 export interface PredictFundingServiceOptions {
@@ -184,7 +178,7 @@ export class PredictFundingService {
     }
     if (
       receipt.status === 'processing' ||
-      TERMINAL_WITHDRAW_STATUSES.includes(receipt.status)
+      TERMINAL_WITHDRAW_STATUSES[receipt.status] === true
     ) {
       this.#invalidateFundingReads();
     }

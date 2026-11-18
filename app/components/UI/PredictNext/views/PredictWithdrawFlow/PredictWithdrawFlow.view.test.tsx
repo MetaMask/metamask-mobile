@@ -229,6 +229,78 @@ describe('PredictWithdrawFlow', () => {
     expect(commitBodies()).toEqual([{}]);
   });
 
+  it('reports the amount a settled sweep withdrew and what stayed behind', async () => {
+    stubWithdrawals({
+      preview: () => ({
+        body: previewOf({ mode: 'sweep_all', requestedAmount: undefined }),
+      }),
+      commit: () => ({
+        status: 201,
+        body: receiptOf({
+          mode: 'sweep_all',
+          requestedAmount: undefined,
+          status: 'settled',
+          withdrawnAmount: '5.00',
+          resolvedAt: new Date().toISOString(),
+        }),
+      }),
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+
+    await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.AMOUNT_VALUE),
+    ).toHaveTextContent(strings('predict_next.withdraw.full_balance'));
+
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
+    ).toHaveTextContent('$5.00');
+    expect(
+      screen.getByText(strings('predict_next.withdraw.status.sweep_remainder')),
+    ).toBeOnTheScreen();
+  });
+
+  it('puts manual review ahead of the status body', async () => {
+    stubWithdrawals({
+      commit: () => ({
+        status: 201,
+        body: receiptOf({ needsManualReview: true }),
+      }),
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
+
+    expect(
+      await screen.findByText(
+        strings('predict_next.withdraw.status.manual_review.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('predict_next.withdraw.status.manual_review.body'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.status('processing')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('predict_next.withdraw.status.processing.body'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('rejects an amount below the one dollar minimum without calling the backend', async () => {
     renderPredictNext();
     await openWithdrawFlow();

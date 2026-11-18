@@ -50,6 +50,8 @@ Build the parts and variants required by the active vertical slice. Do not creat
 
 Withdrawal entry, confirmation, and status mask account balances and payout details with MMDS `SensitiveText` while privacy mode is on. User-entered amounts remain visible during entry. An expired quote returns to amount entry with the amount retained; Continue requests a new quote before another commit. Other commit errors keep the approved quote available for retry.
 
+The withdrawal reducer groups transitions by phase. Unsupported actions leave the current state unchanged. Receipt updates share one transition, and manual-review guidance replaces the ordinary status description.
+
 ## Visual reference when no designs exist
 
 When a ticket or slice ships without Figma designs, use the legacy Polymarket implementation under `../Predict/` as the visual and behavioral guideline for the equivalent surface (for example, `PredictPosition` and `PredictActivity` rows for portfolio lists). Treat it strictly as a reference:

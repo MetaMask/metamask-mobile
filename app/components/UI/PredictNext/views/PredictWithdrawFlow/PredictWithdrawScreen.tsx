@@ -106,53 +106,66 @@ const initialWithdrawFlowState: WithdrawFlowState = {
   error: null,
 };
 
-const withdrawFlowReducer = (
-  state: WithdrawFlowState,
+const reduceWithdrawInput = (
+  state: Extract<WithdrawFlowState, { phase: 'input' }>,
   action: WithdrawFlowAction,
 ): WithdrawFlowState => {
   switch (action.type) {
     case 'editAmount':
-      return state.phase === 'input'
-        ? {
-            ...state,
-            input: { amount: action.amount },
-            error: null,
-          }
-        : state;
+      return {
+        ...state,
+        input: { amount: action.amount },
+        error: null,
+      };
     case 'request':
-      return state.phase === 'input'
-        ? { ...state, isRequesting: true, error: null }
-        : state;
+      return { ...state, isRequesting: true, error: null };
     case 'quoted':
-      return state.phase === 'input'
-        ? {
-            phase: 'confirm',
-            input: state.input,
-            preview: action.preview,
-            error: null,
-          }
-        : state;
+      return {
+        phase: 'confirm',
+        input: state.input,
+        preview: action.preview,
+        error: null,
+      };
     case 'requestFailed':
-      return state.phase === 'input'
-        ? { ...state, isRequesting: false, error: action.error }
-        : state;
+      return { ...state, isRequesting: false, error: action.error };
+    default:
+      return state;
+  }
+};
+
+const reduceWithdrawConfirm = (
+  state: Extract<WithdrawFlowState, { phase: 'confirm' }>,
+  action: WithdrawFlowAction,
+): WithdrawFlowState => {
+  switch (action.type) {
     case 'confirm':
-      return state.phase === 'confirm'
-        ? {
-            phase: 'status',
-            input: state.input,
-            preview: state.preview,
-            receipt: null,
-          }
-        : state;
+      return {
+        phase: 'status',
+        input: state.input,
+        preview: state.preview,
+        receipt: null,
+      };
+    case 'back':
+      return {
+        phase: 'input',
+        input: state.input,
+        isRequesting: false,
+        error: null,
+      };
+    default:
+      return state;
+  }
+};
+
+const reduceWithdrawStatus = (
+  state: Extract<WithdrawFlowState, { phase: 'status' }>,
+  action: WithdrawFlowAction,
+): WithdrawFlowState => {
+  switch (action.type) {
     case 'committed':
-      return state.phase === 'status'
-        ? { ...state, receipt: action.receipt }
-        : state;
+    case 'receipt':
+      return { ...state, receipt: action.receipt };
     case 'commitFailed':
-      if (state.phase !== 'status') {
-        return state;
-      }
       // An expired quote can never be committed again, so the retry that
       // makes sense is a new quote: keep the amount, drop the stale Preview.
       return action.error.code === PredictErrorCode.PREVIEW_EXPIRED
@@ -168,19 +181,24 @@ const withdrawFlowReducer = (
             preview: state.preview,
             error: action.error,
           };
-    case 'back':
-      return state.phase === 'confirm'
-        ? {
-            phase: 'input',
-            input: state.input,
-            isRequesting: false,
-            error: null,
-          }
-        : state;
-    case 'receipt':
-      return state.phase === 'status'
-        ? { ...state, receipt: action.receipt }
-        : state;
+    default:
+      return state;
+  }
+};
+
+const withdrawFlowReducer = (
+  state: WithdrawFlowState,
+  action: WithdrawFlowAction,
+): WithdrawFlowState => {
+  switch (state.phase) {
+    case 'input':
+      return reduceWithdrawInput(state, action);
+    case 'confirm':
+      return reduceWithdrawConfirm(state, action);
+    case 'status':
+      return reduceWithdrawStatus(state, action);
+    default:
+      return state;
   }
 };
 
@@ -295,9 +313,9 @@ export const PredictWithdrawScreen = () => {
         type: 'quoted',
         preview: await service.requestWithdrawPreview(venueId, params),
       });
-    } catch (caught) {
-      Logger.log('PredictNext: the Withdraw Preview failed', caught);
-      dispatch({ type: 'requestFailed', error: toPredictError(caught) });
+    } catch (error_) {
+      Logger.log('PredictNext: the Withdraw Preview failed', error_);
+      dispatch({ type: 'requestFailed', error: toPredictError(error_) });
     }
   }, [canContinue, input, service, venueId]);
 
@@ -317,9 +335,9 @@ export const PredictWithdrawScreen = () => {
           preview.previewId,
         ),
       });
-    } catch (caught) {
-      Logger.log('PredictNext: the Withdraw Commit failed', caught);
-      dispatch({ type: 'commitFailed', error: toPredictError(caught) });
+    } catch (error_) {
+      Logger.log('PredictNext: the Withdraw Commit failed', error_);
+      dispatch({ type: 'commitFailed', error: toPredictError(error_) });
     }
   }, [isOffline, service, state, venueId]);
 

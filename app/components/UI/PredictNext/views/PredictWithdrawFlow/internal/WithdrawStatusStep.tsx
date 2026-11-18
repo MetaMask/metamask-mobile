@@ -153,6 +153,12 @@ export const WithdrawStatusStep = ({
   const withdrawn = withdrawnValue(receipt);
   const isSettled = receipt.status === 'settled';
   const isSweep = receipt.mode === 'sweep_all';
+  const statusBody =
+    !receipt.needsManualReview && copy.body ? (
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {copy.body}
+      </Text>
+    ) : null;
 
   return (
     <Box gap={2} testID={PredictWithdrawFlowTestIds.STATUS}>
@@ -195,11 +201,9 @@ export const WithdrawStatusStep = ({
             {strings('predict_next.withdraw.status.manual_review.body')}
           </Text>
         </Box>
-      ) : copy.body ? (
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {copy.body}
-        </Text>
-      ) : null}
+      ) : (
+        statusBody
+      )}
     </Box>
   );
 };

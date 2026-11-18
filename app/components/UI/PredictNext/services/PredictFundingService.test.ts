@@ -9,7 +9,6 @@ import {
   PREDICT_FUNDING_SERVICE_NAME,
   PredictFundingService,
   type PredictFundingServiceActions,
-  type PredictFundingServiceEvents,
   type PredictFundingServiceMessenger,
 } from './PredictFundingService';
 import {
@@ -89,7 +88,7 @@ const serviceWith = (): PredictFundingService => {
   const rootMessenger = new Messenger<
     MockAnyNamespace,
     PredictFundingServiceActions,
-    PredictFundingServiceEvents
+    never
   >({ namespace: MOCK_ANY_NAMESPACE });
   rootMessenger.registerActionHandler(
     'PredictPortfolioService:invalidateQueries',

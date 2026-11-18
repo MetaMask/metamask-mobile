@@ -17,15 +17,14 @@ import { withdrawReadDelayMs } from './withdrawObservation';
 export const MAX_WITHDRAW_READ_FAILURES = 5;
 
 /** Receipt statuses the backend is still working through; a surface keeps
- * reading until the status leaves this set or the backend asks for manual
+ * reading until the status leaves this lookup or the backend asks for manual
  * review. */
-const IN_PROGRESS_WITHDRAW_STATUSES: readonly PredictWithdrawReceiptStatus[] = [
-  'pending',
-  'processing',
-];
+const IN_PROGRESS_WITHDRAW_STATUSES: Partial<
+  Record<PredictWithdrawReceiptStatus, true>
+> = { pending: true, processing: true };
 
 const isInProgressWithdraw = (receipt: PredictWithdrawReceipt): boolean =>
-  IN_PROGRESS_WITHDRAW_STATUSES.includes(receipt.status);
+  IN_PROGRESS_WITHDRAW_STATUSES[receipt.status] === true;
 
 export interface UseWithdrawReceiptOptions {
   service: Pick<PredictFundingService, 'observeWithdraw'>;
