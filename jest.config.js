@@ -43,6 +43,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   'react-navigation',
   'react-navigation-redux-helpers',
   '@sentry',
+  '@scure/base',
   'd3-color',
   'd3-shape',
   'd3-path',
