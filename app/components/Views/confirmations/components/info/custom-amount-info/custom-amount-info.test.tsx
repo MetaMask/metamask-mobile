@@ -175,6 +175,7 @@ jest.mock('../../../hooks/gas/usePredictWithdrawGasFeeToken', () => ({
   usePredictWithdrawGasFeeToken: () => ({
     isPending: false,
     isUnavailable: false,
+    recheck: () => Promise.resolve(true),
   }),
 }));
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
@@ -197,6 +198,14 @@ jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
 }));
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
+}));
+jest.mock('../../rows/perps-receive-to-row', () => ({
+  DEFAULT_PERPS_RECEIVE_DESTINATION: 'hyperliquid',
+  PerpsReceiveToRow: () => null,
+}));
+jest.mock('../../rows/perps-withdraw-from-row', () => ({
+  DEFAULT_PERPS_WITHDRAW_SOURCE: 'hyperliquid',
+  PerpsWithdrawFromRow: () => null,
 }));
 jest.mock('../../rows/predict-account-picker-row', () => ({
   PredictAccountPickerRow: () => null,
@@ -700,12 +709,12 @@ describe('CustomAmountInfo', () => {
       txParams: { from: '0x123' },
     } as ReturnType<typeof useTransactionMetadataRequest>);
 
-    const { getByText } = render({
+    const { getByTestId } = render({
       transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
     });
 
     expect(
-      getByText(
+      within(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).getByText(
         'We’ll add $123.45 to your Money account to cover this payment.',
       ),
     ).toBeOnTheScreen();

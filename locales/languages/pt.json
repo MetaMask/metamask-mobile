@@ -1199,6 +1199,7 @@
       "title": "Adicionar dinheiro com Pix",
       "description": "Adicione fundos diretamente da sua conta bancária. Os fundos geralmente chegam à sua conta Money em poucos minutos.",
       "provider_disclosure": "Os serviços de ativos virtuais no Brasil são fornecidos por um provedor terceirizado regulamentado.",
+      "risk_disclosure": "Comprar ou vender criptoativos pode ser arriscado. Uma vez transmitida à blockchain, a transferência de um criptoativo é irreversível.",
       "provider_disclosure_link": "Saiba mais.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Chave Pix",
@@ -4703,7 +4704,6 @@
   "experience_enhancer_modal": {
     "title": "Ajude-nos a melhorar sua experiência",
     "paragraph1a": "Além do ",
-    "paragraph1b": ", gostaríamos de usar dados (como informações de cookies) para saber como você interage com nossas comunicações de marketing.",
     "link": "MetaMetrics",
     "paragraph2": "Isso nos ajuda a personalizar o que compartilhamos com você, como:",
     "bullet1": "Últimos desenvolvimentos",

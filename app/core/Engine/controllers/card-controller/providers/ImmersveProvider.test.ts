@@ -1461,6 +1461,24 @@ describe('ImmersveProvider', () => {
       ]);
     });
 
+    it('shares one card list request between concurrent callers', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(routeGet({ cards: { items: [] } }));
+      const cardListCalls = (): unknown[][] =>
+        service.get.mock.calls.filter(([path]: [string]) =>
+          path.includes('/cards?'),
+        );
+
+      await Promise.all([
+        provider.getCardHomeData('0xabc', TOKENS),
+        provider.getResumeCardInfo(TOKENS),
+      ]);
+      expect(cardListCalls()).toHaveLength(1);
+
+      await provider.getResumeCardInfo(TOKENS);
+      expect(cardListCalls()).toHaveLength(2);
+    });
+
     it('returns a provisioning alert for a card that is still being created', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(

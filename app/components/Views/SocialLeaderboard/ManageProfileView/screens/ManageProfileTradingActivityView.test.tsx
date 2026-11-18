@@ -32,6 +32,7 @@ describe('ManageProfileTradingActivityView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
   });
 
@@ -50,14 +51,19 @@ describe('ManageProfileTradingActivityView', () => {
     });
   });
 
-  it('does not navigate when the info icon is pressed', () => {
+  it('renders the toggle label without an info icon', () => {
     renderWithProvider(<ManageProfileTradingActivityView />);
 
-    fireEvent.press(
-      screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.INFO_BUTTON),
-    );
-
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.show_trading_activity'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        ManageProfileTradingActivitySelectorsIDs.INFO_BUTTON,
+      ),
+    ).toBeNull();
   });
 
   it('updates trading privacy for a controller-backed profile', async () => {
@@ -85,6 +91,7 @@ describe('ManageProfileTradingActivityView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
 
     renderWithProvider(<ManageProfileTradingActivityView />);
@@ -148,6 +155,7 @@ describe('ManageProfileTradingActivityView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
 
     renderWithProvider(<ManageProfileTradingActivityView />);

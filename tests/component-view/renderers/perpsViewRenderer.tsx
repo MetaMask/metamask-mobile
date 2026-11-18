@@ -474,9 +474,11 @@ interface TestStreamManagerBundle {
 const withStreamControls = <T extends object>(
   renderResult: T,
   stream: PerpsStreamControls,
+  queryClient: QueryClient,
 ) => ({
   ...renderResult,
   stream,
+  queryClient,
 });
 
 const typedPositions = (positions: unknown[]): Position[] =>
@@ -837,6 +839,7 @@ export function renderPerpsView(
     return withStreamControls(
       renderWithProvider(navigationTree, { state }),
       stream,
+      queryClient,
     );
   }
 
@@ -848,6 +851,7 @@ export function renderPerpsView(
       initialParams,
     ),
     stream,
+    queryClient,
   );
 }
 
@@ -941,6 +945,7 @@ export function renderPerpsMarketDetailsView(
     extraRoutes?: PerpsExtraRoute[];
     socialEnabled?: boolean;
     includeToasts?: boolean;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const {
@@ -950,6 +955,7 @@ export function renderPerpsMarketDetailsView(
     extraRoutes,
     socialEnabled,
     includeToasts,
+    crossMarginEnabled,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
@@ -961,6 +967,7 @@ export function renderPerpsMarketDetailsView(
       extraRoutes,
       socialEnabled,
       includeToasts,
+      crossMarginEnabled,
     },
   );
 }
@@ -1086,6 +1093,7 @@ export function renderPerpsClosePositionView(
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
     includeToasts?: boolean;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;
@@ -1111,6 +1119,7 @@ export function renderPerpsClosePositionRouter(
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;
@@ -1435,6 +1444,7 @@ export function renderPerpsComponent(
       { state },
     ),
     stream,
+    queryClient,
   );
 }
 
@@ -1482,6 +1492,7 @@ export function renderPerpsComponentDisconnected(
       { state },
     ),
     stream,
+    queryClient,
   );
 }
 

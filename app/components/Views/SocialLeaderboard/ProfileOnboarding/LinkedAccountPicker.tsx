@@ -2,7 +2,6 @@ import {
   AvatarAccount,
   AvatarAccountSize,
   BottomSheetDialog,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -11,7 +10,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  ListItemSelect,
   Text,
   TextColor,
   TextVariant,
@@ -26,8 +24,11 @@ import { getAvatarAccountVariant } from '../../../../component-library/component
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useTheme } from '../../../../util/theme';
 import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
+import SocialAccountSectionList from '../shared/SocialAccountSectionList';
 import TradingActivityBenefits from '../shared/TradingActivityBenefits';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   root: {
@@ -48,8 +49,8 @@ interface LinkedAccountPickerProps {
 
 /**
  * Account step controls: the linked-account dropdown, the trading-activity
- * switch, and the benefit list. The sheet is built from BottomSheetDialog
- * and ListItemSelect.
+ * switch, and the benefit list. The sheet lists accounts with the homepage
+ * account cell and wallet title.
  */
 const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   accounts,
@@ -58,6 +59,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   onSelect,
   onShareTradingActivityChange,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
@@ -85,7 +87,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      <Box gap={4}>
+      <Box gap={3}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={strings(
@@ -147,14 +149,18 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
           >
             {tradingActivityLabel}
           </Text>
-          <Switch
-            value={shareTradingActivity}
-            onValueChange={onShareTradingActivityChange}
-            accessibilityRole="switch"
-            accessibilityLabel={tradingActivityLabel}
-            accessibilityState={{ checked: shareTradingActivity }}
-            testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
-          />
+          {/* The native switch draws at the top of a stretched frame. A 32px
+              slot matches the control, and the row centers that slot on the label. */}
+          <Box twClassName="h-8 items-center justify-center">
+            <Switch
+              value={shareTradingActivity}
+              onValueChange={onShareTradingActivityChange}
+              accessibilityRole="switch"
+              accessibilityLabel={tradingActivityLabel}
+              accessibilityState={{ checked: shareTradingActivity }}
+              testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
+            />
+          </Box>
         </Box>
 
         <TradingActivityBenefits
@@ -200,7 +206,8 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
                   onClose={closeSheet}
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_SHEET}
                 >
-                  <BottomSheetHeader
+                  <BottomSheetHeaderGlass
+                    isGlass={isGlassHeader}
                     onClose={closeSheet}
                     closeButtonProps={{
                       testID:
@@ -210,26 +217,16 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
                     {strings(
                       'social_leaderboard.profile_onboarding.select_account',
                     )}
-                  </BottomSheetHeader>
+                  </BottomSheetHeaderGlass>
                   <ScrollView style={styles.accountList}>
-                    {accounts.map((account) => (
-                      <ListItemSelect
-                        key={account.id}
-                        isSelected={account.id === selectedAccount?.id}
-                        showSelectedIcon
-                        avatar={
-                          <AvatarAccount
-                            address={account.address}
-                            size={AvatarAccountSize.Md}
-                            variant={avatarVariant}
-                          />
-                        }
-                        title={account.name}
-                        description={account.balanceLabel || undefined}
-                        onPress={() => handleSelect(account)}
-                        testID={`${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-${account.id}`}
-                      />
-                    ))}
+                    <SocialAccountSectionList
+                      accounts={accounts}
+                      onSelect={handleSelect}
+                      rowTestIdPrefix={
+                        SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW
+                      }
+                      selectedAccountId={selectedAccount?.id}
+                    />
                   </ScrollView>
                 </BottomSheetDialog>
               </Box>

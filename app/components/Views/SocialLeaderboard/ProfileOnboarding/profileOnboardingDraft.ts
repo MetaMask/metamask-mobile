@@ -8,6 +8,9 @@ import {
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
 import { generateUsername, MAX_USERNAME_LENGTH } from './generateUsername';
 
+/** The length the profile API accepts for a display name. */
+export const MAX_DISPLAY_NAME_LENGTH = 50;
+
 /** X account returned by ProfileController.connectX during onboarding. */
 export interface XOnboardingIdentity {
   username: string;

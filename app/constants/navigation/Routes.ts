@@ -166,8 +166,6 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
-  REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
-  REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
   REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
@@ -476,6 +474,7 @@ const Routes = {
     POST_COMPOSER: 'SocialPostComposerView',
     PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
+    TRADER_PREVIEW_SHEET: 'SocialTraderPreviewSheet',
   },
   PREDICT: {
     ROOT: 'Predict',

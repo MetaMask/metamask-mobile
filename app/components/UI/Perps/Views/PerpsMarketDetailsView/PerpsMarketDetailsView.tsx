@@ -107,7 +107,6 @@ import { HYPERLIQUID_CAIP2_CHAIN_ID, toFeedAssetId } from '../../../SocialFeed';
 import { HYPERLIQUID_CHAIN_NAME } from '../../../SocialFeed/utils/perp';
 import type { SocialFeedPageHandle } from '../../../SocialFeed/types';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
-import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPostToFeedButton from '../../components/PerpsPostToFeedButton';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
@@ -119,6 +118,7 @@ import TradingViewChart, {
 import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
   selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
@@ -529,6 +529,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   }, [market?.symbol]);
 
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isPriceAlertsEnabled = useSelector(selectPerpsPriceAlertsEnabledFlag);
   const {
     perpsMode,
@@ -1228,8 +1229,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           return;
         }
 
-        // Check for cross-margin position (MetaMask only supports isolated margin)
-        if (existingPosition?.leverage?.type === 'cross') {
+        // While cross margin is off, an existing cross position cannot be traded.
+        if (
+          !isCrossMarginEnabled &&
+          existingPosition?.leverage?.type === 'cross'
+        ) {
           navigation.navigate(Routes.PERPS.MODALS.ROOT, {
             screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
           });
@@ -1271,6 +1275,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       gate,
       isEligible,
       existingPosition,
+      isCrossMarginEnabled,
       navigation,
       track,
       navigateToOrder,
@@ -1937,9 +1942,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   );
 
   // Social tabs: the Feed tab's posts are rows of the screen's own list.
-  const isSocialLeaderboardEnabled = useSelector(
-    selectSocialLeaderboardEnabled,
-  );
   const [activeSocialTab, setActiveSocialTab] =
     useState<PerpsMarketSocialTab>('overview');
   const feedAssetIds = useMemo(() => {
@@ -2051,6 +2053,42 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   }
 
   const hasActionsFooter = hasLongShortButtons && !isTradingHalted;
+  const isFeedScroller = isPerpsSocialEnabled && feedAssetIds !== null;
+  // One FlashList scrolls every tab. The disclaimer stays inside Overview
+  // and Top traders, which unmount on Feed. A list footer would be recycled
+  // and paint that label when the next page loads.
+  const isFeedTabActive = isFeedScroller && activeSocialTab === 'feed';
+  const bottomInsetSpacer = edgeInsets && !hasActionsFooter && (
+    <View
+      style={{ height: edgeInsets.bottom }}
+      testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
+    />
+  );
+
+  const riskDisclaimer = (
+    <>
+      <View
+        style={styles.chromeBlock}
+        testID={PerpsMarketDetailsViewSelectorsIDs.RISK_DISCLAIMER}
+      >
+        <Text
+          style={styles.riskDisclaimer}
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+        >
+          {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            onPress={handleTradingViewPress}
+          >
+            TradingView.
+          </Text>
+        </Text>
+      </View>
+      {bottomInsetSpacer}
+    </>
+  );
 
   // Built once per render of this view and returned unchanged by
   // `renderScreenContent`, so the list's own re-renders (page loads, age tick)
@@ -2209,6 +2247,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             onOverviewLayout={handleAboutContainerLayout}
             onOverviewVisibilityChange={setAboutTrackingEnabled}
             onTabChange={setActiveSocialTab}
+            footer={isFeedScroller ? riskDisclaimer : undefined}
             overview={
               <PerpsHomeSectionList
                 sections={[
@@ -2233,32 +2272,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         </>
       )}
 
-      <View style={styles.chromeBlock}>
-        <Text
-          style={styles.riskDisclaimer}
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-        >
-          {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            onPress={handleTradingViewPress}
-          >
-            TradingView.
-          </Text>
-        </Text>
-      </View>
-      {edgeInsets && !hasActionsFooter && (
-        <View
-          style={{ height: edgeInsets.bottom }}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
-        />
-      )}
+      {isFeedScroller ? null : riskDisclaimer}
     </>
   );
-  const renderScreenContent = () => screenContent;
-  const isFeedScroller = isPerpsSocialEnabled && feedAssetIds !== null;
+  const renderScreenContent = (): React.ReactNode => screenContent;
 
   return (
     <View
@@ -2304,7 +2321,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             onLayout={handleScrollLayout}
           >
             <PerpsFeedScroller
-              enabled={activeSocialTab === 'feed' && isSocialLeaderboardEnabled}
+              enabled={activeSocialTab === 'feed'}
               isActive={activeSocialTab === 'feed'}
               refreshProgressViewOffset={isScrollLaidOut ? headerInset : 0}
               scope="all"
@@ -2318,6 +2335,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               pageRef={feedPageRef}
               scrollTestID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
             />
+            {isFeedTabActive ? bottomInsetSpacer : null}
           </View>
         ) : (
           <Animated.ScrollView

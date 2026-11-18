@@ -33,6 +33,7 @@ const mockNavigate = jest.fn();
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
+  useSelector: jest.fn(() => false),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -47,10 +48,6 @@ jest.mock('../../../../../reducers/rewardsMoney', () => ({
   resetRewardsMoneyState: jest.fn(() => ({
     type: 'rewardsMoney/resetRewardsMoneyState',
   })),
-}));
-
-jest.mock('../../../../../constants/navigation/Routes', () => ({
-  REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
 }));
 
 jest.mock(

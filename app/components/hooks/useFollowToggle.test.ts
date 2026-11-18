@@ -27,6 +27,7 @@ jest.mock('../../selectors/socialController', () => ({
 
 jest.mock('../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+  selectPrimaryHDKeyring: jest.fn(),
 }));
 
 jest.mock('../../selectors/accountsController', () => ({

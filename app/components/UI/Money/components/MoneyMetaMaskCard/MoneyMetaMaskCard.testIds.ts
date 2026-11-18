@@ -6,7 +6,6 @@ export const MoneyMetaMaskCardTestIds = {
   LINK_CONTAINER: 'money-metamask-card-link-container',
   LINK_SUBTITLE: 'money-metamask-card-link-subtitle',
   LINK_CARD_IMAGE: 'money-metamask-card-link-card-image',
-  LINK_BULLET_CASHBACK: 'money-metamask-card-link-bullet-cashback',
   LINK_BULLET_APY: 'money-metamask-card-link-bullet-apy',
   MANAGE_CONTAINER: 'money-mm-card-manage-container',
   MANAGE_BALANCE_ROW: 'money-mm-card-manage-balance-row',

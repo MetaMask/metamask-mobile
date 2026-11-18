@@ -36,7 +36,11 @@ const PREDICT_WITHDRAW_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Predict withdraw'), () => {
-  appiumTest.describe.configure({ timeout: 250_000 });
+  // Multi-step CI path (Trade→Predict, pay picker, keypad, confirm, wallet
+  // settle, Activity filter/details) finishes near the old 250s budget and
+  // Playwright kills mid-tapActivity (dead UiAutomator session). 300s matches
+  // perps-withdraw / predict-withdraw-to-money-account (#38563 headroom).
+  appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest(
     'withdraws Predict balance to Polygon pUSD',

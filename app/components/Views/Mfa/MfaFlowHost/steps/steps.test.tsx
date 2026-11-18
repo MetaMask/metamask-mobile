@@ -545,9 +545,7 @@ describe('CodeStep', () => {
     });
 
     expect(
-      getByText(
-        "Too many incorrect codes. Get a new code when it's available.",
-      ),
+      getByText('Too many incorrect codes. Get a new code.'),
     ).toBeOnTheScreen();
     expect(getByText('Get new code in 30s')).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
@@ -609,18 +607,20 @@ describe('CodeStep', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
-  it('sends the first code by itself once the cooldown ends', () => {
+  it('lets the user send the first code once the cooldown ends, never by itself', () => {
     const { onAction, getByText } = renderCode(otp(false), {
       error: 'otp_resend_cooldown',
       resendAvailableAt: Date.now() + 2_000,
     });
 
-    expect(getByText('Sending a new code in 2s')).toBeOnTheScreen();
-    expect(onAction).not.toHaveBeenCalled();
+    expect(getByText('Send code in 2s')).toBeOnTheScreen();
+    expect(getByText(/^We'll send a 6-digit code to /)).toBeOnTheScreen();
     act(() => {
       jest.advanceTimersByTime(2_000);
     });
-    expect(onAction).toHaveBeenCalledWith({ type: 'resend', trigger: 'auto' });
+    expect(onAction).not.toHaveBeenCalled();
+    fireEvent.press(getByText('Send code'));
+    expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
   it('waits out a new cooldown before sending again', () => {
@@ -787,6 +787,30 @@ describe('FailureStep', () => {
     expect(getByText('Something went wrong')).toBeOnTheScreen();
     expect(queryByText('Something went wrong. Try again.')).toBeNull();
     expect(queryByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON)).toBeNull();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
+  });
+
+  it('explains a passkey already in the password manager and offers to try again', () => {
+    const onAction = jest.fn();
+    const { getByTestId, getByText } = render(
+      <FailureStep
+        {...buildState({
+          name: 'failure',
+          code: 'passkey_already_exists',
+          canRetry: true,
+        })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText("Can't create passkey")).toBeOnTheScreen();
+    expect(
+      getByText(
+        'A passkey already exists on this device. Try using a different password manager.',
+      ),
+    ).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
   });

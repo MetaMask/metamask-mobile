@@ -155,7 +155,7 @@ module.exports = {
         'app/components/hooks/useAsyncResult.ts',
         'app/components/hooks/useOTAUpdates.ts',
         'app/components/Nav/Main/index.js',
-        'app/components/Nav/App/App.tsx',
+        'app/components/Nav/App/AppShellEffects/AppShellEffects.tsx',
         // Card: capabilities are re-read from Engine when providerId/location
         // change; Engine.context is a module singleton, not a reactive dep.
         'app/components/UI/Card/hooks/useCardCapabilities.ts',
@@ -196,10 +196,9 @@ module.exports = {
           },
         ],
 
-        // Fast checks. These do not need type information. Warn, rather than
-        // error, so new hits from main do not fail CI. The options match the
-        // shared config. Change them to error once the migration is complete.
-        '@typescript-eslint/explicit-function-return-type': 'warn',
+        // Fast check. Warn, rather than error, so new hits from main do not
+        // fail CI. The options match the shared config. Oxlint 1.93 has no
+        // equivalent, so this stays on ESLint.
         '@typescript-eslint/naming-convention': [
           'warn',
           {
@@ -266,18 +265,16 @@ module.exports = {
             modifiers: ['requiresQuotes'],
           },
         ],
-        '@typescript-eslint/no-empty-object-type': 'warn',
-        '@typescript-eslint/no-unused-vars': [
-          'warn',
-          {
-            vars: 'all',
-            args: 'all',
-            argsIgnorePattern: '[_]+',
-            ignoreRestSiblings: true,
-          },
-        ],
-        '@typescript-eslint/no-wrapper-object-types': 'warn',
-        '@typescript-eslint/prefer-enum-initializers': 'warn',
+        // Oxlint owns these. explicit-function-return-type, no-empty-object-type,
+        // and no-unused-vars are warnings there. no-wrapper-object-types and
+        // prefer-enum-initializers are errors there, and their existing hits
+        // are in oxlint-suppressions.json. The shared config turns all five
+        // on, so they are set to off here.
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/prefer-enum-initializers': 'off',
         // Slow type checks. The shared ESLint config turns these on, but they
         // need type information, so they stay off through the ESLint 9
         // upgrade. Turn them on in Oxlint and park existing hits in
@@ -574,8 +571,6 @@ module.exports = {
     //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
     //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
     //     handles any formatting delta.
-    //
-    // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
       files: ['app/**/*-method-action-types*.ts'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
@@ -666,6 +661,7 @@ module.exports = {
         '@typescript-eslint/no-shadow': ['error', { builtinGlobals: true }],
         '@typescript-eslint/prefer-nullish-coalescing': 'error',
         '@typescript-eslint/prefer-readonly': 'error',
+        // Oxlint ignores these generated files, so this stays an error here.
         '@typescript-eslint/explicit-function-return-type': 'error',
         '@typescript-eslint/naming-convention': [
           'error',
@@ -1067,10 +1063,9 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // Fast checks. rules-of-hooks is an error; existing hits are in
-    // eslint-suppressions.json. no-loss-of-precision warns for now.
-    'react-hooks/rules-of-hooks': 'error',
-    'no-loss-of-precision': 'warn',
+    // Oxlint owns these. Existing hits are in oxlint-suppressions.json.
+    'react-hooks/rules-of-hooks': 'off',
+    'no-loss-of-precision': 'off',
   },
 
   ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],

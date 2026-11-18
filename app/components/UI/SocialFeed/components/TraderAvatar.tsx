@@ -6,10 +6,7 @@ import {
   AvatarAccountSize,
   AvatarAccountVariant,
 } from '@metamask/design-system-react-native';
-import {
-  isFoxiconAvatarUrl,
-  parseFoxiconAvatarUrl,
-} from '../../../Views/SocialLeaderboard/MyProfileView/avatarPresets';
+import { parseFoxiconAvatarUrl } from '../../../Views/SocialLeaderboard/MyProfileView/avatarPresets';
 import ProfileAvatar from '../../../Views/SocialLeaderboard/MyProfileView/components/ProfileAvatar';
 import { hasRealAvatar } from '../utils/avatarFallback';
 import { resolveTraderAvatarSeed } from '../utils/resolveTraderAvatarSeed';
@@ -26,8 +23,9 @@ const toAvatarAccountSize = (size: number): AvatarAccountSize => {
 export interface TraderAvatarProps {
   /**
    * Backend-provided avatar URL. A `foxicon://` preset renders the same
-   * artwork as the profile page. Missing, empty, unknown foxicon, or known
-   * shared placeholder URLs fall through to the address-derived Maskicon.
+   * artwork as the profile page, and a retired or unknown one renders the
+   * fallback avatar. Missing, empty, or known shared placeholder URLs fall
+   * through to the address-derived Maskicon.
    */
   imageUrl?: string | null;
   /**
@@ -84,7 +82,7 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
     );
   }
 
-  if (hasRealAvatar(imageUrl) && !isFoxiconAvatarUrl(imageUrl)) {
+  if (hasRealAvatar(imageUrl)) {
     return (
       <Image
         source={{ uri: imageUrl }}
