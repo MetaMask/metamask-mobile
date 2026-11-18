@@ -408,10 +408,18 @@ const BridgeRecurringBuyViewContent = ({
           />
 
           <Box twClassName="-mt-1">
+            <RecurringScheduleFields
+              onEveryPress={focusEvery}
+              onRepeatPress={focusRepeat}
+              onDismissKeypad={dismissInputAndKeypad}
+              onUnitPress={handleUnitPress}
+              onRepeatInfoPress={handleRepeatInfoPress}
+            />
+
             <Box
               testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
               onLayout={handleBannersLayout}
-              twClassName={hasVisibleBanner ? 'mb-2' : undefined}
+              twClassName={hasVisibleBanner ? 'mt-2' : undefined}
               onTouchEnd={dismissInputAndKeypad}
             >
               <SwapsBanners
@@ -444,14 +452,6 @@ const BridgeRecurringBuyViewContent = ({
                 />
               </SwapsBanners>
             </Box>
-
-            <RecurringScheduleFields
-              onEveryPress={focusEvery}
-              onRepeatPress={focusRepeat}
-              onDismissKeypad={dismissInputAndKeypad}
-              onUnitPress={handleUnitPress}
-              onRepeatInfoPress={handleRepeatInfoPress}
-            />
           </Box>
 
           <PriceRangeRow
