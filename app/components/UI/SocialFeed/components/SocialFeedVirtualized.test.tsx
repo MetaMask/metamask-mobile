@@ -10,6 +10,7 @@ import type { Position } from '@metamask/social-controllers';
 import type { FlashListProps } from '@shopify/flash-list';
 import React from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text } from 'react-native';
+import { FloatingTabBarInsetContext } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
 import {
   makeMutable,
   useAnimatedScrollHandler,
@@ -296,6 +297,23 @@ describe('SocialFeedVirtualized', () => {
   afterEach(() => {
     jest.useRealTimers();
     jest.restoreAllMocks();
+  });
+
+  it('pads the list clear of the floating tab bar', () => {
+    render(
+      <FloatingTabBarInsetContext.Provider value={84}>
+        <SocialFeedVirtualized
+          {...query}
+          location="social_following"
+          scrollMode="virtualized"
+          scrollTestID="feed-scroll"
+        />
+      </FloatingTabBarInsetContext.Provider>,
+    );
+
+    expect(StyleSheet.flatten(getList().props.contentContainerStyle)).toEqual(
+      expect.objectContaining({ paddingBottom: 108 }),
+    );
   });
 
   it('renders posts with a divider below every post but the last', () => {

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectTransak } from '../../../../selectors/rampsController';
-import { useEnsureTransakApiKey } from './useEnsureTransakApiKey';
 import {
   getProviderToken,
   storeProviderToken,
@@ -117,11 +116,6 @@ function getRampsController() {
 
 export function useTransakController(): UseTransakControllerResult {
   const transakState = useSelector(selectTransak);
-
-  // Ensure the Transak partner API key is set on the shared TransakService so
-  // native buy-quote lookups work in this flow (shared with the deposit
-  // confirmation, which pre-warms the key before its fee estimate runs).
-  useEnsureTransakApiKey();
 
   const checkExistingToken = useCallback(async (): Promise<boolean> => {
     try {

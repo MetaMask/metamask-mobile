@@ -5037,7 +5037,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'moneyEnableSplash',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.21.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5840,6 +5843,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '7.79.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictCryptoPriceFeed: {
+    name: 'predictCryptoPriceFeed',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.20.0',
+      chainlinkApiKey: '',
     },
     status: FeatureFlagStatus.Active,
   },

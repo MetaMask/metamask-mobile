@@ -10,6 +10,10 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { PayWithSectionConfig } from './pay-with-bottom-sheet.types';
 
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));

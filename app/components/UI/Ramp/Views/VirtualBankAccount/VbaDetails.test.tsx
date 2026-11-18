@@ -41,6 +41,11 @@ import {
 import { VBA_CUF_END_REASON } from './vbaCufTags';
 import { AVENIA_URL, MOONPAY_RISK_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
+import {
+  playSelection,
+  fireImpact,
+  ImpactMoment,
+} from '../../../../../util/haptics';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -59,6 +64,7 @@ let mockChooseCurrency = false;
 const DEFAULT_NEOBANK_MARKETS = [
   { currency: 'BRL', regions: ['BR'] },
   { currency: 'USD', regions: ['US'] },
+  { currency: 'EUR', regions: ['DE'] },
 ];
 let mockRegionOverride: string | undefined;
 let mockNeobankFlagOn = true;
@@ -81,6 +87,15 @@ const mockMarkVbaAccountDetailsViewed = jest.mocked(
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
+}));
+
+jest.mock('../../../../../util/haptics', () => ({
+  playSelection: jest.fn(() => Promise.resolve()),
+  fireImpact: jest.fn(),
+  ImpactMoment: {
+    PrimaryCTA: 'primaryCta',
+    SecondaryCTA: 'secondaryCta',
+  },
 }));
 
 jest.mock('react-native-share', () => ({
@@ -124,6 +139,7 @@ jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
+  selectGeolocationStatus: () => 'success',
 }));
 
 jest.mock('../../../../../util/deviceCapability', () => ({
@@ -397,6 +413,7 @@ describe('VbaDetails', () => {
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(fireImpact).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
       false,
@@ -415,6 +432,8 @@ describe('VbaDetails', () => {
     fireEvent.press(doneButton);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
       false,
@@ -635,6 +654,7 @@ describe('VbaDetails', () => {
     fireEvent.press(getByLabelText('Copy Pix key'));
 
     expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
+    expect(playSelection).toHaveBeenCalledTimes(1);
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
       'Copied Pix key',
     );
@@ -737,6 +757,7 @@ describe('VbaDetails', () => {
       fireEvent.press(getByLabelText('Copy Routing number'));
 
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('copies every US bank row and opens the share sheet', async () => {
@@ -768,6 +789,7 @@ describe('VbaDetails', () => {
         'Lead Bank',
       ].join('\n');
       expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
+      expect(playSelection).toHaveBeenCalledTimes(1);
       expect(Share.open).toHaveBeenCalledWith({
         message: bankDetails,
         failOnCancel: false,
@@ -884,6 +906,188 @@ describe('VbaDetails', () => {
       expect(
         queryByText('Your account details will appear here shortly.'),
       ).toBeNull();
+    });
+  });
+
+  describe('when NeoBankService reads a SEPA rail', () => {
+    const sepaInstructions = {
+      type: 'Sepa' as const,
+      iban: 'DE89370400440532013000',
+      bic: 'DEUTDEFF',
+      accountHolder: 'Jane Doe',
+      bankName: 'Banking Circle S.A.',
+    };
+    const eurAutoramp = {
+      id: 'ar-1',
+      walletAddress: '0xabc',
+      status: 'Approved',
+      depositRailsSummary: { currency: 'EUR' },
+    };
+
+    beforeEach(() => {
+      mockLocation = 'DE';
+      setAutoramps([eurAutoramp]);
+    });
+
+    it('shows the SEPA rows on the bank transfer layout', async () => {
+      mockGetDepositInstructions.mockResolvedValue(sepaInstructions);
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <VbaDetails />,
+      );
+
+      await waitFor(() => {
+        expect(getByTestId(VbaDetailsSelectorsIDs.IBAN)).toBeOnTheScreen();
+      });
+      expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+        strings('virtual_bank_account.vba_details.bank_transfer_title'),
+      );
+      expect(getByText('Jane Doe')).toBeOnTheScreen();
+      expect(getByText('DE89 3704 0044 0532 0130 00')).toBeOnTheScreen();
+      expect(getByText('DEUTDEFF')).toBeOnTheScreen();
+      expect(getByText('Banking Circle S.A.')).toBeOnTheScreen();
+      expect(
+        getByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
+      ).toBeOnTheScreen();
+      expect(getByTestId(VbaDetailsSelectorsIDs.BIC)).toBeOnTheScreen();
+      expect(getByTestId(VbaDetailsSelectorsIDs.BANK_NAME)).toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.PAYMENT_REFERENCE),
+      ).not.toBeOnTheScreen();
+      expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
+    });
+
+    it('shows the payment reference when MoonPay returns one', async () => {
+      mockGetDepositInstructions.mockResolvedValue({
+        ...sepaInstructions,
+        paymentReference: 'IR-K7M2QX',
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.PAYMENT_REFERENCE),
+        ).toBeOnTheScreen();
+      });
+      expect(getByText('IR-K7M2QX')).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('virtual_bank_account.vba_details.payment_reference_label'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('copies every SEPA row, including the payment reference', async () => {
+      mockGetDepositInstructions.mockResolvedValue({
+        ...sepaInstructions,
+        paymentReference: 'IR-K7M2QX',
+      });
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
+      });
+
+      const bankDetails = [
+        'Account holder',
+        'Jane Doe',
+        '',
+        'IBAN',
+        'DE89370400440532013000',
+        '',
+        'Payment reference',
+        'IR-K7M2QX',
+        '',
+        'BIC',
+        'DEUTDEFF',
+        '',
+        'Bank name',
+        'Banking Circle S.A.',
+      ].join('\n');
+      expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      expect(Share.open).toHaveBeenCalledWith({
+        message: bankDetails,
+        failOnCancel: false,
+      });
+    });
+
+    it('does not show the Brazil provider disclosure on the SEPA layout', async () => {
+      mockGetDepositInstructions.mockResolvedValue(sepaInstructions);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(getByTestId(VbaDetailsSelectorsIDs.IBAN)).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows only the IBAN when MoonPay omits every optional SEPA field', async () => {
+      mockGetDepositInstructions.mockResolvedValue({
+        type: 'Sepa',
+        iban: 'DE89370400440532013000',
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(getByTestId(VbaDetailsSelectorsIDs.IBAN)).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
+      ).not.toBeOnTheScreen();
+      expect(queryByTestId(VbaDetailsSelectorsIDs.BIC)).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.BANK_NAME),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.PAYMENT_REFERENCE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('displays the IBAN grouped and copies it without spaces', async () => {
+      mockGetDepositInstructions.mockResolvedValue(sepaInstructions);
+
+      const { getByLabelText, getByTestId } = renderWithProvider(
+        <VbaDetails />,
+      );
+
+      await waitFor(() => {
+        expect(getByTestId(VbaDetailsSelectorsIDs.IBAN)).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByLabelText('Copy IBAN'));
+
+      expect(Clipboard.setString).toHaveBeenCalledWith(
+        'DE89370400440532013000',
+      );
+      expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+        'Copied IBAN',
+      );
+    });
+
+    it('renders cached SEPA details immediately for a EUR account', () => {
+      setCachedDepositInstructions('ar-1', sepaInstructions);
+      mockGetDepositInstructions.mockReturnValue(new Promise(() => undefined));
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <VbaDetails />,
+      );
+
+      expect(getByTestId(VbaDetailsSelectorsIDs.IBAN)).toBeOnTheScreen();
+      expect(getByText('DE89 3704 0044 0532 0130 00')).toBeOnTheScreen();
+      expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
     });
   });
 
@@ -1180,7 +1384,7 @@ describe('VbaDetails', () => {
   it('opens the generic error when the region override has no currency', async () => {
     setAutoramps([]);
     mockLocation = 'BR';
-    mockRegionOverride = 'DE';
+    mockRegionOverride = 'JP';
 
     renderWithProvider(<VbaDetails />);
 
@@ -1195,7 +1399,7 @@ describe('VbaDetails', () => {
 
   it('opens the generic error without creating when the country has no currency', async () => {
     setAutoramps([]);
-    mockLocation = 'DE';
+    mockLocation = 'JP';
 
     renderWithProvider(<VbaDetails />);
 

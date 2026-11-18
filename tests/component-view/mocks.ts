@@ -226,6 +226,15 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
         getSessionProfile: jest.fn().mockResolvedValue(undefined),
+        // Real MFA kit (`useMfa` → AuthenticationController). Defaults match a
+        // profile with no credential and no verification session.
+        refreshEnrolledCredentials: jest.fn().mockResolvedValue([]),
+        beginCredentialEnrollment: jest.fn(),
+        completeCredentialEnrollment: jest.fn(),
+        beginCredentialVerification: jest.fn(),
+        completeCredentialVerification: jest.fn(),
+        getVerificationToken: jest.fn().mockReturnValue(null),
+        clearVerificationSession: jest.fn(),
       },
       ProfileController: {
         state: {
@@ -304,11 +313,22 @@ jest.mock('../../app/core/Engine', () => {
         // Null is a first-time user; tests that resume a session override this.
         getSessionStatusForVendor: jest.fn().mockResolvedValue(null),
         startSession: jest.fn().mockResolvedValue(undefined),
+        reset: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
         // Fired, fire-and-forget, once the vendor-terms screen's initial
         // disclaimers request settles (CreateVirtualBankAccount).
         ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
+        // Identity verification records session consents, then launches SumSub.
+        fetchSessionDisclaimers: jest.fn().mockResolvedValue({
+          idOS: [],
+          kycProvider: [],
+        }),
+        recordSessionDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Presents SumSub. Continue on the KYC retry home card must not call it.
+        launchProviderFlow: jest.fn().mockResolvedValue('abandoned'),
+        refreshSessionStatus: jest.fn(),
+        deleteEncryptedStorage: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {

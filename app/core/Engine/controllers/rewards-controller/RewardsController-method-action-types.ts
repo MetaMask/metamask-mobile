@@ -475,6 +475,7 @@ export type RewardsControllerGetCampaignsAction = {
  * Opt a subscription into a campaign.
  * @param campaignId - The campaign ID to opt into.
  * @param subscriptionId - The subscription ID for authentication.
+ * @param profileUsername - Social profile username captured at opt-in, when the user has one.
  * @returns The participant status after opting in.
  */
 export type RewardsControllerOptInToCampaignAction = {
@@ -492,6 +493,7 @@ export type RewardsControllerOptInToCampaignAction = {
  * post-event status fetches hit cache instead of the network.
  * @param campaignIds - Campaign IDs to opt into, in call order.
  * @param subscriptionId - The subscription ID for authentication.
+ * @param profileUsername - Social profile username captured at opt-in, when the user has one. Applied to every campaign in the batch.
  * @returns Per-campaign participant statuses after opting in.
  */
 export type RewardsControllerOptInToCampaignsAction = {

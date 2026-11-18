@@ -1,6 +1,6 @@
 import type { Order } from '@metamask/perps-controller';
 import I18n from '../../../../../locales/i18n';
-import { mapPerpsTransaction } from '../../../../util/activity-adapters/adapters/perps-transaction';
+import { mapPerpsTransaction } from '../../../../util/activity-adapters/adapters/perps/perps-transaction';
 import { resolvePerpsTriggerOrderTitle } from '../../ActivityListItemRow/titleLabels';
 import { formatOrderLabel } from './orderUtils';
 import { transformOrdersToTransactions } from './transactionTransforms';
