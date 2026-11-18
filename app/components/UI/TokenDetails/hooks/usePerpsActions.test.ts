@@ -362,21 +362,6 @@ describe('usePerpsActions', () => {
       );
     });
 
-    it('holds the market lookup and reports loading while rwaData is fetched', () => {
-      mockUseTokenAssetDetails.mockReturnValue({
-        asset: null,
-        isLoading: true,
-        isError: false,
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsActions({ symbol: 'MSFT', token: robinhoodMsft }),
-      );
-
-      expect(mockUsePerpsMarketForAsset).toHaveBeenLastCalledWith(null, false);
-      expect(result.current.isLoading).toBe(true);
-    });
-
     it('skips the rwaData fetch when basic functionality is off', () => {
       mockBasicFunctionalityEnabled = false;
 

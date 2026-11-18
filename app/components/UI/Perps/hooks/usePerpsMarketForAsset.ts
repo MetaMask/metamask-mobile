@@ -51,6 +51,33 @@ export const _clearMarketExistenceCache = (): void => {
   marketExistenceCache.clear();
 };
 
+type GetMarkets = ReturnType<typeof usePerpsTrading>['getMarkets'];
+type PerpsMarket = Awaited<ReturnType<GetMarkets>>[number];
+
+interface MatchMarketParams {
+  getMarketsParams: Parameters<GetMarkets>[0];
+  isStaleResponse: () => boolean;
+  isMatch: (market: PerpsMarket) => boolean;
+}
+
+const isHip3MarketForTicker = (market: PerpsMarket, ticker: string) => {
+  const displaySymbol = getPerpsDisplaySymbol(market.name);
+  return (
+    displaySymbol !== market.name && displaySymbol.toUpperCase() === ticker
+  );
+};
+
+const findMatchingMarket = async (
+  getMarkets: GetMarkets,
+  { getMarketsParams, isStaleResponse, isMatch }: MatchMarketParams,
+): Promise<{ matchedMarket: PerpsMarket | undefined } | null> => {
+  const markets = await getMarkets(getMarketsParams);
+  if (isStaleResponse()) {
+    return null;
+  }
+  return { matchedMarket: markets.find(isMatch) };
+};
+
 /**
  * usePerpsMarketForAsset Hook
  *
@@ -93,8 +120,9 @@ export const usePerpsMarketForAsset = (
   const lookupSymbol = symbol?.toUpperCase() ?? null;
 
   // Create cache key with network context to avoid stale data when switching networks
+  const postfixKey = isRwaAsset ? 'rwa' : 'exact';
   const cacheKey = lookupSymbol
-    ? `${lookupSymbol}_${perpsNetwork}_${isRwaAsset ? 'rwa' : 'exact'}`
+    ? `${lookupSymbol}_${perpsNetwork}_${postfixKey}`
     : null;
 
   const [state, setState] = useState<{
@@ -156,27 +184,25 @@ export const usePerpsMarketForAsset = (
     try {
       // Single lightweight API call with standalone mode
       // standalone: true bypasses full initialization (no wallet/WebSocket needed)
-      const markets = await getMarkets(
-        isRwaAsset
-          ? { standalone: true }
-          : { symbols: [lookupSymbol], standalone: true },
-      );
+      const isStaleResponse = () =>
+        requestIdRef.current !== currentRequestId || !isMountedRef.current;
+      const matchParams: MatchMarketParams = isRwaAsset
+        ? {
+            getMarketsParams: { standalone: true },
+            isStaleResponse,
+            isMatch: (market) => isHip3MarketForTicker(market, lookupSymbol),
+          }
+        : {
+            getMarketsParams: { symbols: [lookupSymbol], standalone: true },
+            isStaleResponse,
+            isMatch: (market) => market.name.toUpperCase() === lookupSymbol,
+          };
 
-      // Verify this response matches current request (prevents stale updates)
-      if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
+      const result = await findMatchingMarket(getMarkets, matchParams);
+      if (!result) {
         return;
       }
-
-      const matchedMarket = markets.find((market) => {
-        if (!isRwaAsset) {
-          return market.name.toUpperCase() === lookupSymbol;
-        }
-        const displaySymbol = getPerpsDisplaySymbol(market.name);
-        return (
-          displaySymbol !== market.name &&
-          displaySymbol.toUpperCase() === lookupSymbol
-        );
-      });
+      const { matchedMarket } = result;
 
       const exists = matchedMarket !== undefined;
 

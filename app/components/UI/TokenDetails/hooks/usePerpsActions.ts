@@ -81,13 +81,8 @@ export const usePerpsActions = ({
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
-  const shouldFetchRwaData =
-    Boolean(symbol && token) &&
-    !token?.rwaData &&
-    isPerpsEnabled &&
-    isBasicFunctionalityEnabled;
-  const { asset, isLoading: isRwaDataLoading } = useTokenAssetDetails(
-    shouldFetchRwaData ? assetId : null,
+  const { asset } = useTokenAssetDetails(
+    token && isPerpsEnabled && isBasicFunctionalityEnabled ? assetId : null,
     tokenApiBaseUrl,
   );
   const fetchedTicker = (asset?.rwaData as { ticker?: unknown } | null)?.ticker;
@@ -95,16 +90,8 @@ export const usePerpsActions = ({
     token?.rwaData?.ticker ||
     (typeof fetchedTicker === 'string' ? fetchedTicker : '');
 
-  const {
-    hasPerpsMarket,
-    marketData,
-    isLoading: isMarketLoading,
-    error,
-  } = usePerpsMarketForAsset(
-    isRwaDataLoading ? null : rwaTicker || symbol,
-    Boolean(rwaTicker),
-  );
-  const isLoading = isMarketLoading || isRwaDataLoading;
+  const { hasPerpsMarket, marketData, isLoading, error } =
+    usePerpsMarketForAsset(symbol && (rwaTicker || symbol), Boolean(rwaTicker));
 
   const navigateToOrder = useCallback(
     (direction: OrderDirection) => {
