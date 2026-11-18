@@ -581,7 +581,8 @@ export class KalshiRemoteAdapter {
           // The backend owns the destination and the expiry, but not the
           // intent: a quote for another mode or amount is not the one the
           // person asked to approve.
-          const requestedAmount = 'amount' in params ? params.amount : undefined;
+          const requestedAmount =
+            'amount' in params ? params.amount : undefined;
           const quotedForIntent =
             result.venueId === this.venueId &&
             result.mode ===
