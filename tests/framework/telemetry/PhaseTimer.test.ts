@@ -5,6 +5,7 @@ import {
   createPhaseTimer,
   getPhaseTimer,
   getPhaseTimerAlsStore,
+  recordElapsedPhase,
   recordPhase,
   runWithPhaseTimer,
   startPhase,
@@ -88,6 +89,83 @@ describe('PhaseTimer', () => {
 
     expect(phases.login).toBe(5);
     expect(phases.fixture_bootstrap).toBe(12);
+  });
+
+  it('records a nested step without closing the current phase', async () => {
+    let now = 1_000;
+    const timer = createPhaseTimer({ now: () => now });
+
+    await runWithPhaseTimer(timer, async () => {
+      startPhase('login');
+      now += 4;
+      await recordElapsedPhase(
+        'login_app_ready',
+        async () => {
+          now += 20;
+        },
+        () => now,
+      );
+      now += 6;
+      startPhase('test_body');
+    });
+
+    const { phases } = timer.snapshot();
+
+    expect(phases.login).toBe(30);
+    expect(phases.login_app_ready).toBe(20);
+    expect(phases.test_body).toBe(0);
+  });
+
+  it('appends the step name and elapsed time when the step throws', async () => {
+    let now = 5_000;
+    const timer = createPhaseTimer({ now: () => now });
+
+    const run = async () => {
+      await runWithPhaseTimer(timer, async () => {
+        startPhase('login');
+        await recordElapsedPhase(
+          'login_wallet_home',
+          async () => {
+            now += 162_000;
+            throw new Error('Wallet home not ready within 30000ms');
+          },
+          () => now,
+        );
+      });
+    };
+
+    await expect(run()).rejects.toThrow(
+      'Wallet home not ready within 30000ms (login_wallet_home after 162000ms)',
+    );
+
+    const { phases } = timer.snapshot();
+
+    expect(phases.login).toBe(162_000);
+    expect(phases.login_wallet_home).toBe(162_000);
+  });
+
+  it('wraps a non-error rejection with the step name and elapsed time', async () => {
+    let now = 0;
+    const timer = createPhaseTimer({ now: () => now });
+
+    const run = async () => {
+      await runWithPhaseTimer(timer, () =>
+        recordElapsedPhase(
+          'login_app_ready',
+          async () => {
+            now += 10;
+            // Non-Error rejection: the helper must still name the step.
+            // eslint-disable-next-line no-throw-literal
+            throw 'boom';
+          },
+          () => now,
+        ),
+      );
+    };
+
+    await expect(run()).rejects.toThrow('login_app_ready after 10ms: boom');
+
+    expect(timer.snapshot().phases.login_app_ready).toBe(10);
   });
 
   it('no-ops convenience helpers when no timer is bound', () => {

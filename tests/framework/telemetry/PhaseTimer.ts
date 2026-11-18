@@ -151,6 +151,33 @@ export function recordPhase(phase: PhaseName, ms: number): void {
   getPhaseTimer()?.record(phase, ms);
 }
 
+/**
+ * Time `run` and add it under `phase` without stopping the current phase.
+ * A thrown error keeps its message, with the phase name and elapsed ms appended.
+ * The password and other arguments to `run` are not written onto the error.
+ */
+export async function recordElapsedPhase<T>(
+  phase: PhaseName,
+  run: () => Promise<T>,
+  now: () => number = Date.now,
+): Promise<T> {
+  const startedAt = now();
+  try {
+    const value = await run();
+    recordPhase(phase, now() - startedAt);
+    return value;
+  } catch (error) {
+    const elapsedMs = now() - startedAt;
+    recordPhase(phase, elapsedMs);
+    const note = `${phase} after ${elapsedMs}ms`;
+    if (error instanceof Error) {
+      error.message = `${error.message} (${note})`;
+      throw error;
+    }
+    throw new Error(`${note}: ${String(error)}`);
+  }
+}
+
 export function stopPhase(): void {
   getPhaseTimer()?.stop();
 }
