@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
+import { SensitiveText, TextColor } from '@metamask/design-system-react-native';
 import {
   fireEvent,
   render,
@@ -523,6 +524,13 @@ describe('PerpsPositionCard', () => {
         PerpsPositionCardSelectorsIDs.RETURN_VALUE,
       );
       expect(returnValue).toHaveTextContent('--%');
+      const returnText = screen
+        .UNSAFE_getAllByType(SensitiveText)
+        .find(
+          (element) =>
+            element.props.testID === PerpsPositionCardSelectorsIDs.RETURN_VALUE,
+        );
+      expect(returnText?.props.color).toBe(TextColor.TextDefault);
     });
 
     it('handles missing liquidation price', () => {

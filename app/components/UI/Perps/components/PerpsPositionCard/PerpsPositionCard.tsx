@@ -364,7 +364,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               <SensitiveText
                 variant={TextVariant.BodyMd}
                 color={
-                  privacyMode
+                  privacyMode || roePercentage === undefined
                     ? TextColor.TextDefault
                     : roe >= 0
                       ? TextColor.SuccessDefault
