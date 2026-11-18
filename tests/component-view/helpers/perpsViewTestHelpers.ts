@@ -16,6 +16,27 @@ import type { ReduxStore } from '../../../app/core/redux/types';
  * Add only what view tests need; use i18n (strings()) for any user-facing labels to stay consistent with the app.
  */
 
+/**
+ * Sets the Lighter build flag for a describe block and restores the previous
+ * value after each test. The `perpsTwoExchangeState` presets also enable the
+ * remote flag. When no remote flag is configured, the selector falls back to
+ * the build flag.
+ */
+export const withLighterBuildEnabled = (): void => {
+  let previous: string | undefined;
+  beforeEach(() => {
+    previous = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+  });
+  afterEach(() => {
+    if (previous === undefined) {
+      delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    } else {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = previous;
+    }
+  });
+};
+
 /** Labels from i18n (same keys as PerpsModifyActionSheet). Used by PerpsSelectModifyActionView.view.test. */
 export function getModifyActionLabels() {
   return {

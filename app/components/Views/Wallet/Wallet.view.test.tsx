@@ -45,6 +45,9 @@ import {
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import { strings } from '../../../../locales/i18n';
 import Wallet from './index';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
+import { setBasicFunctionality } from '../../../actions/settings';
 
 const PASTED_ADDRESS = '0x1111111111111111111111111111111111111111';
 // Kept local so this Wallet view test does not import the Trending route module.
@@ -707,6 +710,90 @@ describeForPlatforms('Wallet', () => {
           button_location: PERPS_SECTION_HEADER_BUTTON_LOCATION,
         }),
       );
+    });
+  });
+
+  describe('Perps onboarding entry', () => {
+    const PerpsModalsStack = () => (
+      <RootModalStack.Navigator>
+        <RootModalStack.Screen
+          name={Routes.PERPS.MODALS.GTM_MODAL}
+          component={createRouteParamsProbe(Routes.PERPS.MODALS.GTM_MODAL)}
+        />
+      </RootModalStack.Navigator>
+    );
+    const gtmProbeTestId = getRouteParamsProbeTestId(
+      Routes.PERPS.MODALS.GTM_MODAL,
+    );
+    const originalPerpsEnabled = process.env.MM_PERPS_ENABLED;
+    const originalGtmModalEnabled = process.env.MM_PERPS_GTM_MODAL_ENABLED;
+
+    const renderForNewPerpsUser = (basicFunctionalityEnabled: boolean) =>
+      renderWalletViewWithRoutes({
+        extraRoutes: [
+          { name: Routes.PERPS.MODALS.ROOT, Component: PerpsModalsStack },
+        ],
+        overrides: {
+          settings: { basicFunctionalityEnabled },
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsPerpTradingEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  perpsPerpGtmOnboardingModalEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+    beforeEach(async () => {
+      // With basic functionality off, remote flags are ignored and the Perps
+      // flags fall back to these build-time values.
+      process.env.MM_PERPS_ENABLED = 'true';
+      process.env.MM_PERPS_GTM_MODAL_ENABLED = 'true';
+      await StorageWrapper.removeItem(PERPS_GTM_MODAL_SHOWN);
+    });
+
+    afterEach(() => {
+      const restore = (key: string, value: string | undefined) => {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      };
+      restore('MM_PERPS_ENABLED', originalPerpsEnabled);
+      restore('MM_PERPS_GTM_MODAL_ENABLED', originalGtmModalEnabled);
+    });
+
+    it('opens Perps onboarding for a new user when basic functionality is on', async () => {
+      const { findByTestId } = renderForNewPerpsUser(true);
+
+      expect(await findByTestId(gtmProbeTestId)).toBeOnTheScreen();
+    });
+
+    it('keeps the wallet free of Perps onboarding while basic functionality is off, then opens it once turned back on', async () => {
+      const getItemSpy = jest.spyOn(StorageWrapper, 'getItem');
+      const { findByTestId, queryByTestId, store } =
+        renderForNewPerpsUser(false);
+
+      expect(
+        await findByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getItemSpy).not.toHaveBeenCalledWith(PERPS_GTM_MODAL_SHOWN);
+      expect(queryByTestId(gtmProbeTestId)).toBeNull();
+      getItemSpy.mockRestore();
+
+      act(() => {
+        store.dispatch(setBasicFunctionality(true));
+      });
+
+      expect(await findByTestId(gtmProbeTestId)).toBeOnTheScreen();
     });
   });
 });
