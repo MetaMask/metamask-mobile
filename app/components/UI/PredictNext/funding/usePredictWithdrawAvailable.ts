@@ -10,8 +10,8 @@ import type { PredictFundingResolution } from './types';
 
 /**
  * Whether the Active Venue may offer its Withdraw flow. Both halves must
- * hold: the Venue's descriptor lists `withdraw` — Kalshi lists it only while
- * the API flag serves it — and this client implements the flow for the
+ * hold: the Venue's descriptor lists `withdraw` for this deployment, and
+ * this client implements the flow for the
  * Venue's implementation. Anything else resolves unavailable, and the
  * surface renders no entry point at all.
  *
