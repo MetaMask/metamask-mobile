@@ -27,6 +27,7 @@ import {
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   CommonActions,
@@ -105,12 +106,25 @@ import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import useSignedOutKycPending from './hooks/useSignedOutKycPending';
+import {
+  SETUP_ALERT_TYPES,
+  resolveCardHomeWaitingState,
+  type CardHomeWaitingState,
+} from './hooks/CardHomeWaitingState';
+import useCardSetupPendingRefresh, {
+  CARD_SETUP_PENDING_POLL_MS,
+  CARD_SETUP_CREATING_POLL_MS,
+} from './hooks/useCardSetupPendingRefresh';
+import CardHomeStatusView, {
+  CARD_HOME_WAITING_COPY,
+} from './components/CardHomeStatusView';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
+import CardImage from '../../components/CardImage';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
 import CardHomeRecentActivity from './components/CardHomeRecentActivity';
@@ -152,12 +166,6 @@ interface CardHomeRouteParams {
   /** Opened from the KYC timeout or pending notification while still in review. */
   fromKycPending?: boolean;
 }
-
-const SETUP_ALERT_TYPES = new Set([
-  'kyc_pending',
-  'card_provisioning',
-  'allowance_revoked',
-]);
 
 /** MMDS Button Lg height (h-12) and the CardHome px-4 gutter. */
 const ADD_TO_WALLET_HEIGHT = 48;
@@ -641,6 +649,61 @@ const CardHome = () => {
 
   const hasAlertOnlyState = hasSetupAlerts && effectiveActions.length === 0;
 
+  // One derived waiting state for everything the card home is still waiting
+  // on (identity in review, the card being created, the Immersve review and
+  // reconcile checks, signed out while verification is pending). It drives
+  // the re-check cadence below; the screen keeps the current layout for
+  // every other state.
+  const waitingState = useMemo<CardHomeWaitingState>(
+    () =>
+      resolveCardHomeWaitingState({
+        isLoading,
+        isUkMigrationForced,
+        isAuthenticated,
+        isSignedOutKycPending,
+        hasDashboardActions: effectiveActions.length > 0,
+        alerts,
+        provisioningView,
+      }),
+    [
+      isLoading,
+      isUkMigrationForced,
+      isAuthenticated,
+      isSignedOutKycPending,
+      effectiveActions,
+      alerts,
+      provisioningView,
+    ],
+  );
+
+  // Re-checks while a pending state is up, so it moves on by itself: a
+  // faster cadence while the card is being created, the slow one while
+  // reviewing or reconciling. Foreground returns re-check immediately.
+  const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
+    isPending: waitingState.kind === 'waiting',
+    isAuthenticated,
+    isFocused,
+    pollIntervalMs:
+      waitingState.kind === 'waiting' && waitingState.step === 'creating-card'
+        ? CARD_SETUP_CREATING_POLL_MS
+        : CARD_SETUP_PENDING_POLL_MS,
+  });
+
+  const handleSetupPendingRefresh = useCallback(async () => {
+    if (waitingState.kind === 'waiting' && !isAuthenticated) {
+      // The signed-out pending state waits on the onboarding registration
+      // status; everything else waits on card home data itself.
+      setIsRefreshing(true);
+      try {
+        await refreshRegistrationStatus();
+      } finally {
+        setIsRefreshing(false);
+      }
+      return;
+    }
+    await handleRefresh();
+  }, [waitingState, isAuthenticated, handleRefresh, refreshRegistrationStatus]);
+
   const showLinkMoneyAccountCta =
     canLinkMoneyAccount &&
     !isUkMigrationForced &&
@@ -898,6 +961,71 @@ const CardHome = () => {
         isUkMigrationForced ||
         isBlocked ||
         showVerificationPendingBanner));
+
+  // --- Waiting view: identity in review, card being created, Immersve
+  // review/reconcile checks, or signed out while verification is pending.
+  if (waitingState.kind === 'waiting') {
+    const waitingCopy = CARD_HOME_WAITING_COPY[waitingState.step];
+    return (
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={tw.style('flex-1 bg-default')}
+        testID={CardHomeSelectors.SETUP_PENDING_STATUS_VIEW}
+      >
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+          title={strings('card.card_home.title')}
+          endButtonIconProps={[moreButtonProps]}
+        />
+        <CardHomeStatusView
+          breathing={waitingState.step !== 'signed-out-kyc-pending'}
+          asset={
+            <Box
+              // Dimmed: the card is not live yet, so the art reads as pending.
+              twClassName="w-full opacity-50"
+              testID={CardHomeSelectors.CARD_ART}
+            >
+              <CardImage
+                type={data?.card?.type ?? CardType.VIRTUAL}
+                status={CardStatus.ACTIVE}
+              />
+            </Box>
+          }
+          title={strings(waitingCopy.titleKey)}
+          description={strings(waitingCopy.descriptionKey)}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleSetupPendingRefresh}
+              colors={[theme.colors.primary.default]}
+              tintColor={theme.colors.icon.default}
+              testID={CardHomeSelectors.SETUP_PENDING_REFRESH_CONTROL}
+            />
+          }
+          primaryButton={
+            isAuthenticated
+              ? {
+                  label: strings('card.card_home.done'),
+                  onPress: () => navigation.goBack(),
+                  testID: CardHomeSelectors.SETUP_PENDING_DONE_BUTTON,
+                }
+              : {
+                  // Same sign-in route Card welcome uses for returning users.
+                  label: strings('card.card_onboarding.login_button'),
+                  onPress: () =>
+                    navigation.navigate(Routes.CARD.AUTHENTICATION),
+                  testID: CardHomeSelectors.SETUP_PENDING_LOG_IN_BUTTON,
+                }
+          }
+        />
+        {moreSheet}
+      </SafeAreaView>
+    );
+  }
 
   // --- Main render ---
   return (
