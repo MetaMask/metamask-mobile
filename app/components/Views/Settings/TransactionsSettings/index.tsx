@@ -140,6 +140,7 @@ function TransactionsSettings() {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
+        testID="header"
         title={strings('app_settings.transactions_title')}
         onBack={() => navigation.goBack()}
         includesTopInset
