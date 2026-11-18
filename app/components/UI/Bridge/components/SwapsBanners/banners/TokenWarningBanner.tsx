@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, type PressableProps } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BannerBase,
@@ -26,7 +26,9 @@ import { useSwapsBannersContext } from '../SwapsBannersContext';
  * Flags a destination token the security provider considers suspicious or
  * malicious, and opens the warning modal with the details.
  */
-export const TokenWarningBanner = () => {
+export const TokenWarningBanner = ({
+  style,
+}: Pick<PressableProps, 'style'>) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { destToken, location } = useSwapsBannersContext();
   const tokenKey = `${destToken?.chainId}:${destToken?.address}`;
@@ -66,6 +68,7 @@ export const TokenWarningBanner = () => {
     // Screen readers treat this as one control, so the nested close button
     // is also exposed as a custom accessibility action.
     <Pressable
+      style={style}
       onPress={openWarningModal}
       accessibilityRole="button"
       accessibilityHint={strings('swaps.view_details')}

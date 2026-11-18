@@ -420,7 +420,6 @@ const BridgeRecurringBuyViewContent = ({
               >
                 <HardwareWalletUnsupportedBanner />
                 <QuoteErrorBanner />
-                <TokenWarningBanner />
                 <DestAssetRequireActivateBanner />
                 <InsufficientNativeReserveBanner />
                 <MissingQuoteAndAssetsPriceDataBanner />
@@ -452,6 +451,13 @@ const BridgeRecurringBuyViewContent = ({
               onUnitPress={handleUnitPress}
               onRepeatInfoPress={handleRepeatInfoPress}
             />
+
+            <SwapsBanners
+              gap={2}
+              onAdjustSourceAmount={handleSourcePresetAmountSelect}
+            >
+              <TokenWarningBanner style={tw.style('mt-2')} />
+            </SwapsBanners>
           </Box>
 
           <PriceRangeRow
