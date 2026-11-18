@@ -137,6 +137,7 @@ import {
 } from '../../../Card/util/metrics';
 
 import { TraceName } from '../../../../../util/trace';
+import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -561,6 +562,9 @@ const MoneyHomeView = () => {
     },
   ];
   useMoneyHomePerformance({ segments: moneyHomePerformanceSegments });
+
+  // Hold the three heavy sections out of the opening transition.
+  const isDeferredReady = useScreenTransitionComplete();
 
   const handleMenuPress = useCallback(() => {
     trackButtonClicked({
@@ -1079,7 +1083,12 @@ const MoneyHomeView = () => {
 
   const contentSections: { key: string; node: React.ReactNode }[] = [];
 
-  if (isMoneyEarningSectionEnabled && hasBalanceValue && isFunded) {
+  if (
+    isMoneyEarningSectionEnabled &&
+    hasBalanceValue &&
+    isFunded &&
+    isDeferredReady
+  ) {
     contentSections.push({
       key: 'earnings',
       node: (
@@ -1116,7 +1125,7 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (isActivitySettling || activityItems.length >= 1) {
+  if ((isActivitySettling || activityItems.length >= 1) && isDeferredReady) {
     contentSections.push({
       key: 'activity',
       node: isActivitySettling ? (
@@ -1135,7 +1144,7 @@ const MoneyHomeView = () => {
     });
   }
 
-  if (depositTokens.length > 0) {
+  if (depositTokens.length > 0 && isDeferredReady) {
     contentSections.push({
       key: 'potential-earnings',
       node: (

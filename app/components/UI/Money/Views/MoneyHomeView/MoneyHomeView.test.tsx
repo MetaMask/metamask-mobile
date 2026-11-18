@@ -182,6 +182,13 @@ jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn(),
 }));
 
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
+}));
+
 const mockDepositTokens = [
   {
     name: 'USD Coin',
@@ -867,6 +874,7 @@ describe('MoneyHomeView', () => {
   let defaultMoneyVaultApy: ReturnType<typeof useMoneyVaultApy>;
 
   beforeEach(() => {
+    mockUseScreenTransitionComplete.mockReturnValue(true);
     jest.clearAllMocks();
     global.alert = jest.fn();
     mockRouteParams = undefined;
@@ -1081,6 +1089,17 @@ describe('MoneyHomeView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('holds the earnings section back until the opening transition completes', () => {
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(queryByTestId(MoneyEarningsTestIds.CONTAINER)).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   it('does not render the earnings section when its feature flag is disabled', () => {
