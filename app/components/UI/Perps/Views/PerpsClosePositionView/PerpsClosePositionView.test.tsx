@@ -82,6 +82,17 @@ jest.mock('../../hooks/usePerpsClosePosition', () => ({
   usePerpsCloseInFlight: jest.fn(() => false),
 }));
 
+const mockResolvePostTradePrompt = jest.fn();
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: () => mockResolvePostTradePrompt }),
+);
+let mockIsPerpsProModeActive = false;
+jest.mock('../../utils/perpsModeSwitch', () => ({
+  ...jest.requireActual('../../utils/perpsModeSwitch'),
+  useIsPerpsProModeActive: () => mockIsPerpsProModeActive,
+}));
+
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(),
   usePerpsLivePrices: jest.fn(),
@@ -2494,6 +2505,86 @@ describe('PerpsClosePositionView', () => {
             maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
           },
         }),
+      );
+    });
+  });
+
+  describe('post-trade prompt', () => {
+    const countKey = { address: '0xlinked', product: 'perps' };
+
+    const confirmClose = async () => {
+      const handleClosePosition = jest.fn().mockResolvedValue(undefined);
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      return handleClosePosition;
+    };
+
+    beforeEach(() => {
+      mockIsPerpsProModeActive = false;
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+    });
+
+    it('passes the resolved prompt and a close preview for a full market close', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const handleClosePosition = await confirmClose();
+
+      expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('perps');
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          postTradeShare: {
+            prompt: { kind: 'share_sheet', countKey },
+            providerId: 'hyperliquid',
+            preview: expect.objectContaining({
+              action: 'close',
+              product: 'perps',
+              tradeSymbol: 'ETH',
+              direction: 'long',
+              leverageLabel: '3x',
+            }),
+          },
+        }),
+      );
+      const { preview } = handleClosePosition.mock.calls[0][0].postTradeShare;
+      expect(preview.pnlValueLabel).toBeUndefined();
+      expect(preview.exitPriceLabel).toBeUndefined();
+    });
+
+    it('passes no post-trade share when the resolver returns none', async () => {
+      const handleClosePosition = await confirmClose();
+
+      expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('perps');
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({ postTradeShare: undefined }),
+      );
+    });
+
+    it('skips the prompt in Pro mode', async () => {
+      mockIsPerpsProModeActive = true;
+
+      const handleClosePosition = await confirmClose();
+
+      expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({ postTradeShare: undefined }),
       );
     });
   });

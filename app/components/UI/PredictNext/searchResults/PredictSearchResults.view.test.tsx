@@ -47,6 +47,11 @@ import {
   PredictSearchResultRowTestIds,
 } from './PredictSearchResultRow.testIds';
 
+/** The mocked token search answers with the trending fixture's BTC row. */
+const bitcoinSearchResults = mockTrendingTokensData.filter(
+  ({ symbol }) => symbol === 'BTC',
+);
+
 const LEGACY_LANE: PredictConfig = {
   enabled: false,
   venues: { polymarket: { enabled: false }, kalshi: { enabled: false } },
@@ -117,7 +122,12 @@ const renderAutocomplete = (
 
 describeForPlatforms('Browser URL autocomplete predictions', () => {
   beforeEach(() => {
-    setupTrendingApiFetchMock(mockTrendingTokensData);
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      undefined,
+      bitcoinSearchResults,
+    );
     searchMarkets.mockReset();
     searchMarkets.mockResolvedValue({
       markets: [IMAGED_MARKET, MOCK_PREDICT_CLOSED_MARKET],
@@ -334,7 +344,12 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
   let kalshiSearch: () => Promise<unknown>;
 
   beforeEach(() => {
-    setupTrendingApiFetchMock(mockTrendingTokensData);
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      undefined,
+      bitcoinSearchResults,
+    );
     // Online, so nothing gated on the network tier is silently off.
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     searchMarkets.mockReset();
@@ -370,7 +385,19 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
 
     typeQuery(view, ' packers ');
 
-    const openRow = await view.findByTestId(
+    await waitFor(() => {
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_2.id), HIDDEN),
+      ).toBeOnTheScreen();
+    });
+
+    // Re-query after the wait: the list re-keys a row whenever a section above
+    // Predictions settles, so a node found before that settles is unmounted by
+    // the time it is used.
+    const openRow = view.getByTestId(
       getPredictSearchResultRowTestId(NFL_1.id),
       HIDDEN,
     );
@@ -401,11 +428,19 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
   it('opens the Kalshi Event on a result press', async () => {
     const view = renderAutocomplete(KALSHI_ONLY);
     typeQuery(view, 'packers');
-    const row = await view.findByTestId(
+    await waitFor(() =>
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
+      ).toBeOnTheScreen(),
+    );
+
+    // Re-query right before the press: the list re-keys a row whenever a
+    // section above Predictions settles, and a press on the unmounted node
+    // found before that does nothing.
+    const row = view.getByTestId(
       getPredictSearchResultRowTestId(NFL_1.id),
       HIDDEN,
     );
-
     fireEvent.press(row);
 
     const params = await view.findByTestId(PREDICT_ROOT_PARAMS_PROBE);

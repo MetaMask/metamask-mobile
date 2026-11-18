@@ -34,6 +34,10 @@ export const PredictPortfolioScreenTestIds = {
   ACTIVITY_ROW_AMOUNT: 'predict-next-portfolio-activity-row-amount',
   ACTIVITY_SETTLEMENTS_HORIZON:
     'predict-next-portfolio-activity-settlements-horizon',
+  ACTIVITY_SETTLEMENTS_DEGRADED:
+    'predict-next-portfolio-activity-settlements-degraded',
+  ACTIVITY_LOAD_MORE: 'predict-next-portfolio-activity-load-more',
+  ACTIVITY_CONTINUATION: 'predict-next-portfolio-activity-continuation',
   POSITION_ROW_FALLBACK_ICON:
     'predict-next-portfolio-position-row-fallback-icon',
   ACTIVITY_ROW_FALLBACK_ICON:

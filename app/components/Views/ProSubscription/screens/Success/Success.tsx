@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import {
   Box,
   Text,
@@ -8,6 +9,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  BannerAlert,
+  BannerAlertSeverity,
   Icon,
   IconName,
   IconSize,
@@ -18,59 +21,86 @@ import { SuccessTestIds } from './Success.testIds';
 
 interface SuccessProps {
   onSuccess: () => void;
+  isContinuing?: boolean;
+  continueError?: string;
 }
 
-const Success = ({ onSuccess }: SuccessProps) => (
-  <Box
-    twClassName="flex-1 bg-background-default"
-    testID={SuccessTestIds.CONTAINER}
-  >
-    {/* Icon placeholder — centred in remaining space */}
-    <Box twClassName="flex-1 items-center justify-center">
-      <Box
-        twClassName="w-28 h-28 rounded-2xl bg-background-muted items-center justify-center"
-        testID={SuccessTestIds.ICON_PLACEHOLDER}
-      >
-        <Icon
-          name={IconName.Gift}
-          size={IconSize.Xl}
-          color={IconColor.IconDefault}
-        />
-      </Box>
-    </Box>
+const Success = ({
+  onSuccess,
+  isContinuing = false,
+  continueError,
+}: SuccessProps) => {
+  // BannerAlert has no alert role, and VoiceOver ignores live regions.
+  // Announce the failure so focus can stay on Continue (WCAG 4.1.3).
+  useEffect(() => {
+    if (!continueError) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(continueError);
+  }, [continueError]);
 
-    {/* Title, subtitle and CTA anchored at the bottom */}
-    <Box twClassName="px-4 pb-2 gap-y-6">
-      <Box twClassName="gap-y-2">
-        <Text
-          variant={TextVariant.DisplayMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          twClassName="w-[85%]"
-          testID={SuccessTestIds.TITLE}
+  return (
+    <Box
+      twClassName="flex-1 bg-background-default"
+      testID={SuccessTestIds.CONTAINER}
+    >
+      {/* Icon placeholder — centred in remaining space */}
+      <Box twClassName="flex-1 items-center justify-center">
+        <Box
+          twClassName="w-28 h-28 rounded-2xl bg-background-muted items-center justify-center"
+          testID={SuccessTestIds.ICON_PLACEHOLDER}
         >
-          {strings('pro_subscription.success.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          testID={SuccessTestIds.DESCRIPTION}
-        >
-          {strings('pro_subscription.success.description')}
-        </Text>
+          <Icon
+            name={IconName.Gift}
+            size={IconSize.Xl}
+            color={IconColor.IconDefault}
+          />
+        </Box>
       </Box>
 
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={onSuccess}
-        isFullWidth
-        testID={SuccessTestIds.CTA_BUTTON}
-      >
-        {strings('pro_subscription.success.cta')}
-      </Button>
+      {/* Title, subtitle and CTA anchored at the bottom */}
+      <Box twClassName="px-4 pb-2 gap-y-6">
+        <Box twClassName="gap-y-2">
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+            twClassName="w-[85%]"
+            testID={SuccessTestIds.TITLE}
+          >
+            {strings('pro_subscription.success.title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={SuccessTestIds.DESCRIPTION}
+          >
+            {strings('pro_subscription.success.description')}
+          </Text>
+        </Box>
+
+        {continueError ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Danger}
+            description={continueError}
+            testID={SuccessTestIds.CONTINUE_ERROR}
+          />
+        ) : null}
+
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          onPress={onSuccess}
+          isLoading={isContinuing}
+          isDisabled={isContinuing}
+          isFullWidth
+          testID={SuccessTestIds.CTA_BUTTON}
+        >
+          {strings('pro_subscription.success.cta')}
+        </Button>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default Success;

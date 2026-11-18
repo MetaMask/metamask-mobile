@@ -14,7 +14,7 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
-import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../UI/Money/hooks/useMoneyHomeNavigation';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
 import { navigateToSocialTab } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { SocialEvent } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
@@ -56,7 +56,7 @@ export const useHomeTabDefinitions = ({
   trackMoneyTabPress,
 }: UseHomeTabDefinitionsParams): UseHomeTabDefinitionsResult => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const accountsLength = useSelector(selectAccountsLength);
   const chainId = useSelector(selectChainId);
 

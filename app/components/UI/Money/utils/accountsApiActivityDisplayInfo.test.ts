@@ -5,7 +5,10 @@ import {
   CardTransactionType,
   type CardTransaction,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
-import { accountsApiActivityDisplayInfo } from './accountsApiActivityDisplayInfo';
+import {
+  accountsApiActivityDisplayInfo,
+  accountsApiActivityListDisplayInfo,
+} from './accountsApiActivityDisplayInfo';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 
 jest.mock('../../Card/utils/cardTransactionAmount', () => ({
@@ -89,6 +92,103 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.description).toBe('Card');
     expect(info.primaryAmount).toBe('+10.00 mUSD');
     expect(info.fiatAmount).toBe('+$10.00');
+  });
+
+  it('renders a resolved historical mUSD amount in both amount lines', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...card,
+      displayAmount: {
+        type: 'historical',
+        value: '968399999',
+        decimals: 6,
+      },
+    });
+
+    expect(info.primaryAmount).toBe('-968.40 mUSD');
+    expect(info.fiatAmount).toBe('-$968.40');
+    expect(info.showPrimaryAmount).toBe(true);
+  });
+
+  it('marks current-rate values as approximate', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...cashback,
+      displayAmount: {
+        type: 'approximate',
+        value: '300000',
+        decimals: 6,
+      },
+    });
+
+    expect(info.primaryAmount).toBe('≈+0.30 mUSD');
+    expect(info.fiatAmount).toBe('≈+$0.30');
+    expect(info.showPrimaryAmount).toBe(true);
+  });
+
+  it('renders a muted pending placeholder until the rate is available', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...card,
+      displayAmount: { type: 'pending' },
+    });
+
+    expect(info.primaryAmount).toBe('—');
+    expect(info.fiatAmount).toBe('');
+    expect(info.showPrimaryAmount).toBe(true);
+    expect(info.isPrimaryAmountPending).toBe(true);
+  });
+
+  it('shows unavailable instead of relabeling raw shares', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...card,
+      displayAmount: { type: 'unavailable' },
+    });
+
+    expect(info.primaryAmount).toBe('Amount unavailable');
+    expect(info.fiatAmount).toBe('');
+    expect(info.showPrimaryAmount).toBe(true);
+  });
+
+  it('ignores valuation display state on refunds', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...refund,
+      displayAmount: {
+        type: 'historical',
+        value: '999999999',
+        decimals: 6,
+      },
+    });
+
+    expect(info.primaryAmount).toBe('+10.00 mUSD');
+  });
+
+  it('keeps the mUSD primary line alongside a non-USD merchant amount', () => {
+    const enrichment: CardTransaction = {
+      id: 'baanx-1',
+      providerId: 'baanx',
+      timestamp: card.time,
+      status: CardTransactionStatus.Completed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.38', currency: 'USD' },
+      originalAmount: { value: '27.50', currency: 'BRL' },
+      merchant: { name: 'Coffee Shop' },
+      fundingSources: [],
+    };
+
+    const info = accountsApiActivityDisplayInfo(
+      {
+        ...card,
+        displayAmount: {
+          type: 'historical',
+          value: '968399999',
+          decimals: 6,
+        },
+      },
+      enrichment,
+    );
+
+    expect(info.primaryAmount).toBe('-968.40 mUSD');
+    expect(info.fiatAmount).toBe('-R$27.50');
+    expect(info.showPrimaryAmount).toBe(true);
   });
 
   it('always shows the fiat amount in USD, regardless of preferred currency', () => {
@@ -181,5 +281,195 @@ describe('accountsApiActivityDisplayInfo', () => {
 
       expect(info.status).toBe('confirmed');
     });
+  });
+});
+
+describe('accountsApiActivityListDisplayInfo', () => {
+  const bankTransfer: AccountsApiActivity = {
+    kind: 'bank_transfer',
+    hash: '0xbank' as Hex,
+    time: 1780574031000,
+    chainId: '0x8f',
+    token,
+    amount: '15000000', // 15.00
+    receivedFrom: '0x798eee806e806a0a26bc52526428dd3692217881' as Hex,
+    status: 'confirmed',
+  };
+
+  it('shows a card purchase as a single outflow dollar amount', () => {
+    const info = accountsApiActivityListDisplayInfo(card);
+
+    expect(info.label).toBe('Purchase');
+    expect(info.description).toBe('Card');
+    expect(info.icon).toBe(IconName.Card);
+    expect(info.isIncoming).toBe(false);
+    expect(info.fiatAmount).toBe('-$5.38');
+    expect(info.showPrimaryAmount).toBe(false);
+    expect(info.isFiatAmountMuted).toBe(false);
+    expect(info.primaryAmount).toBe('-5.38 mUSD');
+  });
+
+  it('shows a historical card valuation as dollars, not the mUSD line', () => {
+    const info = accountsApiActivityListDisplayInfo({
+      ...card,
+      displayAmount: {
+        type: 'historical',
+        value: '968399999',
+        decimals: 6,
+      },
+    });
+
+    expect(info.fiatAmount).toBe('-$968.40');
+    expect(info.showPrimaryAmount).toBe(false);
+    expect(info.isFiatAmountMuted).toBe(false);
+    expect(info.primaryAmount).toBe('-968.40 mUSD');
+  });
+
+  it('keeps the approximate marker on the dollar line', () => {
+    const info = accountsApiActivityListDisplayInfo({
+      ...cashback,
+      displayAmount: {
+        type: 'approximate',
+        value: '300000',
+        decimals: 6,
+      },
+    });
+
+    expect(info.isIncoming).toBe(true);
+    expect(info.fiatAmount).toBe('≈+$0.30');
+    expect(info.showPrimaryAmount).toBe(false);
+    expect(info.isFiatAmountMuted).toBe(false);
+  });
+
+  it('shows cashback and refunds as incoming dollar amounts', () => {
+    const cashbackInfo = accountsApiActivityListDisplayInfo(cashback);
+    const refundInfo = accountsApiActivityListDisplayInfo(refund);
+
+    expect(cashbackInfo.fiatAmount).toBe('+$0.30');
+    expect(cashbackInfo.showPrimaryAmount).toBe(false);
+    expect(cashbackInfo.isIncoming).toBe(true);
+    expect(refundInfo.fiatAmount).toBe('+$10.00');
+    expect(refundInfo.showPrimaryAmount).toBe(false);
+    expect(refundInfo.isIncoming).toBe(true);
+  });
+
+  it('shows a bank transfer as a single incoming dollar amount', () => {
+    const info = accountsApiActivityListDisplayInfo(bankTransfer);
+
+    expect(info.label).toBe('Deposited');
+    expect(info.description).toBe('Bank transfer');
+    expect(info.isIncoming).toBe(true);
+    expect(info.fiatAmount).toBe('+$15.00');
+    expect(info.showPrimaryAmount).toBe(false);
+    expect(info.isFiatAmountMuted).toBe(false);
+    expect(info.primaryAmount).toBe('+15.00 mUSD');
+  });
+
+  it('shows the dollar amount for a non-USD merchant and leaves merchant currency on details', () => {
+    const enrichedCard: AccountsApiActivity = {
+      ...card,
+      displayAmount: {
+        type: 'historical',
+        value: '968399999',
+        decimals: 6,
+      },
+    };
+    const enrichment: CardTransaction = {
+      id: 'baanx-1',
+      providerId: 'baanx',
+      timestamp: card.time,
+      status: CardTransactionStatus.Completed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '968.40', currency: 'USD' },
+      originalAmount: { value: '27.50', currency: 'BRL' },
+      merchant: { name: 'Coffee Shop' },
+      fundingSources: [],
+    };
+
+    const list = accountsApiActivityListDisplayInfo(enrichedCard, enrichment);
+    const details = accountsApiActivityDisplayInfo(enrichedCard, enrichment);
+
+    expect(list.description).toBe('Coffee Shop');
+    expect(list.fiatAmount).toBe('-$968.40');
+    expect(list.showPrimaryAmount).toBe(false);
+    expect(list.isFiatAmountMuted).toBe(false);
+    expect(details.primaryAmount).toBe('-968.40 mUSD');
+    expect(details.fiatAmount).toBe('-R$27.50');
+  });
+
+  it.each(['pending', 'unavailable'] as const)(
+    'hides a non-USD merchant amount while the valuation is %s',
+    (type) => {
+      const enrichment: CardTransaction = {
+        id: 'baanx-1',
+        providerId: 'baanx',
+        timestamp: card.time,
+        status: CardTransactionStatus.Pending,
+        type: CardTransactionType.Purchase,
+        isDebit: true,
+        billingAmount: { value: '5.38', currency: 'USD' },
+        originalAmount: { value: '27.50', currency: 'BRL' },
+        merchant: { name: 'Coffee Shop' },
+        fundingSources: [],
+      };
+      const activity: AccountsApiActivity = {
+        ...card,
+        displayAmount: { type },
+      };
+
+      const list = accountsApiActivityListDisplayInfo(activity, enrichment);
+      const details = accountsApiActivityDisplayInfo(activity, enrichment);
+
+      expect(list.description).toBe('Coffee Shop');
+      expect(list.fiatAmount).toBe('');
+      expect(list.showPrimaryAmount).toBe(true);
+      expect(list.fiatAmount).not.toContain('R$');
+      expect(details.fiatAmount).toBe('-R$27.50');
+    },
+  );
+
+  it('keeps the pending placeholder when no dollar amount is available', () => {
+    const info = accountsApiActivityListDisplayInfo({
+      ...card,
+      displayAmount: { type: 'pending' },
+    });
+
+    expect(info.primaryAmount).toBe('—');
+    expect(info.fiatAmount).toBe('');
+    expect(info.showPrimaryAmount).toBe(true);
+    expect(info.isPrimaryAmountPending).toBe(true);
+  });
+
+  it('keeps the unavailable placeholder when the valuation cannot be priced', () => {
+    const info = accountsApiActivityListDisplayInfo({
+      ...card,
+      displayAmount: { type: 'unavailable' },
+    });
+
+    expect(info.primaryAmount).toBe('Amount unavailable');
+    expect(info.fiatAmount).toBe('');
+    expect(info.showPrimaryAmount).toBe(true);
+  });
+
+  it('marks a declined purchase failed without switching the dollar amount to the merchant currency', () => {
+    const enrichment: CardTransaction = {
+      id: 'baanx-1',
+      providerId: 'baanx',
+      timestamp: card.time,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.38', currency: 'USD' },
+      originalAmount: { value: '27.50', currency: 'BRL' },
+      fundingSources: [],
+    };
+
+    const info = accountsApiActivityListDisplayInfo(card, enrichment);
+
+    expect(info.status).toBe('failed');
+    expect(info.fiatAmount).toBe('-$5.38');
+    expect(info.showPrimaryAmount).toBe(false);
+    expect(info.isFiatAmountMuted).toBe(false);
   });
 });

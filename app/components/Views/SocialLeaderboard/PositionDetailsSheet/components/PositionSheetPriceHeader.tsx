@@ -58,7 +58,7 @@ const PositionSheetPriceHeader = ({
     ? strings('social_leaderboard.position_sheet.market_cap_suffix')
     : undefined;
   // One label, because the whole header is the button. A label on the
-  // pressable otherwise replaces the price and the change.
+  // pressable otherwise replaces the price, change, and leverage.
   const accessibilityLabel = [
     assetName,
     valueLabel,

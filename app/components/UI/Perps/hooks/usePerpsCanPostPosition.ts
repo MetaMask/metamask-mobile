@@ -11,7 +11,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import { areAddressesEqual } from '../../../../util/address';
 import { resolveSocialProfileId } from '../../../../util/social/getSocialProfileId';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getLinkedEvmAddress } from '../../../../selectors/profileController';
@@ -105,7 +104,6 @@ export const postPerpsPositionToFeed = ({
   openComposer({
     position: socialPosition,
     entryPoint: 'perps',
-    openFeedAfterPost: true,
   });
 };
 
@@ -119,18 +117,13 @@ export interface UsePerpsCanPostPositionResult {
 }
 
 export const usePerpsCanPostPosition = (): UsePerpsCanPostPositionResult => {
-  const isPerpsSocialEnabled = usePerpsSocialEnabled();
-  const isSocialLeaderboardEnabled = useSelector(
-    selectSocialLeaderboardEnabled,
-  );
+  const isSocialFeedAvailable = usePerpsSocialEnabled();
   const isSignedIn = useSelector(selectIsSignedIn);
   const accountAddress = useSelector(selectSelectedInternalAccountByScope)(
     PERPS_ACCOUNT_SCOPE,
   )?.address;
   const { profile: socialProfile, fetchAndUpdateProfile } =
     useProfileController();
-  const isSocialFeedAvailable =
-    isPerpsSocialEnabled && isSocialLeaderboardEnabled;
   const shouldLookUpProfile =
     isSocialFeedAvailable && isSignedIn && socialProfile === undefined;
 

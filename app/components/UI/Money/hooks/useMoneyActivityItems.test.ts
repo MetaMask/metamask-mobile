@@ -568,6 +568,7 @@ describe('useMoneyActivityItems', () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       isLoading: false,
+      isValuationSettling: false,
       error: false,
       refetch: jest.fn(),
       ...overrides,
@@ -991,6 +992,44 @@ describe('useMoneyActivityItems', () => {
     renderHook(() => useMoneyActivityItems(fillAll(2)));
 
     expect(loadMore).not.toHaveBeenCalled();
+  });
+
+  it('stops auto-filling at a caller-provided page cap', () => {
+    const loadMore = jest.fn();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xa' as Hex, 200)],
+        hasMore: true,
+        pageCount: 1,
+        loadMore,
+      }),
+    );
+
+    renderHook(() =>
+      useMoneyActivityItems({
+        fill: {
+          bucket: MoneyActivityFilter.All,
+          count: 5,
+          maxPages: 1,
+        },
+      }),
+    );
+
+    expect(loadMore).not.toHaveBeenCalled();
+  });
+
+  it('exposes valuation settling without hiding populated activity', () => {
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xa' as Hex, 200)],
+        isValuationSettling: true,
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyActivityItems(fillAll(5)));
+
+    expect(result.current.isSettling).toBe(false);
+    expect(result.current.isValuationSettling).toBe(true);
   });
 
   it('keeps fetching while the list is empty and the page budget remains', () => {

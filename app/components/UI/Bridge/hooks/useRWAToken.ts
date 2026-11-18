@@ -30,6 +30,7 @@ function isTokenInRegularHoursAt(
 
   const nextOpenMs = toMs(token.rwaData.market?.nextOpen);
   const nextCloseMs = toMs(token.rwaData.market?.nextClose);
+  if (nextOpenMs == null && nextCloseMs == null) return true;
   if (nextOpenMs == null || nextCloseMs == null) return false;
 
   let marketIsOpen: boolean;

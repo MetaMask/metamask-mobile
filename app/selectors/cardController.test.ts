@@ -1010,6 +1010,59 @@ describe('selectIsCardStateResolved', () => {
     });
     expect(selectIsCardStateResolved(state)).toBe(false);
   });
+
+  it('returns true while idle when stored links are closed only', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState(
+      {
+        cardHomeDataStatus: 'idle',
+        isAuthenticated: false,
+        cardholderAccounts: ['eip155:0:0xabc'],
+        cardLinks: [
+          {
+            provider: 'baanx',
+            status: 'closed',
+            linkedAccountRef: null,
+            closedReason: 'migrated',
+            migratedToProvider: 'immersve',
+            linkedAt: '2026-09-01T00:00:00.000Z',
+            updatedAt: '2026-09-01T00:00:00.000Z',
+          },
+        ],
+      },
+      undefined,
+      { cardLinkApi: { enabled: true, minimumVersion: '0.0.0' } },
+    );
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns false while idle for a labelled account when card links are off', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState(
+      {
+        cardHomeDataStatus: 'idle',
+        isAuthenticated: false,
+        cardholderAccounts: ['eip155:0:0xabc'],
+      },
+      undefined,
+      { cardLinkApi: { enabled: false, minimumVersion: '0.0.0' } },
+    );
+    expect(selectIsCardHomeDataResolved(state)).toBe(false);
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
 });
 
 const mockPrimaryAsset = {
@@ -1181,6 +1234,31 @@ describe('selectCardPrimaryToken', () => {
     const token = selectCardPrimaryToken(state);
     expect(token?.isMoneyAccountEntry).toBe(false);
     expect(token?.displaySymbol).toBeUndefined();
+  });
+
+  it('flags a moneyAccount funding source even when the token is not the selected Veda config', () => {
+    const homeData: CardHomeData = {
+      ...mockCardHomeData,
+      primaryFundingAsset: {
+        ...mockPrimaryAsset,
+        symbol: 'USDC',
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        chainId: 'eip155:8453',
+        fundingSourceType: 'moneyAccount',
+      },
+    } as unknown as CardHomeData;
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      CARD_FEATURE_WITHOUT_VEDA,
+    );
+
+    const token = selectCardPrimaryToken(state);
+
+    expect(token?.isMoneyAccountEntry).toBe(true);
+    expect(token?.displaySymbol).toBe('mUSD');
   });
 });
 

@@ -223,6 +223,11 @@ const HeaderRowRoot = ({
   </Box>
 );
 
+/**
+ * Leading header text. It fills the row beside the Meta and never narrows
+ * below 60% of it, so a long Meta truncates at 40% instead of squeezing the
+ * Title away. Both sides truncate on one line.
+ */
 const HeaderRowTitle = ({
   children,
   testID,
@@ -234,13 +239,17 @@ const HeaderRowTitle = ({
     variant={TextVariant.BodySm}
     fontWeight={FontWeight.Bold}
     numberOfLines={1}
-    twClassName="min-w-0 flex-1"
+    twClassName="min-w-[60%] flex-1"
     testID={testID}
   >
     {children}
   </Text>
 );
 
+/**
+ * Trailing header text. It may shrink and truncates on one line, so it gives
+ * way to a Title beside it and, without one, keeps its full width.
+ */
 const HeaderRowMeta = ({
   children,
   testID,
@@ -253,6 +262,7 @@ const HeaderRowMeta = ({
     fontWeight={FontWeight.Medium}
     color={TextColor.TextAlternative}
     numberOfLines={1}
+    twClassName="shrink"
     testID={testID}
   >
     {children}

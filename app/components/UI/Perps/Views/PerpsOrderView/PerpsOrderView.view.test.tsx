@@ -15,6 +15,7 @@ import {
 import {
   calculatePositionSize,
   CandlePeriod,
+  PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -36,12 +37,14 @@ import {
   type PerpsStreamOverrides,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
@@ -470,10 +473,12 @@ describe('PerpsOrderView', () => {
                 ...eligibleOverrides.engine.backgroundState.PerpsController,
                 tradeConfigurations: {
                   mainnet: {
-                    ETH: {
-                      pendingConfig: {
-                        takeProfitPrice: '3500',
-                        timestamp: Date.now(),
+                    hyperliquid: {
+                      ETH: {
+                        pendingConfig: {
+                          takeProfitPrice: '3500',
+                          timestamp: Date.now(),
+                        },
                       },
                     },
                   },
@@ -554,10 +559,12 @@ describe('PerpsOrderView', () => {
               ...eligibleOverrides.engine.backgroundState.PerpsController,
               tradeConfigurations: {
                 mainnet: {
-                  ETH: {
-                    pendingConfig: {
-                      takeProfitPrice: '2000',
-                      timestamp: Date.now(),
+                  hyperliquid: {
+                    ETH: {
+                      pendingConfig: {
+                        takeProfitPrice: '2000',
+                        timestamp: Date.now(),
+                      },
                     },
                   },
                 },
@@ -1342,6 +1349,179 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  // Typed amount stays after Done; a pre-layout 0% slider commit must not reset it.
+  describe('amount keypad commit', () => {
+    const SHORT_BALANCE = '13.67';
+    const SHORT_PRICE = '941.95';
+
+    const readDisplayedAmount = () =>
+      Number(
+        screen
+          .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
+          .findAllByType(Text)
+          .map((glyph) => glyph.props.children)
+          .join('')
+          .replace(/[^0-9.]/g, ''),
+      );
+
+    const waitForDisplayedAmount = (expected: number) =>
+      waitFor(() => expect(readDisplayedAmount()).toBe(expected), {
+        timeout: TIMEOUT_MS,
+      });
+
+    const renderShortTradeSheet = async (amount: string) => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'short',
+          amount,
+          leverage: 10,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account: accountWithBalance(SHORT_BALANCE),
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream, '-2.14', SHORT_PRICE);
+
+      expect(
+        await screen.findByTestId(
+          PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    };
+
+    const amountSlider = () =>
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER);
+
+    const layOutAmountSlider = () => {
+      fireEvent(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER_LAYOUT),
+        'layout',
+        {
+          nativeEvent: {
+            layout: { width: 320, height: 48, x: 0, y: 0 },
+          },
+        },
+      );
+    };
+
+    const openAmountKeypad = async () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    };
+
+    const pressKeypadDigit = (digit: '0' | '1' | '2') => {
+      const testId = {
+        '0': KeypadTestIds.KEY_0,
+        '1': KeypadTestIds.KEY_1,
+        '2': KeypadTestIds.KEY_2,
+      }[digit];
+
+      fireEvent.press(screen.getByTestId(testId));
+    };
+
+    const clearKeypadAmount = async () => {
+      const digits = String(Math.trunc(Math.abs(readDisplayedAmount()))).length;
+
+      for (let index = 0; index < digits; index += 1) {
+        fireEvent.press(screen.getByTestId(KeypadTestIds.DELETE_BUTTON));
+      }
+
+      await waitForDisplayedAmount(0);
+    };
+
+    const typeAmount = async (digits: readonly ('0' | '1' | '2')[]) => {
+      for (const digit of digits) {
+        pressKeypadDigit(digit);
+      }
+    };
+
+    const doneAmountKeypad = () => {
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      );
+    };
+
+    // Done unmounts the keypad and mounts the slider under the finger that
+    // released the button. Android delivers that touch to the new track before
+    // it has a width, and a 0-width track maps the touch to 0%.
+    const deliverPreLayoutSliderTouch = () => {
+      fireEvent(amountSlider(), 'valueChange', 0);
+      fireEvent(amountSlider(), 'dragEnd', 0);
+    };
+
+    it('keeps a typed amount after Done when the size was first set with the slider', async () => {
+      await renderShortTradeSheet('0');
+      layOutAmountSlider();
+
+      fireEvent(amountSlider(), 'valueChange', 25);
+      fireEvent(amountSlider(), 'dragEnd', 25);
+
+      await waitFor(
+        () => {
+          expect(readDisplayedAmount()).toBeGreaterThan(0);
+        },
+        { timeout: TIMEOUT_MS },
+      );
+
+      await openAmountKeypad();
+      await clearKeypadAmount();
+      await typeAmount(['1', '0']);
+      await waitForDisplayedAmount(10);
+
+      doneAmountKeypad();
+      await waitForDisplayedAmount(10);
+      deliverPreLayoutSliderTouch();
+
+      await waitForDisplayedAmount(10);
+      expect(
+        screen.queryByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(amountSlider().props.accessibilityValue?.text).not.toBe('0%');
+    });
+
+    it('keeps a typed amount after Done when the keypad is opened on an empty size', async () => {
+      await renderShortTradeSheet('0');
+      await openAmountKeypad();
+      await typeAmount(['2', '0']);
+      await waitForDisplayedAmount(20);
+
+      doneAmountKeypad();
+      await waitForDisplayedAmount(20);
+      deliverPreLayoutSliderTouch();
+
+      await waitForDisplayedAmount(20);
+      expect(
+        screen.queryByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(amountSlider().props.accessibilityValue?.text).not.toBe('0%');
+    });
+  });
+
   describe('fee-adjusted max size', () => {
     const LEVERAGE = 4;
     const BALANCE = 1000;
@@ -1530,6 +1710,27 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  const existingCrossPositionStream = {
+    account,
+    positions: [
+      {
+        ...defaultPositionForViews,
+        // The venue reports a liquidation price; the order form still
+        // withholds its own isolated estimate.
+        liquidationPrice: '1900',
+        leverage: { value: 10, type: 'cross' as const },
+      },
+    ],
+    orders: [],
+    marketData: [ethMarket],
+  };
+  const existingCrossOrderParams = {
+    asset: 'ETH',
+    direction: 'long' as const,
+    amount: '120',
+    leverage: 10,
+  };
+
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const { stream } = renderPerpsOrderView({
@@ -1564,6 +1765,114 @@ describe('PerpsOrderView', () => {
     ).toBeOnTheScreen();
     expect(placeOrder).not.toHaveBeenCalled();
   });
+
+  it('places an order on an existing cross position when cross margin is enabled', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      crossMarginEnabled: true,
+      initialParams: existingCrossOrderParams,
+      streamOverrides: existingCrossPositionStream,
+      extraRoutes: [crossMarginWarningRoute, marketDetailsRoute],
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    // The isolated formula does not describe an order against a cross position.
+    expect(
+      await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+      ),
+    );
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(
+      strings('perps.tooltips.cross_liquidation_estimate_unavailable.content'),
+    );
+    expect(
+      screen.queryByText(
+        strings('perps.tooltips.cross_no_liquidation_price.content'),
+      ),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+    );
+
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', isBuy: true }),
+      );
+    });
+    expect(
+      screen.queryByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
+    ).not.toBeOnTheScreen();
+    await waitForDeferredOrderData();
+  });
+
+  it('keeps the isolated liquidation price out of a lite cross order', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      crossMarginEnabled: true,
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: existingCrossPositionStream,
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(
+        PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_ROW),
+    );
+    expect(
+      await screen.findByText(
+        strings(
+          'perps.tooltips.cross_liquidation_estimate_unavailable.content',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.tooltips.cross_no_liquidation_price.content'),
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+    );
+    fireEvent.press(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.queryByTestId(
+        PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   describe('market order liquidity', () => {
     const bookLevel = (price: number, size: number): OrderBookLevel => ({
       price: String(price),

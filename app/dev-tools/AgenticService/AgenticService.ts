@@ -34,7 +34,6 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
   PERPS_GTM_MODAL_SHOWN,
   PUSH_PRE_PROMPT_SHOWN,
-  REWARDS_GTM_MODAL_SHOWN,
 } from '../../constants/storage';
 import { analytics } from '../../util/analytics/analytics';
 import {
@@ -1580,7 +1579,6 @@ function getRowValue(
  * can inspect and drive the app remotely via Metro's Hermes CDP WebSocket.
  *
  * Consumed by the runner-owned Mobile bridge runtime.
- * See docs/perps/perps-agentic-feedback-loop.md for the full workflow.
  */
 const AgenticService = {
   /**
@@ -2209,7 +2207,6 @@ const AgenticService = {
           if (settings.skipGtmModals === true) {
             await Promise.all([
               StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true'),
-              StorageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true'),
               StorageWrapper.setItem(PUSH_PRE_PROMPT_SHOWN, 'true'),
             ]);
             // Suppress ExperienceEnhancer (marketing consent) modal
