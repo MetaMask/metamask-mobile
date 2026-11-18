@@ -84,10 +84,12 @@ const receipt = (
 // Promise.withResolvers; keep the test barrier explicit.
 const deferred = <Value>() => {
   let resolve!: (value: Value) => void;
-  const promise = new Promise<Value>((done) => {
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<Value>((done, fail) => {
     resolve = done;
+    reject = fail;
   });
-  return { promise, resolve };
+  return { promise, resolve, reject };
 };
 
 const previewWithdraw: jest.MockedFunction<
@@ -235,7 +237,114 @@ describe('PredictFundingService withdrawal flow', () => {
       );
 
       expect(result).toBe(canonical);
-      expect(commitWithdraw.mock.calls).toEqual([['preview-1', undefined]]);
+      expect(commitWithdraw.mock.calls).toEqual([
+        ['preview-1', { signal: expect.any(AbortSignal) }],
+      ]);
+    });
+
+    it('forwards caller cancellation and keeps its AbortError', async () => {
+      const service = serviceWith();
+      const caller = new AbortController();
+      const gate = deferred<PredictWithdrawReceipt>();
+      let signal: AbortSignal | undefined;
+      commitWithdraw.mockImplementationOnce((_previewId, options) => {
+        signal = options?.signal;
+        return gate.promise;
+      });
+
+      const pending = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        { signal: caller.signal },
+      );
+      expect(signal).not.toBe(caller.signal);
+      expect(signal?.aborted).toBe(false);
+
+      caller.abort();
+      expect(signal?.aborted).toBe(true);
+      const abortError = new Error('The request was aborted.');
+      abortError.name = 'AbortError';
+      gate.reject(abortError);
+
+      await expect(pending).rejects.toBe(abortError);
+      expect(invalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('aborts a commit still resolving its token when abandoned', async () => {
+      const service = serviceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      let signal: AbortSignal | undefined;
+      commitWithdraw.mockImplementationOnce((_previewId, options) => {
+        signal = options?.signal;
+        return gate.promise;
+      });
+
+      const pending = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+      expect(signal?.aborted).toBe(false);
+
+      service.abandon();
+      expect(signal?.aborted).toBe(true);
+      gate.resolve(receipt('processing'));
+
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(invalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('aborts a commit still resolving its token when destroyed', async () => {
+      const service = serviceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      let signal: AbortSignal | undefined;
+      commitWithdraw.mockImplementationOnce((_previewId, options) => {
+        signal = options?.signal;
+        return gate.promise;
+      });
+
+      const pending = service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+      expect(signal?.aborted).toBe(false);
+
+      service.destroy();
+      expect(signal?.aborted).toBe(true);
+      gate.resolve(receipt('processing'));
+
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(invalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('removes the caller abort listener after a normal commit', async () => {
+      const service = serviceWith();
+      const addEventListener = jest.fn();
+      const removeEventListener = jest.fn();
+      const caller = {
+        aborted: false,
+        addEventListener,
+        removeEventListener,
+      } as unknown as AbortSignal;
+
+      const result = await service.commitWithdrawPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        { signal: caller },
+      );
+
+      expect(result.status).toBe('processing');
+      expect(addEventListener).toHaveBeenCalledWith(
+        'abort',
+        expect.any(Function),
+      );
+      expect(removeEventListener).toHaveBeenCalledWith(
+        'abort',
+        addEventListener.mock.calls[0][1],
+      );
     });
 
     it('returns the persisted refusal as an outcome rather than throwing', async () => {

@@ -41,6 +41,13 @@ export interface PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  /** The deployment's catalog for the Venue, including which product actions
+   * it actually serves. Bearer-only: it is client configuration, not account
+   * data. */
+  fetchVenueCatalog(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
   fetchBalance(
     venueId: PredictVenueId,
     options?: PredictReadOptions,
@@ -309,6 +316,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     options?: PredictReadOptions,
   ): Promise<unknown> {
     return this.#get(['v1', 'venues', venueId, 'status'], undefined, options);
+  }
+
+  fetchVenueCatalog(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'catalog'], undefined, options);
   }
 
   fetchBalance(

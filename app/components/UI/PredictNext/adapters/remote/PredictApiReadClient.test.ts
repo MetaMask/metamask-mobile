@@ -169,6 +169,36 @@ describe('PredictApiReadClient', () => {
     );
   });
 
+  it('authenticates Venue catalog requests and returns the body', async () => {
+    const catalog = {
+      venueId: 'kalshi',
+      actions: ['buy', 'sell'],
+      feeds: {},
+      categories: [],
+      searchSupported: true,
+    };
+    fetchMock.mockResolvedValue(createResponse({ json: catalog }));
+    const signal = new AbortController().signal;
+
+    await expect(
+      client.fetchVenueCatalog(venueId, { signal }),
+    ).resolves.toEqual(catalog);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/catalog',
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'x-metamask-clientproduct': 'metamask-mobile',
+          'x-metamask-clientversion': '7.0.0',
+          Authorization: 'Bearer secret-token',
+        },
+        signal,
+      },
+    );
+  });
+
   it('sends the two-phase signed read for Balance and parses the result', async () => {
     const signRead = makeSignRead();
     fetchMock
