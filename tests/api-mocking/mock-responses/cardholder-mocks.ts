@@ -137,6 +137,44 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2';
 
   // Helper to get decoded URL from proxy request
+  /** Minimal Baanx registration settings so Card login can render a country. */
+  const BAANX_REGISTRATION_SETTINGS = {
+    countries: [
+      {
+        id: 'es',
+        name: 'Spain',
+        iso3166alpha2: 'ES',
+        callingCode: '34',
+        canSignUp: true,
+      },
+    ],
+    usStates: [],
+    links: {
+      us: {
+        termsAndConditions: 'https://example.com/us/terms',
+        accountOpeningDisclosure: 'https://example.com/us/account-opening',
+        noticeOfPrivacy: 'https://example.com/us/privacy',
+        eSignConsentDisclosure: 'https://example.com/us/esign',
+      },
+      intl: {
+        termsAndConditions: 'https://example.com/intl/terms',
+        rightToInformation: 'https://example.com/intl/right-to-information',
+      },
+    },
+    config: {
+      us: {
+        emailSpecialCharactersDomainsException: '',
+        consentSmsNumber: '',
+        supportEmail: 'support@example.com',
+      },
+      intl: {
+        emailSpecialCharactersDomainsException: '',
+        consentSmsNumber: '',
+        supportEmail: 'support@example.com',
+      },
+    },
+  };
+
   const getDecodedProxiedURL = (url: string): string => {
     try {
       return decodeURIComponent(String(new URL(url).searchParams.get('url')));
@@ -223,6 +261,28 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     })
     .asPriority(1000)
     .thenCallback(createRpcCallback());
+
+  // Card login loads registration settings before the country select is usable.
+  // The e2e build calls the dev Baanx host; UAT and production are covered so a
+  // different build target does not leak a live request.
+  const isBaanxRegistrationSettings = (url: string): boolean =>
+    /https:\/\/(foxdev2-ag\.foxcard\.io|dev\.api\.baanx\.com|api\.baanx\.com)\/v1\/auth\/settings\/?/.test(
+      url,
+    );
+
+  await mockServer
+    .forGet()
+    .matching((request) => isBaanxRegistrationSettings(request.url))
+    .asPriority(1000)
+    .thenJson(200, BAANX_REGISTRATION_SETTINGS);
+
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) =>
+      isBaanxRegistrationSettings(getDecodedProxiedURL(request.url)),
+    )
+    .asPriority(1000)
+    .thenJson(200, BAANX_REGISTRATION_SETTINGS);
 
   // Geolocation mocks - set to Spain (all envs)
   for (const mock of createGeolocationResponse(

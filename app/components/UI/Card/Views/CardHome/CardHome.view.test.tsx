@@ -1,4 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import type { RootState } from '../../../../../reducers';
@@ -499,7 +500,8 @@ describe('CardHome', () => {
                     wallets: {
                       'entropy:wallet1': {
                         id: 'entropy:wallet1',
-                        type: 'Entropy',
+                        type: AccountWalletType.Entropy,
+                        status: 'ready',
                         metadata: {
                           name: 'Wallet 1',
                           entropy: { id: 'wallet1' },
@@ -507,12 +509,13 @@ describe('CardHome', () => {
                         groups: {
                           'entropy:wallet1/0': {
                             id: 'entropy:wallet1/0',
-                            type: 'MultipleAccount',
+                            type: AccountGroupType.MultichainAccount,
                             metadata: {
                               name: 'Group 1',
                               pinned: false,
                               hidden: false,
                               lastSelected: 0,
+                              entropy: { groupIndex: 0 },
                             },
                             accounts: ['acc-1'],
                           },
