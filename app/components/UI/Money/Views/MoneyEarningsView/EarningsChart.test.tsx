@@ -11,7 +11,7 @@ import type {
   InterestHistoryBucket,
   InterestHistoryRange,
   InterestHistoryResponse,
-} from '../../hooks/useMoneyHistoricalEarnings';
+} from '../../types/moneyInterestHistory';
 import EarningsChart from './EarningsChart';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import type { EarningsRange } from './earningsHistory';
@@ -116,7 +116,7 @@ const renderChart = ({
 } = {}): RenderResult =>
   renderWithProvider(
     <EarningsChart
-      entries={entries}
+      historicalEarningsResponse={entries}
       isLoading={isLoading}
       isError={isError}
       onRetry={onRetry}
@@ -182,7 +182,7 @@ const EarningsChartHarness = (): React.ReactElement => {
 
   return (
     <EarningsChart
-      entries={createResponse()}
+      historicalEarningsResponse={createResponse()}
       isLoading={false}
       isError={false}
       onRetry={mockOnRetry}

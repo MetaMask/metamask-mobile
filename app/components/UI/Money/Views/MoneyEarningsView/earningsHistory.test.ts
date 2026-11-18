@@ -2,18 +2,20 @@ import type {
   InterestHistoryBucket,
   InterestHistoryRange,
   InterestHistoryResponse,
-} from '../../hooks/useMoneyHistoricalEarnings';
+} from '../../types/moneyInterestHistory';
 import {
   EARNINGS_RANGES,
-  getAuthoritativeRangeTotal,
+  getAuthoritativeRangeTotalUsd,
   getBucketDisplayDateRange,
   getBucketPoints,
   getLatestAvailableBucketIndex,
   getSelectedRange,
-  hasInvalidHistoryEntries,
-  parseFiniteUsd,
   type EarningsRange,
 } from './earningsHistory';
+import {
+  hasInvalidInterestHistoryResponse,
+  parseFiniteUsd,
+} from './earningsHistoryValidation';
 
 const available = {
   earnings: 'available',
@@ -157,7 +159,7 @@ describe('earningsHistory', () => {
     const result = getBucketPoints(range);
 
     expect(result).toHaveLength(3);
-    expect(result.map(({ amount }) => amount)).toEqual([0, null, 2.5]);
+    expect(result.map(({ amountUsd }) => amountUsd)).toEqual([0, null, 2.5]);
     expect(result.map(({ start }) => start)).toEqual(
       range.buckets.map(({ start }) => start),
     );
@@ -185,7 +187,7 @@ describe('earningsHistory', () => {
       '99',
     );
 
-    expect(getAuthoritativeRangeTotal(range)).toBe(99);
+    expect(getAuthoritativeRangeTotalUsd(range)).toBe(99);
   });
 
   it('finds the latest available bucket while keeping zero available', () => {
@@ -212,17 +214,17 @@ describe('earningsHistory', () => {
   it('converts exclusive bucket ends into display boundaries', () => {
     const point = {
       start: '2026-11-09T00:00:00.000Z',
-      end: '2026-11-16T00:00:00.000Z',
+      periodEndExclusive: '2026-11-16T00:00:00.000Z',
     };
 
     expect(getBucketDisplayDateRange(point)).toEqual({
-      start: '2026-11-09T00:00:00.000Z',
-      end: '2026-11-15T23:59:59.999Z',
+      displayStart: '2026-11-09T00:00:00.000Z',
+      displayEnd: '2026-11-15T23:59:59.999Z',
     });
   });
 
   it('accepts a complete full-contract response', () => {
-    expect(hasInvalidHistoryEntries(createResponse())).toBe(false);
+    expect(hasInvalidInterestHistoryResponse(createResponse())).toBe(false);
   });
 
   it.each([
@@ -246,6 +248,6 @@ describe('earningsHistory', () => {
       response.ranges[0].buckets[0].end = 'not-a-date';
     }
 
-    expect(hasInvalidHistoryEntries(response)).toBe(true);
+    expect(hasInvalidInterestHistoryResponse(response)).toBe(true);
   });
 });

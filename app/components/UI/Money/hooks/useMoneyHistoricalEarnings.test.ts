@@ -5,11 +5,9 @@ import { ApiEnv } from '../../../../core/apiEnv';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
-import {
-  fetchInterestHistory,
-  useMoneyHistoricalEarnings,
-  type InterestHistoryResponse,
-} from './useMoneyHistoricalEarnings';
+import { fetchMoneyInterestHistory } from '../services/moneyInterestHistory';
+import type { InterestHistoryResponse } from '../types/moneyInterestHistory';
+import { useMoneyHistoricalEarnings } from './useMoneyHistoricalEarnings';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -163,7 +161,7 @@ describe('useMoneyHistoricalEarnings', () => {
   });
 });
 
-describe('fetchInterestHistory', () => {
+describe('fetchMoneyInterestHistory', () => {
   const originalApiEnv = process.env.MM_API_ENV;
   const originalFetch = global.fetch;
 
@@ -186,7 +184,7 @@ describe('fetchInterestHistory', () => {
       });
       global.fetch = mockFetch as unknown as typeof fetch;
 
-      await fetchInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID);
+      await fetchMoneyInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID);
 
       expect(mockFetch).toHaveBeenCalledWith(
         `${baseUrl}/v1/positions/${MOCK_ADDRESS.toLowerCase()}/interest-history?chain_id=${MOCK_CHAIN_ID}`,
@@ -202,7 +200,7 @@ describe('fetchInterestHistory', () => {
     global.fetch = mockFetch as unknown as typeof fetch;
 
     await expect(
-      fetchInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID),
+      fetchMoneyInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID),
     ).resolves.toEqual(MOCK_RESPONSE);
   });
 
@@ -214,7 +212,7 @@ describe('fetchInterestHistory', () => {
     global.fetch = mockFetch as unknown as typeof fetch;
 
     await expect(
-      fetchInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID),
+      fetchMoneyInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID),
     ).rejects.toThrow('Money Account API interest history request failed');
   });
 });

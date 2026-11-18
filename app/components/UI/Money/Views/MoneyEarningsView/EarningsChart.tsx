@@ -22,7 +22,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
-import type { InterestHistoryResponse } from '../../hooks/useMoneyHistoricalEarnings';
+import type { InterestHistoryResponse } from '../../types/moneyInterestHistory';
 import { DUST_THRESHOLD, moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import {
@@ -36,7 +36,7 @@ import {
 } from './earningsHistory';
 
 interface EarningsChartProps {
-  entries: InterestHistoryResponse | undefined;
+  historicalEarningsResponse: InterestHistoryResponse | undefined;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -68,17 +68,17 @@ const formatDate = (timestamp: string): string =>
     timeZone: 'UTC',
   }).format(new Date(timestamp));
 
-const formatSignedUsd = (amount: number): string => {
-  if (amount !== 0 && Math.abs(amount) < DUST_THRESHOLD) {
-    const preciseAmount = new BigNumber(amount)
+const formatSignedUsd = (amountUsd: number): string => {
+  if (amountUsd !== 0 && Math.abs(amountUsd) < DUST_THRESHOLD) {
+    const preciseAmount = new BigNumber(amountUsd)
       .toFixed(4)
       .replace(/0+$/, '')
       .replace(/\.$/, '');
-    return `${amount > 0 ? '+' : ''}$${preciseAmount}`;
+    return `${amountUsd > 0 ? '+' : ''}$${preciseAmount}`;
   }
 
-  const formattedAmount = moneyFormatUsd(new BigNumber(amount));
-  return amount > 0 ? `+${formattedAmount}` : formattedAmount;
+  const formattedAmountUsd = moneyFormatUsd(new BigNumber(amountUsd));
+  return amountUsd > 0 ? `+${formattedAmountUsd}` : formattedAmountUsd;
 };
 
 const formatMonthLabel = (timestamp: string): string =>
@@ -129,9 +129,9 @@ const getAxisLabelRange = (range: EarningsRange): AxisLabelRange =>
   range === '30D' ? '1M' : range;
 
 const formatPointDateRange = (point: EarningsPoint): string => {
-  const { start, end } = getBucketDisplayDateRange(point);
-  const startLabel = formatDate(start);
-  const endLabel = formatDate(end);
+  const { displayStart, displayEnd } = getBucketDisplayDateRange(point);
+  const startLabel = formatDate(displayStart);
+  const endLabel = formatDate(displayEnd);
   return startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`;
 };
 
@@ -142,35 +142,37 @@ const formatPointPillLabel = (point: EarningsPoint): string =>
       ? formatMonthLabel(point.start)
       : formatDate(point.start);
 
-const formatAxisUsd = (amount: number): string => {
-  if (amount > 0 && amount < DUST_THRESHOLD) {
+const formatAxisUsd = (amountUsd: number): string => {
+  if (amountUsd > 0 && amountUsd < DUST_THRESHOLD) {
     return '<$0.01';
   }
 
-  return amount >= 1 ? `$${Math.round(amount)}` : `$${amount.toFixed(2)}`;
+  return amountUsd >= 1
+    ? `$${Math.round(amountUsd)}`
+    : `$${amountUsd.toFixed(2)}`;
 };
 
-const clampToCents = (amount: number): number =>
-  Math.abs(amount) < DUST_THRESHOLD
+const clampUsdToCents = (amountUsd: number): number =>
+  Math.abs(amountUsd) < DUST_THRESHOLD
     ? 0
-    : Number(new BigNumber(amount).toFixed(2));
+    : Number(new BigNumber(amountUsd).toFixed(2));
 
-const getNiceChartMaximum = (maximumAmount: number): number => {
-  if (maximumAmount <= 0) {
+const getNiceUsdChartMaximum = (maximumAmountUsd: number): number => {
+  if (maximumAmountUsd <= 0) {
     return DUST_THRESHOLD;
   }
 
-  if (maximumAmount < 1) {
-    const cents = Math.ceil(maximumAmount * 100);
+  if (maximumAmountUsd < 1) {
+    const cents = Math.ceil(maximumAmountUsd * 100);
     return (cents % 2 === 0 ? cents : cents + 1) / 100;
   }
 
-  const whole = Math.ceil(maximumAmount);
+  const whole = Math.ceil(maximumAmountUsd);
   return whole % 2 === 0 ? whole : whole + 1;
 };
 
 const EarningsChart = ({
-  entries,
+  historicalEarningsResponse,
   isLoading,
   isError,
   onRetry,
@@ -186,17 +188,17 @@ const EarningsChart = ({
   const scrubOriginX = useRef(0);
   const locale = I18n.locale;
   const selectedRangeData = useMemo(
-    () => getSelectedRange(entries, selectedRange),
-    [entries, selectedRange],
+    () => getSelectedRange(historicalEarningsResponse, selectedRange),
+    [historicalEarningsResponse, selectedRange],
   );
   const points = useMemo(
     () => getBucketPoints(selectedRangeData),
     [selectedRangeData],
   );
-  const chartAmounts = useMemo(
+  const chartAmountsUsd = useMemo(
     () =>
       points.map((point) =>
-        point.amount === null ? null : clampToCents(point.amount),
+        point.amountUsd === null ? null : clampUsdToCents(point.amountUsd),
       ),
     [points],
   );
@@ -212,28 +214,28 @@ const EarningsChart = ({
       ),
     );
   }, [locale, points, selectedRange]);
-  const maximumAmount = useMemo(
+  const maximumAmountUsd = useMemo(
     () =>
       Math.max(
         0,
         ...points.map((point, index) =>
-          isAvailableBucket(point) && chartAmounts[index] !== null
-            ? chartAmounts[index]
+          isAvailableBucket(point) && chartAmountsUsd[index] !== null
+            ? chartAmountsUsd[index]
             : 0,
         ),
       ),
-    [chartAmounts, points],
+    [chartAmountsUsd, points],
   );
-  const yAxisValues = useMemo(() => {
-    const chartMaximum = getNiceChartMaximum(maximumAmount);
-    const values = [chartMaximum, chartMaximum / 2];
-    return values.filter(
-      (value, index) =>
+  const yAxisValuesUsd = useMemo(() => {
+    const chartMaximumUsd = getNiceUsdChartMaximum(maximumAmountUsd);
+    const valuesUsd = [chartMaximumUsd, chartMaximumUsd / 2];
+    return valuesUsd.filter(
+      (valueUsd, index) =>
         index === 0 ||
-        formatAxisUsd(value) !== formatAxisUsd(values[index - 1]),
+        formatAxisUsd(valueUsd) !== formatAxisUsd(valuesUsd[index - 1]),
     );
-  }, [maximumAmount]);
-  const chartMaximum = yAxisValues[0];
+  }, [maximumAmountUsd]);
+  const chartMaximumUsd = yAxisValuesUsd[0];
   const handleRangeChange = (range: EarningsRange): void => {
     setActiveIndex(null);
     onRangeChange(range);
@@ -364,7 +366,7 @@ const EarningsChart = ({
           onTouchEnd={() => setScrollEnabled?.(true)}
           onTouchCancel={() => setScrollEnabled?.(true)}
         >
-          {yAxisValues.map((_, index) => (
+          {yAxisValuesUsd.map((_, index) => (
             <Box
               key={`gridline-${index}`}
               testID={MoneyEarningsViewTestIds.CHART_GRIDLINE(index)}
@@ -382,14 +384,16 @@ const EarningsChart = ({
             {points.map((point, index) => {
               const isAvailable = isAvailableBucket(point);
               const isSelected = activeIndex === index;
-              const chartAmount = chartAmounts[index];
+              const chartAmountUsd = chartAmountsUsd[index];
               const barHeight =
-                isAvailable && chartAmount === 0
+                isAvailable && chartAmountUsd === 0
                   ? MINIMUM_BAR_HEIGHT
-                  : isAvailable && chartAmount !== null && chartMaximum > 0
+                  : isAvailable &&
+                      chartAmountUsd !== null &&
+                      chartMaximumUsd > 0
                     ? Math.max(
                         MINIMUM_BAR_HEIGHT,
-                        (chartAmount / chartMaximum) * CHART_HEIGHT,
+                        (chartAmountUsd / chartMaximumUsd) * CHART_HEIGHT,
                       )
                     : 0;
               const dateLabel = formatPointDateRange(point);
@@ -412,7 +416,7 @@ const EarningsChart = ({
                           'money.earnings.chart_bucket_accessibility_label',
                           {
                             date: dateLabel,
-                            amount: formatSignedUsd(point.amount ?? 0),
+                            amount: formatSignedUsd(point.amountUsd ?? 0),
                           },
                         )
                       : strings(
@@ -490,7 +494,7 @@ const EarningsChart = ({
                       twClassName="text-primary-inverse"
                       numberOfLines={1}
                     >
-                      {`${formatSignedUsd(point.amount ?? 0)} · ${formatPointPillLabel(
+                      {`${formatSignedUsd(point.amountUsd ?? 0)} · ${formatPointPillLabel(
                         point,
                       )}`}
                     </Text>
@@ -516,7 +520,7 @@ const EarningsChart = ({
         </Box>
 
         <Box twClassName="absolute right-0 top-0 h-[160px] w-12">
-          {yAxisValues.map((value, index) => (
+          {yAxisValuesUsd.map((valueUsd, index) => (
             <Text
               key={`y-label-${index}`}
               testID={MoneyEarningsViewTestIds.CHART_Y_LABEL(index)}
@@ -527,7 +531,7 @@ const EarningsChart = ({
               }`}
               numberOfLines={1}
             >
-              {formatAxisUsd(value)}
+              {formatAxisUsd(valueUsd)}
             </Text>
           ))}
         </Box>

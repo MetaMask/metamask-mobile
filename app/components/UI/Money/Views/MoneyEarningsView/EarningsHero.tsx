@@ -10,26 +10,26 @@ import {
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
-import type { InterestHistoryGranularity } from '../../hooks/useMoneyHistoricalEarnings';
+import type { InterestHistoryGranularity } from '../../types/moneyInterestHistory';
 import { DUST_THRESHOLD, moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 interface EarningsHeroProps {
-  totalEarned: number;
-  periodEarnings: number;
+  totalEarnedUsd: number;
+  periodEarningsUsd: number;
   periodStart: string;
-  periodEnd: string;
+  periodEndExclusive: string;
   periodGranularity: InterestHistoryGranularity;
 }
 
-const formatEarningsAmount = (amount: number): string =>
-  amount !== 0 && Math.abs(amount) < DUST_THRESHOLD
+const formatEarningsAmountUsd = (amountUsd: number): string =>
+  amountUsd !== 0 && Math.abs(amountUsd) < DUST_THRESHOLD
     ? '<$0.01'
-    : moneyFormatUsd(new BigNumber(amount));
+    : moneyFormatUsd(new BigNumber(amountUsd));
 
 const formatPeriodDateRange = (
-  start: string,
-  end: string,
+  periodStart: string,
+  periodEndExclusive: string,
   granularity: InterestHistoryGranularity,
 ): string => {
   const options =
@@ -45,17 +45,19 @@ const formatPeriodDateRange = (
           timeZone: 'UTC' as const,
         };
   const formatter = getIntlDateTimeFormatter(I18n.locale, options);
-  const startLabel = formatter.format(new Date(start));
-  const endLabel = formatter.format(new Date(Date.parse(end) - 1));
+  const startLabel = formatter.format(new Date(periodStart));
+  const endLabel = formatter.format(
+    new Date(Date.parse(periodEndExclusive) - 1),
+  );
 
   return startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`;
 };
 
 const EarningsHero = ({
-  totalEarned,
-  periodEarnings,
+  totalEarnedUsd,
+  periodEarningsUsd,
   periodStart,
-  periodEnd,
+  periodEndExclusive,
   periodGranularity,
 }: EarningsHeroProps): React.ReactElement => (
   <Box testID={MoneyEarningsViewTestIds.HERO} twClassName="gap-1">
@@ -67,28 +69,33 @@ const EarningsHero = ({
       variant={TextVariant.DisplayLg}
       fontWeight={FontWeight.Bold}
     >
-      {formatEarningsAmount(totalEarned)}
+      {formatEarningsAmountUsd(totalEarnedUsd)}
     </Text>
     <Box flexDirection={BoxFlexDirection.Row} twClassName="items-start gap-1">
       <Text
         testID={MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT}
         variant={TextVariant.BodyMd}
         color={
-          periodEarnings === 0
+          periodEarningsUsd === 0
             ? TextColor.TextDefault
             : TextColor.SuccessDefault
         }
       >
-        {periodEarnings === 0
-          ? formatEarningsAmount(periodEarnings)
-          : `▲ ${formatEarningsAmount(periodEarnings)}`}
+        {periodEarningsUsd === 0
+          ? formatEarningsAmountUsd(periodEarningsUsd)
+          : `▲ ${formatEarningsAmountUsd(periodEarningsUsd)}`}
       </Text>
       <Text
         testID={MoneyEarningsViewTestIds.HERO_PERIOD_DATE}
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
       >
-        · {formatPeriodDateRange(periodStart, periodEnd, periodGranularity)}
+        ·{' '}
+        {formatPeriodDateRange(
+          periodStart,
+          periodEndExclusive,
+          periodGranularity,
+        )}
       </Text>
     </Box>
   </Box>
