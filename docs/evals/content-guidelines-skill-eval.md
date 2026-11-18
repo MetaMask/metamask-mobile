@@ -228,3 +228,38 @@ Do not add another `AGENTS.md` sentence for these cloud agents until the harness
 Do not expect a description edit to move Claude either. The confirmation showed the current description already in the catalog, and Claude still did not Read the file.
 
 The smallest change that can reach this model is text that is already inside the injected prompt, not a file it must choose to open. That is the "User-facing copy" section, once injection follows the checkout. An always-applied Cursor rule would be a different mechanism and was not tested. The skills installer rejects `alwaysApply: true` on a skill.
+
+## File-scoped rule test (Claude)
+
+A follow-up checked whether a glob-scoped Cursor rule would get Claude Sonnet 5.5 medium to read the content guidelines skill when it edits English locale strings. `AGENTS.md` was not changed. No copy-prompt matrix was scored.
+
+### Setup
+
+Branch `cursor/eval-locale-rule-d28f` at `cb23e520f51`, from main, plus:
+
+- The installed `mms-content-guidelines` skill, force-added so the path in the rule exists.
+- `.cursor/rules/user-facing-copy.mdc`, the same frontmatter style as `.cursor/rules/device-capability.mdc`: `alwaysApply: false` and `globs: locales/languages/en.json`. The body says to read and follow `.claude/skills/mms-content-guidelines/SKILL.md` before editing user-facing strings. A verification token, `CG-EVAL-RULE-20261118`, is only in that file.
+
+`.cursor/rules/*.mdc` is the tracked rule path. Nested `RULE.md` files under `.cursor/rules/` are gitignored.
+
+### What was verified
+
+Two fresh Claude runs, model `claude-sonnet-5-5-medium`.
+
+| Check | Branch | HEAD | Rule file on disk | Token in context or tool results |
+| --- | --- | --- | --- | --- |
+| Read `locales/languages/en.json` | `cursor/eval-locale-rule-d28f` | `cb23e520f51` | yes | no |
+| Read `locales/languages/en.json` | `main` | `3bdf1f81fe8` | no | no |
+| Edit `notifications.modal.label_unstake_ready` | `cursor/eval-locale-rule-d28f` | same rule commit | yes | no |
+
+On the rule branch, Claude reported the token was not in its initial instructions, and that no rule was attached to the read or the edit. The transcripts agree: `CG-EVAL-RULE-20261118` and `mms-content-guidelines` do not appear in the read or edit tool results. Run ids: `bc-9b356ba0-a70f-502c-9757-38fd5c2fc3c7` (read on the rule branch), `bc-afd36e79-75a9-554f-940d-60ddfaeaecae` (read on main), `bc-a329b43c-fef4-58a5-9d6a-7c66b0eb1bc7` (edit on the rule branch).
+
+This is not the earlier `AGENTS.md` problem. Main does not contain this rule, and the branch copy was not injected in its place. The rule on the checked-out commit never reached Claude when the matching locale file was opened or edited.
+
+### What was not run
+
+The copy-prompt matrix was not run on mobile or extension. Scoring skill reads and string compliance would not measure this rule, because the rule text was not in Claude's context. Extension was not set up.
+
+### Recommendation
+
+Do not treat a glob rule on `en.json` as a way to make Claude load the content guidelines skill until a run shows the rule body in context after opening that file.
