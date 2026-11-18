@@ -145,13 +145,17 @@ const ManageCardOptions = ({
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
     : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
 
+  // Recent activity panel (with its own "See all"). This row only remains for
+  // the setup override (Immersve while setup actions are pending), where the
+  // panel is not shown.
   const showTransactionHistory =
     Boolean(onTransactionHistory) &&
     !isLoading &&
     isAuthenticated &&
     Boolean(card) &&
     !hideManageOptions &&
-    (isFullySetUp || showTransactionHistoryDuringSetup);
+    showTransactionHistoryDuringSetup &&
+    !isFullySetUp;
 
   return (
     <>
