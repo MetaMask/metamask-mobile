@@ -9104,6 +9104,7 @@
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
       "verifying": "Verifying code",
+      "paste": "Paste",
       "get_new_code": "Get new code",
       "get_new_code_in": "Get new code in {{seconds}}s"
     },
