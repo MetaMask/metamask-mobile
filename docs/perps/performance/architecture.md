@@ -126,7 +126,7 @@ Code: `app/components/UI/Perps/utils/perpsLoadingSessionModel.ts` `PerpsLoadingL
 
 ## TTC and DFD
 
-- Homepage TTC is the existing `Homepage Section Time To Content`, from an explicit section demand boundary through the first frame after valid content, resolved-empty or visible error. Idle skeletons and deferred offscreen dwell are not measured.
+- Homepage TTC is the existing `Homepage Section Time To Content`, from an explicit section demand boundary to committed resident content, or through the first presented frame after async content resolves. `content_ready_at_demand` separates those cohorts. Idle skeletons and deferred offscreen dwell are not measured.
 - Homepage DFD is the existing `Homepage Section Data Fetch`, the loading interval for that section.
 - The Perps section restarts both per loading session. Ready content is not accepted at generation start for `account_switch`, `network_switch` and `background_reconnect`.
 - A visible error ends with `content_state=error`. Percentile widgets filter `content_state != error`; the error-rate widget filters `content_state = error`.

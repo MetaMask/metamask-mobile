@@ -78,14 +78,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       sectionViewRef,
       { isLoading: false },
     );
-    const [hasEverBeenVisible, setHasEverBeenVisible] = useState(isVisible);
     const { visitId } = useHomepageScrollContext();
-
-    useEffect(() => {
-      if (isVisible && !hasEverBeenVisible) {
-        setHasEverBeenVisible(true);
-      }
-    }, [hasEverBeenVisible, isVisible]);
 
     const lastDetectionRef = useRef<number | null>(null);
     const prevAddressRef = useRef(selectedAddress);
@@ -96,6 +89,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const hasNftsRef = useRef(hasNfts);
     const [hasDetected, setHasDetected] = useState(hasNfts);
     const [isDetectionInFlight, setIsDetectionInFlight] = useState(false);
+    const [detectionError, setDetectionError] = useState(false);
     useEffect(() => {
       isMountedRef.current = true;
 
@@ -123,6 +117,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
         lastDetectionRef.current = null;
         setHasDetected(hasNftsRef.current);
         setIsDetectionInFlight(false);
+        setDetectionError(false);
         onViewportLayout();
       }
 
@@ -140,13 +135,19 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
 
       lastDetectionRef.current = now;
       setHasDetected(true);
+      setDetectionError(false);
       const requestId = detectionRequestIdRef.current + 1;
       detectionRequestIdRef.current = requestId;
       setIsDetectionInFlight(true);
       void detectNftsRef
         .current(true, false)
         .catch(() => {
-          // detection errors are non-fatal
+          if (
+            isMountedRef.current &&
+            detectionRequestIdRef.current === requestId
+          ) {
+            setDetectionError(true);
+          }
         })
         .finally(() => {
           if (
@@ -205,10 +206,11 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       contentReady:
         hasNfts || (hasDetected && !isDetecting && !isDetectionInFlight),
       demandStarted:
-        (isVisible || hasEverBeenVisible) &&
+        isVisible &&
         (hasNfts || hasDetected || isDetecting || isDetectionInFlight),
       cacheState: hasNfts ? 'warm' : 'cold',
       isEmpty: !hasNfts,
+      contentStateForTrace: detectionError && !hasNfts ? 'error' : undefined,
       isLoading: isDetecting || isDetectionInFlight,
       enabled: true,
     });

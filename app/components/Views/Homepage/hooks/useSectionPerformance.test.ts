@@ -104,11 +104,13 @@ describe('useSectionPerformance', () => {
             section_id: HomeSectionNames.TOKENS,
             demand_started: true,
             cache_state: 'unknown',
+            content_ready_at_demand: false,
           }),
           data: expect.objectContaining({
             section_id: HomeSectionNames.TOKENS,
             demand_started: true,
             cache_state: 'unknown',
+            content_ready_at_demand: false,
           }),
         }),
       );
@@ -130,10 +132,20 @@ describe('useSectionPerformance', () => {
 
       rerender({ demandStarted: true });
 
+      expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          tags: expect.objectContaining({
+            content_ready_at_demand: true,
+          }),
+        }),
+      );
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.HomepageSectionTimeToContent,
           data: expect.objectContaining({
+            content_ready_at_demand: true,
             success: true,
             section_id: HomeSectionNames.TOKENS,
           }),
@@ -206,6 +218,10 @@ describe('useSectionPerformance', () => {
 
       frameCallbacks[0](0);
 
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      frameCallbacks[1](0);
+
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.HomepageSectionTimeToContent,
@@ -237,7 +253,7 @@ describe('useSectionPerformance', () => {
       );
     });
 
-    it('waits one animation frame after contentReady before ending TTC', () => {
+    it('waits until a frame presents content before ending TTC', () => {
       const frameCallbacks: FrameRequestCallback[] = [];
       global.requestAnimationFrame = jest.fn(
         (callback: FrameRequestCallback) => {
@@ -258,6 +274,11 @@ describe('useSectionPerformance', () => {
       expect(frameCallbacks).toHaveLength(1);
 
       frameCallbacks[0](0);
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+      expect(frameCallbacks).toHaveLength(2);
+
+      frameCallbacks[1](0);
 
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -525,6 +546,33 @@ describe('useSectionPerformance', () => {
             demand_started: true,
             cache_state: 'unknown',
           }),
+        }),
+      );
+    });
+
+    it('waits for demand before starting a fetch trace', () => {
+      const { rerender } = renderHook(
+        ({ demandStarted }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            demandStarted,
+            isLoading: true,
+          }),
+        { initialProps: { demandStarted: false } },
+      );
+
+      expect(
+        (mockTrace as jest.Mock).mock.calls.filter(
+          (call: [{ name: string }]) =>
+            call[0].name === TraceName.HomepageSectionDataFetch,
+        ),
+      ).toHaveLength(0);
+
+      rerender({ demandStarted: true });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
         }),
       );
     });
@@ -1029,6 +1077,39 @@ describe('useSectionPerformance', () => {
           name: TraceName.HomepageSectionTimeToContent,
         }),
       );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            success: true,
+            section_id: HomeSectionNames.TOKENS,
+            content_state: 'filled',
+          }),
+        }),
+      );
+    });
+
+    it('ends a new TTC when a ready section is re-enabled', () => {
+      const { rerender } = renderHook(
+        ({ enabled }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady: true,
+            enabled,
+          }),
+        { initialProps: { enabled: true } },
+      );
+
+      jest.clearAllMocks();
+      rerender({ enabled: false });
+      rerender({ enabled: true });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.HomepageSectionTimeToContent,

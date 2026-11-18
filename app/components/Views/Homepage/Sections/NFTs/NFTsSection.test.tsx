@@ -204,6 +204,27 @@ describe('NFTsSection', () => {
     });
   });
 
+  it('reports detection failures as error content', async () => {
+    mockIsVisible = true;
+    mockDetectNfts.mockRejectedValueOnce(new Error('detection failed'));
+
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      { state: stateWithNftPreferences },
+    );
+
+    await waitFor(() => {
+      expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          contentReady: true,
+          contentStateForTrace: 'error',
+          demandStarted: true,
+          isLoading: false,
+        }),
+      );
+    });
+  });
+
   it('renders section title when user has NFTs', () => {
     jest
       .requireMock('./hooks')
@@ -253,7 +274,7 @@ describe('NFTsSection', () => {
     expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
       expect.objectContaining({
         contentReady: true,
-        demandStarted: true,
+        demandStarted: false,
       }),
     );
   });

@@ -422,6 +422,22 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           : hasItems;
     const marketSource = resolvePerpsMarketSource(sessionContext?.marketSource);
     const accountSource = sessionContext?.accountSource ?? 'unknown';
+    const sectionDataSource = isAccountBackedContent
+      ? accountSource
+      : marketSource;
+    const requiresFreshData =
+      lifecycle === 'cold_no_cache' ||
+      lifecycle === 'background_reconnect' ||
+      lifecycle === 'account_switch' ||
+      lifecycle === 'network_switch';
+    const sectionCacheState =
+      sectionDataSource === 'unknown'
+        ? requiresFreshData
+          ? 'cold'
+          : 'unknown'
+        : sectionDataSource === 'memory_cache'
+          ? 'warm'
+          : 'cold';
     const cohortTags = useMemo(
       () => ({
         content_variant: surfaceContentVariant,
@@ -446,7 +462,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       contentReady,
       hasError: Boolean(connectionError),
       marketSource,
-      resolvedSource: isAccountBackedContent ? accountSource : marketSource,
+      resolvedSource: sectionDataSource,
     });
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
@@ -458,12 +474,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         lifecycle !== 'background_reconnect',
       contentReady,
       demandStarted: Boolean(sessionId),
-      cacheState:
-        marketSource === 'unknown' && accountSource === 'unknown'
-          ? 'unknown'
-          : marketSource === 'memory_cache' || accountSource === 'memory_cache'
-            ? 'warm'
-            : 'cold',
+      cacheState: sectionCacheState,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
