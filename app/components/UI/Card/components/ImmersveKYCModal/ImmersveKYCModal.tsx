@@ -105,24 +105,59 @@ export const IMMERSVE_KYC_ERROR_BRIDGE_JS = `
 `;
 
 /**
- * Hides Immersve's progress dots, logo, and Close button before first paint,
- * and collapses the empty logo row so the progress bar sits under our header.
- * The logo and dots are scoped to their progress header; the Close button is
- * not, so it stays hidden on every Immersve screen. Sumsub never renders these
- * hooks. Injected on both platforms; the Vue app mounts into #app and never
- * replaces <html>, so the style survives in-flow screen changes.
+ * Hides Immersve's progress dots, logo, and Close button, and collapses the
+ * empty logo row so the progress bar sits under our header. The logo and dots
+ * are scoped to their progress header; the Close button is not, so it stays
+ * hidden on every Immersve screen. Sumsub never renders these hooks.
+ *
+ * iOS runs this as a document-start user script, before first paint. Android
+ * has no document-start hook: the same string is evaluated from onPageStarted,
+ * often before <html> exists, so this waits for the document root and is also
+ * re-run at document end. A fixed style id keeps that second run from adding
+ * a duplicate. The Vue app mounts into #app and never replaces <html>, so the
+ * style survives in-flow screen changes.
  */
+/**
+ * Id of the style element this script inserts, so a second run does not add
+ * another.
+ */
+export const IMMERSVE_KYC_UI_STYLE_ID = 'immersve-kyc-ui-override';
+
 export const IMMERSVE_KYC_UI_JS = `
 (function () {
-  var style = document.createElement('style');
-  style.textContent = [
-    '[data-test="session-progress-header"] .rounded-full,',
-    '[data-test="session-progress-header"] .logo,',
-    '[data-test="exit"] { display: none !important; }',
-    '[data-test="session-progress-header"] > header > div:first-child { margin-top: 0 !important; }',
-    '[data-test="session-progress-header"] > header > div:nth-child(2) { margin-top: 8px !important; }',
-  ].join(' ');
-  (document.head || document.documentElement).appendChild(style);
+  var STYLE_ID = '${IMMERSVE_KYC_UI_STYLE_ID}';
+
+  function inject() {
+    if (document.getElementById(STYLE_ID)) {
+      return true;
+    }
+    var parent = document.head || document.documentElement;
+    if (!parent) {
+      return false;
+    }
+    var style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = [
+      '[data-test="session-progress-header"] .rounded-full,',
+      '[data-test="session-progress-header"] .logo,',
+      '[data-test="exit"] { display: none !important; }',
+      '[data-test="session-progress-header"] > header > div:first-child { margin-top: 0 !important; }',
+      '[data-test="session-progress-header"] > header > div:nth-child(2) { margin-top: 8px !important; }',
+    ].join(' ');
+    parent.appendChild(style);
+    return true;
+  }
+
+  if (inject()) {
+    return true;
+  }
+
+  var observer = new MutationObserver(function () {
+    if (inject()) {
+      observer.disconnect();
+    }
+  });
+  observer.observe(document, { childList: true });
   true;
 })();
 `;
@@ -168,8 +203,10 @@ const isAnyPermissionBlocked = (
  * CAMERA + RECORD_AUDIO; otherwise WebView silently denies PermissionRequest
  * and the page hangs on a black spinner (CARD-555). That pre-grant, and the
  * script that reports the resulting getUserMedia failure, stay on Android.
- * Both platforms inject a style before first paint that hides Immersve's
- * progress-bar dots, logo, and Close button. Our header shows the logo.
+ * Both platforms inject a style that hides Immersve's progress-bar dots, logo,
+ * and Close button. Android has no document-start hook, so the script waits
+ * for the document root and is re-run at document end. Our header shows the
+ * logo.
  */
 const ImmersveKYCModal: React.FC = () => {
   const { colors } = useTheme();
@@ -568,7 +605,7 @@ const ImmersveKYCModal: React.FC = () => {
               injectedJavaScriptBeforeContentLoaded={IMMERSVE_KYC_UI_JS}
               injectedJavaScript={
                 requestsAndroidMediaPermission
-                  ? IMMERSVE_KYC_ERROR_BRIDGE_JS
+                  ? IMMERSVE_KYC_UI_JS + IMMERSVE_KYC_ERROR_BRIDGE_JS
                   : undefined
               }
               originWhitelist={['*']}

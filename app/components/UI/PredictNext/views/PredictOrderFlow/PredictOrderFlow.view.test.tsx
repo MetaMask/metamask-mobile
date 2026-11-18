@@ -53,6 +53,11 @@ import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 const composeOrderService = composePredictNextOrderService;
 
 const PROBE_BUTTON = 'order-flow-probe-open';
+
+// The sheet and its balance-gated chips settle in tens of milliseconds, but the
+// CV worker can stall for several seconds mid-test, past waitFor's 1s default.
+const SHEET_LOAD = { timeout: 10000 };
+
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
 
 interface FetchReply {
@@ -379,7 +384,7 @@ describe('PredictOrderFlow', () => {
   const openSheet = async (Component: React.ComponentType = BuyProbe) => {
     renderProbe(Component);
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
-    await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+    await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
   };
 
   const flushDebounce = () =>
@@ -866,10 +871,12 @@ describe('PredictOrderFlow', () => {
     /** Opens the sheet and waits for the balance to enable the chips. */
     const openSheetWithBalance = async () => {
       await openSheet();
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('max')),
-        ).toBeEnabled(),
+      await waitFor(
+        () =>
+          expect(
+            screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('max')),
+          ).toBeEnabled(),
+        SHEET_LOAD,
       );
     };
 
@@ -1649,12 +1656,19 @@ describe('PredictOrderFlow', () => {
   });
 
   it('keeps the original previewId after a failed commit even when the quote later expires', async () => {
+    // The sheet arms a real-time expiry timer when the quote lands, so the
+    // quote must outlive the same worker stall SHEET_LOAD absorbs, or it can
+    // expire before Review or Approve is pressed.
+    let quoteExpiresAt = 0;
     stubFetch(
-      () => ({
-        body: makePreview({
-          expiresAt: new Date(Date.now() + 4000).toISOString(),
-        }),
-      }),
+      () => {
+        quoteExpiresAt = Date.now() + SHEET_LOAD.timeout;
+        return {
+          body: makePreview({
+            expiresAt: new Date(quoteExpiresAt).toISOString(),
+          }),
+        };
+      },
       {
         commit: () => ({
           status: 500,
@@ -1674,8 +1688,16 @@ describe('PredictOrderFlow', () => {
       screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
     ).toBeOnTheScreen();
 
-    await act(() => new Promise((resolve) => setTimeout(resolve, 4500)));
+    // Armed after the sheet's expiry timer and due later, so that timer has
+    // fired and re-rendered the expired quote before this resolves.
+    await act(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(resolve, Math.max(0, quoteExpiresAt - Date.now()) + 500),
+        ),
+    );
 
+    expect(Date.now()).toBeGreaterThan(quoteExpiresAt);
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
     ).toBeOnTheScreen();

@@ -1,0 +1,295 @@
+import '../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Share from 'react-native-share';
+import {
+  Icon,
+  IconName,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
+import type { RootState } from '../../../../../reducers';
+import { MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY } from '../../../../../selectors/featureFlagController/moneyAccount';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { VBA_TEST_MONEY_ADDRESS } from '../../../../../../tests/component-view/presets/vba';
+import {
+  renderVbaDetails,
+  restoreVbaReduxServiceStore,
+} from '../../../../../../tests/component-view/renderers/vba';
+import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
+import { clearCachedDepositInstructions } from './vbaDepositInstructionsCache';
+import { VbaDetailsSelectorsIDs } from './VbaDetails';
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+const rampsController = Engine.context.RampsController as unknown as {
+  state?: unknown;
+};
+const engineContext = Engine.context as unknown as {
+  NeoBankService?: { getDepositInstructions: jest.Mock };
+};
+const mockGetDepositInstructions = jest.fn();
+let previousRampsState: unknown;
+let unmountScreen: (() => void) | undefined;
+
+const pixInstructions = {
+  type: 'Pix' as const,
+  brCode: '00020126',
+  instruction: 'Pay with PIX',
+  pixKey: 'pix@example.com',
+};
+
+const usBankInstructions = {
+  type: 'UsBank' as const,
+  rail: 'ACH',
+  accountHolder: 'Jane Doe',
+  routingNumber: '021000021',
+  accountNumber: '123456789',
+  bankName: 'Lead Bank',
+};
+
+const usdMarketOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            currency: 'USD',
+            regions: ['US'],
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+const setApprovedAutoramp = (currency: 'BRL' | 'USD'): void => {
+  rampsController.state = {
+    autoramps: [
+      {
+        id: 'ar-1',
+        walletAddress: VBA_TEST_MONEY_ADDRESS,
+        status: 'Approved',
+        depositRailsSummary: { currency },
+      },
+    ],
+  };
+};
+
+const setupVbaView = (): void => {
+  jest.clearAllMocks();
+  jest.mocked(Share.open).mockResolvedValue({ success: true, message: '' });
+  mockGetDepositInstructions.mockReset();
+  clearCachedDepositInstructions();
+  previousRampsState = rampsController.state;
+  engineContext.NeoBankService = {
+    getDepositInstructions: mockGetDepositInstructions,
+  };
+  netInfoMock.__setMockNetInfo({
+    type: 'wifi',
+    isInternetReachable: true,
+  });
+};
+
+const teardownVbaView = (): void => {
+  unmountScreen?.();
+  unmountScreen = undefined;
+  rampsController.state = previousRampsState;
+  delete engineContext.NeoBankService;
+  restoreVbaReduxServiceStore();
+  resetMusdAutorampSetupGuard();
+  clearCachedDepositInstructions();
+  netInfoMock.__resetMockNetInfo();
+};
+
+const expectCopiedFieldToast = (field: string): void => {
+  expect(toast).toHaveBeenCalledWith({
+    title: strings('virtual_bank_account.vba_details.copied_label', { field }),
+    severity: ToastSeverity.Success,
+    hasNoTimeout: false,
+    showCloseButton: false,
+  });
+};
+
+describeForPlatforms('VbaDetails copy confirmation', () => {
+  beforeEach(setupVbaView);
+
+  afterEach(teardownVbaView);
+
+  it('shows a toast after copying the Pix key', async () => {
+    setApprovedAutoramp('BRL');
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const view = renderVbaDetails();
+    unmountScreen = view.unmount;
+
+    expect(
+      await view.findByTestId(VbaDetailsSelectorsIDs.PIX_KEY),
+    ).toBeOnTheScreen();
+    jest.mocked(toast).mockClear();
+
+    fireEvent.press(
+      view.getByTestId(`${VbaDetailsSelectorsIDs.COPY_BUTTON}-pix-key`),
+    );
+
+    expectCopiedFieldToast(
+      strings('virtual_bank_account.vba_details.pix_key_label'),
+    );
+  });
+
+  it('shows a toast after copying Pix Copia e Cola', async () => {
+    setApprovedAutoramp('BRL');
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const view = renderVbaDetails();
+    unmountScreen = view.unmount;
+
+    expect(
+      await view.findByTestId(
+        `${VbaDetailsSelectorsIDs.COPY_BUTTON}-copia-cola`,
+      ),
+    ).toBeOnTheScreen();
+    jest.mocked(toast).mockClear();
+
+    fireEvent.press(
+      view.getByTestId(`${VbaDetailsSelectorsIDs.COPY_BUTTON}-copia-cola`),
+    );
+
+    expect(Clipboard.setString).toHaveBeenCalledWith(pixInstructions.brCode);
+    expectCopiedFieldToast(
+      strings('virtual_bank_account.vba_details.copia_cola_label'),
+    );
+  });
+
+  it('shows a toast after copying a US bank row', async () => {
+    setApprovedAutoramp('USD');
+    mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
+
+    const view = renderVbaDetails({
+      location: 'US',
+      overrides: usdMarketOverrides,
+    });
+    unmountScreen = view.unmount;
+
+    expect(
+      await view.findByTestId(VbaDetailsSelectorsIDs.ROUTING_NUMBER),
+    ).toBeOnTheScreen();
+    jest.mocked(toast).mockClear();
+
+    fireEvent.press(
+      view.getByTestId(`${VbaDetailsSelectorsIDs.COPY_BUTTON}-routing-number`),
+    );
+
+    expectCopiedFieldToast(
+      strings('virtual_bank_account.vba_details.routing_number_label'),
+    );
+  });
+
+  it('does not show a toast after sharing all bank details', async () => {
+    setApprovedAutoramp('USD');
+    mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
+
+    const view = renderVbaDetails({
+      location: 'US',
+      overrides: usdMarketOverrides,
+    });
+    unmountScreen = view.unmount;
+
+    const shareButton = await view.findByTestId(
+      VbaDetailsSelectorsIDs.SHARE_BUTTON,
+    );
+    expect(shareButton).toBeOnTheScreen();
+    expect(shareButton.props.accessibilityLabel).toBe(
+      strings('virtual_bank_account.vba_details.copy_all_button'),
+    );
+    expect(within(shareButton).UNSAFE_getByType(Icon).props.name).toBe(
+      IconName.Share,
+    );
+    jest.mocked(toast).mockClear();
+    jest.mocked(Clipboard.setString).mockClear();
+
+    fireEvent.press(view.getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON));
+
+    const bankDetails = [
+      'Account holder',
+      'Jane Doe',
+      '',
+      'Routing number',
+      '021000021',
+      '',
+      'Account number',
+      '123456789',
+      '',
+      'Bank name',
+      'Lead Bank',
+    ].join('\n');
+    expect(Share.open).toHaveBeenCalledWith({
+      message: bankDetails,
+      failOnCancel: false,
+    });
+    expect(Clipboard.setString).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
+  });
+});
+
+describeForPlatforms('VbaDetails loading skeleton', () => {
+  beforeEach(setupVbaView);
+
+  afterEach(teardownVbaView);
+
+  it('shows four skeleton rows while USD bank instructions are loading', async () => {
+    setApprovedAutoramp('USD');
+    mockGetDepositInstructions.mockReturnValue(new Promise(() => undefined));
+
+    const view = renderVbaDetails({
+      location: 'US',
+      overrides: usdMarketOverrides,
+    });
+    unmountScreen = view.unmount;
+
+    const bankSkeletonRowTestIds = [
+      'account-holder',
+      'routing-number',
+      'account-number',
+      'bank-name',
+    ].map((id) => `${VbaDetailsSelectorsIDs.LOADING_ROW}-${id}`);
+
+    await waitFor(() => {
+      bankSkeletonRowTestIds.forEach((testId) => {
+        expect(view.getByTestId(testId)).toBeOnTheScreen();
+      });
+    });
+    expect(
+      view.queryByTestId(`${VbaDetailsSelectorsIDs.LOADING_ROW}-pix-key`),
+    ).toBeNull();
+  });
+
+  it('shows two skeleton rows while Pix is loading', async () => {
+    setApprovedAutoramp('BRL');
+    mockGetDepositInstructions.mockReturnValue(new Promise(() => undefined));
+
+    const view = renderVbaDetails();
+    unmountScreen = view.unmount;
+
+    await waitFor(() => {
+      expect(
+        view.getByTestId(`${VbaDetailsSelectorsIDs.LOADING_ROW}-pix-key`),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(`${VbaDetailsSelectorsIDs.LOADING_ROW}-copia-cola`),
+      ).toBeOnTheScreen();
+    });
+    expect(
+      view.queryByTestId(
+        `${VbaDetailsSelectorsIDs.LOADING_ROW}-account-holder`,
+      ),
+    ).toBeNull();
+  });
+});

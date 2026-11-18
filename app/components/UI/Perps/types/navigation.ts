@@ -118,6 +118,7 @@ export type PerpsOrderRouteParams = {
   stayOnCurrentScreen?: boolean;
   /** Social post being copied; a matching order records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  isCopyTrade?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -423,6 +424,7 @@ export type PerpsStackParamList = {
     stayOnCurrentScreen?: boolean;
     /** Social post being copied, forwarded to the order view. */
     copyTradeOrigin?: CopyTradeOrigin;
+    isCopyTrade?: boolean;
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)

@@ -212,7 +212,7 @@ describe('LiveView', () => {
     expect(filterPost?.(otherPerp)).toBe(true);
   });
 
-  it('keeps only followed authors for the following cohort', () => {
+  it('keeps every post when a leftover trader cohort is set', () => {
     renderWithProvider(
       <LiveView appliedFilters={filters({ traderCohort: 'following' })} />,
       { state },
@@ -221,7 +221,7 @@ describe('LiveView', () => {
     const { filterPost } = lastFeedProps();
 
     expect(filterPost?.(followedSpot)).toBe(true);
-    expect(filterPost?.(otherPerp)).toBe(false);
+    expect(filterPost?.(otherPerp)).toBe(true);
   });
 
   it('keeps only matching asset types for the type chip', () => {
@@ -353,6 +353,21 @@ describe('LiveView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL.POSITION_SHEET,
       expect.objectContaining({ isSnapshotLive: true }),
+    );
+  });
+
+  it('forwards header insets to the virtualized feed', () => {
+    renderWithProvider(
+      <LiveView contentTopInset={144} pendingPostsTopOffset={96} />,
+      { state },
+    );
+
+    expect(lastFeedProps()).toEqual(
+      expect.objectContaining({
+        contentTopInset: 144,
+        refreshProgressViewOffset: 144,
+        pendingPostsTopOffset: 96,
+      }),
     );
   });
 });

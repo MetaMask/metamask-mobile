@@ -95,6 +95,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   } = jest.requireActual('react-native');
 
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     BottomSheet: ({
       children,
       testID,
@@ -156,6 +158,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (state: unknown) => unknown) => selector({})),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../../../selectors/tokenRatesController', () => ({
