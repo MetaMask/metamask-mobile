@@ -133,7 +133,7 @@ export function getLatestActiveOrLastCompletedCampaignOfType(
     return new Date(campaign.startDate) > new Date(latest.startDate)
       ? campaign
       : latest;
-  });
+  }, completed[0]);
 }
 
 /**
