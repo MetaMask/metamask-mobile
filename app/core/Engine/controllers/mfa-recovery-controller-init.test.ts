@@ -102,14 +102,14 @@ describe('mfaRecoveryControllerInit', () => {
   it('passes persisted MfaRecoveryController state when present', () => {
     const request = getInitRequestMock();
     request.persistedState = {
-      MfaRecoveryController: { pendingOperation: null },
+      MfaRecoveryController: { lockId: null, pendingOperation: null },
     };
 
     mfaRecoveryControllerInit(request);
 
     expect(controllerMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        state: { pendingOperation: null },
+        state: { lockId: null, pendingOperation: null },
       }),
     );
   });
