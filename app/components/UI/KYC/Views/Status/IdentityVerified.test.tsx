@@ -10,7 +10,11 @@ import { useReduceMotionState } from '../../../Money/hooks/useReduceMotion';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { VerifiedCheckAnimationSelectors } from '../../components/VerifiedCheckAnimation.testIds';
 import { VERIFIED_SUCCESS_ENTRANCE_TIMEOUT_MS } from '../../hooks/useVerifiedSuccessCascade';
-import { playSuccessNotification } from '../../../../../util/haptics';
+import {
+  playSuccessNotification,
+  fireImpact,
+  ImpactMoment,
+} from '../../../../../util/haptics';
 
 jest.mock('../../hooks/useTrackKycResultViewed');
 
@@ -28,6 +32,10 @@ jest.mock('../../../../../util/deviceCapability', () => ({
 
 jest.mock('../../../../../util/haptics', () => ({
   playSuccessNotification: jest.fn(() => Promise.resolve()),
+  fireImpact: jest.fn(),
+  ImpactMoment: {
+    PrimaryCTA: 'primaryCta',
+  },
 }));
 
 const mockUseReduceMotionState = jest.mocked(useReduceMotionState);
@@ -71,6 +79,7 @@ describe('KycIdentityVerified', () => {
     );
 
     expect(onContinue).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     expect(onExit).not.toHaveBeenCalled();
   });
 

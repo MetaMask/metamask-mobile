@@ -41,7 +41,11 @@ import {
 import { VBA_CUF_END_REASON } from './vbaCufTags';
 import { AVENIA_URL, MOONPAY_RISK_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
-import { playSelection } from '../../../../../util/haptics';
+import {
+  playSelection,
+  fireImpact,
+  ImpactMoment,
+} from '../../../../../util/haptics';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -87,6 +91,11 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 
 jest.mock('../../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
+  fireImpact: jest.fn(),
+  ImpactMoment: {
+    PrimaryCTA: 'primaryCta',
+    SecondaryCTA: 'secondaryCta',
+  },
 }));
 
 jest.mock('react-native-share', () => ({
@@ -404,6 +413,7 @@ describe('VbaDetails', () => {
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(fireImpact).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
       false,
@@ -422,6 +432,8 @@ describe('VbaDetails', () => {
     fireEvent.press(doneButton);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
       false,
