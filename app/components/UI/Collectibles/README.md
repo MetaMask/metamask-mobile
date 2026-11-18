@@ -1,14 +1,14 @@
-# Collectibles module foundation
+# Collectibles Pack Partner integration
 
-This branch introduces the Collectibles module, registers `CollectiblesController`
-in Engine and exposes one empty `CollectiblesHome` screen from the wallet homepage.
+This branch adds the Pack Partner integration to the Collectibles foundation.
+It retains the empty `CollectiblesHome` screen from the wallet homepage.
 Both the section title and its button open that screen; the header returns to the
 wallet. There are no tabs or bottom menu.
 
 ## Naming convention
 
 The feature is **Collectibles**, always plural. Use `Collectibles` for class,
-component and type prefixes (`CollectiblesController`, `CollectiblesApiDataService`),
+component and type prefixes (`CollectiblesController`, `CollectiblesPack`),
 `collectibles` for functions, paths, query keys and feature-owned identifiers,
 and `COLLECTIBLES` for constants, routes and environment-variable prefixes
 (`MM_COLLECTIBLES_*`). The remote feature flag is `collectiblesEnabled`.
@@ -36,27 +36,76 @@ fall back to `MM_COLLECTIBLES_ENABLED=true`. Release builds have no local fallba
 Visibility does not depend on the selected account or its network. See the
 [shared flag rules](../../../../docs/readme/version-gated-feature-flags.md).
 
-## Controller registration and persistence
+## Pack Partner integration
 
-`CollectiblesController` extends `BaseController` with an empty state. Engine
-creates its messenger and controller, passes `persistedState.CollectiblesController`
-(or the default state), and exposes it through `Engine.context` and `Engine.state`.
-The standard `getState` action and `stateChanged` event connect it to Redux and
-the existing controller storage discovery. Wallet reset calls `clearState`.
-Controller state is excluded from exported state logs.
+This PR builds on module initialization. It adds the Pack Partner client, cached
+reads, polled openings, transaction workflow, hooks and persisted operation journal.
+The placeholder screen and homepage entry remain unchanged. Social and Collectibles
+API services, mocks and product screens belong to later PRs.
 
-This preserves the standard persistence and restoration wiring. There are no
-persisted fields yet: `metadata` is empty, so `EngineService` has nothing to write
-to disk. Future state fields must declare their persistence metadata and default
-values. Do not introduce a custom storage implementation, immediate disk flush,
-or migration from the unreleased Gacha prototype.
+The provider boundary has no toast, localized error copy, onboarding state,
+portfolio totals or wallet navigation changes. Hooks here expose provider data
+and operation state; views choose how to present results. The controller exposes
+`sellCard` through its messenger without depending on a mounted toaster or screen.
+The UI sale adapter, translations and display helpers belong to `collectibles-rest`.
+USDC base-unit conversion remains here because provider reads and signing use it.
 
-Implementation references:
+```text
+Read hooks → PackPartnerDataService → PackPartnerApiClient
+Commands → CollectiblesController → PackPartnerProvider → PackPartnerApiClient
+Openings hook + presentation queue → PackPartnerDataService → PackPartnerApiClient
+```
 
-- [Engine initializer](../../../core/Engine/controllers/collectibles-controller/index.ts)
-- [Messenger registration](../../../core/Engine/messengers/collectibles-controller-messenger/index.ts)
-- [Engine persistence](../../../core/EngineService/EngineService.ts)
-- [Controller storage](../../../store/persistConfig/index.ts)
+The provider keeps the existing `PackPartnerProvider` naming used by the client,
+models and companion Snap. Application-facing types are aliases of Pack Partner
+models, not duplicate schemas or runtime mappers.
+
+### Controller registration and persistence
+
+Engine registers `CollectiblesController` through its messenger and registers
+`PackPartnerDataService` as a stateless service.
+The controller persists an environment-isolated journal of purchases,
+openings, reveal progress and buybacks through standard controller metadata and
+Engine storage. Signed transaction bytes stay in memory. Unlock triggers recovery
+by memo; no financial network request is started during initialization.
+
+Display data stays outside the controller. The read service persists only the last
+successful complete owned collection through the standard `StorageService`, keyed
+by environment and wallet. Reset clears that snapshot and invalidates in-flight
+work before asynchronous Snap cleanup; storage cleanup finishes before services
+are destroyed. There is no migration from the unreleased Gacha prototype.
+
+See [read and command policies](services/data/README.md) and
+[recovery guarantees](services/data/recovery-persistence.md), and the
+[recent openings specification](services/data/recent-openings.md).
+
+### Environment and signing
+
+`MM_COLLECTIBLES_ENVIRONMENT` selects `devnet` or `mainnet`. When unset, development
+builds default to devnet and other builds to mainnet. Configure
+`MM_PACK_PARTNER_{DEVNET,MAINNET}_{API_URL,CARDS_API_URL,WEBSITE_URL}` only in ignored
+local configuration. Empty endpoints disable partner calls; see `.js.env.example`.
+
+`PACK_PARTNER_DEVNET_API_KEY` is a **temporary local-development workaround until the proxy is configured**. Set it only in the ignored local `.js.env`, never in CI, shared builds or release configuration. The client sends `x-api-key` only in a development build on devnet, and only to the packs API, never the cards API. Mainnet and release builds ignore any key, including an explicit client option; there is no mainnet key variable. An empty key preserves public access. Remove this workaround when authentication moves behind the proxy. Configuration and transport tests cover the development/environment combinations.
+
+USDC transaction amounts are decimal strings of base units (six decimals).
+Mainnet balance uses `AssetsController`. Devnet alone reads the selected account
+through the existing Accounts API client: the upstream service returns devnet
+balances with a mainnet asset prefix and does not advertise devnet to the controller.
+The helper verifies the requested account and exact configured mint, accepts those
+prefixes only locally, and never inserts the result into shared asset state.
+Devnet uses `Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr`.
+
+Signing requires the companion Snap's `signPackPartnerBuy` and
+`signPackPartnerBuyback` methods. This branch retains the repository's published
+Snap dependency; it does not commit a developer filesystem dependency. Until a
+release contains those methods, purchases fail with `SNAP_UNSUPPORTED`. Real
+purchase validation requires the coordinated Snap release or an explicit local
+build override; automated tests mock signing and never spend funds.
+
+Collectibles does not extend QuickBuy. Future product screens must disable Buy
+when Solana USDC is insufficient and keep alternate-token payment disabled until
+MetaMask Pay supports that destination.
 
 ## Module boundary
 
@@ -65,7 +114,7 @@ API, [`index.ts`](index.ts). It exports exactly what callers are supported in
 depending on; everything else is private. When a caller needs something new,
 add a named export to that file rather than reaching inside.
 
-Two rules follow from it:
+These rules follow from it:
 
 - **`index.ts` is a boundary, never a file name.** A module carries its own
   name (`routes.tsx`, `selectors/featureFlags.ts`): a lone file does not
@@ -75,6 +124,14 @@ Two rules follow from it:
   [component scaffold](../../../../.agents/skills/mms-component-scaffold/SKILL.md)
   requires one. Never use `export *` in either: Metro does not tree-shake
   barrels, so importing one symbol evaluates the whole file at startup.
+- **Internal files have explicit names and direct imports.** Use
+  `selectors/account.ts`, `selectors/packPartner.ts`, `types/packPartner.ts`,
+  `schemas/packPartner.ts`, `constants/packPartner.ts` and
+  `constants/environment.ts` inside the provider. Import `PackPartnerProvider`
+  from `PackPartnerProvider.ts` and journal helpers from `state.ts`; there is no
+  provider barrel. Application type aliases live in `types/collectibles.ts`;
+  this compile-time contract is the deliberate alias boundary, not a runtime
+  aggregator. Do not replace a deleted barrel with a differently named one.
 - **Composition wiring is listed, not re-exported.** Engine init, its
   messenger, `Engine.types` and the navigation param list have to reach inside
   the module. They are named in the fence's composition allowlist, so the
@@ -83,21 +140,22 @@ Two rules follow from it:
 
 ## Scope for contributors and agents
 
-Keep this foundation limited to registration, persistence wiring, feature gating,
-minimal navigation and the homepage entry point. Do not copy the full POC into
-this branch. Providers, API clients, data services, mocks, onboarding, pack
-artwork, signing, purchases and sales belong to subsequent PRs.
+Keep this branch limited to the Pack Partner integration and its Engine/storage
+wiring. Do not introduce the POC's artwork, routes, UI, Social or Collectibles API
+services. Preserve the initialization branch's public entry points.
 
-## Validation
+## Test layer placement
 
-Unit tests cover the controller, persisted-state forwarding, messenger, flag,
-Engine integration, standard storage discovery and state-log exclusion.
-Component-view tests exercise both homepage entry points and back navigation
-with real Redux state and navigation on iOS and Android.
+Integration tests exercise real client validation, service caching/storage and
+controller/provider workflows with HTTP, Snap and storage boundaries mocked.
+Unit tests cover parsers, amounts, guard contracts, state restoration and hooks;
+hook tests use the shared query harness without adding product screens. Existing
+init component-view tests remain the navigation regression check. No device E2E
+or real transaction is required for this extraction.
 
 ```sh
-yarn jest app/components/UI/Collectibles/controllers app/components/UI/Collectibles/selectors app/core/Engine/controllers/collectibles-controller app/core/Engine/messengers/collectibles-controller-messenger --runInBand --coverage=false
-yarn jest app/core/Engine/Engine.test.ts -t 'matches initial state fixture' --runInBand --coverage=false
+yarn jest app/components/UI/Collectibles/providers app/components/UI/Collectibles/controllers app/components/UI/Collectibles/services app/core/Engine/controllers/collectibles-controller app/core/Engine/controllers/collectibles-data-services-init.test.ts app/core/Engine/messengers/collectibles-controller-messenger app/core/Engine/messengers/collectibles-data-services-messenger.test.ts --runInBand --coverage=false
+yarn jest -c jest.config.integration.js app/components/UI/Collectibles --runInBand --coverage=false
 yarn jest -c jest.config.view.js app/components/Views/Homepage/Sections/Collectibles --runInBand --coverage=false
 ```
 

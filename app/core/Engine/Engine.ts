@@ -1,3 +1,4 @@
+import { packPartnerDataServiceInit } from './controllers/collectibles-data-services-init';
 /* eslint-disable @typescript-eslint/no-shadow */
 import {
   AppState,
@@ -356,6 +357,7 @@ export class Engine {
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        PackPartnerDataService: packPartnerDataServiceInit,
         CollectiblesController: collectiblesControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
@@ -660,6 +662,7 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
+      PackPartnerDataService: messengerClientsByName.PackPartnerDataService,
       CollectiblesController: collectiblesController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
@@ -1357,7 +1360,12 @@ export class Engine {
 
     // Remove all permissions.
     PermissionController?.clearState?.();
-    await SnapController.clearState();
+
+    // Invalidate signed Collectibles work before asynchronous cleanup can yield.
+    CollectiblesController.clearState();
+    const collectiblesCacheReset =
+      this.context.PackPartnerDataService.clearCache();
+    await Promise.all([collectiblesCacheReset, SnapController.clearState()]);
 
     // Clear selected network
     // TODO implement this method on SelectedNetworkController
@@ -1430,9 +1438,6 @@ export class Engine {
     // The Venue Selection Preference and the last Active Venue are device
     // Venue history, not the next person's choice.
     PredictVenueController.clearState();
-
-    // Collectibles:
-    CollectiblesController.clearState();
   };
 
   removeAllListeners() {
@@ -1445,6 +1450,9 @@ export class Engine {
   }
 
   async destroyEngineInstance() {
+    // Reset persisted state while service messenger actions are still registered.
+    // DataService.destroy() removes those actions, including storage cleanup.
+    await this.resetState();
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {
@@ -1454,7 +1462,6 @@ export class Engine {
     });
     this.tokenListService.destroy();
     this.removeAllListeners();
-    await this.resetState();
 
     Engine.instance = null;
   }

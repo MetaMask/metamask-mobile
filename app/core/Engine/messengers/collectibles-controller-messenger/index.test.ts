@@ -1,3 +1,4 @@
+import type { DataServiceInvalidateQueriesAction } from '@metamask/base-data-service';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -5,6 +6,7 @@ import {
   type MessengerEvents,
   type MockAnyNamespace,
 } from '@metamask/messenger';
+import type { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
 
 import {
   getDefaultCollectiblesControllerState,
@@ -18,22 +20,79 @@ type RootMessenger = Messenger<
   MessengerEvents<CollectiblesControllerMessenger>
 >;
 
+type HandleRequest = SnapControllerHandleRequestAction['handler'];
+type InvalidateQueries =
+  DataServiceInvalidateQueriesAction<'PackPartnerDataService'>['handler'];
+
 const setup = () => {
   const rootMessenger: RootMessenger = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
   });
+  const handleRequest = jest
+    .fn<ReturnType<HandleRequest>, Parameters<HandleRequest>>()
+    .mockResolvedValue({ signature: 'signature' });
+  const invalidateQueries = jest
+    .fn<ReturnType<InvalidateQueries>, Parameters<InvalidateQueries>>()
+    .mockResolvedValue(undefined);
+  rootMessenger.registerActionHandler(
+    'SnapController:handleRequest',
+    handleRequest,
+  );
+  rootMessenger.registerActionHandler(
+    'PackPartnerDataService:invalidateQueries',
+    invalidateQueries,
+  );
   const messenger = getCollectiblesControllerMessenger(rootMessenger);
-  return { rootMessenger, messenger };
+  return {
+    rootMessenger,
+    handleRequest,
+    invalidateQueries,
+    messenger,
+  };
 };
 
 describe('getCollectiblesControllerMessenger', () => {
-  it('creates a controller messenger', () => {
-    const { messenger } = setup();
+  it('delegates the Solana snap request to the controller messenger', async () => {
+    const { messenger, handleRequest } = setup();
+    const args: Parameters<HandleRequest>[0] = {
+      origin: 'metamask',
+      snapId: 'npm:@metamask/solana-wallet-snap',
+      handler: 'onClientRequest',
+      request: { jsonrpc: '2.0', id: '1', method: 'signTransaction' },
+    } as unknown as Parameters<HandleRequest>[0];
 
-    expect(messenger).toBeInstanceOf(Messenger);
+    const result = await messenger.call('SnapController:handleRequest', args);
+
+    expect(result).toStrictEqual({ signature: 'signature' });
+    expect(handleRequest).toHaveBeenCalledWith(args);
   });
 
-  it('exposes the controller state to the root messenger', () => {
+  it('delegates the PackPartner data-service invalidation to the controller messenger', async () => {
+    const { messenger, invalidateQueries } = setup();
+    const filters = {
+      queryKey: [
+        'PackPartnerDataService:getOwnedCards',
+        'mainnet',
+        '78ieXfmDY4ZG2t6PzY183YjpmpJkmzThgZHV6ZVxyare',
+      ] as const,
+    };
+
+    await messenger.call('PackPartnerDataService:invalidateQueries', filters);
+
+    expect(invalidateQueries).toHaveBeenCalledWith(filters);
+  });
+
+  it('delegates the wallet unlock event to the controller messenger', () => {
+    const { rootMessenger, messenger } = setup();
+    const listener = jest.fn();
+    messenger.subscribe('KeyringController:unlock', listener);
+
+    rootMessenger.publish('KeyringController:unlock');
+
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes the controller actions to the root messenger', () => {
     const { rootMessenger, messenger } = setup();
     const state = getDefaultCollectiblesControllerState();
     messenger.registerActionHandler(
@@ -46,7 +105,7 @@ describe('getCollectiblesControllerMessenger', () => {
     expect(result).toBe(state);
   });
 
-  it('publishes controller state changes to the root messenger', () => {
+  it('publishes the controller state changes to the root messenger', () => {
     const { rootMessenger, messenger } = setup();
     const listener = jest.fn();
     const state = getDefaultCollectiblesControllerState();
