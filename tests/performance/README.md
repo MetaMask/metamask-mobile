@@ -581,10 +581,12 @@ await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
 ## Interrupting Screens
 
 Marketing and onboarding sheets can slide over a flow the test did not open
-them in. For example, on the preloaded-wallet BrowserStack app
-`dataCollectionForMarketing` is `null`, so the Experience Enhancer consent
-sheet ("Help us enhance your experience", **No thanks** / **I agree**) slides
-up about 2s after Unlock. The performance fixture enables an
+them in. Login specs run the imported-wallet app
+(`TESTMU_ANDROID_APP_URL`, project `testmu-android` in
+`tests/playwright.testmu.config.ts`) on TestMu. On that app
+`dataCollectionForMarketing` is still unset, so the Experience Enhancer
+consent sheet ("Help us enhance your experience", **No thanks** / **I agree**)
+slides up about 2s after Unlock. The performance fixture enables an
 **interrupting-screen guard** that dismisses these sheets, so tests do not fail
 because of them.
 
@@ -681,17 +683,26 @@ Set `INTERRUPTING_SCREEN_GUARD_ENABLED=false` to turn the guard off. Set
 the post-login window. Outside the performance fixture (Appium smoke), the
 guard is never configured and every hook is a no-op.
 
-### Verifying on BrowserStack
+### Verifying on TestMu
 
-1. Run the login project against the preloaded-wallet app
-   (`BROWSERSTACK_ANDROID_APP_URL`): `yarn run-system-tests:android-login`.
+Login performance tests run on TestMu (`ProviderName.TESTMU`), not a local
+emulator. CI submits them through
+`.github/scripts/qa-automation/performance-tests/run-testmu-hyperexecute.sh`
+(`BUILD_TYPE=imported-wallet`, `LT_USERNAME` / `LT_ACCESS_KEY`) as the
+`testmu-android` project. A single login spec can be checked the same way
+locally:
+
+1. Set `LT_USERNAME`, `LT_ACCESS_KEY`, and `TESTMU_ANDROID_APP_URL` (the
+   imported-wallet `lt://` app) in `.e2e.env`, then run
+   `yarn run-playwright:android-testmu` (or one spec:
+   `yarn playwright test tests/performance/login/asset-balances.spec.ts --project testmu-android --config tests/playwright.testmu.config.ts`).
    Add `AI_LOCATOR_RECOVERY_ENABLED=true` and `ANTHROPIC_API_KEY` to also
    exercise the AI fallback.
 2. In the Playwright report, check that the test passed and has an
    `interrupting-screen-dismissed-experience-enhancer-marketing-consent`
    attachment with `trigger: "settle"`.
-3. In the BrowserStack video, check that the sheet slides up after Unlock and
-   is closed with **No thanks** before the measured steps start.
+3. In the TestMu session recording, check that the sheet slides up after
+   Unlock and is closed with **No thanks** before the measured steps start.
 4. In `appium-phase-timings`, check that `interrupting_screens_settle` is
    present and that the step timers do not include it.
 

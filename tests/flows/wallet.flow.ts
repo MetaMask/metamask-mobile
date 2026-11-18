@@ -789,8 +789,8 @@ export const dismissExperienceEnhancerModal = async (): Promise<void> => {
  * Default fixtures suppress push / marketing pre-prompts, so smoke runs do
  * not probe or dismiss those sheets (MMQA-2214). Performance runs configure
  * the interrupting-screen guard, which watches for known sheets (e.g. the
- * Experience Enhancer consent that slides up ~2s after unlock on preloaded
- * BrowserStack wallets) during a short settle window inside the `login`
+ * Experience Enhancer consent that slides up ~2s after unlock on the
+ * imported-wallet TestMu app) during a short settle window inside the `login`
  * phase, before `test_body` starts. Outside performance the settle is a no-op.
  *
  * @async
