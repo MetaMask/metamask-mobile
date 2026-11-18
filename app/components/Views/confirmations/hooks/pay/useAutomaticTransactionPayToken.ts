@@ -282,33 +282,41 @@ export function useAutomaticTransactionPayToken({
   // Skipped while a fiat flow never had an explicit pay token:
   // `updatePaymentToken` resets the fiat payment, so re-selecting here would
   // clear (or block) the auto-selected fiat payment method.
+  //
+  // The last seen account key is tracked separately from whether a re-select
+  // is still owed: an override account that was never selected globally has
+  // no assets until its on-demand load completes, so the re-select must stay
+  // pending until a token is available, while any later switch (including
+  // back to a previously handled account) must still count as a change.
   const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
+  const isReselectPendingRef = useRef(false);
   useEffect(() => {
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
+    if (prevAccountKeyRef.current !== accountKey) {
+      prevAccountKeyRef.current = accountKey;
+      isReselectPendingRef.current = true;
+    }
+
     if (
       disable ||
       hasFiatPaymentSelected ||
       !from ||
-      prevAccountKeyRef.current === accountKey ||
+      !isReselectPendingRef.current ||
       postQuoteTransactionType
     ) {
       return;
     }
 
     if (autoSelectFiatPayment && !payTokenEverSelectedRef.current) {
-      prevAccountKeyRef.current = accountKey;
+      isReselectPendingRef.current = false;
       return;
     }
 
-    // An override account that was never selected globally has no assets in
-    // state until its on-demand load completes, so no token can be picked yet.
-    // Leave the account change unhandled so this effect re-runs once the
-    // tokens arrive; otherwise the pay token stays cleared indefinitely.
     if (!automaticToken) {
       return;
     }
 
-    prevAccountKeyRef.current = accountKey;
+    isReselectPendingRef.current = false;
 
     setPayToken({
       address: automaticToken.address,
