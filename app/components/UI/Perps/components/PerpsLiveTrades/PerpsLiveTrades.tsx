@@ -17,6 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { SocialFeedEmpty, SocialFeedError } from '../../../SocialFeed';
+import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
 import { PERPS_LIVE_TRADES_CONFIG } from '../../constants/perpsConfig';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
@@ -48,6 +49,7 @@ const PerpsLiveTrades: React.FC<PerpsLiveTradesProps> = ({
   const isAppActive = useIsAppActive();
   const networkTier = useNetworkTier();
   const shouldAnimate = useMemo(() => getHardwareTier() !== 'LOW', []);
+  const { onPositionPress } = useSocialFeedPostNavigation('perps_home');
 
   const { trades, isLoading, error, refresh } = usePerpsLiveTrades({
     isActive: isNearViewport && isFocused && isAppActive,
@@ -88,7 +90,10 @@ const PerpsLiveTrades: React.FC<PerpsLiveTradesProps> = ({
               shouldAnimate ? LinearTransition.duration(duration) : undefined
             }
           >
-            <PerpsLiveTradeRow post={post} />
+            <PerpsLiveTradeRow
+              post={post}
+              onPress={post.position ? onPositionPress : undefined}
+            />
           </Animated.View>
         ))}
       </LayoutAnimationConfig>
