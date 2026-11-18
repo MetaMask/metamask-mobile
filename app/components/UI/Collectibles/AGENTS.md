@@ -39,4 +39,7 @@ independent of those helpers; expose structured data/errors and controller comma
 - Use the repository mobile-testing skill. Run the focused unit/integration suites
   and init navigation regression tests listed in README after extraction changes.
 
-- React hooks, feed scheduling and devnet balance reads arrive in step 2.4.
+- Recent openings use REST polling, never a second live service or socket. Read
+  `services/data/recent-openings.md` before changing the feed. Keep scheduling,
+  bounded queue and pause/resume in `usePackPartnerOpenings`; views only supply
+  filters, visibility and optional list/poll/insert limits and report scrolling.

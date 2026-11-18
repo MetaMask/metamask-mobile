@@ -2,7 +2,7 @@
 
 Follows ADR 0020 and PredictNext's read-service / workflow separation.
 
-- `PackPartnerDataService` extends `BaseDataService`. Read consumers use
+- `PackPartnerDataService` extends `BaseDataService`. Hooks use
   `@metamask/react-data-query` query keys routed through `ReactQueryService`.
   `packPartnerQueries.ts` defines keys and invalidation families, including the
   environment and wallet where relevant. Cache freshness, coalescing and bounded
@@ -15,7 +15,11 @@ Follows ADR 0020 and PredictNext's read-service / workflow separation.
   The sum of insured values is denominated in USD; currency display is UI scope.
 - Buyback quotes have their own cache. Signing always rechecks a fresh offer
   against the accepted base-unit amount. There is no duplicate controller cache.
-- Recent-opening snapshots are uncached reads. Polling and the presentation queue arrive with the hooks in step 2.4.
+- `usePackPartnerOpenings` polls `PackPartnerDataService` while visible, online
+  and foregrounded. It owns a bounded presentation queue, independent of server
+  cache. Defaults: 20 displayed/queued cards, a 1000 ms poll interval and a
+  1000 ms insertion interval; every view can override them. Pause stops only
+  insertions while the reader scrolls. See [openings specification](recent-openings.md).
 - Wallet reset clears disk snapshots and caches; pending writes cannot restore
   old wallet data. Engine awaits cleanup before destroying service messengers.
 

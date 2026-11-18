@@ -47,19 +47,21 @@ Visibility does not depend on the selected account or its network. See the
 ## Pack Partner integration
 
 This PR builds on module initialization. It adds the Pack Partner client, cached
-reads, transaction workflow and persisted operation journal. React hooks arrive in step 2.4.
+reads, polled openings, transaction workflow, hooks and persisted operation journal.
 The placeholder screen and homepage entry remain unchanged. Social and Collectibles
 API services, mocks and product screens belong to later PRs.
 
 The provider boundary has no toast, localized error copy, onboarding state,
-portfolio totals or wallet navigation changes. The provider exposes structured data and operation state; future views choose how to present results. The controller exposes
+portfolio totals or wallet navigation changes. Hooks here expose provider data
+and operation state; views choose how to present results. The controller exposes
 `sellCard` through its messenger without depending on a mounted toaster or screen.
 The UI sale adapter, translations and display helpers belong to `collectibles-rest`.
 USDC base-unit conversion remains here because provider reads and signing use it.
 
 ```text
-Read actions → PackPartnerDataService → PackPartnerApiClient
+Read hooks → PackPartnerDataService → PackPartnerApiClient
 Commands → CollectiblesController → PackPartnerProvider → PackPartnerApiClient
+Openings hook + presentation queue → PackPartnerDataService → PackPartnerApiClient
 ```
 
 The provider keeps the existing `PackPartnerProvider` naming used by the client,
@@ -82,7 +84,8 @@ work before asynchronous Snap cleanup; storage cleanup finishes before services
 are destroyed. There is no migration from the unreleased Gacha prototype.
 
 See [read and command policies](services/data/README.md) and
-[recovery guarantees](services/data/recovery-persistence.md).
+[recovery guarantees](services/data/recovery-persistence.md), and the
+[recent openings specification](services/data/recent-openings.md).
 
 ### Environment and signing
 
@@ -94,7 +97,12 @@ local configuration. Empty endpoints disable partner calls; see `.js.env.example
 `PACK_PARTNER_DEVNET_API_KEY` is a **temporary local-development workaround until the proxy is configured**. Set it only in the ignored local `.js.env`, never in CI, shared builds or release configuration. The client sends `x-api-key` only in a development build on devnet, and only to the packs API, never the cards API. Mainnet and release builds ignore any key, including an explicit client option; there is no mainnet key variable. An empty key preserves public access. Remove this workaround when authentication moves behind the proxy. Configuration and transport tests cover the development/environment combinations.
 
 USDC transaction amounts are decimal strings of base units (six decimals).
-Balance hooks and the devnet balance adapter arrive in step 2.4.
+Mainnet balance uses `AssetsController`. Devnet alone reads the selected account
+through the existing Accounts API client: the upstream service returns devnet
+balances with a mainnet asset prefix and does not advertise devnet to the controller.
+The helper verifies the requested account and exact configured mint, accepts those
+prefixes only locally, and never inserts the result into shared asset state.
+Devnet uses `Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr`.
 
 Signing requires the companion Snap's `signPackPartnerBuy` and
 `signPackPartnerBuyback` methods. This branch retains the repository's published
@@ -148,7 +156,8 @@ services. Preserve the initialization branch's public entry points.
 
 Integration tests exercise real client validation, service caching/storage and
 controller/provider workflows with HTTP, Snap and storage boundaries mocked.
-Unit tests cover parsers, amounts, guard contracts, state restoration. Hooks and their query harness arrive in step 2.4. Existing
+Unit tests cover parsers, amounts, guard contracts, state restoration and hooks;
+hook tests use the shared query harness without adding product screens. Existing
 init component-view tests remain the navigation regression check. No device E2E
 or real transaction is required for this extraction.
 

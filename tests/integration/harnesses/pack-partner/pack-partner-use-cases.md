@@ -28,5 +28,8 @@
 | Buyback quote → interrupted signature → restart                      | Integration   | A known unsubmitted quote is replaced by a new sale.                                                                                                       |
 | Wallet reset during pack generation or signing                       | Integration   | No stale state is restored and no signed transaction is submitted for the reset wallet.                                                                    |
 | Owned-card read mapping, offer window, retries                       | Integration   | Covered by `PackPartnerDataService.integration.test.ts`.                                                                                                   |
+| Manual collection refresh                                            | Hook unit     | The query invalidates the owned-card read and exposes loading/errors through query state.                                                                  |
 
 Layer choice: these flows test Collectibles controller/provider/data-service contracts, without screen rendering or device behavior. Unit tests retain exhaustive local transition and schema cases.
+
+Recent-opening polling, configurable bounds/cadence, filtering and pause/resume are specified in [recent-openings.md](../../../../app/components/UI/Collectibles/services/data/recent-openings.md). The hook owns scheduling; service integration covers fresh snapshots, and POC component-view tests cover scrolling and visibility.
