@@ -80,6 +80,28 @@ function readUpgradeOutcome(address: Hex): {
   };
 }
 
+/**
+ * Reads the live primary Money Account address, or `undefined` when there is
+ * no primary account with a valid address.
+ */
+type GetPrimaryAddress = () => Hex | undefined;
+
+/**
+ * Ends a run whose address is no longer the primary Money Account.
+ * `MoneyAccountLifecycleController.upgradeMoneyAccount()` upgrades the current
+ * primary rather than a given address, so attempting on a stale run would
+ * upgrade a different account while logging it under the run's address.
+ */
+class StalePrimaryMoneyAccountError extends Error {
+  readonly primaryAddress: Hex | undefined;
+
+  constructor(primaryAddress: Hex | undefined) {
+    super('The primary Money Account changed during the upgrade run');
+    this.name = 'StalePrimaryMoneyAccountError';
+    this.primaryAddress = primaryAddress;
+  }
+}
+
 interface InFlightUpgrade {
   /**
    * Signal of the most recent caller whose dispatch was shadowed by this run.
@@ -112,8 +134,15 @@ export const __resetUpgradesInFlightForTesting = () => {
  * and its outcome is still recorded. Required: retries continue for as long
  * as the signal stays live, so a run without one could never end — nor hand
  * over to a later caller.
+ * @param getPrimaryAddress - Reads the live primary address. Checked before
+ * every attempt: if the primary is no longer `address`, the run stops and, when
+ * there is a new primary, restarts for it under the same signal.
  */
-function startUpgradeRun(address: Hex, signal: AbortSignal): void {
+function startUpgradeRun(
+  address: Hex,
+  signal: AbortSignal,
+  getPrimaryAddress: GetPrimaryAddress,
+): void {
   const inFlight = upgradesInFlight.get(address);
   if (inFlight) {
     inFlight.takeoverSignal = signal;
@@ -131,6 +160,9 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   // aborted. Only a run that actually ended because of its abort hands
   // over to a queued takeover signal.
   let endedByAbort = false;
+  // Set when the run stopped because the primary Money Account changed to
+  // another valid account: the new primary's address to restart for.
+  let restartForPrimary: Hex | undefined;
   // Defer the body so another caller in this turn can still queue a takeover
   // before an already-aborted run settles and clears the in-flight entry.
   // Expected failures are reported inside the task; this catch covers anything
@@ -145,7 +177,13 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
         });
 
         await upgradeAccountWithRetry(
-          () => MoneyAccountLifecycleController.upgradeMoneyAccount(),
+          () => {
+            const primaryAddress = getPrimaryAddress();
+            if (primaryAddress?.toLowerCase() !== address.toLowerCase()) {
+              throw new StalePrimaryMoneyAccountError(primaryAddress);
+            }
+            return MoneyAccountLifecycleController.upgradeMoneyAccount();
+          },
           {
             signal,
             // Failures that end the run are reported by the catch below.
@@ -187,15 +225,36 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
           Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
           return;
         }
+        // The primary changing is expected (e.g. a migration to a successor
+        // account), not a failure worth reporting.
+        if (error instanceof StalePrimaryMoneyAccountError) {
+          restartForPrimary = error.primaryAddress;
+          Logger.log(
+            LOG_PREFIX,
+            'primary money account changed; stopping run',
+            {
+              address,
+              primaryAddress: error.primaryAddress,
+            },
+          );
+          return;
+        }
         reportUpgradeError(error);
       } finally {
         upgradesInFlight.delete(address);
         const { takeoverSignal } = entry;
-        if (endedByAbort && takeoverSignal && !takeoverSignal.aborted) {
+        if (restartForPrimary) {
+          // Restart under this run's own signal. If it has aborted in the
+          // meantime, the new run ends at once without attempting.
+          Logger.log(LOG_PREFIX, 'restarting upgrade for new primary', {
+            address: restartForPrimary,
+          });
+          startUpgradeRun(restartForPrimary, signal, getPrimaryAddress);
+        } else if (endedByAbort && takeoverSignal && !takeoverSignal.aborted) {
           Logger.log(LOG_PREFIX, 'restarting upgrade for takeover signal', {
             address,
           });
-          startUpgradeRun(address, takeoverSignal);
+          startUpgradeRun(address, takeoverSignal, getPrimaryAddress);
         }
       }
     })
@@ -215,5 +274,11 @@ export const upgradeMoneyAccount =
       return;
     }
 
-    startUpgradeRun(address, signal);
+    const getPrimaryAddress: GetPrimaryAddress = () => {
+      const primaryAddress = selectPrimaryMoneyAccount(getState())?.address;
+      return primaryAddress && isStrictHexString(primaryAddress)
+        ? primaryAddress
+        : undefined;
+    };
+    startUpgradeRun(address, signal, getPrimaryAddress);
   };

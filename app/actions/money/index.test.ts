@@ -615,14 +615,118 @@ describe('upgradeMoneyAccount', () => {
   it('runs separately when the primary money account address changes', async () => {
     mockUpgradeAccount.mockReturnValue(new Promise(() => undefined));
 
-    mockSelectPrimaryMoneyAccount.mockReturnValueOnce({ address: ADDRESS });
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     dispatchUpgrade();
-    mockSelectPrimaryMoneyAccount.mockReturnValueOnce({
-      address: OTHER_ADDRESS,
-    });
+    await flushPromises();
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: OTHER_ADDRESS });
     dispatchUpgrade();
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
+  });
+
+  describe('when the primary money account changes during a run', () => {
+    const settledLogs = () =>
+      mockLogLog.mock.calls.filter(
+        ([, message]) => message === 'upgrade settled',
+      );
+
+    it('stops the run before its first attempt and restarts it for the new primary', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+
+      dispatchUpgrade();
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: OTHER_ADDRESS });
+      await flushPromises();
+      await flushPromises();
+
+      expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+      expect(mockLogLog).toHaveBeenCalledWith(
+        '[upgradeMoneyAccount]',
+        'primary money account changed; stopping run',
+        { address: ADDRESS, primaryAddress: OTHER_ADDRESS },
+      );
+      expect(settledLogs()).toStrictEqual([
+        [
+          '[upgradeMoneyAccount]',
+          'upgrade settled',
+          expect.objectContaining({ address: OTHER_ADDRESS }),
+        ],
+      ]);
+      expect(mockLogError).not.toHaveBeenCalled();
+    });
+
+    it('stops the run during a retry backoff and restarts it for the new primary', async () => {
+      jest.useFakeTimers();
+      try {
+        mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+        mockUpgradeAccount
+          .mockRejectedValueOnce(retryableStepError())
+          .mockResolvedValueOnce(undefined);
+
+        dispatchUpgrade();
+        await jest.advanceTimersByTimeAsync(0);
+        expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+
+        mockSelectPrimaryMoneyAccount.mockReturnValue({
+          address: OTHER_ADDRESS,
+        });
+        await jest.advanceTimersByTimeAsync(10_000);
+
+        expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
+        expect(mockLogLog).toHaveBeenCalledWith(
+          '[upgradeMoneyAccount]',
+          'primary money account changed; stopping run',
+          { address: ADDRESS, primaryAddress: OTHER_ADDRESS },
+        );
+        expect(settledLogs()).toStrictEqual([
+          [
+            '[upgradeMoneyAccount]',
+            'upgrade settled',
+            expect.objectContaining({ address: OTHER_ADDRESS }),
+          ],
+        ]);
+        // Only the retried failure from the first attempt is reported.
+        expect(mockLogError).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('stops the run without restarting when there is no longer a valid primary', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+
+      dispatchUpgrade();
+      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+      await flushPromises();
+      await flushPromises();
+
+      expect(mockUpgradeAccount).not.toHaveBeenCalled();
+      expect(mockLogLog).toHaveBeenCalledWith(
+        '[upgradeMoneyAccount]',
+        'primary money account changed; stopping run',
+        { address: ADDRESS, primaryAddress: undefined },
+      );
+      expect(settledLogs()).toStrictEqual([]);
+      expect(mockLogError).not.toHaveBeenCalled();
+    });
+
+    it('treats a primary address that differs only in case as unchanged', async () => {
+      const lowercase = '0xabcdef0000000000000000000000000000000001';
+      const mixedCase = '0xABCdef0000000000000000000000000000000001';
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: lowercase });
+
+      dispatchUpgrade();
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: mixedCase });
+      await flushPromises();
+
+      expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+      expect(settledLogs()).toStrictEqual([
+        [
+          '[upgradeMoneyAccount]',
+          'upgrade settled',
+          expect.objectContaining({ address: lowercase }),
+        ],
+      ]);
+    });
   });
 });
