@@ -580,6 +580,10 @@ import {
   KycControllerActions,
   KycControllerEvents,
   KycControllerState,
+  VendorOnboardingController,
+  VendorOnboardingControllerActions,
+  VendorOnboardingControllerEvents,
+  VendorOnboardingControllerState,
   KycService,
   KycServiceActions,
   KycServiceEvents,
@@ -768,6 +772,7 @@ export type GlobalActions =
   | ComplianceControllerActions
   | ComplianceServiceActions
   | KycControllerActions
+  | VendorOnboardingControllerActions
   | KycServiceActions
   | TransakServiceActions
   | NeoBankServiceActions
@@ -868,6 +873,7 @@ export type GlobalEvents =
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | KycControllerEvents
+  | VendorOnboardingControllerEvents
   | KycServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
@@ -1024,6 +1030,7 @@ export type MessengerClients = {
   ComplianceController: ComplianceController;
   KycService: KycService;
   KycController: KycController;
+  VendorOnboardingController: VendorOnboardingController;
   TransakService: TransakService;
   NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
@@ -1111,6 +1118,7 @@ export type EngineState = {
   ProfileController: ProfileControllerState;
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
+  VendorOnboardingController: VendorOnboardingControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
 };
 
@@ -1222,6 +1230,7 @@ export type MessengerClientsToInitialize =
   | 'ComplianceController'
   | 'KycService'
   | 'KycController'
+  | 'VendorOnboardingController'
   | 'ChompApiService'
   | 'MoneyAccountUpgradeController';
 

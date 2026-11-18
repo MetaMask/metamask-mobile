@@ -73,6 +73,7 @@ import { PortfolioActions } from './internal/PortfolioActions';
 import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { KalshiAccountBanner } from '../../../KYC/Kalshi/KalshiAccountBanner';
 
 const sectionTitle = (sectionId: FeedScreenId) => {
   const feedScreen: FeedScreenDefinition = FEED_SCREENS[sectionId];
@@ -454,15 +455,19 @@ export const PredictHome = () => {
   );
 
   return (
-    <HomeFeedReads venueId={venueId} sectionFeeds={sectionFeeds}>
-      {(reads) => (
-        <PredictHomeView
-          venueId={venueId}
-          capabilities={capabilities}
-          sectionCount={sectionFeeds.length}
-          reads={reads}
-        />
-      )}
-    </HomeFeedReads>
+    <>
+      <HomeFeedReads venueId={venueId} sectionFeeds={sectionFeeds}>
+        {(reads) => (
+          <PredictHomeView
+            venueId={venueId}
+            capabilities={capabilities}
+            sectionCount={sectionFeeds.length}
+            reads={reads}
+          />
+        )}
+      </HomeFeedReads>
+      {/* Invites the user to Kalshi onboarding until kyc-api approves them. */}
+      <KalshiAccountBanner />
+    </>
   );
 };

@@ -2028,6 +2028,7 @@ class AuthenticationService {
         Engine.context.SeedlessOnboardingController.clearState();
 
         Engine.context.KycController.clearState();
+        Engine.context.VendorOnboardingController.reset();
 
         // Drop VBA autoramp cursors. They are not keyed by wallet profile and
         // otherwise survive reset, so Money Activity can show another

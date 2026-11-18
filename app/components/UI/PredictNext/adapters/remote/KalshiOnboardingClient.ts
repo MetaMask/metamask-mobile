@@ -49,6 +49,12 @@ export class KalshiOnboardingPolicyError extends Error {
 
 export interface KalshiOnboardingClientOptions {
   baseUrl?: string;
+  /**
+   * Path segments before each route. Defaults to predict-api's
+   * `v1/venues/kalshi/onboarding`. kyc-api serves the same routes under
+   * `vendors/kalshi/enrollment`.
+   */
+  segments?: readonly string[];
   clientVersion: string;
   fetch?: typeof fetch;
   getBearerToken: () => Promise<string | undefined>;
@@ -421,7 +427,9 @@ export class KalshiOnboardingClient {
     }
     base.pathname = `${base.pathname.replace(/\/$/u, '')}/`;
     return new URL(
-      [...ONBOARDING_SEGMENTS, ...route].map(encodeURIComponent).join('/'),
+      [...(this.#options.segments ?? ONBOARDING_SEGMENTS), ...route]
+        .map(encodeURIComponent)
+        .join('/'),
       base,
     ).toString();
   }
