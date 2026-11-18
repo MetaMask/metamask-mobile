@@ -10,6 +10,7 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+import { restoreFetchPath, stubFetchPath } from './fetchStub';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -49,9 +50,26 @@ export function setupSeedlessAuthServerMocks(
       .persist()
       .post(MARKETING_OPT_IN_PATH)
       .reply(postStatus, marketingBody);
+
+    // OAuthService (updateMarketingOptInStatus / getMarketingOptInStatus)
+    // calls global fetch (undici), which a nock interceptor does not always
+    // settle. Register the same payloads for the fetch stub, per method, so
+    // the GET keeps answering the stored server value while the POST honours
+    // `marketingPostFails`.
+    stubFetchPath(origin, MARKETING_OPT_IN_PATH, marketingBody, 200, 'GET');
+    stubFetchPath(
+      origin,
+      MARKETING_OPT_IN_PATH,
+      marketingBody,
+      postStatus,
+      'POST',
+    );
   }
 }
 
 export function clearSeedlessAuthServerMocks(): void {
   teardownNock();
+  for (const origin of SEEDLESS_AUTH_SERVER_ORIGINS) {
+    restoreFetchPath(origin, MARKETING_OPT_IN_PATH);
+  }
 }

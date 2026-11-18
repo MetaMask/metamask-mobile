@@ -27,6 +27,9 @@ import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import { strings } from '../../../../locales/i18n';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { Authentication } from '../../../core';
+import { analytics } from '../../../util/analytics/analytics';
+import Logger from '../../../util/Logger';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -450,5 +453,122 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     );
 
     await findByTestId(`route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`);
+  });
+
+  it('keeps marketing consent off when the unchecked marketing checkbox sync fails during wallet creation', async () => {
+    // Desync setup from 8.18.1: the auth server still holds is_opt_in=true
+    // while the user opts out and the sync POST fails (HTTP 500).
+    setupSeedlessAuthServerMocks({
+      marketingOptIn: true,
+      marketingPostFails: true,
+    });
+    mockAuthenticationForSocialWalletCreation();
+
+    const identifySpy = jest.spyOn(analytics, 'identify');
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+    const loggerErrorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => Promise.resolve());
+
+    try {
+      const { findByTestId, getByTestId, store } =
+        renderChoosePasswordForSocialLogin({
+          routeParams: {
+            oauthLoginSuccess: true,
+            provider: AuthConnection.Google,
+          },
+        });
+
+      fireEvent.changeText(
+        await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        VALID_PASSWORD,
+      );
+      fireEvent.changeText(
+        await findByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+        VALID_PASSWORD,
+      );
+
+      // The view-test env keeps the marketing checkbox unchecked
+      // (HAS_TEST_OVERRIDES). Toggle it on and off again so the submit runs
+      // with an explicit user opt-out, not just the unchecked default.
+      await findByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
+      fireEvent.press(
+        getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID).props
+            .accessibilityState?.checked,
+        ).toBe(true);
+      });
+      fireEvent.press(
+        getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID).props
+            .accessibilityState?.checked,
+        ).toBe(false);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        ).toBeEnabled();
+      });
+
+      fireEvent.press(
+        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      );
+
+      // The failed consent sync must not block wallet creation.
+      await findByTestId(`route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`);
+
+      // The opt-out lands in the local security preference despite the 500.
+      await waitFor(() => {
+        expect(store.getState().security.dataCollectionForMarketing).toBe(
+          false,
+        );
+      });
+
+      // The failed auth-server sync is reported but the choice is kept.
+      expect(
+        loggerErrorSpy.mock.calls.some(
+          ([error]) =>
+            error instanceof Error &&
+            error.message.includes('Failed to update marketing opt-in status'),
+        ),
+      ).toBe(true);
+
+      // The opt-out reaches the identify traits and the preference event.
+      expect(identifySpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
+        }),
+      );
+      const preferenceEvent = trackEventSpy.mock.calls
+        .map((call) => call[0] as unknown)
+        .find(
+          (event) =>
+            typeof event === 'object' &&
+            event !== null &&
+            'name' in event &&
+            (event as Record<string, unknown>).name ===
+              'Analytics Preference Selected',
+        ) as Record<string, unknown> | undefined;
+      expect(preferenceEvent).toMatchObject({
+        properties: expect.objectContaining({
+          has_marketing_consent: false,
+          location: 'onboarding_choosePassword',
+          account_type: 'metamask_google',
+        }),
+      });
+    } finally {
+      identifySpy.mockRestore();
+      trackEventSpy.mockRestore();
+      loggerErrorSpy.mockRestore();
+    }
   });
 });
