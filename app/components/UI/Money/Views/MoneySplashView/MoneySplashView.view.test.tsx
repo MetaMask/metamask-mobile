@@ -240,47 +240,4 @@ describeForPlatforms('MoneySplashView', () => {
       expect(queryByTestId(MoneySplashViewTestIds.CTA)).not.toBeOnTheScreen();
     });
   });
-
-  it('hides the CTA and FAQ block and preserves unseen FTUE state when opened in infoMode, while keeping all five benefits and APY sheet navigation', async () => {
-    const { store, findByTestId, getByTestId, queryByTestId } =
-      renderMoneySplashView({
-        splashSeen: false,
-        apy: 0.062,
-        params: { infoMode: true },
-      });
-
-    const apyPressable = await findByTestId(
-      MoneySplashViewTestIds.APY_PRESSABLE,
-    );
-    expect(apyPressable).toHaveTextContent(
-      strings('money.apy_label', { percentage: 6.2 }),
-    );
-    expect(
-      getByTestId(MoneySplashViewTestIds.BENEFIT_ROW(1)),
-    ).toBeOnTheScreen();
-    expect(strings('money.splash.benefit_withdraw_title')).toBe('No lockups');
-    expect(
-      getByTestId(MoneySplashViewTestIds.BENEFIT_ROW(4)),
-    ).toHaveTextContent(
-      `${strings('money.splash.benefit_withdraw_title')}${strings('money.splash.benefit_withdraw_body')}`,
-    );
-    expect(
-      getByTestId(MoneySplashViewTestIds.BENEFIT_ROW(5)),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(MoneySplashViewTestIds.CTA)).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(MoneySplashViewTestIds.FAQ_TITLE),
-    ).not.toBeOnTheScreen();
-    expect(store.getState().user.moneySplashSeen).toBe(false);
-
-    fireEvent.press(apyPressable);
-
-    const modalParams = await findByTestId(
-      getRouteParamsProbeTestId(Routes.MONEY.MODALS.ROOT),
-    );
-    expect(JSON.parse(modalParams.props.children as string)).toEqual({
-      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: 6.2, variant: 'deposit' },
-    });
-  });
 });

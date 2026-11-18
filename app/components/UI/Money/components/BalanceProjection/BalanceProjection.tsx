@@ -1,24 +1,26 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  FontWeight,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import DottedUnderline from '../../../DottedUnderline';
-import { useTheme } from '../../../../../util/theme';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { isPositiveNumberOrZero } from '../../utils/number';
+import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -27,7 +29,6 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import Routes from '../../../../../constants/navigation/Routes';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 
 export interface BalanceProjectionProps {
   amountFiat: string;
@@ -39,14 +40,7 @@ export function BalanceProjection({
   projectedYears,
 }: BalanceProjectionProps) {
   const navigation = useNavigation<AppNavigationProp>();
-  const tw = useTailwind();
-  const { colors } = useTheme();
   const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyVaultApy();
-  const formatDepositFiat = useFiatFormatter({ currency: 'usd' });
-  const formatProjectedFiat = useFiatFormatter({
-    currency: 'usd',
-    fractionDigits: 2,
-  });
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
   });
@@ -66,16 +60,6 @@ export function BalanceProjection({
     );
   }, [amount, apyDecimal, projectedYears]);
 
-  const projectedFormatted = useMemo(
-    () => (projected !== null ? formatProjectedFiat(projected) : null),
-    [formatProjectedFiat, projected],
-  );
-
-  const depositFormatted = useMemo(
-    () => (amount !== null ? formatDepositFiat(amount) : ''),
-    [amount, formatDepositFiat],
-  );
-
   const handleApyInfoPress = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.APY,
@@ -88,32 +72,18 @@ export function BalanceProjection({
     });
   }, [trackTooltipClicked, navigation, apyPercent]);
 
-  const handleEstimatedBalancePress = useCallback(() => {
-    if (!projectedFormatted) {
-      return;
-    }
-
+  const handleEarnCryptoInfoPress = useCallback(() => {
     trackTooltipClicked({
-      tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_BALANCE,
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
       component_name: COMPONENT_NAMES.MONEY_BALANCE_PROJECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ESTIMATED_BALANCE_SHEET,
-      params: {
-        depositAmountFiat: depositFormatted,
-        projectedAmountFiat: projectedFormatted,
-        apy: apyPercent,
-      },
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+      params: { variant: 'deposit' },
     });
-  }, [
-    apyPercent,
-    depositFormatted,
-    navigation,
-    projectedFormatted,
-    trackTooltipClicked,
-  ]);
+  }, [navigation, trackTooltipClicked]);
 
   if (vaultApyQuery.isLoading) {
     return (
@@ -131,63 +101,58 @@ export function BalanceProjection({
     return null;
   }
 
-  if (amount.isGreaterThan(0) && projectedFormatted !== null) {
-    const labelText = strings('confirm.custom_amount.projected_balance', {
-      projectedYears,
-    });
-
+  if (amount.isGreaterThan(0) && projected !== null) {
     return (
       <View testID="balance-projection">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          twClassName="gap-0.5"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {`${labelText} `}
+            {strings('confirm.custom_amount.projected_balance', {
+              projectedYears,
+            })}{' '}
+            <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
+              {moneyFormatUsd(projected)}
+            </Text>
           </Text>
-          <Pressable
-            onPress={handleEstimatedBalancePress}
-            accessibilityRole="button"
-            accessibilityLabel={`${labelText} ${projectedFormatted}`}
-            hitSlop={8}
-            style={({ pressed }) => tw.style('pb-px', pressed && 'opacity-50')}
-            testID="balance-projection-value-pressable"
-          >
-            <DottedUnderline color={colors.success.default}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
-                {projectedFormatted}
-              </Text>
-            </DottedUnderline>
-          </Pressable>
+          <ButtonIcon
+            iconName={IconName.Info}
+            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
+            size={ButtonIconSize.Sm}
+            onPress={handleEarnCryptoInfoPress}
+            accessibilityLabel={strings(
+              'money.earn_crypto_info_sheet.deposit_title',
+            )}
+            testID="balance-projection-info-button"
+          />
         </Box>
       </View>
     );
   }
 
-  const pitchText = strings('confirm.custom_amount.earn_up_to_apy', {
-    percentage: apyPercent,
-  });
-
   return (
     <View testID="balance-projection-apy-pitch">
-      <Pressable
-        onPress={handleApyInfoPress}
-        accessibilityRole="button"
-        accessibilityLabel={strings('money.apy_info_label')}
-        hitSlop={8}
-        style={({ pressed }) => tw.style('pb-px', pressed && 'opacity-50')}
-        testID="balance-projection-apy-pitch-pressable"
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-0.5"
       >
-        <DottedUnderline color={colors.text.alternative}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {pitchText}
-          </Text>
-        </DottedUnderline>
-      </Pressable>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {strings('confirm.custom_amount.earn_up_to_apy', {
+            percentage: apyPercent,
+          })}
+        </Text>
+        <ButtonIcon
+          iconName={IconName.Info}
+          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
+          size={ButtonIconSize.Sm}
+          onPress={handleApyInfoPress}
+          accessibilityLabel={strings('money.apy_info_label')}
+          testID="balance-projection-apy-pitch-info-button"
+        />
+      </Box>
     </View>
   );
 }

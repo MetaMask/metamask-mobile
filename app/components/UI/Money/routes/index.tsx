@@ -15,8 +15,6 @@ import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
 import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
-import MoneyEstimatedBalanceSheet from '../components/MoneyEstimatedBalanceSheet';
-import MoneyMusdInfoSheet from '../components/MoneyMusdInfoSheet';
 import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
@@ -134,16 +132,6 @@ const MoneyModalStack = () => {
       <ModalStack.Screen
         name={Routes.MONEY.MODALS.APY_INFO_SHEET}
         component={MoneyApyInfoSheet}
-        options={{ headerShown: false }}
-      />
-      <ModalStack.Screen
-        name={Routes.MONEY.MODALS.ESTIMATED_BALANCE_SHEET}
-        component={MoneyEstimatedBalanceSheet}
-        options={{ headerShown: false }}
-      />
-      <ModalStack.Screen
-        name={Routes.MONEY.MODALS.MUSD_INFO_SHEET}
-        component={MoneyMusdInfoSheet}
         options={{ headerShown: false }}
       />
       <ModalStack.Screen

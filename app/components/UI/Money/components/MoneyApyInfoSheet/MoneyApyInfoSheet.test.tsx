@@ -1,10 +1,10 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyApyInfoSheet from './MoneyApyInfoSheet';
 import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
@@ -14,8 +14,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyVaultApy');
-
+const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -35,7 +34,7 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
 
   const MockBottomSheet = ReactActual.forwardRef(
     (
@@ -43,110 +42,74 @@ jest.mock('@metamask/design-system-react-native', () => {
       ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
     ) => {
       ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: jest.fn(),
+        onCloseBottomSheet: mockOnCloseBottomSheet,
         onOpenBottomSheet: jest.fn(),
       }));
       return ReactActual.createElement(View, { testID }, children);
     },
   );
 
+  const MockBottomSheetHeader = ({
+    children,
+    onClose,
+  }: {
+    children: React.ReactNode;
+    onClose?: () => void;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'bottom-sheet-header' },
+      ReactActual.createElement(
+        Pressable,
+        { testID: 'bottom-sheet-close-button', onPress: onClose },
+        ReactActual.createElement(RNText, {}, 'close'),
+      ),
+      children,
+    );
+
   return {
     ...actual,
     BottomSheet: MockBottomSheet,
+    BottomSheetHeader: MockBottomSheetHeader,
   };
 });
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 
-const DEFAULT_APY = 6.2;
+const DEFAULT_APY = 5;
 
 describe('MoneyApyInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({ apy: DEFAULT_APY });
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: 0.062,
-      apyPercent: DEFAULT_APY,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
     });
   });
 
-  it('renders the scrollable container without a bottom sheet header or close button', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <MoneyApyInfoSheet />,
-    );
+  it('renders the container', () => {
+    const { getByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
 
     expect(getByTestId(MoneyApyInfoSheetTestIds.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId(MoneyApyInfoSheetTestIds.SCROLL_VIEW)).toBeOnTheScreen();
-    expect(queryByTestId('bottom-sheet-header')).toBeNull();
-    expect(queryByTestId('bottom-sheet-close-button')).toBeNull();
   });
 
-  it('renders the live APY headline and Annual Percentage Yield lead', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyApyInfoSheet />,
-    );
+  it('renders the sheet title', () => {
+    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
 
-    expect(getByTestId(MoneyApyInfoSheetTestIds.APY_TITLE)).toHaveTextContent(
-      '6.2% APY',
-    );
-    expect(getByText(strings('money.apy_tooltip.subtitle'))).toBeOnTheScreen();
-    expect(getByText(strings('money.apy_tooltip.lead'))).toBeOnTheScreen();
+    expect(getByText(strings('money.apy_tooltip.title'))).toBeOnTheScreen();
   });
 
-  it('renders How it works, Why it changes, and Where it comes from sections with exact copy', () => {
+  it('renders paragraph_1 with the apy percentage interpolated', () => {
     const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
 
     expect(
       getByText(
-        'This is the rate your MetaMask Money balance is earning right now.',
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.apy_tooltip.how_it_works_title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        'Earnings are added to your balance in real time and compound, so your earnings earn too.',
-      ),
-    ).toBeOnTheScreen();
-    expect(getByText('Why it changes')).toBeOnTheScreen();
-    expect(
-      getByText(
-        "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.apy_tooltip.where_it_comes_from_title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        'Your funds go into a DeFi vault that lends across established markets. Veda manages the vault, and Steakhouse Financial oversees its risk.',
+        strings('money.apy_tooltip.paragraph_1', { percentage: DEFAULT_APY }),
       ),
     ).toBeOnTheScreen();
   });
 
-  it('falls back to useMoneyVaultApy when route params omit apy', () => {
-    mockUseParams.mockReturnValue({});
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: 0.045,
-      apyPercent: 4.5,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
-
-    const { getByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
-
-    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: true });
-    expect(getByTestId(MoneyApyInfoSheetTestIds.APY_TITLE)).toHaveTextContent(
-      '4.5% APY',
-    );
-  });
-
-  it('renders the premium copy when vaultStatus is premium', () => {
+  it('renders the premium paragraph when vaultStatus is premium', () => {
     mockUseParams.mockReturnValue({
       apy: DEFAULT_APY,
       vaultStatus: 'premium',
@@ -176,7 +139,11 @@ describe('MoneyApyInfoSheet', () => {
     expect(
       getByText(strings('money.apy_tooltip.migration_upgrading')),
     ).toBeOnTheScreen();
-    expect(getByText(strings('money.apy_tooltip.lead'))).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('money.apy_tooltip.paragraph_1', { percentage: DEFAULT_APY }),
+      ),
+    ).toBeOnTheScreen();
     expect(
       queryByText(
         strings('money.apy_tooltip.paragraph_1_premium', {
@@ -199,20 +166,96 @@ describe('MoneyApyInfoSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('omits the APY headline when APY is unavailable', () => {
-    mockUseParams.mockReturnValue({});
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: undefined,
-      apyPercent: undefined,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+  it('renders paragraph_2', () => {
+    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
 
-    const { queryByTestId, getByText } = renderWithProvider(
-      <MoneyApyInfoSheet />,
-    );
+    expect(
+      getByText(strings('money.apy_tooltip.paragraph_2')),
+    ).toBeOnTheScreen();
+  });
 
-    expect(queryByTestId(MoneyApyInfoSheetTestIds.APY_TITLE)).toBeNull();
-    expect(getByText(strings('money.apy_tooltip.subtitle'))).toBeOnTheScreen();
+  it('renders paragraph_3', () => {
+    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(
+      getByText(strings('money.apy_tooltip.paragraph_3')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders paragraph_4', () => {
+    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(
+      getByText(strings('money.apy_tooltip.paragraph_4')),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render a Learn More footer button', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(queryByTestId('money-apy-info-sheet-learn-more-button')).toBeNull();
+  });
+
+  it('closes the sheet when the close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    fireEvent.press(getByTestId('bottom-sheet-close-button'));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  describe('when variant is deposit', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({ apy: DEFAULT_APY, variant: 'deposit' });
+    });
+
+    it('renders the deposit body copy', () => {
+      const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(
+        getByText(strings('money.apy_tooltip.deposit_body')),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render paragraph_1', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(
+        queryByText(
+          strings('money.apy_tooltip.paragraph_1', { percentage: DEFAULT_APY }),
+        ),
+      ).toBeNull();
+    });
+
+    it('does not render paragraph_2', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(queryByText(strings('money.apy_tooltip.paragraph_2'))).toBeNull();
+    });
+
+    it('does not render paragraph_3', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(queryByText(strings('money.apy_tooltip.paragraph_3'))).toBeNull();
+    });
+
+    it('does not render paragraph_4', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(queryByText(strings('money.apy_tooltip.paragraph_4'))).toBeNull();
+    });
+
+    it('renders the sheet title', () => {
+      const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(getByText(strings('money.apy_tooltip.title'))).toBeOnTheScreen();
+    });
+  });
+
+  it('does not render the deposit body copy without a variant', () => {
+    const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(queryByText(strings('money.apy_tooltip.deposit_body'))).toBeNull();
   });
 
   describe('analytics', () => {

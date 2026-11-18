@@ -12,6 +12,7 @@ import {
   SCREEN_NAMES,
 } from '../../../../../UI/Money/constants/moneyEvents';
 import { useMoneyAnalytics } from '../../../../../UI/Money/hooks/useMoneyAnalytics';
+import { MoneyDepositApySheetTestIds } from '../../modals/money-apy-info-sheet';
 import {
   MoneyDepositToRow,
   MoneyDepositToRowIDs,
@@ -108,23 +109,21 @@ describe('MoneyDepositToRow', () => {
     expect(queryByTestId(MoneyDepositToRowIDs.APY_PRESSABLE)).toBeNull();
   });
 
-  it('opens the Money splash in infoMode when MetaMask Money is pressed', () => {
+  it('opens the existing Money splash unchanged when MetaMask Money is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyDepositToRow />);
 
     fireEvent.press(getByTestId(MoneyDepositToRowIDs.MONEY_PRESSABLE));
 
-    expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
-      tooltip_name: MONEY_TOOLTIP_NAMES.METAMASK_MONEY,
-      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-    });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH, {
-      infoMode: true,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH);
   });
 
-  it('opens MoneyApyInfoSheet with live APY when the APY run is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyDepositToRow />);
+  it('opens confirmation-local MoneyDepositApySheet with live APY when the APY run is pressed', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyDepositToRow />,
+    );
+
+    expect(queryByTestId(MoneyDepositApySheetTestIds.CONTAINER)).toBeNull();
 
     fireEvent.press(getByTestId(MoneyDepositToRowIDs.APY_PRESSABLE));
 
@@ -132,10 +131,12 @@ describe('MoneyDepositToRow', () => {
       tooltip_name: MONEY_TOOLTIP_NAMES.APY,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
     });
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: 6.2, variant: 'deposit' },
-    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(
+      getByTestId(MoneyDepositApySheetTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyDepositApySheetTestIds.APY_TITLE),
+    ).toHaveTextContent('6.2% APY');
   });
 });

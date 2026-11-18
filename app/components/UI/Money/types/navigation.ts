@@ -51,10 +51,7 @@ export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: MoneyPostOnboardingRedirect;
 }
 
-export interface MoneySplashParams extends MoneyOnboardingParams {
-  /** Opens the splash as a read-only info modal (no CTA, no FAQs, does not mutate FTUE seen state). */
-  infoMode?: boolean;
-}
+export type MoneySplashParams = MoneyOnboardingParams;
 
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
   /**
@@ -110,21 +107,10 @@ export type MoneyModalsNavigationParamList = {
   MoneyAddMoneySheet: MoneyAddMoneySheetParams | undefined;
   MoneyMoreSheet: undefined;
   MoneyTransferSheet: undefined;
-  MoneyApyInfoSheet:
-    | {
-        apy?: number;
-        variant?: 'default' | 'deposit';
-        vaultStatus?: MoneyVaultStatus;
-      }
-    | undefined;
-  MoneyEstimatedBalanceSheet: {
-    depositAmountFiat: string;
-    projectedAmountFiat: string;
+  MoneyApyInfoSheet: {
     apy?: number;
-  };
-  MoneyMusdInfoSheet: {
-    receiveAmountFiat: string;
-    apy?: number;
+    variant?: 'default' | 'deposit';
+    vaultStatus?: MoneyVaultStatus;
   };
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;

@@ -33,11 +33,15 @@ import { BigNumber } from 'bignumber.js';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { CONVERT_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { isHardwareAccount } from '../../../../../../util/address';
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { normalizeUsdFiatString } from '../../../hooks/pay/useMoneyDepositFiatFormatter';
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
@@ -169,6 +173,10 @@ function PayWithRowInteractive() {
     CONVERT_DEPOSIT_TYPES,
   );
 
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+
   const { balanceUsd: accountBalanceUsd } = usePayTokenAccountBalance();
   const { isHeadlessBuyInProgress } = useConfirmationContext();
   const canEdit = !isHardwareAccount(from ?? '');
@@ -211,13 +219,14 @@ function PayWithRowInteractive() {
     return payToken ?? null;
   }, [hasAccountNoFunds, isWithdraw, payToken, defaultWithdrawToken]);
 
-  const balanceUsdFormatted = useMemo(
-    () =>
-      formatFiat(
-        new BigNumber(accountBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
-      ),
-    [formatFiat, accountBalanceUsd],
-  );
+  const balanceUsdFormatted = useMemo(() => {
+    const formatted = formatFiat(
+      new BigNumber(accountBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
+    );
+    return isMoneyAccountDeposit
+      ? normalizeUsdFiatString(formatted)
+      : formatted;
+  }, [formatFiat, isMoneyAccountDeposit, accountBalanceUsd]);
 
   if (selectedFiatPaymentMethod) {
     return (

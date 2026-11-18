@@ -1,9 +1,8 @@
 import React, { useCallback, useRef } from 'react';
-import { Image, ScrollView } from 'react-native';
+import { Image, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
@@ -23,12 +22,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { setMoneySplashSeen } from '../../../../../actions/user';
-import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ensureError } from '../../../../../util/errorUtils';
 import Logger from '../../../../../util/Logger';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { useTheme } from '../../../../../util/theme';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { MoneyFaqList } from '../../components/MoneyFaqList/MoneyFaqList';
@@ -36,8 +35,6 @@ import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
-  MONEY_TOOLTIP_NAMES,
-  MONEY_TOOLTIP_TYPES,
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
@@ -55,8 +52,7 @@ import { formatNoFeeTokenBullets } from '../../utils/depositFaqTokens';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import moneySplashHero from '../../../../../images/money-splash-hero.png';
 import { MoneySplashViewTestIds } from './MoneySplashView.testIds';
-
-const HERO_ASPECT_RATIO = 361 / 203;
+import { styles } from './MoneySplashView.styles';
 
 const BENEFITS = [
   {
@@ -96,7 +92,7 @@ const BenefitRow = ({
       size={IconSize.Md}
       color={IconColor.SuccessDefault}
     />
-    <Box twClassName="flex-1">
+    <Box style={styles.benefitText}>
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {title}
       </Text>
@@ -111,11 +107,9 @@ const MoneySplashView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
-  const tw = useTailwind();
-  const params = useParams<MoneySplashParams>();
-  const postOnboardingRedirect = params?.postOnboardingRedirect;
-  const analyticsContext = params?.analyticsContext;
-  const isInfoMode = Boolean(params?.infoMode);
+  const { colors } = useTheme();
+  const { postOnboardingRedirect, analyticsContext } =
+    useParams<MoneySplashParams>();
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const isOffline = networkTier === 'NONE';
@@ -126,15 +120,12 @@ const MoneySplashView = () => {
   const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
 
-  const { trackScreenViewed, trackButtonClicked, trackTooltipClicked } =
-    useMoneyAnalytics({
-      screen_name: SCREEN_NAMES.MONEY_SPLASH,
-    });
+  const { trackScreenViewed, trackButtonClicked } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_SPLASH,
+  });
 
   useMountEffect(() => {
-    if (!isInfoMode) {
-      dispatch(setMoneySplashSeen(true));
-    }
+    dispatch(setMoneySplashSeen(true));
   });
   useMountEffect(trackScreenViewed);
 
@@ -206,18 +197,6 @@ const MoneySplashView = () => {
     navigation.goBack();
   }, [navigation, trackButtonClicked]);
 
-  const handleApyPress = useCallback(() => {
-    trackTooltipClicked({
-      tooltip_name: MONEY_TOOLTIP_NAMES.APY,
-      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-    });
-
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: apyPercent, variant: 'deposit' },
-    });
-  }, [apyPercent, navigation, trackTooltipClicked]);
-
   const handleCardFeesPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -230,35 +209,29 @@ const MoneySplashView = () => {
   }, [navigation, trackButtonClicked]);
 
   return (
-    <Box
-      twClassName="flex-1 bg-default"
+    <View
+      style={[styles.root, { backgroundColor: colors.background.default }]}
       testID={MoneySplashViewTestIds.CONTAINER}
     >
       <ScrollView
-        contentContainerStyle={[
-          tw.style('pb-6'),
-          isInfoMode && { paddingBottom: insets.bottom + 24 },
-        ]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="px-4" style={{ paddingTop: insets.top + 48 }}>
           {showHero && (
-            <Box
-              twClassName="w-full overflow-hidden rounded-2xl"
-              style={{ aspectRatio: HERO_ASPECT_RATIO }}
-            >
+            <View style={styles.heroContainer}>
               <Image
                 source={moneySplashHero}
-                style={tw.style('h-full w-full')}
+                style={styles.hero}
                 resizeMode="cover"
                 testID={MoneySplashViewTestIds.HERO}
               />
-            </Box>
+            </View>
           )}
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="mt-6"
+            style={styles.eyebrow}
             testID={MoneySplashViewTestIds.EYEBROW}
           >
             {strings('money.splash.eyebrow')}
@@ -266,7 +239,7 @@ const MoneySplashView = () => {
           <Text
             variant={TextVariant.DisplayMd}
             fontWeight={FontWeight.Bold}
-            twClassName="mt-3"
+            style={styles.title}
             testID={MoneySplashViewTestIds.TITLE}
           >
             {strings('money.splash.title')}
@@ -274,20 +247,14 @@ const MoneySplashView = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-4"
+            style={styles.body}
             testID={MoneySplashViewTestIds.BODY}
           >
             {apyPercent !== undefined ? (
               <>
                 {strings('money.splash.body_prefix')}
-                <Text
-                  color={TextColor.SuccessDefault}
-                  twClassName="underline decoration-dotted"
-                  onPress={handleApyPress}
-                  accessibilityRole="button"
-                  testID={MoneySplashViewTestIds.APY_PRESSABLE}
-                >
-                  {strings('money.apy_label', { percentage: apyPercent })}
+                <Text color={TextColor.SuccessDefault} style={styles.apy}>
+                  {`${apyPercent}% APY`}
                 </Text>
                 {strings('money.splash.body_suffix')}
               </>
@@ -296,7 +263,7 @@ const MoneySplashView = () => {
             )}
           </Text>
         </Box>
-        <Box twClassName="mt-6 px-4">
+        <Box twClassName="px-4" style={styles.benefits}>
           <Box twClassName="gap-4">
             {BENEFITS.map((benefit, index) => (
               <BenefitRow
@@ -308,56 +275,53 @@ const MoneySplashView = () => {
             ))}
           </Box>
         </Box>
-        {!isInfoMode && (
-          <>
-            <Box twClassName="my-5 h-px bg-border-muted" />
-            <Box twClassName="px-4 pt-6 pb-5">
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-                testID={MoneySplashViewTestIds.FAQ_TITLE}
-              >
-                {strings('money.how_it_works_page.faq_title')}
-              </Text>
-            </Box>
-            <MoneyFaqList
-              apyPercent={apyPercent}
-              tokenBullets={tokenBullets}
-              onCardFeesPress={handleCardFeesPress}
-              itemTestId={MoneySplashViewTestIds.FAQ_ITEM}
-              linkTestId={MoneySplashViewTestIds.FAQ_LINK}
-            />
-          </>
-        )}
-      </ScrollView>
-      {!isInfoMode && (
-        <Box
-          twClassName="bg-default px-4 pt-3"
-          style={{ paddingBottom: insets.bottom + 16 }}
-        >
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleStartEarning}
-            testID={MoneySplashViewTestIds.CTA}
+        <Box twClassName="bg-border-muted" style={styles.divider} />
+        <Box twClassName="px-4" style={styles.faqTitle}>
+          <Text
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
+            testID={MoneySplashViewTestIds.FAQ_TITLE}
           >
-            {strings('money.splash.cta')}
-          </Button>
+            {strings('money.how_it_works_page.faq_title')}
+          </Text>
         </Box>
-      )}
+        <MoneyFaqList
+          apyPercent={apyPercent}
+          tokenBullets={tokenBullets}
+          onCardFeesPress={handleCardFeesPress}
+          itemTestId={MoneySplashViewTestIds.FAQ_ITEM}
+          linkTestId={MoneySplashViewTestIds.FAQ_LINK}
+        />
+      </ScrollView>
+      <View
+        style={[
+          styles.footer,
+          {
+            paddingBottom: insets.bottom + 16,
+            backgroundColor: colors.background.default,
+          },
+        ]}
+      >
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleStartEarning}
+          testID={MoneySplashViewTestIds.CTA}
+        >
+          {strings('money.splash.cta')}
+        </Button>
+      </View>
       <ButtonIcon
         iconName={IconName.Close}
         size={ButtonIconSize.Md}
         onPress={handleClose}
         accessibilityLabel={strings('money.splash.close')}
         testID={MoneySplashViewTestIds.CLOSE_BUTTON}
-        twClassName={`absolute right-4 z-10 rounded-full ${
-          isInfoMode ? 'bg-section' : 'bg-muted'
-        }`}
-        style={{ top: insets.top + 4 }}
+        twClassName="rounded-full bg-muted"
+        style={[styles.closeButton, { top: insets.top + 4 }]}
       />
-    </Box>
+    </View>
   );
 };
 

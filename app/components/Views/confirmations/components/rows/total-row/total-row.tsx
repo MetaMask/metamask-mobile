@@ -1,8 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import InfoRow from '../../UI/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { Pressable, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
 import {
   TransactionType,
@@ -21,6 +20,10 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import {
+  normalizeUsdFiatString,
+  useMoneyDepositFiatFormatter,
+} from '../../../hooks/pay/useMoneyDepositFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -31,14 +34,7 @@ import {
 } from '@metamask/design-system-react-native';
 import DottedUnderline from '../../../../../UI/DottedUnderline';
 import { useTheme } from '../../../../../../util/theme';
-import Routes from '../../../../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import { useMoneyAnalytics } from '../../../../../UI/Money/hooks/useMoneyAnalytics';
-import {
-  MONEY_TOOLTIP_NAMES,
-  MONEY_TOOLTIP_TYPES,
-  SCREEN_NAMES,
-} from '../../../../../UI/Money/constants/moneyEvents';
+import { MoneyMusdInfoSheet } from '../../modals/money-musd-info-sheet';
 
 /**
  * Row component that owns the bottom line of the totals section.
@@ -113,7 +109,7 @@ function TotalFeesRow() {
 }
 
 /**
- * Displays "You'll receive" for withdrawal, input-based, and Max flows.
+ * Displays "You'll receive" for withdrawal, Money Account deposit, input-based, and Max flows.
  *
  * Prefers `totals.targetAmount.usd` from executable quotes (after fees). A
  * route needing no conversion only produces a no-op quote, which is excluded
@@ -129,13 +125,10 @@ function ReceiveRow({
     currency: 'usd',
     fractionDigits: isMoneyAccountDeposit ? 2 : undefined,
   });
-  const formatSheetFiat = useFiatFormatter({ currency: 'usd' });
-  const navigation = useNavigation<AppNavigationProp>();
+  const formatSheetFiat = useMoneyDepositFiatFormatter();
   const tw = useTailwind();
   const { colors } = useTheme();
-  const { trackTooltipClicked } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
-  });
+  const [isMusdSheetOpen, setIsMusdSheetOpen] = useState(false);
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -172,10 +165,15 @@ function ReceiveRow({
     totals?.targetAmount?.usd,
   ]);
 
-  const receiveUsd = useMemo(
-    () => (receiveBn == null ? '' : formatFiat(receiveBn)),
-    [formatFiat, receiveBn],
-  );
+  const receiveUsd = useMemo(() => {
+    if (receiveBn == null) {
+      return '';
+    }
+    const formatted = formatFiat(receiveBn);
+    return isMoneyAccountDeposit
+      ? normalizeUsdFiatString(formatted)
+      : formatted;
+  }, [formatFiat, isMoneyAccountDeposit, receiveBn]);
 
   const receiveSheetUsd = useMemo(
     () => (receiveBn == null ? '' : formatSheetFiat(receiveBn)),
@@ -186,19 +184,12 @@ function ReceiveRow({
     if (!receiveSheetUsd) {
       return;
     }
+    setIsMusdSheetOpen(true);
+  }, [receiveSheetUsd]);
 
-    trackTooltipClicked({
-      tooltip_name: MONEY_TOOLTIP_NAMES.METAMASK_USD,
-      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-    });
-
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.MUSD_INFO_SHEET,
-      params: {
-        receiveAmountFiat: receiveSheetUsd,
-      },
-    });
-  }, [navigation, receiveSheetUsd, trackTooltipClicked]);
+  const handleMusdSheetClose = useCallback(() => {
+    setIsMusdSheetOpen(false);
+  }, []);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;
@@ -238,6 +229,13 @@ function ReceiveRow({
           </Text>
         )}
       </InfoRow>
+      {isMoneyAccountDeposit && isMusdSheetOpen ? (
+        <MoneyMusdInfoSheet
+          open={isMusdSheetOpen}
+          onClose={handleMusdSheetClose}
+          receiveAmountFiat={receiveSheetUsd}
+        />
+      ) : null}
     </View>
   );
 }

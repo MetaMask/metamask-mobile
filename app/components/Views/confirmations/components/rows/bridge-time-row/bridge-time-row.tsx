@@ -78,7 +78,7 @@ function formatSeconds(
 ) {
   if (isMoneyAccountDeposit) {
     if (isSameChainPayment || seconds <= 30) {
-      return strings('money.deposit_confirmation.less_than_one_min');
+      return strings('confirm.money_deposit.less_than_one_min');
     }
   }
 

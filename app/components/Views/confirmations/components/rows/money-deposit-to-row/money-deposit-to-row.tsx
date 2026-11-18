@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -31,6 +31,7 @@ import {
   SCREEN_NAMES,
 } from '../../../../../UI/Money/constants/moneyEvents';
 import InfoRow, { InfoRowVariant } from '../../UI/info-row/info-row';
+import { MoneyDepositApySheet } from '../../modals/money-apy-info-sheet';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
@@ -49,19 +50,15 @@ function MoneyDepositToRowComponent() {
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
   });
+  const [isApySheetOpen, setIsApySheetOpen] = useState(false);
 
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
 
   const handleMoneyPress = useCallback(() => {
-    trackTooltipClicked({
-      tooltip_name: MONEY_TOOLTIP_NAMES.METAMASK_MONEY,
-      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-    });
-
-    navigation.navigate(Routes.MONEY.SPLASH, { infoMode: true });
-  }, [navigation, trackTooltipClicked]);
+    navigation.navigate(Routes.MONEY.SPLASH);
+  }, [navigation]);
 
   const handleApyPress = useCallback(() => {
     trackTooltipClicked({
@@ -69,99 +66,111 @@ function MoneyDepositToRowComponent() {
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
     });
 
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: apyPercent, variant: 'deposit' },
-    });
-  }, [apyPercent, navigation, trackTooltipClicked]);
+    setIsApySheetOpen(true);
+  }, [trackTooltipClicked]);
+
+  const handleApyClose = useCallback(() => {
+    setIsApySheetOpen(false);
+  }, []);
 
   if (!isMoneyAccountDeposit) {
     return null;
   }
 
   const hasApy = isPositiveNumberOrZero(apyPercent);
-  const moneyLabel = strings('money.deposit_confirmation.to_metamask_money');
+  const moneyLabel = strings('confirm.money_deposit.to_metamask_money');
   const apyLabel = hasApy
-    ? strings('money.apy_label', { percentage: apyPercent })
+    ? strings('confirm.money_deposit.apy_label', { percentage: apyPercent })
     : undefined;
 
   return (
-    <InfoRow
-      testID={MoneyDepositToRowIDs.ROW}
-      label={strings('confirm.label.to')}
-      rowVariant={InfoRowVariant.Small}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+    <>
+      <InfoRow
+        testID={MoneyDepositToRowIDs.ROW}
+        label={strings('confirm.label.to')}
+        rowVariant={InfoRowVariant.Small}
       >
-        <MoneyBalanceIcon
-          width={24}
-          height={24}
-          name="money-balance"
-          accessible={false}
-          importantForAccessibility="no-hide-descendants"
-        />
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
         >
-          <Pressable
-            onPress={handleMoneyPress}
-            accessibilityRole="button"
-            accessibilityLabel={moneyLabel}
-            hitSlop={8}
-            style={({ pressed }) => tw.style('pb-px', pressed && 'opacity-50')}
-            testID={MoneyDepositToRowIDs.MONEY_PRESSABLE}
+          <MoneyBalanceIcon
+            width={24}
+            height={24}
+            name="money-balance"
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
+          />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
           >
-            <DottedUnderline color={colors.text.default}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontFamily={FontFamily.Default}
-                fontWeight={FontWeight.Regular}
-                color={TextColor.TextDefault}
-              >
-                {moneyLabel}
-              </Text>
-            </DottedUnderline>
-          </Pressable>
-          {apyLabel ? (
-            <>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontFamily={FontFamily.Default}
-                fontWeight={FontWeight.Regular}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.deposit_confirmation.to_separator')}
-              </Text>
-              <Pressable
-                onPress={handleApyPress}
-                accessibilityRole="button"
-                accessibilityLabel={apyLabel}
-                hitSlop={8}
-                style={({ pressed }) =>
-                  tw.style('pb-px', pressed && 'opacity-50')
-                }
-                testID={MoneyDepositToRowIDs.APY_PRESSABLE}
-              >
-                <DottedUnderline color={colors.success.default}>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontFamily={FontFamily.Default}
-                    fontWeight={FontWeight.Regular}
-                    color={TextColor.SuccessDefault}
-                  >
-                    {apyLabel}
-                  </Text>
-                </DottedUnderline>
-              </Pressable>
-            </>
-          ) : null}
+            <Pressable
+              onPress={handleMoneyPress}
+              accessibilityRole="button"
+              accessibilityLabel={moneyLabel}
+              hitSlop={8}
+              style={({ pressed }) =>
+                tw.style('pb-px', pressed && 'opacity-50')
+              }
+              testID={MoneyDepositToRowIDs.MONEY_PRESSABLE}
+            >
+              <DottedUnderline color={colors.text.default}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontFamily={FontFamily.Default}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextDefault}
+                >
+                  {moneyLabel}
+                </Text>
+              </DottedUnderline>
+            </Pressable>
+            {apyLabel ? (
+              <>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontFamily={FontFamily.Default}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('confirm.money_deposit.to_separator')}
+                </Text>
+                <Pressable
+                  onPress={handleApyPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={apyLabel}
+                  hitSlop={8}
+                  style={({ pressed }) =>
+                    tw.style('pb-px', pressed && 'opacity-50')
+                  }
+                  testID={MoneyDepositToRowIDs.APY_PRESSABLE}
+                >
+                  <DottedUnderline color={colors.success.default}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontFamily={FontFamily.Default}
+                      fontWeight={FontWeight.Regular}
+                      color={TextColor.SuccessDefault}
+                    >
+                      {apyLabel}
+                    </Text>
+                  </DottedUnderline>
+                </Pressable>
+              </>
+            ) : null}
+          </Box>
         </Box>
-      </Box>
-    </InfoRow>
+      </InfoRow>
+      {isApySheetOpen ? (
+        <MoneyDepositApySheet
+          open={isApySheetOpen}
+          onClose={handleApyClose}
+          apy={apyPercent}
+        />
+      ) : null}
+    </>
   );
 }
 

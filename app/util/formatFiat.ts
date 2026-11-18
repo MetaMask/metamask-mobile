@@ -61,12 +61,6 @@ const formatFiat = (
       // for some reason it gives TS issue
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/format#number
     }).format(value as unknown as number);
-
-    if (currency?.toUpperCase() === 'USD') {
-      result = result
-        .replace(/US\$|\$US|\bUSD\b/gu, '$')
-        .replace(/\$\s+(?=[-\d])/gu, '$');
-    }
   } catch (error) {
     // Fallback for unknown or unsupported currencies
     result = `${value} ${currency}`;

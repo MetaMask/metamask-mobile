@@ -19,29 +19,18 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
-import Routes from '../../../../../../constants/navigation/Routes';
-import {
-  MONEY_TOOLTIP_NAMES,
-  MONEY_TOOLTIP_TYPES,
-} from '../../../../../UI/Money/constants/moneyEvents';
+import { MoneyMusdInfoSheetTestIds } from '../../modals/money-musd-info-sheet';
 import { TotalRow } from './total-row';
-
-const mockNavigate = jest.fn();
-const mockTrackTooltipClicked = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
-jest.mock('../../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
-  useMoneyAnalytics: jest.fn(() => ({
-    trackTooltipClicked: mockTrackTooltipClicked,
-  })),
+jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy', () => ({
+  __esModule: true,
+  default: () => ({
+    apyDecimal: 0.062,
+    apyPercent: 6.2,
+    vaultApyQuery: { isLoading: false },
+  }),
 }));
 
 const TOTAL_FIAT_MOCK = '$123.46';
@@ -321,7 +310,7 @@ describe('TotalRow', () => {
   });
 
   describe('moneyAccountDeposit receive row', () => {
-    it('renders You’ll receive with two decimals and opens MoneyMusdInfoSheet on press', () => {
+    it('renders You’ll receive with two decimals and opens confirmation-local MoneyMusdInfoSheet on press', () => {
       useTransactionPayTotalsMock.mockReturnValue({
         total: { usd: '100' },
         targetAmount: { usd: '100', fiat: '100' },
@@ -334,20 +323,16 @@ describe('TotalRow', () => {
       expect(getByTestId('receive-row')).toBeOnTheScreen();
       expect(queryByTestId('total-row')).toBeNull();
       expect(getByText('$100.00')).toBeOnTheScreen();
+      expect(queryByTestId(MoneyMusdInfoSheetTestIds.CONTAINER)).toBeNull();
 
       fireEvent.press(getByTestId('receive-pressable'));
 
-      expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
-        tooltip_name: MONEY_TOOLTIP_NAMES.METAMASK_USD,
-        tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      });
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.MUSD_INFO_SHEET,
-        params: {
-          receiveAmountFiat: '$100',
-        },
-      });
+      expect(
+        getByTestId(MoneyMusdInfoSheetTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyMusdInfoSheetTestIds.TITLE)).toHaveTextContent(
+        "You'll receive $100 of MetaMask USD",
+      );
     });
 
     it('falls back to requiredTokens amountUsd when targetAmount is zero on moneyAccountDeposit', () => {
@@ -395,8 +380,9 @@ describe('TotalRow', () => {
 
         fireEvent.press(getByTestId('receive-pressable'));
 
-        const navParams = mockNavigate.mock.calls[0][1].params;
-        expect(navParams.receiveAmountFiat).toBe('$1.000');
+        expect(getByTestId(MoneyMusdInfoSheetTestIds.TITLE)).toHaveTextContent(
+          "You'll receive $1.000 of MetaMask USD",
+        );
       } finally {
         I18n.locale = originalLocale;
       }
