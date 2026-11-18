@@ -1006,6 +1006,7 @@ describe('Wallet', () => {
       expect(toastMock.dismiss).toHaveBeenCalledTimes(1);
       expect(openURL).toHaveBeenCalledWith(CONSENSYS_PRIVACY_POLICY);
     } finally {
+      openURL.mockRestore();
       mockShowPrivacyToast = false;
     }
   });

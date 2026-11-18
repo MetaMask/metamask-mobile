@@ -181,8 +181,7 @@ describe('Main', () => {
       );
     });
 
-    it('shows added and removed network toasts with and without an image', () => {
-      selectNetworkImageSourceMock.mockReturnValue(networkImage);
+    const mountNetworkList = () => {
       const { store } = renderWithProvider(
         <TestStack.Navigator>
           <TestStack.Screen name="HomeNav" component={Main} />
@@ -194,14 +193,6 @@ describe('Main', () => {
         store.getState().engine.backgroundState.NetworkController;
       const originalConfigurations = {
         ...controller.networkConfigurationsByChainId,
-      };
-      const addedNetwork = {
-        chainId: addedChainId,
-        name: 'Added Network',
-        nativeCurrency: 'ETH',
-        defaultRpcEndpointIndex: 0,
-        rpcEndpoints: [],
-        blockExplorerUrls: [],
       };
 
       const publishConfigurations = (
@@ -221,7 +212,24 @@ describe('Main', () => {
         });
       };
 
+      return { originalConfigurations, publishConfigurations };
+    };
+
+    const addedNetwork = {
+      chainId: addedChainId,
+      name: 'Added Network',
+      nativeCurrency: 'ETH',
+      defaultRpcEndpointIndex: 0,
+      rpcEndpoints: [],
+      blockExplorerUrls: [],
+    };
+
+    it('shows an added network toast with the network image', () => {
+      selectNetworkImageSourceMock.mockReturnValue(networkImage);
+      const { originalConfigurations, publishConfigurations } =
+        mountNetworkList();
       toastMock.mockClear();
+
       publishConfigurations({
         ...originalConfigurations,
         [addedChainId]: addedNetwork,
@@ -235,9 +243,19 @@ describe('Main', () => {
           startAccessory: expect.anything(),
         }),
       );
+    });
 
+    it('shows a removed network toast without a network image', () => {
+      selectNetworkImageSourceMock.mockReturnValue(networkImage);
+      const { originalConfigurations, publishConfigurations } =
+        mountNetworkList();
+      publishConfigurations({
+        ...originalConfigurations,
+        [addedChainId]: addedNetwork,
+      });
       selectNetworkImageSourceMock.mockReturnValue(undefined);
       toastMock.mockClear();
+
       publishConfigurations(originalConfigurations);
 
       expect(toastMock).toHaveBeenCalledWith(
