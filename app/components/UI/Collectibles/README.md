@@ -100,3 +100,47 @@ yarn jest app/components/UI/Collectibles/controllers app/components/UI/Collectib
 yarn jest app/core/Engine/Engine.test.ts -t 'matches initial state fixture' --runInBand --coverage=false
 yarn jest -c jest.config.view.js app/components/Views/Homepage/Sections/Collectibles --runInBand --coverage=false
 ```
+
+### Test conventions
+
+Start with the repository's [mobile testing guide](../../../../.agents/skills/mms-mobile-testing/SKILL.md)
+and [component-view conventions](../../../../docs/testing/component-view-tests.md).
+Apply these rules to Collectibles tests, including its homepage entry outside
+the module directory:
+
+- **Translated copy:** use `strings('collectibles.home_section.open_collectibles')`
+  from `locales/i18n` when querying localized text, rather than repeating the
+  English copy. This keeps tests aligned with translation keys when copy changes.
+  Use exported test-ID constants for structural queries.
+- **Fresh elements after transitions:** do not hold a `findBy*` result across
+  navigation, loading or a state change that can remount the element. Await the
+  relevant readiness marker, then press a fresh `getByTestId(...)`. For assertions
+  after navigation, use `waitFor(() => expect(screen.getByTestId(...)).toBeOnTheScreen())`.
+- **Isolated Engine updates:** use the [Collectibles renderer helpers](../../../../tests/component-view/renderers/collectibles.tsx)
+  for simulated controller updates. Preserve other flags and controller fields
+  such as `cacheTimestamp`; save the previous Engine state and restore it in
+  `finally`, even if an assertion fails. `jest.clearAllMocks()` does not undo
+  assignments to `Engine.state`. Isolation must hold between iOS and Android runs.
+- **Distinct coverage:** selector logic and the initial flag gate have unit
+  coverage. Keep the live kill-switch scenario in component-view tests: first
+  show the section, then disable the flag through the Engine-to-Redux update
+  path and assert that it disappears without remounting the homepage. Explain
+  this distinction rather than duplicating a static visibility test.
+- **Accurate test names:** name only conditions explicitly established by the
+  fixture and behavior asserted by the test. Do not claim an account or network
+  scenario merely because the fixture happens to default to it.
+
+The [homepage entry tests](../../Views/Homepage/Sections/Collectibles/CollectiblesSection.view.test.tsx)
+demonstrate these conventions. The [testing skill's component-view rules](../../../../.agents/skills/mms-mobile-testing/references/component-view.md)
+also cover localized labels and mock isolation.
+
+### Review evidence
+
+Follow the repository's [Definition of Ready for Review](../../../../docs/readme/ready-for-review.md).
+Keep PR descriptions and Gherkin aligned with the actual plural identifiers,
+especially `collectiblesEnabled`, `MM_COLLECTIBLES_ENABLED` and `CollectiblesController`.
+Document the platform, build type and exact flag setup, including remote-flag
+precedence. Report commands and results actually obtained on the reviewed code;
+component-view runs for Android are not Android device tests. State unperformed
+or non-applicable performance checks explicitly, and provide screenshots for
+visible changes from the branch under review, not from the full POC.
