@@ -25,6 +25,10 @@ import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagControl
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
   SectionDivider,
   Text,
   TextColor,
@@ -38,6 +42,12 @@ const createStyles = (colors: Colors) =>
       zIndex: 99999999999999,
     },
   });
+
+function renderIcon(name: IconName) {
+  return (
+    <Icon name={name} size={IconSize.Lg} color={IconColor.IconAlternative} />
+  );
+}
 
 const Settings = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -150,12 +160,14 @@ const Settings = () => {
         <SettingsDrawer
           onPress={onPressGeneral}
           title={strings('app_settings.preferences_and_display_title')}
+          startAccessory={renderIcon(IconName.Customize)}
           testID={SettingsViewSelectorsIDs.GENERAL}
         />
         {isNotificationsFeatureEnabled() && (
           <SettingsDrawer
             onPress={onPressNotifications}
             title={strings('app_settings.notifications_title')}
+            startAccessory={renderIcon(IconName.Notification)}
             testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
           />
         )}
@@ -172,6 +184,7 @@ const Settings = () => {
         <SettingsDrawer
           onPress={onPressSecurity}
           title={strings('app_settings.security_title')}
+          startAccessory={renderIcon(IconName.Lock)}
           warning={
             !oauthFlow && !seedphraseBackedUp
               ? strings('drawer.settings_warning')
@@ -182,6 +195,7 @@ const Settings = () => {
         <SettingsDrawer
           onPress={onPressBackupAndSync}
           title={strings('backupAndSync.title')}
+          startAccessory={renderIcon(IconName.SecurityTime)}
           testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
         />
 
@@ -197,6 +211,7 @@ const Settings = () => {
         <SettingsDrawer
           title={strings('app_settings.fiat_on_ramp.title')}
           onPress={onPressOnRamp}
+          startAccessory={renderIcon(IconName.AttachMoney)}
           testID={SettingsViewSelectorsIDs.ON_RAMP}
         />
 
@@ -212,18 +227,21 @@ const Settings = () => {
         <SettingsDrawer
           onPress={onPressAdvanced}
           title={strings('app_settings.advanced_title')}
+          startAccessory={renderIcon(IconName.Data)}
           testID={SettingsViewSelectorsIDs.ADVANCED}
         />
         {CAN_INSTALL_THIRD_PARTY_SNAPS && (
           <SettingsDrawer
             title={strings('app_settings.snaps.title')}
             onPress={onPressSnaps}
+            startAccessory={renderIcon(IconName.Snaps)}
             testID={SettingsViewSelectorsIDs.SNAPS}
           />
         )}
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}
           onPress={onPressExperimental}
+          startAccessory={renderIcon(IconName.Flask)}
           testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
         />
         {
@@ -237,6 +255,7 @@ const Settings = () => {
             <SettingsDrawer
               title={strings('app_settings.aes_crypto_test_form_title')}
               onPress={onPressAesCryptoTestForm}
+              startAccessory={renderIcon(IconName.SecurityKey)}
               testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
             />
           )
@@ -245,12 +264,14 @@ const Settings = () => {
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}
             onPress={onPressDeveloperOptions}
+            startAccessory={renderIcon(IconName.Code)}
           />
         )}
         {process.env.METAMASK_ENVIRONMENT !== 'production' && (
           <SettingsDrawer
             title={strings('app_settings.feature_flag_override.title')}
             onPress={onPressFeatureFlagOverride}
+            startAccessory={renderIcon(IconName.Details)}
           />
         )}
       </ScrollView>
