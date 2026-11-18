@@ -136,7 +136,7 @@ import {
   WalletRecoveryVerify,
 } from './WalletRecovery';
 import type { WalletRecoveryMethod } from './WalletRecovery/WalletRecoveryVerify';
-import { usePasswordlessRecovery } from '../../../core/MfaRecovery/usePasswordlessRecovery';
+import PasswordlessRecoveryService from '../../../core/MfaRecovery/PasswordlessRecoveryService';
 import { PasswordlessRecoveryError } from '../../../core/MfaRecovery/passwordlessSocialRecovery';
 import { getMfaRecoveryErrorCode } from '../../../core/Engine/controllers/mfa-recovery-controller/errors';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
@@ -190,8 +190,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
   const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
   const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
-  // Locked passkey check, then the existing unlock screen. When recovery is
-  // set up, Unlock applies the typed password as the new one.
+  // Locked MFA verify first, then biometrics / Enter password / Forgot.
+  // Create password is only the Forgot-password path (local + global sync).
   // Money MFA is one way in. Passwordless recovery is the other, so a dev
   // build does not also need the Money flag.
   const canOfferSocialMfaVerify =
@@ -643,8 +643,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   /** Password opened from verify → back returns to the picker. */
   const [passwordFromVerify, setPasswordFromVerify] = useState(false);
   /**
-   * Kit factor succeeded and a recovery secret is enrolled. Unlock then
-   * treats the typed password as the new one.
+   * In-flow create-password recover (legacy). Forgot password uses
+   * ChoosePassword via {@link navigateToPasswordlessChoosePassword}.
    */
   const [passwordlessUnlock, setPasswordlessUnlock] = useState(false);
   /**
@@ -670,7 +670,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [rejectedBiometryLabel, setRejectedBiometryLabel] = useState(
     strings('authentication.labels.device_authentication'),
   );
-  const passwordlessRecovery = usePasswordlessRecovery(authConnection);
   const { listActiveSocialLoginMethods, verifyForSocialLogin } = useMfa();
 
   const rememberHeldAal2 = useCallback((token?: VerificationToken) => {
@@ -684,8 +683,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, []);
 
   /**
-   * Prefetch escrow Recovery Secret (passkey) while AAL2 is held, then open
-   * production ChoosePassword — Create password must not trigger a passkey.
+   * Forgot-password only: prefetch escrow Recovery Secret while AAL2 is held,
+   * then open ChoosePassword. Create password must not trigger a passkey.
+   * Prefetch failure returns to Enter password with recovery_failed.
    */
   const navigateToPasswordlessChoosePassword = useCallback(async () => {
     forgotPasswordFlowRef.current = false;
@@ -699,7 +699,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       aal2Valid: isHeldAal2Valid(heldAal2TokenRef.current),
     });
     try {
-      const ready = await passwordlessRecovery.prefetchForChoosePassword();
+      const ready =
+        await PasswordlessRecoveryService.prefetchForChoosePassword(
+          authConnection,
+        );
       if (!ready) {
         Logger.log('OAuthRehydration: forgot → ChoosePassword blocked', {
           reason: 'prefetch_not_ready',
@@ -727,12 +730,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               : String(prefetchError),
         },
       );
-      passwordlessRecovery.clear();
+      PasswordlessRecoveryService.clear();
       setError(strings('wallet_recovery_mfa.recovery_failed'));
       setWalletRecoveryLoadingMessage(null);
       setWalletRecoveryStep('enterPassword');
     }
-  }, [navigation, authConnection, passwordlessRecovery]);
+  }, [navigation, authConnection]);
 
   const lockedMfaReason = useMemo(
     (): MfaReason => ({
@@ -744,13 +747,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   );
 
   /**
-   * After MFA verified on the normal recovery path: prompt device biometrics.
-   * Accept → existing password unlock (then wallet); Reject → Enter password.
-   * Create password is only Forgot password → ChoosePassword.
+   * After MFA verified (non-Forgot): offer device biometrics.
+   * Accept → existing password unlock (global password via rehydrate).
+   * Reject / unavailable → Enter password (Login validations;
+   * unlock → fetchAllSecretData). Forgot uses Create password only.
    */
   const continueAfterVerified = useCallback(async () => {
-    // Forgot password: after 2FA, existing ChoosePassword only — no kit
-    // bottomsheet and no further biometrics / enter-password flow here.
+    // Forgot password: after 2FA, ChoosePassword only — no biometrics /
+    // enter-password further flow here.
     if (forgotPasswordFlowRef.current) {
       Logger.log('OAuthRehydration: forgot-password MFA → ChoosePassword');
       await navigateToPasswordlessChoosePassword();
@@ -773,9 +777,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     // Post-MFA device biometrics (Figma): separate from passkey MFA.
     // 1) Passkey / SMS / etc. = identity MFA
     // 2) This prompt = enable device unlock biometrics
-    //    Accept → existing password unlock (wallet needs a password today)
-    //    Reject → Figma Enter password ("Since Face ID isn't enabled…")
-    // Create password is ONLY the Forgot-password → ChoosePassword path.
+    //    Accept → existing global password unlock (rehydrate)
+    //    Reject → Enter password ("Since Face ID isn't enabled…")
     const verifiedViaPasskey = lastVerifiedMfaMethodRef.current === 'passkey';
     let authPreference: AuthData = {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -884,12 +887,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
     setPasswordlessUnlock(false);
     if (biometricsRejected) {
-      // Figma: Use password instead / cancel Face ID → Enter password.
+      // Figma: Face ID declined → Enter password (verify global password).
       setWalletRecoveryStep('enterPassword');
       return;
     }
-    // Biometrics accepted (or unavailable): existing MetaMask password unlock.
-    // Ideal Figma end state is Wallet; password is still required to unlock today.
+    // Biometrics accepted (or unavailable): existing global password unlock
+    // (unlockWallet → rehydrateSeedPhrase → fetchAllSecretData).
     setWalletRecoveryStep('password');
   }, [
     componentAuthenticationType,
@@ -1006,27 +1009,38 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       rememberHeldAal2(result.token);
       await continueAfterVerified();
     } catch (error) {
-      // Cancel / fail highest factor (e.g. passkey) → full-page "Verify it's you"
+      const code = getMfaErrorCode(error);
+      // OS passkey cancel, or back from the in-app passkey retry screen →
+      // full-page methods list. Passkey failures stay on retry until then.
+      if (code === 'flow_cancelled') {
+        Logger.log('OAuthRehydration: locked social MFA', {
+          status: 'fallback_verify',
+          code,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        setPasswordlessUnlock(false);
+        try {
+          const methods = await listActiveSocialLoginMethods();
+          if (methods.length === 0) {
+            setWalletRecoveryStep('password');
+            return;
+          }
+          setFallbackMethods(methods);
+          setWalletRecoveryStep('verify');
+        } catch (listError) {
+          Logger.log('OAuthRehydration: locked MFA list failed', {
+            code: getMfaErrorCode(listError),
+          });
+          setWalletRecoveryStep('password');
+        }
+        return;
+      }
       Logger.log('OAuthRehydration: locked social MFA', {
-        status: 'fallback_verify',
-        code: getMfaErrorCode(error),
+        status: 'failed',
+        code,
         message: error instanceof Error ? error.message : String(error),
       });
       setPasswordlessUnlock(false);
-      try {
-        const methods = await listActiveSocialLoginMethods();
-        if (methods.length === 0) {
-          setWalletRecoveryStep('password');
-          return;
-        }
-        setFallbackMethods(methods);
-        setWalletRecoveryStep('verify');
-      } catch (listError) {
-        Logger.log('OAuthRehydration: locked MFA list failed', {
-          code: getMfaErrorCode(listError),
-        });
-        setWalletRecoveryStep('password');
-      }
     } finally {
       setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
@@ -1104,7 +1118,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setLoading(true);
     setError(null);
     try {
-      await passwordlessRecovery.recover(
+      await PasswordlessRecoveryService.recover(
         password,
         async (vaultPassword, secrets) => {
           // Biometrics were already prompted right after MFA success.
@@ -1154,7 +1168,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
       setLoading(false);
     }
-  }, [finalLoading, password, passwordlessRecovery, unlockWallet]);
+  }, [finalLoading, password, unlockWallet]);
 
   const onRehydrateLogin = useCallback(async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
@@ -1191,8 +1205,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       // Prefer auth chosen right after MFA; otherwise password unlock then
       // post-unlock biometric upgrade (picker Password / lock-screen path).
-      // Enter-password (biometrics rejected) must always validate the typed
-      // password — never fall back to keychain biometrics.
+      // Enter password (Face ID declined): verify existing global password —
+      // unlockWallet → rehydrateSeedPhrase → fetchAllSecretData({ password }).
+      // Never fall back to keychain biometrics for this step.
       const postMfaAuth = postMfaAuthPreferenceRef.current;
       const authData: AuthData =
         walletRecoveryStep === 'enterPassword'
@@ -1661,7 +1676,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           isOffline={isRecoveryOffline}
           error={verifyError}
           onBack={handleUseOtherMethod}
-          onCantUseThese={handleUseOtherMethod}
           onSelectMethod={handleRecoveryMethodSelect}
         />
       );

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MFA recovery — setup, unlock, forgot password</title>
+    <style>
+      html,
+      body {
+        color-scheme: light only;
+        margin: 0;
+        background: #fff;
+        color: #111;
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+        line-height: 1.5;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 0.5rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 2.25rem 0 0.75rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e5e5;
+      }
+      p {
+        margin: 0.5rem 0 1rem;
+        color: #444;
+      }
+      .diagram {
+        border: 1px solid #d0d0d0;
+        border-radius: 10px;
+        padding: 1.25rem 1rem;
+        background: #fff;
+        overflow-x: auto;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+      }
+      .note {
+        font-size: 0.9rem;
+        color: #666;
+        background: #f7f7f7;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+      }
+      ul {
+        margin: 0.25rem 0 1rem;
+        padding-left: 1.25rem;
+        color: #333;
+      }
+      li {
+        margin: 0.35rem 0;
+      }
+      code {
+        font-size: 0.92em;
+      }
+      @media print {
+        h2 {
+          break-before: page;
+        }
+        h2:first-of-type {
+          break-before: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>MFA recovery flows</h1>
+
+      <h2>1) Setup — Recovery Secret when a 2FA factor is added</h2>
+      <p>
+        Money onboarding and Settings use the <strong>same</strong> flow. After
+        any factor is added, recovery is set up on Cubist.
+      </p>
+      <ul>
+        <li>
+          <strong>Passkey / social / SIWE:</strong> register those identifiers.
+        </li>
+        <li>
+          <strong>Email OTP / authenticator:</strong> link social + SIWE only
+          (no email/TOTP Cubist identifier).
+        </li>
+        <li>
+          Existing email OTP users (Telegram cohort) must re-verify.
+        </li>
+        <li>
+          Ready gate: sealed seedless <code>envelope</code> — factors alone are
+          not enough.
+        </li>
+      </ul>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+  A["2FA factor added<br/>Money onboarding or Settings"] --> B{"Factor type?"}
+  B -->|Passkey / social / SIWE| C["Register Cubist identifiers<br/>incl. that factor"]
+  B -->|Email OTP / authenticator| D["Link social + SIWE only"]
+  C --> E["Create Recovery Secret"]
+  D --> E
+  E --> F["Seal on Cubist / TOPRF<br/>envelope set"]
+  F --> G["Recovery ready"]
+
+  H{"envelope already set?"} -->|Yes| I["already_enabled"]
+  H -->|No| A
+        </pre>
+      </div>
+
+      <h2>2) Locked social login — MFA then password / biometrics</h2>
+      <p>
+        After social login (wallet locked): passkey first, then methods list
+        (Password, Authenticator, SMS per design; email only for Telegram).
+      </p>
+      <ul>
+        <li>
+          <strong>Biometrics available after rehydration:</strong> generate a
+          random local password behind biometrics, then store it in the
+          <strong>keychain</strong>. Never synced to global — the Recovery
+          Secret replaces the password for recover.
+          <strong>Next unlock:</strong> biometrics retrieves that local
+          password from the keychain (no social re-login required).
+        </li>
+        <li>
+          <strong>No biometrics / Face ID declined:</strong> user
+          <strong>verifies</strong> their existing <strong>global</strong>
+          password (verify, not create). If it matches →
+          <code>fetchAllSecretData({ password })</code>. No temporary local
+          password on this path.
+        </li>
+        <li>
+          Enter password validations match the existing Login screen.
+        </li>
+        <li>
+          <strong>Forgot password</strong> → global reset flow (§3). Checks
+          AAL2 first.
+        </li>
+      </ul>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+  A["Social login<br/>wallet locked"] --> B["MFA: passkey first"]
+  B -->|Cancel / fail| C["Verify it's you<br/>methods list"]
+  B -->|Success| D["MFA success<br/>hold AAL2"]
+  C -->|Passkey / Authenticator / SMS| D
+  C -->|Use password| E["Enter password<br/>verify existing global"]
+
+  D --> F{"Biometrics available<br/>after rehydration?"}
+  F -->|Yes| G["Generate random local password<br/>store in keychain<br/>never synced to global"]
+  G --> H["Unlock → Home"]
+  H --> N["Next unlock: biometrics<br/>→ local password from keychain"]
+
+  F -->|No / declined| E
+  E -->|Global password matches| I["fetchAllSecretData({ password })"]
+  I --> H
+  E -->|Forgot password?| J["Global reset flow<br/>§3"]
+        </pre>
+      </div>
+
+      <h2>3) Forgot password — global reset</h2>
+      <p>
+        From Enter password → Forgot password. AAL2 checked first; then MFA if
+        needed; Create password syncs <strong>local + global</strong>.
+      </p>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+  A["Forgot password"] --> B{"AAL2 still valid?"}
+  B -->|No| C["MFA verify"]
+  C --> D{"Verified?"}
+  B -->|Yes| E["Proceed"]
+  D -->|Yes| E
+  D -->|No| F["Retry / stay on verify"]
+
+  E --> G{"Recovery sealed?"}
+  G -->|No| H["Cannot recover"]
+  G -->|Yes| I["Prefetch Recovery Secret<br/>escrow passkey if needed"]
+  I --> J["Create password"]
+  J --> K["Set local + sync global"]
+  K --> L["Restore vault → Home"]
+        </pre>
+      </div>
+      <p class="note">
+        Open question: does the wallet need to be unlocked before a reset?
+        (follow up separately)
+      </p>
+
+      <h2>4) End-to-end</h2>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+  S["§1 Factor add → Cubist recovery setup"] --> U["§2 Locked MFA unlock"]
+  U -->|Biometrics| L1["Generate random local password<br/>store in keychain — not synced to global"]
+  U -->|No biometrics| L2["Global password matches<br/>→ fetchAllSecretData({ password })"]
+  L2 -->|Forgot| R["§3 Global reset<br/>Create password local+global"]
+  L1 --> W["Wallet"]
+  L2 --> W
+  R --> W
+  W --> N["Next unlock: biometrics<br/>→ local password from keychain"]
+
+        </pre>
+      </div>
+    </main>
+
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "base",
+        securityLevel: "loose",
+        themeVariables: {
+          darkMode: false,
+          background: "#ffffff",
+          primaryColor: "#e8f4fc",
+          primaryTextColor: "#111111",
+          primaryBorderColor: "#037dd6",
+          secondaryColor: "#fff4d6",
+          secondaryTextColor: "#111111",
+          secondaryBorderColor: "#c9a227",
+          tertiaryColor: "#f3f3f3",
+          tertiaryTextColor: "#111111",
+          tertiaryBorderColor: "#888888",
+          lineColor: "#333333",
+          textColor: "#111111",
+          mainBkg: "#e8f4fc",
+          nodeBkg: "#e8f4fc",
+          nodeBorder: "#037dd6",
+          clusterBkg: "#ffffff",
+          titleColor: "#111111",
+          edgeLabelBackground: "#ffffff",
+          fontFamily: "Inter, system-ui, sans-serif",
+          fontSize: "15px",
+        },
+        flowchart: {
+          curve: "basis",
+          htmlLabels: true,
+          useMaxWidth: true,
+          padding: 12,
+        },
+      });
+
+      await mermaid.run({ querySelector: ".mermaid" });
+    </script>
+  </body>
+</html>
