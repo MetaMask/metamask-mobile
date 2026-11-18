@@ -11,6 +11,7 @@ import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { hexToBigInt } from '../../../../../util/number/bigint';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
+import { selectAsset } from '../../../../../selectors/assets/assets-list';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -22,6 +23,11 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectMultichainBalances: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../../../selectors/assets/assets-list'),
+  selectAsset: jest.fn(),
 }));
 
 const MOCK_ADDRESS_1 = '0x0';
@@ -46,6 +52,8 @@ const mockSelectMultichainBalances =
   selectMultichainBalances as jest.MockedFunction<
     typeof selectMultichainBalances
   >;
+
+const mockSelectAsset = selectAsset as jest.MockedFunction<typeof selectAsset>;
 
 const initialState = {
   engine: {
@@ -156,6 +164,7 @@ describe('useBalance', () => {
     jest.clearAllMocks();
     mockSelectSelectedInternalAccountByScope.mockReset();
     mockSelectMultichainBalances.mockReset();
+    mockSelectAsset.mockReset();
   });
 
   it('returns default if not asset is provided', async () => {
@@ -166,6 +175,20 @@ describe('useBalance', () => {
     expect(result.current.balance).toBe(null);
     expect(result.current.balanceFiat).toBe(null);
     expect(result.current.balanceBN).toBe(null);
+  });
+
+  it('does not read the wallet fiat value for EVM assets', async () => {
+    renderHookWithProvider(
+      () =>
+        useBalance({
+          address: NATIVE_ADDRESS,
+          chainId: 'eip155:1',
+          decimals: 18,
+        }),
+      { state: initialState },
+    );
+
+    expect(mockSelectAsset).not.toHaveBeenCalled();
   });
 
   it('returns native address balances', async () => {
@@ -255,6 +278,9 @@ describe('useBalance', () => {
   });
 
   it('returns non-evm token balances', async () => {
+    mockSelectAsset.mockReturnValue({ balanceFiat: '$825.00' } as ReturnType<
+      typeof selectAsset
+    >);
     mockSelectSelectedInternalAccountByScope.mockReturnValue((scope) => {
       if (scope === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
         return {
@@ -324,7 +350,11 @@ describe('useBalance', () => {
     );
 
     expect(result.current.balance).toBe('5.5 SOL');
-    expect(result.current.balanceFiat).toBe(undefined);
+    expect(result.current.balanceFiat).toBe('$825.00');
+    expect(mockSelectAsset).toHaveBeenCalledWith(expect.anything(), {
+      address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
     // 5.5 * 10^8 (decimals) in minimal units, so it can be compared against the
     // entered amount which is also converted via toTokenMinimalUnit.
     expect(result.current.balanceBN?.toString()).toBe('550000000');
