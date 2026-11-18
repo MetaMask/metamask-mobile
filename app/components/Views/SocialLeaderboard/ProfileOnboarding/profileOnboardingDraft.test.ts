@@ -10,6 +10,7 @@ import {
   isUneditedXUsername,
   normalizeUsername,
   onboardingProfileFingerprint,
+  withEligibleLinkedAccount,
   type XOnboardingIdentity,
 } from './profileOnboardingDraft';
 
@@ -135,6 +136,79 @@ describe('profileOnboardingDraft', () => {
         linkedAccountAddress: null,
       }),
     ).toBeNull();
+  });
+
+  it('drops a linked account that is no longer eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'kept', address: '0xkept' },
+    ]);
+
+    expect(next.linkedAccountId).toBeNull();
+    expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('leaves a cleared selection empty when another account is eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+    const accounts = [{ id: 'kept', address: '0xkept' }];
+
+    const cleared = withEligibleLinkedAccount(draft, accounts);
+    const again = withEligibleLinkedAccount(cleared, accounts);
+
+    expect(again.linkedAccountId).toBeNull();
+    expect(again.linkedAccountAddress).toBeNull();
+    expect(again).toBe(cleared);
+  });
+
+  it('clears the linked account when the eligible list is empty', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+
+    const next = withEligibleLinkedAccount(draft, []);
+
+    expect(next.linkedAccountId).toBeNull();
+    expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('keeps a linked account that is still eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'kept',
+      linkedAccountAddress: '0xkept',
+    };
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'kept', address: '0xkept' },
+      { id: 'other', address: '0xother' },
+    ]);
+
+    expect(next).toBe(draft);
+  });
+
+  it('selects the first account when the draft has none', () => {
+    const draft = createInitialOnboardingDraft();
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'first', address: '0xfirst' },
+      { id: 'second', address: '0xsecond' },
+    ]);
+
+    expect(next.linkedAccountId).toBe('first');
+    expect(next.linkedAccountAddress).toBe('0xfirst');
   });
 
   it('blocks continue until the handle and display name are filled', () => {
