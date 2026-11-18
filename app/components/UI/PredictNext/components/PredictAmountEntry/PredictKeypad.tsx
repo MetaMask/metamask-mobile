@@ -31,6 +31,7 @@ interface PredictKeypadProps {
    * (the buy sheet and the Withdraw screen); otherwise they sit on a
    * transparent tile. */
   hasFilledActionKeys?: boolean;
+  disabled?: boolean;
 }
 
 interface KeyProps {
@@ -38,6 +39,7 @@ interface KeyProps {
   onPress: () => void;
   /** The period and delete keys sit on a transparent tile, like Base/Keypad. */
   isPlain?: boolean;
+  disabled?: boolean;
   accessibilityLabel?: string;
   children: React.ReactNode;
 }
@@ -46,6 +48,7 @@ const Key = ({
   testID,
   onPress,
   isPlain = false,
+  disabled = false,
   accessibilityLabel,
   children,
 }: KeyProps) => {
@@ -56,10 +59,13 @@ const Key = ({
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      accessibilityState={{ disabled }}
       style={({ pressed }) =>
         tw.style(
           'h-12 flex-1 items-center justify-center rounded-xl',
           !isPlain && (pressed ? 'bg-pressed' : 'bg-muted'),
+          disabled && 'opacity-50',
         )
       }
     >
@@ -80,6 +86,7 @@ export const PredictKeypad = ({
   onDelete,
   showsDecimalKey = true,
   hasFilledActionKeys = false,
+  disabled = false,
 }: PredictKeypadProps) => (
   <Box testID={PredictAmountEntryTestIds.KEYPAD} twClassName="gap-3 px-4 py-4">
     {DIGIT_ROWS.map((row) => (
@@ -89,6 +96,7 @@ export const PredictKeypad = ({
             key={digit}
             testID={PredictAmountEntryTestIds.KEYPAD_KEY(digit)}
             onPress={() => onKeyPress(digit)}
+            disabled={disabled}
           >
             <Text
               variant={TextVariant.DisplayMd}
@@ -106,6 +114,7 @@ export const PredictKeypad = ({
           isPlain={!hasFilledActionKeys}
           testID={PredictAmountEntryTestIds.KEYPAD_KEY('.')}
           onPress={() => onKeyPress('.')}
+          disabled={disabled}
         >
           <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
             .
@@ -118,6 +127,7 @@ export const PredictKeypad = ({
       <Key
         testID={PredictAmountEntryTestIds.KEYPAD_KEY('0')}
         onPress={() => onKeyPress('0')}
+        disabled={disabled}
       >
         <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
           0
@@ -127,6 +137,7 @@ export const PredictKeypad = ({
         isPlain={!hasFilledActionKeys}
         testID={PredictAmountEntryTestIds.KEYPAD_KEY('delete')}
         onPress={onDelete}
+        disabled={disabled}
         accessibilityLabel={strings('predict_next.amount_entry.delete')}
       >
         <Icon name={IconName.Backspace} size={IconSize.Xl} />

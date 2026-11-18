@@ -4159,14 +4159,21 @@
       "continue": "Continue",
       "confirm": "Confirm",
       "back": "Back",
-      "submitting": "Submitting...",
-      "outcome_unknown": "We couldn't confirm this withdrawal. Retry to recover the same withdrawal, not start another.",
+      "submitting": "Submitting your withdrawal…",
+      "outcome_unknown": "We couldn't confirm this withdrawal. Check its status to recover the same withdrawal, not start another.",
       "retry": "Check withdrawal",
       "amount_row": "Amount",
       "network_row": "Network",
       "destination_row": "To",
-      "network_base": "Base",
-      "destination_truncated": "{{start}}…{{end}}",
+      "copy_destination": "Copy destination address",
+      "fee_row": "Fee",
+      "no_fee": "No fee",
+      "expires_at": "Quote expires at {{time}}",
+      "phase": {
+        "input": "Enter an amount",
+        "confirm": "Review withdrawal",
+        "status": "Withdrawal status"
+      },
       "full_balance": "Full available balance",
       "sandbox_notice": {
         "title": "Sandbox wallet",
@@ -4189,12 +4196,13 @@
         },
         "failed": {
           "title": "Withdrawal failed",
-          "body": "Nothing left your balance. Try again."
+          "body": "The withdrawal couldn't be completed. Funds may have left your balance. Check your balance and destination wallet before trying again."
         },
         "returned": {
           "title": "Withdrawal returned",
           "body": "The funds came back to your balance."
         },
+        "check_balance": "Check balance",
         "done": "Done"
       },
       "rejection": {

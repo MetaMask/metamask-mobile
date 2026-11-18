@@ -6,7 +6,8 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import { AccessibilityInfo, AppState } from 'react-native';
+import { AccessibilityInfo, AppState, BackHandler } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 
@@ -346,19 +347,37 @@ describe('PredictWithdrawFlow', () => {
 
     expect(
       await screen.findByTestId(PredictWithdrawFlowTestIds.DESTINATION),
-    ).toHaveTextContent('0xcDe7…9B9c');
+    ).toHaveTextContent(DESTINATION_ADDRESS);
     expect(
       screen.getByTestId(PredictWithdrawFlowTestIds.SANDBOX_NOTICE),
     ).toBeOnTheScreen();
     expect(
       within(
         screen.getByTestId(PredictWithdrawFlowTestIds.NETWORK_VALUE),
-      ).getByText('Base'),
+      ).getByText('base'),
     ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PredictWithdrawFlowTestIds.COPY_DESTINATION),
+    );
+    expect(Clipboard.setString).toHaveBeenCalledWith(DESTINATION_ADDRESS);
+    expect(
+      within(screen.getByTestId(PredictWithdrawFlowTestIds.FEE)).getByText(
+        'No fee',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.EXPIRY),
+    ).toHaveTextContent(/Quote expires at/u);
     // There is no edit affordance for the destination.
     expect(
       screen.queryByTestId(PredictAmountEntryTestIds.DISPLAY),
     ).not.toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM_BACK),
+    );
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE),
+    ).toBeOnTheScreen();
   });
 
   it('masks the available balance, confirmed amount, and destination in privacy mode', async () => {
@@ -382,7 +401,7 @@ describe('PredictWithdrawFlow', () => {
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
 
     expect(screen.queryByText('$5.00')).not.toBeOnTheScreen();
-    expect(screen.queryByText('0xcDe7…9B9c')).not.toBeOnTheScreen();
+    expect(screen.queryByText(DESTINATION_ADDRESS)).not.toBeOnTheScreen();
   });
 
   it('shows the available balance in plain text when privacy mode is off', async () => {
@@ -414,9 +433,6 @@ describe('PredictWithdrawFlow', () => {
         strings('predict_next.withdraw.balance_unavailable'),
       ),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('predict_next.withdraw.zero_balance')),
-    ).not.toBeOnTheScreen();
   });
 
   it('disables Continue and shows the offline banner with no connection', async () => {
@@ -429,6 +445,12 @@ describe('PredictWithdrawFlow', () => {
     expect(
       screen.getByTestId(PredictWithdrawFlowTestIds.OFFLINE_BANNER),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictAmountEntryTestIds.KEYPAD_KEY('5')),
+    ).toBeDisabled();
+    expect(
+      screen.getByTestId(PredictAmountEntryTestIds.KEYPAD_KEY('delete')),
+    ).toHaveProp('accessibilityState', { disabled: true });
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     await act(async () => undefined);
@@ -660,24 +682,13 @@ describe('PredictWithdrawFlow', () => {
     expect(previewBodies()).toEqual([{ amount: '5.00' }]);
   });
 
-  it('retries the same approved quote after a transient commit failure', async () => {
-    let commitCount = 0;
+  it('offers a fresh quote when the recovery read finds no operation', async () => {
     const observe = jest.fn(() => ({
       status: 404,
       body: { code: 'operation_not_found' },
     }));
     stubWithdrawals({
-      commit: () =>
-        commitCount++ === 0
-          ? { status: 503, body: { code: 'venue_unavailable' } }
-          : {
-              status: 201,
-              body: receiptOf({
-                status: 'settled',
-                withdrawnAmount: '5.00',
-                resolvedAt: new Date().toISOString(),
-              }),
-            },
+      commit: () => ({ status: 503, body: { code: 'venue_unavailable' } }),
       observe,
     });
 
@@ -689,26 +700,14 @@ describe('PredictWithdrawFlow', () => {
 
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
 
+    // Nothing was relayed, so the amount is kept and a new quote is required
+    // instead of trapping the person in an outcome-unknown screen.
     expect(
-      await screen.findByTestId(PredictWithdrawFlowTestIds.SUBMITTING),
-    ).toHaveTextContent(strings('predict_next.withdraw.outcome_unknown'));
-    expect(
-      screen.queryByTestId(PredictWithdrawFlowTestIds.CONFIRM),
-    ).not.toBeOnTheScreen();
-    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+      await screen.findByTestId(PredictWithdrawFlowTestIds.CONTINUE),
+    ).toBeOnTheScreen();
     expect(observe).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId(PredictWithdrawFlowTestIds.BACK)).toBeDisabled();
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.BACK));
-    expect(
-      screen.queryByTestId(PredictWithdrawFlowTestIds.CONTINUE),
-    ).not.toBeOnTheScreen();
-
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.RETRY));
-
-    expect(
-      await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
-    ).toHaveTextContent('$5.00');
-    expect(commitPreviewIds()).toEqual([PREVIEW_ID, PREVIEW_ID]);
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID]);
+    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
   });
 
   it('recovers an accepted withdrawal after the commit response is lost', async () => {
@@ -747,6 +746,8 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('retains the submitted preview while both commit and recovery are unavailable', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    const hardwareBack = jest.spyOn(BackHandler, 'addEventListener');
     stubWithdrawals({
       commit: () => {
         throw new TypeError('Connection lost');
@@ -768,6 +769,19 @@ describe('PredictWithdrawFlow', () => {
       await screen.findByText(strings('predict_next.withdraw.outcome_unknown')),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(PredictWithdrawFlowTestIds.BACK)).toBeDisabled();
+    const backListener = hardwareBack.mock.calls
+      .filter(([event]) => event === 'hardwareBackPress')
+      .slice(-1)[0]?.[1];
+    expect(backListener).toBeDefined();
+    act(() => {
+      backListener?.();
+    });
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.SCREEN),
+    ).toBeOnTheScreen();
+    expect(announce).toHaveBeenCalledWith(
+      strings('predict_next.withdraw.outcome_unknown'),
+    );
     expect(
       screen.queryByTestId(PredictWithdrawFlowTestIds.DONE),
     ).not.toBeOnTheScreen();
@@ -776,7 +790,7 @@ describe('PredictWithdrawFlow', () => {
     expect(
       await screen.findByText(strings('predict_next.withdraw.outcome_unknown')),
     ).toBeOnTheScreen();
-    expect(commitPreviewIds()).toEqual([PREVIEW_ID, PREVIEW_ID]);
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID]);
     expect(previewBodies()).toEqual([{ amount: '5.00' }]);
   });
 
@@ -835,6 +849,128 @@ describe('PredictWithdrawFlow', () => {
     await waitFor(() => expect(observeCount()).toBe(readsBeforeCheck + 1));
     // It reads the Preview already on the receipt; it never mints another.
     expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+  });
+
+  it.each(['failed', 'returned'] as const)(
+    'shows a %s receipt without promising a retry',
+    async (status) => {
+      stubWithdrawals({
+        commit: () => ({
+          status: 201,
+          body: receiptOf({
+            status,
+            withdrawnAmount: '5.00',
+            resolvedAt: new Date().toISOString(),
+          }),
+        }),
+      });
+      renderPredictNext();
+      await openWithdrawFlow();
+      typeAmount('5.00');
+      fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+      fireEvent.press(
+        await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+      );
+      expect(
+        await screen.findByText(
+          strings(`predict_next.withdraw.status.${status}.body`),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PredictWithdrawFlowTestIds.RETRY),
+      ).not.toBeOnTheScreen();
+      if (status === 'failed') {
+        expect(
+          screen.getByTestId(PredictWithdrawFlowTestIds.DONE),
+        ).toHaveTextContent('Check balance');
+      }
+      fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.DONE));
+      expect(
+        await screen.findByTestId(PredictHomeTestIds.WITHDRAW),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps the setup instruction when the venue account is not enabled', async () => {
+    stubWithdrawals({
+      preview: () => ({
+        status: 403,
+        body: { code: 'venue_account_not_enabled' },
+      }),
+    });
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.ERROR),
+    ).toHaveTextContent(
+      strings('predict_next.withdraw.error.venue_account_not_enabled'),
+    );
+    expect(commitBodies()).toEqual([]);
+  });
+
+  it.each(['AbortError', 'TimeoutError'])(
+    'recovers a %s commit by observing the same preview',
+    async (name) => {
+      const timeout = new Error('Commit deadline reached');
+      timeout.name = name;
+      const observe = jest.fn(() => {
+        throw new TypeError('Still offline');
+      });
+      stubWithdrawals({
+        commit: () => {
+          throw timeout;
+        },
+        observe,
+      });
+      renderPredictNext();
+      await openWithdrawFlow();
+      typeAmount('5.00');
+      fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+      fireEvent.press(
+        await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+      );
+      expect(
+        await screen.findByText(
+          strings('predict_next.withdraw.outcome_unknown'),
+        ),
+      ).toBeOnTheScreen();
+      expect(observe).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(PredictWithdrawFlowTestIds.CONTINUE),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  it('retains an unauthenticated commit for observation, never a second POST', async () => {
+    const observe = jest.fn(() => ({
+      body: receiptOf({
+        status: 'settled',
+        withdrawnAmount: '5.00',
+        resolvedAt: new Date().toISOString(),
+      }),
+    }));
+    stubWithdrawals({
+      commit: () => ({ status: 401, body: { code: 'unauthenticated' } }),
+      observe,
+    });
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    fireEvent.press(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    );
+    expect(
+      await screen.findByText(strings('predict_next.withdraw.outcome_unknown')),
+    ).toBeOnTheScreen();
+    expect(observe).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.RETRY));
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
+    ).toHaveTextContent('$5.00');
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID]);
   });
 
   it('reports an unavailable venue on the preview', async () => {

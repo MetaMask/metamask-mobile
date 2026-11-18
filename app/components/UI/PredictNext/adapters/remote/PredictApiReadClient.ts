@@ -528,16 +528,28 @@ export class PredictApiReadClient implements PredictApiReadTransport {
    * executable detail comes from the stored, expiring Preview the
    * authenticated profile owns.
    */
-  commitWithdraw(
+  async commitWithdraw(
     venueId: PredictVenueId,
     previewId: string,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#postAuthenticated(
-      ['v1', 'venues', venueId, 'withdrawals', previewId, 'commit'],
-      {},
-      options,
-    );
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    const deadline = setTimeout(abort, 30_000);
+    options?.signal?.addEventListener('abort', abort);
+    if (options?.signal?.aborted) {
+      abort();
+    }
+    try {
+      return await this.#postAuthenticated(
+        ['v1', 'venues', venueId, 'withdrawals', previewId, 'commit'],
+        {},
+        { ...options, signal: controller.signal },
+      );
+    } finally {
+      clearTimeout(deadline);
+      options?.signal?.removeEventListener('abort', abort);
+    }
   }
 
   /**
@@ -584,16 +596,28 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   /** The withdrawal's receipt. Never submits: a `pending` or `processing`
    * operation is resolved from the backend's own venue reads. */
-  observeWithdraw(
+  async observeWithdraw(
     venueId: PredictVenueId,
     previewId: string,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(
-      ['v1', 'venues', venueId, 'withdrawals', previewId],
-      undefined,
-      options,
-    );
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    const deadline = setTimeout(abort, 15_000);
+    options?.signal?.addEventListener('abort', abort);
+    if (options?.signal?.aborted) {
+      abort();
+    }
+    try {
+      return await this.#get(
+        ['v1', 'venues', venueId, 'withdrawals', previewId],
+        undefined,
+        { ...options, signal: controller.signal },
+      );
+    } finally {
+      clearTimeout(deadline);
+      options?.signal?.removeEventListener('abort', abort);
+    }
   }
 
   /** The Predict User's deposits that are not final yet, oldest first. */

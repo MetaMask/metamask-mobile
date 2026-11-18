@@ -1,14 +1,23 @@
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
+  Icon,
+  IconName,
+  IconSize,
   KeyValueRow,
   SensitiveText,
   SensitiveTextLength,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
-import { strings } from '../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import type { PredictWithdrawPreview } from '../../../types';
 import { formatUsd } from '../../../utils/formatUsd';
 import { PredictWithdrawFlowTestIds } from './PredictWithdrawFlow.testIds';
@@ -27,16 +36,6 @@ export const withdrawAmountValue = (preview: PredictWithdrawPreview): string =>
   preview.mode === 'sweep_all' || preview.requestedAmount === undefined
     ? strings('predict_next.withdraw.full_balance')
     : formatUsd(preview.requestedAmount);
-
-/** `0xcDe7…9B9c`: enough of a wallet address to recognize it, and not enough
- * to read it. The destination is display-only; there is nothing to edit. */
-export const truncateDestination = (address: string): string =>
-  address.length <= 12
-    ? address
-    : strings('predict_next.withdraw.destination_truncated', {
-        start: address.slice(0, 6),
-        end: address.slice(-4),
-      });
 
 /**
  * Confirmation step: exactly what the Commit will move, and where. The
@@ -64,22 +63,53 @@ export const WithdrawConfirmStep = ({
       />
       <KeyValueRow
         keyLabel={strings('predict_next.withdraw.network_row')}
-        value={strings('predict_next.withdraw.network_base')}
+        value={preview.destination.network}
         testID={PredictWithdrawFlowTestIds.NETWORK_VALUE}
       />
       <KeyValueRow
         keyLabel={strings('predict_next.withdraw.destination_row')}
         value={
-          <SensitiveText
-            isHidden={isPrivacyMode}
-            length={SensitiveTextLength.Medium}
-            testID={PredictWithdrawFlowTestIds.DESTINATION}
-          >
-            {truncateDestination(preview.destination.address)}
-          </SensitiveText>
+          <Box twClassName="flex-1 flex-row items-center gap-2">
+            <SensitiveText
+              isHidden={isPrivacyMode}
+              length={SensitiveTextLength.Medium}
+              twClassName="flex-1"
+              testID={PredictWithdrawFlowTestIds.DESTINATION}
+            >
+              {preview.destination.address}
+            </SensitiveText>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={strings(
+                'predict_next.withdraw.copy_destination',
+              )}
+              onPress={() => Clipboard.setString(preview.destination.address)}
+              testID={PredictWithdrawFlowTestIds.COPY_DESTINATION}
+            >
+              <Icon name={IconName.Copy} size={IconSize.Sm} />
+            </TouchableOpacity>
+          </Box>
         }
       />
+      {/* Withdrawal previews have no fee field. This flow charges no fee. */}
+      <KeyValueRow
+        keyLabel={strings('predict_next.withdraw.fee_row')}
+        value={strings('predict_next.withdraw.no_fee')}
+        testID={PredictWithdrawFlowTestIds.FEE}
+      />
     </Box>
+    <Text
+      variant={TextVariant.BodyXs}
+      color={TextColor.TextAlternative}
+      testID={PredictWithdrawFlowTestIds.EXPIRY}
+    >
+      {strings('predict_next.withdraw.expires_at', {
+        time: getIntlDateTimeFormatter(I18n.locale, {
+          hour: 'numeric',
+          minute: '2-digit',
+        }).format(new Date(preview.expiresAt)),
+      })}
+    </Text>
     {preview.destination.source === 'configured_demo' ? (
       <BannerAlert
         severity={BannerAlertSeverity.Info}
