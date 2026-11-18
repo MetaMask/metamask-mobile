@@ -1,3 +1,5 @@
+import type { HardwareTier, LatencyThresholds } from './types';
+
 export const BYTES_PER_GIB = 1024 ** 3;
 
 // iOS and iPadOS. Comparisons are `<=` because reported RAM is close to nominal.
@@ -13,3 +15,20 @@ export const ANDROID_HARDWARE_THRESHOLDS = {
   MID_BELOW_BYTES: 5 * BYTES_PER_GIB, // < 5 GiB = MID
   // ≥ 5 GiB = HIGH
 } as const;
+
+// JS-measured fetch duration includes JS-thread wait, so each hardware tier
+// gets its own cutoffs: `hungMs` near the well-connected p99, `slowMs` near p90.
+// Production `http.client` spans, 90 days to 2026-11-10, by `device.class`:
+// https://metamask.sentry.io/explore/traces/?query=span.op%3Ahttp.client+environment%3Aproduction&project=2299799&aggregateField=%7B%22groupBy%22%3A%22device.class%22%7D&mode=aggregate&statsPeriod=90d&table=span
+// 2500 ms is the HIGH median only. MID is 5500 ms. LOW is 12500 ms.
+// There is no single ~3 s cutoff.
+export const LATENCY_THRESHOLDS: Record<HardwareTier, LatencyThresholds> = {
+  HIGH: { hungMs: 8000, slowMs: 2500 },
+  MID: { hungMs: 15000, slowMs: 5500 },
+  LOW: { hungMs: 30000, slowMs: 12500 },
+};
+
+export const LATENCY_SAMPLE_SIZE = 5;
+export const LATENCY_MIN_SAMPLES = 3;
+export const LATENCY_HUNG_TO_ENTER = 2;
+export const LATENCY_GOOD_TO_EXIT = 3;
