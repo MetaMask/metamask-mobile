@@ -759,15 +759,13 @@ describe('useQuickBuyQuotes', () => {
       ),
     );
 
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
     });
 
-    await waitFor(() =>
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
-        expect.objectContaining({ is_copy_trade: true }),
-      ),
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
+      expect.objectContaining({ is_copy_trade: true }),
     );
   });
 
