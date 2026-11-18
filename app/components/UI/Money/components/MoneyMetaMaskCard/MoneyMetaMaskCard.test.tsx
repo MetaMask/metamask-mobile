@@ -720,6 +720,9 @@ describe('MoneyMetaMaskCard', () => {
       screen.getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_CARD_ART),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_PROMPT),
+    ).toHaveTextContent(strings('money.metamask_card.sign_in_prompt'));
+    expect(
       screen.queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
     ).not.toBeOnTheScreen();
     expect(

@@ -21,5 +21,6 @@ export const MoneyMetaMaskCardTestIds = {
   SETUP_SPINNER: 'money-mm-card-setup-spinner',
   SIGN_IN_CONTAINER: 'money-mm-card-sign-in-container',
   SIGN_IN_CARD_ART: 'money-mm-card-sign-in-card-art',
+  SIGN_IN_PROMPT: 'money-mm-card-sign-in-prompt',
   SIGN_IN_BUTTON: 'money-mm-card-sign-in-button',
 } as const;

@@ -377,6 +377,15 @@ const SignInContent = () => (
       <Box testID={MoneyMetaMaskCardTestIds.SIGN_IN_CARD_ART}>
         <MoneyCardTiltAnimation isMetalCard={false} />
       </Box>
+      <Box twClassName="gap-1 flex-1">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          testID={MoneyMetaMaskCardTestIds.SIGN_IN_PROMPT}
+        >
+          {strings('money.metamask_card.sign_in_prompt')}
+        </Text>
+      </Box>
     </Box>
   </Box>
 );
