@@ -180,6 +180,7 @@ export const useMoneyMfa = () => {
         methods: MONEY_MFA_METHODS,
         verifyWith: MONEY_MFA_METHODS,
         maxSessionAgeMs: 0,
+        verifyOnly: true,
         reason: getTurnOffReason(),
       });
     } catch {

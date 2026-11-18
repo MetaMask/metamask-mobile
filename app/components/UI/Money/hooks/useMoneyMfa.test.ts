@@ -517,13 +517,14 @@ describe('useMoneyMfa', () => {
         methods: ['passkey', 'totp'],
         verifyWith: ['passkey', 'totp'],
         maxSessionAgeMs: 0,
+        verifyOnly: true,
         reason: expect.objectContaining({ operation: 'money.mfa.turnOff' }),
       });
       expect(result.current.status).toBe('off');
       expectToast('money.mfa.toast_off');
     });
 
-    it('still asks for verification when no credentials are loaded', async () => {
+    it('still asks for verification without setting anything up when no credentials are loaded', async () => {
       const { result } = arrange({ credentials: [] });
 
       await act(async () => {
@@ -535,6 +536,7 @@ describe('useMoneyMfa', () => {
           methods: ['passkey', 'totp'],
           verifyWith: ['passkey', 'totp'],
           maxSessionAgeMs: 0,
+          verifyOnly: true,
         }),
       );
     });
