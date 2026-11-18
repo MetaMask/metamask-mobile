@@ -111,7 +111,7 @@ const createFakeController = (initialCredentials: EnrolledCredential[]) => {
             type,
             flowId: `verify-${flowCount}`,
             expiresAt: NOW,
-            publicKey: {} as never,
+            publicKey: { challenge: 'AAAA' } as never,
           }
         : { type, flowId: `verify-${flowCount}`, expiresAt: NOW };
     }),
@@ -960,6 +960,40 @@ describe('createMfaFlow', () => {
       await act(flow, { type: 'continue' });
       expect(passkeyAdapter.get).toHaveBeenCalledTimes(2);
       await expect(flow.result).resolves.toBeDefined();
+    });
+
+    (
+      [
+        [
+          'an escrow login',
+          Buffer.from('MetaMask escrow login:0123').toString('base64url'),
+        ],
+        ['an unreadable', '%%%'],
+      ] as const
+    ).forEach(([label, challenge]) => {
+      it(`refuses to sign ${label} challenge`, async () => {
+        passkeyAdapter.get.mockClear();
+        const fake = createFakeController([passkey]);
+        fake.controller.beginCredentialVerification.mockResolvedValueOnce({
+          type: 'passkey',
+          flowId: 'verify-escrow',
+          expiresAt: NOW,
+          publicKey: { challenge } as never,
+        });
+        await startFlow(
+          {
+            kind: 'verifyOrEnroll',
+            methods: ['passkey'],
+            verifyWith: 'passkey',
+          },
+          fake.controller,
+        );
+
+        expect(passkeyAdapter.get).not.toHaveBeenCalled();
+        expect(
+          fake.controller.completeCredentialVerification,
+        ).not.toHaveBeenCalled();
+      });
     });
   });
 

@@ -1,13 +1,13 @@
 import { bytesToBase64 } from '@metamask/utils';
-import type {
-  Identifier,
-  KeyBoundIdentifierLogin,
-  KeyBoundIdentifierTokenRequest,
-  RecoveryIdentifierAuthProvider,
+import {
+  getEscrowPasskeyChallenge,
+  type Identifier,
+  type KeyBoundIdentifierLogin,
+  type KeyBoundIdentifierTokenRequest,
+  type RecoveryIdentifierAuthProvider,
 } from '@metamask/mfa-recovery-controller';
 import type { PasskeyAdapter } from '../../../../../util/identity/mfa/engine/types';
 import { MfaRecoveryControllerError } from '../errors';
-import { keyBoundDigest } from './key-bound-nonce';
 
 /** Runs one platform passkey assertion ceremony. */
 export type PasskeyAssertionGetter = PasskeyAdapter['get'];
@@ -22,7 +22,8 @@ function base64Url(bytes: Uint8Array): string {
 /**
  * Proves passkey identifiers with the platform passkey sheet. The assertion is
  * made for the RP ID and credential the identifier was enrolled with, and the
- * challenge binds the proof key and request hash, as the escrow requires.
+ * challenge is the escrow's prefixed login challenge, which MFA verification
+ * refuses to sign.
  */
 export class PlatformPasskeyIdentifierAuthProvider
   implements RecoveryIdentifierAuthProvider
@@ -37,9 +38,7 @@ export class PlatformPasskeyIdentifierAuthProvider
     params: KeyBoundIdentifierTokenRequest,
   ): Promise<KeyBoundIdentifierLogin> {
     const { rpId, credentialId } = readPasskeyVerifier(params.identifier);
-    const challenge = base64Url(
-      await keyBoundDigest(params.proofPublicKey, params.requestHash),
-    );
+    const challenge = base64Url(await getEscrowPasskeyChallenge(params));
     const assertion = await this.#get({
       challenge,
       rpId,
@@ -51,6 +50,7 @@ export class PlatformPasskeyIdentifierAuthProvider
         identifier: params.identifier,
         proofPublicKey: params.proofPublicKey,
         requestHash: params.requestHash,
+        notAfter: params.notAfter,
         providerAssertion: { id: assertion.id, response: assertion.response },
       },
     };
