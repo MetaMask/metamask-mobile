@@ -676,16 +676,9 @@ export function getNavIntegration(): ReturnType<
  */
 function getRemoteTraceSampleRate(name: string): number | undefined {
   try {
-    const state = (store as ReduxStore | undefined)?.getState();
-    if (!state) {
-      return undefined;
-    }
-    const { sentry } = selectRemoteFeatureFlags(state) as {
+    const { sentry } = selectRemoteFeatureFlags(store.getState()) as {
       sentry?: {
-        transactionSampleRates?: Record<
-          string,
-          Partial<Record<typeof Platform.OS, unknown>>
-        >;
+        transactionSampleRates?: Record<string, Record<string, unknown>>;
       };
     };
     const rate = sentry?.transactionSampleRates?.[name]?.[Platform.OS];
