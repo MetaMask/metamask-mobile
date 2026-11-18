@@ -21,15 +21,12 @@ jest.mock('../../../../redux', () => ({
   },
 }));
 jest.mock('../../../../NavigationService');
-const mockFindLinkedAccountAddress = jest.fn();
 jest.mock('../../../../Engine', () => ({
   setSelectedAddress: jest.fn(),
-  context: {
-    CardController: {
-      findLinkedAccountAddress: (...args: unknown[]) =>
-        mockFindLinkedAccountAddress(...args),
-    },
-  },
+}));
+const mockSwitchToLinkedCardAccount = jest.fn();
+jest.mock('../switchToLinkedCardAccount', () => ({
+  switchToLinkedCardAccount: () => mockSwitchToLinkedCardAccount(),
 }));
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/cardController');
@@ -50,13 +47,13 @@ describe('handleCardHome', () => {
   const mockDevLogger = DevLogger.log as jest.Mock;
   const mockLoggerError = Logger.error as jest.Mock;
 
-  const mockLinkedAddress = '0x1234567890abcdef1234567890abcdef12345678';
   const mockInternalAccountAddress =
     '0xabcdef1234567890abcdef1234567890abcdef12';
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockSwitchToLinkedCardAccount.mockResolvedValue(undefined);
 
     (ReduxService.store.getState as jest.Mock) = mockGetState;
     mockGetState.mockReturnValue({});
@@ -67,7 +64,6 @@ describe('handleCardHome', () => {
 
     (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(false);
     (selectHasCard as unknown as jest.Mock).mockReturnValue(false);
-    mockFindLinkedAccountAddress.mockResolvedValue(mockLinkedAddress);
     (selectInternalAccounts as unknown as jest.Mock).mockReturnValue([
       { address: mockInternalAccountAddress },
     ]);
@@ -95,7 +91,7 @@ describe('handleCardHome', () => {
           screen: Routes.CARD.HOME,
           params: { screen: Routes.CARD.HOME },
         });
-        expect(mockFindLinkedAccountAddress).not.toHaveBeenCalled();
+        expect(mockSwitchToLinkedCardAccount).not.toHaveBeenCalled();
         expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
       },
     );
@@ -119,21 +115,7 @@ describe('handleCardHome', () => {
       await flushMicrotasks();
       jest.runAllTimers();
 
-      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(mockLinkedAddress);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: { screen: Routes.CARD.AUTHENTICATION },
-      });
-    });
-
-    it('stays on the current account when no account matches the link', async () => {
-      mockFindLinkedAccountAddress.mockResolvedValue(null);
-
-      handleCardHome();
-      await flushMicrotasks();
-      jest.runAllTimers();
-
-      expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
+      expect(mockSwitchToLinkedCardAccount).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
         params: { screen: Routes.CARD.AUTHENTICATION },
@@ -156,7 +138,7 @@ describe('handleCardHome', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.WELCOME,
       });
-      expect(mockFindLinkedAccountAddress).not.toHaveBeenCalled();
+      expect(mockSwitchToLinkedCardAccount).not.toHaveBeenCalled();
       expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
     });
 
@@ -264,32 +246,6 @@ describe('handleCardHome', () => {
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.WELCOME,
-        });
-      });
-    });
-
-    describe('when the linked-account switch fails', () => {
-      const switchError = new Error('Account switch failed');
-
-      beforeEach(() => {
-        (selectHasCard as unknown as jest.Mock).mockReturnValue(true);
-        (Engine.setSelectedAddress as jest.Mock).mockImplementation(() => {
-          throw switchError;
-        });
-      });
-
-      it('logs the error and still navigates to Card login', async () => {
-        handleCardHome();
-        await flushMicrotasks();
-        jest.runAllTimers();
-
-        expect(mockLoggerError).toHaveBeenCalledWith(
-          switchError,
-          '[switchToLinkedCardAccount] Failed to switch to linked card account',
-        );
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: { screen: Routes.CARD.AUTHENTICATION },
         });
       });
     });

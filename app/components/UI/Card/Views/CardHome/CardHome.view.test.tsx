@@ -1,5 +1,4 @@
 import '../../../../../../tests/component-view/mocks';
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import type { RootState } from '../../../../../reducers';
@@ -485,53 +484,7 @@ describe('CardHome', () => {
           overrides: {
             engine: {
               backgroundState: {
-                CardController: {
-                  isAuthenticated: false,
-                  cardLinks: [
-                    {
-                      provider: 'baanx',
-                      status: 'active',
-                      linkedAccountRef: null,
-                      closedReason: null,
-                      migratedToProvider: null,
-                      linkedAt: '2026-09-01T00:00:00.000Z',
-                      updatedAt: '2026-09-01T00:00:00.000Z',
-                    },
-                  ],
-                },
-                AssetsController: {
-                  selectedCurrency: 'usd',
-                },
-                AccountTreeController: {
-                  selectedAccountGroup: 'entropy:wallet1/0',
-                  accountTree: {
-                    wallets: {
-                      'entropy:wallet1': {
-                        id: 'entropy:wallet1',
-                        type: AccountWalletType.Entropy,
-                        status: 'ready',
-                        metadata: {
-                          name: 'Wallet 1',
-                          entropy: { id: 'wallet1' },
-                        },
-                        groups: {
-                          'entropy:wallet1/0': {
-                            id: 'entropy:wallet1/0',
-                            type: AccountGroupType.MultichainAccount,
-                            metadata: {
-                              name: 'Group 1',
-                              pinned: false,
-                              hidden: false,
-                              lastSelected: 0,
-                              entropy: { groupIndex: 0 },
-                            },
-                            accounts: ['acc-1'],
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
+                CardController: { isAuthenticated: false },
               },
             },
           },

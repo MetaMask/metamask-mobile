@@ -58,6 +58,7 @@ const defaultCardHomeData = {
  * The default state includes:
  * - An authenticated user with an active VIRTUAL card (USDC, Linea)
  * - US location so Order Metal Card is eligible when the feature flag is enabled
+ * - An account tree for the selected account
  * - Empty MoneyAccountController so the money-account linkage section is hidden
  *
  * Use `.withOverrides()` to override individual fields (e.g. isAuthenticated: false,
@@ -74,6 +75,7 @@ export const initialStateCard = () =>
     .withMinimalMainnetNetwork()
     .withMinimalMultichainNetwork(true)
     .withMinimalAnalyticsController({ optedIn: false })
+    .withAccountTreeForSelectedAccount()
     .withOverrides({
       engine: {
         backgroundState: {
@@ -96,6 +98,9 @@ export const initialStateCard = () =>
             cardHomeData: defaultCardHomeData,
             cardHomeDataStatus: 'success',
             selectedCountry: null,
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
           },
           MoneyAccountController: { moneyAccounts: {} },
           RemoteFeatureFlagController: {
