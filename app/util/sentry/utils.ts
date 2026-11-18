@@ -682,9 +682,8 @@ function getRemoteTraceSampleRate(name: string): number | undefined {
       };
     };
     const rate = sentry?.transactionSampleRates?.[name]?.[Platform.OS];
-    return typeof rate === 'number' && rate >= 0 && rate <= 1
-      ? rate
-      : undefined;
+    const isValidRate = typeof rate === 'number' && rate >= 0 && rate <= 1;
+    return isValidRate ? rate : undefined;
   } catch {
     return undefined;
   }
