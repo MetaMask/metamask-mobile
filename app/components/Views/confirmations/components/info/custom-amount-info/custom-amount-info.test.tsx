@@ -68,11 +68,19 @@ import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPay
 import { useEnsureTransakApiKey } from '../../../../../UI/Ramp/hooks/useEnsureTransakApiKey';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
+import {
+  MM_PAY_AMOUNT_INPUT_TYPE_MANUAL_SNAPPED_MAX,
+  useSnapAmountToMax,
+} from '../../../hooks/custom-amount/useSnapAmountToMax';
 
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/custom-amount/useSnapAmountToMax', () => ({
+  ...jest.requireActual('../../../hooks/custom-amount/useSnapAmountToMax'),
+  useSnapAmountToMax: jest.fn(),
+}));
 jest.mock('../../../hooks/ui/useMMPayNavigation');
 jest.mock('../../../hooks/alerts/useAccountNoFundsAlert');
 jest.mock('../../../hooks/pay/useTransactionPayAccountLoading');
@@ -407,9 +415,15 @@ describe('CustomAmountInfo', () => {
   );
 
   const useRouteMock = jest.mocked(useRoute);
+  const useSnapAmountToMaxMock = jest.mocked(useSnapAmountToMax);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useSnapAmountToMaxMock.mockReturnValue({
+      isSnapToMax: () => false,
+      resolveAmountFiat: (amount: string) => amount,
+    });
     mockShowToast.mockReset();
     mockTransactionPayControllerState.transactionData = {};
 
@@ -1808,7 +1822,10 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText('Max'));
       });
 
-      expect(updatePendingAmountPercentageMock).toHaveBeenCalledWith(100);
+      expect(updatePendingAmountPercentageMock).toHaveBeenCalledWith(
+        100,
+        undefined,
+      );
     });
 
     it('calls handleDone when amountFiat updates after Max press', async () => {
@@ -1927,6 +1944,121 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('snap to Max on Done', () => {
+    const updateTokenAmountMock = jest.fn();
+    const updatePendingAmountPercentageMock = jest.fn();
+    const isSnapToMaxMock = jest.fn();
+    const resolveAmountFiatMock = jest.fn();
+
+    beforeEach(() => {
+      updatePendingAmountPercentageMock.mockReturnValue(true);
+      isSnapToMaxMock.mockReturnValue(false);
+      resolveAmountFiatMock.mockImplementation((amount: string) => amount);
+      useSnapAmountToMaxMock.mockReturnValue({
+        isSnapToMax: isSnapToMaxMock,
+        resolveAmountFiat: resolveAmountFiatMock,
+      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '2.28',
+          amountFiatDebounced: '2.28',
+          updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
+    });
+
+    async function pressDone(view: ReturnType<typeof render>) {
+      await act(async () => {
+        fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+      });
+    }
+
+    it('commits the amount through the Max path when it matches the displayed balance', async () => {
+      isSnapToMaxMock.mockReturnValue(true);
+
+      const view = render({ hasMax: true });
+      await pressDone(view);
+
+      expect(isSnapToMaxMock).toHaveBeenCalledWith('2.28');
+      expect(updatePendingAmountPercentageMock).toHaveBeenCalledWith(
+        100,
+        MM_PAY_AMOUNT_INPUT_TYPE_MANUAL_SNAPPED_MAX,
+      );
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('commits the typed amount when it does not match the displayed balance', async () => {
+      const view = render({ hasMax: true });
+      await pressDone(view);
+
+      expect(updatePendingAmountPercentageMock).not.toHaveBeenCalled();
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('enables snapping when Max is offered', () => {
+      render({ hasMax: true });
+
+      expect(useSnapAmountToMaxMock).toHaveBeenLastCalledWith({
+        isMaxAvailable: true,
+      });
+    });
+
+    it('disables snapping when Max is not offered', () => {
+      render();
+
+      expect(useSnapAmountToMaxMock).toHaveBeenLastCalledWith({
+        isMaxAvailable: false,
+      });
+    });
+
+    it('disables snapping for a native pay token on deposits', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        isNative: true,
+        payToken: {
+          address: '0x0000000000000000000000000000000000000000',
+          balanceHuman: '0',
+          balanceFiat: '0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'ETH',
+        },
+        setPayToken: noop as never,
+      });
+
+      render({ hasMax: true });
+
+      expect(useSnapAmountToMaxMock).toHaveBeenLastCalledWith({
+        isMaxAvailable: false,
+      });
+    });
+
+    it('disables snapping when a fiat payment method is selected', () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'debit-card',
+      } as ReturnType<typeof useTransactionPayFiatPayment>);
+
+      render({ hasMax: true });
+
+      expect(useSnapAmountToMaxMock).toHaveBeenLastCalledWith({
+        isMaxAvailable: false,
+      });
+    });
+
+    it('evaluates pending amount alerts against the resolved amount', () => {
+      resolveAmountFiatMock.mockReturnValue('2.2895');
+
+      render({ hasMax: true });
+
+      expect(resolveAmountFiatMock).toHaveBeenCalledWith('2.28');
+      expect(useTransactionCustomAmountAlertsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ pendingFiatAmount: '2.2895' }),
+      );
     });
   });
 
