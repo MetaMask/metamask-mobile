@@ -182,7 +182,7 @@ const CardFreezeUnfreezeAnimation = ({
           autoPlay
           fit={Fit.Contain}
           alignment={Alignment.Center}
-          dataBind={viewModelInstance}
+          dataBind={viewModelInstance ?? undefined}
           style={[
             {
               width: riveViewWidth,
