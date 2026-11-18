@@ -7850,13 +7850,16 @@ describe('PerpsOrderView', () => {
 
       toast.linkButtonOptions.onPress();
 
-      expect(openPostTradeComposer).toHaveBeenCalledWith({
-        tradeInFlight: expect.objectContaining({
-          orderId: '42',
-          chain: 'hyperliquid',
+      expect(openPostTradeComposer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tradeInFlight: expect.objectContaining({
+            orderId: '42',
+            chain: 'hyperliquid',
+          }),
+          preview: expect.objectContaining({ product: 'perps' }),
+          shareId: 'share:42',
         }),
-        preview: expect.objectContaining({ product: 'perps' }),
-      });
+      );
     });
 
     it('skips the prompt in Pro mode', async () => {

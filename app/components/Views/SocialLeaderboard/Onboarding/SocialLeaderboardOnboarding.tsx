@@ -53,6 +53,7 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 
 import {
   selectIsMetamaskNotificationsEnabled,
@@ -842,7 +843,17 @@ const SocialLeaderboardOnboarding: React.FC = () => {
         return;
       }
 
-      Logger.error(new Error(description));
+      const riveErrorObj = new Error(description);
+      Logger.error(
+        riveErrorObj,
+        buildSocialLoggerErrorOptions({
+          surface: 'leaderboard_onboarding',
+          operation: 'rive_runtime',
+          extraMessage: description,
+          source: 'SocialLeaderboardOnboarding',
+          error: riveErrorObj,
+        }),
+      );
       if (hasCompletedRef.current) {
         return;
       }

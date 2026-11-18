@@ -3766,17 +3766,20 @@ export const runQuickBuyControllerCases = ({
           );
         });
 
-        it('marks trade submitted and completed as a copy trade with a copy-trade origin', async () => {
+        const confirmCopyTrade = async (
+          analyticsContext: QuickBuyAnalyticsContext,
+          copyTradeOrigin?: CopyTradeOrigin,
+        ) => {
           mockSuccessfulSubmit();
 
           const { result } = renderHook(
             createTarget(),
             jest.fn(),
-            { source: 'trader_feed', traderAddress: '0xTRADER' },
+            analyticsContext,
             undefined,
             undefined,
             undefined,
-            { commentId: 'comment-1' },
+            copyTradeOrigin,
           );
 
           await act(async () => {
@@ -3788,28 +3791,36 @@ export const runQuickBuyControllerCases = ({
           );
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ is_copy_trade: true }),
+          );
+        };
+
+        it('marks trade submitted and completed as a copy trade with a copy-trade origin', async () => {
+          await confirmCopyTrade(
+            { source: 'trader_feed', traderAddress: '0xTRADER' },
+            { commentId: 'comment-1' },
+          );
+        });
+
+        it('reports is_copy_trade false for a trader-feed sheet without Copy trade', async () => {
+          mockSuccessfulSubmit();
+          const { result } = renderHook(createTarget(), jest.fn(), {
+            source: 'trader_feed',
+            traderAddress: '0xTRADER',
+          });
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: false }),
           );
         });
 
         it('marks a copy trade when the sheet was opened from Copy trade without a comment', async () => {
-          mockSuccessfulSubmit();
-
-          const { result } = renderHook(createTarget(), jest.fn(), {
+          await confirmCopyTrade({
             source: 'trader_feed',
             traderAddress: '0xTRADER',
             isCopyTrade: true,
           });
-
-          await act(async () => {
-            await result.current.handleConfirm();
-          });
-
-          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
-            expect.objectContaining({ is_copy_trade: true }),
-          );
-          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
-            expect.objectContaining({ is_copy_trade: true }),
-          );
         });
 
         it('reports submit execution time from the start timestamp', async () => {
@@ -3913,7 +3924,10 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
-            expect.objectContaining({ amount_usd: 20 }),
+            expect.objectContaining({
+              amount_usd: 20,
+              metamask_fee_usd: 0.175,
+            }),
           );
         });
 
@@ -4323,6 +4337,7 @@ export const runQuickBuyControllerCases = ({
             throw new Error('post-trade share session is not a spot session');
           }
           expect(session.copyTradeOrigin).toEqual(copyTradeOrigin);
+          expect(session.isCopyTrade).toBe(true);
           expect(session.traderAddress).toBe('0xTRADER');
           expect(session.owner).toBe('social-v1-feed');
         });
