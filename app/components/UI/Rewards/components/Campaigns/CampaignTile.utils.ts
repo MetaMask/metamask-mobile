@@ -95,6 +95,48 @@ export function getLatestActiveCampaignOfType(
 }
 
 /**
+ * Resolves the campaign of a given type that a campaign deeplink should open:
+ * the most recently started `active` campaign, or when none is running, the
+ * most recently ended `complete` campaign (latest `endDate`, latest `startDate`
+ * on a tie).
+ *
+ * Upcoming campaigns are never returned. Their details page has nothing to show
+ * until the campaign starts, so the deeplink stays on the Rewards home instead.
+ *
+ * @param campaigns - The full campaign list.
+ * @param type - The campaign type to resolve.
+ * @returns The campaign to open, or null when none of this type is active or ended.
+ */
+export function getLatestActiveOrLastCompletedCampaignOfType(
+  campaigns: CampaignDto[],
+  type: CampaignType,
+): CampaignDto | null {
+  const active = getLatestActiveCampaignOfType(campaigns, type);
+  if (active) {
+    return active;
+  }
+
+  const completed = campaigns.filter(
+    (campaign) =>
+      campaign.type === type && getCampaignStatus(campaign) === 'complete',
+  );
+  if (completed.length === 0) {
+    return null;
+  }
+
+  return completed.reduce((latest, campaign) => {
+    const endDelta =
+      new Date(campaign.endDate).getTime() - new Date(latest.endDate).getTime();
+    if (endDelta !== 0) {
+      return endDelta > 0 ? campaign : latest;
+    }
+    return new Date(campaign.startDate) > new Date(latest.startDate)
+      ? campaign
+      : latest;
+  });
+}
+
+/**
  * Resolves the campaign of a given type that a type-scoped entry point should
  * target when a not-yet-started campaign is still a meaningful answer: the most
  * recently started `active` campaign, or the soonest-starting `upcoming` one
