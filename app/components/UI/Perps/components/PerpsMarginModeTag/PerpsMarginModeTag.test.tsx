@@ -14,7 +14,7 @@ describe('PerpsMarginModeTag', () => {
   });
 
   it('shows the fallback while the mode is unresolved', () => {
-    render(<PerpsMarginModeTag testID="margin-mode" />);
+    render(<PerpsMarginModeTag marginMode={undefined} testID="margin-mode" />);
 
     expect(screen.getByTestId('margin-mode')).toHaveTextContent(
       PERPS_CONSTANTS.FallbackDataDisplay,

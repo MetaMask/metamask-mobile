@@ -21,11 +21,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  PERPS_CONSTANTS,
-  type MarginMode,
-  type OrderType,
-} from '@metamask/perps-controller';
+import type { MarginMode, OrderType } from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -33,7 +29,9 @@ import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
-import PerpsMarginModeTag from '../PerpsMarginModeTag';
+import PerpsMarginModeTag, {
+  getPerpsMarginModeLabel,
+} from '../PerpsMarginModeTag';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
 import PerpsDirectionButton from '../PerpsDirectionButton';
 import PerpsOICapWarning from '../PerpsOICapWarning';
@@ -85,9 +83,10 @@ interface PerpsTradeScreenProps {
   /**
    * Margin mode of the order this sheet is placing. An open position locks
    * the venue to that position's mode; a new lite order stays isolated.
-   * Omitted while the position stream has not resolved.
+   * Omitted values are not allowed: pass undefined while the position stream
+   * has not resolved.
    */
-  marginMode?: MarginMode;
+  marginMode: MarginMode | undefined;
   /** Formatted liquidation price, or a fallback when there is nothing to show. */
   liquidationPrice: string;
   /** Formatted distance from the entry price to liquidation (e.g. `30.05%`). */
@@ -354,14 +353,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
-  const marginModeLabel =
-    marginMode === undefined
-      ? PERPS_CONSTANTS.FallbackDataDisplay
-      : strings(
-          marginMode === 'cross'
-            ? 'perps.margin_mode.cross_title'
-            : 'perps.margin_mode.isolated_title',
-        );
+  const marginModeLabel = getPerpsMarginModeLabel(marginMode);
   const { denomination, setDenomination } = usePerpsSizeDenomination();
   // A USD amount typed before the price can project coin must stay in USD
   // until the keypad closes. Flipping to coin on the price tick would reseed

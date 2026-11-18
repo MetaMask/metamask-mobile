@@ -1982,6 +1982,44 @@ describe('PerpsOrderView', () => {
     ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
   });
 
+  it('labels an aggregated lite order from the default provider when the route has none', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              ...eligibleOverrides.engine.backgroundState.PerpsController,
+              activeProvider: 'aggregated',
+            },
+          },
+        },
+      },
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: {
+        ...existingCrossPositionStream,
+        positions: [
+          {
+            ...existingCrossPositionStream.positions[0],
+            providerId: 'lighter',
+            leverage: { value: 10, type: 'isolated' },
+          },
+          {
+            ...existingCrossPositionStream.positions[0],
+            providerId: 'hyperliquid',
+            leverage: { value: 10, type: 'cross' },
+          },
+        ],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+  });
+
   describe('market order liquidity', () => {
     const bookLevel = (price: number, size: number): OrderBookLevel => ({
       price: String(price),

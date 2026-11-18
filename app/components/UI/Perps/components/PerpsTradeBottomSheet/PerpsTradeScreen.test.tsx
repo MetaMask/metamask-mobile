@@ -7,6 +7,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { Provider } from 'react-redux';
 import {
   Text as DSText,
@@ -328,9 +329,11 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
-    ).toHaveTextContent('--');
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
     expect(
-      screen.getByLabelText('Margin, --, $3.41. About margin'),
+      screen.getByLabelText(
+        `Margin, ${PERPS_CONSTANTS.FallbackDataDisplay}, $3.41. About margin`,
+      ),
     ).toBeOnTheScreen();
     expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
     expect(screen.queryByText('Cross')).not.toBeOnTheScreen();

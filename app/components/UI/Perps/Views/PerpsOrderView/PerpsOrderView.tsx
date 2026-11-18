@@ -168,8 +168,10 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   MAX_PERPS_INPUT_DIGITS,
   PERPS_MIN_BALANCE_THRESHOLD,
+  PROVIDER_CONFIG,
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { resolveDepositOrderProvider } from '../../utils/prewarmedDepositOrder';
 import { translatePerpsError } from '../../utils/translatePerpsError';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
@@ -704,8 +706,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isLoading: isCurrentPositionLoading,
   } = useHasExistingPosition({
     asset: orderForm.asset || '',
-    // Ignore another provider's same-symbol position.
-    providerId: route.params?.providerId,
+    // A route provider wins. Otherwise use the provider this screen will
+    // actually trade, so an aggregated order does not inherit another venue's
+    // same-symbol position.
+    providerId:
+      route.params?.providerId ??
+      (resolveDepositOrderProvider(activePerpsProvider) ===
+      PROVIDER_CONFIG.LighterProvider
+        ? PROVIDER_CONFIG.LighterProvider
+        : PROVIDER_CONFIG.DefaultProvider),
     loadOnMount: true,
   });
 
