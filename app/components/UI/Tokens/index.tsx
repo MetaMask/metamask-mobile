@@ -8,11 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
-import {
-  InteractionManager,
-  ScrollView,
-  type RefreshControlProps,
-} from 'react-native';
+import { ScrollView, type RefreshControlProps } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -243,17 +239,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
-
-      // Wait for interactions to complete first for better performance
-      await new Promise<void>((resolve) => {
-        InteractionManager.runAfterInteractions(() => {
-          resolve();
-        });
-      })
-        .then(() => refreshTokensForGroup())
-        .finally(() => {
-          setRefreshing(false);
-        });
+      try {
+        await refreshTokensForGroup();
+      } finally {
+        setRefreshing(false);
+      }
     }, [refreshTokensForGroup]);
 
     // One event per settled, non-empty query (never per keystroke).
