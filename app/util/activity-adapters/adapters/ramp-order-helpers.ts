@@ -85,6 +85,29 @@ export function caipChainIdFromAssetId(
 }
 
 /**
+ * Resolves CAIP-2 for a legacy FiatOrder. Falls through an unparseable
+ * network name string (e.g. `"ethereum"`) to cryptoCurrency metadata.
+ */
+export function toFiatOrderCaipChainId(order: FiatOrder): CaipChainId | null {
+  const fromNetwork = toRampOrderCaipChainId(order.network);
+  if (fromNetwork) {
+    return fromNetwork;
+  }
+
+  const cryptoCurrency = asRecord(asRecord(order.data)?.cryptoCurrency);
+  const chainId = cryptoCurrency?.chainId;
+  if (typeof chainId === 'string') {
+    const fromChain = toRampOrderCaipChainId(chainId);
+    if (fromChain) {
+      return fromChain;
+    }
+  }
+
+  const assetId = cryptoCurrency?.assetId;
+  return typeof assetId === 'string' ? caipChainIdFromAssetId(assetId) : null;
+}
+
+/**
  * Returns true when `txHash` looks like a real on-chain hash. Provider
  * placeholders such as `""`, `"0x"`, and all-zero hashes must not be used as
  * Activity row keys — they collide across orders in `mergeActivityItems`.
