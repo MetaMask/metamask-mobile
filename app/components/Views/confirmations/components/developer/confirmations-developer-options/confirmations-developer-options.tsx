@@ -81,7 +81,7 @@ export function ConfirmationsDeveloperOptions() {
       >
         Test Confirmations
       </Text>
-      <Box twClassName="mt-4 flex-row flex-wrap gap-2">
+      <Box twClassName="mt-4 gap-2">
         {isMoneyAccountDepositEnabled && (
           <>
             <ConfirmMembership />
@@ -518,9 +518,10 @@ function DeveloperButton({
   return (
     <Button
       variant={ButtonVariant.Secondary}
-      size={ButtonSize.Sm}
+      size={ButtonSize.Lg}
       onPress={onPress}
       testID={testID}
+      isFullWidth
     >
       {label}
     </Button>
