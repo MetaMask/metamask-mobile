@@ -72,8 +72,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const {
-    fiatBalanceAggregated,
-    hasMusdBalanceOnAnyChain,
+    hasMusdBalanceOnAnyChain: hasMusdBalance,
     tokenBalanceAggregated,
     tokenBalanceByChain,
   } = useMusdBalance();
@@ -194,26 +193,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
     startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
-  const parsedMusdFiat = Number(fiatBalanceAggregated);
-  const hasParsedFiatBalance =
-    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
-  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
-
   const handleMoveMusd = useCallback(() => {
-    // With no mUSD anywhere there is nothing to move, so the row funds the
-    // money account through the MM Pay fiat deposit (debit card / Apple Pay)
-    // instead — the money account is only ever funded via MM Pay, never the
-    // standalone Ramps flow.
-    if (!hasMusdBalance) {
-      trackSurfaceClicked({
-        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
-        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      });
-
-      startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
-      return;
-    }
-
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     let bestBalance = new BigNumber(0);
     for (const [chainId, balance] of Object.entries(
@@ -238,16 +218,17 @@ const MoneyAddMoneySheetContent: React.FC = () => {
         chainId: sourceChainId,
       },
     });
-  }, [hasMusdBalance, startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
+  }, [startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
 
   const moveMusdAmount = useMemo(
     () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
     [tokenBalanceAggregated],
   );
   // Mask only the amount; keep the mUSD symbol visible in privacy mode.
-  const moveMusdLabel: MoneySheetOption['label'] = hasMusdBalance
-    ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
-    : strings('money.add_money_sheet.add_musd');
+  const moveMusdLabel: MoneySheetOption['label'] = {
+    maskedText: moveMusdAmount,
+    suffix: MUSD_TOKEN.symbol,
+  };
 
   // Live row (eligible): promoted to the top. Coming-soon row (flag off):
   // keeps its pre-flag position further down. Hidden (flag on but not
@@ -300,17 +281,22 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       : []),
   ];
 
+  // The Add mUSD row is only rendered when the account holds mUSD: with no
+  // balance it is omitted entirely — no disabled state and no card-flow
+  // fallback — so the Debit card / Apple Pay row stays the only card entry
+  // point.
   const options: MoneySheetOption[] = [
     ...baseOptions,
-    {
-      label: moveMusdLabel,
-      icon: IconName.Add,
-      onPress: handleMoveMusd,
-      testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-      // Without mUSD the row falls back to the MM Pay fiat deposit, so it is
-      // only actionable when that flow is available.
-      disabled: !hasMusdBalance && !canDepositFiat,
-    },
+    ...(hasMusdBalance
+      ? [
+          {
+            label: moveMusdLabel,
+            icon: IconName.Add,
+            onPress: handleMoveMusd,
+            testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+          },
+        ]
+      : []),
     ...comingSoonBankAccountOptions,
   ];
 
