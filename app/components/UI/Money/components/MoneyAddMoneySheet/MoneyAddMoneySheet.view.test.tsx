@@ -648,7 +648,9 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
             seen.add(id);
             return true;
           });
-        expect(order.indexOf(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW)).toBeGreaterThan(
+        expect(
+          order.indexOf(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+        ).toBeGreaterThan(
           order.indexOf(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
         );
 

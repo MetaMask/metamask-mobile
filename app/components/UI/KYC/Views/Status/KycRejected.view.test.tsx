@@ -112,7 +112,9 @@ describeForPlatforms('KycRejected view', () => {
     expect(contactSupport).toHaveTextContent(
       strings('kyc.kyc_rejected.button'),
     );
-    expect(view.getByText(strings('kyc.kyc_rejected.description'))).toBeOnTheScreen();
+    expect(
+      view.getByText(strings('kyc.kyc_rejected.description')),
+    ).toBeOnTheScreen();
     expect(
       view.getByText(strings('kyc.kyc_rejected.identity_document_description')),
     ).toBeOnTheScreen();
