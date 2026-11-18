@@ -11,6 +11,12 @@ export const CancelMembershipTestIds = {
   // ── Stay step ────────────────────────────────────────────────────────────
   STAY_QUESTION: 'cancel-membership-stay-question',
   STAY_QUESTION_INPUT: 'cancel-membership-stay-question-input',
+  // ── Post-cancel sheet ────────────────────────────────────────────────────
+  POST_CANCEL_SHEET: 'cancel-membership-post-cancel-sheet',
+  POST_CANCEL_SHEET_TITLE: 'cancel-membership-post-cancel-sheet-title',
+  POST_CANCEL_SHEET_DESCRIPTION:
+    'cancel-membership-post-cancel-sheet-description',
+  POST_CANCEL_SHEET_BUTTON: 'cancel-membership-post-cancel-sheet-button',
 } as const;
 
 /**

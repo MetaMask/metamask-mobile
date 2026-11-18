@@ -606,10 +606,21 @@ const Wallet = ({
   }, [navigate]);
 
   useEffect(() => {
-    if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
+    // With basic functionality off the Perps modal stack only renders its
+    // "turn it back on" empty state, which would block the wallet.
+    if (
+      basicFunctionalityEnabled &&
+      isPerpsFlagEnabled &&
+      isPerpsGTMModalEnabled
+    ) {
       checkAndNavigateToPerpsGTM();
     }
-  }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
+  }, [
+    basicFunctionalityEnabled,
+    isPerpsFlagEnabled,
+    isPerpsGTMModalEnabled,
+    checkAndNavigateToPerpsGTM,
+  ]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 

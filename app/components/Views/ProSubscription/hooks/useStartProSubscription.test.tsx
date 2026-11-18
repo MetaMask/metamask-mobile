@@ -17,6 +17,7 @@ import I18n, { strings } from '../../../../../locales/i18n';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
+import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
 import { isProduction } from '../../../../util/environment';
@@ -28,6 +29,13 @@ import {
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+// The middleware imports an ESM-only package Jest does not transpile.
+jest.mock('../../../../core/RPCMethods/RPCMethodMiddleware', () => ({
+  ApprovalTypes: {
+    CONFIRM_MEMBERSHIP: 'confirm_membership',
+  },
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -504,6 +512,50 @@ describe('useStartProSubscription', () => {
     );
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.join_error'),
+    );
+  });
+
+  it('exposes a location message when the deposit is geo-blocked', async () => {
+    const blockedError = new MoneyAccountAccessBlockedError('geo_blocked');
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '49990000',
+    });
+    mockInitiateDeposit.mockRejectedValue(blockedError);
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).rejects.toBe(
+        blockedError,
+      );
+    });
+
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error_geo_blocked'),
+    );
+  });
+
+  it('exposes an unavailable message when Money Account is turned off', async () => {
+    const blockedError = new MoneyAccountAccessBlockedError('feature_disabled');
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '49990000',
+    });
+    mockInitiateDeposit.mockRejectedValue(blockedError);
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).rejects.toBe(
+        blockedError,
+      );
+    });
+
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error_feature_disabled'),
     );
   });
 

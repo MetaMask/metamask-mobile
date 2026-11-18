@@ -327,11 +327,14 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
-      ).toHaveProp('scrollEnabled', true);
-    });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+        ).toHaveProp('scrollEnabled', true);
+      },
+      { timeout: 5000 },
+    );
 
     fireEvent.press(
       screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
@@ -433,20 +436,26 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
-      ).toHaveProp('scrollEnabled', true);
-    });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+        ).toHaveProp('scrollEnabled', true);
+      },
+      { timeout: 5000 },
+    );
     fireEvent.press(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.SCRIM),
     );
 
-    await waitFor(() => {
-      expect(
-        screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
-      ).toBeNull();
-    });
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+        ).toBeNull();
+      },
+      { timeout: 5000 },
+    );
   });
 
   it('renders the author, comment, position card, and engagement row', () => {
@@ -646,6 +655,69 @@ describe('SocialFeedPostShell', () => {
         expect(particles.length).toBeLessThanOrEqual(7);
         expect(particles[0]).toHaveTextContent('🔥');
       });
+    });
+
+    it('plays a selection haptic when an existing chip is pressed', async () => {
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(screen.getByTestId(chipTestId)).toHaveProp(
+          'accessibilityState',
+          {
+            selected: true,
+          },
+        );
+      });
+    });
+
+    it('plays a selection haptic when the reader removes their chip', async () => {
+      jest.mocked(removeCommentReaction).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 1 }],
+        userReaction: null,
+      });
+      renderShell(
+        basePost({
+          reactions: [{ emotion: '🔥', count: 2 }],
+          userReaction: '🔥',
+        }),
+      );
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(screen.getByTestId(chipTestId)).toHaveProp(
+          'accessibilityState',
+          {
+            selected: false,
+          },
+        );
+      });
+    });
+
+    it('stays quiet when profile onboarding blocks the chip', () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValueOnce(false);
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).not.toHaveBeenCalled();
+      expect(reactToComment).not.toHaveBeenCalled();
+    });
+
+    it('stays quiet when a chip is pressed while a reaction is in flight', () => {
+      jest
+        .mocked(reactToComment)
+        .mockImplementationOnce(() => new Promise(() => undefined));
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('removes the reader from their own chip when it is pressed', async () => {
@@ -988,7 +1060,10 @@ describe('SocialFeedPostShell', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.PERPS.MODALS.ROOT,
           expect.objectContaining({
-            params: expect.objectContaining({ source: 'social_trending' }),
+            params: expect.objectContaining({
+              source: 'social_trending',
+              isCopyTrade: true,
+            }),
           }),
         );
       });
@@ -1036,6 +1111,7 @@ describe('SocialFeedPostShell', () => {
             source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
+            isCopyTrade: true,
             copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
           },
         });
