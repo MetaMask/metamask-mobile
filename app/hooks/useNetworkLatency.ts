@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import {
   getLatencySnapshot,
+  getSettledLatencySnapshot,
   subscribeLatency,
 } from '../util/deviceCapability/latencyStore';
 import type { LatencyBucket } from '../util/deviceCapability/types';
@@ -13,4 +14,12 @@ import type { LatencyBucket } from '../util/deviceCapability/types';
  */
 export function useNetworkLatency(): LatencyBucket {
   return useSyncExternalStore(subscribeLatency, getLatencySnapshot);
+}
+
+/**
+ * Last `OK` or `SLOW` reading, kept across app resumes and transport changes.
+ * `UNKNOWN` only before the first reading or while offline.
+ */
+export function useSettledNetworkLatency(): LatencyBucket {
+  return useSyncExternalStore(subscribeLatency, getSettledLatencySnapshot);
 }

@@ -67,7 +67,7 @@ describe('useEnableMarketingConsent', () => {
       .mockResolvedValue(undefined);
   });
 
-  it('does nothing when MetaMetrics is off — never enables metrics or data collection', async () => {
+  it('records marketing consent when MetaMetrics is off, without turning MetaMetrics on and without sending signals', async () => {
     // analytics.isEnabled returns false (set in beforeEach)
     const { result, store } = renderUseEnableMarketingConsent();
 
@@ -76,10 +76,9 @@ describe('useEnableMarketingConsent', () => {
     });
 
     expect(analytics.optIn).not.toHaveBeenCalled();
+    expect(store.getState().security.dataCollectionForMarketing).toBe(true);
     expect(analytics.identify).not.toHaveBeenCalled();
     expect(analytics.trackEvent).not.toHaveBeenCalled();
-    expect(OAuthService.updateMarketingOptInStatus).not.toHaveBeenCalled();
-    expect(store.getState().security.dataCollectionForMarketing).toBe(false);
   });
 
   it('dispatches and identifies marketing consent when MetaMetrics is already enabled', async () => {

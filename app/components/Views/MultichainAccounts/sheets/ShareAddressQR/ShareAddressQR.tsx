@@ -12,7 +12,6 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxFlexDirection,
@@ -42,6 +41,8 @@ import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RootState } from '../../../../../reducers';
 import Routes from '../../../../../constants/navigation/Routes';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ShareAddressQRParams {
   address: string;
@@ -62,6 +63,7 @@ type ShareAddressQRRouteProp = RouteProp<
 >;
 
 export const ShareAddressQR = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const route = useRoute<ShareAddressQRRouteProp>();
@@ -125,12 +127,13 @@ export const ShareAddressQR = () => {
 
   return (
     <BottomSheet ref={sheetRef} goBack={handleOnBack}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleOnBack}
         closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
       >
         {`${accountGroupName} / ${networkName}`}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

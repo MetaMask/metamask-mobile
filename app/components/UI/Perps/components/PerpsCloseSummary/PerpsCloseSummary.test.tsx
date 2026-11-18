@@ -116,6 +116,17 @@ describe('PerpsCloseSummary', () => {
     expect(strings).toHaveBeenCalledWith('perps.close_position.includes_pnl');
   });
 
+  it('labels the P&L separately from cross margin', () => {
+    const props = { ...defaultProps, marginMode: 'cross' as const };
+
+    const { getByText, queryByText } = render(<PerpsCloseSummary {...props} />);
+
+    expect(getByText('perps.close_position.pnl')).toBeOnTheScreen();
+    expect(
+      queryByText('perps.close_position.includes_pnl'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders fees section with tooltip', () => {
     // Arrange
     const testIDs = { feesTooltip: 'fees-tooltip-button' };

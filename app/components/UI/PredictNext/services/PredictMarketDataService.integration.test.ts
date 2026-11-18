@@ -83,7 +83,7 @@ describe('PredictNext public market data', () => {
 
     expect(result).toMatchObject({
       venueId: 'kalshi',
-      actions: ['buy', 'sell'],
+      actions: ['buy', 'sell', 'deposit'],
       feeds: { 'nfl-games': 'sports-football-nfl-games' },
       searchSupported: true,
     });

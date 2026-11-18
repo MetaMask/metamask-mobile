@@ -33,7 +33,7 @@ jest.mock('../../../../../core/Engine', () => ({
 import { useSamplePetNames } from './useSamplePetNames';
 import Engine from '../../../../../core/Engine';
 import { Hex } from '@metamask/utils';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../../../reducers';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   DeepPartial,
