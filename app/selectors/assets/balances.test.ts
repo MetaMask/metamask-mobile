@@ -666,26 +666,16 @@ describe('assets balance and balance change selectors (mobile)', () => {
       userCurrency: 'usd',
     });
 
-    it('returns true for a positive balance once assets have loaded', () => {
-      expect(selectIsAccountGroupFunded.resultFunc(balanceOf(3.12), true)).toBe(
-        true,
-      );
+    it('returns true for a positive balance', () => {
+      expect(selectIsAccountGroupFunded.resultFunc(balanceOf(3.12))).toBe(true);
     });
 
     it('returns false for a zero balance', () => {
-      expect(selectIsAccountGroupFunded.resultFunc(balanceOf(0), true)).toBe(
-        false,
-      );
-    });
-
-    it('returns false while asset load has not settled', () => {
-      expect(
-        selectIsAccountGroupFunded.resultFunc(balanceOf(3.12), false),
-      ).toBe(false);
+      expect(selectIsAccountGroupFunded.resultFunc(balanceOf(0))).toBe(false);
     });
 
     it('returns false when no account group is selected', () => {
-      expect(selectIsAccountGroupFunded.resultFunc(null, true)).toBe(false);
+      expect(selectIsAccountGroupFunded.resultFunc(null)).toBe(false);
     });
   });
 

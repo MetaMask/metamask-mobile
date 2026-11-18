@@ -307,9 +307,15 @@ jest.mock('../Homepage/components/HomepageActionButtonsGrid', () => {
 let mockCarouselBannersEnabled = false;
 const mockBrazeBannerHomeEnabled = false;
 let mockIsAccountGroupFunded = false;
+let mockAssetsHaveLoaded = true;
 jest.mock('../../../selectors/assets/balances', () => ({
   ...jest.requireActual('../../../selectors/assets/balances'),
   selectIsAccountGroupFunded: () => mockIsAccountGroupFunded,
+}));
+jest.mock('../../UI/Assets/hooks/useAssetsHaveLoaded', () => ({
+  AssetsHaveLoadedProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  useAssetsHaveLoaded: () => mockAssetsHaveLoaded,
 }));
 jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
   selectCarouselBannersFlag: jest.fn(() => mockCarouselBannersEnabled),
@@ -926,6 +932,7 @@ beforeEach(() => {
   mockSlowNetworkBannerVisible = false;
   mockCarouselBannersEnabled = false;
   mockIsAccountGroupFunded = false;
+  mockAssetsHaveLoaded = true;
 });
 
 describe('Wallet', () => {

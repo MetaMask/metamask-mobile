@@ -7,6 +7,9 @@ import { useAssetsHaveLoaded } from '../../Assets/hooks/useAssetsHaveLoaded';
  * read has finished. `hasCrypto` is false while the asset load is in flight;
  * callers must check `isLoading` before treating the wallet as empty.
  *
+ * Funded state is gated with the latched load signal so background refreshes
+ * do not flash empty / Get started cards on Money home.
+ *
  * @returns Loading flag and the funded-wallet boolean from the account-group
  * balance empty state.
  */
@@ -15,7 +18,10 @@ export const useActiveGroupCryptoPresence = (): {
   isLoading: boolean;
 } => {
   const assetsHaveLoaded = useAssetsHaveLoaded();
-  const hasCrypto = useSelector(selectIsAccountGroupFunded);
+  const hasPositiveBalance = useSelector(selectIsAccountGroupFunded);
 
-  return { hasCrypto, isLoading: !assetsHaveLoaded };
+  return {
+    hasCrypto: assetsHaveLoaded && hasPositiveBalance,
+    isLoading: !assetsHaveLoaded,
+  };
 };
