@@ -55,7 +55,8 @@ import {
 } from './internal/withdrawAmount';
 
 /** The amount the person is entering, carried through every phase so a failed
- * Commit returns to a confirmation that still knows what it was confirming. */
+ * Commit still knows what was being withdrawn: the same confirmation for a
+ * transient failure, the entry step for an expired quote. */
 interface WithdrawAmountInput {
   amount: string;
 }
@@ -149,14 +150,24 @@ const withdrawFlowReducer = (
         ? { ...state, receipt: action.receipt }
         : state;
     case 'commitFailed':
-      return state.phase === 'status'
+      if (state.phase !== 'status') {
+        return state;
+      }
+      // An expired quote can never be committed again, so the retry that
+      // makes sense is a new quote: keep the amount, drop the stale Preview.
+      return action.error.code === PredictErrorCode.PREVIEW_EXPIRED
         ? {
+            phase: 'input',
+            input: state.input,
+            isRequesting: false,
+            error: action.error,
+          }
+        : {
             phase: 'confirm',
             input: state.input,
             preview: state.preview,
             error: action.error,
-          }
-        : state;
+          };
     case 'back':
       return state.phase === 'confirm'
         ? {
@@ -325,6 +336,7 @@ export const PredictWithdrawScreen = () => {
             amount={input.amount}
             availableBalance={availableBalance}
             amountIssue={amountIssue}
+            isPrivacyMode={privacyMode}
           />
         </Box>
         <Box twClassName="gap-3 px-4 pb-2">

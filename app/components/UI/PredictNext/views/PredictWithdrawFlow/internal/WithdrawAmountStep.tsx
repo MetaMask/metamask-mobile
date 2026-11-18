@@ -2,6 +2,7 @@ import React from 'react';
 import BigNumber from 'bignumber.js';
 import {
   Box,
+  SensitiveText,
   Text,
   TextColor,
   TextVariant,
@@ -22,6 +23,8 @@ interface WithdrawAmountStepProps {
   amount: string;
   availableBalance?: PredictAmount;
   amountIssue: PredictWithdrawAmountIssue;
+  /** Hides the Venue-reported available balance; the keyed amount stays. */
+  isPrivacyMode: boolean;
 }
 
 /** Cents, because the venue reports sub-cent dust the person cannot
@@ -49,6 +52,7 @@ export const WithdrawAmountStep = ({
   amount,
   availableBalance,
   amountIssue,
+  isPrivacyMode,
 }: WithdrawAmountStepProps) => (
   <Box twClassName="flex-1 items-center justify-center px-6">
     <PredictAmountDisplay
@@ -56,7 +60,8 @@ export const WithdrawAmountStep = ({
       isActive={false}
       accessibilityLabel={strings('predict_next.withdraw.amount_label')}
     />
-    <Text
+    <SensitiveText
+      isHidden={isPrivacyMode}
       variant={TextVariant.BodySm}
       color={TextColor.TextAlternative}
       twClassName="pt-1 text-center"
@@ -67,7 +72,7 @@ export const WithdrawAmountStep = ({
         : strings('predict_next.withdraw.available_balance', {
             amount: balanceLabel(availableBalance),
           })}
-    </Text>
+    </SensitiveText>
     {amountIssue === null ? null : (
       <Text
         variant={TextVariant.BodySm}

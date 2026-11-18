@@ -5,6 +5,7 @@ import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
+import { strings } from '../../../../../../locales/i18n';
 import {
   composePredictNextFundingService,
   configurePredictNextCatalog,
@@ -22,9 +23,11 @@ const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 const DESTINATION_ADDRESS = '0xcDe7CE585799F1FCA8a37C7599935ea275819B9c';
 const PREVIEW_ID = 'b3c2a1d0-1111-4222-8333-444455556666';
+/** A quote the screen obtains after the first one expires. */
+const FRESH_PREVIEW_ID = 'e7f8a9b0-2222-4333-8444-555566667777';
 
 const PREVIEW_URL = /\/withdrawals\/preview$/u;
-const COMMIT_URL = /\/withdrawals\/[^/]+\/commit$/u;
+const COMMIT_URL = /\/withdrawals\/([^/]+)\/commit$/u;
 const OBSERVE_URL = /\/withdrawals\/[0-9a-f-]{36}$/u;
 
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
@@ -127,6 +130,14 @@ const commitBodies = (): unknown[] =>
     .map(([, init]) =>
       init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     );
+
+/** The Preview each Commit referenced, read from its `/withdrawals/:id/commit`
+ * route, so a replay of an expired quote is visible. */
+const commitPreviewIds = (): string[] =>
+  fetchMock.mock.calls
+    .map(([url]) => COMMIT_URL.exec(String(url)))
+    .filter((match): match is RegExpExecArray => match !== null)
+    .map((match) => match[1]);
 
 /** Home's Balance read, which is what the screen validates against. */
 const stubBalance = (available = '12.34') =>
@@ -288,15 +299,41 @@ describe('PredictWithdrawFlow', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('masks the confirmed amount and destination in privacy mode', async () => {
+  it('masks the available balance, confirmed amount, and destination in privacy mode', async () => {
+    const availableBalanceCopy = strings(
+      'predict_next.withdraw.available_balance',
+      { amount: '$12.34' },
+    );
+
     renderPredictNext(true);
     await openWithdrawFlow();
+
+    const availableBalance = screen.getByTestId(
+      PredictWithdrawFlowTestIds.AVAILABLE_BALANCE,
+    );
+    expect(availableBalance).toHaveTextContent(/^•+$/u);
+    expect(screen.queryByLabelText(/12\.34/u)).not.toBeOnTheScreen();
+    expect(screen.queryByText(availableBalanceCopy)).not.toBeOnTheScreen();
+
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
 
     expect(screen.queryByText('$5.00')).not.toBeOnTheScreen();
     expect(screen.queryByText('0xcDe7…9B9c')).not.toBeOnTheScreen();
+  });
+
+  it('shows the available balance in plain text when privacy mode is off', async () => {
+    renderPredictNext();
+    await openWithdrawFlow();
+
+    expect(
+      await screen.findByText(
+        strings('predict_next.withdraw.available_balance', {
+          amount: '$12.34',
+        }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('disables Continue and shows the offline banner with no connection', async () => {
@@ -411,9 +448,26 @@ describe('PredictWithdrawFlow', () => {
     ).toHaveTextContent('Not enough balance');
   });
 
-  it('returns to the quote when the preview expired at commit time', async () => {
+  it('returns to entry with the amount when the preview expired at commit time', async () => {
+    let previewCount = 0;
+    let commitCount = 0;
     stubWithdrawals({
-      commit: () => ({ status: 410, body: { code: 'preview_expired' } }),
+      preview: () =>
+        previewCount++ === 0
+          ? { body: previewOf() }
+          : { body: previewOf({ previewId: FRESH_PREVIEW_ID }) },
+      commit: () =>
+        commitCount++ === 0
+          ? { status: 410, body: { code: 'preview_expired' } }
+          : {
+              status: 201,
+              body: receiptOf({
+                previewId: FRESH_PREVIEW_ID,
+                status: 'settled',
+                withdrawnAmount: '5.00',
+                resolvedAt: new Date().toISOString(),
+              }),
+            },
     });
 
     renderPredictNext();
@@ -421,15 +475,87 @@ describe('PredictWithdrawFlow', () => {
     typeAmount('5.00');
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
+
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
 
     expect(
       await screen.findByTestId(PredictWithdrawFlowTestIds.ERROR),
-    ).toHaveTextContent('This quote expired. Start the withdrawal again.');
-    // Still on the confirmation step, so a fresh quote is one tap away.
+    ).toHaveTextContent(strings('predict_next.withdraw.error.preview_expired'));
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID]);
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.CONFIRM),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictAmountEntryTestIds.DISPLAY),
+    ).toHaveTextContent('$5.00', { exact: true });
+
+    fireEvent.press(
+      screen.getByTestId(PredictAmountEntryTestIds.KEYPAD_KEY('delete')),
+    );
+    expect(
+      screen.getByTestId(PredictAmountEntryTestIds.DISPLAY),
+    ).toHaveTextContent('$5.0', { exact: true });
+    typeAmount('0');
+
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
+    expect(previewBodies()).toEqual([{ amount: '5.00' }, { amount: '5.00' }]);
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.ERROR),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
+    ).toHaveTextContent('$5.00');
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID, FRESH_PREVIEW_ID]);
+    expect(commitBodies()).toEqual([{}, {}]);
+  });
+
+  it('retries the same approved quote after a transient commit failure', async () => {
+    let commitCount = 0;
+    stubWithdrawals({
+      commit: () =>
+        commitCount++ === 0
+          ? { status: 503, body: { code: 'venue_unavailable' } }
+          : {
+              status: 201,
+              body: receiptOf({
+                status: 'settled',
+                withdrawnAmount: '5.00',
+                resolvedAt: new Date().toISOString(),
+              }),
+            },
+    });
+
+    renderPredictNext();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+    await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
+
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.ERROR),
+    ).toHaveTextContent(
+      strings('predict_next.withdraw.error.venue_unavailable'),
+    );
     expect(
       screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM),
     ).toBeOnTheScreen();
+    expect(previewBodies()).toEqual([{ amount: '5.00' }]);
+
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.STATUS_AMOUNT),
+    ).toHaveTextContent('$5.00');
+    expect(commitPreviewIds()).toEqual([PREVIEW_ID, PREVIEW_ID]);
   });
 
   it('reports an unavailable venue on the preview', async () => {
