@@ -21,7 +21,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { OrderType } from '@metamask/perps-controller';
+import type { MarginMode, OrderType } from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,6 +29,7 @@ import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
 import PerpsDirectionButton from '../PerpsDirectionButton';
 import PerpsOICapWarning from '../PerpsOICapWarning';
@@ -77,6 +78,11 @@ interface PerpsTradeScreenProps {
   autoCloseText: string;
   showAutoClose: boolean;
   margin: string;
+  /**
+   * Margin mode of the order this sheet is placing. An open position locks
+   * the venue to that position's mode; a new lite order stays isolated.
+   */
+  marginMode: MarginMode;
   /** Formatted liquidation price, or a fallback when there is nothing to show. */
   liquidationPrice: string;
   /** Formatted distance from the entry price to liquidation (e.g. `30.05%`). */
@@ -289,6 +295,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   autoCloseText,
   showAutoClose,
   margin,
+  marginMode,
   liquidationPrice,
   liquidationDistance,
   amount,
@@ -723,14 +730,19 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   label={strings('perps.order.margin')}
                   accessibilityLabel={`${strings(
                     'perps.order.margin',
-                  )}, ${strings('perps.margin_mode.isolated_title')}, ${margin}. ${strings(
+                  )}, ${strings(
+                    marginMode === 'cross'
+                      ? 'perps.margin_mode.cross_title'
+                      : 'perps.margin_mode.isolated_title',
+                  )}, ${margin}. ${strings(
                     'perps.trade_sheet.margin_info_accessibility_label',
                   )}`}
                   labelEndAccessory={
                     <>
-                      <Tag severity={TagSeverity.Neutral}>
-                        {strings('perps.margin_mode.isolated_title')}
-                      </Tag>
+                      <PerpsMarginModeTag
+                        marginMode={marginMode}
+                        testID={PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG}
+                      />
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Sm}

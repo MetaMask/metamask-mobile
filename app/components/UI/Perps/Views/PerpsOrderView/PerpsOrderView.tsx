@@ -2908,6 +2908,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 autoCloseText={tpSlDisplayText}
                 showAutoClose={!hideTPSL}
                 margin={marginDisplay}
+                marginMode={
+                  currentMarketPosition?.leverage?.type === 'cross'
+                    ? 'cross'
+                    : 'isolated'
+                }
                 liquidationPrice={tradeSheetLiquidationPrice}
                 liquidationDistance={tradeSheetLiquidationDistance}
                 amount={displayAmount}

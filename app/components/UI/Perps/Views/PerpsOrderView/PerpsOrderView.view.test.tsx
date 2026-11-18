@@ -1837,6 +1837,9 @@ describe('PerpsOrderView', () => {
         PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
       ),
     ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_ROW),
@@ -1871,6 +1874,29 @@ describe('PerpsOrderView', () => {
         PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  it('labels the lite trade sheet Isolated for an isolated position', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: {
+        ...existingCrossPositionStream,
+        positions: [
+          {
+            ...existingCrossPositionStream.positions[0],
+            leverage: { value: 10, type: 'isolated' },
+          },
+        ],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
   });
 
   describe('market order liquidity', () => {

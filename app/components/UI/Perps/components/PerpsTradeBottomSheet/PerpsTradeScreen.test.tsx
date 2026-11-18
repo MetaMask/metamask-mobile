@@ -177,6 +177,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   autoCloseText: 'TP Off, SL Off',
   showAutoClose: true,
   margin: '$3.41',
+  marginMode: 'isolated',
   liquidationPrice: '$68.29',
   liquidationDistance: '30.05%',
   amount: '10',
@@ -305,6 +306,21 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent('Isolated');
+  });
+
+  it('names cross margin on the margin row', () => {
+    render(<PerpsTradeScreen {...defaultProps} marginMode="cross" />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent('Cross');
+    expect(
+      screen.getByLabelText('Margin, Cross, $3.41. About margin'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
   });
 
   it('shows the payment asset icon beside the pay with value', () => {
