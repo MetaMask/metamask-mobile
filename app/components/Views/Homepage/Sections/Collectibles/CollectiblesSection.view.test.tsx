@@ -1,5 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { renderCollectiblesSectionWithRoutes } from '../../../../../../tests/component-view/renderers/collectibles';
 import Engine from '../../../../../core/Engine';
@@ -21,13 +22,17 @@ describeForPlatforms('CollectiblesSection', () => {
     async ({ testID }) => {
       renderCollectiblesSectionWithRoutes();
 
-      expect(await screen.findByText('Explore Collectibles')).toBeOnTheScreen();
+      expect(
+        await screen.findByText(
+          strings('collectibles.home_section.open_collectibles'),
+        ),
+      ).toBeOnTheScreen();
       fireEvent.press(await screen.findByTestId(testID));
 
       expect(
         await screen.findByTestId(CollectiblesHomeTestIds.CONTAINER),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Collectibles')).toBeOnTheScreen();
+      expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
       expect(screen.queryByRole('tab')).not.toBeOnTheScreen();
 
       fireEvent.press(screen.getByTestId(CollectiblesHomeTestIds.BACK_BUTTON));
@@ -36,7 +41,7 @@ describeForPlatforms('CollectiblesSection', () => {
         await screen.findByTestId(CollectiblesSectionTestIds.CONTAINER),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Explore collectibles packs and cards.'),
+        screen.getByText(strings('collectibles.home_section.description')),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(CollectiblesHomeTestIds.CONTAINER),
