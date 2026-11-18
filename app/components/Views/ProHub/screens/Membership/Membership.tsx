@@ -233,7 +233,7 @@ const Membership = () => {
   }, [navigation]);
 
   const handleInvoices = useCallback(() => {
-    openInvoices().catch(() => undefined);
+    openInvoices();
   }, [openInvoices]);
 
   const handleContactSupport = useCallback(() => {

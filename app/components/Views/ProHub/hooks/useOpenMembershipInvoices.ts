@@ -20,11 +20,7 @@ export interface UseOpenMembershipInvoicesResult {
  * @param url - Address returned by `getBillingPortalUrl`.
  * @returns Whether the address can be opened.
  */
-const isBillingPortalUrl = (url: string | undefined): url is string => {
-  if (!url) {
-    return false;
-  }
-
+const isBillingPortalUrl = (url: string): boolean => {
   try {
     return new URL(url).protocol === 'https:';
   } catch {
@@ -55,27 +51,57 @@ export function useOpenMembershipInvoices(): UseOpenMembershipInvoicesResult {
     setErrorMessage(null);
 
     try {
-      const { url } =
-        await Engine.context.SubscriptionController.getBillingPortalUrl();
-
-      if (!isBillingPortalUrl(url)) {
-        throw new Error(
-          'Membership invoices returned a non-https billing portal URL',
+      let url: string;
+      try {
+        ({ url } =
+          await Engine.context.SubscriptionController.getBillingPortalUrl());
+      } catch (error) {
+        Logger.error(
+          ensureError(error, 'useOpenMembershipInvoices.getBillingPortalUrl'),
+          {
+            tags: {
+              feature: 'money_account_plus',
+              operation: 'get_billing_portal_url',
+            },
+          },
         );
+        setErrorMessage(strings('pro_hub.membership.invoices_failed'));
+        return;
       }
 
-      await Linking.openURL(url);
-    } catch (error) {
-      Logger.error(
-        ensureError(error, 'useOpenMembershipInvoices.getBillingPortalUrl'),
-        {
-          tags: {
-            feature: 'money_account_plus',
-            operation: 'get_billing_portal_url',
+      if (!isBillingPortalUrl(url)) {
+        Logger.error(
+          ensureError(
+            new Error(
+              'Membership invoices returned a non-https billing portal URL',
+            ),
+            'useOpenMembershipInvoices.invalidBillingPortalUrl',
+          ),
+          {
+            tags: {
+              feature: 'money_account_plus',
+              operation: 'get_billing_portal_url',
+            },
           },
-        },
-      );
-      setErrorMessage(strings('pro_hub.membership.invoices_failed'));
+        );
+        setErrorMessage(strings('pro_hub.membership.invoices_failed'));
+        return;
+      }
+
+      try {
+        await Linking.openURL(url);
+      } catch (error) {
+        Logger.error(
+          ensureError(error, 'useOpenMembershipInvoices.openBillingPortal'),
+          {
+            tags: {
+              feature: 'money_account_plus',
+              operation: 'open_billing_portal',
+            },
+          },
+        );
+        setErrorMessage(strings('pro_hub.membership.invoices_failed'));
+      }
     } finally {
       isOpeningRef.current = false;
       setIsOpening(false);

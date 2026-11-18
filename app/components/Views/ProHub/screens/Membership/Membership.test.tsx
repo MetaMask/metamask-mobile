@@ -449,6 +449,31 @@ describe('Membership', () => {
       expect(Linking.openURL).not.toHaveBeenCalled();
     });
 
+    it('logs open failures under the open_billing_portal tag, not the request tag', async () => {
+      jest
+        .spyOn(Linking, 'openURL')
+        .mockRejectedValueOnce(new Error('no handler'));
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(getByTestId(MembershipTestIds.INVOICES_ERROR)).toHaveTextContent(
+          strings('pro_hub.membership.invoices_failed'),
+        ),
+      );
+      expect(mockGetBillingPortalUrl).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: {
+            feature: 'money_account_plus',
+            operation: 'open_billing_portal',
+          },
+        }),
+      );
+    });
+
     it('does not request the portal again while the first request is in flight', async () => {
       let resolvePortal: (value: { url: string }) => void = () => undefined;
       mockGetBillingPortalUrl.mockImplementation(
