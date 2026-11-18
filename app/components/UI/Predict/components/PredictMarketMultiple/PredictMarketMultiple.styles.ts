@@ -13,15 +13,12 @@ const styleSheet = (params: {
       ...(vars.isCarousel && { height: '100%' }),
       backgroundColor: theme.colors.background.section,
       borderRadius: 12,
-      padding: 16,
-      // Prototype: carousel cards get a solid 1px border.muted, radius matching
-      // the carousel's rounded-2xl clip; padding trimmed 1px for the border.
-      ...(vars.isCarousel && {
-        borderRadius: 16,
-        padding: 15,
-        borderWidth: 1,
-        borderColor: theme.colors.border.muted,
-      }),
+      // Prototype: every card gets a solid 1px border.muted (padding trimmed 1px);
+      // carousel cards use a 16px radius to match the carousel's rounded-2xl clip.
+      padding: 15,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+      ...(vars.isCarousel && { borderRadius: 16 }),
       marginTop: 0,
       marginBottom: vars.isCarousel ? 0 : 12,
       ...(vars.isCarousel && {
@@ -36,11 +33,17 @@ const styleSheet = (params: {
       width: '100%',
     },
     buttonYes: {
+      // Prototype: 1px border.muted tints the colored fill.
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
       color: theme.colors.success.default,
       backgroundColor: theme.colors.success.muted,
       width: vars.isCarousel ? 60 : 68,
     },
     buttonNo: {
+      // Prototype: 1px border.muted tints the colored fill.
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
       color: theme.colors.error.default,
       backgroundColor: theme.colors.error.muted,
       width: vars.isCarousel ? 60 : 68,
