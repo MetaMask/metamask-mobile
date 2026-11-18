@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
-import { useSelector } from 'react-redux';
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import type { SecretMetadata } from '@metamask/seedless-onboarding-controller';
 import { selectMfaRecoveryEnabled } from '../../selectors/featureFlagController/mfaRecovery';
+import Logger from '../../util/Logger';
 import { isMfaRecoveryConfigured } from '../Engine/controllers/mfa-recovery-controller/config';
 import { getMfaRecoveryErrorCode } from '../Engine/controllers/mfa-recovery-controller/errors';
+import ReduxService from '../redux';
 import {
   canProveSocialIdentifier,
   createPasswordlessRecoveryDependencies,
@@ -20,7 +20,6 @@ import {
   findRecoveryIdentifier,
   recoverWalletWithoutPassword,
 } from './passwordlessSocialRecovery';
-import Logger from '../../util/Logger';
 
 export type RestoreRecoveredVault = (
   password: string,
@@ -28,37 +27,34 @@ export type RestoreRecoveredVault = (
 ) => Promise<void>;
 
 /**
- * Passwordless social recovery for rehydration + ChoosePassword.
+ * Passwordless social recovery for OAuthRehydration + ChoosePassword.
  *
- * Escrow passkey runs in {@link prefetchForChoosePassword} (while AAL2 is
- * held, before Create password). ChoosePassword {@link recover} only consumes
- * the held secret — no passkey on that page.
+ * Escrow passkey runs in {@link PasswordlessRecoveryService.prefetchForChoosePassword}
+ * (while AAL2 is held, before Create password). ChoosePassword
+ * {@link PasswordlessRecoveryService.recover} only consumes the held secret —
+ * no passkey on that page.
  *
- * The Recovery Secret crosses screens via {@link setPasswordlessRecoveryHold}
- * (module scope): OAuthRehydration and ChoosePassword are separate hook instances.
- *
- * @param authConnection - The seedless social login provider.
+ * Cross-screen Recovery Secret: {@link setPasswordlessRecoveryHold} (module scope).
+ * Feature flag: {@link ReduxService.store} + {@link selectMfaRecoveryEnabled}.
  */
-export function usePasswordlessRecovery(authConnection: string) {
-  const isFlagEnabled = useSelector(selectMfaRecoveryEnabled);
-  const identifierRef = useRef<Identifier | null>(null);
+class PasswordlessRecoveryService {
+  #preparedIdentifier: Identifier | null = null;
 
-  const clear = useCallback(() => {
-    identifierRef.current = null;
+  clear = (): void => {
+    this.#preparedIdentifier = null;
     clearPasswordlessRecoveryHold();
-  }, []);
+  };
 
-  // Drop an unused hold if this screen unmounts without handing off.
-  useEffect(
-    () => () => {
-      // Do not clear the cross-screen hold here — ChoosePassword needs it.
-      identifierRef.current = null;
-    },
-    [],
-  );
-
-  const prepare = useCallback(async (): Promise<boolean> => {
-    identifierRef.current = null;
+  /**
+   * Resolve a recovery identifier when the MFA recovery flag is on and configured.
+   *
+   * @param authConnection - Seedless social login provider.
+   * @returns Whether an identifier is ready for prefetch / recover-without-hold.
+   */
+  prepare = async (authConnection: string): Promise<boolean> => {
+    this.#preparedIdentifier = null;
+    const state = ReduxService.store.getState();
+    const isFlagEnabled = selectMfaRecoveryEnabled(state);
     const configured = isMfaRecoveryConfigured();
     if (!isFlagEnabled || !configured) {
       Logger.log('OAuthRehydration: passwordless recovery unavailable', {
@@ -71,13 +67,13 @@ export function usePasswordlessRecovery(authConnection: string) {
         Platform.OS,
         authConnection,
       );
-      identifierRef.current = await findRecoveryIdentifier(
+      this.#preparedIdentifier = await findRecoveryIdentifier(
         createPasswordlessRecoveryDependencies(),
         {
           canProveSocialIdentifier: canProveSocial,
         },
       );
-      if (!identifierRef.current) {
+      if (!this.#preparedIdentifier) {
         Logger.log('OAuthRehydration: passwordless recovery unavailable', {
           reason: 'no_recovery_identifier',
           authConnection,
@@ -91,19 +87,22 @@ export function usePasswordlessRecovery(authConnection: string) {
         code: getMfaRecoveryErrorCode(error),
       });
     }
-    return identifierRef.current !== null;
-  }, [authConnection, isFlagEnabled]);
+    return this.#preparedIdentifier !== null;
+  };
 
   /**
    * Find identifier + escrow passkey, then stash the Recovery Secret for
    * ChoosePassword. Call while AAL2 is held, before navigating to Create password.
    *
+   * @param authConnection - Seedless social login provider.
    * @returns Whether the hold is ready for Create password submit.
    */
-  const prefetchForChoosePassword = useCallback(async (): Promise<boolean> => {
+  prefetchForChoosePassword = async (
+    authConnection: string,
+  ): Promise<boolean> => {
     clearPasswordlessRecoveryHold();
-    const ready = await prepare();
-    const identifier = identifierRef.current;
+    const ready = await this.prepare(authConnection);
+    const identifier = this.#preparedIdentifier;
     if (!ready || !identifier) {
       Logger.log('OAuthRehydration: recovery secret prefetch skipped', {
         reason: 'prepare_not_ready',
@@ -133,44 +132,44 @@ export function usePasswordlessRecovery(authConnection: string) {
       });
       return false;
     }
-  }, [prepare]);
+  };
 
-  const recover = useCallback(
-    async (newPassword: string, restoreVault: RestoreRecoveredVault) => {
-      const held = takePasswordlessRecoveryHold();
-      if (held) {
-        await recoverWalletWithoutPassword(
-          createPasswordlessRecoveryDependencies(),
-          {
-            identifier: held.identifier,
-            newPassword,
-            restoreVault,
-            recoverySecret: held.recoverySecret,
-          },
-        );
-        return;
-      }
-
-      const identifier = identifierRef.current;
-      if (!identifier) {
-        throw new Error('Passwordless recovery is not prepared');
-      }
+  /**
+   * Create local + global password from the held Recovery Secret (preferred),
+   * or from a prior {@link prepare} on this service when no hold exists.
+   *
+   * @param newPassword - New wallet password. Never logged.
+   * @param restoreVault - Creates the keyring vault from recovered secrets.
+   */
+  recover = async (
+    newPassword: string,
+    restoreVault: RestoreRecoveredVault,
+  ): Promise<void> => {
+    const held = takePasswordlessRecoveryHold();
+    if (held) {
+      this.#preparedIdentifier = null;
       await recoverWalletWithoutPassword(
         createPasswordlessRecoveryDependencies(),
         {
-          identifier,
+          identifier: held.identifier,
           newPassword,
           restoreVault,
+          recoverySecret: held.recoverySecret,
         },
       );
-    },
-    [],
-  );
+      return;
+    }
 
-  return {
-    prepare,
-    prefetchForChoosePassword,
-    recover,
-    clear,
+    const identifier = this.#preparedIdentifier;
+    if (!identifier) {
+      throw new Error('Passwordless recovery is not prepared');
+    }
+    await recoverWalletWithoutPassword(createPasswordlessRecoveryDependencies(), {
+      identifier,
+      newPassword,
+      restoreVault,
+    });
   };
 }
+
+export default new PasswordlessRecoveryService();

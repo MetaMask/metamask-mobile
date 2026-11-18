@@ -106,8 +106,7 @@ import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
-import { usePasswordlessRecovery } from '../../../core/MfaRecovery/usePasswordlessRecovery';
-import { clearPasswordlessRecoveryHold } from '../../../core/MfaRecovery/passwordlessRecoveryHold';
+import PasswordlessRecoveryService from '../../../core/MfaRecovery/PasswordlessRecoveryService';
 import { ensurePasswordlessRecoverySetup } from '../../../core/MfaRecovery/ensurePasswordlessRecoverySetup';
 import { PasswordlessRecoveryError } from '../../../core/MfaRecovery/passwordlessSocialRecovery';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -262,16 +261,13 @@ const ChoosePassword = () => {
   const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
   const isPasswordlessSocialRecovery =
     route.params?.passwordlessSocialRecovery === true;
-  const passwordlessRecovery = usePasswordlessRecovery(
-    route.params?.provider ?? '',
-  );
   // Drop unused Recovery Secret if user leaves Create password without submit.
   useEffect(() => {
     if (!isPasswordlessSocialRecovery) {
       return undefined;
     }
     return () => {
-      clearPasswordlessRecoveryHold();
+      PasswordlessRecoveryService.clear();
     };
   }, [isPasswordlessSocialRecovery]);
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -805,7 +801,7 @@ const ChoosePassword = () => {
         oauth2Login: true,
       };
 
-      await passwordlessRecovery.recover(
+      await PasswordlessRecoveryService.recover(
         password,
         async (vaultPassword, secrets) => {
           await Authentication.unlockWallet({
@@ -839,7 +835,7 @@ const ChoosePassword = () => {
       foxRiveLoaderRef.current?.stop();
       setLoading(false);
     }
-  }, [password, passwordlessRecovery, dispatch]);
+  }, [password, dispatch]);
 
   const startWalletCreation = useCallback(async () => {
     if (isPasswordlessSocialRecovery) {
