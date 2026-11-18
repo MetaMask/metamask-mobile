@@ -50,7 +50,7 @@ export interface TokenAssetRecord {
   symbol: string;
   name: string;
   decimals: number;
-  rwaData?: TokenRwaData;
+  rwaData?: TokenRwaData | null;
   marketData: TokenAssetMarketData | null;
   launchpad: string | null;
   launchpadData: TokenAssetLaunchpadData | null;
@@ -113,10 +113,8 @@ export const fetchTokenAsset = async (
   if (!match) {
     return null;
   }
-  const { rwaData, ...record } = match;
   return {
-    ...record,
-    ...(rwaData && { rwaData }),
+    ...match,
     holders: readHolders(match),
   };
 };
