@@ -482,6 +482,30 @@ describe('createPackPartnerApi', () => {
         code: 'INVALID_RESPONSE',
       });
     });
+
+    it.each([
+      ['memo', ''],
+      ['memo', ' \t\n'],
+      ['transaction', ''],
+      ['transaction', ' \t\n'],
+    ])('rejects a batch containing %s equal to %j', async (field, value) => {
+      const { api } = setup({
+        responses: [
+          createResponse(200, {
+            yoloId: 'batch-1',
+            count: 2,
+            transactions: [
+              transactions[0],
+              { ...transactions[1], [field]: value },
+            ],
+          }),
+        ],
+      });
+
+      const result = api.generatePacks(params);
+
+      await expect(result).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    });
   });
 
   describe('generatePack', () => {
@@ -502,6 +526,30 @@ describe('createPackPartnerApi', () => {
         headers: { 'Content-Type': 'application/json' },
         body: { playerAddress: PLAYER, packType: 'pokemon_50' },
       });
+    });
+
+    it.each([
+      ['memo', ''],
+      ['memo', ' \t\n'],
+      ['transaction', ''],
+      ['transaction', ' \t\n'],
+    ])('rejects a prepared pack with %s equal to %j', async (field, value) => {
+      const { api } = setup({
+        responses: [
+          createResponse(200, {
+            memo: 'cc-1',
+            transaction: 'AQID',
+            [field]: value,
+          }),
+        ],
+      });
+
+      const result = api.generatePack({
+        playerAddress: PLAYER,
+        packType: 'pokemon_50',
+      });
+
+      await expect(result).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
     });
 
     it('maps a 500 to MACHINE_UNAVAILABLE with the details', async () => {

@@ -513,9 +513,7 @@ export const createPackPartnerApi = ({
       !body.yoloId ||
       body.count !== params.count ||
       body.transactions.length !== params.count ||
-      new Set(body.transactions.map(({ memo }) => memo)).size !==
-        params.count ||
-      body.transactions.some(({ memo, transaction }) => !memo || !transaction)
+      new Set(body.transactions.map(({ memo }) => memo)).size !== params.count
     ) {
       throw createPackPartnerError({
         code: 'INVALID_RESPONSE',

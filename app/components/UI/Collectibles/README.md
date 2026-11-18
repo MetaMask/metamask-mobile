@@ -51,6 +51,9 @@ response schemas, shared contracts and environment configuration. The client
 supports the read and transaction endpoints; it does not schedule reads, cache
 responses, sign transactions or automatically replay financial commands.
 All settlement amounts are exact decimal strings of USDC base units (six decimals).
+Prepared packs require non-blank memos and transaction bytes, for both single
+and batch generation. Empty or whitespace-only values fail with `INVALID_RESPONSE`
+at the client boundary before being returned to a caller.
 
 The controller remains the empty initialization shell. Transaction orchestration
 and its journal arrive in step 2.3; React hooks and balance reads arrive in 2.4.

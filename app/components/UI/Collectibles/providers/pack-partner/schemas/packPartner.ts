@@ -114,9 +114,9 @@ export type PpStatus = Infer<typeof PpStatusStruct>;
 // ---------- POST /generatePack ----------
 
 export const PpGeneratePackResponseStruct = type({
-  memo: string(),
+  memo: NonEmptyStringStruct,
   /** Base64 wire transaction, partially signed by PackPartner. */
-  transaction: string(),
+  transaction: NonEmptyStringStruct,
 });
 
 export const PpGeneratePacksResponseStruct = type({
