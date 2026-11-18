@@ -18,7 +18,11 @@ import type {
   PerpsTradingCampaignLeaderboardPositionDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
-import { formatSignedUsd, formatUsd } from '../../utils/formatUtils';
+import {
+  formatOrdinalRank,
+  formatSignedUsd,
+  formatUsd,
+} from '../../utils/formatUtils';
 import {
   PERPS_QUALIFICATION_NOTIONAL_USD,
   PERPS_TRADING_MAX_WINNERS,
@@ -185,6 +189,7 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
                 </Text>
                 {` ${strings(
                   'rewards.perps_trading_campaign.stats_pnl_gap_to_prize_suffix',
+                  { place: formatOrdinalRank(prizeCutoffRank) },
                 )}`}
               </>
             ) : (

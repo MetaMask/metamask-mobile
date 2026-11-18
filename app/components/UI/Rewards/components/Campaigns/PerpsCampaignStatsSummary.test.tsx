@@ -28,8 +28,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: { pnlGap?: string }) =>
-    params?.pnlGap ? `${key}:${params.pnlGap}` : key,
+  strings: (key: string, params?: { pnlGap?: string; place?: string }) => {
+    if (params?.pnlGap) return `${key}:${params.pnlGap}`;
+    if (params?.place) return `${key}:${params.place}`;
+    return key;
+  },
 }));
 
 jest.mock('./CampaignOutcomeBanners', () => {
@@ -227,10 +230,8 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(amount.props.color).toBe(TextColor.SuccessDefault);
     expect(
       getByText(
-        'rewards.perps_trading_campaign.stats_pnl_gap_to_prize_suffix',
-        {
-          exact: false,
-        },
+        'rewards.perps_trading_campaign.stats_pnl_gap_to_prize_suffix:30th',
+        { exact: false },
       ),
     ).toBeDefined();
     expect(
