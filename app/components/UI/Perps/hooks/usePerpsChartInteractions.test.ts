@@ -111,6 +111,38 @@ describe('usePerpsChartInteractions', () => {
     );
   });
 
+  it('tracks library load diagnostics after retry exhaustion', () => {
+    const { result } = renderInteractions();
+    const message =
+      'Failed to load TradingView library. URL: https://cdn.example.com/charting_library.js';
+
+    act(() => {
+      result.current.handleChartError(message, {
+        message,
+        code: 'TRADINGVIEW_LIBRARY_LOAD_FAILED',
+        url: 'https://cdn.example.com/charting_library.js',
+        attempt: 2,
+        maxAttempts: 2,
+        online: true,
+        visibilityState: 'visible',
+      });
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_ERROR,
+      expect.objectContaining({
+        chart_error_code: 'TRADINGVIEW_LIBRARY_LOAD_FAILED',
+        chart_failure_stage: 'library_script',
+        chart_fallback_used: true,
+        chart_library_url: 'https://cdn.example.com/charting_library.js',
+        chart_library_load_attempt: 2,
+        chart_library_load_max_attempts: 2,
+        chart_library_load_online: true,
+        chart_library_load_visibility_state: 'visible',
+      }),
+    );
+  });
+
   it('falls back after an Advanced Chart error', () => {
     const { result } = renderInteractions();
 

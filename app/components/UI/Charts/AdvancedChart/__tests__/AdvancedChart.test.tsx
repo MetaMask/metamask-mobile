@@ -932,6 +932,12 @@ describe('AdvancedChart', () => {
             type: 'ERROR',
             payload: {
               message: 'Failed to load TradingView library. URL: bad',
+              code: 'TRADINGVIEW_LIBRARY_LOAD_FAILED',
+              url: 'https://cdn.example.com/charting_library.js',
+              attempt: 2,
+              maxAttempts: 2,
+              online: true,
+              visibilityState: 'visible',
             },
           }),
         },
@@ -940,6 +946,15 @@ describe('AdvancedChart', () => {
 
     expect(onInitFailed).toHaveBeenCalledWith(
       'Failed to load TradingView library. URL: bad',
+      {
+        message: 'Failed to load TradingView library. URL: bad',
+        code: 'TRADINGVIEW_LIBRARY_LOAD_FAILED',
+        url: 'https://cdn.example.com/charting_library.js',
+        attempt: 2,
+        maxAttempts: 2,
+        online: true,
+        visibilityState: 'visible',
+      },
     );
     expect(onError).not.toHaveBeenCalled();
     expect(queryByText(/Failed to load chart/)).not.toBeOnTheScreen();
@@ -1014,7 +1029,9 @@ describe('AdvancedChart', () => {
       });
     });
 
-    expect(onError).toHaveBeenCalledWith('test error');
+    expect(onError).toHaveBeenCalledWith('test error', {
+      message: 'test error',
+    });
   });
 
   it('does not destroy the chart for errors after CHART_READY', () => {
@@ -1044,7 +1061,9 @@ describe('AdvancedChart', () => {
       });
     });
 
-    expect(onError).toHaveBeenCalledWith('Failed to add indicator: timeout');
+    expect(onError).toHaveBeenCalledWith('Failed to add indicator: timeout', {
+      message: 'Failed to add indicator: timeout',
+    });
     expect(queryByText(/Failed to load chart/)).not.toBeOnTheScreen();
     expect(getByTestId('mock-webview')).toBeOnTheScreen();
   });

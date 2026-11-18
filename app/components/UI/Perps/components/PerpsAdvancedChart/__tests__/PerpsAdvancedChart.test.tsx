@@ -724,6 +724,28 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
+  it('forwards Advanced Chart error diagnostics to the parent', () => {
+    const onError = jest.fn();
+    const message =
+      'Failed to load TradingView library. URL: https://cdn.example.com/charting_library.js';
+    const details = {
+      message,
+      code: 'TRADINGVIEW_LIBRARY_LOAD_FAILED',
+      url: 'https://cdn.example.com/charting_library.js',
+      attempt: 2,
+      maxAttempts: 2,
+      online: true,
+      visibilityState: 'visible',
+    };
+    renderChart({ onError });
+
+    act(() => {
+      advancedChartProps().onError?.(message, details);
+    });
+
+    expect(onError).toHaveBeenCalledWith(message, details);
+  });
+
   it('does not resolve fallback candles from the prior symbol', () => {
     const onResolved = jest.fn();
     const fallbackCandleData: CandleData = {

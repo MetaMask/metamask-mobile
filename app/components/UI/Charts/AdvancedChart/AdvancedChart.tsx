@@ -585,13 +585,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           case 'ERROR':
             if (!isChartReady) {
               if (onInitFailed) {
-                onInitFailed(message.payload.message);
+                onInitFailed(message.payload.message, message.payload);
               } else {
                 setWebViewError(message.payload.message);
-                onError?.(message.payload.message);
+                onError?.(message.payload.message, message.payload);
               }
             } else {
-              onError?.(message.payload.message);
+              onError?.(message.payload.message, message.payload);
             }
             break;
 

@@ -15,7 +15,10 @@
 //    apply visual overrides, attach crosshair + visible-range listeners.
 
 import { onFromRN, postToRN, reportErrorToRN } from './bridge';
-import { loadTradingViewLibrary } from './loadLibrary';
+import {
+  loadTradingViewLibrary,
+  TradingViewLibraryLoadError,
+} from './loadLibrary';
 import { dispatchInboundMessage, registerHandler } from '../messages/handler';
 import {
   applyThemeColors,
@@ -103,6 +106,22 @@ function readConfig(): ChartConfig {
   return config;
 }
 
+function reportLibraryLoadError(error: unknown): void {
+  if (error instanceof TradingViewLibraryLoadError) {
+    reportErrorToRN(error, {
+      code: error.code,
+      url: error.url,
+      attempt: error.attempt,
+      maxAttempts: error.maxAttempts,
+      online: error.online,
+      visibilityState: error.visibilityState,
+    });
+    return;
+  }
+
+  reportErrorToRN(error);
+}
+
 /**
  * Phase 1 + 2 bootstrap. Returns the resolved CONFIG so callers (and tests)
  * can inspect what booted. Idempotent on its inbound subscription — the
@@ -157,58 +176,62 @@ export function bootstrap(): ChartConfig {
 
   // Library load is fire-and-forget; the first-data handler awaits readiness
   // again before constructing the widget, so this is purely a head-start.
-  loadTradingViewLibrary(config.libraryUrl).catch((error) => {
-    reportErrorToRN(error);
+  const libraryReadyPromise = loadTradingViewLibrary(config.libraryUrl);
+  libraryReadyPromise.catch((error) => {
+    reportLibraryLoadError(error);
   });
 
   onFirstOhlcvData(() => {
-    loadTradingViewLibrary(config.libraryUrl)
-      .then(() => {
-        createChartWidget(config, {
-          datafeed: customDatafeed,
-          customFormatters: {
-            priceFormatterFactory: advancedChartPriceFormatterFactory,
-          },
-          timeframe: buildInitialTimeframe(),
-          onReady: (widget) => {
-            try {
-              flushPendingTheme();
-              applyScaleLayout();
-              applyVisualOverrides(config.visualOverrides);
-              setupLegendOverlay(config.legendOverlay);
-              const chart = widget.activeChart();
-              // Match legacy onChartReady: when no explicit visible range
-              // was passed, pin a 2-bar gap on the right. TV's default is
-              // wider, leaving the chart visibly offset left.
-              if (getVisibleFromMs() == null) {
-                try {
-                  chart.getTimeScale().setRightOffset(2);
-                } catch (rightOffsetError) {
-                  reportErrorToRN(rightOffsetError);
+    libraryReadyPromise.then(
+      () => {
+        try {
+          createChartWidget(config, {
+            datafeed: customDatafeed,
+            customFormatters: {
+              priceFormatterFactory: advancedChartPriceFormatterFactory,
+            },
+            timeframe: buildInitialTimeframe(),
+            onReady: (widget) => {
+              try {
+                flushPendingTheme();
+                applyScaleLayout();
+                applyVisualOverrides(config.visualOverrides);
+                setupLegendOverlay(config.legendOverlay);
+                const chart = widget.activeChart();
+                // Match legacy onChartReady: when no explicit visible range
+                // was passed, pin a 2-bar gap on the right. TV's default is
+                // wider, leaving the chart visibly offset left.
+                if (getVisibleFromMs() == null) {
+                  try {
+                    chart.getTimeScale().setRightOffset(2);
+                  } catch (rightOffsetError) {
+                    reportErrorToRN(rightOffsetError);
+                  }
                 }
+                attachCrosshairListener(chart);
+                attachTapDismiss(widget);
+                attachMarkerHitTest(widget, chart);
+                attachVisibleRangeListeners(chart);
+                chart
+                  .selection()
+                  .onChanged()
+                  .subscribe(null, () => {
+                    chart.selection().clear();
+                  });
+                attachLegendResizeListener(widget);
+                slbScheduleInitialCentering();
+                scheduleChartLayoutSettledNotify();
+              } catch (error) {
+                reportErrorToRN(error);
               }
-              attachCrosshairListener(chart);
-              attachTapDismiss(widget);
-              attachMarkerHitTest(widget, chart);
-              attachVisibleRangeListeners(chart);
-              chart
-                .selection()
-                .onChanged()
-                .subscribe(null, () => {
-                  chart.selection().clear();
-                });
-              attachLegendResizeListener(widget);
-              slbScheduleInitialCentering();
-              scheduleChartLayoutSettledNotify();
-            } catch (error) {
-              reportErrorToRN(error);
-            }
-          },
-        });
-      })
-      .catch((error) => {
-        reportErrorToRN(error);
-      });
+            },
+          });
+        } catch (error) {
+          reportErrorToRN(error);
+        }
+      },
+      () => undefined,
+    );
   });
 
   postToRN('DEBUG', { message: 'modular-bootstrap-ready' });
