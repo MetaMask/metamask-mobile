@@ -79,6 +79,8 @@ const BOTH_VENUES: PredictConfig = {
   enabled: true,
   venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
   venueSelection: { enabled: true },
+  // The journey asserts Kalshi's Home offers Withdraw.
+  kalshiWithdrawalsEnabled: true,
 };
 
 /** A non-US session: Polymarket is the regional default. */
