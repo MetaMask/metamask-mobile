@@ -1745,6 +1745,48 @@ describe('KalshiRemoteAdapter', () => {
       ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
     });
 
+    it('rejects a sweep quote for a fixed intent', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue({
+        ...previewPayload,
+        mode: 'sweep_all',
+        requestedAmount: undefined,
+      });
+
+      await expect(
+        adapter.funding.previewWithdraw({ amount: '5.00' as PredictAmount }),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('rejects a fixed quote for a sweep intent', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue(previewPayload);
+
+      await expect(
+        adapter.funding.previewWithdraw({ sweepAll: true }),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('rejects a quote for an amount the person did not ask for', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue({
+        ...previewPayload,
+        requestedAmount: '6.00',
+      });
+
+      await expect(
+        adapter.funding.previewWithdraw({ amount: '5.00' as PredictAmount }),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('accepts the amount echo normalized to two decimals', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue({
+        ...previewPayload,
+        requestedAmount: '5',
+      });
+
+      await expect(
+        adapter.funding.previewWithdraw({ amount: '5.00' as PredictAmount }),
+      ).resolves.toMatchObject({ requestedAmount: '5' });
+    });
+
     it('rejects a receipt bound to another preview', async () => {
       client.commitWithdraw.mockResolvedValue({
         ...receiptPayload,

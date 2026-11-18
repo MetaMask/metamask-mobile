@@ -223,6 +223,22 @@ describe('PredictFundingService withdrawal flow', () => {
         code: PredictErrorCode.UNAUTHENTICATED,
       });
     });
+
+    it('reports a quote failure that lands after abandonment as unauthenticated', async () => {
+      const service = serviceWith();
+      const gate = deferred<PredictWithdrawPreview>();
+      previewWithdraw.mockReturnValueOnce(gate.promise);
+
+      const pending = service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        sweepAll: true,
+      });
+      service.abandon();
+      gate.reject(PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE));
+
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+    });
   });
 
   describe('commitWithdrawPreview', () => {
@@ -384,6 +400,21 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(result).toBe(canonical);
       expect(observeWithdraw.mock.calls).toEqual([['preview-1', undefined]]);
       expect(commitWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('reports a read failure that lands after abandonment as unauthenticated', async () => {
+      const service = serviceWith();
+      const gate = deferred<PredictWithdrawReceipt>();
+      observeWithdraw.mockReturnValueOnce(gate.promise);
+
+      const pending = service.observeWithdraw(KALSHI_VENUE_ID, 'preview-1');
+      service.abandon();
+      gate.reject(PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE));
+
+      await expect(pending).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(invalidateQueries).not.toHaveBeenCalled();
     });
   });
 

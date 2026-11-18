@@ -53,6 +53,7 @@ import {
 import { WithdrawConfirmStep } from './internal/WithdrawConfirmStep';
 import { WithdrawStatusStep } from './internal/WithdrawStatusStep';
 import { useWithdrawAnnouncement } from './internal/useWithdrawAnnouncement';
+import { withdrawAnnouncement } from './internal/withdrawAnnouncement';
 import {
   normalizeWithdrawAmount,
   sanitizeWithdrawAmount,
@@ -350,9 +351,16 @@ export const PredictWithdrawScreen = () => {
   });
 
   // A Preview or Commit failure replaces the visible content; announce the
-  // same sentence the screen shows instead of relying on re-exploration.
+  // same sentence the screen shows instead of relying on re-exploration. A
+  // stalled observation replaces the actions with a notice, so iOS needs the
+  // same explicit announcement (`accessibilityLiveRegion` is Android-only).
+  const isStatusStalled =
+    state.phase === 'status' && state.receipt !== null && isStalled;
   useWithdrawAnnouncement(
-    state.error === null ? null : strings(errorCopyKey(state.error)),
+    withdrawAnnouncement(
+      state.error === null ? null : strings(errorCopyKey(state.error)),
+      isStatusStalled,
+    ),
   );
 
   const handleKeyPress = useCallback(
@@ -546,7 +554,7 @@ export const PredictWithdrawScreen = () => {
   const renderStatusActions = () =>
     state.phase === 'status' ? (
       <Box twClassName="gap-3 px-4 pb-4">
-        {state.receipt !== null && isStalled ? (
+        {isStatusStalled ? (
           <Text
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
@@ -571,9 +579,7 @@ export const PredictWithdrawScreen = () => {
         ) : null}
         <Button
           variant={
-            state.receipt !== null && isStalled
-              ? ButtonVariant.Secondary
-              : ButtonVariant.Primary
+            isStatusStalled ? ButtonVariant.Secondary : ButtonVariant.Primary
           }
           size={ButtonSize.Lg}
           isFullWidth

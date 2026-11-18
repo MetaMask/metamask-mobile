@@ -374,17 +374,19 @@ export class PredictFundingService {
   ): Promise<PredictWithdrawPreview> {
     this.#assertVenue(venueId);
     const generation = this.#generation;
-    const preview = await withPredictNextTrace(
-      {
-        method: 'requestWithdrawPreview',
-        name: TraceName.PredictNextWithdrawPreview,
-        op: TraceOperation.PredictDataFetch,
-        tags: { venueId: this.#venueId },
-        data: { mode: this.#modeOf(params) },
-      },
-      () => this.#funding.previewWithdraw(params, options),
+    const preview = await this.#fenced(
+      generation,
+      withPredictNextTrace(
+        {
+          method: 'requestWithdrawPreview',
+          name: TraceName.PredictNextWithdrawPreview,
+          op: TraceOperation.PredictDataFetch,
+          tags: { venueId: this.#venueId },
+          data: { mode: this.#modeOf(params) },
+        },
+        () => this.#funding.previewWithdraw(params, options),
+      ),
     );
-    this.#assertNotAbandoned(generation);
     return preview;
   }
 
@@ -448,8 +450,10 @@ export class PredictFundingService {
   ): Promise<PredictWithdrawReceipt> {
     this.#assertVenue(venueId);
     const generation = this.#generation;
-    const receipt = await this.#funding.observeWithdraw(previewId, options);
-    this.#assertNotAbandoned(generation);
+    const receipt = await this.#fenced(
+      generation,
+      this.#funding.observeWithdraw(previewId, options),
+    );
     this.#recordStatus(receipt);
     return receipt;
   }
@@ -630,5 +634,21 @@ export class PredictFundingService {
       // backend uses for a rejected token keeps this out of user copy.
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
     }
+  }
+
+  /** Settles a read only while the session that asked still owns it: a
+   * replaced session is UNAUTHENTICATED whether the read answered or threw,
+   * so an old failure can never surface as the current Predict User's. */
+  #fenced<Value>(generation: number, answer: Promise<Value>): Promise<Value> {
+    return answer.then(
+      (value) => {
+        this.#assertNotAbandoned(generation);
+        return value;
+      },
+      (error: unknown) => {
+        this.#assertNotAbandoned(generation);
+        throw error;
+      },
+    );
   }
 }
