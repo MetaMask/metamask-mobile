@@ -62,6 +62,7 @@ const PerpsOrderRedirect: React.FC = () => {
     stayOnCurrentScreen,
     source,
     copyTradeOrigin,
+    isCopyTrade,
   } = route.params;
   const orderSource = source ?? PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN;
 
@@ -113,6 +114,8 @@ const PerpsOrderRedirect: React.FC = () => {
         source: orderSource,
         transactionActiveAbTests,
         ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
+        ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
+        ...(isCopyTrade ? { isCopyTrade: true } : {}),
       };
       // Lighter has no sheet. From the transparent modal stack, the full
       // order screen lives in the Perps stack, so leave the modal first.
@@ -164,6 +167,7 @@ const PerpsOrderRedirect: React.FC = () => {
                 : {}),
               ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
               ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
+              ...(isCopyTrade ? { isCopyTrade: true } : {}),
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
@@ -211,6 +215,7 @@ const PerpsOrderRedirect: React.FC = () => {
     fromTokenDetails,
     stayOnCurrentScreen,
     copyTradeOrigin,
+    isCopyTrade,
     orderSource,
     transactionActiveAbTests,
     useBottomSheet,

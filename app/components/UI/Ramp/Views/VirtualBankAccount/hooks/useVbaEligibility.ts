@@ -40,6 +40,11 @@ export interface VbaEligibility {
    * otherwise the GeolocationController IP location, such as `BR` or `US-CA`.
    */
   location: string | undefined;
+  /**
+   * Open market serving the effective location, or undefined when none does.
+   * Its currency is the one the VBA account is created in.
+   */
+  market: VbaMarket | undefined;
 }
 
 export interface VbaEligibilityInputs {
@@ -70,8 +75,8 @@ export function getVbaEligibility({
   markets,
 }: VbaEligibilityInputs): VbaEligibility {
   const trimmedLocation = location?.trim() || undefined;
-  const isRegionEligible =
-    getVbaMarketForCountry(markets, trimmedLocation) !== undefined;
+  const market = getVbaMarketForCountry(markets, trimmedLocation);
+  const isRegionEligible = market !== undefined;
   const isLoading =
     !trimmedLocation &&
     (geolocationStatus === undefined ||
@@ -85,6 +90,7 @@ export function getVbaEligibility({
     isRegionEligible,
     isDevBypassEnabled,
     location: trimmedLocation,
+    market,
   };
 }
 

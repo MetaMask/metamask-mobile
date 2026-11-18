@@ -4,14 +4,7 @@ import {
   getNativeAssetForChainId,
 } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -82,7 +75,7 @@ import {
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useReceiveTokens } from './useReceiveTokens';
 import I18n, { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import {
   selectBridgeFeatureFlags,
@@ -126,7 +119,6 @@ import {
   isSocialTradeSource,
   recordSocialTrade,
 } from '../../../../util/social/socialActivityStorage';
-import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
@@ -154,6 +146,7 @@ import {
 } from '../../Bridge/utils/getPriceImpactViewData';
 import { useGasFeeEstimates } from '../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { QuickBuyEventProperties, QuickBuyEventValues } from '../analytics';
+import { isQuickBuyCopyTrade } from '../analytics/isQuickBuyCopyTrade';
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
 import {
   trackQuickBuyTrade,
@@ -321,8 +314,6 @@ export function useQuickBuyController(
   const dispatch = useDispatch();
   const formatters = useFormatters();
   const navigation = useNavigation<AppNavigationProp>();
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
   const canShareCopyTrade = useCanShareCopyTrade();
@@ -348,7 +339,13 @@ export function useQuickBuyController(
     trackTradeCompleted,
     markTradeSubmitted,
     preserveBridgeStateOnUnmount,
-  } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext, tradeMode);
+  } = useQuickBuyAnalytics(
+    traderAddress,
+    caip19,
+    analyticsContext,
+    tradeMode,
+    copyTradeOrigin,
+  );
   const [fiatAmount, setFiatAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
   // True when the user has committed the slider to 100% ("sell all"). In this
@@ -888,6 +885,8 @@ export function useQuickBuyController(
       amountUsd: quotedAmountUsd,
       source: analyticsContext?.source,
       originalEntryPoint: analyticsContext?.originalEntryPoint,
+      isCopyTrade: analyticsContext?.isCopyTrade,
+      copyTradeOrigin,
     }),
     [
       traderAddress,
@@ -895,6 +894,8 @@ export function useQuickBuyController(
       quotedAmountUsd,
       analyticsContext?.source,
       analyticsContext?.originalEntryPoint,
+      analyticsContext?.isCopyTrade,
+      copyTradeOrigin,
     ],
   );
 
@@ -1675,11 +1676,17 @@ export function useQuickBuyController(
           [QuickBuyEventProperties.CAIP19]: submittedCaip19,
           [QuickBuyEventProperties.ASSET_NAME]: submittedAssetName,
           ...(amountUsd !== undefined
-            ? { [QuickBuyEventProperties.AMOUNT_USD]: amountUsd }
+            ? {
+                [QuickBuyEventProperties.AMOUNT_USD]: amountUsd,
+                [QuickBuyEventProperties.METAMASK_FEE_USD]:
+                  (amountUsd * getMetamaskFeePercent(activeQuote)) / 100,
+              }
             : {}),
           [QuickBuyEventProperties.TRADE_TYPE]: tradeMode,
-          [QuickBuyEventProperties.IS_COPY_TRADE]:
-            Boolean(copyTradeOrigin) || analyticsContext.isCopyTrade === true,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: isQuickBuyCopyTrade({
+            copyTradeOrigin,
+            isCopyTrade: analyticsContext.isCopyTrade,
+          }),
           ...(submittedPayWith
             ? {
                 [QuickBuyEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
@@ -1795,6 +1802,7 @@ export function useQuickBuyController(
     const isForcedPostTradeShare = postTradeShare;
     const shouldForcePostTradeShare =
       isForcedPostTradeShare && canPostTradeShare && canShareCopyTrade();
+    const shareAnalyticsSource = getSocialEventSource(analyticsContext.source);
     const prompt = isForcedPostTradeShare
       ? undefined
       : resolvePostTradePrompt('swap');
@@ -1816,6 +1824,13 @@ export function useQuickBuyController(
         kind: 'post_to_feed_toast',
         tradeInFlightChain,
         preview: sharePreview,
+        isCopyTrade: isQuickBuyCopyTrade({
+          copyTradeOrigin,
+          isCopyTrade: analyticsContext.isCopyTrade,
+        }),
+        ...(shareAnalyticsSource
+          ? { analyticsSource: shareAnalyticsSource }
+          : {}),
       };
     }
     const isCreateProfilePrompt =
@@ -1825,7 +1840,6 @@ export function useQuickBuyController(
       ((shouldForcePostTradeShare ||
         trackedPostTradePrompt?.kind === 'share_sheet') &&
         Boolean(tradeInFlightChain));
-    const shareAnalyticsSource = getSocialEventSource(analyticsContext.source);
     const beginShareSession = () =>
       shouldPostTradeShare
         ? beginPostTradeShareSession({
@@ -1846,6 +1860,10 @@ export function useQuickBuyController(
                 : undefined,
             tradeInFlightChain,
             copyTradeOrigin,
+            isCopyTrade: isQuickBuyCopyTrade({
+              copyTradeOrigin,
+              isCopyTrade: analyticsContext.isCopyTrade,
+            }),
             ...(submittedTraderAddress
               ? { traderAddress: submittedTraderAddress }
               : {}),
@@ -1860,9 +1878,7 @@ export function useQuickBuyController(
       ? undefined
       : beginShareSession();
     const showPendingToast = () =>
-      toastRef?.current?.showToast(
-        buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
-      );
+      toast(buildQuickBuyToastOptions('pending', { trade: tradeToastInfo }));
     onClose();
     if (!shouldPostTradeShare && !isHardwareAddress) {
       showPendingToast();
@@ -1964,10 +1980,7 @@ export function useQuickBuyController(
         // tracked and the app-root handler ignored them. Reconcile against the
         // current bridge status now so the user isn't stuck on the pending
         // toast; if it's still pending, future stateChange events take over.
-        const showToast = toastRef?.current?.showToast;
-        if (showToast) {
-          resolveQuickBuyTerminalToast(txMetaId, showToast, theme);
-        }
+        resolveQuickBuyTerminalToast(txMetaId);
       }
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -2002,9 +2015,7 @@ export function useQuickBuyController(
           })
         : false;
       if (!sessionUpdated) {
-        toastRef?.current?.showToast(
-          buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
-        );
+        toast(buildQuickBuyToastOptions('failed', { trade: tradeToastInfo }));
       }
       await playErrorNotification();
       if (tradeBaseProps) {
@@ -2033,8 +2044,6 @@ export function useQuickBuyController(
     stxEnabled,
     dispatch,
     onClose,
-    toastRef,
-    theme,
     isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,

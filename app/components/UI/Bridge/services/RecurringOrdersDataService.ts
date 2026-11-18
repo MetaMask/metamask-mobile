@@ -12,6 +12,7 @@ import {
 } from '@metamask/utils';
 import {
   RecurringOrderState,
+  type GetRecurringOrderResponse,
   type GetRecurringOrdersByAssetResponse,
   type ListRecurringOrdersResponse,
   type ListRecurringSwapsResponse,
@@ -21,6 +22,7 @@ import {
 import { recurringOrdersApiClient } from '../api/recurringOrders.client';
 import {
   recurringOrdersQueries,
+  type RecurringOrderQueryParams,
   type RecurringOrdersByAssetQueryParams,
 } from '../queries/recurringOrders';
 
@@ -33,6 +35,14 @@ export interface RecurringOrdersDataServiceGetRecurringOrdersAction {
     params: RecurringOrdersQueryParams,
     cursor?: string,
   ) => Promise<ListRecurringOrdersResponse>;
+}
+
+export interface RecurringOrdersDataServiceGetRecurringOrderAction {
+  type: 'RecurringOrdersDataService:getRecurringOrder';
+  handler: (
+    orderId: string,
+    params: RecurringOrderQueryParams,
+  ) => Promise<GetRecurringOrderResponse>;
 }
 
 export interface RecurringOrdersDataServiceGetRecurringSwapsAction {
@@ -52,6 +62,7 @@ export interface RecurringOrdersDataServiceGetRecurringOrdersByAssetAction {
 }
 
 export type RecurringOrdersDataServiceActions =
+  | RecurringOrdersDataServiceGetRecurringOrderAction
   | RecurringOrdersDataServiceGetRecurringOrdersAction
   | RecurringOrdersDataServiceGetRecurringOrdersByAssetAction
   | RecurringOrdersDataServiceGetRecurringSwapsAction
@@ -86,6 +97,10 @@ export class RecurringOrdersDataService extends BaseDataService<
     });
 
     messenger.registerActionHandler(
+      'RecurringOrdersDataService:getRecurringOrder',
+      this.getRecurringOrder.bind(this),
+    );
+    messenger.registerActionHandler(
       'RecurringOrdersDataService:getRecurringOrders',
       this.getRecurringOrders.bind(this),
     );
@@ -97,6 +112,25 @@ export class RecurringOrdersDataService extends BaseDataService<
       'RecurringOrdersDataService:getRecurringSwaps',
       this.getRecurringSwaps.bind(this),
     );
+  }
+
+  async getRecurringOrder(
+    orderId: string,
+    params: RecurringOrderQueryParams,
+  ): Promise<GetRecurringOrderResponse> {
+    const descriptor = recurringOrdersQueries.getRecurringOrder(
+      orderId,
+      params,
+    );
+
+    return this.fetchQuery({
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
+      queryFn: () =>
+        recurringOrdersApiClient.getRecurringOrder(orderId, params) as Promise<
+          Json & GetRecurringOrderResponse
+        >,
+    });
   }
 
   async getRecurringOrders(

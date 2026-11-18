@@ -69,12 +69,6 @@ const createStyles = () =>
       right: 0,
       alignItems: 'center',
     },
-    // Matches the notifications pre-prompt toast leading-icon spacing so the
-    // Social Leaderboard toast reads identically to the rest of the app.
-    toastAccessory: {
-      alignSelf: 'flex-start',
-      paddingTop: 4,
-    },
     title: {
       fontSize: 28,
       lineHeight: 34,
