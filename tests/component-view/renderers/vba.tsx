@@ -179,6 +179,17 @@ export const renderVbaVendorTermsWithCaller = (
   return result;
 };
 
+export const renderVbaDetails = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    VbaDetails as unknown as React.ComponentType,
+    { name: Routes.RAMP.VBA_DETAILS },
+    [],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
 export const renderVbaMoneyEntry = (options: RenderVbaOptions = {}) => {
   const result = renderScreenWithRoutes(
     VbaMoneyCaller,
