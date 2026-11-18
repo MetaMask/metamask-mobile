@@ -45,34 +45,39 @@ export const MONEY_HOME_CARD_DEV_OVERRIDES: readonly MoneyHomeCardDevOverride[] 
     ),
     vbaOverride(
       'kyc_decision',
-      '5. VBA eligible, KYC rejected or retry: KYC decision',
+      '5. VBA eligible, KYC rejected: KYC decision',
       'kyc_decision',
     ),
     vbaOverride(
+      'kyc_retry',
+      '6. VBA eligible, KYC retry: needs more information',
+      'kyc_retry',
+    ),
+    vbaOverride(
       'identity_verified',
-      '6. VBA eligible, KYC approved: Identity verified',
+      '7. VBA eligible, KYC approved: Identity verified',
       'identity_verified',
     ),
     {
       id: 'add_funds',
-      label: '7. Not VBA eligible, or has crypto: Add funds',
+      label: '8. Not VBA eligible, or has crypto: Add funds',
       card: { type: 'onboarding' },
       onboardingStep: 0,
     },
     {
       id: 'card',
-      label: '8. Funded: Get card or Link card',
+      label: '9. Funded: Get card or Link card',
       card: { type: 'onboarding' },
       onboardingStep: 1,
     },
     {
       id: 'card_done',
-      label: '9. Card linked, blocked, or skipped: no card',
+      label: '10. Card linked, blocked, or skipped: no card',
       card: { type: 'none' },
     },
     {
       id: 'autoramp_active',
-      label: '10. Autoramp active: no card',
+      label: '11. Autoramp active: no card',
       card: { type: 'none' },
     },
   ];
