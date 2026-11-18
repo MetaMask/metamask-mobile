@@ -11968,6 +11968,14 @@
       "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "We couldn't continue your Card session. Log in again.",
       "available_balance": "Available balance",
+      "action_buttons": {
+        "add": "Add",
+        "details": "Details",
+        "hide_details": "Hide",
+        "view_pin": "View PIN",
+        "freeze": "Freeze",
+        "unfreeze": "Unfreeze"
+      },
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Check your connection or try refreshing the page.",
       "try_again": "Try again",
