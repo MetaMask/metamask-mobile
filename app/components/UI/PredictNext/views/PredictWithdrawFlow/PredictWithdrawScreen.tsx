@@ -539,6 +539,57 @@ export const PredictWithdrawScreen = () => {
       </>
     ) : null;
 
+  const renderStatusActions = () =>
+    state.phase === 'status' ? (
+      <Box twClassName="gap-3 px-4 pb-4">
+        {state.receipt !== null && isStalled ? (
+          <Text
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={PredictWithdrawFlowTestIds.STALLED}
+          >
+            {strings('predict_next.withdraw.status.stalled')}
+          </Text>
+        ) : null}
+        {canCheckWithdrawal ? (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={retryObservation}
+            isDisabled={isOffline}
+            testID={PredictWithdrawFlowTestIds.CHECK_WITHDRAWAL}
+          >
+            {strings('predict_next.withdraw.retry')}
+          </Button>
+        ) : null}
+        <Button
+          variant={
+            state.receipt !== null && isStalled
+              ? ButtonVariant.Secondary
+              : ButtonVariant.Primary
+          }
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={state.receipt ? close : handleConfirm}
+          isDisabled={!state.receipt && (!state.error || isOffline)}
+          testID={
+            state.receipt
+              ? PredictWithdrawFlowTestIds.DONE
+              : PredictWithdrawFlowTestIds.RETRY
+          }
+        >
+          {strings(
+            state.receipt
+              ? 'predict_next.withdraw.status.done'
+              : 'predict_next.withdraw.retry',
+          )}
+        </Button>
+      </Box>
+    ) : null;
+
   const renderStatus = () =>
     state.phase === 'status' ? (
       <>
@@ -566,53 +617,7 @@ export const PredictWithdrawScreen = () => {
             </Box>
           )}
         </ScrollView>
-        <Box twClassName="gap-3 px-4 pb-4">
-          {state.receipt !== null && isStalled ? (
-            <Text
-              accessibilityRole="alert"
-              accessibilityLiveRegion="polite"
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              testID={PredictWithdrawFlowTestIds.STALLED}
-            >
-              {strings('predict_next.withdraw.status.stalled')}
-            </Text>
-          ) : null}
-          {canCheckWithdrawal ? (
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={retryObservation}
-              isDisabled={isOffline}
-              testID={PredictWithdrawFlowTestIds.CHECK_WITHDRAWAL}
-            >
-              {strings('predict_next.withdraw.retry')}
-            </Button>
-          ) : null}
-          <Button
-            variant={
-              state.receipt !== null && isStalled
-                ? ButtonVariant.Secondary
-                : ButtonVariant.Primary
-            }
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={state.receipt ? close : handleConfirm}
-            isDisabled={!state.receipt && (!state.error || isOffline)}
-            testID={
-              state.receipt
-                ? PredictWithdrawFlowTestIds.DONE
-                : PredictWithdrawFlowTestIds.RETRY
-            }
-          >
-            {strings(
-              state.receipt
-                ? 'predict_next.withdraw.status.done'
-                : 'predict_next.withdraw.retry',
-            )}
-          </Button>
-        </Box>
+        {renderStatusActions()}
       </>
     ) : null;
 
