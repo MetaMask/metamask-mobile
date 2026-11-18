@@ -251,12 +251,13 @@ export const onboardingProfileFingerprint = (
 };
 
 /**
- * Keeps a draft account only while it is still in `accounts`.
+ * Reconciles the draft's linked account with the accounts the profile can use.
  *
- * A selection that has left the eligible set is cleared, including when that
- * set is empty, and stays empty. The first eligible account is chosen only
- * for a draft that has never had a selection. Returns the same draft when
- * nothing changes.
+ * The current selection stays when that account is still eligible, and its
+ * address is refreshed if it changed. A selection that is no longer eligible
+ * is cleared and stays cleared, even when another account is available — the
+ * user picks the next one. A draft that has never had a selection gets the
+ * first eligible account. Returns the same draft when nothing changes.
  */
 export const withEligibleLinkedAccount = (
   draft: ProfileOnboardingDraft,

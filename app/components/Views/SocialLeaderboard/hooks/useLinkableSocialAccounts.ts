@@ -5,7 +5,7 @@ import type { CaipAccountId, CaipChainId } from '@metamask/utils';
 import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
+import { mnemonicEntropySourceId } from '../../../../util/accounts/mnemonicEntropySourceId';
 import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
@@ -66,23 +66,6 @@ export const toLinkedCaipAccountId = (
   }
   const scope = account.scopes[0];
   return scope ? (`${scope}:${account.address}` as CaipAccountId) : null;
-};
-
-/**
- * Entropy source of an HD account. Imported, hardware, and snap accounts are
- * not mnemonic ownership, and an HD account with no entropy id cannot be
- * matched to the profile.
- */
-const mnemonicEntropySourceId = (
-  account: InternalAccount,
-): string | undefined => {
-  if (account.metadata.keyring.type !== ExtendedKeyringTypes.hd) {
-    return undefined;
-  }
-  const entropySource = account.options.entropySource;
-  return typeof entropySource === 'string' && entropySource.length > 0
-    ? entropySource
-    : undefined;
 };
 
 /**

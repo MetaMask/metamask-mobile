@@ -60,19 +60,22 @@ export const selectCanonicalProfileId = createSelector(
   },
 );
 
-/** True when the primary session lists this SRP's entropy source id or identifier id. */
+/**
+ * True when the primary session lists this SRP's login identifier.
+ *
+ * `pairedIdentifierIds` holds server identifier ids (a hash of the SRP public
+ * key). Local keyring ids never appear there, so they are not compared.
+ */
 const isSrpPairedToPrimary = (
-  entropySourceId: string,
   identifierId: string | undefined,
   pairedIdentifierIds: Set<string>,
 ): boolean =>
-  pairedIdentifierIds.has(entropySourceId) ||
-  (identifierId !== undefined && pairedIdentifierIds.has(identifierId));
+  identifierId !== undefined && pairedIdentifierIds.has(identifierId);
 
 /**
  * Selector that returns the entropy source IDs of the SRPs that belong to the
- * wallet's profile: the primary SRP first, followed by every SRP whose id is
- * listed in the primary session's `pairedIdentifierIds`.
+ * wallet's profile: the primary SRP first, followed by every SRP whose login
+ * identifier is listed in the primary session's `pairedIdentifierIds`.
  *
  * `canonicalProfileId` is not used for this: the AuthenticationController
  * propagates it to every session, including SRPs the server skipped while
@@ -107,7 +110,6 @@ export const selectProfileEntropySourceIds = createDeepEqualSelector(
         ([entropySourceId, session]) =>
           entropySourceId !== primaryEntropySourceId &&
           isSrpPairedToPrimary(
-            entropySourceId,
             session?.profile?.identifierId,
             pairedIdentifierIds,
           ),

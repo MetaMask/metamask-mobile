@@ -1499,6 +1499,7 @@ describe('SocialProfileOnboardingView', () => {
           screen.getByText('This handle is unavailable. Choose another one.'),
         ).toBeOnTheScreen();
       },
+      // Username availability is debounced 400ms before the taken result renders.
       { timeout: 3000 },
     );
 
@@ -1523,6 +1524,7 @@ describe('SocialProfileOnboardingView', () => {
           screen.getByText('This handle is unavailable. Choose another one.'),
         ).toBeOnTheScreen();
       },
+      // Username availability is debounced 400ms before the taken result renders.
       { timeout: 3000 },
     );
     expect(
