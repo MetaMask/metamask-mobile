@@ -308,6 +308,7 @@ describe('subscriptionController selectors', () => {
       SUBSCRIPTION_STATUSES.active,
       SUBSCRIPTION_STATUSES.trialing,
       SUBSCRIPTION_STATUSES.provisional,
+      SUBSCRIPTION_STATUSES.awaitingFunds,
     ])(
       'treats a %s Money Account Plus subscription as subscribed',
       (status) => {
@@ -474,6 +475,7 @@ describe('subscriptionController selectors', () => {
       SUBSCRIPTION_STATUSES.active,
       SUBSCRIPTION_STATUSES.trialing,
       SUBSCRIPTION_STATUSES.provisional,
+      SUBSCRIPTION_STATUSES.awaitingFunds,
       SUBSCRIPTION_STATUSES.paused,
     ])('treats a %s Money Account Plus subscription as existing', (status) => {
       const state = createState({
