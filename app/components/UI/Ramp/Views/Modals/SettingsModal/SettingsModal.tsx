@@ -113,16 +113,18 @@ function SettingsModal() {
 
   const handleContactSupport = useCallback(async () => {
     if (!supportUrl) return;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
-        .addProperties({
-          option: 'Contact Support',
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-    await openSupportUrl(supportUrl);
+    await openSupportUrl(supportUrl, {
+      onOpen: () =>
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+            .addProperties({
+              option: 'Contact Support',
+              location: 'Amount Input',
+              ramp_type: 'UNIFIED_BUY_2',
+            })
+            .build(),
+        ),
+    });
   }, [supportUrl, openSupportUrl, trackEvent, createEventBuilder]);
 
   const handleLogOut = useCallback(async () => {

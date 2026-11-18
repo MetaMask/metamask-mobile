@@ -71,7 +71,7 @@ function ErrorDetailsModal() {
 
   const handleContactSupport = useCallback(async () => {
     if (!providerSupportUrl) return;
-    await openSupportUrl(providerSupportUrl, providerName);
+    await openSupportUrl(providerSupportUrl, { title: providerName });
   }, [providerSupportUrl, providerName, openSupportUrl]);
 
   const handleChangeProvider = useCallback(() => {

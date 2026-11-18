@@ -69,17 +69,20 @@ function ProcessingInfoModal() {
     } catch {
       urlDomain = providerSupportUrl;
     }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'Order Details',
-          external_link_description: 'Provider Support',
-          url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-    await openSupportUrl(providerSupportUrl, providerName);
+    await openSupportUrl(providerSupportUrl, {
+      title: providerName,
+      onOpen: () =>
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
+            .addProperties({
+              location: 'Order Details',
+              external_link_description: 'Provider Support',
+              url_domain: urlDomain,
+              ramp_type: 'UNIFIED_BUY_2',
+            })
+            .build(),
+        ),
+    });
   }, [
     providerSupportUrl,
     providerName,

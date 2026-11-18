@@ -2,7 +2,11 @@ import { renderHook, act } from '@testing-library/react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import Logger from '../../../../util/Logger';
-import { useOpenProviderSupportUrl } from './useOpenProviderSupportUrl';
+import { AppState, type AppStateStatus } from 'react-native';
+import {
+  useOpenProviderSupportUrl,
+  type OpenProviderSupportUrlOptions,
+} from './useOpenProviderSupportUrl';
 
 const mockNavigate = jest.fn();
 
@@ -24,8 +28,18 @@ const SUPPORT_URL = 'https://support.example.com';
 const mockIsAvailable = InAppBrowser.isAvailable as jest.Mock;
 const mockOpen = InAppBrowser.open as jest.Mock;
 
+type AppStateListener = (state: AppStateStatus) => void;
+let mockAppStateListener: AppStateListener | undefined;
+const originalCurrentState = Object.getOwnPropertyDescriptor(
+  AppState,
+  'currentState',
+);
+
 function setup(): {
-  openSupportUrl: (url: string, title?: string) => Promise<void>;
+  openSupportUrl: (
+    url: string,
+    options?: OpenProviderSupportUrlOptions,
+  ) => Promise<void>;
   onCloseBottomSheet: jest.Mock;
 } {
   const onCloseBottomSheet = jest.fn();
@@ -41,6 +55,26 @@ function setup(): {
 describe('useOpenProviderSupportUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAppStateListener = undefined;
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_type, listener) => {
+        mockAppStateListener = listener as AppStateListener;
+        return { remove: jest.fn() } as unknown as ReturnType<
+          typeof AppState.addEventListener
+        >;
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    if (originalCurrentState) {
+      Object.defineProperty(AppState, 'currentState', originalCurrentState);
+    }
   });
 
   it('opens the in-app browser before closing the sheet', async () => {
@@ -141,7 +175,7 @@ describe('useOpenProviderSupportUrl', () => {
     mockIsAvailable.mockResolvedValue(false);
     const { openSupportUrl, onCloseBottomSheet } = setup();
 
-    await act(() => openSupportUrl(SUPPORT_URL, 'Provider'));
+    await act(() => openSupportUrl(SUPPORT_URL, { title: 'Provider' }));
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
@@ -163,5 +197,58 @@ describe('useOpenProviderSupportUrl', () => {
       'TestModal: Failed to open support URL',
     );
     expect(onCloseBottomSheet).not.toHaveBeenCalled();
+  });
+
+  it('calls onOpen once per accepted press and not for ignored repeat presses', async () => {
+    mockIsAvailable.mockResolvedValue(true);
+    mockOpen.mockReturnValue(new Promise(() => undefined));
+    const onOpen = jest.fn();
+    const { openSupportUrl } = setup();
+
+    await act(async () => {
+      openSupportUrl(SUPPORT_URL, { onOpen });
+    });
+    await act(() => openSupportUrl(SUPPORT_URL, { onOpen }));
+
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(mockOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('accepts a new press after the app returns to the foreground while a browser call never settled', async () => {
+    mockIsAvailable.mockResolvedValue(true);
+    mockOpen.mockReturnValueOnce(new Promise(() => undefined));
+    mockOpen.mockResolvedValueOnce({ type: 'cancel' });
+    const { openSupportUrl, onCloseBottomSheet } = setup();
+
+    await act(async () => {
+      openSupportUrl(SUPPORT_URL);
+    });
+    await act(() => openSupportUrl(SUPPORT_URL));
+    expect(mockOpen).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      mockAppStateListener?.('background');
+      mockAppStateListener?.('active');
+    });
+    await act(() => openSupportUrl(SUPPORT_URL));
+
+    expect(mockOpen).toHaveBeenCalledTimes(2);
+    expect(onCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reset the guard when the app stays active', async () => {
+    mockIsAvailable.mockResolvedValue(true);
+    mockOpen.mockReturnValue(new Promise(() => undefined));
+    const { openSupportUrl } = setup();
+
+    await act(async () => {
+      openSupportUrl(SUPPORT_URL);
+    });
+    act(() => {
+      mockAppStateListener?.('active');
+    });
+    await act(() => openSupportUrl(SUPPORT_URL));
+
+    expect(mockOpen).toHaveBeenCalledTimes(1);
   });
 });
