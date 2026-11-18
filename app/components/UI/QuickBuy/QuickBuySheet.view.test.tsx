@@ -193,6 +193,43 @@ describeForPlatforms('QuickBuySheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the post minimum hint on an empty amount when the remote flag is on', async () => {
+    const screen = renderQuickBuySheet({
+      overrides: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                quickBuyPostTradeShareHintEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.0',
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    await waitForSheetReady(screen);
+
+    expect(
+      await screen.findByTestId(
+        QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT,
+      ),
+    ).toHaveTextContent('Buy $10 to post');
+  });
+
+  it('hides the post minimum hint when the remote flag is missing', async () => {
+    const screen = renderQuickBuySheet();
+
+    await waitForSheetReady(screen);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
+  });
+
   it('updates the fiat amount when the user types on the keypad', async () => {
     const screen = renderQuickBuySheet();
 

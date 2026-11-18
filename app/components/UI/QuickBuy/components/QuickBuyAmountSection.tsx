@@ -5,6 +5,10 @@ import {
   Box,
   FontFamily,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextVariant,
   TextColor,
@@ -59,10 +63,10 @@ interface QuickBuyAmountSectionProps {
   sourceBalanceDisplay?: string;
   /** When true, shows a blinking caret after the editable digits (keypad open). */
   showCursor?: boolean;
-  /** Selects the Buy/Sell copy of the empty-state post minimum helper. */
+  /** Selects the Buy/Sell copy of the post minimum hint. */
   tradeMode?: QuickBuyTradeMode;
-  /** True while no amount is entered; shows the post minimum helper. */
-  isEmptyAmount?: boolean;
+  /** Shows the post minimum hint while the amount is below the share minimum. */
+  showPostTradeShareHint?: boolean;
   // Custom-amount input is temporarily disabled (numpad removed). The slider is
   // the only input path for now, but these props remain on the interface so the
   // controller wiring is preserved for when the keyboard path is restored.
@@ -102,7 +106,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   sourceBalanceDisplay,
   showCursor = false,
   tradeMode,
-  isEmptyAmount = false,
+  showPostTradeShareHint = false,
   onAmountAreaPress,
 }) => {
   const tw = useTailwind();
@@ -151,15 +155,12 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   if (hasInsufficientBalance && !sourceBalanceDisplay) {
     secondaryLabel = strings('social_leaderboard.quick_buy.add_funds');
   }
-  const postDisclaimer =
-    tradeMode && isEmptyAmount
+  const postTradeShareHint =
+    tradeMode && showPostTradeShareHint && !hasInsufficientBalance
       ? strings(`social_leaderboard.quick_buy.min_post_${tradeMode}`, {
           amount: MIN_POST_TRADE_SHARE_USD,
         })
       : undefined;
-  if (postDisclaimer && !sourceBalanceDisplay && !hasInsufficientBalance) {
-    secondaryLabel = postDisclaimer;
-  }
   const amountColor = hasInsufficientBalance
     ? TextColor.ErrorDefault
     : TextColor.TextDefault;
@@ -298,16 +299,28 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             {secondaryLabel}
           </Text>
         )}
-        {postDisclaimer && sourceBalanceDisplay ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-            testID="quick-buy-post-disclaimer"
+        {postTradeShareHint ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+            twClassName="mt-3 px-2 py-1 rounded-lg border border-muted"
+            testID={QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT}
           >
-            {postDisclaimer}
-          </Text>
+            <Icon
+              name={IconName.People}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {postTradeShareHint}
+            </Text>
+          </Box>
         ) : null}
       </Box>
     </Box>

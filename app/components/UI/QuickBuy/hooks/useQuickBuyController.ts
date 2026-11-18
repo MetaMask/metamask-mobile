@@ -285,6 +285,8 @@ export interface UseQuickBuyControllerResult {
   // button state (priority-encoded; the Buy button surfaces at most one)
   buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
+  /** True when the token can be posted to Social but the amount is below the USD minimum. */
+  showPostTradeShareHint: boolean;
   isConfirmDisabled: boolean;
   confirmButtonState: 'idle' | 'loading' | 'success';
   getButtonLabel: () => string;
@@ -2055,6 +2057,11 @@ export function useQuickBuyController(
   const hasValidAmount = hasSourcePrice
     ? Boolean(fiatAmount && Number(fiatAmount) > 0)
     : Boolean(sourceAmountTokens && Number(sourceAmountTokens) > 0);
+  // Not memoized: the unsupported-asset list is read from the query cache and
+  // may load after the sheet opens.
+  const showPostTradeShareHint =
+    !isSpotPostTradeShareEligible(toAmountUsd(fiatAmountNumber)) &&
+    !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
   // True while the slider is mid-drag: the user has moved the thumb but has not
   // yet committed (released).
   const isAmountUncommitted = fiatAmount !== quotedFiatAmount;
@@ -2297,6 +2304,7 @@ export function useQuickBuyController(
     hasNoPayWithFunds,
     buttonError,
     hasValidAmount,
+    showPostTradeShareHint,
     isConfirmDisabled,
     confirmButtonState,
     getButtonLabel,

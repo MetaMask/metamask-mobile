@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import QuickBuyAmountSection from './components/QuickBuyAmountSection';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import { selectQuickBuyPostTradeShareHintEnabled } from '../../../selectors/featureFlagController/quickBuyPostTradeShareHint';
 
 /**
  * Amount section primitive — primary amount, balance, hidden input.
@@ -29,8 +31,11 @@ const QuickBuyAmount: React.FC = () => {
     setIsKeypadOpen,
     isKeypadOpen,
     hasNoPayWithFunds,
-    hasValidAmount,
+    showPostTradeShareHint,
   } = useQuickBuyContext();
+  const isPostTradeShareHintEnabled = useSelector(
+    selectQuickBuyPostTradeShareHintEnabled,
+  );
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.
   const handleHeadlinePress = useCallback(() => {
@@ -72,7 +77,9 @@ const QuickBuyAmount: React.FC = () => {
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
       tradeMode={tradeMode}
-      isEmptyAmount={!hasValidAmount}
+      showPostTradeShareHint={
+        isPostTradeShareHintEnabled && showPostTradeShareHint
+      }
       // The keypad now stays expanded without funds, so the caret has to be
       // suppressed explicitly — a blinking caret on a dead field would imply
       // typing does something.

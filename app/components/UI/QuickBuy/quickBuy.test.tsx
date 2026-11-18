@@ -269,6 +269,7 @@ const buildHookResult = (
   baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
+  showPostTradeShareHint: false,
   isConfirmDisabled: true,
   confirmButtonState: 'idle',
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',

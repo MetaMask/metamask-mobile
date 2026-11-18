@@ -4,6 +4,7 @@ export const QuickBuySheetSelectorsIDs = {
   AMOUNT_CONTAINER: 'quick-buy-amount-container',
   AMOUNT_AREA: 'quick-buy-amount-area',
   AMOUNT_AREA_PRESSABLE: 'quick-buy-amount-area-pressable',
+  POST_TRADE_SHARE_HINT: 'quick-buy-post-trade-share-hint',
   AMOUNT_LABEL: 'quick-buy-amount-label',
   AMOUNT_CURSOR: 'quick-buy-amount-cursor',
   PAY_WITH_BUTTON: 'quick-buy-pay-with-button',

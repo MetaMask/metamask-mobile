@@ -287,32 +287,36 @@ describe('QuickBuyAmountSection open-keypad symbol', () => {
   });
 });
 
-describe('QuickBuyAmountSection post minimum disclaimer', () => {
+describe('QuickBuyAmountSection post trade share hint', () => {
   const baseProps = {
     amountDisplayMode: 'fiat' as const,
-    fiatAmountLabel: '$0',
+    fiatAmountLabel: '$9',
     destSymbol: 'ETH',
-    estimatedReceiveAmount: undefined,
+    estimatedReceiveAmount: '2',
     isQuoteLoading: false,
   };
 
-  it('replaces the secondary line with the buy disclaimer when the amount is empty', () => {
+  it('shows the buy hint below the receive amount', () => {
     render(
-      <QuickBuyAmountSection {...baseProps} tradeMode="buy" isEmptyAmount />,
+      <QuickBuyAmountSection
+        {...baseProps}
+        tradeMode="buy"
+        showPostTradeShareHint
+      />,
     );
 
+    expect(screen.getByText('≈ 2 ETH')).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.quick_buy.min_post_buy'),
-    ).toBeOnTheScreen();
-    expect(screen.queryByText('0 ETH')).not.toBeOnTheScreen();
+      screen.getByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).toHaveTextContent('social_leaderboard.quick_buy.min_post_buy');
   });
 
-  it('shows the sell disclaimer below the available balance when the amount is empty', () => {
+  it('shows the sell hint below the available balance', () => {
     render(
       <QuickBuyAmountSection
         {...baseProps}
         tradeMode="sell"
-        isEmptyAmount
+        showPostTradeShareHint
         sourceBalanceDisplay="$18.46"
       />,
     );
@@ -320,24 +324,37 @@ describe('QuickBuyAmountSection post minimum disclaimer', () => {
     expect(
       screen.getByText('social_leaderboard.quick_buy.available_balance'),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('quick-buy-post-disclaimer')).toHaveTextContent(
-      'social_leaderboard.quick_buy.min_post_sell',
-    );
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).toHaveTextContent('social_leaderboard.quick_buy.min_post_sell');
   });
 
-  it('hides the disclaimer once an amount is entered', () => {
+  it('hides the hint once the amount meets the share minimum', () => {
     render(
       <QuickBuyAmountSection
         {...baseProps}
-        fiatAmountLabel="$5"
-        fiatAmount="5"
         tradeMode="buy"
-        isEmptyAmount={false}
+        showPostTradeShareHint={false}
       />,
     );
 
     expect(
-      screen.queryByText('social_leaderboard.quick_buy.min_post_buy'),
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the hint when the balance is insufficient', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        tradeMode="buy"
+        showPostTradeShareHint
+        hasInsufficientBalance
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
     ).not.toBeOnTheScreen();
   });
 });
