@@ -5298,6 +5298,31 @@
     "home_section": {
       "description": "Explore collectibles packs and cards.",
       "open_collectibles": "Explore Collectibles"
+    },
+    "errors": {
+      "title": "Something went wrong",
+      "retry": "Try again",
+      "start_over": "Start over",
+      "configuration_error": "This service is currently unavailable.",
+      "network_error": "Connection problem. Check your network and try again.",
+      "rate_limited": "Too many requests. Wait a moment and try again.",
+      "machine_unavailable": "This pack isn't available right now. Try another pack.",
+      "invalid_response": "Pack Partner returned an unexpected response.",
+      "signing_rejected": "MetaMask couldn't sign the transaction. Unlock your wallet and try again.",
+      "snap_unsupported": "Your Solana wallet needs an update to open packs.",
+      "submit_failed": "We couldn't confirm the transaction. Try again to check its status.",
+      "pack_expired": "This pack expired before the payment went through. You weren't charged.",
+      "pack_failed": "This pack couldn't be opened. Pack Partner has refunded the payment.",
+      "open_pending": "Your pack is still being processed. Try again to check its status.",
+      "buyback_unavailable": "This card can't be sold back anymore.",
+      "offer_changed": "The buyback offer changed. Check the new amount and try again.",
+      "sale_pending": "The sale was sent but isn't confirmed yet. We'll update your cards shortly.",
+      "not_found": "We couldn't find this item.",
+      "unknown": "An unexpected error occurred."
+    },
+    "toast": {
+      "sold": "Sold for {{amount}} USDC",
+      "sell_failed": "The sale didn't go through"
     }
   },
   "collectible": {

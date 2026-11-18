@@ -34,6 +34,8 @@ const newOverrides = [
   // Don't transform environment variables for files that depend on them.
   {
     exclude: [
+      'app/components/UI/Collectibles/providers/pack-partner/constants/environment.ts',
+      'app/components/UI/Collectibles/providers/pack-partner/constants/environment.test.ts',
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/components/UI/Money/selectors/featureFlags.ts',
       'app/components/UI/Money/selectors/featureFlags.test.ts',
