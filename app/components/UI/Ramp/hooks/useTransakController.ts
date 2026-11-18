@@ -214,15 +214,24 @@ export function useTransakController(): UseTransakControllerResult {
       paymentMethod: string,
       fiatAmount: string,
       isFeeExcludedFromFiat = true,
-    ) =>
-      getRampsController().transakGetBuyQuote(
+    ) => {
+      const quote = await getRampsController().transakGetBuyQuote(
         fiatCurrency,
         cryptoCurrency,
         network,
         paymentMethod,
         fiatAmount,
         isFeeExcludedFromFiat,
-      ),
+      );
+
+      // MiCA mock mode: inject termsIds for testing disclaimer display
+      if (__DEV__) {
+        const { injectMicaTermsIds } = require('../utils/micaMockMode');
+        return injectMicaTermsIds(quote);
+      }
+
+      return quote;
+    },
     [],
   );
 

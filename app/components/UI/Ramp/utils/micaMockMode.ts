@@ -50,6 +50,21 @@ export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
 }
 
 /**
+ * Injects MiCA termsIds into a quote for testing disclaimer display.
+ */
+export function injectMicaTermsIds(quote: any): any {
+  if (!isMicaMockModeEnabled() || !quote) {
+    return quote;
+  }
+  
+  Logger.log('[MiCA Mock] Injecting MICA_EEA_BUY termsId into quote');
+  return {
+    ...quote,
+    termsIds: ['MICA_EEA_BUY', ...(quote.termsIds || [])],
+  };
+}
+
+/**
  * Mock SOURCE_OF_INCOME form response with EEA fields.
  */
 export function getMockSourceOfIncomeForm(): TransakAdditionalRequirementsResponse {

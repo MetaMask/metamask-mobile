@@ -36,6 +36,8 @@ export const RAMP_V2_SCREEN_ID = {
   PHONE_COUNTRY_SELECTOR_MODAL: 'phone_country_selector_modal',
   STATE_SELECTOR_MODAL: 'state_selector_modal',
   UNSUPPORTED_STATE_MODAL: 'unsupported_state_modal',
+  MICA_CONSENT: 'mica_consent',
+  SOURCE_OF_INCOME: 'source_of_income',
 } as const;
 
 export type RampV2ScreenId =
@@ -58,6 +60,8 @@ export const RAMP_V2_MAIN_ROUTE_SCREEN_IDS = {
   [Routes.RAMP.KYC_WEBVIEW]: RAMP_V2_SCREEN_ID.KYC_WEBVIEW,
   [Routes.RAMP.RAMPS_ORDER_DETAILS]: RAMP_V2_SCREEN_ID.ORDER_DETAILS,
   [Routes.RAMP.HEADLESS_HOST]: RAMP_V2_SCREEN_ID.HEADLESS_HOST,
+  [Routes.RAMP.MICA_CONSENT]: RAMP_V2_SCREEN_ID.MICA_CONSENT,
+  [Routes.RAMP.SOURCE_OF_INCOME]: RAMP_V2_SCREEN_ID.SOURCE_OF_INCOME,
 } as const;
 
 export const RAMP_V2_MODAL_ROUTE_SCREEN_IDS = {
