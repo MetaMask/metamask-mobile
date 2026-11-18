@@ -16,11 +16,11 @@ describe('handlePrivacyUrl', () => {
     } as unknown as typeof NavigationService.navigation;
   });
 
-  it('navigates to security settings scrolled to metametrics by default', () => {
+  it('navigates to privacy settings scrolled to metametrics by default', () => {
     handlePrivacyUrl({ privacyPath: '' });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.SECURITY_SETTINGS,
+      screen: Routes.SETTINGS.PRIVACY_SETTINGS,
       params: { scrollToSection: 'metametrics' },
     });
   });
@@ -29,7 +29,7 @@ describe('handlePrivacyUrl', () => {
     handlePrivacyUrl({ privacyPath: '?setting=metametrics' });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.SECURITY_SETTINGS,
+      screen: Routes.SETTINGS.PRIVACY_SETTINGS,
       params: { scrollToSection: 'metametrics' },
     });
   });
@@ -38,7 +38,7 @@ describe('handlePrivacyUrl', () => {
     handlePrivacyUrl({ privacyPath: '?setting=data-collection' });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.SECURITY_SETTINGS,
+      screen: Routes.SETTINGS.PRIVACY_SETTINGS,
       params: { scrollToSection: 'data-collection' },
     });
   });
@@ -47,7 +47,7 @@ describe('handlePrivacyUrl', () => {
     handlePrivacyUrl({ privacyPath: '?setting=not-a-setting' });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.SECURITY_SETTINGS,
+      screen: Routes.SETTINGS.PRIVACY_SETTINGS,
       params: { scrollToSection: 'metametrics' },
     });
   });
@@ -56,7 +56,7 @@ describe('handlePrivacyUrl', () => {
     handlePrivacyUrl({ privacyPath: '?foo=bar' });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.SECURITY_SETTINGS,
+      screen: Routes.SETTINGS.PRIVACY_SETTINGS,
       params: { scrollToSection: 'metametrics' },
     });
   });
