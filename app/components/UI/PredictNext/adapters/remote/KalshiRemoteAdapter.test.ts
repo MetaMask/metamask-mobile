@@ -1880,7 +1880,11 @@ describe('KalshiRemoteAdapter', () => {
         adapter.funding.commitWithdraw(withdrawPreviewId),
       ).rejects.toMatchObject({
         code: PredictErrorCode.VENUE_UNAVAILABLE,
-        metadata: { phase: 'commit' },
+        metadata: {
+          phase: 'commit',
+          // The admin request may have reached Kalshi before it faulted.
+          mutationRelay: 'unknown',
+        },
       });
     });
 
@@ -1918,6 +1922,23 @@ describe('KalshiRemoteAdapter', () => {
       await expect(
         adapter.funding.observeWithdraw(withdrawPreviewId),
       ).rejects.toBe(abortError);
+    });
+
+    it('never calls a failed withdrawal observation a mutation-free read', async () => {
+      client.observeWithdraw.mockRejectedValue(
+        new PredictHttpError(503, 'venue_unavailable'),
+      );
+
+      await expect(
+        adapter.funding.observeWithdraw(withdrawPreviewId),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.VENUE_UNAVAILABLE,
+        metadata: {
+          phase: 'observe',
+          // The GET replays the stored submission before it answers.
+          mutationRelay: 'unknown',
+        },
+      });
     });
   });
 });

@@ -10,9 +10,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 
-import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
+import { PredictAmountEntryTestIds } from './PredictAmountEntry.testIds';
 
 const DIGIT_ROWS = [
   ['1', '2', '3'],
@@ -20,7 +20,7 @@ const DIGIT_ROWS = [
   ['7', '8', '9'],
 ] as const;
 
-interface OrderKeypadProps {
+interface PredictKeypadProps {
   /** Called with the pressed digit or decimal-point key. */
   onKeyPress: (key: string) => void;
   /** Removes the last character of the amount. */
@@ -28,8 +28,10 @@ interface OrderKeypadProps {
   /** Hides the decimal-point key for integer-only entry, as in sell mode. */
   showsDecimalKey?: boolean;
   /** Puts the period and delete keys on the same filled tile as the digits
-   * (the buy sheet); otherwise they sit on a transparent tile. */
+   * (the buy sheet and the Withdraw screen); otherwise they sit on a
+   * transparent tile. */
   hasFilledActionKeys?: boolean;
+  disabled?: boolean;
 }
 
 interface KeyProps {
@@ -37,6 +39,7 @@ interface KeyProps {
   onPress: () => void;
   /** The period and delete keys sit on a transparent tile, like Base/Keypad. */
   isPlain?: boolean;
+  disabled?: boolean;
   accessibilityLabel?: string;
   children: React.ReactNode;
 }
@@ -45,6 +48,7 @@ const Key = ({
   testID,
   onPress,
   isPlain = false,
+  disabled = false,
   accessibilityLabel,
   children,
 }: KeyProps) => {
@@ -55,10 +59,13 @@ const Key = ({
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      accessibilityState={{ disabled }}
       style={({ pressed }) =>
         tw.style(
           'h-12 flex-1 items-center justify-center rounded-xl',
           !isPlain && (pressed ? 'bg-pressed' : 'bg-muted'),
+          disabled && 'opacity-50',
         )
       }
     >
@@ -68,25 +75,28 @@ const Key = ({
 };
 
 /**
- * The in-sheet numeric keypad, styled after the legacy Base/Keypad: muted
- * 48px tiles on a 12px grid, DisplayMd labels at medium weight (the legacy
- * keypad overrides the variant's bold default with font-medium). The period
- * and backspace keys are bare unless `hasFilledActionKeys` is set.
+ * The numeric keypad shared by the Order sheet and the Withdraw screen,
+ * styled after the legacy Base/Keypad: muted 48px tiles on a 12px grid,
+ * DisplayMd labels at medium weight (the legacy keypad overrides the
+ * variant's bold default with font-medium). The period and backspace keys are
+ * bare unless `hasFilledActionKeys` is set.
  */
-export const OrderKeypad = ({
+export const PredictKeypad = ({
   onKeyPress,
   onDelete,
   showsDecimalKey = true,
   hasFilledActionKeys = false,
-}: OrderKeypadProps) => (
-  <Box testID={PredictOrderFlowTestIds.KEYPAD} twClassName="gap-3 px-4 py-4">
+  disabled = false,
+}: PredictKeypadProps) => (
+  <Box testID={PredictAmountEntryTestIds.KEYPAD} twClassName="gap-3 px-4 py-4">
     {DIGIT_ROWS.map((row) => (
       <Box key={row.join('')} twClassName="flex-row gap-3">
         {row.map((digit) => (
           <Key
             key={digit}
-            testID={PredictOrderFlowTestIds.KEYPAD_KEY(digit)}
+            testID={PredictAmountEntryTestIds.KEYPAD_KEY(digit)}
             onPress={() => onKeyPress(digit)}
+            disabled={disabled}
           >
             <Text
               variant={TextVariant.DisplayMd}
@@ -102,8 +112,9 @@ export const OrderKeypad = ({
       {showsDecimalKey ? (
         <Key
           isPlain={!hasFilledActionKeys}
-          testID={PredictOrderFlowTestIds.KEYPAD_KEY('.')}
+          testID={PredictAmountEntryTestIds.KEYPAD_KEY('.')}
           onPress={() => onKeyPress('.')}
+          disabled={disabled}
         >
           <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
             .
@@ -114,8 +125,9 @@ export const OrderKeypad = ({
         <Box twClassName="h-12 flex-1" />
       )}
       <Key
-        testID={PredictOrderFlowTestIds.KEYPAD_KEY('0')}
+        testID={PredictAmountEntryTestIds.KEYPAD_KEY('0')}
         onPress={() => onKeyPress('0')}
+        disabled={disabled}
       >
         <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
           0
@@ -123,9 +135,10 @@ export const OrderKeypad = ({
       </Key>
       <Key
         isPlain={!hasFilledActionKeys}
-        testID={PredictOrderFlowTestIds.KEYPAD_KEY('delete')}
+        testID={PredictAmountEntryTestIds.KEYPAD_KEY('delete')}
         onPress={onDelete}
-        accessibilityLabel={strings('predict_next.order_preview.delete')}
+        disabled={disabled}
+        accessibilityLabel={strings('predict_next.amount_entry.delete')}
       >
         <Icon name={IconName.Backspace} size={IconSize.Xl} />
       </Key>

@@ -7,6 +7,7 @@
     "observe": "not_a_mutation",
     "signed_read": "not_a_mutation"
   },
+  "replayingReads": ["withdrawals.observe"],
   "uncodedStatuses": [400, 401, 404, 429, 500, 503],
   "continuation": {
     "kind": "sign_required",
@@ -206,7 +207,7 @@
     "venue_unavailable": {
       "status": 503,
       "phases": ["commit", "signed_read"],
-      "commitRelay": "not_relayed_this_invocation"
+      "commitRelay": "unknown"
     }
   }
 }
