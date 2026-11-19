@@ -93,13 +93,11 @@ const mockInitialState: DeepPartial<RootState> = {
 const setupParams = (
   overrides: Partial<{
     selectedAsset: Record<string, unknown>[];
-    networkName: string;
     addTokenList: jest.Mock;
   }> = {},
 ) => {
   (useParams as jest.Mock).mockReturnValue({
     selectedAsset: [DEFAULT_ASSET],
-    networkName: 'Ethereum Main Network',
     addTokenList: mockAddTokenList,
     ...overrides,
   });

@@ -25,11 +25,11 @@ const buildConfig = (
 });
 
 describe('PayWithSection', () => {
-  it('renders section title in uppercase', () => {
+  it('renders section title in sentence case', () => {
     const { getByTestId } = render(<PayWithSection config={buildConfig()} />);
 
     expect(getByTestId('pay-with-section-crypto-title')).toHaveTextContent(
-      'CRYPTO',
+      'Crypto',
     );
   });
 

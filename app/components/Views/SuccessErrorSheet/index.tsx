@@ -7,7 +7,6 @@ import {
   Box,
   ButtonsAlignment,
   ButtonSize,
-  HeaderStandard,
   IconAlertSeverity,
   Text,
   TextColor,
@@ -17,12 +16,16 @@ import {
 } from '@metamask/design-system-react-native';
 import { SuccessErrorSheetParams } from './interface';
 import { SuccessErrorSheetSelectorsIDs } from './SuccessErrorSheet.testIds';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export interface SuccessErrorSheetProps {
   route: { params: SuccessErrorSheetParams };
 }
 
 const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     onClose,
     title,
@@ -89,7 +92,12 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       keyboardAvoidingViewEnabled={false}
       testID={SuccessErrorSheetSelectorsIDs.SHEET}
     >
-      <HeaderStandard title="" {...headerCloseProps} />
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
+        title=""
+        {...headerCloseProps}
+      />
       <Box twClassName="px-4 pb-6 gap-4">
         <TitleAlert
           severity={

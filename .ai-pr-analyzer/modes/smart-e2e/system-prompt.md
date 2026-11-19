@@ -22,6 +22,7 @@ E2E smoke tags (from tests/tags.js) select which smoke suites run in CI. Select 
 Changes to smoke spec files (tests/smoke/, tests/smoke-appium/) or shared test infra they import (page-objects, flows, selectors, locators) — inspect changed specs for their imported tags.
 Changes to wdio/ or tests/performance directories do not require smoke tags from tests/tags.js - select none unless app code is also changed.
 Changes to tests/selectors/, tests/flows/, tests/locators/, or tests/page-objects/ — use find_related_files to identify which smoke spec files import the changed file and select the appropriate tags.
+Changes to in-app state logs must select SmokeWalletPlatform. That includes `generateStateLogs`, `includeInStateLogs` filtering in `app/util/logs/`, `app/util/test/e2eStateExport.ts`, and the `export-app-state` command in `app/util/test/e2eCommandPolling.ts`. `tests/smoke-appium/wallet/state-export-sanitization.spec.ts` checks that export through the command queue. It does not import those files. Finding no smoke import is not a reason to select nothing.
 Critical files (marked in file list) typically warrant wide testing. Use tools to investigate the impact of the changes.
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
 Balance thoroughness with efficiency, and be conservative in your risk assessment. When in doubt, err on the side of running more test tags to ensure adequate coverage.
@@ -37,6 +38,7 @@ The following types of changes have zero functional impact and must NOT trigger 
 - Import reordering with no net change in imported symbols
   If a PR only contains cosmetic changes across all files, select zero E2E tags.
   Do NOT treat copy changes as cosmetic — sentence-case or string edits can break E2E text/label selectors.
+  When the seed comes from `en-locale-change`, its reasoning lists the locale keys that were modified or removed and the files that consume them. Select tags for the user flows those consumer files render. Do not select ALL just because `en.json` changed; added keys alone cannot break existing specs.
   Do NOT treat user-visible UI as cosmetic. Toasts, banners, modals, overlays, sheets, and Wallet/home root view changes are functional: they can intercept taps, block flows, or alter what smoke specs see. A high-confidence empty selection is invalid when any changed file adds or modifies that kind of UI.
 
 {{hard_rule_continue_section}}

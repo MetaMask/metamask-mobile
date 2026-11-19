@@ -23,6 +23,7 @@ import NetworkList, {
   isWhitelistedNetworkName,
   canDeleteNetwork,
   isMonadMainnetChainId,
+  isArbitrumMainnetChainId,
 } from '.';
 import {
   convertNetworkId,
@@ -197,6 +198,18 @@ describe('network-utils', () => {
     });
     it('returns false for Monad mainnet', () => {
       expect(canDeleteNetwork(NETWORKS_CHAIN_ID.MONAD)).toBe(false);
+    });
+    it('returns false for Arbitrum mainnet', () => {
+      expect(canDeleteNetwork(CHAIN_IDS.ARBITRUM)).toBe(false);
+    });
+  });
+
+  describe('isArbitrumMainnetChainId', () => {
+    it('returns true for Arbitrum mainnet chain ID', () => {
+      expect(isArbitrumMainnetChainId(CHAIN_IDS.ARBITRUM)).toBe(true);
+    });
+    it('returns false for a different chain ID', () => {
+      expect(isArbitrumMainnetChainId('0x1')).toBe(false);
     });
   });
 

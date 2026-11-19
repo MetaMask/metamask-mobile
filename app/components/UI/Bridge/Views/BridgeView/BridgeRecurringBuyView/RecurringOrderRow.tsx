@@ -30,9 +30,7 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
   );
   const filledPercent = getRecurringOrderFilledPercent(order);
   const isOpen = order.state === RecurringOrderState.Open;
-  const isClosedUnfilled =
-    order.state === RecurringOrderState.Cancelled ||
-    order.state === RecurringOrderState.Expired;
+  const isClosedUnfilled = order.state === RecurringOrderState.Cancelled;
 
   return (
     <OpenOrderRow

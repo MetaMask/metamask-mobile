@@ -17,11 +17,8 @@ export interface MoneyNativeHeaderParams {
   onMenuPress: () => void;
   onBack?: () => void;
   isEnabled: boolean;
-  /** Shows the green shield next to the title when 2-step verification is on. */
   isMfaEnabled?: boolean;
-  /** Opens the 2-step verification sheet from the shield. */
   onMfaBadgePress?: () => void;
-  /** Pulses the shield right after 2-step verification turns on. */
   isMfaBadgeHighlighted?: boolean;
 }
 

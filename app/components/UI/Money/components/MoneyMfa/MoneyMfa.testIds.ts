@@ -17,4 +17,6 @@ export const MoneyMfaTestIds = {
   TURN_OFF_BUTTON: 'money-mfa-turn-off-button',
   TURN_OFF_CANCEL_BUTTON: 'money-mfa-turn-off-cancel-button',
   HEADER_BADGE: 'money-mfa-header-badge',
+  SHIELD_ANIMATION: 'money-mfa-shield-animation',
+  SHIELD_FALLBACK: 'money-mfa-shield-fallback',
 } as const;

@@ -2,12 +2,15 @@ import { resolveImmersveFundingSourceId } from './immersveResume';
 
 const mockGetFundingSources = jest.fn();
 const mockCreateFundingSource = jest.fn();
+const mockResolveMoneyAccountFundingSourceId = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
+      resolveMoneyAccountFundingSourceId: (...args: unknown[]) =>
+        mockResolveMoneyAccountFundingSourceId(...args),
     },
   },
 }));
@@ -55,5 +58,22 @@ describe('resolveImmersveFundingSourceId', () => {
 
     expect(id).toBe('fs-new');
     expect(mockCreateFundingSource).toHaveBeenCalled();
+  });
+
+  it('delegates a Money account address to the controller', async () => {
+    mockResolveMoneyAccountFundingSourceId.mockResolvedValue('fs-money');
+
+    const id = await resolveImmersveFundingSourceId({
+      fundingChannelId: 'money-channel',
+      existingId: 'fs-stale',
+      moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+    });
+
+    expect(id).toBe('fs-money');
+    expect(mockResolveMoneyAccountFundingSourceId).toHaveBeenCalledWith(
+      '0x000000000000000000000000000000000000dEaD',
+    );
+    expect(mockGetFundingSources).not.toHaveBeenCalled();
+    expect(mockCreateFundingSource).not.toHaveBeenCalled();
   });
 });

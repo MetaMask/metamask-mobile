@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   ButtonIconSize,
   FontWeight,
   Text,
@@ -14,8 +13,12 @@ import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './LendingMaxWithdrawalModal.styles';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const LendingMaxWithdrawalModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation<AppNavigationProp>();
@@ -35,7 +38,8 @@ const LendingMaxWithdrawalModal = () => {
   return (
     <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View>
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{ size: ButtonIconSize.Lg }}
           twClassName="min-h-14 h-auto px-4"
@@ -45,7 +49,7 @@ const LendingMaxWithdrawalModal = () => {
               'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.why_cant_i_withdraw_full_balance',
             )}
           </Text>
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <View style={styles.bodyTextContainer}>
           <Text>{`${strings(
             'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.your_withdrawal_amount_may_be_limited_by',

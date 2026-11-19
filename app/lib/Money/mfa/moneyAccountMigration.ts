@@ -37,14 +37,7 @@ const setStatus = (next: MoneyAccountMigrationStatus) => {
   listeners.forEach((listener) => listener());
 };
 
-/**
- * Moves the Money account to the MPC account that 2-step verification
- * protects.
- *
- * Placeholder until the migration API lands in core (MPC keyring: core#10694):
- * the status is saved on the device and `start` resolves after a short delay.
- * The real migration sets `failed` and rejects when it fails.
- */
+// Placeholder until the migration API lands in core (core#10694).
 export const moneyAccountMigration = {
   getStatus: (): MoneyAccountMigrationStatus => status,
   subscribe: (listener: () => void) => {
@@ -53,7 +46,6 @@ export const moneyAccountMigration = {
       listeners.delete(listener);
     };
   },
-  /** Starts the migration, or resumes one that was interrupted. */
   start: async (): Promise<void> => {
     const startedIn = generation;
     setStatus('migrating');
@@ -75,7 +67,6 @@ export const moneyAccountMigration = {
     status = 'not_started';
     listeners.forEach((listener) => listener());
   },
-  /** Forgets the saved status, e.g. when the wallet is reset. */
   clear: async () => {
     generation += 1;
     status = 'not_started';

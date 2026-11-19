@@ -181,7 +181,7 @@ describe('useOHLCVRealtime', () => {
     await act(async () => {
       barUpdatedHandler({
         channel:
-          'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+          'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
         bar,
       });
     });
@@ -207,7 +207,7 @@ describe('useOHLCVRealtime', () => {
       volume: 5000,
     };
     const channel =
-      'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
+      'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
 
     await act(async () => {
       barUpdatedHandler({ channel, bar });
@@ -237,7 +237,7 @@ describe('useOHLCVRealtime', () => {
 
     await act(async () => {
       barUpdatedHandler({
-        channel: 'market-data.v1.eip155:1/slip44:60.15m.usd',
+        channel: 'ohlcv.v1.eip155:1/slip44:60.15m.usd',
         bar: {
           timestamp: 1700000000,
           open: 100,
@@ -265,7 +265,7 @@ describe('useOHLCVRealtime', () => {
     await act(async () => {
       barUpdatedHandler({
         channel:
-          'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+          'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
         bar: {
           timestamp: 1700000000,
           open: 100,
@@ -302,7 +302,7 @@ describe('useOHLCVRealtime', () => {
     await act(async () => {
       barUpdatedHandler({
         channel:
-          'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+          'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
         bar: {
           timestamp: 1700000000,
           open: 1,
@@ -326,7 +326,7 @@ describe('useOHLCVRealtime', () => {
 
   describe('isLoading', () => {
     const channel =
-      'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
+      'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
     const bar = {
       timestamp: 1700000000,
       open: 100,
@@ -572,7 +572,7 @@ describe('useOHLCVRealtime', () => {
       await act(async () => {
         barUpdatedHandler({
           channel:
-            'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+            'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
           bar: {
             timestamp: 1700000000,
             open: 100,
@@ -709,7 +709,7 @@ describe('useOHLCVRealtime', () => {
       await act(async () => {
         subscriptionErrorHandler({
           channel:
-            'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+            'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
           error: 'WS subscribe failed',
           operation: 'subscribe',
         });

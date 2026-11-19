@@ -4,6 +4,7 @@ import type {
   TokenAmount,
 } from '../../../../../../util/activity-adapters';
 import type { PredictActivityEntry, PredictAmount } from '../../../types';
+import { getOutcomeName } from '../../../utils/entryCopy';
 
 /** Canonical Activity is USD Balance movement, not a token transfer. */
 const toUsdToken = (
@@ -49,7 +50,8 @@ export const mapActivityEntry = (
       data: {
         ...presentation,
         token: toUsdToken(entry.proceeds, 'in'),
-        outcomeLabel: context?.outcomeLabel,
+        // Without context the template names the side itself.
+        outcomeLabel: context && getOutcomeName(entry.side, context),
         marketQuestion: context?.marketQuestion,
         side: entry.side,
         result: entry.result,

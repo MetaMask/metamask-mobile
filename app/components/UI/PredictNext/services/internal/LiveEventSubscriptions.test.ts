@@ -7,6 +7,7 @@ import type {
   PredictVenueId,
 } from '../../types';
 import {
+  getScopedMarketIds,
   LiveEventSubscriptions,
   msUntilGameWindow,
   PREDICT_LIVE_GAME_WINDOW_MS,
@@ -470,6 +471,299 @@ describe('LiveEventSubscriptions', () => {
     });
   });
 
+  describe('visible scope', () => {
+    const marketIds = ['m-1', 'm-2', 'm-3', 'm-4', 'm-5'].map(id);
+    const [m1, m2, m3, m4, m5] = marketIds;
+    const visible = (...ids: readonly PredictEntityId[]) => ({
+      type: 'visible' as const,
+      marketIds: ids,
+    });
+    const events = () => ({
+      'event-1': makeEvent({
+        eventId: 'event-1',
+        marketIds,
+        gameStatus: 'in_progress',
+      }),
+    });
+    // A standard card prices the first three Markets.
+    const standardEvents = () => ({
+      'event-1': makeEvent({ eventId: 'event-1', marketIds }),
+    });
+
+    it('subscribes only the named Markets, in Event order', async () => {
+      const { subscriptions, subscribe } = createSubscriptions(events());
+
+      subscriptions.watch([id('event-1')], visible(m4, m1));
+      await flush();
+
+      expect(subscribe.mock.calls).toEqual([
+        ['market', [m1, m4]],
+        ['game', [id('event-1')]],
+      ]);
+    });
+
+    it('holds the game but no Markets for an empty list', async () => {
+      const { subscriptions, subscribe, unsubscribe } =
+        createSubscriptions(events());
+
+      subscriptions.watch([id('event-1')], visible());
+      await flush();
+
+      expect(subscribe.mock.calls).toEqual([['game', [id('event-1')]]]);
+      expect(subscriptions.watchedEventIds).toEqual([id('event-1')]);
+
+      subscriptions.unwatch([id('event-1')], visible());
+      expect(unsubscribe.mock.calls).toEqual([['game', [id('event-1')]]]);
+    });
+
+    it('re-scopes by subscribing and releasing only the difference', async () => {
+      const { subscriptions, subscribe, unsubscribe } =
+        createSubscriptions(events());
+      subscriptions.watch([id('event-1')], visible(m1, m2));
+      await flush();
+      subscribe.mockClear();
+
+      // Opening a section: the new list is watched before the old is released.
+      subscriptions.watch([id('event-1')], visible(m1, m2, m3, m4));
+      subscriptions.unwatch([id('event-1')], visible(m1, m2));
+      expect(subscribe.mock.calls).toEqual([['market', [m3, m4]]]);
+      expect(unsubscribe).not.toHaveBeenCalled();
+
+      // Changing chip or line: one Market in, one out.
+      subscriptions.watch([id('event-1')], visible(m1, m2, m3, m5));
+      subscriptions.unwatch([id('event-1')], visible(m1, m2, m3, m4));
+      expect(subscribe).toHaveBeenLastCalledWith('market', [m5]);
+      expect(unsubscribe.mock.calls).toEqual([['market', [m4]]]);
+
+      // Closing a section.
+      subscriptions.watch([id('event-1')], visible(m1, m2));
+      subscriptions.unwatch([id('event-1')], visible(m1, m2, m3, m5));
+      expect(subscribe).toHaveBeenCalledTimes(2);
+      expect(unsubscribe).toHaveBeenLastCalledWith('market', [m3, m5]);
+      expect(subscriptions.watchedEventIds).toEqual([id('event-1')]);
+    });
+
+    it('subscribes and releases nothing when the list does not change', async () => {
+      const { subscriptions, subscribe, unsubscribe } =
+        createSubscriptions(events());
+      subscriptions.watch([id('event-1')], visible(m1, m2));
+      await flush();
+      subscribe.mockClear();
+
+      subscriptions.watch([id('event-1')], visible(m2, m1));
+      subscriptions.unwatch([id('event-1')], visible(m1, m2));
+
+      expect(subscribe).not.toHaveBeenCalled();
+      expect(unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('applies a re-scope made while the Event is resolving as one subscribe', async () => {
+      const { subscriptions, subscribe } = createSubscriptions(events());
+
+      subscriptions.watch([id('event-1')], visible(m1));
+      subscriptions.watch([id('event-1')], visible(m1, m3));
+      subscriptions.unwatch([id('event-1')], visible(m1));
+      await flush();
+
+      expect(subscribe.mock.calls).toEqual([
+        ['market', [m1, m3]],
+        ['game', [id('event-1')]],
+      ]);
+    });
+
+    it('ignores ids the Event does not have', async () => {
+      const { subscriptions, subscribe, unsubscribe } =
+        createSubscriptions(events());
+
+      subscriptions.watch(
+        [id('event-1')],
+        visible(id('other-event-market'), m2),
+      );
+      await flush();
+      expect(subscribe).toHaveBeenCalledWith('market', [m2]);
+
+      subscriptions.unwatch(
+        [id('event-1')],
+        visible(id('other-event-market'), m2),
+      );
+      expect(unsubscribe.mock.calls).toEqual([
+        ['market', [m2]],
+        ['game', [id('event-1')]],
+      ]);
+    });
+
+    it('holds the union of a card watcher and a visible watcher', async () => {
+      const { subscriptions, subscribe, unsubscribe } =
+        createSubscriptions(standardEvents());
+      subscriptions.watch([id('event-1')], 'card');
+      await flush();
+      subscribe.mockClear();
+
+      subscriptions.watch([id('event-1')], visible(m3, m5));
+      expect(subscribe.mock.calls).toEqual([['market', [m5]]]);
+
+      subscriptions.unwatch([id('event-1')], 'card');
+      expect(unsubscribe.mock.calls).toEqual([['market', [m1, m2]]]);
+    });
+
+    it('narrows from every Market to the visible ones when the all watcher leaves', async () => {
+      const { subscriptions, unsubscribe } = createSubscriptions(events());
+      subscriptions.watch([id('event-1')], 'all');
+      subscriptions.watch([id('event-1')], visible(m2));
+      await flush();
+
+      subscriptions.unwatch([id('event-1')], 'all');
+
+      expect(unsubscribe.mock.calls).toEqual([['market', [m1, m3, m4, m5]]]);
+    });
+
+    it('keeps a Market two visible watchers share until both release it', async () => {
+      const { subscriptions, unsubscribe } = createSubscriptions(events());
+      subscriptions.watch([id('event-1')], visible(m1, m2));
+      subscriptions.watch([id('event-1')], visible(m2, m3));
+      await flush();
+
+      subscriptions.unwatch([id('event-1')], visible(m1, m2));
+      expect(unsubscribe.mock.calls).toEqual([['market', [m1]]]);
+
+      subscriptions.unwatch([id('event-1')], visible(m2, m3));
+      expect(unsubscribe).toHaveBeenLastCalledWith('game', [id('event-1')]);
+      expect(unsubscribe).toHaveBeenCalledWith('market', [m2, m3]);
+      expect(subscriptions.watchedEventIds).toEqual([]);
+    });
+
+    it('replays a joining visible watcher only the held Markets it names', async () => {
+      const { subscriptions, replay } = createSubscriptions(standardEvents());
+      subscriptions.watch([id('event-1')], 'card');
+      await flush();
+
+      subscriptions.watch([id('event-1')], visible(m2, m5));
+
+      expect(replay.mock.calls).toEqual([['market', [m2]]]);
+    });
+
+    describe('when the Event gains Markets after it resolved', () => {
+      const m6 = id('m-6');
+      const grown = () =>
+        makeEvent({
+          eventId: 'event-1',
+          marketIds: [...marketIds, m6],
+          gameStatus: 'in_progress',
+        });
+
+      it('reads the Event again and subscribes the new Market without releasing the Event', async () => {
+        const current = events();
+        const { subscriptions, subscribe, unsubscribe, resolveEvent } =
+          createSubscriptions(current);
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        // A REST refresh adds m-6; the screen re-scopes to show it.
+        current['event-1'] = grown();
+        subscriptions.watch([id('event-1')], visible(m1, m6));
+        subscriptions.unwatch([id('event-1')], visible(m1));
+        await flush();
+
+        expect(resolveEvent).toHaveBeenCalledTimes(2);
+        expect(subscribe.mock.calls).toEqual([['market', [m6]]]);
+        expect(unsubscribe).not.toHaveBeenCalled();
+        expect(subscriptions.watchedEventIds).toEqual([id('event-1')]);
+      });
+
+      it('still drops ids of another Event, and reads once for them', async () => {
+        const { subscriptions, subscribe, resolveEvent } =
+          createSubscriptions(events());
+        const foreign = id('other-event-market');
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        subscriptions.watch([id('event-1')], visible(m1, foreign));
+        subscriptions.unwatch([id('event-1')], visible(m1));
+        await flush();
+        // A later re-scope that keeps naming it does not read again.
+        subscriptions.watch([id('event-1')], visible(m1, m2, foreign));
+        subscriptions.unwatch([id('event-1')], visible(m1, foreign));
+        await flush();
+
+        expect(resolveEvent).toHaveBeenCalledTimes(2);
+        expect(subscribe.mock.calls).toEqual([['market', [m2]]]);
+      });
+
+      it('reads again for a new id named while a read is in flight', async () => {
+        const current = events();
+        const { subscriptions, subscribe, resolveEvent } =
+          createSubscriptions(current);
+        const m7 = id('m-7');
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        current['event-1'] = grown();
+        subscriptions.watch([id('event-1')], visible(m1, m6));
+        // m-7 arrives in a refresh that lands after the first re-read began.
+        current['event-1'] = makeEvent({
+          eventId: 'event-1',
+          marketIds: [...marketIds, m6, m7],
+          gameStatus: 'in_progress',
+        });
+        subscriptions.watch([id('event-1')], visible(m1, m6, m7));
+        await flush();
+        await flush();
+
+        expect(resolveEvent).toHaveBeenCalledTimes(3);
+        expect(subscribe.mock.calls.flatMap(([, ids]) => ids)).toEqual([
+          m6,
+          m7,
+        ]);
+      });
+
+      it('subscribes nothing when the Event is released during the read', async () => {
+        const current = events();
+        const { subscriptions, subscribe } = createSubscriptions(current);
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        current['event-1'] = grown();
+        subscriptions.watch([id('event-1')], visible(m1, m6));
+        subscriptions.unwatch([id('event-1')], visible(m1));
+        subscriptions.unwatch([id('event-1')], visible(m1, m6));
+        await flush();
+
+        expect(subscribe).not.toHaveBeenCalled();
+        expect(subscriptions.watchedEventIds).toEqual([]);
+      });
+
+      it('keeps the held Markets when the read fails, and reads on the next watch', async () => {
+        const current: Record<string, PredictEvent | Error> = events();
+        const { subscriptions, subscribe, unsubscribe, resolveEvent } =
+          createSubscriptions(current);
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        current['event-1'] = new Error('offline');
+        subscriptions.watch([id('event-1')], visible(m1, m6));
+        subscriptions.unwatch([id('event-1')], visible(m1));
+        await flush();
+        expect(subscribe).not.toHaveBeenCalled();
+        expect(unsubscribe).not.toHaveBeenCalled();
+
+        current['event-1'] = grown();
+        subscriptions.watch([id('event-1')], visible(m1, m2, m6));
+        await flush();
+
+        expect(resolveEvent).toHaveBeenCalledTimes(3);
+        expect(subscribe.mock.calls).toEqual([
+          ['market', [m2]],
+          ['market', [m6]],
+        ]);
+      });
+    });
+  });
+
   describe('game window timer', () => {
     // The resolution decides gating from `now`; the timer only has to fire.
     // `setImmediate` stays real so `flush` can still settle the resolution.
@@ -608,5 +902,45 @@ describe('LiveEventSubscriptions', () => {
     expect(unsubscribe).toHaveBeenCalledWith('market', [id('m-2')]);
     expect(unsubscribe).toHaveBeenCalledWith('game', [id('event-2')]);
     expect(subscriptions.watchedEventIds).toEqual([]);
+  });
+});
+
+describe('getScopedMarketIds', () => {
+  const event = makeEvent({
+    eventId: 'event-1',
+    marketIds: ['m-1', 'm-2', 'm-3', 'm-4', 'm-1'],
+  });
+
+  it('resolves explicit visible ids in the Event order, each once', () => {
+    expect(
+      getScopedMarketIds(event, {
+        type: 'visible',
+        marketIds: [id('m-4'), id('m-2'), id('m-4')],
+      }),
+    ).toEqual([id('m-2'), id('m-4')]);
+  });
+
+  it('drops visible ids that are not Markets of the Event', () => {
+    expect(
+      getScopedMarketIds(event, {
+        type: 'visible',
+        marketIds: [id('elsewhere'), id('m-3')],
+      }),
+    ).toEqual([id('m-3')]);
+  });
+
+  it('resolves an empty visible list to no Markets, not every Market', () => {
+    expect(
+      getScopedMarketIds(event, { type: 'visible', marketIds: [] }),
+    ).toEqual([]);
+  });
+
+  it('keeps all as every Market and card as the card Markets', () => {
+    expect(getScopedMarketIds(event, 'all')).toEqual(
+      ['m-1', 'm-2', 'm-3', 'm-4'].map(id),
+    );
+    expect(getScopedMarketIds(event, 'card')).toEqual(
+      ['m-1', 'm-2', 'm-3'].map(id),
+    );
   });
 });

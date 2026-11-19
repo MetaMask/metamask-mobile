@@ -9,6 +9,11 @@ jest.mock('../../../../../util/identity/mfa/engine/useActiveMfaFlow', () => ({
   useActiveMfaFlow: jest.fn(),
 }));
 
+jest.mock('./MoneyMfaShieldAnimation', () => {
+  const { View } = jest.requireActual('react-native');
+  return { __esModule: true, default: () => <View /> };
+});
+
 const mockUseActiveMfaFlow = jest.mocked(useActiveMfaFlow);
 
 describe('MoneyMfaSetupCard', () => {

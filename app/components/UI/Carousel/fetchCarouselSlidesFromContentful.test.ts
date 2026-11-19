@@ -7,7 +7,6 @@ import {
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
-import { getContentPreviewToken } from '../../../actions/notification/helpers';
 import { isProduction } from '../../../util/environment';
 
 jest.mock('contentful', () => ({
@@ -20,8 +19,6 @@ jest.mock('./constants', () => ({
   ACCESS_TOKEN: jest.fn().mockReturnValue('mockAccessToken'),
 }));
 
-jest.mock('../../../actions/notification/helpers');
-
 jest.mock('../../../util/environment', () => ({
   isProduction: jest.fn().mockReturnValue(true),
 }));
@@ -30,30 +27,12 @@ describe('getContentfulEnvironmentDetails', () => {
   beforeEach(() => jest.clearAllMocks());
 
   const arrangeMocks = () => {
-    const mockGetContentPreviewToken = jest
-      .mocked(getContentPreviewToken)
-      .mockReturnValue(undefined);
-
     const mockIsProduction = jest.mocked(isProduction).mockReturnValue(true);
 
     return {
-      mockGetContentPreviewToken,
       mockIsProduction,
     };
   };
-
-  it('returns preview prod environment if token provided', () => {
-    const mocks = arrangeMocks();
-    mocks.mockGetContentPreviewToken.mockReturnValue('AAA');
-
-    const result = getContentfulEnvironmentDetails();
-    expect(result).toStrictEqual({
-      environment: 'master',
-      domain: 'preview.contentful.com',
-      accessToken: 'AAA',
-      spaceId: SPACE_ID(),
-    });
-  });
 
   it('returns prod environment is using production', () => {
     arrangeMocks();

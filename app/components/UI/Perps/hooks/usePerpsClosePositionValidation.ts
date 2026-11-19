@@ -24,7 +24,7 @@ interface UsePerpsClosePositionValidationParams {
   minimumOrderAmount: number; // Minimum order size in USD
   closingValue: number; // Value being closed in USD
   remainingPositionValue: number; // Value remaining after close (kept for interface completeness)
-  receiveAmount: number; // Amount user will receive after fees
+  receiveAmount: number | undefined; // Amount user will receive after fees; undefined while unknown
   isPartialClose: boolean;
   skipValidation?: boolean;
 }
@@ -191,7 +191,7 @@ export function usePerpsClosePositionValidation(
       }
 
       // Warn if user will receive negative amount (but allow them to proceed)
-      if (receiveAmount < 0) {
+      if (receiveAmount !== undefined && receiveAmount < 0) {
         warnings.push(
           strings('perps.close_position.negative_receive_warning', {
             amount: Math.abs(receiveAmount).toFixed(2),

@@ -1,5 +1,12 @@
 import type { AppStateStatus } from 'react-native';
 import Logger from '../../../../../util/Logger';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
+import { PREDICT_NEXT_FEATURE_NAME } from '../../constants';
 import type { PredictEntityId, PredictVenueId } from '../../types';
 import {
   PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION,
@@ -10,6 +17,15 @@ import {
   PREDICT_LIVE_DATA_UNAUTHORIZED_CLOSE_CODE,
   PredictLiveDataClient,
 } from './PredictLiveDataClient';
+
+jest.mock('../../../../../util/trace', () => {
+  const actual = jest.requireActual('../../../../../util/trace');
+  return {
+    ...actual,
+    trace: jest.fn(),
+    endTrace: jest.fn(),
+  };
+});
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'KXTEST-EVENT' as PredictEntityId;
@@ -114,6 +130,8 @@ const openAndWelcome = (socket = MockWebSocket.instances[0]): MockWebSocket => {
 describe('PredictLiveDataClient', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.mocked(trace).mockClear();
+    jest.mocked(endTrace).mockClear();
     MockWebSocket.instances = [];
   });
 
@@ -1052,6 +1070,142 @@ describe('PredictLiveDataClient', () => {
         2,
       );
     });
+  });
+
+  // Unit, not component-view: the span lives on the WebSocket client, below
+  // the controller seam, and a screen test cannot see the Sentry calls.
+  it('traces a connect until welcome without the token or socket URL', async () => {
+    const client = createClient();
+
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+    openAndWelcome();
+
+    const traced = JSON.stringify([
+      jest.mocked(trace).mock.calls,
+      jest.mocked(endTrace).mock.calls,
+    ]);
+    expect(traced).not.toContain('test-token');
+    expect(traced).not.toContain('localhost');
+    expect(trace).toHaveBeenCalledTimes(1);
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextLiveDataConnect,
+      op: TraceOperation.PredictDataFetch,
+      id: 'live-data-connect-1',
+      tags: {
+        feature: PREDICT_NEXT_FEATURE_NAME,
+        venueId,
+        reconnectAttempt: 0,
+      },
+    });
+    expect(endTrace).toHaveBeenCalledTimes(1);
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextLiveDataConnect,
+      id: 'live-data-connect-1',
+      data: {
+        success: true,
+        reason: 'welcome',
+        marketWatchCount: 0,
+        gameWatchCount: 1,
+      },
+    });
+  });
+
+  it('ends the connect span when no token is available, then traces the retry', async () => {
+    const getBearerToken = jest
+      .fn<Promise<string | undefined>, []>()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValue('late-token');
+    const client = createClient(jest.fn(), createAppState(), getBearerToken);
+
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextLiveDataConnect,
+      id: 'live-data-connect-1',
+      data: { success: false, reason: 'no_token' },
+    });
+
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    await flushConnect();
+    openAndWelcome(MockWebSocket.instances[0]);
+
+    const traced = JSON.stringify([
+      jest.mocked(trace).mock.calls,
+      jest.mocked(endTrace).mock.calls,
+    ]);
+    expect(traced).not.toContain('late-token');
+    expect(trace).toHaveBeenLastCalledWith({
+      name: TraceName.PredictNextLiveDataConnect,
+      op: TraceOperation.PredictDataFetch,
+      id: 'live-data-connect-2',
+      tags: {
+        feature: PREDICT_NEXT_FEATURE_NAME,
+        venueId,
+        reconnectAttempt: 1,
+      },
+    });
+    expect(endTrace).toHaveBeenLastCalledWith({
+      name: TraceName.PredictNextLiveDataConnect,
+      id: 'live-data-connect-2',
+      data: {
+        success: true,
+        reason: 'welcome',
+        marketWatchCount: 0,
+        gameWatchCount: 1,
+      },
+    });
+  });
+
+  it('ends the connect span as abandoned when disconnect wins the token fetch', async () => {
+    const client = createClient();
+
+    client.subscribe('game', venueId, [eventId]);
+    client.disconnect();
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(0);
+    expect(endTrace).toHaveBeenCalledTimes(1);
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextLiveDataConnect,
+      id: 'live-data-connect-1',
+      data: { success: false, reason: 'abandoned' },
+    });
+  });
+
+  it('ends the connect span when the socket closes before welcome', async () => {
+    const client = createClient();
+
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+    const socket = MockWebSocket.instances[0];
+    socket.open();
+    socket.onclose?.({ code: PREDICT_LIVE_DATA_UNAUTHORIZED_CLOSE_CODE });
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextLiveDataConnect,
+      id: 'live-data-connect-1',
+      data: { success: false, reason: 'unauthorized' },
+    });
+    expect(trace).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends the connect span when the welcome protocol is rejected', async () => {
+    const client = createClient();
+
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+    const socket = MockWebSocket.instances[0];
+    socket.open();
+    socket.message({ type: 'welcome', protocol: 2 });
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextLiveDataConnect,
+      id: 'live-data-connect-1',
+      data: { success: false, reason: 'protocol' },
+    });
+    expect(endTrace).toHaveBeenCalledTimes(1);
   });
 
   it('removes the AppState listener on destroy', () => {

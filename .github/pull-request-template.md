@@ -37,6 +37,14 @@ Write a short description of the changes included in this pull request, also inc
 2. What is the improvement/solution?
 -->
 
+## Test layer placement
+
+<!-- mms-check: type=text required=false -->
+
+<!--
+Optional. If this PR adds or changes tests, record which test layer(s) you chose and why (from `mms-mobile-testing`). Leave empty otherwise.
+-->
+
 ## **Changelog**
 
 <!-- mms-check: type=changelog required=true blocking=true -->
@@ -65,14 +73,27 @@ Fixes:
 
 <!-- mms-check: type=manual-testing required=true -->
 
+<!--
+Gherkin. One behavior per Scenario. Replace the bracketed placeholders, or write `N/A — <reason>`.
+
+- Background: setup shared by every Scenario below it.
+- Given / And: setup a teammate could not work out on their own (feature flag or remote config, build type, account or wallet type, network, balances or test data).
+- When / And: ordered tester actions, one per line, with the detail a numbered list would give. Describe what the user does. Leave out pixel positions and mechanics such as "tap the blue button top right".
+- Then / And: one expected outcome per line, including side effects (Activity entries, balance changes).
+-->
+
 ```gherkin
-Feature: my feature name
+Feature: [feature name]
 
-  Scenario: user [verb for user action]
-    Given [describe expected initial app state]
+  Background:
+    Given [flag, build, account, network, or test data]
+    And [any other shared setup]
 
-    When user [verb for user action]
-    Then [describe expected outcome]
+  Scenario: [one behavior]
+    When the user [first concrete action]
+    And [next action, in order]
+    Then [expected outcome]
+    And [side effect, such as an Activity entry or balance change]
 ```
 
 ## **Screenshots/Recordings**

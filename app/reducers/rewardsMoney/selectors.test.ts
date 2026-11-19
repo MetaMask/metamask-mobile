@@ -16,12 +16,15 @@ import {
   selectCashbackLedger,
   selectClaimLock,
   selectClaimWaitingUntil,
+  selectCommissionMechanisms,
   selectCommissions,
   selectEarningsHistory,
   selectEarningsSummaryEntry,
   selectInFlightClaims,
   selectMoneyDashboardPersona,
+  selectIsReferralLinkPending,
   selectMoneyReferralAllowedForGeo,
+  selectPendingMoneyReferralCode,
   selectReferralFunnelEntry,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
@@ -296,6 +299,46 @@ describe('rewardsMoney selectors', () => {
     });
   });
 
+  describe('selectIsReferralLinkPending', () => {
+    it('returns false when no referral link is being handled', () => {
+      const state = buildState();
+
+      expect(selectIsReferralLinkPending(state)).toBe(false);
+    });
+
+    it('returns true while a referral link is being handled', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          isReferralLinkPending: true,
+        },
+      } as RootState;
+
+      expect(selectIsReferralLinkPending(state)).toBe(true);
+    });
+  });
+
+  describe('selectPendingMoneyReferralCode', () => {
+    it('returns null when no deeplink left a code', () => {
+      const state = buildState();
+
+      expect(selectPendingMoneyReferralCode(state)).toBeNull();
+    });
+
+    it('returns the code a deeplink left behind', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          pendingReferralCode: 'KOL1',
+        },
+      } as RootState;
+
+      expect(selectPendingMoneyReferralCode(state)).toBe('KOL1');
+    });
+  });
+
   describe('selectEarningsSummaryEntry', () => {
     it('returns the entry for the given profile', () => {
       const state = buildState({}, { [PROFILE_A]: settledSummaryEntry });
@@ -342,6 +385,7 @@ describe('rewardsMoney selectors', () => {
       expect(selectEarningsSummaryEntry(state, PROFILE_A)).toBeUndefined();
       expect(selectReferralFunnelEntry(state, PROFILE_A)).toBeUndefined();
       expect(selectCommissions(state, PROFILE_A)).toBeUndefined();
+      expect(selectCommissionMechanisms(state, PROFILE_A)).toBeUndefined();
       expect(selectCashbackLedger(state, PROFILE_A)).toBeUndefined();
       expect(selectEarningsHistory(state, PROFILE_A)).toBeUndefined();
       expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();

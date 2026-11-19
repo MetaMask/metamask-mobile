@@ -15,6 +15,11 @@ const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {

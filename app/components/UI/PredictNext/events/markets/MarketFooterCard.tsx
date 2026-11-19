@@ -123,7 +123,7 @@ export const MarketFooterCard = ({
   return (
     <Box
       testID={MarketFooterCardTestIds.ROOT}
-      twClassName="flex-row gap-[10px] px-4 pt-2"
+      twClassName="flex-row gap-2 px-4 pt-2"
       style={{ paddingBottom: Math.max(insets.bottom, 8) }}
     >
       {getGameTeamOrder(game).map((selection) => {

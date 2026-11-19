@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectIsAccountGroupFunded } from '../../../../selectors/assets/balances';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa, type MoneyMfaStatus } from './useMoneyMfa';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
@@ -64,6 +65,7 @@ const arrange = ({
   status = 'not_set_up',
   totalBalance = 10,
   hasBalance = true,
+  isSocialLogin = true,
   credentials = [],
   refreshError,
   pendingCredentials,
@@ -71,6 +73,7 @@ const arrange = ({
   status?: MoneyMfaStatus;
   totalBalance?: number;
   hasBalance?: boolean;
+  isSocialLogin?: boolean;
   credentials?: EnrolledCredential[];
   refreshError?: Error;
   pendingCredentials?: Promise<EnrolledCredential[]>;
@@ -78,7 +81,7 @@ const arrange = ({
   mockUseMoneyMfa.mockReturnValue({
     status,
     turnOn: jest.fn(),
-    addPasskeyAndTurnOn: jest.fn(),
+    addPasskey: jest.fn(),
     retry: jest.fn(),
     turnOff: jest.fn(),
     isSettingUpBannerDismissed: false,
@@ -90,6 +93,9 @@ const arrange = ({
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectIsAccountGroupFunded) {
       return hasBalance && totalBalance > 0;
+    }
+    if (selector === selectSeedlessOnboardingLoginFlow) {
+      return isSocialLogin;
     }
     return undefined;
   });
@@ -119,6 +125,15 @@ describe('useMoneyMfaHomePrompt', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
     });
+  });
+
+  it('skips the prompt for recovery phrase wallets', async () => {
+    arrange({ isSocialLogin: false });
+
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens the prompt when Wallet regains focus during the passkey check', async () => {

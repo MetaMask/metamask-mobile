@@ -8,6 +8,7 @@ import HeaderGlass, {
   type HeaderGlassOptions,
   type HeaderGlassProps,
 } from '../HeaderGlass';
+import { glassHeaderTwClassName } from '../HeaderGlass/glassHeaderTwClassName';
 import {
   resolveEndAccessoryGlass,
   resolveStartAccessoryGlass,
@@ -34,10 +35,19 @@ const HeaderBaseGlass = ({
   applyStyleToContainer = false,
   isFloating,
   onLayout,
+  twClassName,
   ...props
 }: HeaderBaseGlassProps) => {
+  const headerClassName = glassHeaderTwClassName(twClassName);
+
   if (!isGlass) {
-    return <HeaderBase {...props} onLayout={onLayout} />;
+    return (
+      <HeaderBase
+        {...props}
+        onLayout={onLayout}
+        twClassName={headerClassName}
+      />
+    );
   }
 
   // Some headers need the same layout styles on both glass layers. Keep this
@@ -55,6 +65,7 @@ const HeaderBaseGlass = ({
     >
       <HeaderBase
         {...props}
+        twClassName={headerClassName}
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />

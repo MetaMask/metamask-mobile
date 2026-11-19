@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   AvatarIcon,
@@ -43,22 +43,24 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { navigateToRewardsRoute } from '../../../utils';
+import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
+import {
+  canClaimEarnings,
+  claimRouteOptions,
+  incomeHeldOnOpenRoute,
+  isPendingClaimRow,
+  mergeInFlightClaims,
+  type EarningsHistoryListItem,
+} from '../../../utils/claimEarnings';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
 import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
-import { useFollowTradeClaimOpen } from '../../../hooks/useFollowTradeClaimOpen';
+import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
-import {
-  canClaimEarnings,
-  claimRouteOptions,
-  isPendingClaimRow,
-  mergeInFlightClaims,
-  type EarningsHistoryListItem,
-} from '../../../utils/claimEarnings';
 import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
@@ -339,7 +341,7 @@ const BreakdownSection: React.FC<{
       title={localizedText.breakdown}
       isInteractive={Boolean(onViewPerformance)}
       onPress={onViewPerformance}
-      twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+      twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
       testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER}
     />
     <Box twClassName="px-4">
@@ -417,7 +419,7 @@ const HistorySection: React.FC<{
         <TabEmptyState
           icon={
             <AvatarIcon
-              iconName={IconName.Activity}
+              iconName={copyTradingOnly ? IconName.People : IconName.Activity}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}
               iconProps={{ color: IconColor.IconDefault }}
@@ -473,7 +475,7 @@ const HistorySection: React.FC<{
         title={localizedText.history}
         isInteractive={!listEmpty}
         onPress={listEmpty ? undefined : onOpenList}
-        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
         testID={EARNINGS_TAB_TEST_IDS.HISTORY_HEADER}
       />
       <Box twClassName="px-4 pb-8">
@@ -518,7 +520,8 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
-  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
+  const { followTradeClaimOpen, revShareClaimOpen } =
+    useClaimMechanisms(profileId);
   const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
   const roles = useSelector(
     (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
@@ -572,8 +575,14 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const last7 = useLast7DaysEarnings(profileId);
   const historyList = useEarningsHistory(profileId);
   const inFlight = useInFlightClaims(profileId);
+  const { prefetchTaxMe, onClaimPress, openAfterClaimRefusal } =
+    useTaxDocumentation(profileId);
+  useFocusEffect(
+    useCallback(() => {
+      prefetchTaxMe();
+    }, [prefetchTaxMe]),
+  );
   const { claim, isClaiming, isClaimWaiting } = useClaimEarnings(profileId, {
-    persona,
     summary: earningsSummaryEntry?.data ?? null,
     onOpened: () => {
       inFlight.refresh({ forceFresh: true }).catch(() => undefined);
@@ -585,6 +594,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       if (!refreshed) {
         throw new Error('Earnings summary refresh did not finish');
       }
+    },
+    onTaxRequired: () => {
+      void openAfterClaimRefusal().catch(() => {
+        openClaimsPaused();
+      });
     },
     onClaimsPaused: () => {
       // The sheet copies these totals into route params, so it has to open
@@ -627,15 +641,20 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   // One earning type does not need a split. The section appears only when
   // two rows remain after the role and Social V1 filters.
   const showBreakdown = summary.show && rows.length >= 2;
-  const routeOptions = claimRouteOptions(followTradeClaimOpen);
-  const claimEnabled = canClaimEarnings(summary.data, persona, routeOptions);
+  const routeOptions = claimRouteOptions(
+    localizedText?.taxFormUrl,
+    followTradeClaimOpen,
+    revShareClaimOpen,
+  );
+  const claimEnabled = canClaimEarnings(summary.data, routeOptions);
+  const taxHeld = incomeHeldOnOpenRoute(summary.data, routeOptions);
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
       {/* Same block as the hero cards on Ways to Earn: the banner and the
           card share one padded box so the gap between them matches. */}
       {errorSource || summary.show ? (
-        <Box twClassName="mt-3 gap-3 px-4 pt-4">
+        <Box twClassName="gap-3 px-4 pt-4">
           {errorSource ? (
             <EarningsErrorBanner
               source={errorSource}
@@ -650,20 +669,18 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
             <ClaimableRewardsCard
               localizedText={localizedText}
               claimable={summary.data?.claimable}
-              claimed={
-                persona === 'referee' ? summary.data?.claimed : undefined
-              }
-              held={persona === 'referee' ? summary.data?.held : undefined}
-              blocked={
-                persona === 'referee' ? summary.data?.blocked : undefined
-              }
+              claimed={summary.data?.claimed}
+              held={summary.data?.held}
+              blocked={summary.data?.blocked}
               claimableAmount={musdAmount(summary.data?.claimable)}
+              heldAmount={musdAmount(summary.data?.held)}
               isReferrer={persona === 'referrer'}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               last7Amount={last7Amount}
               isSummaryLoading={summary.loading}
               isLast7Loading={last7Loading}
               canClaim={claimEnabled}
+              taxHeld={taxHeld}
               isClaiming={isClaiming}
               isClaimWaiting={isClaimWaiting}
               onClaim={
@@ -673,7 +690,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                       if (!summaryData) {
                         return;
                       }
-                      claim(summaryData).catch(() => undefined);
+                      void onClaimPress(summaryData, (options) =>
+                        claim(options?.summary ?? summaryData, options).catch(
+                          () => undefined,
+                        ),
+                      );
                     }
                   : undefined
               }

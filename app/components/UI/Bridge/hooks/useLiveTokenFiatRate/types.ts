@@ -1,5 +1,5 @@
 /**
- * Candle aggregation buckets served by the `market-data.v1` channel. Bars are
+ * Candle aggregation buckets served by the `ohlcv.v1` channel. Bars are
  * pushed every 5s whatever the interval, so this only sets the bucket size.
  */
 export type LiveTokenFiatRateInterval =

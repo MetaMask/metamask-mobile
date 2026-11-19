@@ -86,13 +86,12 @@ describe('MoneyMfaStatusBanner', () => {
       expect(announce).toHaveBeenCalledWith(strings('money.mfa.failed_title'));
     });
 
-    it('offers Try again as its own link', () => {
+    it('offers Try again as a button', () => {
       const { getByTestId } = renderBanner('failed');
 
-      expect(getByTestId(MoneyMfaTestIds.FAILED_BANNER_RETRY)).toHaveProp(
-        'accessibilityRole',
-        'link',
-      );
+      expect(
+        getByTestId(MoneyMfaTestIds.FAILED_BANNER_RETRY),
+      ).toHaveTextContent(strings('money.mfa.failed_retry'));
     });
 
     it('calls onRetry when Try again is pressed', () => {

@@ -2362,8 +2362,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-randombytes (3.6.1):
-    - React-Core
   - react-native-release-profiler (0.4.4):
     - hermes-engine
     - RCTRequired
@@ -3760,7 +3758,6 @@ DEPENDENCIES:
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
-  - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -4090,8 +4087,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-performance"
   react-native-quick-base64:
     :path: "../node_modules/react-native-quick-base64"
-  react-native-randombytes:
-    :path: "../node_modules/react-native-randombytes"
   react-native-release-profiler:
     :path: "../node_modules/react-native-release-profiler"
   react-native-render-html:
@@ -4381,7 +4376,6 @@ SPEC CHECKSUMS:
   react-native-pager-view: 6b98421fc9198e59349977100dc252bbd979cc16
   react-native-performance: 3290079971f56838ae50f7f1d65d6e075d88b932
   react-native-quick-base64: 53393ee5ea472a7486e6652ad3d7a640ebf6ebda
-  react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-release-profiler: b7d3f26e662f9bdd8612072a9613257d41eb6051
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: fb5c8ee9f6dd62ef710611b3d370c501f42a4ac0

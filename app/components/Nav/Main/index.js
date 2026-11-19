@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-} from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import {
   ActivityIndicator,
@@ -34,6 +28,7 @@ import {
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
+import PendingMoneyReferralInvite from '../../UI/Rewards/components/Money/PendingMoneyReferralInvite';
 import { CliLoginPushNudgeListener } from '../../UI/CliLoginPushNudge';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
@@ -49,9 +44,10 @@ import {
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
+  AvatarNetwork,
+  AvatarNetworkSize,
+  toast,
+} from '@metamask/design-system-react-native';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import {
   selectChainId,
@@ -74,6 +70,7 @@ import {
 } from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
+import { getNetworkImageSource } from '../../../util/networks';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
@@ -203,7 +200,6 @@ const Main = (props) => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
-  const { toastRef } = useContext(ToastContext);
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
@@ -256,7 +252,6 @@ const Main = (props) => {
     providerConfig,
     networkName,
     networkImage,
-    toastRef,
     chainId,
     isEvmSelected,
     hasNetworkChanged,
@@ -295,34 +290,39 @@ const Main = (props) => {
             (curr) => curr.chainId === network.chainId,
           ),
       );
+      // Avatar matches the network named in the toast title.
+      const changedNetwork = deletedNetwork || newNetwork;
+      const changedNetworkImage = changedNetwork?.chainId
+        ? getNetworkImageSource({ chainId: changedNetwork.chainId })
+        : undefined;
 
       const shouldShowToast = shouldShowNetworkListToast({
         newNetworkChainId: newNetwork?.chainId,
         hasDeletedNetwork: Boolean(deletedNetwork),
       });
       if (shouldShowToast) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [
-            {
-              label: `${
-                (deletedNetwork?.name || newNetwork?.name) ??
-                strings('asset_details.network')
-              } `,
-              isBold: true,
-            },
-            {
-              label: deletedNetwork
-                ? strings('toast.network_removed')
-                : strings('toast.network_added'),
-            },
-          ],
-          networkImageSource: networkImage,
+        toast({
+          title: `${
+            (deletedNetwork?.name || newNetwork?.name) ??
+            strings('asset_details.network')
+          } ${
+            deletedNetwork
+              ? strings('toast.network_removed')
+              : strings('toast.network_added')
+          }`,
+          startAccessory: changedNetworkImage ? (
+            <AvatarNetwork
+              src={changedNetworkImage}
+              size={AvatarNetworkSize.Md}
+            />
+          ) : undefined,
+          hasNoTimeout: false,
+          showCloseButton: false,
         });
       }
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [networkConfigurations, networkImage, toastRef]);
+  }, [networkConfigurations]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -413,6 +413,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        <PendingMoneyReferralInvite />
         <PushNotificationOnboardingRoot />
         <CliLoginPushNudgeListener />
       </View>

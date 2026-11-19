@@ -4,15 +4,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  ListItem,
   Switch,
   Text,
-  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -36,6 +35,9 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface MenuOption {
   label: string;
@@ -45,6 +47,7 @@ interface MenuOption {
 }
 
 const MoneyMoreSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -158,38 +161,38 @@ const MoneyMoreSheet = () => {
       testID={MoneyMoreSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.more_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.list}>
         {mfaStatus === 'unavailable' ? null : (
-          <View style={styles.row} testID={MoneyMoreSheetTestIds.MFA_OPTION}>
-            <Icon
-              name={IconName.SecurityTick}
-              size={IconSize.Lg}
-              color={IconColor.IconDefault}
-            />
-            <View style={styles.rowText}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('money.mfa.more_sheet_title')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.mfa.more_sheet_description')}
-              </Text>
-            </View>
-            <Switch
-              isOn={isMfaOn}
-              isDisabled={mfaStatus === 'setting_up'}
-              onValueChange={handleMfaToggle}
-              accessibilityLabel={strings('money.mfa.more_sheet_title')}
-              testID={MoneyMoreSheetTestIds.MFA_SWITCH}
-            />
-          </View>
+          <ListItem
+            accessoryGap={4}
+            startAccessory={
+              <Icon
+                name={IconName.SecurityTick}
+                size={IconSize.Lg}
+                color={IconColor.IconDefault}
+              />
+            }
+            title={strings('money.mfa.more_sheet_title')}
+            description={strings('money.mfa.more_sheet_description')}
+            endAccessory={
+              <Switch
+                isOn={isMfaOn}
+                isDisabled={mfaStatus === 'setting_up'}
+                onValueChange={handleMfaToggle}
+                accessibilityLabel={strings('money.mfa.more_sheet_title')}
+                testID={MoneyMoreSheetTestIds.MFA_SWITCH}
+              />
+            }
+            testID={MoneyMoreSheetTestIds.MFA_OPTION}
+          />
         )}
         {options.map((item) => (
           <TouchableOpacity

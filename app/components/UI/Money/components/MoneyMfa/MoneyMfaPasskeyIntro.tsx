@@ -32,13 +32,6 @@ interface MoneyMfaPasskeyIntroProps {
   onAddPasskey: () => void;
 }
 
-/**
- * "Protect your account with a passkey": shield, benefits and the button that
- * starts passkey setup, shown in the wallet home prompt.
- *
- * @param props - The intro's props.
- * @param props.onAddPasskey - Starts passkey setup.
- */
 const MoneyMfaPasskeyIntro = ({ onAddPasskey }: MoneyMfaPasskeyIntroProps) => {
   const tw = useTailwind();
   const { trackComponentViewed } = useMoneyAnalytics({
@@ -57,7 +50,11 @@ const MoneyMfaPasskeyIntro = ({ onAddPasskey }: MoneyMfaPasskeyIntroProps) => {
           accessible={false}
         />
         <Box twClassName="gap-2">
-          <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="text-center"
+            accessibilityRole="header"
+          >
             {strings('money.mfa.intro_title')}
           </Text>
           <Text

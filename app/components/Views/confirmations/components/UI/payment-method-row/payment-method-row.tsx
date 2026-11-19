@@ -72,10 +72,16 @@ const PaymentMethodRow = ({
   onPress,
   disabled,
   testID,
+  hasIconBackground = true,
 }: PaymentMethodRowProps) => {
   const tw = useTailwind();
   const resolvedTestID = testID ?? `payment-method-row-${id}`;
   const rowBackgroundClass = isSelected ? 'bg-section' : 'bg-transparent';
+  const iconBackgroundClass = hasIconBackground
+    ? isSelected
+      ? 'bg-muted'
+      : 'bg-section'
+    : 'bg-transparent';
   const iconSlotTestID = `${resolvedTestID}-icon-slot`;
   const tag = renderFirstTag(tagRenderers);
 
@@ -84,9 +90,7 @@ const PaymentMethodRow = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName={`w-10 h-10 rounded-full ${
-          isSelected ? 'bg-muted' : 'bg-section'
-        }`}
+        twClassName={`w-10 h-10 rounded-full ${iconBackgroundClass}`}
         testID={iconSlotTestID}
       >
         {icon}

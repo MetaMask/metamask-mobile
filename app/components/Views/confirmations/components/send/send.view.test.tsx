@@ -1303,7 +1303,7 @@ describeForPlatforms('Send', () => {
       await waitFor(() => {
         expect(
           getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
-        ).toHaveTextContent('$ 20.00');
+        ).toHaveTextContent('$20.00');
       });
     });
 
@@ -1321,7 +1321,7 @@ describeForPlatforms('Send', () => {
       await waitFor(() => {
         expect(
           getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
-        ).toHaveTextContent('$ 20.00');
+        ).toHaveTextContent('$20.00');
       });
     });
 
@@ -1338,7 +1338,7 @@ describeForPlatforms('Send', () => {
       await waitFor(() => {
         expect(
           getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
-        ).toHaveTextContent('$ 4,000.00');
+        ).toHaveTextContent('$4,000.00');
       });
     });
   });

@@ -16,19 +16,13 @@ interface MoneyMfaInfoSheetProps {
   icon: ReactNode;
   title: string;
   description: string;
-  /** Buttons stacked under the description. */
   children: ReactNode;
   goBack: () => void;
   onClose: () => void;
   testID: string;
-  /** Reported with the sheet's viewed event. */
   bottomSheetName: BOTTOM_SHEET_NAMES;
 }
 
-/**
- * Centred icon, title and description with buttons below: the layout shared
- * by the Money 2-step verification sheets.
- */
 const MoneyMfaInfoSheet = forwardRef<BottomSheetRef, MoneyMfaInfoSheetProps>(
   (
     {

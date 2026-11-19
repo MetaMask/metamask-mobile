@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
-  HeaderStandard,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,6 +17,9 @@ import { useNotificationPreferences } from '../../NotificationPreferences/hooks'
 import { areTradingSignalsChannelsEnabled } from '../../NotificationPreferences/hooks/tradingSignalsChannels';
 import TradingSignalsSetupContent from './TradingSignalsSetupContent';
 import { TradingSignalsSetupBottomSheetSelectorsIDs } from './TradingSignalsSetupBottomSheet.testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Action deferred until the sheet closes with a trading-signal channel enabled.
@@ -33,6 +35,7 @@ export const createTradingSignalsSetupNavigationDetails =
   );
 
 const TradingSignalsSetupBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -59,7 +62,9 @@ const TradingSignalsSetupBottomSheet = () => {
       onClose={handleClose}
       testID={TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('app_settings.notifications_title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
         closeButtonProps={{

@@ -45,6 +45,10 @@ export interface AssetListControlBarProps {
   suppressTestIDs?: boolean;
   /** Draws each chip in a glass capsule, to match a glass header. */
   isGlass?: boolean;
+  /** Pinned glass copy only: extra top padding so the pills clear the back capsule. */
+  isPinned?: boolean;
+  /** Scroll-view testID (suppressed copies still carry it). */
+  testID?: string;
 }
 
 /**
@@ -87,6 +91,8 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
   aggregatedToggle,
   suppressTestIDs = false,
   isGlass = false,
+  isPinned = false,
+  testID,
 }) => {
   const tw = useTailwind();
 
@@ -105,7 +111,12 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
       showsHorizontalScrollIndicator={false}
       // Glass capsules cast a shadow wider than the row; clipping it leaves a grey band.
       style={isGlass ? tw.style('overflow-visible') : undefined}
-      contentContainerStyle={tw.style('flex-row items-center gap-2 px-4 pb-4')}
+      // All copies keep the list inset (px-4). The pinned copy adds top padding to clear the back capsule.
+      contentContainerStyle={tw.style(
+        'flex-row items-center gap-2 px-4 pb-2',
+        isPinned && 'pt-1',
+      )}
+      testID={testID}
     >
       <FilterChip
         chip={typeChip}

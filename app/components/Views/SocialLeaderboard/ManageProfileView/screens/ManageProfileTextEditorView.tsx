@@ -16,6 +16,7 @@ import {
 import { MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG } from './manageProfileTextEditorFields';
 import { getProfileSaveError } from './saveProfileError';
 import { normalizeUsername } from '../../ProfileOnboarding/profileOnboardingDraft';
+import { getDisplayNameError } from '../../ProfileOnboarding/utils/getDisplayNameError';
 import { useProfileController } from '../hooks/useProfileController';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
@@ -24,8 +25,12 @@ const ManageProfileTextEditorView: React.FC = () => {
   const route =
     useRoute<RouteProp<RootStackParamList, 'ManageProfileTextEditorView'>>();
   const { profile } = useMyProfile();
-  const { isControllerBacked, updateProfile, checkUsernameAvailability } =
-    useProfileController();
+  const {
+    isControllerBacked,
+    updateProfile,
+    checkUsernameAvailability,
+    checkDisplayNameValidity,
+  } = useProfileController();
   const trackProfileEdited = useManageProfileAnalytics();
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -42,9 +47,19 @@ const ManageProfileTextEditorView: React.FC = () => {
 
       try {
         switch (route.params.field) {
-          case 'displayName':
-            await updateProfile({ display_name: value.trim() });
+          case 'displayName': {
+            const displayName = value.trim();
+            const displayNameError = await getDisplayNameError(
+              displayName,
+              checkDisplayNameValidity,
+            );
+            if (displayNameError) {
+              setErrorMessage(displayNameError);
+              return;
+            }
+            await updateProfile({ display_name: displayName });
             break;
+          }
           case 'handle': {
             const username = normalizeUsername(value);
             if (username !== profile?.handle) {
@@ -81,6 +96,7 @@ const ManageProfileTextEditorView: React.FC = () => {
       }
     },
     [
+      checkDisplayNameValidity,
       checkUsernameAvailability,
       isControllerBacked,
       navigation,
@@ -103,6 +119,7 @@ const ManageProfileTextEditorView: React.FC = () => {
       prefix={config.prefix}
       multiline={config.multiline}
       maxLength={config.maxLength}
+      autoFocus={config.autoFocus}
       containerTestID={config.testIDs.container}
       headerTestID={config.testIDs.header}
       backTestID={config.testIDs.back}
