@@ -51,7 +51,10 @@ import MoneyOnboardingView from '../page-objects/Money/MoneyOnboardingView';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import { NewUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
-import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
+import {
+  recordElapsedPhase,
+  startPhase,
+} from '../framework/telemetry/PhaseTimer.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -107,10 +110,15 @@ const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
   return !(await isLoginScreenDisplayed());
 };
 
+const LOGIN_APP_READY_PHASE = 'login_app_ready';
+const LOGIN_WALLET_HOME_PHASE = 'login_wallet_home';
+
 const completeUnlockedWalletHome = async (
   dismissPostLoginModals: () => Promise<void>,
 ): Promise<void> => {
-  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await recordElapsedPhase(LOGIN_WALLET_HOME_PHASE, () =>
+    waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000)),
+  );
   await dismissPostLoginModals();
 };
 
@@ -842,7 +850,9 @@ export const loginToAppPlaywright = async (
     return;
   }
 
-  const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
+  const readyScreen = await recordElapsedPhase(LOGIN_APP_READY_PHASE, () =>
+    waitForAppReady(resolveE2EWaitTimeoutMs(60_000)),
+  );
 
   if (readyScreen === 'wallet') {
     await afterWalletHomeReady();
@@ -869,7 +879,9 @@ export const loginToAppPlaywright = async (
   await LoginView.enterPassword(password ?? '');
   await LoginView.tapLoginButton();
 
-  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await recordElapsedPhase(LOGIN_WALLET_HOME_PHASE, () =>
+    waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000)),
+  );
   startPhase('test_body');
 };
 

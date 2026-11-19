@@ -11,7 +11,11 @@
  * Run: yarn jest -c jest.config.view.js ChoosePassword.view.test.tsx --runInBand
  */
 import '../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  waitFor,
+  type RenderAPI,
+} from '@testing-library/react-native';
 import { AccessibilityInfo, InteractionManager, Platform } from 'react-native';
 import {
   describeForPlatforms,
@@ -19,14 +23,23 @@ import {
 } from '../../../../tests/component-view/platform';
 import {
   clearSeedlessAuthServerMocks,
+  getSeedlessAuthServerRequests,
   setupSeedlessAuthServerMocks,
 } from '../../../../tests/component-view/api-mocking/seedless-onboarding';
+import {
+  findTrackedEvent,
+  isMarketingSyncError,
+} from '../../../../tests/component-view/helpers/analytics';
 import { renderChoosePasswordForSocialLogin } from '../../../../tests/component-view/renderers/seedlessOnboarding';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import { strings } from '../../../../locales/i18n';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { Authentication } from '../../../core';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
+import Logger from '../../../util/Logger';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -48,6 +61,32 @@ function mockAuthenticationForSocialWalletCreation() {
   jest
     .spyOn(Authentication, 'newWalletAndKeychain')
     .mockResolvedValue(undefined);
+}
+
+async function fillValidPasswords(screen: Pick<RenderAPI, 'findByTestId'>) {
+  fireEvent.changeText(
+    await screen.findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    VALID_PASSWORD,
+  );
+  fireEvent.changeText(
+    await screen.findByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    ),
+    VALID_PASSWORD,
+  );
+}
+
+async function submitChoosePassword(
+  screen: Pick<RenderAPI, 'findByTestId' | 'getByTestId'>,
+) {
+  await waitFor(() => {
+    expect(
+      screen.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+    ).toBeEnabled();
+  });
+  fireEvent.press(
+    await screen.findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+  );
 }
 
 function mockAuthenticationGetType() {
@@ -423,32 +462,116 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     setupSeedlessAuthServerMocks({ marketingOptIn: true });
     mockAuthenticationForSocialWalletCreation();
 
-    const { findByTestId } = renderChoosePasswordForSocialLogin({
+    const screen = renderChoosePasswordForSocialLogin({
       routeParams: {
         oauthLoginSuccess: true,
         provider: AuthConnection.Google,
       },
     });
 
-    fireEvent.changeText(
-      await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
-      VALID_PASSWORD,
-    );
-    fireEvent.changeText(
-      await findByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
-      VALID_PASSWORD,
-    );
+    await fillValidPasswords(screen);
+    await submitChoosePassword(screen);
 
-    await waitFor(async () => {
-      expect(
-        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-      ).toBeEnabled();
+    await screen.findByTestId(
+      `route-${Routes.ONBOARDING.NOTIFICATION_PERMISSION}`,
+    );
+  });
+
+  it('keeps marketing consent off when the unchecked marketing checkbox sync fails during wallet creation', async () => {
+    // Desync setup: the server still holds is_opt_in=true while the sync
+    // POST fails with HTTP 500.
+    setupSeedlessAuthServerMocks({
+      marketingOptIn: true,
+      marketingPostFails: true,
     });
+    mockAuthenticationForSocialWalletCreation();
 
-    fireEvent.press(
-      await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-    );
+    const identifySpy = jest.spyOn(analytics, 'identify');
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+    const loggerErrorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => Promise.resolve());
 
-    await findByTestId(`route-${Routes.ONBOARDING.NOTIFICATION_PERMISSION}`);
+    try {
+      const screen = renderChoosePasswordForSocialLogin({
+        routeParams: {
+          oauthLoginSuccess: true,
+          provider: AuthConnection.Google,
+        },
+      });
+
+      await fillValidPasswords(screen);
+
+      // The view-test env keeps the marketing checkbox unchecked
+      // (HAS_TEST_OVERRIDES), so opt-out is an explicit on-then-off toggle.
+      await screen.findByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      fireEvent.press(
+        screen.getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
+      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+          ).props.accessibilityState?.checked,
+        ).toBe(true);
+      });
+      fireEvent.press(
+        screen.getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
+      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+          ).props.accessibilityState?.checked,
+        ).toBe(false);
+      });
+
+      await submitChoosePassword(screen);
+
+      // The failed consent sync must not block wallet creation.
+      await screen.findByTestId(
+        `route-${Routes.ONBOARDING.NOTIFICATION_PERMISSION}`,
+      );
+
+      // The opt-out lands in the local security preference despite the 500.
+      await waitFor(() => {
+        expect(
+          screen.store.getState().security.dataCollectionForMarketing,
+        ).toBe(false);
+      });
+
+      // Exactly one opt-out POST reached the auth server and nothing was read.
+      await waitFor(() => {
+        expect(getSeedlessAuthServerRequests()).toEqual([
+          { method: 'POST', body: { opt_in_status: false } },
+        ]);
+      });
+
+      expect(loggerErrorSpy.mock.calls.some(isMarketingSyncError)).toBe(true);
+
+      expect(identifySpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
+        }),
+      );
+      expect(
+        findTrackedEvent(
+          trackEventSpy,
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+        ),
+      ).toMatchObject({
+        properties: expect.objectContaining({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
+          location: 'onboarding_choosePassword',
+          account_type: 'metamask_google',
+        }),
+      });
+    } finally {
+      identifySpy.mockRestore();
+      trackEventSpy.mockRestore();
+      loggerErrorSpy.mockRestore();
+    }
   });
 });

@@ -10,16 +10,18 @@ import { createMockRouteMessenger } from '../../../app/util/test/mock-route-mess
 import AccountStatus from '../../../app/components/Views/AccountStatus';
 import ChoosePassword from '../../../app/components/Views/ChoosePassword';
 import WalletCreationError from '../../../app/components/Views/WalletCreationError';
+import MetaMetricsAndDataCollectionSection from '../../../app/components/Views/Settings/SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import type { AccountStatusParams } from '../../../app/components/Views/AccountStatus/types';
 import { AuthConnection } from '../../../app/core/OAuthService/OAuthInterface';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../app/constants/navigation';
 import { AccountType } from '../../../app/constants/onboarding';
-import {
-  initialStateSeedlessOnboarding,
-  SEEDLESS_CV_ACCESS_TOKEN,
-} from '../presets/seedlessOnboarding';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_KEY } from '../../../app/components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 import Engine from '../../../app/core/Engine';
+import {
+  initialStateSeedlessOnboarding,
+  initialStateSeedlessSecuritySettings,
+  SEEDLESS_CV_ACCESS_TOKEN,
+} from '../presets/seedlessOnboarding';
 
 const ACCOUNT_ALREADY_EXISTS_ROUTE = 'AccountAlreadyExists';
 const ACCOUNT_NOT_FOUND_ROUTE = 'AccountNotFound';
@@ -228,5 +230,37 @@ export function renderChoosePasswordScreen(
     { name: Routes.ONBOARDING.CHOOSE_PASSWORD },
     choosePasswordProviderValues(options),
     options.routeParams,
+  );
+}
+
+interface SecuritySettingsMarketingSectionRendererOptions {
+  /** Local marketing preference before the user toggles. */
+  dataCollectionForMarketing?: boolean;
+  overrides?: DeepPartial<RootState>;
+}
+
+/**
+ * Renders the Settings > Security & privacy MetaMetrics + marketing section
+ * (MetaMetricsAndDataCollectionSection) for a social-login user. The modal
+ * flow route is registered so toggling marketing consent off can navigate to
+ * the data-collection confirmation sheet.
+ */
+export function renderSecuritySettingsMarketingSection(
+  options: SecuritySettingsMarketingSectionRendererOptions = {},
+) {
+  syncSeedlessAccessToken();
+
+  const builder = initialStateSeedlessSecuritySettings({
+    dataCollectionForMarketing: options.dataCollectionForMarketing,
+  });
+  if (options.overrides) {
+    builder.withOverrides(options.overrides);
+  }
+
+  return renderScreenWithRoutes(
+    MetaMetricsAndDataCollectionSection as unknown as React.ComponentType,
+    { name: Routes.SETTINGS.SECURITY_SETTINGS },
+    [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
+    { state: builder.build() },
   );
 }

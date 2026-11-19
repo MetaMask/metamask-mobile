@@ -512,6 +512,11 @@ export interface RewardsMoneyViewStateOptions {
   subscriptionId?: string | null;
   /** Device country. Null fails open for a Money referral. */
   geoLocation?: string | null;
+  /**
+   * GeolocationController status. Defaults to `complete` when a location is
+   * set. Set this without a location to seed an unresolved lookup.
+   */
+  geoStatus?: 'idle' | 'loading' | 'complete' | 'error';
   /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
   moneyControllerEnabled?: boolean;
   /** Session-only deeplink state for the invite-sheet lifecycle. */
@@ -556,6 +561,7 @@ export function rewardsMoneyViewState({
   seedReferralMe = true,
   subscriptionId = null,
   geoLocation = null,
+  geoStatus,
   moneyControllerEnabled = false,
   pendingReferralCode = null,
   answeredReferralCode = null,
@@ -612,7 +618,6 @@ export function rewardsMoneyViewState({
       rewards: {
         ...pointsRewardsInitialState,
         candidateSubscriptionId: subscriptionId,
-        geoLocation,
       },
       ...(supportPreferenceSaved
         ? {
@@ -651,6 +656,14 @@ export function rewardsMoneyViewState({
               },
             },
           },
+          ...(geoLocation != null || geoStatus
+            ? {
+                GeolocationController: {
+                  ...(geoLocation != null ? { location: geoLocation } : {}),
+                  status: geoStatus ?? 'complete',
+                },
+              }
+            : {}),
           ...(subscriptionId
             ? {
                 RewardsController: {

@@ -9,13 +9,17 @@ import {
 import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
 import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
-import type { CurrentDeviceDetails } from './types.ts';
+import type { CurrentDeviceDetails, WorkerLevelFixtures } from './types.ts';
 
 const logger = createAppiumLogger('currentDeviceDetails');
 
 export const currentDeviceDetailsFixture = {
   currentDeviceDetails: async (
-    {}, // eslint-disable-line no-empty-pattern
+    // Resolve only after the provider assigns this worker's pooled device.
+    // Otherwise reset/clear commands can target another worker's emulator.
+    {
+      deviceProvider: _deviceProvider,
+    }: Pick<WorkerLevelFixtures, 'deviceProvider'>,
     use: (deviceDetails: CurrentDeviceDetails) => Promise<void>,
     testInfo: TestInfo,
   ) => {

@@ -15,8 +15,8 @@ Analytics infrastructure lives in [`app/util/analytics/`](../../util/analytics/)
 ## Usage
 
 ```ts
-import { useAnalytics } from 'app/components/hooks/useAnalytics/useAnalytics';
-import { EVENT_NAME } from 'app/core/Analytics';
+import { useAnalytics } from '#app/components/hooks/useAnalytics/useAnalytics';
+import { EVENT_NAME } from '#app/core/Analytics';
 
 const { trackEvent, createEventBuilder } = useAnalytics();
 

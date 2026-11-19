@@ -4,8 +4,8 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
-import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import { type BridgeToken } from '../../types';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
 import {
   RecurringSwapAgainButton,
@@ -54,12 +54,9 @@ jest.mock('../../hooks/useAutoUpgradeEIP7702Account', () => ({
   useAutoUpgradeEIP7702Account: jest.fn(),
 }));
 
-jest.mock(
-  '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils',
-  () => ({
-    showRecurringAutoUpgradeError: jest.fn(),
-  }),
-);
+jest.mock('../../utils/showGenericErrorToast', () => ({
+  showGenericErrorToast: jest.fn(),
+}));
 
 const mockAutoUpgradeEIP7702Account = jest.fn();
 const mockGetUpgradeStatus = jest.fn();
@@ -237,7 +234,7 @@ describe('RecurringSwapDelegationButton', () => {
     );
 
     await waitFor(() => {
-      expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
+      expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
     });
     expect(renderResult.getByText(DELEGATE_ACCOUNT_LABEL)).toBeOnTheScreen();
     expect(

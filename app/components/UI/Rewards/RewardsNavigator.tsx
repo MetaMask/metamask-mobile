@@ -93,12 +93,12 @@ const RewardsNavigator: React.FC = () => {
 
   useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
-  // The tab-level data hooks (useCandidateSubscriptionId, useGeoRewardsMetadata)
-  // intentionally live on RewardsDashboard, not here.
-  // RewardsDashboard is the Rewards tab entry and stays mounted while this pushed
-  // REWARDS_FLOW stack is open, so it already populates Redux for these sub-pages
-  // and keeps event-driven refetches running. Re-declaring those hooks here would
-  // duplicate the focus-driven fetches on every entry into the flow.
+  // The tab-level data hook (useReferralDetails) intentionally lives on
+  // RewardsDashboard, not here. RewardsDashboard is the Rewards tab entry and
+  // stays mounted while this pushed REWARDS_FLOW stack is open, so it already
+  // populates Redux for these sub-pages and keeps event-driven refetches
+  // running. Re-declaring that hook here would duplicate the focus-driven
+  // fetches on every entry into the flow.
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
