@@ -1,3 +1,5 @@
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { isQuickBuyCopyTrade } from './isQuickBuyCopyTrade';
 import { QuickBuyEventProperties } from './quickBuyEvents';
 import type { QuickBuyAnalyticsContext } from '../types';
 
@@ -9,14 +11,18 @@ import type { QuickBuyAnalyticsContext } from '../types';
 export function buildQuickBuySharedAnalyticsProperties(
   analyticsContext?: Pick<
     QuickBuyAnalyticsContext,
-    'source' | 'originalEntryPoint' | 'marketCap'
-  >,
+    'source' | 'originalEntryPoint' | 'marketCap' | 'isCopyTrade'
+  > & { copyTradeOrigin?: CopyTradeOrigin },
 ): Record<string, string | number | boolean> {
   const props: Record<string, string | number | boolean> = {};
 
   if (analyticsContext?.source) {
     props[QuickBuyEventProperties.SOURCE] = analyticsContext.source;
   }
+  props[QuickBuyEventProperties.IS_COPY_TRADE] = isQuickBuyCopyTrade({
+    copyTradeOrigin: analyticsContext?.copyTradeOrigin,
+    isCopyTrade: analyticsContext?.isCopyTrade,
+  });
   if (analyticsContext?.originalEntryPoint) {
     props[QuickBuyEventProperties.ORIGINAL_ENTRY_POINT] =
       analyticsContext.originalEntryPoint;

@@ -900,7 +900,8 @@ const HomeTabs = () => {
               lazy: true,
               // UIKit picks the inactive colour.
               tabBarActiveTintColor: colors.icon.default,
-              tabBarMinimizeBehavior: 'onScrollDown',
+              // UIKit only finds some tabs' scroll views, so collapsing was inconsistent.
+              tabBarMinimizeBehavior: 'none',
               tabBarStyle: TAB_BAR_VISIBLE_STYLE,
               overrideScrollViewContentInsetAdjustmentBehavior: false,
             }}

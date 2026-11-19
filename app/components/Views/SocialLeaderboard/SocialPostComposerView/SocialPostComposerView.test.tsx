@@ -1,4 +1,4 @@
-import { captureException } from '@sentry/react-native';
+import { Icon, IconSize } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
 import {
@@ -243,8 +243,11 @@ jest.mock('./createSwapCommentApi', () => ({
   createSwapComment: (...args: unknown[]) => mockCreateSwapComment(...args),
 }));
 
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
+const mockReportSocialServiceFailure = jest.fn();
+jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
+  ...jest.requireActual('../../../../util/social/socialServiceTelemetry'),
+  reportSocialServiceFailure: (...args: unknown[]) =>
+    mockReportSocialServiceFailure(...args),
 }));
 
 const mockInvalidateModerationStatus = jest.fn().mockResolvedValue(undefined);
@@ -409,6 +412,43 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeDisabled();
+  });
+
+  const pressBlockedPost = () =>
+    fireEvent.press(
+      screen.getByTestId(
+        SocialPostComposerViewSelectorsIDs.POST_BUTTON_BLOCKED,
+        { includeHiddenElements: true },
+      ),
+    );
+
+  it('records a blocked submit when Post is pressed with no position', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    pressBlockedPost();
+
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'submit_blocked',
+      { blocked_submit_reason: 'no_position' },
+    );
+    expect(mockCreateSwapComment).not.toHaveBeenCalled();
+  });
+
+  it('records a blocked submit when the caption is empty', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    pressBlockedPost();
+
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'submit_blocked',
+      { blocked_submit_reason: 'empty_caption' },
+    );
   });
 
   it('enables the Post button once the comment has text', () => {
@@ -666,6 +706,16 @@ describe('SocialPostComposerView', () => {
       'post_submitted',
       expect.not.objectContaining({ share_destination: expect.anything() }),
     );
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'post_submitted',
+      expect.objectContaining({
+        post_id: 'comment-1',
+        author_trader_id: 'current-user',
+        has_thesis: true,
+        has_attached_position: true,
+        is_held_position: true,
+      }),
+    );
 
     await waitFor(() => {
       expect(getPendingPostsSnapshot()[0]?.post.gifUri).toBe(
@@ -849,6 +899,19 @@ describe('SocialPostComposerView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(0);
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'post_failed',
+      expect.objectContaining({ failure_reason: 'unknown' }),
+    );
+    expect(mockReportSocialServiceFailure).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        surface: 'post_composer',
+        operation: 'create_comment',
+        endpoint: 'create_comment',
+        profileId: 'current-user',
+      }),
+    );
   });
 
   it('shows the post failure toast and reports to Sentry when creating a post takes longer than 7 seconds', async () => {
@@ -877,7 +940,7 @@ describe('SocialPostComposerView', () => {
       await jest.advanceTimersByTimeAsync(6999);
     });
     expect(mockShowToast).not.toHaveBeenCalled();
-    expect(captureException).not.toHaveBeenCalled();
+    expect(mockReportSocialServiceFailure).not.toHaveBeenCalled();
 
     await act(async () => {
       await jest.advanceTimersByTimeAsync(1);
@@ -888,7 +951,19 @@ describe('SocialPostComposerView', () => {
         labelOptions: [{ label: 'social_leaderboard.composer.post_failed' }],
       }),
     );
-    expect(captureException).toHaveBeenCalledTimes(1);
+    expect(mockReportSocialServiceFailure).toHaveBeenCalledTimes(1);
+    expect(mockReportSocialServiceFailure).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        surface: 'post_composer',
+        operation: 'create_comment_timeout',
+        endpoint: 'create_comment',
+      }),
+    );
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'post_failed',
+      expect.objectContaining({ failure_reason: 'timeout' }),
+    );
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(0);
@@ -902,6 +977,50 @@ describe('SocialPostComposerView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('draws the attachment close ring outside a smaller icon', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'onImageChange',
+      { nativeEvent: { uri: 'https://media.test/party.gif' } },
+    );
+
+    [
+      SocialPostComposerViewSelectorsIDs.REMOVE_POSITION,
+      SocialPostComposerViewSelectorsIDs.REMOVE_GIF,
+    ].forEach((testID) => {
+      const button = screen.getByTestId(testID);
+      const disc = StyleSheet.flatten(button.props.style);
+      let ringNode = button.parent;
+      while (
+        ringNode &&
+        StyleSheet.flatten(ringNode.props.style)?.borderWidth !== 2
+      ) {
+        ringNode = ringNode.parent;
+      }
+      const ring = StyleSheet.flatten(ringNode?.props.style);
+
+      expect(within(button).UNSAFE_getByType(Icon).props.size).toBe(
+        IconSize.Md,
+      );
+      expect(button).toHaveProp('hitSlop', 6);
+      expect(disc).toEqual(expect.objectContaining({ width: 32, height: 32 }));
+      expect(ring).toEqual(
+        expect.objectContaining({
+          width: 36,
+          height: 36,
+          borderWidth: 2,
+          top: -14,
+          right: -14,
+        }),
+      );
+    });
   });
 
   it('shows a gif preview when the keyboard inserts an image', () => {

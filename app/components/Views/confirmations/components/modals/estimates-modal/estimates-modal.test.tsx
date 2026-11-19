@@ -4,6 +4,10 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { EstimatesModal } from './estimates-modal';
 import { useGasOptions } from '../../../hooks/gas/useGasOptions';
 
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
+}));
+
 jest.mock('../../../hooks/gas/useGasOptions', () => ({
   useGasOptions: jest.fn(() => {
     const { noop } = jest.requireActual('lodash');

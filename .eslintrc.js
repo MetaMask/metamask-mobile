@@ -112,19 +112,60 @@ const utilNumberImportBurndownFiles = [
 // Shared by the *.view.test.* and tests/component-view/** overrides so the
 // fake-timer ban cannot drift. Covers the whole jest fake-timer API, `*Async`
 // variants included.
+// no-restricted-syntax is one severity per override, so the error bans stay
+// here and the warn-level flake checks are a later block in eslint.config.mjs.
+// A second override for the same files would replace this list.
+const CV_SKILL_URL =
+  'https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md';
+
 const cvFakeTimerBan = {
   selector:
     "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime(Async)?|advanceTimersToNextTimer(Async)?|runAllTimers(Async)?|runOnlyPendingTimers(Async)?|runAllTicks|setSystemTime|clearAllTimers)$/]",
   message:
-    'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+    'Component-view tests must not use fake timers. Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state. See the mobile-testing skill: ' +
+    CV_SKILL_URL,
 };
+
+const cvViewMockMessage =
+  'Arbitrary jest.mock() is not allowed in a component-view test. Drive behaviour through Redux state, presets, and renderers, or intercept HTTP with tests/component-view/api-mocking (nock). Only Engine (core/Engine or core/Engine/Engine) and react-native-device-info may be mocked. See the mobile-testing skill: ' +
+  CV_SKILL_URL;
+
+const cvHelperMockMessage =
+  'Arbitrary jest.mock() is not allowed in component-view helpers. Add a framework mock only in tests/component-view/mocks.ts, and only for Engine, react-native-device-info, expo-web-browser, generateDeviceAnalyticsMetaData, or react-native/Libraries/Animated/Easing. See the mobile-testing skill: ' +
+  CV_SKILL_URL;
+
+// Exact module specifiers already passed to jest.mock in tests/component-view/mocks.ts.
+const cvHelperMockModules = [
+  'expo-web-browser',
+  '../../app/core/Engine',
+  '../../app/core/Engine/Engine.ts',
+  'react-native-device-info',
+  '../../app/util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  'react-native/Libraries/Animated/Easing',
+];
+
+const cvViewMockBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
+  message: cvViewMockMessage,
+};
+
+const cvHelperMockBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal']" +
+    cvHelperMockModules.map((mod) => `[arguments.0.value!='${mod}']`).join(''),
+  message: cvHelperMockMessage,
+};
+
+const cvDynamicMockBan = (message) => ({
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock']:not([arguments.0.type='Literal'])",
+  message,
+});
 
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    project: './tsconfig.json',
-  },
   extends: [
     '@react-native',
     'eslint:recommended',
@@ -185,7 +226,18 @@ module.exports = {
         // ratchet to 'error' once the BN.js → BigInt migration is complete).
         // Pairs with the `import-x/no-restricted-paths` fence on
         // `app/util/number/index.js` in the app import-fence override below.
-        '@typescript-eslint/no-deprecated': 'warn',
+        // Oxlint owns this rule. It is a warning in .oxlintrc.json and runs
+        // in type-aware mode (oxlint-tsgolint), so it is off here.
+        '@typescript-eslint/no-deprecated': 'off',
+        // Oxlint owns these five too, as errors. The shared config turns
+        // them on and they need type information. ESLint no longer loads the
+        // TypeScript project (no parserOptions.project), so a rule that needs
+        // type information throws if it is turned on here.
+        '@typescript-eslint/no-array-delete': 'off',
+        '@typescript-eslint/no-for-in-array': 'off',
+        '@typescript-eslint/no-meaningless-void-operator': 'off',
+        '@typescript-eslint/no-unnecessary-qualifier': 'off',
+        '@typescript-eslint/no-unsafe-unary-minus': 'off',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [
@@ -505,20 +557,15 @@ module.exports = {
       rules: {
         'no-restricted-syntax': [
           'error',
-          {
-            selector:
-              "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
-            message:
-              'Only Engine and react-native-device-info can be mocked in component-view tests.',
-          },
+          cvViewMockBan,
+          cvDynamicMockBan(cvViewMockMessage),
           cvFakeTimerBan,
         ],
       },
     },
     {
-      // Shared component-view helpers keep the base no-restricted-syntax bans
-      // and add the fake-timer ban. The jest.mock ban above does not apply
-      // here (mocks.ts mocks Engine).
+      // Helpers keep the base bans and the fake-timer ban. jest.mock is
+      // limited to the modules tests/component-view/mocks.ts already mocks.
       files: ['tests/component-view/**/*.{ts,tsx}'],
       rules: {
         'no-restricted-syntax': [
@@ -532,6 +579,8 @@ module.exports = {
             message: 'Sequence expressions are not allowed',
           },
           cvFakeTimerBan,
+          cvHelperMockBan,
+          cvDynamicMockBan(cvHelperMockMessage),
         ],
       },
     },
