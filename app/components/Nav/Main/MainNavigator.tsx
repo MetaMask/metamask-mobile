@@ -1044,6 +1044,7 @@ const MainNavigator = () => {
   // Predict routes are registered while Predict is available for the
   // Active Venue, the same gate its entry points use.
   const isPredictEnabled = useSelector(selectPredictAvailability);
+  // Get feature flag state for conditional Collectibles registration
   const isCollectiblesEnabled = useSelector(selectCollectiblesEnabledFlag);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
