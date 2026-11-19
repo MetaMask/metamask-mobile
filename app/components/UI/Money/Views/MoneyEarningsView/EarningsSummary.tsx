@@ -43,7 +43,7 @@ const EarningsSummary = ({
       label: strings('money.earnings.last_30_days'),
       valueUsd: thisMonthUsd,
     },
-    // TODO: Replace 1Y earnings with a lifetime endpoint once available.
+    // TODO: Replace 1Y earnings with lifetime earnings once added to interest history response.
     // 1Y is not a valid lifetime substitute after the account is older than one year.
     {
       label: strings('money.earnings.lifetime'),

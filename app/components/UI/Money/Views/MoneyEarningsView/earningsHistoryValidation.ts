@@ -6,35 +6,7 @@ import type {
   PeriodStatus,
   UnavailableReason,
 } from '../../types/moneyInterestHistory';
-
-const ISO_CALENDAR_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T/;
-
-const getTimestamp = (value: unknown): number | undefined => {
-  if (typeof value !== 'string') {
-    return undefined;
-  }
-
-  const calendarDate = ISO_CALENDAR_DATE_PATTERN.exec(value);
-  if (!calendarDate) {
-    return undefined;
-  }
-
-  const year = Number(calendarDate[1]);
-  const month = Number(calendarDate[2]);
-  const day = Number(calendarDate[3]);
-  const calendarTimestamp = Date.UTC(year, month - 1, day);
-  const calendar = new Date(calendarTimestamp);
-  if (
-    calendar.getUTCFullYear() !== year ||
-    calendar.getUTCMonth() !== month - 1 ||
-    calendar.getUTCDate() !== day
-  ) {
-    return undefined;
-  }
-
-  const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? timestamp : undefined;
-};
+import { parseIsoTimestamp } from '../../utils/parseIsoTimestamp';
 
 export const parseFiniteUsd = (value: unknown): number | undefined => {
   if (typeof value !== 'string' || value.trim() === '') {
@@ -138,8 +110,8 @@ const hasOrderedTimestamps = (
   periodStart: unknown,
   periodEndExclusive: unknown,
 ): boolean => {
-  const startTimestamp = getTimestamp(periodStart);
-  const endTimestamp = getTimestamp(periodEndExclusive);
+  const startTimestamp = parseIsoTimestamp(periodStart);
+  const endTimestamp = parseIsoTimestamp(periodEndExclusive);
   return (
     startTimestamp !== undefined &&
     endTimestamp !== undefined &&
@@ -156,7 +128,7 @@ const isBucketShape = (value: unknown): boolean => {
     !hasOrderedTimestamps(value.start, value.end) ||
     !isNullableFiniteUsd(value.musd_price_usd) ||
     (value.price_as_of !== null &&
-      getTimestamp(value.price_as_of) === undefined) ||
+      parseIsoTimestamp(value.price_as_of) === undefined) ||
     (value.price_source !== null &&
       value.price_source !== 'metamask_price_api') ||
     !Array.isArray(value.by_vault)
@@ -197,12 +169,13 @@ export const hasInvalidInterestHistoryResponse = (value: unknown): boolean => {
     typeof value.chain_id !== 'number' ||
     !Number.isSafeInteger(value.chain_id) ||
     value.bucket_timezone !== 'UTC' ||
-    getTimestamp(value.updated_through) === undefined ||
+    parseIsoTimestamp(value.updated_through) === undefined ||
     !isRecord(value.source_watermark) ||
     !isRecord(value.source_watermark.vault_accounting) ||
     typeof value.source_watermark.vault_accounting.block_number !== 'string' ||
-    getTimestamp(value.source_watermark.vault_accounting.block_timestamp) ===
-      undefined ||
+    parseIsoTimestamp(
+      value.source_watermark.vault_accounting.block_timestamp,
+    ) === undefined ||
     value.method !== 'nav_difference' ||
     !isRecord(value.denomination) ||
     value.denomination.asset !== 'mUSD' ||
