@@ -34,6 +34,7 @@ const QuickBuyAmount: React.FC = () => {
     isKeypadOpen,
     hasNoPayWithFunds,
     isBelowPostTradeShareMinimum,
+    buttonError,
   } = useQuickBuyContext();
   const isPostTradeShareHintEnabled = useSelector(
     selectQuickBuyPostTradeShareHintEnabled,
@@ -51,6 +52,7 @@ const QuickBuyAmount: React.FC = () => {
     isBelowPostTradeShareMinimum &&
     !hasNoPayWithFunds &&
     !isUnpricedSource &&
+    buttonError !== 'no_quotes' &&
     !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.

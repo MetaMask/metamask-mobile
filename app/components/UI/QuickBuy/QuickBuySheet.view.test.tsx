@@ -367,6 +367,38 @@ describeForPlatforms('QuickBuySheet', () => {
     );
   });
 
+  it('hides the post minimum hint when no quotes are available', async () => {
+    mockQuickBuyQuoteTokens();
+    mockFetchQuotes(() => []);
+    const screen = renderQuickBuySheet({
+      overrides: POST_TRADE_SHARE_HINT_ENABLED,
+    });
+
+    await waitForSheetReady(screen);
+    expect(
+      await screen.findByTestId(
+        QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT,
+      ),
+    ).toBeOnTheScreen();
+
+    typeAmount(screen, '8');
+
+    await waitFor(
+      () => {
+        expect(
+          within(
+            screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
+          ).getByText(strings('social_leaderboard.quick_buy.no_quotes')),
+        ).toBeOnTheScreen();
+      },
+      // Typed amounts are debounced before the quote request.
+      { timeout: WAIT_MS },
+    );
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
+  });
+
   it('keeps confirm disabled when fetchQuotes rejects', async () => {
     (
       Engine.context.BridgeController.fetchQuotes as jest.Mock
