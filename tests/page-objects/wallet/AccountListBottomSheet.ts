@@ -9,6 +9,7 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/V
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import {
   type AppiumElement,
   createLogger,
@@ -51,8 +52,14 @@ class AccountListBottomSheet {
         `//*[@name='${title}' or @label='${title}' or @text='${title}']`,
       );
     }
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    // AccountSelector sheet uses `account-list`; Account Hub uses
+    // `account-hub-account-list`. Match either so smoke stays green when the
+    // wallet header routes to Hub (compact / search header) vs Selector.
+    const accountSelectorList =
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID;
+    const accountHubList = AccountHubSelectorsIDs.ACCOUNT_LIST;
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountSelectorList}' or @resource-id='${accountHubList}']`,
     );
   }
 
@@ -72,9 +79,21 @@ class AccountListBottomSheet {
     );
   }
 
-  /** Header back control (same testID as CommonView.backButton / AccountSelector HeaderCompactStandard). */
+  /**
+   * Header back control for AccountSelector (`back-arrow-button`) or Account
+   * Hub (`account-hub-back-button`). Wallet chrome may open either surface.
+   */
   get backButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+    const accountSelectorBack = CommonSelectorsIDs.BACK_ARROW_BUTTON;
+    const accountHubBack = AccountHubSelectorsIDs.BACK_BUTTON;
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[contains(@name,'${accountHubBack}') or contains(@name,'${accountSelectorBack}') or contains(@label,'${accountHubBack}') or contains(@label,'${accountSelectorBack}')]`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountHubBack}' or @resource-id='${accountSelectorBack}']`,
+    );
   }
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
@@ -265,10 +284,31 @@ class AccountListBottomSheet {
     });
   }
 
+  /**
+   * Dismiss AccountSelector / Account Hub via the header back control.
+   * Glass headers can leave the control mounted with isDisplayed=false; prove
+   * existence then tap with relaxed display (same shape as clipped Bridge rows).
+   */
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
-      elemDescription: 'Account list header back button',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToExist(this.backButton, {
+          description: 'Account list / Account Hub back button',
+          timeout: 5_000,
+        });
+        await Gestures.waitAndTap(this.backButton, {
+          elemDescription: 'Account list header back button',
+          timeout: 10_000,
+          checkForDisplayed: false,
+          waitForInteractive: true,
+        });
+      },
+      {
+        timeout: 20_000,
+        interval: 500,
+        description: 'Dismiss account list via back button',
+      },
+    );
   }
 
   /**
