@@ -26,7 +26,7 @@ import {
   isDiskSpaceSentryReport,
 } from './diskSpaceSentry';
 import { ReduxStore } from '../../core/redux';
-import { selectSentryTransactionSampleRates } from '../../selectors/featureFlagController/sentry';
+import { selectSentryTraceSampleRates } from '../../selectors/featureFlagController/sentry';
 import { OTA_VERSION } from '../../constants/ota';
 
 /**
@@ -669,15 +669,13 @@ export function getNavIntegration(): ReturnType<
 }
 
 /**
- * Remote `sentry.transactionSampleRates[name][Platform.OS]` rate for a root
- * transaction (setting one changes Sentry volume and cost). Undefined until
+ * Remote `sentry.traceSampleRates[name][Platform.OS]` rate for a root
+ * trace (setting one changes Sentry volume and cost). Undefined until
  * the store has loaded flags; the sampler must not throw.
  */
 function getRemoteTraceSampleRate(name: string): number | undefined {
   try {
-    return selectSentryTransactionSampleRates(store.getState())[name]?.[
-      Platform.OS
-    ];
+    return selectSentryTraceSampleRates(store.getState())[name]?.[Platform.OS];
   } catch {
     return undefined;
   }
@@ -715,7 +713,7 @@ export async function setupSentry(
       METAMASK_BUILD_TYPE,
     );
 
-    // Dev and E2E/exp builds send every transaction to Sentry.
+    // Dev and E2E/exp builds send every trace to Sentry.
     const isFullSampling = isDev || isE2EOrExpEnvironment;
     const tracesSampleRate = isFullSampling ? 1.0 : 0.03;
 

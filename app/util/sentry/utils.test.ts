@@ -1550,13 +1550,13 @@ describe('setupSentry', () => {
     };
     const globalWithDev = global as typeof global & { __DEV__: boolean };
     const mockGetState = jest.mocked(store.getState);
-    const setRemoteRates = (transactionSampleRates: unknown) =>
+    const setRemoteRates = (traceSampleRates: unknown) =>
       mockGetState.mockReturnValue({
         settings: { basicFunctionalityEnabled: true },
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
-              remoteFeatureFlags: { sentry: { transactionSampleRates } },
+              remoteFeatureFlags: { sentry: { traceSampleRates } },
             },
           },
         },

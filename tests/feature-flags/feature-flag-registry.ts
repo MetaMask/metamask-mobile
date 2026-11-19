@@ -9485,7 +9485,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {
-      transactionSampleRates: {},
+      traceSampleRates: {},
     },
     status: FeatureFlagStatus.Active,
   },
