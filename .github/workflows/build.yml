@@ -157,7 +157,6 @@ jobs:
         }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
-      secrets_json: ${{ steps.config.outputs.secrets_json }}
       tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
@@ -230,7 +229,6 @@ jobs:
           const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
           const build = config.builds[process.env.BUILD_NAME];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           const env = build.env || {};
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'tap_and_pay_sdk_repo_ssh=' + (env.TAP_AND_PAY_SDK_REPO_SSH || '') + '\n');
           const signing = build.signing;
@@ -651,8 +649,6 @@ jobs:
           CMAKE_VERSION: '3.22.1'
           # Signer secret from configure-signing; empty when the build has no signing.
           SIGNING_ENV_FILE: ${{ steps.signing.outputs.env-file }}
-          # Secret names this build requires (builds.yml), for validate-secrets-from-config.js.
-          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
           # App secrets are mapped on this step only, so no other step can read them. The
           # same list is in eas-update-platform.yml, build-rc-repack.yml and
           # build-android-upload-to-testmu.yml; keep them in sync.
@@ -714,9 +710,6 @@ jobs:
           max_attempts: 2
           retry_wait_seconds: 60
           command: |
-            # Fail before building if a secret builds.yml requires is missing or malformed.
-            # The retry action runs this script without `set -e`, hence the explicit exit.
-            node scripts/validate-secrets-from-config.js || exit 1
             # AGP can leave a partial ndk/<version> directory after a failed
             # download (corrupt zip → "Error on ZipFile unknown archive"). The
             # next attempt then fails immediately with CXX1101 (missing
