@@ -48,6 +48,8 @@ function earningTitle(
       return localizedText.historyReferrals;
     case 'SOCIAL_FOLLOW_TRADE':
       return localizedText.historyCommission;
+    case 'PREDICT_FEE_CASHBACK':
+      return localizedText.rebatePredictions;
     // Cashback, and any type a newer server sends: never leave the row untitled.
     default:
       return localizedText.historyRebate;
@@ -60,6 +62,8 @@ function earningIcon(origin: EarningOriginType): IconName {
       return IconName.UserCircleAdd;
     case 'SOCIAL_FOLLOW_TRADE':
       return IconName.Copy;
+    case 'PREDICT_FEE_CASHBACK':
+      return IconName.Chart;
     // An undefined icon name crashes the design-system Icon.
     default:
       return IconName.Coin;

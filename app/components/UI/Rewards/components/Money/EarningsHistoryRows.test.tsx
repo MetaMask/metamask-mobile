@@ -23,6 +23,7 @@ const LOCALIZED_TEXT = {
   historyReferrals: 'Referrals',
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
+  rebatePredictions: 'Predictions',
   historyClaimed: 'Claimed',
   historyClaimPending: 'Pending',
   voided: 'Voided',
@@ -117,24 +118,33 @@ describe('EarningsHistoryRow', () => {
     expect(queryByText('$0.00')).toBeNull();
   });
 
-  it.each([
-    'PREDICT_FEE_CASHBACK',
-    // A type a newer server adds before this client knows it.
-    'CARD_FEE_CASHBACK' as unknown as EarningOriginType,
-  ] as EarningOriginType[])(
-    'shows a %s earning as a rebate with the coin icon',
-    (origin) => {
-      const { getByText, UNSAFE_getByType } = renderWithProvider(
-        <EarningsHistoryRow
-          item={{ ...earning, earning_origin_type: origin }}
-          localizedText={LOCALIZED_TEXT}
-        />,
-      );
+  it('shows a Predict cashback earning as Predictions with the chart icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, earning_origin_type: 'PREDICT_FEE_CASHBACK' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
 
-      expect(getByText('Rebate')).toBeOnTheScreen();
-      expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Coin);
-    },
-  );
+    expect(getByText('Predictions')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Chart);
+  });
+
+  it('shows a type a newer server adds as a rebate with the coin icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{
+          ...earning,
+          earning_origin_type:
+            'CARD_FEE_CASHBACK' as unknown as EarningOriginType,
+        }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Rebate')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Coin);
+  });
 
   it('shows a settled claim as a debit', () => {
     const { getByText } = renderWithProvider(
