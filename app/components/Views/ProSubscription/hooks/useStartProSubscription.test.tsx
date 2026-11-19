@@ -39,6 +39,7 @@ jest.mock('../../../../core/RPCMethods/RPCMethodMiddleware', () => ({
 
 const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
 const mockRemoveQueries = jest.fn();
+const mockResetQueries = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../../core/ReactQueryService', () => ({
   __esModule: true,
@@ -46,6 +47,7 @@ jest.mock('../../../../core/ReactQueryService', () => ({
     queryClient: {
       invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
       removeQueries: (...args: unknown[]) => mockRemoveQueries(...args),
+      resetQueries: (...args: unknown[]) => mockResetQueries(...args),
     },
   },
 }));
@@ -331,7 +333,48 @@ describe('useStartProSubscription', () => {
     );
     expect(mockedApprovalAdd).not.toHaveBeenCalled();
     expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockResetQueries).toHaveBeenCalledTimes(1);
     expect(mockRemoveQueries).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error'),
+    );
+  });
+
+  it('rechecks trial eligibility before topping up and skips the top-up when ineligible', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '10000000',
+      requiredBalance: '49990000',
+    });
+    mockedIsUserEligibleForTrial.mockResolvedValue(false);
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current
+        .startSubscription(PLAN, { isTrial: true })
+        .catch(() => undefined);
+    });
+
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockResetQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the cached trial answer alone and does not start when the recheck fails', async () => {
+    mockedGetSubscriptions.mockRejectedValue(new Error('network'));
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current
+        .startSubscription(PLAN, { isTrial: true })
+        .catch(() => undefined);
+    });
+
+    expect(mockResetQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.join_error'),
     );

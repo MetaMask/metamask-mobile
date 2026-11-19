@@ -32,7 +32,10 @@ import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAc
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
-import { clearMoneyAccountPlusTrialEligibilityCache } from '../../../hooks/moneyAccountPlusTrialEligibility';
+import {
+  clearMoneyAccountPlusTrialEligibilityCache,
+  refreshMoneyAccountPlusTrialEligibility,
+} from '../../../hooks/moneyAccountPlusTrialEligibility';
 import {
   membershipTopUpAwaitsExternalFunds,
   resolveProSubscriptionStartOutcome,
@@ -225,7 +228,13 @@ async function assertStillEligibleForPlusTrial(): Promise<void> {
     await Engine.context.SubscriptionController.isUserEligibleForTrial(
       PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
     );
+  // Fail closed: anything but an explicit true blocks the trial. A rejected
+  // call throws above and surfaces as a retryable error without touching the
+  // cached answer.
   if (!isEligible) {
+    // Reset the cached "eligible" answer so an open Benefits screen refetches
+    // and shows the paid offer.
+    void refreshMoneyAccountPlusTrialEligibility(ReactQueryService.queryClient);
     throw new Error('Plus trial is no longer available');
   }
 }
@@ -475,11 +484,14 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
             subscriptionParams,
           );
 
+        // Recheck on both the funded and top-up paths. Core recomputes the
+        // trial at checkout, so a stale cached answer must not reach it.
+        if (options?.isTrial) {
+          await assertStillEligibleForPlusTrial();
+        }
+
         let awaitsExternalFunds = false;
         if (hasSufficientBalance) {
-          if (options?.isTrial) {
-            await assertStillEligibleForPlusTrial();
-          }
           await requestMembershipConsent(plan, options?.isTrial ?? false);
         } else {
           const topUp = await topUpMembershipShortfall(
@@ -500,7 +512,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
           });
 
         // The Benefits screen may still be holding "eligible for trial".
-        await clearMoneyAccountPlusTrialEligibilityCache(
+        clearMoneyAccountPlusTrialEligibilityCache(
           ReactQueryService.queryClient,
         );
 

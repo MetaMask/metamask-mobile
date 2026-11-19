@@ -139,9 +139,7 @@ const CancelMembership = () => {
       });
 
       // A cached "eligible" answer would offer the trial again on the next open.
-      await clearMoneyAccountPlusTrialEligibilityCache(
-        ReactQueryService.queryClient,
-      );
+      clearMoneyAccountPlusTrialEligibilityCache(ReactQueryService.queryClient);
 
       // Stay on this screen with the post-cancel sheet. isSubmitting stays true,
       // so the screen cannot be left until "Got it" is pressed.

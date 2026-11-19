@@ -2,10 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
-import {
-  SUBSCRIPTIONS_QUERY_KEY,
-  SUBSCRIPTIONS_REFETCH_INTERVAL,
-} from '../../../../../../components/hooks/useSubscriptions';
+import { SUBSCRIPTIONS_QUERY_KEY } from '../../../../../../components/hooks/useSubscriptions';
 import { selectCanonicalProfileId } from '../../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { selectSeedlessOnboardingUserId } from '../../../../../../selectors/seedlessOnboardingController';
@@ -79,12 +76,13 @@ export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialElig
   const { data, isPending } = useQuery({
     queryKey: getMoneyAccountPlusTrialEligibilityQueryKey(trialIdentityId),
     queryFn: async () => {
-      // Join the shared subscriptions query, including one already in flight,
-      // instead of calling the controller a second time.
+      // Join a subscriptions load already in flight, but never reuse a cached
+      // one: the shared key has no user identity, so a fresh-looking entry
+      // could hold another session's history.
       await queryClient.fetchQuery({
         queryKey: SUBSCRIPTIONS_QUERY_KEY,
         queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
-        staleTime: SUBSCRIPTIONS_REFETCH_INTERVAL,
+        staleTime: 0,
       });
       return Engine.context.SubscriptionController.isUserEligibleForTrial(
         PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,

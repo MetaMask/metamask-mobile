@@ -27,3 +27,18 @@ export function clearMoneyAccountPlusTrialEligibilityCache(
     queryKey: MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
   });
 }
+
+/**
+ * Resets the cached Plus trial answer and refetches it for any screen still
+ * observing it. Use this when the app learns the cached answer is wrong while
+ * Benefits is open: the screen shows its loading state, then the real answer.
+ *
+ * @param queryClient - The app React Query client.
+ */
+export function refreshMoneyAccountPlusTrialEligibility(
+  queryClient: QueryClient,
+): Promise<void> {
+  return queryClient.resetQueries({
+    queryKey: MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
+  });
+}

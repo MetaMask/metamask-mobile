@@ -2,6 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { SUBSCRIPTIONS_QUERY_KEY } from './useSubscriptions';
 import {
   clearMoneyAccountPlusTrialEligibilityCache,
+  refreshMoneyAccountPlusTrialEligibility,
   MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
 } from './moneyAccountPlusTrialEligibility';
 
@@ -28,5 +29,18 @@ describe('clearMoneyAccountPlusTrialEligibilityCache', () => {
     expect(
       queryClient.getQueryState(SUBSCRIPTIONS_QUERY_KEY)?.isInvalidated,
     ).toBe(false);
+  });
+});
+
+describe('refreshMoneyAccountPlusTrialEligibility', () => {
+  it('resets the cached trial answer and leaves subscriptions untouched', async () => {
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(trialKey, true);
+    queryClient.setQueryData(SUBSCRIPTIONS_QUERY_KEY, []);
+
+    await refreshMoneyAccountPlusTrialEligibility(queryClient);
+
+    expect(queryClient.getQueryData(trialKey)).toBeUndefined();
+    expect(queryClient.getQueryData(SUBSCRIPTIONS_QUERY_KEY)).toEqual([]);
   });
 });

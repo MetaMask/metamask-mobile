@@ -290,7 +290,7 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     expect(mockIsUserEligibleForTrial).not.toHaveBeenCalled();
   });
 
-  it('reuses a fresh subscriptions query instead of fetching again', async () => {
+  it('reloads subscriptions even when a fresh cached query exists', async () => {
     const queryClient = createQueryClient();
     await queryClient.fetchQuery({
       queryKey: SUBSCRIPTIONS_QUERY_KEY,
@@ -306,7 +306,7 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(mockGetSubscriptions).not.toHaveBeenCalled();
+    expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
     expect(mockIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
     expect(result.current.isEligibleForTrial).toBe(false);
   });
