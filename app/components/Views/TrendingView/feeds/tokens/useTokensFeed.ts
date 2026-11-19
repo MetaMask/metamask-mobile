@@ -17,8 +17,9 @@ interface UseTokensFeedOptions {
   performance?: SearchRequestPerformance;
   refresh?: RefreshConfig;
   /**
-   * When true (default), only Verified and Benign tokens (or unscanned ones)
-   * are shown. Set to false on surfaces that must list every token.
+   * When true (default), the default list shown while the search box is
+   * empty hides Warning, Spam, and Malicious tokens. Typed-search results
+   * are never filtered. Set to false on surfaces that must list every token.
    */
   hideRiskyTokens?: boolean;
   /** Time option used for request and local price-change sorting. */
@@ -81,8 +82,8 @@ export const useTokensFeed = ({
   useFeedRefresh(refresh, refetch);
 
   const filteredData = useMemo(
-    () => (hideRiskyTokens ? filterRiskyTokens(data) : data),
-    [data, hideRiskyTokens],
+    () => (hideRiskyTokens && !query?.trim() ? filterRiskyTokens(data) : data),
+    [data, hideRiskyTokens, query],
   );
 
   return {
