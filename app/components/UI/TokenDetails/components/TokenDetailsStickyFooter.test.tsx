@@ -443,7 +443,7 @@ describe('TokenDetailsStickyFooter', () => {
       expect(
         getByTestId('token-details-trader-position-pnl-expanded-details'),
       ).toBeOnTheScreen();
-      expect(queryByText('Share to feed')).toBeNull();
+      expect(queryByText('Post to MetaMask')).toBeNull();
       expect(getByText('Average cost')).toBeOnTheScreen();
       expect(getByText('Realized P&L')).toBeOnTheScreen();
       expect(getAllByText('Unrealized P&L')).toHaveLength(2);

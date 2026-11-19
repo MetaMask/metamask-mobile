@@ -17,7 +17,7 @@ describe('TraderPositionPnlDetails', () => {
       <TraderPositionPnlDetails {...details} onShare={onShare} />,
     );
 
-    expect(getByText('Share to feed')).toBeOnTheScreen();
+    expect(getByText('Post to MetaMask')).toBeOnTheScreen();
     expect(getByText('Average cost')).toBeOnTheScreen();
     expect(getByText('Realized P&L')).toBeOnTheScreen();
     expect(getByText('Unrealized P&L')).toBeOnTheScreen();
@@ -64,6 +64,6 @@ describe('TraderPositionPnlDetails', () => {
     expect(
       queryByTestId('token-details-trader-position-pnl-expanded-details-share'),
     ).toBeNull();
-    expect(queryByText('Share to feed')).toBeNull();
+    expect(queryByText('Post to MetaMask')).toBeNull();
   });
 });

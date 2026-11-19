@@ -936,20 +936,20 @@ describe('TraderProfileView', () => {
     renderWithProvider(<TraderProfileView />);
     openPositionsTab();
 
-    expect(screen.getByText('No open positions')).toBeOnTheScreen();
+    expect(screen.getByText('No open positions yet')).toBeOnTheScreen();
   });
 
   it('switches to closed tab', () => {
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(screen.getByTestId('trader-profile-tab-closed'));
-    expect(screen.getByText('No closed positions')).toBeOnTheScreen();
+    expect(screen.getByText('No closed positions yet')).toBeOnTheScreen();
   });
 
   it('defaults to the same posts empty state as my profile', () => {
     renderWithProvider(<TraderProfileView />);
 
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
-    expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
+    expect(screen.queryByText('No open positions yet')).not.toBeOnTheScreen();
     expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
         scope: 'all',
@@ -1012,7 +1012,7 @@ describe('TraderProfileView', () => {
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
     );
-    expect(screen.queryByText('No closed positions')).not.toBeOnTheScreen();
+    expect(screen.queryByText('No closed positions yet')).not.toBeOnTheScreen();
   });
 
   describe('pull-to-refresh', () => {
