@@ -1,12 +1,7 @@
 import BN from 'bnjs4';
-import { BoxBackgroundColor } from '@metamask/design-system-react-native';
+import { ToastSeverity } from '@metamask/design-system-react-native';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { TransactionEnvelopeType } from '@metamask/transaction-controller';
-import { ToastVariants } from '../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../component-library/components/Icons/Icon';
 import { strings } from '../../../locales/i18n';
 import {
   buildTransactionParams,
@@ -167,22 +162,16 @@ describe('Confirmation Transactions Utils', () => {
   });
 
   describe('getTransactionUpdateErrorToastOptions', () => {
-    it('returns icon toast with title, styling, and description from error', () => {
-      expect(getTransactionUpdateErrorToastOptions(new Error('boom'))).toEqual(
-        expect.objectContaining({
-          variant: ToastVariants.Icon,
-          iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
-          backgroundColor: BoxBackgroundColor.Transparent,
-          labelOptions: [
-            {
-              label: strings('transaction_update_toast.title'),
-              isBold: true,
-            },
-          ],
-          descriptionOptions: { description: 'boom' },
-        }),
-      );
+    it('returns danger toast with title, description, and no close button', () => {
+      expect(getTransactionUpdateErrorToastOptions(new Error('boom'))).toEqual({
+        title:
+          strings('transaction_update_toast.title') ||
+          'Transaction update failed',
+        description: 'boom',
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
     });
 
     it('uses friendly description for nonce too low', () => {
@@ -191,16 +180,14 @@ describe('Confirmation Transactions Utils', () => {
       );
       expect(options).toEqual(
         expect.objectContaining({
-          descriptionOptions: {
-            description: strings('transaction_update_toast.already_confirmed'),
-          },
+          description: strings('transaction_update_toast.already_confirmed'),
         }),
       );
     });
 
     it('omits description when no message is available', () => {
       expect(
-        getTransactionUpdateErrorToastOptions(undefined).descriptionOptions,
+        getTransactionUpdateErrorToastOptions(undefined).description,
       ).toBeUndefined();
     });
   });
@@ -208,22 +195,21 @@ describe('Confirmation Transactions Utils', () => {
   describe('getAmountUpdateErrorToastOptions', () => {
     const onClose = jest.fn();
 
-    it('returns a persistent toast with a close button', () => {
+    it('returns a persistent toast with a close callback', () => {
       expect(
         getAmountUpdateErrorToastOptions(new Error('boom'), onClose),
-      ).toEqual(
-        expect.objectContaining({
-          variant: ToastVariants.Icon,
-          descriptionOptions: { description: 'boom' },
-          hasNoTimeout: true,
-          closeButtonOptions: expect.objectContaining({ onPress: onClose }),
-        }),
-      );
+      ).toEqual({
+        title: strings('transaction_update_toast.amount_update_title'),
+        description: 'boom',
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: true,
+        onClose,
+      });
     });
 
     it('omits description when no message is available', () => {
       expect(
-        getAmountUpdateErrorToastOptions(undefined, onClose).descriptionOptions,
+        getAmountUpdateErrorToastOptions(undefined, onClose).description,
       ).toBeUndefined();
     });
   });

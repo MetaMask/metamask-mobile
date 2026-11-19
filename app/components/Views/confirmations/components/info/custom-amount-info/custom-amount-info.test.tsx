@@ -1,6 +1,6 @@
 import React, { act } from 'react';
 import { merge, noop } from 'lodash';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../../core/Engine';
 import {
@@ -65,12 +65,89 @@ import { ConfirmationFirstFrameProvider } from '../../../context/confirmation-fi
 import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
-import { useEnsureTransakApiKey } from '../../../../../UI/Ramp/hooks/useEnsureTransakApiKey';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const PropTypes = jest.requireActual('prop-types');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        onOpen,
+        goBack,
+        style,
+        twClassName: _twClassName,
+        testID,
+        accessibilityLabel,
+      }: {
+        children?: import('react').ReactNode;
+        onClose?: (hasCallback?: boolean) => void;
+        onOpen?: () => void;
+        goBack?: () => void;
+        style?: unknown;
+        twClassName?: unknown;
+        testID?: string;
+        accessibilityLabel?: string;
+      },
+      ref: import('react').Ref<{
+        onOpenBottomSheet: (callback?: () => void) => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: (callback?: () => void) => {
+          onOpen?.();
+          callback?.();
+        },
+        onCloseBottomSheet: (callback?: () => void) => {
+          const hasCallback = Boolean(callback);
+          onClose?.(hasCallback);
+          goBack?.();
+          callback?.();
+        },
+      }));
+      return ReactActual.createElement(
+        View,
+        {
+          testID: testID || 'design-system-bottom-sheet-mock',
+          style,
+          accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  BottomSheet.propTypes = {
+    children: PropTypes.node,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    goBack: PropTypes.func,
+    style: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.array,
+      PropTypes.number,
+    ]),
+    twClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    testID: PropTypes.string,
+    accessibilityLabel: PropTypes.string,
+  };
+
+  return {
+    ...actual,
+    BottomSheet,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
@@ -85,7 +162,6 @@ jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
 jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/pay/useTransactionPayPostQuote');
-jest.mock('../../../../../UI/Ramp/hooks/useEnsureTransakApiKey');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
   usePredictAccountState: () => ({
@@ -261,10 +337,7 @@ function setControllerTransactions(transactions: { id: string }[]) {
   ).state = { transactions };
 }
 
-const mockShowToast = jest.fn();
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: jest.fn() },
-};
+const mockToast = toast as unknown as jest.Mock;
 
 interface DeferredPromise {
   promise: Promise<void>;
@@ -283,13 +356,18 @@ function createDeferredPromise(): DeferredPromise {
   return { promise, reject, resolve };
 }
 
+// CustomAmountInfo is memoized. Tests update hook mocks then rerender with the
+// same props; a changing non-visual child busts memo without remounting state.
+let customAmountInfoRenderEpoch = false;
+
 function createCustomAmountInfo(
   props: CustomAmountInfoProps & { transactionType?: TransactionType } = {},
 ) {
+  customAmountInfoRenderEpoch = !customAmountInfoRenderEpoch;
   return (
-    <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-      <CustomAmountInfo {...props} />
-    </ToastContext.Provider>
+    <CustomAmountInfo {...props}>
+      {customAmountInfoRenderEpoch}
+    </CustomAmountInfo>
   );
 }
 
@@ -363,7 +441,6 @@ describe('CustomAmountInfo', () => {
   const useTransactionPayPostQuoteMock = jest.mocked(
     useTransactionPayPostQuote,
   );
-  const useEnsureTransakApiKeyMock = jest.mocked(useEnsureTransakApiKey);
   type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount>;
   const createCustomAmountMock = (
     overrides: Partial<CustomAmountMock> = {},
@@ -410,7 +487,7 @@ describe('CustomAmountInfo', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    mockShowToast.mockReset();
+    mockToast.mockReset();
     mockTransactionPayControllerState.transactionData = {};
 
     mockUseRampsUserRegion.mockReturnValue({
@@ -557,7 +634,6 @@ describe('CustomAmountInfo', () => {
 
       expect(useAutomaticTransactionPayToken).toHaveBeenCalled();
       expect(useTransactionPayMetrics).toHaveBeenCalled();
-      expect(useEnsureTransakApiKey).toHaveBeenCalled();
       expect(useTransactionPayPostQuote).toHaveBeenCalled();
       expect(requestAnimationFrame).not.toHaveBeenCalled();
     });
@@ -570,7 +646,6 @@ describe('CustomAmountInfo', () => {
       expect(getByRole('button', { name: '$123.45' })).toBeOnTheScreen();
       expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
       expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
-      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
       expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
       expect(useTransactionCustomAmountMock).toHaveBeenCalled();
       expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalled();
@@ -579,14 +654,12 @@ describe('CustomAmountInfo', () => {
     it('defers automatic pay token selection and metrics until after the first frame', () => {
       renderDeferred({ disablePay: true });
 
-      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
       expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
 
       act(() => frames[0](16));
 
       expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
       expect(useTransactionPayMetrics).not.toHaveBeenCalled();
-      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
       expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
 
       act(() => frames[1](32));
@@ -595,7 +668,6 @@ describe('CustomAmountInfo', () => {
         expect.objectContaining({ disable: true }),
       );
       expect(useTransactionPayMetrics).toHaveBeenCalled();
-      expect(useEnsureTransakApiKey).toHaveBeenCalled();
       expect(useTransactionPayPostQuote).toHaveBeenCalled();
     });
 
@@ -1361,7 +1433,7 @@ describe('CustomAmountInfo', () => {
         'accessibilityRole',
         'button',
       );
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockToast).toHaveBeenCalledTimes(1);
     });
 
     it('unblocks non-Money review rows once quote loading starts', async () => {
@@ -1501,9 +1573,9 @@ describe('CustomAmountInfo', () => {
     // onAmountSubmit must NOT be called — keep keyboard visible for retry
     expect(mockOnAmountSubmit).not.toHaveBeenCalled();
     // Toast must be shown with the transaction-update title
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({ labelOptions: expect.any(Array) }),
+    expect(mockToast).toHaveBeenCalledTimes(1);
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: expect.any(String) }),
     );
     // Keyboard stays open: Done button and amount editing remain available.
     expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
@@ -1539,7 +1611,7 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
     expect(mockOnAmountSubmit).not.toHaveBeenCalled();
   });
 
@@ -1567,7 +1639,7 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
     expect(mockOnAmountSubmit).not.toHaveBeenCalled();
   });
 
@@ -1829,11 +1901,7 @@ describe('CustomAmountInfo', () => {
       );
 
       await act(async () => {
-        rerender(
-          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-            <CustomAmountInfo hasMax />
-          </ToastContext.Provider>,
-        );
+        rerender(createCustomAmountInfo({ hasMax: true }));
       });
 
       expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
@@ -1862,9 +1930,10 @@ describe('CustomAmountInfo', () => {
 
       await act(async () => {
         rerender(
-          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-            <CustomAmountInfo hasMax onAmountSubmit={onAmountSubmitMock} />
-          </ToastContext.Provider>,
+          createCustomAmountInfo({
+            hasMax: true,
+            onAmountSubmit: onAmountSubmitMock,
+          }),
         );
       });
 
@@ -2072,7 +2141,7 @@ describe('CustomAmountInfo', () => {
 
       // The Done handler's catch shows a toast and returns early without committing.
       expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toBeUndefined();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockToast).toHaveBeenCalledTimes(1);
     });
 
     // Regression guard for FIX 2 (no double emission). Renders the REAL money
@@ -2380,10 +2449,12 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
-    const toastArg = mockShowToast.mock.calls[0][0];
-    toastArg.closeButtonOptions.onPress();
+    const toastArg = mockToast.mock.calls[0][0] as { onClose: () => void };
+    toastArg.onClose();
 
-    expect(mockToastRef.current.closeToast).toHaveBeenCalledTimes(1);
+    expect(
+      (toast as typeof toast & { dismiss: jest.Mock }).dismiss,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('opens keyboard when custom amount input is pressed', async () => {
@@ -2620,11 +2691,7 @@ describe('CustomAmountInfo', () => {
       );
 
       await act(async () => {
-        rerender(
-          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-            <CustomAmountInfo />
-          </ToastContext.Provider>,
-        );
+        rerender(createCustomAmountInfo());
       });
 
       expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);

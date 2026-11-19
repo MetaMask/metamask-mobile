@@ -25,6 +25,7 @@ jest.mock('../../../../../hooks', () => ({
     Reflect.apply(mockUseABTest, undefined, args),
 }));
 
+const mockPerpsSection = jest.fn();
 jest.mock('./PerpsSection', () => {
   const ReactLib = jest.requireActual('react');
   const RN = jest.requireActual('react-native');
@@ -37,8 +38,9 @@ jest.mock('./PerpsSection', () => {
           emptyStateTitleOverride?: string;
         },
         _ref: unknown,
-      ) =>
-        ReactLib.createElement(
+      ) => {
+        mockPerpsSection(props);
+        return ReactLib.createElement(
           RN.View,
           null,
           ReactLib.createElement(RN.Text, null, 'PerpsSection'),
@@ -52,7 +54,8 @@ jest.mock('./PerpsSection', () => {
             null,
             `emptyStateTitle:${props.emptyStateTitleOverride ?? 'default'}`,
           ),
-        ),
+        );
+      },
     ),
   };
 });
@@ -116,5 +119,37 @@ describe('HomepagePerpsHomeSlot', () => {
     expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
     expect(screen.getByText('emptyStateContent:pills')).toBeOnTheScreen();
     expect(screen.getByText('emptyStateTitle:Perps movers')).toBeOnTheScreen();
+  });
+
+  it.each([
+    HomepagePerpsPillsEmptyVariant.Control,
+    HomepagePerpsPillsEmptyVariant.Treatment,
+  ])('passes the device tiers to PerpsSection for the %s variant', (name) => {
+    const deviceCapability = {
+      hardwareTier: 'LOW' as const,
+      networkTier: 'NONE' as const,
+      networkTierResolved: true,
+    };
+    mockUseABTest.mockImplementation((key: string) =>
+      key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY
+        ? {
+            variant: HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[name],
+            variantName: name,
+            isActive: true,
+          }
+        : { variant: {}, variantName: 'control', isActive: false },
+    );
+
+    renderWithProvider(
+      <HomepagePerpsHomeSlot
+        sectionIndex={1}
+        totalSectionsLoaded={5}
+        deviceCapability={deviceCapability}
+      />,
+    );
+
+    expect(mockPerpsSection).toHaveBeenCalledWith(
+      expect.objectContaining({ deviceCapability }),
+    );
   });
 });

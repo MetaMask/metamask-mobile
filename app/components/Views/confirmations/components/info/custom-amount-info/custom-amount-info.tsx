@@ -2,7 +2,6 @@ import React, {
   ReactNode,
   memo,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -58,7 +57,6 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import { getAmountUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { prefixError } from '../../../../../../util/transactions/error-prefix';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
@@ -80,7 +78,6 @@ import { perpsProviderSelectionForType } from '../../../utils/perps-lighter-tran
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
-import { useEnsureTransakApiKey } from '../../../../../UI/Ramp/hooks/useEnsureTransakApiKey';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
@@ -96,6 +93,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  toast,
 } from '@metamask/design-system-react-native';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
@@ -251,8 +249,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
     const isPayAccountLoading = useTransactionPayAccountLoading();
 
-    const { toastRef } = useContext(ToastContext);
-
     // Publish the amount being typed so confirmation-level alerts (and the
     // alert metrics that read them) can react to an over-cap amount the user
     // never commits — Done is disabled while the cap blocks the keypad.
@@ -337,10 +333,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           return;
         }
         const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
-        toastRef?.current?.showToast(
-          getAmountUpdateErrorToastOptions(prefixed, () =>
-            toastRef?.current?.closeToast(),
-          ),
+        toast(
+          getAmountUpdateErrorToastOptions(prefixed, () => toast.dismiss()),
         );
         // Reopen the keyboard so the user can retry; do not advance the flow.
         setStage(CustomAmountStage.AmountInput);
@@ -360,7 +354,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       setStage,
-      toastRef,
       trackAmountCommitted,
       transactionId,
       updateTokenAmount,
@@ -692,12 +685,6 @@ function CustomAmountInfoDeferredInit({
   CustomAmountInfoProps,
   'autoSelectFiatPayment' | 'disablePay' | 'preferredToken'
 >) {
-  // Pre-warm the Transak partner API key so the fiat fee estimate's native
-  // buy-quote lookup succeeds on first load, showing the real native fee
-  // instead of the aggregator fallback (which previously only corrected after
-  // the user entered the Transak widget flow).
-  useEnsureTransakApiKey();
-
   useAutomaticTransactionPayToken({
     autoSelectFiatPayment,
     disable: disablePay,

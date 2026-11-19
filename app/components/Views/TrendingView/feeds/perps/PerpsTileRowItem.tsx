@@ -17,6 +17,9 @@ interface PerpsTileRowItemProps {
    * Identifies which Explore section the tap originated from.
    */
   sourceSection?: string;
+  deviceCapability?: React.ComponentProps<
+    typeof PerpsMarketTileCard
+  >['deviceCapability'];
 }
 
 const PerpsTileRowItem: React.FC<PerpsTileRowItemProps> = ({
@@ -24,6 +27,7 @@ const PerpsTileRowItem: React.FC<PerpsTileRowItemProps> = ({
   testIdPrefix,
   onCardPress,
   sourceSection,
+  deviceCapability,
 }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { market, sparkline, isWatchlisted } = item;
@@ -34,6 +38,7 @@ const PerpsTileRowItem: React.FC<PerpsTileRowItemProps> = ({
       sparklineData={sparkline}
       showFavoriteTag={isWatchlisted}
       testID={`${testIdPrefix}-${market.symbol}`}
+      deviceCapability={deviceCapability}
       onPress={() => {
         onCardPress?.();
         navigation.navigate(Routes.PERPS.ROOT, {
