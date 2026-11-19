@@ -171,7 +171,7 @@ describe('PerpsClosePositionRouter', () => {
     });
   });
 
-  it('shows cross margin without its P&L in the close bottom sheet', async () => {
+  it('shows cross margin without a Margin row in the close bottom sheet', async () => {
     calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
     renderWithVariant(ScreenVsBottomSheetVariant.Treatment, {
       position: createLongPositionForViews({
@@ -184,16 +184,22 @@ describe('PerpsClosePositionRouter', () => {
 
     expect(
       await screen.findByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+        PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
         {},
         { timeout: TIMEOUT_MS },
       ),
-    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+    ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(
+      screen.queryByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
       ),
-    ).toHaveTextContent('$833.33');
+    ).toBeNull();
+    // Cross margin never holds the P&L, so the row does not say it is included.
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW,
+      ),
+    ).toHaveTextContent(/^P&L/);
   });
 
   it('hides the margin row in the close bottom sheet without the cross margin flag', async () => {

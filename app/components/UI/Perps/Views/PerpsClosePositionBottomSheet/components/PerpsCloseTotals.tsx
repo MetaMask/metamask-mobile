@@ -1,23 +1,12 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import { PERPS_CONSTANTS, type MarginMode } from '@metamask/perps-controller';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
   KeyValueRow,
   KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
-import PerpsProModalPortal from '../../PerpsProMarketView/components/PerpsProModalPortal';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import { formatPercentage } from '../../../utils/formatUtils';
-import { PERPS_INFO_BUTTON_HIT_SLOP } from '../../../constants/perpsConfig';
-import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import {
   formatCloseSummaryFiat,
   formatSignedCloseSummaryFiat,
@@ -46,75 +35,24 @@ export interface PerpsCloseTotalsProps {
   /** Cash the close returns; undefined while unavailable. */
   receiveAmount: number | undefined;
   /**
-   * Margin the close returns. Isolated margin includes its P&L, cross margin
-   * does not. Shown only when `marginMode` is set.
+   * Margin mode of the position. Cross margin never holds the P&L, so the
+   * P&L row is labelled `P&L` instead of `Included P&L`.
    */
-  margin?: number;
-  /** Margin mode of the position; renders the margin row when set. */
   marginMode?: MarginMode;
 }
 
 /**
  * Receive and P&L rows for the close sheet. Deliberately shorter than
  * `PerpsCloseSummary`, which the full-screen close flow uses: the sheet drops
- * the fees and rewards rows, and shows margin only when a mode is given.
+ * the margin, fees and rewards rows.
  */
 const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   pnl,
   roePercentage,
   receiveAmount,
-  margin,
   marginMode,
-}) => {
-  const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
-  const openMarginInfo = useCallback(() => setIsMarginInfoVisible(true), []);
-  const closeMarginInfo = useCallback(() => setIsMarginInfoVisible(false), []);
-
-  return (
+}) => (
     <>
-      {marginMode ? (
-        <KeyValueRow
-          variant={KeyValueRowVariant.Summary}
-          keyLabel={strings('perps.close_position.margin')}
-          keyEndAccessory={
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-              accessible={false}
-            >
-              <PerpsMarginModeTag
-                marginMode={marginMode}
-                testID={
-                  PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG
-                }
-              />
-              {/* The margin explainer says margin is the most you can lose,
-                  which only holds for isolated margin. */}
-              {marginMode === 'isolated' ? (
-                <ButtonIcon
-                  iconName={IconName.Info}
-                  size={ButtonIconSize.Xs}
-                  iconProps={{ color: IconColor.IconAlternative }}
-                  accessibilityLabel={strings(
-                    'perps.trade_sheet.margin_info_accessibility_label',
-                  )}
-                  hitSlop={PERPS_INFO_BUTTON_HIT_SLOP}
-                  onPress={openMarginInfo}
-                  testID={
-                    PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON
-                  }
-                />
-              ) : null}
-            </Box>
-          }
-          value={formatCloseSummaryFiat(margin)}
-          valueTextProps={{
-            testID: PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
-          }}
-        />
-      ) : null}
-
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('perps.close_position.total_receive')}
@@ -150,18 +88,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
           testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
         }}
       />
-
-      {isMarginInfoVisible ? (
-        <PerpsProModalPortal onRequestClose={closeMarginInfo}>
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={closeMarginInfo}
-            contentKey="margin"
-          />
-        </PerpsProModalPortal>
-      ) : null}
     </>
   );
-};
 
 export default PerpsCloseTotals;
