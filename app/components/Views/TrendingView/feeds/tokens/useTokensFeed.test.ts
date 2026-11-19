@@ -299,6 +299,29 @@ describe('useTokensFeed', () => {
       ]);
     });
 
+    it('keeps Warning, Spam, and Malicious tokens when a search query is present', () => {
+      const { result } = renderHook(() => useTokensFeed({ query: 'scam' }));
+
+      expect(result.current.data.map((t) => t.symbol)).toStrictEqual([
+        'VER',
+        'BEN',
+        'WRN',
+        'SPM',
+        'MAL',
+        'UNS',
+      ]);
+    });
+
+    it('drops risky tokens when the query is whitespace only', () => {
+      const { result } = renderHook(() => useTokensFeed({ query: '   ' }));
+
+      expect(result.current.data.map((t) => t.symbol)).toStrictEqual([
+        'VER',
+        'BEN',
+        'UNS',
+      ]);
+    });
+
     it('keeps only Verified, Benign, and unscanned tokens when hideRiskyTokens is true', () => {
       const { result } = renderHook(() =>
         useTokensFeed({ hideRiskyTokens: true }),

@@ -10,7 +10,6 @@ import { pickBy } from 'lodash';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Button,
@@ -25,6 +24,8 @@ import { GasInput } from '../../../components/gas/gas-input';
 import { MaxBaseFeeInput } from '../../../components/gas/max-base-fee-input';
 import { PriorityFeeInput } from '../../../components/gas/priority-fee-input';
 import styleSheet from './advanced-eip1559-modal.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const AdvancedEIP1559Modal = ({
   setActiveModal,
@@ -33,6 +34,7 @@ export const AdvancedEIP1559Modal = ({
   setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
@@ -138,9 +140,12 @@ export const AdvancedEIP1559Modal = ({
         keyboardAvoidingViewEnabled
         onClose={handleSheetClosed}
       >
-        <BottomSheetHeader onClose={handleRequestClose}>
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
+          onClose={handleRequestClose}
+        >
           {strings('transactions.gas_modal.advanced_gas_fee')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box twClassName="flex flex-col p-4 pt-0">
           <View style={styles.inputsContainer}>
             <MaxBaseFeeInput

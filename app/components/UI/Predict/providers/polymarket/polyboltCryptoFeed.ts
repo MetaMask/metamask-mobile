@@ -1,5 +1,9 @@
+import { captureMessage } from '@sentry/react-native';
 import type { CryptoPriceProvider, CryptoPriceUpdate } from '../../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../../constants/errors';
+import { POLYMARKET_PROVIDER_ID } from './constants';
 
 export const POLYBOLT_WS_URL = 'wss://ws-live-v2.polymarket.com/ws';
 
@@ -9,15 +13,23 @@ const POLICY_CLOSE_CODE = 4008;
 const ABNORMAL_CLOSE_CODE = 1006;
 const MAX_AUTH_FRAMES = 8;
 const MAX_SUBSCRIPTIONS = 64;
+const MAX_PENDING_FRAMES = 256;
 const MAX_BACKOFF_MS = 30_000;
 const BASE_BACKOFF_MS = 1_000;
-// What `price.crypto` serves when a filter names no provider.
+// The provider named for a subscription without a pin. PolyBolt requires a
+// provider on every filter, and TWAP is served by Chainlink only.
 const DEFAULT_CRYPTO_PROVIDER: CryptoPriceProvider = 'chainlink';
 
 export interface PolyBoltCredentials {
   apiKey: string;
   secret: string;
   passphrase: string;
+  /**
+   * Chainlink API key for Chainlink-served streams, TWAP included. PolyBolt
+   * reads it only from a connection's first auth frame, so a new key needs a
+   * new connection. Never log it.
+   */
+  chainlinkApiKey?: string;
 }
 
 export type PolyBoltChannel = 'price.crypto' | 'price.crypto.twap';
@@ -26,7 +38,7 @@ export interface PolyBoltSubscription {
   channel: PolyBoltChannel;
   callerSymbol: string;
   wireSymbol: string;
-  /** Vendor pin on `price.crypto`. Absent follows the server default. */
+  /** Vendor pin on `price.crypto`. Absent means Chainlink. */
   provider?: CryptoPriceProvider;
 }
 
@@ -51,6 +63,14 @@ export interface PolyBoltFeedListener {
 
 interface SocketCloseEvent {
   code?: number;
+}
+
+interface PendingFrame {
+  op: 'subscribe' | 'unsubscribe';
+  // Entries not yet acknowledged or refused, in send order. PolyBolt answers
+  // each entry on its own, echoing the frame rid and the channel but not the
+  // symbol, so an answer resolves the first unresolved entry on its channel.
+  unresolved: PolyBoltSubscription[];
 }
 
 /**
@@ -91,23 +111,57 @@ const subscriptionId = (subscription: PolyBoltSubscription): string =>
     : `${subscription.channel}|${subscription.wireSymbol}`;
 
 /**
- * Builds the `filter` of a subscribe or unsubscribe entry.
+ * Builds the `filter` of a subscribe or unsubscribe entry. PolyBolt rejects a
+ * filter without a provider, so every filter names one unless the pre-enforcement
+ * TWAP fallback explicitly omits it.
  *
  * @param channel - PolyBolt channel.
  * @param wireSymbol - Lowercase PolyBolt symbol.
- * @param provider - Vendor pin. TWAP is Chainlink only, so it is not sent there.
+ * @param provider - Vendor pin. Absent, or on TWAP, the filter names Chainlink.
+ * @param includeTwapProvider - Whether to include `provider` on TWAP filters.
  * @returns The filter object for the wire.
  */
 export const toPolyboltFilter = (
   channel: PolyBoltChannel,
   wireSymbol: string,
   provider?: CryptoPriceProvider,
+  includeTwapProvider = true,
 ): { symbol: string; window_seconds?: 60; provider?: CryptoPriceProvider } => {
   if (channel === 'price.crypto.twap') {
-    return { symbol: wireSymbol, window_seconds: 60 };
+    return {
+      symbol: wireSymbol,
+      window_seconds: 60,
+      ...(includeTwapProvider && { provider: DEFAULT_CRYPTO_PROVIDER }),
+    };
   }
 
-  return provider ? { symbol: wireSymbol, provider } : { symbol: wireSymbol };
+  return { symbol: wireSymbol, provider: provider ?? DEFAULT_CRYPTO_PROVIDER };
+};
+
+// Searchable in Sentry with the other Predict errors. Callers pass only
+// subscription details, never credentials.
+const reportToSentry = (
+  message: string,
+  data: Record<string, unknown>,
+): void => {
+  Logger.error(new Error(message), {
+    tags: {
+      feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      provider: POLYMARKET_PROVIDER_ID,
+    },
+    context: { name: 'PolyBoltCryptoFeed', data },
+  });
+};
+
+const warnToSentry = (message: string, data: Record<string, unknown>): void => {
+  captureMessage(message, {
+    level: 'warning',
+    tags: {
+      feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      provider: POLYMARKET_PROVIDER_ID,
+    },
+    contexts: { PolyBoltCryptoFeed: data },
+  });
 };
 
 const compareIds = (left: string, right: string): number =>
@@ -149,11 +203,37 @@ export class PolyBoltCryptoFeed {
   // a bad_filter can be traced back to the pin. Pins go out one per frame.
   private readonly pendingPins: Map<string, string> = new Map();
 
+  // Subscriptions sent in each subscribe/unsubscribe frame awaiting ack or error,
+  // keyed by rid so unpinned rejections (such as TWAP) still resolve symbols.
+  private readonly pendingFrames: Map<string, PendingFrame> = new Map();
+
+  // TWAP subscriptions retried without `provider` on this connection during the
+  // pre-enforcement window.
+  private readonly retriedTwapWithoutProvider: Set<string> = new Set();
+
+  // Latest subscribe rid sent per wireKey on this connection, so a rejected
+  // unpinned frame does not resend an entry another frame already put on the wire.
+  private readonly latestSubscribeRid: Map<string, string> = new Map();
+
+  // Unpinned bad_filter warnings already sent (keyed without rid), so a
+  // reconnect loop cannot spam Sentry.
+  private readonly warnedBadFilters: Set<string> = new Set();
+
+  // rids already handled by handleBadFilter on this connection.
+  private readonly handledBadFilterRids: Set<string> = new Set();
+
   // Pinned subscriptions served by the default provider on this connection:
   // the server rejected the pin, ignored it, or named another vendor.
   private readonly ownerServed: Set<string> = new Set();
 
   private readonly loggedProviderMismatches: Set<string> = new Set();
+
+  // Set by `chainlink_key_required`: this connection has no usable Chainlink
+  // key, so Chainlink subscriptions are not sent again until a new connection.
+  private chainlinkUnavailable = false;
+
+  // Error codes already reported on this connection, so each logs once.
+  private readonly reportedErrorCodes: Set<string> = new Set();
 
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -169,6 +249,13 @@ export class PolyBoltCryptoFeed {
     return this.authed && this.socket?.readyState === WebSocket.OPEN;
   }
 
+  /**
+   * Sets the credentials for the next connection. A change, including a
+   * Chainlink key that arrives or rotates, opens a new connection, because
+   * PolyBolt reads the key only from a connection's first auth frame. After
+   * `disconnect`, for example in the background, the change waits for
+   * `reconnect` or the next subscription.
+   */
   setCredentials(credentials: PolyBoltCredentials): void {
     if (this.sameCredentials(credentials)) {
       return;
@@ -177,7 +264,7 @@ export class PolyBoltCryptoFeed {
     this.credentials = credentials;
     this.authBlocked = false;
     this.authFramesSent = 0;
-    if (this.subscriptions.length > 0) {
+    if (this.subscriptions.length > 0 && !this.closedByClient) {
       this.connect();
     }
   }
@@ -226,6 +313,11 @@ export class PolyBoltCryptoFeed {
     this.clearTimers();
     this.closeSocket();
     this.authed = false;
+    this.pendingPins.clear();
+    this.pendingFrames.clear();
+    this.handledBadFilterRids.clear();
+    this.retriedTwapWithoutProvider.clear();
+    this.latestSubscribeRid.clear();
     this.listener.onConnectionChange();
   }
 
@@ -249,6 +341,11 @@ export class PolyBoltCryptoFeed {
 
   private forgetRemoved(current: PolyBoltSubscription[]): void {
     const currentIds = new Set(current.map(subscriptionId));
+    const currentChannelSymbols = new Set(
+      current.map(
+        (subscription) => `${subscription.channel}|${subscription.wireSymbol}`,
+      ),
+    );
     this.ownerServed.forEach((id) => {
       if (!currentIds.has(id)) {
         this.ownerServed.delete(id);
@@ -257,6 +354,16 @@ export class PolyBoltCryptoFeed {
     this.loggedProviderMismatches.forEach((id) => {
       if (!currentIds.has(id)) {
         this.loggedProviderMismatches.delete(id);
+      }
+    });
+    this.retriedTwapWithoutProvider.forEach((id) => {
+      if (!currentIds.has(id)) {
+        this.retriedTwapWithoutProvider.delete(id);
+      }
+    });
+    this.warnedBadFilters.forEach((key) => {
+      if (!key.startsWith('untracked|') && !currentChannelSymbols.has(key)) {
+        this.warnedBadFilters.delete(key);
       }
     });
   }
@@ -270,6 +377,7 @@ export class PolyBoltCryptoFeed {
     subscription: PolyBoltSubscription,
   ): CryptoPriceProvider | undefined {
     return subscription.provider &&
+      subscription.provider !== DEFAULT_CRYPTO_PROVIDER &&
       subscription.channel === 'price.crypto' &&
       !this.ownerServed.has(subscriptionId(subscription))
       ? subscription.provider
@@ -299,7 +407,9 @@ export class PolyBoltCryptoFeed {
     return (
       this.credentials?.apiKey === credentials.apiKey &&
       this.credentials.secret === credentials.secret &&
-      this.credentials.passphrase === credentials.passphrase
+      this.credentials.passphrase === credentials.passphrase &&
+      (this.credentials.chainlinkApiKey ?? '') ===
+        (credentials.chainlinkApiKey ?? '')
     );
   }
 
@@ -338,7 +448,13 @@ export class PolyBoltCryptoFeed {
     this.closedByClient = false;
     // A symbol's vendor can change between connections, so try each pin again.
     this.pendingPins.clear();
+    this.pendingFrames.clear();
+    this.handledBadFilterRids.clear();
+    this.retriedTwapWithoutProvider.clear();
+    this.latestSubscribeRid.clear();
     this.ownerServed.clear();
+    this.chainlinkUnavailable = false;
+    this.reportedErrorCodes.clear();
 
     try {
       this.socket = new WebSocket(POLYBOLT_WS_URL);
@@ -348,8 +464,10 @@ export class PolyBoltCryptoFeed {
       return;
     }
 
+    // The backoff resets on `authed`, not here: with a Chainlink key each
+    // failed auth opens a new socket, so a reset on open would retry at the
+    // first step forever while the server refuses auth.
     this.socket.onopen = () => {
-      this.reconnectAttempts = 0;
       this.sendAuth();
     };
 
@@ -469,6 +587,17 @@ export class PolyBoltCryptoFeed {
       return;
     }
 
+    const { chainlinkApiKey } = this.credentials;
+    // PolyBolt reads the Chainlink key only from a connection's first auth
+    // frame. Another auth frame here would leave Chainlink streams without
+    // it, so authenticate again on a new connection.
+    if (chainlinkApiKey && this.authFramesSent > 0) {
+      if (!this.reconnectTimer && !this.policyBlocked) {
+        this.scheduleReconnect(this.nextBackoffDelay());
+      }
+      return;
+    }
+
     this.authFramesSent += 1;
     this.send({
       op: 'auth',
@@ -478,6 +607,8 @@ export class PolyBoltCryptoFeed {
         secret: this.credentials.secret,
         passphrase: this.credentials.passphrase,
       },
+      // Top level, next to `auth`, never inside it.
+      ...(chainlinkApiKey && { chainlink_api_key: chainlinkApiKey }),
     });
   }
 
@@ -501,16 +632,40 @@ export class PolyBoltCryptoFeed {
     const added = next.filter(
       (subscription) => !previousKeys.has(this.wireKey(subscription)),
     );
-    this.sendSubscriptionFrame('unsubscribe', this.uniqueByWireKey(removed));
+    const uniqueRemoved = this.uniqueByWireKey(removed);
+    const isTwapWithoutProvider = (
+      subscription: PolyBoltSubscription,
+    ): boolean =>
+      subscription.channel === 'price.crypto.twap' &&
+      this.retriedTwapWithoutProvider.has(subscriptionId(subscription));
+    this.sendSubscriptionFrame(
+      'unsubscribe',
+      uniqueRemoved.filter(
+        (subscription) => !isTwapWithoutProvider(subscription),
+      ),
+    );
+    this.sendSubscriptionFrame(
+      'unsubscribe',
+      uniqueRemoved.filter(isTwapWithoutProvider),
+      false,
+    );
     this.sendSubscribe(added);
   }
 
+  /**
+   * Sends every Chainlink subscription, spot and TWAP, in one frame, and each
+   * other vendor's pin in a frame of its own so its ack can be matched to it.
+   * After `chainlink_key_required`, Chainlink subscriptions are not sent again
+   * on this connection.
+   */
   private sendSubscribe(subscriptions: PolyBoltSubscription[]): void {
     const unique = this.uniqueByWireKey(subscriptions);
-    this.sendSubscriptionFrame(
-      'subscribe',
-      unique.filter((subscription) => !this.wireProvider(subscription)),
-    );
+    if (!this.chainlinkUnavailable) {
+      this.sendSubscriptionFrame(
+        'subscribe',
+        unique.filter((subscription) => !this.wireProvider(subscription)),
+      );
+    }
     unique
       .filter((subscription) => this.wireProvider(subscription))
       .forEach((subscription) => {
@@ -524,12 +679,31 @@ export class PolyBoltCryptoFeed {
   private sendSubscriptionFrame(
     op: 'subscribe' | 'unsubscribe',
     subscriptions: PolyBoltSubscription[],
+    includeTwapProvider = true,
   ): string | undefined {
-    if (subscriptions.length === 0) {
+    if (
+      subscriptions.length === 0 ||
+      this.socket?.readyState !== WebSocket.OPEN
+    ) {
       return undefined;
     }
 
     const rid = this.nextRequestId(op === 'subscribe' ? 's' : 'u');
+    if (this.pendingFrames.size >= MAX_PENDING_FRAMES) {
+      const oldestRid = this.pendingFrames.keys().next().value;
+      if (oldestRid !== undefined) {
+        this.pendingFrames.delete(oldestRid);
+      }
+    }
+    this.pendingFrames.set(rid, { op, unresolved: [...subscriptions] });
+    subscriptions.forEach((subscription) => {
+      const key = this.wireKey(subscription);
+      if (op === 'subscribe') {
+        this.latestSubscribeRid.set(key, rid);
+      } else {
+        this.latestSubscribeRid.delete(key);
+      }
+    });
     this.send({
       op,
       rid,
@@ -539,6 +713,7 @@ export class PolyBoltCryptoFeed {
           subscription.channel,
           subscription.wireSymbol,
           this.wireProvider(subscription),
+          includeTwapProvider,
         ),
       })),
     });
@@ -577,6 +752,7 @@ export class PolyBoltCryptoFeed {
   private handleOp(message: Record<string, unknown>): void {
     if (message.op === 'authed') {
       this.authed = true;
+      this.reconnectAttempts = 0;
       this.listener.onConnectionChange();
       this.sendSubscribe(this.subscriptions);
       return;
@@ -587,12 +763,31 @@ export class PolyBoltCryptoFeed {
       return;
     }
 
+    if (message.op === 'unsubscribed') {
+      this.resolvePendingEntry(message);
+      return;
+    }
+
     if (message.op !== 'error' || typeof message.code !== 'string') {
       return;
     }
 
     if (message.code === 'bad_filter') {
       this.handleBadFilter(message);
+      return;
+    }
+
+    if (message.code === 'chainlink_key_required') {
+      this.handleChainlinkKeyRequired(message);
+      return;
+    }
+
+    if (message.code === 'provider_required') {
+      // Every filter names a provider, so this is a client bug. Resending the
+      // same frame would fail the same way.
+      this.takePendingPin(message.rid);
+      this.resolvePendingEntry(message);
+      this.reportErrorOnce(message);
       return;
     }
 
@@ -611,6 +806,48 @@ export class PolyBoltCryptoFeed {
 
     if (message.code === 'auth_unavailable') {
       this.scheduleAuthRetry();
+      return;
+    }
+
+    this.takePendingFrame(message.rid);
+  }
+
+  private takePendingFrame(rid: unknown): PendingFrame | undefined {
+    if (typeof rid !== 'string') {
+      return undefined;
+    }
+
+    const frame = this.pendingFrames.get(rid);
+    if (!frame) {
+      return undefined;
+    }
+
+    this.pendingFrames.delete(rid);
+    return frame;
+  }
+
+  /**
+   * Resolves the entry a per-item ack or error answers, and stops tracking the
+   * frame once every entry is answered. The other entries stay tracked, so a
+   * later `bad_filter` with the same rid can still retry them.
+   */
+  private resolvePendingEntry(message: Record<string, unknown>): void {
+    const { rid } = message;
+    if (typeof rid !== 'string') {
+      return;
+    }
+
+    const frame = this.pendingFrames.get(rid);
+    if (!frame) {
+      return;
+    }
+
+    const index = frame.unresolved.findIndex(
+      (subscription) => subscription.channel === message.channel,
+    );
+    frame.unresolved.splice(Math.max(index, 0), 1);
+    if (frame.unresolved.length === 0) {
+      this.pendingFrames.delete(rid);
     }
   }
 
@@ -637,6 +874,7 @@ export class PolyBoltCryptoFeed {
    */
   private handleSubscribedAck(message: Record<string, unknown>): void {
     const subscription = this.takePendingPin(message.rid);
+    this.resolvePendingEntry(message);
     if (!subscription?.provider) {
       return;
     }
@@ -648,37 +886,236 @@ export class PolyBoltCryptoFeed {
     }
 
     this.ownerServed.add(subscriptionId(subscription));
+    if (typeof message.rid === 'string') {
+      this.latestSubscribeRid.set(this.wireKey(subscription), message.rid);
+    }
     this.logProviderMismatch(subscription, served ?? 'none named in ack');
   }
 
   /**
    * Polymarket's docs disagree on whether a binance pin is honoured, ignored
-   * or rejected. When it is rejected, fall back to the default vendor so the
-   * market keeps a live price.
+   * or rejected. When it is rejected, fall back to Chainlink so the market
+   * keeps a live price. For unpinned rejections (such as TWAP), warn Sentry
+   * once, retry TWAP subscriptions once without `provider`, and resend active
+   * non-TWAP entries of a rejected shared frame that no ack answered yet, with
+   * their provider.
    */
   private handleBadFilter(message: Record<string, unknown>): void {
     const subscription = this.takePendingPin(message.rid);
-    DevLogger.log('PolyBoltCryptoFeed: filter rejected', {
-      channel: message.channel,
-      rid: message.rid,
-      symbol: subscription?.wireSymbol,
-      provider: subscription?.provider,
-    });
-    if (!subscription) {
+    const frame = this.takePendingFrame(message.rid);
+    if (subscription) {
+      if (typeof message.rid === 'string') {
+        this.handledBadFilterRids.add(message.rid);
+      }
+      DevLogger.log('PolyBoltCryptoFeed: filter rejected', {
+        channel: message.channel,
+        rid: message.rid,
+        symbol: subscription.wireSymbol,
+        provider: subscription.provider,
+      });
+      const alreadyOnWire = new Set(
+        this.subscriptions
+          .filter((other) => other !== subscription)
+          .map((other) => this.wireKey(other)),
+      );
+      this.ownerServed.add(subscriptionId(subscription));
+      this.logProviderMismatch(subscription, 'none, filter rejected');
+      if (
+        !this.chainlinkUnavailable &&
+        !alreadyOnWire.has(this.wireKey(subscription))
+      ) {
+        this.sendSubscriptionFrame('subscribe', [subscription]);
+      }
       return;
     }
 
-    const alreadyOnWire = new Set(
-      this.subscriptions
-        .filter((other) => other !== subscription)
-        .map((other) => this.wireKey(other)),
-    );
-    this.ownerServed.add(subscriptionId(subscription));
-    if (!alreadyOnWire.has(this.wireKey(subscription))) {
-      this.sendSubscriptionFrame('subscribe', [subscription]);
+    const resolvedSubscriptions = frame
+      ? this.resolveRejectedSubscriptions(frame.unresolved, message.channel)
+      : [];
+    const symbol = this.formatRejectedSymbols(resolvedSubscriptions);
+    const channel =
+      typeof message.channel === 'string'
+        ? message.channel
+        : this.formatRejectedChannels(resolvedSubscriptions);
+    DevLogger.log('PolyBoltCryptoFeed: filter rejected', {
+      channel,
+      rid: message.rid,
+      symbol,
+      provider: undefined,
+    });
+    this.warnBadFilterOnce(message, channel, symbol, resolvedSubscriptions);
+
+    if (frame?.op === 'subscribe' && !this.chainlinkUnavailable) {
+      this.resendRejectedUnpinnedFrame(frame.unresolved, message.rid);
     }
   }
 
+  private resolveRejectedSubscriptions(
+    subscriptions: PolyBoltSubscription[],
+    channel: unknown,
+  ): PolyBoltSubscription[] {
+    if (typeof channel === 'string') {
+      const matching = subscriptions.filter(
+        (subscription) => subscription.channel === channel,
+      );
+      if (matching.length > 0) {
+        return matching;
+      }
+    }
+    return subscriptions;
+  }
+
+  private formatRejectedSymbols(
+    subscriptions: PolyBoltSubscription[],
+  ): string | undefined {
+    const symbols = Array.from(
+      new Set(subscriptions.map((subscription) => subscription.wireSymbol)),
+    );
+    return symbols.length > 0 ? symbols.join(',') : undefined;
+  }
+
+  private formatRejectedChannels(
+    subscriptions: PolyBoltSubscription[],
+  ): string | undefined {
+    const channels = Array.from(
+      new Set(subscriptions.map((subscription) => subscription.channel)),
+    );
+    return channels.length > 0 ? channels.join(',') : undefined;
+  }
+
+  private warnBadFilterOnce(
+    message: Record<string, unknown>,
+    channel: string | undefined,
+    symbol: string | undefined,
+    resolvedSubscriptions: PolyBoltSubscription[],
+  ): void {
+    const rid = typeof message.rid === 'string' ? message.rid : undefined;
+    if (rid !== undefined && this.handledBadFilterRids.has(rid)) {
+      return;
+    }
+    if (rid !== undefined) {
+      this.handledBadFilterRids.add(rid);
+    }
+
+    const dedupKeys =
+      resolvedSubscriptions.length > 0
+        ? resolvedSubscriptions.map(
+            (subscription) =>
+              `${subscription.channel}|${subscription.wireSymbol}`,
+          )
+        : [`untracked|${channel ?? ''}`];
+    if (dedupKeys.every((key) => this.warnedBadFilters.has(key))) {
+      return;
+    }
+    dedupKeys.forEach((key) => {
+      this.warnedBadFilters.add(key);
+    });
+
+    warnToSentry('PolyBoltCryptoFeed: filter rejected', {
+      code: message.code,
+      message: message.message,
+      channel,
+      rid: message.rid,
+      ...(symbol !== undefined && { symbol }),
+    });
+  }
+
+  private resendRejectedUnpinnedFrame(
+    subscriptions: PolyBoltSubscription[],
+    rejectedRid: unknown,
+  ): void {
+    const rid = typeof rejectedRid === 'string' ? rejectedRid : undefined;
+    const activeIds = new Set(this.subscriptions.map(subscriptionId));
+    const activeWireKeys = new Set(
+      this.subscriptions.map((subscription) => this.wireKey(subscription)),
+    );
+    const hasTwap = subscriptions.some(
+      (subscription) => subscription.channel === 'price.crypto.twap',
+    );
+    const isAlreadyOnWire = (subscription: PolyBoltSubscription): boolean => {
+      const latestRid = this.latestSubscribeRid.get(this.wireKey(subscription));
+      return latestRid !== undefined && latestRid !== rid;
+    };
+
+    const nonTwapRetries = hasTwap
+      ? subscriptions.filter(
+          (subscription) =>
+            subscription.channel !== 'price.crypto.twap' &&
+            activeWireKeys.has(this.wireKey(subscription)) &&
+            !isAlreadyOnWire(subscription),
+        )
+      : [];
+    const twapRetries = subscriptions.filter((subscription) => {
+      if (subscription.channel !== 'price.crypto.twap') {
+        return false;
+      }
+      const id = subscriptionId(subscription);
+      return (
+        activeIds.has(id) &&
+        !this.retriedTwapWithoutProvider.has(id) &&
+        !isAlreadyOnWire(subscription)
+      );
+    });
+
+    if (nonTwapRetries.length > 0) {
+      this.sendSubscriptionFrame('subscribe', nonTwapRetries);
+    }
+    if (twapRetries.length > 0) {
+      twapRetries.forEach((subscription) => {
+        this.retriedTwapWithoutProvider.add(subscriptionId(subscription));
+      });
+      // TODO: Remove this pre-2026-11-30 no-provider TWAP retry once PolyBolt
+      // enforces `provider_required` (4011) on 2026-11-30; after that date a
+      // filter without a provider is refused with 4011, handled elsewhere and
+      // reported.
+      this.sendSubscriptionFrame('subscribe', twapRetries, false);
+    }
+  }
+
+  /**
+   * The connection was authenticated without a valid Chainlink key, so no
+   * Chainlink stream registers on it. The error does not close the socket and
+   * Binance pins keep streaming. Sending Chainlink subscriptions again would
+   * repeat the error, so they wait for a new connection, such as the one a
+   * new key opens.
+   */
+  private handleChainlinkKeyRequired(message: Record<string, unknown>): void {
+    this.takePendingPin(message.rid);
+    this.resolvePendingEntry(message);
+    this.chainlinkUnavailable = true;
+    this.reportErrorOnce(message, {
+      hasChainlinkApiKey: Boolean(this.credentials?.chainlinkApiKey),
+    });
+  }
+
+  private reportErrorOnce(
+    message: Record<string, unknown>,
+    extra: Record<string, unknown> = {},
+  ): void {
+    const code = String(message.code);
+    if (this.reportedErrorCodes.has(code)) {
+      return;
+    }
+
+    this.reportedErrorCodes.add(code);
+    const details = {
+      code,
+      status: message.status,
+      channel: message.channel,
+      rid: message.rid,
+      ...extra,
+    };
+    DevLogger.log('PolyBoltCryptoFeed: subscription refused', details);
+    reportToSentry(`PolyBoltCryptoFeed: ${code}`, details);
+  }
+
+  /**
+   * Logs once per subscription when a stream comes from another vendor than
+   * it asked for, and reports it to Sentry: the market keeps a price, but not
+   * from the vendor it settles on. A pin that falls back, because PolyBolt
+   * rejected, ignored or overrode it, is an error. A Chainlink request served
+   * by another vendor is a warning.
+   */
   private logProviderMismatch(
     subscription: PolyBoltSubscription,
     served: string,
@@ -689,16 +1126,42 @@ export class PolyBoltCryptoFeed {
     }
 
     this.loggedProviderMismatches.add(id);
-    DevLogger.log('PolyBoltCryptoFeed: served provider differs from request', {
+    const details = {
       channel: subscription.channel,
       symbol: subscription.wireSymbol,
       requested: subscription.provider ?? DEFAULT_CRYPTO_PROVIDER,
       served,
-    });
+    };
+    DevLogger.log(
+      'PolyBoltCryptoFeed: served provider differs from request',
+      details,
+    );
+    if (details.requested !== DEFAULT_CRYPTO_PROVIDER) {
+      reportToSentry('PolyBoltCryptoFeed: provider pin fell back', details);
+    } else {
+      warnToSentry(
+        'PolyBoltCryptoFeed: Chainlink request served by another vendor',
+        details,
+      );
+    }
   }
 
   private scheduleAuthRetry(): void {
-    if (this.authRetryTimer || this.authBlocked) {
+    if (this.authBlocked) {
+      return;
+    }
+
+    // With a Chainlink key already sent on this socket, retrying auth requires
+    // opening a new connection; schedule the reconnect directly so backoff
+    // advances once per retry instead of once here and again inside sendAuth.
+    if (this.credentials?.chainlinkApiKey && this.authFramesSent > 0) {
+      if (!this.reconnectTimer && !this.policyBlocked) {
+        this.scheduleReconnect(this.nextBackoffDelay());
+      }
+      return;
+    }
+
+    if (this.authRetryTimer) {
       return;
     }
 
@@ -784,8 +1247,12 @@ export class PolyBoltCryptoFeed {
         return pinned;
       }
 
+      // A Chainlink request shares the unpinned stream, so Chainlink frames
+      // fall through to every subscription on that stream below.
       const requested = candidates.filter(
-        (subscription) => subscription.provider === source,
+        (subscription) =>
+          source !== DEFAULT_CRYPTO_PROVIDER &&
+          subscription.provider === source,
       );
       if (requested.length > 0) {
         return requested;

@@ -39,6 +39,17 @@ jest.mock('@metamask/controller-utils', () => ({
 jest.mock('expo/fetch', () => ({
   fetch: jest.fn(),
 }));
+jest.mock('../../../redux', () => ({ store: { getState: jest.fn() } }));
+jest.mock(
+  '../../../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig',
+  () => ({
+    ...jest.requireActual(
+      '../../../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig',
+    ),
+    selectFirstQuoteAbTestVariant: (_state: unknown, flagKey: string) =>
+      flagKey.includes('Immediate') ? 'treatment' : 'control',
+  }),
+);
 
 /**
  * Build a mock TransactionController.
@@ -308,6 +319,15 @@ describe('BridgeController Init', () => {
         expect(getUseAssetsControllerForRates).toBeDefined();
         expect(getUseAssetsControllerForRates?.()).toBe(true);
       });
+    });
+
+    it('reads first quote timing options from their A/B flags', () => {
+      bridgeControllerInit(buildInitRequestMock());
+
+      const options = bridgeControllerClassMock.mock
+        .calls[0][0] as unknown as Record<string, () => boolean>;
+      expect(options.getShouldFetchFirstQuoteImmediately()).toBe(true);
+      expect(options.getShouldYieldAfterFirstQuote()).toBe(false);
     });
 
     it('handles trackMetaMetricsFn with no properties', () => {

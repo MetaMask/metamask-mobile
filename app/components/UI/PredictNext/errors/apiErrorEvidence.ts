@@ -24,7 +24,6 @@ const COMMIT_PRE_RELAY_CODES: Record<string, true | undefined> = {
   position_unavailable: true,
   insufficient_balance: true,
   insufficient_position: true,
-  venue_unavailable: true,
   venue_preview_mismatch: true,
   client_order_id_conflict: true,
   client_operation_id_conflict: true,
@@ -43,6 +42,14 @@ const COMMIT_PRE_RELAY_CODES: Record<string, true | undefined> = {
  * means that on this route only. */
 export type PredictRouteRefusals = Readonly<Record<string, true | undefined>>;
 
+export interface PredictEvidenceRoute {
+  /** Codes this route refuses before it stores or relays anything. */
+  refusesBeforeRelay?: PredictRouteRefusals;
+  /** Set when this route's read replays a stored submission before it
+   * answers. A failure there proves nothing about this invocation. */
+  readCanReplay?: boolean;
+}
+
 /** Not a retry policy: this invocation's relay evidence says nothing about an
  * earlier/concurrent commit for the same preview. Never apply commit evidence
  * to an observation failure, including an observation 404. */
@@ -50,18 +57,20 @@ export function predictErrorEvidence(
   phase: PredictErrorPhase,
   bodyCode?: string,
   requestSent?: boolean,
-  routeRefusals: PredictRouteRefusals = {},
+  route: PredictEvidenceRoute = {},
 ): PredictErrorEvidence {
   const relay = (): PredictMutationRelay => {
     if (phase !== 'commit') {
-      return 'not_a_mutation';
+      return route.readCanReplay === true && requestSent !== false
+        ? 'unknown'
+        : 'not_a_mutation';
     }
     if (requestSent === false) {
       return 'not_relayed_this_invocation';
     }
     return bodyCode !== undefined &&
       (COMMIT_PRE_RELAY_CODES[bodyCode] === true ||
-        routeRefusals[bodyCode] === true)
+        route.refusesBeforeRelay?.[bodyCode] === true)
       ? 'not_relayed_this_invocation'
       : 'unknown';
   };

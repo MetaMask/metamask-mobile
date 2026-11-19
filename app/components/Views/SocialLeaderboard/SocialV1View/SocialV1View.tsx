@@ -83,6 +83,7 @@ import LiveView from '../LiveView';
 import TrendingView from '../TrendingView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { SocialFeedPageActiveContext } from '../../../UI/SocialFeed/components/SocialFeedPageActiveContext';
+import { SocialFeedWindowOffsetContext } from '../../../UI/SocialFeed/components/SocialFeedWindowOffsetContext';
 import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
@@ -194,11 +195,14 @@ const SOCIAL_EVENT_TAB_CONTEXT = {
 const SocialFeedPageProviders: React.FC<{
   isActive: boolean;
   rotatesTraderStats: boolean;
+  windowOffsetY: number;
   children: React.ReactNode;
-}> = ({ isActive, rotatesTraderStats, children }) => (
+}> = ({ isActive, rotatesTraderStats, windowOffsetY, children }) => (
   <SocialFeedPageActiveContext.Provider value={isActive}>
     <TraderStatRotationContext.Provider value={rotatesTraderStats}>
-      {children}
+      <SocialFeedWindowOffsetContext.Provider value={windowOffsetY}>
+        {children}
+      </SocialFeedWindowOffsetContext.Provider>
     </TraderStatRotationContext.Provider>
   </SocialFeedPageActiveContext.Provider>
 );
@@ -883,6 +887,7 @@ const SocialV1ViewContent: React.FC = () => {
         <SocialFeedPageProviders
           isActive={isFocused && isPageActive}
           rotatesTraderStats={isFocused && isPageActive}
+          windowOffsetY={pagerTopInset}
         >
           {renderPage(tab, isPageActive, pageRefs[tab])}
         </SocialFeedPageProviders>

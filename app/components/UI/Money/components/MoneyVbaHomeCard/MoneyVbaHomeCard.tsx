@@ -17,6 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import {
   canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
@@ -130,6 +131,7 @@ const MoneyVbaHomeCard = ({
     if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
+    fireImpact(ImpactMoment.SecondaryCTA);
     const trackCtaClicked = (
       redirectTarget:
         | typeof SCREEN_NAMES.VBA_ONBOARDING

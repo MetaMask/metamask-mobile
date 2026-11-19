@@ -10,7 +10,6 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Button,
@@ -24,6 +23,8 @@ import { GasInput } from '../../../components/gas/gas-input';
 import { GasPriceInput } from '../../../components/gas/gas-price-input';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import styleSheet from './advanced-gas-price-modal.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const AdvancedGasPriceModal = ({
   setActiveModal,
@@ -32,6 +33,7 @@ export const AdvancedGasPriceModal = ({
   setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
@@ -118,9 +120,12 @@ export const AdvancedGasPriceModal = ({
         keyboardAvoidingViewEnabled
         onClose={handleSheetClosed}
       >
-        <BottomSheetHeader onClose={handleRequestClose}>
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
+          onClose={handleRequestClose}
+        >
           {strings('transactions.gas_modal.advanced_gas_fee')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box twClassName="flex flex-col p-4 pt-0">
           <View style={styles.inputsContainer}>
             <GasPriceInput

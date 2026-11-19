@@ -18,6 +18,10 @@ export const SocialEvent = {
     POST_FAILED: 'post_failed',
     SUBMIT_BLOCKED: 'submit_blocked',
     ONBOARDING_COMPLETED: 'onboarding_completed',
+    /**
+     * Profile onboarding X OAuth finished. Pair with `outcome` and `path: x`.
+     */
+    X_SIGN_IN: 'x_sign_in',
     POST_SHARED: 'post_shared',
     GIF_PICKER_OPENED: 'gif_picker_opened',
     STEP_VIEWED: 'step_viewed',
@@ -27,6 +31,11 @@ export const SocialEvent = {
     PROFILE_EDITED: 'profile_edited',
     AVATAR_CHANGED: 'avatar_changed',
     STREAM_TOGGLED: 'stream_toggled',
+  },
+  /** Profile onboarding intro choice. Sent on intro taps and completion. */
+  Path: {
+    X: 'x',
+    MANUAL: 'manual',
   },
   Screen: {
     TRENDING: 'social_trending',
@@ -172,6 +181,7 @@ export type SocialScreenName = EventValue<'Screen'>;
 export type SocialTabName = EventValue<'Tab'>;
 export type SocialTradeType = EventValue<'Trade'>;
 export type SocialOnboardingStep = EventValue<'Step'>;
+export type SocialOnboardingPath = EventValue<'Path'>;
 export type SocialFilterValue =
   | EventValue<'StreamState'>
   | EventValue<'FeedSort'>
@@ -215,6 +225,16 @@ export type SocialPostFailureReason =
   | 'timeout'
   | 'min_balance'
   | 'unknown';
+/** Coarse reason when profile create/update fails during onboarding. */
+export type SocialProfileSaveFailureReason =
+  | 'username_taken'
+  | 'username_invalid'
+  | 'conflict'
+  | 'auth'
+  | 'rate_limit'
+  | 'network'
+  | 'ineligible_account'
+  | 'unknown';
 export type SocialBlockedSubmitReason =
   | 'empty_caption'
   | 'no_position'
@@ -241,6 +261,22 @@ export interface SocialUIInteractionProperties
   terms_version?: string;
   /** Only sent with `copy_trade_blocked`. */
   blocked_reason?: SocialBlockedReason;
+  /**
+   * Profile onboarding path. Sent on intro/continue/ready `button_clicked`,
+   * terms sheet events, `x_sign_in`, `username_claimed`, and
+   * `onboarding_completed`.
+   */
+  path?: SocialOnboardingPath;
+  /**
+   * True when the claimed handle is still the linked X username. Sent on
+   * `onboarding_completed` and the X-identity use-X-username toggle.
+   */
+  uses_x_username?: boolean;
+  /**
+   * `username_claimed` with `outcome: failed` only. Coarse create/update
+   * failure bucket for Ready drop-off.
+   */
+  profile_save_failure_reason?: SocialProfileSaveFailureReason;
   amount_usd?: number;
   metamask_fee?: number;
   /** Composer interactions only. */

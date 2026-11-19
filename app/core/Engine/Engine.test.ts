@@ -1344,10 +1344,57 @@ describe('Engine', () => {
   });
 
   describe('resetState', () => {
+    it('clears profile metrics state', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for profile metrics state to clear before resetting circuit breakers', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      let finishClear: () => void = () => undefined;
+      jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockImplementation(
+          () =>
+            new Promise<void>((resolve) => {
+              finishClear = resolve;
+            }),
+        );
+      const resetCircuitBreakersSpy = jest
+        .spyOn(engine.context.ProfileMetricsService, 'resetCircuitBreakers')
+        .mockReturnValue(undefined);
+
+      const reset = engine.resetState();
+
+      expect(resetCircuitBreakersSpy).not.toHaveBeenCalled();
+
+      finishClear();
+      await reset;
+
+      expect(resetCircuitBreakersSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('calls MoneyAccountController.clearState', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
         .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls MoneyAccountLifecycleController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountLifecycleController, 'clearState')
         .mockImplementation(() => undefined);
 
       await engine.resetState();
