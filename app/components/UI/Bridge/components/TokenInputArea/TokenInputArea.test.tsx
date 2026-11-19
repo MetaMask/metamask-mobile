@@ -766,6 +766,36 @@ describe('TokenInputArea', () => {
       // Destination tokens never show max button
       expect(queryByText('Max')).toBeNull();
     });
+
+    it('does not display max button for a money source token', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+      const moneyToken: BridgeToken = {
+        ...nativeToken,
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      };
+
+      const { queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={moneyToken}
+              tokenBalance={tokenBalance}
+              onMaxPress={mockOnMaxPress}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      expect(queryByText('Max')).toBeNull();
+    });
   });
 
   describe('imperative handle (focus, blur, isFocused)', () => {

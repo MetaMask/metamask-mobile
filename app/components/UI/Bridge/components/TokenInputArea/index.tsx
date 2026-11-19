@@ -356,11 +356,9 @@ export const TokenInputArea = forwardRef<
 
     const isNativeAsset = isNativeAddress(tokenAddress);
 
-    const shouldShowMaxButton = useShouldRenderMaxOption(
-      token,
-      tokenBalance,
-      isQuoteSponsored,
-    );
+    const shouldShowMaxButton =
+      useShouldRenderMaxOption(token, tokenBalance, isQuoteSponsored) &&
+      !token?.isMoneyToken;
 
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
