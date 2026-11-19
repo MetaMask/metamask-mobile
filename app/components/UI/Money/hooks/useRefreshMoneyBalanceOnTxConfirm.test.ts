@@ -9,7 +9,10 @@ import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import {
+  selectMoneyAccountBalanceAddress,
+  selectPrimaryMoneyAccount,
+} from '../../../../selectors/moneyAccountController';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
 import { getMoneyAccountBalanceQueryKey } from '../utils/moneyAccountBalanceQueryKey';
 import { store } from '../../../../store';
@@ -23,6 +26,7 @@ jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})), dispatch: jest.fn() },
 }));
 jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectMoneyAccountBalanceAddress: jest.fn(),
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
@@ -71,6 +75,10 @@ const BASELINE_BALANCE = {
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as jest.MockedFunction<
     typeof selectPrimaryMoneyAccount
+  >;
+const mockSelectMoneyAccountBalanceAddress =
+  selectMoneyAccountBalanceAddress as jest.MockedFunction<
+    typeof selectMoneyAccountBalanceAddress
   >;
 
 const mockDispatch = store.dispatch as unknown as jest.Mock;
@@ -122,6 +130,7 @@ beforeEach(() => {
   mockSelectPrimaryMoneyAccount.mockReturnValue({
     address: MOCK_ADDRESS,
   } as ReturnType<typeof selectPrimaryMoneyAccount>);
+  mockSelectMoneyAccountBalanceAddress.mockReturnValue(MOCK_ADDRESS);
 });
 
 describe('useRefreshMoneyBalanceOnTxConfirm', () => {
@@ -338,8 +347,8 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     expect(mockRefreshMoneyAccountBalanceFresh).not.toHaveBeenCalled();
   });
 
-  it('does not invalidate when no primary money account address', () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+  it('does not invalidate when no money account address', () => {
+    mockSelectMoneyAccountBalanceAddress.mockReturnValue(undefined);
     renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
@@ -349,14 +358,12 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
   });
 
   it('reads store state at call time (not stale closure)', async () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+    mockSelectMoneyAccountBalanceAddress.mockReturnValue(undefined);
     renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     // Address becomes available after mount
-    mockSelectPrimaryMoneyAccount.mockReturnValue({
-      address: MOCK_ADDRESS,
-    } as ReturnType<typeof selectPrimaryMoneyAccount>);
+    mockSelectMoneyAccountBalanceAddress.mockReturnValue(MOCK_ADDRESS);
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
@@ -364,6 +371,21 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     });
 
     expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('refreshes the migrated Money account address', async () => {
+    const migratedAddress = '0x0fa0000000000000000000000000000000000002';
+    mockSelectMoneyAccountBalanceAddress.mockReturnValue(migratedAddress);
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    getConfirmedHandler()(makeTx(TransactionType.moneyAccountDeposit));
+
+    await waitFor(() => {
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
+        migratedAddress,
+        { minBlock: undefined },
+      );
+    });
   });
 
   it('passes minBlock parsed from the confirmed hex block number', async () => {

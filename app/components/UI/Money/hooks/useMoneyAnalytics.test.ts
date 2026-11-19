@@ -10,7 +10,7 @@ import {
   selectIsCardAuthenticated,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
-import useMoneyAccountInfo from './useMoneyAccountInfo';
+import { selectMoneyAccountBalanceAddress } from '../../../../selectors/moneyAccountController';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
@@ -62,7 +62,9 @@ jest.mock('../../../../selectors/cardController', () => ({
   selectIsMoneyAccountDelegatedForCard: jest.fn(),
 }));
 
-jest.mock('./useMoneyAccountInfo');
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectMoneyAccountBalanceAddress: jest.fn(),
+}));
 
 jest.mock('../../../../core/ReactQueryService', () => ({
   __esModule: true,
@@ -99,7 +101,8 @@ const mockSelectIsCardAuthenticated =
   selectIsCardAuthenticated as unknown as jest.Mock;
 const mockSelectIsMoneyAccountDelegatedForCard =
   selectIsMoneyAccountDelegatedForCard as unknown as jest.Mock;
-const mockUseMoneyAccountInfo = useMoneyAccountInfo as jest.Mock;
+const mockSelectMoneyAccountBalanceAddress =
+  selectMoneyAccountBalanceAddress as unknown as jest.Mock;
 const mockQueryClient = ReactQueryService.queryClient as unknown as {
   getQueryState: jest.Mock;
 };
@@ -140,9 +143,9 @@ describe('useMoneyAnalytics', () => {
     mockUseSelector.mockImplementation((selector) => selector());
     mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(false);
     mockSelectIsCardAuthenticated.mockReturnValue(false);
-    mockUseMoneyAccountInfo.mockReturnValue({
-      primaryMoneyAccount: { address: MOCK_MONEY_ACCOUNT_ADDRESS },
-    });
+    mockSelectMoneyAccountBalanceAddress.mockReturnValue(
+      MOCK_MONEY_ACCOUNT_ADDRESS,
+    );
     mockGetQueryState.mockReturnValue({
       status: 'success',
       fetchStatus: 'idle',
@@ -285,9 +288,7 @@ describe('useMoneyAnalytics', () => {
     });
 
     it('sets is_account_funded to false and is_money_balance_loading to false when there is no money account', () => {
-      mockUseMoneyAccountInfo.mockReturnValue({
-        primaryMoneyAccount: undefined,
-      });
+      mockSelectMoneyAccountBalanceAddress.mockReturnValue(undefined);
       mockGetQueryState.mockReturnValue(undefined);
       const { result } = renderHook(() => useMoneyAnalytics());
 

@@ -10,7 +10,7 @@ import {
 } from './firstTimeDeposit';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectMoneyFirstTimeDepositAnimationEnabledFlag } from '../selectors/featureFlags';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyAccountBalanceAddress } from '../../../../selectors/moneyAccountController';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 
@@ -23,7 +23,7 @@ jest.mock('../selectors/featureFlags', () => ({
 }));
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: jest.fn(),
+  selectMoneyAccountBalanceAddress: jest.fn(),
 }));
 
 jest.mock('../../../../core/ReactQueryService', () => ({
@@ -45,16 +45,15 @@ const mockedFlagSelector =
     (state: unknown) => boolean
   >;
 
-const mockedSelectPrimaryMoneyAccount =
-  selectPrimaryMoneyAccount as unknown as jest.MockedFunction<
-    (state: unknown) => { address: string } | undefined
+const mockedSelectMoneyAccountBalanceAddress =
+  selectMoneyAccountBalanceAddress as unknown as jest.MockedFunction<
+    (state: unknown) => string | undefined
   >;
 
 const mockedGetQueryData = ReactQueryService.queryClient
   .getQueryData as jest.Mock;
 
 const MOCK_MONEY_ACCOUNT_ADDRESS = '0xMoneyAccount';
-const mockPrimaryMoneyAccount = { address: MOCK_MONEY_ACCOUNT_ADDRESS };
 
 const baseTx = {
   status: TransactionStatus.confirmed,
@@ -140,12 +139,14 @@ describe('hasPriorMoneyDeposit', () => {
 describe('hasExistingMoneyBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedSelectPrimaryMoneyAccount.mockReturnValue(mockPrimaryMoneyAccount);
+    mockedSelectMoneyAccountBalanceAddress.mockReturnValue(
+      MOCK_MONEY_ACCOUNT_ADDRESS,
+    );
     mockedGetQueryData.mockReturnValue(undefined);
   });
 
-  it('returns false when there is no primary money account', () => {
-    mockedSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+  it('returns false when there is no money account address', () => {
+    mockedSelectMoneyAccountBalanceAddress.mockReturnValue(undefined);
 
     const result = hasExistingMoneyBalance(mockState);
 
@@ -195,7 +196,9 @@ describe('shouldShowMoneyFirstTimeDepositAnimation', () => {
     jest.clearAllMocks();
     mockedFlagSelector.mockReturnValue(true);
     mockedSelectNonReplacedTransactions.mockReturnValue([]);
-    mockedSelectPrimaryMoneyAccount.mockReturnValue(mockPrimaryMoneyAccount);
+    mockedSelectMoneyAccountBalanceAddress.mockReturnValue(
+      MOCK_MONEY_ACCOUNT_ADDRESS,
+    );
     mockedGetQueryData.mockReturnValue(undefined);
   });
 

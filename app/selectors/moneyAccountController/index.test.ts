@@ -1,5 +1,15 @@
-import { selectMoneyAccounts, selectPrimaryMoneyAccount } from './index';
+import {
+  selectMoneyAccountBalanceAddress,
+  selectMoneyAccounts,
+  selectPrimaryMoneyAccount,
+} from './index';
 import type { MoneyAccount } from '@metamask/money-account-controller';
+import type { DerivedIdentity } from '@metamask/chomp-api-service';
+import type {
+  MoneyAccountLifecycle,
+  MoneyAccountLifecycleControllerState,
+} from '@metamask/money-account-lifecycle-controller';
+import type { Hex } from '@metamask/utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
 import { MOCK_HD_KEYRING_METADATA } from '../keyringController/testUtils';
@@ -9,9 +19,12 @@ jest.mock('../../constants/featureFlags', () => ({
   isMpcMoneyKeyringBuildEnabled: jest.fn(() => false),
 }));
 
+const SFA_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
+const MFA_ADDRESS = '0x0fa0000000000000000000000000000000000002';
+
 const MOCK_MONEY_ACCOUNT: MoneyAccount = {
   id: 'account-1',
-  address: '0xabc123',
+  address: SFA_ADDRESS,
   type: 'eip155:eoa',
   scopes: [],
   methods: [],
@@ -26,9 +39,38 @@ const MOCK_MONEY_ACCOUNT: MoneyAccount = {
   },
 };
 
+const MOCK_MPC_MONEY_ACCOUNT: MoneyAccount = {
+  ...MOCK_MONEY_ACCOUNT,
+  id: 'mpc-account',
+  address: MFA_ADDRESS,
+  options: { entropy: { type: 'mpc' }, exportable: false },
+};
+
 const MOCK_MONEY_ACCOUNTS = {
   [MOCK_MONEY_ACCOUNT.id]: MOCK_MONEY_ACCOUNT,
 };
+
+const MOCK_MONEY_ACCOUNTS_WITH_MPC = {
+  ...MOCK_MONEY_ACCOUNTS,
+  [MOCK_MPC_MONEY_ACCOUNT.id]: MOCK_MPC_MONEY_ACCOUNT,
+};
+
+const identity = (
+  currentAddress: Hex,
+  previousAddresses: Hex[] = [],
+): DerivedIdentity => ({
+  currentAddress,
+  previousAddresses,
+  status: 'DONE',
+  migration: null,
+});
+
+const lifecycleState = (
+  lifecycle: MoneyAccountLifecycle,
+): MoneyAccountLifecycleControllerState => ({
+  moneyAccounts: { [MOCK_MONEY_ACCOUNT.address.toLowerCase()]: lifecycle },
+  addressRegistrations: {},
+});
 
 describe('MoneyAccountController selectors', () => {
   describe('selectMoneyAccounts', () => {
@@ -86,16 +128,6 @@ describe('MoneyAccountController selectors', () => {
     });
 
     describe('after the Money account moved to MPC', () => {
-      const MPC_MONEY_ACCOUNT = {
-        ...MOCK_MONEY_ACCOUNT,
-        id: 'mpc-account',
-        address: '0xmpc',
-        options: { entropy: { type: 'mpc' }, exportable: false },
-      } as unknown as MoneyAccount;
-      const accounts = {
-        ...MOCK_MONEY_ACCOUNTS,
-        [MPC_MONEY_ACCOUNT.id]: MPC_MONEY_ACCOUNT,
-      };
       const keyring = {
         type: KeyringTypes.hd,
         accounts: [],
@@ -107,19 +139,19 @@ describe('MoneyAccountController selectors', () => {
 
         expect(
           selectPrimaryMoneyAccount.resultFunc(
-            accounts,
+            MOCK_MONEY_ACCOUNTS_WITH_MPC,
             keyring,
-            MPC_MONEY_ACCOUNT.id,
+            MOCK_MPC_MONEY_ACCOUNT.id,
           ),
-        ).toEqual(MPC_MONEY_ACCOUNT);
+        ).toEqual(MOCK_MPC_MONEY_ACCOUNT);
       });
 
       it('keeps the SRP Money account in builds without the MPC keyring', () => {
         expect(
           selectPrimaryMoneyAccount.resultFunc(
-            accounts,
+            MOCK_MONEY_ACCOUNTS_WITH_MPC,
             keyring,
-            MPC_MONEY_ACCOUNT.id,
+            MOCK_MPC_MONEY_ACCOUNT.id,
           ),
         ).toEqual(MOCK_MONEY_ACCOUNT);
       });
@@ -133,6 +165,119 @@ describe('MoneyAccountController selectors', () => {
       );
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectMoneyAccountBalanceAddress', () => {
+    it('returns the SFA address while the account has no identity', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        lifecycleState({ type: 'notInIdentity' }),
+        MOCK_MONEY_ACCOUNT,
+      );
+
+      expect(result).toBe(MOCK_MONEY_ACCOUNT.address);
+    });
+
+    it('returns the SFA address while the account is an SFA', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        lifecycleState({ type: 'sfa', identity: identity(SFA_ADDRESS) }),
+        MOCK_MONEY_ACCOUNT,
+      );
+
+      expect(result).toBe(SFA_ADDRESS);
+    });
+
+    it('returns the current address while the account is migrating', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        lifecycleState({
+          type: 'migrating',
+          identity: identity(SFA_ADDRESS),
+        }),
+        MOCK_MONEY_ACCOUNT,
+      );
+
+      expect(result).toBe(MOCK_MONEY_ACCOUNT.address);
+    });
+
+    it('returns the MFA address once the account is MFA and the MPC account is primary', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        lifecycleState({
+          type: 'mfa',
+          identity: identity(MFA_ADDRESS, [SFA_ADDRESS]),
+        }),
+        MOCK_MPC_MONEY_ACCOUNT,
+      );
+
+      expect(result).toBe(MFA_ADDRESS);
+    });
+
+    it('returns the MFA address when the account is MFA and there is no local MPC account', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        lifecycleState({
+          type: 'mfa',
+          identity: identity(MFA_ADDRESS, [SFA_ADDRESS]),
+        }),
+        MOCK_MONEY_ACCOUNT,
+      );
+
+      expect(result).toBe(MFA_ADDRESS);
+    });
+
+    it('returns the MFA address when the account is MFA and there is no primary account', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        lifecycleState({ type: 'mfa', identity: identity(MFA_ADDRESS) }),
+        undefined,
+      );
+
+      expect(result).toBe(MFA_ADDRESS);
+    });
+
+    it('returns the primary address when there is no lifecycle entry', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        { moneyAccounts: {}, addressRegistrations: {} },
+        MOCK_MPC_MONEY_ACCOUNT,
+      );
+
+      expect(result).toBe(MOCK_MPC_MONEY_ACCOUNT.address);
+    });
+
+    it('returns the primary address when there is no SFA account', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        undefined,
+        lifecycleState({ type: 'mfa', identity: identity(MFA_ADDRESS) }),
+        MOCK_MPC_MONEY_ACCOUNT,
+      );
+
+      expect(result).toBe(MOCK_MPC_MONEY_ACCOUNT.address);
+    });
+
+    it('returns undefined when there is no SFA lifecycle and no primary account', () => {
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        undefined,
+        { moneyAccounts: {}, addressRegistrations: {} },
+        undefined,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('preserves the primary account casing when it matches the identity address', () => {
+      const checksummedAddress = '0x0Fa0000000000000000000000000000000000002';
+
+      const result = selectMoneyAccountBalanceAddress.resultFunc(
+        MOCK_MONEY_ACCOUNT,
+        lifecycleState({ type: 'mfa', identity: identity(MFA_ADDRESS) }),
+        { ...MOCK_MPC_MONEY_ACCOUNT, address: checksummedAddress },
+      );
+
+      expect(result).toBe(checksummedAddress);
     });
   });
 });
