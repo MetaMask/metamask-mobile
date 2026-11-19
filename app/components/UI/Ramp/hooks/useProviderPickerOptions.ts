@@ -20,8 +20,8 @@ export interface ProviderPickerOptions {
 /**
  * Inputs for `RampsController.selectProviderForAsset`: the remote
  * ahead-of-history list and the completed buys kept in the legacy order
- * store, which the controller does not see. Native Deposit orders map to the
- * region's native provider.
+ * store, which the controller does not see. Native Deposit and direct Transak
+ * orders map to the region's native provider.
  *
  * @param providers - Providers for the current region.
  * @returns Stable picker options.

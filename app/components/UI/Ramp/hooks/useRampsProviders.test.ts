@@ -531,6 +531,10 @@ describe('useRampsProviders', () => {
     it('picks again when the selection is cleared', () => {
       mockController.state.providers.selected = mockProviders[0];
       mockController.state.providerAutoSelected = false;
+      currentStore = createMockStore({
+        data: mockProviders,
+        selected: mockProviders[0],
+      });
       const { rerender } = renderHook(
         () => useRampsProviders({ enableSideEffects: true }),
         {

@@ -251,7 +251,7 @@ export const getOrders = createSelector(
 );
 
 /**
- * Marks a native Deposit order in legacy history. The native provider's id
+ * Marks a native Deposit or direct Transak order in legacy history. The native provider's id
  * differs per environment, so callers resolve it against the provider list.
  */
 export const LEGACY_NATIVE_DEPOSIT_PROVIDER_ID = 'native-deposit';
@@ -278,7 +278,10 @@ export const getCompletedLegacyBuyHistory = createSelector(
         ) {
           providerId = (order.data as Order | RampsOrder | undefined)?.provider
             ?.id;
-        } else if (order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
+        } else if (
+          order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||
+          order.provider === FIAT_ORDER_PROVIDERS.TRANSAK
+        ) {
           providerId = LEGACY_NATIVE_DEPOSIT_PROVIDER_ID;
         } else {
           providerId = order.provider;

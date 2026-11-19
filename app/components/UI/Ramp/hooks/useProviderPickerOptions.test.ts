@@ -42,6 +42,7 @@ const legacyOrders = [
     data: { provider: { id: '/providers/moonpay' } },
   }),
   legacyOrder({ provider: FIAT_ORDER_PROVIDERS.DEPOSIT, createdAt: 200 }),
+  legacyOrder({ provider: FIAT_ORDER_PROVIDERS.TRANSAK, createdAt: 50 }),
   legacyOrder({
     provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
     createdAt: 300,
@@ -75,7 +76,7 @@ const wrapper =
     );
 
 describe('useProviderPickerOptions', () => {
-  it('returns the flag list and completed legacy buys, with Deposit mapped to the native provider', () => {
+  it('returns the flag list and completed legacy buys, with Deposit and direct Transak mapped to the native provider', () => {
     const { result } = renderHook(() => useProviderPickerOptions(providers), {
       wrapper: wrapper(),
     });
@@ -85,11 +86,12 @@ describe('useProviderPickerOptions', () => {
       extraHistory: [
         { providerId: '/providers/moonpay', completedAt: 100 },
         { providerId: 'transak-native', completedAt: 200 },
+        { providerId: 'transak-native', completedAt: 50 },
       ],
     });
   });
 
-  it('drops legacy Deposit orders when the region has no native provider', () => {
+  it('drops legacy Deposit and direct Transak orders when the region has no native provider', () => {
     const { result } = renderHook(
       () => useProviderPickerOptions(providers.slice(1)),
       { wrapper: wrapper() },
