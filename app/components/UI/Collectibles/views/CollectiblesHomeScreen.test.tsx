@@ -15,15 +15,10 @@ describe('CollectiblesHomeScreen', () => {
     mockGoBack.mockClear();
   });
 
-  it('shows the placeholder title and message', () => {
+  it('shows the title', () => {
     render(<CollectiblesHomeScreen />);
 
-    expect(
-      screen.getByText(strings('collectibles.placeholder.main')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('collectibles.placeholder.coming_soon')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
   });
 
   it('goes back when the back button is pressed', () => {

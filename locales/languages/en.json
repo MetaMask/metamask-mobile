@@ -5378,6 +5378,13 @@
     "unknown": "Unknown",
     "stock": "Stock"
   },
+  "collectibles": {
+    "title": "Collectibles",
+    "home_section": {
+      "description": "Explore collectibles packs and cards.",
+      "open_collectibles": "Explore Collectibles"
+    }
+  },
   "collectible": {
     "collectible_address": "Address",
     "collectible_type": "Type",
@@ -13697,13 +13704,6 @@
     "error": {
       "unable_to_load": "Unable to load {{section}}",
       "retry": "Retry"
-    }
-  },
-  "collectibles": {
-    "placeholder": {
-      "main": "Collectibles",
-      "pack": "Pack",
-      "coming_soon": "Coming soon"
     }
   },
   "sites": {

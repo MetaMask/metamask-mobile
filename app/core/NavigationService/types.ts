@@ -47,7 +47,6 @@ import type { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../../compon
 import type { Nft } from '@metamask/assets-controllers';
 import type { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
 import type { DeFiProtocolPositionDetailsParams } from '../../components/UI/DeFiPositions/DeFiProtocolPositionDetails';
-import type { CollectiblesStackParamList } from '../../components/UI/Collectibles/types/navigation';
 
 // Bridge params
 import type {
@@ -175,6 +174,9 @@ import type { SendStackParamList } from '../../components/Views/confirmations/co
 
 // Predict params
 import type { PredictAppRouteParamList } from '../../components/UI/PredictNext';
+
+// Collectibles params
+import type { CollectiblesStackParamList } from '../../components/UI/Collectibles/types/navigation';
 
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
@@ -1040,10 +1042,9 @@ export type RootStackParamList = {
   PredictMarketUnavailable: PredictAppRouteParamList['PredictMarketUnavailable'];
   PredictAddFundsSheet: PredictAppRouteParamList['PredictAddFundsSheet'];
 
-  // Collectibles routes. `Collectibles` is a nested stack.
+  // Collectibles routes — `Collectibles` is a nested stack navigator.
   Collectibles: NavigatorScreenParams<CollectiblesStackParamList> | undefined;
   CollectiblesHome: CollectiblesStackParamList['CollectiblesHome'];
-  CollectiblesPack: CollectiblesStackParamList['CollectiblesPack'];
 
   // Social Leaderboard routes
   SocialV0View:

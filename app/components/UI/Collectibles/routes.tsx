@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../constants/navigation/Routes';
 import type { CollectiblesStackParamList } from './types/navigation';
 import { CollectiblesHomeScreen } from './views/CollectiblesHomeScreen';
-import { CollectiblesPackScreen } from './views/CollectiblesPackScreen';
 
 const Stack = createNativeStackNavigator<CollectiblesStackParamList>();
 
@@ -16,10 +15,6 @@ export function CollectiblesScreenStack() {
       <Stack.Screen
         name={Routes.COLLECTIBLES.HOME}
         component={CollectiblesHomeScreen}
-      />
-      <Stack.Screen
-        name={Routes.COLLECTIBLES.PACK}
-        component={CollectiblesPackScreen}
       />
     </Stack.Navigator>
   );
