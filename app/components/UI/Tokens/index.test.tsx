@@ -237,6 +237,35 @@ describe('Tokens', () => {
     });
   });
 
+  it('clears the refresh indicator and rethrows when the token refresh rejects', async () => {
+    const refreshError = new Error('refresh failed');
+    mockRefreshTokensForGroup.mockRejectedValueOnce(refreshError);
+
+    renderComponent(initialState);
+    const onRefresh = jest.mocked(TokenList).mock.calls.at(-1)?.[0].onRefresh;
+
+    if (!onRefresh) {
+      throw new Error('TokenList did not receive onRefresh');
+    }
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await onRefresh();
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBe(refreshError);
+    expect(mockRefreshTokensForGroup).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(jest.mocked(TokenList).mock.calls.at(-1)?.[0].refreshing).toBe(
+        false,
+      );
+    });
+  });
+
   const removeTokenTests = [
     // EVM Token Removal
     {

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
@@ -12,10 +18,13 @@ import type {
 // @ts-expect-error HTML import handled by babel-plugin-inline-import.
 import lighterSdkHtml from './wasm-wrapper.standalone.html';
 import {
+  clearLighterSignerRequest,
   connectLighterExecutor,
+  isLighterSignerRequested,
   reviveLighterBridge,
   resetLighterBridge,
   setLighterBridgeUnavailable,
+  subscribeLighterSignerRequest,
   LIGHTER_SIGNER_LOCKED_ERROR,
   type LighterExecutorCall,
   type LighterExecutor,
@@ -197,8 +206,8 @@ export function isValidLighterSignerResult(
 /**
  * Hidden off-screen WebView hosting the Lighter Go/WASM signer.
  *
- * Follows the SnapsExecutionWebView precedent (0x0 view mounted in Root before
- * Engine interactions) and the reference Lighter RN SDK postMessage protocol:
+ * Follows the SnapsExecutionWebView precedent (0x0 view in Root), mounted on
+ * the first signer request, and the reference Lighter RN SDK postMessage protocol:
  * page → RN: ready | initError | log | warn | error | executeResult | executeError;
  * RN → page: { type: 'execute', function, params, executeId }.
  *
@@ -473,8 +482,45 @@ const UnlockedLighterSignerWebView = () => {
   );
 };
 
-/** Keep the key-holding native page outside locked wallet sessions. */
+/**
+ * Keep the key-holding native page outside locked wallet sessions, and don't
+ * load it until a Lighter call needs it: the page is a 10 MB inline document
+ * whose load blocks the Android main thread for hundreds of ms, which used to
+ * land on every unlock. Calls wait behind the bridge's readiness promise, so
+ * the first one simply waits for the page to load.
+ *
+ * This always-mounted host owns lock retirement, so a lock retires bridge work
+ * even when no page is mounted (key discovery never mounts one). It listens to
+ * the keyring events rather than Redux, which can batch a lock and unlock into
+ * one commit.
+ */
 export const LighterSignerWebView = () => {
   const isUnlocked = useSelector(selectIsUnlocked);
-  return isUnlocked ? <UnlockedLighterSignerWebView /> : null;
+  const isRequested = useSyncExternalStore(
+    subscribeLighterSignerRequest,
+    isLighterSignerRequested,
+  );
+  useEffect(() => {
+    const messenger = Engine.controllerMessenger;
+    let isLocked = !Engine.context.KeyringController.isUnlocked();
+    const onLock = () => {
+      isLocked = true;
+      // The next unlock waits for a new request before loading the page.
+      clearLighterSignerRequest();
+      setLighterBridgeUnavailable(LIGHTER_SIGNER_LOCKED_ERROR);
+    };
+    const onUnlock = () => {
+      // A repeated unlock must not revive a page that exhausted its reloads.
+      if (!isLocked) return;
+      isLocked = false;
+      reviveLighterBridge();
+    };
+    messenger.subscribe('KeyringController:lock', onLock);
+    messenger.subscribe('KeyringController:unlock', onUnlock);
+    return () => {
+      messenger.tryUnsubscribe('KeyringController:lock', onLock);
+      messenger.tryUnsubscribe('KeyringController:unlock', onUnlock);
+    };
+  }, []);
+  return isUnlocked && isRequested ? <UnlockedLighterSignerWebView /> : null;
 };

@@ -1,4 +1,5 @@
 import { within } from '@testing-library/react-native';
+import { escapeRegExp } from 'lodash';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -7,9 +8,20 @@ import {
 import Engine from '../../../app/core/Engine';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
+import type {
+  SignOperation,
+  SignRead,
+} from '../../../app/components/UI/PredictNext/adapters/remote/signedVenueCall';
+import {
+  loadVenueProfile,
+  VENUE_AUTHORIZATION_HEADER,
+} from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
+import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
 import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
 import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
+import { getPredictFundingServiceMessenger } from '../../../app/core/Engine/messengers/predict-funding-service-messenger';
+import { PredictFundingService } from '../../../app/components/UI/PredictNext/services/PredictFundingService';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/config/venueCatalogs';
@@ -18,12 +30,14 @@ import type {
   PredictQuote,
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
+import { PredictFeedScreenTestIds } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen.testIds';
 import type {
   PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
+  PredictGameStatus,
   PredictMarket,
   PredictMarketLayout,
   PredictOutcome,
@@ -38,6 +52,10 @@ interface GameEventOptions {
   volume?: string;
   score?: { away: string; home: string };
   askPrices?: { away: string; home: string };
+  /** Defaults to `in_progress`. A `scheduled` Game has no score, period or clock. */
+  status?: PredictGameStatus;
+  /** ISO start time, set as the Event's `startsAt`. */
+  startsAt?: string;
 }
 
 const makeEvent = (
@@ -133,6 +151,30 @@ export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
       yesAskPrice: '0',
     }),
   ],
+});
+
+const OUTCOMES_MARKETS_LAYOUT: PredictMarketLayout = {
+  tab: { key: 'outcomes', order: 1 },
+  section: { key: 'markets', order: 1 },
+};
+
+/**
+ * A Politics Event laid out as `outcomes` › `markets`: five ungrouped
+ * Markets in the order the backend sent them.
+ */
+export const makePredictNextLaidOutStandardEvent = (): PredictEvent => ({
+  ...makeEvent('next-speaker', 'Who will be the next Speaker?'),
+  category: 'Politics',
+  markets: [
+    ['johnson', 'Mike Johnson', '0.41', '0.59', '900000'],
+    ['jeffries', 'Hakeem Jeffries', '0.33', '0.67', '600000'],
+    ['jordan', 'Jim Jordan', '0.12', '0.88', '300000'],
+    ['scalise', 'Steve Scalise', '0.08', '0.92', '150000'],
+    ['emmer', 'Tom Emmer', '0.04', '0.96', '50000'],
+  ].map(([id, label, yesAskPrice, noAskPrice, volume]) => ({
+    ...makeStandardMarket({ id, label, yesAskPrice, noAskPrice, volume }),
+    layout: OUTCOMES_MARKETS_LAYOUT,
+  })),
 });
 
 const makeGroupedMarket = ({
@@ -278,6 +320,8 @@ export const makePredictNextGameEvent = (
     volume = '1500000',
     score = { away: '17', home: '21' },
     askPrices = { away: '0.42', home: '0.58' },
+    status = 'in_progress',
+    startsAt,
   }: GameEventOptions = {},
 ): PredictEvent => {
   const event = makeEvent(id, `${awayTeam} vs ${homeTeam}`, askPrices);
@@ -286,6 +330,7 @@ export const makePredictNextGameEvent = (
   return {
     ...event,
     volume,
+    ...(startsAt ? { startsAt: startsAt as PredictTimestamp } : {}),
     sports: {
       sport: {
         id: 'american-football' as PredictEntityId,
@@ -296,12 +341,12 @@ export const makePredictNextGameEvent = (
         label: competition,
       },
       game: {
-        status: 'in_progress',
+        status,
         awayTeam: { name: awayTeam, abbreviation: awayTeam.slice(0, 3) },
         homeTeam: { name: homeTeam, abbreviation: homeTeam.slice(0, 3) },
-        score,
-        period: 'Q4',
-        clock: '12:22',
+        ...(status === 'scheduled'
+          ? {}
+          : { score, period: 'Q4', clock: '12:22' }),
         observedAt: '2026-08-19T12:00:00Z' as PredictTimestamp,
       },
     },
@@ -443,23 +488,28 @@ export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
     displayOrder: number,
   ): PredictMarket => {
     const id = `${event.id}-${stat.key}-${player}-${threshold}`;
-    const label = `${threshold}+ yards`;
     return {
       ...template,
       id: id as PredictEntityId,
-      question: `${player}: ${label}`,
+      question: `${player}: ${threshold}+`,
       outcomes: [
         {
           ...template.outcomes[0],
           id: `${id}-yes` as PredictEntityId,
-          label,
+          label: 'Yes',
           gameSelection,
         },
-        { ...template.outcomes[1], id: `${id}-no` as PredictEntityId, label },
+        {
+          ...template.outcomes[1],
+          id: `${id}-no` as PredictEntityId,
+          label: 'No',
+        },
       ],
       group: {
         key: `${event.id}:${stat.key}:${player}`,
-        groupType: 'choice',
+        groupType: 'marketSelector',
+        marketType: 'threshold',
+        option: { type: 'number', value: threshold },
         displayOrder,
         label: player,
       },
@@ -483,6 +533,37 @@ export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
       prop(passing, 'Drake Maye', 'away', 200, 0),
       prop(passing, 'Drake Maye', 'away', 250, 1),
     ],
+  };
+};
+
+/**
+ * The Market, side and catalog context of an entry (Position, Trade or
+ * Settlement) on one of the player-props Game's threshold lines, as the
+ * backend sends them: the Outcome label is only "Yes" or "No", and the
+ * context's `marketLabels` name the Player and the line.
+ */
+export const makePredictNextThresholdEntry = (
+  event: PredictEvent,
+  player: string,
+  threshold: number,
+  side: PredictOutcome['side'],
+) => {
+  const market = event.markets.find(
+    (candidate) => candidate.question === `${player}: ${threshold}+`,
+  );
+  if (!market) {
+    throw new Error(`No threshold line ${player}: ${threshold}+`);
+  }
+  return {
+    marketId: market.id,
+    side,
+    context: {
+      eventId: event.id,
+      eventTitle: event.title,
+      marketQuestion: market.question,
+      outcomeLabel: side === 'yes' ? 'Yes' : 'No',
+      marketLabels: [player, `${threshold}+`],
+    },
   };
 };
 
@@ -510,6 +591,18 @@ export const ncaaEvents = [
   }),
 ];
 
+/** Politics topic Events: non-game Events, shown by the Politics cards. */
+export const politicsEvents = [
+  {
+    ...makeEvent('politics-1', 'Trump approval above 45%?'),
+    category: 'Politics',
+  },
+  {
+    ...makeEvent('politics-2', 'Congress passes the budget?'),
+    category: 'Politics',
+  },
+];
+
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
@@ -523,7 +616,24 @@ export const PREDICT_NEXT_FEED_IDS = {
   ncaaProps: KALSHI_STATIC_VENUE_CATALOG.feeds[
     'college-football-props'
   ] as PredictFeedId,
+  politicsTrump: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-trump'
+  ] as PredictFeedId,
+  politicsCongress: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-congress'
+  ] as PredictFeedId,
+  politicsIran: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-iran'
+  ] as PredictFeedId,
 } as const;
+
+/** The Politics topic Feed IDs, which the default messenger serves from
+ * `politics`. */
+const POLITICS_FEED_IDS: ReadonlySet<string> = new Set([
+  PREDICT_NEXT_FEED_IDS.politicsTrump,
+  PREDICT_NEXT_FEED_IDS.politicsCongress,
+  PREDICT_NEXT_FEED_IDS.politicsIran,
+]);
 
 /**
  * The Venue catalog the messenger serves: a value (valid or malformed), an
@@ -574,11 +684,18 @@ export const answerPredictNextCatalog = (
 export const mockPredictNextMessenger = (
   implementation: (action: string, ...params: never[]) => unknown,
 ) =>
-  messengerCall.mockImplementation(
-    (action: string, ...params: unknown[]) =>
+  messengerCall.mockImplementation((action: string, ...params: unknown[]) => {
+    if (action === 'PredictOrderService:getRecovery') {
+      return [];
+    }
+    if (action === 'PredictOrderService:refreshRecovery') {
+      return Promise.resolve();
+    }
+    return (
       answerPredictNextCatalog(action) ??
-      implementation(action, ...(params as never[])),
-  );
+      implementation(action, ...(params as never[]))
+    );
+  });
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
  * cursor (absent for the first page) and `nextCursor` links to the next
@@ -588,6 +705,68 @@ export interface PredictNextPositionsPageFixture {
   positions: readonly unknown[];
   nextCursor?: string;
 }
+
+// Deterministic test envelopes; the real client still performs the exchange
+// and sends exactly the profile-rendered bytes, including the commit overlay.
+const signRead: SignRead = async ({ method, path, query }) => ({
+  name: VENUE_AUTHORIZATION_HEADER,
+  value: JSON.stringify({ method, path, query }),
+});
+
+/** Renders one intent from the bundled profile exactly as the Engine
+ * signer does, invariant included. */
+const renderIntent = async (
+  operation: string,
+  input?: Parameters<SignOperation>[1],
+) => {
+  const profile = await loadVenueProfile();
+  const intent = profile?.intents.find(({ id }) => id === operation);
+  const payloadName = intent?.payloads[0];
+  const payload = payloadName && profile?.payloads[payloadName];
+  if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+    throw new Error(`Missing fixture signing template for ${operation}`);
+  }
+  return renderRequest(
+    payloadName,
+    {
+      class: 'mutation',
+      method: payload.method,
+      path: payload.path,
+      body: payload.body
+        ? { json: payload.body.json, maxBytes: payload.body.maxBytes }
+        : undefined,
+      idempotencyKey: payload.idempotencyKey,
+      invariants: payload.invariants,
+    },
+    {
+      inputs: input?.inputs ?? {},
+      values: input?.values ?? {},
+      nowMs: Date.now(),
+    },
+  );
+};
+
+/** Installs the Engine rendering seam used by the adapter's review dependency. */
+export const installPredictNextPreviewOperation = (): void => {
+  (
+    Engine.context as unknown as Record<string, unknown>
+  ).PredictDeviceAuthService = {
+    getApprovalGeneration: () => 0,
+    previewOperation: async (
+      operation: string,
+      input?: Parameters<SignOperation>[1],
+    ) => (await renderIntent(operation, input)).display,
+  };
+};
+
+const signOperation: SignOperation = async (operation, input) => {
+  const rendered = await renderIntent(operation, input);
+  return {
+    header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
+    body: rendered.body,
+    idempotencyKey: rendered.idempotencyKey,
+  };
+};
 
 /**
  * Composes the real Order workflow service the way the Engine init does,
@@ -600,6 +779,8 @@ export const composePredictNextOrderService = (
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): PredictOrderService => {
+  // The adapter asks the Engine for checked review figures before approval.
+  installPredictNextPreviewOperation();
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -611,7 +792,15 @@ export const composePredictNextOrderService = (
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
+    },
   );
   return new PredictOrderService({
     messenger,
@@ -628,6 +817,7 @@ export const composePredictNextOrderService = (
  * by delegating its messenger adapter to the returned root.
  */
 export const composePredictNextPortfolioTrading = () => {
+  installPredictNextPreviewOperation();
   const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -637,7 +827,15 @@ export const composePredictNextPortfolioTrading = () => {
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
+    },
   );
   const portfolioService = new PredictPortfolioService({
     messenger: getPredictPortfolioServiceMessenger(
@@ -666,6 +864,35 @@ export const composePredictNextPortfolioTrading = () => {
       portfolioService.destroy();
     },
   };
+};
+
+/**
+ * Composes the real Withdraw workflow service the way the Engine init does,
+ * against whatever `globalThis.fetch` is installed when called. Withdrawals
+ * never sign, so the adapter is bearer-only here.
+ */
+export const composePredictNextFundingService = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  }),
+): PredictFundingService => {
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  return new PredictFundingService({
+    messenger: getPredictFundingServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictFundingServiceMessenger
+      >[0],
+    ),
+    funding: adapter.funding,
+    venueId: adapter.venueId,
+  });
 };
 
 /**
@@ -888,6 +1115,7 @@ export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
+  politics = politicsEvents,
   details,
   positions,
   positionPages,
@@ -897,6 +1125,8 @@ export const configurePredictNextFeeds = ({
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
+  /** Served for every Politics topic Feed (Trump, Congress, Iran). */
+  politics?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
   positions?: readonly unknown[] | Error;
   /** Cursor-addressable Positions pages, for tests that exercise
@@ -910,11 +1140,18 @@ export const configurePredictNextFeeds = ({
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
     ...(ncaa instanceof Error ? [] : ncaa),
+    ...(politics instanceof Error ? [] : politics),
   ];
 
   resetPredictNextCatalog();
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
+      if (action === 'PredictOrderService:getRecovery') {
+        return [];
+      }
+      if (action === 'PredictOrderService:refreshRecovery') {
+        return Promise.resolve();
+      }
       const catalogResponse = answerPredictNextCatalog(action);
       if (catalogResponse) {
         return catalogResponse;
@@ -983,7 +1220,12 @@ export const configurePredictNextFeeds = ({
       }
 
       const feedId = resourceId as PredictFeedId;
-      const result = feedId === PREDICT_NEXT_FEED_IDS.nflGames ? nfl : ncaa;
+      const isPolitics = POLITICS_FEED_IDS.has(feedId);
+      const result = isPolitics
+        ? politics
+        : feedId === PREDICT_NEXT_FEED_IDS.nflGames
+          ? nfl
+          : ncaa;
       if (result instanceof Error) {
         return Promise.reject(result);
       }
@@ -991,8 +1233,9 @@ export const configurePredictNextFeeds = ({
       return Promise.resolve({
         venueId: 'kalshi',
         id: feedId,
-        title:
-          feedId === PREDICT_NEXT_FEED_IDS.nflGames
+        title: isPolitics
+          ? 'Politics'
+          : feedId === PREDICT_NEXT_FEED_IDS.nflGames
             ? 'NFL Games'
             : 'NCAAF Games',
         events: result,
@@ -1025,8 +1268,12 @@ export const expectPredictNextGameCard = (
     home: string;
     awayScore: string;
     homeScore: string;
-    awayQuote: string;
-    homeQuote: string;
+    /**
+     * The quote's text, "ABBR · price". A featured card renders it across two
+     * Texts, so this matches the quote's text content, not a single Text.
+     */
+    awayQuote: string | RegExp;
+    homeQuote: string | RegExp;
     competition?: string;
     volume?: string;
   },
@@ -1036,12 +1283,22 @@ export const expectPredictNextGameCard = (
   );
   const scoped = within(card);
 
-  expect(scoped.getByText(away)).toBeOnTheScreen();
-  expect(scoped.getByText(home)).toBeOnTheScreen();
+  // A featured card shows the Team abbreviation only, so the Team name is read
+  // from the quote's accessibility label ("Team name, price, buy").
+  expect(
+    scoped.getByLabelText(new RegExp(`^${escapeRegExp(away)}, `)),
+  ).toBeOnTheScreen();
+  expect(
+    scoped.getByLabelText(new RegExp(`^${escapeRegExp(home)}, `)),
+  ).toBeOnTheScreen();
   expect(scoped.getByText(awayScore)).toBeOnTheScreen();
   expect(scoped.getByText(homeScore)).toBeOnTheScreen();
-  expect(scoped.getByText(awayQuote)).toBeOnTheScreen();
-  expect(scoped.getByText(homeQuote)).toBeOnTheScreen();
+  expect(
+    scoped.getByTestId(`predict-next-game-quote-${eventId}-away`),
+  ).toHaveTextContent(awayQuote);
+  expect(
+    scoped.getByTestId(`predict-next-game-quote-${eventId}-home`),
+  ).toHaveTextContent(homeQuote);
   if (competition) {
     expect(scoped.getByText(competition)).toBeOnTheScreen();
   }
@@ -1049,3 +1306,63 @@ export const expectPredictNextGameCard = (
     expect(scoped.getByText(volume)).toBeOnTheScreen();
   }
 };
+
+/** Team logos are hidden from screen readers. */
+const INCLUDE_HIDDEN = { includeHiddenElements: true };
+
+/**
+ * Checks a small game card: the Competition and start, then each Team's logo
+ * fallback, abbreviation and price.
+ */
+export const expectPredictNextSmallGameCard = (
+  section: Parameters<typeof within>[0],
+  eventId: string,
+  {
+    competition,
+    start,
+    away,
+    home,
+  }: {
+    competition: string;
+    start: string;
+    away: { abbr: string; quote: string };
+    home: { abbr: string; quote: string };
+  },
+): void => {
+  const card = within(
+    within(section).getByTestId(PredictHomeTestIds.event('kalshi', eventId)),
+  );
+  expect(
+    card.getByTestId(`predict-next-game-header-${eventId}-competition`),
+  ).toHaveTextContent(competition);
+  expect(
+    card.getByTestId(`predict-next-game-header-${eventId}-start`),
+  ).toHaveTextContent(start);
+
+  (['away', 'home'] as const).forEach((side) => {
+    const { abbr, quote } = side === 'away' ? away : home;
+    const team = within(
+      card.getByTestId(`predict-next-game-team-${eventId}-${side}`),
+    );
+    expect(
+      team.getByTestId(
+        `predict-next-game-logo-fallback-${eventId}-${side}`,
+        INCLUDE_HIDDEN,
+      ),
+    ).toHaveTextContent(abbr);
+    expect(
+      team.getByTestId(`predict-next-game-team-label-${eventId}-${side}`),
+    ).toHaveTextContent(abbr);
+    expect(
+      team.getByTestId(PredictHomeTestIds.gameQuote(eventId, side)),
+    ).toHaveTextContent(quote);
+  });
+};
+
+/** The Feed Screen's tab labels, in order. */
+export const feedScreenTabLabels = (
+  container: Parameters<typeof within>[0],
+): string[] =>
+  within(within(container).getByTestId(PredictFeedScreenTestIds.TABS))
+    .getAllByRole('button')
+    .map((tab) => tab.props.accessibilityLabel);

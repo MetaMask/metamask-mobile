@@ -1,6 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
@@ -15,11 +16,13 @@ import {
 import { PerpsConnectionManager } from '../../../app/components/UI/Perps/services/PerpsConnectionManager';
 import { buildPerpsMarketContextKey } from '../../../app/components/UI/Perps/utils/perpsMarketContext';
 import Routes from '../../../app/constants/navigation/Routes';
+import { PerpsTradeSheetSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import {
   createComponentViewQueryClient,
   renderComponentViewScreen,
   renderScreenWithRoutes,
+  ToasterBoundary,
 } from '../render';
 import {
   initialStatePerps,
@@ -271,6 +274,7 @@ export interface PerpsStreamControls {
   getAccountReconnectCount: () => number;
   emitPositions: (positions: Position[] | null) => void;
   emitPrices: (prices: Record<string, PriceUpdate> | null) => void;
+  emitOICaps: (symbols: string[]) => void;
 }
 
 /** Channel that calls callback once with initial value so hooks leave loading state. */
@@ -471,9 +475,11 @@ interface TestStreamManagerBundle {
 const withStreamControls = <T extends object>(
   renderResult: T,
   stream: PerpsStreamControls,
+  queryClient: QueryClient,
 ) => ({
   ...renderResult,
   stream,
+  queryClient,
 });
 
 const typedPositions = (positions: unknown[]): Position[] =>
@@ -550,6 +556,11 @@ export interface PerpsStreamOverrides {
   liveCandles?: CandleData | null;
   /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
   cachedFocusedPrice?: PriceUpdate | null;
+  /**
+   * Symbols at their open-interest cap. Delivered on subscribe and through
+   * `emitOICaps`.
+   */
+  oiCaps?: string[];
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
@@ -572,6 +583,9 @@ function createTestStreamManager(
     streamOverrides?.prices,
     streamOverrides?.cachedPrices,
   );
+  const oiCaps = mutableChannelWithInitialValue<string[]>(
+    streamOverrides?.oiCaps ?? [],
+  );
   const cachedCandles = streamOverrides?.cachedCandles ?? null;
   const chartCacheFresh =
     streamOverrides?.chartCacheFresh ?? cachedCandles != null;
@@ -583,7 +597,7 @@ function createTestStreamManager(
     fills,
     account,
     marketData,
-    oiCaps: noopChannel(),
+    oiCaps,
     topOfBook: topOfBookChannel(),
     focusedPrice: focusedPriceChannel(
       streamOverrides?.cachedFocusedPrice ?? null,
@@ -625,6 +639,7 @@ function createTestStreamManager(
         handlePerpsCufPositionsDelivered(nextPositions ?? []);
       },
       emitPrices: prices.emit,
+      emitOICaps: oiCaps.emit,
     },
   };
 }
@@ -817,14 +832,18 @@ export function renderPerpsView(
       </Stack.Navigator>
     );
     // App toasts outlive the submitting route and remain visible after navigation.
-    const navigationTree = includeToasts ? (
+    // Perps still uses the legacy toast host; the design-system Toaster covers
+    // social and other migrated toasts rendered from the same tree.
+    const legacyTree = includeToasts ? (
       <PerpsTestToastHost>{stackTree}</PerpsTestToastHost>
     ) : (
       stackTree
     );
+    const navigationTree = <ToasterBoundary>{legacyTree}</ToasterBoundary>;
     return withStreamControls(
       renderWithProvider(navigationTree, { state }),
       stream,
+      queryClient,
     );
   }
 
@@ -836,6 +855,7 @@ export function renderPerpsView(
       initialParams,
     ),
     stream,
+    queryClient,
   );
 }
 
@@ -929,6 +949,7 @@ export function renderPerpsMarketDetailsView(
     extraRoutes?: PerpsExtraRoute[];
     socialEnabled?: boolean;
     includeToasts?: boolean;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const {
@@ -938,6 +959,7 @@ export function renderPerpsMarketDetailsView(
     extraRoutes,
     socialEnabled,
     includeToasts,
+    crossMarginEnabled,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
@@ -949,6 +971,7 @@ export function renderPerpsMarketDetailsView(
       extraRoutes,
       socialEnabled,
       includeToasts,
+      crossMarginEnabled,
     },
   );
 }
@@ -1074,6 +1097,7 @@ export function renderPerpsClosePositionView(
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
     includeToasts?: boolean;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;
@@ -1099,6 +1123,7 @@ export function renderPerpsClosePositionRouter(
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;
@@ -1295,11 +1320,19 @@ export function renderPerpsOrderView(options: RenderPerpsViewOptions = {}) {
     defaultMaxLeverage: 50,
     ...options.initialParams,
   };
-  return renderPerpsView(
+  const result = renderPerpsView(
     PerpsOrderView as unknown as React.ComponentType,
     'PerpsOrderView',
     { ...options, initialParams },
   );
+  // React Test Renderer does not emit the native layout event that mounts the sheet form.
+  const placeholder = result.queryByTestId(
+    PerpsTradeSheetSelectorsIDs.PLACEHOLDER,
+  );
+  if (placeholder) {
+    fireEvent(placeholder, 'layout');
+  }
+  return result;
 }
 
 /**
@@ -1415,6 +1448,7 @@ export function renderPerpsComponent(
       { state },
     ),
     stream,
+    queryClient,
   );
 }
 
@@ -1462,6 +1496,7 @@ export function renderPerpsComponentDisconnected(
       { state },
     ),
     stream,
+    queryClient,
   );
 }
 

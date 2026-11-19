@@ -125,6 +125,7 @@ const makeEligibility = (
   isRegionEligible: true,
   isDevBypassEnabled: false,
   location: 'BR',
+  market: undefined,
   ...overrides,
 });
 
@@ -205,7 +206,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'none' });
   });
 
-  it('renders account_is_ready for an approved session with a usable autoramp (decision rule 3)', () => {
+  it('renders account_is_ready for an approved session with a usable autoramp (decision rule 2 wins over identity_verified)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -213,6 +214,7 @@ describe('getVbaHomeCard', () => {
         kycStatus: 'approved',
       }),
       autoramps: [makeAutoramp()],
+      hasUsableAutoramp: true,
     });
 
     expect(card).toEqual({ type: 'account_is_ready' });
@@ -289,7 +291,7 @@ describe('getVbaHomeCard', () => {
     expect(active).toEqual({ type: 'none' });
   });
 
-  it('renders account_is_ready for an approved session while no usable autoramp exists (decision rule 3)', () => {
+  it('renders identity_verified for an approved session while no usable autoramp exists (decision rule 3)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -298,11 +300,27 @@ describe('getVbaHomeCard', () => {
       }),
     });
 
-    expect(card).toEqual({ type: 'account_is_ready' });
+    expect(card).toEqual({ type: 'identity_verified' });
+  });
+
+  it('renders identity_verified for an approved session with no autoramp at all, even with terms and a submitted flow', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      hasAcceptedVendorTerms: true,
+      providerFlowStatus: 'submitted',
+      autoramps: [],
+      hasUsableAutoramp: false,
+      sessionStatus: makeSession({
+        finalStatus: 'approved',
+        kycStatus: 'approved',
+      }),
+    });
+
+    expect(card).toEqual({ type: 'identity_verified' });
   });
 
   it.each([AutorampStatus.Rejected, AutorampStatus.Cancelled])(
-    'renders account_is_ready for an approved session whose only autoramp is %s (decision rule 3)',
+    'renders identity_verified for an approved session whose only autoramp is %s (decision rule 3)',
     (status) => {
       const card = getVbaHomeCard({
         ...baseInputs,
@@ -313,7 +331,7 @@ describe('getVbaHomeCard', () => {
         autoramps: [makeAutoramp({ status })],
       });
 
-      expect(card).toEqual({ type: 'account_is_ready' });
+      expect(card).toEqual({ type: 'identity_verified' });
     },
   );
 
@@ -329,7 +347,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_pending' });
   });
 
-  it('renders the kyc_decision stub when finalStatus is rejected (decision rule 5)', () => {
+  it('renders the terminal kyc_decision card when finalStatus is rejected', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -342,7 +360,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_decision' });
   });
 
-  it('renders the kyc_decision stub when finalStatus is retry (decision rule 5)', () => {
+  it('renders the kyc_retry card when finalStatus is retry', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -351,7 +369,7 @@ describe('getVbaHomeCard', () => {
       }),
     });
 
-    expect(card).toEqual({ type: 'kyc_decision' });
+    expect(card).toEqual({ type: 'kyc_retry' });
   });
 
   it('renders kyc_pending when the relay kycStatus is pending (decision rule 5)', () => {
@@ -552,6 +570,15 @@ describe('getVbaHomeCard', () => {
         }),
       },
     ],
+    [
+      'kyc_retry',
+      {
+        sessionStatus: makeSession({
+          finalStatus: 'retry',
+          kycStatus: 'retry',
+        }),
+      },
+    ],
   ] as const)(
     'leaves %s unchanged whatever the details-viewed flag says',
     (type, overrides) => {
@@ -683,6 +710,23 @@ describe('useVbaHomeCard', () => {
     });
 
     expect(result.current).toEqual({ type: 'kyc_decision' });
+  });
+
+  it('honors a retry dev KYC status override as the needs-more-info card', async () => {
+    mockGetVbaKycStatusOverride.mockReturnValue('retry');
+    setupSelectors({
+      sessionStatus: makeSession({
+        finalStatus: 'pending',
+        kycStatus: 'new',
+      }),
+    });
+
+    const { result } = renderHook(() => useVbaHomeCard());
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current).toEqual({ type: 'kyc_retry' });
   });
 
   it('treats local vendor terms as not accepted while loading, then flips once accepted', async () => {

@@ -3,6 +3,15 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { View as ReactNativeView } from 'react-native';
 import SelectField from './SelectField';
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    // Joins truthy classes so tests can assert on them.
+    style: (...classes: unknown[]) => ({
+      twClasses: classes.filter(Boolean).join(' '),
+    }),
+  }),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -17,6 +26,11 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   const IconSize = {
     Sm: 'sm',
+  };
+
+  const TextColor = {
+    TextDefault: 'text-default',
+    TextAlternative: 'text-alternative',
   };
 
   return {
@@ -53,6 +67,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     Icon: ({ name }: { name: string }) =>
       ReactActual.createElement(View, { testID: `icon-${name}` }),
     TextVariant,
+    TextColor,
     IconName,
     IconSize,
   };
@@ -79,21 +94,56 @@ describe('SelectField', () => {
     expect(queryByTestId('icon-arrow-down')).not.toBeOnTheScreen();
   });
 
-  it('applies text-text-alternative style in read-only mode', () => {
+  it('uses the alternative text colour in read-only mode', () => {
     const { getByText } = render(<SelectField value="Canada" />);
-    const textElement = getByText('Canada');
-    expect(textElement.props.accessibilityHint).toContain(
-      'text-text-alternative',
-    );
+    expect(getByText('Canada').props.color).toBe('text-alternative');
   });
 
-  it('does not apply alternative text style in interactive mode', () => {
+  it('uses the default text colour for a value in interactive mode', () => {
     const { getByText } = render(
       <SelectField value="Canada" onPress={mockOnPress} />,
     );
-    const textElement = getByText('Canada');
-    expect(textElement.props.accessibilityHint).not.toContain(
-      'text-text-alternative',
+    expect(getByText('Canada').props.color).toBe('text-default');
+  });
+
+  it('shows the placeholder in the alternative colour when empty', () => {
+    const { getByText } = render(
+      <SelectField
+        placeholder="Select your country"
+        onPress={mockOnPress}
+        testID="select-field"
+      />,
+    );
+    expect(getByText('Select your country').props.color).toBe(
+      'text-alternative',
+    );
+  });
+
+  it('shows the value instead of the placeholder when set', () => {
+    const { getByText, queryByText } = render(
+      <SelectField
+        value="Canada"
+        placeholder="Select your country"
+        onPress={mockOnPress}
+      />,
+    );
+    expect(getByText('Canada')).toBeOnTheScreen();
+    expect(queryByText('Select your country')).not.toBeOnTheScreen();
+  });
+
+  it('exposes a button role and disabled state', () => {
+    const { getByTestId } = render(
+      <SelectField
+        value="Canada"
+        onPress={mockOnPress}
+        isDisabled
+        testID="select-field"
+      />,
+    );
+    const touchable = getByTestId('select-field');
+    expect(touchable).toHaveProp('accessibilityRole', 'button');
+    expect(touchable.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
     );
   });
 
@@ -162,8 +212,8 @@ describe('SelectField', () => {
 
     const boxElements = UNSAFE_root.findAll(
       (node) =>
-        typeof node.props.accessibilityHint === 'string' &&
-        node.props.accessibilityHint.includes('opacity-50'),
+        typeof node.props.style?.twClasses === 'string' &&
+        node.props.style.twClasses.includes('opacity-50'),
     );
     expect(boxElements.length).toBeGreaterThan(0);
   });
@@ -179,8 +229,8 @@ describe('SelectField', () => {
 
     const boxElements = UNSAFE_root.findAll(
       (node) =>
-        typeof node.props.accessibilityHint === 'string' &&
-        node.props.accessibilityHint.includes('opacity-50'),
+        typeof node.props.style?.twClasses === 'string' &&
+        node.props.style.twClasses.includes('opacity-50'),
     );
     expect(boxElements).toHaveLength(0);
   });

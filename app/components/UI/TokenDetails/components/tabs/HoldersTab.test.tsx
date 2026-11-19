@@ -24,8 +24,35 @@ jest.mock(
   }),
 );
 
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+  useIsFocused: () => true,
+}));
+
+const mockHasAcceptedSocialTerms = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn((_navigate?: unknown) => true);
+jest.mock(
+  '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({
+    hasAcceptedSocialTerms: () => mockHasAcceptedSocialTerms(),
+    ensureSocialTermsAccepted: (navigate: unknown) =>
+      mockEnsureSocialTermsAccepted(navigate),
+  }),
+);
+
 jest.mock('./holders/useTokenHolders', () => ({
   useTokenHolders: jest.fn(),
+}));
+
+jest.mock('../../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
+  useMyProfile: () => ({
+    profile: null,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
 }));
 
 // Paging follows the page's ScrollView, which a test renderer never scrolls.
@@ -59,6 +86,8 @@ const toRow = (index: number): TraderFeedRow => {
 const baseState: TokenHoldersState = {
   rows: [],
   isLoading: false,
+  isFetching: false,
+  hasFetched: true,
   isFetchingNextPage: false,
   hasNextPage: false,
   loadMore: jest.fn(),
@@ -92,6 +121,10 @@ const textColor = (node: {
 describe('TokenDetailsHoldersTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasAcceptedSocialTerms.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockImplementation(() =>
+      mockHasAcceptedSocialTerms(),
+    );
     mockSelectEnabled.mockReturnValue(true);
     mockState();
   });
@@ -264,5 +297,38 @@ describe('TokenDetailsHoldersTab', () => {
     expect(mockLoadMoreOptions).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
+  });
+
+  describe('social onboarding', () => {
+    it('opens Social terms / onboarding when a row is tapped before onboarding', () => {
+      mockHasAcceptedSocialTerms.mockReturnValue(false);
+      mockState({ rows: [toRow(0), toRow(1)] });
+
+      renderTab();
+      const rows = screen.getAllByTestId(TokenHolderRowSelectorsIDs.PRESS);
+      fireEvent.press(rows[1]);
+
+      expect(rows).toHaveLength(2);
+      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledTimes(1);
+      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    });
+
+    it('opens the holder profile once Social terms are accepted', () => {
+      mockState({ rows: [toRow(1)] });
+
+      renderTab();
+      fireEvent.press(screen.getByTestId(TokenHolderRowSelectorsIDs.PRESS));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'SocialV1ProfileView',
+        expect.objectContaining({
+          traderId: '2b1c8e44-55a9-4a0e-9f8d-7c2e4b6a1f02',
+          traderName: 'degenmachine',
+          traderAddress: '0x3f5ce5fbfe3e9af3971dd833d26ba9b5c936f0be',
+          source: 'trader_feed',
+        }),
+        {},
+      );
+    });
   });
 });

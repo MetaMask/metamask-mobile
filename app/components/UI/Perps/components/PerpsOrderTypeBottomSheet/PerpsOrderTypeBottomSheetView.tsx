@@ -3,7 +3,6 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   BottomSheet,
-  BottomSheetHeader,
   FontWeight,
   type BottomSheetRef,
   ListItemSelect,
@@ -40,6 +39,9 @@ import TakeMarketIconLight from '../../../../../images/perps/order-types/take-ma
 import TwapIconDark from '../../../../../images/perps/order-types/twap.svg';
 import TwapIconLight from '../../../../../images/perps/order-types/twap-light.svg';
 import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type OrderTypeIcon = React.FC<SvgProps & { name: string }>;
 
@@ -233,6 +235,7 @@ const PerpsOrderTypeBottomSheetView = ({
   availableOrderTypes,
   sheetRef: externalSheetRef,
 }: PerpsOrderTypeBottomSheetViewProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
   const shouldShowOrderTypeIcon =
@@ -345,14 +348,15 @@ const PerpsOrderTypeBottomSheetView = ({
       goBack={!externalSheetRef ? onClose : undefined}
       onClose={externalSheetRef ? onClose : undefined}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {availableOrderTypes !== undefined && visibleCategories.length > 1 ? (
         <TabsBar
           tabs={categoryTabs}

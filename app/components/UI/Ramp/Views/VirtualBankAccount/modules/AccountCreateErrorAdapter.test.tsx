@@ -74,10 +74,7 @@ describe('VbaAccountCreateErrorAdapter', () => {
     props.onPrimary();
 
     expect(props.primaryActionType).toBe('retry');
-    expect(mockOpenCompletedVbaAccount).toHaveBeenCalledWith(
-      mockNavigation,
-      'USD',
-    );
+    expect(mockOpenCompletedVbaAccount).toHaveBeenCalledWith(mockNavigation);
     expect(mockOpenCompletedVbaAccount).toHaveBeenCalledTimes(1);
     expect(mockResumeOnboarding).not.toHaveBeenCalled();
   });
@@ -106,10 +103,7 @@ describe('VbaAccountCreateErrorAdapter', () => {
     props.onPrimary();
 
     expect(props.primaryActionType).toBe('retry');
-    expect(mockOpenCompletedVbaAccount).toHaveBeenCalledWith(
-      mockNavigation,
-      'BRL',
-    );
+    expect(mockOpenCompletedVbaAccount).toHaveBeenCalledWith(mockNavigation);
     expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
   });
 

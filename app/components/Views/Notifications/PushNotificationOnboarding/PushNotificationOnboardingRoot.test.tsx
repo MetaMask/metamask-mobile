@@ -48,16 +48,18 @@ const mockPushNotificationPermissionFallback = jest.mocked(
 );
 
 const mockDismissPrePrompt = jest.fn();
-const mockMarkPrePromptShown = jest.fn();
+const mockMarkAnswered = jest.fn();
 
 const mockPrePromptState = ({
+  isHomeUnobstructed = true,
   nativeOsPermissionEnabled = null,
   variant = null,
 }: Partial<ReturnType<typeof usePushPrePromptVariant>> = {}) => {
   mockUsePushPrePromptVariant.mockReturnValue({
     dismiss: mockDismissPrePrompt,
+    isHomeUnobstructed,
     isResolving: false,
-    markShown: mockMarkPrePromptShown,
+    markAnswered: mockMarkAnswered,
     nativeOsPermissionEnabled,
     variant,
   });
@@ -71,6 +73,7 @@ const getLatestProps = () =>
 describe('PushNotificationOnboardingRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMarkAnswered.mockResolvedValue(undefined);
     mockIsPrePromptEnabled = true;
     mockPrePromptState();
   });
@@ -95,14 +98,14 @@ describe('PushNotificationOnboardingRoot', () => {
       expect.objectContaining({
         dismissPrePrompt: mockDismissPrePrompt,
         isVisible: true,
-        markPrePromptShown: mockMarkPrePromptShown,
+        onUserAnswered: mockMarkAnswered,
         nativeOsPermissionEnabled: false,
         prePromptVariant: 'push_permission',
       }),
     );
   });
 
-  it('keeps a visible variant latched until the pre-prompt completes', () => {
+  it('keeps a visible variant latched until the pre-prompt completes', async () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
       variant: 'push_permission',
@@ -119,8 +122,10 @@ describe('PushNotificationOnboardingRoot', () => {
       }),
     );
 
-    act(() => {
-      getLatestProps().onComplete('dismiss' as PushPrePromptCompletionReason);
+    await act(async () => {
+      await getLatestProps().onComplete(
+        'dismiss' as PushPrePromptCompletionReason,
+      );
     });
 
     mockPrePromptState({ variant: null });
@@ -128,6 +133,42 @@ describe('PushNotificationOnboardingRoot', () => {
     rerender(<PushNotificationOnboardingRoot />);
 
     expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('releases the session on completion before home is obstructed', async () => {
+    mockPrePromptState({
+      nativeOsPermissionEnabled: true,
+      variant: 'push_permission',
+    });
+    const { rerender } = render(<PushNotificationOnboardingRoot />);
+
+    // Once answered, the hook resolves nothing.
+    const { onComplete } = getLatestProps();
+    mockPrePromptState({ variant: null });
+    await act(async () => {
+      await onComplete('dismiss' as PushPrePromptCompletionReason);
+    });
+    mockPrePromptState({ isHomeUnobstructed: false, variant: null });
+    rerender(<PushNotificationOnboardingRoot />);
+
+    expect(mockMarkAnswered).not.toHaveBeenCalled();
+  });
+
+  it('keeps the action owner mounted when navigation covers an answered prompt', async () => {
+    mockPrePromptState({
+      nativeOsPermissionEnabled: true,
+      variant: 'push_permission',
+    });
+    const { rerender } = render(<PushNotificationOnboardingRoot />);
+
+    await act(async () => {
+      await getLatestProps().onUserAnswered();
+    });
+    mockPrePromptState({ isHomeUnobstructed: false, variant: null });
+    rerender(<PushNotificationOnboardingRoot />);
+
+    expect(mockMarkAnswered).toHaveBeenCalledTimes(1);
+    expect(getLatestProps().isVisible).toBe(false);
   });
 
   it('latches the native OS permission status for the visible pre-prompt', () => {

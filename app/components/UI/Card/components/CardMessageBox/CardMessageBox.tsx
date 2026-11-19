@@ -7,7 +7,11 @@ import {
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { CardMessageBoxType, CardMessageBoxVariant } from '../../types';
+import {
+  CardMessageBoxType,
+  CardMessageBoxVariant,
+  type CardSetupStep,
+} from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 
@@ -33,6 +37,23 @@ const SEVERITY_MAP: Record<CardMessageBoxVariant, BannerAlertSeverity> = {
   [CardMessageBoxVariant.Info]: BannerAlertSeverity.Info,
 };
 
+const SETUP_INCOMPLETE_DESCRIPTION_KEYS = {
+  contact: 'card.card_home.messages.setup_incomplete.descriptions.contact',
+  kyc: 'card.card_home.messages.setup_incomplete.descriptions.kyc',
+  expected_spend:
+    'card.card_home.messages.setup_incomplete.descriptions.expected_spend',
+  funding: 'card.card_home.messages.setup_incomplete.descriptions.funding',
+  rejected: 'card.card_home.messages.setup_incomplete.descriptions.rejected',
+} as const satisfies Record<CardSetupStep, string>;
+
+function setupIncompleteDescription(step: string | number | undefined): string {
+  const descriptionKey =
+    typeof step === 'string' && step in SETUP_INCOMPLETE_DESCRIPTION_KEYS
+      ? SETUP_INCOMPLETE_DESCRIPTION_KEYS[step as CardSetupStep]
+      : SETUP_INCOMPLETE_DESCRIPTION_KEYS.kyc;
+  return strings(descriptionKey);
+}
+
 const CardMessageBox = ({
   messageType,
   onConfirm,
@@ -54,7 +75,7 @@ const CardMessageBox = ({
         ),
       },
       [CardMessageBoxType.KYCPending]: {
-        variant: CardMessageBoxVariant.Warning,
+        variant: CardMessageBoxVariant.Info,
         title: strings('card.card_home.warnings.kyc_pending.title'),
         description: strings('card.card_home.warnings.kyc_pending.description'),
       },
@@ -153,6 +174,14 @@ const CardMessageBox = ({
           'card.push_provisioning.open_in_apple_wallet',
         ),
       },
+      [CardMessageBoxType.SetupIncomplete]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.card_home.messages.setup_incomplete.title'),
+        description: setupIncompleteDescription(values?.step),
+        confirmButtonLabel: strings(
+          'card.card_home.messages.setup_incomplete.confirm_button_label',
+        ),
+      },
     }),
     [values],
   );
@@ -189,6 +218,7 @@ const CardMessageBox = ({
               variant={ButtonVariant.Primary}
               onPress={onConfirm}
               isLoading={onConfirmLoading}
+              isDisabled={onConfirmLoading}
               testID="confirm-button"
             >
               {config.confirmButtonLabel}

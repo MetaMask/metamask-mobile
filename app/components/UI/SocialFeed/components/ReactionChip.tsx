@@ -10,7 +10,6 @@ import { View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
-  LinearTransition,
   useReducedMotion,
   ZoomIn,
   ZoomOut,
@@ -44,12 +43,20 @@ export interface ReactionChipProps {
 
 const POP_IN = ZoomIn.springify().damping(14).stiffness(240).duration(280);
 const POP_OUT = ZoomOut.duration(140);
-const SHIFT = LinearTransition.springify().damping(18).stiffness(220);
+// No `layout` transition: on Reanimated 4.5.x a layout transition can stop one
+// frame short of its target (software-mansion/react-native-reanimated#10395,
+// fixed in 4.6.0 by #10171), which left chips drawn over the post's GIF
+// (TSA-1725). Restore the neighbor glide once the app is on Reanimated 4.6+.
+// Equal-width digits plus room for two of them, so a count going 1 → 2 or
+// 9 → 10 does not resize the chip. Three-digit counts still grow it.
+const COUNT_TEXT_STYLE = { fontVariant: ['tabular-nums' as const] };
+const COUNT_TW_CLASS = 'min-w-4 text-center';
 
 /**
  * One emoji + count in the engagement row. Tapping it toggles the viewer's
- * reaction to that emoji. New chips pop in and removal shrinks out. The
- * emoji itself does not scale on tap.
+ * reaction to that emoji. New chips pop in and removal shrinks out. Chips
+ * keep their slot; neighbors move into place without a glide when a chip
+ * leaves or the row wraps. The emoji itself does not scale on tap.
  */
 const ReactionChip: React.FC<ReactionChipProps> = ({
   emotion,
@@ -80,7 +87,6 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
     <Animated.View
       entering={isAnimated ? POP_IN : FadeIn.duration(0)}
       exiting={isAnimated ? POP_OUT : FadeOut.duration(0)}
-      layout={isAnimated ? SHIFT : undefined}
     >
       <ButtonBase
         size={ButtonBaseSize.Sm}
@@ -92,6 +98,8 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
         textProps={{
           variant: TextVariant.BodySm,
           color: TextColor.TextAlternative,
+          style: COUNT_TEXT_STYLE,
+          twClassName: COUNT_TW_CLASS,
         }}
         twClassName={`border px-2 ${
           isSelected ? 'bg-muted border-default' : 'bg-transparent border-muted'

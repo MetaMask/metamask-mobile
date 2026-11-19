@@ -47,6 +47,7 @@ export const marketingMomentActionsEnteredAt =
 const MarketingMomentContent = ({
   title,
   titleProps,
+  copyClassName,
   description,
   descriptionProps,
   children,
@@ -101,7 +102,7 @@ const MarketingMomentContent = ({
           flexDirection={BoxFlexDirection.Column}
           gap={4}
           paddingHorizontal={6}
-          twClassName="mt-12 shrink-0"
+          twClassName={`${copyClassName ?? 'mt-12'} shrink-0`}
         >
           {title ? (
             <Animated.View entering={enterDown(0)} style={tw.style('w-full')}>

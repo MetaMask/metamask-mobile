@@ -339,9 +339,7 @@ describe('NotificationService - getAllPermissions', () => {
     // Mock Request Permission
     const mockRequestPushNotificationPermission = jest
       .spyOn(NotificationService, 'requestPushNotificationsPermission')
-      .mockImplementation(async () => {
-        // Do nothing
-      });
+      .mockResolvedValue(false);
 
     return {
       mockCreateChannel,

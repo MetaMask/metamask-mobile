@@ -1,13 +1,33 @@
+import type { KycSessionStatus } from '@metamask/kyc-controller';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import ExtendedKeyringTypes from '../../../app/constants/keyringTypes';
 import { MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME } from '../../../app/lib/Money/feature-flags';
-import { MONEY_MOVEMENT_NEOBANK_FLAG_KEY } from '../../../app/selectors/featureFlagController/moneyAccount';
+import {
+  MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
+} from '../../../app/selectors/featureFlagController/moneyAccount';
 import { initialStateWallet } from './wallet';
+
+/**
+ * Per-currency rollout flags. BRL lists `BR` and defaults to `flagEnabled`.
+ * USD lists `US` and is unset unless given.
+ */
+export interface VbaMarketsOption {
+  brl?: boolean;
+  usd?: boolean;
+}
 
 interface InitialStateVbaOptions {
   location?: string;
   flagEnabled?: boolean;
+  markets?: VbaMarketsOption;
+  legacyFlagEnabled?: boolean;
+  /** Approved autoramp on the test money address. */
+  hasActiveAccount?: boolean;
+  /** Persisted UKYC session, which the delete-identity section requires. */
+  hasKycSession?: boolean;
 }
 
 /** Primary HD keyring id paired with {@link VBA_TEST_MONEY_ADDRESS}. */
@@ -21,6 +41,19 @@ export const VBA_TEST_HD_KEYRING_ID = 'vba-test-hd-keyring';
 export const VBA_TEST_MONEY_ADDRESS =
   '0xb1a6e05757757c333909af7243d408de5bf26f89';
 
+/** Synthetic approved virtual bank account id. */
+export const VBA_TEST_AUTORAMP_ID = 'vba-account-test-1';
+
+/** Synthetic UKYC session for a customer who has started verification. */
+export const VBA_TEST_KYC_SESSION = {
+  id: 'kyc-session-test-1',
+  finalStatus: 'approved',
+  externalUserId: 'external-user-test-1',
+  kycStatus: 'approved',
+  vendor: 'moonpay',
+  vendorStatus: 'approved',
+} as const satisfies KycSessionStatus;
+
 /**
  * State shared by VBA entry points and onboarding screens.
  * The default represents an eligible Brazilian user with a primary Money
@@ -29,6 +62,10 @@ export const VBA_TEST_MONEY_ADDRESS =
 export const initialStateVba = ({
   location = 'BR',
   flagEnabled = true,
+  markets = {},
+  legacyFlagEnabled = flagEnabled,
+  hasActiveAccount = false,
+  hasKycSession = false,
 }: InitialStateVbaOptions = {}) =>
   initialStateWallet()
     .withRemoteFeatureFlags({
@@ -37,11 +74,26 @@ export const initialStateVba = ({
         minimumVersion: '0.0.0',
       },
       [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-        enabled: flagEnabled,
+        enabled: legacyFlagEnabled,
         minimumVersion: '0.0.0',
-        regions: ['BR'],
-        regionCurrencies: { BR: 'BRL' },
       },
+      [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: {
+        enabled: markets.brl ?? flagEnabled,
+        minimumVersion: '0.0.0',
+        currency: 'BRL',
+        regions: ['BR'],
+        layout: 'Pix',
+      },
+      ...(markets.usd === undefined
+        ? {}
+        : {
+            [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
+              enabled: markets.usd,
+              minimumVersion: '0.0.0',
+              currency: 'USD',
+              regions: ['US'],
+            },
+          }),
     })
     .withOverrides({
       engine: {
@@ -51,9 +103,22 @@ export const initialStateVba = ({
             status: 'complete',
           },
           RampsController: {
-            autoramps: [],
+            autoramps: hasActiveAccount
+              ? [
+                  {
+                    id: VBA_TEST_AUTORAMP_ID,
+                    walletAddress: VBA_TEST_MONEY_ADDRESS,
+                    status: 'Approved',
+                    depositRailsSummary: { currency: 'BRL' },
+                  },
+                ]
+              : [],
           },
+          ...(hasKycSession
+            ? { KycController: { sessionStatus: VBA_TEST_KYC_SESSION } }
+            : {}),
           KeyringController: {
+            isUnlocked: true,
             keyrings: [
               {
                 type: ExtendedKeyringTypes.hd,

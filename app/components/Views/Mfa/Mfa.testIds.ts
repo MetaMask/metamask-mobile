@@ -1,5 +1,6 @@
 export const MfaFlowSelectorsIDs = {
   CONTAINER: 'mfa-flow',
+  OTP_CONTAINER: 'mfa-flow-otp',
   BACK_BUTTON: 'mfa-flow-back-button',
   CLOSE_BUTTON: 'mfa-flow-close-button',
   PRIMARY_BUTTON: 'mfa-flow-primary-button',
@@ -9,6 +10,7 @@ export const MfaFlowSelectorsIDs = {
   EMAIL_INPUT: 'mfa-flow-email-input',
   CODE_INPUT: 'mfa-flow-code-input',
   CODE_TAP_AREA: 'mfa-flow-code-tap-area',
+  PASTE_BUTTON: 'mfa-flow-paste-button',
   VERIFYING_INDICATOR: 'mfa-flow-verifying-indicator',
   RESEND_BUTTON: 'mfa-flow-resend-button',
   PICKER_OPTION: 'mfa-flow-picker-option',
@@ -42,4 +44,6 @@ export const MfaMethodDetailsSelectorsIDs = {
   CONFIRM_SHEET: 'mfa-method-details-confirm-sheet',
   CONFIRM_BUTTON: 'mfa-method-details-confirm-button',
   LAST_METHOD_SHEET: 'mfa-method-details-last-method-sheet',
+  CREATED: 'mfa-method-details-created',
+  LAST_USED: 'mfa-method-details-last-used',
 } as const;

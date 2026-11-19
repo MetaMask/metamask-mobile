@@ -56,6 +56,24 @@ describe('parseLimitOrderPageResponse', () => {
     expect(parseLimitOrderPageResponse(page)).toStrictEqual(page);
   });
 
+  it('accepts an order carrying the price tolerance it was placed with', () => {
+    const page = {
+      ...MINIMAL_PAGE,
+      orders: [{ ...ORDER, priceTolerance: 2.5 }],
+    };
+
+    expect(parseLimitOrderPageResponse(page)).toStrictEqual(page);
+  });
+
+  it('rejects a price tolerance that is not a number', () => {
+    expect(() =>
+      parseLimitOrderPageResponse({
+        ...MINIMAL_PAGE,
+        orders: [{ ...ORDER, priceTolerance: '2.5' }],
+      }),
+    ).toThrow(/Invalid limit orders response/u);
+  });
+
   it('rejects a page without a total', () => {
     expect(() =>
       parseLimitOrderPageResponse({ orders: [ORDER], hasNextPage: false }),

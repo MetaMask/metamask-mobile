@@ -1,12 +1,10 @@
 import {
-  advanceMarquee,
   DISPERSE,
   getDisperseMotion,
   getReassembleDelay,
   isPillOnScreen,
   ON_SCREEN_MARGIN,
   REASSEMBLE,
-  stepMarqueeSpeed,
   wrapOffset,
 } from './hotTokenRailMotion';
 
@@ -22,61 +20,6 @@ describe('hotTokenRailMotion', () => {
 
     it('returns 0 before the track is measured', () => {
       expect(wrapOffset(50, 0)).toBe(0);
-    });
-  });
-
-  describe('stepMarqueeSpeed', () => {
-    it('accelerates toward the target', () => {
-      const next = stepMarqueeSpeed(0, 24, 0.016);
-
-      expect(next).toBeGreaterThan(0);
-      expect(next).toBeLessThan(24);
-    });
-
-    it('brakes faster than it accelerates', () => {
-      const braked = 24 - stepMarqueeSpeed(24, 0, 0.016);
-      const accelerated = stepMarqueeSpeed(0, 24, 0.016);
-
-      expect(braked).toBeGreaterThan(accelerated);
-    });
-
-    it('stops once a braking marquee is nearly still', () => {
-      expect(stepMarqueeSpeed(0.05, 0, 0.016)).toBe(0);
-    });
-  });
-
-  describe('advanceMarquee', () => {
-    it('holds a track that fits the viewport', () => {
-      expect(advanceMarquee(10, 24, 24, 16, 300, 400)).toEqual({
-        offset: 10,
-        speed: 24,
-      });
-    });
-
-    it('holds when no time has passed', () => {
-      expect(advanceMarquee(10, 24, 24, 0, 800, 400)).toEqual({
-        offset: 10,
-        speed: 24,
-      });
-    });
-
-    it('moves the offset by the eased speed', () => {
-      const next = advanceMarquee(10, 24, 24, 1000 / 60, 800, 400);
-
-      expect(next.speed).toBe(24);
-      expect(next.offset).toBeCloseTo(10 + 24 / 60);
-    });
-
-    it('caps a long frame so a stall does not jump the rail', () => {
-      const next = advanceMarquee(0, 24, 24, 1000, 800, 400);
-
-      expect(next.offset).toBeCloseTo(24 * 0.05);
-    });
-
-    it('wraps past the end of the track', () => {
-      const next = advanceMarquee(799.9, 24, 24, 16, 800, 400);
-
-      expect(next.offset).toBeLessThan(1);
     });
   });
 

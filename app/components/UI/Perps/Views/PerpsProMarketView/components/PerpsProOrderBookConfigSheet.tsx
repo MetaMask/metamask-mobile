@@ -1,7 +1,6 @@
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   BoxFlexDirection,
@@ -36,6 +35,9 @@ import {
 import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderBookGlyph from './PerpsProOrderBookGlyph';
 import PerpsProOrderFormGlyph from './PerpsProOrderFormGlyph';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface PerpsProOrderBookConfigSheetProps {
   isVisible: boolean;
@@ -180,6 +182,7 @@ const PerpsProOrderBookConfigSheet = ({
   onClose,
   testID = 'perps-pro-order-book-config-sheet',
 }: PerpsProOrderBookConfigSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { playImpact, playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const wasVisibleRef = useRef(false);
@@ -312,12 +315,13 @@ const PerpsProOrderBookConfigSheet = ({
   return (
     <PerpsProModalPortal onRequestClose={handleClose}>
       <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{ testID: `${testID}-close` }}
         >
           {strings('perps.order_book.config_title')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
 
         <Box twClassName="w-full gap-6 px-0 pb-3 pt-2">
           <Box twClassName="w-full gap-2">

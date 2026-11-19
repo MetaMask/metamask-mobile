@@ -147,6 +147,7 @@ export const writeSnapshot = (
       winRatePercent: trader.winRatePercent,
       pnlPerChain: trader.pnlPerChain,
       followerCount: trader.followerCount,
+      xHandle: trader.xHandle ?? null,
     })),
   };
 

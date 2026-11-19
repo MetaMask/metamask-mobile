@@ -196,6 +196,44 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     });
   });
 
+  it('opens the Social V1 profile when a treatment trader card is pressed', async () => {
+    await acceptSocialTerms();
+    renderHomeTopTradersSection(
+      [
+        {
+          name: Routes.SOCIAL.V1_PROFILE,
+          Component: createRouteParamsProbe(Routes.SOCIAL.V1_PROFILE),
+        },
+      ],
+      {
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [SOCIAL_V1_AB_KEY]: 'treatment',
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    const alphaCard = await findAlphaCard();
+
+    fireEvent.press(alphaCard);
+
+    expect(await readRouteParams(Routes.SOCIAL.V1_PROFILE)).toEqual({
+      traderId: alpha.profileId,
+      traderName: alpha.name,
+      traderAddress: alpha.addresses[0],
+      traderAvatarUri: alpha.imageUrl,
+      source: 'home_carousel',
+      traderRank: alpha.rank,
+    });
+  });
+
   // -------------------------------------------------------------------------
   // Empty / disabled / error
   // -------------------------------------------------------------------------

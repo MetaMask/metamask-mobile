@@ -40,6 +40,7 @@ import {
 import { getDecimalChainId } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import {
   QuickBuyEventProperties,
   buildQuickBuySharedAnalyticsProperties,
@@ -73,6 +74,8 @@ export interface QuickBuyQuotesAnalyticsContext {
   source: QuickBuySheetSource;
   /** Trade-screen entry attribution when hosted on TraderPositionView. */
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
+  isCopyTrade?: boolean;
+  copyTradeOrigin?: CopyTradeOrigin;
 }
 
 export type EnrichedQuickBuyQuote = QuoteResponse;
@@ -425,23 +428,28 @@ export function useQuickBuyQuotes({
 
     const featureId = getQuickBuyFeatureId(analyticsContext?.source);
 
-    // Shared by REQUESTED + RECEIVED. Null when analytics context is incomplete
-    // — both events guard on this single value instead of duplicating the check.
-    const quotesBaseProps =
-      analyticsContext?.traderAddress && analyticsContext?.caip19
-        ? {
-            ...buildQuickBuySharedAnalyticsProperties({
-              source: analyticsContext.source,
-              originalEntryPoint: analyticsContext.originalEntryPoint,
-            }),
-            [QuickBuyEventProperties.TRADER_ADDRESS]:
-              analyticsContext.traderAddress,
-            [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
-            [QuickBuyEventProperties.AMOUNT_USD]:
-              analyticsContext.amountUsd ?? 0,
-            [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
-          }
-        : null;
+    // Shared by REQUESTED + RECEIVED. Null without a destination asset — both
+    // events guard on this single value instead of duplicating the check.
+    // Every request is counted; the trader is attached only when one is known.
+    const quotesBaseProps = analyticsContext?.caip19
+      ? {
+          ...buildQuickBuySharedAnalyticsProperties({
+            source: analyticsContext.source,
+            originalEntryPoint: analyticsContext.originalEntryPoint,
+            isCopyTrade: analyticsContext.isCopyTrade,
+            copyTradeOrigin: analyticsContext.copyTradeOrigin,
+          }),
+          ...(analyticsContext.traderAddress
+            ? {
+                [QuickBuyEventProperties.TRADER_ADDRESS]:
+                  analyticsContext.traderAddress,
+              }
+            : {}),
+          [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
+          [QuickBuyEventProperties.AMOUNT_USD]: analyticsContext.amountUsd ?? 0,
+          [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
+        }
+      : null;
 
     if (quotesBaseProps) {
       track(

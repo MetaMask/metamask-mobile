@@ -5,9 +5,14 @@ import { UserActionType } from '../../../../actions/user/types';
 import {
   selectMoneyEarnBannerDismissedTokens,
   selectMoneyOnboardingSeen,
+  selectMoneySplashSeen,
 } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  getMoneyHomeCardDevOverride,
+  setMoneyHomeCardDevOverride,
+} from '../hooks/moneyHomeCardDevOverride';
 
 const mockNavigate = jest.fn();
 
@@ -49,6 +54,7 @@ const MOCK_ADDRESS = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
 
 interface SelectorMockOptions {
   hasSeenMoneyOnboarding?: boolean;
+  hasSeenMoneySplash?: boolean;
   isOnboardingEnabled?: boolean;
   /** Pass `null` to simulate no money account being available. */
   moneyAccount?: { address: string } | null;
@@ -64,6 +70,7 @@ interface SelectorMockOptions {
  */
 function setupSelectorMocks(options: SelectorMockOptions = {}) {
   const hasSeenMoneyOnboarding = options.hasSeenMoneyOnboarding ?? false;
+  const hasSeenMoneySplash = options.hasSeenMoneySplash ?? false;
   const isOnboardingEnabled = options.isOnboardingEnabled ?? true;
   // `null` means "no account", `undefined` (omitted) means use the default.
   const moneyAccount =
@@ -75,6 +82,7 @@ function setupSelectorMocks(options: SelectorMockOptions = {}) {
 
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectMoneyOnboardingSeen) return hasSeenMoneyOnboarding;
+    if (selector === selectMoneySplashSeen) return hasSeenMoneySplash;
     if (selector === selectMoneyOnboardingStepperAnimationEnabled)
       return isOnboardingEnabled;
     if (selector === selectPrimaryMoneyAccount) return moneyAccount;
@@ -88,6 +96,11 @@ describe('MoneyUiDeveloperOptionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupSelectorMocks();
+    setMoneyHomeCardDevOverride(null);
+  });
+
+  afterEach(() => {
+    setMoneyHomeCardDevOverride(null);
   });
 
   it('renders the "Money UI" heading', () => {
@@ -147,6 +160,39 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
           type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+          payload: { seen: false },
+        }),
+      );
+    });
+  });
+
+  describe('splash seen state', () => {
+    it('displays splash seen as false when not seen', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: false });
+
+      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+      expect(getByText('Splash seen: false')).toBeOnTheScreen();
+    });
+
+    it('displays splash seen as true when seen', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: true });
+
+      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+      expect(getByText('Splash seen: true')).toBeOnTheScreen();
+    });
+
+    it('dispatches setMoneySplashSeen(false) when reset button is pressed', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: true });
+
+      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+      fireEvent.press(getByText('Reset splash screen'));
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: UserActionType.SET_MONEY_SPLASH_SEEN,
           payload: { seen: false },
         }),
       );
@@ -213,6 +259,33 @@ describe('MoneyUiDeveloperOptionsSection', () => {
 
       expect(mockSetString).toHaveBeenCalledTimes(1);
       expect(mockSetString).toHaveBeenCalledWith(MOCK_ADDRESS);
+    });
+
+    it('forces the VBA-region Get started card from the home card menu', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      try {
+        const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+        act(() => {
+          fireEvent.press(
+            getByText('2. VBA eligible, empty wallet: Get started'),
+          );
+        });
+
+        expect(getMoneyHomeCardDevOverride()?.id).toBe('get_started');
+        expect(
+          getByText(
+            'Home card override: 2. VBA eligible, empty wallet: Get started',
+          ),
+        ).toBeOnTheScreen();
+      } finally {
+        act(() => {
+          setMoneyHomeCardDevOverride(null);
+        });
+        devGlobal.__DEV__ = originalDev;
+      }
     });
 
     it('does not copy to clipboard when the address is unavailable', async () => {

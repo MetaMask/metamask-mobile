@@ -66,16 +66,32 @@ describe('handleCreateAccountUrl', () => {
     );
   });
 
-  it('leaves the bridge session in place when opening the buy ramp', () => {
-    mockSelectAccounts.mockReturnValue({});
+  it.each([
+    ['eip155:1', 'eip155:1/slip44:60'],
+    [
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    ],
+  ])(
+    'opens Buy with the native asset for an unfunded %s account',
+    (chainId, assetId) => {
+      mockSelectAccounts.mockReturnValue({
+        'account-1': { amount: '0', unit: 'native', assetId },
+      });
 
-    handleCreateAccountUrl({ path: 'chainId=eip155:1' });
+      handleCreateAccountUrl({
+        path: `?chainId=${encodeURIComponent(chainId)}`,
+      });
 
-    expect(mockDispatch).not.toHaveBeenCalled();
-    expect(mockResetBridgeControllerState).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.BUY, {
-      screen: Routes.RAMP.GET_STARTED,
-      params: { chainId: 'eip155:1' },
-    });
-  });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.BUY, {
+        screen: Routes.RAMP.ID,
+        params: {
+          screen: Routes.RAMP.BUILD_QUOTE,
+          params: { assetId },
+        },
+      });
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockResetBridgeControllerState).not.toHaveBeenCalled();
+    },
+  );
 });

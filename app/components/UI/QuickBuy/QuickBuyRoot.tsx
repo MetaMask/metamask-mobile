@@ -145,11 +145,20 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     }
     track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
       [QuickBuyEventProperties.ASSET_NAME]: target.tokenSymbol,
-      ...buildQuickBuySharedAnalyticsProperties(analyticsContext),
+      ...buildQuickBuySharedAnalyticsProperties({
+        ...analyticsContext,
+        copyTradeOrigin,
+      }),
       [QuickBuyEventProperties.TRADE_TYPE]:
         analyticsContext.traderTradeType ?? openingTradeMode,
     });
-  }, [analyticsContext, openingTradeMode, target.tokenSymbol, track]);
+  }, [
+    analyticsContext,
+    copyTradeOrigin,
+    openingTradeMode,
+    target.tokenSymbol,
+    track,
+  ]);
 
   // The sheet animates itself open on first layout; calling onOpenBottomSheet
   // as well restarts the slide-up from the bottom mid-animation.
@@ -192,6 +201,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       onClose={onClose}
       onOpen={handleSheetOpened}
       isFullscreen
+      keyboardAvoidingViewEnabled={false}
     >
       {isContentReady ? (
         <QuickBuyProvider

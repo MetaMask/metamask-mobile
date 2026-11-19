@@ -1,15 +1,22 @@
 import React from 'react';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import type {
   PredictEvent,
   PredictGame,
   PredictMarket,
   PredictOutcome,
 } from '../../types';
-import { getGameTeamOrder } from '../game';
+import { formatGameStartShort, getGameTeamOrder } from '../game';
 import { EventCard } from './internal/EventCard';
 import { GameCard } from './internal/EventCardGameParts';
 
-export type EventCardGameVariant = 'compact' | 'featured';
+export type EventCardGameVariant = 'compact' | 'featured' | 'small';
 
 export interface EventCardGameProps {
   event: PredictEvent;
@@ -74,6 +81,7 @@ const FeaturedGameCard = ({
   onOrder,
 }: GameCompositionProps) => {
   const [first, second] = getGameTeamOrder(game);
+  const competition = event.sports?.competition?.label;
 
   return (
     <GameCard.Provider
@@ -83,15 +91,20 @@ const FeaturedGameCard = ({
       onOrder={onOrder}
     >
       <EventCard.Root
-        twClassName="rounded-2xl bg-section px-4 pb-4 pt-4"
+        twClassName="rounded-2xl bg-section py-4"
         testID={`predict-next-event-${event.venueId}-${event.id}`}
       >
         <GameCard.Navigation>
-          <EventCard.Header twClassName="items-center pb-1">
-            <EventCard.Title numberOfLines={1} twClassName="w-68 text-center">
-              {event.title}
-            </EventCard.Title>
-          </EventCard.Header>
+          <EventCard.HeaderRow testID={`predict-next-game-header-${event.id}`}>
+            <EventCard.HeaderRow.Title>{event.title}</EventCard.HeaderRow.Title>
+            {competition ? (
+              <EventCard.HeaderRow.Meta
+                testID={`predict-next-game-header-${event.id}-competition`}
+              >
+                {competition}
+              </EventCard.HeaderRow.Meta>
+            ) : null}
+          </EventCard.HeaderRow>
           <GameCard.Matchup>
             <GameCard.FeaturedTeam selection={first} />
             <GameCard.Score selection={first} />
@@ -99,15 +112,87 @@ const FeaturedGameCard = ({
             <GameCard.Score selection={second} />
             <GameCard.FeaturedTeam selection={second} />
           </GameCard.Matchup>
-          <EventCard.Body twClassName="pb-4">
-            <GameCard.ProbabilityBar />
-          </EventCard.Body>
+          <GameCard.ProbabilityBar />
         </GameCard.Navigation>
 
-        <GameCard.Actions />
+        <GameCard.FeaturedActions />
       </EventCard.Root>
     </GameCard.Provider>
   );
+};
+
+/**
+ * A 190pt tile for horizontal rows: Competition and start in the header, then
+ * one row per Team with its logo, abbreviation and price pill. The header and
+ * Team identities open the Event; a priced pill opens the order flow.
+ */
+const SmallGameCard = ({
+  event,
+  game,
+  onPress,
+  onOrder,
+}: GameCompositionProps) => {
+  const [first, second] = getGameTeamOrder(game);
+  const competition = event.sports?.competition?.label;
+  const start = event.startsAt
+    ? formatGameStartShort(event.startsAt)
+    : undefined;
+
+  return (
+    <GameCard.Provider
+      event={event}
+      game={game}
+      onPress={onPress}
+      onOrder={onOrder}
+    >
+      <EventCard.Root
+        twClassName="w-[190px] rounded-2xl border border-muted bg-muted py-3"
+        testID={`predict-next-event-${event.venueId}-${event.id}`}
+      >
+        <GameCard.Navigation>
+          <EventCard.HeaderRow testID={`predict-next-game-header-${event.id}`}>
+            {/* Always rendered, so the start stays right without a Competition. */}
+            <Box
+              twClassName="min-w-0 flex-1"
+              testID={`predict-next-game-header-${event.id}-leading`}
+            >
+              {competition ? (
+                <Text
+                  variant={TextVariant.BodyXs}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  numberOfLines={1}
+                  testID={`predict-next-game-header-${event.id}-competition`}
+                >
+                  {competition}
+                </Text>
+              ) : null}
+            </Box>
+            {start ? (
+              <EventCard.HeaderRow.Meta
+                testID={`predict-next-game-header-${event.id}-start`}
+              >
+                {start}
+              </EventCard.HeaderRow.Meta>
+            ) : null}
+          </EventCard.HeaderRow>
+        </GameCard.Navigation>
+        <EventCard.Body twClassName="gap-2 px-4 pt-2">
+          <GameCard.SmallTeamRow selection={first} />
+          <GameCard.SmallTeamRow selection={second} />
+        </EventCard.Body>
+      </EventCard.Root>
+    </GameCard.Provider>
+  );
+};
+
+const COMPOSITIONS: Record<
+  EventCardGameVariant,
+  (props: GameCompositionProps) => React.JSX.Element
+> = {
+  compact: CompactGameCard,
+  featured: FeaturedGameCard,
+  small: SmallGameCard,
 };
 
 export const EventCardGame = ({
@@ -121,10 +206,13 @@ export const EventCardGame = ({
     return null;
   }
 
-  const props = { event, game, onPress, onOrder };
-  return variant === 'featured' ? (
-    <FeaturedGameCard {...props} />
-  ) : (
-    <CompactGameCard {...props} />
+  const Composition = COMPOSITIONS[variant];
+  return (
+    <Composition
+      event={event}
+      game={game}
+      onPress={onPress}
+      onOrder={onOrder}
+    />
   );
 };

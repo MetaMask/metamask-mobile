@@ -1,10 +1,14 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
-import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectMoneyEntryContext } from '../../selectors/entry';
+import { selectHighestBalanceAaveTokenMeetingDepositMinimum } from '../../selectors/aaveOutputTokenEligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
@@ -16,13 +20,13 @@ import MoneyDepositDeeplinkBridge from './MoneyDepositDeeplinkBridge';
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+  useRoute: jest.fn(),
 }));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 jest.mock('../../hooks/useMoneyAccount');
-jest.mock('../../hooks/useMoneyNavigation');
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../util/errorHandling/isUserRejectedError');
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -30,37 +34,53 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const mockUseNavigation = jest.mocked(useNavigation);
+const mockUseRoute = jest.mocked(useRoute);
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockUseMoneyOnboardingNavigation = jest.mocked(
-  useMoneyOnboardingNavigation,
-);
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockInitiateDeposit = jest.fn();
-const mockRedirectToOnboardingIfNeeded = jest.fn();
 const mockIsUserRejectedError = jest.mocked(isUserRejectedError);
+const mockHighestBalanceAaveOutputToken = {
+  address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  chainId: '0x1',
+};
 
 const arrangeEligibility = ({
   isMoneyAccountFeatureEnabled = true,
   isMoneyAccountGeoEligible = true,
+  isOnboardingRedirectNeeded = false,
   geolocationStatus = 'complete',
+  highestBalanceAaveTokenMeetingDepositMinimum,
 }: {
   isMoneyAccountFeatureEnabled?: boolean;
   isMoneyAccountGeoEligible?: boolean;
+  isOnboardingRedirectNeeded?: boolean;
   geolocationStatus?: string;
+  highestBalanceAaveTokenMeetingDepositMinimum?: typeof mockHighestBalanceAaveOutputToken;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyEnableMoneyAccountFlag) {
       return isMoneyAccountFeatureEnabled;
     }
 
-    if (selector === selectIsMoneyAccountGeoEligible) {
-      return isMoneyAccountGeoEligible;
+    if (selector === selectMoneyEntryContext) {
+      return {
+        accessBlockReason: !isMoneyAccountFeatureEnabled
+          ? 'feature_disabled'
+          : !isMoneyAccountGeoEligible
+            ? 'geo_blocked'
+            : undefined,
+        isOnboardingRedirectNeeded,
+      };
     }
 
     if (selector === selectGeolocationStatus) {
       return geolocationStatus;
+    }
+
+    if (selector === selectHighestBalanceAaveTokenMeetingDepositMinimum) {
+      return highestBalanceAaveTokenMeetingDepositMinimum;
     }
 
     return undefined;
@@ -74,15 +94,13 @@ describe('MoneyDepositDeeplinkBridge', () => {
       navigate: mockNavigate,
       dispatch: mockDispatch,
     } as never);
+    mockUseRoute.mockReturnValue({
+      params: undefined,
+    } as never);
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     } as never);
-    mockUseMoneyOnboardingNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: false,
-      redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
-    });
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
     mockIsUserRejectedError.mockReturnValue(false);
     arrangeEligibility();
   });
@@ -125,9 +143,15 @@ describe('MoneyDepositDeeplinkBridge', () => {
   });
 
   it('redirects unseen users to onboarding with a deposit continuation', () => {
-    mockUseMoneyOnboardingNavigation.mockReturnValue({
+    mockUseRoute.mockReturnValue({
+      params: {
+        tokenType: 'atoken',
+      },
+    } as never);
+    arrangeEligibility({
       isOnboardingRedirectNeeded: true,
-      redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
+      highestBalanceAaveTokenMeetingDepositMinimum:
+        mockHighestBalanceAaveOutputToken,
     });
 
     render(<MoneyDepositDeeplinkBridge />);
@@ -142,6 +166,10 @@ describe('MoneyDepositDeeplinkBridge', () => {
       ...StackActions.replace(Routes.MONEY.ONBOARDING, {
         postOnboardingRedirect: {
           type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken: {
+            address: mockHighestBalanceAaveOutputToken.address,
+            chainId: mockHighestBalanceAaveOutputToken.chainId,
+          },
         },
       }),
       target: 'money-stack',
@@ -159,6 +187,66 @@ describe('MoneyDepositDeeplinkBridge', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       replaceConfirmation: true,
+    });
+  });
+
+  it('starts deposit with the highest-balance aToken when requested', async () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        tokenType: 'atoken',
+      },
+    } as never);
+    arrangeEligibility({
+      highestBalanceAaveTokenMeetingDepositMinimum:
+        mockHighestBalanceAaveOutputToken,
+    });
+
+    render(<MoneyDepositDeeplinkBridge />);
+
+    await waitFor(() => {
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: mockHighestBalanceAaveOutputToken.address,
+          chainId: mockHighestBalanceAaveOutputToken.chainId,
+        },
+        replaceConfirmation: true,
+      });
+    });
+  });
+
+  it('starts normal deposit when atoken is requested without a positive balance', async () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        tokenType: 'atoken',
+      },
+    } as never);
+
+    render(<MoneyDepositDeeplinkBridge />);
+
+    await waitFor(() => {
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        replaceConfirmation: true,
+      });
+    });
+  });
+
+  it('starts normal deposit for an unsupported tokenType', async () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        tokenType: 'future-token',
+      },
+    } as never);
+    arrangeEligibility({
+      highestBalanceAaveTokenMeetingDepositMinimum:
+        mockHighestBalanceAaveOutputToken,
+    });
+
+    render(<MoneyDepositDeeplinkBridge />);
+
+    await waitFor(() => {
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        replaceConfirmation: true,
+      });
     });
   });
 

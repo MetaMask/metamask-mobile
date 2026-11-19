@@ -538,6 +538,24 @@ describe('CodeStep', () => {
     expect(getByText('Resend code in 29s')).toBeOnTheScreen();
   });
 
+  it('says the code is dead and counts down to a new one after too many attempts', () => {
+    const { onAction, getByText, getByTestId } = renderCode(otp(true), {
+      error: 'too_many_attempts',
+      resendAvailableAt: Date.now() + 30_000,
+    });
+
+    expect(
+      getByText('Too many incorrect codes. Get a new code.'),
+    ).toBeOnTheScreen();
+    expect(getByText('Get new code in 30s')).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
+    expect(onAction).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(30_000);
+    });
+    expect(getByText('Get new code')).toBeOnTheScreen();
+  });
+
   it('lets the user resend once the cooldown ends, without its error', () => {
     const { onAction, getByText, queryByTestId } = renderCode(otp(true), {
       error: 'rate_limited',
@@ -577,6 +595,26 @@ describe('CodeStep', () => {
     );
   });
 
+  it('pastes an authenticator app code with the Paste button and submits it', async () => {
+    jest.spyOn(Clipboard, 'getString').mockResolvedValue('123 456');
+    const { onAction, getByTestId } = renderCode(totpCode);
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON));
+
+    await waitFor(() =>
+      expect(onAction).toHaveBeenCalledWith({
+        type: 'submitCode',
+        code: '123456',
+      }),
+    );
+  });
+
+  it('shows no Paste button for email codes', () => {
+    const { queryByTestId } = renderCode(otp(true));
+
+    expect(queryByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON)).toBeNull();
+  });
+
   it('offers a new code once the one on screen expired', () => {
     const { onAction, getByText } = renderCode(otp(true), {
       error: 'flow_expired',
@@ -589,18 +627,20 @@ describe('CodeStep', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
-  it('sends the first code by itself once the cooldown ends', () => {
+  it('lets the user send the first code once the cooldown ends, never by itself', () => {
     const { onAction, getByText } = renderCode(otp(false), {
       error: 'otp_resend_cooldown',
       resendAvailableAt: Date.now() + 2_000,
     });
 
-    expect(getByText('Sending a new code in 2s')).toBeOnTheScreen();
-    expect(onAction).not.toHaveBeenCalled();
+    expect(getByText('Send code in 2s')).toBeOnTheScreen();
+    expect(getByText(/^We'll send a 6-digit code to /)).toBeOnTheScreen();
     act(() => {
       jest.advanceTimersByTime(2_000);
     });
-    expect(onAction).toHaveBeenCalledWith({ type: 'resend', trigger: 'auto' });
+    expect(onAction).not.toHaveBeenCalled();
+    fireEvent.press(getByText('Send code'));
+    expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
   it('waits out a new cooldown before sending again', () => {
@@ -767,6 +807,30 @@ describe('FailureStep', () => {
     expect(getByText('Something went wrong')).toBeOnTheScreen();
     expect(queryByText('Something went wrong. Try again.')).toBeNull();
     expect(queryByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON)).toBeNull();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
+  });
+
+  it('explains a passkey already in the password manager and offers to try again', () => {
+    const onAction = jest.fn();
+    const { getByTestId, getByText } = render(
+      <FailureStep
+        {...buildState({
+          name: 'failure',
+          code: 'passkey_already_exists',
+          canRetry: true,
+        })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText("Can't create passkey")).toBeOnTheScreen();
+    expect(
+      getByText(
+        'A passkey already exists on this device. Try using a different password manager.',
+      ),
+    ).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
   });

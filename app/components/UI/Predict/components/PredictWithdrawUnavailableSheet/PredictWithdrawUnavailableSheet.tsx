@@ -1,7 +1,6 @@
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   Text,
@@ -15,6 +14,9 @@ import {
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
 import { PREDICT_BALANCE_TEST_IDS } from '../PredictBalance/PredictBalance.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export type PredictWithdrawUnavailableSheetRef = PredictBottomSheetRef;
 
@@ -24,6 +26,7 @@ export type PredictWithdrawUnavailableSheetRef = PredictBottomSheetRef;
  */
 const PredictWithdrawUnavailableSheet = forwardRef<PredictBottomSheetRef>(
   (_props, ref) => {
+    const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
     const {
       sheetRef,
       isVisible,
@@ -45,7 +48,8 @@ const PredictWithdrawUnavailableSheet = forwardRef<PredictBottomSheetRef>(
         onClose={handleSheetClosed}
         testID={PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={closeSheet}
           closeButtonProps={{
             testID: PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_CLOSE_BUTTON,
@@ -55,7 +59,7 @@ const PredictWithdrawUnavailableSheet = forwardRef<PredictBottomSheetRef>(
           }}
         >
           {strings('predict.withdraw.unavailable_title')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box
           alignItems={BoxAlignItems.Start}
           paddingHorizontal={4}

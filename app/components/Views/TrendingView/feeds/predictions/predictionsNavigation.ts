@@ -3,10 +3,10 @@ import {
   type PredictEntryActions,
   type PredictEntryPoint,
   type PredictFeedCategory,
+  type PredictTrendingVariant,
 } from '../../../../UI/PredictNext';
-import type { PredictionsVariant } from './usePredictionsFeed';
 
-const VARIANT_TO_FEED: Record<PredictionsVariant, PredictFeedCategory> = {
+const VARIANT_TO_FEED: Record<PredictTrendingVariant, PredictFeedCategory> = {
   trending: 'trending',
   sports: 'sports',
   crypto: 'crypto',
@@ -16,7 +16,7 @@ const VARIANT_TO_FEED: Record<PredictionsVariant, PredictFeedCategory> = {
 /** Open the Predict feed for a variant. */
 export const navigateToPredictionsList = (
   openPredict: PredictEntryActions['openPredict'],
-  variant: PredictionsVariant,
+  variant: PredictTrendingVariant,
   entryPoint: PredictEntryPoint = PredictEventValues.ENTRY_POINT.EXPLORE,
 ): void => {
   openPredict({
@@ -29,7 +29,7 @@ export const navigateToPredictionsList = (
 /** Open the Predict feed from Explore prediction sections. */
 export const navigateToExplorePredictionsList = (
   openPredict: PredictEntryActions['openPredict'],
-  variant: PredictionsVariant,
+  variant: PredictTrendingVariant,
 ): void => {
   navigateToPredictionsList(
     openPredict,
