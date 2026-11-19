@@ -127,6 +127,10 @@ interface MoneyPotentialEarningsParams {
   overrideToUsd?: boolean;
 }
 
+interface MoneyEarningsParams {
+  activeTab?: MoneyEarningsTab;
+}
+
 /**
  * Selection returned by the rescue recipient screen. Only the account *id*
  * travels through navigation; the review screen resolves it against the
@@ -149,7 +153,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
-    MoneyEarnings: { activeTab?: MoneyEarningsTab };
+    MoneyEarnings: MoneyEarningsParams | undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
     MoneyMusdRescueRecipient: { selectedRecipientId?: string } | undefined;
