@@ -1,3 +1,4 @@
+import Engine from '../../../core/Engine';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import {
@@ -10,6 +11,19 @@ import { updateNotificationSubscriptionExpiration } from '../constants/notificat
 import { requestPushPermissions } from '../services/NotificationService';
 import Logger from '../../Logger';
 import { usePushPermissionNotificationSetup } from './usePushPermissionNotificationSetup';
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: { state: { isUnlocked: true } },
+    AuthenticationController: {
+      state: { isSignedIn: true },
+      performSignIn: jest.fn().mockResolvedValue(undefined),
+    },
+    NotificationServicesController: {
+      state: { isUpdatingMetamaskNotifications: false },
+    },
+  },
+}));
 
 jest.mock('../../../actions/notification/helpers', () => ({
   assertIsFeatureEnabled: jest.fn(),
@@ -63,11 +77,14 @@ describe('usePushPermissionNotificationSetup', () => {
     });
 
     await waitFor(() => {
-      expect(enableNotifications).toHaveBeenCalledWith({
-        hasMarketingConsent: true,
-        productAnnouncementEnabled: true,
-        registerPushNotifications: true,
-      });
+      expect(enableNotifications).toHaveBeenCalledWith(
+        {
+          hasMarketingConsent: true,
+          productAnnouncementEnabled: true,
+          registerPushNotifications: true,
+        },
+        false,
+      );
     });
     expect(
       jest.mocked(requestPushPermissions).mock.invocationCallOrder[0],
@@ -90,11 +107,14 @@ describe('usePushPermissionNotificationSetup', () => {
     });
 
     await waitFor(() => {
-      expect(enableNotifications).toHaveBeenCalledWith({
-        hasMarketingConsent: true,
-        productAnnouncementEnabled: true,
-        registerPushNotifications: true,
-      });
+      expect(enableNotifications).toHaveBeenCalledWith(
+        {
+          hasMarketingConsent: true,
+          productAnnouncementEnabled: true,
+          registerPushNotifications: true,
+        },
+        false,
+      );
     });
     expect(setMarketingNotificationPreferencesEnabled).not.toHaveBeenCalled();
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
@@ -109,9 +129,12 @@ describe('usePushPermissionNotificationSetup', () => {
     });
 
     await waitFor(() => {
-      expect(enableNotifications).toHaveBeenCalledWith({
-        registerPushNotifications: true,
-      });
+      expect(enableNotifications).toHaveBeenCalledWith(
+        {
+          registerPushNotifications: true,
+        },
+        false,
+      );
     });
     await waitFor(() =>
       expect(setMarketingNotificationPreferencesEnabled).toHaveBeenCalledWith(
@@ -137,11 +160,14 @@ describe('usePushPermissionNotificationSetup', () => {
     });
 
     await waitFor(() => {
-      expect(enableNotifications).toHaveBeenCalledWith({
-        hasMarketingConsent: true,
-        productAnnouncementEnabled: true,
-        registerPushNotifications: false,
-      });
+      expect(enableNotifications).toHaveBeenCalledWith(
+        {
+          hasMarketingConsent: true,
+          productAnnouncementEnabled: true,
+          registerPushNotifications: false,
+        },
+        false,
+      );
     });
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
@@ -191,5 +217,61 @@ describe('usePushPermissionNotificationSetup', () => {
       expect(Logger.error).toHaveBeenCalled();
     });
     expect(updateNotificationSubscriptionExpiration).not.toHaveBeenCalled();
+  });
+  it.each(['locked', 'signed out', 'updating', 'denied'])(
+    'does not opt in during onboarding when %s',
+    async (condition) => {
+      Engine.context.KeyringController.state.isUnlocked =
+        condition !== 'locked';
+      Engine.context.AuthenticationController.state.isSignedIn =
+        condition !== 'signed out';
+      Engine.context.NotificationServicesController.state.isUpdatingMetamaskNotifications =
+        condition === 'updating';
+      const { result } = renderHook(() =>
+        usePushPermissionNotificationSetup({ onboarding: true }),
+      );
+
+      let enabled: boolean | undefined;
+      await act(async () => {
+        enabled = await result.current.enableNotificationsInBackground(
+          condition !== 'denied',
+        );
+      });
+
+      expect(enabled).toBe(false);
+      expect(enableNotifications).not.toHaveBeenCalled();
+      expect(setMarketingNotificationPreferencesEnabled).not.toHaveBeenCalled();
+      Engine.context.KeyringController.state.isUnlocked = true;
+      Engine.context.AuthenticationController.state.isSignedIn = true;
+      Engine.context.NotificationServicesController.state.isUpdatingMetamaskNotifications = false;
+    },
+  );
+  it('completes explicit sign-in before onboarding setup', async () => {
+    Engine.context.AuthenticationController.state.isSignedIn = false;
+    jest
+      .mocked(Engine.context.AuthenticationController.performSignIn)
+      .mockImplementationOnce(async () => {
+        Engine.context.AuthenticationController.state.isSignedIn = true;
+        return ['token'];
+      });
+    const { result } = renderHook(() =>
+      usePushPermissionNotificationSetup({ onboarding: true }),
+    );
+
+    await act(async () => {
+      await result.current.enableNotificationsInBackground(true);
+    });
+
+    expect(
+      Engine.context.AuthenticationController.performSignIn,
+    ).toHaveBeenCalledTimes(1);
+    expect(enableNotifications).toHaveBeenCalledWith(
+      {
+        hasMarketingConsent: true,
+        productAnnouncementEnabled: true,
+        registerPushNotifications: true,
+      },
+      true,
+    );
   });
 });

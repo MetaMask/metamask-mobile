@@ -46,19 +46,26 @@ const osPromptButtonTypeByResponse: Record<
   denied: 'deny',
 };
 
-export function usePushPrePromptAnalytics() {
-  const { createEventBuilder, identify, trackEvent, isEnabled } =
-    useAnalytics();
+export function usePushPrePromptAnalytics(
+  location?: 'onboarding_push_permission',
+) {
+  const sourceProperties = useMemo(
+    () => (location ? { location } : {}),
+    [location],
+  );
+  const { createEventBuilder, identify, trackEvent, isEnabled } = useAnalytics();
 
   const trackPrePromptViewed = useCallback(
     (_variant: PushPrePromptAnalyticsVariant) => {
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.PUSH_NOTIFICATION_PRE_PROMPT_VIEWED,
-        ).build(),
+        )
+          .addProperties(sourceProperties)
+          .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, sourceProperties],
   );
 
   const trackPrePromptButtonType = useCallback(
@@ -67,11 +74,11 @@ export function usePushPrePromptAnalytics() {
         createEventBuilder(
           MetaMetricsEvents.PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED,
         )
-          .addProperties({ button_type: buttonType })
+          .addProperties({ ...sourceProperties, button_type: buttonType })
           .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, sourceProperties],
   );
 
   const trackPrePromptDismissed = useCallback(
@@ -98,12 +105,13 @@ export function usePushPrePromptAnalytics() {
           MetaMetricsEvents.OS_PUSH_NOTIFICATION_BUTTON_CLICKED,
         )
           .addProperties({
+            ...sourceProperties,
             button_type: osPromptButtonTypeByResponse[response],
           })
           .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, sourceProperties],
   );
 
   const identifyMarketingConsent = useCallback(

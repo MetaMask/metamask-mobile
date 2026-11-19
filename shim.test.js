@@ -86,6 +86,7 @@ describe('E2E network shim', () => {
     fetch: global.fetch,
     XMLHttpRequest: global.XMLHttpRequest,
     WebSocket: global.WebSocket,
+    MessageEvent: global.MessageEvent,
   };
 
   let underlyingFetch;
@@ -224,6 +225,34 @@ describe('E2E network shim', () => {
       expect(testConfig.fixtureServerPort).toBeUndefined();
       expect(testConfig.commandQueueServerPort).toBeUndefined();
     });
+  });
+
+  it('defines the MessageEvent getters required by post-message-stream', () => {
+    global.MessageEvent = undefined;
+    loadShim();
+
+    const sourceDescriptor = Object.getOwnPropertyDescriptor(
+      global.MessageEvent.prototype,
+      'source',
+    );
+    const originDescriptor = Object.getOwnPropertyDescriptor(
+      global.MessageEvent.prototype,
+      'origin',
+    );
+    const portsDescriptor = Object.getOwnPropertyDescriptor(
+      global.MessageEvent.prototype,
+      'ports',
+    );
+    const source = {};
+    const ports = [{}];
+    const event = new global.MessageEvent('message', { source, ports });
+
+    expect(sourceDescriptor?.get).toEqual(expect.any(Function));
+    expect(originDescriptor?.get).toEqual(expect.any(Function));
+    expect(portsDescriptor?.get).toEqual(expect.any(Function));
+    expect(event.source).toBe(source);
+    expect(event.origin).toBe('');
+    expect(event.ports).toBe(ports);
   });
 
   it('routes fetch through the mock server proxy', async () => {
