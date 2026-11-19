@@ -601,7 +601,7 @@ const TokenDetails: React.FC<{
 
   const handleBuy = useCallback(() => {
     onCtaClicked?.();
-    onBuy();
+    void onBuy();
   }, [onBuy, onCtaClicked]);
 
   const handleSend = useCallback(async () => {
