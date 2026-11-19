@@ -120,6 +120,9 @@ export interface AssetOverviewContentProps {
   mainBalance: string;
   secondaryBalance: string | undefined;
 
+  /** Rendered immediately above the price, inside the scroll content. */
+  leadingContent?: React.ReactNode;
+
   // Price data
   currentPrice: number;
   priceDiff: number;
@@ -194,6 +197,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   balancePriceChangeOverrideColor,
   mainBalance,
   secondaryBalance,
+  leadingContent,
   currentPrice,
   priceDiff,
   comparePrice,
@@ -402,6 +406,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {isAssetInactive ? (
             <AssetActivateCard token={token} chainName="Stellar" />
           ) : null}
+
+          {leadingContent}
 
           <Price
             asset={token}
