@@ -43,18 +43,17 @@ export const MoneyDepositToRowIDs = {
 
 function MoneyDepositToRowComponent() {
   const transactionMeta = useTransactionMetadataRequest();
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { colors } = useTheme();
-  const { apyPercent } = useMoneyVaultApy();
+  const { apyPercent } = useMoneyVaultApy({ enabled: isMoneyAccountDeposit });
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
   });
   const [isApySheetOpen, setIsApySheetOpen] = useState(false);
-
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
 
   const handleMoneyPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.SPLASH);

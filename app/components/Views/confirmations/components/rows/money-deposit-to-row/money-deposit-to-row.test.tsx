@@ -58,7 +58,7 @@ describe('MoneyDepositToRow', () => {
     mockApy(6.2);
   });
 
-  it('returns null for non-moneyAccountDeposit transactions', () => {
+  it('returns null and disables the APY query for non-moneyAccountDeposit transactions', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.perpsDeposit,
     } as ReturnType<typeof useTransactionMetadataRequest>);
@@ -66,12 +66,15 @@ describe('MoneyDepositToRow', () => {
     const { queryByTestId } = renderWithProvider(<MoneyDepositToRow />);
 
     expect(queryByTestId(MoneyDepositToRowIDs.ROW)).toBeNull();
+    expect(useMoneyVaultApyMock).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('renders To row with rounded-square MoneyBalanceIcon, MetaMask Money, bullet separator, and live APY', () => {
     const { getByTestId, getByText, UNSAFE_getByProps } = renderWithProvider(
       <MoneyDepositToRow />,
     );
+
+    expect(useMoneyVaultApyMock).toHaveBeenCalledWith({ enabled: true });
 
     expect(getByTestId(MoneyDepositToRowIDs.ROW)).toBeOnTheScreen();
     expect(
