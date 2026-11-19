@@ -34,6 +34,9 @@ const styleSheet = (params: { theme: Theme }) => {
     userDataRow: {
       marginBottom: 8,
     },
+    boldText: {
+      fontWeight: 'bold',
+    },
     supportNotice: {
       color: colors.text.alternative,
       fontStyle: 'italic',

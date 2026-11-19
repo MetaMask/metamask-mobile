@@ -179,38 +179,26 @@ const MicaConsent = (): React.JSX.Element => {
             {userDetails ? (
               <>
                 <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={{ fontWeight: 'bold' }}
-                  >
+                  <Text variant={TextVariant.BodyMd} style={styles.boldText}>
                     {strings('deposit.mica.name')}:{' '}
                   </Text>
                   {userDetails.firstName} {userDetails.lastName}
                 </Text>
                 <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={{ fontWeight: 'bold' }}
-                  >
+                  <Text variant={TextVariant.BodyMd} style={styles.boldText}>
                     {strings('deposit.mica.dob')}:{' '}
                   </Text>
                   {userDetails.dob || strings('deposit.mica.notProvided')}
                 </Text>
                 <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={{ fontWeight: 'bold' }}
-                  >
+                  <Text variant={TextVariant.BodyMd} style={styles.boldText}>
                     {strings('deposit.mica.phone')}:{' '}
                   </Text>
                   {userDetails.mobileNumber ||
                     strings('deposit.mica.notProvided')}
                 </Text>
                 <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={{ fontWeight: 'bold' }}
-                  >
+                  <Text variant={TextVariant.BodyMd} style={styles.boldText}>
                     {strings('deposit.mica.address')}:{' '}
                   </Text>
                   {userDetails.address?.addressLine1 || ''},{' '}

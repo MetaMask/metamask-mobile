@@ -24,8 +24,14 @@ import type {
   TransakState,
   TransakPatchUserRequestBody,
   TransakOrder,
+  RampsController,
 } from '@metamask/ramps-controller';
-import type { RampsController } from '@metamask/ramps-controller';
+import {
+  injectMicaTermsIds,
+  getMockConsentForm,
+  getMockSourceOfIncomeForm,
+  isMicaMockModeEnabled,
+} from '../utils/micaMockMode';
 
 interface RampsControllerWithMica extends RampsController {
   transakSubmitMicaConsent: (consentedAt: string) => Promise<void>;
@@ -237,7 +243,6 @@ export function useTransakController(): UseTransakControllerResult {
 
       // MiCA mock mode: inject termsIds for testing disclaimer display
       if (__DEV__) {
-        const { injectMicaTermsIds } = require('../utils/micaMockMode');
         return injectMicaTermsIds(quote);
       }
 
@@ -256,12 +261,6 @@ export function useTransakController(): UseTransakControllerResult {
     // MiCA mock mode support (dev-only, off by default)
     // TODO: Remove this once core is integrated and tested
     if (__DEV__) {
-      const {
-        isMicaMockModeEnabled,
-        getMockConsentForm,
-        getMockSourceOfIncomeForm,
-      } = require('../utils/micaMockMode');
-
       if (isMicaMockModeEnabled()) {
         // Simulate MiCA flow: return CONSENT first, then SOURCE_OF_INCOME
         // In a real scenario, the server decides based on user state

@@ -136,7 +136,9 @@ describe('MicaConsent', () => {
       expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
     });
 
-    const dataProcessingCheckbox = getByText('deposit.mica.dataProcessingConsent');
+    const dataProcessingCheckbox = getByText(
+      'deposit.mica.dataProcessingConsent',
+    );
     const termsCheckbox = getByText('deposit.mica.termsAndPrivacyConsent');
 
     fireEvent.press(dataProcessingCheckbox);
@@ -159,7 +161,9 @@ describe('MicaConsent', () => {
       expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
     });
 
-    const dataProcessingCheckbox = getByText('deposit.mica.dataProcessingConsent');
+    const dataProcessingCheckbox = getByText(
+      'deposit.mica.dataProcessingConsent',
+    );
     const termsCheckbox = getByText('deposit.mica.termsAndPrivacyConsent');
 
     fireEvent.press(dataProcessingCheckbox);

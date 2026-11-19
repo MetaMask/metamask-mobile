@@ -105,33 +105,37 @@ describe('SourceOfIncome', () => {
   });
 
   it('renders correctly for EEA users', async () => {
-    const { getByText, getByLabelText } = render(
+    const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
       </ThemeContext.Provider>,
     );
 
     expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
-    expect(getByLabelText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
-    expect(getByLabelText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
-    expect(getByLabelText('deposit.mica.employmentStatusLabel')).toBeTruthy();
-    expect(getByLabelText('deposit.mica.nationalityLabel')).toBeTruthy();
+    expect(getByText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
+    expect(getByText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
+    expect(getByText('deposit.mica.employmentStatusLabel')).toBeTruthy();
+    expect(getByText('deposit.mica.nationalityLabel')).toBeTruthy();
   });
 
   it('renders correctly for non-EEA users', async () => {
-    mockUseParamsReturn.metadata = { ...mockNonEEAMetadata, employmentStatusOptions: [], countryOfCitizenshipOptions: [] };
+    mockUseParamsReturn.metadata = {
+      ...mockNonEEAMetadata,
+      employmentStatusOptions: [],
+      countryOfCitizenshipOptions: [],
+    };
 
-    const { getByText, getByLabelText, queryByLabelText } = render(
+    const { getByText, queryByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
       </ThemeContext.Provider>,
     );
 
     expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
-    expect(getByLabelText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
-    expect(getByLabelText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
-    expect(queryByLabelText('deposit.mica.employmentStatusLabel')).toBeNull();
-    expect(queryByLabelText('deposit.mica.nationalityLabel')).toBeNull();
+    expect(getByText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
+    expect(getByText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
+    expect(queryByText('deposit.mica.employmentStatusLabel')).toBeNull();
+    expect(queryByText('deposit.mica.nationalityLabel')).toBeNull();
   });
 
   it('disables submit button until all required fields are filled (EEA)', async () => {
@@ -152,7 +156,9 @@ describe('SourceOfIncome', () => {
       </ThemeContext.Provider>,
     );
 
-    const monthlyVolumeInput = getByLabelText('deposit.mica.monthlyVolumeLabel');
+    const monthlyVolumeInput = getByLabelText(
+      'deposit.mica.monthlyVolumeLabel',
+    );
     fireEvent.changeText(monthlyVolumeInput, '1000');
 
     // Note: In a real test, we'd need to open the dropdowns and select values
