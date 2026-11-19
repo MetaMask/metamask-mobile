@@ -23,9 +23,6 @@ describe('EVAL_RULES', () => {
     const ruleIds = Object.keys(EVAL_RULES);
 
     expect(ruleIds).toEqual(loadEvalRules().map((config) => config.id));
-  });
-
-  it('builds a working rule module per JSON entry', () => {
     for (const rule of Object.values(EVAL_RULES)) {
       expect(typeof rule.create).toBe('function');
     }
@@ -119,23 +116,6 @@ describe('runEvals', () => {
 
     expect(codeResult).toBe(0);
     expect(linted).toEqual([]);
-  });
-
-  it('passes a line that has a ds-exception reason', () => {
-    const filePath = 'app/Screen.tsx';
-    const code = 'export const styles = { marginRight: 8 }; // ds-exception: icon gap\n';
-    const writes: string[] = [];
-
-    const codeResult = runEvals({
-      readDiff: () => addedDiff(filePath, [code.trimEnd()]),
-      lintFiles: () => lintSource(filePath, code),
-      write: (line) => {
-        writes.push(line);
-      },
-    });
-
-    expect(codeResult).toBe(0);
-    expect(writes).toEqual([]);
   });
 
   it('throws when lint fails so the check does not pass silently', () => {

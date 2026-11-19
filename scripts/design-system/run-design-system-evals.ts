@@ -8,9 +8,8 @@ import { loadEvalRules } from './eval-rules';
 import { createRuleFromConfig } from './rule-kinds';
 
 /**
- * The rule source is `eval-rules.json`, next to this file. Registration,
- * severity, and the finding filter all read this map. A broken JSON source
- * throws here so the check fails loudly instead of passing silently.
+ * Built from the JSON rule source (`eval-rules.json`). A broken source throws
+ * at load so the check fails loudly instead of passing silently.
  */
 export const EVAL_RULES: Record<string, Rule.RuleModule> = Object.fromEntries(
   loadEvalRules().map((config) => [config.id, createRuleFromConfig(config)]),

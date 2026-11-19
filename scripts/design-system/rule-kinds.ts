@@ -1,21 +1,14 @@
 import type { Rule } from 'eslint';
 
 import { lineHasException } from './ds-exception';
-import type {
-  EvalRuleConfig,
-  NumericLiteralOnKeysRuleConfig,
-} from './eval-rules';
+import type { EvalRuleConfig } from './eval-rules';
 
 /**
- * Build an ESLint rule module from an eval rule config. Each config `kind`
- * maps to one generic check implemented here; the JSON source only picks the
- * kind and its parameters.
+ * Build an ESLint rule module from its JSON config. One kind today
+ * (`no-numeric-literal-on-keys`); add a branch here per new kind.
  */
 export function createRuleFromConfig(config: EvalRuleConfig): Rule.RuleModule {
-  switch (config.kind) {
-    case 'no-numeric-literal-on-keys':
-      return createNumericLiteralOnKeysRule(config);
-  }
+  return createNumericLiteralOnKeysRule(config);
 }
 
 type SpacingProperty = Parameters<NonNullable<Rule.NodeListener['Property']>>[0];
@@ -26,7 +19,7 @@ type SpacingProperty = Parameters<NonNullable<Rule.NodeListener['Property']>>[0]
  * are ignored.
  */
 function createNumericLiteralOnKeysRule(
-  config: NumericLiteralOnKeysRuleConfig,
+  config: EvalRuleConfig,
 ): Rule.RuleModule {
   const keys: ReadonlySet<string> = new Set(config.keys);
 
@@ -114,9 +107,8 @@ function unwrapExpression(node: Rule.Node): Rule.Node {
 }
 
 /**
- * The node whose text is the offending literal, or undefined when the value
- * is allowed or not a numeric literal. Unary minus and plus count. `-0`
- * equals `0`, so an allowed 0 also allows -0.
+ * The offending literal node, or undefined when the value is allowed or not
+ * numeric. Unary minus and plus count; `-0` equals `0`.
  */
 function disallowedLiteral(
   node: Rule.Node,
