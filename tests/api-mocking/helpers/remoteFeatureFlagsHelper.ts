@@ -139,6 +139,11 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     regions: ['US'],
     layout: 'UsBank',
   },
+  // Keep the new Money CTA splash disabled in smoke tests.
+  moneyEnableSplash: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
 };
 
 /**

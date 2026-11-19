@@ -5034,8 +5034,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   moneyEnableSplash: {
     name: 'moneyEnableSplash',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.21.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
