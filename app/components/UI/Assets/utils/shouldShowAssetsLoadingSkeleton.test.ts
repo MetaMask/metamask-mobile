@@ -126,4 +126,26 @@ describe('shouldShowAssetsLoadingSkeleton', () => {
       }),
     ).toBe(true);
   });
+
+  it('matches Hex asset keys when allowed chains are provided as CAIP-2', () => {
+    expect(
+      shouldShowAssetsLoadingSkeleton({
+        assetsHaveLoaded: false,
+        allowedChainIds: ['eip155:1'],
+        assetsByChain: {
+          '0x1': [
+            asset({ isNative: true, balance: '0', fiat: { balance: 0 } }),
+          ],
+          '0x539': [
+            asset({
+              isNative: true,
+              balance: '10',
+              fiat: { balance: 50 },
+              chainId: '0x539',
+            }),
+          ],
+        },
+      }),
+    ).toBe(true);
+  });
 });

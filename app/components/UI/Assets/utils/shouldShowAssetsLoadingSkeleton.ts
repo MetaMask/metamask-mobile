@@ -1,4 +1,6 @@
 import type { Asset } from '@metamask/assets-controller';
+import { toHex } from '@metamask/controller-utils';
+import type { Hex } from '@metamask/utils';
 import { isMusdToken } from '../../Earn/constants/musd';
 
 /**
@@ -20,7 +22,8 @@ interface ShouldShowAssetsLoadingSkeletonArgs {
   assetsByChain: AssetsByChain;
   /**
    * Optional chain allow-list (e.g. popular networks on home). When set, only
-   * those chains are considered for the placeholder check.
+   * those chains are considered for the placeholder check. Accepts CAIP-2 or
+   * Hex; EVM CAIP ids also match Hex asset map keys.
    */
   allowedChainIds?: readonly string[];
   /**
@@ -29,17 +32,36 @@ interface ShouldShowAssetsLoadingSkeletonArgs {
   musdOnly?: boolean;
 }
 
+/**
+ * Builds a set of network IDs for filtering. Popular networks are often CAIP-2
+ * while asset map keys may be Hex for EVM, so both forms are included.
+ */
+const buildAllowedNetworkIdSet = (chainIds: readonly string[]): Set<string> => {
+  const allowedIds = new Set(chainIds);
+  for (const id of chainIds) {
+    if (id.startsWith('eip155:')) {
+      const reference = id.slice(7);
+      if (reference) {
+        allowedIds.add(toHex(reference) as Hex);
+      }
+    }
+  }
+  return allowedIds;
+};
+
 const flattenAssets = (
   assetsByChain: AssetsByChain,
   allowedChainIds?: readonly string[],
 ): Asset[] => {
   const entries = Object.entries(assetsByChain);
-  const filteredEntries =
-    allowedChainIds && allowedChainIds.length > 0
-      ? entries.filter(([chainId]) => allowedChainIds.includes(chainId))
-      : entries;
+  if (!allowedChainIds || allowedChainIds.length === 0) {
+    return entries.flatMap(([, assets]) => assets ?? []);
+  }
 
-  return filteredEntries.flatMap(([, assets]) => assets ?? []);
+  const allowedIds = buildAllowedNetworkIdSet(allowedChainIds);
+  return entries
+    .filter(([chainId]) => allowedIds.has(chainId))
+    .flatMap(([, assets]) => assets ?? []);
 };
 
 /**

@@ -20,7 +20,10 @@ import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
-import { makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance, selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import {
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
+  selectAssetsBySelectedAccountGroup,
+} from '../../../../../selectors/assets/assets-list';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
 import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet';
@@ -163,6 +166,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       shouldShowAssetsLoadingSkeleton({
         assetsHaveLoaded,
         assetsByChain,
+        allowedChainIds: popularChainIds,
       });
 
     const refresh = useCallback(async () => {

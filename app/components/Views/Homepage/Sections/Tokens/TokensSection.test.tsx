@@ -419,11 +419,12 @@ describe('TokensSection', () => {
   it('notifies Homepage when unsettled assets already include a real balance', () => {
     const onContentReadyChange = jest.fn();
     mockUseAssetsHaveLoaded.mockReturnValue(false);
+    mockPopularNetworks = ['eip155:1'];
     mockAssetsByChain.mockReturnValue({
-      'eip155:1': [
+      '0x1': [
         {
           assetId: 'eip155:1/slip44:60',
-          chainId: 'eip155:1',
+          chainId: '0x1',
           isNative: true,
           balance: '1',
           fiat: { balance: 3000 },
@@ -433,7 +434,7 @@ describe('TokensSection', () => {
     mockSortedTokenKeys.mockReturnValue([
       {
         address: 'eip155:1/slip44:60',
-        chainId: 'eip155:1',
+        chainId: '0x1',
         isStaked: false,
       },
     ]);
@@ -447,6 +448,42 @@ describe('TokensSection', () => {
     );
 
     expect(onContentReadyChange).toHaveBeenCalledWith(true);
+  });
+
+  it('keeps the skeleton when only a custom-network balance is present', () => {
+    const onContentReadyChange = jest.fn();
+    mockUseAssetsHaveLoaded.mockReturnValue(false);
+    mockPopularNetworks = ['eip155:1'];
+    mockAssetsByChain.mockReturnValue({
+      '0x1': [
+        {
+          assetId: 'eip155:1/slip44:60',
+          chainId: '0x1',
+          isNative: true,
+          balance: '0',
+          fiat: { balance: 0 },
+        },
+      ],
+      '0x539': [
+        {
+          assetId: 'eip155:1337/slip44:60',
+          chainId: '0x539',
+          isNative: true,
+          balance: '5',
+          fiat: { balance: 20 },
+        },
+      ],
+    });
+
+    renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).not.toHaveBeenCalled();
   });
 
   it('renders "Tokens" title for zero balance account', () => {
