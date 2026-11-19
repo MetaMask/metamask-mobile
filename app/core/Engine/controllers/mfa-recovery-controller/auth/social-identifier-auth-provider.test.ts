@@ -26,7 +26,7 @@ describe('SocialIdentifierAuthProvider', () => {
     const proofPublicKey = new Uint8Array([1, 2, 3]);
     const requestHash = '0xdead';
 
-    const result = await provider.getKeyBoundIdentifierToken({
+    const result = await provider.getKeyBoundIdentifierLogin({
       identifier: SOCIAL,
       proofPublicKey,
       requestHash,
@@ -37,10 +37,12 @@ describe('SocialIdentifierAuthProvider', () => {
       bytesToHex(new Uint8Array([0xab, 0xcd])),
     );
     expect(result).toEqual({
-      identifier: SOCIAL,
-      proofPublicKey,
-      requestHash,
-      providerAssertion: 'social-id-token',
+      token: {
+        identifier: SOCIAL,
+        proofPublicKey,
+        requestHash,
+        providerAssertion: 'social-id-token',
+      },
     });
   });
 });

@@ -16,23 +16,16 @@ type AllowedEvents = MessengerEvents<MfaRecoveryControllerMessenger>;
 export function getMfaRecoveryControllerMessenger(
   rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): MfaRecoveryControllerMessenger {
-  const messenger: MfaRecoveryControllerMessenger = new Messenger({
+  return new Messenger({
     namespace: 'MfaRecoveryController',
     parent: rootMessenger,
   });
-  rootMessenger.delegate({
-    actions: [
-      'AuthenticationController:refreshCanonicalProfileId',
-      'AuthenticationController:requestMfaApproval',
-    ],
-    messenger,
-  });
-  return messenger;
 }
 
 type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
+  | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | AuthenticationController.AuthenticationControllerExchangeSocialAccessTokenAction
   | KeyringControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction;
@@ -58,6 +51,7 @@ export function getMfaRecoveryControllerInitMessenger(
     actions: [
       'AuthenticationController:getBearerToken',
       'AuthenticationController:refreshCanonicalProfileId',
+      'AuthenticationController:requestMfaApproval',
       'AuthenticationController:exchangeSocialAccessToken',
       'KeyringController:getState',
       'RemoteFeatureFlagController:getState',

@@ -50,13 +50,19 @@ export function getCubistConfig(
       'MFA_CONFIG.receiptPublicKey',
     ),
     scopes: parseScopes(mfaConfig.sessionScopes),
-    registrationUrl:
-      mfaConfig.registrationUrl.trim() || DEFAULT_REGISTRATION_URL,
+    registrationUrl: getRegistrationUrl(mfaConfig),
     authAudience: getRequiredMfaConfig(
       mfaConfig.cubistAuthAudience,
       'MFA_CONFIG.cubistAuthAudience',
     ),
   };
+}
+
+/** Returns the recovery registration service origin. */
+export function getRegistrationUrl(
+  mfaConfig: MfaConfig = getMfaConfig(),
+): string {
+  return mfaConfig.registrationUrl.trim() || DEFAULT_REGISTRATION_URL;
 }
 
 /** Returns the TOPRF verifier configuration of the aal2 recovery session. */

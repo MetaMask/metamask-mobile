@@ -10980,20 +10980,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mfa-recovery-controller@npm:@metamask-previews/mfa-recovery-controller@0.0.0-preview-8df707a0a":
-  version: 0.0.0-preview-8df707a0a
-  resolution: "@metamask-previews/mfa-recovery-controller@npm:0.0.0-preview-8df707a0a"
+"@metamask/mfa-recovery-controller@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@metamask/mfa-recovery-controller@npm:0.1.0"
   dependencies:
     "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/cryptography": "npm:^1.1.2"
-    "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^36.1.1"
+    "@metamask/profile-sync-controller": "npm:^36.1.2"
+    "@metamask/seedless-onboarding-controller": "npm:^12.1.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/utils": "npm:^12.0.2"
     json-stable-stringify: "npm:^1.3.0"
-  checksum: 10/c7bc6e6ad49f6d914345ee4c4fdb894d109c31ffdcc5235e4454c7e7a6fe8946b3f1790169e8065a75b6b1e3b1aba8e0a1fdac14acbd59d019a8f906058c9539
+  checksum: 10/21cd65e10716da1c310f2a8323abc8da68e51c19ae9633794871f894216c165d4d24e7695fce51104e05f71b8aacc73b9bda51c7dd3f85af0bb6ea208102d9f3
   languageName: node
   linkType: hard
 
@@ -11984,23 +11984,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@12.0.0-preview-200ae8283":
-  version: 12.0.0-preview-200ae8283
-  resolution: "@metamask-previews/seedless-onboarding-controller@npm:12.0.0-preview-200ae8283"
+"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@12.0.0-preview-8bb08c709":
+  version: 12.0.0-preview-8bb08c709
+  resolution: "@metamask-previews/seedless-onboarding-controller@npm:12.0.0-preview-8bb08c709"
   dependencies:
-    "@metamask/analytics-controller": "npm:^4.3.0"
+    "@metamask/analytics-controller": "npm:^4.3.1"
     "@metamask/auth-network-utils": "npm:^0.4.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/cryptography": "npm:^1.1.2"
-    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/keyring-controller": "npm:^28.2.2"
     "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/toprf-secure-backup": ./metamask-toprf-secure-backup-1.1.0.tgz
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/utils": "npm:^12.0.2"
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/a12bf5a98a484692750f677f406c44e2880c69b4b73ac75921d862f5afc7ad32e11afeb450097ed04f734c292e62e4bb969d24258f3d45940404a3219e855918
+  checksum: 10/1361406f3322b22f6b12d5363c36e010d6d79dabb5724cd720b09741b187fc72b7670cbfc2d5a09cd5d361bd3f9f36574aa1b6ae0e1acb8bcc063cc202948221
   languageName: node
   linkType: hard
 
@@ -38414,7 +38415,7 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^0.2.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
-    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.0.0-preview-8df707a0a"
+    "@metamask/mfa-recovery-controller": "npm:^0.1.0"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
@@ -38458,7 +38459,7 @@ __metadata:
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.0.0-preview-200ae8283"
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.0.0-preview-8bb08c709"
     "@metamask/selected-network-controller": "npm:^27.0.0"
     "@metamask/sentinel-api-service": "npm:^2.1.0"
     "@metamask/shield-controller": "npm:^7.1.1"

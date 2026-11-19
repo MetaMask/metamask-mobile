@@ -1,13 +1,18 @@
-import type {
-  MfaRecoveryController,
-  MfaRecoveryControllerMessenger,
-  MfaRecoveryControllerState,
+import { Messenger } from '@metamask/messenger';
+import {
+  AuthApiRecoveryAuthProvider,
+  RecoveryRegistrationLockProvider,
+  type AuthApiRecoveryAuthProviderMessenger,
+  type MfaRecoveryController,
+  type MfaRecoveryControllerMessenger,
+  type MfaRecoveryControllerState,
+  type RecoveryRegistrationLockProviderMessenger,
 } from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
 import type { MessengerClientInitFunction } from '../../types';
 import type { MfaRecoveryControllerInitMessenger } from '../../messengers/mfa-recovery-controller-messenger';
-import { isMfaRecoveryConfigured } from './config';
+import { getRegistrationUrl, isMfaRecoveryConfigured } from './config';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
 
 /**
@@ -40,6 +45,32 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
     );
   };
 
+  const authProviderMessenger: AuthApiRecoveryAuthProviderMessenger =
+    new Messenger({
+      namespace: 'AuthApiRecoveryAuthProvider',
+      parent: initMessenger,
+    });
+  initMessenger.delegate({
+    actions: [
+      'AuthenticationController:refreshCanonicalProfileId',
+      'AuthenticationController:requestMfaApproval',
+    ],
+    messenger: authProviderMessenger,
+  });
+
+  const lockProviderMessenger: RecoveryRegistrationLockProviderMessenger =
+    new Messenger({
+      namespace: 'RecoveryRegistrationLockProvider',
+      parent: initMessenger,
+    });
+  initMessenger.delegate({
+    actions: [
+      'AuthenticationController:getBearerToken',
+      'AuthenticationController:refreshCanonicalProfileId',
+    ],
+    messenger: lockProviderMessenger,
+  });
+
   const controller = createMfaRecoveryController({
     messenger: controllerMessenger,
     state: withoutUnreadablePendingOperation(
@@ -48,6 +79,14 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
         | undefined,
     ),
     isEnabled,
+    authProvider: new AuthApiRecoveryAuthProvider({
+      messenger: authProviderMessenger,
+    }),
+    lockProvider: new RecoveryRegistrationLockProvider({
+      baseUrl: getRegistrationUrl(),
+      messenger: lockProviderMessenger,
+      fetch: globalThis.fetch.bind(globalThis),
+    }),
     isUnlocked: () =>
       initMessenger.call('KeyringController:getState').isUnlocked,
     refreshCanonicalProfileId: async () =>
