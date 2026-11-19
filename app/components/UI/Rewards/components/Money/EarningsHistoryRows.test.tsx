@@ -1,6 +1,12 @@
 import React from 'react';
-import { Text, TextColor } from '@metamask/design-system-react-native';
+import {
+  AvatarIcon,
+  IconName,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import type {
+  EarningOriginType,
   LedgerClaimEntryDto,
   LedgerEarningEntryDto,
   ReferralLocalizedText,
@@ -111,6 +117,25 @@ describe('EarningsHistoryRow', () => {
     expect(queryByText('$0.00')).toBeNull();
   });
 
+  it.each([
+    'PREDICT_FEE_CASHBACK',
+    // A type a newer server adds before this client knows it.
+    'CARD_FEE_CASHBACK' as unknown as EarningOriginType,
+  ] as EarningOriginType[])(
+    'shows a %s earning as a rebate with the coin icon',
+    (origin) => {
+      const { getByText, UNSAFE_getByType } = renderWithProvider(
+        <EarningsHistoryRow
+          item={{ ...earning, earning_origin_type: origin }}
+          localizedText={LOCALIZED_TEXT}
+        />,
+      );
+
+      expect(getByText('Rebate')).toBeOnTheScreen();
+      expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Coin);
+    },
+  );
+
   it('shows a settled claim as a debit', () => {
     const { getByText } = renderWithProvider(
       <EarningsHistoryRow item={claim} localizedText={LOCALIZED_TEXT} />,
@@ -164,28 +189,29 @@ describe('EarningsHistoryRow', () => {
       },
     );
 
-    it.each(['SWAPS_FEE_CASHBACK', 'PERPS_FEE_CASHBACK'] as const)(
-      'labels a %s trade by the hours since it',
-      (origin) => {
-        const { getByText, queryByText } = renderWithProvider(
-          <EarningsHistoryRow
-            item={{
-              ...earning,
-              earning_origin_type: origin,
-              ledger_timestamp: '2026-09-01T12:00:00.000Z',
-            }}
-            localizedText={LOCALIZED_TEXT}
-          />,
-        );
+    it.each([
+      'SWAPS_FEE_CASHBACK',
+      'PERPS_FEE_CASHBACK',
+      'PREDICT_FEE_CASHBACK',
+    ] as const)('labels a %s trade by the hours since it', (origin) => {
+      const { getByText, queryByText } = renderWithProvider(
+        <EarningsHistoryRow
+          item={{
+            ...earning,
+            earning_origin_type: origin,
+            ledger_timestamp: '2026-09-01T12:00:00.000Z',
+          }}
+          localizedText={LOCALIZED_TEXT}
+        />,
+      );
 
-        expect(
-          getByText(
-            formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
-          ),
-        ).toBeOnTheScreen();
-        expect(queryByText('Today')).toBeNull();
-      },
-    );
+      expect(
+        getByText(
+          formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
+        ),
+      ).toBeOnTheScreen();
+      expect(queryByText('Today')).toBeNull();
+    });
 
     it('labels a settled claim by the hours since it was created', () => {
       const { getByText, queryByText } = renderWithProvider(
