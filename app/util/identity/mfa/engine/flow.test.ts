@@ -1464,12 +1464,12 @@ describe('createMfaFlow analytics', () => {
 
   it('tracks the method the user chooses', async () => {
     const trackEvent = jest.fn();
-    const fake = createFakeController([activeEmail, passkey]);
+    const fake = createFakeController([activeEmail, authenticatorApp]);
     const { flow } = await startFlow(
       {
         kind: 'verifyOrEnroll',
-        methods: ['email_otp', 'passkey'],
-        verifyWith: ['email_otp', 'passkey'],
+        methods: ['email_otp', 'totp'],
+        verifyWith: ['email_otp', 'totp'],
       },
       fake.controller,
       { trackEvent },
@@ -1481,7 +1481,7 @@ describe('createMfaFlow analytics', () => {
       {
         method: 'email_otp',
         purpose: 'verify',
-        methods_offered: ['passkey', 'email_otp'],
+        methods_offered: ['totp', 'email_otp'],
       },
     ]);
   });
