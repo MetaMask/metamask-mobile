@@ -10,7 +10,10 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
-import type { SubmittedDepositTransfer } from './depositTransferExecutor';
+import {
+  depositTransferRequestId,
+  type SubmittedDepositTransfer,
+} from './depositTransferExecutor';
 import { decodeUsdcTransfer, toUsdcBaseUnits } from './usdcTransfer';
 
 const TERMINAL_FAILURE_STATUSES: ReadonlySet<TransactionStatus> = new Set([
@@ -67,6 +70,8 @@ export type ExistingDepositTransfer =
       status: TransactionStatus;
       /** Resolves with the submitted transfer once broadcast, or rejects on rejection or failure. */
       wait: () => Promise<SubmittedDepositTransfer>;
+      /** Rejects an unapproved transaction so it cannot be confirmed after the deposit is cancelled. */
+      cancel?: () => Promise<void> | void;
     };
 
 export type MatchedDepositTransaction =
@@ -78,6 +83,15 @@ export interface FindMatchingDepositTransactionParams {
   from: PredictHex;
   plan: PredictFundingPlan;
   createdAt: PredictTimestamp;
+  operationId: string;
+}
+
+export interface FindUnapprovedDepositTransactionsForCancelParams {
+  transactions: readonly TransactionMeta[];
+  from: PredictHex;
+  operationId: string;
+  createdAt: PredictTimestamp;
+  plan?: PredictFundingPlan;
 }
 
 const rankCandidate = (tx: TransactionMeta): number => {
@@ -107,11 +121,13 @@ const matchesDepositTransaction = (
     plan,
     createdAtMs,
     expectedBaseUnits,
+    expectedRequestId,
   }: {
     from: PredictHex;
     plan: PredictFundingPlan;
     createdAtMs: number;
     expectedBaseUnits: bigint;
+    expectedRequestId: string;
   },
 ): boolean => {
   if (!ACTIVE_STATUSES.has(tx.status)) {
@@ -143,6 +159,9 @@ const matchesDepositTransaction = (
   ) {
     return false;
   }
+  if (tx.requestId !== undefined) {
+    return tx.requestId === expectedRequestId;
+  }
   if (!Number.isNaN(createdAtMs)) {
     if (typeof tx.time !== 'number' || tx.time < createdAtMs) {
       return false;
@@ -153,15 +172,17 @@ const matchesDepositTransaction = (
 
 /**
  * Finds an existing non-failed wallet transaction scoped to the deposit's
- * sender, chain, token contract, recipient, exact USDC amount, and creation
- * time. Prefers already-submitted/confirmed transactions with a hash over
- * pending transactions.
+ * operation ID (clock-independent when tagged via `requestId`, falling back to
+ * creation time for untagged transactions), sender, chain, token contract,
+ * recipient, and exact USDC amount. Prefers already-submitted/confirmed
+ * transactions with a hash over pending transactions.
  */
 export const findMatchingDepositTransaction = ({
   transactions,
   from,
   plan,
   createdAt,
+  operationId,
 }: FindMatchingDepositTransactionParams):
   | MatchedDepositTransaction
   | undefined => {
@@ -170,6 +191,7 @@ export const findMatchingDepositTransaction = ({
     return undefined;
   }
   const createdAtMs = Date.parse(createdAt);
+  const expectedRequestId = depositTransferRequestId(operationId);
 
   let best: TransactionMeta | undefined;
   let bestRank = 0;
@@ -181,6 +203,7 @@ export const findMatchingDepositTransaction = ({
         plan,
         createdAtMs,
         expectedBaseUnits,
+        expectedRequestId,
       })
     ) {
       continue;
@@ -214,6 +237,46 @@ export const findMatchingDepositTransaction = ({
     };
   }
   return { kind: 'pending', transactionMeta: best };
+};
+
+/**
+ * Finds any `unapproved` wallet transactions belonging to `operationId` (or
+ * matching `plan` when no `requestId` was recorded) so cancelling the deposit
+ * rejects them too.
+ */
+export const findMatchingUnapprovedDepositTransactions = ({
+  transactions,
+  from,
+  operationId,
+  createdAt,
+  plan,
+}: FindUnapprovedDepositTransactionsForCancelParams): TransactionMeta[] => {
+  const expectedRequestId = depositTransferRequestId(operationId);
+  const normalizedFrom = from.toLowerCase();
+  const expectedBaseUnits = plan ? toUsdcBaseUnits(plan.amount) : undefined;
+  const createdAtMs = Date.parse(createdAt);
+
+  return transactions.filter((tx) => {
+    if (tx.status !== TransactionStatus.unapproved) {
+      return false;
+    }
+    if (tx.requestId !== undefined) {
+      return (
+        tx.requestId === expectedRequestId &&
+        tx.txParams?.from?.toLowerCase() === normalizedFrom
+      );
+    }
+    if (!plan || expectedBaseUnits === undefined) {
+      return false;
+    }
+    return matchesDepositTransaction(tx, {
+      from,
+      plan,
+      createdAtMs,
+      expectedBaseUnits,
+      expectedRequestId,
+    });
+  });
 };
 
 /** Whether the wallet already knows `txHash` ended in failure, rejection, or drop. */

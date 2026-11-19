@@ -130,6 +130,7 @@ describe('startDeposit', () => {
       clientOperationId: CLIENT_OPERATION_ID,
     });
     expect(executor.send).toHaveBeenCalledWith({
+      operationId: OPERATION_ID,
       from: FROM,
       chainId: 8453,
       tokenContract: USDC,
@@ -547,16 +548,18 @@ describe('payDeposit', () => {
     expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
   });
 
-  it('refuses an unapproved pending transfer when the plan has two minutes or less left', async () => {
+  it('refuses and cancels an unapproved pending transfer when the plan has two minutes or less left', async () => {
     const deposit = awaitingTransfer({
       planExpiresAt: '2026-11-13T12:01:30.000Z',
     });
     const { deps, funding, executor } = setup();
     const wait = jest.fn(async () => paying());
+    const cancel = jest.fn(async () => undefined);
     deps.findExistingTransfer = jest.fn(() => ({
       kind: 'pending',
       status: TransactionStatus.unapproved,
       wait,
+      cancel,
     }));
 
     await expect(payDeposit(deps, deposit, AMOUNT)).resolves.toStrictEqual({
@@ -565,6 +568,31 @@ describe('payDeposit', () => {
     });
     expect(wait).not.toHaveBeenCalled();
     expect(executor.send).not.toHaveBeenCalled();
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
+  });
+
+  it('still cancels the backend deposit when cancelling the unapproved transfer throws', async () => {
+    const deposit = awaitingTransfer({
+      planExpiresAt: '2026-11-13T12:01:30.000Z',
+    });
+    const { deps, funding } = setup();
+    const cancel = jest.fn(async () => {
+      throw new Error('approval missing');
+    });
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.unapproved,
+      wait: jest.fn(async () => paying()),
+      cancel,
+    }));
+
+    await expect(payDeposit(deps, deposit, AMOUNT)).resolves.toStrictEqual({
+      kind: 'plan_mismatch',
+      reason: 'expiry',
+    });
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(deps.logError).toHaveBeenCalled();
     expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
   });
 });

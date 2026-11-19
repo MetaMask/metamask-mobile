@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'react-redux';
+import { providerErrors } from '@metamask/rpc-errors';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../../../core/Engine';
@@ -20,6 +21,7 @@ import {
   createSimulatedTransferExecutor,
   createWalletTransferExecutor,
   findMatchingDepositTransaction,
+  findMatchingUnapprovedDepositTransactions,
   getSessionDepositTransfer,
   isKnownFailedDepositHash,
   payDeposit,
@@ -35,6 +37,7 @@ import {
 import type {
   PredictAmount,
   PredictDepositOperation,
+  PredictFundingPlan,
   PredictHex,
   PredictVenueId,
 } from '../../../types';
@@ -55,6 +58,43 @@ interface UseDepositFlowOptions {
 
 const logError = (error: unknown, message: string): void => {
   Logger.error(ensureError(error, 'PredictNext.deposit'), message);
+};
+
+const extractPlanFromDeposit = (
+  deposit: PredictDepositOperation,
+): PredictFundingPlan | undefined =>
+  deposit.next?.kind === 'wallet_transfer'
+    ? {
+        chainId: deposit.next.chainId,
+        tokenContract: deposit.next.tokenContract,
+        amount: deposit.next.amount,
+        depositAddress: deposit.next.depositAddress,
+        planExpiresAt: deposit.next.planExpiresAt,
+      }
+    : undefined;
+
+const rejectUnapprovedTransaction = (txId: string): void => {
+  const { ApprovalController } = Engine.context;
+  if (!ApprovalController?.rejectRequest) {
+    return;
+  }
+  if (
+    typeof ApprovalController.hasRequest === 'function' &&
+    !ApprovalController.hasRequest({ id: txId })
+  ) {
+    return;
+  }
+  try {
+    ApprovalController.rejectRequest(
+      txId,
+      providerErrors.userRejectedRequest(),
+    );
+  } catch (error) {
+    logError(
+      error,
+      'PredictNext: failed to reject an unapproved deposit transaction',
+    );
+  }
 };
 
 /**
@@ -181,6 +221,7 @@ export const useDepositFlow = ({
             from: sender,
             plan,
             createdAt,
+            operationId,
           });
           if (matched?.kind === 'submitted') {
             return matched;
@@ -205,6 +246,11 @@ export const useDepositFlow = ({
                   messenger:
                     Engine.controllerMessenger as unknown as DepositTransactionMessenger,
                 }),
+              cancel:
+                matched.transactionMeta.status === TransactionStatus.unapproved
+                  ? () =>
+                      rejectUnapprovedTransaction(matched.transactionMeta.id)
+                  : undefined,
             };
           }
           const sessionTransfer = getSessionDepositTransfer({
@@ -329,6 +375,19 @@ export const useDepositFlow = ({
             from: fundingWallet,
             operationId: deposit.operationId,
           });
+          if (environment.transferMode === 'wallet') {
+            const transactions =
+              Engine.context.TransactionController.state.transactions ?? [];
+            for (const tx of findMatchingUnapprovedDepositTransactions({
+              transactions,
+              from: fundingWallet,
+              operationId: deposit.operationId,
+              createdAt: deposit.createdAt,
+              plan: extractPlanFromDeposit(deposit),
+            })) {
+              rejectUnapprovedTransaction(tx.id);
+            }
+          }
         }
         return true;
       } catch (error) {
@@ -336,7 +395,7 @@ export const useDepositFlow = ({
         return false;
       }
     },
-    [fundingWallet, venueId],
+    [environment.transferMode, fundingWallet, venueId],
   );
 
   /** Whether an open deposit already has a submitted transfer waiting only for its report. */
@@ -380,6 +439,7 @@ export const useDepositFlow = ({
           from: fundingWallet,
           plan,
           createdAt: deposit.createdAt,
+          operationId: deposit.operationId,
         });
         if (matched?.kind === 'submitted') {
           return true;

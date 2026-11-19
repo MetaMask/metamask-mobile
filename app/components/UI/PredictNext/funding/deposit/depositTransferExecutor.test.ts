@@ -7,11 +7,13 @@ import {
   buildDepositTransferParams,
   createSimulatedTransferExecutor,
   createWalletTransferExecutor,
+  depositTransferRequestId,
   randomTransferHash,
   type DepositTransfer,
   type WalletTransferExecutorDeps,
 } from './depositTransferExecutor';
 
+const OPERATION_ID = 'op-1';
 const FROM: PredictHex = '0x1111111111111111111111111111111111111111';
 const USDC: PredictHex = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const RECIPIENT: PredictHex = '0x3b0b371ae3cb08f272b87319684f6518b3b313a0';
@@ -22,6 +24,7 @@ const EXPECTED_DATA =
   '00000000000000000000000000000000000000000000000000000000017d7840';
 
 const TRANSFER: DepositTransfer = {
+  operationId: OPERATION_ID,
   from: FROM,
   chainId: 8453,
   tokenContract: USDC,
@@ -76,6 +79,7 @@ describe('createWalletTransferExecutor', () => {
         origin: 'metamask',
         isInternal: true,
         type: TransactionType.tokenMethodTransfer,
+        requestId: depositTransferRequestId(OPERATION_ID),
       },
     );
     expect(deps.addTransaction).not.toHaveBeenCalledWith(

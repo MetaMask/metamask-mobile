@@ -11,11 +11,13 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
+import { depositTransferRequestId } from './depositTransferExecutor';
 import {
   clearAllSessionDepositTransfers,
   clearSessionDepositTransfer,
   clearSessionDepositTransfersForOperation,
   findMatchingDepositTransaction,
+  findMatchingUnapprovedDepositTransactions,
   getSessionDepositTransfer,
   isKnownFailedDepositHash,
   recordSessionDepositTransfer,
@@ -25,6 +27,8 @@ import {
 import { encodeUsdcTransfer } from './usdcTransfer';
 
 const VENUE_ID = 'kalshi' as PredictVenueId;
+const OPERATION_ID = 'op-1';
+const OTHER_OPERATION_ID = 'op-other';
 const FROM: PredictHex = '0x1111111111111111111111111111111111111111';
 const OTHER_FROM: PredictHex = '0x9999999999999999999999999999999999999999';
 const USDC = BASE_DEPOSIT_NETWORK.usdc.address;
@@ -80,6 +84,7 @@ describe('findMatchingDepositTransaction', () => {
       from: FROM,
       plan: PLAN,
       createdAt: CREATED_AT,
+      operationId: OPERATION_ID,
     });
 
     expect(result).toStrictEqual({
@@ -91,6 +96,48 @@ describe('findMatchingDepositTransaction', () => {
         data: DATA,
       },
     });
+  });
+
+  it('matches a tagged transaction for the same operationId even when the device clock is behind createdAt', () => {
+    const result = findMatchingDepositTransaction({
+      transactions: [
+        makeTx({
+          requestId: depositTransferRequestId(OPERATION_ID),
+          time: CREATED_AT_MS - 600_000,
+        }),
+      ],
+      from: FROM,
+      plan: PLAN,
+      createdAt: CREATED_AT,
+      operationId: OPERATION_ID,
+    });
+
+    expect(result).toStrictEqual({
+      kind: 'submitted',
+      transfer: {
+        txHash: HASH_1,
+        chainId: 8453,
+        to: USDC,
+        data: DATA,
+      },
+    });
+  });
+
+  it('ignores a transaction from a different operationId even with the same deposit address, amount, and later timestamp', () => {
+    expect(
+      findMatchingDepositTransaction({
+        transactions: [
+          makeTx({
+            requestId: depositTransferRequestId(OTHER_OPERATION_ID),
+            time: CREATED_AT_MS + 1000,
+          }),
+        ],
+        from: FROM,
+        plan: PLAN,
+        createdAt: CREATED_AT,
+        operationId: OPERATION_ID,
+      }),
+    ).toBeUndefined();
   });
 
   it.each([
@@ -142,6 +189,7 @@ describe('findMatchingDepositTransaction', () => {
         from: FROM,
         plan: PLAN,
         createdAt: CREATED_AT,
+        operationId: OPERATION_ID,
       }),
     ).toBeUndefined();
   });
@@ -170,6 +218,7 @@ describe('findMatchingDepositTransaction', () => {
       from: FROM,
       plan: PLAN,
       createdAt: CREATED_AT,
+      operationId: OPERATION_ID,
     });
 
     expect(result).toStrictEqual({
@@ -198,6 +247,7 @@ describe('findMatchingDepositTransaction', () => {
         from: FROM,
         plan: PLAN,
         createdAt: CREATED_AT,
+        operationId: OPERATION_ID,
       });
 
       expect(result).toStrictEqual({
@@ -206,6 +256,51 @@ describe('findMatchingDepositTransaction', () => {
       });
     },
   );
+});
+
+describe('findMatchingUnapprovedDepositTransactions', () => {
+  it('finds unapproved transactions for the operation even under clock skew and ignores others', () => {
+    const skewedMatching = makeTx({
+      id: 'tx-skewed',
+      status: TransactionStatus.unapproved,
+      hash: undefined,
+      requestId: depositTransferRequestId(OPERATION_ID),
+      time: CREATED_AT_MS - 120_000,
+    });
+    const otherOperation = makeTx({
+      id: 'tx-other-op',
+      status: TransactionStatus.unapproved,
+      hash: undefined,
+      requestId: depositTransferRequestId(OTHER_OPERATION_ID),
+      time: CREATED_AT_MS + 1000,
+    });
+    const submittedSameOp = makeTx({
+      id: 'tx-submitted',
+      status: TransactionStatus.submitted,
+      requestId: depositTransferRequestId(OPERATION_ID),
+    });
+    const untaggedMatching = makeTx({
+      id: 'tx-untagged',
+      status: TransactionStatus.unapproved,
+      hash: undefined,
+      time: CREATED_AT_MS + 1000,
+    });
+
+    expect(
+      findMatchingUnapprovedDepositTransactions({
+        transactions: [
+          skewedMatching,
+          otherOperation,
+          submittedSameOp,
+          untaggedMatching,
+        ],
+        from: FROM,
+        operationId: OPERATION_ID,
+        createdAt: CREATED_AT,
+        plan: PLAN,
+      }).map((tx) => tx.id),
+    ).toStrictEqual(['tx-skewed', 'tx-untagged']);
+  });
 });
 
 describe('isKnownFailedDepositHash', () => {

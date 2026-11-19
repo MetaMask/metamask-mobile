@@ -10,8 +10,14 @@ import type { PredictDepositTransferMode } from '../../config/depositEnvironment
 import type { PredictAmount, PredictHex } from '../../types';
 import { encodeUsdcTransfer, toUsdcBaseUnits } from './usdcTransfer';
 
+/** Clock-independent request identifier binding a wallet transaction to one deposit operation. */
+export const depositTransferRequestId = (operationId: string): string =>
+  `predict-deposit:${operationId}`;
+
 /** One USDC transfer that pays a checked Funding Plan. */
 export interface DepositTransfer {
+  /** The backend deposit operation ID this transfer pays. */
+  operationId: string;
   /** The Funding Wallet: the selected EVM account. */
   from: PredictHex;
   chainId: number;
@@ -106,6 +112,7 @@ export const createWalletTransferExecutor = (
         origin: ORIGIN_METAMASK,
         isInternal: true,
         type: TransactionType.tokenMethodTransfer,
+        requestId: depositTransferRequestId(transfer.operationId),
       },
     );
     deps.presentConfirmation();

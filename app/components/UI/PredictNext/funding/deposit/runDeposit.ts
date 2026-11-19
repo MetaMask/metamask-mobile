@@ -305,6 +305,19 @@ export const payDeposit = async (
       (existing.kind === 'pending' &&
         existing.status === TransactionStatus.unapproved))
   ) {
+    if (
+      existing?.kind === 'pending' &&
+      existing.status === TransactionStatus.unapproved
+    ) {
+      try {
+        await existing.cancel?.();
+      } catch (error) {
+        deps.logError(
+          error,
+          'PredictNext: failed to cancel an unapproved deposit transfer',
+        );
+      }
+    }
     await cancelQuietly(deps, deposit);
     return { kind: 'plan_mismatch', reason: check.reason };
   }
@@ -318,6 +331,7 @@ export const payDeposit = async (
         existing?.kind === 'pending'
           ? await existing.wait()
           : await deps.executor.send({
+              operationId: deposit.operationId,
               from: deps.from,
               chainId: plan.chainId,
               tokenContract: plan.tokenContract,

@@ -16,6 +16,7 @@ export { usePredictNextDepositAvailable } from './usePredictNextDepositAvailable
 export {
   createSimulatedTransferExecutor,
   createWalletTransferExecutor,
+  depositTransferRequestId,
   type DepositTransferExecutor,
 } from './deposit/depositTransferExecutor';
 export {
@@ -30,6 +31,7 @@ export {
   clearSessionDepositTransfer,
   clearSessionDepositTransfersForOperation,
   findMatchingDepositTransaction,
+  findMatchingUnapprovedDepositTransactions,
   getSessionDepositTransfer,
   isKnownFailedDepositHash,
   recordSessionDepositTransfer,
