@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxFlexDirection,
   BoxAlignItems,
@@ -26,6 +25,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { getMAOptions } from './indicatorColors';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export interface MAPickerSheetParams {
   selectedMAs?: string[];
@@ -39,6 +41,7 @@ export const createMAPickerNavDetails =
   );
 
 const MAPickerSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
@@ -79,9 +82,9 @@ const MAPickerSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef} goBack={handleGoBack}>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         {strings('asset_overview.ma_picker_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box>
         {maOptions.map(({ label, color }) => {
           const isSelected = selected.has(label);

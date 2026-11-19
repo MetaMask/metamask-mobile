@@ -26,11 +26,15 @@ import { parsePositiveInteger } from '../../../utils/recurringSchedule';
 
 interface BridgeRecurringBuyFooterViewProps {
   onPreviewOrder: () => void;
+  label: string;
+  destinationTokenSymbol?: string;
   isPreviewDisabled?: boolean;
 }
 
 export const BridgeRecurringBuyFooterView = ({
   onPreviewOrder,
+  label,
+  destinationTokenSymbol,
   isPreviewDisabled,
 }: BridgeRecurringBuyFooterViewProps) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -39,38 +43,42 @@ export const BridgeRecurringBuyFooterView = ({
   const everyValue = useSelector(selectRecurringEveryValue);
   const everyUnit = useSelector(selectRecurringEveryUnit);
   const repeatCount = useSelector(selectRecurringRepeatCount);
-  const { activeQuote, isLoading, needsNewQuote } = useBridgeQuoteDataContext();
+  const { activeQuote, isLoading } = useBridgeQuoteDataContext();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
+  const isInitialQuoteLoading = isLoading && !activeQuote;
 
-  const hasValidEvery = parsePositiveInteger(everyValue) !== undefined;
-  const hasValidRepeat = parsePositiveInteger(repeatCount) !== undefined;
-  const spendSummary =
+  const parsedEveryValue = parsePositiveInteger(everyValue);
+  const parsedRepeatCount = parsePositiveInteger(repeatCount);
+  const spendSummaryValues =
     isValidSourceAmount &&
-    hasValidEvery &&
-    hasValidRepeat &&
+    parsedEveryValue !== undefined &&
+    parsedRepeatCount !== undefined &&
     sourceAmount &&
-    sourceToken?.symbol
-      ? strings('bridge.recurring.spend_summary', {
-          amount: formatMinimumReceived(sourceAmount),
-          symbol: sourceToken.symbol,
-          everyValue,
-          unit: strings(
-            everyValue === '1'
-              ? `bridge.recurring.unit.${everyUnit}`
-              : `bridge.recurring.unit_plural.${everyUnit}`,
-          ),
-          repeatCount,
-        })
+    sourceToken?.symbol &&
+    destinationTokenSymbol
+      ? {
+          source: `${formatMinimumReceived(sourceAmount)} ${sourceToken.symbol}`,
+          destination: destinationTokenSymbol,
+          interval:
+            parsedEveryValue === 1
+              ? strings(`bridge.recurring.unit.${everyUnit}`)
+              : `${everyValue} ${strings(
+                  `bridge.recurring.unit_plural.${everyUnit}`,
+                )}`,
+          repetition: strings('bridge.recurring.repeat_summary', {
+            count: parsedRepeatCount,
+          }),
+        }
       : undefined;
 
-  if (isLoading && !activeQuote && !needsNewQuote) {
+  if (!isValidSourceAmount) {
     return null;
   }
 
-  if (!activeQuote || !isValidSourceAmount || !quotesLastFetched) {
+  if (!isInitialQuoteLoading && (!activeQuote || !quotesLastFetched)) {
     return null;
   }
 
@@ -87,19 +95,35 @@ export const BridgeRecurringBuyFooterView = ({
     >
       <SwapsRecurringBuyConfirmButton
         onPress={onPreviewOrder}
-        label={strings('bridge.recurring.preview_order')}
+        label={label}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
         disabled={isPreviewDisabled}
         loading={isLoading}
       />
-      {spendSummary ? (
+      {activeQuote && spendSummaryValues ? (
         <Text
           variant={TextVariant.BodyXs}
-          color={TextColor.TextDefault}
+          color={TextColor.TextAlternative}
           twClassName="text-center"
           testID={BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY}
         >
-          {spendSummary}
+          {strings('bridge.recurring.spend_summary.swapping')}{' '}
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
+            {spendSummaryValues.source}
+          </Text>{' '}
+          {strings('bridge.recurring.spend_summary.for')}{' '}
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
+            {spendSummaryValues.destination}
+          </Text>{' '}
+          {strings('bridge.recurring.spend_summary.every')}{' '}
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
+            {spendSummaryValues.interval}
+          </Text>
+          {`. ${strings('bridge.recurring.spend_summary.repeats')} `}
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
+            {spendSummaryValues.repetition}
+          </Text>
+          .
         </Text>
       ) : null}
     </Box>

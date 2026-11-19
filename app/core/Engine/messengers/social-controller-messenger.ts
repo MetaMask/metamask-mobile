@@ -49,6 +49,7 @@ export function getSocialControllerMessenger(
       'SocialService:fetchFollowing',
       'SocialService:optOutOfLeaderboard',
       'SocialService:optInToLeaderboard',
+      'SocialService:translateComment',
       'SocialService:refreshNotificationPreferencesCache',
     ],
     messenger,

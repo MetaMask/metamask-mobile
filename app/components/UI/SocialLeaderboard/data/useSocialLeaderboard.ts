@@ -4,6 +4,7 @@ import {
   selectSocialLeaderboardEnabled,
   selectSocialLeaderboardPerpsEnabled,
 } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
 import {
   useTopTraders,
   type UseTopTradersResult,
@@ -13,6 +14,8 @@ import {
   rankTradersByMetric,
 } from '../../../Views/SocialLeaderboard/TopTradersView/traderMetric';
 import type { LeaderboardSort } from '../../../Views/SocialLeaderboard/components/Filters';
+import { useTokenHolders } from '../../TokenDetails/components/tabs/holders/useTokenHolders';
+import { mapHoldersToRankedTraders } from './mapHoldersToRankedTraders';
 import {
   resolveSocialLeaderboardSource,
   type SocialLeaderboardResolution,
@@ -51,6 +54,10 @@ export interface SocialLeaderboardState
  * Leaderboard for any {@link SocialLeaderboardSource}. Owns the request
  * mapping, the perps flag, and re-ranking the loaded page by the selected
  * metric and window (the API always ranks on its own 30-day figures).
+ *
+ * A perp market lists its holders instead: the first page of the asset's
+ * positions, in the server's position-size order. `timeframe` and `sort` do
+ * not apply to it.
  */
 export const useSocialLeaderboard = (
   source: SocialLeaderboardSource | null,
@@ -58,6 +65,7 @@ export const useSocialLeaderboard = (
 ): SocialLeaderboardState => {
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
+  const { isFollowing } = useFollowToggleMany();
 
   const resolution = useMemo(
     (): SocialLeaderboardResolution =>
@@ -67,6 +75,7 @@ export const useSocialLeaderboard = (
     [isPerpsEnabled, source],
   );
   const isReady = resolution.status === 'ready';
+  const isHolders = resolution.status === 'holders';
 
   const result = useTopTraders({
     limit: LEADERBOARD_FETCH_LIMIT,
@@ -78,23 +87,47 @@ export const useSocialLeaderboard = (
     keepPreviousRanking: true,
   });
 
+  const holders = useTokenHolders({
+    assetId: resolution.status === 'holders' ? resolution.assetId : undefined,
+    enabled: isEnabled && enabled && isHolders,
+  });
+
   const { traders: loadedTraders, refresh: refetch } = result;
-  const traders = useMemo<RankedTrader[]>(
-    () =>
-      isReady
-        ? rankTradersByMetric(loadedTraders, sort).map((trader) => ({
-            ...trader,
-            displayMetric: getTraderMetricDisplay(trader, sort),
-          }))
-        : [],
-    [isReady, loadedTraders, sort],
-  );
+  const { rows: holderRows, refresh: refetchHolders } = holders;
+  const traders = useMemo<RankedTrader[]>(() => {
+    if (isHolders) {
+      return mapHoldersToRankedTraders(
+        holderRows.map((row) => row.core),
+        isFollowing,
+      );
+    }
+    return isReady
+      ? rankTradersByMetric(loadedTraders, sort).map((trader) => ({
+          ...trader,
+          displayMetric: getTraderMetricDisplay(trader, sort),
+        }))
+      : [];
+  }, [holderRows, isFollowing, isHolders, isReady, loadedTraders, sort]);
 
   // `refetch` ignores `enabled`, so a source with no request must not reach it.
-  const refresh = useCallback(
-    () => (isReady ? refetch() : Promise.resolve()),
-    [isReady, refetch],
-  );
+  const refresh = useCallback(() => {
+    if (isReady) return refetch();
+    if (isHolders) return refetchHolders();
+    return Promise.resolve();
+  }, [isHolders, isReady, refetch, refetchHolders]);
+
+  if (isHolders) {
+    return {
+      traders,
+      isLoading: holders.isLoading,
+      isFetching: holders.isFetching,
+      hasFetched: holders.hasFetched,
+      error: holders.error,
+      refresh,
+      toggleFollow: result.toggleFollow,
+      resolution,
+    };
+  }
 
   return {
     traders,

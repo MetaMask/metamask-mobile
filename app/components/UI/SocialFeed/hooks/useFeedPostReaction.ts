@@ -1,7 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CommentEngagement, FeedReaction } from '../reactions';
+import {
+  keepReactionOrder,
+  visibleReactions,
+  type CommentEngagement,
+  type FeedReaction,
+} from '../reactions';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { invalidateModerationStatus } from '../moderationApi';
+import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
 import { patchFeedCommentEngagementInCache } from '../utils/patchFeedCommentEngagementInCache';
 import { serializeFeedEngagementSeed } from '../utils/serializeFeedEngagementSeed';
 
@@ -57,7 +64,12 @@ export const useFeedPostReaction = (
   initialUserReaction: string | null = null,
 ): UseFeedPostReactionResult => {
   const queryClient = useQueryClient();
-  const [reactions, setReactions] = useState(initialReactions);
+  // The feed already sorts by count, and the cache holds the on-screen order
+  // once the viewer reacts, so a remount must not re-rank. Later counts,
+  // including the server's re-sorted reply, update in place.
+  const [reactions, setReactions] = useState(() =>
+    visibleReactions(initialReactions),
+  );
   const [userReaction, setUserReaction] = useState(initialUserReaction);
   const [isPending, setIsPending] = useState(false);
   const engagementSeed = serializeFeedEngagementSeed(
@@ -66,19 +78,36 @@ export const useFeedPostReaction = (
     initialUserReaction,
   );
   const lastPropsSeedRef = useRef(engagementSeed);
+  const seededCommentIdRef = useRef(commentId);
 
   useEffect(() => {
     if (isPending || lastPropsSeedRef.current === engagementSeed) {
       return;
     }
     lastPropsSeedRef.current = engagementSeed;
-    setReactions(initialReactions);
+    // If the hook gets a different post, take its order afresh. Trade-only
+    // rows all have an undefined id and count as the same post, which is
+    // harmless because they cannot react.
+    const isSamePost = seededCommentIdRef.current === commentId;
+    seededCommentIdRef.current = commentId;
+    setReactions((current) =>
+      isSamePost
+        ? keepReactionOrder(current, initialReactions)
+        : visibleReactions(initialReactions),
+    );
     setUserReaction(initialUserReaction);
-  }, [engagementSeed, initialReactions, initialUserReaction, isPending]);
+  }, [
+    commentId,
+    engagementSeed,
+    initialReactions,
+    initialUserReaction,
+    isPending,
+  ]);
 
   const pickEmotion = useCallback(
     async (emotion: string) => {
-      if (isPending) {
+      // A trade-only row has no swap comment, so there is nothing to persist.
+      if (isPending || !commentId) {
         return;
       }
 
@@ -86,12 +115,6 @@ export const useFeedPostReaction = (
       const optimistic = applyOptimistic(previous, emotion);
       setReactions(optimistic.reactions);
       setUserReaction(optimistic.userReaction);
-
-      // No Call id on this row yet — keep the session-local toggle only.
-      if (!commentId) {
-        return;
-      }
-
       setIsPending(true);
 
       try {
@@ -99,12 +122,22 @@ export const useFeedPostReaction = (
           previous.userReaction === emotion
             ? await removeCommentReaction({ commentId })
             : await reactToComment({ commentId, emotion });
-        setReactions(metrics.reactions);
-        setUserReaction(metrics.userReaction);
-        patchFeedCommentEngagementInCache(queryClient, commentId, metrics);
-      } catch {
+        // Ordered against the row before the tap, so a chip the optimistic
+        // update removed but the server kept goes back to its old slot.
+        const onScreen: CommentEngagement = {
+          reactions: keepReactionOrder(previous.reactions, metrics.reactions),
+          userReaction: metrics.userReaction,
+        };
+        setReactions(onScreen.reactions);
+        setUserReaction(onScreen.userReaction);
+        patchFeedCommentEngagementInCache(queryClient, commentId, onScreen);
+      } catch (error) {
         setReactions(previous.reactions);
         setUserReaction(previous.userReaction);
+        // A 403 means the moderation team banned the viewer.
+        if (extractHttpStatus(error) === 403) {
+          invalidateModerationStatus().catch(() => undefined);
+        }
       } finally {
         setIsPending(false);
       }

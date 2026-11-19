@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, memo, useState } from 'react';
+import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,17 +20,22 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
 import OptOutSection from './OptOutSection';
+import ReferredByCodeSection from './ReferredByCodeSection';
+import { REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS } from './RewardSettingsAccountGroupList.testIds';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
+import RewardsInfoBanner from '../RewardsInfoBanner';
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { useTheme } from '../../../../../util/theme';
+import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 
 const INITIAL_ACCOUNTS_TO_SHOW = 2;
 
@@ -157,11 +163,13 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
 
 interface RewardSettingsAccountGroupListProps {
   onRequestOptOut?: () => void;
+  offDeviceAccounts?: OffDeviceAccount[];
+  onOpenOffDeviceSheet?: () => void;
 }
 
-const RewardSettingsAccountGroupList: React.FC<
+const SubscribedRewardSettingsAccountGroupList: React.FC<
   RewardSettingsAccountGroupListProps
-> = ({ onRequestOptOut }) => {
+> = ({ onRequestOptOut, offDeviceAccounts, onOpenOffDeviceSheet }) => {
   const tw = useTailwind();
 
   // State to track which wallets are expanded
@@ -399,9 +407,30 @@ const RewardSettingsAccountGroupList: React.FC<
     [],
   );
 
-  const ListHeaderComponent = useCallback(
-    () => (
-      <Box testID="rewards-settings-header" twClassName="px-4">
+  // An element, not a component function. FlashList mounts a function header
+  // with createElement, so a new callback identity remounts the referral field
+  // and drops the typed code.
+  const listHeader = (
+    <>
+      <ReferredByCodeSection showTrailingDivider />
+      {offDeviceAccounts && offDeviceAccounts.length > 0 && (
+        <Box twClassName="px-4 pb-4">
+          <RewardsInfoBanner
+            title={strings('rewards.settings.off_device_accounts_banner_title')}
+            description={strings(
+              'rewards.settings.off_device_accounts_banner_description',
+            )}
+            onConfirm={onOpenOffDeviceSheet}
+            confirmButtonLabel={strings(
+              'rewards.settings.off_device_accounts_banner_cta',
+            )}
+          />
+        </Box>
+      )}
+      <Box
+        testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.HEADER}
+        twClassName="px-4"
+      >
         <Box twClassName="gap-2 pb-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.settings.subtitle')}
@@ -420,8 +449,7 @@ const RewardSettingsAccountGroupList: React.FC<
           />
         </Box>
       </Box>
-    ),
-    [linkedAccounts, totalAccounts, isLoadingOptInSummary],
+    </>
   );
 
   const SettingsFooterSections = useCallback(
@@ -437,7 +465,7 @@ const RewardSettingsAccountGroupList: React.FC<
   if (isLoadingOptInSummary) {
     return (
       <Box testID="rewards-settings-loading">
-        <ListHeaderComponent />
+        {listHeader}
 
         <Box twClassName="mt-4 px-4">
           {[...Array(3)].map((_, index) => (
@@ -464,7 +492,7 @@ const RewardSettingsAccountGroupList: React.FC<
   if (hasErrorOptInSummary) {
     return (
       <Box testID="rewards-settings-error">
-        <ListHeaderComponent />
+        {listHeader}
 
         <Box twClassName="mt-4 px-4">
           <RewardsErrorBanner
@@ -492,15 +520,43 @@ const RewardSettingsAccountGroupList: React.FC<
   // Account list using FlashList for better performance
   return (
     <FlashList
-      testID="rewards-settings-flash-list"
+      testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.FLASH_LIST}
       data={flattenedData}
       renderItem={renderFlatListItem}
       keyExtractor={keyExtractor}
       getItemType={getItemType}
-      ListHeaderComponent={ListHeaderComponent}
+      ListHeaderComponent={listHeader}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       keyboardShouldPersistTaps="handled"
+    />
+  );
+};
+
+const RewardSettingsAccountGroupList: React.FC<
+  RewardSettingsAccountGroupListProps
+> = ({ onRequestOptOut, offDeviceAccounts, onOpenOffDeviceSheet }) => {
+  const tw = useTailwind();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+
+  if (!subscriptionId) {
+    return (
+      <ScrollView
+        testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.REFERRAL_ONLY}
+        keyboardShouldPersistTaps="handled"
+        style={tw.style('flex-1')}
+      >
+        <ReferredByCodeSection />
+        <RewardsEnvironmentToggle />
+      </ScrollView>
+    );
+  }
+
+  return (
+    <SubscribedRewardSettingsAccountGroupList
+      onRequestOptOut={onRequestOptOut}
+      offDeviceAccounts={offDeviceAccounts}
+      onOpenOffDeviceSheet={onOpenOffDeviceSheet}
     />
   );
 };

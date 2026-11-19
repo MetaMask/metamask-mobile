@@ -13,7 +13,10 @@ import { renderShortAddress } from '../../../../util/address';
 import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
 import type { UseMyProfileResult } from '../MyProfileView/hooks/useMyProfile';
 import type { UseProfileControllerResult } from './hooks/useProfileController';
-import type { XProfile } from '@metamask/profile-controller';
+import {
+  ProfileServiceError,
+  type XProfile,
+} from '@metamask/profile-controller';
 import type { UseXAuth } from '../../../../hooks/useXAuth';
 import { XAuthError, XAuthErrorType } from '../../../../core/XAuthService';
 import ManageProfileView from './ManageProfileView';
@@ -42,7 +45,7 @@ jest.mock('./hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
 }));
 
-const mockConnect = jest.fn<Promise<void>, []>();
+const mockConnect = jest.fn<Promise<XProfile | undefined>, []>();
 const mockUseXAuth = jest.fn<UseXAuth, []>();
 jest.mock('../../../../hooks/useXAuth', () => ({
   useXAuth: () => mockUseXAuth(),
@@ -99,7 +102,6 @@ const profile: UseMyProfileResult['profile'] = {
   connectedToX: true,
   followerCount: 0,
   followingCount: 0,
-  shareUrl: 'https://metamask.io/social/giga-whale',
   linkedAccountAddress: MOCK_ADDRESS_2,
   shareTradingActivity: true,
 };
@@ -126,6 +128,7 @@ const controllerResult = (
   disconnectX: jest.fn().mockResolvedValue(undefined),
   getXAuthorizationUrl: jest.fn(),
   checkUsernameAvailability: jest.fn(),
+  checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
   ...overrides,
 });
 
@@ -148,6 +151,8 @@ describe('ManageProfileView', () => {
         address: MOCK_ADDRESS_2.toLowerCase(),
         balanceLabel: '$10.00',
         linkedAddresses: [`eip155:1:${MOCK_ADDRESS_2.toLowerCase()}`],
+        accountGroup: null,
+        walletTitle: '',
       },
     ]);
   });
@@ -163,7 +168,7 @@ describe('ManageProfileView', () => {
     ).toHaveTextContent(/@giga-whale\.metamask/);
     expect(
       screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
-    ).toHaveTextContent(/X @giga-whale/);
+    ).toHaveTextContent(/@giga-whale/);
   });
 
   it('shows live trading activity as On when sharing is public', () => {
@@ -292,6 +297,74 @@ describe('ManageProfileView', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('writes the X avatar to the profile after connecting', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      const updateProfile = jest.fn().mockResolvedValue(undefined);
+      mockUseProfileController.mockReturnValue(
+        controllerResult({ updateProfile }),
+      );
+      mockConnect.mockResolvedValue(xProfile);
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(updateProfile).toHaveBeenCalledWith({
+        avatar_url: xProfile.avatarUrl,
+      });
+    });
+
+    it('does not write the avatar when connect resolves undefined', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      const updateProfile = jest.fn().mockResolvedValue(undefined);
+      mockUseProfileController.mockReturnValue(
+        controllerResult({ updateProfile }),
+      );
+      mockConnect.mockResolvedValue(undefined);
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('skips the avatar write when the X avatar is empty', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      const updateProfile = jest.fn().mockResolvedValue(undefined);
+      mockUseProfileController.mockReturnValue(
+        controllerResult({ updateProfile }),
+      );
+      mockConnect.mockResolvedValue({ ...xProfile, avatarUrl: '' });
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('does not fail the connect when the avatar write fails', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      const updateProfile = jest.fn().mockRejectedValue(new Error('nope'));
+      mockUseProfileController.mockReturnValue(
+        controllerResult({ updateProfile }),
+      );
+      mockConnect.mockResolvedValue(xProfile);
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(updateProfile).toHaveBeenCalledWith({
+        avatar_url: xProfile.avatarUrl,
+      });
+      expect(mockConnect).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(ManageProfileViewSelectorsIDs.X_CONNECT_ERROR),
+      ).toBeNull();
+    });
+
     it('ignores presses while connecting', async () => {
       mockUseXAuth.mockReturnValue(
         xAuthResult({ isConnected: false, isConnecting: true }),
@@ -337,6 +410,33 @@ describe('ManageProfileView', () => {
       expect(
         screen.getByText(
           strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('names the reason when the X account is already linked', () => {
+      mockUseXAuth.mockReturnValue(
+        xAuthResult({
+          isConnected: false,
+          connectError: new XAuthError(
+            XAuthErrorType.BackendError,
+            'Failed to connect X account',
+            {
+              cause: new ProfileServiceError(
+                409,
+                'ProfileService: failed to connect X account: 409',
+                { code: 'X_ACCOUNT_ALREADY_LINKED' },
+              ),
+            },
+          ),
+        }),
+      );
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      expect(
+        screen.getByText(
+          strings('social_leaderboard.manage_profile.x_account_already_linked'),
         ),
       ).toBeOnTheScreen();
     });
@@ -430,7 +530,7 @@ describe('ManageProfileView', () => {
 
       expect(
         screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
-      ).toHaveTextContent(/X @fresh-handle/);
+      ).toHaveTextContent(/@fresh-handle/);
     });
   });
 

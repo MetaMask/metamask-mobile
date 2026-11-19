@@ -44,6 +44,7 @@ export enum FeatureFlagNames {
   ledgerDmk = 'ledgerDmk',
   tokenDetailsBrandRefresh = 'tokenDetailsBrandRefresh',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
+  rampsProvidersAheadOfHistory = 'rampsProvidersAheadOfHistory',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
   predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
@@ -53,7 +54,9 @@ export enum FeatureFlagNames {
   moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
   exploreBrandRefresh = 'exploreBrandRefresh',
+  glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
+  slowNetworkBanner = 'slowNetworkBanner',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

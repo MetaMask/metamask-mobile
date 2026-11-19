@@ -6,8 +6,6 @@ import ContentDisplay from '../../../AssetOverview/AboutAsset/ContentDisplay';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
 import {
   useTokenTransactions,
@@ -22,14 +20,17 @@ import {
 } from '../../constants/constants';
 import {
   OVERVIEW_TAB_ACTIVITY_TEST_ID,
-  OVERVIEW_TAB_BALANCE_TEST_ID,
-  OVERVIEW_TAB_DESCRIPTION_TEST_ID,
-  OVERVIEW_SECTION_RULE_TEST_ID,
-  OVERVIEW_TAB_TEST_ID,
-  OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID,
   default as OverviewTab,
 } from './OverviewTab';
-import { OVERVIEW_TAB_PERFORMANCE_TEST_ID } from '../sections/PerformanceSection';
+import { TokenDetailsIds } from '../../testIds';
+
+const OVERVIEW_TAB_TEST_ID = TokenDetailsIds.overview.container;
+const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
+const OVERVIEW_TAB_BALANCE_TEST_ID = TokenDetailsIds.overview.balance;
+const OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID =
+  TokenDetailsIds.overview.tokenDetails;
+const OVERVIEW_SECTION_RULE_TEST_ID = TokenDetailsIds.overview.sectionRule;
+const OVERVIEW_TAB_PERFORMANCE_TEST_ID = TokenDetailsIds.overview.performance;
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 
 jest.mock('react-redux', () => ({
@@ -51,17 +52,6 @@ jest.mock('../../../../../selectors/networkController', () => ({
 jest.mock('../../../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(),
 }));
-
-jest.mock('../../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
-}));
-
-jest.mock(
-  '../../../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
-  }),
-);
 
 jest.mock('../../hooks/useTokenPerformance', () => ({
   useTokenPerformance: jest.fn(),
@@ -429,7 +419,6 @@ describe('OverviewTab', () => {
 
     expect(mockUseTokenPerformance).toHaveBeenCalledWith({
       marketData: null,
-      assetMarketData: null,
     });
     expect(
       getByTestId('token-details-overview-tab-performance-value-1h'),

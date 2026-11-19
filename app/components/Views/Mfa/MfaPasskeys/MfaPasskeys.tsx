@@ -8,7 +8,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -26,14 +25,18 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useMfa } from '../../../../util/identity/mfa';
 import { useTheme } from '../../../../util/theme';
 import { getActivePasskeys } from '../credentials';
-import { getAddedOn, getPasskeyName } from '../labels';
+import { getLastUsedLine, getPasskeyName } from '../labels';
 import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * The profile's passkeys: each opens its details, and the footer adds
  * another.
  */
 const MfaPasskeys = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation();
@@ -64,7 +67,9 @@ const MfaPasskeys = () => {
       style={tw.style('flex-1 bg-default')}
       testID={MfaPasskeysSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('mfa.settings.passkeys')}
         onBack={() => navigation.goBack()}
         includesTopInset
@@ -76,7 +81,7 @@ const MfaPasskeys = () => {
             isInteractive
             avatar={<AvatarIcon iconName={IconName.Key} />}
             title={getPasskeyName(passkey, index)}
-            description={getAddedOn(passkey)}
+            description={getLastUsedLine(passkey)}
             endAccessory={
               <Icon
                 name={IconName.ArrowRight}

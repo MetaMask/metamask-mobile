@@ -1,0 +1,35 @@
+import {
+  KALSHI_AUTHENTICATION_PROFILE,
+  listBundledAuthenticationProfiles,
+  resolveBundledAuthenticationProfile,
+} from './venueAuthProfiles';
+
+describe('KALSHI_AUTHENTICATION_PROFILE', () => {
+  it('defines the bundled P-256 and A2T contract', () => {
+    expect(KALSHI_AUTHENTICATION_PROFILE).toEqual({
+      id: 'kalshi-a2t-v1',
+      deviceKey: {
+        implementation: 'device-p256-salt-v1',
+        keySlot: 'kalshi-v1',
+      },
+      a2t: {
+        tokenPath: '/api/v2/kalshi/token',
+      },
+    });
+  });
+
+  it('lists every profile this build ships', () => {
+    expect(listBundledAuthenticationProfiles()).toEqual([
+      KALSHI_AUTHENTICATION_PROFILE,
+    ]);
+  });
+
+  it('allows configuration to select only a bundled profile', () => {
+    expect(resolveBundledAuthenticationProfile('kalshi-a2t-v1')).toBe(
+      KALSHI_AUTHENTICATION_PROFILE,
+    );
+    expect(
+      resolveBundledAuthenticationProfile('server-defined-profile'),
+    ).toBeUndefined();
+  });
+});

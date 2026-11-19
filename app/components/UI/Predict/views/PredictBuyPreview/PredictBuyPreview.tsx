@@ -3,13 +3,16 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonSize as ButtonSizeHero,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Icon,
   IconName,
   IconSize,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -26,21 +29,9 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -67,7 +58,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
@@ -335,9 +325,16 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       predictBuyPreviewOrderInitiatedRef.current = true;
       if (isSheetMode) {
         onClose?.();
-      } else {
-        dispatch(StackActions.pop());
+        return;
       }
+
+      // Popping inside the commit that carries `result` makes Fabric mount the
+      // removal of this screen and its re-render in one batch. On Android that
+      // batch can fail with "addViewAt: cannot insert view ... View already has a
+      // parent" (a flatten/unflatten reparent in the same commit), which
+      // destroys the React host. Let the result commit land first, then pop.
+      const popTimer = setTimeout(() => dispatch(StackActions.pop()), 0);
+      return () => clearTimeout(popTimer);
     }
   }, [dispatch, result, isSheetMode, onClose]);
 
@@ -539,53 +536,22 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     </ActiveScrollView>
   );
 
-  const renderActionButton = () => {
-    if (isLoading) {
-      return (
-        <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.placing_prediction')}...`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
-          onPress={onPlaceBet}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={tw.style('opacity-50')}
-          disabled
-        />
-      );
-    }
-
-    return (
-      <ButtonHero
-        testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
-        onPress={onPlaceBet}
-        isDisabled={!canPlaceBet}
-        isLoading={isLoading}
-        size={ButtonSizeHero.Lg}
-        style={tw.style('w-full')}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          style={tw.style('text-white font-medium')}
-        >
-          {outcomeToken?.title} ·{' '}
-          {formatCents(
-            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
-          )}
-        </Text>
-      </ButtonHero>
-    );
-  };
+  const renderActionButton = () => (
+    <Button
+      testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      isDisabled={!canPlaceBet || isLoading}
+      isLoading={isLoading}
+      loadingText={`${strings('predict.order.placing_prediction')}...`}
+      onPress={onPlaceBet}
+    >
+      {`${outcomeToken?.title} · ${formatCents(
+        preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
+      )}`}
+    </Button>
+  );
 
   const renderMinimumBetWarning = () => {
     if (isBalanceLoading || !isBelowMinimum) {

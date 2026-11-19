@@ -3,7 +3,6 @@ import {
   AvatarIconSeverity,
   AvatarIconSize,
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxBackgroundColor,
@@ -21,7 +20,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useSyncExternalStore } from 'react';
+import React, { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { Image } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import NavigationService from '../../../../core/NavigationService';
@@ -32,6 +31,7 @@ import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomShe
 import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
+  hasPostTradeShareReopenOwner,
   requestPostTradeShareReopen,
   subscribePostTradeShareSession,
   type PostTradeShareSession,
@@ -42,7 +42,14 @@ import {
   buildSpotPostTradeComposerParams,
   openPostTradeComposer,
 } from './postTradeComposerParams';
-import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import {
+  getSocialEventSource,
+  SocialEvent,
+  useSocialScreenAnalytics,
+} from '../analytics';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const ILLUSTRATION_SIZE = 64;
 
@@ -76,6 +83,16 @@ const StatusIcon = ({ status }: { status: PostTradeShareStatus }) => {
 
 const getTitle = (session: PostTradeShareSession): string => {
   const isPerps = session.product === 'perps';
+  if (isPerps && session.preview.action === 'close') {
+    switch (session.status) {
+      case 'pending':
+        return strings('social_leaderboard.post_trade_share.close_in_progress');
+      case 'failed':
+        return strings('social_leaderboard.post_trade_share.close_failed');
+      default:
+        return strings('social_leaderboard.post_trade_share.position_closed');
+    }
+  }
   switch (session.status) {
     case 'pending':
       return strings(
@@ -108,8 +125,9 @@ const navigateToActivity = (product: PostTradeShareSession['product']) => {
   }
   NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW);
 };
-const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
+const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const PostTradeShareBottomSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const session = useSyncExternalStore(
     subscribePostTradeShareSession,
     getPostTradeShareSession,
@@ -117,12 +135,27 @@ const PostTradeShareBottomSheet: React.FC = () => {
   );
 
   const isPerps = session?.product === 'perps';
-  const source = Source.TRADER_FEED;
+  const source = getSocialEventSource(session?.analyticsSource);
   const tradeType = isPerps ? Trade.PERPS : Trade.SPOT;
+  const shareProperties = useMemo(() => {
+    if (!session) {
+      return undefined;
+    }
+    return {
+      share_id: session.sessionId,
+      ...(session.product === 'perps' && session.orderId
+        ? { order_id: session.orderId }
+        : {}),
+      ...(session.product === 'spot' && session.transactionHash
+        ? { transaction_hash: session.transactionHash }
+        : {}),
+    };
+  }, [session]);
   const trackInteraction = useSocialScreenAnalytics(
     Screen.POST_TRADE_SHARE_SHEET,
     {
       source,
+      properties: shareProperties,
       outcome:
         session?.status === 'complete'
           ? Outcome.CONTENT
@@ -133,7 +166,16 @@ const PostTradeShareBottomSheet: React.FC = () => {
     },
   );
   const isCreateProfile = session?.variant === 'create_profile';
-  const canRetry = session?.product === 'spot' && Boolean(session.owner);
+  const retryOwner = session?.product === 'spot' ? session.owner : undefined;
+  const getCanRetry = useCallback(
+    () => (retryOwner ? hasPostTradeShareReopenOwner(retryOwner) : false),
+    [retryOwner],
+  );
+  const canRetry = useSyncExternalStore(
+    subscribePostTradeShareSession,
+    getCanRetry,
+    getCanRetry,
+  );
   const canShare = Boolean(
     session?.status === 'complete' &&
       (session.product === 'perps'
@@ -186,6 +228,8 @@ const PostTradeShareBottomSheet: React.FC = () => {
         ? buildPerpsPostTradeComposerParams({
             orderId: session.orderId,
             preview: session.preview,
+            analyticsSource: session.analyticsSource,
+            shareId: session.sessionId,
           })
         : session.product === 'spot' &&
             session.transactionHash &&
@@ -194,6 +238,12 @@ const PostTradeShareBottomSheet: React.FC = () => {
               transactionHash: session.transactionHash,
               chain: session.tradeInFlightChain,
               preview: session.preview,
+              analyticsSource: session.analyticsSource,
+              shareId: session.sessionId,
+              spotComposerEntry:
+                session.isCopyTrade || session.copyTradeOrigin
+                  ? SocialEvent.ComposerEntry.POST_TRADE_SPOT
+                  : SocialEvent.ComposerEntry.POST_TRADE_SWAP,
             })
           : undefined;
     if (!params) {
@@ -230,7 +280,8 @@ const PostTradeShareBottomSheet: React.FC = () => {
       onClose={handleClose}
       testID={PostTradeShareBottomSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PostTradeShareBottomSheetSelectorsIDs.CLOSE_BUTTON,
@@ -241,7 +292,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
         twClassName="pt-4 h-auto"
       >
         <StatusIcon status={session.status} />
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box alignItems={BoxAlignItems.Center} twClassName="gap-1 px-4 py-3">
         <Text
           variant={TextVariant.HeadingLg}
@@ -261,51 +312,53 @@ const PostTradeShareBottomSheet: React.FC = () => {
           </Text>
         ) : null}
       </Box>
-      <Box twClassName="px-4 pt-4 pb-6">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 rounded-xl border border-muted bg-muted p-3"
-          testID={PostTradeShareBottomSheetSelectorsIDs.CARD}
-        >
-          {isCreateProfile ? (
-            <Image
-              source={createProfileIllustration}
-              resizeMode="contain"
-              style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
-            />
-          ) : (
-            <PostTradeEarnIllustration
-              name="post-trade-earn"
-              width={ILLUSTRATION_SIZE}
-              height={ILLUSTRATION_SIZE}
-            />
-          )}
-          <Box twClassName="flex-1">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              testID={PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE}
-            >
-              {strings(
-                isCreateProfile
-                  ? 'social_leaderboard.post_trade_share.create_profile_title'
-                  : 'social_leaderboard.post_trade_share.post_and_earn_title',
-              )}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings(
-                isCreateProfile
-                  ? 'social_leaderboard.post_trade_share.create_profile_body'
-                  : 'social_leaderboard.post_trade_share.post_and_earn_body',
-              )}
-            </Text>
+      {session.status !== 'failed' ? (
+        <Box twClassName="px-4 pt-4 pb-6">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2 rounded-xl border border-muted bg-muted p-3"
+            testID={PostTradeShareBottomSheetSelectorsIDs.CARD}
+          >
+            {isCreateProfile ? (
+              <Image
+                source={createProfileIllustration}
+                resizeMode="contain"
+                style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
+              />
+            ) : (
+              <PostTradeEarnIllustration
+                name="post-trade-earn"
+                width={ILLUSTRATION_SIZE}
+                height={ILLUSTRATION_SIZE}
+              />
+            )}
+            <Box twClassName="flex-1">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                testID={PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE}
+              >
+                {strings(
+                  isCreateProfile
+                    ? 'social_leaderboard.post_trade_share.create_profile_title'
+                    : 'social_leaderboard.post_trade_share.post_and_earn_title',
+                )}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings(
+                  isCreateProfile
+                    ? 'social_leaderboard.post_trade_share.create_profile_body'
+                    : 'social_leaderboard.post_trade_share.post_and_earn_body',
+                )}
+              </Text>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      ) : null}
       <Box twClassName="px-4 pb-6">
         <Button
           variant={ButtonVariant.Primary}

@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Tag,
   TagSeverity,
@@ -13,6 +14,7 @@ import {
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import AnimatedSlotText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedSlotText';
+import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import PositionTokenAvatar, {
   type PositionTokenAvatarData,
 } from './PositionTokenAvatar';
@@ -30,9 +32,8 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
 
 /**
  * Both layouts share this header. The symbol sits beside a side tag, a caption
- * sits under it, and the P&L sits on the right. Closed cards use the caption
- * for when the position settled (`Closed · 2 hr ago`, `Sold · 2 hr ago`) and
- * omit the spot side tag.
+ * sits under it, and the P&L sits on the right. A closed card uses a neutral
+ * tag (`Closed 15x Short`, `Sold`) and keeps the relative age under the symbol.
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';
 
@@ -83,11 +84,46 @@ const sideTagLabel = ({
   return side ? strings(SIDE_I18N[side]) : '';
 };
 
+/** `Closed 15x Short` for a perp, `Sold` for a spot. */
+const closedTagLabel = ({
+  direction,
+  leverageLabel,
+}: Pick<PositionCardHeaderProps, 'direction' | 'leverageLabel'>): string => {
+  if (!direction) {
+    return strings('social_leaderboard.feed.position_card.sold');
+  }
+  const detail = [leverageLabel, strings(DIRECTION_I18N[direction])]
+    .filter(Boolean)
+    .join(' ');
+  return [strings('social_leaderboard.feed.position_card.closed'), detail]
+    .filter(Boolean)
+    .join(' ');
+};
+
 const isBullish = ({
   direction,
   side,
 }: Pick<PositionCardHeaderProps, 'direction' | 'side'>): boolean =>
   direction ? direction === 'long' : side !== 'sell';
+
+export const POSITION_CARD_HEADER_PLACEHOLDER_TEST_ID =
+  'position-card-header-placeholder';
+
+/**
+ * Holds a line's height while its figure is not priced yet, so the card is as
+ * tall before prices load as after.
+ */
+const LinePlaceholder: React.FC<{ variant: TextVariant }> = ({ variant }) => (
+  <Text
+    variant={variant}
+    fontWeight={FontWeight.Medium}
+    accessibilityElementsHidden
+    importantForAccessibility="no-hide-descendants"
+    testID={POSITION_CARD_HEADER_PLACEHOLDER_TEST_ID}
+  >
+    {' '}
+  </Text>
+);
 
 const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
   const {
@@ -99,7 +135,14 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     subtitleLabel,
     live,
   } = props;
-  const tagLabel = sideTagLabel(props);
+  const tagLabel =
+    props.layout === 'closed' ? closedTagLabel(props) : sideTagLabel(props);
+  const tagSeverity =
+    props.layout === 'closed'
+      ? TagSeverity.Neutral
+      : isBullish(props)
+        ? TagSeverity.Success
+        : TagSeverity.Danger;
 
   return (
     <Box
@@ -127,12 +170,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {symbol}
           </Text>
           {tagLabel ? (
-            <Tag
-              severity={
-                isBullish(props) ? TagSeverity.Success : TagSeverity.Danger
-              }
-              twClassName="shrink-0"
-            >
+            <Tag severity={tagSeverity} twClassName="shrink-0">
               {tagLabel}
             </Tag>
           ) : null}
@@ -157,6 +195,9 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {subtitleLabel}
           </Text>
         ) : null}
+        {subtitleLabel ? null : (
+          <LinePlaceholder variant={TextVariant.BodyXs} />
+        )}
       </Box>
       {/* Capped rather than free-growing: a six-figure P&L would otherwise take
         the row and squeeze the symbol it belongs to down to an ellipsis. */}
@@ -164,10 +205,16 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         alignItems={BoxAlignItems.End}
         twClassName="shrink-0 max-w-[45%] min-w-0"
       >
+        {/* Glyph row, not the slot reel: AnimatedSlotText sizes each digit to a
+            `0` but measures the real glyphs. Inter digits are proportional, so a
+            `1` leaves the reel wider than its measured box and the K or % overruns
+            the column. The glyph row's default face is condensed, so these
+            numbers stay on the default face and match the static card. */}
         {pnlValueLabel && live ? (
-          <AnimatedSlotText
+          <AnimatedNumericText
             animated={!live.reduceMotion}
             color={pnlColor(isPnlPositive)}
+            fontFamily={FontFamily.Default}
             fontWeight={FontWeight.Medium}
             testID={props.testID && `${props.testID}-pnl-value`}
             value={pnlValueLabel}
@@ -184,10 +231,14 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {pnlValueLabel}
           </Text>
         ) : null}
+        {pnlValueLabel ? null : (
+          <LinePlaceholder variant={TextVariant.BodySm} />
+        )}
         {pnlLabel && live ? (
-          <AnimatedSlotText
+          <AnimatedNumericText
             animated={!live.reduceMotion}
             color={pnlColor(isPnlPositive)}
+            fontFamily={FontFamily.Default}
             fontWeight={FontWeight.Medium}
             testID={props.testID && `${props.testID}-pnl`}
             value={pnlLabel}
@@ -204,6 +255,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {pnlLabel}
           </Text>
         ) : null}
+        {pnlLabel ? null : <LinePlaceholder variant={TextVariant.BodyXs} />}
       </Box>
     </Box>
   );

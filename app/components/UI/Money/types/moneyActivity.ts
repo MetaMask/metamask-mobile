@@ -2,6 +2,15 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
+export type AccountsApiDisplayAmount =
+  | {
+      type: 'historical' | 'approximate';
+      /** Raw, minimal-unit mUSD amount. */
+      value: string;
+      decimals: number;
+    }
+  | { type: 'pending' | 'unavailable' };
+
 /**
  * Card spends and musdback from the accounts API
  * These aren't created in this client, so they never reach the
@@ -13,6 +22,7 @@ interface AccountsApiSettlement {
   /** Settlement time, epoch ms (parsed from the API's ISO timestamp). */
   time: number;
   chainId: Hex;
+  blockNumber?: number;
   /** The settlement token. */
   token: {
     address: Hex;
@@ -21,6 +31,7 @@ interface AccountsApiSettlement {
   };
   /** Raw, minimal-unit amount of the settlement transfer. */
   amount: string;
+  displayAmount?: AccountsApiDisplayAmount;
 }
 
 export type AccountsApiActivity =
@@ -67,6 +78,27 @@ export interface NeobankBankTransferActivity {
 }
 
 /**
+ * Bank microdeposit: a small test credit a bank sends to verify a linked
+ * account. It never settles on-chain — the bank later pulls the total back
+ * with one debit that our providers do not report — so the row exists only
+ * to explain a credit the user sees on their bank statement.
+ */
+export interface MicrodepositActivity {
+  /**
+   * Synthetic identity. MoonPay's microdeposit payload has no id, so this is
+   * built from the fields that identify the credit.
+   */
+  id: string;
+  /** Decimal fiat amount, exactly as MoonPay sends it. */
+  amount: string;
+  currencyCode: string;
+  /** Sending bank or account name when MoonPay reports one. */
+  counterpartyName?: string;
+  /** Epoch ms parsed from MoonPay's `created_at`. */
+  time: number;
+}
+
+/**
  * One row in the Money activity list, tagged by source.
  **/
 export type MoneyActivityItem =
@@ -78,6 +110,12 @@ export type MoneyActivityItem =
       id: string;
       time: number;
       tx: NeobankBankTransferActivity;
+    }
+  | {
+      kind: 'microdeposit';
+      id: string;
+      time: number;
+      tx: MicrodepositActivity;
     };
 
 export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
@@ -107,6 +145,15 @@ export const neobankItem = (
   tx: NeobankBankTransferActivity,
 ): MoneyActivityItem => ({
   kind: 'neobank',
+  id: tx.id,
+  time: tx.time,
+  tx,
+});
+
+export const microdepositItem = (
+  tx: MicrodepositActivity,
+): MoneyActivityItem => ({
+  kind: 'microdeposit',
   id: tx.id,
   time: tx.time,
   tx,

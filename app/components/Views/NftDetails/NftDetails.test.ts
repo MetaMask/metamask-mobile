@@ -1,5 +1,6 @@
+import React, { useState } from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
+import { Pressable, TouchableOpacity } from 'react-native';
 import { ReactTestInstance } from 'react-test-renderer';
 import { Icon, IconName } from '@metamask/design-system-react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
@@ -193,6 +194,20 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
+const RerenderHarness = (): React.ReactElement => {
+  const [, setTick] = useState(0);
+
+  return React.createElement(
+    React.Fragment,
+    null,
+    React.createElement(Pressable, {
+      testID: 'force-rerender',
+      onPress: () => setTick((tick) => tick + 1),
+    }),
+    React.createElement(QrScanner),
+  );
+};
+
 describe('NftDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -346,5 +361,53 @@ describe('NftDetails', () => {
     // Verify source is not included when not provided
     const callArgs = mockTrackEvent.mock.calls[0][0];
     expect(callArgs.properties).not.toHaveProperty('source');
+  });
+
+  it('tracks NFT details opened once across re-renders', () => {
+    mockUseParamsValues = {
+      collectible: TEST_COLLECTIBLE,
+      source: 'mobile-nft-list',
+    };
+
+    const { getByTestId } = renderScreen(
+      RerenderHarness,
+      { name: 'NftDetails' },
+      { state: initialState },
+    );
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(getByTestId('force-rerender'));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks NFT details opened again when the source changes', () => {
+    mockUseParamsValues = {
+      collectible: TEST_COLLECTIBLE,
+      source: 'mobile-nft-list',
+    };
+
+    const { getByTestId } = renderScreen(
+      RerenderHarness,
+      { name: 'NftDetails' },
+      { state: initialState },
+    );
+
+    mockUseParamsValues = {
+      collectible: TEST_COLLECTIBLE,
+      source: 'mobile-nft-list-page',
+    };
+    fireEvent.press(getByTestId('force-rerender'));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(mockTrackEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          chain_id: '1',
+          source: 'mobile-nft-list-page',
+        }),
+      }),
+    );
   });
 });

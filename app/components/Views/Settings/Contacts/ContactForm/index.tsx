@@ -6,12 +6,11 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Label,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -59,6 +58,8 @@ import {
   useContactValidation,
   type ValidationResult,
 } from './useContactValidation';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const ADD = 'add';
 const EDIT = 'edit';
@@ -186,6 +187,7 @@ const ContactForm = ({
   chainId,
   route,
 }: ContactFormProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { themeAppearance = 'light' } = useTheme();
   const tw = useTailwind();
   const [state, setState] = useState<ContactFormState>(() =>
@@ -406,7 +408,9 @@ const ContactForm = ({
       testID={AddContactViewSelectorsIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title={headerTitle}
         onBack={() => navigation.pop()}

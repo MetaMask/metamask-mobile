@@ -27,7 +27,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
 import {
   clearLeaderboardApiMock,
-  getLeaderboardMessengerSpy,
   setupLeaderboardApiMock,
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import {
@@ -59,6 +58,10 @@ import {
 } from '../PostTradeShareBottomSheet/postTradeShareSession';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../terms/socialTermsAcceptance';
 
 const OPEN_PERP_POSITION_ID = 'cv-open-perp';
 const OPEN_PERP_TIMESTAMP = 1_700_000_000;
@@ -70,6 +73,12 @@ const openPerpFeedItem = mockPerpFeedItem({
   isOpen: true,
   timestamp: OPEN_PERP_TIMESTAMP,
   lastTradeAt: OPEN_PERP_TIMESTAMP,
+  authorComment: {
+    uid: `${OPEN_PERP_POSITION_ID}-comment`,
+    text: 'Riding the trend',
+    timestamp: OPEN_PERP_TIMESTAMP,
+    engagement: { reactions: [], userReaction: null },
+  },
   currentValueUSD: 60000,
   realizedPnl: 0,
   trades: [
@@ -93,6 +102,32 @@ const copyTradeButtonTestId =
 
 const perpsModalsRoute = {
   name: Routes.PERPS.MODALS.ROOT,
+};
+
+const profileOnboardingRoute = {
+  name: Routes.SOCIAL.PROFILE_ONBOARDING,
+};
+
+const noLinkedWalletOverrides: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      PerpsController: { isEligible: true },
+      ProfileController: {
+        profile: {
+          profileId: '',
+          username: '',
+          displayName: '',
+          bio: '',
+          linkedAddresses: [],
+          avatarUrl: '',
+          tradingPrivacy: 'public' as const,
+          connectedToX: false,
+          createdAt: '',
+          updatedAt: '',
+        },
+      },
+    },
+  },
 };
 
 const eligibleOverrides = {
@@ -151,6 +186,14 @@ const pressCopyTrade = async () => {
   fireEvent.press(await findTrendingCopyTradeButton());
 };
 
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
+
 describe('SocialV1View copy trade', () => {
   beforeEach(() => {
     setupLeaderboardApiMock({ feedItems: [openPerpFeedItem] });
@@ -194,6 +237,23 @@ describe('SocialV1View copy trade', () => {
     ).toBeNull();
   });
 
+  it('opens profile onboarding instead of the perps order when there is no linked wallet', async () => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute, profileOnboardingRoute], {
+      overrides: noLinkedWalletOverrides,
+    });
+
+    await pressCopyTrade();
+
+    expect(
+      await screen.findByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT)),
+    ).toBeNull();
+  });
+
   it('shows the access-restricted modal and stays on the feed when compliance blocks the wallet', async () => {
     installComplianceController(true);
     renderSocialV1ViewWithRoutes([perpsModalsRoute], {
@@ -219,6 +279,37 @@ describe('SocialV1View copy trade', () => {
     ).toHaveBeenCalled();
   });
 
+  it.each([
+    {
+      name: 'geolocation is the UK',
+      geolocation: { location: 'GB', status: 'complete' as const },
+    },
+    {
+      name: 'geolocation has not resolved',
+      geolocation: { location: 'UNKNOWN', status: 'loading' as const },
+    },
+  ])('hides Copy trade when $name', async ({ geolocation }) => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute], {
+      overrides: {
+        engine: {
+          backgroundState: {
+            ...eligibleOverrides.engine.backgroundState,
+            GeolocationController: geolocation,
+          },
+        },
+      },
+    });
+
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    await trendingPage.findByTestId(
+      `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
+    );
+
+    expect(trendingPage.queryByTestId(copyTradeButtonTestId)).toBeNull();
+  });
+
   it('shows the open perp copy-trade card after the feed loads', async () => {
     renderSocialV1ViewWithRoutes([perpsModalsRoute], {
       overrides: eligibleOverrides,
@@ -242,8 +333,6 @@ describe('SocialV1View copy trade', () => {
 
 describe('SocialV1View initial tab', () => {
   const feedPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`;
-  const getCalledActions = () =>
-    getLeaderboardMessengerSpy().mock.calls.map(([action]) => action);
 
   const SocialV1ViewWithAccessRestricted = () => (
     <AccessRestrictedProvider>
@@ -274,13 +363,8 @@ describe('SocialV1View initial tab', () => {
     expect(
       await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).toBeOnTheScreen();
-    await waitFor(() =>
-      expect(getCalledActions()).toContain('SocialService:fetchFeed'),
-    );
-    const trendingPage = within(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
-    );
-    expect(trendingPage.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
+    // Pages mount lazily, so Trending has not rendered its feed yet.
+    expect(screen.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
   });
 
   it('opens on Trending when the initial tab is not a Social V1 tab', async () => {

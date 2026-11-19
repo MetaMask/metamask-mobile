@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 
 import {
   BottomSheet,
-  HeaderStandard,
   Text,
   TextVariant,
   type BottomSheetRef,
@@ -15,6 +14,9 @@ import styleSheet from './UnsupportedTokenModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export const createUnsupportedTokenModalNavigationDetails =
   createNavigationDetails(
@@ -23,13 +25,16 @@ export const createUnsupportedTokenModalNavigationDetails =
   );
 
 function UnsupportedTokenModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('deposit.token_modal.unsupported_token_title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
         closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}

@@ -1,5 +1,8 @@
 import {
-  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
+  PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
+} from '../MyProfileView/avatarPresets';
+import {
   applyXOnboardingProfile,
   startManualOnboarding,
   buildCreateProfileParams,
@@ -11,8 +14,11 @@ import {
   isUneditedXUsername,
   normalizeUsername,
   onboardingProfileFingerprint,
+  withEligibleLinkedAccount,
   type XOnboardingIdentity,
 } from './profileOnboardingDraft';
+
+const PROFILE_ID = 'session-profile-id';
 
 const X_IDENTITY: XOnboardingIdentity = {
   username: 'degangirl',
@@ -26,8 +32,12 @@ describe('profileOnboardingDraft', () => {
     jest.restoreAllMocks();
   });
 
-  it('normalizes a typed handle', () => {
-    expect(normalizeUsername('  @Wen_Cat ')).toBe('wen_cat');
+  it('removes whitespace and leading @ characters without changing casing', () => {
+    const value = '  @@Wen_Cat ';
+
+    const username = normalizeUsername(value);
+
+    expect(username).toBe('Wen_Cat');
   });
 
   it('starts the draft with a generated username and matching display name', () => {
@@ -39,8 +49,48 @@ describe('profileOnboardingDraft', () => {
     expect(draft.displayName).toBe('Bonk Turbo Queen');
   });
 
+  it('starts the draft on the first avatar and the first middle backdrop when the random draw is zero', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.avatarPresetId).toBe(PROFILE_AVATAR_PRESETS[0].id);
+    expect(draft.avatarBackgroundId).toBe(PROFILE_AVATAR_BACKGROUNDS[2].id);
+  });
+
+  it('starts the draft on a later avatar and the last middle backdrop when the random draw moves on', () => {
+    const avatarIndex = 2;
+    const backgroundIndex = 4;
+    let call = 0;
+    jest.spyOn(Math, 'random').mockImplementation(() => {
+      call += 1;
+      if (call <= 3) {
+        return 0;
+      }
+      if (call === 4) {
+        return avatarIndex / PROFILE_AVATAR_PRESETS.length;
+      }
+      return 0.999;
+    });
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.avatarPresetId).toBe(PROFILE_AVATAR_PRESETS[avatarIndex].id);
+    expect(draft.avatarBackgroundId).toBe(
+      PROFILE_AVATAR_BACKGROUNDS[backgroundIndex].id,
+    );
+  });
+
   it('builds a display name from an underscored handle', () => {
     expect(displayNameFromUsername('wen_cat')).toBe('Wen Cat');
+  });
+
+  it('keeps display name generation unchanged for mixed-case usernames', () => {
+    const username = 'wEN_cAT';
+
+    const displayName = displayNameFromUsername(username);
+
+    expect(displayName).toBe('Wen Cat');
   });
 
   it('accepts letters, numbers, and underscores between 3 and 16 characters', () => {
@@ -49,6 +99,7 @@ describe('profileOnboardingDraft', () => {
     expect(getUsernameStatus('')).toBe('empty');
     expect(getUsernameStatus('wen_cat')).toBe('available');
     expect(getUsernameStatus('wen_cat_12')).toBe('available');
+    expect(getUsernameStatus('Wen_CAT_12')).toBe('available');
   });
 
   it('reports a handle above the maximum length before the pattern', () => {
@@ -110,6 +161,9 @@ describe('profileOnboardingDraft', () => {
       onboardingProfileFingerprint({ ...draft, username: 'moon_fox' }),
     ).not.toBe(fingerprint);
     expect(
+      onboardingProfileFingerprint({ ...draft, username: 'Wen_Cat' }),
+    ).not.toBe(fingerprint);
+    expect(
       onboardingProfileFingerprint(draft, ['eip155:1:0xabc', 'eip155:1:0xdef']),
     ).not.toBe(fingerprint);
     expect(
@@ -118,6 +172,79 @@ describe('profileOnboardingDraft', () => {
         linkedAccountAddress: null,
       }),
     ).toBeNull();
+  });
+
+  it('drops a linked account that is no longer eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'kept', address: '0xkept' },
+    ]);
+
+    expect(next.linkedAccountId).toBeNull();
+    expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('leaves a cleared selection empty when another account is eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+    const accounts = [{ id: 'kept', address: '0xkept' }];
+
+    const cleared = withEligibleLinkedAccount(draft, accounts);
+    const again = withEligibleLinkedAccount(cleared, accounts);
+
+    expect(again.linkedAccountId).toBeNull();
+    expect(again.linkedAccountAddress).toBeNull();
+    expect(again).toBe(cleared);
+  });
+
+  it('clears the linked account when the eligible list is empty', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+
+    const next = withEligibleLinkedAccount(draft, []);
+
+    expect(next.linkedAccountId).toBeNull();
+    expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('keeps a linked account that is still eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'kept',
+      linkedAccountAddress: '0xkept',
+    };
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'kept', address: '0xkept' },
+      { id: 'other', address: '0xother' },
+    ]);
+
+    expect(next).toBe(draft);
+  });
+
+  it('selects the first account when the draft has none', () => {
+    const draft = createInitialOnboardingDraft();
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'first', address: '0xfirst' },
+      { id: 'second', address: '0xsecond' },
+    ]);
+
+    expect(next.linkedAccountId).toBe('first');
+    expect(next.linkedAccountAddress).toBe('0xfirst');
   });
 
   it('blocks continue until the handle and display name are filled', () => {
@@ -152,7 +279,6 @@ describe('profileOnboardingDraft', () => {
     expect(profile.xHandle).toBeNull();
     expect(profile.connectedToX).toBe(false);
     expect(profile.rankingTag).toBeNull();
-    expect(profile.shareUrl).toBe('https://metamask.io/wen_cat');
   });
 
   it('keeps the mocked X handle and avatar when those toggles stay on', () => {
@@ -171,10 +297,24 @@ describe('profileOnboardingDraft', () => {
         connectedToX: true,
       }),
     );
-    expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID)
-        .avatar_url,
-    ).toBe(X_IDENTITY.avatarUrl);
+    expect(buildCreateProfileParams(draft, PROFILE_ID).avatar_url).toBe(
+      X_IDENTITY.avatarUrl,
+    );
+  });
+
+  it('preserves the casing of an imported X username in the draft and profile', () => {
+    const identity = { ...X_IDENTITY, username: 'DeganGirl' };
+
+    const draft = applyXOnboardingProfile(
+      createInitialOnboardingDraft(),
+      identity,
+    );
+    const profile = buildOnboardedSocialProfile(draft);
+
+    expect(draft.username).toBe(identity.username);
+    expect(draft.xUsername).toBe(identity.username);
+    expect(profile.handle).toBe(identity.username);
+    expect(profile.xHandle).toBe(identity.username);
   });
 
   it('clears the X path when manual onboarding starts', () => {
@@ -209,17 +349,17 @@ describe('profileOnboardingDraft', () => {
   it('maps a draft onto createProfile parameters', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
-      username: 'wen_cat',
+      username: ' @Wen_Cat ',
       displayName: 'Wen Cat',
+      avatarPresetId: 'vr',
+      avatarBackgroundId: 'background3',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
     };
 
-    expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID),
-    ).toEqual({
-      profile_id: 'social-v1-profile',
-      username: 'wen_cat',
+    expect(buildCreateProfileParams(draft, PROFILE_ID)).toEqual({
+      profile_id: PROFILE_ID,
+      username: 'Wen_Cat',
       display_name: 'Wen Cat',
       bio: null,
       linked_addresses: ['eip155:1:0xabc'],
@@ -239,9 +379,8 @@ describe('profileOnboardingDraft', () => {
     ] as const;
 
     expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID, [
-        ...linkedAddresses,
-      ]).linked_addresses,
+      buildCreateProfileParams(draft, PROFILE_ID, [...linkedAddresses])
+        .linked_addresses,
     ).toEqual(linkedAddresses);
   });
 });

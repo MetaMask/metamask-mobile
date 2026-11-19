@@ -71,6 +71,7 @@ const PerpsClosePositionView: React.FC = () => {
     feeResults,
     rewardsState,
     summaryMargin,
+    summaryMarginMode,
     summaryPnl,
     summaryFees,
     receiveAmount,
@@ -94,6 +95,7 @@ const PerpsClosePositionView: React.FC = () => {
   const Summary = (
     <PerpsCloseSummary
       totalMargin={summaryMargin}
+      marginMode={summaryMarginMode}
       totalPnl={summaryPnl}
       totalFees={summaryFees}
       originalTotalFees={feeResults.undiscountedTotalFee}

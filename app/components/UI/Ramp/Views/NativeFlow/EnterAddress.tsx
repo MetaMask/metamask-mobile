@@ -9,7 +9,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -36,6 +35,9 @@ import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
 import StateSelector from './StateSelector';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface AddressFormData {
   addressLine1: string;
@@ -54,6 +56,7 @@ export interface V2EnterAddressParams {
 }
 
 const V2EnterAddress = (): React.JSX.Element => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData, headlessSessionId } =
@@ -251,7 +254,9 @@ const V2EnterAddress = (): React.JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.enter_address.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

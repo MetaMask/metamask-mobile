@@ -14,6 +14,11 @@ import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
+import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
+import {
+  installStandaloneOutgoingFetchSpan,
+  registerOutgoingRequestAnnotation,
+} from './outgoingRequestContext';
 import { getTraceTags } from './tags';
 import {
   groupDiskSpaceSentryReport,
@@ -486,6 +491,14 @@ export function excludeEvents(event: SentryEvent | null): SentryEvent | null {
     return null;
   }
 
+  // NavigationChildren is the root native-stack wrapper in NavigationProvider,
+  // not a screen. Its ui.load transaction shadows the real screen in Mobile
+  // Vitals, reporting a TTID that starts at navigator mount instead of route
+  // start. App start is reported separately via standalone app start tracing.
+  if (event?.transaction === 'NavigationChildren') {
+    return null;
+  }
+
   return event;
 }
 
@@ -670,13 +683,13 @@ export async function setupSentry(
     // Ensure consent cache is populated early
     const hasConsent = await hasMetricsConsent();
 
-    // reactNativeTracingIntegration is intentionally omitted here: getDefaultIntegrations()
-    // already pushes it whenever tracesSampleRate is set and enableAutoPerformanceTracing
-    // is true (both hold for this config). Adding it explicitly would be a no-op after
-    // the SDK's name-deduplication pass.
+    // Replaces the default ReactNativeTracing integration. traceFetch wraps
+    // global.fetch, which this app has already replaced with nitro-fetch.
+    // The default leaves fetch tracing off and only instruments XHR.
     const integrations = [
       Sentry.dedupeIntegration(),
       Sentry.extraErrorDataIntegration(),
+      Sentry.reactNativeTracingIntegration({ traceFetch: true }),
       getNavIntegration(),
     ];
     const environment = deriveSentryEnvironment(
@@ -710,7 +723,25 @@ export async function setupSentry(
       enabled: forceEnabled || hasConsent,
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
+      _experiments: {
+        // Send app start as its own `App Start` transaction instead of
+        // attaching it to the first ui.load. Without this the app start spans
+        // land on the dropped NavigationChildren transaction and are lost.
+        enableStandaloneAppStartTracing: true,
+      },
     });
+
+    // Route and connection type are captured here, at request start.
+    // beforeSendSpan runs when the span is sent, after the parent has ended,
+    // so it would record a later screen.
+    const client = Sentry.getClient();
+    if (client && typeof client.on === 'function') {
+      registerOutgoingRequestAnnotation(client);
+    }
+    // Fetch spans created above are still dropped unless a parent is active.
+    installStandaloneOutgoingFetchSpan();
+
+    beginNavigationInitializationAppStart();
 
     // Set EAS update context after Sentry initialization
     setEASUpdateContext();

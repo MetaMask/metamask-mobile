@@ -61,17 +61,15 @@ interface ContractCheck {
   /** Where a payload mentioning none of the above lands. */
   otherwise: SecurityCheckOutcome;
   /**
-   * `verdict` rows carry a pass/fail glyph in green or red. `neutral` rows
-   * carry none and stay on the default text colour.
+   * `verdict` rows colour the value green on pass and red on fail, with a
+   * fail glyph only. `inverted` rows wear the opposite presentation, because
+   * their pass word is the bad news.
    *
-   * `is_mintable` is the one neutral row, because it is the one check named as
-   * a question rather than as the desirable state. Its pass means the mint
-   * capability is *present*, so a green tick beside "Yes" would read as
-   * reassurance about the thing the reader is wary of, and a red cross on "No"
-   * would fail a token for being unable to mint. Martin's sheet types it
-   * `Info`, which is the same statement: neither answer is news.
+   * `is_mintable` is the one inverted row, because it is the one check named
+   * as a question rather than as the desirable state. Its pass means the mint
+   * capability is *present*.
    */
-  tone: 'verdict' | 'neutral';
+  tone: 'verdict' | 'inverted';
 }
 
 /**
@@ -137,13 +135,12 @@ export const CONTRACT_CHECKS: Readonly<
   },
   /**
    * Inverted versus its four neighbours: a pass means the capability is
-   * present. That inversion is why the row is `neutral` rather than why it is
-   * wrong — see `ContractCheck.tone`.
+   * present — see `ContractCheck.tone`.
    */
   [ContractCheckKey.IsMintable]: {
     passOn: ['IS_MINTABLE'],
     otherwise: 'fail',
-    tone: 'neutral',
+    tone: 'inverted',
   },
 };
 

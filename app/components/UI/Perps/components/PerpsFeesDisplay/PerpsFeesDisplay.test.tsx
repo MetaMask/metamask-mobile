@@ -1,7 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import Svg from 'react-native-svg';
+import { strings } from '../../../../../../locales/i18n';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 import PerpsFeesDisplay from './PerpsFeesDisplay';
+import { SEAL_PERCENT_ICON_SIZE } from './SealPercentIcon';
 
 jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const actual = jest.requireActual<
@@ -23,8 +28,8 @@ jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
 });
 
 describe('PerpsFeesDisplay', () => {
-  it('shows a promotional label and original fee without a VIP badge', () => {
-    const { getByText, getByTestId, queryByTestId } = render(
+  it('shows a promotional seal and original fee without a VIP badge', () => {
+    const { getByTestId, queryByTestId, queryByText } = render(
       <PerpsFeesDisplay
         fee={0}
         originalFee={10}
@@ -34,11 +39,75 @@ describe('PerpsFeesDisplay', () => {
       />,
     );
 
-    expect(getByText('Promotional discount')).toBeOnTheScreen();
-    expect(getByTestId('fee-original')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL).props
+        .accessibilityLabel,
+    ).toBe(strings('perps.tooltips.fees.promotional_discount'));
+    expect(queryByText('Promotional discount')).not.toBeOnTheScreen();
+    expect(getByTestId('fee-original').props.accessibilityLabel).toBe(
+      strings('perps.tooltips.fees.original_fee_value', {
+        fee: getByTestId('fee-original').props.children,
+      }),
+    );
     expect(
       queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('uses success color for a promotional fee beside its original fee', () => {
+    const { UNSAFE_getAllByType } = render(
+      <PerpsFeesDisplay
+        fee={8.5}
+        originalFee={10}
+        feeDiscountPercentage={15}
+        feeDiscountKind="promotional"
+        testID="fee"
+      />,
+    );
+
+    const discountedFee = UNSAFE_getAllByType(Text).find(
+      (node) => node.props.testID === 'fee',
+    );
+
+    expect(discountedFee?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('uses the fee-row-sized promotional seal', () => {
+    const { UNSAFE_getByType } = render(
+      <PerpsFeesDisplay
+        fee={8.5}
+        originalFee={10}
+        feeDiscountPercentage={15}
+        feeDiscountKind="promotional"
+      />,
+    );
+
+    expect(UNSAFE_getByType(Svg).props).toMatchObject({
+      width: SEAL_PERCENT_ICON_SIZE.feeRow,
+      height: SEAL_PERCENT_ICON_SIZE.feeRow,
+    });
+  });
+
+  it('keeps the placeholder in the configured row color', () => {
+    const { getByTestId, UNSAFE_getAllByType } = render(
+      <PerpsFeesDisplay
+        fee={undefined}
+        feeDiscountPercentage={15}
+        feeDiscountKind="promotional"
+        color={TextColor.TextDefault}
+        testID="fee"
+      />,
+    );
+
+    const placeholder = UNSAFE_getAllByType(Text).find(
+      (node) => node.props.testID === 'fee',
+    );
+
+    expect(getByTestId('fee')).toHaveTextContent('--');
+    expect(placeholder?.props.color).toBe(TextColor.TextDefault);
   });
 
   it('uses a generic label when attribution is unknown', () => {
@@ -261,6 +330,97 @@ describe('PerpsFeesDisplay', () => {
       expect(queryByTestId('rewards-vip-badge')).toBeNull();
       expect(queryByTestId('rewards-member-badge')).toBeNull();
       expect(getByText('Fee discount')).toBeTruthy();
+    });
+  });
+
+  describe('Percentage mode (Perps Fee Display Format A/B test)', () => {
+    it('renders "Taker X% / Maker Y%" from the rates and ignores fee/originalFee', () => {
+      const { getByText, queryByText } = render(
+        <PerpsFeesDisplay
+          feeDisplayMode="percentage"
+          takerFeeRate={0.00143}
+          makerFeeRate={0.00114}
+          fee={8.5}
+          originalFee={10}
+          testID="fee"
+        />,
+      );
+
+      expect(getByText('Taker 0.143% /')).toBeTruthy();
+      expect(getByText('Maker 0.114%')).toBeTruthy();
+      // The dollar-mode formatted fee text must not leak through.
+      expect(queryByText('$8.50')).toBeNull();
+    });
+
+    it('keeps the base testID mounted so dollar-mode readiness waits (e.g. E2E waitForFeesReady) still resolve', () => {
+      const { getByTestId } = render(
+        <PerpsFeesDisplay
+          fee={undefined}
+          feeDisplayMode="percentage"
+          takerFeeRate={0.00143}
+          makerFeeRate={0.00114}
+          testID="fee"
+        />,
+      );
+
+      // Rendered on the row container, alongside the per-rate -taker/-maker
+      // testIDs, since the single value-bearing <Text testID="fee"> from
+      // dollar mode does not render in this branch.
+      expect(getByTestId('fee')).toBeTruthy();
+      expect(getByTestId('fee-taker')).toHaveTextContent('Taker 0.143% /');
+      expect(getByTestId('fee-maker')).toHaveTextContent('Maker 0.114%');
+    });
+
+    it('renders the placeholder when either rate is undefined', () => {
+      const { getByText } = render(
+        <PerpsFeesDisplay
+          fee={undefined}
+          feeDisplayMode="percentage"
+          takerFeeRate={0.00143}
+          makerFeeRate={undefined}
+        />,
+      );
+
+      expect(getByText('--')).toBeTruthy();
+    });
+
+    it('renders a custom placeholder when both rates are undefined', () => {
+      const { getByText } = render(
+        <PerpsFeesDisplay
+          fee={undefined}
+          feeDisplayMode="percentage"
+          placeholder="-"
+        />,
+      );
+
+      expect(getByText('-')).toBeTruthy();
+    });
+
+    it('suppresses the strikethrough original fee even when a discount is present', () => {
+      const { queryByTestId, getByTestId, getByText } = render(
+        <PerpsFeesDisplay
+          feeDisplayMode="percentage"
+          takerFeeRate={0.00143}
+          makerFeeRate={0.00114}
+          fee={8.5}
+          originalFee={10}
+          feeDiscountPercentage={15}
+          feeDiscountKind="vip"
+          testID="fee"
+        />,
+      );
+
+      expect(queryByTestId('fee-original')).toBeNull();
+      // The VIP attribution label is independent of display mode and still renders.
+      expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+      expect(getByText('Taker 0.143% /')).toBeTruthy();
+      expect(getByText('Maker 0.114%')).toBeTruthy();
+    });
+
+    it('defaults to dollar mode when feeDisplayMode is omitted', () => {
+      const { getByText } = render(<PerpsFeesDisplay fee={25.5} />);
+
+      expect(getByText('$25.50')).toBeTruthy();
     });
   });
 });

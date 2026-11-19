@@ -85,10 +85,10 @@ describe('useTokenStats', () => {
     expect(stats[TokenStatKey.CirculatingSupply]?.value).toBe('12.4M');
   });
 
-  it('formats the 24h range with sub-unit precision', () => {
+  it('formats the 24h range like the price header', () => {
     const stats = renderStats();
 
-    expect(stats[TokenStatKey.HighLow24h]?.value).toBe('$0.043120 / $0.039812');
+    expect(stats[TokenStatKey.HighLow24h]?.value).toBe('$0.0431 / $0.0398');
   });
 
   // Liquidity over market cap: 560k / 12.4m = 4.52%.

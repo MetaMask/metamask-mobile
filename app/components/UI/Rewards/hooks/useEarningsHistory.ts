@@ -78,5 +78,6 @@ export const useEarningsHistory = (
     onFirstPage,
     errorMessage: 'Failed to fetch earnings history',
     feature: 'rewards-money',
+    laterPageRetryLimit: 1,
   });
 };

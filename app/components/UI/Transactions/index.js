@@ -21,8 +21,6 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { analytics } from '../../../util/analytics/analytics';
@@ -91,9 +89,7 @@ const Transactions = (props) => {
     contentBottomInset,
     refreshControlOffset,
     accountImportTime,
-    groupEvmAccountAddress,
     networkConfigurationsByChainId,
-    allTokens,
     bridgeHistory,
   } = props;
   const theme = useContext(ThemeContext) || mockTheme;
@@ -186,9 +182,7 @@ const Transactions = (props) => {
         tokenChainId={tokenChainId}
         navigation={navigation}
         accountImportTime={accountImportTime}
-        groupEvmAccountAddress={groupEvmAccountAddress}
         networkConfigurations={networkConfigurationsByChainId}
-        allTokens={allTokens}
         bridgeHistory={bridgeHistory}
       />
     ) : null;
@@ -338,19 +332,14 @@ Transactions.propTypes = {
    */
   refreshControlOffset: PropTypes.number,
   accountImportTime: PropTypes.number,
-  groupEvmAccountAddress: PropTypes.string,
   networkConfigurationsByChainId: PropTypes.object,
-  allTokens: PropTypes.object,
   bridgeHistory: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({
   accountImportTime: selectSelectedInternalAccount(state)?.metadata.importTime,
-  groupEvmAccountAddress:
-    selectSelectedAccountGroupEvmInternalAccount(state)?.address,
   networkConfigurationsByChainId:
     selectEvmNetworkConfigurationsByChainId(state),
-  allTokens: selectAllTokens(state),
   bridgeHistory: selectBridgeHistoryForAccount(state),
   // Token Details carries its own chain and must not react to network switches elsewhere.
   chainId: ownProps.tokenChainId ?? selectChainId(state),

@@ -9,6 +9,7 @@ export {
 } from './usePerpsTopMovers';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsProvider } from './usePerpsProvider';
+export { usePerpsProviderLogoIds } from './usePerpsProviderLogoIds';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 export { usePerpsTrading } from './usePerpsTrading';
@@ -107,6 +108,8 @@ export {
 // A/B tests
 export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 export { usePerpsHomeExploreAbTest } from './usePerpsHomeExploreAbTest';
+export { usePerpsFeeDisplayAbTest } from './usePerpsFeeDisplayAbTest';
+export { usePerpsLiveTradesAbTest } from './usePerpsLiveTradesAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

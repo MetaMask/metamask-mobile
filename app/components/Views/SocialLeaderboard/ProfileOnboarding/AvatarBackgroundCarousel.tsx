@@ -52,10 +52,7 @@ const OPACITIES = [1, 1, 1, 0.25, 0];
 
 /** 1pt solid ring flush against the selected color. */
 const SOLID_RING_SIZE = SELECTED_SIZE + 2;
-const DOTTED_RING_SIZE = 124;
-const DOTTED_RING_STROKE = 1.38;
-const DOTTED_RING_DASH = '1.38 4.15';
-const STRIP_HEIGHT = DOTTED_RING_SIZE + 2;
+const STRIP_HEIGHT = SOLID_RING_SIZE;
 const ART_SIZE = SELECTED_SIZE * 0.85;
 const LAST_INDEX = PROFILE_AVATAR_BACKGROUNDS.length - 1;
 
@@ -65,7 +62,9 @@ const GLOW_BLUR = 14;
 const GLOW_CENTER = SELECTED_SIZE / 2;
 
 const GLIDE_EASING = Easing.out(Easing.cubic);
-const INTRO_GLIDE_MS = 400;
+export const INTRO_GLIDE_MS = 400;
+/** How long the blurred glow takes to disappear once the strip rests. */
+export const GLOW_FADE_MS = 200;
 const MIN_GLIDE_MS = 180;
 const MAX_GLIDE_MS = 340;
 const GLIDE_MS_PER_EXTRA_STEP = 80;
@@ -75,6 +74,22 @@ const GLIDE_MS_PER_EXTRA_STEP = 80;
  * Earlier than the snap, so the haptic lands while the color is still moving.
  */
 const HAPTIC_CROSS_FRACTION = 0.35;
+
+/** Shows the blurred glow immediately. Cancels a fade that is already running. */
+const revealGlow = (glowOpacity: SharedValue<number>) => {
+  'worklet';
+  cancelAnimation(glowOpacity);
+  glowOpacity.value = 1;
+};
+
+/** Fades the blurred glow out once the strip has stopped on a color. */
+const fadeGlow = (glowOpacity: SharedValue<number>) => {
+  'worklet';
+  glowOpacity.value = withTiming(0, {
+    duration: GLOW_FADE_MS,
+    easing: GLIDE_EASING,
+  });
+};
 
 const clampIndex = (index: number) => {
   'worklet';
@@ -209,41 +224,56 @@ const GlowCircle: React.FC<GlowCircleProps> = ({ index, color, scrollX }) => {
 /**
  * Blurred colors behind the avatar. As neighbors slide past one another their
  * blurred edges overlap, which reads as a soft gradient between the two.
+ * Opacity is driven by the strip: full while it moves, then faded out at rest
+ * so the selected color stays flat.
  */
-const AvatarGlow: React.FC<{ scrollX: SharedValue<number> }> = ({
-  scrollX,
-}) => (
-  <Box
-    twClassName="absolute rounded-full overflow-hidden bg-default"
-    style={{ width: SELECTED_SIZE, height: SELECTED_SIZE }}
-    testID={SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_GLOW}
-  >
-    <Svg width={SELECTED_SIZE} height={SELECTED_SIZE}>
-      <Defs>
-        <Filter
-          id="avatarBackgroundGlow"
-          filterUnits="userSpaceOnUse"
-          x={0}
-          y={0}
-          width={SELECTED_SIZE}
-          height={SELECTED_SIZE}
-        >
-          <FeGaussianBlur stdDeviation={GLOW_BLUR} />
-        </Filter>
-      </Defs>
-      <G filter="url(#avatarBackgroundGlow)">
-        {PROFILE_AVATAR_BACKGROUNDS.map((background, index) => (
-          <GlowCircle
-            key={background.id}
-            index={index}
-            color={background.color}
-            scrollX={scrollX}
-          />
-        ))}
-      </G>
-    </Svg>
-  </Box>
-);
+const AvatarGlow: React.FC<{
+  scrollX: SharedValue<number>;
+  opacity: SharedValue<number>;
+}> = ({ scrollX, opacity }) => {
+  const tw = useTailwind();
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        tw.style('absolute rounded-full overflow-hidden bg-default', {
+          width: SELECTED_SIZE,
+          height: SELECTED_SIZE,
+        }),
+        animatedStyle,
+      ]}
+      testID={SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_GLOW}
+    >
+      <Svg width={SELECTED_SIZE} height={SELECTED_SIZE}>
+        <Defs>
+          <Filter
+            id="avatarBackgroundGlow"
+            filterUnits="userSpaceOnUse"
+            x={0}
+            y={0}
+            width={SELECTED_SIZE}
+            height={SELECTED_SIZE}
+          >
+            <FeGaussianBlur stdDeviation={GLOW_BLUR} />
+          </Filter>
+        </Defs>
+        <G filter="url(#avatarBackgroundGlow)">
+          {PROFILE_AVATAR_BACKGROUNDS.map((background, index) => (
+            <GlowCircle
+              key={background.id}
+              index={index}
+              color={background.color}
+              scrollX={scrollX}
+            />
+          ))}
+        </G>
+      </Svg>
+    </Animated.View>
+  );
+};
 
 /** Crossfade when the selected avatar changes. Low-tier devices swap instantly. */
 const AVATAR_DISSOLVE_MS = 200;
@@ -347,29 +377,6 @@ const DissolvingAvatarArt: React.FC<{
   );
 };
 
-/** Ring of small round dots around the selection. */
-const DottedRing: React.FC = () => {
-  const tw = useTailwind();
-  const radius = (DOTTED_RING_SIZE - DOTTED_RING_STROKE) / 2;
-  return (
-    <Box twClassName="absolute">
-      <Svg width={DOTTED_RING_SIZE} height={DOTTED_RING_SIZE}>
-        <Circle
-          cx={DOTTED_RING_SIZE / 2}
-          cy={DOTTED_RING_SIZE / 2}
-          r={radius}
-          stroke={tw.color('icon-default')}
-          strokeOpacity={0.25}
-          strokeWidth={DOTTED_RING_STROKE}
-          strokeLinecap="round"
-          strokeDasharray={DOTTED_RING_DASH}
-          fill="none"
-        />
-      </Svg>
-    </Box>
-  );
-};
-
 interface AvatarBackgroundCarouselProps {
   avatarPresetId: string;
   selectedBackgroundId: string;
@@ -387,8 +394,9 @@ interface AvatarBackgroundCarouselProps {
  * the user swipes as well as when they tap a neighbor.
  *
  * Finger swipes use native scrolling and snapping. The entrance and taps glide
- * with an ease-out cubic curve driven from the UI thread. Low-tier devices skip
- * the entrance glide and the blurred glow.
+ * with an ease-out cubic curve driven from the UI thread. The blurred glow is
+ * visible only while the strip is moving, then fades out on the selected color.
+ * Low-tier devices skip the entrance glide and the blurred glow.
  */
 const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   avatarPresetId,
@@ -417,6 +425,8 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   const startIndex = isLowTier ? targetIndex : 0;
   const scrollX = useSharedValue(startIndex * SLOT_WIDTH);
   const glideX = useSharedValue(startIndex * SLOT_WIDTH);
+  /** 0 at rest so the selected color stays flat. 1 while the strip moves. */
+  const glowOpacity = useSharedValue(0);
   const isGliding = useSharedValue(false);
   /** Last color that already played a pass haptic. */
   const lastHapticIndex = useSharedValue(targetIndex);
@@ -444,6 +454,10 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
     (index: number, duration: number, armHaptics: boolean) => {
       scheduleOnUI(() => {
         'worklet';
+        const destination = index * SLOT_WIDTH;
+        if (Math.abs(destination - scrollX.value) > 0.5) {
+          revealGlow(glowOpacity);
+        }
         if (armHaptics) {
           hapticsArmed.value = true;
           lastHapticIndex.value = clampIndex(
@@ -454,7 +468,7 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
         glideX.value = scrollX.value;
         isGliding.value = true;
         glideX.value = withTiming(
-          index * SLOT_WIDTH,
+          destination,
           { duration, easing: GLIDE_EASING },
           (finished) => {
             if (finished) {
@@ -463,12 +477,13 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
               lastHapticIndex.value = clampIndex(
                 Math.round(scrollX.value / SLOT_WIDTH),
               );
+              fadeGlow(glowOpacity);
             }
           },
         );
       });
     },
-    [glideX, hapticsArmed, isGliding, lastHapticIndex, scrollX],
+    [glideX, glowOpacity, hapticsArmed, isGliding, lastHapticIndex, scrollX],
   );
 
   useAnimatedReaction(
@@ -505,10 +520,28 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
     onBeginDrag: () => {
       cancelAnimation(glideX);
       isGliding.value = false;
+      revealGlow(glowOpacity);
       hapticsArmed.value = true;
       lastHapticIndex.value = clampIndex(
         Math.round(scrollX.value / SLOT_WIDTH),
       );
+    },
+    // A release with no momentum has already stopped. A flick keeps the glow
+    // until onMomentumEnd, so the fade does not start while the strip is still
+    // snapping.
+    onEndDrag: (event) => {
+      const speed = Math.abs(event.velocity?.x ?? 0);
+      if (speed < 0.05) {
+        fadeGlow(glowOpacity);
+      }
+    },
+    onMomentumBegin: () => {
+      revealGlow(glowOpacity);
+    },
+    onMomentumEnd: () => {
+      if (!isGliding.value) {
+        fadeGlow(glowOpacity);
+      }
     },
   });
 
@@ -583,12 +616,13 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
         twClassName="absolute inset-0 items-center justify-center"
         testID={SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW}
       >
-        {isLowTier ? null : <AvatarGlow scrollX={scrollX} />}
+        {isLowTier ? null : (
+          <AvatarGlow scrollX={scrollX} opacity={glowOpacity} />
+        )}
         <Box
           twClassName="absolute rounded-full border border-icon-default"
           style={tw.style({ width: SOLID_RING_SIZE, height: SOLID_RING_SIZE })}
         />
-        <DottedRing />
         <DissolvingAvatarArt
           avatarPresetId={avatarPresetId}
           sizePx={ART_SIZE}

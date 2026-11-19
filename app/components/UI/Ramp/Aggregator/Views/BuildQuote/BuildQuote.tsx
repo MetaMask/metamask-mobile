@@ -17,7 +17,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconName,
   SelectButton,
   SelectButtonSize,
@@ -45,6 +44,7 @@ import AssetSelectorButton from '../../components/AssetSelectorButton';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 import AmountInput from '../../components/AmountInput';
 import Keypad, { Keys } from '../../../../../Base/Keypad';
+import useCurrency from '../../../../../Base/Keypad/useCurrency';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 
@@ -79,6 +79,8 @@ import { createRegionSelectorModalNavigationDetails } from '../../components/Reg
 import { createPaymentMethodSelectorModalNavigationDetails } from '../../components/PaymentMethodSelectorModal';
 import { QuickAmount, RampIntent, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 import {
   selectTicker,
@@ -107,6 +109,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 import { regex } from '../../../../../../util/regex';
 import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/SettingsModal';
+import { formatAmountWithLocaleSeparators } from '../../../../Bridge/utils/formatAmountWithLocaleSeparators';
 
 export interface BuildQuoteParams extends RampIntent {
   showBack?: boolean;
@@ -142,6 +145,7 @@ const BuildQuote = () => {
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   /**
    * Grab the current state of the SDK via the context.
@@ -219,6 +223,10 @@ const BuildQuote = () => {
     isFetchingFiatCurrency,
     currentFiatCurrency,
   } = useFiatCurrencies();
+  const { decimalSeparator } = useCurrency(
+    currentFiatCurrency?.symbol,
+    currentFiatCurrency?.decimals,
+  );
 
   const {
     cryptoCurrencies,
@@ -873,30 +881,11 @@ const BuildQuote = () => {
   // If the current view is for Sell the amount (crypto) is displayed as is
   let displayAmount = `${amount} ${selectedAsset?.symbol ?? ''}`;
 
-  // If the current ivew is for Buy we will format the amount
+  // Buy amounts use localized grouping when displayed.
   if (isBuy) {
-    // Split the amount to detect if it has decimals
-    const splitAmount = amount.split(/(\.)|(,)/);
-    // If the splitAmount array has more than 1 element it means that the amount has decimals
-    // For example:
-    //    100.50 -> splitAmount = ['100', '.', undefined, '50']
-    //    100,50 -> splitAmount = ['100', undefined, ',', '50']
-    // Note: this help us capture the input separator (dot or comma)
-    const hasDecimalsSplit = splitAmount.length > 1;
-
     displayAmount =
       isBuy && amountFocused
-        ? // If the amount is focused (being edited) the amount integer part will be shown in groups separated by spaces
-          `${formatAmount(Math.trunc(amountNumber), true)}${
-            // If the amount has decimals the decimal part will be shown
-            // using the separator and the decimal part
-            // Note, the decimal part will be displayed even if it is being typed (ends with a separator or 0)
-            hasDecimalsSplit
-              ? `${splitAmount[1] ?? splitAmount[2] ?? ''}${
-                  splitAmount[3] ?? ''
-                }`
-              : ''
-          }`
+        ? formatAmountWithLocaleSeparators(amount, decimalSeparator)
         : // If the amount is not focused it will be fully formatted
           formatAmount(amountNumber);
   }
@@ -930,7 +919,9 @@ const BuildQuote = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={
             isBuy
               ? strings('fiat_on_ramp_aggregator.amount_to_buy')

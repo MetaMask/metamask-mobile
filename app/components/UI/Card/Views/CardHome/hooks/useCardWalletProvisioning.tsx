@@ -1,4 +1,6 @@
 import React, { useContext, useMemo } from 'react';
+import { Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Icon,
   IconColor,
@@ -10,9 +12,11 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
-  usePushProvisioning,
   getWalletName,
+  usePushProvisioning,
   type ProvisioningError,
 } from '../../../pushProvisioning';
 import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
@@ -46,8 +50,12 @@ export function resolveWalletEntry({
 
 export function useCardWalletProvisioning(
   data: CardHomeData | null | undefined,
-  platformWalletSupported: boolean,
+  options?: {
+    onSuccess?: () => void;
+    platformWalletSupported?: boolean;
+  },
 ) {
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { toastRef } = useContext(ToastContext);
   const walletProvisioning = data?.walletProvisioning ?? null;
 
@@ -88,24 +96,29 @@ export function useCardWalletProvisioning(
       if (result?.activationState === 'requires_activation') {
         return;
       }
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: strings('card.push_provisioning.success_message', {
-              walletName: getWalletName(),
-            }),
-          },
-        ],
-        startAccessory: (
-          <Icon
-            name={IconName.Confirmation}
-            color={IconColor.SuccessDefault}
-            size={IconSize.Lg}
-          />
-        ),
-        hasNoTimeout: false,
-      });
+      if (Platform.OS === 'ios') {
+        navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
+      } else {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings('card.push_provisioning.success_message', {
+                walletName: getWalletName(),
+              }),
+            },
+          ],
+          startAccessory: (
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
+          ),
+          hasNoTimeout: false,
+        });
+      }
+      options?.onSuccess?.();
     },
     onError: (provisioningError: ProvisioningError) => {
       if (provisioningError.code === ProvisioningErrorCode.WALLET_DECLINED) {
@@ -139,7 +152,7 @@ export function useCardWalletProvisioning(
         isEligibilityLoading: isLoading,
         canAddToWallet,
         isCardInWallet,
-        platformWalletSupported,
+        platformWalletSupported: options?.platformWalletSupported ?? false,
       });
 
   return {

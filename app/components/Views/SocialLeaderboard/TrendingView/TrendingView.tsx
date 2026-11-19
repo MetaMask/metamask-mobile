@@ -1,4 +1,4 @@
-import { Box, TextColor } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
   useEffect,
@@ -7,13 +7,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import {
   SOCIAL_TRACE_TABS,
   type SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
 import SocialFeed, {
-  type SocialFeedHeaderProps,
   type SocialFeedInlineRow,
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
@@ -28,7 +30,6 @@ import {
   useSocialInteraction,
 } from '../analytics';
 import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
-import PendingPostsButton from '../LiveView/components/PendingPostsButton';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
@@ -55,8 +56,9 @@ const TRENDING_INLINE_ROWS: readonly SocialFeedInlineRow[] = [
     key: 'popular-traders',
     afterIndex: TRENDING_POPULAR_TRADERS_INSERT_AFTER,
     render: () => (
-      // The rail pulls itself 16px up; this leaves 8px above its header, the
-      // same gap a post keeps between its card and the divider.
+      // The rail pulls itself 16px up and the header has no vertical padding,
+      // so 8px sits above the title. With the divider's 4px margin, that reads
+      // as 12px, the same gap a post keeps above its content.
       <Box twClassName="pt-6 pb-2">
         <PopularTradersCarousel />
       </Box>
@@ -83,6 +85,8 @@ export interface TrendingViewProps {
   /** Clears the applied Trending filters. */
   onClearFilters?: () => void;
   appliedFilters?: SocialShellFilters;
+  contentTopInset?: number;
+  pendingPostsTopOffset?: number | SharedValue<number>;
   testID?: string;
   scrollTestID?: string;
 }
@@ -91,7 +95,9 @@ export interface TrendingViewProps {
  * Social V1 Trending: the trending feed, streamed while the tab is open, under
  * a hot-token rail. A chip narrows the feed to that asset on the server, which
  * pauses the stream; Custom filters narrow it further on the client. Popular
- * traders sits after the third post while no chip is selected.
+ * traders sits after the third post while no chip is selected. With no chip,
+ * the viewer's just-written post is pinned on top, pending, until the stream
+ * or a refresh brings in Trending's copy.
  */
 const TrendingView: React.FC<TrendingViewProps> = ({
   isActive = true,
@@ -104,10 +110,13 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   isFilterActive = false,
   onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
+  contentTopInset,
+  pendingPostsTopOffset,
   testID,
   scrollTestID,
 }) => {
-  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
+  const { onAuthorPress, onPositionPress } =
+    useSocialFeedPostNavigation('social_trending');
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
   // The pager mounts every page up front: hold the feed back until Trending
   // is first opened.
@@ -175,19 +184,10 @@ const TrendingView: React.FC<TrendingViewProps> = ({
 
   const { tokens, isLoading: isRailLoading } = hotTokens;
   const renderHeader = useCallback(
-    ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
+    () => (
       // The filter rail cancels 16px of the space under it, which leaves 8px
       // above the first post's own 8px.
       <Box twClassName="pt-4 pb-6">
-        {pendingNewCount > 0 ? (
-          <Box twClassName="flex-row px-4 pb-2">
-            <PendingPostsButton
-              pendingNewCount={pendingNewCount}
-              onPress={onRevealPending}
-              textColor={TextColor.SuccessDefault}
-            />
-          </Box>
-        ) : null}
         <TrendingFilterRail
           onOpenFilters={onOpenFilters}
           isFilterActive={isFilterActive}
@@ -239,6 +239,7 @@ const TrendingView: React.FC<TrendingViewProps> = ({
           isActive={isActive}
           scrollMode="virtualized"
           realtime={isActive}
+          pendingPostsSurface={selectedToken ? undefined : 'trending'}
           renderHeader={renderHeader}
           filterPost={filterPost}
           inlineRows={selectedToken ? undefined : TRENDING_INLINE_ROWS}
@@ -246,10 +247,14 @@ const TrendingView: React.FC<TrendingViewProps> = ({
           onRefresh={handleRefresh}
           performance={feedPerformance}
           onScroll={onScroll}
+          contentTopInset={contentTopInset}
+          refreshProgressViewOffset={contentTopInset}
+          pendingPostsTopOffset={pendingPostsTopOffset}
           pageRef={feedPageRef}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={onPositionPress}
+          requireSocialProfile
           testID={testID}
           scrollTestID={scrollTestID}
         />

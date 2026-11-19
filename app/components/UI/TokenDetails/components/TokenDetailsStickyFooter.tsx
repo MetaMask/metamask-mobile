@@ -35,7 +35,6 @@ import { useTokenChartPreferences } from '../../AssetOverview/Price/hooks/useTok
 import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
-import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeolocationLocation';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -58,7 +57,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 8,
     paddingVertical: 4,
   },
   traderPositionFooter: {
@@ -147,8 +146,6 @@ interface TokenStickyFooterProps {
   onOpenQuickBuy?: (mode: QuickBuyTradeMode) => void;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
-  /** Whether the ambient price color A/B test treatment is active. */
-  useAmbientColor?: boolean;
   /** Enables the updated button treatment used by the feature-flagged V1 page. */
   isTokenDetailsV1?: boolean;
   /**
@@ -157,9 +154,20 @@ interface TokenStickyFooterProps {
    * events and the shared security warning bottom-sheet events.
    */
   tdpVersion?: TdpVersion;
-  /** Optional trader position header rendered above the footer actions. */
+  /**
+   * Optional trader position header rendered above the footer actions. The
+   * footer always shows its action buttons; this line is appended once the
+   * position resolves (a missing position just leaves the buttons on their own).
+   */
   traderPositionPnl?: TraderPositionPnlProps;
-  /** Reports the laid-out height of the sticky footer, including its safe-area inset. */
+  /**
+   * Render the trader-position container (the sheet shell + layout) from the
+   * first render, before `traderPositionPnl` resolves. Pages that will show a
+   * position line set this so the footer mounts once in its final container and
+   * only the position line appends when it loads — instead of swapping the
+   * container type mid-load and remounting the buttons (flicker).
+   */
+  reserveTraderPositionLayout?: boolean;
   onFooterLayout?: (height: number) => void;
 }
 
@@ -182,10 +190,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   quickBuyEntrypointLayout = 'lightning_swap_buy',
   onOpenQuickBuy,
   sourcePage,
-  useAmbientColor = false,
   isTokenDetailsV1 = false,
   tdpVersion = 'v2',
   traderPositionPnl,
+  reserveTraderPositionLayout = false,
   onFooterLayout,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -196,28 +204,20 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { indicators: indicatorsActive } = useTokenChartPreferences();
 
   const geolocation = useSelector(getDetectedGeolocation);
-  const useErrorAccent =
-    useAmbientColor && isAsiaGeolocationLocation(geolocation);
 
-  const getAccentClass = (prefix: string, defaultClass: string) => {
-    if (useErrorAccent) {
-      return `${prefix}-error-default`;
-    }
-    if (isLightMode) {
-      return `${prefix}-[${LIGHT_MODE_SUCCESS_GREEN}]`;
-    }
-    return defaultClass;
-  };
+  const successBg = isLightMode
+    ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'bg-success-default';
+  const successBorder = isLightMode
+    ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'border-success-default';
+  const successText = isLightMode
+    ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'text-success-default';
 
-  const successBg = getAccentClass('bg', 'bg-success-default');
-  const successBorder = getAccentClass('border', 'border-success-default');
-  const successText = getAccentClass('text', 'text-success-default');
-
-  const successColorHex = useErrorAccent
-    ? colors.error.default
-    : isLightMode
-      ? LIGHT_MODE_SUCCESS_GREEN
-      : colors.success.default;
+  const successColorHex = isLightMode
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : colors.success.default;
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,
@@ -266,6 +266,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     isTokenDetailsV1 && token.symbol
       ? strings('asset_overview.buy_token_button', { symbol: token.symbol })
       : strings('asset_overview.buy_button');
+  const hasTraderPosition = Boolean(traderPositionPnl);
+  // Keep the trader-position container/layout stable across the position load so
+  // the footer mounts once and only the position line appends (no remount flicker).
+  const showTraderPositionLayout =
+    hasTraderPosition || reserveTraderPositionLayout;
   const isTraderPositionExpanded = Boolean(traderPositionPnl?.isExpanded);
   const onToggleTraderPositionExpanded = traderPositionPnl?.onToggleExpanded;
   const expandedDetailsHeight = useSharedValue(
@@ -284,21 +289,27 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
 
   useEffect(() => {
-    expandedDetailsProgress.value = withTiming(
-      isTraderPositionExpanded ? 1 : 0,
-      {
+    expandedDetailsProgress.set(
+      withTiming(isTraderPositionExpanded ? 1 : 0, {
         duration: 300,
         easing: Easing.inOut(Easing.cubic),
-      },
+      }),
     );
   }, [expandedDetailsProgress, isTraderPositionExpanded]);
+
+  useEffect(() => {
+    if (!showTraderPositionLayout) {
+      onFooterLayout?.(0);
+    }
+  }, [onFooterLayout, showTraderPositionLayout]);
 
   const handleExpandedDetailsLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const measuredHeight = event.nativeEvent.layout.height;
       if (measuredHeight > 0) {
-        expandedDetailsHeight.value =
-          measuredHeight + EXPANDED_DETAILS_BOTTOM_SPACING;
+        expandedDetailsHeight.set(
+          measuredHeight + EXPANDED_DETAILS_BOTTOM_SPACING,
+        );
       }
     },
     [expandedDetailsHeight],
@@ -326,17 +337,14 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         ])
         .onStart(() => {
           'worklet';
-          gestureStartProgress.value = expandedDetailsProgress.value;
+          gestureStartProgress.set(expandedDetailsProgress.value);
         })
         .onUpdate((event) => {
           'worklet';
           const detailsHeight = Math.max(expandedDetailsHeight.value, 1);
           const nextProgress =
             gestureStartProgress.value - event.translationY / detailsHeight;
-          expandedDetailsProgress.value = Math.max(
-            0,
-            Math.min(1, nextProgress),
-          );
+          expandedDetailsProgress.set(Math.max(0, Math.min(1, nextProgress)));
         })
         .onEnd((event) => {
           'worklet';
@@ -345,19 +353,22 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             event.velocityY > 800;
           const targetProgress = shouldCollapse ? 0 : 1;
 
-          expandedDetailsProgress.value = withTiming(
-            targetProgress,
-            {
-              duration: 300,
-              easing: Easing.inOut(Easing.cubic),
-            },
-            (finished) => {
-              if (finished) {
-                scheduleOnRN(handleSwipeExpandedStateChange, !shouldCollapse);
-              }
-            },
+          expandedDetailsProgress.set(
+            withTiming(
+              targetProgress,
+              {
+                duration: 300,
+                easing: Easing.inOut(Easing.cubic),
+              },
+              (finished) => {
+                if (finished) {
+                  scheduleOnRN(handleSwipeExpandedStateChange, !shouldCollapse);
+                }
+              },
+            ),
           );
-        }),
+        })
+        .withTestId('token-details-sticky-footer-sheet-gesture'),
     [
       expandedDetailsHeight,
       expandedDetailsProgress,
@@ -481,6 +492,15 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     ],
   );
 
+  // Quick Buy shows its own token warning on Buy, so it skips the security sheet.
+  const handleQuickBuyAction = (action: () => void) => {
+    if (isRwaGeoRestricted) {
+      rwaUnavailableSheetRef.current?.onOpenBottomSheet();
+      return;
+    }
+    action();
+  };
+
   const handleOpenQuickBuy = (mode: QuickBuyTradeMode) => {
     if (!onOpenQuickBuy) return;
     trackStickyFooterTapped({
@@ -491,36 +511,27 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       indicatorsActive,
       tdp_version: tdpVersion,
     });
-    handleFooterAction(
-      () => onOpenQuickBuy(mode),
-      strings(
-        mode === 'sell'
-          ? 'asset_overview.sell_button'
-          : 'asset_overview.buy_button',
-      ),
-    );
+    handleQuickBuyAction(() => onOpenQuickBuy(mode));
   };
 
   // The trader-position footer renders inside a design-system BottomSheetDialog
-  // whose surface fill is `elevated1`. When collapsed the footer blends into the
-  // page (`background.default`); when expanded it must match the sheet shell, so
-  // its inner surface is raised to `elevated1`. Otherwise the inner surface
-  // (`background.default`) sits on the `elevated1` shell and leaves a visible
-  // color seam at the top of the expanded sheet (ASSETS-4183).
+  // whose own fill is `elevated1`. When collapsed the footer blends into the
+  // page (`background.default`); when expanded it reads as a raised sheet
+  // (`elevated1`). The dialog shell and the inner surface share this color:
+  // the shell shows through around the inner surface (its hidden drag-handle
+  // row on top and the safe-area padding below), so any mismatch leaves
+  // visible bands (ASSETS-4183).
+  const footerSurfaceColor = traderPositionPnl?.isExpanded
+    ? colors.background.elevated1
+    : colors.background.default;
   const footerStyle = useMemo(
     () => ({
-      backgroundColor: traderPositionPnl?.isExpanded
-        ? colors.background.elevated1
-        : colors.background.default,
+      backgroundColor: footerSurfaceColor,
       paddingHorizontal: 16,
       paddingTop: traderPositionPnl?.isExpanded ? 22 : 0,
       paddingBottom: 0,
     }),
-    [
-      colors.background.elevated1,
-      colors.background.default,
-      traderPositionPnl?.isExpanded,
-    ],
+    [footerSurfaceColor, traderPositionPnl?.isExpanded],
   );
   const legacyFooterStyle = useMemo(
     () => ({
@@ -533,6 +544,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
   const bottomSheetStyle = useMemo(
     () => ({
+      backgroundColor: footerSurfaceColor,
       // Design spec: expanded sheet uses a 38px top corner radius (ASSETS-4183).
       borderTopLeftRadius: traderPositionPnl?.isExpanded ? 38 : 0,
       borderTopRightRadius: traderPositionPnl?.isExpanded ? 38 : 0,
@@ -549,6 +561,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     }),
     [
       colors.border.muted,
+      footerSurfaceColor,
       insets.bottom,
       skipBottomInset,
       traderPositionPnl?.isExpanded,
@@ -592,7 +605,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   ) : null;
 
   const handleFooterLayout = (event: LayoutChangeEvent) => {
-    onFooterLayout?.(event.nativeEvent.layout.height);
+    if (expandedDetailsProgress.value === 0) {
+      onFooterLayout?.(event.nativeEvent.layout.height);
+    }
   };
 
   const positionContent = traderPositionPnl ? (
@@ -621,7 +636,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     <>
       <Box
         testID="bottomsheetfooter"
-        style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
+        style={[
+          styles.footer,
+          (isTokenDetailsV1 || showTraderPositionLayout) &&
+            styles.traderPositionFooter,
+        ]}
       >
         {showSwapButton && !isBuySellLayout && (
           <Button
@@ -738,10 +757,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 indicatorsActive,
                 tdp_version: tdpVersion,
               });
-              handleFooterAction(
-                onQuickBuyPress,
-                strings('asset_overview.buy_button'),
-              );
+              handleQuickBuyAction(onQuickBuyPress);
             }}
           >
             <Icon
@@ -764,7 +780,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     </>
   );
 
-  const traderPositionFooter = traderPositionPnl ? (
+  const traderPositionFooter = showTraderPositionLayout ? (
     <BottomSheetDialog
       testID="token-details-sticky-footer"
       isInteractable={false}
@@ -787,9 +803,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       </GestureDetector>
     </BottomSheetDialog>
   ) : (
-    <View onLayout={handleFooterLayout} style={legacyFooterStyle}>
-      {footerActions}
-    </View>
+    <View style={legacyFooterStyle}>{footerActions}</View>
   );
 
   return (

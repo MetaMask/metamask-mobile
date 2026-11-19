@@ -1,6 +1,10 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import Svg from 'react-native-svg';
 import { MembershipVipBadgeSelectorsIDs } from '../../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PerpsFeesTooltipSelectorsIDs } from '../../../Perps.testIds';
+import { SEAL_PERCENT_ICON_SIZE } from '../../PerpsFeesDisplay/SealPercentIcon';
 import FeesTooltipContent from './FeesTooltipContent';
 
 jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
@@ -32,21 +36,62 @@ describe('FeesTooltipContent', () => {
   };
 
   it('explains the promotional discount without VIP branding', () => {
-    const { getByText, queryByTestId, queryByText } = render(
+    const {
+      getByLabelText,
+      getByText,
+      getByTestId,
+      queryByTestId,
+      queryByText,
+    } = render(
       <FeesTooltipContent
         testID="fees-tooltip"
         data={{ ...mockData, feeDiscountKind: 'promotional' }}
       />,
     );
 
+    expect(getByText('25% off the MetaMask fee.')).toBeOnTheScreen();
     expect(
-      getByText('Promotional discount: 25% off the MetaMask fee.'),
+      getByTestId(PerpsFeesTooltipSelectorsIDs.PROMOTIONAL_BANNER_SEAL),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeesTooltipSelectorsIDs.PROMOTIONAL_BANNER_SEAL).props
+        .accessibilityLabel,
+    ).toBeUndefined();
+    expect(getByLabelText('was 1.500%')).toBeOnTheScreen();
     expect(
       queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();
     expect(queryByTestId('vip-discount-icon')).not.toBeOnTheScreen();
     expect(queryByText(/as a VIP/)).not.toBeOnTheScreen();
+  });
+
+  it('uses success color for the promotional MetaMask fee', () => {
+    const { UNSAFE_getAllByType } = render(
+      <FeesTooltipContent
+        testID="fees-tooltip"
+        data={{ ...mockData, feeDiscountKind: 'promotional' }}
+      />,
+    );
+
+    const discountedFee = UNSAFE_getAllByType(Text).find(
+      (node) => node.props.children === '1.000%',
+    );
+
+    expect(discountedFee?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('uses the banner-sized promotional seal', () => {
+    const { UNSAFE_getByType } = render(
+      <FeesTooltipContent
+        testID="fees-tooltip"
+        data={{ ...mockData, feeDiscountKind: 'promotional' }}
+      />,
+    );
+
+    expect(UNSAFE_getByType(Svg).props).toMatchObject({
+      width: SEAL_PERCENT_ICON_SIZE.banner,
+      height: SEAL_PERCENT_ICON_SIZE.banner,
+    });
   });
 
   it('does not claim VIP eligibility when attribution is unknown', () => {

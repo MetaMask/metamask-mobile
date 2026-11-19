@@ -1,6 +1,7 @@
 import migrate from './104';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -44,7 +45,7 @@ describe('Migration 104: Reset PhishingController urlScanCache', () => {
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toContain(
       'Migration 104: Invalid PhishingController state',
     );
   });
@@ -155,7 +156,7 @@ describe('Migration 104: Reset PhishingController urlScanCache', () => {
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toContain(
       'Migration 104: cleaning PhishingController state failed with error',
     );
   });

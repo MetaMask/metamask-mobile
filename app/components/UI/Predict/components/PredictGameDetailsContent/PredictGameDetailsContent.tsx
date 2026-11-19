@@ -14,11 +14,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { memo, useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import PredictChipList from '../PredictChipList';
@@ -56,6 +59,7 @@ const PredictGameDetailsContentComponent: React.FC<
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
 
   const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
     usePredictBottomSheet();
@@ -137,22 +141,33 @@ const PredictGameDetailsContentComponent: React.FC<
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-3"
-        style={{ paddingTop: insets.top + 12 }}
+        // Trimmed on glass so the 40px capsules keep the standard 56px header.
+        twClassName={isBrandRefresh ? 'px-4 py-2' : 'px-4 py-3'}
+        style={{ paddingTop: insets.top + (isBrandRefresh ? 8 : 12) }}
       >
-        <Pressable
-          onPress={onBack}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityRole="button"
-          accessibilityLabel={strings('predict.buttons.back')}
-          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
-        >
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Lg}
-            color={IconColor.IconDefault}
+        {isBrandRefresh ? (
+          <ButtonIconGlass
+            isCapsule
+            iconName={IconName.ArrowLeft}
+            onPress={onBack}
+            accessibilityLabel={strings('predict.buttons.back')}
+            testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
           />
-        </Pressable>
+        ) : (
+          <Pressable
+            onPress={onBack}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel={strings('predict.buttons.back')}
+            testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
+          >
+            <Icon
+              name={IconName.ArrowLeft}
+              size={IconSize.Lg}
+              color={IconColor.IconDefault}
+            />
+          </Pressable>
+        )}
 
         <Box twClassName="flex-1 mx-4">
           <Text
@@ -165,7 +180,11 @@ const PredictGameDetailsContentComponent: React.FC<
           </Text>
         </Box>
 
-        <PredictShareButton marketId={market.id} marketSlug={market.slug} />
+        <PredictShareButton
+          marketId={market.id}
+          marketSlug={market.slug}
+          isCapsule={isBrandRefresh}
+        />
       </Box>
 
       <ScrollView

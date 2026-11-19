@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   getPerpsCrossLiquidationInfoSelector,
   getPerpsCrossMarginTagSelector,
+  getPerpsIsolatedMarginTagSelector,
   PerpsPositionCardSelectorsIDs,
 } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -26,13 +27,13 @@ import {
   SectionHeader,
   SensitiveText,
   SensitiveTextLength,
-  Tag,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
+import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import {
   getPerpsDisplaySymbol,
   type Order,
@@ -46,6 +47,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { parsePositionRoePercentage } from '../../utils/positionDisplay';
 import PerpsCrossMarginInfoButton from '../PerpsCrossMarginInfoButton';
 import PerpsLiquidationPriceValue from '../PerpsLiquidationPriceValue';
 
@@ -90,6 +92,8 @@ interface PerpsPositionCardProps {
   onAutoClosePress?: () => void;
   onFlipPress?: () => void;
   onMarginPress?: () => void;
+  /** Rendered before the share icon in the header. */
+  postToFeedButton?: React.ReactNode;
   onSharePress?: () => void;
   /** Test ID for the card */
   testID?: string;
@@ -107,6 +111,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onAutoClosePress,
   onFlipPress: _onFlipPress,
   onMarginPress,
+  postToFeedButton,
   onSharePress,
   testID,
   szDecimals,
@@ -118,7 +123,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
-  const marginPress = isCross ? undefined : onMarginPress;
+  // The venue only adjusts isolated margin, whatever the cross margin flag.
+  const marginPress =
+    position.leverage.type === 'isolated' ? onMarginPress : undefined;
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
@@ -127,10 +134,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const pnlNum = parseFloat(position.unrealizedPnl);
 
-  // ROE is always stored as a decimal (e.g., 0.171 for 17.10%)
-  // Convert to percentage for display
-  const roeValue = parseFloat(position.returnOnEquity || '0');
-  const roe = isNaN(roeValue) ? 0 : roeValue * 100;
+  // ROE is always stored as a decimal (e.g., 0.171 for 17.10%);
+  // the shared parser converts it to the displayed percentage.
+  const roe = parsePositionRoePercentage(position.returnOnEquity) ?? 0;
 
   // Funding cost (cumulative since open) formatting logic
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
@@ -211,7 +217,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const sectionTitle =
-    onSharePress || isCross ? (
+    onSharePress || postToFeedButton ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -219,31 +225,27 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         twClassName="w-full"
         accessible={false}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-          accessible={false}
-        >
-          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            {strings('perps.position.card.position_title')}
-          </Text>
-          {isCross && (
-            <Tag
-              testID={getPerpsCrossMarginTagSelector('lite', position.symbol)}
-            >
-              {strings('perps.cross_position.badge')}
-            </Tag>
-          )}
-        </Box>
-        {onSharePress && (
-          <ButtonIcon
-            size={ButtonIconSize.Sm}
-            iconName={IconName.Share}
-            onPress={onSharePress}
-            testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
-          />
-        )}
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+          {strings('perps.position.card.position_title')}
+        </Text>
+        {postToFeedButton || onSharePress ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            {postToFeedButton}
+            {onSharePress ? (
+              <ButtonIcon
+                size={ButtonIconSize.Md}
+                variant={ButtonIconVariant.Filled}
+                iconName={IconName.Share}
+                onPress={onSharePress}
+                testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
+              />
+            ) : null}
+          </Box>
+        ) : null}
       </Box>
     ) : (
       strings('perps.position.card.position_title')
@@ -303,7 +305,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <SectionHeader
           title={sectionTitle}
           titleWrapperProps={
-            onSharePress || isCross ? { twClassName: 'w-full' } : undefined
+            onSharePress ? { twClassName: 'w-full' } : undefined
           }
           testID={PerpsPositionCardSelectorsIDs.HEADER}
         />
@@ -315,8 +317,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             gap={2}
             twClassName={isTabsVariant ? 'mt-1 mb-2' : 'mb-2'}
           >
+            {/* Accessible cards expose each label with its value natively. */}
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              accessible
               testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
             >
               <Text
@@ -344,6 +348,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              accessible
               testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
             >
               <Text
@@ -417,16 +422,35 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
             >
               <Box twClassName="flex-1 gap-1">
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  accessible={false}
                 >
-                  {strings(
-                    isCross
-                      ? 'perps.cross_position.margin_used'
-                      : 'perps.position.card.margin_label',
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('perps.position.card.margin_label')}
+                  </Text>
+                  {isCrossMarginEnabled && (
+                    <PerpsMarginModeTag
+                      marginMode={isCross ? 'cross' : 'isolated'}
+                      testID={
+                        isCross
+                          ? getPerpsCrossMarginTagSelector(
+                              'lite',
+                              position.symbol,
+                            )
+                          : getPerpsIsolatedMarginTagSelector(
+                              'lite',
+                              position.symbol,
+                            )
+                      }
+                    />
                   )}
-                </Text>
+                </Box>
                 <SensitiveText
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}

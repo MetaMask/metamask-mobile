@@ -1,6 +1,7 @@
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
-import { strings } from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { formatTimestampToDateTime } from '../../../util/date';
+import { getIntlDateTimeFormatter } from '../../../util/intl';
 import type { MfaFlowErrorCode } from '../../../util/identity/mfa';
 import type { MfaMethod } from '../../../util/identity/mfa/engine/types';
 
@@ -22,7 +23,6 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   otp_resend_cooldown: 'mfa.errors.cooldown',
   rate_limited: 'mfa.errors.cooldown',
   max_passkeys_reached: 'mfa.errors.limit_reached',
-  max_identifiers_reached: 'mfa.errors.limit_reached',
   authentication_required: 'mfa.errors.signed_out',
   passkey_unsupported: 'mfa.errors.unsupported',
   flow_in_progress: 'mfa.errors.flow_in_progress',
@@ -81,6 +81,45 @@ export const getSpecificErrorMessage = (
   return key ? strings(key) : undefined;
 };
 
+/**
+ * Errors whose failure screen has its own title and description, rather than
+ * "Something went wrong" and the error's message.
+ */
+const SUPPORT_KEYS = {
+  title: 'mfa.failure.support_title',
+  description: 'mfa.failure.support_description',
+};
+
+const FAILURE_KEYS: Partial<
+  Record<MfaFlowErrorCode, { title: string; description: string }>
+> = {
+  max_identifiers_reached: SUPPORT_KEYS,
+  multi_primary_srp: SUPPORT_KEYS,
+  passkey_already_exists: {
+    title: 'mfa.failure.passkey_exists_title',
+    description: 'mfa.failure.passkey_exists_description',
+  },
+};
+
+/**
+ * The failure screen's copy for an error.
+ *
+ * @param code - The error's code.
+ * @returns The title, and a description when there is more to say.
+ */
+export const getFailureCopy = (
+  code: MfaFlowErrorCode,
+): { title: string; description?: string } => {
+  const keys = FAILURE_KEYS[code];
+  return keys
+    ? { title: strings(keys.title), description: strings(keys.description) }
+    : {
+        title: strings('mfa.failure.title'),
+        // The title already says something went wrong; only a specific reason adds to it.
+        description: getSpecificErrorMessage(code),
+      };
+};
+
 export const getErrorMessage = (
   code: MfaFlowErrorCode,
   method?: MfaMethod,
@@ -121,3 +160,52 @@ export const getAddedOn = (
         date: formatTimestampToDateTime(credential.enrolledAt),
       })
     : undefined;
+
+/**
+ * A day, as in `Oct 10, 2026`.
+ *
+ * @param timestamp - A time on that day.
+ * @returns The day.
+ */
+const formatDay = (timestamp: number): string =>
+  getIntlDateTimeFormatter(I18n.locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(timestamp));
+
+/**
+ * When a passkey was last used, under its name in the list, as in
+ * `Last used Oct 10, 2026`.
+ *
+ * @param credential - The passkey.
+ * @returns The line.
+ */
+export const getLastUsedLine = (credential: EnrolledCredential): string =>
+  credential.lastUsedAt
+    ? strings('mfa.settings.last_used_on', {
+        date: formatDay(credential.lastUsedAt),
+      })
+    : strings('mfa.settings.not_used_yet');
+
+/**
+ * When a passkey was last used, as a value on its page, as in `Oct 10, 2026`.
+ *
+ * @param credential - The passkey.
+ * @returns The value.
+ */
+export const getLastUsedValue = (credential: EnrolledCredential): string =>
+  credential.lastUsedAt
+    ? formatDay(credential.lastUsedAt)
+    : strings('mfa.settings.not_used_yet');
+
+/**
+ * The day a method was set up, as in `Oct 10, 2026`.
+ *
+ * @param credential - The method.
+ * @returns The day, or `undefined` when the server didn't say.
+ */
+export const getCreatedOn = (
+  credential: EnrolledCredential,
+): string | undefined =>
+  credential.enrolledAt ? formatDay(credential.enrolledAt) : undefined;

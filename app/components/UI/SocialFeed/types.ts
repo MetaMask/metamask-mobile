@@ -30,7 +30,10 @@ export interface SocialV1FeedAuthor {
   /** Social API trader id, used to open their profile. */
   id: string;
   username: string;
-  /** Wallet address, used for the Maskicon fallback when there is no avatar. */
+  /**
+   * Wallet address. The Maskicon fallback is seeded by `id`. This address is
+   * only a seed when the profile id is missing.
+   */
   address?: string;
   avatarUri?: string | null;
   /**
@@ -45,6 +48,11 @@ export interface SocialV1FeedAuthor {
   tradeCount30d?: number | null;
   /** Profiles following this trader. */
   followerCount?: number | null;
+  /**
+   * X (Twitter) username without `@`, when this trader is connected to X.
+   * Absent or null hides the trust mark.
+   */
+  xHandle?: string | null;
 }
 
 interface SocialV1FeedItemBase {
@@ -55,6 +63,12 @@ interface SocialV1FeedItemBase {
   asset: SocialV1FeedAsset;
   /** Author comment. */
   comment?: string;
+  /**
+   * Klipy GIF the author attached to the comment. Set on a GIF-only comment,
+   * which has no `comment` caption, so the card still counts it as commented.
+   * The card body does not render it.
+   */
+  commentGifUrl?: string;
   /**
    * Realized P&L in USD on a closed position, current value on an open one.
    * Only the closed layout renders it; the open layout leads with P&L instead.
@@ -84,6 +98,8 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   /** How the card's figures follow the streamed mark price. */
   live?: SocialLivePriceSource;
   /**
@@ -114,6 +130,8 @@ export interface SocialV1SpotOpenFeedItem extends SocialV1FeedItemBase {
   entryMarketCapLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   /** How the card's figures follow the streamed spot price. */
   live?: SocialLivePriceSource;
 }
@@ -140,7 +158,11 @@ export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   markPriceLabel?: string;
   entryPriceLabel?: string;
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   showCopyTrade?: boolean;
+  /** How the card's figures follow the streamed spot price, as on an open row. */
+  live?: SocialLivePriceSource;
 }
 
 /**
@@ -164,9 +186,9 @@ export interface SocialV1FeedPost {
   authorImageUrl?: string | null;
   timestampMs: number;
   /**
-   * Swap-comment id for the Call this post reacts to. Absent on pending
-   * composer posts and on live rows with no authorComment. The heart still
-   * renders; picks stay session-local until a Call id exists.
+   * Swap-comment id for the Call this post reacts to. Absent on live rows
+   * with no authorComment. The shell hides reaction controls without it.
+   * Pending composer posts already have one from the create response.
    */
   commentId?: string;
   /**

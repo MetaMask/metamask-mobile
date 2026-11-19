@@ -316,15 +316,31 @@ export async function resolveDepositWalletAddress({
   isWalletDeployed?: (walletAddress: Hex) => Promise<boolean>;
 }): Promise<Hex> {
   const uupsWalletAddress = deriveDepositWalletUupsAddress(ownerAddress);
-  const beaconAddress = await readFactoryBeacon();
+  const beaconPromise = readFactoryBeacon();
+  const deployedPromise = isWalletDeployed(uupsWalletAddress);
+  // The UUPS address is derived locally, so this code check shares no data
+  // with the beacon read. Settle it here so a missing beacon can return
+  // without leaving a rejection unhandled.
+  const deployedSettled = deployedPromise.then(
+    (isDeployed): { ok: true; isDeployed: boolean } => ({
+      ok: true,
+      isDeployed,
+    }),
+    (error: unknown): { ok: false; error: unknown } => ({ ok: false, error }),
+  );
+  const beaconAddress = await beaconPromise;
 
   if (!beaconAddress) {
     return uupsWalletAddress;
   }
 
-  const uupsWalletIsDeployed = await isWalletDeployed(uupsWalletAddress);
+  const deployed = await deployedSettled;
 
-  if (uupsWalletIsDeployed) {
+  if (!deployed.ok) {
+    throw deployed.error;
+  }
+
+  if (deployed.isDeployed) {
     return uupsWalletAddress;
   }
 

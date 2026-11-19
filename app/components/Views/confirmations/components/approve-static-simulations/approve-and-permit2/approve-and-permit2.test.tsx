@@ -1,18 +1,26 @@
 import React from 'react';
+import { merge } from 'lodash';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
+  approveERC20Permit2TransactionStateMock,
   approveERC20TransactionStateMock,
   approveERC721TransactionStateMock,
+  revokeERC20Permit2TransactionStateMock,
   revokeERC20TransactionStateMock,
   revokeERC721TransactionStateMock,
 } from '../../../__mocks__/approve-transaction-mock';
 import {
+  approvalSpenderMock,
+  permit2TokenMock,
+  shortenedPermit2TokenMock,
   shortenedSpenderMock,
   shortenedTokenAddressMock,
 } from '../../../__mocks__/controllers/transaction-controller-mock';
+import { buildPermit2ApproveTransactionData } from '../../../__mocks__/helpers/approve';
 import { useGetTokenStandardAndDetails } from '../../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../../types/token';
+import { UINT48_MAX } from '../../../utils/date';
 import { ApproveAndPermit2 } from './approve-and-permit2';
 import { ApproveMethod } from '../../../types/approve';
 // eslint-disable-next-line import-x/no-namespace
@@ -21,6 +29,30 @@ import * as useApproveTransactionDataModule from '../../../hooks/useApproveTrans
 jest.mock('../../../hooks/useGetTokenStandardAndDetails', () => ({
   useGetTokenStandardAndDetails: jest.fn(),
 }));
+
+const createPermit2StateMock = (
+  expiration: number,
+): typeof approveERC20Permit2TransactionStateMock =>
+  merge({}, approveERC20Permit2TransactionStateMock, {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            {
+              txParams: {
+                data: buildPermit2ApproveTransactionData(
+                  permit2TokenMock,
+                  approvalSpenderMock,
+                  100,
+                  expiration,
+                ),
+              },
+            },
+          ],
+        },
+      },
+    },
+  });
 
 describe('ApproveAndPermit2', () => {
   const mockUseGetTokenStandardAndDetails = jest.mocked(
@@ -54,14 +86,16 @@ describe('ApproveAndPermit2', () => {
   });
 
   it('renders spending cap and spender for ERC20', () => {
-    const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
-      state: approveERC20TransactionStateMock,
-    });
+    const { getByText, queryByText } = renderWithProvider(
+      <ApproveAndPermit2 />,
+      { state: approveERC20TransactionStateMock },
+    );
     expect(getByText('Spending cap')).toBeTruthy();
     expect(getByText('100')).toBeTruthy();
     expect(getByText(shortenedTokenAddressMock)).toBeTruthy();
     expect(getByText('Spender')).toBeTruthy();
     expect(getByText(shortenedSpenderMock)).toBeTruthy();
+    expect(queryByText('Expiration')).toBeNull();
   });
 
   it('renders edit spending cap button for ERC20', () => {
@@ -186,5 +220,69 @@ describe('ApproveAndPermit2', () => {
       expect(getByText('NFTs')).toBeTruthy();
       expect(getByText(shortenedTokenAddressMock)).toBeTruthy();
     });
+  });
+
+  describe('permit2', () => {
+    it('renders calldata token, amount, spender and expiration', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <ApproveAndPermit2 />,
+        { state: approveERC20Permit2TransactionStateMock },
+      );
+      expect(getByText('Spending cap')).toBeTruthy();
+      expect(getByText('100')).toBeTruthy();
+      expect(getByText(shortenedPermit2TokenMock)).toBeTruthy();
+      expect(queryByText(shortenedTokenAddressMock)).toBeNull();
+      expect(getByText('Spender')).toBeTruthy();
+      expect(getByText(shortenedSpenderMock)).toBeTruthy();
+      expect(getByText('Expiration')).toBeTruthy();
+      expect(getByText('08 May 2025, 09:32')).toBeTruthy();
+    });
+
+    it('renders never expires for the max expiration', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <ApproveAndPermit2 />,
+        { state: createPermit2StateMock(UINT48_MAX) },
+      );
+      expect(getByText('Never expires')).toBeTruthy();
+      expect(queryByText(String(UINT48_MAX))).toBeNull();
+    });
+
+    it('renders the current time for a zero expiration', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696740000);
+      const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
+        state: createPermit2StateMock(0),
+      });
+      expect(getByText('Expiration')).toBeTruthy();
+      expect(getByText('08 May 2025, 09:32')).toBeTruthy();
+    });
+
+    it('renders calldata token for revoke', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <ApproveAndPermit2 />,
+        { state: revokeERC20Permit2TransactionStateMock },
+      );
+      expect(getByText(shortenedPermit2TokenMock)).toBeTruthy();
+      expect(queryByText(shortenedTokenAddressMock)).toBeNull();
+      expect(getByText('Permission from')).toBeTruthy();
+      expect(getByText(shortenedSpenderMock)).toBeTruthy();
+      expect(queryByText('Expiration')).toBeNull();
+    });
+
+    it.each([TokenStandard.ERC721, undefined])(
+      'does not render if token standard is %s',
+      (standard) => {
+        mockUseGetTokenStandardAndDetails.mockReturnValue({
+          details: { standard, decimalsNumber: undefined },
+          isPending: false,
+        } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+        const { queryByText } = renderWithProvider(<ApproveAndPermit2 />, {
+          state: approveERC20Permit2TransactionStateMock,
+        });
+        expect(queryByText('Withdraw')).toBeNull();
+        expect(queryByText('Spending cap')).toBeNull();
+        expect(queryByText(shortenedSpenderMock)).toBeNull();
+        expect(queryByText('Expiration')).toBeNull();
+      },
+    );
   });
 });

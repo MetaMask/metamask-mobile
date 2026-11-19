@@ -10,7 +10,6 @@ import {
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
-import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
@@ -100,7 +99,6 @@ type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | AccountsControllerListMultichainAccountsAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
-  | GeolocationControllerGetGeolocationAction
   | KeyringControllerSignPersonalMessageAction
   | RemoteFeatureFlagControllerGetStateAction
   | RewardsDataServiceLoginAction
@@ -212,7 +210,6 @@ export function getRewardsControllerMessenger(
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
-      'GeolocationController:getGeolocation',
       'KeyringController:signPersonalMessage',
       'RemoteFeatureFlagController:getState',
       'RewardsDataService:login',

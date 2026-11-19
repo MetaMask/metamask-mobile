@@ -1,4 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { getHardwareTier } from '../../../../util/deviceCapability';
@@ -17,6 +18,12 @@ jest.mock('../../../../util/deviceCapability', () => ({
 }));
 
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
+
+const resolvedChipStyle = (testID: string) => {
+  const style = screen.getByTestId(testID).props.style;
+
+  return typeof style === 'function' ? style({ pressed: false }) : style;
+};
 
 describe('ReactionChip', () => {
   it('renders the emotion and count', () => {
@@ -82,6 +89,67 @@ describe('ReactionChip', () => {
       'accessibilityState',
       { selected: false },
     );
+  });
+
+  it('fills the viewer reaction with the muted background and default border', () => {
+    renderWithProvider(
+      <ReactionChip
+        emotion="🔥"
+        count={1}
+        isSelected
+        testID="reaction-chip-fire"
+      />,
+    );
+
+    expect(resolvedChipStyle('reaction-chip-fire')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: lightTheme.colors.background.muted,
+          borderColor: lightTheme.colors.border.default,
+        }),
+      ]),
+    );
+  });
+
+  it('leaves other reactions transparent with a muted border', () => {
+    renderWithProvider(
+      <ReactionChip emotion="🔥" count={1} testID="reaction-chip-fire" />,
+    );
+
+    expect(resolvedChipStyle('reaction-chip-fire')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: 'transparent',
+          borderColor: lightTheme.colors.border.muted,
+        }),
+      ]),
+    );
+  });
+
+  it('keeps the count width steady as digits change', () => {
+    renderWithProvider(
+      <ReactionChip emotion="🔥" count={9} testID="reaction-chip-fire" />,
+    );
+
+    expect(screen.getByText('9')).toHaveStyle({
+      fontVariant: ['tabular-nums'],
+      minWidth: 16,
+      textAlign: 'center',
+    });
+  });
+
+  it('pops in and out without a layout transition on capable hardware', () => {
+    renderWithProvider(
+      <ReactionChip emotion="🔥" count={1} testID="reaction-chip-fire" />,
+    );
+
+    const [wrapper] = screen.UNSAFE_root.findAll(
+      (node) => node.props.entering !== undefined,
+    );
+
+    expect(wrapper.props.entering).toBeDefined();
+    expect(wrapper.props.exiting).toBeDefined();
+    expect(wrapper.props.layout).toBeUndefined();
   });
 
   it('still renders on low-tier hardware, where the pop animation is skipped', () => {

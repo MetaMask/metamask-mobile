@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectInternalEvmAccounts } from '../../../../selectors/accountsController';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { useIsImmersveMoneyAccountCountry } from './useImmersveFundingChannel';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   selectInternalAccountsByGroupId,
@@ -16,6 +18,7 @@ import type {
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useImmersveResumeOnboarding } from './useImmersveResumeOnboarding';
+import { useImmersveMfaHandoff } from './useImmersveMfaHandoff';
 import { CardEntryPoint } from '../util/metrics';
 
 function useCandidateAddresses(): {
@@ -83,7 +86,25 @@ export interface UseCardSignInResult {
 }
 
 export function useCardSignIn(country: string | null): UseCardSignInResult {
-  const { candidateAddresses, deviceAddresses } = useCandidateAddresses();
+  const discovered = useCandidateAddresses();
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountAddress = safeToChecksumAddress(
+    primaryMoneyAccount?.address,
+  );
+  const lockToMoneyAccount = useIsImmersveMoneyAccountCountry(country);
+  const lockedAddresses = useMemo(
+    () => (moneyAccountAddress ? [moneyAccountAddress] : []),
+    [moneyAccountAddress],
+  );
+  const candidateAddresses = useMemo(
+    () =>
+      lockToMoneyAccount ? lockedAddresses : discovered.candidateAddresses,
+    [lockToMoneyAccount, lockedAddresses, discovered.candidateAddresses],
+  );
+  const deviceAddresses = useMemo(
+    () => (lockToMoneyAccount ? lockedAddresses : discovered.deviceAddresses),
+    [lockToMoneyAccount, lockedAddresses, discovered.deviceAddresses],
+  );
   const candidateAddressesRef = useRef(candidateAddresses);
   const deviceAddressesRef = useRef(deviceAddresses);
   candidateAddressesRef.current = candidateAddresses;
@@ -103,6 +124,7 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
   const [retryEpoch, setRetryEpoch] = useState(0);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const resumeImmersveOnboarding = useImmersveResumeOnboarding();
+  const handoffMfa = useImmersveMfaHandoff();
   const lastTrackedKey = useRef<string | null>(null);
 
   const retry = useCallback(() => {
@@ -192,12 +214,28 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
       resumeOnboarding?: boolean;
     }) => {
       const checksummed = safeToChecksumAddress(address) ?? address;
-      await Engine.context.CardController.authenticateWithWallet({
-        option,
-        address: checksummed,
-        country: signInCountry,
-        autoSignup: false,
-      });
+      const result = await Engine.context.CardController.authenticateWithWallet(
+        {
+          option,
+          address: checksummed,
+          country: signInCountry,
+          autoSignup: false,
+        },
+      );
+
+      if (
+        handoffMfa(result, {
+          country: signInCountry,
+          address: checksummed,
+          continuation: {
+            entrypoint: CardEntryPoint.AUTHENTICATION,
+            showAccountExistsToast: false,
+            navigateFromRoot: true,
+          },
+        })
+      ) {
+        return;
+      }
 
       if (resumeOnboarding) {
         await resumeImmersveOnboarding({
@@ -210,7 +248,7 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
         });
       }
     },
-    [resumeImmersveOnboarding],
+    [handoffMfa, resumeImmersveOnboarding],
   );
 
   return {

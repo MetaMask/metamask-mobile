@@ -1,20 +1,25 @@
-import React, { useRef } from 'react';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
+import React, { useCallback, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Box,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { strings } from '../../../../locales/i18n';
 
 const ImportWalletTipBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation<AppNavigationProp>();
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
+    <BottomSheet ref={bottomSheetRef} goBack={handleGoBack}>
       <Box twClassName="px-4 pt-6 pb-2 items-center">
         <Text variant={TextVariant.HeadingMd} testID="import-wallet-tip-title">
           {strings('transactions.import_wallet_label')}

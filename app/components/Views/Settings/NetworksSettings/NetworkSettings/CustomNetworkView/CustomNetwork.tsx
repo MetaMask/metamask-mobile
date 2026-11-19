@@ -27,15 +27,14 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import {
   Box,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { TextVariant as LegacyTextVariant } from '../../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';

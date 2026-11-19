@@ -26,18 +26,18 @@ import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useProfileController } from './hooks/useProfileController';
 import { useXAuth } from '../../../../hooks/useXAuth';
-import { XAuthErrorType } from '../../../../core/XAuthService';
 import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
+import { getXConnectError } from './screens/xAuthError';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile } = useMyProfile();
-  const { isControllerBacked } = useProfileController();
+  const { isControllerBacked, updateProfile } = useProfileController();
   const {
     isConnected: isConnectedToX,
     xProfile,
@@ -50,13 +50,10 @@ const ManageProfileView: React.FC = () => {
   });
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
-  // `connect` resolves void, so the outcome is read from hook state rather than
-  // a return value: `connectError` is set on failure and cleared when the next
-  // connect starts. A user-cancelled OAuth stays silent.
-  const errorMessage =
-    xAuthConnectError && xAuthConnectError.type !== XAuthErrorType.UserCancelled
-      ? strings('social_leaderboard.profile_onboarding.connect_x_error')
-      : null;
+  // `connect` resolves the X profile (or `undefined` on failure), and also
+  // records the failure in `connectError`: it is set on failure and cleared
+  // when the next connect starts. A user-cancelled OAuth stays silent.
+  const errorMessage = getXConnectError(xAuthConnectError);
 
   // The live region on the error line covers TalkBack, but VoiceOver keeps
   // focus on the row that started OAuth and does not re-read a changed
@@ -121,8 +118,23 @@ const ManageProfileView: React.FC = () => {
       return;
     }
 
-    await connectX();
-  }, [connectX, isConnectedToX, isConnectingX, isControllerBacked, navigation]);
+    const linked = await connectX();
+    const avatarUrl = linked?.avatarUrl;
+    if (avatarUrl) {
+      try {
+        await updateProfile({ avatar_url: avatarUrl });
+      } catch {
+        // Avatar sync is best-effort; the X link itself succeeded.
+      }
+    }
+  }, [
+    connectX,
+    isConnectedToX,
+    isConnectingX,
+    isControllerBacked,
+    navigation,
+    updateProfile,
+  ]);
 
   const displayName = profile?.displayName ?? '';
   const handle = profile?.handle ? `@${profile.handle}` : '';
@@ -132,7 +144,7 @@ const ManageProfileView: React.FC = () => {
   const xHandle = xProfile?.username || profile?.xHandle;
   let socials = '';
   if (xHandle) {
-    socials = `X @${xHandle}`;
+    socials = `@${xHandle}`;
   } else if (isConnectedToX) {
     socials = 'X';
   }
@@ -205,7 +217,7 @@ const ManageProfileView: React.FC = () => {
             testID={ManageProfileViewSelectorsIDs.BIO_ROW}
           />
           <ManageProfileNavRow
-            label={strings('social_leaderboard.manage_profile.socials')}
+            label={strings('social_leaderboard.manage_profile.x_account')}
             value={socials}
             disabled={socialsDisabled}
             onPress={() => {

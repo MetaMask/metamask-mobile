@@ -23,10 +23,14 @@ export const BridgeViewSelectorsIDs = {
   MARKET_CLOSED_BANNER: 'bridge-market-closed-banner',
   TABS_BAR: 'bridge-tabs-bar',
   TABS_CONTENT: 'bridge-tabs-content',
-  TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
+  FIRST_PAGE_SWIPE_GESTURE: 'bridge-first-page-swipe-gesture',
+  BACK_GESTURE_EDGE: 'bridge-back-gesture-edge',
+  TAB_PAGE_SKELETON: 'bridge-tab-page-skeleton',
   MARKET_TAB: 'bridge-market-tab',
   LIMIT_TAB: 'bridge-limit-tab',
+  LIMIT_TAB_NEW_DOT: 'bridge-limit-tab-new-dot',
   RECURRING_TAB: 'bridge-recurring-tab',
+  RECURRING_TAB_NEW_DOT: 'bridge-recurring-tab-new-dot',
   LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
   LIMIT_ORDER_SCROLL: 'bridge-limit-order-scroll',
   LIMIT_ORDER_DISMISS_AREA: 'bridge-limit-order-dismiss-area',
@@ -49,6 +53,12 @@ export const BridgeViewSelectorsIDs = {
   RECURRING_DEST_TOKEN_INPUT: 'recurring-dest-token-area-input',
   RECURRING_DEST_YOU_GET: 'recurring-dest-you-get',
   RECURRING_SPEND_SUMMARY: 'recurring-spend-summary',
+  RECURRING_FEE_TOKEN_UNSUPPORTED_BANNER:
+    'recurring-fee-token-unsupported-banner',
+  RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER:
+    'recurring-fee-tokens-unavailable-banner',
+  RECURRING_FEE_TOKEN_RETRY_BUTTON: 'recurring-fee-token-retry-button',
+  GASLESS_NETWORK_FEE: 'bridge-gasless-network-fee',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

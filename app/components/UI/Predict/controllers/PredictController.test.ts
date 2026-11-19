@@ -371,6 +371,7 @@ describe('PredictController', () => {
       previewMaxBuyOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       prepareWithdrawConfirmation: jest.fn(),
+      getWithdrawSimulation: jest.fn(),
       createOptimisticPositionFromPreview: jest.fn(),
       clearOptimisticPosition: jest.fn(),
       getCryptoTargetPrice: jest.fn(),
@@ -379,6 +380,7 @@ describe('PredictController', () => {
       beforeSignClaim: jest.fn(),
       publishClaim: jest.fn(),
       syncDepositWalletBalanceAllowanceForDepositTransaction: jest.fn(),
+      refreshCryptoPriceFeedCredentials: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     mockPolymarketProvider.getAccountState.mockResolvedValue({
@@ -462,6 +464,7 @@ describe('PredictController', () => {
         getBenefits?: jest.MockedFunction<
           () => Promise<SubscriptionBenefitsResponse>
         >;
+        getGasFeeTokens?: jest.Mock;
       };
     } = {},
   ): ReturnValue {
@@ -539,10 +542,24 @@ describe('PredictController', () => {
         jest.fn().mockReturnValue(DEFAULT_REMOTE_FEATURE_FLAG_STATE),
     );
 
+    rootMessenger.registerInitialEventPayload({
+      eventType: 'RemoteFeatureFlagController:stateChange',
+      getPayload: () => [
+        (mocks.getRemoteFeatureFlagState?.() ??
+          DEFAULT_REMOTE_FEATURE_FLAG_STATE) as never,
+        [],
+      ],
+    });
+
     rootMessenger.registerActionHandler(
       'SubscriptionController:getBenefits',
       mocks.getBenefits ??
         jest.fn().mockRejectedValue(new Error('Benefits unavailable')),
+    );
+
+    rootMessenger.registerActionHandler(
+      'TransactionController:getGasFeeTokens',
+      mocks.getGasFeeTokens ?? jest.fn().mockResolvedValue([]),
     );
 
     const messenger = new Messenger<
@@ -563,6 +580,7 @@ describe('PredictController', () => {
         'NetworkController:findNetworkClientIdByChainId',
         'NetworkController:getNetworkClientById',
         'TransactionController:estimateGas',
+        'TransactionController:getGasFeeTokens',
         'KeyringController:signTypedMessage',
         'KeyringController:signPersonalMessage',
         'RemoteFeatureFlagController:getState',
@@ -633,6 +651,16 @@ describe('PredictController', () => {
       });
     });
 
+    it('gives the provider the selected EVM account address', () => {
+      withController(() => {
+        const [{ getSelectedAddress }] = (
+          PolymarketProvider as unknown as jest.Mock
+        ).mock.calls.at(-1) as [{ getSelectedAddress: () => string }];
+
+        expect(getSelectedAddress()).toBe(MOCK_ADDRESS);
+      });
+    });
+
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
         lastError: 'custom-error',
@@ -678,6 +706,81 @@ describe('PredictController', () => {
 
       expect(typeof constructorArgs.getFeatureFlags).toBe('function');
       expect(() => constructorArgs.getFeatureFlags?.()).not.toThrow();
+    });
+
+    it('hands the crypto price feed a new Chainlink key only when predictCryptoPriceFeed changes', () => {
+      withController(({ messenger }) => {
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).not.toHaveBeenCalled();
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: {
+              ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
+              predictLiveSports: {
+                enabled: true,
+                leagues: [],
+              },
+            },
+            cacheTimestamp: 1,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).not.toHaveBeenCalled();
+
+        const updatedFlags = {
+          ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
+          predictLiveSports: {
+            enabled: true,
+            leagues: [],
+          },
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            chainlinkApiKey: 'test-chainlink-key',
+          },
+        };
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: updatedFlags,
+            cacheTimestamp: 2,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).toHaveBeenCalledTimes(1);
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: {
+              ...updatedFlags,
+              predictWithAnyToken: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+            cacheTimestamp: 3,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('subscribes to transaction events in constructor', () => {
@@ -10633,6 +10736,85 @@ describe('PredictController', () => {
     });
   });
 
+  describe('isWithdrawGasFeeTokenAvailable', () => {
+    const ownerAddress = '0x1234567890123456789012345678901234567890';
+    const simulation = {
+      chainId: '0x89' as `0x${string}`,
+      from: ownerAddress as `0x${string}`,
+      to: '0x9999999999999999999999999999999999999999' as `0x${string}`,
+      data: '0xpreValidatedWithdraw' as `0x${string}`,
+    };
+
+    it('returns true when pUSD is a gas fee token for the Safe withdraw call', async () => {
+      mockPolymarketProvider.getWithdrawSimulation?.mockResolvedValue(
+        simulation,
+      );
+      const getGasFeeTokens = jest
+        .fn()
+        .mockResolvedValue([
+          { tokenAddress: MATIC_CONTRACTS_V2.collateral.toUpperCase() },
+        ]);
+
+      await withController(
+        async ({ controller }) => {
+          const result = await controller.isWithdrawGasFeeTokenAvailable({
+            address: ownerAddress,
+            amountRaw: '50000',
+          });
+
+          expect(result).toBe(true);
+          expect(
+            mockPolymarketProvider.getWithdrawSimulation,
+          ).toHaveBeenCalledWith({
+            amountRaw: 50000n,
+            signer: expect.objectContaining({ address: ownerAddress }),
+          });
+          expect(getGasFeeTokens).toHaveBeenCalledWith(simulation);
+        },
+        { mocks: { getGasFeeTokens } },
+      );
+    });
+
+    it('returns false when pUSD is not a gas fee token for the Safe withdraw call', async () => {
+      mockPolymarketProvider.getWithdrawSimulation?.mockResolvedValue(
+        simulation,
+      );
+      const getGasFeeTokens = jest.fn().mockResolvedValue([]);
+
+      await withController(
+        async ({ controller }) => {
+          const result = await controller.isWithdrawGasFeeTokenAvailable({
+            address: ownerAddress,
+            amountRaw: '1000',
+          });
+
+          expect(result).toBe(false);
+        },
+        { mocks: { getGasFeeTokens } },
+      );
+    });
+
+    it('returns true without quoting gas fee tokens when the withdraw needs no owner gas', async () => {
+      mockPolymarketProvider.getWithdrawSimulation?.mockResolvedValue(
+        undefined,
+      );
+      const getGasFeeTokens = jest.fn();
+
+      await withController(
+        async ({ controller }) => {
+          const result = await controller.isWithdrawGasFeeTokenAvailable({
+            address: ownerAddress,
+            amountRaw: '50000',
+          });
+
+          expect(result).toBe(true);
+          expect(getGasFeeTokens).not.toHaveBeenCalled();
+        },
+        { mocks: { getGasFeeTokens } },
+      );
+    });
+  });
+
   describe('prepareWithdraw', () => {
     const mockWithdrawResponse = {
       chainId: '0x89' as `0x${string}`,
@@ -11507,7 +11689,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('sets withdraw transaction status to error when gas estimation fails', async () => {
+    it('fails the withdraw before signing when gas estimation fails', async () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
@@ -11526,12 +11708,11 @@ describe('PredictController', () => {
               amount: 0,
             };
           });
-
-          const result = await controller.beforeSign({
-            transactionMeta: mockTransactionMeta as any,
-          });
-
-          expect(result).toBeUndefined();
+          await expect(
+            controller.beforeSign({
+              transactionMeta: mockTransactionMeta as any,
+            }),
+          ).rejects.toThrow('Gas estimation failed');
           expect(controller.state.withdrawTransaction?.status).toBe(
             PredictWithdrawStatus.ERROR,
           );

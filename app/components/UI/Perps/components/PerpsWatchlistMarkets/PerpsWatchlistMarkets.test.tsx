@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { FlatList } from 'react-native';
 import { useSelector } from 'react-redux';
 import PerpsWatchlistMarkets from './PerpsWatchlistMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
@@ -40,11 +41,15 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 const mockAddToWatchlist = jest.fn();
+const mockUsePerpsWatchlistActions = jest.fn();
 jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
-  usePerpsWatchlistActions: () => ({
-    addToWatchlist: mockAddToWatchlist,
-    removeFromWatchlist: jest.fn(),
-  }),
+  usePerpsWatchlistActions: (source: string) => {
+    mockUsePerpsWatchlistActions(source);
+    return {
+      addToWatchlist: mockAddToWatchlist,
+      removeFromWatchlist: jest.fn(),
+    };
+  },
 }));
 
 jest.mock('../PerpsMarketRowItem', () => {
@@ -246,6 +251,29 @@ describe('PerpsWatchlistMarkets', () => {
       }
     });
 
+    it('attributes watchlist adds to the Perps home watchlist by default', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      expect(mockUsePerpsWatchlistActions).toHaveBeenCalledWith(
+        'perps_home_watchlist',
+      );
+    });
+
+    it('attributes watchlist adds to addSource when provided', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+          addSource="explore"
+        />,
+      );
+      expect(mockUsePerpsWatchlistActions).toHaveBeenCalledWith('explore');
+    });
+
     it('calls addToWatchlist with the correct symbol when an add button is pressed', () => {
       render(
         <PerpsWatchlistMarkets
@@ -364,6 +392,21 @@ describe('PerpsWatchlistMarkets', () => {
   // -------------------------------------------------------------------------
   // Populated watchlist — > 3 markets (expand / collapse)
   // -------------------------------------------------------------------------
+
+  describe('virtualized={false}', () => {
+    it('renders watchlist rows inline without a FlatList', () => {
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} virtualized={false} />,
+      );
+
+      expect(
+        screen.getByTestId('perps-watchlist-inline-rows'),
+      ).toBeOnTheScreen();
+      expect(screen.UNSAFE_queryByType(FlatList)).toBeNull();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+    });
+  });
 
   describe('Populated watchlist (> 3 markets) — expand/collapse', () => {
     const fiveMarkets = [
@@ -637,6 +680,19 @@ describe('PerpsWatchlistMarkets', () => {
       expect(screen.getByTestId('perps-watchlist-section')).toBeOnTheScreen();
     });
 
+    it('renders rows inline without a FlatList when virtualized is false', () => {
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} virtualized={false} />,
+      );
+
+      expect(
+        screen.getByTestId('perps-watchlist-inline-rows'),
+      ).toBeOnTheScreen();
+      expect(screen.UNSAFE_queryByType(FlatList)).toBeNull();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+    });
+
     it('does not render suggested markets', () => {
       render(
         <PerpsWatchlistMarkets
@@ -747,6 +803,29 @@ describe('PerpsWatchlistMarkets', () => {
     it('defaults to showing show-more toggle when enableShowMore is not specified', () => {
       render(<PerpsWatchlistMarkets markets={fiveMarkets} />);
       expect(screen.getByText('Show 2 more')).toBeOnTheScreen();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Native layout
+  // -------------------------------------------------------------------------
+
+  describe('Native layout', () => {
+    it('sets collapsable false on the section root', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          suggestedMarkets={mockSuggestedMarkets}
+          testID="explore-watchlist"
+        />,
+      );
+
+      // Without it, the section's children attach to the page and the
+      // LinearTransition wrapper animates on every height change above it.
+      expect(screen.getByTestId('explore-watchlist')).toHaveProp(
+        'collapsable',
+        false,
+      );
     });
   });
 

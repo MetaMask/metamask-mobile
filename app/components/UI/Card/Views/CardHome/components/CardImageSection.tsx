@@ -51,7 +51,7 @@ const CardImageSection = ({
           testID={
             isCardDetailsLoading
               ? CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON
-              : undefined
+              : CardHomeSelectors.CARD_IMAGE_SKELETON
           }
         />
       </Box>

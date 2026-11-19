@@ -321,6 +321,19 @@ describe('buildPerpsOrderTrackingData', () => {
     chartLibrary: 'lightweight',
   };
 
+  it('puts the order source on entryPoint and omits it when unset', () => {
+    expect(
+      buildPerpsOrderTrackingData({ ...base, source: 'notification' }),
+    ).toMatchObject({ source: 'notification', entryPoint: 'notification' });
+    expect(
+      buildPerpsOrderTrackingData({ ...base, source: 'social_live_trades' }),
+    ).toMatchObject({
+      source: 'social_live_trades',
+      entryPoint: 'social_live_trades',
+    });
+    expect(buildPerpsOrderTrackingData(base)).not.toHaveProperty('entryPoint');
+  });
+
   it('marks trades without a custom token and omits pay-token fields', () => {
     // Arrange / Act
     const result = buildPerpsOrderTrackingData(base) as Record<string, unknown>;

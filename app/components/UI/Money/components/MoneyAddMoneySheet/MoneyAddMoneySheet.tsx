@@ -14,7 +14,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { createProjectLogger, Hex } from '@metamask/utils';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   IconName,
   Text,
@@ -37,6 +36,7 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
@@ -58,10 +58,14 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const log = createProjectLogger('money-add-money-sheet');
 
-const MoneyAddMoneySheet: React.FC = () => {
+const MoneyAddMoneySheetContent: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
@@ -79,7 +83,11 @@ const MoneyAddMoneySheet: React.FC = () => {
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
   // Flag, min version, supported IP geolocation, and the dev bypass.
   const vbaEligibility = useVbaEligibility();
-  const bankAccountVisibility = getBankAccountEntryVisibility(vbaEligibility);
+  const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
+  const bankAccountVisibility = getBankAccountEntryVisibility({
+    ...vbaEligibility,
+    hasUsableAutoramp: Boolean(usableVbaAutoramp),
+  });
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();
@@ -304,13 +312,6 @@ const MoneyAddMoneySheet: React.FC = () => {
       disabled: !hasMusdBalance && !canDepositFiat,
     },
     ...comingSoonBankAccountOptions,
-    {
-      label: strings('money.add_money_sheet.receive_external'),
-      icon: IconName.QrCode,
-      testID: MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
-      disabled: true,
-      comingSoon: true,
-    },
   ];
 
   return (
@@ -320,16 +321,29 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.add_money_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.list}>
         <MoneySheetOptionsList options={options} />
       </View>
     </BottomSheet>
   );
+};
+
+const MoneyAddMoneySheet: React.FC = () => {
+  const isMoneyAccountAccessible = useMoneyAccountAccessRedirect();
+
+  if (!isMoneyAccountAccessible) {
+    return null;
+  }
+
+  return <MoneyAddMoneySheetContent />;
 };
 
 export default MoneyAddMoneySheet;

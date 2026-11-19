@@ -1,12 +1,15 @@
 import type { CreateProfileParams } from '@metamask/profile-controller';
 import type { CaipAccountId } from '@metamask/utils';
 import {
-  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-  DEFAULT_PROFILE_AVATAR_PRESET_ID,
+  PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
   toFoxiconAvatarUrl,
 } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
 import { generateUsername, MAX_USERNAME_LENGTH } from './generateUsername';
+
+/** The length the profile API accepts for a display name. */
+export const MAX_DISPLAY_NAME_LENGTH = 50;
 
 /** X account returned by ProfileController.connectX during onboarding. */
 export interface XOnboardingIdentity {
@@ -14,9 +17,6 @@ export interface XOnboardingIdentity {
   displayName: string;
   avatarUrl: string | null;
 }
-
-/** Used when the signed-in session has no profile id yet. The mock service accepts it. */
-export const SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID = 'social-v1-profile';
 
 export type ProfileOnboardingPath = 'manual' | 'x';
 
@@ -44,6 +44,11 @@ export interface ProfileOnboardingDraft {
   avatarBackgroundId: string;
   linkedAccountId: string | null;
   linkedAccountAddress: string | null;
+  /**
+   * A chosen account left the eligible set. Reconciliation must leave the
+   * selection empty until the user picks another account.
+   */
+  linkedAccountSelectionCleared: boolean;
   shareTradingActivity: boolean;
 }
 
@@ -55,11 +60,11 @@ export type UsernameStatus =
   | 'available';
 
 /** Server rule: letters, numbers, and underscores; edges allowed. */
-const USERNAME_PATTERN = /^[a-z0-9_]+$/;
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]+$/;
 export const MIN_USERNAME_LENGTH = 3;
 
 export const normalizeUsername = (value: string): string =>
-  value.trim().replace(/^@+/, '').toLowerCase();
+  value.trim().replace(/^@+/, '');
 
 export const getUsernameStatus = (value: string): UsernameStatus => {
   const username = normalizeUsername(value);
@@ -81,10 +86,24 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
 
 export const displayNameFromUsername = (value: string): string =>
   normalizeUsername(value)
+    .toLowerCase()
     .split('_')
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+
+const pickRandom = <Item>(items: readonly Item[]): Item =>
+  items[Math.floor(Math.random() * items.length)];
+
+/** Middle of the color strip. The entrance glide looks uneven on the ends. */
+const STARTING_COLOR_COUNT = 3;
+const startingColorIndex = Math.floor(
+  (PROFILE_AVATAR_BACKGROUNDS.length - STARTING_COLOR_COUNT) / 2,
+);
+const STARTING_AVATAR_BACKGROUNDS = PROFILE_AVATAR_BACKGROUNDS.slice(
+  startingColorIndex,
+  startingColorIndex + STARTING_COLOR_COUNT,
+);
 
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   const username = generateUsername();
@@ -98,16 +117,14 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     xUsername: null,
     xDisplayName: null,
     xAvatarUrl: null,
-    avatarPresetId: DEFAULT_PROFILE_AVATAR_PRESET_ID,
-    avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+    avatarPresetId: pickRandom(PROFILE_AVATAR_PRESETS).id,
+    avatarBackgroundId: pickRandom(STARTING_AVATAR_BACKGROUNDS).id,
     linkedAccountId: null,
     linkedAccountAddress: null,
+    linkedAccountSelectionCleared: false,
     shareTradingActivity: true,
   };
 };
-
-export const profileUrlForHandle = (handle: string): string =>
-  `https://metamask.io/${normalizeUsername(handle)}`;
 
 /**
  * Manual onboarding after Connect X must not keep the X path. A fresh manual
@@ -125,6 +142,7 @@ export const startManualOnboarding = (
     ...initial,
     linkedAccountId: draft.linkedAccountId,
     linkedAccountAddress: draft.linkedAccountAddress,
+    linkedAccountSelectionCleared: draft.linkedAccountSelectionCleared,
   };
 };
 
@@ -200,7 +218,6 @@ export const buildOnboardedSocialProfile = (
     xHandle: draft.path === 'x' ? draft.xUsername : null,
     connectedToX: draft.path === 'x',
     followerCount: 0,
-    shareUrl: profileUrlForHandle(handle),
     winRatePercent: null,
     pnlUsd: null,
     linkedAccountId: draft.linkedAccountId,
@@ -244,6 +261,46 @@ export const onboardingProfileFingerprint = (
     avatar_url: params.avatar_url ?? null,
     trading_privacy: params.trading_privacy,
   });
+};
+
+/**
+ * Reconciles the draft's linked account with the accounts the profile can use.
+ *
+ * The current selection stays when that account is still eligible, and its
+ * address is refreshed if it changed. A selection that is no longer eligible
+ * is cleared and stays cleared, even when another account is available — the
+ * user picks the next one. A draft that has never had a selection gets the
+ * first eligible account. Returns the same draft when nothing changes.
+ */
+export const withEligibleLinkedAccount = (
+  draft: ProfileOnboardingDraft,
+  accounts: readonly { id: string; address: string }[],
+): ProfileOnboardingDraft => {
+  const selected = draft.linkedAccountId
+    ? accounts.find((account) => account.id === draft.linkedAccountId)
+    : undefined;
+  if (selected) {
+    return selected.address === draft.linkedAccountAddress
+      ? draft
+      : { ...draft, linkedAccountAddress: selected.address };
+  }
+  if (draft.linkedAccountId || draft.linkedAccountAddress) {
+    return {
+      ...draft,
+      linkedAccountId: null,
+      linkedAccountAddress: null,
+      linkedAccountSelectionCleared: true,
+    };
+  }
+  const firstAccount = accounts[0];
+  if (!firstAccount || draft.linkedAccountSelectionCleared) {
+    return draft;
+  }
+  return {
+    ...draft,
+    linkedAccountId: firstAccount.id,
+    linkedAccountAddress: firstAccount.address,
+  };
 };
 
 export const canContinueUsernameStep = (

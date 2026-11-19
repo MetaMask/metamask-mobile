@@ -19,6 +19,7 @@ import type {
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { Position as SocialPosition } from '@metamask/social-controllers';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/PerpsTooltipView';
 import type { ConfirmationLaunchSource } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -42,6 +43,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsOutreachDetails: undefined;
   PerpsSharePosition: PerpsStackParamList['PerpsPnlHeroCard'] & {
     accountAddress?: string;
+    socialPosition?: SocialPosition;
   };
   PerpsSelectModifyAction: {
     position: Position;
@@ -116,6 +118,7 @@ export type PerpsOrderRouteParams = {
   stayOnCurrentScreen?: boolean;
   /** Social post being copied; a matching order records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  isCopyTrade?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -421,6 +424,7 @@ export type PerpsStackParamList = {
     stayOnCurrentScreen?: boolean;
     /** Social post being copied, forwarded to the order view. */
     copyTradeOrigin?: CopyTradeOrigin;
+    isCopyTrade?: boolean;
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)

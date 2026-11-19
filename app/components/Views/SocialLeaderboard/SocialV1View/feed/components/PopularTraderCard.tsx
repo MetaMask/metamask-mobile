@@ -88,6 +88,7 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
           <TraderAvatar
             imageUrl={trader.avatarUri}
             address={trader.address}
+            profileId={trader.id}
             size={AVATAR_SIZE}
             testID={getPopularTraderCardAvatarTestId(trader.id)}
           />

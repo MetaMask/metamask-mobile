@@ -5,7 +5,7 @@ import { selectIsSwapsEnabled } from '../../../../../core/redux/slices/bridge';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
-import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
+import { selectPredictAvailability } from '../../../../UI/PredictNext';
 import {
   ActionButtonType,
   ActionLocation,
@@ -115,7 +115,7 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
     if (selector === selectIsFirstTimePerpsUser) {
       return isFirstTimePerpsUser;
     }
-    if (selector === selectPredictEnabledFlag) {
+    if (selector === selectPredictAvailability) {
       return isPredictEnabled;
     }
     // Swap wraps selectIsSwapsEnabled in an arrow selector.

@@ -50,7 +50,6 @@ describe('WalletHeaderProfileAvatar', () => {
         displayName: 'Me',
         handle: 'me',
         imageUrl: 'https://example.com/me.png',
-        shareUrl: 'https://metamask.io/social/me',
       }),
     );
 
@@ -70,7 +69,6 @@ describe('WalletHeaderProfileAvatar', () => {
         imageUrl: null,
         avatarPresetId: 'zombie',
         avatarBackgroundId: 'lime',
-        shareUrl: 'https://metamask.io/social/me',
       }),
     );
 

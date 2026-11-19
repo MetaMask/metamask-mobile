@@ -3,7 +3,7 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -400,7 +400,7 @@ describe('PredictBuyPreview', () => {
       expect(screen.getByText('Yes · 50¢')).toBeOnTheScreen();
     });
 
-    it('dispatches pop action when result is marked as successful', () => {
+    it('dispatches pop action when result is marked as successful', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -411,7 +411,9 @@ describe('PredictBuyPreview', () => {
 
       rerender(<PredictBuyPreview />);
 
-      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop()),
+      );
     });
 
     it('displays disclaimer text when loading state is active', () => {
@@ -597,7 +599,7 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('success handling', () => {
-    it('dispatches pop action when place order result is successful', () => {
+    it('dispatches pop action when place order result is successful', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -608,7 +610,29 @@ describe('PredictBuyPreview', () => {
 
       rerender(<PredictBuyPreview />);
 
-      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop()),
+      );
+    });
+
+    it('defers the pop out of the commit that carries the order result', async () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
+      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      rerender(<PredictBuyPreview />);
+
+      // Popping inside the result commit makes Fabric mount both the removal of
+      // this screen and its re-render in one batch, which crashes on Android.
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop()),
+      );
     });
   });
 
@@ -867,7 +891,9 @@ describe('PredictBuyPreview', () => {
 
       rerender(<PredictBuyPreview />);
 
-      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop()),
+      );
     });
   });
 

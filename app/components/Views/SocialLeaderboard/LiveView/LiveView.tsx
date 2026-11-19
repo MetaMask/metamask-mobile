@@ -1,21 +1,21 @@
-import { Box, TextColor } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
-import { useSelector } from 'react-redux';
-import { selectFollowingProfileIds } from '../../../../selectors/socialController';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import SocialFeed, {
-  type SocialFeedHeaderProps,
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
+import { SocialFeedLiveButton } from '../../../UI/SocialFeed/components/SocialFeedRealtime';
 import type {
   SocialFeedPageHandle,
   SocialV1FeedPost,
@@ -25,8 +25,6 @@ import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import { matchesLivePost } from '../shell/filters/matchesLivePost';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import type { SocialShellFilters } from '../shell/filters/types';
-import LiveButton from './components/LiveButton';
-import PendingPostsButton from './components/PendingPostsButton';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import {
@@ -36,8 +34,6 @@ import {
 } from '../analytics';
 
 const { Filter, Interaction, Screen, StreamState, Tab } = SocialEvent;
-
-type LiveStreamState = 'paused' | 'live';
 
 export interface LiveViewProps {
   isActive?: boolean;
@@ -50,6 +46,8 @@ export interface LiveViewProps {
   onClearFilters?: () => void;
   /** Filters committed in the Live filter sheet. */
   appliedFilters?: SocialShellFilters;
+  contentTopInset?: number;
+  pendingPostsTopOffset?: number | SharedValue<number>;
   onCopyTrade?: SocialFeedProps['onCopyTrade'];
 }
 
@@ -62,11 +60,19 @@ const LiveView: React.FC<LiveViewProps> = ({
   isFilterActive = false,
   onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
+  contentTopInset,
+  pendingPostsTopOffset,
   onCopyTrade,
 }) => {
-  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
-  const followingProfileIds = useSelector(selectFollowingProfileIds);
-  const [streamState, setStreamState] = useState<LiveStreamState>('live');
+  const { onAuthorPress, onPositionPress } =
+    useSocialFeedPostNavigation('social_live');
+  const [paused, setPaused] = useState(false);
+  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+  useEffect(() => {
+    if (isActive) {
+      setHasBeenActive(true);
+    }
+  }, [isActive]);
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
 
   useImperativeHandle(
@@ -79,14 +85,9 @@ const LiveView: React.FC<LiveViewProps> = ({
     [],
   );
 
-  const followingProfileIdSet = useMemo(
-    () => new Set(followingProfileIds),
-    [followingProfileIds],
-  );
   const filterPost = useCallback(
-    (post: SocialV1FeedPost) =>
-      matchesLivePost(post, appliedFilters, followingProfileIdSet),
-    [appliedFilters, followingProfileIdSet],
+    (post: SocialV1FeedPost) => matchesLivePost(post, appliedFilters),
+    [appliedFilters],
   );
 
   const previousFiltersRef = useRef(appliedFilters);
@@ -103,27 +104,22 @@ const LiveView: React.FC<LiveViewProps> = ({
     feedPageRef.current?.scrollToOffset(0, false);
   }, [appliedFilters]);
 
-  const handleLiveToggle = useCallback(
-    (onRevealPending: () => void) => {
-      if (streamState === 'paused') {
-        onRevealPending();
-      }
-      const next = streamState === 'live' ? 'paused' : 'live';
-      setStreamState(next);
+  const handlePausedChange = useCallback(
+    (nextPaused: boolean) => {
+      setPaused(nextPaused);
       trackInteraction(Interaction.STREAM_TOGGLED, {
         filter_name: Filter.STREAM_STATE,
-        filter_value: next === 'live' ? StreamState.LIVE : StreamState.PAUSED,
-        previous_filter_value:
-          streamState === 'live' ? StreamState.LIVE : StreamState.PAUSED,
+        filter_value: nextPaused ? StreamState.PAUSED : StreamState.LIVE,
+        previous_filter_value: nextPaused
+          ? StreamState.LIVE
+          : StreamState.PAUSED,
       });
     },
-    [streamState, trackInteraction],
+    [trackInteraction],
   );
 
-  const isLive = streamState === 'live';
-
   const renderHeader = useCallback(
-    ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
+    () => (
       <SocialTabFilterBar
         onOpenFilters={onOpenFilters}
         isFilterActive={isFilterActive}
@@ -131,20 +127,10 @@ const LiveView: React.FC<LiveViewProps> = ({
         testID={LiveViewSelectorsIDs.FILTER_BAR}
         twClassName="px-4 pt-4 pb-2"
       >
-        <Box twClassName="flex-row items-center gap-2">
-          <LiveButton
-            isLive={isLive}
-            onPress={() => handleLiveToggle(onRevealPending)}
-          />
-          <PendingPostsButton
-            pendingNewCount={pendingNewCount}
-            onPress={onRevealPending}
-            textColor={TextColor.SuccessDefault}
-          />
-        </Box>
+        <SocialFeedLiveButton onPausedChange={handlePausedChange} />
       </SocialTabFilterBar>
     ),
-    [handleLiveToggle, isFilterActive, isLive, onOpenFilters],
+    [handlePausedChange, isFilterActive, onOpenFilters],
   );
 
   const liveEmpty = (
@@ -161,20 +147,25 @@ const LiveView: React.FC<LiveViewProps> = ({
     <Box twClassName="flex-1 bg-default">
       <SocialFeed
         scope="all"
+        enabled={hasBeenActive}
         location="social_live"
         analyticsSource={source}
         isActive={isActive}
         scrollMode="virtualized"
         realtime={isActive}
-        paused={!isLive}
+        paused={paused}
         filterPost={filterPost}
         emptyState={liveEmpty}
         renderHeader={renderHeader}
         onScroll={onScroll}
+        contentTopInset={contentTopInset}
+        refreshProgressViewOffset={contentTopInset}
+        pendingPostsTopOffset={pendingPostsTopOffset}
         pageRef={feedPageRef}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={onPositionPress}
+        requireSocialProfile
         testID={LiveViewSelectorsIDs.CONTAINER}
         scrollTestID={LiveViewSelectorsIDs.SCROLL_VIEW}
       />

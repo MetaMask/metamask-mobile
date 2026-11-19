@@ -1,7 +1,9 @@
 import '../../../../../../tests/component-view/mocks';
 import { userEvent, within } from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import ToastService from '../../../../../core/ToastService';
 import { renderShortAddress } from '../../../../../util/address';
 import { formatTimestampToDateTime } from '../../../../../util/date';
 import {
@@ -18,6 +20,9 @@ import type { RecurringSwap } from '../../api/recurringOrders.types';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../RecurringOrderDetailsView';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 const BLOCK_EXPLORER_BUTTON_LABEL = strings(
   'activity_details.view_on_block_explorer',
@@ -56,11 +61,23 @@ async function openSwapDetails(swapIndex: number) {
 
 describeForPlatforms('RecurringSwapDetailsView', () => {
   beforeEach(() => {
+    netInfoMock.__setMockNetInfo({
+      type: 'wifi',
+      isInternetReachable: true,
+    });
     setupRecurringOrdersDataServiceMock();
+    ToastService.toastRef = {
+      current: {
+        showToast: jest.fn(),
+        closeToast: jest.fn(),
+      },
+    };
   });
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
+    netInfoMock.__resetMockNetInfo();
+    ToastService.resetForTesting();
     jest.restoreAllMocks();
   });
 
@@ -268,6 +285,8 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     setupRecurringOrdersDataServiceMock({
       recurringSwaps: async () => ({
         swaps: [successfulSwapAfter, insufficientBalanceSwap],
+        hasNextPage: false,
+        total: 2,
       }),
     });
 

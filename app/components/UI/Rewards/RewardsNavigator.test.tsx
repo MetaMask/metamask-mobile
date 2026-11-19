@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
 import RewardsNavigator from './RewardsNavigator';
 import Routes from '../../../constants/navigation/Routes';
-import { OnboardingStep } from '../../../actions/rewards';
 
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
@@ -17,18 +16,6 @@ jest.mock('../../../core/Engine', () => ({
 
 // Mock dependencies
 jest.mock('./hooks/useOptIn');
-
-jest.mock('./OnboardingNavigator', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOnboardingNavigator() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-onboarding-navigator' },
-      ReactActual.createElement(Text, null, 'Onboarding Navigator'),
-    );
-  };
-});
 
 jest.mock('./Views/RewardsDashboard', () => {
   const ReactActual = jest.requireActual('react');
@@ -226,6 +213,10 @@ jest.mock('../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../reducers/rewardsMoney/selectors', () => ({
+  selectSettingsReferralAvailable: jest.fn(() => true),
+}));
+
 jest.mock('../../../reducers/rewards/selectors', () => ({
   selectIsRewardsVersionBlocked: jest.fn(),
   selectPendingDeeplink: jest.fn(),
@@ -277,11 +268,6 @@ jest.mock('./hooks/useCandidateSubscriptionId', () => ({
 // Mock useRewardCampaigns hook
 jest.mock('./hooks/useRewardCampaigns', () => ({
   useRewardCampaigns: jest.fn(),
-}));
-
-// Mock useGeoRewardsMetadata hook
-jest.mock('./hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
 }));
 
 // Mock useReferralDetails hook
@@ -348,11 +334,11 @@ jest.mock('./components/RewardsUpdateRequired/RewardsUpdateRequired', () => {
 
 // Import mocked selectors and hooks for setup
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectSettingsReferralAvailable } from '../../../reducers/rewardsMoney/selectors';
 import {
   selectIsRewardsVersionBlocked,
   selectPendingDeeplink,
 } from '../../../reducers/rewards/selectors';
-import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
@@ -371,9 +357,6 @@ const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
   typeof selectPendingDeeplink
 >;
 
-const mockUseGeoRewardsMetadata = useGeoRewardsMetadata as jest.MockedFunction<
-  typeof useGeoRewardsMetadata
->;
 const mockUseCandidateSubscriptionId =
   useCandidateSubscriptionId as jest.MockedFunction<
     typeof useCandidateSubscriptionId
@@ -398,20 +381,17 @@ describe('RewardsNavigator', () => {
     mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
     mockCanGoBack.mockReturnValue(true);
     mockSelectPendingDeeplink.mockReturnValue(null);
-    mockUseGeoRewardsMetadata.mockReturnValue({
-      fetchGeoRewardsMetadata: jest.fn(),
-    });
     mockUseRewardsVersionGuard.mockReturnValue({
       fetchVersionRequirements: jest.fn(),
     });
     mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
+    jest.mocked(selectSettingsReferralAvailable).mockReturnValue(true);
 
     // Create a mock store
     store = configureStore({
       reducer: {
         rewards: (
           state = {
-            onboardingActiveStep: OnboardingStep.INTRO,
             candidateSubscriptionId: null,
           },
         ) => state,
@@ -604,7 +584,7 @@ describe('RewardsNavigator', () => {
         (selector: (state: unknown) => unknown) =>
           selector({
             index: 0,
-            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+            routes: [{ name: Routes.REWARDS_VIP_VIEW }],
           }),
       );
 
@@ -616,6 +596,45 @@ describe('RewardsNavigator', () => {
         expect(mockGoBack).toHaveBeenCalledTimes(1);
       });
       expect(queryByTestId('rewards-earnings-history-view')).toBeNull();
+      expect(queryByTestId('rewards-vip-view')).toBeNull();
+    });
+
+    it('opens settings without a points subscription', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+          }),
+      );
+
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dismisses settings without a subscription when the money referral is unavailable', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      jest.mocked(selectSettingsReferralAvailable).mockReturnValue(false);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+          }),
+      );
+
+      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
       expect(queryByTestId('rewards-settings-view')).toBeNull();
     });
 
@@ -664,16 +683,6 @@ describe('RewardsNavigator', () => {
       // Assert - Just verify it renders the first sub-page screen
       expect(getByTestId('rewards-settings-view')).toBeDefined();
     });
-
-    it('does not call useGeoRewardsMetadata hook (owned by the dashboard)', () => {
-      mockUseGeoRewardsMetadata.mockClear();
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      expect(mockUseGeoRewardsMetadata).not.toHaveBeenCalled();
-    });
   });
 
   describe('Version guard', () => {
@@ -685,7 +694,6 @@ describe('RewardsNavigator', () => {
       );
 
       expect(getByTestId('rewards-update-required')).toBeOnTheScreen();
-      expect(queryByTestId('rewards-onboarding-navigator')).toBeNull();
       expect(queryByTestId('rewards-dashboard-view')).toBeNull();
     });
 
@@ -719,9 +727,6 @@ describe('RewardsNavigator', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
       mockSelectPendingDeeplink.mockReturnValue(null);
       mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
-      mockUseGeoRewardsMetadata.mockReturnValue({
-        fetchGeoRewardsMetadata: jest.fn(),
-      });
     });
 
     it('does not show nudge when canPromptToEnableNotifications is false', async () => {

@@ -24,7 +24,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './OtpCode.styles';
@@ -60,6 +59,9 @@ import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { getChainIdFromAssetId, getSession } from '../../headless';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 import { hasTestOverrides } from '../../../../../util/test/utils';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -103,6 +105,7 @@ const ResendButton: FC<{
 };
 
 const V2OtpCode = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { email, stateToken, amount, currency, assetId, headlessSessionId } =
@@ -415,7 +418,9 @@ const V2OtpCode = () => {
   return (
     <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.otp_code.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

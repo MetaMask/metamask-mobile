@@ -7,7 +7,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -29,7 +28,11 @@ import {
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import ProfileAvatar from './ProfileAvatar';
 import DisconnectXAccountSheet from './DisconnectXAccountSheet';
+import { getXAccountDisconnectError } from './xAccountDisconnectError';
 import { useManageProfileAnalytics } from '../../../../hooks/useManageProfileAnalytics';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const AVATAR_SIZE = 72;
 
@@ -37,6 +40,7 @@ type DisconnectPhase = 'idle' | 'pending' | 'settled';
 
 /** Shows the linked X account and lets the user disconnect it. */
 const ManageProfileXAccount = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const {
@@ -166,7 +170,8 @@ const ManageProfileXAccount = () => {
 
   const disconnectErrorMessage =
     disconnectPhase === 'pending' && disconnectError && !isDisconnecting
-      ? strings('manage_profile.x_account_disconnect_error')
+      ? (getXAccountDisconnectError(disconnectError) ??
+        strings('manage_profile.x_account_disconnect_error'))
       : null;
 
   const username = xProfile?.username;
@@ -177,7 +182,9 @@ const ManageProfileXAccount = () => {
       style={tw.style('flex-1 bg-default')}
       testID={ManageProfileSelectorsIDs.X_ACCOUNT_SCREEN}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('manage_profile.x_account')}
         onBack={handleBack}
         includesTopInset

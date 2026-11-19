@@ -25,8 +25,10 @@ export interface SocialFeedRowProps {
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;
-  /** Clock for relative timestamps; a new value re-renders the row. */
-  now?: number;
+  requireSocialTerms?: boolean;
+  requireSocialProfile?: boolean;
+  /** Viewer's profile ID to hide copy trade on their own posts. */
+  viewerProfileId?: string;
 }
 
 const areReactionsEqual = (
@@ -41,8 +43,8 @@ const areReactionsEqual = (
   );
 
 /**
- * Posts are rebuilt whenever the feed's clock moves, so rows compare what
- * they render instead of the post's identity.
+ * Posts can be rebuilt with the same content, so rows compare what they
+ * render instead of the post's identity.
  */
 export const areSocialFeedRowPropsEqual = (
   previous: SocialFeedRowProps,
@@ -55,7 +57,9 @@ export const areSocialFeedRowPropsEqual = (
   previous.onAuthorPress === next.onAuthorPress &&
   previous.onCopyTrade === next.onCopyTrade &&
   previous.onPositionPress === next.onPositionPress &&
-  previous.now === next.now &&
+  previous.requireSocialTerms === next.requireSocialTerms &&
+  previous.requireSocialProfile === next.requireSocialProfile &&
+  previous.viewerProfileId === next.viewerProfileId &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
   previous.post.authorHandle === next.post.authorHandle &&
@@ -87,11 +91,14 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
-  now,
+  requireSocialTerms,
+  requireSocialProfile,
+  viewerProfileId,
 }) => {
   const eventId = useSocialFeedEntranceEventId(entrances, post.realtimeEventId);
   return (
     <FeedItemEntryAnimation
+      itemKey={post.id}
       eventId={eventId}
       scheduleEntryDelay={scheduleEntryDelay}
       onAnimationComplete={entrances.markPlayed}
@@ -100,10 +107,12 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
       <Box twClassName="px-4">
         <SocialFeedPostShell
           post={post}
+          requireSocialTerms={requireSocialTerms}
+          requireSocialProfile={requireSocialProfile}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}
-          now={now}
+          showCopyTrade={post.item.author.id !== viewerProfileId}
         />
       </Box>
       {dividerTestID ? (

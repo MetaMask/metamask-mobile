@@ -26,6 +26,7 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 - user-visible intent and confirmation,
 - selected Funding Wallet context,
 - wallet transaction signing and submission,
+- the device signature over each Kalshi request, and sending that payload plus signature to predict-api,
 - canonical rendering and safe local workflow projection,
 - runtime validation of backend responses,
 - client/contract compatibility headers.
@@ -34,7 +35,7 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 
 - Kalshi admin or per-user credentials,
 - authoritative Predict User to Venue Account mapping,
-- Kalshi request signing,
+- delivery of the signed request to Kalshi,
 - durable external-operation outcomes,
 - Venue retry/reconciliation policy.
 
@@ -42,21 +43,23 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 
 - validating authenticated MetaMask identity,
 - deriving the authoritative Predict User and resolving the Venue Account,
-- Kalshi credential custody and request signing,
+- Kalshi credential custody, and delivery of the device-signed payload and signature to Kalshi,
 - durable Account Setup and financial-operation records,
 - Venue DTO normalization,
 - protocol-specific rate limiting and safe reconciliation,
 - redacted observability, kill switches, and support references.
 
+The device signs the Kalshi request. Mobile forwards the payload and the signature to predict-api, and predict-api delivers both to Kalshi.
+
 A privileged backend route never authorizes from a client-supplied wallet address, email, profile ID, user ID, or Kalshi external user ID. Wallet addresses used for Deposit or Withdraw are validated operation parameters, not proof of person identity.
 
 ## Mobile transport
 
-The installed MetaMask platform client has no supported generic request API. The first public-read slice therefore uses one narrow, injected Predict API GET transport. It is deliberately unauthenticated, forwards cancellation, retains no response bodies in errors, and performs no response caching or retry. The MarketDataService alone owns response caching, deduplication, and bounded retry.
+The installed MetaMask platform client has no supported generic request API. The Predict API slices therefore use one narrow, injected Predict API transport. Its GETs send a fresh MetaMask bearer token, forward cancellation, retain no response bodies in errors, and perform no response caching or retry. The MarketDataService alone owns response caching, deduplication, and bounded retry.
 
 Base URL and client version come from composition/configuration; environment differences do not create different Venue adapters. A concrete `KalshiRemoteAdapter` is preferable to a configurable remote-adapter factory while Kalshi is the only consumer.
 
-Account-scoped Balance reads use an explicit required-auth path on the same narrow transport. It obtains a fresh MetaMask bearer token for each request and never stores or logs it. Public catalog reads remain unauthenticated here; PRED-1159/PRED-1175 owns migrating those routes to required authentication.
+Account-scoped Balance reads use an explicit required-auth path on the same narrow transport. It obtains a fresh MetaMask bearer token for each request and never stores or logs it. The Venue catalog and every other Predict API route are also authenticated: each request resolves a fresh bearer token, and a missing or failed token provider is a 401 before HTTP.
 
 ## Canonical backend contract
 
@@ -131,6 +134,17 @@ prepare -> explicit confirmation -> commit -> reconcile
 - App teardown may stop observation but must not erase a committed operation.
 
 Detailed KYC, Deposit, Order, and Withdraw contracts belong to their accepted ADRs and active Jira slices rather than this scaffold.
+
+## Deposits (PRED-1494)
+
+`KalshiRemoteAdapter.funding` owns the Kalshi deposit routes under `/v1/venues/kalshi/deposits`. `PredictFundingService` calls only that object, and the queries call only the service. Every route detail (paths, bodies, the device signature, error codes) stays inside the adapter.
+
+- `prepareDeposit(params, approval)` posts `{ amount, clientOperationId }` unsigned first. The backend answers either the values to sign (`amountCents`, `clientOperationId`) or the deposit that `clientOperationId` already created. If the values to sign do not match what the user entered, the adapter sends nothing more and fails with `INVALID_RESPONSE`. Otherwise it signs the `funding.deposit` intent of the venue profile through `PredictDeviceAuthService` and posts again with the device envelope and the exact signed bytes. The backend relays the signed request to Kalshi's `crypto-addresses` endpoint and answers the deposit with its Funding Plan. A deposit answered with a different amount also fails as `INVALID_RESPONSE`. The backend's own `venue_preview_mismatch` and `client_operation_id_conflict` map to `DEPOSIT_MISMATCH`.
+- `getDeposit`, `listOpenDeposits` (`?state=open`), `reportDepositTransfer` (`/{operationId}/transfer`) and `cancelDeposit` (`/{operationId}/cancel`) need the bearer token but no device signature.
+- The deposit routes map `operation_not_found` to `DEPOSIT_NOT_FOUND` and `venue_preview_mismatch` to `DEPOSIT_MISMATCH`. The order routes keep their own mapping for those two codes. Only the transfer report maps the five transfer codes (`transfer_chain_mismatch`, `transfer_hash_invalid`, `transfer_hash_mismatch`, `transfer_hash_reused` and `transfer_not_expected`), all to `DEPOSIT_TRANSFER_MISMATCH` with `mutationRelay: not_relayed_this_invocation`: the backend refuses them before it stores the hash or calls Kalshi. On the transfer report and cancel, `operation_not_found` also carries `not_relayed_this_invocation`, because both look the deposit up before they change it. The relay evidence for these codes is per route (`refusedBeforeRelay` in the adapter), so an Order route never borrows it.
+- Kalshi deposits are gated by `PREDICT_FUNDING_IMPLEMENTATIONS.next` and the Venue catalog's `actions` (no mobile rollout flag; see [the public API contract](./public-api-contract.md)). Withdrawals use their own `predictConfig.kalshiWithdrawalsEnabled` flag, off by default. The flag gates the entry point, not the service: `PredictFundingService` runs a withdrawal whenever a flow reaches it.
+
+Kalshi has confirmed that the phone may send the device-signed `crypto-addresses` request straight to Kalshi instead of through predict-api (PRED-1500). That is not decided. If it is adopted, the signature stays the same and only `adapter.funding.prepareDeposit` changes: it sends the signed request to Kalshi, then reports the venue's deposit ID and address to the backend. `PredictFundingService`, its messenger actions and `fundingQueries` do not change. The trust boundary above would then list delivery of that one request under what mobile owns.
 
 ## Eligibility and rollout
 

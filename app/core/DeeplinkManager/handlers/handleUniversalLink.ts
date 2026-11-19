@@ -15,6 +15,7 @@ import {
   type DeepLinkModalParams,
 } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../utils/handleDeepLinkModalDisplay';
+import { capturePendingMoneyReferralCode } from '../utils/capturePendingMoneyReferralCode';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../util/general';
 import handleRampUrl from './legacy/handleRampUrl';
@@ -144,6 +145,7 @@ const SUPPORTED_ACTIONS = {
   PRIVACY: ACTIONS.PRIVACY,
   NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
   MONEY_ACCOUNT_DEPOSIT: ACTIONS.MONEY_ACCOUNT_DEPOSIT,
+  KYC: ACTIONS.KYC,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -158,6 +160,7 @@ type SUPPORTED_ACTIONS =
  * Actions that should not show the deep link INTERSTITIAL modal
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.HOME,
   SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.SWAP,
   SUPPORTED_ACTIONS.BATCH_SELL,
@@ -187,6 +190,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
   SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT,
+  SUPPORTED_ACTIONS.KYC,
   SUPPORTED_ACTIONS.ASSET,
   SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS,
 ];
@@ -238,8 +242,10 @@ interface UniversalLinkActionHandler {
   ) => DeeplinkIntent | Promise<DeeplinkIntent> | null;
 }
 
-// perps-asset URLs carry just '?symbol=X', so inject screen=asset to reuse the
-// unified perps handler/intent builder.
+// perps-asset URLs carry just '?symbol=X' (and optionally '&mode=pro'), so
+// inject screen=asset to reuse the unified perps handler/intent builder. Any
+// other query params (e.g. `mode=pro` to open the market in Pro mode, which
+// defaults to BTC when `symbol` is omitted) are forwarded through as-is.
 const getPerpsAssetPath = (actionBasedRampPath: string): string =>
   `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`;
 
@@ -340,8 +346,12 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       }),
   },
   [SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT]: {
-    execute: () => handleMoneyDeposit(),
-    resolve: () => createMoneyDepositDeeplinkIntent(),
+    execute: ({ actionBasedRampPath }) =>
+      handleMoneyDeposit({ moneyDepositPath: actionBasedRampPath }),
+    resolve: ({ actionBasedRampPath }) =>
+      createMoneyDepositDeeplinkIntent({
+        moneyDepositPath: actionBasedRampPath,
+      }),
   },
 };
 
@@ -762,6 +772,8 @@ async function handleUniversalLink({
     return false;
   }
 
+  capturePendingMoneyReferralCode(validatedUrl);
+
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   const actionBasedRampPath = urlObj.href.replace(BASE_URL_ACTION, '');
   const universalLinkActionHandlerContext: UniversalLinkActionHandlerContext = {
@@ -907,7 +919,13 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.MONEY: {
-      handleMoney();
+      handleMoney({ moneyPath: actionBasedRampPath });
+      break;
+    }
+    case SUPPORTED_ACTIONS.KYC: {
+      // The session id is not read yet. The Money account screen resumes the
+      // latest Iron KYC session.
+      handleMoney({ moneyPath: '?screen=account' });
       break;
     }
     case SUPPORTED_ACTIONS.PRIVACY: {

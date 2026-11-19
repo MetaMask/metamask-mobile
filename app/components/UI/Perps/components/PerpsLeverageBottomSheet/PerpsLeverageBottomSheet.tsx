@@ -54,7 +54,6 @@ import {
   BoxFlexDirection,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   ButtonSize,
   FontWeight,
@@ -70,6 +69,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -124,6 +126,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   marginMode = 'isolated',
   enableConfirmHaptics = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const pickerRef = useRef<ScrollView>(null);
@@ -477,12 +480,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const content = (
     <>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={isNestedScreen ? onBack : undefined}
         onClose={isNestedScreen ? undefined : onClose}
       >
         {strings('perps.order.leverage_modal.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box paddingTop={3} accessible={false}>
         {currentPrice ? (

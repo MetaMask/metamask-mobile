@@ -283,6 +283,14 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user can search for a trending token from the explore feed', async () => {
+    const searchEthereumResult = {
+      ...mockTrendingTokensData[0],
+      pricePercentChange1d: '5.2',
+    };
+    setupTrendingApiFetchMock(mockTrendingTokensData, undefined, undefined, [
+      searchEthereumResult,
+    ]);
+
     const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -316,6 +324,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
           pricePercentageChange: '+5.20%',
         },
       ],
+      missing: [{ id: TRENDING_BITCOIN_ID }, { id: TRENDING_UNISWAP_ID }],
     });
   });
 
@@ -510,6 +519,14 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       strings('trending.search_placeholder'),
     );
     expect(searchInput).toBeOnTheScreen();
+
+    const searchEthereumResult = {
+      ...mockTrendingTokensData[0],
+      pricePercentChange1d: '5.2',
+    };
+    setupTrendingApiFetchMock(mockTrendingTokensData, undefined, undefined, [
+      searchEthereumResult,
+    ]);
 
     await userEvent.type(searchInput, 'ethereum');
 

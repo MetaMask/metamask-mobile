@@ -1,6 +1,7 @@
 import type {
   V1TransactionByHashResponse,
-  V4MultiAccountTransactionsResponse,
+  V5MultiAccountTransactionsResponse,
+  V5TransactionRecord,
 } from '@metamask/core-backend';
 import {
   TransactionStatus as KeyringTransactionStatus,
@@ -12,7 +13,6 @@ import {
   mapNonEvmTransactions,
   mergeTransactionsByTime,
   selectApiEvmTransactions,
-  shouldSkipTransaction,
   shouldSkipUnrelatedTransaction,
 } from './transformations';
 
@@ -42,9 +42,38 @@ const buildTransaction = (
     ...overrides,
   }) as unknown as V1TransactionByHashResponse;
 
-const buildData = (
-  transactions: V1TransactionByHashResponse[],
-): InfiniteData<V4MultiAccountTransactionsResponse> =>
+const buildV5Transaction = (
+  overrides: {
+    id?: string;
+    from?: string;
+    to?: string | null;
+    value?: string;
+    methodId?: string;
+    valueTransfers?: V5TransactionRecord['valueTransfers'];
+  } = {},
+): V5TransactionRecord => ({
+  accountId: `eip155:59144:${address}`,
+  tx: {
+    id: overrides.id ?? '0xhash',
+    chainId: 'eip155:59144',
+    status: 'confirmed',
+    timestamp: 1778593067000,
+    date: '2026-05-12T13:37:47.000Z',
+    from: overrides.from ?? address,
+    to: overrides.to ?? otherAddress,
+    blockNumber: '1',
+    blockHash: '0xblock',
+    value: overrides.value ?? '0',
+    methodId: overrides.methodId,
+    transactionCategory: 'TRANSFER',
+  },
+  valueTransfers: overrides.valueTransfers ?? [],
+  fee: null,
+});
+
+const buildV5Data = (
+  transactions: V5TransactionRecord[],
+): InfiniteData<V5MultiAccountTransactionsResponse> =>
   ({
     pages: [
       {
@@ -54,60 +83,13 @@ const buildData = (
           endCursor: 'next',
           hasNextPage: true,
         },
-        unprocessedNetworks: [],
-      } as V4MultiAccountTransactionsResponse,
+        unprocessedAccounts: [],
+      } as V5MultiAccountTransactionsResponse,
     ],
     pageParams: [undefined],
-  }) as InfiniteData<V4MultiAccountTransactionsResponse>;
+  }) as InfiniteData<V5MultiAccountTransactionsResponse>;
 
 describe('ActivityList transformations', () => {
-  describe('shouldSkipTransaction', () => {
-    it('skips excluded hashes, unrelated transactions, and empty self transfers', () => {
-      expect(
-        shouldSkipTransaction(address, buildTransaction(), new Set(['0xhash'])),
-      ).toBe(true);
-      expect(
-        shouldSkipTransaction(
-          address,
-          buildTransaction({ from: otherAddress, to: otherAddress }),
-        ),
-      ).toBe(true);
-      expect(
-        shouldSkipTransaction(
-          address,
-          buildTransaction({
-            from: address,
-            methodId: '0x',
-            to: address,
-            value: '0',
-            valueTransfers: [],
-          }),
-        ),
-      ).toBe(true);
-    });
-
-    it('keeps incoming token transfers where the address is a direct recipient', () => {
-      const directTokenReceive = buildTransaction({
-        from: otherAddress,
-        to: address,
-        valueTransfers: [
-          {
-            amount: '1000000',
-            contractAddress: '0x3333333333333333333333333333333333333333',
-            decimal: 6,
-            from: otherAddress,
-            name: 'USD Coin',
-            symbol: 'USDC',
-            to: address,
-            transferType: 'ERC20',
-          },
-        ],
-      });
-
-      expect(shouldSkipTransaction(address, directTokenReceive)).toBe(false);
-    });
-  });
-
   describe('shouldSkipUnrelatedTransaction', () => {
     it('keeps direct receives that the list gate drops via their value transfers', () => {
       const tokenReceive = buildTransaction({
@@ -214,14 +196,14 @@ describe('ActivityList transformations', () => {
   });
 
   it('selects API EVM transactions while preserving the infinite-query shape', () => {
-    const tx = buildTransaction({ hash: '0xkept' });
-    const skipped = buildTransaction({ hash: '0xskipped' });
+    const tx = buildV5Transaction({ id: '0xkept', value: '1' });
+    const skipped = buildV5Transaction({ id: '0xskipped', value: '1' });
     const select = selectApiEvmTransactions({
       address,
       excludedTxHashes: new Set(['0xskipped']),
     });
 
-    const result = select(buildData([tx, skipped]));
+    const result = select(buildV5Data([tx, skipped]));
 
     expect(result.pages[0].pageInfo.endCursor).toBe('next');
     expect(result.pages[0].data).toHaveLength(1);
@@ -320,55 +302,70 @@ describe('ActivityList transformations', () => {
   });
 
   describe('selectApiEvmTransactions', () => {
-    it('filters outgoing value-transfer-only rows where the top-level tx is unrelated', () => {
-      const outgoingTokenTransfer = buildTransaction({
-        hash: '0xoutgoing-token',
+    it('keeps rows where the subject only appears in value transfers', () => {
+      const relayedTransfer = buildV5Transaction({
+        id: '0xrelayed',
         from: otherAddress,
         to: otherAddress,
         valueTransfers: [
           {
-            amount: '1',
-            contractAddress: '0x3333333333333333333333333333333333333333',
-            decimal: 18,
+            assetClass: 'ft',
             from: address,
-            symbol: 'aUSDC',
             to: otherAddress,
-            transferType: 'ERC20',
-          },
-        ],
-      } as Partial<V1TransactionByHashResponse>);
-
-      const result = selectApiEvmTransactions({ address })(
-        buildData([outgoingTokenTransfer]),
-      );
-
-      expect(result.pages[0].data).toHaveLength(0);
-    });
-
-    it('classifies pooled-staking calls instead of leaving them as contract interactions', () => {
-      const stakeDeposit = buildTransaction({
-        hash: '0xstake',
-        to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
-        chainId: 1,
-        methodId: '0xf9609f08',
-        transactionCategory: 'CONTRACT_CALL',
-        value: '1000000000000000000',
-        valueTransfers: [
-          {
-            amount: '1000000000000000000',
-            contractAddress: '',
+            assetId:
+              'eip155:59144/erc20:0x3333333333333333333333333333333333333333',
+            amount: '1',
             decimal: 18,
-            from: address,
-            name: 'Ether',
-            symbol: 'ETH',
-            to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
-            transferType: 'normal',
+            symbol: 'aUSDC',
           },
         ],
       });
 
       const result = selectApiEvmTransactions({ address })(
-        buildData([stakeDeposit]),
+        buildV5Data([relayedTransfer]),
+      );
+
+      expect(result.pages[0].data).toHaveLength(1);
+    });
+
+    it('drops zero-value self-sends', () => {
+      const selfSend = buildV5Transaction({ to: address, methodId: '0x' });
+
+      const result = selectApiEvmTransactions({ address })(
+        buildV5Data([selfSend]),
+      );
+
+      expect(result.pages[0].data).toEqual([]);
+    });
+
+    it('classifies pooled-staking calls instead of leaving them as contract interactions', () => {
+      const pool = '0x4fef9d741011476750a243ac70b9789a63dd47df';
+      const stakeDeposit = buildV5Transaction({
+        id: '0xstake',
+        to: pool,
+        methodId: '0xf9609f08',
+        value: '1000000000000000000',
+        valueTransfers: [
+          {
+            assetClass: 'ft',
+            from: address,
+            to: pool,
+            assetId: 'eip155:1/slip44:60',
+            amount: '1000000000000000000',
+            decimal: 18,
+            symbol: 'ETH',
+          },
+        ],
+      });
+      stakeDeposit.tx.chainId = 'eip155:1';
+      stakeDeposit.accountId = `eip155:1:${address}`;
+      stakeDeposit.fee = {
+        payer: `eip155:1:${address}`,
+        asset: { assetId: 'eip155:1/slip44:60', amount: '21000', decimals: 18 },
+      };
+
+      const result = selectApiEvmTransactions({ address })(
+        buildV5Data([stakeDeposit]),
       );
 
       expect(result.pages[0].data[0]).toMatchObject({
@@ -382,6 +379,7 @@ describe('ActivityList transformations', () => {
             direction: 'out',
             symbol: 'ETH',
           },
+          fees: [expect.objectContaining({ amount: '21000' })],
         },
       });
     });

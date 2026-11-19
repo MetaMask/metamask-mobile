@@ -1,4 +1,7 @@
-import { handleRewardsUrl } from '../handleRewardsUrl';
+import {
+  createRewardsDeeplinkIntent,
+  handleRewardsUrl,
+} from '../handleRewardsUrl';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
@@ -47,6 +50,13 @@ describe('handleRewardsUrl', () => {
     // Mock loggers
     (DevLogger.log as jest.Mock) = jest.fn();
     (Logger.log as jest.Mock) = jest.fn();
+  });
+
+  it('opens rewards on the root stack rather than as a home tab', () => {
+    expect(createRewardsDeeplinkIntent({ rewardsPath: '' }).target).toEqual({
+      type: 'main-stack',
+      routeName: Routes.REWARDS_VIEW,
+    });
   });
 
   describe('without navigation params', () => {
@@ -237,6 +247,31 @@ describe('handleRewardsUrl', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('does not navigate when the money dashboard is mounted on the root stack', async () => {
+      NavigationService.navigation = {
+        navigate: mockNavigate,
+        getRootState: () => ({
+          routes: [
+            { name: 'Home' },
+            {
+              name: Routes.REWARDS_VIEW,
+              state: {
+                routes: [{ name: Routes.REWARDS_MONEY_DASHBOARD }],
+              },
+            },
+          ],
+        }),
+      } as unknown as typeof NavigationService.navigation;
+
+      await handleRewardsUrl({ rewardsPath: '?campaign=money' });
+
+      expect(setPendingDeeplink).toHaveBeenCalledWith({
+        page: undefined,
+        campaign: 'money',
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('still navigates to rewards home for a bare rewards link when the dashboard is mounted', async () => {
       NavigationService.navigation = {
         navigate: mockNavigate,
@@ -254,7 +289,7 @@ describe('handleRewardsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
 
-    it('dispatches pending deeplink when a legacy referral parameter is also present', async () => {
+    it('dispatches the campaigns deeplink from a query containing referral', async () => {
       await handleRewardsUrl({
         rewardsPath: '?referral=abc123&page=campaigns',
       });

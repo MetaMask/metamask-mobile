@@ -1,5 +1,4 @@
 import { RootMessenger } from '../types';
-import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
   KeyringBuilder,
@@ -24,8 +23,6 @@ import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
 import { MoneyKeyring } from '@metamask/eth-money-keyring';
 import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
-import { hmacSha512 } from '@metamask/native-utils';
-import { pbkdf2 } from '../../Encryptor';
 import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
@@ -71,12 +68,6 @@ export function getKeyringBuilders(
   messenger: RootMessenger,
   useDmk: boolean,
 ): KeyringControllerOptions['keyringBuilders'] {
-  // Required by the HD keyring and money keyring to use native crypto functions.
-  const cryptographicFunctions: CryptographicFunctions = {
-    pbkdf2Sha512: pbkdf2,
-    hmacSha512: async (key, data) => hmacSha512(key, data),
-  };
-
   const keyrings: KeyringBuilder[] = [];
 
   const qrKeyringBuilder = () => {
@@ -103,10 +94,7 @@ export function getKeyringBuilders(
 
   keyrings.push(ledgerKeyringBuilder);
 
-  const hdKeyringBuilder = () =>
-    new HdKeyring({
-      cryptographicFunctions,
-    });
+  const hdKeyringBuilder = () => new HdKeyring();
   hdKeyringBuilder.type = HdKeyring.type;
   keyrings.push(hdKeyringBuilder);
 
@@ -115,7 +103,6 @@ export function getKeyringBuilders(
   // disabled at that time).
   const moneyKeyringBuilder = () =>
     new MoneyKeyring({
-      cryptographicFunctions,
       getMnemonic: async (entropySource: string) =>
         messenger.call(
           'KeyringController:withKeyringV2Unsafe',
@@ -138,7 +125,6 @@ export function getKeyringBuilders(
   moneyKeyringBuilder.type = MoneyKeyring.type;
   keyrings.push(moneyKeyringBuilder);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringMessenger = getLegacySnapKeyringBuilderMessenger(messenger);
   // @ts-expect-error: `addAccounts` is missing in `SnapKeyring` type.
   keyrings.push(legacySnapKeyringBuilder(snapKeyringMessenger));
@@ -149,7 +135,6 @@ export function getKeyringBuilders(
   // via `unwrap()` for the v2 builder, so both entries share the same
   // underlying object — enabling both `withKeyring` and `withKeyringV2`.
   keyrings.push(snapKeyringV2AdaptedAsV1Builder(snapKeyringMessenger));
-  ///: END:ONLY_INCLUDE_IF
 
   // The Money MPC keyring is fenced behind the `MM_MONEY_MPC_KEYRING_ENABLED`
   // compile-time gate while the feature is unreleased: no released build can
@@ -224,14 +209,12 @@ export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Build
     buildHardwareKeyringV2Builder(LedgerKeyringV2, LedgerKeyring.type),
     buildHardwareKeyringV2Builder(QrKeyringV2, QrKeyring.type),
     buildMoneyKeyringV2Builder(MoneyKeyringV2, MoneyKeyring.type),
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // The v2 Snap keyring is registered via `KeyringV1Adapter`, which owns the
     // inner `SnapKeyring` (v2) instance and exposes a v1-compatible facade for
     // KeyringController vault management. The same inner instance is retrieved
     // via `unwrap()` for the v2 builder, so both entries share the same
     // underlying object — enabling both `withKeyring` and `withKeyringV2`.
     snapKeyringV2Builder(),
-    ///: END:ONLY_INCLUDE_IF
   ];
 
   // The Money MPC keyring is fenced behind the `MM_MONEY_MPC_KEYRING_ENABLED`

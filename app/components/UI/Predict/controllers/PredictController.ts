@@ -29,6 +29,7 @@ import type { SubscriptionControllerGetBenefitsAction } from '@metamask/subscrip
 import { errorCodes } from '@metamask/rpc-errors';
 import {
   TransactionControllerEstimateGasAction,
+  TransactionControllerGetGasFeeTokensAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
@@ -439,6 +440,7 @@ type AllowedActions =
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
   | TransactionControllerEstimateGasAction
+  | TransactionControllerGetGasFeeTokensAction
   | KeyringControllerSignTypedMessageAction
   | KeyringControllerSignPersonalMessageAction
   | RemoteFeatureFlagControllerGetStateAction
@@ -497,6 +499,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPrices',
   'getUnrealizedPnL',
   'initPayWithAnyToken',
+  'isWithdrawGasFeeTokenAvailable',
   'listFilterOptions',
   'listMarkets',
   'onPlaceOrderSuccess',
@@ -632,6 +635,7 @@ export class PredictController extends BaseController<
 
     this.provider = new PolymarketProvider({
       getFeatureFlags: () => this.resolveFeatureFlags(),
+      getSelectedAddress: () => this.getEvmAccountAddress(),
     });
 
     this.analytics = new PredictAnalytics({
@@ -641,6 +645,17 @@ export class PredictController extends BaseController<
     this.messenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       this.handleTransactionStatusUpdate.bind(this),
+    );
+
+    // Remote flags can load or change after the crypto price socket opens,
+    // and the Chainlink key in them only takes effect on a new connection.
+    this.messenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      () => this.provider.refreshCryptoPriceFeedCredentials(),
+      (flagState) =>
+        JSON.stringify(
+          flagState.remoteFeatureFlags?.predictCryptoPriceFeed ?? null,
+        ),
     );
 
     // refreshEligibility owns failure state and logging.
@@ -4624,6 +4639,47 @@ export class PredictController extends BaseController<
     );
   }
 
+  /**
+   * Checks whether the gas station can pay a withdraw of `amountRaw` in pUSD.
+   *
+   * The withdraw confirmation simulates an unsigned `pUSD.transfer` from the
+   * EOA, which holds no pUSD, so its gas fee token list is always empty before
+   * `beforeSign` swaps in the Safe call. This quotes gas fee tokens for the
+   * real Safe call instead. Deposit-wallet withdraws always return `true`
+   * because the relayer pays their gas.
+   *
+   * @param params - The parameters.
+   * @param params.address - The EOA that owns the Predict account.
+   * @param params.amountRaw - The pUSD amount to withdraw, in raw units.
+   * @returns `true` when pUSD can pay the withdraw gas.
+   */
+  public async isWithdrawGasFeeTokenAvailable({
+    address,
+    amountRaw,
+  }: {
+    address: string;
+    amountRaw: string;
+  }): Promise<boolean> {
+    const simulation = await this.provider.getWithdrawSimulation?.({
+      amountRaw: BigInt(amountRaw),
+      signer: this.getSigner(address),
+    });
+
+    if (!simulation) {
+      return true;
+    }
+
+    const gasFeeTokens = await this.messenger.call(
+      'TransactionController:getGasFeeTokens',
+      simulation,
+    );
+    const gasFeeToken = MATIC_CONTRACTS_V2.collateral.toLowerCase();
+
+    return gasFeeTokens.some(
+      (token) => token.tokenAddress.toLowerCase() === gasFeeToken,
+    );
+  }
+
   public async prepareWithdraw(
     _params: PrepareWithdrawParams = {},
   ): Promise<Result<string>> {
@@ -4932,8 +4988,7 @@ export class PredictController extends BaseController<
       to: activeWithdrawTransaction.predictAddress as Hex,
     };
 
-    // Attempt to estimate gas for the updated transaction
-    let updatedGas: Hex | undefined;
+    let updatedGas: Hex;
     try {
       const estimateResult = await this.messenger.call(
         'TransactionController:estimateGas',
@@ -4942,13 +4997,20 @@ export class PredictController extends BaseController<
       );
       updatedGas = estimateResult.gas as Hex;
     } catch (error) {
-      // Log the error but continue - we'll use the original gas values
-      DevLogger.log(
-        'PredictController: Gas estimation failed in beforeSign, using original gas values',
-        {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString(),
-        },
+      // Fail the withdraw before signing. Returning without the swap would
+      // leave the EOA `pUSD.transfer`, which the EOA can't fund, and swapping
+      // without a new estimate would broadcast the Safe call with a gas limit
+      // that was never estimated for it.
+      DevLogger.log('PredictController: Gas estimation failed in beforeSign', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('beforeSignWithdrawIfNeeded', {
+          operation: 'estimate_withdraw_gas',
+          transactionId: request.transactionMeta.id,
+        }),
       );
       this.update((state) => {
         if (state.withdrawTransaction) {
@@ -4956,7 +5018,7 @@ export class PredictController extends BaseController<
         }
       });
 
-      return;
+      throw error;
     }
 
     this.update((state) => {
@@ -4975,13 +5037,10 @@ export class PredictController extends BaseController<
           ...transaction.assetsFiatValues,
           receiving: String(amount),
         };
-        // Only update gas if estimation succeeded
-        if (updatedGas) {
-          transaction.txParams.gas = updatedGas;
-          // Keep the legacy field synchronized for existing transaction consumers.
-          // eslint-disable-next-line @typescript-eslint/no-deprecated
-          transaction.txParams.gasLimit = updatedGas;
-        }
+        transaction.txParams.gas = updatedGas;
+        // Keep the legacy field synchronized for existing transaction consumers.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        transaction.txParams.gasLimit = updatedGas;
       },
     };
   }

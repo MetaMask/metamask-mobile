@@ -95,4 +95,21 @@ describe('buildSocialFeedListItems', () => {
 
     expect(getSocialFeedListItemKey(item)).toBe('position-1');
   });
+
+  it('keys posts of the same position by their feed item ids', () => {
+    const position = mockPerpFeedItem({ positionId: 'position-1' });
+    const tradeCard = { ...position, feedItemId: 'trade-1' };
+    const commentCard = { ...position, feedItemId: 'comment-1' };
+    const items = buildSocialFeedListItems(
+      [
+        { ...post('one'), position: tradeCard },
+        { ...post('two'), position: commentCard },
+      ],
+      [],
+    );
+
+    const result = keys(items);
+
+    expect(result).toEqual(['trade-1', 'comment-1']);
+  });
 });
