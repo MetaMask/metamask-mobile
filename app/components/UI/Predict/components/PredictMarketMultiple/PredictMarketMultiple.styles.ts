@@ -33,17 +33,11 @@ const styleSheet = (params: {
       width: '100%',
     },
     buttonYes: {
-      // Prototype: 1px border.muted tints the colored fill.
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
       color: theme.colors.success.default,
       backgroundColor: theme.colors.success.muted,
       width: vars.isCarousel ? 60 : 68,
     },
     buttonNo: {
-      // Prototype: 1px border.muted tints the colored fill.
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
       color: theme.colors.error.default,
       backgroundColor: theme.colors.error.muted,
       width: vars.isCarousel ? 60 : 68,

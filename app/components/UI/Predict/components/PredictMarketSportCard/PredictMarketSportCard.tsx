@@ -326,7 +326,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   <Button
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
-                    twClassName={`border border-muted ${isCompact ? 'p-0' : 'px-1'}`}
+                    twClassName={isCompact ? 'p-0' : 'px-1'}
                     contentWrapperProps={{ twClassName: 'w-full' }}
                     isFullWidth
                     size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}
