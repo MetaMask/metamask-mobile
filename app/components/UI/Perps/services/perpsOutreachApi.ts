@@ -130,11 +130,17 @@ export async function fetchPerpsOutreachBanner({
       buildPerpsOutreachUrl(endpoint, { profileId, address, locale }),
       {
         signal,
-        // Server errors are not an answer either: let axios reject them like
-        // transport failures so React Query retries and refetches on
-        // reconnect instead of caching an empty campaign for the query's
-        // `staleTime`. A client error (4xx) is the endpoint answering, so it
-        // stays resolvable and maps to the authoritative null below.
+        // Only a response the endpoint sent is an answer worth caching.
+        // `validateStatus` rejects 5xx so axios raises them like transport
+        // failures, and the catch below re-throws cancellations
+        // (`CanceledError` is an `AxiosError`) and transport failures too:
+        // React Query retries and refetches on reconnect instead of caching
+        // an empty campaign for `staleTime`. Everything else is the
+        // authoritative "no campaign to render" (`show: false` in backend
+        // terms): a 4xx — including 408 and 429, deliberately, so a
+        // rate-limited endpoint gets the `staleTime` backoff rather than
+        // retries — and a response that fails validation (malformed, or an
+        // untrusted `linkUrl`) resolve `null`.
         validateStatus: (status) => status < 500,
       },
     );
@@ -150,14 +156,8 @@ export async function fetchPerpsOutreachBanner({
 
     return result.show ? result.banner : null;
   } catch (error) {
-    // A cancellation and a transport or server failure never produced an
-    // answer: re-throw so React Query retries and refetches on reconnect
-    // instead of caching an empty campaign for the query's `staleTime`
-    // (`CanceledError` extends `AxiosError`, so `isAxiosError` covers both).
-    // Only a response that arrived but cannot be rendered (non-2xx other
-    // than 5xx, malformed, or an untrusted link) resolves `null`, the
-    // authoritative "no campaign to render" the backend could also have
-    // answered with `show: false`.
+    // Cancellations, transport failures, and 5xx are not answers: see the
+    // `validateStatus` predicate above for what is re-thrown vs cached.
     if (axios.isAxiosError(error)) {
       throw error;
     }

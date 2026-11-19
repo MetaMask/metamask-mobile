@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse, CanceledError } from 'axios';
+import axios, { AxiosError, CanceledError, type AxiosResponse } from 'axios';
 import {
   buildPerpsOutreachUrl,
   fetchPerpsOutreachBanner,
