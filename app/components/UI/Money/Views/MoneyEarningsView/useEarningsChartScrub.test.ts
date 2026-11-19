@@ -1,8 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
-import type {
-  GestureResponderEvent,
-  PanResponderGestureState,
-} from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 import type { EarningsPoint } from './earningsHistory';
 import { useEarningsChartScrub } from './useEarningsChartScrub';
 
@@ -34,7 +31,10 @@ const availablePoints = [
 
 let nextTimestamp = 1_000;
 
-const createGestureEvent = (locationX: number): GestureResponderEvent => {
+const createGestureEvent = (
+  locationX: number,
+  startX = locationX,
+): GestureResponderEvent => {
   const timestamp = nextTimestamp;
   nextTimestamp += 10;
 
@@ -56,7 +56,7 @@ const createGestureEvent = (locationX: number): GestureResponderEvent => {
       touchBank: [
         {
           touchActive: true,
-          startPageX: locationX,
+          startPageX: startX,
           startPageY: 80,
           startTimeStamp: timestamp,
           currentPageX: locationX,
@@ -70,22 +70,6 @@ const createGestureEvent = (locationX: number): GestureResponderEvent => {
     },
   } as unknown as GestureResponderEvent;
 };
-
-const createGestureState = (
-  moveX: number,
-  x0 = moveX,
-): PanResponderGestureState => ({
-  stateID: 1,
-  moveX,
-  moveY: 0,
-  x0,
-  y0: 0,
-  dx: moveX - x0,
-  dy: 0,
-  vx: 0,
-  vy: 0,
-  numberActiveTouches: 1,
-});
 
 describe('useEarningsChartScrub', () => {
   beforeEach(() => {
@@ -143,33 +127,18 @@ describe('useEarningsChartScrub', () => {
 
     act(() => {
       result.current.handlePointPressIn(0, availablePoints[0]);
-      panHandlers.onMoveShouldSetResponderCapture?.(
-        createGestureEvent(50),
-        createGestureState(50),
-      );
-      panHandlers.onResponderGrant?.(
-        createGestureEvent(50),
-        createGestureState(50),
-      );
-      panHandlers.onResponderMove?.(
-        createGestureEvent(250),
-        createGestureState(250, 50),
-      );
+      panHandlers.onMoveShouldSetResponderCapture?.(createGestureEvent(50));
+      panHandlers.onResponderGrant?.(createGestureEvent(50));
+      panHandlers.onResponderMove?.(createGestureEvent(250, 50));
     });
 
     expect(result.current.activeIndex).toBe(2);
     expect(
-      panHandlers.onResponderTerminationRequest?.(
-        createGestureEvent(250),
-        createGestureState(250, 50),
-      ),
+      panHandlers.onResponderTerminationRequest?.(createGestureEvent(250, 50)),
     ).toBe(false);
 
     act(() => {
-      panHandlers.onResponderRelease?.(
-        createGestureEvent(250),
-        createGestureState(250, 50),
-      );
+      panHandlers.onResponderRelease?.(createGestureEvent(250, 50));
     });
 
     expect(result.current.activeIndex).toBeNull();
