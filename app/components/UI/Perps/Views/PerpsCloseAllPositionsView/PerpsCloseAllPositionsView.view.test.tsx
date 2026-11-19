@@ -255,6 +255,44 @@ describe('PerpsCloseAllPositionsView', () => {
     ).toHaveTextContent('--');
   });
 
+  it('keeps the receive amount when a live tick carries only one symbol', async () => {
+    calculateFees.mockResolvedValue({
+      feeRate: 0.00145,
+      feeAmount: 0,
+      protocolFeeRate: 0.00045,
+      protocolFeeAmount: 0,
+      metamaskFeeRate: 0.001,
+      metamaskFeeAmount: 0,
+    });
+
+    const { stream } = renderPerpsCloseAllPositionsView({
+      streamOverrides: { positions },
+    });
+    act(() => {
+      stream.emitPrices(livePrices);
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
+      ),
+    ).not.toHaveTextContent('--');
+
+    // A live WebSocket tick can carry only the symbol whose price changed.
+    // The other position's price must survive so the summary does not collapse
+    // to the unavailable fallback (TAT-4708).
+    act(() => {
+      stream.emitPrices({ ETH: { ...livePrices.ETH, price: '2600' } });
+    });
+
+    expect(
+      screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE),
+    ).not.toHaveTextContent('--');
+    expect(
+      screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE),
+    ).not.toHaveTextContent('--');
+  });
+
   it('drops the count and singularises the copy for a lone position', async () => {
     renderPerpsCloseAllPositionsView({
       streamOverrides: { positions: [positions[0]] },
