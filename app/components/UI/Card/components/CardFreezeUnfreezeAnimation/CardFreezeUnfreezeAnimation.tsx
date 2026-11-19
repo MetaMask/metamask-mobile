@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, StyleSheet, type ImageSourcePropType } from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  View,
+  type ImageSourcePropType,
+} from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import {
   Alignment,
@@ -29,20 +34,11 @@ const UNFREEZE_TRIGGER_PATH = 'unfreeze';
 const CARD_FRONT_ASSET_NAME = 'DigitalCard-NewBrand';
 
 /**
- * Vertical offset between the card's centre and the artboard's centre, as a
- * fraction of the rendered artboard height (positive = the card sits below
- * the artboard centre). Measured from the simulator: the card sat ~150pt
- * too low at scale 3 in a 702pt-tall render.
+ * The artboard's native dimensions in the .riv file. The RiveView renders
+ * 1:1 at this size (Fit.None) — no stretching, no clipping, no scaling.
  */
-const CARD_CENTRE_Y_OFFSET_FRACTION = 150 / 702;
-
-/**
- * How much wider the RiveView box is vs the static card, to compensate for
- * the artboard's padding around the card (the ice effects need room to
- * overflow outside the card boundary). Tuned on the simulator; adjust if
- * the card renders at the wrong size.
- */
-const ARTBOARD_TO_CARD_SCALE = 3.5;
+const ARTBOARD_WIDTH = 1192;
+const ARTBOARD_HEIGHT = 754;
 
 const styles = StyleSheet.create({
   hidden: {
@@ -51,6 +47,15 @@ const styles = StyleSheet.create({
   overflowVisible: {
     overflow: 'visible',
   },
+  /** Centres a child within the parent's bounds. */
+  centre: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  /** Blocks all touches so the tiles below stay tappable. */
+  noPointer: {
+    pointerEvents: 'none',
+  },
 });
 
 export interface CardFreezeUnfreezeAnimationProps {
@@ -58,7 +63,7 @@ export interface CardFreezeUnfreezeAnimationProps {
   isFrozen: boolean;
   /** Static art shown while the Rive view loads, on error, or under Reduce Motion. */
   fallbackSource: ImageSourcePropType;
-  /** The static card's rendered width (the animation matches this size). */
+  /** The static card's rendered width (the fallback matches this size). */
   width: number;
   testID?: string;
 }
@@ -67,6 +72,11 @@ export interface CardFreezeUnfreezeAnimationProps {
  * Rive freeze/unfreeze animation for the Card home card art. Plays the
  * `freeze` trigger when the card is frozen and `unfreeze` when it is
  * unfrozen, via the "Card" view model's trigger properties.
+ *
+ * The RiveView renders at the artboard's native dimensions (1192×754,
+ * Fit.None, 1:1 in points) centred on the card art's position — no
+ * stretching, no clipping, no scaling. `pointerEvents="none"` on the
+ * overlay lets touches pass through to the tiles below.
  *
  * The static card art stays visible until the Rive view is ready, and it is
  * the only thing rendered when Reduce Motion is on or Rive fails.
@@ -133,9 +143,6 @@ const CardFreezeUnfreezeAnimation = ({
   const fireUnfreezeRef = useRef(fireUnfreezeTrigger);
   fireUnfreezeRef.current = fireUnfreezeTrigger;
 
-  // Fire the queued trigger once the view model instance resolves and the
-  // trigger property is available (the hooks report an error when the
-  // property is not found — a non-null error means the property isn't ready).
   const canFire =
     Boolean(viewModelInstance) &&
     freezeTriggerError === null &&
@@ -145,8 +152,6 @@ const CardFreezeUnfreezeAnimation = ({
     if (!canFire) {
       return;
     }
-    // The initial resolution fires the matching trigger so an
-    // already-frozen card shows its frozen pose.
     if (!hasFiredRef.current) {
       hasFiredRef.current = true;
       if (isFrozenRef.current) {
@@ -161,50 +166,51 @@ const CardFreezeUnfreezeAnimation = ({
     }
   }, [canFire, isFrozen]);
 
-  // -- Size -----------------------------------------------------------------
-  // The artboard (1192×754) has padding around the card for the ice effects.
-  // The RiveView box is scaled up so the card inside matches the static
-  // card's rendered size; the ice effects overflow via the parent's
-  // overflow: visible.
-  const aspectRatio = 1192 / 754;
-  const riveViewWidth = width * ARTBOARD_TO_CARD_SCALE;
-  const riveViewHeight = riveViewWidth / aspectRatio;
-  const overflowX = (riveViewWidth - width) / 2;
-  // Shift the RiveView up so the card's centre (not the artboard's centre)
-  // aligns with where the static card sits.
-  const verticalShift = CARD_CENTRE_Y_OFFSET_FRACTION * riveViewHeight;
+  // -- Layout ---------------------------------------------------------------
+  // The static card's dimensions (for the fallback image).
+  const cardHeight = width / (851 / 540);
 
   return (
-    <Box style={styles.overflowVisible} testID={testID}>
+    <Box
+      style={[{ width, height: cardHeight }, styles.overflowVisible]}
+      testID={testID}
+    >
       {!isRiveReady && (
         <Image
           source={fallbackSource}
-          style={[{ width, height: width / (851 / 540) }]}
+          style={StyleSheet.absoluteFill}
           resizeMode="contain"
           accessible={false}
         />
       )}
       {animate && riveFile && (
-        <RiveView
-          hybridRef={setHybridRef}
-          file={riveFile}
-          artboardName={ARTBOARD_NAME}
-          stateMachineName={STATE_MACHINE_NAME}
-          autoPlay
-          fit={Fit.Contain}
-          alignment={Alignment.Center}
-          dataBind={viewModelInstance ?? undefined}
+        <View
           style={[
+            StyleSheet.absoluteFill,
+            styles.centre,
+            styles.noPointer,
             {
-              width: riveViewWidth,
-              height: riveViewHeight,
-              marginLeft: -overflowX,
-              marginTop: -verticalShift,
+              width: ARTBOARD_WIDTH,
+              height: ARTBOARD_HEIGHT,
+              left: (width - ARTBOARD_WIDTH) / 2,
+              top: (cardHeight - ARTBOARD_HEIGHT) / 2,
             },
-            !isRiveReady && styles.hidden,
           ]}
-          onError={handleError}
-        />
+          pointerEvents="none"
+        >
+          <RiveView
+            style={{ width: ARTBOARD_WIDTH, height: ARTBOARD_HEIGHT }}
+            hybridRef={setHybridRef}
+            file={riveFile}
+            artboardName={ARTBOARD_NAME}
+            stateMachineName={STATE_MACHINE_NAME}
+            autoPlay
+            fit={Fit.None}
+            alignment={Alignment.Center}
+            dataBind={viewModelInstance ?? undefined}
+            onError={handleError}
+          />
+        </View>
       )}
     </Box>
   );
