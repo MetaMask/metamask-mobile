@@ -393,12 +393,14 @@ const CardHome = () => {
       setShowFreezeAnimation(true);
       // Only the unfreeze success schedules a return to static — the Melt
       // plays for ~3s before the card art swaps back.
-      if (actions.unfreeze.isSuccess) {
+      // Both mutations keep isSuccess after they settle, so key the return
+      // to static off the card's current state, not off unfreeze.isSuccess.
+      if (!isFrozen) {
         const timer = setTimeout(() => setShowFreezeAnimation(false), 4000);
         return () => clearTimeout(timer);
       }
     }
-  }, [actions.freeze.isSuccess, actions.unfreeze.isSuccess]);
+  }, [actions.freeze.isSuccess, actions.unfreeze.isSuccess, isFrozen]);
 
   // A card that loads already frozen activates the animation at mount.
   useEffect(() => {
@@ -1008,7 +1010,9 @@ const CardHome = () => {
                   twClassName={`overflow-visible ${isSignedOutKycPending ? 'opacity-50' : ''}`}
                   testID={CardHomeSelectors.CARD_ART}
                 >
-                  {showFreezeAnimation ? (
+                  {/* The Rive card stays mounted whenever the signed-in card is shown,
+                      so freeze/unfreeze only fire triggers — no swapping layers. */}
+                  {showFreezeAnimation || (isAuthenticated && !isLoading) ? (
                     <CardFreezeUnfreezeAnimation
                       isFrozen={isFrozen && isAuthenticated}
                       fallbackSource={cardArtFallbackPng}

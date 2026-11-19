@@ -22,6 +22,7 @@ import Logger from '../../../../../util/Logger';
 import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
 import cardFreezeUnfreezeRiv from '../../../../../animations/card_freeze_unfreeze.riv';
 import cardArtFallback from '../../../../../images/mm_card_regular.png';
+import cardFrontFullRes from '../../../../../images/card_freeze_card_front.png';
 
 /** Runtime-facing names; MUST match the names authored in the .riv file. */
 const ARTBOARD_NAME = 'Card Freeze/Unfreeze';
@@ -38,11 +39,16 @@ const CARD_FRONT_ASSET_NAME = 'DigitalCard-NewBrand';
  * 1:1 at this size (Fit.None) — no stretching, no clipping, no scaling.
  */
 const ARTBOARD_WIDTH = 1192;
+/** The card's size inside the artboard (centred, measured from the file). */
+const CARD_IN_ARTBOARD_WIDTH = 851;
 const ARTBOARD_HEIGHT = 754;
 
 const styles = StyleSheet.create({
   hidden: {
     opacity: 0,
+  },
+  absolute: {
+    position: 'absolute',
   },
   overflowVisible: {
     overflow: 'visible',
@@ -98,7 +104,7 @@ const CardFreezeUnfreezeAnimation = ({
   const [hasRiveError, setHasRiveError] = useState(false);
   const { riveFile } = useRiveFile(cardFreezeUnfreezeRiv, {
     referencedAssets: {
-      [CARD_FRONT_ASSET_NAME]: { source: cardArtFallback as number },
+      [CARD_FRONT_ASSET_NAME]: { source: cardFrontFullRes as number },
     },
   });
   const { riveViewRef, setHybridRef } = useRive();
@@ -138,6 +144,8 @@ const CardFreezeUnfreezeAnimation = ({
   const { trigger: fireUnfreezeTrigger, error: unfreezeTriggerError } =
     useRiveTrigger(UNFREEZE_TRIGGER_PATH, viewModelInstance);
 
+  const riveViewRefRef = useRef(riveViewRef);
+  riveViewRefRef.current = riveViewRef;
   const fireFreezeRef = useRef(fireFreezeTrigger);
   fireFreezeRef.current = fireFreezeTrigger;
   const fireUnfreezeRef = useRef(fireUnfreezeTrigger);
@@ -156,6 +164,7 @@ const CardFreezeUnfreezeAnimation = ({
       hasFiredRef.current = true;
       if (isFrozenRef.current) {
         fireFreezeRef.current?.();
+        riveViewRefRef.current?.playIfNeeded();
       }
       return;
     }
@@ -164,20 +173,51 @@ const CardFreezeUnfreezeAnimation = ({
     } else {
       fireUnfreezeRef.current?.();
     }
+    // Once the freeze settles the state machine stops advancing, so a later
+    // trigger isn't drawn until the view is nudged back into playing.
+    riveViewRefRef.current?.playIfNeeded();
   }, [canFire, isFrozen]);
 
   // -- Layout ---------------------------------------------------------------
   // The static card's dimensions (for the fallback image).
   const cardHeight = width / (851 / 540);
+  // Size the whole artboard so its card lands exactly on the static card.
+  const riveWidth = (width * ARTBOARD_WIDTH) / CARD_IN_ARTBOARD_WIDTH;
+  const riveHeight = (riveWidth * ARTBOARD_HEIGHT) / ARTBOARD_WIDTH;
+  // Keep the Rive view hidden (static card showing) until the native view
+  // says it is ready and has drawn at its final size; its first frames can be
+  // drawn before the view is sized, which reads as a brief blow-up.
+  const [hasLaidOut, setHasLaidOut] = useState(false);
+  useEffect(() => {
+    if (!riveViewRef) {
+      return;
+    }
+    let cancelled = false;
+    riveViewRef
+      .awaitViewReady()
+      .then(() => {
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            if (!cancelled) {
+              setHasLaidOut(true);
+            }
+          }),
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [riveViewRef]);
 
   return (
     <Box
       style={[{ width, height: cardHeight }, styles.overflowVisible]}
       testID={testID}
     >
-      {!isRiveReady && (
+      {(!isRiveReady || !hasLaidOut) && (
         <Image
-          source={fallbackSource}
+          source={animate ? cardFrontFullRes : fallbackSource}
           style={StyleSheet.absoluteFill}
           resizeMode="contain"
           accessible={false}
@@ -186,26 +226,26 @@ const CardFreezeUnfreezeAnimation = ({
       {animate && riveFile && (
         <View
           style={[
-            StyleSheet.absoluteFill,
-            styles.centre,
+            styles.absolute,
             styles.noPointer,
             {
-              width: ARTBOARD_WIDTH,
-              height: ARTBOARD_HEIGHT,
-              left: (width - ARTBOARD_WIDTH) / 2,
-              top: (cardHeight - ARTBOARD_HEIGHT) / 2,
+              width: riveWidth,
+              height: riveHeight,
+              left: (width - riveWidth) / 2,
+              top: (cardHeight - riveHeight) / 2,
             },
+            !hasLaidOut && styles.hidden,
           ]}
           pointerEvents="none"
         >
           <RiveView
-            style={{ width: ARTBOARD_WIDTH, height: ARTBOARD_HEIGHT }}
+            style={{ width: riveWidth, height: riveHeight }}
             hybridRef={setHybridRef}
             file={riveFile}
             artboardName={ARTBOARD_NAME}
             stateMachineName={STATE_MACHINE_NAME}
             autoPlay
-            fit={Fit.None}
+            fit={Fit.Contain}
             alignment={Alignment.Center}
             dataBind={viewModelInstance ?? undefined}
             onError={handleError}
