@@ -239,9 +239,11 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          expect.anything(),
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
+          expect.objectContaining({
+            shouldShowQuestionnaire: false,
+          }),
         );
       });
     });
@@ -259,7 +261,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({
             onComplete: expect.any(Function),
           }),
@@ -283,9 +285,11 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          expect.anything(),
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
+          expect.objectContaining({
+            shouldShowQuestionnaire: false,
+          }),
         );
       });
     });
@@ -303,7 +307,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({
             onComplete: expect.any(Function),
           }),
@@ -324,7 +328,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({
             onComplete: expect.any(Function),
             accountType: 'imported',
@@ -344,7 +348,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({
             onComplete: expect.any(Function),
           }),
@@ -352,7 +356,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+        (call) => call[0] === Routes.ONBOARDING.NOTIFICATION_PERMISSION,
       );
       const onComplete = navCall?.[1]?.onComplete;
 
@@ -391,13 +395,13 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({ onComplete: expect.any(Function) }),
         );
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+        (call) => call[0] === Routes.ONBOARDING.NOTIFICATION_PERMISSION,
       );
       const onComplete = navCall?.[1]?.onComplete;
 
@@ -421,13 +425,13 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({ onComplete: expect.any(Function) }),
         );
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+        (call) => call[0] === Routes.ONBOARDING.NOTIFICATION_PERMISSION,
       );
       const onComplete = navCall?.[1]?.onComplete;
 
@@ -452,13 +456,13 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({ onComplete: expect.any(Function) }),
         );
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+        (call) => call[0] === Routes.ONBOARDING.NOTIFICATION_PERMISSION,
       );
       const onComplete = navCall?.[1]?.onComplete;
 
@@ -486,13 +490,13 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({ onComplete: expect.any(Function) }),
         );
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+        (call) => call[0] === Routes.ONBOARDING.NOTIFICATION_PERMISSION,
       );
       const onComplete = navCall?.[1]?.onComplete;
 
@@ -529,13 +533,13 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({ onComplete: expect.any(Function) }),
         );
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+        (call) => call[0] === Routes.ONBOARDING.NOTIFICATION_PERMISSION,
       );
       const onComplete = navCall?.[1]?.onComplete;
 
@@ -559,13 +563,13 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({ onComplete: expect.any(Function) }),
         );
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+        (call) => call[0] === Routes.ONBOARDING.NOTIFICATION_PERMISSION,
       );
       const onComplete = navCall?.[1]?.onComplete;
 

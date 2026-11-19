@@ -1076,9 +1076,10 @@ describe('ChoosePassword', () => {
 
       await waitFor(() => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({
             onComplete: expect.any(Function),
+            shouldShowQuestionnaire: true,
           }),
         );
         expect(mockTrackEvent).toHaveBeenCalled();
@@ -2205,9 +2206,10 @@ describe('ChoosePassword', () => {
 
       await waitFor(() => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          Routes.ONBOARDING.NOTIFICATION_PERMISSION,
           expect.objectContaining({
             onComplete: expect.any(Function),
+            shouldShowQuestionnaire: true,
           }),
         );
       });
