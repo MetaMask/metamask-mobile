@@ -308,6 +308,30 @@ describe('Membership', () => {
         toRegex('Jul 19, 2027'),
       );
     });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.unpaid,
+      SUBSCRIPTION_STATUSES.paused,
+      SUBSCRIPTION_STATUSES.pastDue,
+    ])(
+      'says Ended on, not Renews on, for a %s plan whose period has passed',
+      (status) => {
+        const { getByTestId } = renderMembership({
+          ...subscription,
+          status,
+          currentPeriodEnd: '2020-01-15T12:00:00.000Z',
+        });
+
+        const endedRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+        expect(endedRow).toHaveTextContent(
+          toRegex(strings('pro_hub.membership.ended_on')),
+        );
+        expect(endedRow).toHaveTextContent(toRegex('Jan 15, 2020'));
+        expect(endedRow).not.toHaveTextContent(
+          strings('pro_hub.membership.renews_on'),
+        );
+      },
+    );
   });
 
   // ── Manage section ─────────────────────────────────────────────────────────
@@ -654,7 +678,7 @@ describe('Membership', () => {
       expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
       expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
       expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex(strings('pro_hub.membership.renews_on')),
+        toRegex(strings('pro_hub.membership.ended_on')),
       );
     });
 

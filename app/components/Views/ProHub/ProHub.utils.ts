@@ -36,6 +36,34 @@ export const isPeriodEndCancellationPending = (
 };
 
 /**
+ * Whether the membership period has already reached its end date.
+ *
+ * `currentPeriodEnd` is the exclusive renewal instant, so the period has
+ * ended once `now` reaches it. Any status can be past its end date, for
+ * example a past-due, paused, or unpaid plan that never renewed.
+ *
+ * @param subscription - Money Account Plus subscription, when one exists.
+ * @param now - Clock used to compare `currentPeriodEnd`.
+ * @returns True when `currentPeriodEnd` is set and is not after `now`.
+ */
+export const isMembershipPeriodEnded = (
+  subscription: Subscription | undefined,
+  now: Date = new Date(),
+): boolean => {
+  const periodEnd = subscription?.currentPeriodEnd;
+  if (!periodEnd) {
+    return false;
+  }
+
+  const parsedPeriodEnd = new Date(periodEnd);
+  if (Number.isNaN(parsedPeriodEnd.getTime())) {
+    return false;
+  }
+
+  return parsedPeriodEnd.getTime() <= now.getTime();
+};
+
+/**
  * Whether a pending period-end cancellation can still be reversed.
  *
  * Resume stays available only for an active or trialing plan whose latest

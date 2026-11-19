@@ -7,8 +7,34 @@ import {
 } from '@metamask/subscription-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { formatSubscriptionFiat } from '../../../../../util/subscription/formatSubscriptionFiat';
-import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+import {
+  formatSubscriptionPeriodEnd,
+  isMembershipPeriodEnded,
+  isPeriodEndCancellationPending,
+} from '../../ProHub.utils';
 import { MEMBERSHIP_UNAVAILABLE_VALUE } from './Membership.constants';
+
+/**
+ * Locale key for the date row. A period that has already ended says
+ * "Ended on", even if it was never cancelled. A cancel that is still
+ * scheduled says "Ends on". Otherwise the row says "Renews on".
+ *
+ * @param subscription - Money Account Plus subscription, when one exists.
+ * @param now - Clock used to compare `currentPeriodEnd`.
+ * @returns The translation key for the date row label.
+ */
+export const getRenewalRowLabelKey = (
+  subscription: Subscription | undefined,
+  now: Date = new Date(),
+): string => {
+  if (isMembershipPeriodEnded(subscription, now)) {
+    return 'pro_hub.membership.ended_on';
+  }
+  if (isPeriodEndCancellationPending(subscription, now)) {
+    return 'pro_hub.membership.ends_on';
+  }
+  return 'pro_hub.membership.renews_on';
+};
 
 export interface MembershipPricing {
   status: 'ready' | 'unavailable' | 'malformed';

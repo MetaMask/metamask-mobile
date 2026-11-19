@@ -7,7 +7,10 @@ import {
   type Subscription,
 } from '@metamask/subscription-controller';
 import { MEMBERSHIP_UNAVAILABLE_VALUE } from './Membership.constants';
-import { getMembershipDetails } from './Membership.utils';
+import {
+  getMembershipDetails,
+  getRenewalRowLabelKey,
+} from './Membership.utils';
 
 const readyPricing = {
   monthly: {
@@ -141,5 +144,67 @@ describe('getMembershipDetails', () => {
     expect(result.totalOriginal).toBeUndefined();
     expect(result.savingsNote).toBeUndefined();
     expect(result.renewsOn).toBe(MEMBERSHIP_UNAVAILABLE_VALUE);
+  });
+});
+
+describe('getRenewalRowLabelKey', () => {
+  const now = new Date('2026-10-07T00:00:00.000Z');
+
+  it('says Renews on for an active plan that will renew', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.renews_on',
+    );
+  });
+
+  it('says Ends on while a period-end cancellation is scheduled', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.ends_on',
+    );
+  });
+
+  it.each([
+    SUBSCRIPTION_STATUSES.pastDue,
+    SUBSCRIPTION_STATUSES.paused,
+    SUBSCRIPTION_STATUSES.unpaid,
+  ])('says Ended on for a %s plan whose period end has passed', (status) => {
+    const subscription = createSubscription({
+      status,
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z',
+    });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.ended_on',
+    );
+  });
+
+  it('says Ended on instead of Ends on when a cancelled period has already passed', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z',
+    });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.ended_on',
+    );
+  });
+
+  it('keeps Renews on when there is no period end to compare', () => {
+    const subscription = createSubscription({ currentPeriodEnd: undefined });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.renews_on',
+    );
   });
 });
