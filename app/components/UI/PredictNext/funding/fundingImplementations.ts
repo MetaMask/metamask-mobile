@@ -11,7 +11,8 @@ import type { PredictFundingAction } from './types';
  * Kalshi deposit (PRED-1161), which stays off until the `predictConfig` flag
  * `kalshiDepositsEnabled` turns it on: `resolvePredictFunding` treats the
  * flow as not implemented while the flag is off. It also runs Withdraw
- * (PRED-1163) through `PredictFundingService`.
+ * (PRED-1163). Withdraw has no rollout flag; the Venue descriptor decides
+ * whether the entry point shows.
  */
 export const PREDICT_FUNDING_IMPLEMENTATIONS: Readonly<
   Record<PredictImplementation, readonly PredictFundingAction[]>

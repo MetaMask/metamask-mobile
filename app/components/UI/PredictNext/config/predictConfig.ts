@@ -43,12 +43,6 @@ export interface PredictConfig {
    * `resolvePredictFunding` reads it.
    */
   kalshiDepositsEnabled?: boolean;
-  /**
-   * Whether the Kalshi withdrawal client flow (PRED-1163) may run. Optional
-   * so remote configs from before the flag still parse; omitted means off.
-   * `resolvePredictFunding` reads it.
-   */
-  kalshiWithdrawalsEnabled?: boolean;
 }
 
 export const DEFAULT_PREDICT_CONFIG: PredictConfig = {
@@ -73,7 +67,6 @@ const predictConfigSchema = object({
   }),
   venueSelection: enabledSchema,
   kalshiDepositsEnabled: optional(boolean()),
-  kalshiWithdrawalsEnabled: optional(boolean()),
 });
 
 export const parsePredictConfig = (value: unknown): PredictConfig => {

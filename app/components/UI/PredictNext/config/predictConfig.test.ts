@@ -97,7 +97,7 @@ describe('parsePredictConfig', () => {
     expect(DEFAULT_PREDICT_CONFIG.kalshiDepositsEnabled).toBeUndefined();
   });
 
-  it('reads kalshiWithdrawalsEnabled when the config sets it', () => {
+  it('drops a leftover kalshiWithdrawalsEnabled', () => {
     const result = parsePredictConfig({
       enabled: true,
       venues: {
@@ -108,27 +108,8 @@ describe('parsePredictConfig', () => {
       kalshiWithdrawalsEnabled: true,
     });
 
-    expect(result.kalshiWithdrawalsEnabled).toBe(true);
-  });
-
-  it('parses a config from before kalshiWithdrawalsEnabled, leaving Kalshi withdrawals off', () => {
-    const value = {
-      enabled: true,
-      venues: {
-        polymarket: { enabled: true },
-        kalshi: { enabled: true },
-      },
-      venueSelection: { enabled: true },
-    };
-
-    const result = parsePredictConfig(value);
-
-    expect(result).toEqual(value);
-    expect(result.kalshiWithdrawalsEnabled).toBeUndefined();
-  });
-
-  it('keeps Kalshi withdrawals off by default', () => {
-    expect(DEFAULT_PREDICT_CONFIG.kalshiWithdrawalsEnabled).toBeUndefined();
+    expect(result).not.toHaveProperty('kalshiWithdrawalsEnabled');
+    expect(result.venues.kalshi.enabled).toBe(true);
   });
 
   it.each([undefined, {}, { enabled: true }, { enabled: 'true' }])(
