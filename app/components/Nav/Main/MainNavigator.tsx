@@ -194,6 +194,7 @@ import {
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
 import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
 import { CollectiblesScreenStack } from '../../UI/Collectibles/routes';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -1490,7 +1491,7 @@ const MainNavigator = () => {
       )}
       {isCollectiblesEnabled && (
         <NativeStack.Screen
-          name={Routes.COLLECTIBLES.ROOT}
+          name={collectiblesRoutes.root}
           component={CollectiblesScreenStack}
           options={slideFromRightNativeOptions}
         />
