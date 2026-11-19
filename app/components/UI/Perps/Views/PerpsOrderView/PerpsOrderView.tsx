@@ -115,6 +115,7 @@ import {
   type InputMethod,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -228,7 +229,10 @@ import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectPerpsProvider } from '../../selectors/perpsController';
+import {
+  selectPerpsOrderProvider,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
 import {
   postCopyTradeIntent,
   type CopyTradeOrigin,
@@ -305,6 +309,8 @@ interface OrderRouteParams {
   chartLibrary?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
+  /** Provider whose same-symbol position locks this order's margin mode. */
+  providerId?: PerpsProviderType;
   useBottomSheet?: boolean;
 }
 
@@ -384,6 +390,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
   const copyTradeOrigin = route.params?.copyTradeOrigin;
   const activePerpsProvider = useSelector(selectPerpsProvider);
+  const orderProvider = useSelector(selectPerpsOrderProvider);
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -696,8 +703,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
   // Check if user has an existing position for this market
-  const { existingPosition: currentMarketPosition } = useHasExistingPosition({
+  const {
+    existingPosition: currentMarketPosition,
+    isLoading: isCurrentPositionLoading,
+  } = useHasExistingPosition({
     asset: orderForm.asset || '',
+    // A route provider wins. Otherwise use the venue this order will go to,
+    // so the sheet and the order logic follow the position it will change.
+    providerId: route.params?.providerId ?? orderProvider ?? undefined,
     loadOnMount: true,
   });
 
@@ -2908,6 +2921,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 autoCloseText={tpSlDisplayText}
                 showAutoClose={!hideTPSL}
                 margin={marginDisplay}
+                marginMode={
+                  isCurrentPositionLoading
+                    ? undefined
+                    : isCrossMarginEnabled &&
+                        currentMarketPosition?.leverage?.type === 'cross'
+                      ? 'cross'
+                      : 'isolated'
+                }
                 liquidationPrice={tradeSheetLiquidationPrice}
                 liquidationDistance={tradeSheetLiquidationDistance}
                 amount={displayAmount}

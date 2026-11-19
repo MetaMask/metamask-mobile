@@ -395,6 +395,7 @@ jest.mock('../../app/core/Engine', () => {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
         setSelectedProviderForAsset: jest.fn().mockReturnValue(false),
+        selectProviderForAsset: jest.fn().mockReturnValue(null),
         setSelectedPaymentMethod: jest.fn(),
         setUserRegion: jest.fn().mockResolvedValue(null),
         // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
@@ -706,6 +707,7 @@ jest.mock('../../app/core/Engine', () => {
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
         saveOrderBookGrouping: jest.fn(),
+        saveMarginMode: jest.fn(),
         getWithdrawalRoutes: jest.fn(() => [
           {
             assetId: 'usdc-mainnet',

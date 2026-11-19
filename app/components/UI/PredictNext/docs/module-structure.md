@@ -38,6 +38,9 @@ PredictNext/
     usePredictPortfolioValue.ts
     internal/
       legacy/                  # usePredictPortfolio pass-through, unchanged
+  funding/
+    index.ts                   # resolvePredictFunding, the legacy deposit gate, usePredictNextDepositAvailable
+    deposit/                   # Kalshi deposit workflow: Funding Plan check, USDC transfer, executors
   homeSection/
     index.ts                   # Wallet Homepage Predictions section
     PredictHomeSection.tsx     # Legacy section, moved as-is to Predict/homeSection; next renders Positions or discovery
@@ -84,6 +87,9 @@ PredictNext/
   views/                       # Screen compositions and private view helpers
     PredictEvent/
       internal/                # Screen-owned detail helpers
+    PredictDeposit/
+      PredictDepositScreen.tsx # Kalshi deposit: amount, review, processing (PRED-1495)
+      internal/                # Deposit flow hook, USDC balance, open-deposit sheet, build environment
     PredictPortfolio/
       PredictPortfolioScreen.tsx
       internal/                # Summary, tabs, and empty-state composition

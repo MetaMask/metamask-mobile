@@ -3033,20 +3033,6 @@ export interface Patch {
 }
 
 /**
- * Geo rewards metadata containing location and support info
- */
-export interface GeoRewardsMetadata {
-  /**
-   * The geographic location string (e.g., 'US', 'CA-ON', 'FR')
-   */
-  geoLocation: string;
-  /**
-   * Whether the location is allowed for opt-in
-   */
-  optinAllowedForGeo: boolean;
-}
-
-/**
  * Response DTO for the client version requirements endpoint.
  */
 export interface ClientVersionRequirementDto {

@@ -9986,7 +9986,6 @@
     },
     "action": {
       "add": "Προσθήκη",
-      "transfer": "Αποστολή",
       "card": "Κάρτα",
       "details": "Λεπτομέρειες"
     },
@@ -10108,8 +10107,6 @@
       "contact_support": "Επικοινωνία με την υποστήριξη"
     },
     "transfer_sheet": {
-      "title": "Αποστολή χρημάτων προς",
-      "between_accounts": "Άλλος λογαριασμός",
       "perps_account": "Λογαριασμός Perps",
       "predictions_account": "Λογαριασμός προβλέψεων",
       "send_external": "Εξωτερική διεύθυνση",

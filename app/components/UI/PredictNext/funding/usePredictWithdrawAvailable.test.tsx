@@ -67,7 +67,6 @@ const renderWithdrawAvailable = ({
   jest.mocked(selectPredictAvailability).mockReturnValue(available);
   jest.mocked(useVenueCapabilities).mockReturnValue(capabilities);
   jest.mocked(selectPredictConfig).mockReturnValue({
-    kalshiDepositsEnabled: false,
     kalshiWithdrawalsEnabled,
   } as never);
 

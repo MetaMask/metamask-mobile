@@ -34,7 +34,11 @@
     // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
     // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
     /* Module Resolution Options */
-    "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
+    // Stays `node` (node10), which TypeScript 7 removes, so this config does not
+    // load on TypeScript 7. With `node16`, TypeScript 5.4 reports TS1479 or
+    // TS1470 in the nine CommonJS files here that import `.mjs` modules. The
+    // root tsconfig.json is the config that loads on TypeScript 7.
+    "moduleResolution": "node",
     "resolveJsonModule": true /* Allows importing JSON files */,
     // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
