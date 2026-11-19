@@ -77,7 +77,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       style={({ pressed }) =>
         tw.style(
           `relative w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl border border-muted overflow-hidden`,
-          pressed && onTraderPress ? 'bg-muted-pressed' : 'bg-muted',
+          pressed && onTraderPress ? 'bg-muted-pressed' : 'bg-transparent',
         )
       }
     >

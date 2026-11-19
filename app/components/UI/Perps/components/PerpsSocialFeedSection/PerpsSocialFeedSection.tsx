@@ -61,7 +61,7 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
           <FilterButton
             value="trending"
             startIconName={IconName.Trophy}
-            twClassName={tab !== 'trending' ? 'bg-muted' : undefined}
+            twClassName={tab !== 'trending' ? 'bg-muted border-0' : undefined}
             testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TRENDING_PILL}
           >
             {strings('perps.home.trending')}
@@ -69,7 +69,9 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
           <FilterButton
             value="top_traders"
             startIconName={IconName.People}
-            twClassName={tab !== 'top_traders' ? 'bg-muted' : undefined}
+            twClassName={
+              tab !== 'top_traders' ? 'bg-muted border-0' : undefined
+            }
             testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL}
           >
             {strings('perps.home.top_traders')}
