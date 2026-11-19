@@ -446,7 +446,7 @@ describe('persistConfig', () => {
       });
     });
 
-    it('backfills moneySplashSeen from moneyOnboardingSeen when absent', () => {
+    it('does not backfill moneySplashSeen from moneyOnboardingSeen', () => {
       const userTransform = persistConfig.transforms[0] as Transform<
         unknown,
         unknown
@@ -463,7 +463,7 @@ describe('persistConfig', () => {
       ).toEqual(
         expect.objectContaining({
           moneyOnboardingSeen: true,
-          moneySplashSeen: true,
+          moneySplashSeen: false,
         }),
       );
     });

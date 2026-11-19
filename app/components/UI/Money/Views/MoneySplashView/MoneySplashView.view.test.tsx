@@ -130,7 +130,6 @@ describeForPlatforms('MoneySplashView', () => {
   it('falls back to Money home when deposit setup fails', async () => {
     const { getByTestId, findByTestId } = renderMoneySplashView({
       hasVaultConfig: false,
-      onboardingSeen: true,
       params: {
         postOnboardingRedirect: {
           type: 'deposit',

@@ -15,7 +15,6 @@ import {
   passwordSet,
   setExistingUser,
   setIsConnectionRemoved,
-  setMoneyOnboardingSeen,
   setMoneySplashSeen,
 } from '../../actions/user';
 import {
@@ -1966,9 +1965,8 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(clearOnboarding());
-    // `moneyOnboardingSeen` lives in persisted user state and is not wiped by
-    // Engine rebuild — without this, Money splash is skipped after reset.
-    ReduxService.store.dispatch(setMoneyOnboardingSeen(false));
+    // The Money splash flag lives in persisted user state and is not wiped by
+    // the Engine rebuild, so without this the splash is skipped after a reset.
     ReduxService.store.dispatch(setMoneySplashSeen(false));
   };
 

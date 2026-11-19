@@ -5022,28 +5022,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyEnableOnboardingStepperAnimation: {
-    name: 'moneyEnableOnboardingStepperAnimation',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '8.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyEnableSplash: {
-    name: 'moneyEnableSplash',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '8.21.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   nativeTabBarEnabled: {
     name: 'nativeTabBarEnabled',
     type: FeatureFlagType.Remote,
