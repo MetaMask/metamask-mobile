@@ -305,7 +305,7 @@ describe('Membership', () => {
         toRegex(strings('pro_hub.membership.renews_on')),
       );
       expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex('Jul 19, 2027'),
+        toRegex('Jul 20, 2027'),
       );
     });
 

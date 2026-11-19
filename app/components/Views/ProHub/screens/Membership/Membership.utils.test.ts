@@ -72,7 +72,7 @@ describe('getMembershipDetails', () => {
       totalOriginal: '$119.88',
       savingsNote: '2 months on us',
       payingWith: 'VISA •••• 4242',
-      renewsOn: 'Jul 19, 2027',
+      renewsOn: 'Jul 20, 2027',
     });
   });
 
@@ -98,14 +98,18 @@ describe('getMembershipDetails', () => {
       },
     });
 
-    const result = getMembershipDetails(subscription, readyPricing);
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      new Date('2026-08-01T00:00:00.000Z'),
+    );
 
     expect(result.plan).toBe('Monthly');
     expect(result.total).toBe('$9.99');
     expect(result.totalOriginal).toBeUndefined();
     expect(result.savingsNote).toBeUndefined();
     expect(result.payingWith).toBe('Money account');
-    expect(result.renewsOn).toBe('Aug 19, 2026');
+    expect(result.renewsOn).toBe('Aug 20, 2026');
   });
 
   it('renews on the period end even when the subscription has a scheduled end date', () => {
@@ -115,7 +119,51 @@ describe('getMembershipDetails', () => {
 
     const result = getMembershipDetails(subscription, readyPricing);
 
-    expect(result.renewsOn).toBe('Jul 19, 2027');
+    expect(result.renewsOn).toBe('Jul 20, 2027');
+  });
+
+  it('shows the last day of access for a scheduled cancellation', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-12-05T00:00:00.000Z',
+    });
+
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      new Date('2026-10-07T00:00:00.000Z'),
+    );
+
+    expect(result.renewsOn).toBe('Dec 4, 2026');
+  });
+
+  it('shows the last day of access for a lapsed membership', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.pastDue,
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z',
+    });
+
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      new Date('2026-10-07T00:00:00.000Z'),
+    );
+
+    expect(result.renewsOn).toBe('May 31, 2026');
+  });
+
+  it('shows the charge day for an active renewal at midnight UTC', () => {
+    const subscription = createSubscription({
+      currentPeriodEnd: '2026-12-05T00:00:00.000Z',
+    });
+
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      new Date('2026-10-07T00:00:00.000Z'),
+    );
+
+    expect(result.renewsOn).toBe('Dec 5, 2026');
   });
 
   it('returns unavailable values when the subscription is absent', () => {

@@ -153,9 +153,11 @@ export interface FormatSubscriptionPeriodEndOptions {
   /** App language. Defaults to the current locale. */
   locale?: string;
   /**
-   * True when the timestamp is `currentPeriodEnd`, the exclusive start of the
-   * next period. A 30-day membership that starts on the 1st then displays the
-   * 30th. Fallback timestamps such as `canceledAt` leave this false.
+   * Defaults to true, which shows the last day of access. Use this for
+   * end-of-access wording ("Ends on", "Ended on", "Resume before"). Pass false
+   * for a renewal or reset, where `timestamp` is the charge day itself. A
+   * timestamp that is not a period end, such as `canceledAt`, should also pass
+   * false.
    */
   exclusivePeriodEnd?: boolean;
 }
@@ -163,13 +165,12 @@ export interface FormatSubscriptionPeriodEndOptions {
 /**
  * Formats a subscription date as one UTC calendar day.
  *
- * `currentPeriodEnd` is the exclusive renewal instant. Moving back one
- * millisecond keeps a midnight boundary on the previous UTC day, and keeps
- * a later time of day on that same day. Pro Hub and Membership both use this
- * so the same timestamp cannot render as two dates.
+ * `currentPeriodEnd` is the exclusive start of the next period. By default
+ * this moves back one millisecond, so it shows the last day of access. A
+ * renewal or reset must pass `exclusivePeriodEnd: false` to show the charge day.
  *
  * @param timestamp - ISO 8601 timestamp from the Plus subscription.
- * @param options - Locale and whether the timestamp is an exclusive period end.
+ * @param options - Locale and which day to show for the timestamp.
  * @returns e.g. `Jul 19, 2027` for `2027-07-20T00:00:00.000Z`, or `Jul 20, 2027` for `2027-07-20T12:00:00.000Z`. Undefined when missing or unparseable.
  */
 export const formatSubscriptionPeriodEnd = (

@@ -66,6 +66,16 @@ describe('formatSubscriptionPeriodEnd', () => {
     ).toBe('Sep 20, 2026');
   });
 
+  it('shows the charge day for a midnight UTC renewal when exclusivePeriodEnd is false', () => {
+    I18n.locale = 'en';
+
+    expect(
+      formatSubscriptionPeriodEnd('2027-07-20T00:00:00.000Z', {
+        exclusivePeriodEnd: false,
+      }),
+    ).toBe('Jul 20, 2027');
+  });
+
   it('returns undefined for a missing timestamp', () => {
     expect(formatSubscriptionPeriodEnd(undefined)).toBeUndefined();
   });
