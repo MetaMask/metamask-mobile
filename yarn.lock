@@ -10914,7 +10914,7 @@ __metadata:
 
 "@metamask/kyc-controller@patch:@metamask-previews/kyc-controller@npm%3A0.16.0-preview-9726c3b7f#~/.yarn/patches/@metamask-kyc-controller-npm-0.16.0-passthru.patch":
   version: 0.16.0-preview-9726c3b7f
-  resolution: "@metamask/kyc-controller@patch:@metamask-previews/kyc-controller@npm%3A0.16.0-preview-9726c3b7f#~/.yarn/patches/@metamask-kyc-controller-npm-0.16.0-passthru.patch::version=0.16.0-preview-9726c3b7f&hash=61c16f"
+  resolution: "@metamask/kyc-controller@patch:@metamask-previews/kyc-controller@npm%3A0.16.0-preview-9726c3b7f#~/.yarn/patches/@metamask-kyc-controller-npm-0.16.0-passthru.patch::version=0.16.0-preview-9726c3b7f&hash=27ca3d"
   dependencies:
     "@metamask/authenticated-user-storage": "npm:^4.2.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -10929,7 +10929,7 @@ __metadata:
     "@scure/base": "npm:^1.2.6"
     "@tanstack/query-core": "npm:^5.103.2"
     tweetnacl: "npm:^1.0.3"
-  checksum: 10/87560cc02876e7e08a79de825c15f83b4c97c36d0817505f99d597e4f26a353d56030cbdeb86c70b2452952e3266575f0779b96020a5ca1aeda0c28684e095d6
+  checksum: 10/999b4881f470e7f8cb2e11baa81703579c23337cc52e75270a9f94339c3395c82e61ee9926b4a0a12a1b37e6fd3f7d8c204ad0048584b72fc3083d8b2585f622
   languageName: node
   linkType: hard
 
