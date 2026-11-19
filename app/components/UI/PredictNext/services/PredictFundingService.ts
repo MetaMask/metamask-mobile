@@ -6,6 +6,7 @@ import { ensureError } from '../../../../util/errorUtils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
 import type { VenueFundingAdapter } from '../adapters/types';
+import { clearAllSessionDepositTransfers } from '../funding';
 import {
   portfolioQueries,
   portfolioQueryFamilies,
@@ -703,6 +704,7 @@ export class PredictFundingService {
     this.#statusByPreview.clear();
     this.#known.clear();
     this.#preparing.clear();
+    clearAllSessionDepositTransfers(this.#venueId);
   }
 
   /** Runtime composition registers the subscriptions it owns around this

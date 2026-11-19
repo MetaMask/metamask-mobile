@@ -10,7 +10,7 @@ const PREDICT_A2T_ISSUER_URL_BY_CLUSTER = {
   uat: 'https://authentication.uat-api.cx.metamask.io',
 } as const;
 
-type PredictCluster = keyof typeof PREDICT_API_URL_BY_CLUSTER;
+export type PredictCluster = keyof typeof PREDICT_API_URL_BY_CLUSTER;
 
 /**
  * Prod, and any value `getApiEnv` reads as prod, have no predict host yet,
@@ -45,7 +45,7 @@ const explicitUrl = (override: string | undefined): string | undefined => {
  * it verifies against. The raw value decides the local-development case,
  * because `getApiEnv` reads an unset variable as prod.
  */
-const predictCluster = ({
+export const resolvePredictCluster = ({
   rawApiEnv,
   apiEnv,
   isDevelopment,
@@ -69,7 +69,7 @@ export const resolvePredictApiUrl = (
   if (configured) {
     return configured;
   }
-  const cluster = predictCluster(reading);
+  const cluster = resolvePredictCluster(reading);
   return cluster ? PREDICT_API_URL_BY_CLUSTER[cluster] : undefined;
 };
 
@@ -86,7 +86,7 @@ export const resolvePredictDeviceAuthIssuerUrl = (
   if (configured) {
     return configured;
   }
-  const cluster = predictCluster(reading);
+  const cluster = resolvePredictCluster(reading);
   return cluster ? PREDICT_A2T_ISSUER_URL_BY_CLUSTER[cluster] : undefined;
 };
 
