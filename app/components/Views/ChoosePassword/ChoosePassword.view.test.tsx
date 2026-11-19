@@ -11,7 +11,11 @@
  * Run: yarn jest -c jest.config.view.js ChoosePassword.view.test.tsx --runInBand
  */
 import '../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  waitFor,
+  type RenderAPI,
+} from '@testing-library/react-native';
 import { AccessibilityInfo, InteractionManager, Platform } from 'react-native';
 import {
   describeForPlatforms,
@@ -19,14 +23,20 @@ import {
 } from '../../../../tests/component-view/platform';
 import {
   clearSeedlessAuthServerMocks,
+  getSeedlessAuthServerRequests,
   setupSeedlessAuthServerMocks,
 } from '../../../../tests/component-view/api-mocking/seedless-onboarding';
+import {
+  findTrackedEvent,
+  isMarketingSyncError,
+} from '../../../../tests/component-view/helpers/analytics';
 import { renderChoosePasswordForSocialLogin } from '../../../../tests/component-view/renderers/seedlessOnboarding';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import { strings } from '../../../../locales/i18n';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { Authentication } from '../../../core';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import Logger from '../../../util/Logger';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -51,6 +61,32 @@ function mockAuthenticationForSocialWalletCreation() {
   jest
     .spyOn(Authentication, 'newWalletAndKeychain')
     .mockResolvedValue(undefined);
+}
+
+async function fillValidPasswords(screen: Pick<RenderAPI, 'findByTestId'>) {
+  fireEvent.changeText(
+    await screen.findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    VALID_PASSWORD,
+  );
+  fireEvent.changeText(
+    await screen.findByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    ),
+    VALID_PASSWORD,
+  );
+}
+
+async function submitChoosePassword(
+  screen: Pick<RenderAPI, 'findByTestId' | 'getByTestId'>,
+) {
+  await waitFor(() => {
+    expect(
+      screen.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+    ).toBeEnabled();
+  });
+  fireEvent.press(
+    await screen.findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+  );
 }
 
 function mockAuthenticationGetType() {
@@ -426,38 +462,24 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     setupSeedlessAuthServerMocks({ marketingOptIn: true });
     mockAuthenticationForSocialWalletCreation();
 
-    const { findByTestId } = renderChoosePasswordForSocialLogin({
+    const screen = renderChoosePasswordForSocialLogin({
       routeParams: {
         oauthLoginSuccess: true,
         provider: AuthConnection.Google,
       },
     });
 
-    fireEvent.changeText(
-      await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
-      VALID_PASSWORD,
-    );
-    fireEvent.changeText(
-      await findByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
-      VALID_PASSWORD,
-    );
+    await fillValidPasswords(screen);
+    await submitChoosePassword(screen);
 
-    await waitFor(async () => {
-      expect(
-        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-      ).toBeEnabled();
-    });
-
-    fireEvent.press(
-      await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+    await screen.findByTestId(
+      `route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`,
     );
-
-    await findByTestId(`route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`);
   });
 
   it('keeps marketing consent off when the unchecked marketing checkbox sync fails during wallet creation', async () => {
-    // Desync setup from 8.18.1: the auth server still holds is_opt_in=true
-    // while the user opts out and the sync POST fails (HTTP 500).
+    // Desync setup: the server still holds is_opt_in=true while the sync
+    // POST fails with HTTP 500.
     setupSeedlessAuthServerMocks({
       marketingOptIn: true,
       marketingPostFails: true,
@@ -471,96 +493,77 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       .mockImplementation(() => Promise.resolve());
 
     try {
-      const { findByTestId, getByTestId, store } =
-        renderChoosePasswordForSocialLogin({
-          routeParams: {
-            oauthLoginSuccess: true,
-            provider: AuthConnection.Google,
-          },
-        });
+      const screen = renderChoosePasswordForSocialLogin({
+        routeParams: {
+          oauthLoginSuccess: true,
+          provider: AuthConnection.Google,
+        },
+      });
 
-      fireEvent.changeText(
-        await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
-        VALID_PASSWORD,
-      );
-      fireEvent.changeText(
-        await findByTestId(
-          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-        ),
-        VALID_PASSWORD,
-      );
+      await fillValidPasswords(screen);
 
       // The view-test env keeps the marketing checkbox unchecked
-      // (HAS_TEST_OVERRIDES). Toggle it on and off again so the submit runs
-      // with an explicit user opt-out, not just the unchecked default.
-      await findByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
+      // (HAS_TEST_OVERRIDES), so opt-out is an explicit on-then-off toggle.
+      await screen.findByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
       fireEvent.press(
-        getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
+        screen.getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
       );
       await waitFor(() => {
         expect(
-          getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID).props
-            .accessibilityState?.checked,
+          screen.getByTestId(
+            ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+          ).props.accessibilityState?.checked,
         ).toBe(true);
       });
       fireEvent.press(
-        getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
+        screen.getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
       );
       await waitFor(() => {
         expect(
-          getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID).props
-            .accessibilityState?.checked,
+          screen.getByTestId(
+            ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+          ).props.accessibilityState?.checked,
         ).toBe(false);
       });
 
-      await waitFor(() => {
-        expect(
-          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-        ).toBeEnabled();
-      });
-
-      fireEvent.press(
-        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-      );
+      await submitChoosePassword(screen);
 
       // The failed consent sync must not block wallet creation.
-      await findByTestId(`route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`);
+      await screen.findByTestId(
+        `route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`,
+      );
 
       // The opt-out lands in the local security preference despite the 500.
       await waitFor(() => {
-        expect(store.getState().security.dataCollectionForMarketing).toBe(
-          false,
-        );
+        expect(
+          screen.store.getState().security.dataCollectionForMarketing,
+        ).toBe(false);
       });
 
-      // The failed auth-server sync is reported but the choice is kept.
-      expect(
-        loggerErrorSpy.mock.calls.some(
-          ([error]) =>
-            error instanceof Error &&
-            error.message.includes('Failed to update marketing opt-in status'),
-        ),
-      ).toBe(true);
+      // Exactly one opt-out POST reached the auth server and nothing was read.
+      await waitFor(() => {
+        expect(getSeedlessAuthServerRequests()).toEqual([
+          { method: 'POST', body: { opt_in_status: false } },
+        ]);
+      });
 
-      // The opt-out reaches the identify traits and the preference event.
+      expect(loggerErrorSpy.mock.calls.some(isMarketingSyncError)).toBe(true);
+
       expect(identifySpy).toHaveBeenCalledWith(
         expect.objectContaining({
           [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
         }),
       );
-      const preferenceEvent = trackEventSpy.mock.calls
-        .map((call) => call[0] as unknown)
-        .find(
-          (event) =>
-            typeof event === 'object' &&
-            event !== null &&
-            'name' in event &&
-            (event as Record<string, unknown>).name ===
-              'Analytics Preference Selected',
-        ) as Record<string, unknown> | undefined;
-      expect(preferenceEvent).toMatchObject({
+      expect(
+        findTrackedEvent(
+          trackEventSpy,
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+        ),
+      ).toMatchObject({
         properties: expect.objectContaining({
-          has_marketing_consent: false,
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
           location: 'onboarding_choosePassword',
           account_type: 'metamask_google',
         }),

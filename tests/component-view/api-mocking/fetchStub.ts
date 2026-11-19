@@ -13,6 +13,14 @@
 interface FetchPathStub {
   body: unknown;
   status: number;
+  onRequest?: (request: { method: string; body: unknown }) => void;
+}
+
+export interface FetchPathStubOptions {
+  /** Scope the stub to one HTTP method; per-method stubs win over the method-agnostic entry for the same target. */
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  /** Observe the requests this stub answers (method + raw body). */
+  onRequest?: (request: { method: string; body: unknown }) => void;
 }
 
 const stubs = new Map<string, FetchPathStub>();
@@ -64,6 +72,7 @@ const ensureFetchSpy = (): void => {
       const stub =
         (key && (stubs.get(`${key}#${method}`) ?? stubs.get(key))) || undefined;
       if (stub) {
+        stub.onRequest?.({ method, body: init?.body });
         return Promise.resolve({
           ok: stub.status >= 200 && stub.status < 300,
           status: stub.status,
@@ -80,32 +89,35 @@ const ensureFetchSpy = (): void => {
  * Pass the same body you give to the nock `.reply` for that route.
  * A later call for the same target replaces the body.
  *
- * `method` scopes the stub to one HTTP method; per-method stubs win over the
- * method-agnostic entry for the same target. Without `method` the stub
- * answers every method.
+ * Without `options.method` the stub answers every method; with it, the stub
+ * only answers that method and wins over the method-agnostic entry.
  */
 export function stubFetchPath(
   origin: string,
   path: string,
   body: unknown,
   status = 200,
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  options?: FetchPathStubOptions,
 ): void {
-  stubs.set(stubKey(origin, path, method), { body, status });
+  stubs.set(stubKey(origin, path, options?.method), {
+    body,
+    status,
+    onRequest: options?.onRequest,
+  });
   ensureFetchSpy();
 }
 
 /**
  * Drop one path. When no paths remain, restore only the spy installed here.
- * With `method`, drop only that method's stub.
+ * With `options.method`, drop only that method's stub.
  */
 export function restoreFetchPath(
   origin: string,
   path: string,
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  options?: Pick<FetchPathStubOptions, 'method'>,
 ): void {
-  if (method) {
-    stubs.delete(stubKey(origin, path, method));
+  if (options?.method) {
+    stubs.delete(stubKey(origin, path, options.method));
   } else {
     const prefix = `${origin}${path}`;
     for (const key of Array.from(stubs.keys())) {

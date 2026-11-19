@@ -3,20 +3,10 @@
  * (MetaMetricsAndDataCollectionSection) of a social-login (seedless) user.
  *
  * Regression coverage for the 8.18.1 prod desync (MMQA-2604, GE-644, GE-647):
- * the local choice (`state.security.dataCollectionForMarketing`) is the source
- * of truth, the auth-server sync (`POST /api/v1/oauth/marketing_opt_in_status`)
- * is best-effort, and a failed sync never reverts or overwrites the local
- * decision — not even after the section remounts.
- *
- * The OAuthService marketing POST is exercised over the wire with nock +
- * the shared fetch stub (`marketingPostFails: true`), not a module mock.
- *
- * Note: the `marketingAttribution` saga (Redux preference →
- * AnalyticsController consent copy) is not mounted by the component-view
- * framework; the `AnalyticsController.optedInToMarketing` end state stays
- * covered by the saga unit tests. Here we assert the view-visible outcomes:
- * the local choice, the `has_marketing_consent` identify trait and the
- * tracked preference event.
+ * the local choice is the source of truth, the auth-server sync is
+ * best-effort, and a failed sync never reverts the local decision — the
+ * auth-server marketing endpoint is exercised over the wire (nock + shared
+ * fetch stub), not mocked at module level.
  *
  * Run: yarn jest -c jest.config.view.js MetaMetricsAndDataCollectionSection.view.test.tsx --runInBand
  */
@@ -24,19 +14,23 @@ import '../../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   clearSeedlessAuthServerMocks,
+  getSeedlessAuthServerRequests,
   setupSeedlessAuthServerMocks,
 } from '../../../../../../../tests/component-view/api-mocking/seedless-onboarding';
+import {
+  findTrackedEvent,
+  isMarketingSyncError,
+} from '../../../../../../../tests/component-view/helpers/analytics';
 import { renderSecuritySettingsMarketingSection } from '../../../../../../../tests/component-view/renderers/seedlessOnboarding';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { analytics } from '../../../../../../util/analytics/analytics';
 import Logger from '../../../../../../util/Logger';
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-
-const ANALYTICS_PREFERENCE_SELECTED = 'Analytics Preference Selected';
-/** Same auth-server copy the settings screen syncs to. */
-const MARKETING_SYNC_ERROR = 'Failed to update marketing opt-in status';
+import type { DeepPartial } from '../../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../../reducers';
 
 /**
  * The RN Switch host element differs per platform in the jest tree:
@@ -52,24 +46,8 @@ const renderedSwitchValue = (
   switchElement: SwitchHostElement,
 ): boolean | undefined => switchElement.props.value ?? switchElement.props.on;
 
-const isMarketingSyncError = (call: unknown[]): boolean => {
-  const [error] = call;
-  return error instanceof Error && error.message.includes(MARKETING_SYNC_ERROR);
-};
-
-const findTrackedEvent = (
-  trackEventSpy: jest.SpyInstance,
-  eventName: string,
-): Record<string, unknown> | undefined =>
-  trackEventSpy.mock.calls
-    .map((call) => call[0])
-    .find(
-      (event) =>
-        typeof event === 'object' &&
-        event !== null &&
-        'name' in event &&
-        (event as Record<string, unknown>).name === eventName,
-    ) as Record<string, unknown> | undefined;
+/** The local choice after the auth-server sync, as the wire saw it. */
+const ONE_OPT_OUT_POST = [{ method: 'POST', body: { opt_in_status: false } }];
 
 describeForPlatforms(
   'MetaMetricsAndDataCollectionSection — social login marketing consent',
@@ -94,19 +72,10 @@ describeForPlatforms(
       loggerErrorSpy.mockRestore();
     });
 
-    it('keeps marketing consent off after the auth-server sync fails, including after a remount', async () => {
-      // Desync setup from 8.18.1: the auth server still holds is_opt_in=true
-      // while the user opts out and the sync POST fails (HTTP 500).
-      setupSeedlessAuthServerMocks({
-        marketingOptIn: true,
-        marketingPostFails: true,
-      });
-      const { getByTestId, findByTestId, store, unmount } =
-        renderSecuritySettingsMarketingSection({
-          dataCollectionForMarketing: true,
-        });
-
-      const marketingSwitch = getByTestId(
+    const toggleMarketingOffAndExpectLocalOptOut = async (
+      screen: ReturnType<typeof renderSecuritySettingsMarketingSection>,
+    ) => {
+      const marketingSwitch = screen.getByTestId(
         SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
       );
       expect(renderedSwitchValue(marketingSwitch)).toBe(true);
@@ -114,24 +83,21 @@ describeForPlatforms(
       fireEvent(marketingSwitch, 'valueChange', false);
 
       await waitFor(() => {
-        expect(store.getState().security.dataCollectionForMarketing).toBe(
-          false,
-        );
+        expect(
+          screen.store.getState().security.dataCollectionForMarketing,
+        ).toBe(false);
       });
-
-      // The failed sync is reported but the local choice is kept.
       expect(renderedSwitchValue(marketingSwitch)).toBe(false);
-      expect(loggerErrorSpy.mock.calls.some(isMarketingSyncError)).toBe(true);
 
-      // The opt-out reaches the identify traits and the preference event.
       expect(identifySpy).toHaveBeenCalledWith({
         [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
       });
-      const preferenceEvent = findTrackedEvent(
-        trackEventSpy,
-        ANALYTICS_PREFERENCE_SELECTED,
-      );
-      expect(preferenceEvent).toMatchObject({
+      expect(
+        findTrackedEvent(
+          trackEventSpy,
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+        ),
+      ).toMatchObject({
         properties: expect.objectContaining({
           [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
           location: 'settings',
@@ -139,17 +105,34 @@ describeForPlatforms(
         }),
       });
 
-      // Turning marketing consent off also opens the confirmation sheet.
-      await findByTestId(`route-${Routes.MODAL.ROOT_MODAL_FLOW}`);
+      await screen.findByTestId(`route-${Routes.MODAL.ROOT_MODAL_FLOW}`);
+    };
 
-      // Relaunch: the section remounts with the persisted local choice and
-      // must not overwrite it with the auth server value (still is_opt_in=true).
-      const persistedMarketingConsent =
-        store.getState().security.dataCollectionForMarketing;
-      unmount();
+    it('keeps marketing consent off after the auth-server sync fails, including after a remount', async () => {
+      // Desync setup: the server still holds is_opt_in=true while the sync
+      // POST fails with HTTP 500.
+      setupSeedlessAuthServerMocks({
+        marketingOptIn: true,
+        marketingPostFails: true,
+      });
+      const screen = renderSecuritySettingsMarketingSection({
+        dataCollectionForMarketing: true,
+      });
+
+      await toggleMarketingOffAndExpectLocalOptOut(screen);
+
+      await waitFor(() => {
+        expect(loggerErrorSpy.mock.calls.some(isMarketingSyncError)).toBe(true);
+      });
+      expect(getSeedlessAuthServerRequests()).toEqual(ONE_OPT_OUT_POST);
+
+      // Relaunch: the section remounts on the restored local state and must
+      // not read the auth server (its stale is_opt_in=true) or re-sync.
+      const persistedState = screen.store.getState();
+      screen.unmount();
 
       const remounted = renderSecuritySettingsMarketingSection({
-        dataCollectionForMarketing: Boolean(persistedMarketingConsent),
+        overrides: persistedState as DeepPartial<RootState>,
       });
 
       await waitFor(() => {
@@ -164,48 +147,21 @@ describeForPlatforms(
       expect(
         remounted.store.getState().security.dataCollectionForMarketing,
       ).toBe(false);
+      expect(getSeedlessAuthServerRequests()).toEqual(ONE_OPT_OUT_POST);
     });
 
-    it('keeps marketing consent off and reports has_marketing_consent=false when the auth-server sync succeeds', async () => {
+    it('syncs the opt-out to the auth server without errors', async () => {
       setupSeedlessAuthServerMocks({ marketingOptIn: true });
-      const { getByTestId, findByTestId, store } =
-        renderSecuritySettingsMarketingSection({
-          dataCollectionForMarketing: true,
-        });
+      const screen = renderSecuritySettingsMarketingSection({
+        dataCollectionForMarketing: true,
+      });
 
-      const marketingSwitch = getByTestId(
-        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
-      );
-      expect(renderedSwitchValue(marketingSwitch)).toBe(true);
-
-      fireEvent(marketingSwitch, 'valueChange', false);
+      await toggleMarketingOffAndExpectLocalOptOut(screen);
 
       await waitFor(() => {
-        expect(store.getState().security.dataCollectionForMarketing).toBe(
-          false,
-        );
+        expect(getSeedlessAuthServerRequests()).toEqual(ONE_OPT_OUT_POST);
       });
-
-      // The opt-out still opens the confirmation sheet and is synced to the
-      // auth server without errors.
-      await findByTestId(`route-${Routes.MODAL.ROOT_MODAL_FLOW}`);
-      expect(renderedSwitchValue(marketingSwitch)).toBe(false);
       expect(loggerErrorSpy.mock.calls.some(isMarketingSyncError)).toBe(false);
-
-      expect(identifySpy).toHaveBeenCalledWith({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
-      });
-      const preferenceEvent = findTrackedEvent(
-        trackEventSpy,
-        ANALYTICS_PREFERENCE_SELECTED,
-      );
-      expect(preferenceEvent).toMatchObject({
-        properties: expect.objectContaining({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
-          location: 'settings',
-          updated_after_onboarding: true,
-        }),
-      });
     });
   },
 );
