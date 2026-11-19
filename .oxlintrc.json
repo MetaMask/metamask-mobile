@@ -75,6 +75,7 @@
         "typescript/no-unnecessary-boolean-literal-compare": "error",
         "typescript/only-throw-error": "error",
         "typescript/prefer-includes": "error",
+        "typescript/prefer-nullish-coalescing": "error",
         "typescript/prefer-optional-chain": "error",
         "typescript/prefer-promise-reject-errors": [
           "error",
