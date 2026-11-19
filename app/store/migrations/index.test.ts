@@ -1,4 +1,9 @@
-import { migrationList, asyncifyMigrations, MigrationsList } from './';
+import {
+  migrationList,
+  asyncifyMigrations,
+  MigrationsList,
+  REMOVED_CONTROLLER_NAMES,
+} from './';
 import {
   MigrationManifest,
   PersistedState,
@@ -21,6 +26,7 @@ jest.mock('../persistConfig', () => ({
   ControllerStorage: {
     getAllPersistedState: jest.fn(),
     setItem: jest.fn(),
+    removeItem: jest.fn(),
   },
 }));
 
@@ -211,6 +217,99 @@ describe('Critical Error Handling', () => {
 
       expect((result as Record<string, unknown>).test).toEqual('passed');
       expect(mockedCaptureException).not.toHaveBeenCalled();
+    });
+
+    it('loads the persisted files of removed controllers', async () => {
+      const testMigrationList = {
+        108: (state: unknown) => state,
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      await asyncMigrations['108'](initialState);
+
+      expect(mockedControllerStorage.getAllPersistedState).toHaveBeenCalledWith(
+        REMOVED_CONTROLLER_NAMES,
+      );
+    });
+  });
+
+  describe('removed controller file cleanup', () => {
+    it('removes the files of removed controllers dropped by the migrations after deflation', async () => {
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: {
+          TokensController: { allTokens: {} },
+          AssetsController: { assetsInfo: {} },
+        },
+      });
+      const testMigrationList = {
+        108: (state: unknown) => {
+          const { TokensController: _removed, ...backgroundState } = (
+            state as { engine: { backgroundState: Record<string, unknown> } }
+          ).engine.backgroundState;
+          return { ...(state as object), engine: { backgroundState } };
+        },
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      await asyncMigrations['108'](initialState);
+
+      expect(mockedControllerStorage.setItem).toHaveBeenCalledWith(
+        'persist:AssetsController',
+        JSON.stringify({ assetsInfo: {} }),
+      );
+      expect(mockedControllerStorage.removeItem).toHaveBeenCalledWith(
+        'persist:TokensController',
+      );
+      expect(mockedControllerStorage.removeItem).not.toHaveBeenCalledWith(
+        'persist:AssetsController',
+      );
+    });
+
+    it('keeps the file of a removed controller whose state is still present', async () => {
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: {
+          TokensController: { allTokens: {} },
+        },
+      });
+      const testMigrationList = {
+        108: (state: unknown) => state,
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      await asyncMigrations['108'](initialState);
+
+      expect(mockedControllerStorage.setItem).toHaveBeenCalledWith(
+        'persist:TokensController',
+        JSON.stringify({ allTokens: {} }),
+      );
+      expect(mockedControllerStorage.removeItem).not.toHaveBeenCalledWith(
+        'persist:TokensController',
+      );
+    });
+
+    it('does not remove any file when deflation fails', async () => {
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: {
+          TokensController: { allTokens: {} },
+          AssetsController: { assetsInfo: {} },
+        },
+      });
+      mockedControllerStorage.setItem.mockRejectedValue(new Error('Disk full'));
+      const testMigrationList = {
+        108: (state: unknown) => {
+          const { TokensController: _removed, ...backgroundState } = (
+            state as { engine: { backgroundState: Record<string, unknown> } }
+          ).engine.backgroundState;
+          return { ...(state as object), engine: { backgroundState } };
+        },
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      await expect(asyncMigrations['108'](initialState)).rejects.toThrow(
+        'Disk full',
+      );
+
+      expect(mockedControllerStorage.removeItem).not.toHaveBeenCalled();
     });
   });
 
