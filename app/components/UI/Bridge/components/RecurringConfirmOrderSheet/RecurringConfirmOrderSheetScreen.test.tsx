@@ -31,6 +31,7 @@ import { OrderType } from '../../types/advancedOrders';
 import { useCreateRecurringOrder } from '../../hooks/useCreateRecurringOrder';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { getRecurringOrderDelegationParams } from '../../utils/recurringOrders/getRecurringOrderDelegationParams';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import {
   finishRecurringOrderTrace,
   startRecurringOrderCreateTrace,
@@ -144,6 +145,10 @@ jest.mock(
     getRecurringOrderDelegationParams: jest.fn(),
   }),
 );
+
+jest.mock('../../utils/showGenericErrorToast', () => ({
+  showGenericErrorToast: jest.fn(),
+}));
 
 jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
   showRecurringAutoUpgradeError: jest.fn(),
@@ -594,6 +599,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     await waitFor(() => {
       expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
     });
+    expect(showGenericErrorToast).not.toHaveBeenCalled();
     expect(mockCreateRecurringOrder).not.toHaveBeenCalled();
     expect(showRecurringOrderCreatedToast).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -647,9 +653,24 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     });
   });
 
+  it('shows a generic error when order submission fails', async () => {
+    mockCreateRecurringOrder.mockRejectedValue(
+      new Error('Order submission failed'),
+    );
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
+    });
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
   it('preserves recurring inputs when order submission fails', async () => {
-    const error = new Error('Order submission failed');
-    mockCreateRecurringOrder.mockRejectedValue(error);
+    mockCreateRecurringOrder.mockRejectedValue(
+      new Error('Order submission failed'),
+    );
     const { getByTestId, store } = renderScreen({
       recurring: configuredRecurringState,
       sourceAmount: '1',
@@ -658,7 +679,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('confirm-order'));
 
     await waitFor(() => {
-      expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
+      expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
     });
     expect(store.getState().bridge.recurring).toEqual(configuredRecurringState);
     expect(store.getState().bridge.sourceAmount).toBe('1');
@@ -753,7 +774,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       fireEvent.press(getByTestId('confirm-order'));
 
       await waitFor(() => {
-        expect(showRecurringAutoUpgradeError).toHaveBeenCalledTimes(1);
+        expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
       });
       expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
         ...EXPECTED_TOKEN_PROPERTIES,

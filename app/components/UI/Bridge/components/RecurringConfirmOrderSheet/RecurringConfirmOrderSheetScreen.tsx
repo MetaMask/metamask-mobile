@@ -45,6 +45,7 @@ import {
   getAdvancedOrderTokenProperties,
   getAdvancedOrderTradeProperties,
 } from '../../utils/advancedOrders';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import {
   finishRecurringOrderTrace,
@@ -164,6 +165,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
           : undefined;
 
       failurePhase = 'create';
+      throw new Error('Order submission failed');
       await createRecurringOrder({
         accountAddress: delegationParams.accountAddress,
         clientOrderId: preparedDelegations.order.clientOrderId,
@@ -202,7 +204,13 @@ export const RecurringConfirmOrderSheetScreen = () => {
         result: 'error',
         failurePhase,
       });
-      showRecurringAutoUpgradeError(error);
+      // Close bottom sheet so user can see the toast
+      navigation.goBack();
+      if (failurePhase === 'create') {
+        showGenericErrorToast();
+      } else {
+        showRecurringAutoUpgradeError(error);
+      }
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
           .addProperties({
