@@ -16,7 +16,8 @@ describe('deriveKalshiScreen', () => {
   it.each([
     ['vendor_terms', 'terms'],
     ['confirm_identity', 'confirm'],
-    ['identity_email_code', 'email_code'],
+    ['account_link', 'email_code'],
+    ['phone_link', 'phone'],
     ['identity_provider', 'sumsub'],
     ['error', 'error'],
   ] as const)('maps %s to the %s screen', (step, expected) => {
@@ -27,12 +28,6 @@ describe('deriveKalshiScreen', () => {
     for (const step of KYC_STEPS) {
       expect(deriveKalshiScreen(step, 'none', context)).not.toBe('loading');
     }
-  });
-
-  it('treats the removed account link step as an error', () => {
-    expect(deriveKalshiScreen('account_link' as never, 'none', context)).toBe(
-      'error',
-    );
   });
 
   describe('confirm_identity', () => {
@@ -52,10 +47,10 @@ describe('deriveKalshiScreen', () => {
     });
   });
 
-  describe('identity_email_code', () => {
+  describe('account_link', () => {
     it('goes back to the email so a mistyped address can be signed again', () => {
       expect(
-        deriveKalshiScreen('identity_email_code', 'none', {
+        deriveKalshiScreen('account_link', 'none', {
           ...context,
           editingEmail: true,
         }),
@@ -63,16 +58,14 @@ describe('deriveKalshiScreen', () => {
     });
   });
 
-  describe('identity_phone', () => {
+  describe('phone_link', () => {
     it('asks for the number first', () => {
-      expect(deriveKalshiScreen('identity_phone', 'none', context)).toBe(
-        'phone',
-      );
+      expect(deriveKalshiScreen('phone_link', 'none', context)).toBe('phone');
     });
 
     it('then for the code, on the same step, once it was sent', () => {
       expect(
-        deriveKalshiScreen('identity_phone', 'none', {
+        deriveKalshiScreen('phone_link', 'none', {
           ...context,
           phoneCodeSent: true,
         }),

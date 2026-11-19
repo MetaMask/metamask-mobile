@@ -645,7 +645,7 @@ diff --git a/dist/types.d.ts b/dist/types.d.ts
 index e3a6de6d24f..c0d6e0cc115 100644
 --- a/dist/types.d.ts
 +++ b/dist/types.d.ts
-@@ -306,16 +306,53 @@ export type KycSessionDisclaimers = {
+@@ -306,16 +306,56 @@ export type KycSessionDisclaimers = {
   */
  export type OnboardingVendor = 'iron' | 'kalshi';
  /**
@@ -698,11 +698,14 @@ index e3a6de6d24f..c0d6e0cc115 100644
 + * The steps kyc-api can send for a vendor. The client maps each step to a
 + * screen it already has; kyc-api never sends copy or layout.
 + *
-+ * Kalshi's email link is not a step. The phone signs it into session
-+ * creation and the email-code calls, and the relay forwards those to Kalshi.
++ * Kalshi sends `account_link` for the email and its code, and `phone_link`
++ * for the phone and its code. Each is one step and two screens, and the
++ * phone owns the second screen. Signing `users/link` and `users/link/verify`
++ * stays on those email screens. Iron still sends `identity_email_code` and
++ * `identity_phone`.
   */
 -'account_link', 'confirm_identity', 'identity_email_code', 'identity_phone', 'identity_provider', 
-+export declare const KYC_STEPS: readonly ['vendor_terms', 'confirm_identity', 'identity_email_code', 'identity_phone', 'identity_provider', 
++export declare const KYC_STEPS: readonly ['vendor_terms', 'confirm_identity', 'account_link', 'phone_link', 'identity_email_code', 'identity_phone', 'identity_provider', 
  /** Nothing left for the user to do. {@link KycStatus} says whether that is
   * good news. */
  'done', 'error'];
@@ -719,11 +722,10 @@ diff --git a/dist/types.js b/dist/types.js
 index 7c61b74d96d..4838ef13a9d 100644
 --- a/dist/types.js
 +++ b/dist/types.js
-@@ -123,18 +123,26 @@ export function needsCapabilityAuthorizationRefresh(sessionStatus) {
-     return (sessionStatus.capabilityAuthorizationStatus !== undefined &&
+@@ -124,18 +124,31 @@
          CAPABILITY_AUTHORIZATION_STATUSES_TO_REFRESH.has(sessionStatus.capabilityAuthorizationStatus));
  }
-+/**
+ /**
 + * Kalshi calls the phone signs and kyc-api forwards to the relay.
 + *
 + * Relay checks the signature and sends the call to Kalshi unchanged. The
@@ -734,12 +736,15 @@ index 7c61b74d96d..4838ef13a9d 100644
 +    'users/link',
 +    'users/link/verify',
 +];
- /**
++/**
   * The steps kyc-api can send for a vendor. The client maps each step to a
   * screen it already has; kyc-api never sends copy or layout.
 + *
-+ * Kalshi's email link is not a step. The phone signs it into session
-+ * creation and the email-code calls, and the relay forwards those to Kalshi.
++ * Kalshi sends `account_link` for the email and its code, and `phone_link`
++ * for the phone and its code. Each is one step and two screens, and the
++ * phone owns the second screen. Signing `users/link` and `users/link/verify`
++ * stays on those email screens. Iron still sends `identity_email_code` and
++ * `identity_phone`.
   */
  export const KYC_STEPS = [
      'vendor_terms',
@@ -750,8 +755,11 @@ index 7c61b74d96d..4838ef13a9d 100644
 -     */
 -    'account_link',
      'confirm_identity',
++    'account_link',
++    'phone_link',
      'identity_email_code',
      'identity_phone',
+     'identity_provider',
 diff --git a/dist/types.js.map b/dist/types.js.map
 index c8b7dcb27e9..f187018b82a 100644
 --- a/dist/types.js.map

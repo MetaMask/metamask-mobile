@@ -21,9 +21,11 @@ export type KalshiScreen =
 /**
  * What the phone knows beyond the step.
  *
- * MetaMask MFA and the Kalshi email both happen before the session exists,
- * on `confirm_identity`. Changing the email happens on the code step. Only
- * the phone knows which of those screens is showing.
+ * MetaMask MFA and the first Kalshi email both happen before the session
+ * exists, on `confirm_identity`. `account_link` is the email code, and the
+ * way back to correct the address. `phone_link` is the phone number and,
+ * once it has been sent, its code. Only the phone knows which of those
+ * screens is showing.
  */
 export interface KalshiScreenContext {
   /** MetaMask MFA finished, so the email field is showing. */
@@ -56,9 +58,9 @@ export function deriveKalshiScreen(
       return 'terms';
     case 'confirm_identity':
       return context.emailEntry ? 'email' : 'confirm';
-    case 'identity_email_code':
+    case 'account_link':
       return context.editingEmail ? 'email' : 'email_code';
-    case 'identity_phone':
+    case 'phone_link':
       return context.phoneCodeSent ? 'phone_code' : 'phone';
     case 'identity_provider':
       // A retry is the same screen as the first attempt; the status is what

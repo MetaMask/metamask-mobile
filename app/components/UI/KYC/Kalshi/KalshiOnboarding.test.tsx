@@ -259,7 +259,7 @@ describe('KalshiOnboarding', () => {
 
   describe('identity verification', () => {
     it('asks for the email code idOS is waiting for', async () => {
-      const screen = render('identity_email_code');
+      const screen = render('account_link');
       expect(await screen.findByText('Check your email')).toBeOnTheScreen();
       typeInto(screen, ' 123456 ');
 
@@ -274,7 +274,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('signs a corrected email into a new link on the same session', async () => {
-      const screen = render('identity_email_code');
+      const screen = render('account_link');
       await screen.findByText('Check your email');
 
       fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
@@ -295,7 +295,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('asks for the phone, then its code', async () => {
-      const screen = render('identity_phone');
+      const screen = render('phone_link');
       expect(await screen.findByText('Your phone')).toBeOnTheScreen();
       typeInto(screen, '+18888888888');
 
@@ -317,7 +317,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('goes back to the phone field to use another number', async () => {
-      const screen = render('identity_phone');
+      const screen = render('phone_link');
       await screen.findByText('Your phone');
       typeInto(screen, '+18888888888');
       fireEvent.press(primary(screen));
