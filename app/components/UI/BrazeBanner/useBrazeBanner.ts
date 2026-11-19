@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Braze, { Banner } from '@braze/react-native-sdk';
+import {
+  addListener,
+  Banner,
+  BannerCardsUpdatedEvent,
+  Events,
+} from '@braze/react-native-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { dismissBrazeBanner, getBannerForPlacement } from '../../../core/Braze';
 import Logger from '../../../util/Logger';
@@ -61,7 +66,7 @@ function logBrazeBannerDebug(
   placementId: string,
   banner: Banner | null,
   extra: Record<string, unknown> = {},
-) {
+): void {
   if (isProduction()) return;
 
   Logger.log(`[BrazeBanner] ${message}`, {
@@ -243,9 +248,9 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       handleBanner(result, 'warm-cache');
     });
 
-    const subscription = Braze.addListener(
-      'bannerCardsUpdated',
-      (event: { banners: Banner[] }) => {
+    const subscription = addListener(
+      Events.BANNER_CARDS_UPDATED,
+      (event: BannerCardsUpdatedEvent) => {
         if (dismissedRef.current) return;
 
         const match = event.banners.find(
@@ -283,7 +288,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       }
     }, SKELETON_TIMEOUT_MS);
 
-    return () => {
+    return (): void => {
       subscription.remove();
       clearNoResponseTimeout();
 
