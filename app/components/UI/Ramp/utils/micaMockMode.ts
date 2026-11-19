@@ -6,7 +6,7 @@
 import type {
   TransakAdditionalRequirementsResponse,
   TransakSourceOfIncomeFormMetadata,
-} from '../types/micaTypes';
+} from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 
 const MICA_MOCK_MODE_ENABLED =

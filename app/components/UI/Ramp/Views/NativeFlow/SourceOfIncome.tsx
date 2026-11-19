@@ -33,7 +33,7 @@ import {
   mockSubmitSourceOfIncome,
 } from '../../utils/micaMockMode';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import type { TransakSourceOfIncomeFormMetadata } from '../../types/micaTypes';
+import type { TransakSourceOfIncomeFormMetadata } from '@metamask/ramps-controller';
 import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import styleSheet from './SourceOfIncome.styles';
