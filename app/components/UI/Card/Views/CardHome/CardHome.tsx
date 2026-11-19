@@ -1033,8 +1033,11 @@ const CardHome = () => {
               />
             )}
 
-            {/* Card art sits on the page at full content width (no panel). */}
-            <Box twClassName="mt-4 mx-4">
+            {/* Card art sits on the page at full content width (no panel).
+                Stacked above the content below so the freeze animation's
+                drips fall over the action buttons; the animation overlay
+                itself ignores touches (pointerEvents="none"). */}
+            <Box twClassName="mt-4 mx-4 z-20">
               <Animated.View
                 style={[tw.style('w-full relative'), arrival.cardStyle]}
               >
@@ -1128,7 +1131,6 @@ const CardHome = () => {
               )}
 
             {isAuthenticated && (
-              <Box twClassName="z-10">
                 <CardHomeActionButtonRow
                   isGlass={isGlassSurface}
                   isTightTop={
@@ -1175,11 +1177,9 @@ const CardHome = () => {
                       : undefined
                   }
                 />
-              </Box>
             )}
-
             {showHomeSegments && (
-              <Box twClassName="px-4 mt-4 mb-4 z-10">
+              <Box twClassName="px-4 mt-4 mb-4">
                 <SegmentedControl
                   value={activeHomeSegment}
                   onChange={(value) =>
