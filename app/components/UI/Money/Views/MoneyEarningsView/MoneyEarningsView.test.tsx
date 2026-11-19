@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import type { TabItem } from '../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import MoneyEarningsView from './MoneyEarningsView';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
@@ -165,7 +164,7 @@ describe('MoneyEarningsView', () => {
   it('lazily mounts and retains the visited Earnings panel', () => {
     const { getByTestId, rerender } = renderWithProvider(<MoneyEarningsView />);
 
-    const panel = getByTestId(MoneyEarningsTestIds.EARNINGS_PANEL);
+    const panel = getByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
 
     expect(panel).toBeOnTheScreen();
     expect(StyleSheet.flatten(panel.props.style)).toMatchObject({
@@ -181,7 +180,7 @@ describe('MoneyEarningsView', () => {
 
     rerender(<MoneyEarningsView />);
 
-    expect(getByTestId(MoneyEarningsTestIds.EARNINGS_PANEL)).toBe(panel);
+    expect(getByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL)).toBe(panel);
     expect(mockEarningsTab).toHaveBeenLastCalledWith({ isActive: true });
   });
 
