@@ -589,7 +589,6 @@ export const createMfaFlow = ({
     await advance();
   }
 
-  // A declaration, as it and `advance` call each other.
   async function startPasskeyOrPicker(
     purpose: Exclude<MfaPurpose, 'setup'>,
     options: MfaMethod[],
