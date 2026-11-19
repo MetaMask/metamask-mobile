@@ -50,8 +50,21 @@ export const selectAssetsHaveLoadedForSelectedAccountGroup = createSelector(
       ),
     );
 
-    const initialLoadHasSettled =
-      statuses.length > 0 && statuses.every((status) => status === 'loaded');
+    // `#start()` can return early with no accounts/chains and never write a
+    // status. Treat an empty group as settled so home does not stay on
+    // skeletons for the whole session.
+    if (statuses.length === 0) {
+      const wallets = accountTreeState.accountTree?.wallets ?? {};
+      const groupHasAccounts = Object.values(wallets).some((wallet) => {
+        const group = wallet?.groups?.[selectedGroupId];
+        return Boolean(group?.accounts?.length);
+      });
+      return !groupHasAccounts;
+    }
+
+    const initialLoadHasSettled = statuses.every(
+      (status) => status === 'loaded',
+    );
     const backgroundLoadIsRunning =
       getIsAssetsBackgroundLoadingForSelectedAccountGroup(
         {
@@ -61,6 +74,9 @@ export const selectAssetsHaveLoadedForSelectedAccountGroup = createSelector(
         accountTreeState,
       );
 
+    // Soft-gating in Tokens / balance UI shows real rows during background
+    // work; the selector still waits on background so empty/placeholder
+    // wallets do not flash zero-value funding prompts too early.
     return initialLoadHasSettled && !backgroundLoadIsRunning;
   },
 );

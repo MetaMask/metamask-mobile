@@ -234,10 +234,26 @@ describe('selectAssetsHaveLoadedForSelectedAccountGroup', () => {
       },
     }) as unknown as RootState;
 
-  it('returns false when the initial load has not started', () => {
+  it('returns false when the initial load has not started for a group with accounts', () => {
     expect(
       selectAssetsHaveLoadedForSelectedAccountGroup(buildRootState({})),
     ).toBe(false);
+  });
+
+  it('returns true when the selected group has no accounts and no status was written', () => {
+    const state = buildRootState({});
+    (
+      state.engine.backgroundState.AccountTreeController as {
+        accountTree: {
+          wallets: Record<
+            string,
+            { groups: Record<string, { accounts: string[] }> }
+          >;
+        };
+      }
+    ).accountTree.wallets['keyring:wallet-1'].groups[groupId].accounts = [];
+
+    expect(selectAssetsHaveLoadedForSelectedAccountGroup(state)).toBe(true);
   });
 
   it('returns false while the account tree is still syncing', () => {

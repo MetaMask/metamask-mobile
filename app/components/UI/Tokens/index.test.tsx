@@ -133,6 +133,23 @@ const arrangeMockSelectors = () => {
       { address: '0xToken3', chainId: '0x3', isStaked: false },
     ]);
 
+  // Soft-gate reads balances from this map; seed non-zero rows so unsettled
+  // loads still render the list in these unit tests.
+  jest
+    .spyOn(AssetsListSelectorsModule, 'selectAssetsBySelectedAccountGroup')
+    .mockImplementation(() => ({
+      '0x1': [
+        {
+          assetId: '0xToken1',
+          address: '0xToken1',
+          chainId: '0x1',
+          isNative: false,
+          balance: '1',
+          fiat: { balance: 10 },
+        },
+      ],
+    }));
+
   return {
     mockSelectSortedAssetsBySelectedAccountGroup,
   };
@@ -206,6 +223,9 @@ describe('Tokens', () => {
 
   it('displays loading skeleton', async () => {
     mockUseAssetsHaveLoaded.mockReturnValue(false);
+    jest
+      .spyOn(AssetsListSelectorsModule, 'selectAssetsBySelectedAccountGroup')
+      .mockImplementation(() => ({}));
 
     const { getByTestId } = renderComponent();
 

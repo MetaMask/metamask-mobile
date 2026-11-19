@@ -28,7 +28,10 @@ import {
 import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import {
+  selectAssetsBySelectedAccountGroup,
+  selectSortedAssetsBySelectedAccountGroup,
+} from '../../../selectors/assets/assets-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { useRefreshTokens } from './hooks/useRefreshTokens';
@@ -41,6 +44,7 @@ import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
 import { useAssetsHaveLoaded } from '../Assets/hooks/useAssetsHaveLoaded';
+import { shouldShowAssetsLoadingSkeleton } from '../Assets/utils/shouldShowAssetsLoadingSkeleton';
 
 // Same delay as the Explore search, so typing does not re-filter on every key.
 const SEARCH_DEBOUNCE_MS = 200;
@@ -166,12 +170,18 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     );
 
     const assetsHaveLoaded = useAssetsHaveLoaded();
+    const assetsByChain = useSelector(selectAssetsBySelectedAccountGroup);
     const hasTrackedScreenViewRef = useRef(false);
 
     // Memoize selector computation for better performance
     const sortedTokenKeys = useSelector(
       selectSortedAssetsBySelectedAccountGroup,
     );
+    const isTokenListLoading = shouldShowAssetsLoadingSkeleton({
+      assetsHaveLoaded,
+      assetsByChain,
+      musdOnly: showOnlyMusd,
+    });
 
     // When showOnlyMusd: only mUSD. Otherwise, exclude mUSD while it is surfaced
     // in the Money hub.
@@ -290,7 +300,19 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
-      if (!assetsHaveLoaded || isDebouncing) {
+      // Soft-gate like extension: unsettled loads with real balances skip the
+      // skeleton. When there is still nothing to show, always render a skeleton
+      // (including Cash's hideLoadingSkeleton path) so the list does not go
+      // blank after CashTokensFullView drops its one-tick placeholder.
+      if (isTokenListLoading) {
+        return (
+          <Box twClassName={isFullView ? 'px-4' : undefined}>
+            <TokenListSkeleton />
+          </Box>
+        );
+      }
+
+      if (isDebouncing) {
         if (hideLoadingSkeleton) {
           return null;
         }
@@ -350,7 +372,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         />
       );
     }, [
-      assetsHaveLoaded,
+      isTokenListLoading,
       isDebouncing,
       hideLoadingSkeleton,
       isFullView,

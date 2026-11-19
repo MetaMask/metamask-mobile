@@ -41,6 +41,7 @@ jest.mock('../../../../UI/Assets/hooks/useAssetsHaveLoaded', () => ({
 }));
 
 const mockSortedTokenKeys = jest.fn();
+const mockAssetsByChain = jest.fn();
 const mockAccountGroupBalance = jest.fn();
 
 let mockPopularNetworks: string[] = [];
@@ -57,6 +58,8 @@ jest.mock('../../../../../selectors/assets/assets-list', () => ({
   makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance:
     (chainIds: string[]) => (state: unknown) =>
       mockSortedTokenKeys(state, chainIds),
+  selectAssetsBySelectedAccountGroup: (state: unknown) =>
+    mockAssetsByChain(state),
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
@@ -356,6 +359,7 @@ describe('TokensSection', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockUseAssetsHaveLoaded.mockReturnValue(true);
     mockSortedTokenKeys.mockReturnValue([]);
+    mockAssetsByChain.mockReturnValue({});
     mockPopularNetworks = ['eip155:1', '0xa'];
     // Default null: balance selectors not yet initialized (cold start).
     // Prevents the heuristic from firing in tests that don't set up balance data.
@@ -386,6 +390,7 @@ describe('TokensSection', () => {
   it('only notifies Homepage after primary content becomes ready', () => {
     const onContentReadyChange = jest.fn();
     mockUseAssetsHaveLoaded.mockReturnValue(false);
+    mockAssetsByChain.mockReturnValue({});
 
     const { rerender } = renderWithProvider(
       <TokensSection
@@ -401,6 +406,39 @@ describe('TokensSection', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
     rerender(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).toHaveBeenCalledWith(true);
+  });
+
+  it('notifies Homepage when unsettled assets already include a real balance', () => {
+    const onContentReadyChange = jest.fn();
+    mockUseAssetsHaveLoaded.mockReturnValue(false);
+    mockAssetsByChain.mockReturnValue({
+      'eip155:1': [
+        {
+          assetId: 'eip155:1/slip44:60',
+          chainId: 'eip155:1',
+          isNative: true,
+          balance: '1',
+          fiat: { balance: 3000 },
+        },
+      ],
+    });
+    mockSortedTokenKeys.mockReturnValue([
+      {
+        address: 'eip155:1/slip44:60',
+        chainId: 'eip155:1',
+        isStaked: false,
+      },
+    ]);
+
+    renderWithProvider(
       <TokensSection
         sectionIndex={0}
         totalSectionsLoaded={1}
