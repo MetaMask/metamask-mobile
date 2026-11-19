@@ -15,6 +15,7 @@ import {
   ButtonSize,
   ButtonVariant,
   HelpText,
+  IconName,
   Spinner,
   Text,
   TextVariant,
@@ -316,6 +317,24 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
         ) : null}
         {codeResent && !error ? (
           <HelpText>{strings('mfa.otp.resent')}</HelpText>
+        ) : null}
+        {/* Authenticator app codes are copied from another app; email codes
+            come from the keyboard's suggestion or a long press. */}
+        {isTotp && codeSent && !isVerifying ? (
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Md}
+            startIconName={IconName.Clipboard}
+            isDisabled={busy}
+            onPress={() => {
+              // An unreadable clipboard leaves the boxes as they are.
+              paste().catch(() => undefined);
+            }}
+            twClassName="self-end"
+            testID={MfaFlowSelectorsIDs.PASTE_BUTTON}
+          >
+            {strings('mfa.otp.paste')}
+          </Button>
         ) : null}
       </Box>
     </StepLayout>

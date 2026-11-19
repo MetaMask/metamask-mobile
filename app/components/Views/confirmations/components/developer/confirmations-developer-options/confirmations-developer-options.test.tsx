@@ -218,9 +218,6 @@ describe('ConfirmationsDeveloperOptions', () => {
 
     expect(getByText('Perps Withdraw')).toBeOnTheScreen();
     expect(
-      getByText('Trigger a Perps withdraw confirmation.'),
-    ).toBeOnTheScreen();
-    expect(
       getByTestId(ConfirmationsDeveloperOptionsTestIds.PERPS_WITHDRAW_BUTTON),
     ).toBeOnTheScreen();
   });
@@ -327,10 +324,10 @@ describe('ConfirmationsDeveloperOptions', () => {
 
   describe('Predict developer options', () => {
     it('adds overwriteUpgrade for the Predict Deposit batch', async () => {
-      const { getAllByText } = render(<ConfirmationsDeveloperOptions />);
+      const { getByText } = render(<ConfirmationsDeveloperOptions />);
 
       await act(async () => {
-        fireEvent.press(getAllByText('Deposit')[1]);
+        fireEvent.press(getByText('Predict Deposit'));
       });
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
@@ -367,7 +364,7 @@ describe('ConfirmationsDeveloperOptions', () => {
       const { getByText } = render(<ConfirmationsDeveloperOptions />);
 
       await act(async () => {
-        fireEvent.press(getByText('Claim'));
+        fireEvent.press(getByText('Predict Claim'));
       });
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
@@ -402,10 +399,10 @@ describe('ConfirmationsDeveloperOptions', () => {
     });
 
     it('adds overwriteUpgrade for the Predict Withdraw batch', async () => {
-      const { getAllByText } = render(<ConfirmationsDeveloperOptions />);
+      const { getByText } = render(<ConfirmationsDeveloperOptions />);
 
       await act(async () => {
-        fireEvent.press(getAllByText('Withdraw')[0]);
+        fireEvent.press(getByText('Predict Withdraw'));
       });
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
@@ -448,9 +445,6 @@ describe('ConfirmationsDeveloperOptions', () => {
       );
 
       expect(getByText('Money Account Deposit')).toBeOnTheScreen();
-      expect(
-        getByText('Trigger a Money Account deposit confirmation.'),
-      ).toBeOnTheScreen();
       expect(
         getByTestId(
           ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON,
@@ -564,9 +558,6 @@ describe('ConfirmationsDeveloperOptions', () => {
       );
 
       expect(getByText('Money Account Withdraw')).toBeOnTheScreen();
-      expect(
-        getByText('Trigger a Money Account withdraw confirmation.'),
-      ).toBeOnTheScreen();
       expect(
         getByTestId(
           ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_WITHDRAW_BUTTON,

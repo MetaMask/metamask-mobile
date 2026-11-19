@@ -68,6 +68,15 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: () => mockSubscriptionId,
 }));
 
+let mockProfileUsername: string | undefined;
+
+jest.mock('../../../../selectors/profileController', () => ({
+  selectProfileControllerProfile: () =>
+    mockProfileUsername
+      ? { profileId: 'profile-1', username: mockProfileUsername }
+      : undefined,
+}));
+
 let mockStatuses: Record<
   string,
   { optedIn: boolean; participantCount: number }
@@ -146,6 +155,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     mockStatuses = {};
     mockPending = { needsRetry: false, subscriptionId: null };
     mockSubscriptionId = 'sub-1';
+    mockProfileUsername = undefined;
     setupSeries();
     mockEnsureBound.mockResolvedValue('bound');
     mockUseBinding.mockReturnValue({
@@ -189,6 +199,20 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'clearPendingMasSeriesOptIn',
     });
+  });
+
+  it('forwards the profile username on the batch opt-in when the profile has one', async () => {
+    mockProfileUsername = 'ada';
+    const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
+
+    await runEnsureOptedIn(result.current.ensureOptedIn);
+
+    expect(mockCall).toHaveBeenCalledWith(
+      'RewardsController:optInToCampaigns',
+      ['week-active', 'week-upcoming'],
+      'sub-1',
+      'ada',
+    );
   });
 
   it('blocks opt-in and does not call optInToCampaigns on binding conflict', async () => {

@@ -5037,7 +5037,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'moneyEnableSplash',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.21.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5844,6 +5847,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictCryptoPriceFeed: {
+    name: 'predictCryptoPriceFeed',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.20.0',
+      chainlinkApiKey: '',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictWithAnyToken: {
     name: 'predictWithAnyToken',
     type: FeatureFlagType.Remote,
@@ -5902,6 +5917,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  quickBuyPostTradeShareHintEnabled: {
+    name: 'quickBuyPostTradeShareHintEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 

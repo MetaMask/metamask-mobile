@@ -15,12 +15,23 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -42,6 +53,7 @@ import ReactionPickerBalloon, {
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
 import SocialFeedGif from './SocialFeedGif';
+import { SocialFeedWindowOffsetContext } from './SocialFeedWindowOffsetContext';
 import { useSocialFeedTracking } from '../socialFeedTracking';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { socialFeedPostAnalytics } from '../utils/socialPositionAnalytics';
@@ -61,6 +73,7 @@ export interface SocialFeedPostShellProps {
   onReactionInteraction?: (
     action: 'added' | 'removed',
     emotion: string,
+    subject?: { post_id?: string; author_trader_id?: string },
   ) => void;
   onReactionPickerOpened?: () => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
@@ -275,6 +288,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const { colors } = useTheme();
   const reactionRowRef = useRef<View>(null);
   const postRef = useRef<View>(null);
+  const windowOffsetY = useContext(SocialFeedWindowOffsetContext);
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
@@ -389,7 +403,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       }
 
       reactionRowRef.current?.measureInWindow((x, y, width, height) => {
-        setPickerAnchor({ x, y, width, height });
+        playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
+        setPickerAnchor({ x, y: y + windowOffsetY, width, height });
         setPickerVisible(true);
         notifyPicker?.();
       });
@@ -398,6 +413,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       ensureSocialProfileOnboarding,
       ensureSocialTermsForInteraction,
       notifyPicker,
+      windowOffsetY,
     ],
   );
 
@@ -406,9 +422,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   }, []);
 
   const toggleEmotion = useCallback(
-    function toggle(emotion: string): void {
+    function toggle(emotion: string, withHaptic = true): void {
       if (
-        !ensureSocialTermsForInteraction(() => toggle(emotion)) ||
+        !ensureSocialTermsForInteraction(() => toggle(emotion, withHaptic)) ||
         !ensureSocialProfileOnboarding() ||
         isPending
       ) {
@@ -418,7 +434,20 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       if (userReaction !== emotion) {
         celebrateReaction(emotion);
       }
-      notifyReaction?.(userReaction === emotion ? 'removed' : 'added', emotion);
+      notifyReaction?.(
+        userReaction === emotion ? 'removed' : 'added',
+        emotion,
+        {
+          ...(post.commentId ? { post_id: post.commentId } : {}),
+          ...(post.item.author.id
+            ? { author_trader_id: post.item.author.id }
+            : {}),
+        },
+      );
+      // The tray emoji already plays this tick before it calls onPick.
+      if (withHaptic) {
+        playSelection().catch(() => undefined);
+      }
       pickEmotion(emotion).catch(() => undefined);
     },
     [
@@ -428,14 +457,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       isPending,
       notifyReaction,
       pickEmotion,
+      post.commentId,
+      post.item.author.id,
       userReaction,
     ],
   );
 
   const handlePick = useCallback(
     (emotion: string) => {
-      setPickerVisible(false);
-      toggleEmotion(emotion);
+      toggleEmotion(emotion, false);
     },
     [toggleEmotion],
   );
