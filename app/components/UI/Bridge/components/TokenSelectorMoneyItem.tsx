@@ -1,74 +1,21 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import Text, {
+import { TouchableOpacity } from 'react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
-import { Theme } from '../../../../util/theme/models';
-import { Box } from '../../Box/Box';
-import { AlignItems, FlexDirection } from '../../Box/box.types';
 import { type BridgeToken } from '../types';
 import { MoneyAvatar } from './MoneyAvatar';
 
-const createStyles = ({
-  theme,
-  vars,
-}: {
-  theme: Theme;
-  vars: { isSelected: boolean; hasBalance: boolean };
-}) =>
-  StyleSheet.create({
-    listItem: {
-      marginHorizontal: 16,
-      paddingBottom: 8,
-      marginBottom: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
-    },
-    container: {
-      ...(vars.isSelected && {
-        backgroundColor: theme.colors.primary.muted,
-      }),
-      position: 'relative',
-      minHeight: 72,
-      marginHorizontal: -16,
-      paddingVertical: 4,
-      paddingLeft: 16,
-      paddingRight: 10,
-    },
-    selectedIndicator: {
-      position: 'absolute',
-      left: 4,
-      top: 4,
-      bottom: 4,
-      width: 4,
-      borderRadius: 8,
-      backgroundColor: theme.colors.primary.default,
-    },
-    itemWrapper: {
-      flex: 1,
-      paddingVertical: 12,
-    },
-    tokenInfo: {
-      flex: 1,
-      flexShrink: 1,
-      minWidth: 0,
-      marginLeft: 12,
-      alignItems: vars.hasBalance ? AlignItems.flexStart : AlignItems.center,
-    },
-    nameColumn: {
-      flex: 1,
-      minWidth: 0,
-      marginRight: 8,
-    },
-    childrenWrapper: {
-      marginLeft: 12,
-    },
-  });
+const MONEY_AVATAR_SIZE = 40;
 
 const TokenSelectorMoneyItemInner = ({
   token,
@@ -81,64 +28,71 @@ const TokenSelectorMoneyItemInner = ({
   isSelected?: boolean;
   children?: React.ReactNode;
 }) => {
+  const tw = useTailwind();
   const moneyBalance = token.balanceFiat;
-  const { styles } = useStyles(createStyles, {
-    isSelected,
-    hasBalance: Boolean(moneyBalance),
-  });
   const handlePress = useCallback(() => {
     onPress(token);
   }, [onPress, token]);
 
   return (
-    <View style={styles.listItem}>
+    <Box twClassName="mx-4 mb-2 border-b border-muted pb-2">
       <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        style={styles.container}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName={[
+          'relative min-h-18 -mx-4 py-1 pl-4 pr-3',
+          isSelected ? 'bg-primary-muted' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
         {isSelected ? (
-          <View
+          <Box
             testID="money-token-selected-indicator"
-            style={styles.selectedIndicator}
+            twClassName="absolute bottom-1 left-1 top-1 w-1 rounded-lg bg-primary-default"
           />
         ) : null}
         <TouchableOpacity
           accessibilityRole="button"
+          accessibilityState={{ selected: isSelected }}
           onPress={handlePress}
-          style={styles.itemWrapper}
+          style={tw.style('flex-1 py-3')}
           testID={getAssetTestId(`${token.chainId}-${token.symbol}`)}
         >
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
             gap={4}
           >
-            <MoneyAvatar
-              size={Number(AvatarSize.Lg)}
-              testID="money-token-icon"
-            />
+            <MoneyAvatar size={MONEY_AVATAR_SIZE} testID="money-token-icon" />
             <Box
               testID="money-token-text"
-              flexDirection={FlexDirection.Row}
-              style={styles.tokenInfo}
+              flexDirection={BoxFlexDirection.Row}
+              twClassName={`min-w-0 flex-1 shrink ${
+                moneyBalance ? 'items-start' : 'items-center'
+              }`}
             >
-              <View style={styles.nameColumn}>
-                <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+              <Box twClassName="mr-2 min-w-0 flex-1">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  numberOfLines={1}
+                >
                   {token.name}
                 </Text>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                   numberOfLines={1}
                 >
                   {strings('bridge.stablecoin_account')}
                 </Text>
-              </View>
-              <Box alignItems={AlignItems.flexEnd}>
+              </Box>
+              <Box alignItems={BoxAlignItems.End}>
                 {moneyBalance ? (
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     numberOfLines={1}
                     testID="money-token-balance"
                   >
@@ -147,8 +101,8 @@ const TokenSelectorMoneyItemInner = ({
                 ) : null}
                 {token.apy !== undefined ? (
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Success}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.SuccessDefault}
                     numberOfLines={1}
                     testID="money-token-apy"
                   >
@@ -159,11 +113,9 @@ const TokenSelectorMoneyItemInner = ({
             </Box>
           </Box>
         </TouchableOpacity>
-        {children ? (
-          <View style={styles.childrenWrapper}>{children}</View>
-        ) : null}
+        {children ? <Box twClassName="ml-3">{children}</Box> : null}
       </Box>
-    </View>
+    </Box>
   );
 };
 

@@ -44,7 +44,9 @@ describe('TokenSelectorMoneyItem', () => {
 
     rerender(<TokenSelectorMoneyItem token={token} onPress={jest.fn()} />);
 
-    expect(queryByTestId('money-token-selected-indicator')).toBeNull();
+    expect(
+      queryByTestId('money-token-selected-indicator'),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows a positive balance above the apy', () => {
@@ -73,7 +75,7 @@ describe('TokenSelectorMoneyItem', () => {
       />,
     );
 
-    expect(queryByTestId('money-token-balance')).toBeNull();
+    expect(queryByTestId('money-token-balance')).not.toBeOnTheScreen();
     expect(getByTestId('money-token-text')).toHaveStyle({
       alignItems: 'center',
     });
