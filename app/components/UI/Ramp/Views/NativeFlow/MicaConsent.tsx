@@ -169,7 +169,7 @@ const MicaConsent = (): React.JSX.Element => {
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
-          title={strings('deposit.verify_identity.title')}
+          title={strings('deposit.mica_consent.header_title')}
           onBack={handleBack}
           onClose={handleClose}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

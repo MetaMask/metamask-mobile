@@ -24,6 +24,7 @@ import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import type {
   TransakAdditionalRequirement,
   TransakBuyQuote,
@@ -104,6 +105,18 @@ const SourceOfIncome = (): React.JSX.Element => {
     };
     fetchUserDetails();
   }, [getUserDetails]);
+
+  useEffect(() => {
+    if (hasEEAFieldsMissing && !retrying) {
+      const timer = setTimeout(() => {
+        Logger.log(
+          'SourceOfIncome: Auto-retrying requirements fetch for EEA user with missing options',
+        );
+        handleRetryFetchRequirements();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [hasEEAFieldsMissing, retrying, handleRetryFetchRequirements]);
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
   const effectiveCountryCode = addressCountryCode || regionIsoCode;
@@ -260,7 +273,7 @@ const SourceOfIncome = (): React.JSX.Element => {
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
-          title={strings('deposit.verify_identity.title')}
+          title={strings('deposit.source_of_income.header_title')}
           onBack={handleBack}
           onClose={handleClose}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -303,6 +316,7 @@ const SourceOfIncome = (): React.JSX.Element => {
                   'deposit.source_of_income.eea_fields_missing_description',
                 )}
                 actionButtonProps={{
+                  variant: ButtonVariants.Link,
                   label: strings('deposit.source_of_income.retry_button'),
                   onPress: handleRetryFetchRequirements,
                   disabled: retrying,

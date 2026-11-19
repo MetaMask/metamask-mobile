@@ -1147,7 +1147,6 @@
       "userDetailsError": "Unable to load your details. Please try again.",
       "consentSubmitError": "Unable to submit consent. Please try again.",
       "sourceOfIncomeTitle": "Source of Income",
-      "sourceOfIncomeTitle": "Source of Income",
       "sourceOfIncomeDescription": "Please provide information about your source of funds and employment.",
       "monthlyVolumeLabel": "Expected monthly volume",
       "monthlyVolumePlaceholder": "Enter amount",
@@ -1185,12 +1184,11 @@
       "eea_fields_missing_title": "Required fields unavailable",
       "eea_fields_missing_description": "Employment status and nationality options could not be loaded. This may happen if address details were not submitted before reaching this screen.",
       "retry_button": "Retry",
-      "fetch_error": "Unable to load form options. Please try again."
-    },
-    "verify_identity": {
-      "title": "Verify your identity"
+      "fetch_error": "Unable to load form options. Please try again.",
+      "header_title": "Verify your identity"
     },
     "mica_consent": {
+      "header_title": "Verify your identity",
       "address_label": "Address",
       "mobile_number_label": "Mobile number",
       "support_notice_prefix": "If any of this data is incorrect, contact",
