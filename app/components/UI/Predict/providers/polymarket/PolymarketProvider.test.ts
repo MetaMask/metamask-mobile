@@ -167,6 +167,7 @@ const mockWebSocketManagerInstance = {
   subscribeToOrderbook: jest.fn(),
   subscribeToCryptoPrices: jest.fn(),
   useCryptoFeed: jest.fn(),
+  updateCryptoFeedCredentials: jest.fn(),
   seedOrderbookSnapshot: jest.fn(),
   getConnectionStatus: jest.fn(() => ({
     sportsConnected: false,
@@ -1190,6 +1191,39 @@ describe('PolymarketProvider', () => {
       const [url] = (global.fetch as jest.Mock).mock.calls[0];
       expect(url).toContain('twapLookbackSeconds=60');
     });
+
+    it.each([
+      ['hourly', 60, 'onehour'],
+      ['daily', 60, 'oneday'],
+      ['hourly', undefined, 'hourly'],
+      ['daily', undefined, 'daily'],
+      ['fourhour', 60, 'fourhour'],
+      ['fifteen', 60, 'fifteen'],
+    ] as const)(
+      'sends variant %s with TWAP window %s as %s',
+      async (variant, twapWindowSeconds, expectedVariant) => {
+        const provider = createProvider();
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ openPrice: 64483.11 }),
+        });
+
+        await provider.getCryptoTargetPrice({
+          symbol: 'BTC',
+          eventStartTime: '2026-11-17T08:00:00Z',
+          variant,
+          endDate: '2026-11-17T09:00:00Z',
+          twapWindowSeconds,
+        });
+
+        const [url] = (global.fetch as jest.Mock).mock.calls[0];
+        const sent = new URL(url).searchParams;
+        expect(sent.get('variant')).toBe(expectedVariant);
+        expect(sent.get('twapLookbackSeconds')).toBe(
+          twapWindowSeconds === undefined ? null : '60',
+        );
+      },
+    );
   });
 
   beforeAll(() => {
@@ -4078,6 +4112,66 @@ describe('PolymarketProvider', () => {
     },
   );
 
+  it.each([
+    ['hourly', 60, 'onehour'],
+    ['daily', 60, 'oneday'],
+    ['hourly', undefined, 'hourly'],
+    ['daily', undefined, 'daily'],
+    ['fourhour', 60, 'fourhour'],
+    ['fifteen', 60, 'fifteen'],
+  ] as const)(
+    'requests price history for variant %s with TWAP window %s as %s',
+    async (variant, twapWindowSeconds, expectedVariant) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+      await createProvider().getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2026-11-17T08:00:00Z',
+        variant,
+        endDate: '2026-11-17T09:00:00Z',
+        twapWindowSeconds,
+      });
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      const sent = new URL(url).searchParams;
+      expect(sent.get('variant')).toBe(expectedVariant);
+      expect(sent.get('twapLookbackSeconds')).toBe(
+        twapWindowSeconds === undefined ? null : '60',
+      );
+    },
+  );
+
+  it('logs the variant it sent when TWAP price history fails', async () => {
+    const Logger = jest.requireMock('../../../../../util/Logger').default;
+    (Logger.error as jest.Mock).mockClear();
+    const unexpectedError = new Error('Unexpected parsing failure');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockRejectedValue(unexpectedError),
+    });
+
+    await expect(
+      createProvider().getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2026-11-17T08:00:00Z',
+        variant: 'hourly',
+        twapWindowSeconds: 60,
+      }),
+    ).rejects.toThrow('Unexpected parsing failure');
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      unexpectedError,
+      expect.objectContaining({
+        context: expect.objectContaining({
+          data: expect.objectContaining({ variant: 'onehour' }),
+        }),
+      }),
+    );
+  });
+
   it('rethrows crypto price history errors after logging', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
@@ -5013,6 +5107,7 @@ describe('PolymarketProvider.subscribeToCryptoPrices', () => {
   beforeEach(() => {
     mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReset();
     mockWebSocketManagerInstance.useCryptoFeed.mockReset();
+    mockWebSocketManagerInstance.updateCryptoFeedCredentials.mockReset();
     mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
       jest.fn(),
     );
@@ -5120,5 +5215,61 @@ describe('PolymarketProvider.subscribeToCryptoPrices', () => {
     expect(
       mockWebSocketManagerInstance.subscribeToCryptoPrices,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Chainlink API key', () => {
+    const fakeKey = 'fake-chainlink-key-for-tests';
+
+    it('adds the key from remote flags to the PolyBolt credentials', async () => {
+      jest.mocked(createApiKey).mockResolvedValue(credentials);
+      const provider = createProvider(
+        { chainlinkApiKey: fakeKey },
+        () => '0xabc',
+      );
+
+      provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      await flushPromises();
+
+      expect(mockWebSocketManagerInstance.useCryptoFeed).toHaveBeenCalledWith({
+        mode: 'polybolt',
+        credentials: { ...credentials, chainlinkApiKey: fakeKey },
+      });
+    });
+
+    it('sends no key field when the flags carry no key', async () => {
+      jest.mocked(createApiKey).mockResolvedValue(credentials);
+      const provider = createProvider(undefined, () => '0xabc');
+
+      provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      await flushPromises();
+
+      const [[feed]] = mockWebSocketManagerInstance.useCryptoFeed.mock.calls;
+      expect(feed.credentials).not.toHaveProperty('chainlinkApiKey');
+    });
+
+    it('hands a key that arrives after the feed started to the socket', async () => {
+      jest.mocked(createApiKey).mockResolvedValue(credentials);
+      const featureFlags: Partial<PredictFeatureFlags> = {};
+      const provider = createProvider(featureFlags, () => '0xabc');
+      provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      await flushPromises();
+
+      featureFlags.chainlinkApiKey = fakeKey;
+      provider.refreshCryptoPriceFeedCredentials();
+
+      expect(
+        mockWebSocketManagerInstance.updateCryptoFeedCredentials,
+      ).toHaveBeenCalledWith({ ...credentials, chainlinkApiKey: fakeKey });
+    });
+
+    it('does nothing on refresh before the feed has credentials', () => {
+      const provider = createProvider({ chainlinkApiKey: fakeKey });
+
+      provider.refreshCryptoPriceFeedCredentials();
+
+      expect(
+        mockWebSocketManagerInstance.updateCryptoFeedCredentials,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

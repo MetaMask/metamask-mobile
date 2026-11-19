@@ -7,6 +7,7 @@
     "observe": "not_a_mutation",
     "signed_read": "not_a_mutation"
   },
+  "replayingReads": ["withdrawals.observe"],
   "uncodedStatuses": [400, 401, 404, 429, 500, 503],
   "continuation": {
     "kind": "sign_required",
@@ -18,6 +19,11 @@
       "status": 503,
       "phases": ["commit"],
       "commitRelay": "unknown"
+    },
+    "amount_below_minimum": {
+      "status": 422,
+      "phases": ["preview"],
+      "commitRelay": "not_a_mutation"
     },
     "amount_rejected": {
       "status": 422,
@@ -201,7 +207,7 @@
     "venue_unavailable": {
       "status": 503,
       "phases": ["commit", "signed_read"],
-      "commitRelay": "not_relayed_this_invocation"
+      "commitRelay": "unknown"
     }
   }
 }

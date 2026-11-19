@@ -925,6 +925,133 @@ describe('resolvePredictFeatureFlags', () => {
     });
   });
 
+  describe('chainlinkApiKey', () => {
+    const fakeKey = 'fake-chainlink-key-for-tests';
+    const mockVersionGate = (result: boolean | undefined) =>
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'chainlinkApiKey' in flag
+          ? result
+          : undefined,
+      );
+
+    it('is undefined when the flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+      expect(result).not.toHaveProperty('chainlinkApiKey');
+    });
+
+    it('returns the key when the flag is enabled and the version gate passes', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: fakeKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
+    });
+
+    it('is undefined when the flag is disabled or below its minimum version', () => {
+      mockVersionGate(false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            chainlinkApiKey: fakeKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+    });
+
+    it.each([
+      ['empty', ''],
+      ['blank', '   '],
+      ['empty after trim', ' \t\n '],
+      ['not a string', 42],
+      ['longer than 512 characters', 'k'.repeat(513)],
+      ['holding a control character', 'fake\u0007key'],
+      ['holding a tab inside it', 'fake\tkey'],
+      ['holding a non-ASCII character', 'fake-kéy'],
+    ])('is undefined when the key is %s', (_label, chainlinkApiKey) => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+    });
+
+    it('trims the key', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: ` ${fakeKey} `,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
+    });
+
+    it('accepts a key of 512 printable ASCII characters', () => {
+      mockVersionGate(true);
+      const longKey = `a${' ~'.repeat(255)}z`;
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: longKey,
+          },
+        },
+      });
+
+      expect(longKey).toHaveLength(512);
+      expect(result.chainlinkApiKey).toBe(longKey);
+    });
+
+    it('unwraps the progressive rollout shape', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '8.20.0',
+              chainlinkApiKey: fakeKey,
+            },
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
+    });
+  });
+
   describe('predictHomeRedesignEnabled', () => {
     it('returns false when flag is missing', () => {
       const result = resolvePredictFeatureFlags({});

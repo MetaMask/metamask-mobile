@@ -48,6 +48,7 @@ import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
+import { usePredictWithdrawAvailable } from '../../funding';
 import type {
   PredictEvent,
   PredictMarket,
@@ -226,6 +227,11 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
+  const openWithdraw = useCallback(
+    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
+    [navigation, venueId],
+  );
+  const withdrawResolution = usePredictWithdrawAvailable();
   const openSearch = useCallback(
     () =>
       navigation.navigate(PredictNextRoutes.SEARCH, {
@@ -398,9 +404,12 @@ const PredictHomeView = ({
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
           />
-          {/* Funding actions appear when PRED-1162 ships them and the
-              Venue descriptor lists deposit or withdraw. */}
-          <PortfolioActions onPositionsPress={openPortfolio} />
+          <PortfolioActions
+            onPositionsPress={openPortfolio}
+            onWithdrawPress={
+              withdrawResolution.status === 'ready' ? openWithdraw : undefined
+            }
+          />
           <HomeTrendingSection
             events={liveRows.trending}
             isLoading={isRowsLoading}
