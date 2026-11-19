@@ -2,25 +2,21 @@
  * Neutral default API mocks shared by every component view test.
  *
  * Views routinely fire secondary requests (token metadata, spot prices,
- * favicon HEAD checks, account transactions) that a test does not assert on.
- * The net connect guard fails any test whose request has no mock, so those
- * incidental requests need an answer. The defaults here return empty or
- * minimal valid payloads — the same shape an empty server-side collection
- * would produce — so views render exactly what an empty result renders.
+ * charts, favicon HEAD checks, account transactions) that a test does not
+ * assert on. The net connect guard fails any test whose request has no mock,
+ * so those incidental requests need an answer. The defaults here return
+ * empty or minimal valid payloads, so views render exactly what an empty
+ * result renders.
  *
  * Precedence: nock answers with the interceptor registered FIRST for a scope,
  * so a feature mock must exist before the defaults are (re)installed.
- * `installDefaultApiMocks()` therefore removes the defaults it installed
- * previously and registers them again, which puts them after every feature
- * interceptor registered in between. Feature setup helpers call it as their
- * last step, composed helpers re-call it after registering their extra
- * feature mocks, and `teardownNock()` reinstalls them after clearing. A
- * helper that forgets the final call leaves the defaults uninstalled and the
- * guard reports the blocked requests, so the mistake stays visible.
- *
- * The defaults are installed once per test file from `testSetupView.js`.
- * Registration cost is plain object creation, so reinstalling after each
- * mock teardown is negligible.
+ * `installDefaultApiMocks()` removes the defaults it installed previously and
+ * registers them again, which puts them after every feature interceptor
+ * registered in between. Feature setup helpers call it as their last step,
+ * composed helpers re-call it after registering their extra feature mocks,
+ * and `teardownNock()` reinstalls them after clearing. A helper that forgets
+ * the final call leaves the defaults uninstalled and the guard reports the
+ * blocked requests, so the mistake stays visible.
  */
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
@@ -63,43 +59,20 @@ let installedDefaults: nock.Interceptor[] = [];
 /** Nock's JSON body type; every default payload is plain JSON. */
 type JsonBody = Record<string, unknown> | unknown[] | string;
 
-const get = (origin: string, path: string, body: JsonBody, status = 200) => {
-  const scope = nock(origin).persist();
-  const interceptor = scope.get(path).query(true);
-  interceptor.reply(status, body);
-  installedDefaults.push(interceptor);
-};
-
-const getRegExp = (
+/** Registers one persisted default and tracks it for the next install. */
+const add = (
+  method: 'get' | 'post' | 'delete' | 'head',
   origin: string,
-  path: RegExp,
+  path: string | RegExp,
   body: JsonBody,
   status = 200,
-) => {
+): void => {
   const scope = nock(origin).persist();
-  const interceptor = scope.get(path);
+  const interceptor = scope[method](path);
+  if (method === 'get' && typeof path === 'string') {
+    interceptor.query(true);
+  }
   interceptor.reply(status, body);
-  installedDefaults.push(interceptor);
-};
-
-const post = (origin: string, path: string | RegExp, body: JsonBody) => {
-  const scope = nock(origin).persist();
-  const interceptor = scope.post(path);
-  interceptor.reply(200, body);
-  installedDefaults.push(interceptor);
-};
-
-const del = (origin: string, path: string, body: JsonBody) => {
-  const scope = nock(origin).persist();
-  const interceptor = scope.delete(path);
-  interceptor.reply(200, body);
-  installedDefaults.push(interceptor);
-};
-
-const headAny = (origin: string) => {
-  const scope = nock(origin).persist();
-  const interceptor = scope.head(/.*/);
-  interceptor.reply(200, '');
   installedDefaults.push(interceptor);
 };
 
@@ -110,89 +83,94 @@ const removeInstalledDefaults = (): void => {
   installedDefaults = [];
 };
 
-/**
- * Installs the shared neutral mocks, replacing the ones installed earlier so
- * they sit after any feature mock registered in between. Call after feature
- * mocks are registered and after any `nock.cleanAll()`.
- */
+/** Installs the shared neutral mocks behind any feature mock registered
+ * since the last install. */
 export function installDefaultApiMocks(): void {
   removeInstalledDefaults();
 
-  get(TOKEN_API_ORIGIN, '/assets', []);
-  get(TOKEN_API_ORIGIN, '/v3/tokens/trending', []);
-  get(TOKEN_API_ORIGIN, '/tokens/search', { count: 0, data: [] });
-  get(TOKEN_API_ORIGIN, '/v1/rwas', {
+  add('get', TOKEN_API_ORIGIN, '/assets', []);
+  add('get', TOKEN_API_ORIGIN, '/v3/tokens/trending', []);
+  add('get', TOKEN_API_ORIGIN, '/tokens/search', { count: 0, data: [] });
+  add('get', TOKEN_API_ORIGIN, '/v1/rwas', {
     data: [],
     count: 0,
     totalCount: 0,
     pageInfo: { nextCursor: null, hasNextPage: false },
   });
-  const sitesScope = nock('https://nft.api.cx.metamask.io').persist();
-  const sitesInterceptor = sitesScope.get('/explore/sites').query(true);
-  sitesInterceptor.reply(200, { dapps: [] });
-  installedDefaults.push(sitesInterceptor);
 
-  get(TOKENS_API_ORIGIN, '/v3/assets', []);
+  add('get', TOKENS_API_ORIGIN, '/v3/assets', []);
 
-  get(PRICE_API_ORIGIN, '/v3/spot-prices', {});
-  getRegExp(PRICE_API_ORIGIN, /\/v3\/historical-prices\//, { prices: [] });
-  getRegExp(PRICE_API_ORIGIN, /\/v3\/ohlcv/, {
+  add('get', PRICE_API_ORIGIN, '/v3/spot-prices', {});
+  add('get', PRICE_API_ORIGIN, /\/v3\/historical-prices\//, { prices: [] });
+  add('get', PRICE_API_ORIGIN, /\/v3\/ohlcv/, {
     data: [],
     hasNext: false,
     nextCursor: '',
   });
-  get(PRICE_API_ORIGIN, '/v2/supportedNetworks', {
+  add('get', PRICE_API_ORIGIN, '/v2/supportedNetworks', {
     fullSupport: [],
     partialSupport: [],
   });
 
-  get(ACCOUNTS_API_ORIGIN, '/v5/multiaccount/transactions', {
+  add('get', ACCOUNTS_API_ORIGIN, '/v5/multiaccount/transactions', {
     data: [],
     pageInfo: { count: 0, hasNextPage: false },
     unprocessedAccounts: [],
   });
-  getRegExp(
+  add(
+    'get',
     ACCOUNTS_API_ORIGIN,
     /\/v1\/accounts\/[^/]+\/transactions/,
     emptyTransactionsResponse,
   );
   // A missing transaction keeps the row exactly as it renders when the lookup
   // fails, which is how every existing suite already passes.
-  getRegExp(
+  add(
+    'get',
     ACCOUNTS_API_ORIGIN,
     /\/v1\/networks\/[^/]+\/transactions\/[^/]+/,
     {},
     404,
   );
-  getRegExp(
+  add(
+    'get',
     ACCOUNTS_API_ORIGIN,
     /\/v1\/networks\/[^/]+\/accounts\/[^/]+\/relationships\/[^/]+/,
     {},
   );
 
   for (const origin of STATIC_ICON_ORIGINS) {
-    headAny(origin);
+    add('head', origin, /.*/, '');
   }
 
-  post(BRIDGE_API_ORIGIN, '/getTokens/popular', []);
+  add('post', BRIDGE_API_ORIGIN, '/getTokens/popular', []);
 
-  getRegExp(STAKING_API_ORIGIN, /\/v1\/lending\/[^/]+\/markets/, {
+  add('get', STAKING_API_ORIGIN, /\/v1\/lending\/[^/]+\/markets/, {
     markets: [],
   });
-  getRegExp(STAKING_API_ORIGIN, /\/v1\/tron-staking\/[^/]+\/witnesses/, {
+  add('get', STAKING_API_ORIGIN, /\/v1\/tron-staking\/[^/]+\/witnesses/, {
     data: [],
   });
 
-  headAny(SECURITY_ALERTS_API_ORIGIN);
-  post(SECURITY_ALERTS_API_ORIGIN, /\/validate\/[^/]+/, NEUTRAL_SECURITY_ALERT);
+  add('head', SECURITY_ALERTS_API_ORIGIN, /.*/, '');
+  add(
+    'post',
+    SECURITY_ALERTS_API_ORIGIN,
+    /\/validate\/[^/]+/,
+    NEUTRAL_SECURITY_ALERT,
+  );
 
-  get(PRICE_ALERTS_API_ORIGIN, '/v1/alerts/supported-chains', ['eip155:1']);
-  post(
+  add('get', PRICE_ALERTS_API_ORIGIN, '/v1/alerts/supported-chains', [
+    'eip155:1',
+  ]);
+  add(
+    'post',
     PRICE_ALERTS_API_ORIGIN,
     '/v1/alerts/watchlist',
     emptyWatchlistAlertsResult,
   );
-  del(
+  add(
+    'delete',
     PRICE_ALERTS_API_ORIGIN,
     '/v1/alerts/watchlist',
     emptyWatchlistAlertsResult,

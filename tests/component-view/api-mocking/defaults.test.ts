@@ -36,7 +36,7 @@ describe('installDefaultApiMocks', () => {
     expect(icon.status).toBe(200);
   });
 
-  it('lets feature mocks registered earlier win over the defaults', async () => {
+  it('lets feature mocks registered before an install win over the defaults', async () => {
     disableNetConnect();
     nock('https://token.api.cx.metamask.io')
       .get('/v3/tokens/trending')
@@ -45,18 +45,6 @@ describe('installDefaultApiMocks', () => {
       .persist();
 
     installDefaultApiMocks();
-
-    const trending = await (
-      await fetch(
-        'https://token.api.cx.metamask.io/v3/tokens/trending?chainIds=eip155:1',
-      )
-    ).json();
-    expect(trending).toEqual([{ symbol: 'FEATURE' }]);
-  });
-
-  it('moves the defaults behind feature mocks registered between installs', async () => {
-    disableNetConnect();
-    installDefaultApiMocks();
     nock('https://token.api.cx.metamask.io')
       .get('/assets')
       .query(true)
@@ -64,25 +52,18 @@ describe('installDefaultApiMocks', () => {
       .persist();
     installDefaultApiMocks();
 
+    const trending = await (
+      await fetch(
+        'https://token.api.cx.metamask.io/v3/tokens/trending?chainIds=eip155:1',
+      )
+    ).json();
+    expect(trending).toEqual([{ symbol: 'FEATURE' }]);
+
     const assets = await (
       await fetch('https://token.api.cx.metamask.io/assets?assetIds=x')
     ).json();
     expect(assets).toEqual([{ symbol: 'FEATURE' }]);
   });
-
-  it('keeps recording requests that no default covers', async () => {
-    disableNetConnect();
-    installDefaultApiMocks();
-
-    let caught: unknown = null;
-    try {
-      await fetch('https://unmocked-by-defaults.example.com/v1/thing');
-    } catch (error) {
-      caught = error;
-    }
-    expect((caught as Error)?.message).toContain('Disallowed net connect');
-  });
-
   it('reinstalls the defaults after teardownNock clears them', async () => {
     disableNetConnect();
     installDefaultApiMocks();

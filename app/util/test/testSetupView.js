@@ -22,15 +22,12 @@ const { installWebSocketTripwire } = require('./netConnectGuard');
 installTimerLeakGuard();
 installSocketLeakGuard();
 // Fails any test whose app code makes an HTTP request no view-test mock
-// answers, even when the app code swallows the rejection.
+// answers, even when the app code swallows the rejection; nock's interceptors
+// never see Node's built-in WebSocket, so that is tripped the same way.
 installNetConnectGuard();
-// nock's interceptors never see Node's built-in WebSocket, so opening one
-// would really connect. The tripwire records every construction instead and
-// the guard's afterEach reports it.
 installWebSocketTripwire();
 // Neutral answers for the secondary requests views fire that tests do not
-// assert on (token metadata, spot prices, favicon HEAD checks). Feature
-// mocks registered later keep precedence over them.
+// assert on. Feature mocks registered later keep precedence over them.
 installDefaultApiMocks();
 
 // Secure random helper to avoid duplication

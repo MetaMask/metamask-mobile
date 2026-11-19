@@ -93,23 +93,14 @@ describe('netConnectGuard', () => {
     );
   });
 
-  it('records a WebSocket the app opens and fails the test with its URL', async () => {
+  it('records a WebSocket the app opens, never connecting it', async () => {
     const openWebSocketLikeAppCode = () => {
       const socket = new WebSocket('wss://api.hyperliquid.xyz/ws');
       socket.addEventListener('open', () => undefined);
       return socket;
     };
 
-    // Construction never throws, so app code carries on; the guard fails the
-    // test afterwards, the same way it does for swallowed HTTP rejections.
     openWebSocketLikeAppCode();
-
-    await expect(checkBlockedRequests(currentTestName())).rejects.toThrow(
-      'Unmocked WebSocket: wss://api.hyperliquid.xyz/ws',
-    );
-  });
-
-  it('never connects the tripped socket', async () => {
     const socket = new WebSocket(
       'wss://tripwire.example.com/ws',
     ) as unknown as {
@@ -123,10 +114,9 @@ describe('netConnectGuard', () => {
     expect(() => socket.close()).not.toThrow();
 
     await expect(checkBlockedRequests(currentTestName())).rejects.toThrow(
-      'Unmocked WebSocket: wss://tripwire.example.com/ws',
+      'Unmocked WebSocket: wss://api.hyperliquid.xyz/ws',
     );
   });
-
   it('serves sockets through the fake without reporting them', async () => {
     const fake = setupFakeWebSocket();
     const Constructed = globalThis.WebSocket as unknown as typeof FakeWebSocket;

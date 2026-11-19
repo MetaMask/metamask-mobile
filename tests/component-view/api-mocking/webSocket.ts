@@ -4,9 +4,8 @@
  * The CV setup replaces `globalThis.WebSocket` with the net connect guard's
  * tripwire, which records every construction and fails the test afterwards.
  * A test that really needs a socket swaps the tripwire for the fake here,
- * scripts its frames, and asserts on what reached the wire — the same
- * injection shape `FakeGatewaySocket` uses for the Predict live-data client.
- * There is no allowlist: a socket the fake did not serve is still reported.
+ * scripts its frames, and asserts on what reached the wire. There is no
+ * allowlist: a socket the fake did not serve is still reported.
  */
 
 import { installWebSocketTripwire } from '../../../app/util/test/netConnectGuard';
@@ -42,17 +41,6 @@ export class FakeWebSocket {
     this.listeners.set(type, listeners);
   };
 
-  removeEventListener = (
-    type: string,
-    listener: FakeWebSocketListener,
-  ): void => {
-    const listeners = this.listeners.get(type) ?? [];
-    this.listeners.set(
-      type,
-      listeners.filter((registered) => registered !== listener),
-    );
-  };
-
   send = (data: unknown): void => {
     this.sent.push(data);
   };
@@ -77,12 +65,6 @@ export class FakeWebSocket {
   deliver(data: unknown): void {
     this.onmessage?.({ data });
     this.dispatch('message', { data });
-  }
-
-  /** Reports a connection failure without closing the socket first. */
-  fail(error: unknown): void {
-    this.onerror?.({ data: error });
-    this.dispatch('error', { data: error });
   }
 
   private dispatch(type: string, event: { data?: unknown }): void {

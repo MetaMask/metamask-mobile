@@ -37,18 +37,12 @@ export function clearAllNockMocks(): void {
   nock.cleanAll();
 }
 
-/**
- * Restores nock to a clean state: removes all interceptors, cycles
- * restore/activate so @mswjs/interceptors (nock v14) does not leave half-open
- * TLS sockets that break later suites (e.g. ChoosePassword `read EINVAL` after
- * Ramp Quotes), reinstalls the shared default mocks, and puts net connect
- * back into the state the run expects.
- *
- * In component-view runs the net connect guard is installed, so blocking stays
- * on between tests (the previous re-enable left a window where a straggler
- * request went to the real network). In other lanes the previous behaviour of
- * re-enabling net connect is kept so this file's state does not leak into
- * later suites in the same Jest worker.
+/** Restores nock to a clean state: removes all interceptors, cycles
+ * restore/activate (so @mswjs/interceptors does not leave half-open TLS
+ * sockets that break later suites), reinstalls the shared default mocks, and
+ * restores the net connect state the run expects: blocked in component-view
+ * runs (the guard is installed), re-enabled in other lanes so this file's
+ * state does not leak into later suites in the same Jest worker.
  */
 export function teardownNock(): void {
   nock.cleanAll();

@@ -977,7 +977,6 @@ module.exports = {
     element: true,
     by: true,
     beforeEach: true,
-    globalThis: true,
     device: true,
     __DEV__: true,
     driver: true,
