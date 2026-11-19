@@ -1,15 +1,21 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
-// eslint-disable-next-line import-x/no-extraneous-dependencies
-import axios from 'axios';
 import {
   checkBlockedRequests,
   installNetConnectGuard,
+  installWebSocketTripwire,
 } from '../../../app/util/test/netConnectGuard';
+import { disableNetConnect, teardownNock } from './nockHelpers';
+import {
+  clearFakeWebSocket,
+  setupFakeWebSocket,
+  type FakeWebSocket,
+} from './webSocket';
 
 // Installs the same root-level hooks testSetupView.js installs for view
 // tests, so these fences run against the production wiring.
 installNetConnectGuard();
+installWebSocketTripwire();
 
 const currentTestName = () => expect.getState().currentTestName ?? '';
 
@@ -87,18 +93,94 @@ describe('netConnectGuard', () => {
     );
   });
 
-  it('records an axios request the app code catches', async () => {
-    const appCodeThatSwallowsErrors = async () => {
-      try {
-        await axios.get('https://unmocked-axios-guard.example.com/v2/other');
-      } catch {
-        return null;
-      }
+  it('records a WebSocket the app opens and fails the test with its URL', async () => {
+    const openWebSocketLikeAppCode = () => {
+      const socket = new WebSocket('wss://api.hyperliquid.xyz/ws');
+      socket.addEventListener('open', () => undefined);
+      return socket;
     };
-    await appCodeThatSwallowsErrors();
+
+    // Construction never throws, so app code carries on; the guard fails the
+    // test afterwards, the same way it does for swallowed HTTP rejections.
+    openWebSocketLikeAppCode();
 
     await expect(checkBlockedRequests(currentTestName())).rejects.toThrow(
-      'GET https://unmocked-axios-guard.example.com/v2/other',
+      'Unmocked WebSocket: wss://api.hyperliquid.xyz/ws',
     );
+  });
+
+  it('never connects the tripped socket', async () => {
+    const socket = new WebSocket(
+      'wss://tripwire.example.com/ws',
+    ) as unknown as {
+      readyState: number;
+      send: () => void;
+      close: () => void;
+    };
+
+    expect(socket.readyState).toBe(0);
+    expect(() => socket.send()).not.toThrow();
+    expect(() => socket.close()).not.toThrow();
+
+    await expect(checkBlockedRequests(currentTestName())).rejects.toThrow(
+      'Unmocked WebSocket: wss://tripwire.example.com/ws',
+    );
+  });
+
+  it('serves sockets through the fake without reporting them', async () => {
+    const fake = setupFakeWebSocket();
+    const Constructed = globalThis.WebSocket as unknown as typeof FakeWebSocket;
+    const socket = new Constructed('wss://fake.example.com/ws');
+    socket.openAndDeliver(JSON.stringify({ type: 'welcome' }));
+
+    expect(socket.readyState).toBe(1);
+    expect(socket.sent).toEqual([]);
+    expect(fake.instances).toHaveLength(1);
+
+    await expect(
+      checkBlockedRequests(currentTestName()),
+    ).resolves.toBeUndefined();
+
+    clearFakeWebSocket();
+  });
+
+  it('keeps net connect blocked after teardownNock', async () => {
+    teardownNock();
+
+    await expect(
+      fetch('https://unmocked-after-teardown.example.com/v1/x'),
+    ).rejects.toThrow('Disallowed net connect');
+
+    await expect(checkBlockedRequests(currentTestName())).rejects.toThrow(
+      'GET https://unmocked-after-teardown.example.com/v1/x',
+    );
+  });
+
+  it('probe: aborted fetch with a nock mock does not crash', async () => {
+    const probeModule = jest.requireActual('@mswjs/interceptors');
+    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
+    console.log(
+      'PROBE patched?',
+      String(probeModule.RequestController.prototype.respondWith).includes(
+        'PENDING',
+      ) &&
+        String(probeModule.RequestController.prototype.respondWith).split('\n')
+          .length < 8,
+    );
+    disableNetConnect();
+    nock('https://abort-race.example.com')
+      .get('/x')
+      .reply(200, { ok: true })
+      .persist();
+    const controller = new AbortController();
+    const promise = fetch('https://abort-race.example.com/x', {
+      signal: controller.signal,
+    });
+    controller.abort();
+    await expect(promise).rejects.toThrow();
+    await expect(
+      checkBlockedRequests(currentTestName()),
+    ).resolves.toBeUndefined();
   });
 });

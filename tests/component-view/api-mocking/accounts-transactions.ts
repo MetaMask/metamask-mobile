@@ -12,6 +12,7 @@ import type { V5TransactionRecord } from '@metamask/core-backend';
 import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { ACTIVITY_CV_ACCOUNT } from '../presets/activity';
 import { restoreFetchPath, stubFetchPath } from './fetchStub';
+import { installDefaultApiMocks } from './defaults';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -137,6 +138,7 @@ function mockAccountsApiGet(path: string, body: object): void {
   nock(ACCOUNTS_API_ORIGIN).persist().get(path).query(true).reply(200, body);
   // Same payload as nock. undici fetch is not always settled by the interceptor.
   stubFetchPath(ACCOUNTS_API_ORIGIN, path, body);
+  installDefaultApiMocks();
 }
 
 export function setupAccountsTransactionsApiMock(

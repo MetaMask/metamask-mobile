@@ -2,6 +2,7 @@
 import nock from 'nock';
 import { SDK } from '../../../app/components/UI/Ramp/Aggregator/sdk';
 import { disableNetConnect, teardownNock } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 
 /** Staging (UAT) and production hosts — mock both so tests stay offline regardless of getSdkEnvironment(). */
 const RAMP_REGIONS_ORIGINS = [
@@ -244,6 +245,7 @@ export function setupRampSdkApiMock(): void {
   resetRampAggregatorSdkForTests();
   disableNetConnect();
   registerRampSdkNockInterceptors();
+  installDefaultApiMocks();
 }
 
 /**

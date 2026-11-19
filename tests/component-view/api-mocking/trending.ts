@@ -19,6 +19,7 @@ import {
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 import { clearSitesCache } from '../../../app/components/UI/Sites/hooks/useSiteData/useSitesData';
 
 export interface MockTrendingToken {
@@ -207,6 +208,8 @@ export function setupTrendingApiFetchMock(
       pageInfo: { nextCursor: null, hasNextPage: false },
     })
     .persist();
+
+  installDefaultApiMocks();
 }
 
 /**

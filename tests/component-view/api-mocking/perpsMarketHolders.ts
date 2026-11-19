@@ -15,6 +15,7 @@ import {
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 
 const HOLDERS_PATH = '/api/v1/positions/';
 
@@ -41,6 +42,7 @@ export function setupPerpsMarketHoldersApiMock(
       return [200, { items, pagination: { hasMore: false } }];
     });
 
+  installDefaultApiMocks();
   return requestedAssetIds;
 }
 

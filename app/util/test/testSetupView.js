@@ -14,12 +14,24 @@ const nodeCrypto = require('crypto');
 const { installTimerLeakGuard } = require('./timerLeakGuard');
 const { installSocketLeakGuard } = require('./socketLeakGuard');
 const { installNetConnectGuard } = require('./netConnectGuard');
+const {
+  installDefaultApiMocks,
+} = require('../../../tests/component-view/api-mocking/defaults');
+const { installWebSocketTripwire } = require('./netConnectGuard');
 
 installTimerLeakGuard();
 installSocketLeakGuard();
 // Fails any test whose app code makes an HTTP request no view-test mock
 // answers, even when the app code swallows the rejection.
 installNetConnectGuard();
+// nock's interceptors never see Node's built-in WebSocket, so opening one
+// would really connect. The tripwire records every construction instead and
+// the guard's afterEach reports it.
+installWebSocketTripwire();
+// Neutral answers for the secondary requests views fire that tests do not
+// assert on (token metadata, spot prices, favicon HEAD checks). Feature
+// mocks registered later keep precedence over them.
+installDefaultApiMocks();
 
 // Secure random helper to avoid duplication
 const getRandomValuesCompat = (arr) =>

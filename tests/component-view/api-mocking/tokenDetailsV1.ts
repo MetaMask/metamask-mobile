@@ -27,6 +27,7 @@ import {
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 
 export const TOKEN_DETAILS_V1_ADDRESS =
   '0x6982508145454ce325ddbe47a25d4ec3d2311933';
@@ -235,6 +236,27 @@ export function setupTokenDetailsV1ApiMocks(
           : [],
       pagination: { hasMore: false },
     });
+
+  // The share/PnL header loads the wallet's open position in this asset; with
+  // no open position the composer card is skipped, which is the neutral state.
+  nock(AppConstants.SOCIAL_API_URL)
+    .persist()
+    .get(/\/api\/v2\/traders\/[^/]+\/[^/]+\/open/)
+    .query(true)
+    .reply(200, {
+      isOpen: false,
+      positionAmount: 0,
+      boughtUsd: 0,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 0,
+      currentValueUSD: null,
+      pnlValueUsd: null,
+      pnlPercent: null,
+      pnlStatus: 'ready',
+    });
+
+  installDefaultApiMocks();
 }
 
 export function clearTokenDetailsV1ApiMocks(): void {
