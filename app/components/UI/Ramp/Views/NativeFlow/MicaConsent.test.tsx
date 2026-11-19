@@ -126,7 +126,7 @@ describe('MicaConsent', () => {
   });
 
   it('enables submit button when both consents are checked', async () => {
-    const { getByText } = render(
+    const { getByText, getByLabelText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <MicaConsent />
       </ThemeContext.Provider>,
@@ -143,7 +143,7 @@ describe('MicaConsent', () => {
     fireEvent.press(termsCheckbox);
 
     await waitFor(() => {
-      const button = getByText('deposit.mica.agreeAndContinue');
+      const button = getByLabelText('deposit.mica.agreeAndContinue');
       expect(button.props.accessibilityState?.disabled).toBe(false);
     });
   });

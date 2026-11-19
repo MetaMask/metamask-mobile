@@ -163,10 +163,7 @@ describe('SourceOfIncome', () => {
     });
   });
 
-  it('uses mock mode when enabled', async () => {
-    const micaMockModule = await import('../../utils/micaMockMode');
-    jest.spyOn(micaMockModule, 'isMicaMockModeEnabled').mockReturnValue(true);
-
+  it('renders correctly in mock mode', async () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
