@@ -535,17 +535,17 @@ describe('ManageCardOptions quick-action row seam', () => {
 });
 
 describe('ManageCardOptions transaction history gating', () => {
-  it('shows transaction history when fully set up and a destination is available', () => {
+  it('hides transaction history when fully set up because history lives in the Activity segment', () => {
     const onTransactionHistory = jest.fn();
 
-    const { getByTestId } = renderComponent(
+    const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsFundingLimits: false }),
       { onTransactionHistory },
     );
 
     expect(
-      getByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
-    ).toBeOnTheScreen();
+      queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+    ).toBeNull();
   });
 
   it('hides transaction history during setup without the Immersve override', () => {
