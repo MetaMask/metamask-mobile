@@ -36,7 +36,11 @@ export function getMoneyAccountPlusTrialEligibilityQueryKey(
 export interface MoneyAccountPlusTrialEligibility {
   /** True only after the controller reports this user can start a Plus trial. */
   isEligibleForTrial: boolean;
-  /** True while subscription history and the trial check are still loading. */
+  /**
+   * True while the trial check has no answer yet. This stays true when the
+   * device is offline and the fetch is paused, so cached pricing cannot show
+   * a paid plan before the trial answer arrives.
+   */
   isLoading: boolean;
 }
 
@@ -49,8 +53,9 @@ export interface MoneyAccountPlusTrialEligibility {
  * Subscription history is loaded inside the query, before the eligibility
  * check. On a restored wallet `trialedProducts` is empty until that load
  * finishes, so asking earlier would answer "eligible" and the screen would
- * have to correct itself. The screen waits on `isLoading` and then shows
- * the answer from this one check.
+ * have to correct itself. The screen waits while the check is pending,
+ * including when the device is offline and the fetch is paused, and then
+ * shows the answer from this one check.
  *
  * The check runs when the wallet is unlocked and either the canonical profile
  * id or the social-login user id is present. Profile sync can lag behind
@@ -71,7 +76,7 @@ export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialElig
   const canRequestEligibility = isUnlocked && Boolean(trialIdentityId);
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey: getMoneyAccountPlusTrialEligibilityQueryKey(trialIdentityId),
     queryFn: async () => {
       // Join the shared subscriptions query, including one already in flight,
@@ -94,6 +99,8 @@ export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialElig
 
   return {
     isEligibleForTrial: canRequestEligibility && data === true,
-    isLoading: canRequestEligibility && isLoading,
+    // isLoading is false while a fetch is paused offline. isPending stays
+    // true until there is an answer, so the paid plan stays hidden.
+    isLoading: canRequestEligibility && isPending,
   };
 }

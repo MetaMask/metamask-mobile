@@ -531,7 +531,7 @@ describe('CancelMembership', () => {
       subscriptionId: PLUS_SUBSCRIPTION.id,
       cancelAtPeriodEnd: true,
     });
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
     expect(mockRemoveQueries).toHaveBeenCalledTimes(1);
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
       'cancellationReason',

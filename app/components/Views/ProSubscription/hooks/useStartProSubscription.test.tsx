@@ -57,6 +57,10 @@ jest.mock('../../../../core/Engine', () => ({
       ApprovalController: {
         add: jest.fn(),
       },
+      SubscriptionController: {
+        getSubscriptions: jest.fn(),
+        isUserEligibleForTrial: jest.fn(),
+      },
       SubscriptionDelegationService: {
         checkMoneyAccountBalance: jest.fn(),
         startSubscriptionWithDelegation: jest.fn(),
@@ -159,6 +163,10 @@ const mockedCheckBalance = Engine.context.SubscriptionDelegationService
 const mockedStartSubscription = Engine.context.SubscriptionDelegationService
   .startSubscriptionWithDelegation as jest.Mock;
 const mockedApprovalAdd = Engine.context.ApprovalController.add as jest.Mock;
+const mockedGetSubscriptions = Engine.context.SubscriptionController
+  .getSubscriptions as jest.Mock;
+const mockedIsUserEligibleForTrial = Engine.context.SubscriptionController
+  .isUserEligibleForTrial as jest.Mock;
 const mockedUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockedWaitForMembershipTopUp = jest.mocked(waitForMembershipTopUp);
 const mockInitiateDeposit = jest.fn();
@@ -188,6 +196,8 @@ describe('useStartProSubscription', () => {
       status: 'trialing',
     });
     mockedApprovalAdd.mockResolvedValue(undefined);
+    mockedGetSubscriptions.mockResolvedValue([]);
+    mockedIsUserEligibleForTrial.mockResolvedValue(true);
     (
       Engine.context as { TransactionPayController?: unknown }
     ).TransactionPayController = undefined;
@@ -247,7 +257,8 @@ describe('useStartProSubscription', () => {
       mockedStartSubscription.mock.invocationCallOrder[0],
     );
     expect(outcome).toEqual({ outcome: StartProSubscriptionOutcome.Ready });
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockedGetSubscriptions).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
     expect(mockRemoveQueries).toHaveBeenCalledTimes(1);
   });
 
@@ -263,6 +274,7 @@ describe('useStartProSubscription', () => {
     });
 
     expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockedGetSubscriptions).not.toHaveBeenCalled();
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
     expect(mockRemoveQueries).not.toHaveBeenCalled();
     expect(Logger.error).not.toHaveBeenCalled();
@@ -277,6 +289,13 @@ describe('useStartProSubscription', () => {
     });
 
     const billedOn = formatExpectedMembershipDate(addDays(FIXED_NOW, 14));
+    expect(mockedGetSubscriptions).toHaveBeenCalledTimes(1);
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledWith(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    expect(mockedGetSubscriptions.mock.invocationCallOrder[0]).toBeLessThan(
+      mockedApprovalAdd.mock.invocationCallOrder[0],
+    );
     expect(mockedApprovalAdd).toHaveBeenCalledWith({
       id: expect.any(String),
       origin: ORIGIN_METAMASK,
@@ -290,6 +309,32 @@ describe('useStartProSubscription', () => {
         billedOn,
       },
     });
+  });
+
+  it('shows the join error and skips the trial sheet when the trial is no longer available', async () => {
+    mockedIsUserEligibleForTrial.mockResolvedValue(false);
+    const { result } = renderHook(() => useStartProSubscription());
+    let thrownError: Error | undefined;
+
+    await act(async () => {
+      try {
+        await result.current.startSubscription(PLAN, { isTrial: true });
+      } catch (error) {
+        thrownError = error as Error;
+      }
+    });
+
+    expect(thrownError?.message).toBe('Plus trial is no longer available');
+    expect(mockedGetSubscriptions).toHaveBeenCalledTimes(1);
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledWith(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error'),
+    );
   });
 
   it('uses the plan amount for both monthly and total on a monthly plan', async () => {

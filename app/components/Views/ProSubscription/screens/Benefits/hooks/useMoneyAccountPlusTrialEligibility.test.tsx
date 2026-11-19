@@ -1,6 +1,10 @@
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  onlineManager,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import Engine from '../../../../../../core/Engine';
@@ -122,6 +126,19 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     expect(result.current.isLoading).toBe(false);
     expect(mockGetSubscriptions).not.toHaveBeenCalled();
     expect(mockIsUserEligibleForTrial).not.toHaveBeenCalled();
+  });
+
+  it('stays loading while the trial check is paused offline', () => {
+    onlineManager.setOnline(false);
+    try {
+      const { result } = renderEligibility();
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isEligibleForTrial).toBe(false);
+      expect(mockGetSubscriptions).not.toHaveBeenCalled();
+    } finally {
+      onlineManager.setOnline(true);
+    }
   });
 
   it('returns false after the wallet locks when the previous check was eligible', async () => {

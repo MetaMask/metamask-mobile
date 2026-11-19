@@ -212,6 +212,24 @@ export function buildConfirmMembershipRequestData(
  * @param plan - Checkout-ready Plus plan.
  * @param isTrial - Whether Benefits already loaded a trial for this user.
  */
+/**
+ * Reloads subscription history and asks the controller again before the
+ * trial sheet opens. Benefits can still be showing a cached eligible answer
+ * from another session on this phone.
+ *
+ * @throws When the user can no longer start a Plus trial.
+ */
+async function assertStillEligibleForPlusTrial(): Promise<void> {
+  await Engine.context.SubscriptionController.getSubscriptions();
+  const isEligible =
+    await Engine.context.SubscriptionController.isUserEligibleForTrial(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+  if (!isEligible) {
+    throw new Error('Plus trial is no longer available');
+  }
+}
+
 async function requestMembershipConsent(
   plan: SelectedPlusPlan,
   isTrial: boolean,
@@ -459,6 +477,9 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
 
         let awaitsExternalFunds = false;
         if (hasSufficientBalance) {
+          if (options?.isTrial) {
+            await assertStillEligibleForPlusTrial();
+          }
           await requestMembershipConsent(plan, options?.isTrial ?? false);
         } else {
           const topUp = await topUpMembershipShortfall(
