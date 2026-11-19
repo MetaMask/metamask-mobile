@@ -3,9 +3,8 @@
 # Usage: comment on a pull request with this as the first line of the comment:
 #   @metamaskbot create-testflight-build-exp
 #
-# Who can use it: anyone with write, maintain, or admin permission on this repository,
-# plus the Cursor GitHub App (cursor[bot]) so Cursor cloud agents, whose own GitHub token
-# only has actions:read, can request a build. Pull requests from forks are rejected.
+# Who can use it: anyone with write, maintain, or admin permission on this repository.
+# Pull requests from forks are rejected.
 #
 # issue_comment always runs this file from the default branch, and nothing here checks out
 # or runs PR code. The dispatch job starts build-and-upload-to-testflight.yml on `main`
@@ -53,7 +52,6 @@ jobs:
           PR_NUMBER: ${{ github.event.issue.number }}
           COMMENT_BODY: ${{ github.event.comment.body }}
           COMMENTER_LOGIN: ${{ github.event.comment.user.login }}
-          COMMENTER_ID: ${{ github.event.comment.user.id }}
           COMMENTER_TYPE: ${{ github.event.comment.user.type }}
         run: |
           set -euo pipefail
@@ -75,25 +73,16 @@ jobs:
             deny not_command
           fi
 
-          # Cursor cloud agents comment as the Cursor GitHub App. Apps aren't repository
-          # collaborators, so the permission lookup below can't authorize them. Match the
-          # app's bot user by login and immutable user id
-          # (https://api.github.com/users/cursor%5Bbot%5D). Only Cursor users with access
-          # to this repository through the MetaMask Cursor integration can make it comment.
-          CURSOR_BOT_LOGIN='cursor[bot]'
-          CURSOR_BOT_ID='206951365'
-          if [ "$COMMENTER_TYPE" = 'Bot' ] && [ "$COMMENTER_LOGIN" = "$CURSOR_BOT_LOGIN" ] && [ "$COMMENTER_ID" = "$CURSOR_BOT_ID" ]; then
-            echo "Commenter is the Cursor GitHub App"
-          else
-            # `permission` is the legacy value (maintain reports as write); `role_name`
-            # names the actual role.
-            PERMISSION="$(gh api "repos/${REPO}/collaborators/${COMMENTER_LOGIN}/permission" --jq '.permission + " " + .role_name')" || deny permission
-            echo "Commenter permission: ${PERMISSION}"
-            case " ${PERMISSION} " in
-              *' admin '* | *' maintain '* | *' write '*) ;;
-              *) deny permission ;;
-            esac
-          fi
+          [ "$COMMENTER_TYPE" = 'User' ] || deny permission
+
+          # `permission` is the legacy value (maintain reports as write); `role_name`
+          # names the actual role.
+          PERMISSION="$(gh api "repos/${REPO}/collaborators/${COMMENTER_LOGIN}/permission" --jq '.permission + " " + .role_name')" || deny permission
+          echo "Commenter permission: ${PERMISSION}"
+          case " ${PERMISSION} " in
+            *' admin '* | *' maintain '* | *' write '*) ;;
+            *) deny permission ;;
+          esac
 
           PR_JSON="$(gh api "repos/${REPO}/pulls/${PR_NUMBER}")"
           PR_STATE="$(jq -r '.state' <<< "$PR_JSON")"
