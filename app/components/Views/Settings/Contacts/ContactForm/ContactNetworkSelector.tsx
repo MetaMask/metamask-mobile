@@ -30,7 +30,7 @@ export const ContactNetworkSelector = ({
     <SelectButton
       isFullWidth
       size={SelectButtonSize.Lg}
-      twClassName="px-4"
+      twClassName="px-4 border-0"
       value={networkName}
       placeholder={networkName}
       contentWrapperProps={{ twClassName: 'w-full justify-between' }}
