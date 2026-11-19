@@ -5,6 +5,7 @@ import {
   getCustomAssets,
   getAssetsBalance,
   getAssetsInfo,
+  selectAssetsHaveLoadedForSelectedAccountGroup,
   selectErc20MetadataLookup,
 } from './assets-controller';
 
@@ -186,5 +187,115 @@ describe('selectErc20MetadataLookup', () => {
     expect(
       lookup('0x1', '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'),
     ).toStrictEqual({ symbol: 'USDC', decimals: 6 });
+  });
+});
+
+describe('selectAssetsHaveLoadedForSelectedAccountGroup', () => {
+  const accountId = 'account-1';
+  const groupId = 'keyring:wallet-1/group-1';
+
+  const buildRootState = ({
+    assetsLoadingStatus,
+    assetsBackgroundLoadingStatus,
+    isAccountTreeSyncingInProgress = false,
+    selectedAccountGroup = groupId,
+  }: {
+    assetsLoadingStatus?: Record<string, 'loading' | 'loaded'>;
+    assetsBackgroundLoadingStatus?: Record<string, 'loading' | 'loaded'>;
+    isAccountTreeSyncingInProgress?: boolean;
+    selectedAccountGroup?: string | null;
+  }): RootState =>
+    ({
+      engine: {
+        backgroundState: {
+          AssetsController: {
+            ...defaultAssetsControllerState,
+            assetsLoadingStatus,
+            assetsBackgroundLoadingStatus,
+          },
+          AccountTreeController: {
+            selectedAccountGroup,
+            isAccountTreeSyncingInProgress,
+            accountTree: {
+              wallets: {
+                'keyring:wallet-1': {
+                  id: 'keyring:wallet-1',
+                  groups: {
+                    [groupId]: {
+                      id: groupId,
+                      accounts: [accountId],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }) as unknown as RootState;
+
+  it('returns false when the initial load has not started for a group with accounts', () => {
+    expect(
+      selectAssetsHaveLoadedForSelectedAccountGroup(buildRootState({})),
+    ).toBe(false);
+  });
+
+  it('returns true when the selected group has no accounts and no status was written', () => {
+    const state = buildRootState({});
+    (
+      state.engine.backgroundState.AccountTreeController as {
+        accountTree: {
+          wallets: Record<
+            string,
+            { groups: Record<string, { accounts: string[] }> }
+          >;
+        };
+      }
+    ).accountTree.wallets['keyring:wallet-1'].groups[groupId].accounts = [];
+
+    expect(selectAssetsHaveLoadedForSelectedAccountGroup(state)).toBe(true);
+  });
+
+  it('returns false while the account tree is still syncing', () => {
+    expect(
+      selectAssetsHaveLoadedForSelectedAccountGroup(
+        buildRootState({
+          assetsLoadingStatus: { [accountId]: 'loaded' },
+          isAccountTreeSyncingInProgress: true,
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false while background loading is still running', () => {
+    expect(
+      selectAssetsHaveLoadedForSelectedAccountGroup(
+        buildRootState({
+          assetsLoadingStatus: { [accountId]: 'loaded' },
+          assetsBackgroundLoadingStatus: { [accountId]: 'loading' },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true once initial and background loads have settled', () => {
+    expect(
+      selectAssetsHaveLoadedForSelectedAccountGroup(
+        buildRootState({
+          assetsLoadingStatus: { [accountId]: 'loaded' },
+          assetsBackgroundLoadingStatus: { [accountId]: 'loaded' },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true when initial load settled and no background status was written', () => {
+    expect(
+      selectAssetsHaveLoadedForSelectedAccountGroup(
+        buildRootState({
+          assetsLoadingStatus: { [accountId]: 'loaded' },
+        }),
+      ),
+    ).toBe(true);
   });
 });

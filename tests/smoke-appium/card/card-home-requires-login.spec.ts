@@ -6,15 +6,16 @@ import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks.js';
+import CardAuthenticationView from '../../page-objects/Card/CardAuthenticationView.js';
 import CardHomeView from '../../page-objects/Card/CardHomeView.js';
 import { CustomNetworks } from '../../resources/networks.e2e.js';
-import { cardHomeAddFundsExpectations } from '../../helpers/analytics/expectations/card-home-add-funds.analytics.js';
+import { cardHomeRequiresLoginExpectations } from '../../helpers/analytics/expectations/card-home-requires-login.analytics.js';
 
-appiumTest.describe(SmokeMoney('CardHome - Add Funds'), () => {
+appiumTest.describe(SmokeMoney('CardHome - Requires login'), () => {
   appiumTest.describe.configure({ timeout: 150000 });
 
   appiumTest(
-    'opens Card Home and adds funds successfully',
+    'sends a logged-out cardholder to Card login',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -38,7 +39,7 @@ appiumTest.describe(SmokeMoney('CardHome - Add Funds'), () => {
             .build(),
           restartDevice: true,
           testSpecificMock,
-          analyticsExpectations: cardHomeAddFundsExpectations,
+          analyticsExpectations: cardHomeRequiresLoginExpectations,
           currentDeviceDetails,
         },
         async () => {
@@ -46,30 +47,19 @@ appiumTest.describe(SmokeMoney('CardHome - Add Funds'), () => {
           await Assertions.expectElementToBeVisible(
             WalletView.navbarCardButton,
           );
-          // Open until Add Funds is visible; re-tap navbar only if still on wallet.
-          await CardHomeView.openFromWallet(() =>
-            WalletView.tapNavbarCardButton(),
-          );
+          await WalletView.tapNavbarCardButton();
           await Assertions.expectElementToBeVisible(
-            CardHomeView.cardViewTitle,
+            CardAuthenticationView.countrySelect,
             {
               timeout: 30000,
-              elemDescription: 'Card Home view title',
+              elemDescription: 'Card login country select',
             },
           );
-          await CardHomeView.tapAddFundsButton();
-          await Assertions.expectElementToBeVisible(
-            CardHomeView.addFundsBottomSheetDepositOption,
+          await Assertions.expectElementToNotBeVisible(
+            CardHomeView.addFundsButton,
             {
-              elemDescription:
-                'Add Funds Bottom Sheet Deposit Option in Card Home View',
-            },
-          );
-          await Assertions.expectElementToBeVisible(
-            CardHomeView.addFundsBottomSheetSwapOption,
-            {
-              elemDescription:
-                'Add Funds Bottom Sheet Swap Option in Card Home View',
+              timeout: 5000,
+              elemDescription: 'Card Home Add Funds button',
             },
           );
         },
