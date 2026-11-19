@@ -1,4 +1,11 @@
-import * as micaMockMode from './micaMockMode';
+import {
+  getMockConsentForm,
+  getMockSourceOfIncomeForm,
+  mockSubmitMicaConsent,
+  mockSubmitSourceOfIncome,
+  injectMockNativeProviderIfNeeded,
+  injectMicaTermsIds,
+} from './micaMockMode';
 
 // Mock __DEV__ globally
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,7 +49,7 @@ describe('micaMockMode', () => {
 
   describe('getMockSourceOfIncomeForm', () => {
     it('returns a SOURCE_OF_INCOME form with EEA fields', () => {
-      const form = micaMockMode.getMockSourceOfIncomeForm();
+      const form = getMockSourceOfIncomeForm();
       expect(form.formsRequired).toHaveLength(1);
       expect(form.formsRequired[0].type).toBe('SOURCE_OF_INCOME');
 
@@ -57,26 +64,28 @@ describe('micaMockMode', () => {
     });
 
     it('includes realistic option values', () => {
-      const form = micaMockMode.getMockSourceOfIncomeForm();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const metadata = form.formsRequired[0].metadata as any;
+      const form = getMockSourceOfIncomeForm();
+      interface MetadataWithOptions {
+        sourceOfFundsTypeOptions: Array<{ name: string; value: string }>;
+        employmentStatusOptions: Array<{ name: string; value: string }>;
+        countryOfCitizenshipOptions: Array<{ name: string; value: string }>;
+      }
+      const metadata = form.formsRequired[0]
+        .metadata as unknown as MetadataWithOptions;
 
       const salaryOption = metadata.sourceOfFundsTypeOptions.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (opt: any) => opt.value === 'salary_payment',
+        (opt) => opt.value === 'salary_payment',
       );
       expect(salaryOption).toBeDefined();
       expect(salaryOption.name).toBe('Salary payments');
 
       const employeeOption = metadata.employmentStatusOptions.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (opt: any) => opt.value === 'mid_level_employee',
+        (opt) => opt.value === 'mid_level_employee',
       );
       expect(employeeOption).toBeDefined();
 
       const germanyOption = metadata.countryOfCitizenshipOptions.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (opt: any) => opt.value === 'DE',
+        (opt) => opt.value === 'DE',
       );
       expect(germanyOption).toBeDefined();
       expect(germanyOption.name).toBe('Germany');
@@ -85,9 +94,7 @@ describe('micaMockMode', () => {
 
   describe('mockSubmitMicaConsent', () => {
     it('returns SUBMITTED status after delay', async () => {
-      const result = await micaMockMode.mockSubmitMicaConsent(
-        '2024-01-01T00:00:00Z',
-      );
+      const result = await mockSubmitMicaConsent('2024-01-01T00:00:00Z');
       expect(result.status).toBe('SUBMITTED');
     });
   });
@@ -101,9 +108,7 @@ describe('micaMockMode', () => {
         countryOfCitizenship: 'DE',
       };
 
-      await expect(
-        micaMockMode.mockSubmitSourceOfIncome(data),
-      ).resolves.toBeUndefined();
+      await expect(mockSubmitSourceOfIncome(data)).resolves.toBeUndefined();
     });
   });
 
@@ -113,10 +118,7 @@ describe('micaMockMode', () => {
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'native' },
       ];
-      const result = micaMockMode.injectMockNativeProviderIfNeeded(
-        providers,
-        'DE',
-      );
+      const result = injectMockNativeProviderIfNeeded(providers, 'DE');
       expect(result).toEqual(providers);
     });
 
@@ -125,10 +127,7 @@ describe('micaMockMode', () => {
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
-      const result = micaMockMode.injectMockNativeProviderIfNeeded(
-        providers,
-        'DE',
-      );
+      const result = injectMockNativeProviderIfNeeded(providers, 'DE');
 
       expect(result.length).toBe(2);
       expect(result[0].id).toContain('transak-native');
@@ -141,10 +140,7 @@ describe('micaMockMode', () => {
         { id: '/providers/transak-native', name: 'Transak', type: 'native' },
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
-      const result = micaMockMode.injectMockNativeProviderIfNeeded(
-        providers,
-        'DE',
-      );
+      const result = injectMockNativeProviderIfNeeded(providers, 'DE');
       expect(result).toEqual(providers);
     });
 
@@ -153,10 +149,7 @@ describe('micaMockMode', () => {
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
-      const result = micaMockMode.injectMockNativeProviderIfNeeded(
-        providers,
-        'US',
-      );
+      const result = injectMockNativeProviderIfNeeded(providers, 'US');
       expect(result).toEqual(providers);
     });
   });
@@ -165,14 +158,14 @@ describe('micaMockMode', () => {
     it('returns quote unchanged when mock mode is off', () => {
       mockIsMicaMockModeEnabled.mockReturnValue(false);
       const quote = { quoteId: 'test', fiatAmount: 100 };
-      const result = micaMockMode.injectMicaTermsIds(quote);
+      const result = injectMicaTermsIds(quote);
       expect(result).toEqual(quote);
     });
 
     it('injects MICA_EEA_BUY termsId when quote has no termsIds', () => {
       mockIsMicaMockModeEnabled.mockReturnValue(true);
       const quote = { quoteId: 'test', fiatAmount: 100 };
-      const result = micaMockMode.injectMicaTermsIds(quote);
+      const result = injectMicaTermsIds(quote);
 
       expect(result.termsIds).toEqual(['MICA_EEA_BUY']);
     });
@@ -184,14 +177,14 @@ describe('micaMockMode', () => {
         fiatAmount: 100,
         termsIds: ['EXISTING'],
       };
-      const result = micaMockMode.injectMicaTermsIds(quote);
+      const result = injectMicaTermsIds(quote);
 
       expect(result.termsIds).toEqual(['MICA_EEA_BUY', 'EXISTING']);
     });
 
     it('returns quote unchanged when quote is null', () => {
       mockIsMicaMockModeEnabled.mockReturnValue(true);
-      const result = micaMockMode.injectMicaTermsIds(null);
+      const result = injectMicaTermsIds(null);
       expect(result).toBeNull();
     });
   });

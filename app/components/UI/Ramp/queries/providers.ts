@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { injectMockNativeProviderIfNeeded } from '../utils/micaMockMode';
 
 interface ProvidersQueryParams {
   regionCode: string;
