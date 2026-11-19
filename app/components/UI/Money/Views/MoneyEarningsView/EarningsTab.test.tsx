@@ -171,9 +171,7 @@ describe('EarningsTab', () => {
   });
 
   it('renders the default chart and hero modes', () => {
-    const { getByTestId, queryByText } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByTestId, queryByText } = renderWithProvider(<EarningsTab />);
 
     expect(getByTestId(MoneyEarningsViewTestIds.CHART)).toBeOnTheScreen();
     expect(getByTestId(MoneyEarningsViewTestIds.HERO)).toBeOnTheScreen();
@@ -184,7 +182,7 @@ describe('EarningsTab', () => {
 
   it('selects a different earnings range', () => {
     const { getByLabelText, getByTestId, getByText } = renderWithProvider(
-      <EarningsTab isActive />,
+      <EarningsTab />,
     );
 
     fireEvent.press(getByLabelText(strings('money.earnings.range_1y')));
@@ -221,7 +219,7 @@ describe('EarningsTab', () => {
       },
     });
 
-    const { getByTestId } = renderWithProvider(<EarningsTab isActive />);
+    const { getByTestId } = renderWithProvider(<EarningsTab />);
 
     expect(
       getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT),
@@ -244,7 +242,7 @@ describe('EarningsTab', () => {
       },
     });
 
-    const { getByTestId } = renderWithProvider(<EarningsTab isActive />);
+    const { getByTestId } = renderWithProvider(<EarningsTab />);
     const periodAmount = getByTestId(
       MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT,
     );
@@ -257,23 +255,21 @@ describe('EarningsTab', () => {
   });
 
   it('displays the authoritative 30-day total in the summary', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByTestId, getByText } = renderWithProvider(<EarningsTab />);
 
     expect(getByTestId(MoneyEarningsViewTestIds.SUMMARY)).toBeOnTheScreen();
     expect(getByText('+$200.00')).toBeOnTheScreen();
   });
 
   it('displays the one-year total as Lifetime', () => {
-    const { getByText } = renderWithProvider(<EarningsTab isActive />);
+    const { getByText } = renderWithProvider(<EarningsTab />);
 
     expect(getByText(strings('money.earnings.lifetime'))).toBeOnTheScreen();
     expect(getByText('+$300.00')).toBeOnTheScreen();
   });
 
   it('displays the projected annual value from balance and APY', () => {
-    const { getByText } = renderWithProvider(<EarningsTab isActive />);
+    const { getByText } = renderWithProvider(<EarningsTab />);
 
     expect(
       getByText(strings('money.earnings.projected_in_1_year')),
@@ -291,9 +287,7 @@ describe('EarningsTab', () => {
       projectedAmount: undefined,
     });
 
-    const { getByTestId, queryByText } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByTestId, queryByText } = renderWithProvider(<EarningsTab />);
 
     expect(getByTestId(MoneyEarningsViewTestIds.SUMMARY)).toBeOnTheScreen();
     expect(
@@ -335,9 +329,7 @@ describe('EarningsTab', () => {
       },
     });
 
-    const { getByTestId, getByText } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByTestId, getByText } = renderWithProvider(<EarningsTab />);
 
     expect(getByTestId(MoneyEarningsViewTestIds.ERROR)).toBeOnTheScreen();
     expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
@@ -347,7 +339,7 @@ describe('EarningsTab', () => {
     setHistoricalEarningsResult({ isLoading: true });
 
     const { getByLabelText, getByTestId, queryByTestId } = renderWithProvider(
-      <EarningsTab isActive />,
+      <EarningsTab />,
     );
 
     expect(getByTestId(MoneyEarningsViewTestIds.LOADING)).toBeOnTheScreen();
@@ -362,9 +354,7 @@ describe('EarningsTab', () => {
   it('displays error content and retries without a summary', () => {
     setHistoricalEarningsResult({ isError: true });
 
-    const { getByText, queryByTestId } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByText, queryByTestId } = renderWithProvider(<EarningsTab />);
 
     expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
     expect(
@@ -395,9 +385,7 @@ describe('EarningsTab', () => {
       },
     });
 
-    const { getByText, queryByTestId } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByText, queryByTestId } = renderWithProvider(<EarningsTab />);
 
     expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
     expect(
@@ -408,9 +396,7 @@ describe('EarningsTab', () => {
   it('displays error content without a summary for null query data', () => {
     setHistoricalEarningsResult({ data: null });
 
-    const { getByText, queryByTestId } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByText, queryByTestId } = renderWithProvider(<EarningsTab />);
 
     expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
     expect(
@@ -432,9 +418,7 @@ describe('EarningsTab', () => {
       },
     });
 
-    const { getByText, queryByTestId } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByText, queryByTestId } = renderWithProvider(<EarningsTab />);
 
     expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
     expect(
@@ -450,9 +434,7 @@ describe('EarningsTab', () => {
       },
     });
 
-    const { getByText, queryByTestId } = renderWithProvider(
-      <EarningsTab isActive />,
-    );
+    const { getByText, queryByTestId } = renderWithProvider(<EarningsTab />);
 
     expect(getByText(strings('money.earnings.empty'))).toBeOnTheScreen();
     expect(
@@ -460,25 +442,10 @@ describe('EarningsTab', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('enables earnings queries when tab is active', () => {
-    renderWithProvider(<EarningsTab isActive />);
+  it('loads earnings data when rendered', () => {
+    renderWithProvider(<EarningsTab />);
 
-    expect(mockUseMoneyHistoricalEarnings).toHaveBeenCalledWith({
-      enabled: true,
-    });
-    expect(mockUseMoneyAccountProjectedEarnings).toHaveBeenCalledWith({
-      enabled: true,
-    });
-  });
-
-  it('disables earnings queries when tab is inactive', () => {
-    renderWithProvider(<EarningsTab isActive={false} />);
-
-    expect(mockUseMoneyHistoricalEarnings).toHaveBeenCalledWith({
-      enabled: false,
-    });
-    expect(mockUseMoneyAccountProjectedEarnings).toHaveBeenCalledWith({
-      enabled: false,
-    });
+    expect(mockUseMoneyHistoricalEarnings).toHaveBeenCalledWith();
+    expect(mockUseMoneyAccountProjectedEarnings).toHaveBeenCalledWith();
   });
 });
