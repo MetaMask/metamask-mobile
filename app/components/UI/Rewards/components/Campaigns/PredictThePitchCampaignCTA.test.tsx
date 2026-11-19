@@ -23,6 +23,21 @@ jest.mock('../../../PredictNext', () => ({
   }),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: () => false,
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialTab: jest.fn(),
+  }),
+);
+
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (..._args: unknown[]) => ({}) }),
 }));

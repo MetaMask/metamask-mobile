@@ -166,9 +166,6 @@ const cvDynamicMockBan = (message) => ({
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    project: './tsconfig.json',
-  },
   extends: [
     '@react-native',
     'eslint:recommended',
@@ -229,7 +226,18 @@ module.exports = {
         // ratchet to 'error' once the BN.js → BigInt migration is complete).
         // Pairs with the `import-x/no-restricted-paths` fence on
         // `app/util/number/index.js` in the app import-fence override below.
-        '@typescript-eslint/no-deprecated': 'warn',
+        // Oxlint owns this rule. It is a warning in .oxlintrc.json and runs
+        // in type-aware mode (oxlint-tsgolint), so it is off here.
+        '@typescript-eslint/no-deprecated': 'off',
+        // Oxlint owns these five too, as errors. The shared config turns
+        // them on and they need type information. ESLint no longer loads the
+        // TypeScript project (no parserOptions.project), so a rule that needs
+        // type information throws if it is turned on here.
+        '@typescript-eslint/no-array-delete': 'off',
+        '@typescript-eslint/no-for-in-array': 'off',
+        '@typescript-eslint/no-meaningless-void-operator': 'off',
+        '@typescript-eslint/no-unnecessary-qualifier': 'off',
+        '@typescript-eslint/no-unsafe-unary-minus': 'off',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [
@@ -540,8 +548,24 @@ module.exports = {
         tailwindcss: {
           callees: ['twClassName', 'tw'],
           config: './tailwind.config.js',
+          // React Native has no CSS files. Without this, no-custom-classname
+          // searches the whole repo for *.css every 5 seconds.
+          cssFiles: [],
           tags: ['tw'], // Enable template literal support for tw`classnames`
         },
+      },
+    },
+    {
+      // The React Compiler does not run under Jest (see
+      // scripts/react-compiler.js), so it never compiles these files.
+      files: [
+        '**/*.test.{js,jsx,ts,tsx}',
+        '**/__mocks__/**',
+        '**/*.mock.{js,ts,tsx}',
+        'tests/**',
+      ],
+      rules: {
+        'react-compiler/react-compiler': 'off',
       },
     },
     {

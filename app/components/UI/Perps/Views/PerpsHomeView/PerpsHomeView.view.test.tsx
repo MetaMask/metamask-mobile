@@ -1096,6 +1096,43 @@ describe('PerpsHomeView', () => {
         );
       });
 
+      it('opens the position sheet when a Live trades row is pressed', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+          extraRoutes: [
+            {
+              name: Routes.SOCIAL.POSITION_SHEET,
+              Component: createRouteParamsProbe(
+                Routes.SOCIAL.POSITION_SHEET,
+              ) as ComponentType<unknown>,
+            },
+          ],
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(
+            rowIdOf(highWinRateTrade),
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        );
+        const sheetProbe = await screen.findByTestId(
+          getRouteParamsProbeTestId(Routes.SOCIAL.POSITION_SHEET),
+        );
+        expect(JSON.parse(sheetProbe.props.children as string)).toEqual(
+          expect.objectContaining({
+            positionId: highWinRateTrade.positionId,
+            analyticsSource: 'perps_home',
+          }),
+        );
+      });
+
       it('shows the error state and recovers on retry', async () => {
         setupLeaderboardApiMock({
           perpsTraders,

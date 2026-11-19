@@ -525,6 +525,11 @@ export function renderRewardsSettingsView(
         Promise.resolve({ success: true }),
       'RewardsMoneyController:registerReferee': () => Promise.resolve(),
       'RewardsMoneyController:canChangeRewardsMoneyEnvUrl': () => false,
+      // The settings toggle reads the host on every build, including when
+      // the switch is locked. A missing stub throws and the error boundary
+      // replaces the referral section.
+      'RewardsMoneyController:getRewardsMoneyEnvUrl': () =>
+        'https://rewards-money.dev-api.cx.metamask.io',
       ...options.handlers,
     },
   });

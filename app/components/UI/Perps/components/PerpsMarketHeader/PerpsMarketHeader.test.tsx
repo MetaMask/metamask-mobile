@@ -530,6 +530,9 @@ describe('PerpsMarketHeader', () => {
         within(capsule).getByTestId(testIDs.walletButton as string),
       ).toBeOnTheScreen();
       expect(
+        within(capsule).getByTestId(`${testIDs.walletButton}-wrapper`),
+      ).toHaveStyle({ alignSelf: 'center' });
+      expect(
         within(capsule).getByTestId(testIDs.favoriteButton as string),
       ).toBeOnTheScreen();
     });

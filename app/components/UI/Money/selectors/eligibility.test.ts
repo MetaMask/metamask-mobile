@@ -5,21 +5,20 @@ import {
 } from './eligibility';
 import {
   selectIsCardAuthenticated,
-  selectCardEntryRouting,
+  selectHasCard,
 } from '../../../../selectors/cardController';
 import type { RootState } from '../../../../reducers';
 
 jest.mock('../../../../selectors/cardController', () => ({
   selectIsCardAuthenticated: jest.fn(),
-  selectCardEntryRouting: jest.fn(),
+  selectHasCard: jest.fn(),
 }));
 
 const mockSelectIsCardAuthenticated =
   selectIsCardAuthenticated as unknown as jest.MockedFunction<() => boolean>;
-const mockSelectCardEntryRouting =
-  selectCardEntryRouting as unknown as jest.MockedFunction<
-    () => { hasCard: boolean }
-  >;
+const mockSelectHasCard = selectHasCard as unknown as jest.MockedFunction<
+  () => boolean
+>;
 
 describe('selectIsMoneyAccountGeoEligible', () => {
   const createStateWithGeolocation = (
@@ -229,7 +228,7 @@ describe('selectIsUsUnauthenticatedNonCardholder', () => {
 
   it('returns true for a US user who is not authenticated and not a cardholder', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
-    mockSelectCardEntryRouting.mockReturnValue({ hasCard: false });
+    mockSelectHasCard.mockReturnValue(false);
 
     expect(selectIsUsUnauthenticatedNonCardholder(createState('US'))).toBe(
       true,
@@ -238,7 +237,7 @@ describe('selectIsUsUnauthenticatedNonCardholder', () => {
 
   it('returns false when the user is not in the US', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
-    mockSelectCardEntryRouting.mockReturnValue({ hasCard: false });
+    mockSelectHasCard.mockReturnValue(false);
 
     expect(selectIsUsUnauthenticatedNonCardholder(createState('GB'))).toBe(
       false,
@@ -247,7 +246,7 @@ describe('selectIsUsUnauthenticatedNonCardholder', () => {
 
   it('returns false when the US user is authenticated', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(true);
-    mockSelectCardEntryRouting.mockReturnValue({ hasCard: false });
+    mockSelectHasCard.mockReturnValue(false);
 
     expect(selectIsUsUnauthenticatedNonCardholder(createState('US'))).toBe(
       false,
@@ -256,7 +255,7 @@ describe('selectIsUsUnauthenticatedNonCardholder', () => {
 
   it('returns false when any wallet account is a cardholder', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
-    mockSelectCardEntryRouting.mockReturnValue({ hasCard: true });
+    mockSelectHasCard.mockReturnValue(true);
 
     expect(selectIsUsUnauthenticatedNonCardholder(createState('US'))).toBe(
       false,
