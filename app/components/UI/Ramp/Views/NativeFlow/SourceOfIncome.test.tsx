@@ -111,7 +111,7 @@ describe('SourceOfIncome', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('deposit.mica.sourceOfIncomeTitle')).toBeTruthy();
+    expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
     expect(getByLabelText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
     expect(getByLabelText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
     expect(getByLabelText('deposit.mica.employmentStatusLabel')).toBeTruthy();
@@ -127,7 +127,7 @@ describe('SourceOfIncome', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('deposit.mica.sourceOfIncomeTitle')).toBeTruthy();
+    expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
     expect(getByLabelText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
     expect(getByLabelText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
     expect(queryByLabelText('deposit.mica.employmentStatusLabel')).toBeNull();
@@ -164,8 +164,8 @@ describe('SourceOfIncome', () => {
   });
 
   it('uses mock mode when enabled', async () => {
-    const micaMockModule = require('../../utils/micaMockMode');
-    micaMockModule.isMicaMockModeEnabled.mockReturnValue(true);
+    const micaMockModule = await import('../../utils/micaMockMode');
+    jest.spyOn(micaMockModule, 'isMicaMockModeEnabled').mockReturnValue(true);
 
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
@@ -173,6 +173,6 @@ describe('SourceOfIncome', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('deposit.mica.sourceOfIncomeTitle')).toBeTruthy();
+    expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
   });
 });

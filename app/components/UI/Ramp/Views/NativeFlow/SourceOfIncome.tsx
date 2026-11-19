@@ -23,7 +23,10 @@ import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import type { TransakBuyQuote } from '@metamask/ramps-controller';
+import type {
+  TransakAdditionalRequirement,
+  TransakBuyQuote,
+} from '@metamask/ramps-controller';
 import { useSelector } from 'react-redux';
 import { useTransakController } from '../../hooks/useTransakController';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -33,12 +36,12 @@ import {
   mockSubmitSourceOfIncome,
 } from '../../utils/micaMockMode';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import type { TransakAdditionalRequirement } from '@metamask/ramps-controller';
 import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import styleSheet from './SourceOfIncome.styles';
 
-interface SourceOfIncomeMetadata extends NonNullable<TransakAdditionalRequirement['metadata']> {
+interface SourceOfIncomeMetadata
+  extends NonNullable<TransakAdditionalRequirement['metadata']> {
   sourceOfFundsTypeOptions?: Array<{ name: string; value: string }>;
   employmentStatusOptions?: Array<{ name: string; value: string }>;
   countryOfCitizenshipOptions?: Array<{ name: string; value: string }>;
@@ -87,7 +90,11 @@ const SourceOfIncome = (): React.JSX.Element => {
     setError(null);
 
     // Validation
-    if (!monthlyVolume || Number.isNaN(Number(monthlyVolume)) || Number(monthlyVolume) <= 0) {
+    if (
+      !monthlyVolume ||
+      Number.isNaN(Number(monthlyVolume)) ||
+      Number(monthlyVolume) <= 0
+    ) {
       setError(strings('deposit.mica.monthlyVolumeInvalid'));
       return;
     }
@@ -134,7 +141,10 @@ const SourceOfIncome = (): React.JSX.Element => {
     } catch (err) {
       Logger.error(err as Error, 'SourceOfIncome: Failed to submit');
       setError(
-        parseUserFacingError(err, strings('deposit.mica.sourceOfIncomeSubmitError')),
+        parseUserFacingError(
+          err,
+          strings('deposit.mica.sourceOfIncomeSubmitError'),
+        ),
       );
     } finally {
       setLoading(false);
@@ -164,7 +174,10 @@ const SourceOfIncome = (): React.JSX.Element => {
 
   return (
     <ScreenLayout>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
         <View style={styles.section}>
           <Text variant={TextVariant.BodyMd} style={styles.description}>
             {strings('deposit.mica.sourceOfIncomeDescription')}
@@ -206,7 +219,9 @@ const SourceOfIncome = (): React.JSX.Element => {
             <View style={styles.section}>
               <DepositSelectField
                 label={strings('deposit.mica.employmentStatusLabel')}
-                placeholder={strings('deposit.mica.employmentStatusPlaceholder')}
+                placeholder={strings(
+                  'deposit.mica.employmentStatusPlaceholder',
+                )}
                 options={metadata.employmentStatusOptions || []}
                 selectedValue={employmentStatus}
                 onValueChange={setEmploymentStatus}

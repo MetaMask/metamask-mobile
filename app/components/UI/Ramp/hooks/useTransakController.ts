@@ -252,32 +252,29 @@ export function useTransakController(): UseTransakControllerResult {
     [],
   );
 
-  const getAdditionalRequirements = useCallback(
-    async (quoteId: string) => {
-      // MiCA mock mode support (dev-only, off by default)
-      // TODO: Remove this once core is integrated and tested
-      if (__DEV__) {
-        const {
-          isMicaMockModeEnabled,
-          getMockConsentForm,
-          getMockSourceOfIncomeForm,
-        } = require('../utils/micaMockMode');
-        
-        if (isMicaMockModeEnabled()) {
-          // Simulate MiCA flow: return CONSENT first, then SOURCE_OF_INCOME
-          // In a real scenario, the server decides based on user state
-          const hasConsented = false; // Mock: toggle to test SOURCE_OF_INCOME
-          if (!hasConsented) {
-            return getMockConsentForm();
-          }
-          return getMockSourceOfIncomeForm();
+  const getAdditionalRequirements = useCallback(async (quoteId: string) => {
+    // MiCA mock mode support (dev-only, off by default)
+    // TODO: Remove this once core is integrated and tested
+    if (__DEV__) {
+      const {
+        isMicaMockModeEnabled,
+        getMockConsentForm,
+        getMockSourceOfIncomeForm,
+      } = require('../utils/micaMockMode');
+
+      if (isMicaMockModeEnabled()) {
+        // Simulate MiCA flow: return CONSENT first, then SOURCE_OF_INCOME
+        // In a real scenario, the server decides based on user state
+        const hasConsented = false; // Mock: toggle to test SOURCE_OF_INCOME
+        if (!hasConsented) {
+          return getMockConsentForm();
         }
+        return getMockSourceOfIncomeForm();
       }
-      
-      return getRampsController().transakGetAdditionalRequirements(quoteId);
-    },
-    [],
-  );
+    }
+
+    return getRampsController().transakGetAdditionalRequirements(quoteId);
+  }, []);
 
   const createOrder = useCallback(
     async (quoteId: string, walletAddress: string, paymentMethodId: string) =>
@@ -397,7 +394,9 @@ export function useTransakController(): UseTransakControllerResult {
 
   const submitMicaConsent = useCallback(
     async (consentedAt: string) =>
-      (getRampsController() as RampsControllerWithMica).transakSubmitMicaConsent(consentedAt),
+      (
+        getRampsController() as RampsControllerWithMica
+      ).transakSubmitMicaConsent(consentedAt),
     [],
   );
 
@@ -408,7 +407,9 @@ export function useTransakController(): UseTransakControllerResult {
       employmentStatus?: string,
       countryOfCitizenship?: string,
     ) =>
-      (getRampsController() as RampsControllerWithMica).transakSubmitSourceOfIncome(
+      (
+        getRampsController() as RampsControllerWithMica
+      ).transakSubmitSourceOfIncome(
         monthlyVolume,
         sourceOfFundsType,
         employmentStatus || '',

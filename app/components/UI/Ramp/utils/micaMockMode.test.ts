@@ -174,6 +174,7 @@ describe('micaMockMode', () => {
       const quote = { quoteId: 'test', fiatAmount: 100 };
       const result = micaMockMode.injectMicaTermsIds(quote);
       
+      expect(result.termsIds).toBeDefined();
       expect(result.termsIds).toContain('MICA_EEA_BUY');
     });
 
@@ -182,8 +183,8 @@ describe('micaMockMode', () => {
       const quote = { quoteId: 'test', fiatAmount: 100, termsIds: ['EXISTING'] };
       const result = micaMockMode.injectMicaTermsIds(quote);
       
-      expect(result.termsIds).toContain('MICA_EEA_BUY');
-      expect(result.termsIds).toContain('EXISTING');
+      expect(result.termsIds).toBeDefined();
+      expect(result.termsIds).toEqual(['MICA_EEA_BUY', 'EXISTING']);
     });
 
     it('returns quote unchanged when quote is null', () => {

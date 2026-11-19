@@ -166,10 +166,7 @@ const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
                   ]}
                   onPress={() => handleSelect(item.value)}
                 >
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    style={styles.optionText}
-                  >
+                  <Text variant={TextVariant.BodyMD} style={styles.optionText}>
                     {item.name}
                   </Text>
                 </TouchableOpacity>

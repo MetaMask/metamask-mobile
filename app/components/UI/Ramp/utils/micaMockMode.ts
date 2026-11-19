@@ -9,8 +9,7 @@ import type {
 } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 
-const MICA_MOCK_MODE_ENABLED =
-  process.env.MICA_MOCK_MODE === 'true' && __DEV__;
+const MICA_MOCK_MODE_ENABLED = process.env.MICA_MOCK_MODE === 'true' && __DEV__;
 
 export function isMicaMockModeEnabled(): boolean {
   return MICA_MOCK_MODE_ENABLED;
@@ -38,7 +37,7 @@ export function injectMicaTermsIds(quote: any): any {
   if (!isMicaMockModeEnabled() || !quote) {
     return quote;
   }
-  
+
   Logger.log('[MiCA Mock] Injecting MICA_EEA_BUY termsId into quote');
   return {
     ...quote,
@@ -64,7 +63,10 @@ export function getMockSourceOfIncomeForm(): TransakAdditionalRequirementsRespon
       { name: 'Loan', value: 'loan' },
       { name: 'Dividends', value: 'dividends' },
       { name: 'Gift or donation', value: 'gift_or_donation' },
-      { name: 'Income from services provided', value: 'income_from_services_provided' },
+      {
+        name: 'Income from services provided',
+        value: 'income_from_services_provided',
+      },
       { name: 'Stock/Share sale', value: 'stock_share_sale' },
     ],
     employmentStatusOptions: [
@@ -72,7 +74,10 @@ export function getMockSourceOfIncomeForm(): TransakAdditionalRequirementsRespon
       { name: 'Retired', value: 'retired' },
       { name: 'Unemployed', value: 'unemployed' },
       { name: 'Self Employed', value: 'self_employed' },
-      { name: 'Junior/Entry-Level Employee', value: 'junior_entry_level_employee' },
+      {
+        name: 'Junior/Entry-Level Employee',
+        value: 'junior_entry_level_employee',
+      },
       { name: 'Mid-Level Employee', value: 'mid_level_employee' },
       { name: 'Management Role', value: 'management_role' },
       { name: 'Executive Role', value: 'executive_role' },
@@ -137,9 +142,36 @@ export function injectMockNativeProviderIfNeeded(
 
   // List of EEA country codes (non-exhaustive, add more as needed for testing)
   const EEA_COUNTRIES = [
-    'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
-    'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
-    'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO',
+    'AT',
+    'BE',
+    'BG',
+    'HR',
+    'CY',
+    'CZ',
+    'DK',
+    'EE',
+    'FI',
+    'FR',
+    'DE',
+    'GR',
+    'HU',
+    'IE',
+    'IT',
+    'LV',
+    'LT',
+    'LU',
+    'MT',
+    'NL',
+    'PL',
+    'PT',
+    'RO',
+    'SK',
+    'SI',
+    'ES',
+    'SE',
+    'IS',
+    'LI',
+    'NO',
   ];
 
   const isEEA = EEA_COUNTRIES.includes(regionCode.toUpperCase());
@@ -148,9 +180,7 @@ export function injectMockNativeProviderIfNeeded(
   }
 
   // Check if transak-native or transak-native-staging already exists
-  const hasNative = providers.some((p) =>
-    p.id?.includes('transak-native'),
-  );
+  const hasNative = providers.some((p) => p.id?.includes('transak-native'));
   if (hasNative) {
     return providers;
   }

@@ -149,7 +149,10 @@ const MicaConsent = (): React.JSX.Element => {
 
   return (
     <ScreenLayout>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
         <View style={styles.section}>
           <Text variant={TextVariant.HeadingMd} style={styles.heading}>
             {strings('deposit.mica.continueWithTransak')}
@@ -176,29 +179,44 @@ const MicaConsent = (): React.JSX.Element => {
             {userDetails ? (
               <>
                 <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMd} style={{ fontWeight: 'bold' }}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    style={{ fontWeight: 'bold' }}
+                  >
                     {strings('deposit.mica.name')}:{' '}
                   </Text>
                   {userDetails.firstName} {userDetails.lastName}
                 </Text>
                 <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMd} style={{ fontWeight: 'bold' }}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    style={{ fontWeight: 'bold' }}
+                  >
                     {strings('deposit.mica.dob')}:{' '}
                   </Text>
                   {userDetails.dob || strings('deposit.mica.notProvided')}
                 </Text>
                 <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMd} style={{ fontWeight: 'bold' }}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    style={{ fontWeight: 'bold' }}
+                  >
                     {strings('deposit.mica.phone')}:{' '}
                   </Text>
-                  {userDetails.mobileNumber || strings('deposit.mica.notProvided')}
+                  {userDetails.mobileNumber ||
+                    strings('deposit.mica.notProvided')}
                 </Text>
                 <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMd} style={{ fontWeight: 'bold' }}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    style={{ fontWeight: 'bold' }}
+                  >
                     {strings('deposit.mica.address')}:{' '}
                   </Text>
-                  {userDetails.address?.addressLine1 || ''}, {userDetails.address?.city || ''},{' '}
-                  {userDetails.address?.postCode || ''}, {userDetails.address?.countryCode || ''}
+                  {userDetails.address?.addressLine1 || ''},{' '}
+                  {userDetails.address?.city || ''},{' '}
+                  {userDetails.address?.postCode || ''},{' '}
+                  {userDetails.address?.countryCode || ''}
                 </Text>
               </>
             ) : (

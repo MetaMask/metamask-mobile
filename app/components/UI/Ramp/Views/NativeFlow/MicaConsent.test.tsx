@@ -111,16 +111,18 @@ describe('MicaConsent', () => {
   });
 
   it('disables submit button until both consents are checked', async () => {
-    const { getByLabelText, getByText } = render(
+    const { getByText, getByLabelText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <MicaConsent />
       </ThemeContext.Provider>,
     );
 
     await waitFor(() => {
-      const button = getByText('deposit.mica.agreeAndContinue');
-      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
     });
+
+    const button = getByLabelText('deposit.mica.agreeAndContinue');
+    expect(button.props.accessibilityState?.disabled).toBe(true);
   });
 
   it('enables submit button when both consents are checked', async () => {
@@ -146,7 +148,7 @@ describe('MicaConsent', () => {
     });
   });
 
-  it('submits consent and navigates back', async () => {
+  it('submits consent and re-checks requirements', async () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <MicaConsent />
@@ -168,13 +170,13 @@ describe('MicaConsent', () => {
 
     await waitFor(() => {
       expect(mockSubmitMicaConsent).toHaveBeenCalledWith(expect.any(String));
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
     });
   });
 
   it('uses mock mode when enabled', async () => {
-    const micaMockModule = require('../../utils/micaMockMode');
-    micaMockModule.isMicaMockModeEnabled.mockReturnValue(true);
+    const micaMockModule = await import('../../utils/micaMockMode');
+    jest.spyOn(micaMockModule, 'isMicaMockModeEnabled').mockReturnValue(true);
 
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
