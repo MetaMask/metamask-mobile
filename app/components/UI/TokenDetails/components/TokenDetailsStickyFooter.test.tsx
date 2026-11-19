@@ -241,6 +241,20 @@ describe('TokenDetailsStickyFooter', () => {
       expect(queryByTestId('token-details-sticky-footer')).toBeNull();
     });
 
+    it('hides the position sheet when there is no balance', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...floatingProps}
+          hasTokenBalance={false}
+          reserveTraderPositionLayout
+          traderPositionPnl={traderPositionPnl}
+        />,
+      );
+
+      expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+      expect(getByTestId(FLOATING_ACTIONS_TEST_ID)).toHaveStyle({ bottom: 0 });
+    });
+
     it('keeps the position sheet below and floats the actions 16px above it', async () => {
       const { getByTestId } = render(
         <TokenDetailsStickyFooter

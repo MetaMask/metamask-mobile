@@ -5,15 +5,17 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import { Pressable, RefreshControl, useWindowDimensions } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { useSelector } from 'react-redux';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   Box,
   BoxFlexDirection,
@@ -42,7 +44,10 @@ import {
 import { formatCurrencyValue, formatMarketEndDate } from '../../utils/format';
 import usePredictShare from '../../hooks/usePredictShare';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
-import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
+import {
+  PredictCryptoUpDownDetailsSelectorsIDs,
+  PredictMarketDetailsSelectorsIDs,
+} from '../../Predict.testIds';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import {
   RECURRENCE_TO_DURATION_SECS,
@@ -57,7 +62,12 @@ import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
 import PredictCryptoUpDownPositions from '../PredictCryptoUpDownPositions';
 import { usePredictSeriesPositions } from '../../hooks/usePredictSeriesPositions';
-import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
+import PredictMarketDetailsActions, {
+  getPredictMarketDetailsActionsMode,
+} from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
+import PredictFloatingActionsFooter from '../PredictFloatingActionsFooter';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
+import { FLOATING_ACTIONS_BOTTOM_MARGIN } from '../../../../hooks/useFloatingActionsScrollHide';
 import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
@@ -141,6 +151,15 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const { colors } = useTheme();
   const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const { height: windowHeight } = useWindowDimensions();
+  const isGlassFooter = useIsGlassSurfaceEnabled(
+    selectPredictBrandRefreshEnabled,
+  );
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+  const [floatingFooterHeight, setFloatingFooterHeight] = useState(0);
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
   const previousMarketIdRef = useRef(market.id);
@@ -319,6 +338,20 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   });
   const canClaim = Boolean(onClaimPress && hasPositivePnl);
   const shouldRenderActions = Boolean(onBetPress || canClaim);
+  const selectedMarketStatus = selectedMarket.status as PredictMarketStatus;
+  const isSingleOutcomeMarket = selectedMarket.outcomes.length === 1;
+  // A binary market's two buy buttons float on glass over the content.
+  const isFloatingFooter =
+    isGlassFooter &&
+    shouldRenderActions &&
+    getPredictMarketDetailsActionsMode({
+      isClaimablePositionsLoading,
+      hasPositivePnl: canClaim,
+      marketStatus: selectedMarketStatus,
+      singleOutcomeMarket: isSingleOutcomeMarket,
+      isMarketLoading,
+    }) === 'binary';
+  const floatingFooterBottom = insets.bottom;
 
   const handleCurrentPriceChange = useCallback((value: number | undefined) => {
     setCurrentPrice(value);
@@ -562,10 +595,21 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <HeaderCompactStandard {...headerProps} />
       )}
 
-      <ScrollView
+      <Animated.ScrollView
         testID={PredictCryptoUpDownDetailsSelectorsIDs.SCROLL_VIEW}
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('pb-4')}
+        contentContainerStyle={
+          isFloatingFooter
+            ? {
+                paddingBottom:
+                  floatingFooterBottom +
+                  floatingFooterHeight +
+                  FLOATING_ACTIONS_BOTTOM_MARGIN,
+              }
+            : tw.style('pb-4')
+        }
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -705,15 +749,21 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             <PredictCryptoUpDownPositions rows={seriesPositionRows} />
           </Box>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
 
-      {shouldRenderActions && (
-        <Box twClassName="px-4 pb-8">
+      {isFloatingFooter ? (
+        <PredictFloatingActionsFooter
+          testID={PredictMarketDetailsSelectorsIDs.FLOATING_ACTIONS_FOOTER}
+          scrollY={scrollY}
+          bottom={floatingFooterBottom}
+          onHeightChange={setFloatingFooterHeight}
+        >
           <PredictMarketDetailsActions
+            isFloating
             isClaimablePositionsLoading={isClaimablePositionsLoading}
             hasPositivePnl={canClaim}
-            marketStatus={selectedMarket.status as PredictMarketStatus}
-            singleOutcomeMarket={selectedMarket.outcomes.length === 1}
+            marketStatus={selectedMarketStatus}
+            singleOutcomeMarket={isSingleOutcomeMarket}
             isMarketLoading={isMarketLoading}
             market={selectedMarket}
             openOutcomes={selectedOpenOutcomes}
@@ -721,7 +771,24 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             onBuyPress={handleBuyPress}
             isClaimPending={isClaimPending}
           />
-        </Box>
+        </PredictFloatingActionsFooter>
+      ) : (
+        shouldRenderActions && (
+          <Box twClassName="px-4 pb-8">
+            <PredictMarketDetailsActions
+              isClaimablePositionsLoading={isClaimablePositionsLoading}
+              hasPositivePnl={canClaim}
+              marketStatus={selectedMarketStatus}
+              singleOutcomeMarket={isSingleOutcomeMarket}
+              isMarketLoading={isMarketLoading}
+              market={selectedMarket}
+              openOutcomes={selectedOpenOutcomes}
+              onClaimPress={onClaimPress ?? NOOP}
+              onBuyPress={handleBuyPress}
+              isClaimPending={isClaimPending}
+            />
+          </Box>
+        )
       )}
       {isTwapInfoSheetVisible && twapWindowSeconds && targetPriceSymbol ? (
         <Box testID={PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_SHEET}>

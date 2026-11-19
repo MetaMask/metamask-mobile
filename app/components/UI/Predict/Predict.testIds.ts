@@ -196,6 +196,9 @@ export const PredictMarketDetailsSelectorsIDs = {
   OUTCOMES_TAB_CONTENT: getPredictMarketDetailsSelector.tabContent('outcomes'),
   MARKET_DETAILS_CASH_OUT_BUTTON: 'predict-market-details-cash-out-button',
   CLAIM_WINNINGS_BUTTON: 'predict-market-details-claim-winnings-button',
+  FLOATING_ACTIONS_FOOTER: 'predict-market-details-floating-actions-footer',
+  FLOATING_BUY_YES_BUTTON: 'predict-market-details-floating-buy-yes-button',
+  FLOATING_BUY_NO_BUTTON: 'predict-market-details-floating-buy-no-button',
 
   // Chart and content (used by component and tests)
   DETAILS_CHART: 'predict-details-chart',

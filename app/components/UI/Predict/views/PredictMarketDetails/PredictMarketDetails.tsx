@@ -1,7 +1,14 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { InteractionManager, RefreshControl } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
@@ -47,7 +54,13 @@ import {
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
 import PredictMarketDetailsTabBar from './components/PredictMarketDetailsTabBar';
-import PredictMarketDetailsActions from './components/PredictMarketDetailsActions';
+import PredictMarketDetailsActions, {
+  getPredictMarketDetailsActionsMode,
+} from './components/PredictMarketDetailsActions';
+import PredictFloatingActionsFooter from '../../components/PredictFloatingActionsFooter';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
+import { FLOATING_ACTIONS_BOTTOM_MARGIN } from '../../../../hooks/useFloatingActionsScrollHide';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import PredictMarketDetailsTabContent from './components/PredictMarketDetailsTabContent';
 import { useChartData } from './hooks/useChartData';
 import { useOutcomeResolution } from './hooks/useOutcomeResolution';
@@ -72,6 +85,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
+  const isGlassFooter = useIsGlassSurfaceEnabled(
+    selectPredictBrandRefreshEnabled,
+  );
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+  const [floatingFooterHeight, setFloatingFooterHeight] = useState(0);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const nonRegTimeSportsMarketTypes = useSelector(
@@ -449,6 +471,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const hasPositivePnl = actionableClaimablePositions.length > 0;
 
   const isMarketUnavailable = isMarketUnresolved;
+  const marketStatus = market?.status as PredictMarketStatus | undefined;
+  // A binary market's two buy buttons float on glass over the content.
+  const isFloatingFooter =
+    isGlassFooter &&
+    !isMarketUnavailable &&
+    getPredictMarketDetailsActionsMode({
+      isClaimablePositionsLoading,
+      hasPositivePnl,
+      marketStatus,
+      singleOutcomeMarket,
+      isMarketLoading: isResolvedMarketLoading,
+    }) === 'binary';
+  const floatingFooterBottom = insets.bottom;
   const resolvedMarketError = marketError ?? currentSeriesMarketError;
 
   if (resolvedMarketError && !market) {
@@ -508,8 +543,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   return (
     <SafeAreaView
-      style={tw.style('flex-1 bg-default', isFeeExemption ? 'pb-6' : '')}
-      edges={['left', 'right', 'bottom']}
+      style={tw.style(
+        'flex-1 bg-default',
+        isFeeExemption && !isFloatingFooter ? 'pb-6' : '',
+      )}
+      // A floating footer clears the safe area itself, so content can scroll
+      // under it to the bottom of the screen.
+      edges={isFloatingFooter ? ['left', 'right'] : ['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
       <PredictMarketDetailsHeader
@@ -520,11 +560,23 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         onBackPress={handleBackPress}
       />
 
-      <ScrollView
+      <Animated.ScrollView
         testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
         stickyHeaderIndices={stickyHeaderIndices}
         showsVerticalScrollIndicator={false}
         style={tw.style('flex-1')}
+        contentContainerStyle={
+          isFloatingFooter
+            ? {
+                paddingBottom:
+                  floatingFooterBottom +
+                  floatingFooterHeight +
+                  FLOATING_ACTIONS_BOTTOM_MARGIN,
+              }
+            : undefined
+        }
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -609,33 +661,75 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             onResolvedExpandedToggle={setIsResolvedExpanded}
           />
         )}
-      </ScrollView>
+      </Animated.ScrollView>
 
-      {!isMarketUnavailable && (
-        <PredictMarketDetailsActions
-          isClaimablePositionsLoading={isClaimablePositionsLoading}
-          hasPositivePnl={hasPositivePnl}
-          marketStatus={market?.status as PredictMarketStatus | undefined}
-          singleOutcomeMarket={singleOutcomeMarket}
-          isMarketLoading={isResolvedMarketLoading}
-          market={market}
-          openOutcomes={openOutcomes}
-          onClaimPress={handleClaimPress}
-          onBuyPress={handleBuyPress}
-          isClaimPending={isClaimPending}
-        />
-      )}
-      {isFeeExemption && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-1 absolute inset-x-0 bottom-4 pb-3"
+      {isFloatingFooter ? (
+        <PredictFloatingActionsFooter
+          testID={PredictMarketDetailsSelectorsIDs.FLOATING_ACTIONS_FOOTER}
+          scrollY={scrollY}
+          bottom={floatingFooterBottom}
+          onHeightChange={setFloatingFooterHeight}
         >
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            {strings('predict.market_details.fee_exemption')}
-          </Text>
-        </Box>
+          <PredictMarketDetailsActions
+            isFloating
+            isClaimablePositionsLoading={isClaimablePositionsLoading}
+            hasPositivePnl={hasPositivePnl}
+            marketStatus={marketStatus}
+            singleOutcomeMarket={singleOutcomeMarket}
+            isMarketLoading={isResolvedMarketLoading}
+            market={market}
+            openOutcomes={openOutcomes}
+            onClaimPress={handleClaimPress}
+            onBuyPress={handleBuyPress}
+            isClaimPending={isClaimPending}
+          />
+          {isFeeExemption && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="pt-2"
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {strings('predict.market_details.fee_exemption')}
+              </Text>
+            </Box>
+          )}
+        </PredictFloatingActionsFooter>
+      ) : (
+        <>
+          {!isMarketUnavailable && (
+            <PredictMarketDetailsActions
+              isClaimablePositionsLoading={isClaimablePositionsLoading}
+              hasPositivePnl={hasPositivePnl}
+              marketStatus={marketStatus}
+              singleOutcomeMarket={singleOutcomeMarket}
+              isMarketLoading={isResolvedMarketLoading}
+              market={market}
+              openOutcomes={openOutcomes}
+              onClaimPress={handleClaimPress}
+              onBuyPress={handleBuyPress}
+              isClaimPending={isClaimPending}
+            />
+          )}
+          {isFeeExemption && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="gap-1 absolute inset-x-0 bottom-4 pb-3"
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {strings('predict.market_details.fee_exemption')}
+              </Text>
+            </Box>
+          )}
+        </>
       )}
     </SafeAreaView>
   );

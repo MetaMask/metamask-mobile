@@ -3,6 +3,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonSize as DSButtonSize,
+  ButtonVariant as DSButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -15,6 +17,8 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
+import FloatingActionButtonGlass from '../../../../../../../component-library/components-temp/ButtonGlass/FloatingActionButtonGlass';
+import { useTheme } from '../../../../../../../util/theme';
 import PredictClaimButton from '../../../../components/PredictActionButtons/PredictClaimButton';
 import PredictDetailsButtonsSkeleton from '../../../../components/PredictDetailsButtonsSkeleton';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
@@ -57,6 +61,41 @@ const formatPayoutEstimate = (
   return `${investmentAmountDisplay} -> ${payoutAmountDisplay}`;
 };
 
+const FLOATING_YES_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
+const FLOATING_NO_TEXT_PROPS = { color: TextColor.ErrorInverse } as const;
+
+export type PredictMarketDetailsActionsMode =
+  | 'claim'
+  | 'binary'
+  | 'skeleton'
+  | null;
+
+/**
+ * Which footer the market details show: claim winnings, the two buy buttons of
+ * a binary (two-outcome) market, a loading skeleton, or nothing.
+ */
+export const getPredictMarketDetailsActionsMode = ({
+  isClaimablePositionsLoading,
+  hasPositivePnl,
+  marketStatus,
+  singleOutcomeMarket,
+  isMarketLoading,
+}: Pick<
+  PredictMarketDetailsActionsProps,
+  | 'isClaimablePositionsLoading'
+  | 'hasPositivePnl'
+  | 'marketStatus'
+  | 'singleOutcomeMarket'
+  | 'isMarketLoading'
+>): PredictMarketDetailsActionsMode => {
+  if (!isClaimablePositionsLoading && hasPositivePnl) return 'claim';
+  if (marketStatus === PredictMarketStatus.OPEN && singleOutcomeMarket) {
+    return 'binary';
+  }
+  if (isMarketLoading) return 'skeleton';
+  return null;
+};
+
 export interface PredictMarketDetailsActionsProps {
   isClaimablePositionsLoading: boolean;
   hasPositivePnl: boolean;
@@ -69,6 +108,11 @@ export interface PredictMarketDetailsActionsProps {
   onBuyPress: (token: PredictOutcomeToken) => void;
   isClaimPending?: boolean;
   showPayoutEstimate?: boolean;
+  /**
+   * Draws the binary buy buttons as glass actions floating over the content,
+   * without the docked footer surface. The parent positions them.
+   */
+  isFloating?: boolean;
 }
 
 const PredictMarketDetailsActions = memo(
@@ -84,8 +128,17 @@ const PredictMarketDetailsActions = memo(
     onBuyPress,
     isClaimPending = false,
     showPayoutEstimate = false,
+    isFloating = false,
   }: PredictMarketDetailsActionsProps) => {
     const tw = useTailwind();
+    const { colors } = useTheme();
+    const mode = getPredictMarketDetailsActionsMode({
+      isClaimablePositionsLoading,
+      hasPositivePnl,
+      marketStatus,
+      singleOutcomeMarket,
+      isMarketLoading,
+    });
 
     const renderActionButtonLabel = ({
       title,
@@ -124,7 +177,7 @@ const PredictMarketDetailsActions = memo(
     };
 
     const content = (() => {
-      if (!isClaimablePositionsLoading && hasPositivePnl) {
+      if (mode === 'claim') {
         return (
           <PredictClaimButton
             onPress={onClaimPress}
@@ -134,7 +187,7 @@ const PredictMarketDetailsActions = memo(
         );
       }
 
-      if (marketStatus === PredictMarketStatus.OPEN && singleOutcomeMarket) {
+      if (mode === 'binary') {
         // use openOutcomes for real-time (CLOB) prices
         const firstOpenOutcome = openOutcomes[0];
         const yesToken =
@@ -149,6 +202,47 @@ const PredictMarketDetailsActions = memo(
           (getDisplayBuyPrice(yesToken) ?? 0) * 100,
         );
         const noBuyCents = Math.round((getDisplayBuyPrice(noToken) ?? 0) * 100);
+        if (isFloating) {
+          return (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="w-full gap-3"
+            >
+              <FloatingActionButtonGlass
+                isGlass
+                variant={DSButtonVariant.Primary}
+                size={DSButtonSize.Lg}
+                tintColor={colors.success.default}
+                textProps={FLOATING_YES_TEXT_PROPS}
+                testID={
+                  PredictMarketDetailsSelectorsIDs.FLOATING_BUY_YES_BUTTON
+                }
+                onPress={() => {
+                  if (yesToken) {
+                    onBuyPress(yesToken);
+                  }
+                }}
+              >
+                {`${yesTitle} • ${yesBuyCents}¢`}
+              </FloatingActionButtonGlass>
+              <FloatingActionButtonGlass
+                isGlass
+                variant={DSButtonVariant.Primary}
+                size={DSButtonSize.Lg}
+                tintColor={colors.error.default}
+                textProps={FLOATING_NO_TEXT_PROPS}
+                testID={PredictMarketDetailsSelectorsIDs.FLOATING_BUY_NO_BUTTON}
+                onPress={() => {
+                  if (noToken) {
+                    onBuyPress(noToken);
+                  }
+                }}
+              >
+                {`${noTitle} • ${noBuyCents}¢`}
+              </FloatingActionButtonGlass>
+            </Box>
+          );
+        }
         const useStackedLabels =
           shouldUseStackedActionButtonLabel(yesTitle) ||
           shouldUseStackedActionButtonLabel(noTitle);
@@ -232,7 +326,7 @@ const PredictMarketDetailsActions = memo(
       }
 
       // Show skeleton buttons while loading
-      if (isMarketLoading) {
+      if (mode === 'skeleton') {
         return <PredictDetailsButtonsSkeleton />;
       }
 
@@ -240,6 +334,8 @@ const PredictMarketDetailsActions = memo(
     })();
 
     if (!content) return null;
+
+    if (isFloating && mode === 'binary') return content;
 
     return (
       <Box twClassName="px-3 bg-default border-t border-muted">{content}</Box>

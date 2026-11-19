@@ -646,7 +646,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   // Floating actions leave the sheet only for the position line, so an empty
   // reserved sheet (position still loading) isn't drawn.
   const showPositionSheet =
-    showTraderPositionLayout && (!isFloatingActions || hasTraderPosition);
+    showTraderPositionLayout &&
+    (!isFloatingActions || (hasTraderPosition && hasTokenBalance));
 
   // 16px above the sheet's top edge; with no sheet (or before it measures),
   // on the safe area.
