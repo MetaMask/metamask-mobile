@@ -6,6 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import HeaderGlass, { type HeaderGlassOptions } from '../HeaderGlass';
+import { glassHeaderTwClassName } from '../HeaderGlass/glassHeaderTwClassName';
 import {
   resolveEndAccessoryGlass,
   resolveStartAccessoryGlass,
@@ -30,10 +31,19 @@ const HeaderStandardGlass = ({
   isFloating,
   scrollY,
   onLayout,
+  twClassName,
   ...props
 }: HeaderStandardGlassProps) => {
+  const headerClassName = glassHeaderTwClassName(twClassName);
+
   if (!isGlass) {
-    return <HeaderStandard {...props} onLayout={onLayout} />;
+    return (
+      <HeaderStandard
+        {...props}
+        onLayout={onLayout}
+        twClassName={headerClassName}
+      />
+    );
   }
 
   return (
@@ -46,6 +56,7 @@ const HeaderStandardGlass = ({
     >
       <HeaderStandard
         {...props}
+        twClassName={headerClassName}
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />

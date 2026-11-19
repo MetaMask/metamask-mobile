@@ -16,6 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { useLaunchSumSub } from '../../hooks/useLaunchSumSub';
 import VbaFoxLoader from '../../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
 import type { KycIdentityVerificationCompletion } from './types';
@@ -116,7 +117,10 @@ const KycSumSub = ({ onSubmitted, onExit }: KycSumSubProps) => {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            onPress={retry}
+            onPress={() => {
+              fireImpact(ImpactMoment.PrimaryCTA);
+              retry();
+            }}
             testID={KycSumSubSelectorsIDs.RETRY_BUTTON}
             twClassName="mt-2"
           >

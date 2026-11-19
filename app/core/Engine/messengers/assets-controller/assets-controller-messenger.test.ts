@@ -20,6 +20,10 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'AccountTreeController:isInitialized',
   'ClientController:getState',
   'KeyringController:isUnlocked',
+  'AuthenticatedUserStorageService:getUserAssets',
+  'AuthenticatedUserStorageService:setUserAssets',
+  'AuthenticatedUserStorageService:importTokens',
+  'AuthenticatedUserStorageService:hideTokens',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [

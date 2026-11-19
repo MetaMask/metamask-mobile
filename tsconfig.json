@@ -11,6 +11,11 @@
     "strict": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    // TypeScript 7 does not load every `@types/*` package by itself, and
+    // Oxlint's type-aware mode runs on TypeScript 7. Without this list it
+    // cannot see `describe`, `expect`, or `jest` in test files. Add a package
+    // here only if it declares globals. Imported packages need no entry.
+    "types": ["jest"],
     "paths": {
       "#app/*": ["./app/*"],
       "images/*": ["./app/images/*"],

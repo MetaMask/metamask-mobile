@@ -123,10 +123,13 @@ import {
   RampsControllerEvents,
   RampsService,
   RampsServiceActions,
+  RampsServiceEvents,
   TransakService,
   TransakServiceActions,
+  TransakServiceEvents,
   NeoBankService,
   NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -595,6 +598,12 @@ import {
   MoneyAccountUpgradeControllerEvents,
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
+import type {
+  MoneyAccountLifecycleController,
+  MoneyAccountLifecycleControllerActions,
+  MoneyAccountLifecycleControllerEvents,
+  MoneyAccountLifecycleControllerState,
+} from '@metamask/money-account-lifecycle-controller';
 import { captureException } from '@sentry/react-native';
 import { Wallet } from '@metamask/wallet';
 
@@ -775,6 +784,7 @@ export type GlobalActions =
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions
+  | MoneyAccountLifecycleControllerActions
   | SentinelApiServiceActions;
 
 export type GlobalEvents =
@@ -860,6 +870,9 @@ export type GlobalEvents =
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
   | RampsControllerEvents
+  | RampsServiceEvents
+  | TransakServiceEvents
+  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -871,6 +884,7 @@ export type GlobalEvents =
   | KycServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
+  | MoneyAccountLifecycleControllerEvents
   | SentinelApiServiceEvents;
 
 /**
@@ -1028,6 +1042,7 @@ export type MessengerClients = {
   NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
+  MoneyAccountLifecycleController: MoneyAccountLifecycleController;
 };
 
 /**
@@ -1112,6 +1127,7 @@ export type EngineState = {
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
+  MoneyAccountLifecycleController: MoneyAccountLifecycleControllerState;
 };
 
 /** Messenger client names */
@@ -1223,7 +1239,8 @@ export type MessengerClientsToInitialize =
   | 'KycService'
   | 'KycController'
   | 'ChompApiService'
-  | 'MoneyAccountUpgradeController';
+  | 'MoneyAccountUpgradeController'
+  | 'MoneyAccountLifecycleController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

@@ -4073,11 +4073,13 @@ export class RewardsController extends BaseController<
    * Opt a subscription into a campaign.
    * @param campaignId - The campaign ID to opt into.
    * @param subscriptionId - The subscription ID for authentication.
+   * @param profileUsername - Social profile username captured at opt-in, when the user has one.
    * @returns The participant status after opting in.
    */
   async optInToCampaign(
     campaignId: string,
     subscriptionId: string,
+    profileUsername?: string,
   ): Promise<CampaignParticipantStatusDto> {
     if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
@@ -4090,11 +4092,20 @@ export class RewardsController extends BaseController<
       this.state.campaignParticipantStatus[key]?.optedIn === true;
     const result = await this.#withAuthRetry(async () => {
       Logger.log('RewardsController: Opting into campaign', campaignId);
-      return (await this.messenger.call(
-        'RewardsDataService:optInToCampaign',
-        subscriptionId,
-        campaignId,
-      )) as CampaignParticipantStatusDto;
+      return (
+        profileUsername
+          ? await this.messenger.call(
+              'RewardsDataService:optInToCampaign',
+              subscriptionId,
+              campaignId,
+              profileUsername,
+            )
+          : await this.messenger.call(
+              'RewardsDataService:optInToCampaign',
+              subscriptionId,
+              campaignId,
+            )
+      ) as CampaignParticipantStatusDto;
     }, subscriptionId);
     this.invalidateSubscriptionCache({ subscriptionId, campaignId });
     // Only emit if the user wasn't already opted in, to avoid redundant refetches
@@ -4128,11 +4139,13 @@ export class RewardsController extends BaseController<
    * post-event status fetches hit cache instead of the network.
    * @param campaignIds - Campaign IDs to opt into, in call order.
    * @param subscriptionId - The subscription ID for authentication.
+   * @param profileUsername - Social profile username captured at opt-in, when the user has one. Applied to every campaign in the batch.
    * @returns Per-campaign participant statuses after opting in.
    */
   async optInToCampaigns(
     campaignIds: string[],
     subscriptionId: string,
+    profileUsername?: string,
   ): Promise<Record<string, CampaignParticipantStatusDto>> {
     if (!this.isRewardsFeatureEnabled()) {
       return Object.fromEntries(
@@ -4175,11 +4188,20 @@ export class RewardsController extends BaseController<
               campaignId,
               `attempt ${attempt + 1}/${maxAttempts}`,
             );
-            return (await this.messenger.call(
-              'RewardsDataService:optInToCampaign',
-              subscriptionId,
-              campaignId,
-            )) as CampaignParticipantStatusDto;
+            return (
+              profileUsername
+                ? await this.messenger.call(
+                    'RewardsDataService:optInToCampaign',
+                    subscriptionId,
+                    campaignId,
+                    profileUsername,
+                  )
+                : await this.messenger.call(
+                    'RewardsDataService:optInToCampaign',
+                    subscriptionId,
+                    campaignId,
+                  )
+            ) as CampaignParticipantStatusDto;
           }, subscriptionId);
 
           if (attemptResult?.optedIn) {

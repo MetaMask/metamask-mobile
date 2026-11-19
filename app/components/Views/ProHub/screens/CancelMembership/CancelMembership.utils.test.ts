@@ -8,6 +8,7 @@ import { CANCEL_REASONS } from './CancelMembership.constants';
 import {
   CANCELLATION_TIMINGS,
   POST_CANCELLATION_PRO_HUB_SOURCE,
+  buildPostCancellationHomeResetState,
   buildPostCancellationResetState,
   getCancellationTiming,
   shuffleCancelReasons,
@@ -236,5 +237,16 @@ describe('buildPostCancellationResetState', () => {
         params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
       },
     ]);
+  });
+});
+
+describe('buildPostCancellationHomeResetState', () => {
+  it('resets Home, Money, Accounts, and a Pro-only stack to HomeNav', () => {
+    const nextState = buildPostCancellationHomeResetState();
+
+    expect(nextState).toEqual({
+      index: 0,
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
   });
 });
