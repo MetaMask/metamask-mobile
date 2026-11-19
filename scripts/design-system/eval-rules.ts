@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /** Rule source of the design system evals: the JSON next to this file. */
@@ -28,9 +28,12 @@ export interface EvalRuleConfig {
   match: RuleMatch;
 }
 
-/** Load the checked-in eval rules JSON. */
-export function loadEvalRules(): EvalRuleConfig[] {
-  return parseEvalRules(JSON.parse(readFileSync(EVAL_RULES_FILE, 'utf8')));
+/** Load the eval rules JSON. A missing file yields no rules (pilot: skip, do not fail). */
+export function loadEvalRules(file = EVAL_RULES_FILE): EvalRuleConfig[] {
+  if (!existsSync(file)) {
+    return [];
+  }
+  return parseEvalRules(JSON.parse(readFileSync(file, 'utf8')));
 }
 
 /** Parse the eval rules JSON. Throws on the first defect so a broken source fails loudly. */

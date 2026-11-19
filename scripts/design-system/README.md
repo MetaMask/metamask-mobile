@@ -56,7 +56,7 @@ Semantics the interpreter applies to every rule:
   a `Property` rule.
 - Regexes must compile; an invalid one fails validation.
 
-Invalid JSON or schema violations fail the check loudly with an `::error` annotation.
+Invalid JSON or schema violations fail the check loudly (exit 1). A **missing** `eval-rules.json` is the exception: the check prints a `::warning` and skips (pilot behaviour).
 
 ## What needs engine code (and what doesn't)
 

@@ -109,6 +109,12 @@ function linterConfig(): Linter.Config {
 }
 
 function main(): void {
+  if (Object.keys(EVAL_RULES).length === 0) {
+    process.stdout.write(
+      '::warning::No design system eval rules loaded (eval-rules.json missing or empty), skipping.\n',
+    );
+    return;
+  }
   // pull_request checkout is the merge commit. Its first parent is the base tip.
   const diff = execFileSync(
     'git',

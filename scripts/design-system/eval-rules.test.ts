@@ -11,6 +11,10 @@ describe('loadEvalRules', () => {
       expect(config.message).toContain('{{key}}');
     }
   });
+
+  it('returns no rules instead of throwing when the file is missing', () => {
+    expect(loadEvalRules('/nonexistent/eval-rules.json')).toEqual([]);
+  });
 });
 
 describe('parseEvalRules', () => {

@@ -38,11 +38,11 @@ export function createRuleFromConfig(config: EvalRuleConfig): Rule.RuleModule {
 
           // Property.value is an ESLint node. Its ESTree type omits parent.
           const target = unwrapExpression(node.value as Rule.Node);
-          if (!target.loc || !isOffense(target)) {
-            return;
-          }
-
-          if (lineHasException(sourceCode, target.loc.start.line)) {
+          if (
+            !target.loc ||
+            !isOffense(target) ||
+            lineHasException(sourceCode, target.loc.start.line)
+          ) {
             return;
           }
 
@@ -81,33 +81,21 @@ function buildValueMatcher(match: ValueMatch): (node: Rule.Node) => boolean {
     regex.test(node.value);
 }
 
-function propertyName(property: PropertyNode): string | undefined {
-  if (property.computed && property.key.type !== 'Literal') {
-    return undefined;
+function propertyName({ key, computed }: PropertyNode): string | undefined {
+  if (!computed && key.type === 'Identifier') {
+    return key.name;
   }
-
-  if (!property.computed && property.key.type === 'Identifier' && property.key.name) {
-    return property.key.name;
-  }
-
-  if (property.key.type === 'Literal' && typeof property.key.value === 'string') {
-    return property.key.value;
-  }
-
-  return undefined;
+  return key.type === 'Literal' && typeof key.value === 'string'
+    ? key.value
+    : undefined;
 }
 
 function unwrapExpression(node: Rule.Node): Rule.Node {
-  let current = node;
   // ESTree's node types omit TSAsExpression and the other TS wrappers.
-  let type: string = current.type;
-  while (
-    type === 'TSAsExpression' ||
-    type === 'TSTypeAssertion' ||
-    type === 'TSSatisfiesExpression'
-  ) {
+  const wrappers = ['TSAsExpression', 'TSTypeAssertion', 'TSSatisfiesExpression'];
+  let current = node;
+  while (wrappers.includes(current.type)) {
     current = (current as Rule.Node & { expression: Rule.Node }).expression;
-    type = current.type;
   }
   return current;
 }
