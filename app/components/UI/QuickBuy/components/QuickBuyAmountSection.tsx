@@ -262,7 +262,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         variant={TextVariant.DisplayMd}
       />
 
-      <Box alignItems={BoxAlignItems.Center} twClassName="mt-2">
+      <Box alignItems={BoxAlignItems.Center} twClassName="mt-1">
         {isQuoteLoading && !hasInsufficientBalance ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
