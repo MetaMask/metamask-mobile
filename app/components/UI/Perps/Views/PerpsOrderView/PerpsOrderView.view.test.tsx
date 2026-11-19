@@ -24,6 +24,14 @@ import {
   type OrderBookData,
   type OrderBookLevel,
 } from '@metamask/perps-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import {
+  PaymentOverride,
+  type TransactionConfig,
+} from '@metamask/transaction-pay-controller';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
@@ -2532,18 +2540,32 @@ describe('PerpsOrderView', () => {
 
     type OrderViewStore = ReturnType<typeof renderPerpsOrderView>['store'];
 
+    interface PayControllerStub {
+      setTransactionConfig: (
+        transactionId: string,
+        update: (config: TransactionConfig) => void,
+      ) => void;
+      updateFiatPayment: () => void;
+      updatePaymentToken: () => void;
+    }
+
     let orderViewStore: OrderViewStore | undefined;
     let moneyBalanceFetches = 0;
     let restoreMessenger: (() => void) | undefined;
-    let previousPayController: unknown;
+    let previousPayController: PayControllerStub | undefined;
     let previousFetchGasFeeEstimates: unknown;
     let restoreFlushState: (() => void) | undefined;
 
     const payControllerKey = 'TransactionPayController';
 
+    const payControllerContext = () =>
+      Engine.context as unknown as {
+        TransactionPayController?: PayControllerStub;
+      };
+
     const publishPaymentOverride = (
       transactionId: string,
-      paymentOverride: string,
+      paymentOverride: PaymentOverride,
     ) => {
       const store = orderViewStore;
       if (!store) {
@@ -2607,23 +2629,11 @@ describe('PerpsOrderView', () => {
         }
       };
 
-      const engineContext = Engine.context as typeof Engine.context &
-        Record<
-          string,
-          | {
-              setTransactionConfig: (
-                transactionId: string,
-                update: (config: { paymentOverride?: string }) => void,
-              ) => void;
-              updateFiatPayment: () => void;
-              updatePaymentToken: () => void;
-            }
-          | undefined
-        >;
-      previousPayController = engineContext[payControllerKey];
-      engineContext[payControllerKey] = {
+      const engineContext = payControllerContext();
+      previousPayController = engineContext.TransactionPayController;
+      engineContext.TransactionPayController = {
         setTransactionConfig(transactionId, update) {
-          const config: { paymentOverride?: string } = {};
+          const config: TransactionConfig = {};
           update(config);
           if (config.paymentOverride) {
             publishPaymentOverride(transactionId, config.paymentOverride);
@@ -2637,7 +2647,7 @@ describe('PerpsOrderView', () => {
         },
       };
 
-      const gasFeeController = Engine.context.GasFeeController as {
+      const gasFeeController = Engine.context.GasFeeController as unknown as {
         fetchGasFeeEstimates?: () => Promise<undefined>;
       };
       previousFetchGasFeeEstimates = gasFeeController.fetchGasFeeEstimates;
@@ -2653,12 +2663,11 @@ describe('PerpsOrderView', () => {
     afterEach(() => {
       restoreMessenger?.();
       restoreMessenger = undefined;
-      const engineContext = Engine.context as typeof Engine.context &
-        Record<string, unknown>;
+      const engineContext = payControllerContext();
       if (previousPayController === undefined) {
-        delete engineContext[payControllerKey];
+        delete engineContext.TransactionPayController;
       } else {
-        engineContext[payControllerKey] = previousPayController;
+        engineContext.TransactionPayController = previousPayController;
       }
       const gasFeeController = Engine.context.GasFeeController as {
         fetchGasFeeEstimates?: unknown;
@@ -2736,9 +2745,9 @@ describe('PerpsOrderView', () => {
                     id: confirmationTxId,
                     chainId: '0xa4b1',
                     networkClientId: 'arbitrum-mainnet',
-                    status: 'unapproved',
+                    status: TransactionStatus.unapproved,
                     time: 0,
-                    type: 'perpsDepositAndOrder',
+                    type: TransactionType.perpsDepositAndOrder,
                     txParams: {
                       from: '0x1234567890123456789012345678901234567890',
                       to: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
