@@ -83,8 +83,6 @@ interface PerpsTradeScreenProps {
   /**
    * Margin mode of the order this sheet is placing. An open position locks
    * the venue to that position's mode; a new lite order stays isolated.
-   * Omitted values are not allowed: pass undefined while the position stream
-   * has not resolved.
    */
   marginMode: MarginMode | undefined;
   /** Formatted liquidation price, or a fallback when there is nothing to show. */

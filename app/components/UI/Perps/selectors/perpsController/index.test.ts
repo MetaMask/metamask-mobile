@@ -10,6 +10,7 @@ import {
 import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../constants/perpsConfig';
 import {
   selectPerpsProvider,
+  selectPerpsEffectiveProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,
@@ -104,6 +105,22 @@ describe('PerpsController Selectors', () => {
       expect(result1).toBe('provider1');
       expect(result2).toBe('provider2');
       expect(result1).not.toBe(result2);
+    });
+  });
+
+  describe('selectPerpsEffectiveProvider', () => {
+    it('returns the live order venue from PerpsController state', () => {
+      const mockState = createMockState({
+        effectiveProvider: 'lighter',
+      });
+
+      expect(selectPerpsEffectiveProvider(mockState)).toBe('lighter');
+    });
+
+    it('returns null until the controller has resolved a venue', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsEffectiveProvider(mockState)).toBeNull();
     });
   });
 

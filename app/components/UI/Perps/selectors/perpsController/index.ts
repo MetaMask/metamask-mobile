@@ -16,6 +16,7 @@ import {
   InitializationState,
   type OrderBookPreferences,
   type PerpsActiveProviderMode,
+  type PerpsProviderType,
   type PerpsMode,
   type ProLayoutPreferences,
 } from '@metamask/perps-controller';
@@ -28,6 +29,18 @@ const selectPerpsProvider = createSelector(
   selectPerpsControllerState,
   (perpsControllerState): PerpsActiveProviderMode | undefined =>
     perpsControllerState?.activeProvider,
+);
+
+/**
+ * Live venue for reads and orders. In direct mode this is that venue. In
+ * aggregated mode it is the write venue, which can differ from the saved
+ * default while that default is unavailable. Null until the controller
+ * has resolved a venue.
+ */
+const selectPerpsEffectiveProvider = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): PerpsProviderType | null =>
+    perpsControllerState?.effectiveProvider ?? null,
 );
 
 const selectPerpsAccountState = createSelector(
@@ -381,6 +394,7 @@ export const createSelectIsWatchlistMarket = (symbol: string) =>
 
 export {
   selectPerpsProvider,
+  selectPerpsEffectiveProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,

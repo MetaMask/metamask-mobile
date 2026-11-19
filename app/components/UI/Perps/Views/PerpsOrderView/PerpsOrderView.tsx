@@ -168,10 +168,8 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   MAX_PERPS_INPUT_DIGITS,
   PERPS_MIN_BALANCE_THRESHOLD,
-  PROVIDER_CONFIG,
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
-import { resolveDepositOrderProvider } from '../../utils/prewarmedDepositOrder';
 import { translatePerpsError } from '../../utils/translatePerpsError';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
@@ -231,7 +229,10 @@ import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectPerpsProvider } from '../../selectors/perpsController';
+import {
+  selectPerpsEffectiveProvider,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
 import {
   postCopyTradeIntent,
   type CopyTradeOrigin,
@@ -389,6 +390,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
   const copyTradeOrigin = route.params?.copyTradeOrigin;
   const activePerpsProvider = useSelector(selectPerpsProvider);
+  const effectiveProvider = useSelector(selectPerpsEffectiveProvider);
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -706,15 +708,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isLoading: isCurrentPositionLoading,
   } = useHasExistingPosition({
     asset: orderForm.asset || '',
-    // A route provider wins. Otherwise use the provider this screen will
-    // actually trade, so an aggregated order does not inherit another venue's
-    // same-symbol position.
-    providerId:
-      route.params?.providerId ??
-      (resolveDepositOrderProvider(activePerpsProvider) ===
-      PROVIDER_CONFIG.LighterProvider
-        ? PROVIDER_CONFIG.LighterProvider
-        : PROVIDER_CONFIG.DefaultProvider),
+    // A route provider wins. Otherwise use the controller's live order venue
+    // (the direct venue, or the aggregated write venue) so the sheet and the
+    // order logic follow the position this order will actually change.
+    providerId: route.params?.providerId ?? effectiveProvider ?? undefined,
     loadOnMount: true,
   });
 
@@ -2928,7 +2925,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 marginMode={
                   isCurrentPositionLoading
                     ? undefined
-                    : currentMarketPosition?.leverage?.type === 'cross'
+                    : isCrossMarginEnabled &&
+                        currentMarketPosition?.leverage?.type === 'cross'
                       ? 'cross'
                       : 'isolated'
                 }
