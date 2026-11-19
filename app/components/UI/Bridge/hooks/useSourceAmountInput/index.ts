@@ -104,11 +104,9 @@ export const useSourceAmountInput = ({
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
+  const hasFiatRate = Boolean(fiatRate && fiatRate > 0);
   const canToggle = Boolean(
-    isFiatToggleEnabled &&
-      fiatRate &&
-      fiatRate > 0 &&
-      !sourceToken?.isMoneyToken,
+    isFiatToggleEnabled && hasFiatRate && !sourceToken?.isMoneyToken,
   );
   // The controller stores the persisted preference, while this local value lets
   // the input react immediately as controller state propagates through Redux.
@@ -197,8 +195,10 @@ export const useSourceAmountInput = ({
 
   // Keep the visible fiat amount aligned when the canonical token amount
   // changes outside fiat typing, such as Max, presets, token, or rate updates.
+  // Gate on hasFiatRate, not canToggle: money tokens lock fiat mode with
+  // canToggle off, but still need this copy so the field matches Redux.
   useEffect(() => {
-    if (!isFiatMode || !canToggle) {
+    if (!isFiatMode || !hasFiatRate) {
       return;
     }
 
@@ -211,6 +211,15 @@ export const useSourceAmountInput = ({
       });
       if (tokenAmountFromFiatInput === sourceAmount) {
         isFiatInputChangeRef.current = false;
+        return;
+      }
+      // Typing before a rate exists writes undefined into sourceAmount.
+      // When the rate arrives, push the conversion so quotes match the field.
+      if (
+        sourceAmount === undefined &&
+        tokenAmountFromFiatInput !== undefined
+      ) {
+        onSourceAmountChange(tokenAmountFromFiatInput);
       }
       return;
     }
@@ -222,10 +231,11 @@ export const useSourceAmountInput = ({
     setFiatAmount(nextFiatAmount);
     resetSourceAmountCursorPosition();
   }, [
-    canToggle,
     fiatAmount,
     fiatRate,
+    hasFiatRate,
     isFiatMode,
+    onSourceAmountChange,
     resetSourceAmountCursorPosition,
     sourceAmount,
     sourceToken?.decimals,

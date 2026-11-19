@@ -10,9 +10,11 @@ import { useTokenFiatRate } from '../useTokenFiatRate';
 import {
   formatFiatInputAmount,
   formatSecondaryTokenAmount,
+  formatTokenInputAmountFromFiat,
 } from '../../utils/sourceAmountInputMode';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
+import { Keys } from '../../../../Base/Keypad/constants';
 
 jest.mock('../../components/TokenInputArea', () => ({
   MAX_INPUT_LENGTH: 36,
@@ -27,10 +29,16 @@ jest.mock('../useTokenFiatRate', () => ({
   useTokenFiatRate: jest.fn(),
 }));
 jest.mock('../useSourceAmountCursor', () => ({
-  useSourceAmountCursor: () => ({
+  useSourceAmountCursor: ({
+    onSourceAmountChange,
+  }: {
+    onSourceAmountChange: (value: string | undefined) => void;
+  }) => ({
     sourceSelection: { start: 0, end: 0 },
     handleSourceSelectionChange: jest.fn(),
-    handleKeypadChange: jest.fn(),
+    handleKeypadChange: ({ value }: { value: string }) => {
+      onSourceAmountChange(value || undefined);
+    },
     resetSourceAmountCursorPosition: jest.fn(),
     setSourceAmountCursorPositionToEnd: jest.fn(),
   }),
@@ -263,6 +271,7 @@ describe('useSourceAmountInput money token', () => {
     jest.clearAllMocks();
     mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
     mockUseTokenFiatRate.mockReturnValue(1);
+    jest.mocked(formatTokenInputAmountFromFiat).mockReturnValue('1');
   });
 
   it('locks fiat mode and disables the fiat toggle', () => {
@@ -288,5 +297,59 @@ describe('useSourceAmountInput money token', () => {
 
     expect(mockPlaySelection).not.toHaveBeenCalled();
     expect(result.current.isFiatMode).toBe(true);
+  });
+
+  // Hook-local fiatAmount vs Redux sourceAmount. CV cannot observe this
+  // without rendering BridgeMarketView and driving the keypad.
+  it('shows the converted fiat amount from the redux source amount', () => {
+    const { result } = renderMoneyHook();
+
+    expect(formatFiatInputAmount).toHaveBeenCalledWith('10.25', 1);
+    expect(result.current.amount).toBe('2000');
+  });
+
+  it('writes the token amount when a fiat rate arrives after typing', () => {
+    const onSourceAmountChange = jest.fn();
+    jest
+      .mocked(formatTokenInputAmountFromFiat)
+      .mockImplementation(({ tokenFiatRate, fiatAmount }) => {
+        if (!tokenFiatRate || !fiatAmount) {
+          return undefined;
+        }
+
+        return '10.25';
+      });
+    mockUseTokenFiatRate.mockReturnValue(undefined);
+
+    const { result, rerender } = renderHook(
+      ({ tokenFiatRate, sourceAmount }) =>
+        useSourceAmountInput({
+          isFiatToggleEnabled: true,
+          sourceAmount,
+          sourceToken: moneySourceToken,
+          tokenFiatRate,
+          onSourceAmountChange,
+        }),
+      {
+        initialProps: {
+          tokenFiatRate: undefined as number | undefined,
+          sourceAmount: undefined as string | undefined,
+        },
+      },
+    );
+
+    act(() => {
+      result.current.handleKeypadChange({
+        value: '10.25',
+        valueAsNumber: 10.25,
+        pressedKey: Keys.Digit5,
+      });
+    });
+
+    expect(onSourceAmountChange).toHaveBeenCalledWith(undefined);
+
+    rerender({ tokenFiatRate: 1, sourceAmount: undefined });
+
+    expect(onSourceAmountChange).toHaveBeenCalledWith('10.25');
   });
 });

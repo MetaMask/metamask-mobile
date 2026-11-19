@@ -152,9 +152,10 @@ export const useBridgeQuoteRequest = (
           sourceToken?.isMoneyToken && primaryMoneyAccount?.address
             ? primaryMoneyAccount.address
             : walletAddress,
-        destWalletAddress: destToken?.isMoneyToken
-          ? primaryMoneyAccount?.address
-          : (destAddress ?? walletAddress),
+        destWalletAddress:
+          destToken?.isMoneyToken && primaryMoneyAccount?.address
+            ? primaryMoneyAccount.address
+            : (destAddress ?? walletAddress),
         gasIncluded,
         gasIncluded7702,
         insufficientBal: sourceToken?.isMoneyToken ? true : insufficientBal,

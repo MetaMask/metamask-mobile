@@ -69,12 +69,14 @@ export const buildGenericQuoteRequest = (input: {
       srcToken?.isMoneyToken && moneyAccountAddress
         ? moneyAccountAddress
         : walletAddress,
-    destWalletAddress: destToken?.isMoneyToken
-      ? moneyAccountAddress
-      : (destWalletAddress ?? walletAddress),
+    destWalletAddress:
+      destToken?.isMoneyToken && moneyAccountAddress
+        ? moneyAccountAddress
+        : (destWalletAddress ?? walletAddress),
     gasIncluded: Boolean(gasIncluded),
     gasIncluded7702: Boolean(gasIncluded7702),
     insufficientBal,
+    // @ts-expect-error - need to bump bridge-controller
     isMoneyAccount: Boolean(srcToken?.isMoneyToken || destToken?.isMoneyToken),
   };
 };
