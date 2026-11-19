@@ -101,7 +101,7 @@ function createDependencies(): PasswordlessRecoveryDependencies & {
 }
 
 describe('findRecoveryIdentifier', () => {
-  it('returns the enrolled passkey ahead of the social login', async () => {
+  it('returns the social login ahead of passkey when social can be proven', async () => {
     const dependencies = createDependencies();
     jest.mocked(dependencies.mfaRecovery.getIdentifiers).mockResolvedValue({
       identifiers: [SOCIAL, PASSKEY],
@@ -113,7 +113,54 @@ describe('findRecoveryIdentifier', () => {
       canProveSocialIdentifier: true,
     });
 
+    expect(identifier).toBe(SOCIAL);
+  });
+
+  it('returns the enrolled passkey when social cannot be proven', async () => {
+    const dependencies = createDependencies();
+    jest.mocked(dependencies.mfaRecovery.getIdentifiers).mockResolvedValue({
+      identifiers: [SOCIAL, PASSKEY],
+      epoch: 1,
+      authIdentifiers: [SOCIAL, PASSKEY],
+    });
+
+    const identifier = await findRecoveryIdentifier(dependencies, {
+      canProveSocialIdentifier: false,
+    });
+
     expect(identifier).toBe(PASSKEY);
+  });
+
+  it('returns null when passkey is disallowed and social is unavailable', async () => {
+    const dependencies = createDependencies();
+    jest.mocked(dependencies.mfaRecovery.getIdentifiers).mockResolvedValue({
+      identifiers: [SOCIAL, PASSKEY],
+      epoch: 1,
+      authIdentifiers: [SOCIAL, PASSKEY],
+    });
+
+    const identifier = await findRecoveryIdentifier(dependencies, {
+      canProveSocialIdentifier: false,
+      allowPasskey: false,
+    });
+
+    expect(identifier).toBeNull();
+  });
+
+  it('returns social when passkey is disallowed but social can be proven', async () => {
+    const dependencies = createDependencies();
+    jest.mocked(dependencies.mfaRecovery.getIdentifiers).mockResolvedValue({
+      identifiers: [SOCIAL, PASSKEY],
+      epoch: 1,
+      authIdentifiers: [SOCIAL, PASSKEY],
+    });
+
+    const identifier = await findRecoveryIdentifier(dependencies, {
+      canProveSocialIdentifier: true,
+      allowPasskey: false,
+    });
+
+    expect(identifier).toBe(SOCIAL);
   });
 
   it('fills the passkey verifier when Auth omitted it', async () => {
@@ -205,19 +252,19 @@ describe('recoverWalletWithoutPassword', () => {
   it('recovers the secrets, sets the new password, then restores the vault', async () => {
     const dependencies = createDependencies();
     const restoreVault = jest.fn(async () => undefined);
+    const heldSecret = new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9);
 
     await recoverWalletWithoutPassword(dependencies, {
       identifier: PASSKEY,
       newPassword: NEW_PASSWORD,
       restoreVault,
+      recoverySecret: heldSecret,
     });
 
     expect(
       dependencies.mfaRecovery.authenticateIdentifier,
-    ).toHaveBeenCalledWith(PASSKEY);
-    expect(dependencies.mfaRecovery.getRecoverySecret).toHaveBeenCalledWith(
-      SESSION,
-    );
+    ).not.toHaveBeenCalled();
+    expect(dependencies.mfaRecovery.getRecoverySecret).not.toHaveBeenCalled();
     expect(dependencies.requestMfaApproval).toHaveBeenCalledWith({
       requestHash: bytesToHex(new Uint8Array(32).fill(1)),
       audiences: [TOPRF.aal2Audience],
@@ -243,9 +290,7 @@ describe('recoverWalletWithoutPassword', () => {
       expect.objectContaining({ type: SecretType.Mnemonic }),
     ]);
     expect(dependencies.calls).toStrictEqual([
-      'authenticateIdentifier',
       'requestMfaApproval',
-      'getRecoverySecret',
       'authenticateForRecovery',
       'recoverWithRecoverySecret',
       'setLocalPassword',
@@ -276,10 +321,10 @@ describe('recoverWalletWithoutPassword', () => {
     expect(restoreVault).toHaveBeenCalled();
   });
 
-  it('reports recovering_secrets when the escrow read fails', async () => {
+  it('reports recovering_secrets when opening the vault with the held secret fails', async () => {
     const dependencies = createDependencies();
     jest
-      .mocked(dependencies.mfaRecovery.getRecoverySecret)
+      .mocked(dependencies.seedless.recoverWithRecoverySecret)
       .mockRejectedValue(
         Object.assign(new Error('read failed'), { code: 'read_failed' }),
       );
@@ -289,6 +334,7 @@ describe('recoverWalletWithoutPassword', () => {
       identifier: PASSKEY,
       newPassword: NEW_PASSWORD,
       restoreVault,
+      recoverySecret: new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9),
     }).catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(PasswordlessRecoveryError);
@@ -311,6 +357,7 @@ describe('recoverWalletWithoutPassword', () => {
       identifier: PASSKEY,
       newPassword: NEW_PASSWORD,
       restoreVault,
+      recoverySecret: new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9),
     }).catch((caught: unknown) => caught);
 
     expect(error).toMatchObject({ stage: 'setting_password' });
@@ -325,6 +372,7 @@ describe('recoverWalletWithoutPassword', () => {
       identifier: PASSKEY,
       newPassword: NEW_PASSWORD,
       restoreVault,
+      recoverySecret: new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9),
     }).catch((caught: unknown) => caught);
 
     expect(error).toMatchObject({ stage: 'restoring_vault' });

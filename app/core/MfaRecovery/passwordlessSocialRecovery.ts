@@ -50,6 +50,11 @@ export interface PasswordlessRecoveryDependencies {
 export interface FindRecoveryIdentifierOptions {
   /** Whether the social provider can issue a nonce-bound ID token. */
   canProveSocialIdentifier: boolean;
+  /**
+   * When false, never pick a passkey (no OS passkey sheet). Use after locked
+   * MFA so escrow is fetched only via social ID-token prove.
+   */
+  allowPasskey?: boolean;
 }
 
 /**
@@ -87,8 +92,12 @@ const sameIdentifier = (a: Identifier, b: Identifier): boolean =>
   a.type === b.type && a.namespace === b.namespace && a.value === b.value;
 
 /**
- * Picks the identifier to read the Recovery Secret with: an enrolled passkey
- * Auth approved, else the enrolled social login when it can be proven.
+ * Picks the identifier to read the Recovery Secret with.
+ *
+ * Prefer social when it can be proven (fresh nonce-bound OIDC token; often
+ * via Android Google autoSelect). Passkey is optional — MFA passkey cannot
+ * be reused for Cubist, so post-MFA fetch sets
+ * {@link FindRecoveryIdentifierOptions.allowPasskey} false.
  *
  * @param dependencies - The flow's dependencies.
  * @param options - What the wallet can prove.
@@ -96,7 +105,10 @@ const sameIdentifier = (a: Identifier, b: Identifier): boolean =>
  */
 export async function findRecoveryIdentifier(
   { mfaRecovery }: Pick<PasswordlessRecoveryDependencies, 'mfaRecovery'>,
-  { canProveSocialIdentifier }: FindRecoveryIdentifierOptions,
+  {
+    canProveSocialIdentifier,
+    allowPasskey = true,
+  }: FindRecoveryIdentifierOptions,
 ): Promise<Identifier | null> {
   const { identifiers, authIdentifiers } = await mfaRecovery.getIdentifiers();
   // Auth's copy carries the verifier (RP ID, credential ID) the proof needs.
@@ -107,16 +119,24 @@ export async function findRecoveryIdentifier(
     return authIdentifier ? [authIdentifier] : [];
   });
 
+  // Social first: after Google/Apple rehydration, ACM/browser may reuse the
+  // session (Android autoSelect). Avoids a second passkey after MFA.
+  if (canProveSocialIdentifier) {
+    const social =
+      approved.find((identifier) => identifier.type === 'social') ?? null;
+    if (social) {
+      return social;
+    }
+  }
+
+  if (!allowPasskey) {
+    return null;
+  }
+
   const passkey = approved
     .map(withPasskeyVerifier)
     .find(isProvablePasskeyIdentifier);
-  if (passkey) {
-    return passkey;
-  }
-  if (canProveSocialIdentifier) {
-    return approved.find((identifier) => identifier.type === 'social') ?? null;
-  }
-  return null;
+  return passkey ?? null;
 }
 
 /**
@@ -136,27 +156,54 @@ export async function fetchRecoverySecret(
 }
 
 /**
+ * Sets a new local password, then the global password, with no escrow prove.
+ *
+ * Opens the TOPRF recovery session from the held AAL2 token (no UI), then
+ * calls {@link SeedlessOnboardingController.setLocalPassword} and
+ * {@link SeedlessOnboardingController.resetPasswordWithVaultKeys}.
+ * `setLocalPassword` throws `RecoveryRequired` unless
+ * `recoverWithRecoverySecret` has already left vault keys in memory.
+ *
+ * @param dependencies - The flow's dependencies.
+ * @param newPassword - The new wallet password. Never logged.
+ */
+export async function setLocalAndGlobalPassword(
+  dependencies: PasswordlessRecoveryDependencies,
+  newPassword: string,
+): Promise<void> {
+  let step = 'opening_session';
+  try {
+    await openRecoverySession(dependencies);
+    step = 'setting_local_password';
+    await dependencies.seedless.setLocalPassword({ password: newPassword });
+    step = 'resetting_global_password';
+    await dependencies.seedless.resetPasswordWithVaultKeys({ newPassword });
+  } catch (error) {
+    const stage = step === 'opening_session' ? 'recovering_secrets' : 'setting_password';
+    throw new PasswordlessRecoveryError(stage, error, step);
+  }
+}
+
+/**
  * Recovers the social wallet without its old password and makes
  * `newPassword` the wallet password.
  *
  * Runs after the locked MFA verification. Opens the TOPRF recovery session
- * (held AAL2, no UI) and uses the Recovery Secret — either prefetched via
- * {@link fetchRecoverySecret} or read here (may prompt passkey). Then sets
- * the local/global password and restores the keyring vault.
+ * (held AAL2, no UI) and uses a Recovery Secret that was already fetched.
+ * Does not prove to escrow. Then sets the local password and the global
+ * password, and restores the keyring vault.
  *
  * @param dependencies - The flow's dependencies.
  * @param params - The parameters.
  * @param params.identifier - From {@link findRecoveryIdentifier}.
  * @param params.newPassword - The new wallet password. Never logged.
  * @param params.restoreVault - Creates the keyring vault from the secrets.
- * @param params.recoverySecret - Optional secret from {@link fetchRecoverySecret}
- * so Create password submit skips the escrow passkey sheet.
+ * @param params.recoverySecret - Secret from {@link fetchRecoverySecret}.
  * @throws {PasswordlessRecoveryError} With the stage that failed.
  */
 export async function recoverWalletWithoutPassword(
   dependencies: PasswordlessRecoveryDependencies,
   {
-    identifier,
     newPassword,
     restoreVault,
     recoverySecret: prefetchedRecoverySecret,
@@ -167,7 +214,7 @@ export async function recoverWalletWithoutPassword(
       password: string,
       secrets: SecretMetadata[],
     ) => Promise<void>;
-    recoverySecret?: Uint8Array;
+    recoverySecret: Uint8Array;
   },
 ): Promise<void> {
   const { seedless } = dependencies;
@@ -175,9 +222,7 @@ export async function recoverWalletWithoutPassword(
   let secrets: SecretMetadata[];
   let step = 'reading_secret';
   try {
-    const secretPromise = prefetchedRecoverySecret
-      ? Promise.resolve(prefetchedRecoverySecret)
-      : readRecoverySecret(dependencies, identifier);
+    const secretPromise = Promise.resolve(prefetchedRecoverySecret);
     const [secretResult, sessionResult] = await Promise.allSettled([
       secretPromise,
       openRecoverySession(dependencies),

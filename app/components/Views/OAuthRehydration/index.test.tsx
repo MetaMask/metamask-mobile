@@ -235,6 +235,7 @@ const mockPasswordlessPrepare = jest.fn().mockResolvedValue(false);
 const mockPasswordlessPrefetch = jest.fn().mockResolvedValue(true);
 const mockPasswordlessRecover = jest.fn().mockResolvedValue(undefined);
 const mockPasswordlessClear = jest.fn();
+let mockRecoverySecretHeld = false;
 jest.mock('../../../core/MfaRecovery/PasswordlessRecoveryService', () => ({
   __esModule: true,
   default: {
@@ -244,6 +245,12 @@ jest.mock('../../../core/MfaRecovery/PasswordlessRecoveryService', () => ({
     recover: (...args: unknown[]) => mockPasswordlessRecover(...args),
     clear: (...args: unknown[]) => mockPasswordlessClear(...args),
   },
+}));
+jest.mock('../../../core/MfaRecovery/passwordlessRecoveryHold', () => ({
+  hasPasswordlessRecoveryHold: () => mockRecoverySecretHeld,
+  clearPasswordlessRecoveryHold: jest.fn(),
+  setPasswordlessRecoveryHold: jest.fn(),
+  takePasswordlessRecoveryHold: jest.fn(),
 }));
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -313,12 +320,19 @@ describe('OAuthRehydration', () => {
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
     mockPasswordlessPrepare.mockReset();
-    mockPasswordlessPrepare.mockResolvedValue(false);
+    mockPasswordlessPrepare.mockResolvedValue(true);
     mockPasswordlessPrefetch.mockReset();
-    mockPasswordlessPrefetch.mockResolvedValue(true);
+    mockPasswordlessPrefetch.mockImplementation(async () => {
+      mockRecoverySecretHeld = true;
+      return true;
+    });
     mockPasswordlessRecover.mockReset();
     mockPasswordlessRecover.mockResolvedValue(undefined);
     mockPasswordlessClear.mockReset();
+    mockPasswordlessClear.mockImplementation(() => {
+      mockRecoverySecretHeld = false;
+    });
+    mockRecoverySecretHeld = false;
     mockEngine.context.AuthenticationController.holdLockedRecoveryVerification.mockReset();
     (traceMock as jest.Mock).mockImplementation(
       (_config: unknown, fn?: () => Promise<void>) =>
@@ -1973,7 +1987,6 @@ describe('OAuthRehydration', () => {
         );
       });
       expect(mockPasswordlessRecover).not.toHaveBeenCalled();
-      expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
     });
 
     describe('Enter password → Forgot → Create password (Figma)', () => {
@@ -2041,12 +2054,13 @@ describe('OAuthRehydration', () => {
           state: mfaState,
         });
 
-        await completePasskeyVerify(getByTestId);
-        await waitForEnterPassword(getByTestId);
+      await completePasskeyVerify(getByTestId);
+      await waitForEnterPassword(getByTestId);
 
-        expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
-        expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
-      });
+      // No escrow prove after MFA (no Google account chooser / passkey sheet).
+      expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
+      expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
+    });
 
       it('unlocks from Enter password with oauth2Login (fetchAllSecretData path)', async () => {
         enableMfaFlags();
@@ -2092,70 +2106,101 @@ describe('OAuthRehydration', () => {
         expect(mockPasswordlessRecover).not.toHaveBeenCalled();
       });
 
-      it('opens ChoosePassword from Forgot when AAL2 is still valid', async () => {
-        enableMfaFlags();
-        prepareEnterPasswordAfterMfa();
-        mockVerifyForSocialLogin.mockResolvedValueOnce({
-          token: validAal2Token,
-        });
-        mockPasswordlessPrefetch.mockResolvedValueOnce(true);
-
-        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
-          state: mfaState,
-        });
-
-        await completePasskeyVerify(getByTestId);
-        await waitForEnterPassword(getByTestId);
-
-        await act(async () => {
-          fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
-        });
-
-        await waitFor(() => {
-          expect(mockPasswordlessPrefetch).toHaveBeenCalled();
-          expect(mockNavigate).toHaveBeenCalledWith(
-            Routes.ONBOARDING.CHOOSE_PASSWORD,
-            expect.objectContaining({
-              passwordlessSocialRecovery: true,
-              oauthLoginSuccess: true,
-            }),
-          );
-        });
+    it('opens ChoosePassword from Forgot only when the Recovery Secret is already held', async () => {
+      enableMfaFlags();
+      prepareEnterPasswordAfterMfa();
+      mockVerifyForSocialLogin.mockResolvedValueOnce({
+        token: validAal2Token,
       });
 
-      it('re-verifies MFA from Forgot when AAL2 is not held', async () => {
-        enableMfaFlags();
-        prepareEnterPasswordAfterMfa();
-        // MFA succeeds without a token → nothing held for AAL2.
-        mockVerifyForSocialLogin.mockResolvedValueOnce({ credentials: [] });
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
 
-        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
-          state: mfaState,
-        });
+      await completePasskeyVerify(getByTestId);
+      await waitForEnterPassword(getByTestId);
 
-        await completePasskeyVerify(getByTestId);
-        await waitForEnterPassword(getByTestId);
+      // Secret fetched earlier (e.g. recovery setup) and still held.
+      mockRecoverySecretHeld = true;
+      expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
 
-        mockVerifyForSocialLogin.mockRejectedValueOnce(
-          Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
-        );
-        mockListActiveSocialLoginMethods.mockResolvedValue(['passkey', 'totp']);
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
 
-        await act(async () => {
-          fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
-        });
-
-        await waitFor(() => {
-          expect(
-            getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
-          ).toBeOnTheScreen();
-        });
-        expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalledWith(
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
           Routes.ONBOARDING.CHOOSE_PASSWORD,
-          expect.anything(),
+          expect.objectContaining({
+            passwordlessSocialRecovery: true,
+            oauthLoginSuccess: true,
+          }),
         );
       });
+      // Forgot never proves to escrow itself.
+      expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
+    });
+
+    it('opens ChoosePassword from Forgot without a held Recovery Secret and without a prefetch', async () => {
+      enableMfaFlags();
+      prepareEnterPasswordAfterMfa();
+      mockVerifyForSocialLogin.mockResolvedValueOnce({
+        token: validAal2Token,
+      });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await completePasskeyVerify(getByTestId);
+      await waitForEnterPassword(getByTestId);
+
+      mockRecoverySecretHeld = false;
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.CHOOSE_PASSWORD,
+          expect.objectContaining({ passwordlessSocialRecovery: true }),
+        );
+      });
+      expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
+    });
+
+    it('re-verifies MFA from Forgot when AAL2 is not held', async () => {
+      enableMfaFlags();
+      prepareEnterPasswordAfterMfa();
+      // MFA succeeds without a token → nothing held for AAL2.
+      mockVerifyForSocialLogin.mockResolvedValueOnce({ credentials: [] });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await completePasskeyVerify(getByTestId);
+      await waitForEnterPassword(getByTestId);
+
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
+      );
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey', 'totp']);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
+        expect.anything(),
+      );
+    });
     });
   });
 });

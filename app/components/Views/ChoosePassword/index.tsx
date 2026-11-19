@@ -801,22 +801,17 @@ const ChoosePassword = () => {
         oauth2Login: true,
       };
 
-      await PasswordlessRecoveryService.recover(
+      await PasswordlessRecoveryService.recover(password, async () => undefined);
+      await Authentication.unlockWallet({
         password,
-        async (vaultPassword, secrets) => {
-          await Authentication.unlockWallet({
-            password: vaultPassword,
-            authPreference: authType,
-            recoveredSecrets: secrets,
-            onBeforeNavigate: async () => {
-              dispatch(passwordSetAction());
-              dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
-              endTrace({ name: TraceName.OnboardingExistingSocialLogin });
-              endTrace({ name: TraceName.OnboardingJourneyOverall });
-            },
-          });
+        authPreference: authType,
+        onBeforeNavigate: async () => {
+          dispatch(passwordSetAction());
+          dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
+          endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+          endTrace({ name: TraceName.OnboardingJourneyOverall });
         },
-      );
+      });
     } catch (err) {
       Logger.error(
         err instanceof Error ? err : new Error(String(err)),

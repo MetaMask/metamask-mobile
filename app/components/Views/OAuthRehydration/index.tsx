@@ -138,7 +138,6 @@ import {
 import type { WalletRecoveryMethod } from './WalletRecovery/WalletRecoveryVerify';
 import PasswordlessRecoveryService from '../../../core/MfaRecovery/PasswordlessRecoveryService';
 import { PasswordlessRecoveryError } from '../../../core/MfaRecovery/passwordlessSocialRecovery';
-import { getMfaRecoveryErrorCode } from '../../../core/Engine/controllers/mfa-recovery-controller/errors';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 
 type WalletRecoveryStep =
@@ -683,58 +682,25 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, []);
 
   /**
-   * Forgot-password only: prefetch escrow Recovery Secret while AAL2 is held,
-   * then open ChoosePassword. Create password must not trigger a passkey.
-   * Prefetch failure returns to Enter password with recovery_failed.
+   * Forgot-password only: open ChoosePassword. Submit calls setLocalPassword
+   * then resetPasswordWithVaultKeys. No passkey and no social token.
    */
   const navigateToPasswordlessChoosePassword = useCallback(async () => {
     forgotPasswordFlowRef.current = false;
-    setWalletRecoveryLoadingMessage(
-      strings('wallet_recovery_mfa.confirm_passkey_to_recover'),
-    );
-    setWalletRecoveryStep('loading');
     setError(null);
-    Logger.log('OAuthRehydration: forgot → ChoosePassword prefetch', {
+    setWalletRecoveryLoadingMessage(null);
+
+    Logger.log('OAuthRehydration: forgot → ChoosePassword', {
       aal2Held: Boolean(heldAal2TokenRef.current),
       aal2Valid: isHeldAal2Valid(heldAal2TokenRef.current),
     });
-    try {
-      const ready =
-        await PasswordlessRecoveryService.prefetchForChoosePassword(
-          authConnection,
-        );
-      if (!ready) {
-        Logger.log('OAuthRehydration: forgot → ChoosePassword blocked', {
-          reason: 'prefetch_not_ready',
-        });
-        setError(strings('wallet_recovery_mfa.recovery_failed'));
-        setWalletRecoveryLoadingMessage(null);
-        setWalletRecoveryStep('enterPassword');
-        return;
-      }
-      setWalletRecoveryLoadingMessage(null);
-      navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-        provider: authConnection || undefined,
-        passwordlessSocialRecovery: true,
-      });
-    } catch (prefetchError) {
-      Logger.log(
-        'OAuthRehydration: passwordless ChoosePassword prefetch failed',
-        {
-          code: getMfaRecoveryErrorCode(prefetchError),
-          message:
-            prefetchError instanceof Error
-              ? prefetchError.message
-              : String(prefetchError),
-        },
-      );
-      PasswordlessRecoveryService.clear();
-      setError(strings('wallet_recovery_mfa.recovery_failed'));
-      setWalletRecoveryLoadingMessage(null);
-      setWalletRecoveryStep('enterPassword');
-    }
+
+    navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+      [PREVIOUS_SCREEN]: ONBOARDING,
+      oauthLoginSuccess: true,
+      provider: authConnection || undefined,
+      passwordlessSocialRecovery: true,
+    });
   }, [navigation, authConnection]);
 
   const lockedMfaReason = useMemo(
@@ -770,9 +736,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setVerifyError(null);
     setPasswordFromVerify(false);
     setPassword('');
-    // Stay on loader while the OS biometrics sheet is up.
-    setWalletRecoveryLoadingMessage(null);
     setWalletRecoveryStep('loading');
+
+    // No escrow prove here: fetching the Recovery Secret needs a social
+    // ID token (Google account chooser) or a passkey, and neither may appear
+    // after MFA. Forgot password therefore only proceeds when the secret is
+    // already held.
+    // Stay on loader while the OS device-biometrics sheet is up.
+    setWalletRecoveryLoadingMessage(null);
 
     // Post-MFA device biometrics (Figma): separate from passkey MFA.
     // 1) Passkey / SMS / etc. = identity MFA
@@ -1118,26 +1089,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setLoading(true);
     setError(null);
     try {
-      await PasswordlessRecoveryService.recover(
+      await PasswordlessRecoveryService.recover(password, async () => undefined);
+      const authPreference = postMfaAuthPreferenceRef.current ?? {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        oauth2Login: true,
+      };
+      await unlockWallet({
         password,
-        async (vaultPassword, secrets) => {
-          // Biometrics were already prompted right after MFA success.
-          const authPreference = postMfaAuthPreferenceRef.current ?? {
-            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-            oauth2Login: true,
-          };
-
-          await unlockWallet({
-            password: vaultPassword,
-            authPreference,
-            recoveredSecrets: secrets,
-            onBeforeNavigate: async () => {
-              endTrace({ name: TraceName.OnboardingExistingSocialLogin });
-              endTrace({ name: TraceName.OnboardingJourneyOverall });
-            },
-          });
+        authPreference,
+        onBeforeNavigate: async () => {
+          endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+          endTrace({ name: TraceName.OnboardingJourneyOverall });
         },
-      );
+      });
       if (isMountedRef.current) {
         setLoading(false);
       }
@@ -1267,6 +1231,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         failed_attempts: rehydrationFailedAttempts,
       });
 
+      // Password unlock succeeded — drop unused Forgot Recovery Secret hold.
+      PasswordlessRecoveryService.clear();
       setLoading(false);
       setError(null);
     } catch (loginErr) {
@@ -1355,7 +1321,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     upgradeKeychainAuthAfterSuccessfulUnlock,
   ]);
 
-  // Cleanup for isMountedRef tracking
+  // Cleanup for isMountedRef tracking.
+  // Do not clear the Recovery Secret hold on unmount — navigation to
+  // ChoosePassword may unmount this screen while Create password still needs it.
   useEffect(() => {
     isMountedRef.current = true;
     return () => {

@@ -11,12 +11,11 @@ import {
 import {
   clearPasswordlessRecoveryHold,
   hasPasswordlessRecoveryHold,
-  takePasswordlessRecoveryHold,
 } from './passwordlessRecoveryHold';
 import {
   fetchRecoverySecret,
   findRecoveryIdentifier,
-  recoverWalletWithoutPassword,
+  setLocalAndGlobalPassword,
 } from './passwordlessSocialRecovery';
 import Logger from '../../util/Logger';
 
@@ -40,7 +39,7 @@ jest.mock('./engineBindings', () => ({
 jest.mock('./passwordlessSocialRecovery', () => ({
   findRecoveryIdentifier: jest.fn(),
   fetchRecoverySecret: jest.fn(),
-  recoverWalletWithoutPassword: jest.fn(),
+  setLocalAndGlobalPassword: jest.fn(),
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -65,7 +64,7 @@ describe('PasswordlessRecoveryService', () => {
     jest.mocked(canProveSocialIdentifier).mockReturnValue(true);
     jest.mocked(findRecoveryIdentifier).mockResolvedValue(PASSKEY);
     jest.mocked(fetchRecoverySecret).mockResolvedValue(new Uint8Array(SECRET));
-    jest.mocked(recoverWalletWithoutPassword).mockResolvedValue(undefined);
+    jest.mocked(setLocalAndGlobalPassword).mockResolvedValue(undefined);
     jest.mocked(ReduxService.store.getState).mockReturnValue({ mock: true });
   });
 
@@ -100,7 +99,7 @@ describe('PasswordlessRecoveryService', () => {
     );
     expect(findRecoveryIdentifier).toHaveBeenCalledWith(
       { deps: true },
-      { canProveSocialIdentifier: true },
+      { canProveSocialIdentifier: true, allowPasskey: true },
     );
     expect(createPasswordlessRecoveryDependencies).toHaveBeenCalled();
   });
@@ -127,52 +126,41 @@ describe('PasswordlessRecoveryService', () => {
     expect(hasPasswordlessRecoveryHold()).toBe(true);
   });
 
-  it('recovers from the cross-screen hold without a second prepare', async () => {
-    const restoreVault = jest.fn();
-    await PasswordlessRecoveryService.prefetchForChoosePassword('google');
+  it('prefetches with allowPasskey false so MFA does not open a 2nd passkey', async () => {
+    expect(
+      await PasswordlessRecoveryService.prefetchForChoosePassword('google', {
+        allowPasskey: false,
+      }),
+    ).toBe(true);
 
-    // Simulate ChoosePassword: clear local prepare state; hold remains.
-    // Service.recover prefers the hold regardless of prepared identifier.
-    await PasswordlessRecoveryService.recover('new-password', restoreVault);
-
-    expect(recoverWalletWithoutPassword).toHaveBeenCalledWith(
+    expect(findRecoveryIdentifier).toHaveBeenCalledWith(
       { deps: true },
-      {
-        identifier: PASSKEY,
-        newPassword: 'new-password',
-        restoreVault,
-        recoverySecret: expect.any(Uint8Array),
-      },
+      { canProveSocialIdentifier: true, allowPasskey: false },
     );
-    expect(hasPasswordlessRecoveryHold()).toBe(false);
   });
 
-  it('throws from recover when neither hold nor prepare is ready', async () => {
-    jest.mocked(findRecoveryIdentifier).mockResolvedValue(null as never);
-
+  it('recover sets the local and global password without reading a Recovery Secret', async () => {
     await PasswordlessRecoveryService.prepare('google');
 
-    await expect(
-      PasswordlessRecoveryService.recover('new-password', jest.fn()),
-    ).rejects.toThrow('Passwordless recovery is not prepared');
-  });
+    await PasswordlessRecoveryService.recover('new-password', jest.fn());
 
-  it('runs passwordless recovery after a successful prepare without hold', async () => {
-    const restoreVault = jest.fn();
-    await PasswordlessRecoveryService.prepare('google');
-
-    // Ensure no hold — recover falls back to prepared identifier (may passkey).
-    expect(takePasswordlessRecoveryHold()).toBeNull();
-
-    await PasswordlessRecoveryService.recover('new-password', restoreVault);
-
-    expect(recoverWalletWithoutPassword).toHaveBeenCalledWith(
+    expect(setLocalAndGlobalPassword).toHaveBeenCalledWith(
       { deps: true },
-      {
-        identifier: PASSKEY,
-        newPassword: 'new-password',
-        restoreVault,
-      },
+      'new-password',
+    );
+    expect(fetchRecoverySecret).not.toHaveBeenCalled();
+  });
+
+  it('recover drops a held Recovery Secret before setting the password', async () => {
+    await PasswordlessRecoveryService.prefetchForChoosePassword('google');
+    expect(hasPasswordlessRecoveryHold()).toBe(true);
+
+    await PasswordlessRecoveryService.recover('new-password', jest.fn());
+
+    expect(hasPasswordlessRecoveryHold()).toBe(false);
+    expect(setLocalAndGlobalPassword).toHaveBeenCalledWith(
+      { deps: true },
+      'new-password',
     );
   });
 });
