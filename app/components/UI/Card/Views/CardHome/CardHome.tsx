@@ -766,15 +766,46 @@ const CardHome = () => {
   const isFreezeLoading =
     actions.freeze.isPending || actions.unfreeze.isPending;
 
+  // The card-details reveal signal (also drives useCardArrivalAnimation):
+  // the details flow occupies the card art while it loads or shows details.
+  const isRevealingCardDetails =
+    actions.isCardDetailsLoading ||
+    actions.isSensitiveDetailsLoading ||
+    Boolean(actions.cardSensitiveDetails) ||
+    Boolean(actions.cardDetailsImageUrl);
+
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
     cardType: data?.card?.type,
-    isRevealingCardDetails:
-      actions.isCardDetailsLoading ||
-      actions.isSensitiveDetailsLoading ||
-      Boolean(actions.cardSensitiveDetails) ||
-      Boolean(actions.cardDetailsImageUrl),
+    isRevealingCardDetails,
   });
+
+  // Freezing or unfreezing while the card details are open closes them, so
+  // the Freeze/Melt animation is what plays instead of the details. Both
+  // mutations keep isSuccess after they settle, so this clears on the
+  // success transition only — details opened afterwards stay open.
+  const wasFreezeSuccessRef = useRef(false);
+  const wasUnfreezeSuccessRef = useRef(false);
+  const { clearCardDetails } = actions;
+  useEffect(() => {
+    const freezeJustSucceeded =
+      actions.freeze.isSuccess && !wasFreezeSuccessRef.current;
+    const unfreezeJustSucceeded =
+      actions.unfreeze.isSuccess && !wasUnfreezeSuccessRef.current;
+    wasFreezeSuccessRef.current = actions.freeze.isSuccess;
+    wasUnfreezeSuccessRef.current = actions.unfreeze.isSuccess;
+    if (
+      (freezeJustSucceeded || unfreezeJustSucceeded) &&
+      isRevealingCardDetails
+    ) {
+      clearCardDetails();
+    }
+  }, [
+    actions.freeze.isSuccess,
+    actions.unfreeze.isSuccess,
+    isRevealingCardDetails,
+    clearCardDetails,
+  ]);
 
   // Terms and Contact support live in a "More" sheet behind the header's
   // vertical-ellipsis button, the same button Money home uses (MoneyHeader).
@@ -1014,14 +1045,46 @@ const CardHome = () => {
                   testID={CardHomeSelectors.CARD_ART}
                 >
                   {/* The Rive card stays mounted whenever the signed-in card is shown,
-                      so freeze/unfreeze only fire triggers — no swapping layers. */}
+                      so freeze/unfreeze only fire triggers — no swapping layers.
+                      While the card details are revealed it is only hidden, and
+                      the details render on top at the card face's exact bounds. */}
                   {showFreezeAnimation || (isAuthenticated && !isLoading) ? (
-                    <CardFreezeUnfreezeAnimation
-                      isFrozen={isFrozen && isAuthenticated}
-                      fallbackSource={cardArtFallbackPng}
-                      width={windowWidth - 32}
-                      testID={CardHomeSelectors.CARD_FREEZE_RIVE}
-                    />
+                    <Box twClassName="relative">
+                      <Box
+                        twClassName={
+                          isRevealingCardDetails ? 'opacity-0' : undefined
+                        }
+                        testID={CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER}
+                      >
+                        <CardFreezeUnfreezeAnimation
+                          isFrozen={isFrozen && isAuthenticated}
+                          fallbackSource={cardArtFallbackPng}
+                          width={windowWidth - 32}
+                          testID={CardHomeSelectors.CARD_FREEZE_RIVE}
+                        />
+                      </Box>
+                      {isRevealingCardDetails && (
+                        <Box twClassName="absolute inset-0">
+                          <CardImageSection
+                            isLoading={isLoading || isSetupReconciling}
+                            isCardDetailsLoading={
+                              actions.isCardDetailsLoading ||
+                              actions.isSensitiveDetailsLoading
+                            }
+                            cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                            isCardDetailsImageLoading={
+                              actions.isCardDetailsImageLoading
+                            }
+                            onImageLoad={actions.onCardDetailsImageLoad}
+                            onImageError={actions.onCardDetailsImageError}
+                            cardSensitiveDetails={actions.cardSensitiveDetails}
+                            onCopyDetail={actions.copyCardDetail}
+                            cardType={data?.card?.type}
+                            cardStatus={data?.card?.status}
+                          />
+                        </Box>
+                      )}
+                    </Box>
                   ) : arrival.usesRiveCard ? (
                     <MoneyCardTiltAnimation
                       key={arrival.revealKey}

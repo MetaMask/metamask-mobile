@@ -68,6 +68,7 @@ export const CardHomeSelectors = {
   CREDIT_BANNER: 'credit-banner',
   CARD_ARRIVAL_RIVE: 'card-arrival-rive',
   CARD_FREEZE_RIVE: 'card-freeze-rive',
+  CARD_FREEZE_RIVE_WRAPPER: 'card-freeze-rive-wrapper',
   UK_MIGRATION_REQUIRED_BANNER: 'card-home-uk-migration-required-banner',
   UK_MIGRATION_SOFT_BANNER: 'card-home-uk-migration-soft-banner',
   TRANSACTION_HISTORY_ITEM: 'card-transaction-history-item',
