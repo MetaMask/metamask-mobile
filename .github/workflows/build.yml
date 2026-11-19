@@ -163,6 +163,11 @@ jobs:
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
+      metamask_environment: ${{ steps.config.outputs.metamask_environment }}
+      metamask_build_type: ${{ steps.config.outputs.metamask_build_type }}
+      profile: ${{ steps.config.outputs.profile }}
+      is_sim_build: ${{ steps.config.outputs.is_sim_build }}
+      is_device_build: ${{ steps.config.outputs.is_device_build }}
       build_runner_provider: ${{ steps.build-runner-provider.outputs.runner_provider }}
       checkout_ref_for_setup: ${{ inputs.source_branch }}
       should_cache: ${{ (startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch') && steps.cache-mode.outputs.mode == 'write' }}
@@ -219,16 +224,29 @@ jobs:
 
       - run: node scripts/validate-build-config.js
 
+      # Security fields come from the workflow commit, not source_branch. A branch
+      # can change its own builds.yml; that file must not choose the GitHub
+      # environment or the signer.
       - name: Load config
         id: config
         env:
           BUILD_NAME: ${{ inputs.build_name }}
+          TRUSTED_SHA: ${{ github.sha }}
         run: |
+          set -euo pipefail
+          if ! git cat-file -e "$TRUSTED_SHA^{commit}" 2>/dev/null; then
+            git fetch --depth=1 origin "$TRUSTED_SHA"
+          fi
+          git show "$TRUSTED_SHA:builds.yml" > "$RUNNER_TEMP/builds.trusted.yml"
           node -e "
           const yaml = require('js-yaml');
           const fs = require('fs');
-          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
+          const config = yaml.load(fs.readFileSync(process.env.RUNNER_TEMP + '/builds.trusted.yml', 'utf8'));
           const build = config.builds[process.env.BUILD_NAME];
+          if (!build) {
+            console.error('::error::No builds.yml entry for ' + process.env.BUILD_NAME + ' at ' + process.env.TRUSTED_SHA);
+            process.exit(1);
+          }
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           const env = build.env || {};
@@ -238,6 +256,13 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || process.env.BUILD_NAME) + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'metamask_environment=' + (env.METAMASK_ENVIRONMENT || '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'metamask_build_type=' + (env.METAMASK_BUILD_TYPE || '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'profile=' + (env.PROFILE || 'release') + '\n');
+          const sim = env.IS_SIM_BUILD === 'true';
+          const device = env.IS_DEVICE_BUILD === 'true' || !sim;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'is_sim_build=' + (sim ? 'true' : 'false') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'is_device_build=' + (device ? 'true' : 'false') + '\n');
           "
 
       # Only unsigned, dev-signed and UAT-signed builds honour the runner_provider input. Any other
@@ -309,7 +334,8 @@ jobs:
     environment: ${{ needs.prepare.outputs.github_environment }}
     permissions:
       contents: read
-      id-token: write # AWS OIDC role assumption for signing certificates
+      # No id-token here. The signing certificate is fetched in the sign job,
+      # which does not run this branch's scripts.
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
       # directly, or a provider set through the repo variables would be ignored.
@@ -342,6 +368,14 @@ jobs:
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
+
+      # Secret-injection scripts from the workflow commit. The step still
+      # receives the secrets context, and this copy is the one that runs.
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          path: trusted-workflow
+          fetch-depth: 1
 
       - name: Apply version override locally
         if: ${{ inputs.version != '' }}
@@ -467,7 +501,7 @@ jobs:
 
           echo "✅ All artifacts verified with working symlinks!"
 
-      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from cache). Signing is in Configure signing certificates below.
+      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from cache). Signing runs in the sign job.
       - name: Setup Ruby (iOS)
         if: matrix.platform == 'ios'
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
@@ -527,7 +561,7 @@ jobs:
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
           SECRETS_JSON: ${{ toJSON(secrets) }}
-        run: node scripts/validate-secrets-from-config.js
+        run: node trusted-workflow/scripts/validate-secrets-from-config.js
 
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
@@ -547,7 +581,7 @@ jobs:
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
           ALL_SECRETS: ${{ toJSON(secrets) }}
-        run: node scripts/set-secrets-from-config.js
+        run: node trusted-workflow/scripts/set-secrets-from-config.js
 
       # Android only: minimal env (SDK is pre-installed on Cirrus runner)
       - name: Set Android environment variables
@@ -598,27 +632,6 @@ jobs:
             ~/_work/.gradle/wrapper
           key: gradle-release-main-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      # iOS: Clean up any existing keychains from previous runs
-      - name: Clean up existing keychains
-        if: matrix.platform == 'ios' && needs.prepare.outputs.signing_aws_role != ''
-        run: |
-          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-          if [ -f "$KEYCHAIN_PATH" ]; then
-            echo "🧹 Removing existing keychain..."
-            security delete-keychain "$KEYCHAIN_PATH" || true
-          fi
-
-      # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev)
-      - name: Configure signing certificates
-        if: needs.prepare.outputs.signing_aws_role != ''
-        uses: ./.github/actions/configure-signing
-        with:
-          aws-role-to-assume: ${{ needs.prepare.outputs.signing_aws_role }}
-          aws-region: 'us-east-2'
-          platform: ${{ matrix.platform }}
-          aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
-          android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
-
       # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
       - name: Configure Node path for Xcode
         if: matrix.platform == 'ios'
@@ -651,6 +664,9 @@ jobs:
           # builds.yml entry (e.g. main-e2e-bs-with-srp), not generic main-e2e (sim-only).
           BUILD_CONFIG_NAME: ${{ inputs.build_name }}
           GIT_BRANCH: ${{ inputs.source_branch }}
+          # When a signer is configured, this job compiles only. The sign job
+          # holds the certificate and does not run this checkout's scripts.
+          DEFER_NATIVE_SIGNING: ${{ needs.prepare.outputs.signing_aws_role != '' && 'true' || 'false' }}
           # Deliberately absent from builds.yml: build.sh's loadBuildConfig re-evals the
           # builds.yml exports, so a name defined there would overwrite this value.
           METAMASK_BUILD_ATTRIBUTION: ${{ inputs.build_attribution }}
@@ -746,7 +762,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload iOS IPA
-        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true') && needs.prepare.outputs.signing_aws_role == ''
         uses: actions/upload-artifact@v7
         with:
           name: ios-ipa-${{ inputs.build_name }}
@@ -774,7 +790,7 @@ jobs:
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v7
         with:
-          name: android-apk-${{ inputs.build_name }}
+          name: ${{ needs.prepare.outputs.signing_aws_role != '' && format('android-apk-unsigned-{0}', inputs.build_name) || format('android-apk-{0}', inputs.build_name) }}
           path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
 
@@ -791,7 +807,7 @@ jobs:
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
         uses: actions/upload-artifact@v7
         with:
-          name: android-apk-${{ inputs.build_name }}
+          name: ${{ needs.prepare.outputs.signing_aws_role != '' && format('android-apk-unsigned-{0}', inputs.build_name) || format('android-apk-{0}', inputs.build_name) }}
           path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
 
@@ -803,7 +819,7 @@ jobs:
           steps.rename.outputs.android_aab_path != ''
         uses: actions/upload-artifact@v7
         with:
-          name: android-aab-${{ inputs.build_name }}
+          name: ${{ needs.prepare.outputs.signing_aws_role != '' && format('android-aab-unsigned-{0}', inputs.build_name) || format('android-aab-{0}', inputs.build_name) }}
           path: ${{ steps.rename.outputs.android_aab_path }}
           if-no-files-found: error
 
@@ -823,11 +839,111 @@ jobs:
           path: build-env.json
           if-no-files-found: warn
 
+  # Signs the artifact from `build` using the workflow commit only. This job
+  # never checks out source_branch, so the branch's scripts cannot see the key.
+  sign:
+    name: Sign ${{ matrix.platform }}
+    needs: [prepare, build]
+    if: ${{ !cancelled() && needs.prepare.outputs.signing_aws_role != '' && needs.build.result == 'success' }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    runs-on: >-
+      ${{
+        (needs.prepare.outputs.build_runner_provider != '' && needs.prepare.outputs.build_runner_provider != 'inherit' && needs.prepare.outputs.build_runner_provider ||
+         (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
+         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' || 'namespace-profile-metamask-android-build') ||
+        (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
+      }}
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    permissions:
+      contents: read
+      actions: read
+      id-token: write # AWS OIDC for the signing certificate
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Download unsigned iOS archive
+        if: matrix.platform == 'ios'
+        id: ios-artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: ios-xcarchive-${{ inputs.build_name }}
+          path: unsigned-ios
+
+      - name: Download unsigned Android APK
+        if: matrix.platform == 'android'
+        uses: actions/download-artifact@v7
+        with:
+          name: android-apk-unsigned-${{ inputs.build_name }}
+          path: unsigned-android
+
+      - name: Download unsigned Android AAB
+        if: matrix.platform == 'android'
+        id: android-aab
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: android-aab-unsigned-${{ inputs.build_name }}
+          path: unsigned-android-aab
+
+      - name: Configure signing certificates
+        uses: ./.github/actions/configure-signing
+        with:
+          aws-role-to-assume: ${{ needs.prepare.outputs.signing_aws_role }}
+          aws-region: 'us-east-2'
+          platform: ${{ matrix.platform }}
+          aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
+          android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
+
+      - name: Sign artifact
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          BUILD_NAME: ${{ inputs.build_name }}
+          ANDROID_KEYSTORE_PATH: ${{ needs.prepare.outputs.signing_android_keystore_path }}
+          METAMASK_ENVIRONMENT: ${{ needs.prepare.outputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ needs.prepare.outputs.metamask_build_type }}
+          PROFILE: ${{ needs.prepare.outputs.profile }}
+          IS_SIM_BUILD: ${{ needs.prepare.outputs.is_sim_build }}
+          IS_DEVICE_BUILD: ${{ needs.prepare.outputs.is_device_build }}
+          IOS_ARCHIVE_DOWNLOADED: ${{ matrix.platform == 'ios' && steps.ios-artifact.outcome == 'success' && 'true' || 'false' }}
+        run: bash scripts/sign-deferred-artifact.sh
+
+      - name: Upload signed iOS IPA
+        if: matrix.platform == 'ios' && hashFiles('signed-ios/*.ipa') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-ipa-${{ inputs.build_name }}
+          path: signed-ios/*.ipa
+          if-no-files-found: error
+
+      - name: Upload signed Android APK
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-apk-${{ inputs.build_name }}
+          path: signed-android/*.apk
+          if-no-files-found: error
+
+      - name: Upload signed Android AAB
+        if: matrix.platform == 'android' && hashFiles('signed-android-aab/*.aab') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-aab-${{ inputs.build_name }}
+          path: signed-android-aab/*.aab
+          if-no-files-found: error
+
   # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).
   emit-build-metadata:
     name: Emit build metadata
-    needs: [prepare, build]
-    if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
+    needs: [prepare, build, sign]
+    if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' && (needs.sign.result == 'success' || needs.sign.result == 'skipped') }}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||

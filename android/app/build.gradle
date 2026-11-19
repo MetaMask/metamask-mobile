@@ -337,7 +337,9 @@ android {
             def env = System.getenv("METAMASK_ENVIRONMENT")
             def isE2E = System.getenv("E2E")
 
-            if (env == 'exp') {
+            if (System.getenv("DEFER_NATIVE_SIGNING") == "true") {
+                // Unsigned. The sign job applies the keystore.
+            } else if (env == 'exp') {
                 signingConfig signingConfigs.mainExp
             } else if (env == 'test') {
                 signingConfig signingConfigs.mainTest
@@ -360,7 +362,9 @@ android {
             applicationIdSuffix ".flask"
             applicationId "io.metamask"
             // Use the appropriate signing config based on environment
-            if (System.getenv("METAMASK_ENVIRONMENT") == 'test') {
+            if (System.getenv("DEFER_NATIVE_SIGNING") == "true") {
+              // Unsigned. The sign job applies the keystore.
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'test') {
               signingConfig signingConfigs.flaskTest
             } else if (System.getenv("METAMASK_ENVIRONMENT") == 'e2e') {
               signingConfig signingConfigs.flaskE2e
