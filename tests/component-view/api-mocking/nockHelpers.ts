@@ -20,12 +20,7 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
-import {
-  blockNetConnect,
-  isNetConnectGuardInstalled,
-  removeStaleInterceptorListeners,
-} from '../../../app/util/test/netConnectGuard';
-import { installDefaultApiMocks } from './defaults';
+import { blockNetConnect } from '../../../app/util/test/netConnectGuard';
 
 /**
  * Clears all nock interceptors. Call in afterEach of any test file that uses
@@ -37,26 +32,24 @@ export function clearAllNockMocks(): void {
   nock.cleanAll();
 }
 
-/** Restores nock to a clean state: removes all interceptors, cycles
- * restore/activate (so @mswjs/interceptors does not leave half-open TLS
- * sockets that break later suites), reinstalls the shared default mocks, and
- * restores the net connect state the run expects: blocked in component-view
- * runs (the guard is installed), re-enabled in other lanes so this file's
- * state does not leak into later suites in the same Jest worker.
+/**
+ * Restores nock to a clean state: removes all interceptors, re-enables net
+ * connect, and cycles restore/activate so @mswjs/interceptors (nock v14) does
+ * not leave half-open TLS sockets that break later suites (e.g. ChoosePassword
+ * `read EINVAL` after Ramp Quotes).
+ *
+ * The re-enable is deliberate: it stops this file's blocked state from
+ * leaking into other suites in the same Jest worker. In component-view runs
+ * the net connect guard re-blocks before every test (`testSetupView.js`), so
+ * protection continues there.
  */
 export function teardownNock(): void {
   nock.cleanAll();
+  nock.enableNetConnect();
   if (nock.isActive()) {
     nock.restore();
   }
-  removeStaleInterceptorListeners();
   nock.activate();
-  if (isNetConnectGuardInstalled()) {
-    blockNetConnect();
-  } else {
-    nock.enableNetConnect();
-  }
-  installDefaultApiMocks();
 }
 
 /**

@@ -286,15 +286,7 @@ const installNetConnectGuard = () => {
   blockNetConnect();
   nock.emitter.on('no match', recordBlockedRequest);
 
-  beforeEach(async () => {
-    // Quiesce before this test's window opens: stragglers from the previous
-    // test resolving across the boundary are dropped instead of attributed to
-    // this test, which did not issue them.
-    currentTestActive = false;
-    blockNetConnect();
-    await flushPendingRequests();
-    currentTestActive = true;
-  });
+  beforeEach(blockNetConnect);
   afterEach(() => checkBlockedRequests(expect.getState().currentTestName));
   afterAll(() => {
     if (nock.isActive()) {
