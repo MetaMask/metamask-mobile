@@ -51,8 +51,13 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock('../PerpsClosePositionBottomSheet/components/PerpsCloseTotals', () =>
-  jest.fn(() => null),
+const mockPerpsCloseTotals = jest.fn((_props: Record<string, unknown>) => null);
+jest.mock(
+  '../PerpsClosePositionBottomSheet/components/PerpsCloseTotals',
+  () => ({
+    __esModule: true,
+    default: (props: Record<string, unknown>) => mockPerpsCloseTotals(props),
+  }),
 );
 const mockPerpsRebateBanner = jest.fn(
   (_props: Record<string, unknown>) => null,
@@ -337,6 +342,13 @@ describe('PerpsCloseAllPositionsView', () => {
     expect(
       getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
     ).toBeOnTheScreen();
+    expect(mockPerpsCloseTotals).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pnl: mockCalculations.totalPnl,
+        receiveAmount: mockCalculations.receiveAmount,
+        margin: mockCalculations.totalMargin,
+      }),
+    );
   });
 
   it('renders the close-all rebate banner', () => {

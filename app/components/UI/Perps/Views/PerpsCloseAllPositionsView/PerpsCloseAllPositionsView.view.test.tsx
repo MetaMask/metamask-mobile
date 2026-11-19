@@ -152,9 +152,12 @@ describe('PerpsCloseAllPositionsView', () => {
       screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE),
     ).toHaveTextContent('$1,633.33');
     expect(screen.getByText('+$250')).toBeOnTheScreen();
-    // Cross margin never holds P&L, so the summary no longer says it does
+    // Cross margin never holds P&L, so the P&L row uses the cross label
     expect(
-      screen.queryByText(strings('perps.close_position.includes_pnl')),
+      screen.getByText(strings('perps.close_position.pnl')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.close_position.included_pnl')),
     ).not.toBeOnTheScreen();
   });
 
