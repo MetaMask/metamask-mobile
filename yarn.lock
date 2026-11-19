@@ -11627,7 +11627,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-metrics-controller@npm:^5.2.2":
+"@metamask/profile-metrics-controller@npm:5.2.2":
   version: 5.2.2
   resolution: "@metamask/profile-metrics-controller@npm:5.2.2"
   dependencies:
@@ -11647,6 +11647,29 @@ __metadata:
     async-mutex: "npm:^0.5.0"
     uuid: "npm:^14.0.2"
   checksum: 10/16e463a0f217ce80993389f40e5cdcb08a51696ff75f3fdfa80e6dec3bb8021d69524b9f72ca0f4970e406fb518fafd3d2e903b634dd5ec9dea9334028e01b27
+  languageName: node
+  linkType: hard
+
+"@metamask/profile-metrics-controller@patch:@metamask/profile-metrics-controller@npm%3A5.2.2#~/.yarn/patches/@metamask-profile-metrics-controller-npm-5.2.2-7e448057a0.patch":
+  version: 5.2.2
+  resolution: "@metamask/profile-metrics-controller@patch:@metamask/profile-metrics-controller@npm%3A5.2.2#~/.yarn/patches/@metamask-profile-metrics-controller-npm-5.2.2-7e448057a0.patch::version=5.2.2&hash=8cabaa"
+  dependencies:
+    "@metamask/accounts-controller": "npm:^40.2.0"
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/polling-controller": "npm:^17.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.1.1"
+    "@metamask/snaps-controllers": "npm:^19.0.1"
+    "@metamask/snaps-sdk": "npm:^11.0.0"
+    "@metamask/snaps-utils": "npm:^12.1.2"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/transaction-controller": "npm:^74.0.0"
+    "@metamask/utils": "npm:^12.0.1"
+    async-mutex: "npm:^0.5.0"
+    uuid: "npm:^14.0.2"
+  checksum: 10/03641e82b735226af8f725aabcaf37a6ad0fe11b703c633839ce48074cc8438a7dc0d0d85be9a5785a33fa7be4b81cf9d24dea6093948a56edad4fbbb1bd2c0a
   languageName: node
   linkType: hard
 
@@ -38412,7 +38435,7 @@ __metadata:
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-controller": "npm:^3.1.0"
-    "@metamask/profile-metrics-controller": "npm:^5.2.2"
+    "@metamask/profile-metrics-controller": "patch:@metamask/profile-metrics-controller@npm%3A5.2.2#~/.yarn/patches/@metamask-profile-metrics-controller-npm-5.2.2-7e448057a0.patch"
     "@metamask/profile-sync-controller": "npm:^36.1.1"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^29.0.0"
