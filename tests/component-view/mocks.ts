@@ -334,6 +334,15 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           accessToken: undefined,
         },
+        // OAuthService.getValidAccessToken() (marketing opt-in sync and other
+        // auth-server calls) reads the token through this method. CV tests
+        // seed `state.accessToken` (SEEDLESS_CV_ACCESS_TOKEN) the same way
+        // they sync Redux backgroundState.
+        getAccessToken: jest.fn(async function (this: {
+          state?: { accessToken?: string };
+        }) {
+          return this?.state?.accessToken;
+        }),
       },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
