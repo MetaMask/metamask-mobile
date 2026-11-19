@@ -6,10 +6,11 @@ import {
   MpcMoneyKeyring as MpcMoneyKeyringV2,
   type MpcMoneyKeyringOptions,
 } from '@metamask/eth-money-mpc-keyring/v2';
+import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
 import {
-  MpcMoneyKeyring as RealMpcMoneyKeyring,
+  getMfaRequirement,
   type MfaWhitelistConfig,
-} from '@metamask/eth-money-mpc-keyring';
+} from '@metamask/money-account-mfa-whitelist';
 import { sha256 } from '@noble/hashes/sha2';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
 
@@ -145,7 +146,12 @@ export function buildRealMpcMoneyKeyringBuilder({
             `mm-mobile-dev-backup:${getProfileId(await getBearerToken())}`,
           ),
         ),
-      getMfaWhitelistConfig: () => Promise.resolve(MPC_MFA_WHITELIST_CONFIG),
+      isMfaRequired: async (request, { address, hash }) =>
+        getMfaRequirement(request, {
+          address,
+          hash,
+          config: MPC_MFA_WHITELIST_CONFIG,
+        }).mfaRequired,
       webSocket: WebSocket,
     });
   };

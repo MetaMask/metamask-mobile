@@ -1,4 +1,8 @@
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
+import {
+  getMfaRequirement,
+  type MfaRequirement,
+} from '@metamask/money-account-mfa-whitelist';
 import { sha256 } from '@noble/hashes/sha2';
 import {
   buildRealMpcMoneyKeyringBuilder,
@@ -13,6 +17,10 @@ jest.mock('@metamask/eth-money-mpc-keyring', () => ({
   ),
 }));
 
+jest.mock('@metamask/money-account-mfa-whitelist', () => ({
+  getMfaRequirement: jest.fn(),
+}));
+
 jest.mock('@metamask/mpc-react-native', () => ({
   cl24Lib: { name: 'cl24' },
   dkls23Lib: { name: 'dkls23' },
@@ -20,6 +28,8 @@ jest.mock('@metamask/mpc-react-native', () => ({
 
 const toBase64Url = (value: object) =>
   Buffer.from(JSON.stringify(value)).toString('base64url');
+const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
+const HASH = `0x${'22'.repeat(32)}` as const;
 const TOKEN = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub: 'profile-1' })}.sig`;
 
 const buildKeyring = () => {
@@ -76,12 +86,43 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(getBearerToken).toHaveBeenCalledTimes(1);
   });
 
-  it('pins the Money Account whitelist config', async () => {
+  it('checks signatures against the pinned whitelist config', async () => {
+    const requirement = { mfaRequired: false, rule: 'chomp-authentication' };
+    jest
+      .mocked(getMfaRequirement)
+      .mockReturnValue(requirement as MfaRequirement);
+    const { options } = buildKeyring();
+    const request = {
+      method: 'signPersonalMessage',
+      address: ADDRESS,
+      message: '0x00',
+    } as const;
+
+    const result = await options.isMfaRequired?.(request, {
+      address: ADDRESS,
+      hash: HASH,
+    });
+
+    expect(result).toBe(false);
+    expect(getMfaRequirement).toHaveBeenCalledWith(request, {
+      address: ADDRESS,
+      hash: HASH,
+      config: MPC_MFA_WHITELIST_CONFIG,
+    });
+  });
+
+  it('requires MFA when the whitelist does not match', async () => {
+    jest
+      .mocked(getMfaRequirement)
+      .mockReturnValue({ mfaRequired: true, reason: 'not whitelisted' });
     const { options } = buildKeyring();
 
-    expect(await options.getMfaWhitelistConfig?.()).toBe(
-      MPC_MFA_WHITELIST_CONFIG,
+    const result = await options.isMfaRequired?.(
+      { method: 'signPersonalMessage', address: ADDRESS, message: '0x00' },
+      { address: ADDRESS, hash: HASH },
     );
+
+    expect(result).toBe(true);
   });
 
   it('derives a 32-byte backup key from the profile id', async () => {
