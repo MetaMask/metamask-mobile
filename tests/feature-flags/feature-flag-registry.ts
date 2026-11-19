@@ -5037,7 +5037,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'moneyEnableSplash',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.21.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5914,6 +5917,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  quickBuyPostTradeShareHintEnabled: {
+    name: 'quickBuyPostTradeShareHintEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 
