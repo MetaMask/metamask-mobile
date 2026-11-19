@@ -46,7 +46,7 @@ describe('PredictClaimButton', () => {
     jest.clearAllMocks();
   });
 
-  describe('with amount (ButtonHero variant)', () => {
+  describe('with amount', () => {
     it('renders with formatted amount', () => {
       const props = createDefaultProps({ amount: 25.5 });
 
@@ -120,7 +120,7 @@ describe('PredictClaimButton', () => {
     });
   });
 
-  describe('without amount (Button Secondary variant)', () => {
+  describe('without amount', () => {
     it('renders "Claim winnings" text', () => {
       const props = createDefaultProps({ amount: undefined });
 
@@ -239,7 +239,7 @@ describe('PredictClaimButton', () => {
   });
 
   describe('glass', () => {
-    it('keeps the solid hero button by default', () => {
+    it('keeps the solid primary button by default', () => {
       const { UNSAFE_queryAllByType } = renderWithProvider(
         <PredictClaimButton amount={1.15} onPress={jest.fn()} />,
       );

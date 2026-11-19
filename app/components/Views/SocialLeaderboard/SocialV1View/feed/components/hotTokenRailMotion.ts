@@ -60,6 +60,40 @@ export const DOCK_EXIT = {
   easing: Easing.bezier(0.4, 0, 1, 1),
 };
 
+/**
+ * UIScrollView.DecelerationRate.normal. A flick keeps its release speed and
+ * eases to rest instead of stopping with the finger.
+ */
+export const RAIL_DRIFT_DECELERATION = 0.998;
+
+/**
+ * Coasts shorter than about a pill's padding resume the crawl directly.
+ * Points per second.
+ */
+export const RAIL_DRIFT_MIN_VELOCITY = 30;
+
+/**
+ * Laps added before the native modulo. A reverse coast drives the offset
+ * negative, and the new-architecture modulo keeps that sign, which opens a
+ * gap ahead of the first pill. This headroom keeps a real flick positive.
+ */
+export const RAIL_DRIFT_WRAP_LAPS = 64;
+
+/**
+ * Where a coast sits after `elapsedMs`, before wrapping.
+ *
+ * React Native's decay animation uses the UIScrollView curve with time in
+ * milliseconds and velocity in pixels per millisecond.
+ */
+export const driftOffset = (
+  origin: number,
+  velocity: number,
+  elapsedMs: number,
+): number => {
+  const rate = 1 - RAIL_DRIFT_DECELERATION;
+  return origin + (velocity / rate) * (1 - Math.exp(-rate * elapsedMs));
+};
+
 /** Keeps the marquee offset within one track width. */
 export const wrapOffset = (x: number, width: number): number => {
   'worklet';

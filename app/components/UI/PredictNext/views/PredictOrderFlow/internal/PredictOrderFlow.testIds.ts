@@ -1,12 +1,18 @@
+import { PredictAmountEntryTestIds } from '../../../components/PredictAmountEntry/PredictAmountEntry.testIds';
+
+/** The figure and keypad are the shared amount-entry components, so their
+ * ids are theirs; these names keep the Order sheet's vocabulary. */
+const AMOUNT_ENTRY = PredictAmountEntryTestIds;
+
 export const PredictOrderFlowTestIds = {
   SHEET: 'predict-order-flow-sheet',
   VENUE_CHANGED: 'predict-order-flow-venue-changed',
   OUTCOME_LABEL: 'predict-order-flow-outcome-label',
   OUTCOME_SWAP_ICON: 'predict-order-flow-outcome-swap-icon',
   TO_WIN: 'predict-order-flow-to-win',
-  AMOUNT_INPUT: 'predict-order-flow-amount-input',
-  KEYPAD: 'predict-order-flow-keypad',
-  KEYPAD_KEY: (key: string) => `predict-order-flow-keypad-key-${key}`,
+  AMOUNT_INPUT: AMOUNT_ENTRY.DISPLAY,
+  KEYPAD: AMOUNT_ENTRY.KEYPAD,
+  KEYPAD_KEY: AMOUNT_ENTRY.KEYPAD_KEY,
   QUICK_AMOUNT: (amount: string) => `predict-order-flow-quick-${amount}`,
   QUICK_CONTRACT: (key: string) => `predict-order-flow-quick-contract-${key}`,
   HELD_CONTRACTS: 'predict-order-flow-held-contracts',
@@ -47,6 +53,8 @@ export const PredictOrderFlowTestIds = {
   RECEIPT_NOT_FILLED: 'predict-order-flow-receipt-not-filled',
   RECEIPT_REJECTED: 'predict-order-flow-receipt-rejected',
   RECEIPT_RECONCILING: 'predict-order-flow-receipt-reconciling',
+  RECEIPT_NEEDS_REVIEW: 'predict-order-flow-receipt-needs-review',
+  RECEIPT_NEEDS_REVIEW_TITLE: 'predict-order-flow-receipt-needs-review-title',
   FILLED_CONTRACTS: 'predict-order-flow-filled-contracts',
   ACTUAL_SPEND: 'predict-order-flow-actual-spend',
   AVERAGE_FILL_PRICE: 'predict-order-flow-average-fill-price',

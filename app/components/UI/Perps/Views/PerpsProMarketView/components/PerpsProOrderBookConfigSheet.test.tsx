@@ -17,6 +17,11 @@ import {
 const mockOnOpenBottomSheet = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../util/haptics');
 
 jest.mock('@metamask/design-system-react-native', () => {

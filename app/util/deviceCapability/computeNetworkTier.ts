@@ -40,3 +40,17 @@ export function computeNetworkTier(
   }
   return null;
 }
+
+/**
+ * Reads `cellularGeneration` from NetInfo `details`, or `null` when absent.
+ */
+export function readCellularGeneration(details: unknown): string | null {
+  if (typeof details !== 'object' || details === null) {
+    return null;
+  }
+  if (!('cellularGeneration' in details)) {
+    return null;
+  }
+  const { cellularGeneration } = details;
+  return typeof cellularGeneration === 'string' ? cellularGeneration : null;
+}

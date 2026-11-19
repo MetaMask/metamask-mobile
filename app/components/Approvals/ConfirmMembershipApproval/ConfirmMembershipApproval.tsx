@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Modal, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { FullWindowOverlay } from 'react-native-screens';
@@ -16,14 +16,41 @@ import { ConfirmMembershipRequestData } from './ConfirmMembershipApproval.types'
 const ConfirmMembershipApproval = () => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const isConfirmingRef = useRef(false);
+  const hasConfirmedRef = useRef(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
+  // Reset confirm guards per approval. This stays mounted between requests.
+  const pendingMembershipApprovalId =
+    approvalRequest?.type === ApprovalTypes.CONFIRM_MEMBERSHIP
+      ? approvalRequest.id
+      : undefined;
+  const [guardedApprovalId, setGuardedApprovalId] = useState(
+    pendingMembershipApprovalId,
+  );
+
+  if (pendingMembershipApprovalId !== guardedApprovalId) {
+    setGuardedApprovalId(pendingMembershipApprovalId);
+    isConfirmingRef.current = false;
+    hasConfirmedRef.current = false;
+    setIsConfirming(false);
+  }
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleConfirm = useCallback(() => {
+    if (isConfirmingRef.current) {
+      return;
+    }
+    isConfirmingRef.current = true;
+    setIsConfirming(true);
     sheetRef.current?.onCloseBottomSheet(() => {
+      if (hasConfirmedRef.current) {
+        return;
+      }
+      hasConfirmedRef.current = true;
       onConfirm();
     });
   }, [onConfirm]);
@@ -32,7 +59,7 @@ const ConfirmMembershipApproval = () => {
     return null;
   }
 
-  const { monthlyAmount, totalAmount, renewDate, isTrial, billedOn } =
+  const { monthlyAmount, totalAmount, isAnnual, renewDate, isTrial, billedOn } =
     (approvalRequest.requestData ??
       {}) as Partial<ConfirmMembershipRequestData>;
 
@@ -54,11 +81,13 @@ const ConfirmMembershipApproval = () => {
           <ConfirmMembershipContent
             monthlyAmount={monthlyAmount ?? '0'}
             totalAmount={totalAmount ?? '0'}
+            isAnnual={isAnnual ?? false}
             renewDate={renewDate ?? ''}
             isTrial={isTrial ?? false}
             billedOn={billedOn ?? ''}
             onClose={handleClose}
             onConfirm={handleConfirm}
+            isConfirming={isConfirming}
           />
         </BottomSheet>
       </GestureHandlerRootView>

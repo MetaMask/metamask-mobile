@@ -4,6 +4,7 @@ export const SocialPostComposerViewSelectorsIDs = {
   CLOSE_BUTTON: 'social-post-composer-close',
   CHARACTER_COUNT: 'social-post-composer-character-count',
   POST_BUTTON: 'social-post-composer-post',
+  POST_BUTTON_BLOCKED: 'social-post-composer-post-blocked',
   INPUT: 'social-post-composer-input',
   SCROLL: 'social-post-composer-scroll',
   DISMISS_KEYBOARD_SURFACE: 'social-post-composer-dismiss-keyboard-surface',
@@ -14,4 +15,6 @@ export const SocialPostComposerViewSelectorsIDs = {
   REMOVE_GIF: 'social-post-composer-remove-gif',
   GIF_PREVIEW: 'social-post-composer-gif-preview',
   HIDE_KEYBOARD: 'social-post-composer-hide-keyboard',
+  PRIVATE_STATE: 'social-post-composer-private-state',
+  PRIVACY_SETTINGS_BUTTON: 'social-post-composer-privacy-settings',
 } as const;

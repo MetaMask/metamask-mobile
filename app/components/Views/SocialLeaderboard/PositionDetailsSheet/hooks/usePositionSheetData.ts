@@ -65,6 +65,8 @@ export interface PositionSheetData {
 
   prices: TokenPrice[];
   isPricesLoading: boolean;
+  isPricesError: boolean;
+  retryPrices: () => void;
   timeAxisLabels: string[];
   isTrendPositive: boolean;
   markers: PositionSheetMarker[];
@@ -91,6 +93,10 @@ export interface PositionSheetData {
   pnlPercentLabel: string;
   pnlValueLabel: string;
   isPnlPositive: boolean;
+  /** Raw figures behind the P&L labels, for the share card. */
+  pnlValue: number | null | undefined;
+  pnlPercent: number | null;
+  tokenImageUrl: string | undefined;
 }
 
 const sumEntryTokens = (position: Position): number =>
@@ -196,6 +202,7 @@ export function usePositionSheetData(
     (isPerp
       ? perps.isLoading
       : base.isPricesLoading || activeTimePeriod !== chartPeriod);
+  const isPricesError = Boolean(isPerp && perps.isError);
 
   const currentPrice = isPerp
     ? prices.at(-1)?.[1]
@@ -315,6 +322,8 @@ export function usePositionSheetData(
         : undefined,
     prices,
     isPricesLoading,
+    isPricesError,
+    retryPrices: perps.retry,
     timeAxisLabels: buildTimeAxisLabels(
       chartWindow,
       TIME_AXIS_LABEL_COUNT,
@@ -335,5 +344,8 @@ export function usePositionSheetData(
     pnlPercentLabel: formatPercent(base.pnlPercent),
     pnlValueLabel: formatSignedUsd(base.pnlValue),
     isPnlPositive: base.isPnlPositive,
+    pnlValue: base.pnlValue,
+    pnlPercent: base.pnlPercent,
+    tokenImageUrl: base.tokenImageUrl,
   };
 }

@@ -193,7 +193,9 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.openInterest).toBe(
       PERPS_CONSTANTS.FallbackPriceDisplay,
     );
-    expect(result.current.fundingRate).toBe('0.0000%');
+    expect(result.current.fundingRate).toBe(
+      PERPS_CONSTANTS.FallbackPercentageDisplay,
+    );
   });
 
   it('formats extremely large numbers with appropriate suffixes', () => {

@@ -408,6 +408,7 @@ const ActivityScreen = () => {
             secondaryChip={secondaryChip}
             aggregatedToggle={aggregatedToggle}
             isGlass={isGlassHeader}
+            testID={ActivityScreenSelectorsIDs.FILTER_BAR_IN_LIST}
           />
         </Animated.View>
       </Box>
@@ -465,6 +466,8 @@ const ActivityScreen = () => {
         aggregatedToggle={aggregatedToggle}
         suppressTestIDs
         isGlass
+        isPinned
+        testID={ActivityScreenSelectorsIDs.FILTER_BAR_PINNED}
       />
     </Animated.View>
   );

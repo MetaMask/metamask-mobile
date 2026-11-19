@@ -10,6 +10,14 @@ import { selectApiEvmTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
 import { selectExcludedActivityTransactionHashes } from '../../../selectors/transactionController';
 
+type TransactionQueryOptions = ReturnType<
+  typeof apiClient.accounts.getV5MultiAccountTransactionsInfiniteQueryOptions
+>;
+type QueryOptions = Extract<
+  TransactionQueryOptions,
+  { getNextPageParam: unknown }
+>;
+
 export const useTransactionsQuery = () => {
   const groupEvmAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
@@ -22,27 +30,30 @@ export const useTransactionsQuery = () => {
   // Predict enabling Polygon) never collapses the Activity feed to one network.
   const networks = useSelector(selectAllConfiguredEvmCaipNetworks);
   const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
-  const accountAddresses = evmAddress
-    ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
-    : [];
+  const accountIds = useMemo(
+    () =>
+      evmAddress
+        ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
+        : [],
+    [evmAddress],
+  );
 
   const queryOptions =
-    apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions({
-      accountAddresses,
+    apiClient.accounts.getV5MultiAccountTransactionsInfiniteQueryOptions({
+      accountIds,
       networks,
       includeTxMetadata: true,
-    });
+    }) as QueryOptions;
 
   const selectFn = useMemo(
     () => selectApiEvmTransactions({ address: evmAddress, excludedTxHashes }),
     [evmAddress, excludedTxHashes],
   );
 
-  // @ts-expect-error apiClient returns v5 types, repo still in v4
   return useInfiniteQuery({
     ...queryOptions,
     select: selectFn,
-    enabled: accountAddresses.length > 0 && networks.length > 0,
+    enabled: accountIds.length > 0 && networks.length > 0,
     staleTime: 5 * MINUTE,
     retry: false,
   });

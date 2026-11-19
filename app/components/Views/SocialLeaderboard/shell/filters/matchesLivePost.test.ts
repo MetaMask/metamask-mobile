@@ -1,4 +1,5 @@
 import {
+  mockClosedSpotFeedItem,
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
 } from '../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
@@ -47,17 +48,9 @@ const perp = post({
   }),
 });
 
-const NOBODY = new Set<string>();
-const FOLLOWING = new Set(['followed-trader']);
-
-const matching = (
-  applied: SocialShellFilters,
-  followingProfileIds: ReadonlySet<string> = NOBODY,
-) =>
+const matching = (applied: SocialShellFilters) =>
   [spot, perp]
-    .filter((candidate) =>
-      matchesLivePost(candidate, applied, followingProfileIds),
-    )
+    .filter((candidate) => matchesLivePost(candidate, applied))
     .map((candidate) => candidate.id);
 
 describe('matchesLivePost', () => {
@@ -73,25 +66,51 @@ describe('matchesLivePost', () => {
     expect(matching(filters({ type: 'perps' }))).toStrictEqual(['perp']);
   });
 
-  it('keeps only followed authors for the following cohort', () => {
-    expect(
-      matching(filters({ traderCohort: 'following' }), FOLLOWING),
-    ).toStrictEqual(['spot']);
-  });
-
-  it('keeps nothing for the following cohort when nobody is followed', () => {
-    expect(matching(filters({ traderCohort: 'following' }))).toStrictEqual([]);
-  });
-
-  it('keeps authors in the 30-day PnL band', () => {
+  it('keeps posts when a leftover trader cohort is set', () => {
+    expect(matching(filters({ traderCohort: 'following' }))).toStrictEqual([
+      'spot',
+      'perp',
+    ]);
     expect(matching(filters({ traderCohort: 'shrimp' }))).toStrictEqual([
+      'spot',
       'perp',
     ]);
   });
 
-  it('drops spot posts outside the market cap range and keeps perps', () => {
+  it('keeps posts when a leftover market cap range is set', () => {
     expect(matching(filters({ marketCap: { min: 0, max: 1 } }))).toStrictEqual([
+      'spot',
       'perp',
     ]);
+  });
+
+  it('keeps only open posts for the open position chip', () => {
+    const closed = post({
+      id: 'closed',
+      item: mockClosedSpotFeedItem({ id: 'closed-item' }),
+    });
+
+    expect(
+      [spot, perp, closed]
+        .filter((candidate) =>
+          matchesLivePost(candidate, filters({ positionStatus: 'open' })),
+        )
+        .map((candidate) => candidate.id),
+    ).toStrictEqual(['spot', 'perp']);
+  });
+
+  it('keeps only closed posts for the closed position chip', () => {
+    const closed = post({
+      id: 'closed',
+      item: mockClosedSpotFeedItem({ id: 'closed-item' }),
+    });
+
+    expect(
+      [spot, perp, closed]
+        .filter((candidate) =>
+          matchesLivePost(candidate, filters({ positionStatus: 'closed' })),
+        )
+        .map((candidate) => candidate.id),
+    ).toStrictEqual(['closed']);
   });
 });

@@ -55,6 +55,11 @@ export interface QuickBuyAnalyticsContext {
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
   traderTradeType?: 'buy' | 'sell';
   /**
+   * True when this sheet was opened from a Copy trade action. Independent of
+   * `copyTradeOrigin`, which is absent when the post has no comment id.
+   */
+  isCopyTrade?: boolean;
+  /**
    * Latest price of the buy token in the user's display currency, supplied by
    * the host (e.g. the trader position chart feed). Used as the pre-quote
    * exchange-rate source for tokens the user does not hold — for which the

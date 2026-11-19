@@ -536,8 +536,6 @@ describe('TraderProfileView', () => {
 
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message:
-          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         failOnCancel: false,
       });
@@ -947,11 +945,17 @@ describe('TraderProfileView', () => {
     expect(screen.getByText('No closed positions')).toBeOnTheScreen();
   });
 
-  it('defaults to the same posts empty state as my profile', () => {
+  it('defaults to Open and shows the same posts empty state as my profile', () => {
     renderWithProvider(<TraderProfileView />);
 
+    expect(screen.getByTestId('position-row-STARKBOT')).toBeOnTheScreen();
+    expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
+
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
-    expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
     expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
         scope: 'all',
@@ -961,11 +965,15 @@ describe('TraderProfileView', () => {
         realtime: true,
       }),
     );
+    expect(mockSocialFeedProps.mock.lastCall?.[0].filterPost).toBeUndefined();
   });
 
-  it('renders trader posts by default', () => {
+  it('renders trader posts on the Posts tab', () => {
     mockPostsResult.posts = [{ id: 'post-1' }];
     renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
 
     expect(screen.getByText('post-1')).toBeOnTheScreen();
     expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
@@ -1030,9 +1038,18 @@ describe('TraderProfileView', () => {
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
       expect(mockRefetchPositions).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosts).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosts).not.toHaveBeenCalled();
       expect(mockPlayImpact).toHaveBeenCalledTimes(1);
       expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+      );
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockRefreshPosts).toHaveBeenCalledTimes(1);
     });
   });
 

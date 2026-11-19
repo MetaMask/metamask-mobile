@@ -19,6 +19,7 @@ import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
+import { usePredictWithdrawAvailable } from '../../funding';
 import type { PredictEntityId, PredictPosition } from '../../types';
 import type {
   PredictNextStackParamList,
@@ -27,6 +28,7 @@ import type {
 import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
+import { PortfolioRecoveryPanel } from './internal/PortfolioRecoveryPanel';
 import { PortfolioTabs } from './internal/PortfolioTabs';
 import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
@@ -57,6 +59,7 @@ export const PredictPortfolioScreen = () => {
     enabled: activityActive,
   });
   const { openOrderFlow } = usePredictOrderFlow();
+  const withdrawResolution = usePredictWithdrawAvailable();
   const activeListQuery = positionsActive ? positionsQuery : activityQuery;
 
   useEffect(() => {
@@ -89,6 +92,11 @@ export const PredictPortfolioScreen = () => {
         titleSnapshot,
       });
     },
+    [navigation, venueId],
+  );
+
+  const openWithdraw = useCallback(
+    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
     [navigation, venueId],
   );
 
@@ -133,7 +141,11 @@ export const PredictPortfolioScreen = () => {
           isLoading={summaryQuery.isPending}
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => summaryQuery.refetch()}
+          onWithdrawPress={
+            withdrawResolution.status === 'ready' ? openWithdraw : undefined
+          }
         />
+        <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">
           <Box

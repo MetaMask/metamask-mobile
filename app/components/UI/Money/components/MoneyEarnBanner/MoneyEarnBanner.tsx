@@ -53,7 +53,7 @@ import {
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { isPositiveNumber } from '../../utils/number';
 import { MoneyEarnBannerTestIds } from './MoneyEarnBanner.testIds';
 
@@ -173,7 +173,7 @@ const MoneyEarnBannerContent = ({
 }: MoneyEarnBannerContentProps) => {
   const dispatch = useDispatch();
   const { apyPercent } = useMoneyVaultApy();
-  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { trackTokenButtonClicked, trackTokenSurfaceClicked } =
     useMoneyAnalytics({
       screen_name: SCREEN_NAMES.ASSET_DETAIL,

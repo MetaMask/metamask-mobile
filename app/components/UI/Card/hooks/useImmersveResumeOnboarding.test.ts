@@ -249,7 +249,7 @@ describe('useImmersveResumeOnboarding', () => {
     });
     expect(mockGetSpendingPrerequisites).toHaveBeenCalledTimes(2);
     expect(mockRoute).toHaveBeenCalledWith(
-      { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+      { type: 'kyc', url: 'https://kyc', ctaHint: undefined, reasons: [] },
       {
         email: 'user@example.com',
         countryKey: 'GB',
@@ -536,7 +536,12 @@ describe('useImmersveResumeOnboarding', () => {
     });
 
     expect(mockRoute).toHaveBeenCalledWith(
-      { type: 'rejected', retryUrl: undefined },
+      {
+        type: 'rejected',
+        canRetry: false,
+        retryUrl: undefined,
+        reasons: [],
+      },
       {
         email: 'user@example.com',
         countryKey: 'GB',

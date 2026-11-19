@@ -160,7 +160,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const amountLineHeight = Math.round(fontSize * 1.25);
     const amountTopInset = Math.round(fontSize * AMOUNT_TOP_INSET_RATIO);
     const amountBottomInset = Math.round(fontSize * AMOUNT_BOTTOM_INSET_RATIO);
-    const amountTextStyle = tw.style({
+    const amountTextStyle = tw.style('font-default-medium', {
       fontSize,
       lineHeight: amountLineHeight,
       height: amountLineHeight,
@@ -169,6 +169,10 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
       paddingVertical: 0,
       includeFontPadding: false,
       textAlignVertical: 'center',
+    });
+    // 4px gap between the secondary value and its toggle icon.
+    const amountTypeToggleIconStyle = tw.style('ml-1', {
+      transform: [{ translateY: 2 }],
     });
     // Matches the height the amount row takes once its insets are pulled in,
     // so swapping the skeleton for the input does not shift the card.
@@ -314,9 +318,9 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           // A single paragraph of nested spans, so a label that doesn't fit
           // wraps back to the start of the row instead of under itself.
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="mb-3 leading-[16px]"
+            twClassName="mb-4"
           >
             {shouldShowAmountTypeToggle ? (
               <Text
@@ -325,18 +329,16 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 }
                 onPress={handleAmountTypeTogglePress}
                 suppressHighlighting
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                twClassName="leading-[16px]"
               >
                 {secondaryValue ? (
                   <Text
                     testID={
                       LimitOrderPriceAdjustInputSectionSelectorsIDs.SECONDARY_VALUE
                     }
-                    variant={TextVariant.BodyMd}
+                    variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="leading-[16px]"
                   >
                     ≈ {secondaryValue}
                   </Text>
@@ -348,7 +350,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                     }
                     onPress={handleAmountTypeTogglePress}
                     hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                    style={{ transform: [{ translateY: 2 }] }}
+                    style={amountTypeToggleIconStyle}
                   >
                     <Icon
                       name={IconName.SwapVertical}
@@ -368,7 +370,6 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 variant={TextVariant.BodySm}
                 color={marketComparisonColor}
                 fontWeight={FontWeight.Medium}
-                twClassName="leading-[16px]"
               >
                 {marketComparison.label}
               </Text>
