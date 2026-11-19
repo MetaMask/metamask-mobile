@@ -47,7 +47,13 @@ describe('micaMockMode', () => {
       expect(form.formsRequired).toHaveLength(1);
       expect(form.formsRequired[0].type).toBe('SOURCE_OF_INCOME');
 
-      const metadata = form.formsRequired[0].metadata as any;
+      interface MetadataWithOptions {
+        sourceOfFundsTypeOptions: { name: string; value: string }[];
+        employmentStatusOptions: { name: string; value: string }[];
+        countryOfCitizenshipOptions: { name: string; value: string }[];
+      }
+      const metadata = form.formsRequired[0]
+        .metadata as unknown as MetadataWithOptions;
       expect(metadata.sourceOfFundsTypeOptions).toBeDefined();
       expect(metadata.employmentStatusOptions).toBeDefined();
       expect(metadata.countryOfCitizenshipOptions).toBeDefined();
@@ -60,9 +66,9 @@ describe('micaMockMode', () => {
     it('includes realistic option values', () => {
       const form = getMockSourceOfIncomeForm();
       interface MetadataWithOptions {
-        sourceOfFundsTypeOptions: Array<{ name: string; value: string }>;
-        employmentStatusOptions: Array<{ name: string; value: string }>;
-        countryOfCitizenshipOptions: Array<{ name: string; value: string }>;
+        sourceOfFundsTypeOptions: { name: string; value: string }[];
+        employmentStatusOptions: { name: string; value: string }[];
+        countryOfCitizenshipOptions: { name: string; value: string }[];
       }
       const metadata = form.formsRequired[0]
         .metadata as unknown as MetadataWithOptions;
@@ -71,7 +77,7 @@ describe('micaMockMode', () => {
         (opt) => opt.value === 'salary_payment',
       );
       expect(salaryOption).toBeDefined();
-      expect(salaryOption.name).toBe('Salary payments');
+      expect(salaryOption?.name).toBe('Salary payments');
 
       const employeeOption = metadata.employmentStatusOptions.find(
         (opt) => opt.value === 'mid_level_employee',
@@ -82,7 +88,7 @@ describe('micaMockMode', () => {
         (opt) => opt.value === 'DE',
       );
       expect(germanyOption).toBeDefined();
-      expect(germanyOption.name).toBe('Germany');
+      expect(germanyOption?.name).toBe('Germany');
     });
   });
 
