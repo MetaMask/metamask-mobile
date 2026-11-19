@@ -80,14 +80,11 @@ function parseRule(entry: unknown, index: number): EvalRuleConfig {
 
 function parseKey(key: Record<string, unknown>, where: string): KeyMatch {
   const pattern = readPattern(key.pattern, `${where}.pattern`);
-  if (key.oneOf === undefined) {
-    if (pattern === undefined) {
-      throw new Error(`${where} takes exactly one of "oneOf" or "pattern"`);
-    }
-    return { pattern };
+  if ((key.oneOf === undefined) === (pattern === undefined)) {
+    throw new Error(`${where} takes exactly one of "oneOf" or "pattern"`);
   }
   if (pattern !== undefined) {
-    throw new Error(`${where} takes exactly one of "oneOf" or "pattern"`);
+    return { pattern };
   }
   const oneOf = key.oneOf;
   if (

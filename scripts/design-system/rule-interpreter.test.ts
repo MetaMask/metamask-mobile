@@ -4,12 +4,12 @@ import type { EvalRuleConfig } from './eval-rules';
 import { createRuleFromConfig } from './rule-interpreter';
 
 const ruleTester = new RuleTester({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
-  parser: require.resolve('@typescript-eslint/parser'),
-  parserOptions: {
+  languageOptions: {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
+    parser: require('@typescript-eslint/parser'),
     ecmaVersion: 2022,
     sourceType: 'module',
-    ecmaFeatures: { jsx: true },
+    parserOptions: { ecmaFeatures: { jsx: true } },
   },
 });
 
