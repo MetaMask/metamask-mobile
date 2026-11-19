@@ -7,54 +7,35 @@ const createState = (flagValue?: Json) =>
     flagValue === undefined ? {} : { [SENTRY_FLAG_KEY]: flagValue },
   );
 
+const expiresAt = '2026-12-01T00:00:00Z';
+const expiresAtMs = Date.parse(expiresAt);
+
 describe('selectSentryTransactionSampleRates', () => {
-  it('keeps only rates in [0, 1]', () => {
+  it('keeps only rates in [0, 1] and parses expiresAt', () => {
     const state = createState({
       transactionSampleRates: {
-        'Swap Quote Fetch': { android: 0.25, ios: 1.5 },
-        Other: { android: -0.1, ios: '0.5' },
-        Zero: { ios: 0 },
+        'Swap Quote Fetch': { android: 0.25, ios: 1.5, expiresAt },
+        Other: { android: -0.1, ios: '0.5', expiresAt },
+        Zero: { ios: 0, expiresAt },
       },
     });
 
     expect(selectSentryTransactionSampleRates(state)).toStrictEqual({
-      'Swap Quote Fetch': { android: 0.25 },
-      Zero: { ios: 0 },
+      'Swap Quote Fetch': { android: 0.25, expiresAt: expiresAtMs },
+      Zero: { ios: 0, expiresAt: expiresAtMs },
     });
   });
 
-  it('applies a plain number to both platforms', () => {
+  it.each<[string, Json]>([
+    ['missing', { android: 0.25 }],
+    ['not a string', { android: 0.25, expiresAt: expiresAtMs }],
+    ['unparseable', { android: 0.25, expiresAt: 'next week' }],
+  ])('drops an entry whose expiresAt is %s', (_, entry) => {
     const state = createState({
-      transactionSampleRates: { 'Swap Quote Fetch': 0.25, Zero: 0 },
-    });
-
-    expect(selectSentryTransactionSampleRates(state)).toStrictEqual({
-      'Swap Quote Fetch': { android: 0.25, ios: 0.25 },
-      Zero: { android: 0, ios: 0 },
-    });
-  });
-
-  it('drops a plain number outside [0, 1]', () => {
-    const state = createState({
-      transactionSampleRates: { Negative: -0.1, TooHigh: 1.5, Text: '0.5' },
+      transactionSampleRates: { 'Swap Quote Fetch': entry },
     });
 
     expect(selectSentryTransactionSampleRates(state)).toStrictEqual({});
-  });
-
-  it('parses plain numbers and per-platform objects together', () => {
-    const state = createState({
-      transactionSampleRates: {
-        'Swap Quote Fetch': { android: 0.25 },
-        'UI Startup': 0.1,
-        Invalid: 2,
-      },
-    });
-
-    expect(selectSentryTransactionSampleRates(state)).toStrictEqual({
-      'Swap Quote Fetch': { android: 0.25 },
-      'UI Startup': { android: 0.1, ios: 0.1 },
-    });
   });
 
   it.each<Json | undefined>([
@@ -63,6 +44,7 @@ describe('selectSentryTransactionSampleRates', () => {
     [],
     {},
     { transactionSampleRates: null },
+    { transactionSampleRates: { 'Swap Quote Fetch': 0.25 } },
     { transactionSampleRates: { 'Swap Quote Fetch': [0.25] } },
   ])('returns no rates for a missing or malformed flag (%j)', (flagValue) => {
     expect(

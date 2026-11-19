@@ -1558,6 +1558,8 @@ describe('setupSentry', () => {
         ...getInvalidMockedFeatureFlag({ sentry: { transactionSampleRates } }),
       } as unknown as RootState);
 
+    const future = '2999-01-01T00:00:00Z';
+
     const getInitOptions = async () => {
       await setupSentry();
       const initOptions = mockedInit.mock.calls[0][0] as {
@@ -1594,7 +1596,9 @@ describe('setupSentry', () => {
     });
 
     it('uses the remote rate for the current platform ahead of the parent decision', async () => {
-      setRemoteRates({ [TraceName.SwapQuoteFetch]: { android: 0.25 } });
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt: future },
+      });
 
       setPlatformOS('android');
       const { tracesSampler } = await getInitOptions();
@@ -1606,10 +1610,44 @@ describe('setupSentry', () => {
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
     });
 
+    it('ignores an expired remote rate', async () => {
+      const expiresAt = '2026-12-01T00:00:00Z';
+      const dateNow = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.parse(expiresAt) + 1);
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      dateNow.mockRestore();
+    });
+
+    it('stops using a remote rate once it expires mid-session', async () => {
+      const expiresAt = '2026-12-01T00:00:00Z';
+      const dateNow = jest.spyOn(Date, 'now');
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      dateNow.mockReturnValue(Date.parse(expiresAt) - 1);
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
+
+      dateNow.mockReturnValue(Date.parse(expiresAt));
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      dateNow.mockRestore();
+    });
+
     it('keeps full sampling in dev builds even with a remote rate', async () => {
       globalWithDev.__DEV__ = true;
       setPlatformOS('android');
-      setRemoteRates({ [TraceName.SwapQuoteFetch]: { android: 0.5 } });
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.5, expiresAt: future },
+      });
       const { tracesSampler } = await getInitOptions();
 
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(1);

@@ -671,13 +671,18 @@ export function getNavIntegration(): ReturnType<
 /**
  * Remote `sentry.transactionSampleRates[name][Platform.OS]` rate for a root
  * transaction (setting one changes Sentry volume and cost). Undefined until
- * the store has loaded flags; the sampler must not throw.
+ * the store has loaded flags, or once the entry's `expiresAt` has passed;
+ * the sampler must not throw.
  */
 function getRemoteTraceSampleRate(name: string): number | undefined {
   try {
-    return selectSentryTransactionSampleRates(store.getState())[name]?.[
-      Platform.OS
-    ];
+    const entry = selectSentryTransactionSampleRates(store.getState())[name];
+    if (!entry || entry.expiresAt <= Date.now()) {
+      return undefined;
+    }
+    return Platform.OS === 'android' || Platform.OS === 'ios'
+      ? entry[Platform.OS]
+      : undefined;
   } catch {
     return undefined;
   }
