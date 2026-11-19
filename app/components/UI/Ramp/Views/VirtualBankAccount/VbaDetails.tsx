@@ -902,7 +902,7 @@ const VbaDetails = () => {
               onPress: handleShareDetails,
               testID: VbaDetailsSelectorsIDs.SHARE_BUTTON,
               accessibilityLabel: strings(
-                'virtual_bank_account.vba_details.copy_all_button',
+                'virtual_bank_account.vba_details.share_details_button',
               ),
             },
           ]

@@ -207,7 +207,7 @@ describeForPlatforms('VbaDetails copy confirmation', () => {
     );
     expect(shareButton).toBeOnTheScreen();
     expect(shareButton.props.accessibilityLabel).toBe(
-      strings('virtual_bank_account.vba_details.copy_all_button'),
+      strings('virtual_bank_account.vba_details.share_details_button'),
     );
     expect(within(shareButton).UNSAFE_getByType(Icon).props.name).toBe(
       IconName.Share,

@@ -1216,7 +1216,7 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Copy {{field}}",
       "copied_label": "{{field}} copied",
-      "copy_all_button": "Share details",
+      "share_details_button": "Share details",
       "button": "Done",
       "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
