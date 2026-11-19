@@ -23,7 +23,6 @@ import { selectChainId } from '../../../../selectors/networkController';
 import { selectPerpsCrossMarginEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsProvider } from '../selectors/perpsController';
 import { resolveProviderId } from '../utils/perpsPostTradeShare';
-import Logger from '../../../../util/Logger';
 
 /**
  * Aggregated calculations result for closing all positions
@@ -585,23 +584,6 @@ export function usePerpsCloseAllCalculations({
         feeRate: feeRates.get(positionKey(pos)),
       }),
     );
-    if (
-      positions.length > 0 &&
-      estimates.some(
-        ({ receive, realizedPnl }) =>
-          receive === undefined || realizedPnl === undefined,
-      )
-    ) {
-      Logger.log(
-        '[TAT-4708] BUG_MARKER: close-all total is undefined while positions exist',
-        {
-          symbols: positions.map((pos) => pos.symbol),
-          priceKeys: Object.keys(priceData),
-          feeRateKeys: Array.from(feeRates.keys()),
-          estimates,
-        },
-      );
-    }
     const sum = (values: (number | undefined)[]): number | undefined =>
       values.reduce<number | undefined>(
         (total, value) =>
