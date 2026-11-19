@@ -893,7 +893,7 @@ describe('PredictFundingService withdrawal flow', () => {
       });
       const service = serviceWith();
       await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
-        amount: preview.requestedAmount,
+        amount: preview.requestedAmount as PredictAmount,
       });
 
       const resolution = await service.reconcileWithdrawCommit(
