@@ -98,6 +98,21 @@ describe('runEvals', () => {
   });
 });
 
+describe('lintSource', () => {
+  it.each([
+    ['paddingHorizontal', 16],
+    ['rowGap', 8],
+  ])('flags %s', (key, value) => {
+    expect(lintSource('app/A.tsx', `const s = { ${key}: ${value} };`)).toHaveLength(1);
+  });
+
+  it('is not silenced by an inline eslint-disable directive', () => {
+    const code = '/* eslint-disable */\nconst s = { marginRight: 8 };';
+
+    expect(lintSource('app/A.tsx', code)).toHaveLength(1);
+  });
+});
+
 describe('formatErrorAnnotation', () => {
   it('keeps a crash message on one workflow command', () => {
     expect(formatErrorAnnotation('bad\nsha')).toBe('::error::bad%0Asha');
