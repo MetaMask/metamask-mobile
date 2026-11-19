@@ -20,6 +20,7 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+import { blockNetConnect } from '../../../app/util/test/netConnectGuard';
 
 /**
  * Clears all nock interceptors. Call in afterEach of any test file that uses
@@ -50,15 +51,11 @@ export function teardownNock(): void {
  * Disables real network connections for the current test run. Call at the
  * start of your feature's setup (e.g. in setupXxxApiMock) so unmocked requests
  * fail fast instead of hitting the network.
+ *
+ * Delegates to the component-view net connect guard, which also records every
+ * unmocked request and fails the test from its root-level `afterEach` (see
+ * `app/util/test/netConnectGuard.js`).
  */
 export function disableNetConnect(): void {
-  if (!nock.isActive()) {
-    nock.activate();
-  }
-  nock.disableNetConnect();
-  // In nock v14, each enableNetConnect(string) call overwrites the previous
-  // allowlist matcher (single assignment). Both patterns must be combined into
-  // one regex so neither is lost. Include bs-local.com for BrowserStack Local
-  // agents that may poll during local / CI component-view runs.
-  nock.enableNetConnect(/127\.0\.0\.1|localhost|bs-local\.com/);
+  blockNetConnect();
 }

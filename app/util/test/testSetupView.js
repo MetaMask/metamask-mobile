@@ -13,9 +13,13 @@ const { NativeModules } = require('react-native');
 const nodeCrypto = require('crypto');
 const { installTimerLeakGuard } = require('./timerLeakGuard');
 const { installSocketLeakGuard } = require('./socketLeakGuard');
+const { installNetConnectGuard } = require('./netConnectGuard');
 
 installTimerLeakGuard();
 installSocketLeakGuard();
+// Fails any test whose app code makes an HTTP request no view-test mock
+// answers, even when the app code swallows the rejection.
+installNetConnectGuard();
 
 // Secure random helper to avoid duplication
 const getRandomValuesCompat = (arr) =>
