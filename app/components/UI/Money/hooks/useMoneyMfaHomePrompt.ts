@@ -10,11 +10,6 @@ import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyMfaHomePromptSession } from '../../../../lib/Money/mfa/moneyMfaHomePromptSession';
 import { useMoneyMfa } from './useMoneyMfa';
 
-/**
- * Opens the passkey prompt on the wallet home for social login users, at most
- * once per session, after the wallet has a balance, when Money 2-step
- * verification is available and not set up.
- */
 export const useMoneyMfaHomePrompt = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { status } = useMoneyMfa();
@@ -38,8 +33,7 @@ export const useMoneyMfaHomePrompt = () => {
         return;
       }
       let isFocused = true;
-      // The stored credential list may predate this session, so confirm no
-      // passkey exists before prompting. A focus during a check reuses it.
+      // The stored credential list may predate this session, so recheck before prompting.
       pendingCheck.current ??= mobileMfaControllerAdapter
         .refreshEnrolledCredentials()
         .then((credentials) =>

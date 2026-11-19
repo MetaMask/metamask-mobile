@@ -45,6 +45,7 @@ jest.mock('../Bridge/providers/SwapQuotesProvider', () => ({
 }));
 
 let storedOnOpenCallback: (() => void) | undefined;
+let storedKeyboardAvoidingViewEnabled: boolean | undefined;
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockOnOpenBottomSheet = jest.fn();
 
@@ -61,14 +62,17 @@ jest.mock('@metamask/design-system-react-native', () => {
           children,
           onClose,
           onOpen,
+          keyboardAvoidingViewEnabled,
         }: {
           children: unknown;
           onClose?: () => void;
           onOpen?: () => void;
+          keyboardAvoidingViewEnabled?: boolean;
         },
         ref: unknown,
       ) => {
         storedOnOpenCallback = onOpen;
+        storedKeyboardAvoidingViewEnabled = keyboardAvoidingViewEnabled;
         ReactMock.useImperativeHandle(ref, () => ({
           onOpenBottomSheet: mockOnOpenBottomSheet,
           onCloseBottomSheet: mockOnCloseBottomSheet,
@@ -234,7 +238,6 @@ const buildHookResult = (
   hasInsufficientBalance: false,
   isGasless: false,
   estimatedReceiveFiat: undefined,
-  gasFeeDeductionLabel: undefined,
   discountBadge: undefined,
   baseFeePercentage: undefined,
   buttonError: null,
@@ -310,6 +313,7 @@ describe('QuickBuyRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
+    storedKeyboardAvoidingViewEnabled = undefined;
     mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
     (useQuickBuyController as jest.Mock).mockReturnValue(buildHookResult());
     (useQuickBuySetup as jest.Mock).mockReturnValue({
@@ -338,6 +342,20 @@ describe('QuickBuyRoot', () => {
     unmount();
 
     expect(store.getState().bridge.tokenSelectorNetworkFilter).toBeUndefined();
+  });
+
+  it('disables keyboard avoidance so the fullscreen sheet does not shift off-screen', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
+      />,
+    );
+
+    expect(storedKeyboardAvoidingViewEnabled).toBe(false);
   });
 
   it('renders default AmountScreen content when no children are passed', () => {
@@ -382,6 +400,34 @@ describe('QuickBuyRoot', () => {
         [QuickBuyEventProperties.ASSET_NAME]: 'PEPE',
         [QuickBuyEventProperties.SOURCE]: 'market_insights',
         [QuickBuyEventProperties.TRADE_TYPE]: 'buy',
+        [QuickBuyEventProperties.IS_COPY_TRADE]: false,
+      }),
+    );
+  });
+
+  it('marks a trending copy on SOCIAL_QUICK_BUY_SHEET_VIEWED', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={{
+          source: 'social_trending',
+          isCopyTrade: true,
+        }}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
+      expect.objectContaining({
+        [QuickBuyEventProperties.SOURCE]: 'social_trending',
+        [QuickBuyEventProperties.IS_COPY_TRADE]: true,
       }),
     );
   });
@@ -456,6 +502,7 @@ describe('QuickBuyRoot', () => {
         [QuickBuyEventProperties.SOURCE]: 'profile_position',
         [QuickBuyEventProperties.ORIGINAL_ENTRY_POINT]: 'leaderboard',
         [QuickBuyEventProperties.TRADE_TYPE]: 'sell',
+        [QuickBuyEventProperties.IS_COPY_TRADE]: false,
       },
     );
   });

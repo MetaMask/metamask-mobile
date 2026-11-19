@@ -214,6 +214,14 @@ describe('QRTabSwitcher', () => {
     expect(endTrace).toHaveBeenCalledWith({ name: TraceName.QRTabSwitcher });
   });
 
+  it('renders a back button in the header that navigates back', () => {
+    const { getByTestId } = renderQrTabSwitcher();
+
+    fireEvent.press(getByTestId('qr-scanner-back-button'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('calls onScanError with USER_CANCELLED when close is pressed', async () => {
     const onScanError = jest.fn();
     (useRoute as jest.Mock).mockReturnValue({

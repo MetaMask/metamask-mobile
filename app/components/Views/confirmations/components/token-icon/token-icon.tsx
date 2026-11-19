@@ -18,6 +18,7 @@ export interface TokenIconProps {
   address: Hex;
   chainId: Hex;
   showNetwork?: boolean;
+  size?: number;
   symbol?: string;
   variant?: TokenIconVariant;
 }
@@ -32,10 +33,11 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
   address,
   chainId,
   showNetwork = true,
+  size,
   symbol: symbolProp,
   variant = TokenIconVariant.Default,
 }) => {
-  const { styles } = useStyles(styleSheet, { variant });
+  const { styles } = useStyles(styleSheet, { variant, size });
 
   const token = useTokenWithBalance(address, chainId);
   const symbol = token?.symbol ?? symbolProp;

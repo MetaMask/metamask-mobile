@@ -75,6 +75,7 @@ describe('deriveNextImmersveAction', () => {
       type: 'kyc',
       url: 'https://verify.immersve.com',
       ctaHint: undefined,
+      reasons: [],
     });
   });
 
@@ -87,6 +88,7 @@ describe('deriveNextImmersveAction', () => {
       type: 'kyc',
       url: 'https://verify.immersve.com',
       ctaHint,
+      reasons: [],
     });
   });
 
@@ -102,6 +104,27 @@ describe('deriveNextImmersveAction', () => {
       type: 'kyc',
       url: 'https://verify.immersve.com',
       ctaHint: 'KYC_INFORMATION_NEEDED',
+      reasons: [],
+    });
+  });
+
+  it('carries reason codes on a KYC action', () => {
+    expect(
+      deriveNextImmersveAction([
+        {
+          ...kycUrl,
+          ctaHint: 'KYC_INFORMATION_NEEDED',
+          params: {
+            ...kycUrl.params,
+            reasons: [{ code: 'ID_DOCUMENT_EXPIRED', description: 'partner' }],
+          },
+        },
+      ]),
+    ).toStrictEqual({
+      type: 'kyc',
+      url: 'https://verify.immersve.com',
+      ctaHint: 'KYC_INFORMATION_NEEDED',
+      reasons: ['ID_DOCUMENT_EXPIRED'],
     });
   });
 
@@ -155,7 +178,9 @@ describe('deriveNextImmersveAction', () => {
       ]),
     ).toStrictEqual({
       type: 'rejected',
+      canRetry: true,
       retryUrl: 'https://verify.immersve.com/retry',
+      reasons: [],
     });
   });
 
@@ -178,7 +203,31 @@ describe('deriveNextImmersveAction', () => {
   it('returns rejected when a KYC stage is permanently blocked', () => {
     expect(
       deriveNextImmersveAction([{ stage: 'kyc', status: 'blocked' }]),
-    ).toStrictEqual({ type: 'rejected', retryUrl: undefined });
+    ).toStrictEqual({
+      type: 'rejected',
+      canRetry: false,
+      retryUrl: undefined,
+      reasons: [],
+    });
+  });
+
+  it('does not retry a blocked check even when a new KYC link is present', () => {
+    expect(
+      deriveNextImmersveAction([
+        { stage: 'kyc', status: 'blocked' },
+        {
+          stage: 'kyc',
+          status: 'action-required',
+          actionType: 'follow_kyc_url',
+          params: { kycUrl: 'https://verify.immersve.com/retry' },
+        },
+      ]),
+    ).toStrictEqual({
+      type: 'rejected',
+      canRetry: false,
+      retryUrl: undefined,
+      reasons: [],
+    });
   });
 
   it('returns rejected with the retry url on a failed KYC check', () => {
@@ -187,13 +236,63 @@ describe('deriveNextImmersveAction', () => {
         {
           stage: 'kyc',
           status: 'kyc_check_failed',
+          params: {
+            kycUrl: 'https://verify.immersve.com/retry',
+            reasons: [{ code: 'DOCUMENT_PHOTO_UNCLEAR' }],
+          },
+        },
+      ]),
+    ).toStrictEqual({
+      type: 'rejected',
+      canRetry: true,
+      retryUrl: 'https://verify.immersve.com/retry',
+      reasons: ['DOCUMENT_PHOTO_UNCLEAR'],
+    });
+  });
+
+  it('uses a separate follow_kyc_url as the retry link after a failed check', () => {
+    expect(
+      deriveNextImmersveAction([
+        {
+          stage: 'kyc',
+          status: 'kyc_check_failed',
+          params: { reasons: ['ID_NOT_VERIFIED'] },
+        },
+        {
+          stage: 'kyc',
+          status: 'action-required',
+          actionType: 'follow_kyc_url',
           params: { kycUrl: 'https://verify.immersve.com/retry' },
         },
       ]),
     ).toStrictEqual({
       type: 'rejected',
+      canRetry: true,
       retryUrl: 'https://verify.immersve.com/retry',
+      reasons: ['ID_NOT_VERIFIED'],
     });
+  });
+
+  it('cannot retry a failed check that has no KYC link', () => {
+    expect(
+      deriveNextImmersveAction([
+        { stage: 'kyc', status: 'kyc_check_failed', params: {} },
+      ]),
+    ).toStrictEqual({
+      type: 'rejected',
+      canRetry: false,
+      retryUrl: undefined,
+      reasons: [],
+    });
+  });
+
+  it('prefers a rejection over expected spend', () => {
+    expect(
+      deriveNextImmersveAction([
+        expectedSpend,
+        { stage: 'kyc', status: 'blocked' },
+      ]).type,
+    ).toBe('rejected');
   });
 
   it('prioritises rejected over pending', () => {

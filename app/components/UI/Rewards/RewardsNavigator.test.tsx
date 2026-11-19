@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
 import RewardsNavigator from './RewardsNavigator';
 import Routes from '../../../constants/navigation/Routes';
-import { OnboardingStep } from '../../../actions/rewards';
 
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
@@ -17,18 +16,6 @@ jest.mock('../../../core/Engine', () => ({
 
 // Mock dependencies
 jest.mock('./hooks/useOptIn');
-
-jest.mock('./OnboardingNavigator', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOnboardingNavigator() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-onboarding-navigator' },
-      ReactActual.createElement(Text, null, 'Onboarding Navigator'),
-    );
-  };
-});
 
 jest.mock('./Views/RewardsDashboard', () => {
   const ReactActual = jest.requireActual('react');
@@ -417,7 +404,6 @@ describe('RewardsNavigator', () => {
       reducer: {
         rewards: (
           state = {
-            onboardingActiveStep: OnboardingStep.INTRO,
             candidateSubscriptionId: null,
           },
         ) => state,
@@ -730,7 +716,6 @@ describe('RewardsNavigator', () => {
       );
 
       expect(getByTestId('rewards-update-required')).toBeOnTheScreen();
-      expect(queryByTestId('rewards-onboarding-navigator')).toBeNull();
       expect(queryByTestId('rewards-dashboard-view')).toBeNull();
     });
 

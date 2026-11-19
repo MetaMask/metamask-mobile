@@ -22,8 +22,8 @@ export interface PerpBadgesProps {
 /**
  * Renders the perp metadata badges shown next to a token symbol: an optional
  * leverage pill (e.g. "10x") and a direction pill (LONG green / SHORT red).
- * Used across the trader profile position list, the position detail header,
- * and individual trade rows so perp positions read consistently.
+ * Used across the trader profile position list and the position detail
+ * header so perp positions read consistently.
  */
 const PerpBadges: React.FC<PerpBadgesProps> = ({
   direction,

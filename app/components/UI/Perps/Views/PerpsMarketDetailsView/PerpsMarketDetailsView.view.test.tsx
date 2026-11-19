@@ -67,11 +67,14 @@ import {
   formatSignedAbbreviatedUsd,
 } from '../../../SocialFeed/utils/formatters';
 import {
+  getPerpsCrossMarginTagSelector,
+  getPerpsIsolatedMarginTagSelector,
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
+  PerpsAdjustMarginActionSheetSelectorsIDs,
   PerpsBottomSheetTooltipSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
@@ -143,6 +146,37 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('removes long and short when the market hits its open interest cap', async () => {
+    const depositWithOrder = jest.mocked(
+      Engine.context.PerpsController.depositWithOrder,
+    );
+    const { stream } = renderEligibleNoPositionPerpsDetails();
+
+    const longButton = await screen.findByTestId(
+      PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+    );
+    const shortButton = await screen.findByTestId(
+      PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+    );
+    expect(longButton).not.toBeDisabled();
+    expect(shortButton).not.toBeDisabled();
+
+    act(() => {
+      stream.emitOICaps(['ETH']);
+    });
+
+    expect(
+      await screen.findByText(strings('perps.order.validation.oi_cap_reached')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(depositWithOrder).not.toHaveBeenCalled();
   });
 
   it('shows geo block bottom sheet when Long is pressed (geo-restricted user)', async () => {
@@ -1641,8 +1675,19 @@ describe('PerpsMarketDetailsView', () => {
     const postTestId = (post: typeof ethPost) =>
       `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.positionId}-${post.timestamp}`;
 
+    const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+    // The Feed and Holders only fetch online, and the NetInfo mock starts offline.
+    beforeEach(() => {
+      netInfoMock.__setMockNetInfo({
+        type: 'wifi',
+        isInternetReachable: true,
+      });
+    });
+
     afterEach(() => {
       clearLeaderboardApiMock();
+      netInfoMock.__resetMockNetInfo();
     });
 
     it('shows Overview by default with the position above the tab bar', async () => {
@@ -1673,6 +1718,61 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         screen.queryByText(strings('perps.position.card.details_title')),
       ).not.toBeOnTheScreen();
+    });
+
+    it('fetches the feed only once Feed is opened', async () => {
+      const messengerSpy = setupLeaderboardApiMock({ feedItems: [ethPost] });
+      const feedFetches = () =>
+        messengerSpy.mock.calls.filter(
+          ([action]) => action === 'SocialService:fetchFeed',
+        );
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+        ),
+      ).toBeOnTheScreen();
+      expect(feedFetches()).toHaveLength(0);
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketDetailsTabSelector('feed')),
+      );
+      expect(await screen.findByTestId(ethPostTestId)).toBeOnTheScreen();
+      expect(feedFetches().length).toBeGreaterThan(0);
+    });
+
+    it('scrolls the screen through the feed list on every tab', async () => {
+      setupLeaderboardApiMock({ feedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketDetailsTabSelector('feed')),
+      );
+      expect(await screen.findByTestId(ethPostTestId)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS),
+      ).toBeOnTheScreen();
     });
 
     it('orders the tabs Overview, Holders, Feed', async () => {
@@ -1867,6 +1967,46 @@ describe('PerpsMarketDetailsView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('hides the risk disclaimer on Feed and shows it again on Overview', async () => {
+      setupLeaderboardApiMock({ feedItems: [ethPost] });
+      const disclaimerId = PerpsMarketDetailsViewSelectorsIDs.RISK_DISCLAIMER;
+      // Host and composite nodes can both carry a testID. Every copy of
+      // `before` still has to precede every copy of `after`.
+      const expectBefore = (before: string, after: string) => {
+        const ordered = screen.UNSAFE_root.findAll(
+          (node) => node.props.testID === before || node.props.testID === after,
+        ).map((node) => node.props.testID as string);
+        expect(ordered.lastIndexOf(before)).toBeGreaterThanOrEqual(0);
+        expect(ordered.lastIndexOf(before)).toBeLessThan(
+          ordered.indexOf(after),
+        );
+      };
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(await screen.findByTestId(statsSectionTestId)).toBeOnTheScreen();
+      expectBefore(statsSectionTestId, disclaimerId);
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketDetailsTabSelector('feed')),
+      );
+
+      expect(await screen.findByTestId(ethPostTestId)).toBeOnTheScreen();
+      expect(screen.queryByTestId(statsSectionTestId)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(disclaimerId)).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketDetailsTabSelector('overview')),
+      );
+
+      expect(await screen.findByTestId(statsSectionTestId)).toBeOnTheScreen();
+      expect(screen.queryByTestId(ethPostTestId)).not.toBeOnTheScreen();
+      expectBefore(statsSectionTestId, disclaimerId);
+    });
+
     it('lists every loaded post on Feed with no See more', async () => {
       const posts = Array.from({ length: 6 }, (_, index) =>
         mockPerpFeedItem({
@@ -1895,7 +2035,6 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     describe('Holders', () => {
-      const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
       const holdersOverrides = {
         engine: {
           backgroundState: {
@@ -1947,17 +2086,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       });
 
-      // The leaderboard only fetches online, and the NetInfo mock starts offline.
-      beforeEach(() => {
-        netInfoMock.__setMockNetInfo({
-          type: 'wifi',
-          isInternetReachable: true,
-        });
-      });
-
       afterEach(() => {
         clearPerpsMarketHoldersApiMock();
-        netInfoMock.__resetMockNetInfo();
       });
 
       it('lists the open holders of this market in the order the API ranks them', async () => {
@@ -2149,5 +2279,138 @@ describe('PerpsMarketDetailsView', () => {
         screen.getByTestId(`${TRADINGVIEW_CHART_ID}-webview`),
       ).toBeOnTheScreen();
     });
+  });
+});
+
+describe('Perps market details margin mode', () => {
+  const eligible = {
+    engine: {
+      backgroundState: {
+        PerpsController: { isEligible: true },
+      },
+    },
+  };
+
+  const ethPosition = (
+    type: 'cross' | 'isolated',
+    liquidationPrice: string | null = type === 'cross' ? null : '1800',
+  ): Position =>
+    createLongPositionForViews({
+      symbol: 'ETH',
+      leverage: { value: 3, type },
+      liquidationPrice,
+    });
+
+  it('labels a cross margin row and keeps it from opening adjust margin', async () => {
+    renderPerpsMarketDetailsView({
+      crossMarginEnabled: true,
+      overrides: eligible,
+      streamOverrides: { positions: [ethPosition('cross')] },
+    });
+
+    const margin = await screen.findByTestId(
+      PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER,
+    );
+
+    expect(
+      within(margin).getByTestId(getPerpsCrossMarginTagSelector('lite', 'ETH')),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+    expect(
+      screen.queryByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE),
+    ).toHaveTextContent(strings('perps.cross_position.no_liquidation_price'));
+
+    fireEvent.press(margin);
+
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByLabelText(strings('perps.cross_position.liquidation_info')),
+    );
+
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(
+      strings('perps.tooltips.cross_no_liquidation_price.content'),
+    );
+  });
+
+  it('shows a cross liquidation price and explains that it moves with other positions', async () => {
+    renderPerpsMarketDetailsView({
+      crossMarginEnabled: true,
+      overrides: eligible,
+      streamOverrides: { positions: [ethPosition('cross', '1800')] },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent('$1,800');
+
+    fireEvent.press(
+      screen.getByLabelText(strings('perps.cross_position.liquidation_info')),
+    );
+
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(
+      strings('perps.tooltips.cross_liquidation_price.content'),
+    );
+  });
+
+  it('opens adjust margin from an isolated row and shows its mode', async () => {
+    renderPerpsMarketDetailsView({
+      crossMarginEnabled: true,
+      overrides: eligible,
+      streamOverrides: { positions: [ethPosition('isolated')] },
+    });
+
+    const margin = await screen.findByTestId(
+      PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER,
+    );
+
+    expect(
+      within(margin).getByTestId(
+        getPerpsIsolatedMarginTagSelector('lite', 'ETH'),
+      ),
+    ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+
+    fireEvent.press(margin);
+
+    expect(
+      await screen.findByTestId(
+        PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps a cross position margin read-only when the flag is off', async () => {
+    renderPerpsMarketDetailsView({
+      overrides: eligible,
+      streamOverrides: { positions: [ethPosition('cross')] },
+    });
+
+    fireEvent.press(
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+    );
+
+    expect(
+      screen.queryByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getPerpsCrossMarginTagSelector('lite', 'ETH')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
+      ),
+    ).not.toBeOnTheScreen();
   });
 });

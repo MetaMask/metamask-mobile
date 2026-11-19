@@ -4,3 +4,5 @@ export const hydrateSocialTermsAcceptance = () => Promise.resolve();
 export const acceptSocialTerms = () => Promise.resolve();
 export const resetSocialTermsAcceptance = () => Promise.resolve();
 export const ensureSocialTermsAccepted = () => true;
+export const takePendingSocialEntry = () => undefined;
+export const recordSocialTermsAcceptanceForExistingProfile = () => undefined;

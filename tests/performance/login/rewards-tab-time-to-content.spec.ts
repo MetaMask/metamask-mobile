@@ -22,7 +22,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
         if (rejectedCount === promises.length) {
           reject(
             new Error(
-              'Rewards content was not visible: onboarding step, dashboard title, and modal were all absent',
+              'Rewards content was not visible: dashboard title and modal were both absent',
             ),
           );
         }
@@ -34,24 +34,23 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
  * Scenario: Rewards tab time-to-content
  *
  * Measures how long it takes after tapping Rewards until meaningful content is
- * visible for the account state:
- * - Not opted in → OnboardingMainStep (`onboarding-step-container`)
- * - Opted in → Rewards dashboard shell (`rewards-view-title`)
+ * visible for the account state. Opted-in and not-yet-joined accounts both
+ * land on the Rewards dashboard shell (`rewards-view-title`).
  *
  * Permanent dashboard body content is still evolving, so this gate intentionally
- * stops at the stable shell / onboarding surface rather than season/points UI.
+ * stops at the stable shell rather than season/points UI.
  */
 perfTest.describe(
   `${Performance} ${PerformanceLogin} ${PerformanceRewards}`,
   () => {
     perfTest(
-      'Rewards tab time-to-content (onboarding or dashboard)',
+      'Rewards tab time-to-content',
       { tag: '@performance-team' },
       async ({ currentDeviceDetails, performanceTracker }) => {
         await loginToAppPlaywright();
 
         const rewardsContentTimer = new TimerHelper(
-          'Time since the user taps Rewards until Rewards content is visible (onboarding or dashboard)',
+          'Time since the user taps Rewards until Rewards content is visible',
           { ios: 8000, android: 3000 },
           currentDeviceDetails.platform,
         );
@@ -62,15 +61,7 @@ perfTest.describe(
 
         await rewardsContentTimer.measure(async () => {
           await waitForFirstSuccessful([
-            // Non-opted-in path: onboarding surface
-            AppiumAssertions.expectElementToBeVisible(
-              RewardsView.onboardingStepContainer,
-              {
-                description: 'Rewards onboarding step should be visible',
-              },
-            ).then(() => 'onboarding' as const),
-
-            // Opted-in path: dashboard shell title
+            // Dashboard shell title, including accounts that have not joined.
             AppiumAssertions.expectElementToBeVisible(RewardsView.title, {
               description: 'Rewards dashboard title should be visible',
             }).then(() => 'dashboard' as const),

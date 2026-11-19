@@ -1,0 +1,7 @@
+{
+  "app/components/UI/Rewards/hooks/useRewardsVersionGuard.ts": {
+    "@typescript-eslint/no-meaningless-void-operator": {
+      "count": 1
+    }
+  }
+}

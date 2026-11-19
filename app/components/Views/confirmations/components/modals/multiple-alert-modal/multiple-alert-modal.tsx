@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { IconName as DesignSystemIconName } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { Alert, AlertSeverity, Severity } from '../../../types/alerts';
@@ -12,7 +11,7 @@ import AlertModal from '../alert-modal';
 import HeaderBaseGlass, {
   type HeaderBaseGlassProps,
 } from '../../../../../../component-library/components-temp/HeaderBaseGlass';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 import { getSeverityStyle } from '../../../utils/alert-system';
 import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -34,7 +33,7 @@ const NavigationAlertHeader: React.FC<NavigationAlertHeaderProps> = ({
   style,
   ...props
 }) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const startButtonIconProps =
     selectedIndex > 0
       ? {

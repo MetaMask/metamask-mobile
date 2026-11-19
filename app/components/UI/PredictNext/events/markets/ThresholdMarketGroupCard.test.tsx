@@ -151,15 +151,20 @@ describe('ThresholdMarketGroupCard', () => {
     expect(screen.queryByTestId(TestIds.selector(GROUP))).not.toBeOnTheScreen();
   });
 
-  it('shows the rules button only when the line has rules', () => {
+  it('opens the rules from the title only when the line has rules', () => {
     const withRules = { ...line60, rules: 'Resolves on official stats.' };
     const { onRulesPress } = renderCard({
       markets: [withRules, line80],
       selectedMarket: withRules,
     });
 
-    fireEvent.press(screen.getByTestId(TestIds.rulesButton(GROUP)));
+    expect(screen.getByTestId(TestIds.title(GROUP))).toHaveProp(
+      'accessibilityRole',
+      'button',
+    );
+    fireEvent.press(screen.getByTestId(TestIds.title(GROUP)));
     expect(onRulesPress).toHaveBeenCalledWith(withRules);
+    onRulesPress.mockClear();
 
     screen.rerender(
       <ThresholdMarketGroupCard
@@ -170,8 +175,11 @@ describe('ThresholdMarketGroupCard', () => {
         onRulesPress={onRulesPress}
       />,
     );
-    expect(
-      screen.queryByTestId(TestIds.rulesButton(GROUP)),
-    ).not.toBeOnTheScreen();
+    expect(screen.getByTestId(TestIds.title(GROUP))).not.toHaveProp(
+      'accessibilityRole',
+      'button',
+    );
+    fireEvent.press(screen.getByTestId(TestIds.title(GROUP)));
+    expect(onRulesPress).not.toHaveBeenCalled();
   });
 });

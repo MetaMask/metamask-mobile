@@ -131,7 +131,7 @@ const RwasTabContent: React.FC<TabProps> = ({
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
 
-  const politics = usePredictTrendingFeed({ variant: 'politics', refresh });
+  const politics = usePredictTrendingFeed({ tab: 'rwas', refresh });
   const stocks = useStocksFeed({
     refresh,
     pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,

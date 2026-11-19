@@ -17,7 +17,6 @@ import {
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 
-/** Home prompt to protect the funded wallet's Money account with a passkey. */
 const MoneyMfaPromptSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();

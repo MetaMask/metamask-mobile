@@ -21,7 +21,6 @@ import {
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 
-/** Confirms turning off 2-step verification for the Money account. */
 const MoneyMfaTurnOffSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();

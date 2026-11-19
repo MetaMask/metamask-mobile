@@ -29,7 +29,6 @@ import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagControll
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 
-/** Methods Money requires before 2-step verification turns on. */
 export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'totp'];
 
 export type MoneyMfaStatus =
@@ -55,14 +54,9 @@ const getTurnOffReason = (): MfaReason => ({
 
 let activeMigration: Promise<void> | undefined;
 
-/**
- * Runs the Money account migration once at a time, then turns 2-step
- * verification on. The flow can outlive the screen that started it, so the
- * result goes through the app-wide navigator.
- */
+// The flow can outlive the screen that started it, so the result goes through the app-wide navigator.
 const migrate = (): Promise<void> => {
-  // A wallet reset stops the status being `migrating`, so a run left over
-  // from the previous wallet is not reused.
+  // A wallet reset clears `migrating`, so a run from the previous wallet is not reused.
   if (activeMigration && moneyAccountMigration.getStatus() === 'migrating') {
     return activeMigration;
   }
@@ -85,13 +79,6 @@ const migrate = (): Promise<void> => {
   return run;
 };
 
-/**
- * Money 2-step verification: whether it is on, and the actions that turn it
- * on (the MFA kit sets up passkey and authenticator app, then the MPC Money account is
- * created) or off.
- *
- * @returns The current status and its actions.
- */
 export const useMoneyMfa = () => {
   const isFlagEnabled = useSelector(selectMoneyEnableMfaFlag);
   const isKitEnabled = useSelector(selectMfaUiKitEnabled);
@@ -139,7 +126,6 @@ export const useMoneyMfa = () => {
     status = migrationStatus === 'done' ? 'off' : 'not_set_up';
   }
 
-  // Resumes a migration that the app was closed during.
   useEffect(() => {
     if (status === 'setting_up' && !activeMigration) {
       void migrate();
@@ -201,6 +187,7 @@ export const useMoneyMfa = () => {
         methods: MONEY_MFA_METHODS,
         verifyWith: MONEY_MFA_METHODS,
         maxSessionAgeMs: 0,
+        verifyOnly: true,
         reason: getTurnOffReason(),
       });
     } catch {

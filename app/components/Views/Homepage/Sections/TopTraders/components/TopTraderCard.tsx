@@ -89,7 +89,8 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         >
           <TraderAvatar
             imageUrl={trader.avatarUri}
-            address={trader.id}
+            address={trader.address}
+            profileId={trader.id}
             size={AVATAR_SIZE}
             testID={getTopTraderAvatarTestId(trader.id)}
           />

@@ -67,7 +67,6 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const { onRefresh } = useNftRefresh();
     const { detectNfts } = useNftDetection();
     const detectNftsRef = useRef(detectNfts);
-    detectNftsRef.current = detectNfts;
 
     const title = strings('homepage.sections.nfts');
 
@@ -86,8 +85,13 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     // Read via refs to avoid making them deps of the detection effect, which would
     // cause the effect to re-run when NFTs load in and reset the throttle prematurely.
     const hasNftsRef = useRef(hasNfts);
-    hasNftsRef.current = hasNfts;
     const [hasDetected, setHasDetected] = useState(hasNfts);
+    useEffect(() => {
+      detectNftsRef.current = detectNfts;
+    });
+    useEffect(() => {
+      hasNftsRef.current = hasNfts;
+    });
 
     // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
     // Deferred detection — only runs when the section has scrolled into the viewport.
@@ -127,13 +131,18 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     );
 
     // Split NFTs into rows of NFTS_PER_ROW
-    const nftRows = useMemo(() => {
-      const rows: (typeof displayNfts)[] = [];
-      for (let i = 0; i < displayNfts.length; i += NFTS_PER_ROW) {
-        rows.push(displayNfts.slice(i, i + NFTS_PER_ROW));
-      }
-      return rows;
-    }, [displayNfts]);
+    const nftRows = useMemo(
+      () =>
+        Array.from(
+          { length: Math.ceil(displayNfts.length / NFTS_PER_ROW) },
+          (_, rowIndex) =>
+            displayNfts.slice(
+              rowIndex * NFTS_PER_ROW,
+              rowIndex * NFTS_PER_ROW + NFTS_PER_ROW,
+            ),
+        ),
+      [displayNfts],
+    );
 
     const handleViewAllNfts = useCallback(() => {
       navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);

@@ -19,12 +19,6 @@ interface MoneyMfaSetupCardProps {
   onSetUp: () => void;
 }
 
-/**
- * "Protect your Money account" card on Money home.
- *
- * @param props - The card's props.
- * @param props.onSetUp - Opens the passkey intro.
- */
 const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
   // The 2FA screen opens only once its first step is ready.
   const isStarting = useActiveMfaFlow()?.state.step.name === 'idle';

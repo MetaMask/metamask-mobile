@@ -5,6 +5,11 @@ import NftGridItemBottomSheet from './NftGridItemBottomSheet';
 import { Nft, Source } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
   Modal: ({
@@ -43,6 +48,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { forwardRef } = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box: ({ children }: { children: React.ReactNode }) => (
       <View>{children}</View>
     ),

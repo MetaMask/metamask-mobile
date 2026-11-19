@@ -44,11 +44,7 @@ appiumTest.describe(
   () => {
     appiumTest.describe.configure({ timeout: 300_000 });
 
-    // Skipped: fails on main iOS Appium smoke since the core bump in #38688.
-    // After selecting Money account as pay-with, `bridge-fee-row` never
-    // renders. Re-enable once fixed. Android was already skipped (wallet home
-    // readiness after confirming).
-    appiumTest.skip(
+    appiumTest(
       'withdraws Predict balance directly to Money account',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(

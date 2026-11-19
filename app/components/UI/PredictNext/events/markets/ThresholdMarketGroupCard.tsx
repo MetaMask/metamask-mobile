@@ -1,11 +1,4 @@
 import React from 'react';
-import {
-  Box,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
-} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../types';
 import {
@@ -89,28 +82,19 @@ export const ThresholdMarketGroupCard = React.memo(
       <MarketCard.Root testID={MarketGroupCardTestIds.card(groupKey)}>
         <MarketCard.Header>
           <MarketCard.Summary>
-            <Box twClassName="min-w-0 flex-row items-center gap-2.5">
-              <Box twClassName="min-w-0 shrink">
-                <MarketCard.Title
-                  testID={MarketGroupCardTestIds.title(groupKey)}
-                >
-                  {title}
-                </MarketCard.Title>
-              </Box>
-              {rules && onRulesPress ? (
-                <ButtonIcon
-                  iconName={IconName.Question}
-                  size={ButtonIconSize.Sm}
-                  iconProps={{ color: IconColor.IconAlternative }}
-                  onPress={() => onRulesPress(selectedMarket)}
-                  testID={MarketGroupCardTestIds.rulesButton(groupKey)}
-                  accessibilityLabel={strings(
-                    'predict.rules.market_accessibility_label',
-                  )}
-                  accessibilityRole="button"
-                />
-              ) : null}
-            </Box>
+            <MarketCard.Title
+              testID={MarketGroupCardTestIds.title(groupKey)}
+              onPress={
+                rules && onRulesPress
+                  ? () => onRulesPress(selectedMarket)
+                  : undefined
+              }
+              accessibilityHint={strings(
+                'predict.rules.market_accessibility_label',
+              )}
+            >
+              {title}
+            </MarketCard.Title>
           </MarketCard.Summary>
           {yesPercent !== undefined ? (
             <MarketCard.Percentage

@@ -44,6 +44,16 @@ describe('postTradePromptStorage', () => {
     );
   });
 
+  it('keeps the normal swaps count separate from Quick Buy', () => {
+    incrementShareSheetCount('0xABC', 'swaps');
+    incrementShareSheetCount('0xabc', 'swaps');
+    incrementShareSheetCount('0xabc', 'swap');
+
+    expect(getShareSheetCount('0xabc', 'swaps')).toBe(2);
+    expect(getShareSheetCount('0xabc', 'swap')).toBe(1);
+    expect(getShareSheetCount('0xabc', 'perps')).toBe(0);
+  });
+
   it('marks claim sheets seen per product', () => {
     markClaimSheetSeen('swap');
 

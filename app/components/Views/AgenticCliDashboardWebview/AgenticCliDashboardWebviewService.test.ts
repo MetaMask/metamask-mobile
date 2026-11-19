@@ -245,6 +245,21 @@ describe('AgenticCliDashboardWebviewService', () => {
         ),
       ).toBe(true);
       expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://developer.metamask.com',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://develop-developer.metamask.com',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://staging-developer.metamask.com',
+        ),
+      ).toBe(true);
+      expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
           'https://test-dashboard.web3auth.io/agentic/login#auth_token=token',
         ),
@@ -284,6 +299,11 @@ describe('AgenticCliDashboardWebviewService', () => {
       ).toBe(true);
       expect(
         AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://developer.metamask.com',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
           'https://dashboard.web3auth.io',
         ),
       ).toBe(true);
@@ -294,9 +314,29 @@ describe('AgenticCliDashboardWebviewService', () => {
       ).toBe(true);
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://developer.metamask.com/agentic/login#auth_token=token',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
           'https://dashboard.web3auth.io/agentic/login#auth_token=token',
         ),
       ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://developer.metamask.com.evil.com',
+        ),
+      ).toBe(false);
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://build.metamask.com',
+        ),
+      ).toBe(false);
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://builder.metamask.com',
+        ),
+      ).toBe(false);
     });
 
     it('allows dev-dashboard host for UAT build types', () => {

@@ -21,6 +21,8 @@ export type {
   PredictTrendingFeed,
   PredictTrendingMarket,
   PredictTrendingMarketAnalyticsProperties,
+  PredictTrendingSurface,
+  PredictTrendingTab,
   PredictTrendingVariant,
   UsePredictTrendingFeedOptions,
 } from './types';

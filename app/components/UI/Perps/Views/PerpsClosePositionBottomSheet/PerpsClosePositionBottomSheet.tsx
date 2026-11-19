@@ -1,6 +1,7 @@
 import PerpsFeeCaption from '../../components/PerpsFeesDisplay/PerpsFeeCaption';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -81,7 +82,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     confirmButtonProps,
     feeResults,
     summaryMargin,
+    summaryMarginMode,
     summaryPnl,
+    summaryRoePercentage,
     receiveAmount,
     filteredErrors,
     isClosing,
@@ -169,10 +172,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     feeResults.metamaskFeeRate,
     feeResults.originalMetamaskFeeRate,
   );
-  const summaryPnlPercentage =
-    summaryMargin !== 0
-      ? (summaryPnl / Math.abs(summaryMargin)) * 100
-      : undefined;
 
   const displayedErrors = useMemo(
     () =>
@@ -256,8 +255,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       {!isEditingLimitPrice && !isInputFocused && (
         <PerpsCloseTotals
           pnl={summaryPnl}
-          pnlPercentage={summaryPnlPercentage}
+          roePercentage={summaryRoePercentage}
           receiveAmount={receiveAmount}
+          margin={summaryMargin}
+          marginMode={summaryMarginMode}
         />
       )}
 

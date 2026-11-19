@@ -103,6 +103,55 @@ describe('Remote Feature Flags Helper', () => {
       });
     });
 
+    it('pins homeInterimHeaderNavBar off so floating tab bar does not hide trade-tab-bar-item-icon-container', () => {
+      const flagByName = (response: Record<string, unknown>[], name: string) =>
+        response.find((obj) => name in obj)?.[name];
+
+      const defaultResponse = createRemoteFeatureFlagsMock().response as Record<
+        string,
+        unknown
+      >[];
+      const overrideResponse = createRemoteFeatureFlagsMock({
+        homeInterimHeaderNavBar: { enabled: true },
+      }).response as Record<string, unknown>[];
+
+      expect(
+        (
+          flagByName(defaultResponse, 'homeInterimHeaderNavBar') as Record<
+            string,
+            unknown
+          >
+        )?.enabled,
+      ).toBe(false);
+      expect(
+        (
+          flagByName(overrideResponse, 'homeInterimHeaderNavBar') as Record<
+            string,
+            unknown
+          >
+        )?.enabled,
+      ).toBe(true);
+    });
+
+    it('pins homeBrandRefreshSurfaces off for stable wallet home UI in smoke tests', () => {
+      const flagByName = (response: Record<string, unknown>[], name: string) =>
+        response.find((obj) => name in obj)?.[name];
+
+      const defaultResponse = createRemoteFeatureFlagsMock().response as Record<
+        string,
+        unknown
+      >[];
+
+      expect(
+        (
+          flagByName(defaultResponse, 'homeBrandRefreshSurfaces') as Record<
+            string,
+            unknown
+          >
+        )?.enabled,
+      ).toBe(false);
+    });
+
     it('uses flask distribution when specified', () => {
       const result = createRemoteFeatureFlagsMock({}, 'flask');
 

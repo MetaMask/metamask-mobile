@@ -182,7 +182,6 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
   });
 
   it('decodes a base64url profile token as base64', async () => {
-    // This payload encodes to base64url with `-` and `_`.
     const sub = 'profile-??>>';
     const token = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub })}.sig`;
     expect(token.split('.')[1]).toMatch(/[-_]/u);

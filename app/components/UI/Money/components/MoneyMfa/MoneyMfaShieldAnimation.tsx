@@ -44,7 +44,6 @@ interface MoneyMfaShieldAnimationProps {
   size: number;
 }
 
-/** Money 2FA shield animation; shows the static shield icon until ready, on Reduce Motion, or on error. */
 const MoneyMfaShieldAnimation = ({ size }: MoneyMfaShieldAnimationProps) => {
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);

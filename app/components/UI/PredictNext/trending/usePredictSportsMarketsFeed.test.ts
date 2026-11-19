@@ -4,6 +4,10 @@ import { useActiveVenue } from '../implementation/activeVenue';
 import { expectInactiveHookHasNoSideEffects } from '../implementation/inactiveHook.testUtils';
 import type { ActiveVenueResolution } from '../implementation/types';
 import { usePredictSportsMarketsFeed } from './usePredictSportsMarketsFeed';
+import {
+  createDataServiceMessenger,
+  createDataServiceWrapper,
+} from './trendingHooks.testUtils';
 import { usePredictTrendingSupported } from './usePredictTrendingSupported';
 
 const mockGetMarkets = jest.fn();
@@ -34,6 +38,8 @@ const RESOLVING: ActiveVenueResolution = { status: 'resolving' };
 const givenVenue = (venue: ActiveVenueResolution) =>
   jest.mocked(useActiveVenue).mockReturnValue(venue);
 
+const wrapper = () => createDataServiceWrapper(createDataServiceMessenger({}));
+
 describe('usePredictSportsMarketsFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -46,10 +52,13 @@ describe('usePredictSportsMarketsFeed', () => {
   it("passes the legacy lane's sport pills and markets through", async () => {
     givenVenue(POLYMARKET);
 
-    const { result } = renderHook(() => ({
-      feed: usePredictSportsMarketsFeed(),
-      isSupported: usePredictTrendingSupported(),
-    }));
+    const { result } = renderHook(
+      () => ({
+        feed: usePredictSportsMarketsFeed(),
+        isSupported: usePredictTrendingSupported('allSports'),
+      }),
+      { wrapper: wrapper() },
+    );
 
     await waitFor(() =>
       expect(result.current.feed.active.marketData).toHaveLength(1),
@@ -74,7 +83,9 @@ describe('usePredictSportsMarketsFeed', () => {
 
   it('loads another sport when its pill is selected', async () => {
     givenVenue(POLYMARKET);
-    const { result } = renderHook(() => usePredictSportsMarketsFeed());
+    const { result } = renderHook(() => usePredictSportsMarketsFeed(), {
+      wrapper: wrapper(),
+    });
     await waitFor(() => expect(mockGetMarkets).toHaveBeenCalledTimes(1));
 
     act(() => {
@@ -96,7 +107,7 @@ describe('usePredictSportsMarketsFeed', () => {
         usePredictSportsMarketsFeed({
           refresh: { trigger, silentRefresh: true },
         }),
-      { initialProps: { trigger: 0 } },
+      { wrapper: wrapper(), initialProps: { trigger: 0 } },
     );
     rerender({ trigger: 1 });
 
@@ -117,10 +128,13 @@ describe('usePredictSportsMarketsFeed', () => {
     it('has no sports and no markets, and is not supported', () => {
       givenVenue(venue);
 
-      const { result } = renderHook(() => ({
-        feed: usePredictSportsMarketsFeed(),
-        isSupported: usePredictTrendingSupported(),
-      }));
+      const { result } = renderHook(
+        () => ({
+          feed: usePredictSportsMarketsFeed(),
+          isSupported: usePredictTrendingSupported('allSports'),
+        }),
+        { wrapper: wrapper() },
+      );
 
       expect(result.current.isSupported).toBe(false);
       expect(result.current.feed.pills).toEqual([]);
@@ -137,6 +151,7 @@ describe('usePredictSportsMarketsFeed', () => {
             refresh: { trigger: 1, silentRefresh: true },
           }),
         sideEffects: [mockGetMarkets],
+        wrapper: wrapper(),
       });
     });
   });

@@ -6,6 +6,8 @@ import type {
 } from '../../Predict/types';
 import { PredictEventValues } from '../analytics';
 import { toTrendingMarket } from './internal/legacyMarkets';
+import { toNextTrendingMarket } from './internal/nextMarkets';
+import { makeKalshiEvent } from './trendingHooks.testUtils';
 import { PredictTrendingMarketCard } from './PredictTrendingMarketCard';
 import { PredictTrendingSearchRow } from './PredictTrendingSearchRow';
 import { getPredictTrendingMarketAnalyticsProperties } from './getPredictTrendingMarketAnalyticsProperties';
@@ -122,6 +124,17 @@ describe('getPredictTrendingMarketAnalyticsProperties', () => {
 
     expect(getPredictTrendingMarketAnalyticsProperties(market)).toStrictEqual({
       market_id: 'market-2',
+    });
+  });
+
+  it("reports a next Venue Event's id and title, which have no slug or tags", () => {
+    const market = toNextTrendingMarket(
+      makeKalshiEvent('kxnfl-1', 'Chiefs vs Bills'),
+    );
+
+    expect(getPredictTrendingMarketAnalyticsProperties(market)).toStrictEqual({
+      market_id: 'kxnfl-1',
+      market_title: 'Chiefs vs Bills',
     });
   });
 });

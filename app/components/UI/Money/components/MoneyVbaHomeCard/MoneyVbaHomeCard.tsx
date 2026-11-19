@@ -25,6 +25,7 @@ import {
   resolveVbaOnboarding,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 import {
   endVbaCufJourney,
   startVbaCufJourney,
@@ -73,19 +74,24 @@ const HERO_GRADIENT_ANGLE = 224;
 /**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, identity_verified, account_is_ready, kyc_pending,
- * finish_verification, kyc_decision); all per-variant differences — copy, analytics names, CTA
- * treatment, hero art and optional Rive hero — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
+ * finish_verification, kyc_decision, kyc_retry). Per-variant differences —
+ * copy, analytics names, CTA treatment, hero art, and optional Rive hero —
+ * live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
  * this card remains visible, then opens the resolved onboarding destination.
- * This avoids flashing a standalone full-screen loading route. The failed-KYC card opens the MetaMask support article through
- * the support consent sheet instead of that flow.
+ * This avoids flashing a standalone full-screen loading route. For `kyc_retry`
+ * that destination is the retry screen. The terminal `kyc_decision` card opens
+ * the MetaMask support article through the support consent sheet instead.
  */
 const MoneyVbaHomeCard = ({
   variant,
+  sourceCurrency,
   onDismiss,
 }: {
   variant: MoneyVbaHomeCardVariant;
+  /** Market currency serving the user, when one resolved. */
+  sourceCurrency?: VbaSourceCurrency;
   /** Called after the dismissible variant hides itself. */
   onDismiss?: () => void;
 }) => {
@@ -124,25 +130,42 @@ const MoneyVbaHomeCard = ({
     if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
-    if (config.cta.opensSupportArticle) {
+    const trackCtaClicked = (
+      redirectTarget:
+        | typeof SCREEN_NAMES.VBA_ONBOARDING
+        | typeof MONEY_URLS.METAMASK_SUPPORT,
+    ): void => {
+      // Nested functions do not keep the disabled narrowing from above.
+      if (config.cta.isDisabled) {
+        return;
+      }
+      if (config.analyticsCtaLabel) {
+        trackButtonClicked({
+          button_type: MONEY_BUTTON_TYPES.TEXT,
+          button_intent: config.cta.buttonIntent,
+          label_en: config.analyticsCtaLabel,
+          label_localized: config.analyticsCtaLabel,
+          redirect_target: redirectTarget,
+        });
+        return;
+      }
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: config.cta.buttonIntent,
         label_key: `${config.i18nPrefix}.cta`,
-        redirect_target: MONEY_URLS.METAMASK_SUPPORT,
+        redirect_target: redirectTarget,
       });
+    };
+
+    if (config.cta.opensSupportArticle) {
+      trackCtaClicked(MONEY_URLS.METAMASK_SUPPORT);
       openSupportWithConsent(
         (url) => openInAppBrowser(navigation, url),
         METAMASK_SUPPORT_URL,
       );
       return;
     }
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: config.cta.buttonIntent,
-      label_key: `${config.i18nPrefix}.cta`,
-      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
-    });
+    trackCtaClicked(SCREEN_NAMES.VBA_ONBOARDING);
     startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
     hasPendingCtaOpenRef.current = true;
 
@@ -191,7 +214,7 @@ const MoneyVbaHomeCard = ({
         variant === 'identity_verified' &&
         resolved.destinationId === 'identityVerified'
       ) {
-        openVbaAccountSetup(navigation, chooseCurrency);
+        openVbaAccountSetup(navigation, chooseCurrency, sourceCurrency);
         return;
       }
       navigateToVbaOnboardingDestination(
@@ -222,6 +245,7 @@ const MoneyVbaHomeCard = ({
     config,
     navigation,
     openSupportWithConsent,
+    sourceCurrency,
     trackButtonClicked,
     variant,
   ]);
@@ -242,6 +266,12 @@ const MoneyVbaHomeCard = ({
 
   const { cta } = config;
   const ctaLabel = strings(`${config.i18nPrefix}.cta`);
+  const description =
+    config.currencyDescriptionI18nKey && sourceCurrency
+      ? strings(config.currencyDescriptionI18nKey, {
+          currency: sourceCurrency,
+        })
+      : strings(`${config.i18nPrefix}.description`);
   const ctaButton = cta.isDisabled ? (
     <ButtonBase
       size={ButtonBaseSize.Lg}
@@ -308,7 +338,7 @@ const MoneyVbaHomeCard = ({
           color={TextColor.TextAlternative}
           testID={testIds.DESCRIPTION}
         >
-          {strings(`${config.i18nPrefix}.description`)}
+          {description}
         </Text>
       </Box>
       {config.isDismissible ? (

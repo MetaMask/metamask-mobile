@@ -21,11 +21,6 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_KEYRING_ENABLED === 'true';
 }
 
-/**
- * Build-time gate for the real Money MPC keyring (DKLS23/CL24 via
- * `@metamask/mpc-react-native`) instead of the stub. Needs
- * `MM_MONEY_MPC_KEYRING_ENABLED` too.
- */
 export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
 }
@@ -69,6 +64,7 @@ export enum FeatureFlagNames {
   exploreBrandRefresh = 'exploreBrandRefresh',
   glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
+  slowNetworkBanner = 'slowNetworkBanner',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

@@ -12,6 +12,7 @@ export const ProHubTestIds = {
     `pro-hub-membership-alert-banner-${kind}`,
   MEMBERSHIP_ALERT_ACTION: (kind: string) =>
     `pro-hub-membership-alert-action-${kind}`,
+  MEMBERSHIP_RESUME_ERROR: 'pro-hub-membership-resume-error',
   LIFETIME_EARNINGS_SECTION: 'pro-hub-lifetime-earnings-section',
   MONEY_BALANCE_ROW: 'pro-hub-money-balance-row',
   MUSD_BACK_ROW: 'pro-hub-musd-back-row',

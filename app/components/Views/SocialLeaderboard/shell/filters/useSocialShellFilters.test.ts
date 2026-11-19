@@ -173,7 +173,7 @@ describe('useSocialShellFilters', () => {
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
   });
 
-  it('treats an open or closed position as active on Trending only', () => {
+  it('treats an open position as active on Trending', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
@@ -190,7 +190,7 @@ describe('useSocialShellFilters', () => {
     expect(result.current.hasActiveFilters('following')).toBe(false);
   });
 
-  it('does not light Following when a leftover position status is applied', () => {
+  it('lights Following and Live when a closed position is applied', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
@@ -204,7 +204,21 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.applied.following.positionStatus).toBe('closed');
-    expect(result.current.hasActiveFilters('following')).toBe(false);
+    expect(result.current.hasActiveFilters('following')).toBe(true);
+    expect(result.current.hasActiveFilters('live')).toBe(false);
+
+    act(() => {
+      result.current.openSheet('live');
+    });
+    act(() => {
+      result.current.updateDraft({ positionStatus: 'open' });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.hasActiveFilters('live')).toBe(true);
+    expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
   });
 
   it('resets the Trending draft without applying or clearing applied filters', () => {
@@ -236,7 +250,7 @@ describe('useSocialShellFilters', () => {
     expect(result.current.hasActiveFilters('trending')).toBe(true);
   });
 
-  it('does not treat leftover verification or 24h volume as active on Following', () => {
+  it('does not treat leftover market cap, verification, volume, or Live trader cohort as active', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
@@ -246,6 +260,7 @@ describe('useSocialShellFilters', () => {
       result.current.updateDraft({
         verification: 'verified',
         volume24h: { min: 10, max: 20 },
+        marketCap: { min: 10, max: 20 },
       });
     });
     act(() => {
@@ -253,6 +268,19 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.hasActiveFilters('following')).toBe(false);
+
+    act(() => {
+      result.current.openSheet('live');
+    });
+    act(() => {
+      result.current.updateDraft({ traderCohort: 'following' });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.applied.live.traderCohort).toBe('following');
+    expect(result.current.hasActiveFilters('live')).toBe(false);
   });
 
   it('changing type reconciles the network against the new type', () => {

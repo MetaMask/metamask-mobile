@@ -2,13 +2,10 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import Logger from '../../../util/Logger';
 
 export interface MoneyMfaStoreState {
-  /** Money 2-step verification is on. Stands in for the MPC account state. */
+  // Stands in for the MPC account state.
   isMoneyAccountMfaEnabled: boolean;
-  /** The user closed the setting-up banner of the current migration. */
   isMigrationBannerDismissed: boolean;
-  /** The user closed the wallet home prompt for good. */
   isHomePromptDismissed: boolean;
-  /** Setup finished and Money home hasn't shown its confirmation yet. */
   hasUnseenEnabledConfirmation: boolean;
 }
 
@@ -66,7 +63,6 @@ export const moneyMfaStore = {
     state = initialState;
     listeners.forEach((listener) => listener());
   },
-  /** Forgets the saved state, e.g. when the wallet is reset. */
   clear: async () => {
     state = initialState;
     listeners.forEach((listener) => listener());

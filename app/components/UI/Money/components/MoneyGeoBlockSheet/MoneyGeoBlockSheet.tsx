@@ -3,7 +3,6 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonsAlignment,
@@ -24,8 +23,11 @@ import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MoneyGeoBlockSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
@@ -83,7 +85,8 @@ const MoneyGeoBlockSheet = () => {
       testID={MoneyGeoBlockSheetTestIds.SHEET}
       onClose={handleClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={MoneyGeoBlockSheetTestIds.TITLE}
         closeButtonProps={{
@@ -91,7 +94,7 @@ const MoneyGeoBlockSheet = () => {
         }}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4}>
         <Text
           variant={TextVariant.BodyMd}

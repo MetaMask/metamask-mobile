@@ -264,7 +264,6 @@ const buildHookResult = (
   hasInsufficientBalance: false,
   isGasless: false,
   estimatedReceiveFiat: undefined,
-  gasFeeDeductionLabel: undefined,
   discountBadge: undefined,
   baseFeePercentage: undefined,
   buttonError: null,
