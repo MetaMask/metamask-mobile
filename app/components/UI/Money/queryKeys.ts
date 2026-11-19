@@ -7,6 +7,11 @@ export const MoneyQueryKeys = {
    * MoneyAccountApiDataService supports this query.
    */
   FETCH_INTEREST_HISTORY: 'money:fetchInterestHistory',
+  /**
+   * Temporary key for vault composition fetched directly until
+   * MoneyAccountApiDataService supports this query.
+   */
+  FETCH_VAULT_COMPOSITION: 'money:fetchVaultComposition',
 } as const;
 
 export const MoneyAccountBalanceServiceQueryKeys = {
