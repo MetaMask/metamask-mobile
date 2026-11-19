@@ -18,9 +18,12 @@ export const MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY = [
  * cancelled. The app keeps a query fresh for 5 minutes, so without this a
  * user who cancels and reopens Plus still sees "Start free trial".
  *
- * Also marks the shared subscriptions query stale. Starting a subscription
- * does not refresh `trialedProducts` itself, and the next eligibility check
- * reads that list after `getSubscriptions`.
+ * The trial answer is removed before the subscriptions query is touched, so
+ * a failure there cannot leave the old answer in place. Subscriptions are
+ * marked stale without refetching Home's observer. The next eligibility
+ * check loads them through `fetchQuery`. Starting a subscription does not
+ * refresh `trialedProducts` itself, and that check reads the list after
+ * `getSubscriptions`.
  *
  * @param queryClient - The app React Query client.
  */
@@ -28,9 +31,12 @@ export async function clearMoneyAccountPlusTrialEligibilityCache(
   queryClient: QueryClient,
 ): Promise<void> {
   try {
-    await queryClient.invalidateQueries({ queryKey: SUBSCRIPTIONS_QUERY_KEY });
     queryClient.removeQueries({
       queryKey: MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
+    });
+    await queryClient.invalidateQueries({
+      queryKey: SUBSCRIPTIONS_QUERY_KEY,
+      refetchType: 'none',
     });
   } catch (error) {
     Logger.error(
