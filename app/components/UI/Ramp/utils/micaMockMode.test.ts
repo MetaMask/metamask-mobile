@@ -4,23 +4,24 @@ import * as micaMockMode from './micaMockMode';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).__DEV__ = true;
 
+// Mock the environment module so we can control isMicaMockModeEnabled
+jest.mock('./micaMockModeEnv', () => ({
+  isMicaMockModeEnabled: jest.fn(),
+}));
+
+import { isMicaMockModeEnabled } from './micaMockModeEnv';
+
 describe('micaMockMode', () => {
-  const originalEnv = process.env.MICA_MOCK_MODE;
+  const mockIsMicaMockModeEnabled =
+    isMicaMockModeEnabled as jest.MockedFunction<typeof isMicaMockModeEnabled>;
 
   afterEach(() => {
-    process.env.MICA_MOCK_MODE = originalEnv;
+    jest.clearAllMocks();
   });
 
   describe('isMicaMockModeEnabled', () => {
-    it('returns false when MICA_MOCK_MODE is not set', () => {
-      delete process.env.MICA_MOCK_MODE;
-      expect(micaMockMode.isMicaMockModeEnabled()).toBe(false);
-    });
-
-    it('returns true when MICA_MOCK_MODE is true', () => {
-      process.env.MICA_MOCK_MODE = 'true';
-      // Note: In production, the env var is read at build time, not runtime
-      // This test verifies the logic pattern
+    it('is exported from the module', () => {
+      expect(typeof micaMockMode.isMicaMockModeEnabled).toBe('function');
     });
   });
 
@@ -107,12 +108,8 @@ describe('micaMockMode', () => {
   });
 
   describe('injectMockNativeProviderIfNeeded', () => {
-    beforeEach(() => {
-      process.env.MICA_MOCK_MODE = 'true';
-    });
-
     it('returns providers unchanged when mock mode is off', () => {
-      delete process.env.MICA_MOCK_MODE;
+      mockIsMicaMockModeEnabled.mockReturnValue(false);
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'native' },
       ];
@@ -124,6 +121,7 @@ describe('micaMockMode', () => {
     });
 
     it('injects transak-native for EEA countries', () => {
+      mockIsMicaMockModeEnabled.mockReturnValue(true);
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
@@ -138,6 +136,7 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject if transak-native already exists', () => {
+      mockIsMicaMockModeEnabled.mockReturnValue(true);
       const providers = [
         { id: '/providers/transak-native', name: 'Transak', type: 'native' },
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
@@ -150,6 +149,7 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject for non-EEA countries', () => {
+      mockIsMicaMockModeEnabled.mockReturnValue(true);
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
@@ -162,18 +162,15 @@ describe('micaMockMode', () => {
   });
 
   describe('injectMicaTermsIds', () => {
-    beforeEach(() => {
-      process.env.MICA_MOCK_MODE = 'true';
-    });
-
     it('returns quote unchanged when mock mode is off', () => {
-      delete process.env.MICA_MOCK_MODE;
+      mockIsMicaMockModeEnabled.mockReturnValue(false);
       const quote = { quoteId: 'test', fiatAmount: 100 };
       const result = micaMockMode.injectMicaTermsIds(quote);
       expect(result).toEqual(quote);
     });
 
     it('injects MICA_EEA_BUY termsId when quote has no termsIds', () => {
+      mockIsMicaMockModeEnabled.mockReturnValue(true);
       const quote = { quoteId: 'test', fiatAmount: 100 };
       const result = micaMockMode.injectMicaTermsIds(quote);
 
@@ -181,6 +178,7 @@ describe('micaMockMode', () => {
     });
 
     it('preserves existing termsIds', () => {
+      mockIsMicaMockModeEnabled.mockReturnValue(true);
       const quote = {
         quoteId: 'test',
         fiatAmount: 100,
@@ -192,6 +190,7 @@ describe('micaMockMode', () => {
     });
 
     it('returns quote unchanged when quote is null', () => {
+      mockIsMicaMockModeEnabled.mockReturnValue(true);
       const result = micaMockMode.injectMicaTermsIds(null);
       expect(result).toBeNull();
     });

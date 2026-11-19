@@ -8,10 +8,9 @@ import type {
   TransakAdditionalRequirement,
 } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
+import { isMicaMockModeEnabled } from './micaMockModeEnv';
 
-export function isMicaMockModeEnabled(): boolean {
-  return process.env.MICA_MOCK_MODE === 'true';
-}
+export { isMicaMockModeEnabled };
 
 export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
   Logger.log('[MiCA Mock] Returning mock CONSENT form');
