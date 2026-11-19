@@ -34,7 +34,7 @@ describe('isInScopeAppFile', () => {
       'app/components/Screen.view.test.tsx',
       'app/components/Screen.spec.ts',
       'app/components/Screen.stories.tsx',
-      'scripts/design-system/eval-rules.json',
+      'scripts/design-system/rules/eval-rules.json',
     ];
 
     expect(files.map(isInScopeAppFile)).toEqual([

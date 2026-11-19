@@ -17,7 +17,7 @@ A crash (broken JSON, lint parse error) prints an `::error` annotation and fails
 
 Run locally: `yarn design-system:evals` (lints the diff `HEAD^1..HEAD`).
 
-## Rule source: `eval-rules.json`
+## Rule source: `rules/eval-rules.json`
 
 The JSON is the source of truth. Rules that fit the interpreter mechanics need
 **no engine code** — add a JSON entry and the check adapts.
@@ -98,7 +98,7 @@ not a rule; they are rare compared to adding rules.
 
 | File | Role |
 | ---- | ---- |
-| `eval-rules.json` | rule source (this is what rule authors edit) |
+| `rules/eval-rules.json` | rule source (this is what rule authors edit) |
 | `eval-rules.ts` | schema: types + load + validation |
 | `rule-interpreter.ts` | generic engine: JSON config → ESLint rule |
 | `run-design-system-evals.ts` | orchestration: diff scope, lint, annotations |

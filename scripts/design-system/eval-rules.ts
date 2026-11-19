@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /** Rule source of the design system evals: the JSON next to this file. */
-const EVAL_RULES_FILE = join(__dirname, 'eval-rules.json');
+const EVAL_RULES_FILE = join(__dirname, 'rules', 'eval-rules.json');
 
 /** Key predicate: an explicit list or a regex. Exactly one is required. */
 export interface KeyMatch {
