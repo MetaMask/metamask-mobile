@@ -33,6 +33,43 @@ const TERMINAL_WITHDRAW_STATUSES: Partial<
   Record<PredictWithdrawReceiptStatus, true>
 > = { settled: true, failed: true, returned: true };
 
+/** What a Withdraw Commit resolved to. `not_placed` never left a Withdraw
+ * behind, so the amount can be quoted again. `unknown` may already be at the
+ * Venue: the caller keeps the Preview and must not submit it again. */
+export type WithdrawCommitResolution =
+  | { outcome: 'receipt'; receipt: PredictWithdrawReceipt }
+  | { outcome: 'not_placed'; error: PredictError }
+  | { outcome: 'unknown'; error: PredictError };
+
+const asPredictError = (error: unknown): PredictError =>
+  error instanceof PredictError
+    ? error
+    : PredictError.from(PredictErrorCode.UNKNOWN);
+
+/** A deadline or a cancelled transport is not proof the Commit missed the
+ * Venue. The name is the signal the platform gives us; status codes are not. */
+const isLostCommitTransport = (error: unknown): boolean =>
+  error instanceof Error &&
+  (error.name === 'AbortError' || error.name === 'TimeoutError');
+
+/** A receipt read that finds no Preview and no operation. Absence here is the
+ * authority that nothing was relayed; any other read failure is not. */
+const isMissingWithdrawOperation = (error: unknown): boolean => {
+  if (!(error instanceof PredictError)) {
+    return false;
+  }
+  const bodyCode = error.metadata?.bodyCode;
+  return bodyCode === 'preview_not_found' || bodyCode === 'operation_not_found';
+};
+
+const resolutionFromReadError = (
+  recoveryError: unknown,
+  priorError: PredictError,
+): WithdrawCommitResolution => ({
+  outcome: isMissingWithdrawOperation(recoveryError) ? 'not_placed' : 'unknown',
+  error: recoveryError instanceof PredictError ? recoveryError : priorError,
+});
+
 /** Statuses after which a deposit needs nothing more from the app. Only
  * `failed` is final: see {@link stageOf}. */
 const RESOLVED_DEPOSIT_STATUSES: readonly PredictDepositStatus[] = [
@@ -530,6 +567,58 @@ export class PredictFundingService {
         signal.addEventListener('abort', abort);
       }
     });
+  }
+
+  /** Commits one approved Withdraw Preview and resolves a lost reply by
+   * reading the same operation. An unauthenticated Commit stays `unknown`
+   * without that read: the caller asks {@link reconcileWithdrawObservation}
+   * when the person checks again, and this method never sends a second POST. */
+  async reconcileWithdrawCommit(
+    venueId: PredictVenueId,
+    previewId: string,
+  ): Promise<WithdrawCommitResolution> {
+    try {
+      return {
+        outcome: 'receipt',
+        receipt: await this.commitWithdrawPreview(venueId, previewId),
+      };
+    } catch (error) {
+      const predictError = asPredictError(error);
+      if (isLostCommitTransport(error)) {
+        return this.#readWithdrawResolution(venueId, previewId, predictError);
+      }
+      if (predictError.code === PredictErrorCode.PREVIEW_EXPIRED) {
+        return { outcome: 'not_placed', error: predictError };
+      }
+      if (predictError.code === PredictErrorCode.UNAUTHENTICATED) {
+        return { outcome: 'unknown', error: predictError };
+      }
+      return this.#readWithdrawResolution(venueId, previewId, predictError);
+    }
+  }
+
+  /** Reads one Withdraw whose Commit reply was lost. Never submits. */
+  reconcileWithdrawObservation(
+    venueId: PredictVenueId,
+    previewId: string,
+    priorError: PredictError,
+  ): Promise<WithdrawCommitResolution> {
+    return this.#readWithdrawResolution(venueId, previewId, priorError);
+  }
+
+  async #readWithdrawResolution(
+    venueId: PredictVenueId,
+    previewId: string,
+    priorError: PredictError,
+  ): Promise<WithdrawCommitResolution> {
+    try {
+      return {
+        outcome: 'receipt',
+        receipt: await this.observeWithdraw(venueId, previewId),
+      };
+    } catch (recoveryError) {
+      return resolutionFromReadError(recoveryError, priorError);
+    }
   }
 
   /** Reads the canonical receipt. Never submits: an unresolved operation is
