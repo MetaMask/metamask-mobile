@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback } from 'react';
 import {
   useNavigation,
   useRoute,
@@ -14,7 +13,6 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
@@ -23,59 +21,24 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
-import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
 import type { MoneyNavigationParamList } from '../../types/navigation';
-import type { InterestHistoryResponse } from '../../types/moneyInterestHistory';
-import EarningsChart from './EarningsChart';
-import EarningsHero from './EarningsHero';
-import EarningsSummary from './EarningsSummary';
-import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
-import {
-  getAuthoritativeRangeTotalUsd,
-  getBucketPoints,
-  getSelectedRange,
-  isAvailableBucket,
-  type EarningsRange,
-} from './earningsHistory';
-import { hasInvalidInterestHistoryResponse } from './earningsHistoryValidation';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
+import EarningsTab from './EarningsTab';
 
 type MoneyEarningsRoute = RouteProp<MoneyNavigationParamList, 'MoneyEarnings'>;
 
 // TODO: Implement tab navigation when building APY and Allocation tabs.
 const handleTabPress = (): undefined => undefined;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
-
 const MoneyEarningsView = (): React.ReactElement => {
-  const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<AppNavigationProp>();
   const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const { params } = useRoute<MoneyEarningsRoute>();
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch: refetchHistoricalEarnings,
-  } = useMoneyHistoricalEarnings();
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
-  const [selectedRange, setSelectedRange] = useState<EarningsRange>('30D');
-  const scrollViewRef = useRef<ScrollView>(null);
-  const setScrollEnabled = useCallback((enabled: boolean): void => {
-    scrollViewRef.current?.setNativeProps({ scrollEnabled: enabled });
-  }, []);
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
-  const hasMalformedHistory =
-    data !== undefined &&
-    (!isRecord(data) || hasInvalidInterestHistoryResponse(data));
-  const historicalEarningsResponse: InterestHistoryResponse | undefined =
-    !hasMalformedHistory && isRecord(data)
-      ? (data as InterestHistoryResponse)
-      : undefined;
   const tabs: TabItem[] = [
     {
       key: 'earnings',
@@ -100,55 +63,10 @@ const MoneyEarningsView = (): React.ReactElement => {
   ];
   const activeTabIndex = tabs.findIndex(({ key }) => key === activeTab);
 
-  const selectedRangeData = useMemo(
-    () => getSelectedRange(historicalEarningsResponse, selectedRange),
-    [historicalEarningsResponse, selectedRange],
-  );
-
-  const chartPoints = useMemo(
-    () => getBucketPoints(selectedRangeData),
-    [selectedRangeData],
-  );
-  const thirtyDayTotalUsd = useMemo(
-    () =>
-      getAuthoritativeRangeTotalUsd(
-        getSelectedRange(historicalEarningsResponse, '30D'),
-      ) ?? Number.NaN,
-    [historicalEarningsResponse],
-  );
-  const oneYearTotalUsd = useMemo(
-    () =>
-      getAuthoritativeRangeTotalUsd(
-        getSelectedRange(historicalEarningsResponse, '1Y'),
-      ) ?? Number.NaN,
-    [historicalEarningsResponse],
-  );
-  const selectedRangeTotalUsd = useMemo(
-    () => getAuthoritativeRangeTotalUsd(selectedRangeData) ?? Number.NaN,
-    [selectedRangeData],
-  );
-  const { projectedAmount: projectedOneYearUsd } =
-    useMoneyAccountProjectedEarnings();
-  const hasUnavailableRange =
-    selectedRangeData !== undefined &&
-    (selectedRangeData.availability.earnings !== 'available' ||
-      selectedRangeData.availability.usd_pricing !== 'available');
-  const hasHistoricalEarnings =
-    !isLoading &&
-    !isError &&
-    !hasMalformedHistory &&
-    Number.isFinite(thirtyDayTotalUsd) &&
-    Number.isFinite(oneYearTotalUsd) &&
-    Number.isFinite(selectedRangeTotalUsd) &&
-    chartPoints.some(isAvailableBucket);
-
-  const handleRetry = useCallback(() => {
-    refetchHistoricalEarnings();
-  }, [refetchHistoricalEarnings]);
-  const handleWithdraw = useCallback(() => {
+  const handleWithdraw = useCallback((): void => {
     initiateWithdrawal();
   }, [initiateWithdrawal]);
-  const handleAdd = useCallback(() => {
+  const handleAdd = useCallback((): void => {
     navigateToMoneyDeposit();
   }, [navigateToMoneyDeposit]);
 
@@ -172,42 +90,7 @@ const MoneyEarningsView = (): React.ReactElement => {
           onTabPress={handleTabPress}
         />
       </Box>
-      {activeTab === 'earnings' ? (
-        <ScrollView
-          ref={scrollViewRef}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('gap-6 px-4 py-6')}
-          showsVerticalScrollIndicator={false}
-        >
-          {hasHistoricalEarnings && selectedRangeData ? (
-            <EarningsHero
-              totalEarnedUsd={oneYearTotalUsd}
-              periodEarningsUsd={selectedRangeTotalUsd}
-              periodStart={selectedRangeData.range_start}
-              periodEndExclusive={selectedRangeData.range_end}
-              periodGranularity={selectedRangeData.granularity}
-            />
-          ) : null}
-          <EarningsChart
-            historicalEarningsResponse={historicalEarningsResponse}
-            isLoading={isLoading}
-            isError={isError || hasMalformedHistory || hasUnavailableRange}
-            onRetry={handleRetry}
-            selectedRange={selectedRange}
-            onRangeChange={setSelectedRange}
-            setScrollEnabled={setScrollEnabled}
-          />
-          {hasHistoricalEarnings ? (
-            <Box twClassName="py-4">
-              <EarningsSummary
-                thisMonthUsd={thirtyDayTotalUsd}
-                lifetimeUsd={oneYearTotalUsd}
-                projectedOneYearUsd={projectedOneYearUsd}
-              />
-            </Box>
-          ) : null}
-        </ScrollView>
-      ) : null}
+      {activeTab === 'earnings' ? <EarningsTab isActive /> : null}
       <Box
         twClassName="gap-3 px-4 pt-3"
         style={{ paddingBottom: insets.bottom + 12 }}

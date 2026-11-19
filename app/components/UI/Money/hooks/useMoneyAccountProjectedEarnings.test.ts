@@ -38,6 +38,24 @@ describe('useMoneyAccountProjectedEarnings', () => {
     expect(result.current.projectedAmount).toBeCloseTo(2400, 6);
   });
 
+  it('forwards the enabled option to balance and APY queries', () => {
+    setBalance('60000');
+    setApy(0.04);
+
+    renderHook(() =>
+      useMoneyAccountProjectedEarnings({
+        enabled: false,
+      }),
+    );
+
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({
+      enabled: false,
+    });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({
+      enabled: false,
+    });
+  });
+
   it('returns undefined projection when the balance is unavailable', () => {
     setBalance(undefined);
     setApy(0.04);
