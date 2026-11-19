@@ -7,6 +7,7 @@ import type {
   PeriodStatus,
   UnavailableReason,
 } from '../../types/moneyInterestHistory';
+import { parseIsoTimestamp } from '../../utils/parseIsoTimestamp';
 import { parseFiniteUsd } from './earningsHistoryValidation';
 
 export type EarningsRange = '1W' | '30D' | '3M' | '6M' | '1Y';
@@ -30,41 +31,12 @@ export const EARNINGS_RANGES = [
   '1Y',
 ] as const satisfies readonly EarningsRange[];
 
-const ISO_CALENDAR_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T/;
-
 const RANGE_CONFIG: Record<EarningsRange, InterestHistoryRange['range']> = {
   '1W': '7d',
   '30D': '30d',
   '3M': '90d',
   '6M': '180d',
   '1Y': '365d',
-};
-
-const getTimestamp = (value: unknown): number | undefined => {
-  if (typeof value !== 'string') {
-    return undefined;
-  }
-
-  const calendarDate = ISO_CALENDAR_DATE_PATTERN.exec(value);
-  if (!calendarDate) {
-    return undefined;
-  }
-
-  const year = Number(calendarDate[1]);
-  const month = Number(calendarDate[2]);
-  const day = Number(calendarDate[3]);
-  const calendarTimestamp = Date.UTC(year, month - 1, day);
-  const calendar = new Date(calendarTimestamp);
-  if (
-    calendar.getUTCFullYear() !== year ||
-    calendar.getUTCMonth() !== month - 1 ||
-    calendar.getUTCDate() !== day
-  ) {
-    return undefined;
-  }
-
-  const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? timestamp : undefined;
 };
 
 export const getSelectedRange = (
@@ -138,8 +110,8 @@ export interface EarningsDisplayDateRange {
 export const getBucketDisplayDateRange = (
   point: Pick<EarningsPoint, 'start' | 'periodEndExclusive'>,
 ): EarningsDisplayDateRange => {
-  const startTimestamp = getTimestamp(point.start);
-  const endTimestamp = getTimestamp(point.periodEndExclusive);
+  const startTimestamp = parseIsoTimestamp(point.start);
+  const endTimestamp = parseIsoTimestamp(point.periodEndExclusive);
 
   if (startTimestamp === undefined || endTimestamp === undefined) {
     throw new Error('Historical earnings contains an invalid bucket boundary');
