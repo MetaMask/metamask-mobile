@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
-  BottomSheetHeader,
   ButtonIconSize,
 } from '@metamask/design-system-react-native';
 
@@ -17,8 +16,11 @@ import {
 import { BatchSellQuoteDetails } from './BatchSellQuoteDetails';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export function BatchSellQuoteDetailsModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
   const batchSellQuoteData = useBatchSellQuoteData({
@@ -48,7 +50,8 @@ export function BatchSellQuoteDetailsModal() {
       testID={BatchSellQuoteDetailsModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={navigation.goBack}
         closeButtonProps={{
           size: ButtonIconSize.Md,
@@ -56,7 +59,7 @@ export function BatchSellQuoteDetailsModal() {
         }}
       >
         {strings('bridge.batch_sell_total_received')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <BatchSellQuoteDetails
         tokenData={tokenData}
         totalReceived={batchSellQuoteData.totalReceived}
