@@ -107,8 +107,12 @@ describe('micaMockMode', () => {
   });
 
   describe('injectMockNativeProviderIfNeeded', () => {
+    beforeEach(() => {
+      process.env.MICA_MOCK_MODE = 'true';
+    });
+
     it('returns providers unchanged when mock mode is off', () => {
-      process.env.MICA_MOCK_MODE = 'false';
+      delete process.env.MICA_MOCK_MODE;
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'native' },
       ];
@@ -120,7 +124,6 @@ describe('micaMockMode', () => {
     });
 
     it('injects transak-native for EEA countries', () => {
-      process.env.MICA_MOCK_MODE = 'true';
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
@@ -135,7 +138,6 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject if transak-native already exists', () => {
-      process.env.MICA_MOCK_MODE = 'true';
       const providers = [
         { id: '/providers/transak-native', name: 'Transak', type: 'native' },
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
@@ -148,7 +150,6 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject for non-EEA countries', () => {
-      process.env.MICA_MOCK_MODE = 'true';
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
@@ -161,6 +162,10 @@ describe('micaMockMode', () => {
   });
 
   describe('injectMicaTermsIds', () => {
+    beforeEach(() => {
+      process.env.MICA_MOCK_MODE = 'true';
+    });
+
     it('returns quote unchanged when mock mode is off', () => {
       delete process.env.MICA_MOCK_MODE;
       const quote = { quoteId: 'test', fiatAmount: 100 };
@@ -169,7 +174,6 @@ describe('micaMockMode', () => {
     });
 
     it('injects MICA_EEA_BUY termsId when quote has no termsIds', () => {
-      process.env.MICA_MOCK_MODE = 'true';
       const quote = { quoteId: 'test', fiatAmount: 100 };
       const result = micaMockMode.injectMicaTermsIds(quote);
 
@@ -177,7 +181,6 @@ describe('micaMockMode', () => {
     });
 
     it('preserves existing termsIds', () => {
-      process.env.MICA_MOCK_MODE = 'true';
       const quote = {
         quoteId: 'test',
         fiatAmount: 100,
@@ -189,7 +192,6 @@ describe('micaMockMode', () => {
     });
 
     it('returns quote unchanged when quote is null', () => {
-      process.env.MICA_MOCK_MODE = 'true';
       const result = micaMockMode.injectMicaTermsIds(null);
       expect(result).toBeNull();
     });
