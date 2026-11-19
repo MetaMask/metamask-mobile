@@ -112,7 +112,7 @@ describe('PhaseTimer', () => {
     const { phases } = timer.snapshot();
 
     expect(phases.login).toBe(30);
-    expect(phases.login_app_ready).toBe(20);
+    expect(phases['nested:login_app_ready']).toBe(20);
     expect(phases.test_body).toBe(0);
   });
 
@@ -134,14 +134,24 @@ describe('PhaseTimer', () => {
       });
     };
 
-    await expect(run()).rejects.toThrow(
+    let caught: unknown;
+    try {
+      await run();
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(Error);
+    const error = caught as Error;
+    expect(error.message).toBe(
       'Wallet home not ready within 30000ms (login_wallet_home after 162000ms)',
     );
+    expect(error.stack).toContain('login_wallet_home after 162000ms');
 
     const { phases } = timer.snapshot();
 
     expect(phases.login).toBe(162_000);
-    expect(phases.login_wallet_home).toBe(162_000);
+    expect(phases['nested:login_wallet_home']).toBe(162_000);
   });
 
   it('wraps a non-error rejection with the step name and elapsed time', async () => {
@@ -165,7 +175,7 @@ describe('PhaseTimer', () => {
 
     await expect(run()).rejects.toThrow('login_app_ready after 10ms: boom');
 
-    expect(timer.snapshot().phases.login_app_ready).toBe(10);
+    expect(timer.snapshot().phases['nested:login_app_ready']).toBe(10);
   });
 
   it('no-ops convenience helpers when no timer is bound', () => {
