@@ -149,6 +149,9 @@ interface StreamSubscription<T> {
 const DYNAMIC_DEX_SNAPSHOT_UNAVAILABLE =
   'User data snapshot DEX identity is not static';
 
+// Expected abort in @metamask/perps-controller@22.0.0 src/PerpsController.ts L1818, L1841, L1864.
+const USER_DATA_SNAPSHOT_CONTEXT_CHANGED = 'User data snapshot context changed';
+
 interface StreamChannelLifecycle {
   onSubscribe?: () => void;
   onDisconnect?: () => void;
@@ -2974,6 +2977,12 @@ export class PerpsStreamManager {
         if (safeError.message === DYNAMIC_DEX_SNAPSHOT_UNAVAILABLE) {
           DevLogger.log(
             'PerpsStreamManager: Atomic user snapshot unavailable for dynamic DEX identity',
+          );
+          return;
+        }
+        if (safeError.message === USER_DATA_SNAPSHOT_CONTEXT_CHANGED) {
+          DevLogger.log(
+            'PerpsStreamManager: User data snapshot aborted because the context changed',
           );
           return;
         }

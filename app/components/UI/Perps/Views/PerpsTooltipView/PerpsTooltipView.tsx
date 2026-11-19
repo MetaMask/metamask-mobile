@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   Text,
@@ -16,6 +15,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { tooltipContentRegistry } from '../../components/PerpsBottomSheetTooltip/content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface PerpsTooltipViewRouteParams {
   contentKey: PerpsTooltipContentKey;
@@ -23,6 +25,7 @@ export interface PerpsTooltipViewRouteParams {
 }
 
 const PerpsTooltipView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<Record<string, PerpsTooltipViewRouteParams>, string>>();
@@ -70,9 +73,12 @@ const PerpsTooltipView: React.FC = () => {
       testID="perps-tooltip-bottom-sheet"
     >
       {!hasCustomHeader && (
-        <BottomSheetHeader testID="perps-tooltip-bottom-sheet-header">
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
+          testID="perps-tooltip-bottom-sheet-header"
+        >
           <Text variant={TextVariant.HeadingMd}>{title}</Text>
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
       )}
       <Box paddingHorizontal={4}>{renderContent()}</Box>
       <BottomSheetFooter

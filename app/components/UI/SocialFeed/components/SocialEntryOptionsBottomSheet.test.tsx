@@ -11,6 +11,7 @@ import {
   getSocialEntryReportReasonTestId,
   SocialEntryOptionsBottomSheetSelectorsIDs,
 } from './SocialEntryOptionsBottomSheet.testIds';
+import { useSocialModerationActions } from '../hooks/useSocialModerationActions';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -43,10 +44,28 @@ jest.mock(
   }),
 );
 
+const mockOpenSocialSupport = jest.fn();
+jest.mock('../hooks/useOpenSocialSupport', () => ({
+  useOpenSocialSupport: () => mockOpenSocialSupport,
+}));
+
 const mockReportSocialServiceFailure = jest.fn();
 jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
   reportSocialServiceFailure: (...args: unknown[]) =>
     mockReportSocialServiceFailure(...args),
+}));
+
+interface MockSocialProfileIdResult {
+  profileId: string | undefined;
+  isLoading: boolean;
+}
+
+const mockUseSocialProfileId = jest.fn<MockSocialProfileIdResult, []>(() => ({
+  profileId: 'viewer-1',
+  isLoading: false,
+}));
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => mockUseSocialProfileId(),
 }));
 
 interface EntryProps {
@@ -75,6 +94,28 @@ const Entry = ({ postId, authorId = 'author-1', commentId }: EntryProps) => {
   );
 };
 
+const OwnAuthorBlockAction = () => {
+  const { blockUser } = useSocialModerationActions();
+  return (
+    <Pressable
+      testID="own-author-block-trigger"
+      onPress={() =>
+        blockUser(
+          {
+            postId: 'own-post',
+            authorId: 'viewer-1',
+            authorHandle: 'viewer',
+          },
+          {
+            apply: jest.fn(),
+            revert: jest.fn(),
+          },
+        )
+      }
+    />
+  );
+};
+
 const openOptionsFor = (postId: string) =>
   fireEvent.press(screen.getByTestId(`trigger-${postId}`));
 
@@ -90,6 +131,10 @@ const submitReport = (reason: SocialEntryReportReason) => {
 describe('SocialEntryOptionsBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSocialProfileId.mockReturnValue({
+      profileId: 'viewer-1',
+      isLoading: false,
+    });
     mockBlockComment.mockResolvedValue(undefined);
     mockBlockProfile.mockResolvedValue(undefined);
     mockInvalidateBlockLists.mockResolvedValue(undefined);
@@ -152,7 +197,9 @@ describe('SocialEntryOptionsBottomSheet', () => {
 
     fireEvent.press(
       screen.getByTestId(
-        getSocialEntryReportReasonTestId(SocialEntryReportReason.Spam),
+        getSocialEntryReportReasonTestId(
+          SocialEntryReportReason.ScamsAndPhishing,
+        ),
       ),
     );
     fireEvent.press(
@@ -161,7 +208,9 @@ describe('SocialEntryOptionsBottomSheet', () => {
       ),
     );
 
-    expect(onReport).toHaveBeenCalledWith(SocialEntryReportReason.Spam);
+    expect(onReport).toHaveBeenCalledWith(
+      SocialEntryReportReason.ScamsAndPhishing,
+    );
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -188,6 +237,53 @@ describe('SocialEntryOptionsBottomSheet', () => {
 
     expect(onReport).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('opens customer support for impersonation and skips the report', () => {
+    const onClose = jest.fn();
+    const onReport = jest.fn();
+
+    renderWithProvider(
+      <SocialEntryOptionsBottomSheet
+        isOpen
+        onClose={onClose}
+        onReport={onReport}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.REPORT),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(SocialEntryReportReason.Impersonation),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+      ),
+    );
+
+    expect(onReport).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT_CONTACT,
+      ),
+    );
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockOpenSocialSupport).toHaveBeenCalledTimes(1);
+    expect(onClose.mock.invocationCallOrder[0]).toBeLessThan(
+      mockOpenSocialSupport.mock.invocationCallOrder[0],
+    );
   });
 
   it.each([
@@ -347,16 +443,32 @@ describe('SocialEntryOptionsBottomSheet', () => {
       renderFeed({ postId: 'one', commentId: 'comment-1' });
 
       openOptionsFor('one');
-      submitReport(SocialEntryReportReason.Harassment);
+      submitReport(SocialEntryReportReason.HarassmentHateAndThreats);
 
       expect(screen.queryByTestId('post-one')).toBeNull();
       await waitFor(() =>
         expect(mockBlockComment).toHaveBeenCalledWith(
           'comment-1',
-          'harassment',
+          'harassment_hate_and_threats',
         ),
       );
       await waitFor(() => expect(mockInvalidateBlockLists).toHaveBeenCalled());
+    });
+
+    it('keeps an impersonation report off the social API', () => {
+      renderFeed({ postId: 'one', commentId: 'comment-1' });
+
+      openOptionsFor('one');
+      submitReport(SocialEntryReportReason.Impersonation);
+
+      expect(screen.getByTestId('post-one')).toBeOnTheScreen();
+      expect(mockBlockComment).not.toHaveBeenCalled();
+      expect(mockBlockProfile).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId(
+          SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('offers no report for a post without a comment', () => {
@@ -367,6 +479,62 @@ describe('SocialEntryOptionsBottomSheet', () => {
       expect(
         screen.queryByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.REPORT),
       ).toBeNull();
+    });
+
+    it('hides block and report for the viewer own post', () => {
+      renderFeed({
+        postId: 'own',
+        authorId: 'viewer-1',
+        commentId: 'comment-1',
+      });
+
+      openOptionsFor('own');
+
+      expect(
+        screen.queryByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.REPORT),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          SocialEntryOptionsBottomSheetSelectorsIDs.BLOCK_USER,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.HIDE_POST),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides block and report while the viewer profile is loading', () => {
+      mockUseSocialProfileId.mockReturnValue({
+        profileId: undefined,
+        isLoading: true,
+      });
+      renderFeed({
+        postId: 'loading',
+        authorId: 'author-1',
+        commentId: 'comment-1',
+      });
+
+      openOptionsFor('loading');
+
+      expect(
+        screen.queryByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.REPORT),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          SocialEntryOptionsBottomSheetSelectorsIDs.BLOCK_USER,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.HIDE_POST),
+      ).toBeOnTheScreen();
+    });
+
+    it('ignores a direct block action for the viewer own post', () => {
+      renderWithProvider(<OwnAuthorBlockAction />);
+
+      fireEvent.press(screen.getByTestId('own-author-block-trigger'));
+
+      expect(mockBlockProfile).not.toHaveBeenCalled();
     });
 
     it('hides a post by blocking its comment, without a reason', async () => {

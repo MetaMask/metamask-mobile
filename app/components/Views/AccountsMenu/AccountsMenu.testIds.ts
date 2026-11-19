@@ -8,6 +8,7 @@ export const AccountsMenuSelectorsIDs = {
   BACK_BUTTON: 'accounts-menu-back-button',
 
   // Quick Actions
+  ACTIVITY_BUTTON: 'accounts-menu-activity-button',
   BUY_BUTTON: 'buy-button',
   BATCH_SELL_BUTTON: 'batch-sell-button',
   EARN_BUTTON: 'earn-button',

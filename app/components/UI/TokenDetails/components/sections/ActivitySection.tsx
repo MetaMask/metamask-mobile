@@ -15,8 +15,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import {
   getGroupedActivityListItemKey,
   groupActivityListItems,
@@ -180,14 +178,9 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     (state: RootState) =>
       selectSelectedInternalAccount(state)?.metadata.importTime,
   );
-  const groupEvmAccountAddress = useSelector(
-    (state: RootState) =>
-      selectSelectedAccountGroupEvmInternalAccount(state)?.address,
-  );
   const networkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const allTokens = useSelector(selectAllTokens);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   const {
@@ -263,9 +256,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
               tokenChainId={chainId}
               navigation={navigation}
               accountImportTime={accountImportTime}
-              groupEvmAccountAddress={groupEvmAccountAddress}
               networkConfigurations={networkConfigurationsByChainId}
-              allTokens={allTokens}
               bridgeHistory={bridgeHistory}
             />
           );

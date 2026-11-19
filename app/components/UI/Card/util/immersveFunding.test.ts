@@ -58,6 +58,7 @@ describe('immersveNetworkToFundingToken', () => {
   });
 
   it('throws for an unknown or missing network', () => {
+    expect(() => immersveNetworkToFundingToken('monad-mainnet')).toThrow();
     expect(() => immersveNetworkToFundingToken('polygon')).toThrow();
     expect(() => immersveNetworkToFundingToken(undefined)).toThrow();
   });

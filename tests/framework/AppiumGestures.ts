@@ -2,7 +2,7 @@ import { getWindowSize } from './DeviceInfoCache.ts';
 import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { AppiumElement } from './AppiumElement';
-import { boxedStep, getDriver } from './AppiumUtilities';
+import AppiumUtilities, { boxedStep, getDriver } from './AppiumUtilities';
 import { runBeforeAppTerminateHooks } from './appLifecycle.ts';
 import {
   createAppiumLogger,
@@ -585,6 +585,13 @@ export default class AppiumGestures {
     throw new Error('Package name or app id is not available');
   }
 
+  @boxedStep
+  static async relaunchApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+  ): Promise<void> {
+    await AppiumUtilities.relaunchTerminatedApp(currentDeviceDetails);
+  }
+
   /**
    * Background the current app for a number of seconds.
    * @param seconds - Time to keep the app in the background
@@ -686,6 +693,16 @@ export default class AppiumGestures {
         await this.tapIosKeyboardKey(letter);
       }
     }
+  }
+
+  /**
+   * Whether the soft keyboard is currently shown.
+   * Page objects use Gestures.isKeyboardShown so they do not touch the driver.
+   */
+  static async isKeyboardShown(): Promise<boolean> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    return drv.isKeyboardShown();
   }
 
   /**

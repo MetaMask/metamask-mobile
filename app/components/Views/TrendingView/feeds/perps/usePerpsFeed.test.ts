@@ -3,9 +3,8 @@
  *
  * Focuses on the sorting/ordering logic that lives inside the useMemo:
  * 1. No-query path: items sorted by the variant's comparator.
- * 2. Query path (non-macro): Fuse.js relevance order is preserved.
- * 3. Query path (macro): sorted by volume even when a query is present.
- * 4. defaultSortOptionId matches PERPS_VARIANT_SORT_OPTION for each variant.
+ * 2. Query path: Fuse.js relevance order is preserved.
+ * 3. defaultSortOptionId matches PERPS_VARIANT_SORT_OPTION for each variant.
  */
 
 import { renderHook } from '@testing-library/react-hooks';
@@ -164,25 +163,6 @@ describe('usePerpsFeed', () => {
         expect(symbols).toEqual(['HIGH', 'MID', 'LOW']);
       }
     });
-
-    it('sorts macro variant by volume descending', () => {
-      const markets = [
-        makeMarket('LOW_VOL', '5', 10),
-        makeMarket('HIGH_VOL', '1', 200),
-        makeMarket('MID_VOL', '3', 100),
-      ].map((m) => ({ ...m, marketType: 'stock' as const }));
-
-      (usePerpsMarkets as jest.Mock).mockReturnValue({
-        markets,
-        isLoading: false,
-        refresh: mockRefetch,
-        isRefreshing: false,
-      });
-
-      const { result } = renderFeed({ variant: 'macro' });
-      const symbols = result.current.data.map((d) => d.market.symbol);
-      expect(symbols).toEqual(['HIGH_VOL', 'MID_VOL', 'LOW_VOL']);
-    });
   });
 
   describe('price-change mover filtering', () => {
@@ -216,7 +196,7 @@ describe('usePerpsFeed', () => {
   });
 
   describe('query path', () => {
-    it('preserves Fuse.js relevance order for non-macro variants', () => {
+    it('preserves Fuse.js relevance order for every variant', () => {
       const markets = [
         makeMarket('BTC', '1', 100),
         makeMarket('ETH', '5', 50),
@@ -244,33 +224,6 @@ describe('usePerpsFeed', () => {
         expect(symbols).toEqual(['SOL', 'ETH', 'BTC']);
       }
     });
-
-    it('sorts macro fuse results by volume, overriding relevance order', () => {
-      const markets = [
-        makeMarket('AAPL', '1', 10),
-        makeMarket('MSFT', '5', 200),
-        makeMarket('NVDA', '3', 100),
-      ].map((m) => ({ ...m, marketType: 'stock' as const }));
-
-      (usePerpsMarkets as jest.Mock).mockReturnValue({
-        markets,
-        isLoading: false,
-        refresh: mockRefetch,
-        isRefreshing: false,
-      });
-
-      // Fuse returns relevance order: AAPL first
-      mockFuseSearch.mockReturnValue([
-        markets[0], // AAPL — low volume, but top relevance match
-        markets[1], // MSFT
-        markets[2], // NVDA
-      ]);
-
-      const { result } = renderFeed({ variant: 'macro', query: 'A' });
-      const symbols = result.current.data.map((d) => d.market.symbol);
-      // Must be sorted by volume desc, NOT fuse order
-      expect(symbols).toEqual(['MSFT', 'NVDA', 'AAPL']);
-    });
   });
 
   describe('defaultSortOptionId', () => {
@@ -278,7 +231,6 @@ describe('usePerpsFeed', () => {
       ['all', 'priceChange'],
       ['crypto', 'priceChange'],
       ['rwa', 'priceChange'],
-      ['macro', 'volume'],
     ] as const)(
       'returns "%s" for variant "%s"',
       (variant, expectedSortOptionId) => {

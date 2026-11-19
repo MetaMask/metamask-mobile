@@ -37,6 +37,10 @@ let mockIsVipReferee = true;
 let mockIsVipProgramEnabled = true;
 let mockVipRefereeSplashAccepted: Record<string, boolean> = {};
 
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
+}));
+
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
   useSelector: jest.fn(),
@@ -511,6 +515,9 @@ describe('RewardsVipRefereeView', () => {
     ).toBeDisabled();
   });
 
+  // isBetaBuild is fixed when the app is built, so a view test cannot switch
+  // the beta and release support URLs. The modal route itself is covered from
+  // the tax contact sheet and Rewards settings.
   // On a beta build, getBetaSupportUrl() resolves to the Intercom beta URL, so
   // the priority support link opens directly rather than through the consent flow.
   it('opens the priority support webview tagged as VIP with the account address on press for a beta build', () => {
@@ -520,7 +527,7 @@ describe('RewardsVipRefereeView', () => {
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
         url: buildVipPrioritySupportUrl(
@@ -528,6 +535,7 @@ describe('RewardsVipRefereeView', () => {
           'https://intercom.help/internal-beta-testing/en/',
         ),
         title: 'Contact support',
+        isModal: false,
       },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -580,11 +588,12 @@ describe('RewardsVipRefereeView', () => {
     const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
     openWebview(expectedUrl);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
         url: expectedUrl,
         title: 'Contact support',
+        isModal: false,
       },
     });
   });

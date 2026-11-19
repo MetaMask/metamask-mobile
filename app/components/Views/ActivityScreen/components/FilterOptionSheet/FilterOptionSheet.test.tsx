@@ -7,11 +7,18 @@ import {
 
 const mockOnCloseBottomSheet = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactNative = jest.requireActual('react-native');
   const React = jest.requireActual('react');
 
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     IconColor: { IconDefault: 'IconDefault' },
     IconName: { Check: 'Check' },
     IconSize: { Md: 'Md' },

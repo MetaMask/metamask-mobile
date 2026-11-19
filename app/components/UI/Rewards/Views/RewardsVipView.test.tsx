@@ -28,6 +28,10 @@ const mockNavigate = jest.fn();
 const mockExitRewardsFlow = jest.fn();
 let mockVipSplashAccepted: Record<string, boolean> = {};
 
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
+}));
+
 jest.mock('../components/Vip/VipEquityMultiplierSection', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

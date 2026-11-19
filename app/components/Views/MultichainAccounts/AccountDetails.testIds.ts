@@ -8,6 +8,8 @@ export const AccountDetailsIds = {
   PRIVATE_KEYS_LINK: 'account-details-private-keys-link',
   SMART_ACCOUNT_LINK: 'account-details-smart-account-link',
   BACK_BUTTON: 'account-details-back-button',
+  ACCOUNT_GROUP_DETAILS_AVATAR_CONTAINER:
+    'account-group-details-avatar-container',
   REMOVE_ACCOUNT_BUTTON: 'remove-account-button',
   ACCOUNT_GROUP_DETAILS_AVATAR: 'account-group-details-avatar',
 };

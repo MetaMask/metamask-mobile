@@ -3,12 +3,15 @@ import { useIsFocused } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
+import { SOCIAL_TERMS_VERSION } from '../terms/socialTermsAcceptance';
+import { withSocialAppBuild } from './socialAppBuild';
 import {
   getSocialReactionType,
   SocialEvent,
+  type SocialBlockedReason,
+  type SocialPositionAnalyticsProperties,
   type SocialScreenName,
   type SocialScreenViewedProperties,
-  type SocialTradeType,
   type SocialUIInteractionProperties,
 } from './socialEvents';
 import { useSocialLeaderboardAnalytics } from './useSocialLeaderboardAnalytics';
@@ -21,13 +24,23 @@ interface UseSocialScreenViewedOptions {
   outcome?: SocialScreenOutcome | null;
   state?: Parameters<typeof getSocialScreenOutcome>;
   step?: SocialScreenViewedProperties['step'];
+  /**
+   * Sent on the view and on every interaction bound to it. Pass a memoized
+   * object so the bound tracker stays stable.
+   */
+  properties?: SocialScreenContextProperties;
   isActive?: boolean;
   /** Blur clears the latch. Manage Profile keeps one view for the visit. */
   resetWhenInactive?: boolean;
 }
+type SocialScreenContextProperties = SocialPositionAnalyticsProperties &
+  Pick<
+    SocialScreenViewedProperties,
+    'composer_entry' | 'share_id' | 'order_id' | 'transaction_hash'
+  >;
 type SocialInteractionContext = Partial<
   Pick<SocialUIInteractionProperties, 'source' | 'tab_name' | 'step'>
->;
+> & { properties?: SocialScreenContextProperties };
 type SocialInteractionDetails = Omit<
   SocialUIInteractionProperties,
   'interaction_type' | 'screen_name'
@@ -41,7 +54,10 @@ export const useSocialAnalytics = () => {
   const trackInteraction = useCallback(
     (properties: SocialUIInteractionProperties) => {
       if (isSocialV1Enabled) {
-        track(MetaMetricsEvents.SOCIAL_UI_INTERACTION, { ...properties });
+        track(
+          MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+          withSocialAppBuild(properties),
+        );
       }
     },
     [isSocialV1Enabled, track],
@@ -49,7 +65,10 @@ export const useSocialAnalytics = () => {
   const trackScreenViewed = useCallback(
     (properties: SocialScreenViewedProperties) => {
       if (isSocialV1Enabled) {
-        track(MetaMetricsEvents.SOCIAL_SCREEN_VIEWED, { ...properties });
+        track(
+          MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
+          withSocialAppBuild(properties),
+        );
       }
     },
     [isSocialV1Enabled, track],
@@ -60,7 +79,7 @@ type Tracker = ReturnType<typeof useSocialAnalytics>['trackInteraction'];
 const useBoundSocialInteraction = (
   trackInteraction: Tracker,
   screen_name: SocialScreenName,
-  { source, step, tab_name }: SocialInteractionContext = {},
+  { source, step, tab_name, properties }: SocialInteractionContext = {},
   enabled = true,
 ) =>
   useCallback(
@@ -71,16 +90,40 @@ const useBoundSocialInteraction = (
       if (!enabled) {
         return;
       }
+      const detailProperties: SocialInteractionDetails =
+        typeof details === 'string'
+          ? { outcome: details }
+          : { ...(details ?? {}) };
+      const shareDestination =
+        interaction_type === Interaction.POST_SHARED
+          ? detailProperties.share_destination
+          : undefined;
+      delete detailProperties.share_destination;
+      delete detailProperties.terms_version;
+      const resolvedStep = detailProperties.step ?? step;
       trackInteraction({
         interaction_type,
         screen_name,
         ...(tab_name ? { tab_name } : {}),
         ...(source ? { source } : {}),
-        ...(step ? { step } : {}),
-        ...(typeof details === 'string' ? { outcome: details } : details),
+        ...(resolvedStep ? { step: resolvedStep } : {}),
+        ...properties,
+        ...detailProperties,
+        ...(resolvedStep === SocialEvent.Step.TERMS
+          ? { terms_version: SOCIAL_TERMS_VERSION }
+          : {}),
+        ...(shareDestination ? { share_destination: shareDestination } : {}),
       });
     },
-    [enabled, screen_name, source, step, tab_name, trackInteraction],
+    [
+      enabled,
+      properties,
+      screen_name,
+      source,
+      step,
+      tab_name,
+      trackInteraction,
+    ],
   );
 export const useSocialInteraction = (
   screenName: SocialScreenName,
@@ -98,16 +141,27 @@ export const useSocialFeedInteractions = (
   const track = useSocialInteraction(screenName, context, enabled);
   return useMemo(
     () => ({
-      onCopyTradeInteraction: (trade_type: SocialTradeType) =>
-        track(Interaction.COPY_TRADE_TAPPED, { trade_type }),
-      onReactionInteraction: (action: 'added' | 'removed', emotion: string) => {
+      onCopyTradeInteraction: (position: SocialPositionAnalyticsProperties) =>
+        track(Interaction.COPY_TRADE_TAPPED, position),
+      onCopyTradeBlocked: (
+        position: SocialPositionAnalyticsProperties,
+        blocked_reason: SocialBlockedReason,
+      ) =>
+        track(Interaction.COPY_TRADE_BLOCKED, { ...position, blocked_reason }),
+      onPositionTap: (position: SocialPositionAnalyticsProperties) =>
+        track(Interaction.TAP, position),
+      onReactionInteraction: (
+        action: 'added' | 'removed',
+        emotion: string,
+        subject?: { post_id?: string; author_trader_id?: string },
+      ) => {
         const reaction_type = getSocialReactionType(emotion);
         if (reaction_type) {
           track(
             action === 'added'
               ? Interaction.REACTION_ADDED
               : Interaction.REACTION_REMOVED,
-            { reaction_type },
+            { reaction_type, ...subject },
           );
         }
       },
@@ -136,6 +190,7 @@ export const useSocialScreenAnalytics = (
     outcome,
     state,
     step,
+    properties,
     isActive = true,
     resetWhenInactive = true,
   }: UseSocialScreenViewedOptions = {},
@@ -163,9 +218,11 @@ export const useSocialScreenAnalytics = (
       ...(source ? { source } : {}),
       ...(resolvedOutcome ? { outcome: resolvedOutcome } : {}),
       ...(step ? { step } : {}),
+      ...properties,
     });
   }, [
     activationIsOpen,
+    properties,
     resolvedOutcome,
     screenName,
     source,
@@ -174,10 +231,14 @@ export const useSocialScreenAnalytics = (
     tabName,
     trackScreenViewed,
   ]);
+  const context = useMemo(
+    () => ({ tab_name: tabName, source, step, properties }),
+    [properties, source, step, tabName],
+  );
   return useBoundSocialInteraction(
     trackInteraction,
     screenName,
-    { tab_name: tabName, source, step },
+    context,
     isActive,
   );
 };

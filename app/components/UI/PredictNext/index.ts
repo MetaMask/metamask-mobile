@@ -19,6 +19,55 @@ export {
 } from './availability';
 export { PredictEventProperties, PredictEventValues } from './analytics';
 export {
+  usePredictLegacyDeposit,
+  usePredictLegacyDepositEligibility,
+  type PredictLegacyDeposit,
+} from './funding';
+export {
   usePredictPortfolioValue,
   type PredictPortfolioValue,
 } from './portfolio';
+export {
+  usePredictCampaignEligibility,
+  type PredictCampaign,
+} from './campaigns';
+export {
+  createPredictCampaignEventRef,
+  openPredict,
+  parsePredictLink,
+  resolvePredictLinkFromStore,
+  usePredictEntryActions,
+  type PredictEntryActions,
+  type PredictEntryPoint,
+  type PredictEventRef,
+  type PredictFeedCategory,
+  type PredictIntent,
+  type PredictLink,
+  type PredictLinkResolution,
+} from './navigation/entry';
+export type { PredictAppRouteParamList } from './navigation/appRoutes';
+export {
+  PredictHomeSection,
+  type PredictHomeSectionProps,
+} from './homeSection';
+export {
+  PredictTrendingCarousel,
+  PredictTrendingMarketCard,
+  PredictTrendingSearchRow,
+  PredictTrendingSkeleton,
+  getPredictTrendingMarketAnalyticsProperties,
+  usePredictSportsMarketsFeed,
+  usePredictTrendingFeed,
+  usePredictTrendingSupported,
+  type PredictSportsMarketsFeed,
+  type PredictTrendingMarket,
+  type PredictTrendingTab,
+  type PredictTrendingVariant,
+} from './trending';
+export {
+  PredictSearchResultRow,
+  usePredictSearchResults,
+  type PredictSearchResult,
+  type PredictSearchResultRowProps,
+  type PredictSearchResults,
+} from './searchResults';

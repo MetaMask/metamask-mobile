@@ -1,7 +1,11 @@
 import {
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
@@ -14,6 +18,7 @@ import { AnimationDuration } from '@metamask/design-tokens';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedReaction,
@@ -27,13 +32,31 @@ import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsMarketIdentity from '../PerpsMarketIdentity';
 import PerpsModeToggle from '../PerpsModeToggle';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
+import HeaderGlass from '../../../../../component-library/components-temp/HeaderGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { getCrossMarginRatioAlert } from '../../utils/crossMarginSummary';
 import {
   PERPS_MARKET_HEADER_HEIGHT,
   type PerpsMarketHeaderProps,
 } from './PerpsMarketHeader.types';
 
 export { PERPS_MARKET_HEADER_HEIGHT };
+
+/**
+ * Cross margin risk badge on the wallet button. The "!" is the non-colour cue.
+ * The spoken name is the Figma label for the metric.
+ */
+const WALLET_RISK_BADGE = {
+  warning: {
+    backgroundClassName: 'bg-warning-default',
+  },
+  danger: {
+    backgroundClassName: 'bg-error-default',
+  },
+} as const;
 
 const COMPACT_PRICE_ENTER_OFFSET_PX = 8;
 const SUBTITLE_CROSSFADE_HEIGHT = 20;
@@ -52,6 +75,10 @@ const styles = StyleSheet.create({
   },
   sizer: {
     opacity: 0,
+  },
+  walletRiskBadgeText: {
+    fontSize: 10,
+    lineHeight: 12,
   },
 });
 
@@ -113,6 +140,7 @@ const PerpsMarketHeader = ({
   showMarketIdentity = true,
   endAccessory,
   onWalletPress,
+  walletRiskTone,
   onFavoritePress,
   isFavorite = false,
   mode,
@@ -122,8 +150,10 @@ const PerpsMarketHeader = ({
   scrollY,
   priceSectionHeight,
   currentPrice: currentPriceOverride,
+  topInset,
 }: PerpsMarketHeaderProps) => {
   const { playImpact, playSelection } = useHaptics();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const shouldEnableModeHaptics = enableModeHaptics || enableHaptics;
   const fallbackScrollY = useSharedValue(0);
   const fallbackPriceSectionHeight = useSharedValue(0);
@@ -243,59 +273,126 @@ const PerpsMarketHeader = ({
     </Box>
   );
 
+  const walletRiskAlert = getCrossMarginRatioAlert(walletRiskTone);
+  const walletRiskBadge = walletRiskAlert
+    ? WALLET_RISK_BADGE[walletRiskAlert]
+    : undefined;
+
+  const iconButtons = [
+    onWalletPress ? (
+      <BadgeWrapper
+        key="wallet"
+        // The wrapper pins itself to the top of the row. Center it with the star.
+        twClassName="self-center"
+        testID={
+          testIDs.walletButton ? `${testIDs.walletButton}-wrapper` : undefined
+        }
+        position={BadgeWrapperPosition.TopRight}
+        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+        positionXOffset={-4}
+        positionYOffset={4}
+        badge={
+          walletRiskBadge ? (
+            <Box
+              accessible={false}
+              importantForAccessibility="no-hide-descendants"
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName={`h-3 w-3 rounded-full ${walletRiskBadge.backgroundClassName}`}
+              testID={
+                testIDs.walletButton
+                  ? `${testIDs.walletButton}-risk-badge`
+                  : undefined
+              }
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.PrimaryInverse}
+                style={styles.walletRiskBadgeText}
+              >
+                !
+              </Text>
+            </Box>
+          ) : null
+        }
+      >
+        <ButtonIcon
+          iconName={IconName.Wallet}
+          size={ButtonIconSize.Md}
+          onPress={handleWalletPress}
+          accessibilityLabel={
+            walletRiskBadge
+              ? `${strings('perps.market_details.wallet')}, ${strings(
+                  'perps.crossMarginSummary.account_ratio',
+                )}`
+              : strings('perps.market_details.wallet')
+          }
+          testID={testIDs.walletButton}
+        />
+      </BadgeWrapper>
+    ) : null,
+    onFavoritePress ? (
+      <ButtonIcon
+        key="favorite"
+        iconName={isFavorite ? IconName.StarFilled : IconName.Star}
+        size={ButtonIconSize.Md}
+        onPress={handleFavoritePress}
+        accessibilityLabel={strings(
+          isFavorite
+            ? 'perps.market_details.remove_from_watchlist'
+            : 'perps.market_details.add_to_watchlist',
+        )}
+        testID={testIDs.favoriteButton}
+      />
+    ) : null,
+  ].filter(Boolean);
+
   const rightActions =
     endAccessory ??
-    (onWalletPress || onFavoritePress || (onModeChange && mode) ? (
+    (iconButtons.length > 0 || (onModeChange && mode) ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2"
       >
-        {onWalletPress ? (
-          <ButtonIcon
-            iconName={IconName.Wallet}
-            size={ButtonIconSize.Md}
-            onPress={handleWalletPress}
-            accessibilityLabel={strings('perps.market_details.wallet')}
-            testID={testIDs.walletButton}
-          />
-        ) : null}
-        {onFavoritePress ? (
-          <ButtonIcon
-            iconName={isFavorite ? IconName.StarFilled : IconName.Star}
-            size={ButtonIconSize.Md}
-            onPress={handleFavoritePress}
-            accessibilityLabel={strings(
-              isFavorite
-                ? 'perps.market_details.remove_from_watchlist'
-                : 'perps.market_details.add_to_watchlist',
-            )}
-            testID={testIDs.favoriteButton}
-          />
-        ) : null}
+        {/* On glass the icons share one capsule, as on the home header. */}
+        {isBrandRefresh && iconButtons.length > 0 ? (
+          <CapsuleGlass
+            twClassName="gap-1 px-1.5"
+            testID={`${testIDs.container}-actions-capsule`}
+          >
+            {iconButtons}
+          </CapsuleGlass>
+        ) : (
+          iconButtons
+        )}
         {onModeChange && mode ? (
           <PerpsModeToggle
             mode={mode}
             variant="active"
             onChange={onModeChange}
             enableHaptics={shouldEnableModeHaptics}
+            isCapsule={isBrandRefresh}
             source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
           />
         ) : null}
       </Box>
     ) : null);
 
-  return (
+  const header = (
     <Box
       testID={testIDs.container}
       style={styles.container}
-      twClassName="bg-default px-4"
+      // The glass backdrop replaces the solid background.
+      twClassName={isBrandRefresh ? 'px-4' : 'bg-default px-4'}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
     >
       {onBackPress ? (
-        <ButtonIcon
+        <ButtonIconGlass
+          isCapsule={isBrandRefresh}
           iconName={IconName.ArrowLeft}
           onPress={handleBackPress}
           accessibilityLabel={strings('perps.market_details.back')}
@@ -325,6 +422,20 @@ const PerpsMarketHeader = ({
 
       {rightActions}
     </Box>
+  );
+
+  if (!isBrandRefresh) {
+    return header;
+  }
+
+  return (
+    <HeaderGlass
+      topInset={topInset}
+      scrollDistance={scrollY}
+      testID={`${testIDs.container}-glass`}
+    >
+      {header}
+    </HeaderGlass>
   );
 };
 

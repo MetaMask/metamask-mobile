@@ -380,7 +380,7 @@ export function useTransactionCustomAmount({
   );
 
   const updatePendingAmountPercentage = useCallback(
-    (percentage: number): boolean => {
+    (percentage: number, inputType = `${percentage}%`): boolean => {
       if (isMembershipSubscription) {
         return false;
       }
@@ -420,12 +420,12 @@ export function useTransactionCustomAmount({
         return false;
       }
 
-      lastAmountInputTypeRef.current = `${percentage}%`;
+      lastAmountInputTypeRef.current = inputType;
       amountChangeTimeRef.current = Date.now();
 
       setConfirmationMetric({
         properties: {
-          mm_pay_amount_input_type: `${percentage}%`,
+          mm_pay_amount_input_type: inputType,
         },
       });
 

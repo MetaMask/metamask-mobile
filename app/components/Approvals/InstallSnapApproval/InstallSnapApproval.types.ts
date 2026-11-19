@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 interface InstallSnapFlowProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,4 +18,3 @@ export enum SnapInstallState {
 }
 
 export type { InstallSnapFlowProps };
-///: END:ONLY_INCLUDE_IF

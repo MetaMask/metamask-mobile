@@ -4,12 +4,17 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
   EarningsSummaryDto,
+  MechanismsView,
   ReferralMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
+
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => true),
+}));
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
 import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';
@@ -225,6 +230,7 @@ const renderDashboard = ({
   candidateSubscriptionId = subscriptionId,
   referralMeEntry,
   earningsSummaryEntry,
+  commissionMechanisms,
 }: {
   profileId?: string;
   hasProfileId?: boolean;
@@ -242,6 +248,7 @@ const renderDashboard = ({
     error: boolean;
     data: EarningsSummaryDto | null;
   };
+  commissionMechanisms?: MechanismsView;
 } = {}) => {
   const sessionProfileId =
     identityReady && hasProfileId ? profileId : undefined;
@@ -283,6 +290,10 @@ const renderDashboard = ({
         },
       },
       rewardsMoney: {
+        commissionMechanisms:
+          hasProfileId && commissionMechanisms
+            ? { [profileId]: commissionMechanisms }
+            : {},
         referralMe: hasProfileId
           ? {
               [profileId]: referralMeEntry ?? {
@@ -714,8 +725,8 @@ describe('RewardsMoneyDashboard', () => {
     });
   });
 
-  it('renders no earnings indicator for a referrer with cashback of at least $1', () => {
-    const { queryByTestId } = renderDashboard({
+  it('renders the earnings indicator for a referrer with cashback of at least $1', () => {
+    const { getByTestId } = renderDashboard({
       earningsSummaryEntry: {
         loading: false,
         error: false,
@@ -728,6 +739,126 @@ describe('RewardsMoneyDashboard', () => {
               REFERRAL_TRADE_FEE_CASHBACK: {
                 ...emptyBranch,
                 lifetime: '7650000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the earnings indicator when revenue share is held for tax and its claim route is open', () => {
+    const { getByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({
+          localized_text: {
+            ...LOCALIZED_TEXT,
+            taxFormUrl: 'https://tax.example/form',
+          },
+        }),
+      },
+      commissionMechanisms: {
+        REFERRAL_REV_SHARE: { claim_open: true, reason: null },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '0',
+          held: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                held: '1000000',
+                blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders no earnings indicator when tax-held revenue share has a closed claim route', () => {
+    const { queryByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({
+          localized_text: {
+            ...LOCALIZED_TEXT,
+            taxFormUrl: 'https://tax.example/form',
+          },
+        }),
+      },
+      commissionMechanisms: {
+        REFERRAL_REV_SHARE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '0',
+          held: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                held: '1000000',
+                blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
+  });
+
+  it('renders no earnings indicator when only a closed revenue-share balance is claimable', () => {
+    const { queryByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                lifetime: '41750000',
                 claimable: '1000000',
               },
             },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   LedgerClaimEntryDto,
   EarningsSummaryDto,
@@ -15,6 +16,7 @@ import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
+import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import RewardsEarningsHistoryView from './RewardsEarningsHistoryView';
 import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
 
@@ -38,6 +40,13 @@ jest.mock('../../../Views/ErrorBoundary', () => {
   };
 });
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialLeaderboard: jest.fn(),
+  }),
+);
+
 jest.mock('../hooks/useEarningsHistory');
 jest.mock('../hooks/useEarningsSummary');
 jest.mock('../hooks/useInFlightClaims', () => ({
@@ -55,6 +64,9 @@ const LOCALIZED_TEXT = {
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
+  copyTradingEmptyDescription:
+    'Share a trade to start earning from copies of it.',
+  copyTradingEmptyAction: 'Start sharing',
   rewardsPausedTitle: 'Rewards paused',
   rewardsPausedDescription:
     "We've paused these rewards while we review them. Your other rewards aren't affected, and you can still claim them as usual. You don't need to do anything.",
@@ -287,6 +299,68 @@ describe('RewardsEarningsHistoryView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.Activity);
+  });
+
+  it('uses the copy-trading empty copy and opens the social leaderboard for a copy-trading-only sharer', () => {
+    (useEarningsHistory as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+    const state = {
+      ...STATE,
+      rewardsMoney: {
+        ...STATE.rewardsMoney,
+        referralMe: {
+          [PROFILE_ID]: {
+            loading: false,
+            error: false,
+            data: {
+              localized_text: LOCALIZED_TEXT,
+              roles: ['COPY_TRADING' as const],
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state },
+    );
+
+    expect(
+      getByText('Share a trade to start earning from copies of it.'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText('Your activity is empty now. Start trading to earn today!'),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(`${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`),
+    );
+
+    expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.anything(),
+    );
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.People);
   });
 
   it('hides the under-review banner while history is still on its first load', () => {

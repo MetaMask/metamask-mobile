@@ -4,8 +4,8 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
  * Whether a GeolocationController location is in a Virtual Bank Account region.
  *
  * The geolocation API returns codes like "BR" or "BR-SP" (country-region), so
- * only the leading country segment is compared. `regions` comes from the
- * `moneyMovementNeobank` remote flag. Unknown, empty, and failed lookups return
+ * only the leading country segment is compared. `regions` comes from a
+ * per-currency neobank flag. Unknown, empty, and failed lookups return
  * false, and an empty list allows no country.
  *
  * @param location - Raw GeolocationController location, when one has been stored.

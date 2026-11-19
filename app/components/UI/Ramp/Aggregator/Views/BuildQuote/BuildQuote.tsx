@@ -17,7 +17,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconName,
   SelectButton,
   SelectButtonSize,
@@ -80,6 +79,8 @@ import { createRegionSelectorModalNavigationDetails } from '../../components/Reg
 import { createPaymentMethodSelectorModalNavigationDetails } from '../../components/PaymentMethodSelectorModal';
 import { QuickAmount, RampIntent, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 import {
   selectTicker,
@@ -144,6 +145,7 @@ const BuildQuote = () => {
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   /**
    * Grab the current state of the SDK via the context.
@@ -917,7 +919,9 @@ const BuildQuote = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={
             isBuy
               ? strings('fiat_on_ramp_aggregator.amount_to_buy')

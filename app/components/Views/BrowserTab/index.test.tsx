@@ -5,6 +5,9 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
+import UrlAutocomplete, {
+  UrlAutocompleteCategory,
+} from '../../UI/UrlAutocomplete';
 import Routes from '../../../constants/navigation/Routes';
 import {
   DOCUMENT_URL_FOR_URL_BAR,
@@ -678,6 +681,36 @@ describe('BrowserTab', () => {
         );
         expect(webViewMountCount).toBeGreaterThan(mountsBefore);
       });
+    });
+  });
+
+  describe('Autocomplete Predictions result', () => {
+    it("opens Predict with the result's own intent", async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+      const autocomplete = screen.UNSAFE_getByType(UrlAutocomplete);
+
+      act(() => {
+        autocomplete.props.onSelect({
+          category: UrlAutocompleteCategory.Predictions,
+          id: 'market-1',
+          title: 'Will Bitcoin reach $100k?',
+          subtitle: 'Open',
+          intent: { type: 'home', entryPoint: 'search' },
+        });
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PREDICT.ROOT,
+        expect.objectContaining({
+          screen: Routes.PREDICT.MARKET_LIST,
+          params: expect.objectContaining({ entryPoint: 'search' }),
+        }),
+      );
     });
   });
 

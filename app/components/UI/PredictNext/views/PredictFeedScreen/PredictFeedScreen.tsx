@@ -16,7 +16,6 @@ import {
   Box,
   Button,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -44,6 +43,9 @@ import type {
 import { TraceName } from '../../../../../util/trace';
 import { FeedScreenTabs } from './internal/FeedScreenTabs';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 const FEED_PAGE_LIMIT = 20;
 const FEED_PARAMS = { limit: FEED_PAGE_LIMIT };
@@ -146,26 +148,32 @@ const FeedScreenFrame = ({
   definition: FeedScreenDefinition;
   onBack: () => void;
   children: React.ReactNode;
-}) => (
-  <Box testID={PredictFeedScreenTestIds.VIEW} twClassName="flex-1 bg-default">
-    <HeaderStandard
-      title={definition.title}
-      onBack={onBack}
-      includesTopInset
-      backButtonProps={{ testID: PredictFeedScreenTestIds.BACK }}
-    />
-    <Box twClassName="flex-1">
-      <Box twClassName="px-4 pb-3 pt-4">
-        {definition.selectionLabel ? (
-          <Text variant={TextVariant.HeadingMd}>
-            {definition.selectionLabel}
-          </Text>
-        ) : null}
+}) => {
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  return (
+    <Box testID={PredictFeedScreenTestIds.VIEW} twClassName="flex-1 bg-default">
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        title={definition.title}
+        onBack={onBack}
+        includesTopInset
+        testID={PredictFeedScreenTestIds.HEADER}
+        backButtonProps={{ testID: PredictFeedScreenTestIds.BACK }}
+      />
+      <Box twClassName="flex-1">
+        <Box twClassName="px-4 pb-3 pt-4">
+          {definition.selectionLabel ? (
+            <Text variant={TextVariant.HeadingMd}>
+              {definition.selectionLabel}
+            </Text>
+          ) : null}
+        </Box>
+        {children}
       </Box>
-      {children}
     </Box>
-  </Box>
-);
+  );
+};
 
 const FeedUnavailable = ({ onBack }: { onBack: () => void }) => (
   <Box

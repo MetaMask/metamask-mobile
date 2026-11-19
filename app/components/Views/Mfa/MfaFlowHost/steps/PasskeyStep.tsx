@@ -10,6 +10,7 @@ import StepLayout, { type StepProps } from './StepLayout';
 
 const PasskeyStep = ({ step, state, onAction }: StepProps<'passkey'>) => (
   <StepLayout
+    onAction={onAction}
     title={strings(
       step.purpose === 'setup'
         ? 'mfa.passkey.title_setup'
@@ -22,7 +23,10 @@ const PasskeyStep = ({ step, state, onAction }: StepProps<'passkey'>) => (
         size={ButtonSize.Lg}
         isFullWidth
         isLoading={state.busy}
-        onPress={() => onAction({ type: 'continue' })}
+        onPress={() => {
+          onAction({ type: 'errorCtaClicked', cta: 'try_again' });
+          onAction({ type: 'continue' });
+        }}
         testID={MfaFlowSelectorsIDs.PRIMARY_BUTTON}
       >
         {strings('mfa.failure.retry')}

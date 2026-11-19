@@ -14,9 +14,9 @@ FILE ACCESS RULES (strict):
 For the listed file:
 
 1. Call load_skill("mms-flaky-test-detection") once, before reading files, if not already loaded.
-2. Read the file with read_file.
-3. Read .ai-pr-analyzer/flaky-history.json (read_file) and check whether this file has a `"flaky": true` entry. That decides your scope: whole current file when it does, this PR's diff when it does not.
-4. Use get_git_diff for this file. For a file without a history entry, it defines what you may report (introduced or worsened here). For a file with one, it only tells you whether the pattern is new or pre-existing — report it either way.
+2. Read .ai-pr-analyzer/flaky-history.json (read_file) and check whether this file has a `"flaky": true` entry. That decides your scope: whole current file when it does, this PR's diff when it does not.
+3. Use get_git_diff once for this file. For a file without a history entry, it defines what you may report (introduced or worsened here) — do not read_file the whole test file; the diff is the scope. For a file with a history entry, read_file the test file once, then use the diff only to say whether a pattern is new or pre-existing.
+4. After that diff returns, call finalize on your next turn. Do not read the test file again. Do not call grep_codebase, find_related_files, or list_directory. Those calls spend the iteration budget and the job fails if you never finalize.
 5. Match against the J1-J10 patterns from the loaded skill, but report a match only when you can demonstrate a concrete cross-test state leak or timing/scheduling mechanism. For J3/J9, inspect the relevant enclosing Jest hooks and identify the state that leaks, the mutation, and the later observation. For J4/J6/J8/J10, report only when the snippet already contains that pattern's defining construct, and `suggestedFix` must edit that construct rather than insert it; for J5, a mock store/state must exist in the file.
 6. For every match, record: file, line, patternId, patternName, severity, snippet, explanation, suggestedFix, and `historicalHintUsed` (true when that file has a `"flaky": true` history entry, false otherwise).
    - `snippet` MUST be the exact current code being replaced, copied verbatim from the file (no paraphrasing or summarizing), covering the same lines/scope as `suggestedFix` so the two can be rendered as a before/after diff.

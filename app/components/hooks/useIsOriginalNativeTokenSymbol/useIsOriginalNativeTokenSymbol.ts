@@ -3,9 +3,32 @@ import { useSelector } from 'react-redux';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../constants/network';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
-import { useSafeChains } from '../useSafeChains';
+import { useSafeChains, type SafeChain } from '../useSafeChains';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import type { Hex } from '@metamask/utils';
+
+const hasLoadedSafeChains = (
+  safeChainsList: SafeChain[] | undefined,
+): safeChainsList is SafeChain[] =>
+  Boolean(safeChainsList && safeChainsList.length > 0);
+
+const readMatchedNativeSymbol = (
+  matchedChain: SafeChain | undefined,
+): string | null => matchedChain?.nativeCurrency?.symbol ?? null;
+
+const symbolsMatchIgnoringCase = (
+  symbol: string | null | undefined,
+  ticker: string | null | undefined,
+): boolean => symbol?.toLowerCase() === ticker?.toLowerCase();
+
+const isNonEvmOrUnconfiguredChain = (
+  chainId: string,
+  evmNetworkConfigurationsByChainId: ReturnType<
+    typeof selectEvmNetworkConfigurationsByChainId
+  >,
+): boolean =>
+  isNonEvmChainId(chainId) ||
+  evmNetworkConfigurationsByChainId?.[chainId as Hex] === undefined;
 
 /**
  * Hook that check if the used symbol match with the original symbol of given network
@@ -35,8 +58,10 @@ function useIsOriginalNativeTokenSymbol(
       try {
         // Non-EVM or not in networkConfigurationsByChainId: treat as original (no scam warning)
         if (
-          isNonEvmChainId(chainId) ||
-          evmNetworkConfigurationsByChainId?.[chainId as Hex] === undefined
+          isNonEvmOrUnconfiguredChain(
+            chainId,
+            evmNetworkConfigurationsByChainId,
+          )
         ) {
           setIsOriginalNativeSymbol(true);
           return;
@@ -59,7 +84,7 @@ function useIsOriginalNativeTokenSymbol(
 
         if (mappedCurrencySymbol) {
           setIsOriginalNativeSymbol(
-            mappedCurrencySymbol?.toLowerCase() === ticker?.toLowerCase(),
+            symbolsMatchIgnoringCase(mappedCurrencySymbol, ticker),
           );
           return;
         }
@@ -72,7 +97,7 @@ function useIsOriginalNativeTokenSymbol(
 
         // Wait for safeChainsList to load before checking
         // Keep state as null (loading) to avoid false warnings
-        if (!safeChainsList || safeChainsList.length === 0) {
+        if (!hasLoadedSafeChains(safeChainsList)) {
           return;
         }
 
@@ -81,10 +106,8 @@ function useIsOriginalNativeTokenSymbol(
           (network) => network.chainId === parseInt(networkId),
         );
 
-        const symbol = matchedChain?.nativeCurrency?.symbol ?? null;
-        setIsOriginalNativeSymbol(
-          symbol?.toLowerCase() === ticker?.toLowerCase(),
-        );
+        const symbol = readMatchedNativeSymbol(matchedChain);
+        setIsOriginalNativeSymbol(symbolsMatchIgnoringCase(symbol, ticker));
         return;
       } catch (err) {
         setIsOriginalNativeSymbol(false);

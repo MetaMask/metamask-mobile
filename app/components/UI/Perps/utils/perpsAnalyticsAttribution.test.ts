@@ -3,6 +3,7 @@ import {
   hasPerpsUtmAttribution,
   parsePerpsUtmFromPath,
   setPerpsUtmAttribution,
+  resolvePerpsSocialOrderSource,
   toPerpsEntryAttribution,
 } from './perpsAnalyticsAttribution';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -32,6 +33,29 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 describe('perpsAnalyticsAttribution', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('resolvePerpsSocialOrderSource', () => {
+    it.each(['notification', 'deep_link'] as const)(
+      'keeps %s through to the order',
+      (origin) => {
+        expect(resolvePerpsSocialOrderSource(origin, 'perp_asset_screen')).toBe(
+          origin,
+        );
+      },
+    );
+
+    it('uses the fallback for every other origin', () => {
+      expect(
+        resolvePerpsSocialOrderSource(
+          'social_leaderboard',
+          'perp_asset_screen',
+        ),
+      ).toBe('perp_asset_screen');
+      expect(
+        resolvePerpsSocialOrderSource(undefined, 'social_leaderboard'),
+      ).toBe('social_leaderboard');
+    });
   });
 
   describe('toPerpsEntryAttribution', () => {

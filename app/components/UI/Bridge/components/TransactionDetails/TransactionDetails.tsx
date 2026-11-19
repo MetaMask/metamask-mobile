@@ -1,9 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  HeaderStandard,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -77,6 +76,8 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../hooks/useSwapBridgeNavigation';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -122,6 +123,7 @@ const PaidByMetaMask = () => (
 export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
@@ -172,7 +174,9 @@ export const BridgeTransactionDetails = (
   }, [navigation]);
 
   const bridgeTransactionDetailsHeader = (
-    <HeaderStandard
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
       title={headerTitle}
       onBack={handleHeaderBack}
       backButtonProps={{ testID: 'bridge-transaction-details-back-button' }}
@@ -387,7 +391,9 @@ export const BridgeTransactionDetails = (
       style={tw.style('flex-1 bg-default')}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={redesignTitle}
           onBack={handleHeaderBack}
           backButtonProps={{

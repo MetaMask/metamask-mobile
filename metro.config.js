@@ -234,6 +234,19 @@ module.exports = function (baseConfig) {
                     ),
                   };
                 }
+                // WalletConnect relay auth: sign and derive keys with native
+                // ed25519 instead of relay-auth's bundled pure-JS curve (about
+                // 500 ms of JS thread at unlock). The shim re-exports the real
+                // package, so its own import must resolve to it.
+                if (moduleName === '@walletconnect/relay-auth') {
+                  const relayAuthShim = path.resolve(
+                    __dirname,
+                    'app/shims/walletconnect-relay-auth.ts',
+                  );
+                  if (context.originModulePath !== relayAuthShim) {
+                    return { type: 'sourceFile', filePath: relayAuthShim };
+                  }
+                }
                 // reflect-metadata's only job is to add metadata APIs
                 // (Reflect.defineMetadata etc.) to the global Reflect object.
                 // getPolyfills above already runs it once at bundle startup,

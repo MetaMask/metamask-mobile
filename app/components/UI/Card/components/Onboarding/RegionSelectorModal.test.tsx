@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import { strings } from '../../../../../../locales/i18n';
 import RegionSelectorModal, {
   setOnValueChange,
   clearOnValueChange,
@@ -12,6 +13,13 @@ import { OnboardingState } from '../../../../../core/redux/slices/card';
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
@@ -36,7 +44,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(
     (key: string, params?: { [key: string]: string | number }) => {
       const mockStrings: { [key: string]: string } = {
-        'card.card_onboarding.region_selector.title': 'Select Region',
+        'card.card_onboarding.region_selector.title': 'Select your region',
+        'card.card_onboarding.region_selector.search_placeholder': 'Search',
         'card.card_onboarding.errors.no_region_results':
           'No results found for "{searchString}"',
       };
@@ -171,7 +180,7 @@ describe('RegionSelectorModal', () => {
       );
 
       expect(getByTestId('region-selector-modal')).toBeTruthy();
-      expect(getByText('Select Region')).toBeTruthy();
+      expect(getByText('Select your region')).toBeTruthy();
     });
 
     it('renders search input field', () => {
@@ -414,6 +423,65 @@ describe('RegionSelectorModal', () => {
 
       expect(queryByTestId('region-selector-item')).not.toBeOnTheScreen();
       expect(getByTestId('region-selector-modal')).toBeTruthy();
+      expect(queryByTestId('region-selector-empty-list')).not.toBeOnTheScreen();
+    });
+
+    it('shows the empty state for a search on an empty regions array', async () => {
+      mockUseParams.mockReturnValue({
+        regions: [],
+        renderAreaCode: false,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <RegionSelectorModal />
+        </Provider>,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(getByTestId('region-selector-search-input'), 'US');
+      });
+
+      expect(getByTestId('region-selector-empty-list')).toBeOnTheScreen();
+    });
+
+    it('does not show the empty state for a whitespace-only query', async () => {
+      mockUseParams.mockReturnValue({
+        regions: [],
+        renderAreaCode: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <RegionSelectorModal />
+        </Provider>,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(getByTestId('region-selector-search-input'), '  ');
+      });
+
+      expect(queryByTestId('region-selector-empty-list')).not.toBeOnTheScreen();
+    });
+
+    it('shows the localised search placeholder', () => {
+      jest
+        .mocked(strings)
+        .mockImplementation((key: string) =>
+          key === 'card.card_onboarding.region_selector.search_placeholder'
+            ? 'Search by country'
+            : key,
+        );
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <RegionSelectorModal />
+        </Provider>,
+      );
+
+      expect(getByTestId('region-selector-search-input')).toHaveProp(
+        'placeholder',
+        'Search by country',
+      );
     });
 
     it('handles null regions parameter', () => {

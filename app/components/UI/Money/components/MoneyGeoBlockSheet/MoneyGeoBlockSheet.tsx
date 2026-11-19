@@ -3,7 +3,6 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonsAlignment,
@@ -20,13 +19,15 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 import useMountEffect from '../../hooks/useMountEffect';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MoneyGeoBlockSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
@@ -53,7 +54,18 @@ const MoneyGeoBlockSheet = () => {
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.WALLET.HOME);
+      const parentNavigation = navigation.getParent();
+      if (!parentNavigation) {
+        throw new Error(
+          '[MoneyGeoBlockSheet] Cannot close without a parent navigator',
+        );
+      }
+      /**
+       * When an open Money sheet (such as Add money or Transfer) sends the user
+       * here, its route remains underneath this sheet. Close the whole Money
+       * modal flow so the user returns to where they started.
+       */
+      parentNavigation.goBack();
     });
   }, [navigation]);
 
@@ -73,7 +85,8 @@ const MoneyGeoBlockSheet = () => {
       testID={MoneyGeoBlockSheetTestIds.SHEET}
       onClose={handleClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={MoneyGeoBlockSheetTestIds.TITLE}
         closeButtonProps={{
@@ -81,7 +94,7 @@ const MoneyGeoBlockSheet = () => {
         }}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4}>
         <Text
           variant={TextVariant.BodyMd}

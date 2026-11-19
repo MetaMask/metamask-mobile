@@ -158,7 +158,12 @@ interface PredictOutcome {
   gameSelection?: 'home' | 'away' | 'draw';
 }
 
-type PredictMarketType = 'spread' | 'total' | 'team_total' | (string & {});
+type PredictMarketType =
+  | 'spread'
+  | 'total'
+  | 'team_total'
+  | 'threshold'
+  | (string & {});
 type PredictMarketGroupType = 'marketSelector' | 'choice' | (string & {});
 
 interface PredictMarketOption {
@@ -174,6 +179,8 @@ interface PredictMarketGroup {
   marketType?: PredictMarketType;
   option?: PredictMarketOption;
   displayOrder?: number;
+  // The card's title when the client can't name it, such as a Player.
+  label?: string;
 }
 
 // Event screen placement. Keys are stable snake_case IDs the backend
@@ -274,9 +281,20 @@ interface PredictFeed {
 - `group.groupType` selects the presentation behavior. The supported values are
   `marketSelector` and `choice`; unknown values remain standard Markets until a
   supported composition exists.
-- A `choice` group has one option per Market, such as a moneyline's away team,
-  tie and home team, ordered by `displayOrder`. It has no `marketType` or
-  `option`. A malformed `choice` group is kept as an unsupported group.
+- A `choice` group is a card of rows, one Market per row priced by its yes
+  side, ordered by `displayOrder`, such as a moneyline's away team, tie and
+  home team. It has no `marketType` or `option`. A
+  malformed `choice` group is kept as an unsupported group.
+- `group.label` is the card's title, set by the backend only when the client
+  can't name the card itself, such as a Player's name on a player-props card.
+  It is optional on every group type and never blank. Mobile shows it as the
+  title of a `choice` card and of a `threshold` line picker; on other group
+  types it is parsed and unused.
+- An unlabelled `choice` group is a moneyline when it has a Game and its rows
+  back different Teams (or the tie). It sits under its section header with Team
+  names and logos. Any other unlabelled `choice` group, such as a single row,
+  is an untitled choice card showing its
+  outcome labels. Without a Game, its Markets render as standard cards.
 - `group.key` identifies one presentation group within the Event. Markets with
   the same key may share one selector; different keys must remain separate.
 - A `marketSelector` group has a `marketType` and a numeric `option`. For a
@@ -292,10 +310,37 @@ interface PredictFeed {
   presentation of the backend option only. It does not change the canonical
   signed value or define a second ordering rule.
 - A missing or unsupported group falls back to the standard Market
-  presentation. Malformed known group fields fail runtime validation.
+  presentation. A malformed group, such as a `marketSelector` without an
+  `option`, with a non-numeric `option.value` or with an empty `marketType`, is
+  dropped (logged in dev) and the Market still parses as a standard Market,
+  because a group is presentation only. One bad line never fails the Event;
+  its other Markets keep their groups.
 - `marketType: 'team_total'` is a `marketSelector` line picker per Team: one
   group per Team, each with its Over/Under lines. The layout projection makes
   one line-picker card per Team.
+- `marketType: 'threshold'` is a generic "at least N" ladder, such as one
+  Player's prop: `option.value` is the whole N, shown as "N+", and each line's
+  Outcomes are "Yes" and "No". Mobile prints `option.value` as sent, so a
+  fractional value shows as "59.5+"; whole numbers are the backend's job. Lines
+  within a group are unique: a repeated `option.value` makes the group
+  inconsistent, and its lines fall back to standard cards. The picker follows
+  `displayOrder` (then response order), never `option.value`, so the backend
+  sends lines ascending. Its card is titled with `label` and the selected
+  line ("Josh Jacobs: 60+") and shows the line's chance, Yes and No, and a
+  picker of its lines. It knows nothing about the sport, stat or unit. The Event
+  screen's Order flow names the Outcome with its line: "Yes · Josh Jacobs · 60+",
+  formatted from the catalog Market's group.
+- Screens that name an account entry (Position, Trade or Settlement) take its
+  name from the entry's context, never from an Event read: the Home,
+  Portfolio and Activity rows and details, the Portfolio Cash Out sheet, and
+  the Event screen's Position cards. An entry's `context.outcomeLabel` alone
+  can be ambiguous (a threshold line's is only "Yes" or "No"), so the backend
+  also sends `context.marketLabels`: ordered, display-ready parts naming the
+  Market beyond its Outcome, such as `["Josh Jacobs", "60+"]`. Mobile joins
+  `[outcomeLabel, ...marketLabels]` with " · " ("Yes · Josh Jacobs · 60+") and
+  does no per-group-type formatting; the backend owns that. An entry without
+  `marketLabels` shows the Outcome label alone. See
+  [the entry context](canonical-portfolio-activity-catalog-contract.md#shared-catalog-context).
 - `Market.layout` is optional. The backend places a Market on the Event screen
   as tab › section › optional subgroup, each a key and an `order` among its
   siblings. Unknown keys are valid. A malformed `layout` is dropped and the
@@ -304,8 +349,8 @@ interface PredictFeed {
   cards (`createMarketLayoutProjection`):
   - Every tab, section and subgroup key is projected; mobile keeps no
     allowlist. The renderer shows every section, titled from its key.
-  - The card type follows the group's shape: a `choice` group of two or more
-    Markets, a `marketSelector` line picker of any `marketType`, or one
+  - The card type follows the group's shape: a `choice` group of any size
+    (a single row is still a card), a `marketSelector` line picker of any `marketType`, or one
     standard card per Market. A Market without a group, a group of an unknown
     `groupType`, or a group with inconsistent lines becomes standard cards in
     its period. Laid-out Markets are never dropped.

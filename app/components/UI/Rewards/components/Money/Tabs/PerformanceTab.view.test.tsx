@@ -16,6 +16,7 @@ import {
   REFERRAL_LOCALIZED_TEXT,
   REFERRER_FUNNEL_SUMMARY,
   RETIRED_FUNNEL_COPY,
+  referralMeFixture,
 } from '../../../../../../../tests/component-view/presets/rewardsMoney';
 
 function callsFor(engine: jest.Mock, action: string): unknown[][] {
@@ -229,5 +230,49 @@ describe('PerformanceTab', () => {
         getRouteProbeTestId(Routes.REWARDS_TRADING_REBATES_VIEW),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('reads rebates and not commissions for a cashback experiment member', async () => {
+    const { findByTestId, queryByTestId, engine } = renderPerformanceTab({
+      persona: 'referee',
+      referralMe: {
+        ...referralMeFixture('referee'),
+        roles: ['CASHBACK_EXPERIMENT'],
+        referred_by: null,
+      },
+    });
+
+    expect(
+      await findByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getCommissions'),
+    ).toHaveLength(0);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getEarningsLedger').length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('reads commissions and not rebates for a copy-trading sharer', async () => {
+    const { findByTestId, queryByTestId, engine } = renderPerformanceTab({
+      persona: 'referee',
+      referralMe: {
+        ...referralMeFixture('referee'),
+        roles: ['COPY_TRADING'],
+        referred_by: null,
+      },
+    });
+
+    expect(
+      await findByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
+    ).toHaveLength(0);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+    ).toBeGreaterThan(0);
   });
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -62,7 +63,7 @@ describe('AwaitingAppContent', () => {
   });
 
   it('shows current app when different from required', () => {
-    const { getByText } = renderComponent({
+    const { getByText, getByTestId, UNSAFE_getAllByType } = renderComponent({
       currentApp: 'Bitcoin',
       requiredApp: 'Ethereum',
     });
@@ -70,6 +71,20 @@ describe('AwaitingAppContent', () => {
     expect(
       getByText('hardware_wallet.awaiting_app.current_app {"app":"Bitcoin"}'),
     ).toBeOnTheScreen();
+    expect(getByTestId(AWAITING_APP_CONTENT_TEST_ID)).toHaveStyle({
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    });
+    // Pill keeps its own 12 padding; only the sheet gutter moved to 16.
+    const pill = UNSAFE_getAllByType(View).find(
+      (node) => StyleSheet.flatten(node.props.style)?.paddingHorizontal === 12,
+    );
+    expect(StyleSheet.flatten(pill?.props.style)).toEqual(
+      expect.objectContaining({
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+      }),
+    );
   });
 
   it('does not show current app when same as required', () => {

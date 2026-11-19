@@ -290,6 +290,11 @@ if (enableApiCallLogs || isTestEnvironment) {
     hosts.push('10.0.2.2');
   }
 
+  // Read once, with the host list above. iOS WebKit fetch accepts data:
+  // URLs. Android's does not (java.net.URL), so those stay on the mock
+  // server, which answers over HTTP.
+  const isIos = Platform.OS === 'ios';
+
   // Bounds how long requests waiting on `mockReady` can be held when a host
   // never answers (e.g. 10.0.2.2 from a physical Android device).
   const HEALTH_CHECK_TIMEOUT_MS = 5000;
@@ -344,6 +349,14 @@ if (enableApiCallLogs || isTestEnvironment) {
   ];
 
   const shouldBypassProxy = (targetUrl) => {
+    // Leave ws: and wss: alone so resolveWebSocketTarget can still route them.
+    if (
+      isIos &&
+      typeof targetUrl === 'string' &&
+      targetUrl.startsWith('data:')
+    ) {
+      return true;
+    }
     if (!isPerformanceTest) {
       return false;
     }

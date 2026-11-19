@@ -5,7 +5,6 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
@@ -44,6 +43,9 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { useRampSDK } from '../../sdk';
 import useAnalytics from '../../../hooks/useAnalytics';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -63,6 +65,7 @@ export const createRegionSelectorModalNavigationDetails =
   );
 
 function RegionSelectorModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const countryListRef = useRef<FlatList<Region>>(null);
   const stateListRef = useRef<FlatList<Region>>(null);
@@ -333,7 +336,9 @@ function RegionSelectorModal() {
       onClose={onModalHide}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={
           activeView === RegionViewType.COUNTRY
             ? strings('fiat_on_ramp_aggregator.region.title')

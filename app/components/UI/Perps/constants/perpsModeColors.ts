@@ -4,8 +4,16 @@ const GOLD_DEEP = colors.perpsProGoldDeep;
 const GOLD_BRIGHT = colors.perpsProGoldBright;
 const GOLD_PALE = colors.perpsProGoldPale;
 
-/** Pro switch pill border. */
+/** Bright gold stop shared by the Pro pill. */
 export const PERPS_PRO_GOLD = GOLD_BRIGHT;
+
+/**
+ * Pro outline ramp, matching the glass sheen: a highlight at the top-center
+ * that deepens toward the bottom-left.
+ */
+export const PRO_PILL_BORDER_GRADIENT_START = { x: 0.5, y: 0 };
+export const PRO_PILL_BORDER_GRADIENT_END = { x: 0, y: 1 };
+export const PRO_PILL_BORDER_GRADIENT_LOCATIONS = [0, 0.5, 1] as const;
 
 /**
  * Switch pill gradient stops as `[darker, lighter]`. Dark theme shifts the pair
@@ -26,6 +34,15 @@ const pillGradientStops = (isDark: boolean) =>
 export const getPerpsProPillGradientColors = (isDark: boolean) => {
   const [darker, lighter] = pillGradientStops(isDark);
   return [darker, lighter, darker, lighter, darker];
+};
+
+/**
+ * Pro outline. The lighter gold holds across the top highlight and falls off
+ * to the deeper gold, the same direction as the glass sheen.
+ */
+export const getPerpsProPillBorderGradientColors = (isDark: boolean) => {
+  const [darker, lighter] = pillGradientStops(isDark);
+  return [lighter, lighter, darker];
 };
 
 /** Mode-switch sweep, fading in and out of the pill edges. */

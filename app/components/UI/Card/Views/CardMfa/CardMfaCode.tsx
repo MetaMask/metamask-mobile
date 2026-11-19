@@ -1,11 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AccessibilityInfo, AppState } from 'react-native';
 import {
-  Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -169,7 +166,7 @@ const CardMfaCode = () => {
   const formFields = expired ? (
     <Text
       variant={TextVariant.BodyMd}
-      twClassName="text-text-alternative"
+      color={TextColor.TextAlternative}
       testID="card-mfa-code-expired"
       accessibilityRole="alert"
       accessibilityLiveRegion="polite"
@@ -197,21 +194,6 @@ const CardMfaCode = () => {
     />
   );
 
-  const actions = expired ? (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={handleRestart}
-      isFullWidth
-      isLoading={isSubmitting}
-      testID="card-mfa-code-start-over"
-    >
-      {strings('card.mfa.start_over')}
-    </Button>
-  ) : (
-    <Box />
-  );
-
   return (
     <OnboardingStep
       title={strings('card.mfa.code_title')}
@@ -219,8 +201,16 @@ const CardMfaCode = () => {
         destination: maskedDestination,
       })}
       formFields={formFields}
-      actions={actions}
-      stickyActions
+      primaryButtonProps={
+        expired
+          ? {
+              children: strings('card.mfa.start_over'),
+              onPress: handleRestart,
+              isLoading: isSubmitting,
+              testID: 'card-mfa-code-start-over',
+            }
+          : undefined
+      }
       headerMode="back"
     />
   );

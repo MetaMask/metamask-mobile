@@ -49,9 +49,9 @@ flowchart TD
     InvalidDomain --> Modal
 
     Modal[Interstitial Modal Decision] --> BypassCheck{Bypass Conditions?}
-    BypassCheck -->|Whitelisted Action| Skip[Skip modal<br/>WC, enable-card-button]
+    BypassCheck -->|Whitelisted Action| Skip[Skip modal<br/>e.g. HOME, WC, SWAP]
     BypassCheck -->|Whitelist URL| Skip
-    BypassCheck -->|Private + In-App Source| Skip
+    BypassCheck -->|Public/Private + Trusted In-App Source| Skip
     BypassCheck -->|None| ModalType
 
     ModalType{Link Type?}
@@ -79,7 +79,7 @@ flowchart TD
     Action -->|dapp| HandleBrowser[handleBrowserUrl]
     Action -->|create-account| HandleAccount[handleCreateAccountUrl]
     Action -->|onboarding| HandleOnboard[handleFastOnboarding]
-    Action -->|enable-card-button| HandleCard[handleEnableCardButton]
+    Action -->|card-*| HandleCard[handleCard* handlers]
     Action -->|wc/send| HandleRecurse[Recursive parse call]
     Action -->|SDK actions| HandleSDK[handleMetaMaskDeeplink]
 

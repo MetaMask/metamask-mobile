@@ -13,6 +13,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '8.10.0'),
+  getTotalMemorySync: jest.fn(() => 4 * 1024 ** 3),
 }));
 
 describe('OnboardingAssetSettings', () => {

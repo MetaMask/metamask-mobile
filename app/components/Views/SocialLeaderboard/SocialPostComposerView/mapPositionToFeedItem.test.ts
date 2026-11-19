@@ -1,4 +1,5 @@
 import type { Position } from '@metamask/social-controllers';
+import { DAY, HOUR } from '../../../../constants/time';
 import {
   KLIPY_STATIC_GIF_EXAMPLE,
   KLIPY_STATIC_GIF_HOST,
@@ -99,8 +100,10 @@ const openPerp: Position = {
   perpLeverage: 40,
   positionAmount: 0.01,
   positionAmountWithLeverage: 0.4,
-  costBasis: 43000,
-  currentValueUSD: 450,
+  // As the API sends a 40x short of 0.4 BTC entered at 45,105 and marked at
+  // 45,000: margin-sized cost basis, equity = margin + unrealized P&L.
+  costBasis: 451.05,
+  currentValueUSD: 493.05,
   pnlPercent: 9.4,
   pnlValueUsd: 42,
 };
@@ -143,6 +146,95 @@ describe('mapPositionToFeedItem', () => {
     }
     expect(item.direction).toBe('short');
     expect(item.leverageLabel).toBe('40x');
+  });
+
+  it('labels an open perp with the time held since its first fill', () => {
+    const openedAtSeconds = 1_700_000_000;
+    const now = openedAtSeconds * 1000 + 2 * DAY + 2 * HOUR;
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    const position: Position = {
+      ...openPerp,
+      trades: [{ ...openPerp.trades[0], timestamp: openedAtSeconds }],
+      lastTradeAt: openedAtSeconds,
+    };
+
+    try {
+      const item = mapPositionToFeedItem(position, 'held short', {
+        isClosed: false,
+      });
+
+      expect(item).toMatchObject({
+        variant: 'perpsOpen',
+        holdTimeLabel: '2d 2h',
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('counts an open perp hold from firstTradeAt when later fills are loaded', () => {
+    const openedAtSeconds = 1_700_000_000;
+    const now = openedAtSeconds * 1000 + 11 * DAY;
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    const position = {
+      ...openPerp,
+      firstTradeAt: openedAtSeconds,
+      trades: [
+        {
+          ...openPerp.trades[0],
+          timestamp: openedAtSeconds + (5 * DAY) / 1000,
+        },
+      ],
+      lastTradeAt: openedAtSeconds + (5 * DAY) / 1000,
+    };
+
+    try {
+      const item = mapPositionToFeedItem(position, 'held short', {
+        isClosed: false,
+      });
+
+      expect(item).toMatchObject({
+        variant: 'perpsOpen',
+        holdTimeLabel: '11d',
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('derives a closed percent from realized P&L when the API omits pnlPercent', () => {
+    const position: Position = {
+      ...openPerp,
+      pnlPercent: null,
+      realizedPnl: 93.17,
+      boughtUsd: 311.13,
+      pnlValueUsd: 93.17,
+      currentValueUSD: 0,
+      positionAmount: 0,
+    };
+
+    const item = mapPositionToFeedItem(position, 'closed cl', {
+      isClosed: true,
+    });
+
+    expect(item.variant).toBe('perpsClosed');
+    expect(item.pnlLabel).toBe(`${(93.17 / 311.13) * 100}%`);
+  });
+
+  it('keeps a closed percent the API already sent', () => {
+    const item = mapPositionToFeedItem(
+      {
+        ...openPerp,
+        pnlPercent: 29.95,
+        realizedPnl: 1,
+        boughtUsd: 311.13,
+        currentValueUSD: 0,
+      },
+      'closed cl',
+      { isClosed: true },
+    );
+
+    expect(item.pnlLabel).toBe('29.95%');
   });
 
   it('maps a closed perp without copy trade', () => {
@@ -391,7 +483,7 @@ describe('mapPositionToFeedItem', () => {
         key: 'perp:BTC',
         kind: 'perp',
         symbol: 'BTC',
-        positionAmount: 0.01,
+        positionAmount: 0.4,
         direction: -1,
         snapshotPrice: expect.closeTo(45_000),
       }),

@@ -128,13 +128,14 @@ describe('CardAlertSection', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders a skeleton while provisioning status is being reconciled', () => {
-    const { getByTestId, queryByTestId } = renderComponent(
+  it('renders nothing while provisioning status is being reconciled', () => {
+    const { toJSON, queryByTestId } = renderComponent(
       [{ type: 'card_provisioning', dismissable: false }],
       'reconciling',
     );
 
-    expect(getByTestId('card-provisioning-alert-skeleton')).toBeOnTheScreen();
+    expect(toJSON()).toBeNull();
+    expect(queryByTestId('card-provisioning-alert-skeleton')).toBeNull();
     expect(
       queryByTestId(`card-message-box-${CardMessageBoxType.CardProvisioning}`),
     ).not.toBeOnTheScreen();

@@ -8,6 +8,7 @@ import {
   internalAccount1,
   internalAccount2,
 } from '../../util/test/accountsControllerTestUtils';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 const oldState = {
   engine: {
@@ -91,7 +92,7 @@ describe('Migration #57', () => {
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         expectedError,
       );
     });

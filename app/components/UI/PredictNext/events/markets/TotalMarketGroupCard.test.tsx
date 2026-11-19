@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
@@ -7,6 +7,7 @@ import type {
   PredictMarket,
 } from '../../types';
 import { MarketGroupCardTestIds as TestIds } from './MarketGroupCard.testIds';
+import { strings } from '../../../../../../locales/i18n';
 import { TotalMarketGroupCard } from './TotalMarketGroupCard';
 
 const GROUP = 'KXNFLTOTAL-26OCT29CARGB:total';
@@ -48,6 +49,84 @@ describe('TotalMarketGroupCard', () => {
         onRulesPress={jest.fn()}
       />,
     );
+  });
+
+  it('has no header without a title', () => {
+    expect(screen.queryByTestId(TestIds.title(GROUP))).not.toBeOnTheScreen();
+  });
+
+  it('has no header or rules entry without a title, even with rules and a handler', () => {
+    const withRules = { ...market, rules: 'Resolves on the final score.' };
+    screen.rerender(
+      <TotalMarketGroupCard
+        groupKey={GROUP}
+        markets={[withRules]}
+        selectedMarket={withRules}
+        onSelectMarket={jest.fn()}
+        onRulesPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId(TestIds.title(GROUP))).not.toBeOnTheScreen();
+    expect(
+      screen.queryByHintText(
+        strings('predict.rules.market_accessibility_label'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows a given title', () => {
+    screen.rerender(
+      <TotalMarketGroupCard
+        title="Total points"
+        groupKey={GROUP}
+        markets={[market]}
+        selectedMarket={market}
+        onSelectMarket={jest.fn()}
+        onRulesPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId(TestIds.title(GROUP))).toHaveTextContent(
+      'Total points',
+    );
+  });
+
+  it('opens the line rules from the title only when the line has rules and a handler', () => {
+    const withRules = { ...market, rules: 'Resolves on the final score.' };
+    const onRulesPress = jest.fn();
+    screen.rerender(
+      <TotalMarketGroupCard
+        title="Total points"
+        groupKey={GROUP}
+        markets={[withRules]}
+        selectedMarket={withRules}
+        onSelectMarket={jest.fn()}
+        onRulesPress={onRulesPress}
+      />,
+    );
+
+    const title = screen.getByTestId(TestIds.title(GROUP));
+    expect(title).toHaveProp('accessibilityRole', 'button');
+    fireEvent.press(title);
+    expect(onRulesPress).toHaveBeenCalledWith(withRules);
+
+    screen.rerender(
+      <TotalMarketGroupCard
+        title="Total points"
+        groupKey={GROUP}
+        markets={[withRules]}
+        selectedMarket={withRules}
+        onSelectMarket={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId(TestIds.title(GROUP))).not.toHaveProp(
+      'accessibilityRole',
+      'button',
+    );
+    fireEvent.press(screen.getByTestId(TestIds.title(GROUP)));
+    expect(onRulesPress).toHaveBeenCalledTimes(1);
   });
 
   it('shows Over and Under with the prefixed line', () => {
