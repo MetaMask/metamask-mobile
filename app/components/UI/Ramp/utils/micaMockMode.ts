@@ -9,10 +9,8 @@ import type {
 } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 
-const MICA_MOCK_MODE_ENABLED = process.env.MICA_MOCK_MODE === 'true' && __DEV__;
-
 export function isMicaMockModeEnabled(): boolean {
-  return MICA_MOCK_MODE_ENABLED;
+  return process.env.MICA_MOCK_MODE === 'true';
 }
 
 export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
@@ -33,6 +31,7 @@ export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function injectMicaTermsIds(quote: any): any {
   if (!isMicaMockModeEnabled() || !quote) {
     return quote;
@@ -133,9 +132,9 @@ export async function mockSubmitSourceOfIncome(data: {
  * Injects transak-native provider for EU regions to bypass excludeEuTransakNative.
  */
 export function injectMockNativeProviderIfNeeded(
-  providers: Array<{ id: string; name: string; type?: string }>,
+  providers: { id: string; name: string; type?: string }[],
   regionCode: string,
-): Array<{ id: string; name: string; type?: string }> {
+): { id: string; name: string; type?: string }[] {
   if (!isMicaMockModeEnabled()) {
     return providers;
   }

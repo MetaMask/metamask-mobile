@@ -1,15 +1,8 @@
 import * as micaMockMode from './micaMockMode';
 
 // Mock __DEV__ globally
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).__DEV__ = true;
-
-// Extract non-mocked functions
-const {
-  getMockConsentForm,
-  getMockSourceOfIncomeForm,
-  mockSubmitMicaConsent,
-  mockSubmitSourceOfIncome,
-} = micaMockMode;
 
 describe('micaMockMode', () => {
   const originalEnv = process.env.MICA_MOCK_MODE;
@@ -48,7 +41,7 @@ describe('micaMockMode', () => {
 
   describe('getMockSourceOfIncomeForm', () => {
     it('returns a SOURCE_OF_INCOME form with EEA fields', () => {
-      const form = getMockSourceOfIncomeForm();
+      const form = micaMockMode.getMockSourceOfIncomeForm();
       expect(form.formsRequired).toHaveLength(1);
       expect(form.formsRequired[0].type).toBe('SOURCE_OF_INCOME');
 
@@ -63,21 +56,25 @@ describe('micaMockMode', () => {
     });
 
     it('includes realistic option values', () => {
-      const form = getMockSourceOfIncomeForm();
+      const form = micaMockMode.getMockSourceOfIncomeForm();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const metadata = form.formsRequired[0].metadata as any;
 
       const salaryOption = metadata.sourceOfFundsTypeOptions.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (opt: any) => opt.value === 'salary_payment',
       );
       expect(salaryOption).toBeDefined();
       expect(salaryOption.name).toBe('Salary payments');
 
       const employeeOption = metadata.employmentStatusOptions.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (opt: any) => opt.value === 'mid_level_employee',
       );
       expect(employeeOption).toBeDefined();
 
       const germanyOption = metadata.countryOfCitizenshipOptions.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (opt: any) => opt.value === 'DE',
       );
       expect(germanyOption).toBeDefined();
@@ -87,7 +84,9 @@ describe('micaMockMode', () => {
 
   describe('mockSubmitMicaConsent', () => {
     it('returns SUBMITTED status after delay', async () => {
-      const result = await mockSubmitMicaConsent('2024-01-01T00:00:00Z');
+      const result = await micaMockMode.mockSubmitMicaConsent(
+        '2024-01-01T00:00:00Z',
+      );
       expect(result.status).toBe('SUBMITTED');
     });
   });
@@ -101,26 +100,15 @@ describe('micaMockMode', () => {
         countryOfCitizenship: 'DE',
       };
 
-      await expect(mockSubmitSourceOfIncome(data)).resolves.toBeUndefined();
+      await expect(
+        micaMockMode.mockSubmitSourceOfIncome(data),
+      ).resolves.toBeUndefined();
     });
   });
 
   describe('injectMockNativeProviderIfNeeded', () => {
-    let isMicaMockModeEnabledSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      isMicaMockModeEnabledSpy = jest.spyOn(
-        micaMockMode,
-        'isMicaMockModeEnabled',
-      );
-    });
-
-    afterEach(() => {
-      isMicaMockModeEnabledSpy.mockRestore();
-    });
-
     it('returns providers unchanged when mock mode is off', () => {
-      isMicaMockModeEnabledSpy.mockReturnValue(false);
+      process.env.MICA_MOCK_MODE = 'false';
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'native' },
       ];
@@ -132,7 +120,7 @@ describe('micaMockMode', () => {
     });
 
     it('injects transak-native for EEA countries', () => {
-      isMicaMockModeEnabledSpy.mockReturnValue(true);
+      process.env.MICA_MOCK_MODE = 'true';
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
@@ -147,7 +135,7 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject if transak-native already exists', () => {
-      isMicaMockModeEnabledSpy.mockReturnValue(true);
+      process.env.MICA_MOCK_MODE = 'true';
       const providers = [
         { id: '/providers/transak-native', name: 'Transak', type: 'native' },
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
@@ -160,7 +148,7 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject for non-EEA countries', () => {
-      isMicaMockModeEnabledSpy.mockReturnValue(true);
+      process.env.MICA_MOCK_MODE = 'true';
       const providers = [
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
@@ -173,37 +161,23 @@ describe('micaMockMode', () => {
   });
 
   describe('injectMicaTermsIds', () => {
-    let isMicaMockModeEnabledSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      isMicaMockModeEnabledSpy = jest.spyOn(
-        micaMockMode,
-        'isMicaMockModeEnabled',
-      );
-    });
-
-    afterEach(() => {
-      isMicaMockModeEnabledSpy.mockRestore();
-    });
-
     it('returns quote unchanged when mock mode is off', () => {
-      isMicaMockModeEnabledSpy.mockReturnValue(false);
+      delete process.env.MICA_MOCK_MODE;
       const quote = { quoteId: 'test', fiatAmount: 100 };
       const result = micaMockMode.injectMicaTermsIds(quote);
       expect(result).toEqual(quote);
     });
 
-    it('injects MICA_EEA_BUY termsId', () => {
-      isMicaMockModeEnabledSpy.mockReturnValue(true);
+    it('injects MICA_EEA_BUY termsId when quote has no termsIds', () => {
+      process.env.MICA_MOCK_MODE = 'true';
       const quote = { quoteId: 'test', fiatAmount: 100 };
       const result = micaMockMode.injectMicaTermsIds(quote);
 
-      expect(result.termsIds).toBeDefined();
-      expect(result.termsIds).toContain('MICA_EEA_BUY');
+      expect(result.termsIds).toEqual(['MICA_EEA_BUY']);
     });
 
     it('preserves existing termsIds', () => {
-      isMicaMockModeEnabledSpy.mockReturnValue(true);
+      process.env.MICA_MOCK_MODE = 'true';
       const quote = {
         quoteId: 'test',
         fiatAmount: 100,
@@ -211,12 +185,11 @@ describe('micaMockMode', () => {
       };
       const result = micaMockMode.injectMicaTermsIds(quote);
 
-      expect(result.termsIds).toBeDefined();
       expect(result.termsIds).toEqual(['MICA_EEA_BUY', 'EXISTING']);
     });
 
     it('returns quote unchanged when quote is null', () => {
-      isMicaMockModeEnabledSpy.mockReturnValue(true);
+      process.env.MICA_MOCK_MODE = 'true';
       const result = micaMockMode.injectMicaTermsIds(null);
       expect(result).toBeNull();
     });

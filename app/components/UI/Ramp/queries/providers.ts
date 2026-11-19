@@ -28,8 +28,9 @@ export const rampsProvidersOptions = (params: ProvidersQueryParams) =>
       // MiCA mock mode: inject transak-native for EU regions when excluded
       // by onramp-api (dev-only, off by default)
       if (__DEV__) {
-        const { injectMockNativeProviderIfNeeded } =
-          require('../utils/micaMockMode');
+        const {
+          injectMockNativeProviderIfNeeded,
+        } = require('../utils/micaMockMode');
         response.providers = injectMockNativeProviderIfNeeded(
           response.providers,
           params.regionCode,

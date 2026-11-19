@@ -42,9 +42,9 @@ import styleSheet from './SourceOfIncome.styles';
 
 interface SourceOfIncomeMetadata
   extends NonNullable<TransakAdditionalRequirement['metadata']> {
-  sourceOfFundsTypeOptions?: Array<{ name: string; value: string }>;
-  employmentStatusOptions?: Array<{ name: string; value: string }>;
-  countryOfCitizenshipOptions?: Array<{ name: string; value: string }>;
+  sourceOfFundsTypeOptions?: { name: string; value: string }[];
+  employmentStatusOptions?: { name: string; value: string }[];
+  countryOfCitizenshipOptions?: { name: string; value: string }[];
 }
 
 export interface SourceOfIncomeParams {
@@ -79,7 +79,7 @@ const SourceOfIncome = (): React.JSX.Element => {
     Boolean(metadata.employmentStatusOptions?.length) &&
     Boolean(metadata.countryOfCitizenshipOptions?.length);
 
-  const sourceOfFundsOptions: Array<{ name: string; value: string }> =
+  const sourceOfFundsOptions: { name: string; value: string }[] =
     metadata.sourceOfFundsTypeOptions || [];
 
   const handleBack = useCallback(() => {

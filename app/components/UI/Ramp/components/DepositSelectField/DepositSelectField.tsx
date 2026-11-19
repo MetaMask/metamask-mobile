@@ -24,7 +24,7 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 interface DepositSelectFieldProps {
   label: string;
   placeholder?: string;
-  options: Array<{ name: string; value: string }>;
+  options: { name: string; value: string }[];
   selectedValue: string;
   onValueChange: (value: string) => void;
   error?: string;
@@ -66,7 +66,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.overlay.default,
       justifyContent: 'flex-end',
     },
     modalContent: {

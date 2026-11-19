@@ -138,7 +138,7 @@ describe('SourceOfIncome', () => {
     expect(queryByText('deposit.mica.nationalityLabel')).toBeNull();
   });
 
-  it('disables submit button until all required fields are filled (EEA)', async () => {
+  it('renders submit button in disabled state initially', async () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
