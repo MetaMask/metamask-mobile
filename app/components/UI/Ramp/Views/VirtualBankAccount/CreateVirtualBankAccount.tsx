@@ -25,6 +25,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { isPositiveNumberOrZero } from '../../../Money/utils/number';
@@ -206,6 +207,7 @@ const CreateVirtualBankAccount = ({
       return;
     }
 
+    fireImpact(ImpactMoment.PrimaryCTA);
     setIsAdvancing(true);
     let didAdvance = false;
     try {

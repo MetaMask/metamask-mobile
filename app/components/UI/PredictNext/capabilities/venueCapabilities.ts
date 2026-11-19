@@ -33,7 +33,7 @@ const VENUE_CAPABILITY_SOURCES: Record<
     displayName: 'Polymarket',
     catalog: { type: 'client', catalog: POLYMARKET_STATIC_VENUE_CATALOG },
   },
-  // The adapter serves KALSHI_STATIC_VENUE_CATALOG until PRED-1403.
+  // Read from the Predict API catalog; the adapter holds no fallback.
   kalshi: { displayName: 'Kalshi', catalog: { type: 'service' } },
 };
 

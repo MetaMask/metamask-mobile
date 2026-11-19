@@ -5,6 +5,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonSize,
   ButtonVariant,
   FontWeight,
   Icon,
@@ -34,6 +35,9 @@ interface PortfolioSummaryCardProps {
   isLoading: boolean;
   isPrivacyMode: boolean;
   onRetry: () => void;
+  /** Omitted when the Active Venue offers no Withdraw flow, which hides the
+   * action rather than disabling it. */
+  onWithdrawPress?: () => void;
 }
 
 interface SummaryRowProps {
@@ -96,6 +100,7 @@ export const PortfolioSummaryCard = ({
   isLoading,
   isPrivacyMode,
   onRetry,
+  onWithdrawPress,
 }: PortfolioSummaryCardProps) => {
   let content: React.ReactNode;
   if (isLoading) {
@@ -195,6 +200,18 @@ export const PortfolioSummaryCard = ({
         {strings('predict_next.portfolio.total_value')}
       </Text>
       {content}
+      {onWithdrawPress ? (
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          isFullWidth
+          onPress={onWithdrawPress}
+          twClassName="mt-2"
+          testID={PredictPortfolioScreenTestIds.WITHDRAW}
+        >
+          {strings('predict_next.withdraw.title')}
+        </Button>
+      ) : null}
     </Box>
   );
 };
