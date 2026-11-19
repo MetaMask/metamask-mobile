@@ -6,6 +6,7 @@
 import type {
   TransakAdditionalRequirementsResponse,
   TransakAdditionalRequirement,
+  Provider,
 } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 import { isMicaMockModeEnabled } from './micaMockModeEnv';
@@ -131,14 +132,13 @@ export async function mockSubmitSourceOfIncome(data: {
  * Injects transak-native provider for EU regions to bypass excludeEuTransakNative.
  */
 export function injectMockNativeProviderIfNeeded(
-  providers: { id: string; name: string; type?: string }[],
+  providers: Provider[],
   regionCode: string,
-): { id: string; name: string; type?: string }[] {
+): Provider[] {
   if (!isMicaMockModeEnabled()) {
     return providers;
   }
 
-  // List of EEA country codes (non-exhaustive, add more as needed for testing)
   const EEA_COUNTRIES = [
     'AT',
     'BE',
@@ -177,7 +177,6 @@ export function injectMockNativeProviderIfNeeded(
     return providers;
   }
 
-  // Check if transak-native or transak-native-staging already exists
   const hasNative = providers.some((p) => p.id?.includes('transak-native'));
   if (hasNative) {
     return providers;
@@ -187,12 +186,21 @@ export function injectMockNativeProviderIfNeeded(
     regionCode,
   });
 
-  // Inject the native provider at the beginning
   return [
     {
       id: '/providers/transak-native-staging',
       name: 'Transak (Native - Mock)',
       type: 'native',
+      environmentType: 'staging',
+      description: 'Mock Transak native provider for MiCA testing',
+      hqAddress: 'Mock Address',
+      links: [],
+      logos: {
+        light: '',
+        dark: '',
+        height: 0,
+        width: 0,
+      },
     },
     ...providers,
   ];
