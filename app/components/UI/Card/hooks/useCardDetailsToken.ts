@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { CardType } from '../types';
-import type { CardSecureView } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardDetailsView } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import Engine from '../../../../core/Engine';
 
@@ -31,7 +31,7 @@ export const CARD_DETAILS_CSS = {
 interface UseCardDetailsTokenResult {
   fetchCardDetailsToken: (
     cardType?: CardType,
-  ) => Promise<CardSecureView | null>;
+  ) => Promise<CardDetailsView | null>;
   isLoading: boolean;
   isImageLoading: boolean;
   onImageLoad: () => void;
@@ -51,7 +51,7 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
   const fetchCardDetailsToken = useCallback(
     async (
       cardType: CardType = CardType.VIRTUAL,
-    ): Promise<CardSecureView | null> => {
+    ): Promise<CardDetailsView | null> => {
       if (!isAuthenticated) {
         return null;
       }
@@ -67,8 +67,16 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
             customCss,
           },
         );
-        setImageUrl(response.url);
-        return response;
+        if (response.hostedPageUrl) {
+          setImageUrl(null);
+          setIsImageLoading(false);
+          return response;
+        }
+        if (response.imageUrl) {
+          setImageUrl(response.imageUrl);
+          return response;
+        }
+        throw new Error('Card details view missing URL');
       } catch (err) {
         setIsImageLoading(false);
         const fetchError =

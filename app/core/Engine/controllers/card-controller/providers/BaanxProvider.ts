@@ -46,6 +46,7 @@ import {
   CardProviderCapabilities,
   ApplePayProvisioningParams,
   CardWalletProvisioningInfo,
+  CardDetailsView,
   CardSecureView,
   CardSecureViewParams,
   AuthTokenValidity,
@@ -852,12 +853,20 @@ export class BaanxProvider implements ICardProvider {
   async getCardDetailsView(
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
-  ): Promise<CardSecureView> {
+  ): Promise<CardDetailsView> {
+    // Location comes from the auth token. Do not pass a location override or
+    // `?region=us`: international tokens must stay `x-us-env: false`, and US
+    // responses omit hostedPageUrl.
     const response = await this.service.post<{
-      imageUrl: string;
       token: string;
+      imageUrl?: string;
+      hostedPageUrl?: string;
     }>('/v1/card/details/token', { customCss: params.customCss }, tokens);
-    return { url: response.imageUrl, token: response.token };
+    return {
+      token: response.token,
+      imageUrl: response.imageUrl || undefined,
+      hostedPageUrl: response.hostedPageUrl || undefined,
+    };
   }
 
   async getCardPinView(

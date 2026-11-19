@@ -68,6 +68,7 @@ import {
   type CardHomeData,
   type CardInitiateAuthOptions,
   type CardProviderCapabilities,
+  type CardDetailsView,
   type CardSecureView,
   type CardSecureViewParams,
   type CardSensitiveDetails,
@@ -2744,7 +2745,7 @@ export class CardController extends BaseController<
 
   async getCardDetailsView(
     params: CardSecureViewParams,
-  ): Promise<CardSecureView> {
+  ): Promise<CardDetailsView> {
     const provider = this.getActiveProvider();
     const getCardDetailsView = provider.getCardDetailsView?.bind(provider);
     if (!getCardDetailsView) {

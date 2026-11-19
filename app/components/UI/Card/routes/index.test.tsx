@@ -66,6 +66,11 @@ jest.mock('../Views/CardHome/CardHome', () => {
   return () => <View testID="card-home" />;
 });
 
+jest.mock('../Views/CardViewCardDetails', () => {
+  const { View } = require('react-native');
+  return () => <View testID="card-view-card-details" />;
+});
+
 jest.mock('../Views/CardWelcome/CardWelcome', () => {
   const { View } = require('react-native');
   return () => <View testID="card-welcome" />;
@@ -238,6 +243,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     CONTACT_DETAILS: 'CardContactDetails',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
+    VIEW_CARD_DETAILS: 'CardViewCardDetails',
     AUTHENTICATION: 'CardAuthentication',
     MFA_METHOD: 'CardMfaMethod',
     MFA_CODE: 'CardMfaCode',
@@ -379,6 +385,14 @@ describe('CardRoutes', () => {
 
       expect(
         getByText('CardApplePaySplash-animation:slide_from_bottom'),
+      ).toBeOnTheScreen();
+    });
+
+    it('slides card details in from the bottom', () => {
+      const { getByText } = renderWithProviders(<CardRoutes />);
+
+      expect(
+        getByText('CardViewCardDetails-animation:slide_from_bottom'),
       ).toBeOnTheScreen();
     });
 

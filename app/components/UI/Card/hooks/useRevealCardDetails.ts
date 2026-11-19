@@ -130,7 +130,12 @@ export function useRevealCardDetails({
   const fetchAndShowCardDetails = useCallback(async () => {
     trackViewDetails();
     try {
-      await fetchCardDetailsToken(cardType);
+      const view = await fetchCardDetailsToken(cardType);
+      if (view?.hostedPageUrl) {
+        navigation.navigate(Routes.CARD.VIEW_CARD_DETAILS, {
+          hostedPageUrl: view.hostedPageUrl,
+        });
+      }
     } catch {
       showCardDetailsErrorToast();
     }
@@ -139,6 +144,7 @@ export function useRevealCardDetails({
     showCardDetailsErrorToast,
     cardType,
     trackViewDetails,
+    navigation,
   ]);
 
   const fetchAndShowSensitiveDetails = useCallback(async () => {

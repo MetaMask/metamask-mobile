@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import useCardDetailsToken, { CARD_DETAILS_CSS } from './useCardDetailsToken';
 import { CardType } from '../types';
-import type { CardSecureView } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardDetailsView } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -21,8 +21,8 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockGetCardDetailsView = Engine.context.CardController
   .getCardDetailsView as jest.Mock;
 
-const mockTokenResponse: CardSecureView = {
-  url: 'https://cards.baanx.com/details-image?token=test-token-123',
+const mockTokenResponse: CardDetailsView = {
+  imageUrl: 'https://cards.baanx.com/details-image?token=test-token-123',
   token: 'test-token-123',
 };
 
@@ -53,7 +53,7 @@ describe('useCardDetailsToken', () => {
 
       const { result } = renderHook(() => useCardDetailsToken());
 
-      let response: CardSecureView | null = null;
+      let response: CardDetailsView | null = null;
       await act(async () => {
         response = await result.current.fetchCardDetailsToken();
       });
@@ -72,7 +72,7 @@ describe('useCardDetailsToken', () => {
       expect(mockGetCardDetailsView).toHaveBeenCalledWith({
         customCss: CARD_DETAILS_CSS[CardType.VIRTUAL],
       });
-      expect(result.current.imageUrl).toBe(mockTokenResponse.url);
+      expect(result.current.imageUrl).toBe(mockTokenResponse.imageUrl);
     });
 
     it('fetches card details token with VIRTUAL card type', async () => {
@@ -133,7 +133,7 @@ describe('useCardDetailsToken', () => {
     });
 
     it('sets loading state while fetching', async () => {
-      let resolvePromise: (value: CardSecureView) => void;
+      let resolvePromise: (value: CardDetailsView) => void;
       mockGetCardDetailsView.mockImplementation(
         () =>
           new Promise((resolve) => {
@@ -143,7 +143,7 @@ describe('useCardDetailsToken', () => {
 
       const { result } = renderHook(() => useCardDetailsToken());
 
-      let fetchPromise: Promise<CardSecureView | null>;
+      let fetchPromise: Promise<CardDetailsView | null>;
       act(() => {
         fetchPromise = result.current.fetchCardDetailsToken();
       });
@@ -168,19 +168,53 @@ describe('useCardDetailsToken', () => {
         await result.current.fetchCardDetailsToken();
       });
 
-      expect(result.current.imageUrl).toBe(mockTokenResponse.url);
+      expect(result.current.imageUrl).toBe(mockTokenResponse.imageUrl);
       expect(result.current.error).toBeNull();
     });
 
     it('returns response on successful fetch', async () => {
       const { result } = renderHook(() => useCardDetailsToken());
 
-      let response: CardSecureView | null = null;
+      let response: CardDetailsView | null = null;
       await act(async () => {
         response = await result.current.fetchCardDetailsToken();
       });
 
       expect(response).toEqual(mockTokenResponse);
+    });
+
+    it('leaves imageUrl empty when the response includes hostedPageUrl', async () => {
+      const hostedPageUrl = 'https://cards.example/card/details?token=hosted';
+      mockGetCardDetailsView.mockResolvedValue({
+        token: 'hosted',
+        hostedPageUrl,
+        imageUrl: 'https://cards.example/details-image?token=hosted',
+      });
+
+      const { result } = renderHook(() => useCardDetailsToken());
+
+      let response: CardDetailsView | null = null;
+      await act(async () => {
+        response = await result.current.fetchCardDetailsToken();
+      });
+
+      expect(response?.hostedPageUrl).toBe(hostedPageUrl);
+      expect(result.current.imageUrl).toBeNull();
+      expect(result.current.isImageLoading).toBe(false);
+    });
+
+    it('throws when the response has neither hostedPageUrl nor imageUrl', async () => {
+      mockGetCardDetailsView.mockResolvedValue({ token: 'tok' });
+
+      const { result } = renderHook(() => useCardDetailsToken());
+
+      await expect(
+        act(async () => {
+          await result.current.fetchCardDetailsToken();
+        }),
+      ).rejects.toThrow('Card details view missing URL');
+      expect(result.current.imageUrl).toBeNull();
+      expect(result.current.isImageLoading).toBe(false);
     });
   });
 
@@ -242,7 +276,7 @@ describe('useCardDetailsToken', () => {
       await act(async () => {
         await result.current.fetchCardDetailsToken();
       });
-      expect(result.current.imageUrl).toBe(mockTokenResponse.url);
+      expect(result.current.imageUrl).toBe(mockTokenResponse.imageUrl);
 
       act(() => {
         result.current.clearImageUrl();
@@ -293,7 +327,7 @@ describe('useCardDetailsToken', () => {
 
   describe('Image Loading State', () => {
     it('sets isImageLoading to true when fetch starts', async () => {
-      let resolvePromise: ((value: CardSecureView) => void) | null = null;
+      let resolvePromise: ((value: CardDetailsView) => void) | null = null;
       mockGetCardDetailsView.mockImplementation(
         () =>
           new Promise((resolve) => {
@@ -303,7 +337,7 @@ describe('useCardDetailsToken', () => {
 
       const { result } = renderHook(() => useCardDetailsToken());
 
-      let fetchPromise: Promise<CardSecureView | null>;
+      let fetchPromise: Promise<CardDetailsView | null>;
       act(() => {
         fetchPromise = result.current.fetchCardDetailsToken();
       });

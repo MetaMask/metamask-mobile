@@ -336,6 +336,17 @@ export interface CardSecureView {
   token: string;
 }
 
+/**
+ * Result of POST /v1/card/details/token.
+ * `hostedPageUrl` and `imageUrl` share one single-use token when both are set,
+ * so callers open only the hosted page.
+ */
+export interface CardDetailsView {
+  token: string;
+  imageUrl?: string;
+  hostedPageUrl?: string;
+}
+
 export interface CardSensitiveDetails {
   pan: string;
   cvv2: string;
@@ -760,7 +771,7 @@ export interface ICardProvider {
   getCardDetailsView?(
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
-  ): Promise<CardSecureView>;
+  ): Promise<CardDetailsView>;
   getCardPinView?(
     tokens: CardAuthTokens,
     params: CardSecureViewParams,

@@ -166,6 +166,7 @@ export type CardModalsNavigationParamList = {
 export type CardRootParamList = {
   CardHome: NavigatorScreenParams<CardScreensStackParamList> | undefined;
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
+  CardViewCardDetails: { hostedPageUrl: string };
 };
 
 export type CardRootEntryParams = NavigatorScreenParams<CardRootParamList> & {

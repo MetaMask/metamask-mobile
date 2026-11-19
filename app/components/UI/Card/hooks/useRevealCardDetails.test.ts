@@ -197,6 +197,11 @@ describe('useRevealCardDetails', () => {
   });
 
   it('fetches a Baanx secure image after biometric success', async () => {
+    mockFetchCardDetailsToken.mockResolvedValue({
+      token: 'tok',
+      imageUrl: 'https://example.com/card.png',
+    });
+
     const { result } = setup({ supportsSensitiveDetailsView: false });
 
     await act(async () => {
@@ -206,6 +211,29 @@ describe('useRevealCardDetails', () => {
     expect(mockWithBiometricAuth).toHaveBeenCalled();
     expect(mockFetchCardDetailsToken).toHaveBeenCalledWith(CardType.VIRTUAL);
     expect(mockGetCardSensitiveDetails).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.CARD.VIEW_CARD_DETAILS,
+      expect.anything(),
+    );
+  });
+
+  it('opens the hosted page when the token response includes hostedPageUrl', async () => {
+    const hostedPageUrl = 'https://cards.example/card/details?token=hosted';
+    mockFetchCardDetailsToken.mockResolvedValue({
+      token: 'hosted',
+      hostedPageUrl,
+      imageUrl: 'https://cards.example/details-image?token=hosted',
+    });
+
+    const { result } = setup({ supportsSensitiveDetailsView: false });
+
+    await act(async () => {
+      await result.current.viewCardDetailsAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.VIEW_CARD_DETAILS, {
+      hostedPageUrl,
+    });
   });
 
   it('fetches Immersve sensitive fields after biometric success', async () => {

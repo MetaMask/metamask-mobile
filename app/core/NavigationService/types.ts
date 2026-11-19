@@ -104,6 +104,7 @@ import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
   CardRootEntryParams,
+  CardRootParamList,
   CardScreensStackParamList,
 } from '../../components/UI/Card/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
@@ -1242,6 +1243,7 @@ export type RootStackParamList = {
   CardOnboardingImmersveKYC: CardOnboardingStackParamList['CardOnboardingImmersveKYC'];
   CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
   CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
+  CardViewCardDetails: CardRootParamList['CardViewCardDetails'];
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
   CardAddFundsModal: CardModalsNavigationParamList['CardAddFundsModal'];
   CardAssetSelectionModal: CardModalsNavigationParamList['CardAssetSelectionModal'];

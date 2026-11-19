@@ -625,6 +625,7 @@ const Routes = {
     CONTACT_DETAILS: 'CardContactDetails',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
+    VIEW_CARD_DETAILS: 'CardViewCardDetails',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',

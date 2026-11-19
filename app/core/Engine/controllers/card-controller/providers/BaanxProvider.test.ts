@@ -1308,6 +1308,76 @@ describe('BaanxProvider — getCardDetails hasPin', () => {
   });
 });
 
+describe('BaanxProvider getCardDetailsView', () => {
+  const internationalTokens: CardAuthTokens = {
+    accessToken: 'at',
+    accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+    location: 'international',
+  };
+
+  it('maps hostedPageUrl and imageUrl and keeps an international token off the US env', async () => {
+    mockRequest.mockResolvedValue({
+      data: {
+        token: 'tok-1',
+        imageUrl: 'https://cards.example/details-image?token=tok-1',
+        hostedPageUrl: 'https://cards.example/card/details?token=tok-1',
+      },
+    });
+    const provider = new BaanxProvider({ service: createService() });
+
+    const result = await provider.getCardDetailsView(internationalTokens, {
+      customCss: { cardBackgroundColor: '#000000' },
+    });
+
+    expect(result).toEqual({
+      token: 'tok-1',
+      imageUrl: 'https://cards.example/details-image?token=tok-1',
+      hostedPageUrl: 'https://cards.example/card/details?token=tok-1',
+    });
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/v1/card/details/token',
+        method: 'POST',
+        data: { customCss: { cardBackgroundColor: '#000000' } },
+        headers: expect.objectContaining({
+          'x-us-env': 'false',
+          Authorization: 'Bearer at',
+        }),
+      }),
+    );
+    const requestConfig = mockRequest.mock.calls[0][0] as { url: string };
+    expect(requestConfig.url).toBe('/v1/card/details/token');
+    expect(requestConfig.url).not.toContain('region=');
+  });
+
+  it('returns imageUrl without hostedPageUrl for a US token', async () => {
+    mockRequest.mockResolvedValue({
+      data: {
+        token: 'tok-us',
+        imageUrl: 'https://cards.example/details-image?token=tok-us',
+      },
+    });
+    const provider = new BaanxProvider({ service: createService() });
+
+    const result = await provider.getCardDetailsView(
+      { ...internationalTokens, location: 'us' },
+      {},
+    );
+
+    expect(result).toEqual({
+      token: 'tok-us',
+      imageUrl: 'https://cards.example/details-image?token=tok-us',
+      hostedPageUrl: undefined,
+    });
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/v1/card/details/token',
+        headers: expect.objectContaining({ 'x-us-env': 'true' }),
+      }),
+    );
+  });
+});
+
 describe('BaanxProvider — listTransactions', () => {
   const tokens: CardAuthTokens = {
     accessToken: 'at',
