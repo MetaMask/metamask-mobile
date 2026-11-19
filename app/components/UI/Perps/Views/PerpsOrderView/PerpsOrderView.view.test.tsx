@@ -1910,6 +1910,45 @@ describe('PerpsOrderView', () => {
     }
   });
 
+  it('omits the remaining liquidation price from auto close when a cross reduce does not flip', async () => {
+    const restoreMarkets = useEthCrossMarket();
+    try {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: {
+          ...existingCrossOrderParams,
+          direction: 'short',
+          useBottomSheet: true,
+        },
+        streamOverrides: existingCrossPositionStream,
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(/\$/);
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('--');
+    } finally {
+      restoreMarkets();
+    }
+  });
+
   it('shows no liquidation price when a cross order cannot be liquidated', async () => {
     const restoreMarkets = useEthCrossMarket();
     try {
