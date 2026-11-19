@@ -7,7 +7,12 @@ import {
   handleKycStatusChangedForMetrics,
   handleVerificationStatusChangedForMetrics,
 } from './event-handlers/analytics';
-import { trace, TraceName } from '../../../../util/trace';
+import {
+  endTrace,
+  getPerformanceTimestamp,
+  trace,
+  TraceName,
+} from '../../../../util/trace';
 import { sumsubLauncher } from './sumSubLauncher';
 import {
   KycController,
@@ -18,6 +23,8 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
+  endTrace: jest.fn(),
+  getPerformanceTimestamp: jest.fn(() => 1234),
   TraceName: {
     KycProviderFlow: 'KYC Provider Flow',
   },
@@ -128,6 +135,7 @@ describe('kycControllerInit', () => {
   });
 
   it('passes trace to the controller', () => {
+    jest.mocked(getPerformanceTimestamp).mockReturnValue(1234);
     kycControllerInit(getInitRequestMock());
 
     const traceProviderFlow = getLastConstructorArgs()?.trace as (
@@ -151,17 +159,22 @@ describe('kycControllerInit', () => {
       finish,
     );
 
-    expect(trace).toHaveBeenCalledWith(
-      {
-        name: TraceName.KycProviderFlow,
-        data: undefined,
-        id: undefined,
-        startTime: 1,
-        tags: { feature: 'kyc', result: 'submitted' },
-        op: 'kyc.operation',
-      },
-      finish,
-    );
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.KycProviderFlow,
+      data: undefined,
+      id: undefined,
+      startTime: 1,
+      tags: { feature: 'kyc', result: 'submitted' },
+      op: 'kyc.operation',
+      forceTransaction: true,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.KycProviderFlow,
+      id: undefined,
+      timestamp: 1234,
+    });
+    expect(getPerformanceTimestamp).toHaveBeenCalledTimes(1);
+    expect(finish).toHaveBeenCalledTimes(1);
   });
 
   it('passes the analytics callbacks to the controller', () => {

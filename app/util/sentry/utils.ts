@@ -717,6 +717,9 @@ export async function setupSentry(
         return filtered as typeof event;
       },
       enabled: forceEnabled || hasConsent,
+      // Local sidecar only. Opt in with SENTRY_SPOTLIGHT=true. The SDK also
+      // ignores this option unless __DEV__ is true.
+      spotlight: isDev && process.env.SENTRY_SPOTLIGHT === 'true',
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
       _experiments: {
