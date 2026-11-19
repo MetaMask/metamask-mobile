@@ -31,10 +31,14 @@ export const useMoneyToken = ({ type }: { type: TokenSelectorType }) => {
   const moneySwapEnabled = useSelector(selectBridgeMoneyEnabled);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
-  const featureId = useSwapsFeatureId()
+  const featureId = useSwapsFeatureId();
 
   return useMemo((): BridgeToken | undefined => {
-    if (!moneySwapEnabled || !isMoneyAccountVisible || featureId !== FeatureId.UNIFIED_SWAP_BRIDGE) {
+    if (
+      !moneySwapEnabled ||
+      !isMoneyAccountVisible ||
+      featureId !== FeatureId.UNIFIED_SWAP_BRIDGE
+    ) {
       return undefined;
     }
 
