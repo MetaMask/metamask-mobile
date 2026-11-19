@@ -20,6 +20,7 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 export type VbaOnboardingStubVariant = 'account_provisioning_error' | 'error';
 
@@ -53,6 +54,7 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
     if (isContinuing) {
       return;
     }
+    fireImpact(ImpactMoment.PrimaryCTA);
     setIsContinuing(true);
     try {
       await onContinue();

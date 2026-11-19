@@ -43,4 +43,19 @@ describe('switchToLinkedCardAccount', () => {
     expect(Logger.error).toHaveBeenCalledTimes(1);
     expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
   });
+
+  it('logs and resolves when selecting the linked account throws', async () => {
+    const switchError = new Error('Account switch failed');
+    mockFindLinkedAccountAddress.mockResolvedValue('0xabc');
+    (Engine.setSelectedAddress as jest.Mock).mockImplementationOnce(() => {
+      throw switchError;
+    });
+
+    await expect(switchToLinkedCardAccount()).resolves.toBeUndefined();
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      switchError,
+      '[switchToLinkedCardAccount] Failed to switch to linked card account',
+    );
+  });
 });

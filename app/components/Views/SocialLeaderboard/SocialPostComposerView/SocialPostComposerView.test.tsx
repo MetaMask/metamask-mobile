@@ -1,5 +1,4 @@
 import { Icon, IconSize } from '@metamask/design-system-react-native';
-import { captureException } from '@sentry/react-native';
 import React from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
 import {
@@ -244,8 +243,11 @@ jest.mock('./createSwapCommentApi', () => ({
   createSwapComment: (...args: unknown[]) => mockCreateSwapComment(...args),
 }));
 
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
+const mockReportSocialServiceFailure = jest.fn();
+jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
+  ...jest.requireActual('../../../../util/social/socialServiceTelemetry'),
+  reportSocialServiceFailure: (...args: unknown[]) =>
+    mockReportSocialServiceFailure(...args),
 }));
 
 const mockInvalidateModerationStatus = jest.fn().mockResolvedValue(undefined);
@@ -901,6 +903,15 @@ describe('SocialPostComposerView', () => {
       'post_failed',
       expect.objectContaining({ failure_reason: 'unknown' }),
     );
+    expect(mockReportSocialServiceFailure).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        surface: 'post_composer',
+        operation: 'create_comment',
+        endpoint: 'create_comment',
+        profileId: 'current-user',
+      }),
+    );
   });
 
   it('shows the post failure toast and reports to Sentry when creating a post takes longer than 7 seconds', async () => {
@@ -929,7 +940,7 @@ describe('SocialPostComposerView', () => {
       await jest.advanceTimersByTimeAsync(6999);
     });
     expect(mockShowToast).not.toHaveBeenCalled();
-    expect(captureException).not.toHaveBeenCalled();
+    expect(mockReportSocialServiceFailure).not.toHaveBeenCalled();
 
     await act(async () => {
       await jest.advanceTimersByTimeAsync(1);
@@ -940,7 +951,15 @@ describe('SocialPostComposerView', () => {
         labelOptions: [{ label: 'social_leaderboard.composer.post_failed' }],
       }),
     );
-    expect(captureException).toHaveBeenCalledTimes(1);
+    expect(mockReportSocialServiceFailure).toHaveBeenCalledTimes(1);
+    expect(mockReportSocialServiceFailure).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        surface: 'post_composer',
+        operation: 'create_comment_timeout',
+        endpoint: 'create_comment',
+      }),
+    );
     expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
       'post_failed',
       expect.objectContaining({ failure_reason: 'timeout' }),

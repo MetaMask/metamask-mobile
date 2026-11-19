@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   ListItemSelect,
   type BottomSheetRef,
@@ -13,6 +12,9 @@ import {
 } from '../../utils/recurringSchedule';
 import { RecurringIntervalSheetSelectorsIDs } from './RecurringIntervalSheet.testIds';
 import type { RecurringIntervalSheetProps } from './RecurringIntervalSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /** Matches the limit-order expiration sheet, so the new check is visible before close. */
 const RECURRING_INTERVAL_CLOSE_DELAY_MS = 250;
@@ -22,6 +24,7 @@ const RecurringIntervalSheet = ({
   onSelect,
   goBack,
 }: RecurringIntervalSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedUnit, setSelectedUnit] =
@@ -63,14 +66,15 @@ const RecurringIntervalSheet = ({
       testID={RecurringIntervalSheetSelectorsIDs.SHEET}
       goBack={goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: RecurringIntervalSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.recurring.every')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingBottom={2}>
         {RECURRING_INTERVAL_UNITS.map((unit) => (
           <ListItemSelect

@@ -29,7 +29,9 @@ import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
 import PriceRangeRow from '../../../components/PriceRangeRow';
-import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
+import RecurringScheduleFields, {
+  type RecurringScheduleFieldsRef,
+} from '../../../components/RecurringScheduleFields';
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
@@ -96,6 +98,7 @@ const BridgeRecurringBuyViewContent = ({
   const navigation = useNavigation<AppNavigationProp>();
   const isScreenFocused = useIsFocused();
   const inputRef = useRef<TokenInputAreaRef>(null);
+  const scheduleFieldsRef = useRef<RecurringScheduleFieldsRef>(null);
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const {
@@ -203,10 +206,15 @@ const BridgeRecurringBuyViewContent = ({
     keypadRef,
   } = useRecurringBuyKeypad({ sourceAmountInput });
 
-  const dismissInputAndKeypad = useCallback(() => {
+  const blurInputs = useCallback(() => {
     inputRef.current?.blur();
+    scheduleFieldsRef.current?.blur();
+  }, []);
+
+  const dismissInputAndKeypad = useCallback(() => {
+    blurInputs();
     closeKeypad();
-  }, [closeKeypad]);
+  }, [blurInputs, closeKeypad]);
 
   const handleBannersLayout = useCallback((event: LayoutChangeEvent) => {
     const nextHasVisibleBanner = event.nativeEvent.layout.height > 0;
@@ -408,10 +416,19 @@ const BridgeRecurringBuyViewContent = ({
           />
 
           <Box twClassName="-mt-1">
+            <RecurringScheduleFields
+              ref={scheduleFieldsRef}
+              onEveryPress={focusEvery}
+              onRepeatPress={focusRepeat}
+              onDismissKeypad={dismissInputAndKeypad}
+              onUnitPress={handleUnitPress}
+              onRepeatInfoPress={handleRepeatInfoPress}
+            />
+
             <Box
               testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
               onLayout={handleBannersLayout}
-              twClassName={hasVisibleBanner ? 'mb-2' : undefined}
+              twClassName={hasVisibleBanner ? 'mt-2' : undefined}
               onTouchEnd={dismissInputAndKeypad}
             >
               <SwapsBanners
@@ -444,14 +461,6 @@ const BridgeRecurringBuyViewContent = ({
                 />
               </SwapsBanners>
             </Box>
-
-            <RecurringScheduleFields
-              onEveryPress={focusEvery}
-              onRepeatPress={focusRepeat}
-              onDismissKeypad={dismissInputAndKeypad}
-              onUnitPress={handleUnitPress}
-              onRepeatInfoPress={handleRepeatInfoPress}
-            />
           </Box>
 
           <PriceRangeRow
@@ -487,6 +496,7 @@ const BridgeRecurringBuyViewContent = ({
         <SwapsKeypad
           ref={keypadRef}
           onChange={handleKeypadChange}
+          onClose={blurInputs}
           {...keypadProps}
         >
           {sourceAmount && sourceAmount !== '0' ? (
