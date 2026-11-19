@@ -1343,9 +1343,6 @@ const PerpsHomeView = () => {
       isGlass={isBrandRefresh}
       onLayout={handleFloatingHeaderLayout}
       includesTopInset={headerIncludesTopInset}
-      // h-16 (64px) matches the Figma header when the Lite pill is shown
-      // (HeaderBase defaults to 56px).
-      twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
       scrollY={headerScrollY}
       titleSectionHeight={titleSectionHeightSv}
       title={perpsScreenTitle}
