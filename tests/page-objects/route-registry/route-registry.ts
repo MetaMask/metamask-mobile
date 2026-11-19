@@ -186,7 +186,7 @@ const NO_PAGE_OBJECT_ROUTES =
   AgenticCliApprovalConfirm AgenticCliDashboardConfirmation AmbiguousAddress Amount Asset AssetLoader AssetsSettings AssetView
   BackupAndSyncSettings BankDetails BasicFunctionality BasicFunctionalityMigration BasicInfo BatchSellCustomSlippageModal BatchSellDefaultSlippageModal BatchSellDestinationTokenSelectorModal
   BatchSellFinalReviewModal BatchSellMinimumReceivedInfoModal BatchSellNetworkFeeInfoModal BatchSellPriceImpactInfoModal BatchSellQuoteDetailsModal BatchSellReview BatchSellTokenSelect BenefitFullView
-  BenefitsFullView BlockaidModal BridgeTokenSelector BridgeTransactionDetails BridgeView BrowserTabHome BuildQuoteHasStarted CancelLimitOrderModal
+  BenefitsFullView BlockaidModal BridgeTokenSelector BridgeTransactionDetails BridgeView BuildQuoteHasStarted CancelLimitOrderModal
   CardAddFundsModal CardApplePayConfirmation CardApplePaySplash CardApplePayUsageSheet CardAssetSelectionModal CardAuthentication CardCashback CardConfirmModal
   CardConfirmPin CardContactDetails CardCreditBalanceTooltipModal CardCreditRedeem CardCreditRefundTooltipModal CardDaimoPayModal CardDigitalWalletInstructionsModal CardForgotPasswordModal
   CardMfaCode CardMfaMethod CardOnboardingComplete CardOnboardingConfirmEmail CardOnboardingConfirmPhoneNumber CardOnboardingFundingApproval CardOnboardingImmersveKYC CardOnboardingKYCFailed
@@ -242,7 +242,7 @@ const NO_PAGE_OBJECT_ROUTES =
   SwapDefaultSlippageModal SwapsLimitOrderActivity SwapsLimitOrderCustomCostToleranceModal SwapsLimitOrderDefaultCostToleranceModal SwapsLimitOrderExpirationModal TokenSort TokenWarningModal tooltipModal
   TraderPositionView TraderProfileView TradeWalletActions TradingSignalsSetupBottomSheet TransactionDetailsBlockExplorer TransactionDetailsSheet TransactionsView TrendingTokensFullView
   TrxLearnMore TurnOffRememberMeModal TurnOnBackupAndSync Unstake UnstakeConfirmation UnsupportedRegionModal UpdateNeededModal VerifyIdentity
-  WalletConnectSessionsView WalletCreationError WalletResetNeeded WalletRestored WalletTabHome WatchlistFullView Webview WhatsHappeningDetailView`
+  WalletConnectSessionsView WalletCreationError WalletResetNeeded WalletRestored WatchlistFullView Webview WhatsHappeningDetailView`
     .trim()
     .split(/\s+/);
 
@@ -250,7 +250,8 @@ const NOT_A_SCREEN_ROUTES =
   `  AgenticCliApproval AgenticCliDashboardWebview Bridge BridgeModals CardModals CardOnboarding CardScreens Deposit
   DepositModals DepositRoot EarnModals EarnScreens Home HomeNav Main MarketInsights
   MoneyModals MoneyScreens OnboardingNav OnboardingRootNav OnboardingSuccessFlow Perps PerpsModals Predict
-  PredictModals Ramp RampModals RootModalFlow SetPasswordFlow SettingsView Social WalletTabStackFlow`
+  PredictModals Ramp RampModals RootModalFlow SetPasswordFlow SettingsView Social WalletTabHome BrowserTabHome
+  WalletTabStackFlow`
     .trim()
     .split(/\s+/);
 

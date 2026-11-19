@@ -334,6 +334,15 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           accessToken: undefined,
         },
+        // OAuthService.getValidAccessToken() (marketing opt-in sync and other
+        // auth-server calls) reads the token through this method. CV tests
+        // seed `state.accessToken` (SEEDLESS_CV_ACCESS_TOKEN) the same way
+        // they sync Redux backgroundState.
+        getAccessToken: jest.fn(async function (this: {
+          state?: { accessToken?: string };
+        }) {
+          return this?.state?.accessToken;
+        }),
       },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
@@ -386,6 +395,7 @@ jest.mock('../../app/core/Engine', () => {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
         setSelectedProviderForAsset: jest.fn().mockReturnValue(false),
+        selectProviderForAsset: jest.fn().mockReturnValue(null),
         setSelectedPaymentMethod: jest.fn(),
         setUserRegion: jest.fn().mockResolvedValue(null),
         // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
@@ -697,6 +707,7 @@ jest.mock('../../app/core/Engine', () => {
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
         saveOrderBookGrouping: jest.fn(),
+        saveMarginMode: jest.fn(),
         getWithdrawalRoutes: jest.fn(() => [
           {
             assetId: 'usdc-mainnet',

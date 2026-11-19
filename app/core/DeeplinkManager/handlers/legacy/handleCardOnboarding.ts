@@ -3,15 +3,11 @@ import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../Engine';
 import {
   selectIsCardAuthenticated,
-  selectCardholderAccounts,
-  selectCardEntryRouting,
+  selectHasCard,
 } from '../../../../selectors/cardController';
-import { trackCardLinkRoutingDisagreement } from '../../../../components/UI/Card/util/trackCardLinkRoutingDisagreement';
 import { switchToLinkedCardAccount } from './switchToLinkedCardAccount';
-import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 
 /**
  * Card onboarding deeplink handler
@@ -23,9 +19,10 @@ import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
  * DEEP_LINK_USED event - this handler only handles navigation and business logic.
  *
  * Behavior:
- * - User is logged in or has a card-linked account: Switch to first card-linked account,
- * navigate to Card Home, and show a toast notification
- * - User is not logged in and has no card-linked account: Remain in current account and
+ * - User is logged in: Navigate to Card Home and show a toast notification
+ * - User is not logged in but has a stored card link: Switch to that account and
+ * navigate to Card login
+ * - User is not logged in and has no card link: Remain in current account and
  * navigate to Card Welcome/onboarding screen
  *
  * Supported URL formats:
@@ -39,54 +36,23 @@ export const handleCardOnboarding = () => {
 
   try {
     const state = ReduxService.store.getState();
-    const cardholderAccounts = selectCardholderAccounts(state);
     const isAuthenticated = selectIsCardAuthenticated(state);
-    const routing = selectCardEntryRouting(state);
-    const hasCardLinkedAccount = routing.hasCard;
-    trackCardLinkRoutingDisagreement(routing, 'deeplink_card_onboarding');
+    const hasCard = selectHasCard(state);
 
-    // If user is logged in OR has a card-linked account
-    if (isAuthenticated || hasCardLinkedAccount) {
-      if (hasCardLinkedAccount && routing.source === 'legacy') {
-        // Switch to the first account that has a linked card
-        const firstCardholderAddress = cardholderAccounts
-          .map((id) =>
-            isCaipAccountId(id) ? parseCaipAccountId(id).address : null,
-          )
-          .find(Boolean);
-        DevLogger.log(
-          '[handleCardOnboarding] Switching to first cardholder account:',
-          firstCardholderAddress,
-        );
-
-        try {
-          if (firstCardholderAddress) {
-            Engine.setSelectedAddress(firstCardholderAddress);
-            DevLogger.log(
-              '[handleCardOnboarding] Successfully switched to cardholder account',
-            );
-          }
-        } catch (switchError) {
-          // Log error but continue with navigation to Card Home
-          DevLogger.log(
-            '[handleCardOnboarding] Error switching account:',
-            switchError,
-          );
-          Logger.error(
-            switchError as Error,
-            '[handleCardOnboarding] Failed to switch to cardholder account',
-          );
-        }
-      }
-
-      DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
-      if (hasCardLinkedAccount && routing.source === 'card_links') {
-        switchToLinkedCardAccount().then(
-          navigateToCardHomeWithToast,
-          navigateToCardHomeWithToast,
-        );
+    if (isAuthenticated || hasCard) {
+      const openCard = () =>
+        isAuthenticated
+          ? navigateToCardHomeWithToast()
+          : navigateToCardAuthentication();
+      DevLogger.log(
+        isAuthenticated
+          ? '[handleCardOnboarding] Navigating to Card Home'
+          : '[handleCardOnboarding] Navigating to Card login',
+      );
+      if (!isAuthenticated && hasCard) {
+        switchToLinkedCardAccount().then(openCard, openCard);
       } else {
-        navigateToCardHomeWithToast();
+        openCard();
       }
     } else {
       // User is not logged in AND has no card-linked account
@@ -132,6 +98,17 @@ function navigateToCardHomeWithToast(): void {
         params: {
           showDeeplinkToast: true,
         },
+      },
+    });
+  }, 500);
+}
+
+function navigateToCardAuthentication(): void {
+  setTimeout(() => {
+    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: {
+        screen: Routes.CARD.AUTHENTICATION,
       },
     });
   }, 500);

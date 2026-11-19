@@ -122,7 +122,7 @@ describe('KalshiRemoteAdapter', () => {
   it('serves the API catalog without adding withdraw the deployment omits', async () => {
     const catalog = {
       venueId: 'kalshi',
-      actions: ['buy', 'sell', 'deposit'],
+      actions: ['buy', 'sell'],
       feeds: {
         sports: 'sports-football-nfl-games',
         'nfl-games': 'sports-football-nfl-games',

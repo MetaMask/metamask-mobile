@@ -15,29 +15,23 @@ export interface PredictFundingInput {
   activeVenue: ActiveVenueResolution;
   /** The Venue's resolved capabilities: A3's descriptor. */
   getCapabilities: (venue: PredictConfiguredVenue) => PredictVenueCapabilities;
-  /** `predictConfig.kalshiDepositsEnabled`: the Kalshi deposit rollout. */
-  kalshiDepositsEnabled: boolean;
   /** `predictConfig.kalshiWithdrawalsEnabled`: the Kalshi withdrawal rollout. */
-  kalshiWithdrawalsEnabled: boolean;
+  kalshiWithdrawalsEnabled?: boolean;
 }
 
 /** Whether a client flow listed in the implementations table is switched on
- * for the Venue. The Kalshi deposit and withdrawal each have a rollout flag;
- * every other flow is on. */
+ * for the Venue. Kalshi withdrawal has a rollout flag; every other flow is
+ * enabled whenever its implementation and Venue descriptor support it. */
 const isClientFlowEnabled = (
   action: PredictFundingAction,
   venue: PredictConfiguredVenue,
-  kalshiDepositsEnabled: boolean,
-  kalshiWithdrawalsEnabled: boolean,
+  kalshiWithdrawalsEnabled?: boolean,
 ): boolean => {
   if (venue !== 'kalshi') {
     return true;
   }
-  if (action === 'deposit') {
-    return kalshiDepositsEnabled;
-  }
   if (action === 'withdraw') {
-    return kalshiWithdrawalsEnabled;
+    return kalshiWithdrawalsEnabled === true;
   }
   return true;
 };
@@ -45,9 +39,8 @@ const isClientFlowEnabled = (
 /**
  * Resolves which implementation runs a funding action for the Active Venue.
  * Ready only when Predict is available, the Active Venue's implementation has
- * a client flow for the action and its rollout flag (if any) is on, and the
- * Venue's descriptor lists it. Every other case is unavailable, and a surface
- * renders no entry point for it.
+ * a client flow for the action, and the Venue's descriptor lists it. Every
+ * other case is unavailable, and a surface renders no entry point for it.
  */
 export const resolvePredictFunding = (
   action: PredictFundingAction,
@@ -55,7 +48,6 @@ export const resolvePredictFunding = (
     available,
     activeVenue,
     getCapabilities,
-    kalshiDepositsEnabled,
     kalshiWithdrawalsEnabled,
   }: PredictFundingInput,
   implementations: Readonly<
@@ -71,12 +63,7 @@ export const resolvePredictFunding = (
   const implementation = getVenueImplementation(activeVenue.venue);
   if (
     !implementations[implementation].includes(action) ||
-    !isClientFlowEnabled(
-      action,
-      activeVenue.venue,
-      kalshiDepositsEnabled,
-      kalshiWithdrawalsEnabled,
-    )
+    !isClientFlowEnabled(action, activeVenue.venue, kalshiWithdrawalsEnabled)
   ) {
     return { status: 'unavailable', reason: 'notImplemented' };
   }
