@@ -822,11 +822,11 @@ export interface GetCommissionsDto {
 }
 
 /**
- * Products this client asks `POST /earnings/rebate/quote` about. Predict is
- * accepted by the server and answers `PRODUCT_NOT_SUPPORTED`; it is not on
- * this surface.
+ * Products this client asks `POST /earnings/rebate/quote` about. Predict
+ * answers `PRODUCT_NOT_SUPPORTED` until the server switches Predict cashback
+ * on.
  */
-export type RebateQuoteProduct = 'swaps' | 'perps';
+export type RebateQuoteProduct = 'swaps' | 'perps' | 'predict';
 
 /** Why a quote shows no rebate row. Mirrors the money service. */
 export type RebateQuoteReason =
@@ -846,6 +846,15 @@ export type RebateQuoteResponse = {
   eligible: boolean;
   rebateBips: number;
   reason: RebateQuoteReason | null;
+  /**
+   * Predict only, when eligible: what `rebateBips` is a share of. The eligible
+   * fee is `min(shareOfBuilderFee x fee, capBps x notional)`; `capBps` is
+   * null for no cap. Absent from servers that predate it.
+   */
+  eligibleFee?: {
+    shareOfBuilderFee: string;
+    capBps: number | null;
+  };
 };
 
 export type PerpsRebateTradeSide = 'BUY' | 'SELL';
@@ -895,7 +904,8 @@ export type RebateQuoteBody =
   | {
       product: 'perps';
       trade?: PerpsRebateTrade;
-    };
+    }
+  | { product: 'predict' };
 
 // ─── Controller state ─────────────────────────────────────────────────────────
 

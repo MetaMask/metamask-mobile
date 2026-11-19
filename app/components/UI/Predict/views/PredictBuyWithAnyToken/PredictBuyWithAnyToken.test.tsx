@@ -376,6 +376,12 @@ jest.mock('../../components/PredictFeeBreakdownSheet', () => {
   );
 });
 
+// The banner reads Rewards Money state this test does not set up.
+jest.mock('../../components/PredictRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../components/PredictKeypad', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

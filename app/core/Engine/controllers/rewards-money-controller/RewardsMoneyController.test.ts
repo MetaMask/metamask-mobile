@@ -1686,6 +1686,15 @@ describe('RewardsMoneyController', () => {
       );
     });
 
+    it('sends a predict rebate quote with no trade', async () => {
+      await controller.getPredictRebateQuote();
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'predict' },
+      );
+    });
+
     it('sends a builder-deployed perp and a precise notional', async () => {
       const trade = {
         coin: 'xyz:TSLA',

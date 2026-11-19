@@ -21,6 +21,12 @@ import {
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 // Mock Engine
+// The banner reads Rewards Money state this test does not set up.
+jest.mock('../../components/PredictRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {

@@ -30,6 +30,7 @@ import PredictBuyErrorBanner from './components/PredictBuyErrorBanner';
 import PredictBuyPreviewHeader from './components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from './components/PredictFeeSummary/PredictFeeSummary';
+import PredictRebateBanner from '../../components/PredictRebateBanner';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -634,6 +635,11 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           {/* Always enabled when rendered: in legacy mode the parent only
               mounts PredictBuyBottomContent while the keypad is closed; in
               sheet mode the fee summary is always actionable. */}
+          <PredictRebateBanner
+            metamaskFeeUsd={metamaskFee}
+            notionalUsd={currentValue}
+            twClassName="mt-4"
+          />
           <PredictFeeSummary
             disabled={false}
             loading={isPayFeesLoading}

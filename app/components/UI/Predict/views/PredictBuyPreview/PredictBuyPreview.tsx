@@ -50,6 +50,7 @@ import { getDisplayBuyPrice } from '../../utils/prices';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
+import PredictRebateBanner from '../../components/PredictRebateBanner';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
@@ -587,6 +588,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         {/* Padding lives here rather than on the parent so the top border
             stays full-bleed while the rows line up with the action button. */}
         <Box twClassName="px-4">
+          <PredictRebateBanner
+            metamaskFeeUsd={metamaskFee}
+            notionalUsd={currentValue}
+            twClassName="mt-4"
+          />
           <PredictFeeSummary
             disabled={false}
             total={total}

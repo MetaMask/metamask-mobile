@@ -623,6 +623,18 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
+  /**
+   * Rebate a Predict buy screen should show. The server answers
+   * `PRODUCT_NOT_SUPPORTED` until Predict cashback is switched on; an eligible
+   * answer carries `eligibleFee`, the part of the fee `rebateBips` applies to.
+   * Errors and retries are as for {@link getPerpsRebateQuote}.
+   *
+   * @returns The rebate to show; `eligible: false` means no rebate row.
+   */
+  getPredictRebateQuote(): Promise<RebateQuoteResponse> {
+    return this.#getRebateQuote({ product: 'predict' });
+  }
+
   async #getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
