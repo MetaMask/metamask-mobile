@@ -756,30 +756,37 @@ jest.mock('@segment/analytics-react-native', () => {
   };
 });
 
-jest.mock('@braze/react-native-sdk', () => ({
-  __esModule: true,
-  default: {
-    changeUser: jest.fn(),
-    logCustomEvent: jest.fn(),
-    logBannerImpression: jest.fn(),
-    logBannerClick: jest.fn(),
-    requestImmediateDataFlush: jest.fn(),
-    setCustomUserAttribute: jest.fn(),
-    setLanguage: jest.fn(),
-    enableSDK: jest.fn(),
-    disableSDK: jest.fn(),
-    wipeData: jest.fn(),
-    addListener: jest.fn(() => ({ remove: jest.fn() })),
-    requestBannersRefresh: jest.fn(),
-    getBanner: jest.fn().mockResolvedValue(null),
-    dismissBanner: jest.fn(),
-    Events: {
-      PUSH_NOTIFICATION_EVENT: 'push_notification_event',
-      BANNER_CARDS_UPDATED: 'bannerCardsUpdated',
+jest.mock('@braze/react-native-sdk', () => {
+  const addListener = jest.fn(() => ({ remove: jest.fn() }));
+  const Events = {
+    PUSH_NOTIFICATION_EVENT: 'push_notification_event',
+    BANNER_CARDS_UPDATED: 'bannerCardsUpdated',
+  };
+
+  return {
+    __esModule: true,
+    addListener,
+    Events,
+    default: {
+      changeUser: jest.fn(),
+      logCustomEvent: jest.fn(),
+      logBannerImpression: jest.fn(),
+      logBannerClick: jest.fn(),
+      requestImmediateDataFlush: jest.fn(),
+      setCustomUserAttribute: jest.fn(),
+      setLanguage: jest.fn(),
+      enableSDK: jest.fn(),
+      disableSDK: jest.fn(),
+      wipeData: jest.fn(),
+      addListener,
+      requestBannersRefresh: jest.fn(),
+      getBanner: jest.fn().mockResolvedValue(null),
+      dismissBanner: jest.fn(),
+      Events,
+      BrazeBannerView: 'BrazeBannerView',
     },
-    BrazeBannerView: 'BrazeBannerView',
-  },
-}));
+  };
+});
 
 jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
