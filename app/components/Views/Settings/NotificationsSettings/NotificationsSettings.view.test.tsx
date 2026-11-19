@@ -290,11 +290,13 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
         expect(enableSpy).toHaveBeenCalled();
       });
 
-      // The enable hook swallows the rejection, so the toggle must not stay
-      // stuck updating, and no section may render as if the enable succeeded.
+      // The enable hook swallows the rejection: the toggle must not stay
+      // stuck updating, keeps the optimistic on value until the controller
+      // update lands, and no section may render as if the enable succeeded.
       await waitFor(() => {
         expect(UNSAFE_getByType(Switch).props.disabled).toBe(false);
       });
+      expect(UNSAFE_getByType(Switch).props.value).toBe(true);
       await waitFor(() => {
         expect(queryByText(SECTION_TITLES.walletActivity)).toBeNull();
       });
