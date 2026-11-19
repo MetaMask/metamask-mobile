@@ -103,6 +103,25 @@ describe('SubscriptionDeveloperOptionsSection', () => {
     );
   });
 
+  it('disables copy until a fetch has returned data', () => {
+    setupQuery({ data: undefined });
+
+    const { getByTestId, rerender } = render(
+      <SubscriptionDeveloperOptionsSection />,
+    );
+
+    expect(
+      getByTestId(SUBSCRIPTION_DEV_TEST_IDS.COPY_JSON_BUTTON),
+    ).toBeDisabled();
+
+    setupQuery({ data: [] });
+    rerender(<SubscriptionDeveloperOptionsSection />);
+
+    expect(
+      getByTestId(SUBSCRIPTION_DEV_TEST_IDS.COPY_JSON_BUTTON),
+    ).toBeEnabled();
+  });
+
   it('disables refresh when the query is not enabled', () => {
     setupQuery({ isEnabled: false });
 

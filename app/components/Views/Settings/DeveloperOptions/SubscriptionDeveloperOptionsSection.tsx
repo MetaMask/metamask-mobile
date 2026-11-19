@@ -122,6 +122,7 @@ const SubscriptionDeveloperOptionsSection = () => {
         style={styles.accessory}
         size={ButtonSize.Lg}
         onPress={handleCopyJson}
+        isDisabled={!data}
         isFullWidth
         testID={SUBSCRIPTION_DEV_TEST_IDS.COPY_JSON_BUTTON}
       >
