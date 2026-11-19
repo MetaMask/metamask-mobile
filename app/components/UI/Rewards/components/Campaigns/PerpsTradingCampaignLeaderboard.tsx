@@ -39,8 +39,8 @@ export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   NOT_YET_COMPUTED: 'perps-campaign-leaderboard-not-yet-computed',
   TOTAL_PARTICIPANTS: 'perps-campaign-leaderboard-total-participants',
   POWERED_BY: 'perps-campaign-leaderboard-powered-by',
+  POWERED_BY_PREFIX: 'perps-campaign-leaderboard-powered-by-prefix',
   HYPERTRACKER_LOGO: 'perps-campaign-leaderboard-hypertracker-logo',
-  HYPERTRACKER_SUBTEXT: 'perps-campaign-leaderboard-hypertracker-subtext',
 } as const;
 
 interface UserPosition {
@@ -211,7 +211,11 @@ const PerpsTradingCampaignLeaderboard: React.FC<
         twClassName="mt-4 px-4 w-full flex-row items-center"
         testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.POWERED_BY}
       >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.POWERED_BY_PREFIX}
+        >
           {strings(
             'rewards.perps_trading_campaign.leaderboard_powered_by_prefix',
           )}
@@ -231,22 +235,6 @@ const PerpsTradingCampaignLeaderboard: React.FC<
             color={colors.text.default}
           />
         </Pressable>
-      </Box>
-      <Box twClassName="mt-1 px-4 w-full">
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          accessibilityRole="link"
-          onPress={handleHyperTrackerPress}
-          testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.HYPERTRACKER_SUBTEXT}
-        >
-          {strings(
-            'rewards.perps_trading_campaign.leaderboard_powered_by_prefix',
-          )}
-          {strings(
-            'rewards.perps_trading_campaign.leaderboard_hypertracker_brand',
-          )}
-        </Text>
       </Box>
     </Box>
   );
