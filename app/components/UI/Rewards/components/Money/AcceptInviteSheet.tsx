@@ -48,7 +48,6 @@ import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
 } from '../../utils/moneyReferralCode';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { resolveInviteTermsLink } from '../../utils/inviteTermsLink';
@@ -141,7 +140,6 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   const profileId = useSelector(selectSessionProfileId);
   const isProfileResolved = Boolean(profileId);
-  useGeoRewardsMetadata({ enabled: true });
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
