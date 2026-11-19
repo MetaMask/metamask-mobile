@@ -256,6 +256,14 @@ app/selectors/featureFlagController/chompApi/ @MetaMask/earn
 **/earn/**                           @MetaMask/earn
 **/Money/**                          @MetaMask/earn
 **/money/**                          @MetaMask/earn
+# Card product UI that lives under Money.
+# Must stay below **/Money/** — last matching pattern wins.
+app/components/UI/Money/components/MoneyMetaMaskCard/      @MetaMask/card
+app/components/UI/Money/components/MoneyLinkCardSheet/     @MetaMask/card
+app/components/UI/Money/components/MoneyCardTiltAnimation/ @MetaMask/card
+app/components/UI/Money/components/MoneyCardFlipAnimation/ @MetaMask/card
+app/components/UI/Money/utils/moneyMetaMaskCardMode.ts     @MetaMask/card
+app/components/UI/Money/utils/moneyMetaMaskCardMode.test.ts @MetaMask/card
 app/components/Views/Homepage/Sections/Cash/ @MetaMask/earn
 **/EarnSection/**    @MetaMask/earn
 
