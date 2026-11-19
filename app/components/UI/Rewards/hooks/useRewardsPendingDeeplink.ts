@@ -9,15 +9,47 @@ import {
   selectCampaignsFetching,
   selectPendingDeeplink,
 } from '../../../../reducers/rewards/selectors';
-import { setPendingDeeplink } from '../../../../reducers/rewards';
+import {
+  setPendingDeeplink,
+  type PendingDeeplink,
+} from '../../../../reducers/rewards';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { getLatestActiveCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
+import { getLatestActiveOrLastCompletedCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
 import { navigateToRewardsRoute } from '../utils';
 import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
+import type { RewardsStackParamList } from '../types/navigation';
 import { useMoneyAccountSweepstakesSeries } from './useMoneyAccountSweepstakesSeries';
 import { useRewardCampaigns } from './useRewardCampaigns';
 
 const MUSD_MONEY_URL = 'metamask://money';
+
+/**
+ * Campaign deeplinks that open a campaign's details page by id. Each one opens
+ * the latest active campaign of its type, or the most recently ended one.
+ */
+const CAMPAIGN_DETAILS_DEEPLINKS: Partial<
+  Record<
+    NonNullable<PendingDeeplink['campaign']>,
+    { type: CampaignType; route: keyof RewardsStackParamList }
+  >
+> = {
+  'perps-comp': {
+    type: CampaignType.PERPS_TRADING,
+    route: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+  },
+  ondo: {
+    type: CampaignType.ONDO_HOLDING,
+    route: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+  },
+  season1: {
+    type: CampaignType.SEASON_1,
+    route: Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+  },
+  'predict-the-pitch': {
+    type: CampaignType.PREDICT_THE_PITCH,
+    route: Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+  },
+};
 
 /**
  * Consumes a rewards deeplink stored in Redux and opens the matching sub-page.
@@ -66,19 +98,12 @@ export const useRewardsPendingDeeplink = ({
     }
 
     let handled = true;
+    const campaignDetailsDeeplink = pendingDeeplink.campaign
+      ? CAMPAIGN_DETAILS_DEEPLINKS[pendingDeeplink.campaign]
+      : undefined;
     if (pendingDeeplink.page === 'campaigns') {
       navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGNS_VIEW);
-    } else if (pendingDeeplink.campaign === 'ondo') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-      );
-    } else if (pendingDeeplink.campaign === 'season1') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
-      );
-    } else if (pendingDeeplink.campaign === 'perps-comp') {
+    } else if (campaignDetailsDeeplink) {
       // The deeplink carries no campaign id, so it has to be resolved against
       // the campaign list — and resolving against a list that is not yet
       // authoritative would drop the deeplink for good, because a null result
@@ -103,26 +128,19 @@ export const useRewardsPendingDeeplink = ({
       if (waitingForCampaigns) {
         handled = false;
       } else {
-        const perpsCampaign = getLatestActiveCampaignOfType(
+        const campaign = getLatestActiveOrLastCompletedCampaignOfType(
           campaigns,
-          CampaignType.PERPS_TRADING,
+          campaignDetailsDeeplink.type,
         );
-        if (perpsCampaign) {
-          navigateToRewardsRoute(
-            navigation,
-            Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-            { campaignId: perpsCampaign.id },
-          );
+        if (campaign) {
+          navigateToRewardsRoute(navigation, campaignDetailsDeeplink.route, {
+            campaignId: campaign.id,
+          });
         }
-        // No running perps campaign: stay on the home. Navigating would
-        // surface a past campaign, or an upcoming one whose details page has
-        // nothing to show yet.
+        // No active or ended campaign of this type: stay on the home. Upcoming
+        // campaigns are not opened because their details page has nothing to
+        // show yet.
       }
-    } else if (pendingDeeplink.campaign === 'predict-the-pitch') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-      );
     } else if (pendingDeeplink.campaign === 'money') {
       // Failed and in-flight fetches also flip campaignsHasLoaded, so an empty
       // series is only trustworthy once a successful fetch has settled.

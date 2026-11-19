@@ -35,6 +35,11 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import {
+  fireImpact,
+  ImpactMoment,
+  playSelection,
+} from '../../../../../util/haptics';
 import type { RootState } from '../../../../../reducers';
 import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
@@ -778,9 +783,15 @@ const VbaDetails = () => {
     handleDone();
   }, [finishPixFetchTrace, handleDone, navigation]);
 
+  const handleDonePress = useCallback(() => {
+    fireImpact(ImpactMoment.PrimaryCTA);
+    handleBack();
+  }, [handleBack]);
+
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
       Clipboard.setString(value);
+      playSelection().catch(() => undefined);
       const copiedMessage = strings(
         'virtual_bank_account.vba_details.copied_label',
         { field: label },
@@ -823,6 +834,7 @@ const VbaDetails = () => {
   const rows = buildDetailRows(instructions);
   const handleShareDetails = useCallback(() => {
     const message = formatBankDetailsForCopy(rows);
+    playSelection().catch(() => undefined);
     Share.open({ message, failOnCancel: false }).catch((error) => {
       Logger.error(error as Error, {
         message: 'VbaDetails: failed to open the share sheet',
@@ -1117,7 +1129,7 @@ const VbaDetails = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={handleBack}
+          onPress={handleDonePress}
           testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
         >
           {strings('virtual_bank_account.vba_details.button')}
