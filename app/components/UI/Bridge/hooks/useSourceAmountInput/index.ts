@@ -31,6 +31,7 @@ import { playSelection } from '../../../../../util/haptics';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { strings } from '../../../../../../locales/i18n';
 
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
@@ -103,13 +104,19 @@ export const useSourceAmountInput = ({
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
-  const canToggle = Boolean(isFiatToggleEnabled && fiatRate && fiatRate > 0);
+  const canToggle = Boolean(
+    isFiatToggleEnabled &&
+      fiatRate &&
+      fiatRate > 0 &&
+      !sourceToken?.isMoneyToken,
+  );
   // The controller stores the persisted preference, while this local value lets
   // the input react immediately as controller state propagates through Redux.
   const [activeInputPrimaryDenomination, setActiveInputPrimaryDenomination] =
     useState<InputPrimaryDenomination>(inputPrimaryDenomination);
   const isFiatMode =
-    activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle;
+    sourceToken?.isMoneyToken ||
+    (activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle);
   // Redux keeps the full Max amount for the quote; the first edit commits the
   // truncated string via setSourceAmount, which clears the Max flag.
   const tokenInputAmount = isMaxSourceAmount
@@ -274,6 +281,10 @@ export const useSourceAmountInput = ({
     if (isFiatMode) {
       if (!sourceToken) {
         return null;
+      }
+
+      if (sourceToken.isMoneyToken) {
+        return strings('bridge.money_name');
       }
 
       if (sourceAmount && Number(sourceAmount) > 0) {
