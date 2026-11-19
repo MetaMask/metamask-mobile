@@ -1,15 +1,15 @@
-import {
-  isMicaMockModeEnabled,
+import * as micaMockMode from './micaMockMode';
+
+// Mock __DEV__ globally
+(global as any).__DEV__ = true;
+
+// Extract non-mocked functions
+const {
   getMockConsentForm,
   getMockSourceOfIncomeForm,
   mockSubmitMicaConsent,
   mockSubmitSourceOfIncome,
-  injectMockNativeProviderIfNeeded,
-  injectMicaTermsIds,
-} from './micaMockMode';
-
-// Mock __DEV__ globally
-(global as any).__DEV__ = true;
+} = micaMockMode;
 
 describe('micaMockMode', () => {
   const originalEnv = process.env.MICA_MOCK_MODE;
@@ -21,7 +21,7 @@ describe('micaMockMode', () => {
   describe('isMicaMockModeEnabled', () => {
     it('returns false when MICA_MOCK_MODE is not set', () => {
       delete process.env.MICA_MOCK_MODE;
-      expect(isMicaMockModeEnabled()).toBe(false);
+      expect(micaMockMode.isMicaMockModeEnabled()).toBe(false);
     });
 
     it('returns true when MICA_MOCK_MODE is true', () => {
@@ -106,34 +106,27 @@ describe('micaMockMode', () => {
   });
 
   describe('injectMockNativeProviderIfNeeded', () => {
-    const mockisMicaMockModeEnabled = jest.fn();
+    let isMicaMockModeEnabledSpy: jest.SpyInstance;
     
     beforeEach(() => {
-      jest.resetModules();
-      jest.doMock('./micaMockMode', () => {
-        const actual = jest.requireActual('./micaMockMode');
-        return {
-          ...actual,
-          isMicaMockModeEnabled: mockisMicaMockModeEnabled,
-        };
-      });
+      isMicaMockModeEnabledSpy = jest.spyOn(micaMockMode, 'isMicaMockModeEnabled');
     });
 
     afterEach(() => {
-      jest.dontMock('./micaMockMode');
+      isMicaMockModeEnabledSpy.mockRestore();
     });
 
     it('returns providers unchanged when mock mode is off', () => {
-      mockisMicaMockModeEnabled.mockReturnValue(false);
+      isMicaMockModeEnabledSpy.mockReturnValue(false);
       const providers = [{ id: '/providers/test', name: 'Test', type: 'native' }];
-      const result = injectMockNativeProviderIfNeeded(providers, 'DE');
+      const result = micaMockMode.injectMockNativeProviderIfNeeded(providers, 'DE');
       expect(result).toEqual(providers);
     });
 
     it('injects transak-native for EEA countries', () => {
-      mockisMicaMockModeEnabled.mockReturnValue(true);
+      isMicaMockModeEnabledSpy.mockReturnValue(true);
       const providers = [{ id: '/providers/test', name: 'Test', type: 'aggregator' }];
-      const result = injectMockNativeProviderIfNeeded(providers, 'DE');
+      const result = micaMockMode.injectMockNativeProviderIfNeeded(providers, 'DE');
       
       expect(result.length).toBe(2);
       expect(result[0].id).toContain('transak-native');
@@ -141,68 +134,61 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject if transak-native already exists', () => {
-      mockisMicaMockModeEnabled.mockReturnValue(true);
+      isMicaMockModeEnabledSpy.mockReturnValue(true);
       const providers = [
         { id: '/providers/transak-native', name: 'Transak', type: 'native' },
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
       ];
-      const result = injectMockNativeProviderIfNeeded(providers, 'DE');
+      const result = micaMockMode.injectMockNativeProviderIfNeeded(providers, 'DE');
       expect(result).toEqual(providers);
     });
 
     it('does not inject for non-EEA countries', () => {
-      mockisMicaMockModeEnabled.mockReturnValue(true);
+      isMicaMockModeEnabledSpy.mockReturnValue(true);
       const providers = [{ id: '/providers/test', name: 'Test', type: 'aggregator' }];
-      const result = injectMockNativeProviderIfNeeded(providers, 'US');
+      const result = micaMockMode.injectMockNativeProviderIfNeeded(providers, 'US');
       expect(result).toEqual(providers);
     });
   });
 
   describe('injectMicaTermsIds', () => {
-    const mockisMicaMockModeEnabled = jest.fn();
+    let isMicaMockModeEnabledSpy: jest.SpyInstance;
     
     beforeEach(() => {
-      jest.resetModules();
-      jest.doMock('./micaMockMode', () => {
-        const actual = jest.requireActual('./micaMockMode');
-        return {
-          ...actual,
-          isMicaMockModeEnabled: mockisMicaMockModeEnabled,
-        };
-      });
+      isMicaMockModeEnabledSpy = jest.spyOn(micaMockMode, 'isMicaMockModeEnabled');
     });
 
     afterEach(() => {
-      jest.dontMock('./micaMockMode');
+      isMicaMockModeEnabledSpy.mockRestore();
     });
 
     it('returns quote unchanged when mock mode is off', () => {
-      mockisMicaMockModeEnabled.mockReturnValue(false);
+      isMicaMockModeEnabledSpy.mockReturnValue(false);
       const quote = { quoteId: 'test', fiatAmount: 100 };
-      const result = injectMicaTermsIds(quote);
+      const result = micaMockMode.injectMicaTermsIds(quote);
       expect(result).toEqual(quote);
     });
 
     it('injects MICA_EEA_BUY termsId', () => {
-      mockisMicaMockModeEnabled.mockReturnValue(true);
+      isMicaMockModeEnabledSpy.mockReturnValue(true);
       const quote = { quoteId: 'test', fiatAmount: 100 };
-      const result = injectMicaTermsIds(quote);
+      const result = micaMockMode.injectMicaTermsIds(quote);
       
       expect(result.termsIds).toContain('MICA_EEA_BUY');
     });
 
     it('preserves existing termsIds', () => {
-      mockisMicaMockModeEnabled.mockReturnValue(true);
+      isMicaMockModeEnabledSpy.mockReturnValue(true);
       const quote = { quoteId: 'test', fiatAmount: 100, termsIds: ['EXISTING'] };
-      const result = injectMicaTermsIds(quote);
+      const result = micaMockMode.injectMicaTermsIds(quote);
       
       expect(result.termsIds).toContain('MICA_EEA_BUY');
       expect(result.termsIds).toContain('EXISTING');
     });
 
     it('returns quote unchanged when quote is null', () => {
-      mockisMicaMockModeEnabled.mockReturnValue(true);
-      const result = injectMicaTermsIds(null);
+      isMicaMockModeEnabledSpy.mockReturnValue(true);
+      const result = micaMockMode.injectMicaTermsIds(null);
       expect(result).toBeNull();
     });
   });
