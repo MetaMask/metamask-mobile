@@ -16,7 +16,6 @@ import type {
   MoneyEarningsTab,
   MoneyNavigationParamList,
 } from '../../types/navigation';
-import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import EarningsTab from './EarningsTab';
 import MoneyEarningsFooter from './MoneyEarningsFooter';
@@ -118,7 +117,7 @@ const MoneyEarningsView = (): React.ReactElement => {
       </Box>
       {visitedTabs.has('earnings') ? (
         <Box
-          testID={MoneyEarningsTestIds.EARNINGS_PANEL}
+          testID={MoneyEarningsViewTestIds.EARNINGS_PANEL}
           twClassName={isEarningsActive ? 'flex-1' : 'hidden'}
           accessibilityElementsHidden={!isEarningsActive}
           importantForAccessibility={
