@@ -46,7 +46,7 @@ const render = (step?: KycStep | null, status: KycStepStatus | null = 'none') =>
 describe('KalshiAccountBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    refreshStep.mockResolvedValue('vendor_terms');
+    refreshStep.mockResolvedValue('terms');
   });
 
   it('asks kyc-api for the step once when it shows', async () => {
@@ -58,7 +58,7 @@ describe('KalshiAccountBanner', () => {
     expect(refreshStep).toHaveBeenCalledTimes(1);
   });
 
-  it.each([undefined, 'vendor_terms', 'identity_provider', 'done'] as const)(
+  it.each([undefined, 'terms', 'sumsub', 'decision'] as const)(
     'invites the user to set up Kalshi while the step is %s',
     (step) => {
       const screen = render(step);
@@ -70,7 +70,7 @@ describe('KalshiAccountBanner', () => {
   );
 
   it('opens Kalshi onboarding', () => {
-    const screen = render('vendor_terms');
+    const screen = render('terms');
 
     fireEvent.press(screen.getByTestId(KalshiAccountBannerTestIds.BUTTON));
 
@@ -80,7 +80,7 @@ describe('KalshiAccountBanner', () => {
   });
 
   it('is hidden once kyc-api has approved the user', () => {
-    const screen = render('done', 'approved');
+    const screen = render('decision', 'approved');
 
     expect(screen.queryByTestId(KalshiAccountBannerTestIds.BUTTON)).toBeNull();
   });

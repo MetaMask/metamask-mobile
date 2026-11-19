@@ -4,7 +4,7 @@ import { getVendorOnboardingControllerMessenger } from '../../messengers/kyc/ven
 import { MessengerClientInitRequest } from '../../types';
 import { vendorOnboardingControllerInit } from './vendor-onboarding-controller-init';
 import { sumsubLauncher } from './sumSubLauncher';
-import { createKalshiAccountLinkAdapter } from '../../../../components/UI/KYC/Kalshi/kalshiAccountLinkAdapter';
+import { createKalshiVendorRequestSigner } from '../../../../components/UI/KYC/Kalshi/kalshiVendorRequestSigner';
 import {
   VendorOnboardingController,
   type VendorOnboardingControllerMessenger,
@@ -26,12 +26,9 @@ jest.mock('@metamask/kyc-controller', () => {
 });
 
 jest.mock(
-  '../../../../components/UI/KYC/Kalshi/kalshiAccountLinkAdapter',
+  '../../../../components/UI/KYC/Kalshi/kalshiVendorRequestSigner',
   () => ({
-    createKalshiAccountLinkAdapter: jest.fn(() => ({
-      startLink: jest.fn(),
-      verifyLink: jest.fn(),
-    })),
+    createKalshiVendorRequestSigner: jest.fn(() => jest.fn()),
   }),
 );
 
@@ -84,7 +81,11 @@ describe('vendorOnboardingControllerInit', () => {
   it('hydrates state from persistedState', () => {
     const persisted: Partial<VendorOnboardingControllerState> = {
       vendors: {
-        kalshi: { step: 'account_link', status: 'none', sessionId: 'sid-1' },
+        kalshi: {
+          step: 'mfa',
+          status: 'none',
+          sessionId: 'sid-1',
+        },
       },
     };
 
@@ -109,15 +110,12 @@ describe('vendorOnboardingControllerInit', () => {
     expect(getLastConstructorArgs()?.sumsubLauncher).toBe(sumsubLauncher);
   });
 
-  it('injects the Kalshi account link calls', () => {
+  it('injects the Kalshi request signer', () => {
     vendorOnboardingControllerInit(getInitRequestMock());
 
-    expect(createKalshiAccountLinkAdapter).toHaveBeenCalledTimes(1);
-    expect(getLastConstructorArgs()?.accountLinkAdapters).toStrictEqual({
-      kalshi: expect.objectContaining({
-        startLink: expect.any(Function),
-        verifyLink: expect.any(Function),
-      }),
+    expect(createKalshiVendorRequestSigner).toHaveBeenCalledTimes(1);
+    expect(getLastConstructorArgs()?.vendorRequestSigners).toStrictEqual({
+      kalshi: expect.any(Function),
     });
   });
 });

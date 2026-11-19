@@ -9,13 +9,13 @@ describe('resolveA2tIssuerUrl', () => {
 
   it('rejects a non-https URL', () => {
     expect(() => resolveA2tIssuerUrl('http://localhost:3333')).toThrow(
-      'MM_A2T_URL must be https',
+      'Kalshi auth URL must be https',
     );
   });
 
   it('rejects a value that is not a URL', () => {
     expect(() => resolveA2tIssuerUrl('not a url')).toThrow(
-      'MM_A2T_URL is not a URL',
+      'Kalshi auth URL is not a URL',
     );
   });
 

@@ -1,11 +1,15 @@
 import { KycService, type KycServiceMessenger } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
 
-/** UAT hosts used when env vars are not inlined (e.g. local Metro, Jest). */
+/**
+ * Hosts used when the env vars are not inlined (local Metro, Jest).
+ * The KYC API falls back to UAT. The enclave and relay fall back to the
+ * staging hosts the dev build uses.
+ */
 const DEFAULT_KYC_API_BASE_URL = 'https://kyc-api.uat-api.cx.metamask.io';
 const DEFAULT_IDOS_ENCLAVE_BASE_URL =
   'https://enclave.tee.staging.idos.network';
-const DEFAULT_IDOS_RELAY_BASE_URL = 'https://relay.playground.idos.network';
+const DEFAULT_IDOS_RELAY_BASE_URL = 'https://relay.staging.idos.network';
 
 /**
  * Initialize the KycService.
@@ -15,8 +19,8 @@ const DEFAULT_IDOS_RELAY_BASE_URL = 'https://relay.playground.idos.network';
  * session.
  *
  * Hosts come from `KYC_API_URL`, `IDOS_ENCLAVE_URL`, and `IDOS_RELAY_URL`
- * (`builds.yml`). When those env vars are missing, UAT is used so
- * `KycService` still has hosts during Engine init.
+ * (`builds.yml`, or `.js.env` locally). When those env vars are missing,
+ * the KYC API falls back to UAT and the idOS hosts fall back to staging.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.

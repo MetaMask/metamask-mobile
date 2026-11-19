@@ -65,7 +65,7 @@ describe('kycServiceInit', () => {
     });
   });
 
-  it('falls back to UAT hosts when KYC and idOS URLs are unset', () => {
+  it('falls back to UAT kyc-api and the staging idOS hosts when URLs are unset', () => {
     delete process.env.KYC_API_URL;
     delete process.env.IDOS_ENCLAVE_URL;
     delete process.env.IDOS_RELAY_URL;
@@ -75,7 +75,7 @@ describe('kycServiceInit', () => {
     expect(controller).toMatchObject({
       baseUrl: 'https://kyc-api.uat-api.cx.metamask.io',
       idosEnclaveBaseUrl: 'https://enclave.tee.staging.idos.network',
-      idosRelayBaseUrl: 'https://relay.playground.idos.network',
+      idosRelayBaseUrl: 'https://relay.staging.idos.network',
     });
   });
 });

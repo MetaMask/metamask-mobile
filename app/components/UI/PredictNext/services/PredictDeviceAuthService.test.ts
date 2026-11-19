@@ -93,8 +93,6 @@ const createService = ({
     getIssuerUrl: () => 'https://issuer.example',
     getAccessToken: async () => 'access-token',
     getCanonicalProfileId: () => 'profile-id',
-    getSrpIdentifier: async () => 'srp-id',
-    signSrpMessage: async () => 'signature',
     isEnabled,
     isUnlocked,
     isSignedIn,

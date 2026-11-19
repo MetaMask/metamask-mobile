@@ -7,9 +7,8 @@ import type { KycStep, KycStepStatus } from '@metamask/kyc-controller';
 export type KalshiScreen =
   | 'loading'
   | 'terms'
-  | 'email'
-  | 'link_code'
   | 'confirm'
+  | 'email'
   | 'email_code'
   | 'phone'
   | 'phone_code'
@@ -22,13 +21,17 @@ export type KalshiScreen =
 /**
  * What the phone knows beyond the step.
  *
- * kyc-api decides steps, not screens. Where a step covers an address and
- * the code sent to it, only the phone can know which of the two the user is
- * looking at — and only the phone can take them back to correct a typo.
+ * MetaMask MFA and the first Kalshi email both happen before the session
+ * exists, on `mfa`. `kalshi_email_link` is the email code, and the way back
+ * to correct the address. `kalshi_phone_link` is the phone number and, once
+ * it has been sent, its code. Only the phone knows which of those screens
+ * is showing.
  */
 export interface KalshiScreenContext {
-  /** The link code was sent, so the code screen follows the email screen. */
-  linkCodeSent: boolean;
+  /** MetaMask MFA finished, so the email field is showing. */
+  emailEntry: boolean;
+  /** On the code step, the user went back to change the address. */
+  editingEmail: boolean;
   /** The phone code was sent from this screen and is being entered. */
   phoneCodeSent: boolean;
 }
@@ -51,24 +54,19 @@ export function deriveKalshiScreen(
     case undefined:
     case null:
       return 'loading';
-    case 'vendor_terms':
+    case 'terms':
       return 'terms';
-    case 'account_link':
-      // The email and its code are one step. Kalshi has no way to tell us
-      // the address was wrong, so the phone keeps the code screen and the
-      // way back to the email on its own side.
-      return context.linkCodeSent ? 'link_code' : 'email';
-    case 'confirm_identity':
-      return 'confirm';
-    case 'identity_email_code':
-      return 'email_code';
-    case 'identity_phone':
+    case 'mfa':
+      return context.emailEntry ? 'email' : 'confirm';
+    case 'kalshi_email_link':
+      return context.editingEmail ? 'email' : 'email_code';
+    case 'kalshi_phone_link':
       return context.phoneCodeSent ? 'phone_code' : 'phone';
-    case 'identity_provider':
+    case 'sumsub':
       // A retry is the same screen as the first attempt; the status is what
       // the "we need another look" copy keys off.
       return 'sumsub';
-    case 'done':
+    case 'decision':
       return doneScreen(status);
     default:
       return 'error';

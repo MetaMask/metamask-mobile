@@ -16,11 +16,11 @@ export const resolveA2tIssuerUrl = (
   try {
     url = new URL(raw);
   } catch {
-    throw new Error('MM_A2T_URL is not a URL');
+    throw new Error('Kalshi auth URL is not a URL');
   }
 
   if (url.protocol !== 'https:') {
-    throw new Error('MM_A2T_URL must be https');
+    throw new Error('Kalshi auth URL must be https');
   }
 
   return url.toString().replace(/\/$/u, '');
