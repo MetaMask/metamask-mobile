@@ -474,6 +474,10 @@ jest.mock(
 );
 jest.mock('../../components/PerpsProducts', () => 'PerpsProducts');
 jest.mock('../../components/PerpsExploreSection', () => 'PerpsExploreSection');
+jest.mock(
+  '../../components/PerpsHomeDeferredSkeleton',
+  () => 'PerpsHomeDeferredSkeleton',
+);
 jest.mock('../../hooks/usePerpsHomeExploreAbTest', () => ({
   usePerpsHomeExploreAbTest: jest.fn(() => ({
     showExploreTable: false,
@@ -1321,10 +1325,14 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+    expect(
+      UNSAFE_queryByType('PerpsHomeDeferredSkeleton' as never),
+    ).toBeTruthy();
 
     mockUseScreenTransitionComplete.mockReturnValue(true);
     rerender(<PerpsHomeView />);
     expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+    expect(UNSAFE_queryByType('PerpsHomeDeferredSkeleton' as never)).toBeNull();
   });
 
   it('does not render watchlist when markets and suggestions are empty', () => {

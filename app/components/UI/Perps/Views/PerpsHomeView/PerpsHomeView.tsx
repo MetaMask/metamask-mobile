@@ -106,6 +106,7 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
+import PerpsHomeDeferredSkeleton from '../../components/PerpsHomeDeferredSkeleton';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
@@ -1453,9 +1454,18 @@ const PerpsHomeView = () => {
         sections={
           isDeferredReady
             ? homeSections
-            : homeSections.filter(({ key }) =>
-                FIRST_PAINT_SECTION_KEYS.includes(key),
-              )
+            : [
+                ...homeSections.filter(({ key }) =>
+                  FIRST_PAINT_SECTION_KEYS.includes(key),
+                ),
+                // Skeleton mirror of the held-back sections, so the screen is
+                // not header + empty rest while the transition runs.
+                {
+                  key: 'deferred-skeleton',
+                  visible: true,
+                  content: <PerpsHomeDeferredSkeleton />,
+                },
+              ]
         }
       />
 
