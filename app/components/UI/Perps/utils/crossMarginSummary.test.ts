@@ -7,6 +7,7 @@ import {
   getCrossMarginRatioAlertLabel,
   getCrossMarginRatioTone,
   getCrossMarginSummaryThrottleMs,
+  liquidationPriceForOrderSide,
   presentCrossLiquidationEstimate,
 } from './crossMarginSummary';
 import {
@@ -242,6 +243,75 @@ describe('crossMarginSummary', () => {
           maxLeverage: 0,
         }),
       ).toEqual({ status: 'unknown' });
+    });
+  });
+
+  describe('liquidationPriceForOrderSide', () => {
+    it('keeps the price when the order opens or adds on that side', () => {
+      const price = liquidationPriceForOrderSide({
+        liquidationPrice: '25.25',
+        existingSignedSize: 4,
+        orderSize: 6,
+        orderIsLong: true,
+      });
+
+      expect(price).toBe('25.25');
+    });
+
+    it('keeps the price when the order flips onto the checked side', () => {
+      const price = liquidationPriceForOrderSide({
+        liquidationPrice: '173.26',
+        existingSignedSize: 4,
+        orderSize: 6,
+        orderIsLong: false,
+      });
+
+      expect(price).toBe('173.26');
+    });
+
+    it('drops the price when a reduce leaves the opposite side', () => {
+      const price = liquidationPriceForOrderSide({
+        liquidationPrice: '25.25',
+        existingSignedSize: 4,
+        orderSize: 1,
+        orderIsLong: false,
+      });
+
+      expect(price).toBe('');
+    });
+
+    it('keeps the price when the check uses the remaining side', () => {
+      const price = liquidationPriceForOrderSide({
+        liquidationPrice: '25.25',
+        existingSignedSize: 4,
+        orderSize: 1,
+        orderIsLong: false,
+        checkIsLong: true,
+      });
+
+      expect(price).toBe('25.25');
+    });
+
+    it('drops the price when the order closes the position', () => {
+      const price = liquidationPriceForOrderSide({
+        liquidationPrice: '25.25',
+        existingSignedSize: 4,
+        orderSize: 4,
+        orderIsLong: false,
+      });
+
+      expect(price).toBe('');
+    });
+
+    it('returns an empty price unchanged', () => {
+      const price = liquidationPriceForOrderSide({
+        liquidationPrice: '',
+        existingSignedSize: 4,
+        orderSize: 1,
+        orderIsLong: false,
+      });
+
+      expect(price).toBe('');
     });
   });
 

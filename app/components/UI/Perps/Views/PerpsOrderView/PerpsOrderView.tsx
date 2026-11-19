@@ -173,6 +173,7 @@ import {
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { translatePerpsError } from '../../utils/translatePerpsError';
 import { useOrderLiquidationRow } from '../../hooks/useOrderLiquidationRow';
+import { liquidationPriceForOrderSide } from '../../utils/crossMarginSummary';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
@@ -698,19 +699,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isDataReady && (szDecimals === null || maxLeverage === null);
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
-  // Check if user has an existing position for this market
-  const {
-    existingPosition: currentMarketPosition,
-    isLoading: isCurrentPositionLoading,
-  } = useHasExistingPosition({
-    asset: orderForm.asset || '',
-    loadOnMount: true,
-  });
+  // Same venue the lock and the liquidation formula use. Another venue's
+  // position for this symbol must not set the cross estimate.
   const liquidationProviderId =
     marketData?.providerId ??
     (activePerpsProvider === PROVIDER_CONFIG.LighterProvider
       ? PROVIDER_CONFIG.LighterProvider
       : PROVIDER_CONFIG.DefaultProvider);
+  const {
+    existingPosition: currentMarketPosition,
+    isLoading: isCurrentPositionLoading,
+  } = useHasExistingPosition({
+    asset: orderForm.asset || '',
+    providerId: liquidationProviderId,
+    loadOnMount: true,
+  });
   const { lock: marginModeLock } = usePerpsMarginModeLock({
     symbol: orderForm.asset || '',
     providerId: liquidationProviderId,
@@ -2574,6 +2577,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           asset: getPerpsDisplaySymbol(orderForm.asset),
         });
 
+  const existingSignedSize = Number.parseFloat(
+    currentMarketPosition?.size ?? '0',
+  );
   // Cross orders liquidate against the account. The hook owns that estimate
   // and the isolated fallback, so this view only renders the row.
   const orderLiquidation = useOrderLiquidationRow({
@@ -2590,12 +2596,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     crossMarginSummary: account?.crossMarginSummary,
     spotCollateral: account?.spotCollateral,
     providerId: liquidationProviderId,
-    existingSignedSize: Number.parseFloat(currentMarketPosition?.size ?? '0'),
+    existingSignedSize,
     hasValidAmount,
     isolatedPrice: liquidationPrice,
   });
   const { contentKey: liquidationInfoContentKey } = orderLiquidation;
   const orderFormLiquidationPrice = orderLiquidation.rawPrice;
+  // The row can show the remaining position's price. The stop check follows
+  // the order side, so a reduce that does not flip must not use that price.
+  const liquidationPriceForTpSl = isCrossOrder
+    ? liquidationPriceForOrderSide({
+        liquidationPrice: orderFormLiquidationPrice,
+        existingSignedSize,
+        orderSize: Number.parseFloat(positionSize),
+        orderIsLong: orderForm.direction === 'long',
+      })
+    : orderFormLiquidationPrice;
 
   const {
     doesStopLossRiskLiquidation,
@@ -2608,7 +2624,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     direction: orderForm.direction,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
-    liquidationPrice: orderFormLiquidationPrice,
+    liquidationPrice: liquidationPriceForTpSl,
     marketPrice: assetData.price,
   });
 
