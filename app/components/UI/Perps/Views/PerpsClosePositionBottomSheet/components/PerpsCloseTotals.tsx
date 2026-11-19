@@ -52,43 +52,43 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   receiveAmount,
   marginMode,
 }) => (
-    <>
-      <KeyValueRow
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('perps.close_position.total_receive')}
-        value={formatCloseSummaryFiat(receiveAmount)}
-        valueTextProps={{
-          testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
-        }}
-      />
+  <>
+    <KeyValueRow
+      variant={KeyValueRowVariant.Summary}
+      keyLabel={strings('perps.close_position.total_receive')}
+      value={formatCloseSummaryFiat(receiveAmount)}
+      valueTextProps={{
+        testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
+      }}
+    />
 
-      <KeyValueRow
-        variant={KeyValueRowVariant.Summary}
-        twClassName="mt-0.5"
-        // One native element carries the label with its value for automation.
-        accessible
-        testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
-        keyLabel={strings(
-          // Cross margin never holds the P&L, so it is not "included".
-          marginMode === 'cross'
-            ? 'perps.close_position.pnl'
-            : 'perps.close_position.included_pnl',
-        )}
-        value={
-          pnl === undefined
-            ? PERPS_CONSTANTS.FallbackDataDisplay
-            : `${formatSignedCloseSummaryFiat(pnl)}${
-                roePercentage !== undefined
-                  ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
-                  : ''
-              }`
-        }
-        valueTextProps={{
-          color: getCloseSummaryPnlColor(pnl),
-          testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-        }}
-      />
-    </>
-  );
+    <KeyValueRow
+      variant={KeyValueRowVariant.Summary}
+      twClassName="mt-0.5"
+      // One native element carries the label with its value for automation.
+      accessible
+      testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
+      keyLabel={strings(
+        // Cross margin never holds the P&L, so it is not "included".
+        marginMode === 'cross'
+          ? 'perps.close_position.pnl'
+          : 'perps.close_position.included_pnl',
+      )}
+      value={
+        pnl === undefined
+          ? PERPS_CONSTANTS.FallbackDataDisplay
+          : `${formatSignedCloseSummaryFiat(pnl)}${
+              roePercentage !== undefined
+                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                : ''
+            }`
+      }
+      valueTextProps={{
+        color: getCloseSummaryPnlColor(pnl),
+        testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      }}
+    />
+  </>
+);
 
 export default PerpsCloseTotals;
