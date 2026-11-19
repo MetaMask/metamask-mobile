@@ -25,6 +25,7 @@ import Engine from '../../../../core/Engine';
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectProviders } from '../../../../selectors/rampsController';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
   startRampsBuyCufTrace,
   surfaceFromBuyFlowOrigin,
@@ -42,6 +43,9 @@ import type { RampsBuyCufSurface } from '../constants/rampsBuyCufTags';
 export const useRampNavigation = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const geolocationLocation = useSelector(selectGeolocationLocation);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const rampsServiceDisruptionRegions = useSelector(
     selectRampsServiceDisruptionRegions,
   );
@@ -68,6 +72,10 @@ export const useRampNavigation = () => {
         surface?: RampsBuyCufSurface;
       },
     ) => {
+      if (!isBasicFunctionalityEnabled) {
+        return;
+      }
+
       const { overrideUnifiedRouting = false } = options || {};
 
       const isUnifiedRoutingEnabled = !overrideUnifiedRouting;
@@ -214,6 +222,7 @@ export const useRampNavigation = () => {
       providersError,
       geolocationLocation,
       rampsServiceDisruptionRegions,
+      isBasicFunctionalityEnabled,
     ],
   );
 

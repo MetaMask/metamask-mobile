@@ -11,6 +11,7 @@ import {
   selectHasCard,
   selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useAssetBalances } from './useAssetBalances';
 import { ensureCardFundingTokensImported } from '../util/ensureCardFundingTokensImported';
@@ -26,6 +27,9 @@ export const useCardHomeData = () => {
   const isCardholder = useSelector(selectHasCard);
   const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
   const fetchedThisSession = useSelector(selectCardHomeDataFetchedThisSession);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
   // Money Home mounts this for every visitor, but a user with no card has
@@ -36,17 +40,20 @@ export const useCardHomeData = () => {
   // `fetchedThisSession` is not persisted, so it flags data that came off disk.
   useEffect(() => {
     if (
+      isBasicFunctionalityEnabled &&
       hasCard &&
       (status === 'idle' || status === 'error' || !fetchedThisSession)
     ) {
       Engine.context.CardController.fetchCardHomeData();
     }
-  }, [hasCard, status, fetchedThisSession]);
+  }, [hasCard, status, fetchedThisSession, isBasicFunctionalityEnabled]);
 
-  const refetch = useCallback(
-    () => Engine.context.CardController.fetchCardHomeData({ force: true }),
-    [],
-  );
+  const refetch = useCallback(() => {
+    if (!isBasicFunctionalityEnabled) {
+      return Promise.resolve();
+    }
+    return Engine.context.CardController.fetchCardHomeData({ force: true });
+  }, [isBasicFunctionalityEnabled]);
 
   // One useAssetBalances call covering all known card tokens, deduplicated by key.
   const tokensForBalanceLookup = useMemo(() => {

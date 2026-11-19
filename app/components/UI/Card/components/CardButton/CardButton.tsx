@@ -12,6 +12,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RootState } from '../../../../../reducers';
 import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { withCardProvider } from '../../util/metrics';
 
 interface CardButtonProps {
@@ -26,6 +27,9 @@ interface CardButtonProps {
 
 const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const flagsResolved = useSelector(
     (state: RootState) =>
@@ -37,7 +41,12 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
 
   useEffect(() => {
     // Wait until the active provider is known so we don't permanently lock null.
-    if (hasTrackedViewedEvent.current || !flagsResolved || !activeProviderId) {
+    if (
+      !isBasicFunctionalityEnabled ||
+      hasTrackedViewedEvent.current ||
+      !flagsResolved ||
+      !activeProviderId
+    ) {
       return;
     }
     hasTrackedViewedEvent.current = true;
@@ -47,7 +56,17 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
         .addProperties(withCardProvider(activeProviderId))
         .build(),
     );
-  }, [trackEvent, createEventBuilder, flagsResolved, activeProviderId]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    flagsResolved,
+    activeProviderId,
+    isBasicFunctionalityEnabled,
+  ]);
+
+  if (!isBasicFunctionalityEnabled) {
+    return null;
+  }
 
   return (
     <ButtonIcon

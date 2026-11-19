@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import {
   createNativeStackNavigator,
   NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
+import { IconName } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
 import CardHome from '../Views/CardHome/CardHome';
 import ApplePaySplash from '../Views/ApplePaySplash';
 import ApplePayConfirmation from '../Views/ApplePayConfirmation';
@@ -20,9 +23,15 @@ import {
   selectCardEntryRouting,
   selectHasCard,
 } from '../../../../selectors/cardController';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { switchToLinkedCardAccount } from '../../../../core/DeeplinkManager/handlers/legacy/switchToLinkedCardAccount';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
+import BasicFunctionalityEmptyState from '../../BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import PasswordBottomSheet from '../components/PasswordBottomSheet';
@@ -271,21 +280,38 @@ const CardModalsRoutes = () => (
   </ModalsStack.Navigator>
 );
 
-const CardRoutes = () => (
-  <RootStack.Navigator
-    initialRouteName={Routes.CARD.HOME}
-    screenOptions={{ headerShown: false }}
-  >
-    <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
-    <RootStack.Screen
-      name={Routes.CARD.MODALS.ID}
-      component={CardModalsRoutes}
-      options={{
-        ...clearNativeStackNavigatorOptions,
-        ...transparentModalScreenOptions,
-      }}
-    />
-  </RootStack.Navigator>
-);
+const CardRoutes = () => {
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+
+  if (!isBasicFunctionalityEnabled) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <BasicFunctionalityEmptyState
+          title={strings('card.basic_functionality_disabled_title')}
+          iconName={IconName.Warning}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <RootStack.Navigator
+      initialRouteName={Routes.CARD.HOME}
+      screenOptions={{ headerShown: false }}
+    >
+      <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+      <RootStack.Screen
+        name={Routes.CARD.MODALS.ID}
+        component={CardModalsRoutes}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
+    </RootStack.Navigator>
+  );
+};
 
 export default withCardSDK(CardRoutes);

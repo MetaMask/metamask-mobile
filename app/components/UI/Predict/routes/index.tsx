@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { type RouteProp, useRoute } from '@react-navigation/native';
 import React from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -10,6 +12,7 @@ import {
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import BasicFunctionalityEmptyState from '../../BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import PredictMarketUnavailableModal from '../views/PredictMarketUnavailableModal';
@@ -30,6 +33,11 @@ import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
 
 const Stack = createNativeStackNavigator<PredictStackParamList>();
 const ModalStack =
@@ -94,6 +102,9 @@ const PredictModalStack = () => {
 };
 
 const PredictScreenStack = () => {
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
   );
@@ -101,6 +112,17 @@ const PredictScreenStack = () => {
   const BuyPreviewComponent = payWithAnyTokenEnabled
     ? PredictBuyWithAnyToken
     : PredictBuyPreview;
+
+  if (!isBasicFunctionalityEnabled) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <BasicFunctionalityEmptyState
+          title={strings('predict.basic_functionality_disabled_title')}
+          iconName={IconName.Warning}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <PredictPreviewSheetProvider>

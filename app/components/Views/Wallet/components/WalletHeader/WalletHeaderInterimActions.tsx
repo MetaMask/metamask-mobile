@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -14,6 +15,7 @@ import {
   IconName as MMDSIconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 
@@ -88,6 +90,9 @@ const WalletHeaderInterimActions = ({
   isSocialLayout = false,
   twClassName = '',
 }: WalletHeaderInterimActionsProps) => {
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   let secondaryAction: React.ReactNode = null;
 
   if (isSocialLayout) {
@@ -103,7 +108,7 @@ const WalletHeaderInterimActions = ({
         twClassName={HEADER_ICON_BUTTON_CLASS}
       />
     );
-  } else if (isMoneyAccountVisible) {
+  } else if (isMoneyAccountVisible && isBasicFunctionalityEnabled) {
     secondaryAction = (
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}

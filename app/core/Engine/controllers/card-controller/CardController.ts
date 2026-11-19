@@ -579,11 +579,18 @@ export class CardController extends BaseController<
     // and AccountTreeController:stateChange both fire on wallet unlock) into a
     // single API call. The account list is sampled inside the callback so it
     // always reflects the latest state.
+    if (!this.#isBasicFunctionalityEnabled()) {
+      return;
+    }
     if (this.#cardholderCheckTimer !== undefined) {
       clearTimeout(this.#cardholderCheckTimer);
     }
     this.#cardholderCheckTimer = setTimeout(() => {
       this.#cardholderCheckTimer = undefined;
+
+      if (!this.#isBasicFunctionalityEnabled()) {
+        return;
+      }
 
       const { internalAccounts } = this.messenger.call(
         'AccountsController:getState',
@@ -1370,6 +1377,9 @@ export class CardController extends BaseController<
   async fetchCardHomeData(
     options: FetchCardHomeDataOptions = {},
   ): Promise<void> {
+    if (!this.#isBasicFunctionalityEnabled()) {
+      return;
+    }
     const { force = false } = options;
     if (
       !force &&

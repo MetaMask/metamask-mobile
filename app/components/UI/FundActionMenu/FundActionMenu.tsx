@@ -22,6 +22,7 @@ import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../Ramp/constants/rampsBuyCufTags';
@@ -46,6 +47,9 @@ const FundActionMenu = () => {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy, goToSell } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
@@ -107,7 +111,7 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.buy_unified_description'),
           iconName: IconName.Add,
           testID: WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON,
-          isVisible: true,
+          isVisible: isBasicFunctionalityEnabled,
           analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
           analyticsProperties: {
             button_text: 'Buy',
@@ -165,6 +169,7 @@ const FundActionMenu = () => {
       goToBuy,
       goToSell,
       rampsButtonClickData,
+      isBasicFunctionalityEnabled,
     ],
   );
 
