@@ -56,7 +56,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.eve
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import {
+  type HomepageSectionCacheState,
+  useSectionPerformance,
+} from '../../hooks/useSectionPerformance';
 import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
@@ -103,6 +106,18 @@ const resolveContentVariant = (
 const resolveContentState = (hasError: boolean, hasItems: boolean) => {
   if (hasError) return 'error';
   return hasItems ? 'filled' : 'empty';
+};
+
+const resolveHomepagePerpsCacheState = (
+  sectionDataSource: string,
+  requiresFreshData: boolean,
+): HomepageSectionCacheState => {
+  if (sectionDataSource === 'unknown') {
+    if (requiresFreshData) return 'cold';
+    return 'unknown';
+  }
+  if (sectionDataSource === 'memory_cache') return 'warm';
+  return 'cold';
 };
 
 /**
@@ -430,14 +445,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       lifecycle === 'background_reconnect' ||
       lifecycle === 'account_switch' ||
       lifecycle === 'network_switch';
-    const sectionCacheState =
-      sectionDataSource === 'unknown'
-        ? requiresFreshData
-          ? 'cold'
-          : 'unknown'
-        : sectionDataSource === 'memory_cache'
-          ? 'warm'
-          : 'cold';
+    const sectionCacheState = resolveHomepagePerpsCacheState(
+      sectionDataSource,
+      requiresFreshData,
+    );
     const cohortTags = useMemo(
       () => ({
         content_variant: surfaceContentVariant,

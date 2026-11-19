@@ -99,6 +99,13 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       visibilityOnLayout();
     }, [homeViewedOnLayout, visibilityOnLayout]);
 
+    let cacheState: 'cold' | 'unknown' | 'warm' = 'unknown';
+    if (isLoading) {
+      cacheState = 'cold';
+    } else if (displayedPositions.length > 0) {
+      cacheState = 'warm';
+    }
+
     useSectionPerformance({
       sectionId: HomeSectionNames.DEFI,
       // The idle placeholder is mounted before the viewport-gated request.
@@ -112,11 +119,7 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
         isLoading ||
         isError ||
         (isVisible && displayedPositions.length > 0),
-      cacheState: isLoading
-        ? 'cold'
-        : displayedPositions.length > 0
-          ? 'warm'
-          : 'unknown',
+      cacheState,
       isEmpty: isEmpty && !isError,
       contentStateForTrace: isError ? 'error' : undefined,
       isLoading,

@@ -333,13 +333,20 @@ const PredictionsSectionDefault = forwardRef<
       marketsLength: markets.length,
     });
 
+    let cacheState: 'cold' | 'unknown' | 'warm' = 'warm';
+    if (isLoading) {
+      cacheState = 'cold';
+    } else if (hasError) {
+      cacheState = 'unknown';
+    }
+
     useSectionPerformance({
       sectionId: analyticsName,
       contentReady: predictTimeToContentReady,
       isEmpty: isEmpty && !hasError,
       contentStateForTrace: hasError ? 'error' : undefined,
       demandStarted: isPredictEnabled,
-      cacheState: isLoading ? 'cold' : hasError ? 'unknown' : 'warm',
+      cacheState,
       isLoading,
       enabled: isPredictEnabled,
     });
