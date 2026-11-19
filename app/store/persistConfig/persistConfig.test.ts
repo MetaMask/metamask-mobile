@@ -16,6 +16,7 @@ jest.mock('../../core/Engine/constants', () => ({
     'KeyringController:stateChange',
     'PreferencesController:stateChange',
     'NetworkController:stateChange',
+    'CollectiblesController:stateChanged',
   ],
 }));
 
@@ -236,6 +237,22 @@ describe('persistConfig', () => {
   describe('ControllerStorage.getAllPersistedState()', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+    });
+
+    it('discovers Collectibles state through its registered stateChanged event', async () => {
+      jest
+        .mocked(FilesystemStorage.getItem)
+        .mockImplementation(async (key) =>
+          key === 'persist:CollectiblesController'
+            ? JSON.stringify({ _persist: { version } })
+            : undefined,
+        );
+
+      const result = await ControllerStorage.getAllPersistedState();
+
+      expect(result).toEqual({
+        backgroundState: { CollectiblesController: {} },
+      });
     });
 
     it('returns empty backgroundState for fresh install (no persisted data)', async () => {
