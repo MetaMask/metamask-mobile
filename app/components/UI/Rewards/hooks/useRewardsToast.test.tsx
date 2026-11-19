@@ -41,14 +41,6 @@ jest.mock('../../../../images/rewards/notification.svg', () => {
   };
 });
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
-  };
-});
-
 const mockToast = jest.mocked(toast);
 
 describe('useRewardsToast', () => {

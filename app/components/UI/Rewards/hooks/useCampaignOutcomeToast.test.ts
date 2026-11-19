@@ -17,13 +17,6 @@ import {
   CampaignType,
   type BaseCampaignParticipantOutcomeDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
-  };
-});
 
 jest.mock('../../../../component-library/components/Toast', () => ({
   ToastContext: { Consumer: jest.fn(), Provider: jest.fn() },
