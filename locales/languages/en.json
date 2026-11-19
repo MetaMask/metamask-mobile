@@ -10141,7 +10141,12 @@
       "dismiss": "Dismiss",
       "badge_label": "2-step verification is on",
       "toast_on": "2-step verification is on",
-      "toast_off": "2-step verification is off"
+      "toast_off": "2-step verification is off",
+      "sign_in_verify_description": "Use your passkey or another method to access your Money account.",
+      "sign_in_toast": "Money account ready",
+      "signing_in_title": "Signing in to your Money account",
+      "sign_in_failed_title": "Couldn't sign in to your Money account",
+      "sign_in_failed_description": "Your funds are safe. Try again to use your Money account on this device."
     },
     "transfer_sheet": {
       "title": "Send funds to",

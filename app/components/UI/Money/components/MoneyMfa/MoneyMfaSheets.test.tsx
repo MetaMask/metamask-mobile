@@ -91,6 +91,7 @@ describe('Money 2-step verification sheets', () => {
       addPasskey: mockAddPasskey,
       retry: jest.fn(),
       turnOff: mockTurnOff,
+      signIn: jest.fn(),
       isSettingUpBannerDismissed: false,
       dismissSettingUpBanner: jest.fn(),
       refreshCredentials: jest.fn(),

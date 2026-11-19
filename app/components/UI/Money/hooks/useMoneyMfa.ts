@@ -28,12 +28,18 @@ import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlag
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
+import { moneyAccountRestore } from '../../../../lib/Money/mfa/moneyAccountRestore';
+import { selectMfaMoneyAccountLifecycle } from '../../../../selectors/moneyAccountLifecycleController';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 
 export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'totp'];
 
 export type MoneyMfaStatus =
   | 'unavailable'
   | 'not_set_up'
+  | 'sign_in_required'
+  | 'signing_in'
+  | 'sign_in_failed'
   | 'setting_up'
   | 'failed'
   | 'enabled'
@@ -95,6 +101,15 @@ export const useMoneyMfa = () => {
     moneyAccountMigration.subscribe,
     moneyAccountMigration.getStatus,
   );
+  const restoreStatus = useSyncExternalStore(
+    moneyAccountRestore.subscribe,
+    moneyAccountRestore.getStatus,
+  );
+  const mfaLifecycle = useSelector(selectMfaMoneyAccountLifecycle);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const hasRestoredMpcAccount =
+    mfaLifecycle?.identity.currentAddress.toLowerCase() ===
+    primaryMoneyAccount?.address.toLowerCase();
 
   const activeMethods = useMemo(
     () =>
@@ -116,6 +131,16 @@ export const useMoneyMfa = () => {
     !isMpcMoneyKeyringBuildEnabled()
   ) {
     status = 'unavailable';
+  } else if (mfaLifecycle && !hasRestoredMpcAccount) {
+    // 'restored' covers the moment before the new default Money account reaches the store.
+    if (restoreStatus === 'restoring' || restoreStatus === 'restored') {
+      status = 'signing_in';
+    } else {
+      status =
+        restoreStatus === 'failed' ? 'sign_in_failed' : 'sign_in_required';
+    }
+  } else if (mfaLifecycle && migrationStatus !== 'migrating') {
+    status = 'enabled';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
   } else if (migrationStatus === 'failed') {
@@ -200,6 +225,32 @@ export const useMoneyMfa = () => {
     showToast('money.mfa.toast_off');
   }, [verifyOrEnroll, showToast]);
 
+  const currentMpcAddress = mfaLifecycle?.identity.currentAddress;
+  const signIn = useCallback(async () => {
+    if (!currentMpcAddress || !moneyAccountRestore.begin()) {
+      return;
+    }
+    try {
+      // The keyring's restore prompt reuses this verification.
+      await verifyOrEnroll({
+        methods: MONEY_MFA_METHODS,
+        verifyWith: MONEY_MFA_METHODS,
+        maxSessionAgeMs: 0,
+        reason: {
+          operation: 'money.mpcRestore',
+          verifyDescription: strings('money.mfa.sign_in_verify_description'),
+        },
+      });
+    } catch {
+      moneyAccountRestore.end();
+      return;
+    }
+    if ((await moneyAccountRestore.restore(currentMpcAddress)) === 'restored') {
+      moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
+      showToast('money.mfa.sign_in_toast');
+    }
+  }, [currentMpcAddress, verifyOrEnroll, showToast]);
+
   const retry = useCallback(() => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: false });
     return migrate();
@@ -234,6 +285,7 @@ export const useMoneyMfa = () => {
     addPasskey,
     retry,
     turnOff,
+    signIn,
     isSettingUpBannerDismissed: isMigrationBannerDismissed,
     dismissSettingUpBanner,
     refreshCredentials,

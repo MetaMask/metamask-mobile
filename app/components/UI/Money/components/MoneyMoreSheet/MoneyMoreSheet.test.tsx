@@ -59,6 +59,7 @@ const mockMfaStatus = (status: MoneyMfaStatus) =>
     addPasskey: jest.fn(),
     retry: jest.fn(),
     turnOff: jest.fn(),
+    signIn: jest.fn(),
     isSettingUpBannerDismissed: false,
     dismissSettingUpBanner: jest.fn(),
     refreshCredentials: jest.fn(),
