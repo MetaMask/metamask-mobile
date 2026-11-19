@@ -304,7 +304,13 @@ const MoneyHomeView = () => {
         refetchInterest(),
         refreshMusdFiatRate(),
         Promise.resolve(refetchActivity()),
-        Engine.context.CardController.fetchCardHomeData({ force: true }),
+        ...(Engine.context.CardController.state.isAuthenticated
+          ? [
+              Engine.context.CardController.fetchCardHomeData({
+                force: true,
+              }),
+            ]
+          : []),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -657,7 +663,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
-      label_key: 'money.action.transfer',
+      label_key: 'money.action.move',
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -683,6 +689,20 @@ const MoneyHomeView = () => {
       },
     ]);
   }, [markCardFlowOpened, navigation, metamaskCardMode]);
+
+  const navigateToCardLogin = useCallback(() => {
+    markCardFlowOpened();
+    navigateWithDetails(navigation, [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      },
+    ]);
+  }, [markCardFlowOpened, navigation]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -751,7 +771,12 @@ const MoneyHomeView = () => {
         return getLinkFlowRedirectTarget();
       }
 
-      if (mode === 'upsell' || mode === 'manage' || mode === 'setup') {
+      if (
+        mode === 'upsell' ||
+        mode === 'manage' ||
+        mode === 'setup' ||
+        mode === 'sign_in'
+      ) {
         return SCREEN_NAMES.CARD_HOME;
       }
 
@@ -1054,6 +1079,7 @@ const MoneyHomeView = () => {
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
+            onSignInPress={navigateToCardLogin}
             setupView={cardSetupView ?? undefined}
             onSetupContinuePress={enableCard ?? navigateToCardHome}
             isSetupContinueLoading={isEnableCardPending}

@@ -41,7 +41,7 @@ Whether to hide the network name text.
 ## Usage
 
 ```javascript
-import PickerNetwork from 'app/component-library/components/Pickers/PickerNetwork';
+import PickerNetwork from '#app/component-library/components/Pickers/PickerNetwork';
 
 <PickerNetwork
   onPress={() => console.log('Network picker pressed')}
