@@ -38,6 +38,8 @@ import { Platform } from 'react-native';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
+import type { Json } from '@metamask/utils';
+import { getInvalidMockedFeatureFlag } from '../../selectors/featureFlagController/mocks';
 const mockedCaptureFeedback = jest.mocked(captureFeedback);
 const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
@@ -1550,16 +1552,10 @@ describe('setupSentry', () => {
     };
     const globalWithDev = global as typeof global & { __DEV__: boolean };
     const mockGetState = jest.mocked(store.getState);
-    const setRemoteRates = (transactionSampleRates: unknown) =>
+    const setRemoteRates = (transactionSampleRates: Json) =>
       mockGetState.mockReturnValue({
         settings: { basicFunctionalityEnabled: true },
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: { sentry: { transactionSampleRates } },
-            },
-          },
-        },
+        ...getInvalidMockedFeatureFlag({ sentry: { transactionSampleRates } }),
       } as unknown as RootState);
 
     const getInitOptions = async () => {

@@ -1,20 +1,11 @@
 import type { Json } from '@metamask/utils';
 import { SENTRY_FLAG_KEY, selectSentryTransactionSampleRates } from '.';
-import type { StateWithPartialEngine } from '../types';
+import { getInvalidMockedFeatureFlag } from '../mocks';
 
-function createState(flagValue?: Json): StateWithPartialEngine {
-  return {
-    engine: {
-      backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags:
-            flagValue === undefined ? {} : { [SENTRY_FLAG_KEY]: flagValue },
-          cacheTimestamp: 0,
-        },
-      },
-    },
-  };
-}
+const createState = (flagValue?: Json) =>
+  getInvalidMockedFeatureFlag(
+    flagValue === undefined ? {} : { [SENTRY_FLAG_KEY]: flagValue },
+  );
 
 describe('selectSentryTransactionSampleRates', () => {
   it('keeps only rates in [0, 1]', () => {
