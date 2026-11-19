@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { View, Linking } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -102,6 +102,16 @@ const MicaConsent = (): React.JSX.Element => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleClose = useCallback(() => {
+    navigation.getParent()?.pop();
+  }, [navigation]);
+
+  const handleOpenTransakSupport = useCallback(() => {
+    Linking.openURL('https://support.transak.com').catch((err) =>
+      Logger.error(err as Error, 'Failed to open Transak support URL'),
+    );
+  }, []);
+
   const handleSubmit = useCallback(async () => {
     if (!dataProcessingConsent || !termsAndPrivacyConsent) {
       return;
@@ -159,8 +169,11 @@ const MicaConsent = (): React.JSX.Element => {
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
-          title={strings('deposit.mica.title')}
+          title={strings('deposit.verify_identity.title')}
           onBack={handleBack}
+          onClose={handleClose}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          closeButtonProps={{ testID: 'deposit-close-navbar-button' }}
           includesTopInset
         />
         <KeyboardAwareScrollView
@@ -169,6 +182,7 @@ const MicaConsent = (): React.JSX.Element => {
           keyboardShouldPersistTaps="handled"
           enableOnAndroid
           enableAutomaticScroll
+          showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content>
             <View style={styles.section}>
@@ -228,10 +242,9 @@ const MicaConsent = (): React.JSX.Element => {
                         variant={TextVariant.BodyMd}
                         style={styles.boldText}
                       >
-                        {strings('deposit.mica.phone')}:{' '}
+                        {strings('deposit.mica_consent.address_label')}:{' '}
                       </Text>
-                      {userDetails.mobileNumber ||
-                        strings('deposit.mica.notProvided')}
+                      {userDetails.address?.addressLine1 || ''}{userDetails.address?.city ? ', ' : ''}{userDetails.address?.city || ''}{userDetails.address?.countryCode ? ', ' : ''}{userDetails.address?.countryCode || ''}
                     </Text>
                     <Text
                       variant={TextVariant.BodyMd}
@@ -241,12 +254,10 @@ const MicaConsent = (): React.JSX.Element => {
                         variant={TextVariant.BodyMd}
                         style={styles.boldText}
                       >
-                        {strings('deposit.mica.address')}:{' '}
+                        {strings('deposit.mica_consent.mobile_number_label')}:{' '}
                       </Text>
-                      {userDetails.address?.addressLine1 || ''},{' '}
-                      {userDetails.address?.city || ''},{' '}
-                      {userDetails.address?.postCode || ''},{' '}
-                      {userDetails.address?.countryCode || ''}
+                      {userDetails.mobileNumber ||
+                        strings('deposit.mica.notProvided')}
                     </Text>
                   </>
                 ) : (
@@ -256,24 +267,60 @@ const MicaConsent = (): React.JSX.Element => {
                 )}
               </View>
               <Text variant={TextVariant.BodySm} style={styles.supportNotice}>
-                {strings('deposit.mica.supportNotice')}
+                {strings('deposit.mica_consent.support_notice_prefix')}{' '}
+                <Text
+                  variant={TextVariant.BodySm}
+                  style={styles.linkText}
+                  onPress={handleOpenTransakSupport}
+                >
+                  {strings('deposit.mica_consent.support_link_text')}
+                </Text>{' '}
+                {strings('deposit.mica_consent.support_notice_suffix')}
               </Text>
             </View>
 
             <View style={styles.section}>
               <Checkbox
-                label={strings('deposit.mica.dataProcessingConsent')}
+                label={strings('deposit.mica_consent.data_processing_consent')}
                 isChecked={dataProcessingConsent}
                 onPress={() => setDataProcessingConsent(!dataProcessingConsent)}
               />
               <View style={styles.checkboxSpacing} />
-              <Checkbox
-                label={strings('deposit.mica.termsAndPrivacyConsent')}
-                isChecked={termsAndPrivacyConsent}
-                onPress={() =>
-                  setTermsAndPrivacyConsent(!termsAndPrivacyConsent)
-                }
-              />
+              <View style={styles.checkboxRow}>
+                <Checkbox
+                  isChecked={termsAndPrivacyConsent}
+                  onPress={() =>
+                    setTermsAndPrivacyConsent(!termsAndPrivacyConsent)
+                  }
+                />
+                <Text variant={TextVariant.BodyMd} style={styles.checkboxLabel}>
+                  {strings('deposit.mica_consent.terms_consent_prefix')}{' '}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    style={styles.linkText}
+                    onPress={() => {
+                      Linking.openURL('https://transak.com/terms-of-service').catch((err) =>
+                        Logger.error(err as Error, 'Failed to open Terms URL'),
+                      );
+                    }}
+                  >
+                    {strings('deposit.mica_consent.terms_link_text')}
+                  </Text>{' '}
+                  {strings('deposit.mica_consent.terms_consent_middle')}{' '}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    style={styles.linkText}
+                    onPress={() => {
+                      Linking.openURL('https://transak.com/privacy-policy').catch((err) =>
+                        Logger.error(err as Error, 'Failed to open Privacy URL'),
+                      );
+                    }}
+                  >
+                    {strings('deposit.mica_consent.privacy_link_text')}
+                  </Text>
+                  .
+                </Text>
+              </View>
             </View>
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>

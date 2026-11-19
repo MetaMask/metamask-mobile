@@ -139,11 +139,12 @@ describe('SourceOfIncome', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
-      expect(getByText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
-      expect(getByText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
-      expect(getByText('deposit.mica.employmentStatusLabel')).toBeTruthy();
-      expect(getByText('deposit.mica.nationalityLabel')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.title')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.subtitle')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.monthly_volume_label')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.source_of_funds_label')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.employment_status_label')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.nationality_label')).toBeTruthy();
     });
   });
 
@@ -172,7 +173,7 @@ describe('SourceOfIncome', () => {
 
     await waitFor(() => {
       expect(mockGetUserDetails).toHaveBeenCalled();
-      expect(getByText('deposit.mica.employmentStatusLabel')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.employment_status_label')).toBeTruthy();
     });
   });
 
@@ -190,15 +191,16 @@ describe('SourceOfIncome', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
-      expect(getByText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
-      expect(getByText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
-      expect(queryByText('deposit.mica.employmentStatusLabel')).toBeNull();
-      expect(queryByText('deposit.mica.nationalityLabel')).toBeNull();
+      expect(getByText('deposit.source_of_income.title')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.subtitle')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.monthly_volume_label')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.source_of_funds_label')).toBeTruthy();
+      expect(queryByText('deposit.source_of_income.employment_status_label')).toBeNull();
+      expect(queryByText('deposit.source_of_income.nationality_label')).toBeNull();
     });
   });
 
-  it('renders submit button', async () => {
+  it('renders continue button', async () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
@@ -206,7 +208,7 @@ describe('SourceOfIncome', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.submitButton')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.continue_button')).toBeTruthy();
     });
   });
 
@@ -222,8 +224,8 @@ describe('SourceOfIncome', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.employmentStatusLabel')).toBeTruthy();
-      expect(getByText('deposit.mica.nationalityLabel')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.employment_status_label')).toBeTruthy();
+      expect(getByText('deposit.source_of_income.nationality_label')).toBeTruthy();
     });
   });
 });

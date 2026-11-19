@@ -42,6 +42,8 @@ import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import styleSheet from './SourceOfIncome.styles';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import PrivacySection from '../../components/PrivacySection';
 
 interface SourceOfIncomeMetadata
   extends NonNullable<TransakAdditionalRequirement['metadata']> {
@@ -157,6 +159,10 @@ const SourceOfIncome = (): React.JSX.Element => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleClose = useCallback(() => {
+    navigation.getParent()?.pop();
+  }, [navigation]);
+
   const handleSubmit = useCallback(async () => {
     setError(null);
 
@@ -254,8 +260,11 @@ const SourceOfIncome = (): React.JSX.Element => {
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
-          title={strings('deposit.mica.sourceOfIncomeTitle')}
+          title={strings('deposit.verify_identity.title')}
           onBack={handleBack}
+          onClose={handleClose}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          closeButtonProps={{ testID: 'deposit-close-navbar-button' }}
           includesTopInset
         />
         <KeyboardAwareScrollView
@@ -264,11 +273,17 @@ const SourceOfIncome = (): React.JSX.Element => {
           keyboardShouldPersistTaps="handled"
           enableOnAndroid
           enableAutomaticScroll
+          showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content>
+            <DepositProgressBar currentStep={4} totalSteps={5} />
+
             <View style={styles.section}>
-              <Text variant={TextVariant.BodyMd} style={styles.description}>
-                {strings('deposit.mica.sourceOfIncomeDescription')}
+              <Text variant={TextVariant.HeadingMd} style={styles.title}>
+                {strings('deposit.source_of_income.title')}
+              </Text>
+              <Text variant={TextVariant.BodyMd} style={styles.subtitle}>
+                {strings('deposit.source_of_income.subtitle')}
               </Text>
             </View>
 
@@ -298,19 +313,25 @@ const SourceOfIncome = (): React.JSX.Element => {
 
             <View style={styles.section}>
               <DepositTextField
-                label={strings('deposit.mica.monthlyVolumeLabel')}
-                placeholder={strings('deposit.mica.monthlyVolumePlaceholder')}
+                label={strings('deposit.source_of_income.monthly_volume_label')}
+                placeholder={strings(
+                  'deposit.source_of_income.monthly_volume_placeholder',
+                )}
                 value={monthlyVolume}
                 onChangeText={setMonthlyVolume}
                 keyboardType="numeric"
                 autoCapitalize="none"
+                prefix="€"
+                caption={strings('deposit.source_of_income.monthly_volume_helper')}
               />
             </View>
 
             <View style={styles.section}>
               <DepositSelectField
-                label={strings('deposit.mica.sourceOfFundsLabel')}
-                placeholder={strings('deposit.mica.sourceOfFundsPlaceholder')}
+                label={strings('deposit.source_of_income.source_of_funds_label')}
+                placeholder={strings(
+                  'deposit.source_of_income.source_of_funds_placeholder',
+                )}
                 options={sourceOfFundsOptions}
                 selectedValue={sourceOfFundsType}
                 onValueChange={setSourceOfFundsType}
@@ -321,9 +342,11 @@ const SourceOfIncome = (): React.JSX.Element => {
               <>
                 <View style={styles.section}>
                   <DepositSelectField
-                    label={strings('deposit.mica.employmentStatusLabel')}
+                    label={strings(
+                      'deposit.source_of_income.employment_status_label',
+                    )}
                     placeholder={strings(
-                      'deposit.mica.employmentStatusPlaceholder',
+                      'deposit.source_of_income.employment_status_placeholder',
                     )}
                     options={employmentStatusOptions}
                     selectedValue={employmentStatus}
@@ -333,8 +356,10 @@ const SourceOfIncome = (): React.JSX.Element => {
 
                 <View style={styles.section}>
                   <DepositSelectField
-                    label={strings('deposit.mica.nationalityLabel')}
-                    placeholder={strings('deposit.mica.nationalityPlaceholder')}
+                    label={strings('deposit.source_of_income.nationality_label')}
+                    placeholder={strings(
+                      'deposit.source_of_income.nationality_placeholder',
+                    )}
                     options={countryOfCitizenshipOptions}
                     selectedValue={countryOfCitizenship}
                     onValueChange={setCountryOfCitizenship}
@@ -345,8 +370,13 @@ const SourceOfIncome = (): React.JSX.Element => {
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>
+
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
+          <PrivacySection>
+            {strings('deposit.source_of_income.privacy_text')}
+          </PrivacySection>
+
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -355,8 +385,9 @@ const SourceOfIncome = (): React.JSX.Element => {
             isDisabled={!isFormValid || loading}
             isFullWidth
           >
-            {strings('deposit.mica.submitButton')}
+            {strings('deposit.source_of_income.continue_button')}
           </Button>
+
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

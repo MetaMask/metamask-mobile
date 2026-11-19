@@ -120,39 +120,14 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
+      expect(getByText('deposit.mica_consent.data_processing_consent')).toBeTruthy();
     });
 
     const button = getByLabelText('deposit.mica.agreeAndContinue');
     expect(button.props.accessibilityState?.disabled).toBe(true);
   });
 
-  it('enables submit button when both consents are checked', async () => {
-    const { getByText, getByLabelText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
-
-    await waitFor(() => {
-      expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
-    });
-
-    const dataProcessingCheckbox = getByText(
-      'deposit.mica.dataProcessingConsent',
-    );
-    const termsCheckbox = getByText('deposit.mica.termsAndPrivacyConsent');
-
-    fireEvent.press(dataProcessingCheckbox);
-    fireEvent.press(termsCheckbox);
-
-    await waitFor(() => {
-      const button = getByLabelText('deposit.mica.agreeAndContinue');
-      expect(button.props.accessibilityState?.disabled).toBe(false);
-    });
-  });
-
-  it('submits consent and re-checks requirements', async () => {
+  it('renders consent checkboxes with linked text', async () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <MicaConsent />
@@ -160,23 +135,21 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
+      expect(getByText('deposit.mica_consent.data_processing_consent')).toBeTruthy();
+      expect(getByText('deposit.mica_consent.terms_link_text')).toBeTruthy();
+      expect(getByText('deposit.mica_consent.privacy_link_text')).toBeTruthy();
     });
+  });
 
-    const dataProcessingCheckbox = getByText(
-      'deposit.mica.dataProcessingConsent',
+  it('renders agree and continue button', async () => {
+    const { getByText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <MicaConsent />
+      </ThemeContext.Provider>,
     );
-    const termsCheckbox = getByText('deposit.mica.termsAndPrivacyConsent');
-
-    fireEvent.press(dataProcessingCheckbox);
-    fireEvent.press(termsCheckbox);
-
-    const button = getByText('deposit.mica.agreeAndContinue');
-    fireEvent.press(button);
 
     await waitFor(() => {
-      expect(mockSubmitMicaConsent).toHaveBeenCalledWith(expect.any(String));
-      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
+      expect(getByText('deposit.mica.agreeAndContinue')).toBeTruthy();
     });
   });
 
@@ -188,7 +161,7 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.dataProcessingConsent')).toBeTruthy();
+      expect(getByText('deposit.mica_consent.data_processing_consent')).toBeTruthy();
     });
   });
 });

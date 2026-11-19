@@ -48,6 +48,19 @@ const styleSheet = (params: { theme: Theme }) => {
     footerContent: {
       gap: 8,
     },
+    checkboxRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    checkboxLabel: {
+      flex: 1,
+      paddingTop: 2,
+    },
+    linkText: {
+      color: colors.primary.default,
+      textDecorationLine: 'underline',
+    },
   });
 };
 

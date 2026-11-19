@@ -29,6 +29,15 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 24,
       alignSelf: 'center',
     },
+    title: {
+      marginBottom: 8,
+    },
+    subtitle: {
+      color: colors.text.alternative,
+    },
+    footerContent: {
+      gap: 12,
+    },
   });
 };
 
