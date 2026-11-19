@@ -15,7 +15,6 @@ export const EVAL_RULES: Record<string, Rule.RuleModule> = Object.fromEntries(
   loadEvalRules().map((config) => [config.id, createRuleFromConfig(config)]),
 );
 
-const PARSER_ID = 'design-system-evals-typescript';
 const APP_SOURCE = /^app\/.+\.(?:ts|tsx|js|jsx)$/;
 const OUT_OF_SCOPE = /\.(?:test|spec|stories)\.(?:ts|tsx|js|jsx)$/;
 
@@ -57,12 +56,12 @@ export function runEvals(io: EvalIo): void {
 }
 
 export function lintSource(filePath: string, code: string): LintFinding[] {
-  const messages = createLinter().verify(code, linterConfig(), {
+  const messages = new Linter().verify(code, linterConfig(), {
     filename: filePath,
   });
   const fatal = messages.find((message) => message.fatal);
   if (fatal) {
-    throw new Error(`${filePath}:${fatal.line ?? 1}: ${fatal.message}`);
+    throw new Error(`${filePath}:${fatal.line}: ${fatal.message}`);
   }
 
   return messages
@@ -83,29 +82,32 @@ export function formatErrorAnnotation(message: string): string {
   return `::error::${encodeWorkflow(message)}`;
 }
 
-function createLinter(): Linter {
-  const linter = new Linter();
-  // The parser package is CJS. tsx/jest both resolve this require.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
-  linter.defineParser(PARSER_ID, require('@typescript-eslint/parser'));
+function linterConfig(): Linter.Config[] {
+  // Flat config: rule ids are "<plugin>/<rule>", so group the rules by prefix.
+  const plugins: Record<string, { rules: Record<string, Rule.RuleModule> }> = {};
   for (const [ruleId, rule] of Object.entries(EVAL_RULES)) {
-    linter.defineRule(ruleId, rule);
+    const [plugin, name] = ruleId.split('/');
+    plugins[plugin] ??= { rules: {} };
+    plugins[plugin].rules[name] = rule;
   }
-  return linter;
-}
 
-function linterConfig(): Linter.Config {
-  return {
-    parser: PARSER_ID,
-    parserOptions: {
-      ecmaVersion: 2022,
-      sourceType: 'module',
-      ecmaFeatures: { jsx: true },
+  return [
+    {
+      files: ['**/*.{ts,tsx,js,jsx}'],
+      plugins,
+      languageOptions: {
+        // The parser package is CJS. tsx/jest both resolve this require.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
+        parser: require('@typescript-eslint/parser'),
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        parserOptions: { ecmaFeatures: { jsx: true } },
+      },
+      rules: Object.fromEntries(
+        Object.keys(EVAL_RULES).map((ruleId) => [ruleId, 'warn']),
+      ),
     },
-    rules: Object.fromEntries(
-      Object.keys(EVAL_RULES).map((ruleId) => [ruleId, 'warn']),
-    ),
-  };
+  ];
 }
 
 function main(): void {
