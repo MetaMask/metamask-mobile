@@ -64,6 +64,37 @@
   },
   "overrides": [
     {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "typescript/await-thenable": "error",
+        "typescript/consistent-type-exports": "error",
+        "typescript/no-base-to-string": "error",
+        "typescript/no-floating-promises": "error",
+        "typescript/no-implied-eval": "error",
+        "typescript/no-misused-promises": "error",
+        "typescript/no-unnecessary-boolean-literal-compare": "error",
+        "typescript/only-throw-error": "error",
+        "typescript/prefer-includes": "error",
+        "typescript/prefer-optional-chain": "error",
+        "typescript/prefer-promise-reject-errors": [
+          "error",
+          { "allowThrowingUnknown": true }
+        ],
+        "typescript/prefer-readonly": "error",
+        "typescript/prefer-reduce-type-parameter": "error",
+        "typescript/prefer-string-starts-ends-with": "error",
+        "typescript/restrict-plus-operands": "error",
+        "typescript/restrict-template-expressions": [
+          "error",
+          { "allowBoolean": true, "allowNumber": true }
+        ],
+        "typescript/switch-exhaustiveness-check": [
+          "error",
+          { "considerDefaultExhaustiveForUnions": true }
+        ]
+      }
+    },
+    {
       "files": ["*.js", "*.jsx"],
       "rules": {
         "no-unused-vars": "off",
