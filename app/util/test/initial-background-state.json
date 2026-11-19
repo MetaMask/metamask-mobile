@@ -973,6 +973,7 @@
     "vbaAutorampListFetchedAt": null,
     "vbaCustomerAbilities": null,
     "userRegion": null,
+    "userSelectedProviderId": null,
     "countries": {
       "data": [],
       "selected": null,
@@ -980,6 +981,7 @@
       "error": null
     },
     "providerAutoSelected": false,
+    "userSelectedProviderId": null,
     "providers": {
       "data": [],
       "selected": null,
@@ -1038,5 +1040,9 @@
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}
+  },
+  "MoneyAccountLifecycleController": {
+    "moneyAccounts": {},
+    "addressRegistrations": {}
   }
 }

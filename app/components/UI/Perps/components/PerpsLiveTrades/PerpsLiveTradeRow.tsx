@@ -9,6 +9,7 @@ import { getPerpsLiveTradeRowSelector } from '../../Perps.testIds';
 
 interface PerpsLiveTradeRowProps {
   post: SocialV1FeedPost;
+  onPress?: (post: SocialV1FeedPost) => void;
 }
 
 const getDirectionLabel = (item: SocialV1FeedPost['item']) => {
@@ -20,13 +21,20 @@ const getDirectionLabel = (item: SocialV1FeedPost['item']) => {
   );
 };
 
-const PerpsLiveTradeRow: React.FC<PerpsLiveTradeRowProps> = ({ post }) => {
+const PerpsLiveTradeRow: React.FC<PerpsLiveTradeRowProps> = ({
+  post,
+  onPress,
+}) => {
   const { item } = post;
   const winRatePercent = item.author.winRatePercent;
   const hasWinRate = winRatePercent !== null;
+  const pressProps = onPress
+    ? { isInteractive: true as const, onPress: () => onPress(post) }
+    : {};
 
   return (
     <ListItem
+      {...pressProps}
       twClassName="py-2"
       testID={getPerpsLiveTradeRowSelector(post.id)}
       avatar={

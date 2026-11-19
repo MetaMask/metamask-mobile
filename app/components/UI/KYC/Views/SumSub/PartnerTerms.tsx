@@ -50,6 +50,7 @@ import {
 } from '../../kycScreenPerformance';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import CrossfadeButton from './CrossfadeButton';
 import SentenceWithLinks, {
@@ -210,6 +211,7 @@ const KycPartnerTerms = ({
   );
 
   const handleAgree = useCallback(async () => {
+    fireImpact(ImpactMoment.PrimaryCTA);
     trackIdentityTerms('page2_accepted');
     await onAgree();
   }, [onAgree]);

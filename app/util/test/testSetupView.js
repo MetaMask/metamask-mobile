@@ -9,10 +9,15 @@
 /* eslint-disable react/display-name */
 
 const { NativeModules } = require('react-native');
+const { configure } = require('@testing-library/react-native');
 // eslint-disable-next-line import-x/no-nodejs-modules
 const nodeCrypto = require('crypto');
 const { installTimerLeakGuard } = require('./timerLeakGuard');
 const { installSocketLeakGuard } = require('./socketLeakGuard');
+
+// CV tests render real views behind nock/HTTP mocks on loaded CI shards, so
+// the 1s default is too short; per-test `{ timeout }` bumps are no longer needed.
+configure({ asyncUtilTimeout: 5000 });
 
 installTimerLeakGuard();
 installSocketLeakGuard();

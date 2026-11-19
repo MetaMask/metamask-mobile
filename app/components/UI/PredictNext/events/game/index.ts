@@ -13,6 +13,7 @@ export { getGameMoneylineMarkets } from './getGameMoneylineMarkets';
 export {
   findGameTradingQuote,
   findWinnerMarketQuotes,
+  toGameTradingQuote,
   type WinnerMarketQuotes,
 } from './findWinnerMarketQuotes';
 export type {

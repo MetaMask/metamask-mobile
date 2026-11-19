@@ -12,6 +12,7 @@ import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/c
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { EventMarketListTestIds } from '../PredictEvent/internal/EventMarketList.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
+import { PredictWithdrawFlowTestIds } from '../PredictWithdrawFlow/internal/PredictWithdrawFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
 import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
@@ -260,12 +261,70 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('offers no funding actions while none is implemented', async () => {
+  it('offers Add funds and Withdraw where the Venue lists them', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
     expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
-    expect(view.queryByText('Add Funds')).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.ADD_FUNDS)).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+  });
+
+  it('hides Withdraw where the Venue does not list it', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.WITHDRAW),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides Add funds when the Kalshi catalog omits deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'withdraw'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+  });
+
+  it('opens the Withdraw screen from the Withdraw action', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.WITHDRAW));
+
+    expect(
+      await view.findByTestId(PredictWithdrawFlowTestIds.SCREEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the Kalshi deposit from Add funds when the Kalshi catalog includes deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'deposit'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
+
+    expect(
+      await view.findByTestId('route-PredictNextDeposit'),
+    ).toBeOnTheScreen();
     expect(view.queryByText('Withdraw')).not.toBeOnTheScreen();
   });
 

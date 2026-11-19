@@ -25,6 +25,8 @@ export enum PredictErrorCode {
   APP_UPDATE_REQUIRED = 'APP_UPDATE_REQUIRED',
   /** The user has no enabled venue account yet. Onboarding resolves it. */
   VENUE_ACCOUNT_NOT_ENABLED = 'VENUE_ACCOUNT_NOT_ENABLED',
+  /** A withdrawal below the venue's minimum: the amount is fixable. */
+  AMOUNT_BELOW_MINIMUM = 'AMOUNT_BELOW_MINIMUM',
   /** Another deposit waits for its address or its transfer. */
   DEPOSIT_IN_PROGRESS = 'DEPOSIT_IN_PROGRESS',
   /** No deposit with that ID belongs to the Predict User. */
@@ -44,6 +46,11 @@ export enum PredictErrorCode {
    * another deposit holds, or a deposit that takes no transfer. The backend
    * stored nothing. */
   DEPOSIT_TRANSFER_MISMATCH = 'DEPOSIT_TRANSFER_MISMATCH',
+  /** The app refused the deposit's Funding Plan before any wallet call: it
+   * does not pay exactly what the user typed, in the known USDC on the
+   * expected chain, to a safe address, with time to spare. Nothing was
+   * sent; the deposit is cancelled. */
+  DEPOSIT_PLAN_MISMATCH = 'DEPOSIT_PLAN_MISMATCH',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -184,6 +191,11 @@ export const predictErrorRegistry: Record<
     message: 'Your position is unavailable right now.',
     recoverable: true,
   },
+  [PredictErrorCode.AMOUNT_BELOW_MINIMUM]: {
+    category: 'action_failed',
+    message: 'The withdrawal amount is below the venue minimum.',
+    recoverable: true,
+  },
   [PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED]: {
     category: 'unavailable',
     message: 'Finish setting up your account to continue.',
@@ -223,6 +235,12 @@ export const predictErrorRegistry: Record<
     category: 'action_failed',
     message: 'The transfer does not match this deposit. Contact support.',
     recoverable: false,
+  },
+  [PredictErrorCode.DEPOSIT_PLAN_MISMATCH]: {
+    category: 'action_failed',
+    message:
+      "This deposit couldn't be verified, so nothing was sent. Try again.",
+    recoverable: true,
   },
   [PredictErrorCode.UNKNOWN]: {
     category: 'action_failed',

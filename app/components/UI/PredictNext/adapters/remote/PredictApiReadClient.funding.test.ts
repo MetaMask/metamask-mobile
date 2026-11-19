@@ -164,6 +164,7 @@ describe('PredictApiReadClient deposit routes', () => {
       await expect(failed).rejects.toMatchObject({
         status: 409,
         bodyCode: 'deposit_in_progress',
+        deposit: cancelled,
       });
     });
 

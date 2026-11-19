@@ -15,6 +15,7 @@ import {
   __getRivePropertySetter,
   __resetRiveMocks,
 } from '../../../../../__mocks__/rive-app-react-native';
+import { playSuccessNotification } from '../../../../../util/haptics';
 
 const mockNavigate = jest.fn();
 const mockTrackScreenViewed = jest.fn();
@@ -52,6 +53,10 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useMountEffect', () => ({
   __esModule: true,
   default: (fn: () => void) => fn(),
+}));
+
+jest.mock('../../../../../util/haptics', () => ({
+  playSuccessNotification: jest.fn(() => Promise.resolve()),
 }));
 
 // Local wrapper around the global Nitro Rive mock: captures the RiveView
@@ -126,6 +131,13 @@ describe('MoneyFirstTimeDepositView', () => {
       expect(
         queryByTestId(MoneyFirstTimeDepositViewTestIds.RIVE_ANIMATION),
       ).toBeNull();
+      expect(playSuccessNotification).not.toHaveBeenCalled();
+    });
+
+    it('plays a success haptic once the deposit animation is ready', () => {
+      render(<MoneyFirstTimeDepositView />);
+
+      expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     });
   });
 
