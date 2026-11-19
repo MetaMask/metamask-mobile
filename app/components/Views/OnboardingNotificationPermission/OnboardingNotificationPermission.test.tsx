@@ -317,7 +317,7 @@ describe('OnboardingNotificationPermission', () => {
     );
     const nativeLabelWrapper = () => {
       let parent = getByText(enable.props.accessibilityLabel).parent;
-      while (parent && parent.type !== 'View') {
+      while (parent && typeof parent.type !== 'string') {
         parent = parent.parent;
       }
       return parent;
