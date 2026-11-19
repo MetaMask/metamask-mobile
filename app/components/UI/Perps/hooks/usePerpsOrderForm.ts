@@ -423,13 +423,19 @@ export function usePerpsOrderForm(
       ? maxPossibleAmountOverride
       : marginBasedMaxPossibleAmount;
 
-  // Update amount only once when the hook first calculates the initial value
-  // We use a ref to track if we've already set the initial amount to avoid overwriting user input
+  // Update amount only once when the hook first calculates the initial value.
+  // Any amount the user sets also settles it, so a late venue figure never
+  // overwrites their input.
   const hasSetInitialAmount = useRef(false);
+  const isInitialAmountCapPending =
+    !initialAmount &&
+    !pendingConfig?.amount &&
+    fallbackAmount !== '' &&
+    (isAvailableToTradeLoading || !currentPrice?.price);
   useEffect(() => {
-    // '0' is the cap while available to trade is still unknown. Wait for the
-    // venue figure instead of committing a zero size.
-    if (hasSetInitialAmount.current || initialAmountValue === '0') {
+    // The default amount is capped by available to trade at the current
+    // price. Wait for both; a confirmed zero balance still commits.
+    if (hasSetInitialAmount.current || isInitialAmountCapPending) {
       return;
     }
     const parsedAmount = Number.parseFloat(initialAmountValue);
@@ -444,7 +450,12 @@ export function usePerpsOrderForm(
       balancePercent: Math.round(percent * 100) / 100,
     }));
     hasSetInitialAmount.current = true;
-  }, [balanceForMax, defaultLeverage, initialAmountValue]);
+  }, [
+    balanceForMax,
+    defaultLeverage,
+    initialAmountValue,
+    isInitialAmountCapPending,
+  ]);
 
   useEffect(() => {
     if (!pendingConfig) return;
@@ -538,6 +549,7 @@ export function usePerpsOrderForm(
 
   // Individual setters for common operations
   const setAmount = useCallback((amount: string) => {
+    hasSetInitialAmount.current = true;
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
   }, []);
 
@@ -652,6 +664,7 @@ export function usePerpsOrderForm(
       const raw = balanceForMax * orderForm.leverage * percentage;
       const clamped = Math.min(raw, maxPossibleAmount);
       const newAmount = Math.floor(clamped).toString();
+      hasSetInitialAmount.current = true;
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
     [balanceForMax, orderForm.leverage, maxPossibleAmount],
@@ -661,6 +674,7 @@ export function usePerpsOrderForm(
   // Uses maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
   const handleMaxAmount = useCallback(() => {
     if (balanceForMax === 0) return;
+    hasSetInitialAmount.current = true;
     setOrderForm((prev) => ({
       ...prev,
       amount: Math.floor(maxPossibleAmount).toString(),
@@ -673,6 +687,7 @@ export function usePerpsOrderForm(
       currentNetwork === 'mainnet'
         ? TRADING_DEFAULTS.amount.mainnet
         : TRADING_DEFAULTS.amount.testnet;
+    hasSetInitialAmount.current = true;
     setOrderForm((prev) => ({
       ...prev,
       amount: minAmount.toString(),

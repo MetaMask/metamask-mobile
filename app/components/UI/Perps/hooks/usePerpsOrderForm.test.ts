@@ -28,6 +28,7 @@ jest.mock('./stream/usePerpsLivePrices');
 jest.mock('./stream/usePerpsLivePositions');
 jest.mock('./usePerpsMarketData');
 let mockAvailableToTradeSides: { long: string; short: string } | null = null;
+let mockHoldAvailableToTrade = false;
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -44,6 +45,9 @@ jest.mock('../../../../core/Engine', () => ({
             short: string;
           }) => void;
         }) => {
+          if (mockHoldAvailableToTrade) {
+            return jest.fn();
+          }
           const { usePerpsLiveAccount } = jest.requireMock(
             './stream/usePerpsLiveAccount',
           ) as {
@@ -235,6 +239,7 @@ describe('usePerpsOrderForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAvailableToTradeSides = null;
+    mockHoldAvailableToTrade = false;
     mockUsePerpsNetwork.mockReturnValue('mainnet');
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
@@ -831,6 +836,49 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.perpsAvailableToTrade).toBeUndefined();
       expect(result.current.balanceForValidation).toBe(0);
       expect(result.current.isAvailableToTradeLoading).toBe(true);
+    });
+
+    it('keeps a typed amount when available to trade arrives later', () => {
+      mockHoldAvailableToTrade = true;
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const subscription = (
+        Engine.context.PerpsController.subscribeToAvailableToTrade as jest.Mock
+      ).mock.calls.at(-1)?.[0] as {
+        callback: (update: {
+          providerId: 'hyperliquid';
+          symbol: string;
+          long: string;
+          short: string;
+        }) => void;
+      };
+
+      act(() => {
+        result.current.setAmount('42');
+      });
+      act(() => {
+        subscription.callback({
+          providerId: 'hyperliquid',
+          symbol: 'BTC',
+          long: '1000',
+          short: '1000',
+        });
+      });
+
+      expect(result.current.perpsAvailableToTrade).toBe(1000);
+      expect(result.current.orderForm.amount).toBe('42');
+    });
+
+    it('replaces the default amount with zero when available to trade is zero', () => {
+      mockAvailableToTradeSides = { long: '0', short: '0' };
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.perpsAvailableToTrade).toBe(0);
+      expect(result.current.orderForm.amount).toBe('0');
     });
 
     it('keeps a selected payment balance ahead of available to trade', () => {
