@@ -1,3 +1,4 @@
+import type { Provider } from '@metamask/ramps-controller';
 import {
   getMockConsentForm,
   getMockSourceOfIncomeForm,
@@ -17,6 +18,25 @@ jest.mock('./micaMockModeEnv', () => ({
 }));
 
 import { isMicaMockModeEnabled } from './micaMockModeEnv';
+
+function createMockProvider(overrides: Partial<Provider> = {}): Provider {
+  return {
+    id: '/providers/test',
+    name: 'Test Provider',
+    type: 'aggregator',
+    environmentType: 'production',
+    description: 'Test description',
+    hqAddress: 'Test Address',
+    links: [],
+    logos: {
+      light: '',
+      dark: '',
+      height: 0,
+      width: 0,
+    },
+    ...overrides,
+  };
+}
 
 describe('micaMockMode', () => {
   const mockIsMicaMockModeEnabled =
@@ -116,7 +136,11 @@ describe('micaMockMode', () => {
     it('returns providers unchanged when mock mode is off', () => {
       mockIsMicaMockModeEnabled.mockReturnValue(false);
       const providers = [
-        { id: '/providers/test', name: 'Test', type: 'native' },
+        createMockProvider({
+          id: '/providers/test',
+          name: 'Test',
+          type: 'native',
+        }),
       ];
       const result = injectMockNativeProviderIfNeeded(providers, 'DE');
       expect(result).toEqual(providers);
@@ -125,7 +149,11 @@ describe('micaMockMode', () => {
     it('injects transak-native for EEA countries', () => {
       mockIsMicaMockModeEnabled.mockReturnValue(true);
       const providers = [
-        { id: '/providers/test', name: 'Test', type: 'aggregator' },
+        createMockProvider({
+          id: '/providers/test',
+          name: 'Test',
+          type: 'aggregator',
+        }),
       ];
       const result = injectMockNativeProviderIfNeeded(providers, 'DE');
 
@@ -137,8 +165,16 @@ describe('micaMockMode', () => {
     it('does not inject if transak-native already exists', () => {
       mockIsMicaMockModeEnabled.mockReturnValue(true);
       const providers = [
-        { id: '/providers/transak-native', name: 'Transak', type: 'native' },
-        { id: '/providers/test', name: 'Test', type: 'aggregator' },
+        createMockProvider({
+          id: '/providers/transak-native',
+          name: 'Transak',
+          type: 'native',
+        }),
+        createMockProvider({
+          id: '/providers/test',
+          name: 'Test',
+          type: 'aggregator',
+        }),
       ];
       const result = injectMockNativeProviderIfNeeded(providers, 'DE');
       expect(result).toEqual(providers);
@@ -147,7 +183,11 @@ describe('micaMockMode', () => {
     it('does not inject for non-EEA countries', () => {
       mockIsMicaMockModeEnabled.mockReturnValue(true);
       const providers = [
-        { id: '/providers/test', name: 'Test', type: 'aggregator' },
+        createMockProvider({
+          id: '/providers/test',
+          name: 'Test',
+          type: 'aggregator',
+        }),
       ];
       const result = injectMockNativeProviderIfNeeded(providers, 'US');
       expect(result).toEqual(providers);
