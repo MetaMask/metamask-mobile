@@ -82,6 +82,7 @@ import { formatAmountWithLocaleSeparators } from '../../../Bridge/utils/formatAm
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import MicaDisclaimer from '../../components/MicaDisclaimer';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -908,6 +909,9 @@ function BuildQuote() {
                 {embeddedCheckout.renderOverlay?.({
                   interactive: canContinue,
                 })}
+                {selectedQuote?.quote?.termsIds ? (
+                  <MicaDisclaimer termsIds={selectedQuote.quote.termsIds} />
+                ) : null}
                 {isEmbeddedCheckoutVisible ? null : (
                   <Button
                     variant={ButtonVariant.Primary}
