@@ -7,7 +7,7 @@ describe('TokenSelectorMoneyItem', () => {
   it('shows the money account row and apy', () => {
     const token = createMockToken({
       symbol: 'Money',
-      name: 'Stablecoin account',
+      name: 'MetaMask Money',
       isMoneyToken: true,
       apy: 6.2,
     });
@@ -53,7 +53,7 @@ describe('TokenSelectorMoneyItem', () => {
       name: 'Stablecoin account',
       isMoneyToken: true,
       apy: 6.2,
-      balanceFiat: '10.12',
+      balanceFiat: '$10.12',
     });
 
     const { getByTestId, queryByTestId, rerender } = render(
@@ -68,7 +68,7 @@ describe('TokenSelectorMoneyItem', () => {
 
     rerender(
       <TokenSelectorMoneyItem
-        token={{ ...token, balanceFiat: '$0.00' }}
+        token={{ ...token, balanceFiat: undefined }}
         onPress={jest.fn()}
       />,
     );

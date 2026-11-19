@@ -3079,9 +3079,6 @@ describe('BridgeTokenSelectorContent', () => {
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'zzz');
       expect(queryByTestId('money-token-row')).toBeNull();
 
-      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'stable');
-      expect(getByTestId('money-token-row')).toBeOnTheScreen();
-
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'money');
       expect(getByTestId('money-token-row')).toBeOnTheScreen();
 
@@ -3097,6 +3094,34 @@ describe('BridgeTokenSelectorContent', () => {
       fireEvent.changeText(getByTestId('bridge-token-search-input'), '0xmoney');
       expect(getByTestId('money-token-row')).toBeOnTheScreen();
     });
+
+    it.each([
+      {
+        featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+        action: 'shows',
+        visible: true,
+      },
+      { featureId: FeatureId.LIMIT_ORDER, action: 'hides', visible: false },
+      { featureId: FeatureId.RECURRING_ORDER, action: 'hides', visible: false },
+    ] as const)(
+      '$action the money token for $featureId',
+      ({ featureId, visible }) => {
+        mockUseSwapsFeatureId.mockReturnValue(featureId);
+        mockUseMoneyToken.mockReturnValue(
+          featureId === FeatureId.UNIFIED_SWAP_BRIDGE ? moneyToken : undefined,
+        );
+
+        const { queryByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
+        );
+
+        if (visible) {
+          expect(queryByTestId('money-token-row')).toBeOnTheScreen();
+        } else {
+          expect(queryByTestId('money-token-row')).not.toBeOnTheScreen();
+        }
+      },
+    );
   });
 
   describe('hostManagesNetworkFilter', () => {

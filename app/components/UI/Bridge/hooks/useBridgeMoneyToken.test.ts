@@ -2,6 +2,7 @@
  * Unit test: this hook only maps flags, balances, and APY onto a BridgeToken.
  * There is no screen for component-view, and it does not call a controller.
  */
+import { FeatureId } from '@metamask/bridge-controller';
 import { renderHook } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
 import useMoneyAccountDepositAssetId from '../../Money/hooks/useMoneyAccountDepositAssetId';
@@ -11,6 +12,7 @@ import { selectBridgeMoneyEnabled } from '../../../../selectors/bridge/featureFl
 import { TokenSelectorType } from '../types';
 import { useBridgeMoneyAccountBalance } from './useBridgeMoneyAccountBalance';
 import { useMoneyToken } from './useBridgeMoneyToken';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state?: unknown) => unknown) => selector(undefined),
@@ -38,6 +40,10 @@ jest.mock('./useBridgeMoneyAccountBalance', () => ({
   useBridgeMoneyAccountBalance: jest.fn(),
 }));
 
+jest.mock('./useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
 const mockSelectBridgeMoneyEnabled = jest.mocked(selectBridgeMoneyEnabled);
 const mockSelectIsMoneyAccountVisible = jest.mocked(
   selectIsMoneyAccountVisible,
@@ -49,6 +55,7 @@ const mockUseMoneyAccountDepositAssetId = jest.mocked(
 const mockUseBridgeMoneyAccountBalance = jest.mocked(
   useBridgeMoneyAccountBalance,
 );
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 
 const DEPOSIT_ASSET_ID =
   'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
@@ -73,6 +80,7 @@ describe('useMoneyToken', () => {
     } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyAccountDepositAssetId.mockReturnValue(DEPOSIT_ASSET_ID);
     mockUseBridgeMoneyAccountBalance.mockReturnValue(createBalance());
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
   });
 
   afterEach(() => {
@@ -94,6 +102,16 @@ describe('useMoneyToken', () => {
 
     const { result } = renderHook(() =>
       useMoneyToken({ type: TokenSelectorType.Dest }),
+    );
+
+    expect(result.current).toBeUndefined();
+  });
+
+  it('returns undefined when the feature is not unified swap bridge', () => {
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+
+    const { result } = renderHook(() =>
+      useMoneyToken({ type: TokenSelectorType.Source }),
     );
 
     expect(result.current).toBeUndefined();
