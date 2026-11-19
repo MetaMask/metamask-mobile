@@ -19,6 +19,7 @@ import {
 } from '@metamask/utils';
 import { v1 as random } from 'uuid';
 import Engine from '../../../../core/Engine';
+import ReactQueryService from '../../../../core/ReactQueryService';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
@@ -31,6 +32,7 @@ import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAc
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
+import { clearMoneyAccountPlusTrialEligibilityCache } from '../../../hooks/moneyAccountPlusTrialEligibility';
 import {
   membershipTopUpAwaitsExternalFunds,
   resolveProSubscriptionStartOutcome,
@@ -475,6 +477,11 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
             ...subscriptionParams,
             chainId,
           });
+
+        // The Benefits screen may still be holding "eligible for trial".
+        await clearMoneyAccountPlusTrialEligibilityCache(
+          ReactQueryService.queryClient,
+        );
 
         return {
           outcome: resolveProSubscriptionStartOutcome(

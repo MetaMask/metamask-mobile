@@ -1,35 +1,35 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
+import {
+  SUBSCRIPTIONS_QUERY_KEY,
+  SUBSCRIPTIONS_REFETCH_INTERVAL,
+} from '../../../../../../components/hooks/useSubscriptions';
 import { selectCanonicalProfileId } from '../../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { selectSeedlessOnboardingUserId } from '../../../../../../selectors/seedlessOnboardingController';
-
-const MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY = [
-  'SubscriptionController:isUserEligibleForTrial',
-  PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-] as const;
+import { MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY } from '../../../../../../components/hooks/moneyAccountPlusTrialEligibility';
 
 /**
  * Cache key for a Plus trial eligibility check.
  *
- * Profile id and social-login user id are part of the key so a social login
- * or account switch cannot read another user's cached result.
+ * The id is the social-login user when one exists, otherwise the profile id.
+ * Plus eligibility follows social auth, and the profile id often arrives after
+ * that login. Keeping it out of the key stops the plan cards from loading
+ * again for the same user. A different social user, or a different profile
+ * when there is no social user, still gets its own entry.
  *
- * @param canonicalProfileId - Profile for the live wallet, when known.
- * @param socialLoginUserId - Seedless onboarding user id, when the wallet is
- * socially authenticated.
+ * @param identityId - Social-login user id, or the profile id when the wallet
+ * is not socially authenticated.
  * @returns The React Query key for this user.
  */
 export function getMoneyAccountPlusTrialEligibilityQueryKey(
-  canonicalProfileId: string | undefined,
-  socialLoginUserId: string | undefined,
+  identityId: string | undefined,
 ) {
   return [
     ...MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
-    canonicalProfileId || null,
-    socialLoginUserId || null,
+    identityId || null,
   ] as const;
 }
 
@@ -65,22 +65,29 @@ export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialElig
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
   const canonicalProfileId = useSelector(selectCanonicalProfileId);
   const socialLoginUserId = useSelector(selectSeedlessOnboardingUserId);
-  const canRequestEligibility =
-    isUnlocked && Boolean(canonicalProfileId || socialLoginUserId);
+  // Social auth decides Plus eligibility. Prefer that id so a profile id that
+  // arrives later does not change the key and reload the plan cards.
+  const trialIdentityId = socialLoginUserId || canonicalProfileId;
+  const canRequestEligibility = isUnlocked && Boolean(trialIdentityId);
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: getMoneyAccountPlusTrialEligibilityQueryKey(
-      canonicalProfileId,
-      socialLoginUserId,
-    ),
+    queryKey: getMoneyAccountPlusTrialEligibilityQueryKey(trialIdentityId),
     queryFn: async () => {
-      await Engine.context.SubscriptionController.getSubscriptions();
+      // Join the shared subscriptions query, including one already in flight,
+      // instead of calling the controller a second time.
+      await queryClient.fetchQuery({
+        queryKey: SUBSCRIPTIONS_QUERY_KEY,
+        queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
+        staleTime: SUBSCRIPTIONS_REFETCH_INTERVAL,
+      });
       return Engine.context.SubscriptionController.isUserEligibleForTrial(
         PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
       );
     },
     enabled: canRequestEligibility,
-    retry: false,
+    // Keep the app default (retry: 2). retry: false treats one network blip
+    // as "not eligible" and hides the trial.
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

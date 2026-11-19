@@ -8,6 +8,10 @@ import type { RootState } from '../../../../../../reducers';
 import { selectCanonicalProfileId } from '../../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { selectSeedlessOnboardingUserId } from '../../../../../../selectors/seedlessOnboardingController';
+import {
+  SUBSCRIPTIONS_QUERY_KEY,
+  SUBSCRIPTIONS_REFETCH_INTERVAL,
+} from '../../../../../../components/hooks/useSubscriptions';
 import configureStore from '../../../../../../util/test/configureStore';
 import { useMoneyAccountPlusTrialEligibility } from './useMoneyAccountPlusTrialEligibility';
 
@@ -56,19 +60,24 @@ const createState = () =>
     },
   }) as unknown as RootState;
 
-const renderEligibility = () => {
-  const queryClient = new QueryClient({
+const createQueryClient = () =>
+  new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
+
+const renderEligibility = (queryClient = createQueryClient()) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <Provider store={configureStore(createState())}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </Provider>
   );
 
-  return renderHook(() => useMoneyAccountPlusTrialEligibility(), {
-    wrapper: Wrapper,
-  });
+  return {
+    queryClient,
+    ...renderHook(() => useMoneyAccountPlusTrialEligibility(), {
+      wrapper: Wrapper,
+    }),
+  };
 };
 
 describe('useMoneyAccountPlusTrialEligibility', () => {
@@ -165,7 +174,26 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     expect(mockIsUserEligibleForTrial).not.toHaveBeenCalled();
   });
 
-  it('returns false when the signed-in profile changes until that profile is checked', async () => {
+  it('keeps the trial answer when the profile id arrives after the social login id', async () => {
+    mockSelectCanonicalProfileId.mockReturnValue(undefined);
+    mockIsUserEligibleForTrial.mockResolvedValue(true);
+
+    const { result, rerender } = renderEligibility();
+
+    await waitFor(() => {
+      expect(result.current.isEligibleForTrial).toBe(true);
+    });
+
+    mockSelectCanonicalProfileId.mockReturnValue('profile-a');
+    rerender(undefined);
+
+    expect(mockIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
+    expect(result.current.isEligibleForTrial).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('rechecks eligibility when the profile id changes and there is no social login id', async () => {
+    mockSelectSeedlessOnboardingUserId.mockReturnValue(undefined);
     mockIsUserEligibleForTrial.mockResolvedValue(true);
 
     const { result, rerender } = renderEligibility();
@@ -243,6 +271,46 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     expect(result.current.isLoading).toBe(false);
     expect(mockGetSubscriptions).not.toHaveBeenCalled();
     expect(mockIsUserEligibleForTrial).not.toHaveBeenCalled();
+  });
+
+  it('reuses a fresh subscriptions query instead of fetching again', async () => {
+    const queryClient = createQueryClient();
+    await queryClient.fetchQuery({
+      queryKey: SUBSCRIPTIONS_QUERY_KEY,
+      queryFn: () => mockGetSubscriptions(),
+      staleTime: SUBSCRIPTIONS_REFETCH_INTERVAL,
+    });
+    mockGetSubscriptions.mockClear();
+    mockIsUserEligibleForTrial.mockResolvedValue(false);
+
+    const { result } = renderEligibility(queryClient);
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockGetSubscriptions).not.toHaveBeenCalled();
+    expect(mockIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
+    expect(result.current.isEligibleForTrial).toBe(false);
+  });
+
+  it('retries the eligibility check after a subscriptions blip', async () => {
+    mockGetSubscriptions
+      .mockRejectedValueOnce(new Error('blip'))
+      .mockResolvedValueOnce([]);
+    mockIsUserEligibleForTrial.mockResolvedValue(true);
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: 1, retryDelay: 0, gcTime: 0 },
+      },
+    });
+
+    const { result } = renderEligibility(queryClient);
+
+    await waitFor(() => {
+      expect(result.current.isEligibleForTrial).toBe(true);
+    });
+    expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
   });
 
   it('returns false when the controller rejects the eligibility check', async () => {

@@ -37,6 +37,19 @@ jest.mock('../../../../core/RPCMethods/RPCMethodMiddleware', () => ({
   },
 }));
 
+const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
+const mockRemoveQueries = jest.fn();
+
+jest.mock('../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+      removeQueries: (...args: unknown[]) => mockRemoveQueries(...args),
+    },
+  },
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -178,6 +191,7 @@ describe('useStartProSubscription', () => {
     (
       Engine.context as { TransactionPayController?: unknown }
     ).TransactionPayController = undefined;
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockedUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
@@ -233,6 +247,8 @@ describe('useStartProSubscription', () => {
       mockedStartSubscription.mock.invocationCallOrder[0],
     );
     expect(outcome).toEqual({ outcome: StartProSubscriptionOutcome.Ready });
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockRemoveQueries).toHaveBeenCalledTimes(1);
   });
 
   it('does not start delegation, log, or set an error when membership consent is rejected', async () => {
@@ -247,6 +263,8 @@ describe('useStartProSubscription', () => {
     });
 
     expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
     expect(Logger.error).not.toHaveBeenCalled();
     expect(result.current.errorMessage).toBeUndefined();
   });
