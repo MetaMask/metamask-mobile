@@ -37,6 +37,11 @@ export function clearAllNockMocks(): void {
  * connect, and cycles restore/activate so @mswjs/interceptors (nock v14) does
  * not leave half-open TLS sockets that break later suites (e.g. ChoosePassword
  * `read EINVAL` after Ramp Quotes).
+ *
+ * The re-enable is deliberate: it stops this file's blocked state from
+ * leaking into other suites in the same Jest worker. In component-view runs
+ * the net connect guard re-blocks before every test (`testSetupView.js`), so
+ * protection continues there.
  */
 export function teardownNock(): void {
   nock.cleanAll();
