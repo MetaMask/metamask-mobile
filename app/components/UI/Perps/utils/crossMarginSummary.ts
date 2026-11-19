@@ -214,6 +214,49 @@ export const estimateCrossLiquidationPrice = ({
 };
 
 /**
+ * Liquidation price to compare with a stop loss.
+ *
+ * The cross estimate prices the position left after the order. The check has
+ * to use that same side. A reduce that does not flip, or a full close, leaves
+ * the opposite side (or nothing). Feeding that price to the order side marks
+ * every stop unsafe; the check used to see an empty price and skip. Increasing
+ * or flipping keeps the price, because the remaining side is the order side.
+ * Callers that already validate against the remaining side pass that side as
+ * `checkIsLong` and keep the price.
+ */
+export const liquidationPriceForOrderSide = ({
+  liquidationPrice,
+  existingSignedSize,
+  orderSize,
+  orderIsLong,
+  checkIsLong = orderIsLong,
+}: {
+  liquidationPrice: string;
+  /** Signed size already open. Positive is long. */
+  existingSignedSize: number;
+  /** Unsigned order size in base units. */
+  orderSize: number;
+  /** Direction of the order, not of the position it leaves. */
+  orderIsLong: boolean;
+  /** Direction the stop-loss check will use. Defaults to the order. */
+  checkIsLong?: boolean;
+}): string => {
+  if (
+    !liquidationPrice ||
+    !Number.isFinite(existingSignedSize) ||
+    !(orderSize > 0)
+  ) {
+    return liquidationPrice;
+  }
+  const signedOrder = (orderIsLong ? 1 : -1) * orderSize;
+  const signedResult = existingSignedSize + signedOrder;
+  if (signedResult === 0 || signedResult > 0 !== checkIsLong) {
+    return '';
+  }
+  return liquidationPrice;
+};
+
+/**
  * Turns a cross estimate into the order-row value. Callers that are not
  * placing a cross order should keep their isolated price instead.
  */

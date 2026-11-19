@@ -92,6 +92,7 @@ import {
 } from '../../../../hooks/stream';
 import {
   estimateCrossLiquidationPrice,
+  liquidationPriceForOrderSide,
   presentCrossLiquidationEstimate,
 } from '../../../../utils/crossMarginSummary';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
@@ -2623,6 +2624,13 @@ export const usePerpsProOrderForm = ({
 
   const tpslDirection =
     positionModifySummaryDisplay.tpslDirection ?? orderForm.direction;
+  const crossLiquidationPriceForTpSl = liquidationPriceForOrderSide({
+    liquidationPrice: crossLiquidationPrice,
+    existingSignedSize: Number.parseFloat(currentMarketPosition?.size ?? '0'),
+    orderSize: Number.parseFloat(positionSize),
+    orderIsLong: orderForm.direction === 'long',
+    checkIsLong: tpslDirection === 'long',
+  });
   const {
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
@@ -2636,7 +2644,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? crossLiquidationPrice
+        ? crossLiquidationPriceForTpSl
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
     marketPrice: assetData.price,
