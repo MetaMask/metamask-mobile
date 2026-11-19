@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  BannerBaseActionButtonLayout,
   IconColor,
   IconSize,
   Spinner,
@@ -43,10 +44,13 @@ export function buildQuickBuyToastOptions(
   );
 
   const description = trade.rate || undefined;
+  // Pin the action to the trailing edge; the design-system default stacks it
+  // below the title and description.
   const actionButton = linkButtonOptions
     ? {
         actionButtonLabel: linkButtonOptions.label,
         actionButtonOnPress: linkButtonOptions.onPress,
+        actionButtonLayout: BannerBaseActionButtonLayout.End,
       }
     : {};
 

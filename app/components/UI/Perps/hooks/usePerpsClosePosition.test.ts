@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
@@ -1853,13 +1854,14 @@ describe('usePerpsClosePosition', () => {
       expect(successToast).toEqual(
         expect.objectContaining({
           label: 'closed',
-          linkButtonOptions: expect.objectContaining({
+          closeButtonOptions: expect.objectContaining({
+            variant: ButtonVariants.Link,
             label: 'social_leaderboard.post_trade_share.post_to_feed',
           }),
         }),
       );
 
-      successToast.linkButtonOptions.onPress();
+      successToast.closeButtonOptions.onPress();
 
       expect(openPostTradeComposer).toHaveBeenCalledWith(
         expect.objectContaining({
