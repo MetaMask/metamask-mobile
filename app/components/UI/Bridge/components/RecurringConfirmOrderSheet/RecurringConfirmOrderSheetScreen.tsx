@@ -33,10 +33,7 @@ import { useCreateRecurringOrder } from '../../hooks/useCreateRecurringOrder';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import type { RecurringConfirmOrderModalParams } from './RecurringConfirmOrderSheet.types';
-import {
-  showRecurringAutoUpgradeError,
-  showRecurringOrderCreatedToast,
-} from './RecurringConfirmOrderSheet.utils';
+import { showRecurringOrderCreatedToast } from './RecurringConfirmOrderSheet.utils';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -45,6 +42,7 @@ import {
   getAdvancedOrderTokenProperties,
   getAdvancedOrderTradeProperties,
 } from '../../utils/advancedOrders';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import {
   finishRecurringOrderTrace,
@@ -202,7 +200,9 @@ export const RecurringConfirmOrderSheetScreen = () => {
         result: 'error',
         failurePhase,
       });
-      showRecurringAutoUpgradeError(error);
+      // Close bottom sheet so user can see the toast
+      navigation.goBack();
+      showGenericErrorToast();
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
           .addProperties({

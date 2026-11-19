@@ -48,11 +48,11 @@ import {
   RecurringSwapStatus,
   type RecurringSwap,
 } from '../../api/recurringOrders.types';
-import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { type BridgeToken } from '../../types';
 import { getRecurringOrderTokens } from '../../utils/recurringOrders';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
 import type { RecurringSwapDetailsRouteParams } from './RecurringSwapDetailsView.types';
@@ -156,10 +156,10 @@ export function RecurringSwapDelegationButton({
           upgradeStatus.isUpgradeRequired ? 'required' : 'hidden',
         );
       })
-      .catch((error) => {
+      .catch(() => {
         if (!isActive) return;
 
-        showRecurringAutoUpgradeError(error);
+        showGenericErrorToast();
         setDelegationStatus('hidden');
       });
 
@@ -177,8 +177,8 @@ export function RecurringSwapDelegationButton({
     try {
       await autoUpgradeEIP7702Account();
       setDelegationStatus('hidden');
-    } catch (error) {
-      showRecurringAutoUpgradeError(error);
+    } catch {
+      showGenericErrorToast();
       setDelegationStatus('required');
     } finally {
       isDelegatingRef.current = false;

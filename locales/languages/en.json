@@ -9937,6 +9937,7 @@
           "title": "Link your MetaMask Card",
           "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Link card",
+          "cta_log_in": "Log in",
           "cta_secondary": "Skip"
         }
       }
@@ -10017,7 +10018,7 @@
     },
     "action": {
       "add": "Add",
-      "transfer": "Send",
+      "move": "Move",
       "card": "Card",
       "details": "Details"
     },
@@ -10084,6 +10085,8 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "link_title": "Link card",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_subtitle_no_apy": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
@@ -10139,8 +10142,8 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Send funds to",
-      "between_accounts": "Another account",
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
