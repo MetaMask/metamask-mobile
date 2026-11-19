@@ -13,7 +13,7 @@ export interface PredictFundingInput {
   /** `selectPredictAvailability`: D1's availability for the Active Venue. */
   available: boolean;
   activeVenue: ActiveVenueResolution;
-  /** The Venue's resolved capabilities: A3's descriptor. */
+  /** The Venue's resolved capabilities, including its catalog `actions`. */
   getCapabilities: (venue: PredictConfiguredVenue) => PredictVenueCapabilities;
   /** `predictConfig.kalshiDepositsEnabled`: the Kalshi deposit rollout. */
   kalshiDepositsEnabled: boolean;
@@ -21,7 +21,7 @@ export interface PredictFundingInput {
 
 /** Whether a client flow listed in the implementations table is switched on
  * for the Venue. The Kalshi deposit has a rollout flag. Withdrawal does not:
- * the Venue descriptor is its gate. Every other flow is on. */
+ * the Venue catalog's `actions` are its gate. Every other flow is on. */
 const isClientFlowEnabled = (
   action: PredictFundingAction,
   venue: PredictConfiguredVenue,
@@ -40,7 +40,7 @@ const isClientFlowEnabled = (
  * Resolves which implementation runs a funding action for the Active Venue.
  * Ready only when Predict is available, the Active Venue's implementation has
  * a client flow for the action, the Kalshi deposit rollout flag is on when
- * the action is that deposit, and the Venue's descriptor lists it. Every
+ * the action is that deposit, and the Venue catalog's `actions` list it. Every
  * other case is unavailable, and a surface renders no entry point for it.
  */
 export const resolvePredictFunding = (
