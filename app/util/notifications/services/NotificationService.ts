@@ -167,9 +167,13 @@ class NotificationsService {
   }
   openSystemSettings() {
     if (Platform.OS === 'ios') {
-      Linking.openSettings();
+      Promise.resolve(Linking.openSettings()).catch((error: Error) =>
+        Logger.error(error),
+      );
     } else {
-      notifee.openNotificationSettings();
+      Promise.resolve(notifee.openNotificationSettings()).catch(
+        (error: Error) => Logger.error(error),
+      );
     }
   }
 
@@ -203,15 +207,15 @@ class NotificationsService {
   ): (() => void) => notifee.onForegroundEvent(observer);
 
   incrementBadgeCount = async (incrementBy?: number) => {
-    notifee.incrementBadgeCount(incrementBy);
+    await notifee.incrementBadgeCount(incrementBy);
   };
 
   decrementBadgeCount = async (decrementBy?: number) => {
-    notifee.decrementBadgeCount(decrementBy);
+    await notifee.decrementBadgeCount(decrementBy);
   };
 
   setBadgeCount = async (count: number) => {
-    notifee.setBadgeCount(count);
+    await notifee.setBadgeCount(count);
   };
 
   getBadgeCount = async () => notifee.getBadgeCount();
