@@ -396,34 +396,10 @@ describe('useRampsProviders', () => {
           legacyOrders: [
             {
               id: 'a',
-              provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-              state: FIAT_ORDER_STATES.COMPLETED,
-              orderType: 'BUY',
-              createdAt: 100,
-              data: { provider: { id: '/providers/moonpay' } },
-            },
-            {
-              id: 'b',
               provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
               state: FIAT_ORDER_STATES.COMPLETED,
               orderType: 'DEPOSIT',
               createdAt: 200,
-            },
-            {
-              id: 'c',
-              provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-              state: FIAT_ORDER_STATES.COMPLETED,
-              orderType: 'SELL',
-              createdAt: 300,
-              data: { provider: { id: '/providers/paypal' } },
-            },
-            {
-              id: 'd',
-              provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-              state: FIAT_ORDER_STATES.FAILED,
-              orderType: 'BUY',
-              createdAt: 400,
-              data: { provider: { id: '/providers/banxa' } },
             },
           ],
         },
@@ -435,10 +411,7 @@ describe('useRampsProviders', () => {
 
       expect(mockController.selectProviderForAsset).toHaveBeenCalledWith(ETH, {
         aheadOfHistory: ['crossmint'],
-        extraHistory: [
-          { providerId: '/providers/moonpay', completedAt: 100 },
-          { providerId: 'transak-native', completedAt: 200 },
-        ],
+        extraHistory: [{ providerId: 'transak-native', completedAt: 200 }],
       });
     });
 
