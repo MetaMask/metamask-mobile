@@ -267,6 +267,8 @@ const PerpsProOrderFormPanel = ({
     closeOrderType,
     isEligibilityModalVisible,
     closeEligibilityModal,
+    isAccountUnsupportedModalVisible,
+    closeAccountUnsupportedModal,
     selectedTooltip,
     closeTooltip,
     feeMetamaskFeeRate,
@@ -646,6 +648,15 @@ const PerpsProOrderFormPanel = ({
             isVisible
             onClose={closeEligibilityModal}
             contentKey={'geo_block'}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isAccountUnsupportedModalVisible && (
+        <PerpsProModalPortal onRequestClose={closeAccountUnsupportedModal}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={closeAccountUnsupportedModal}
+            contentKey="account_not_supported"
           />
         </PerpsProModalPortal>
       )}
