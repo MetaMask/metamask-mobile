@@ -33,6 +33,11 @@ jest.mock('../../hooks/useTransakController', () => ({
 }));
 
 const mockEEAMetadata = {
+  options: [],
+  documentProofOptions: [],
+  expiresAt: '',
+  kycUrl: '',
+  workFlowRunId: '',
   sourceOfFundsTypeOptions: [
     { name: 'Salary payments', value: 'salary_payment' },
     { name: 'Savings', value: 'savings' },
@@ -48,6 +53,11 @@ const mockEEAMetadata = {
 };
 
 const mockNonEEAMetadata = {
+  options: [],
+  documentProofOptions: [],
+  expiresAt: '',
+  kycUrl: '',
+  workFlowRunId: '',
   sourceOfFundsTypeOptions: [
     { name: 'Salary payments', value: 'salary_payment' },
     { name: 'Savings', value: 'savings' },
@@ -90,7 +100,7 @@ describe('SourceOfIncome', () => {
   });
 
   it('renders correctly for non-EEA users', async () => {
-    mockUseParamsReturn.metadata = mockNonEEAMetadata;
+    mockUseParamsReturn.metadata = { ...mockNonEEAMetadata, employmentStatusOptions: [], countryOfCitizenshipOptions: [] };
 
     const { getByText, getByLabelText, queryByLabelText } = render(
       <ThemeContext.Provider value={mockTheme}>

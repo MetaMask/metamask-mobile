@@ -990,7 +990,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             if (sourceOfIncomeForm) {
               navigation.navigate(Routes.RAMP.SOURCE_OF_INCOME, {
                 quote,
-                metadata: sourceOfIncomeForm.metadata || {},
+                metadata: {
+                  options: [],
+                  documentProofOptions: [],
+                  expiresAt: '',
+                  kycUrl: '',
+                  workFlowRunId: '',
+                  ...sourceOfIncomeForm.metadata,
+                },
                 ...(baseRouteParams ?? {}),
               });
               return;

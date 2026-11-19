@@ -25,6 +25,17 @@ import type {
   TransakPatchUserRequestBody,
   TransakOrder,
 } from '@metamask/ramps-controller';
+import type { RampsController } from '@metamask/ramps-controller';
+
+interface RampsControllerWithMica extends RampsController {
+  transakSubmitMicaConsent: (consentedAt: string) => Promise<void>;
+  transakSubmitSourceOfIncome: (
+    monthlyVolume: string,
+    sourceOfFundsType: string,
+    employmentStatus: string,
+    countryOfCitizenship: string,
+  ) => Promise<void>;
+}
 
 export interface UseTransakControllerResult {
   transak: TransakState;
@@ -386,10 +397,7 @@ export function useTransakController(): UseTransakControllerResult {
 
   const submitMicaConsent = useCallback(
     async (consentedAt: string) =>
-      Engine.context.RampsController.messagingSystem.call(
-        'TransakService:submitMicaConsent',
-        consentedAt,
-      ),
+      (getRampsController() as RampsControllerWithMica).transakSubmitMicaConsent(consentedAt),
     [],
   );
 
@@ -400,8 +408,7 @@ export function useTransakController(): UseTransakControllerResult {
       employmentStatus?: string,
       countryOfCitizenship?: string,
     ) =>
-      Engine.context.RampsController.messagingSystem.call(
-        'TransakService:submitSourceOfIncome',
+      (getRampsController() as RampsControllerWithMica).transakSubmitSourceOfIncome(
         monthlyVolume,
         sourceOfFundsType,
         employmentStatus || '',

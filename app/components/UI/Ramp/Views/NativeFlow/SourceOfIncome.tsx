@@ -38,9 +38,15 @@ import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import styleSheet from './SourceOfIncome.styles';
 
+interface SourceOfIncomeMetadata extends NonNullable<TransakAdditionalRequirement['metadata']> {
+  sourceOfFundsTypeOptions?: Array<{ name: string; value: string }>;
+  employmentStatusOptions?: Array<{ name: string; value: string }>;
+  countryOfCitizenshipOptions?: Array<{ name: string; value: string }>;
+}
+
 export interface SourceOfIncomeParams {
   quote: TransakBuyQuote;
-  metadata: NonNullable<TransakAdditionalRequirement['metadata']>;
+  metadata: SourceOfIncomeMetadata;
   /** Optional callback to continue KYC flow (for testing or direct navigation) */
   onSourceOfIncomeSubmitted?: () => void;
   headlessSessionId?: string;
@@ -70,8 +76,8 @@ const SourceOfIncome = (): React.JSX.Element => {
     Boolean(metadata.employmentStatusOptions?.length) &&
     Boolean(metadata.countryOfCitizenshipOptions?.length);
 
-  const sourceOfFundsOptions =
-    metadata.sourceOfFundsTypeOptions || metadata.options || [];
+  const sourceOfFundsOptions: Array<{ name: string; value: string }> =
+    metadata.sourceOfFundsTypeOptions || [];
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -222,12 +228,13 @@ const SourceOfIncome = (): React.JSX.Element => {
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          label={strings('deposit.mica.submitButton')}
           onPress={handleSubmit}
           isLoading={loading}
           isDisabled={!isFormValid || loading}
           style={styles.button}
-        />
+        >
+          {strings('deposit.mica.submitButton')}
+        </Button>
 
         <PoweredByTransak name="transak-native" style={styles.poweredBy} />
       </ScrollView>

@@ -22,7 +22,13 @@ export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
     formsRequired: [
       {
         type: 'CONSENT',
-        metadata: {},
+        metadata: {
+          options: [],
+          documentProofOptions: [],
+          expiresAt: '',
+          kycUrl: '',
+          workFlowRunId: '',
+        },
       },
     ],
   };
@@ -42,7 +48,12 @@ export function injectMicaTermsIds(quote: any): any {
 
 export function getMockSourceOfIncomeForm(): TransakAdditionalRequirementsResponse {
   Logger.log('[MiCA Mock] Returning mock SOURCE_OF_INCOME form');
-  const metadata: NonNullable<TransakAdditionalRequirement['metadata']> = {
+  const metadata = {
+    options: [],
+    documentProofOptions: [],
+    expiresAt: '',
+    kycUrl: '',
+    workFlowRunId: '',
     sourceOfFundsTypeOptions: [
       { name: 'Salary payments', value: 'salary_payment' },
       { name: 'Savings', value: 'savings' },

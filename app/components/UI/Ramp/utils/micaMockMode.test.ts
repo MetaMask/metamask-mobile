@@ -36,7 +36,13 @@ describe('micaMockMode', () => {
       const form = getMockConsentForm();
       expect(form.formsRequired).toHaveLength(1);
       expect(form.formsRequired[0].type).toBe('CONSENT');
-      expect(form.formsRequired[0].metadata).toEqual({});
+      expect(form.formsRequired[0].metadata).toEqual({
+        options: [],
+        documentProofOptions: [],
+        expiresAt: '',
+        kycUrl: '',
+        workFlowRunId: '',
+      });
     });
   });
 
@@ -100,18 +106,32 @@ describe('micaMockMode', () => {
   });
 
   describe('injectMockNativeProviderIfNeeded', () => {
+    const mockisMicaMockModeEnabled = jest.fn();
+    
     beforeEach(() => {
-      process.env.MICA_MOCK_MODE = 'true';
+      jest.resetModules();
+      jest.doMock('./micaMockMode', () => {
+        const actual = jest.requireActual('./micaMockMode');
+        return {
+          ...actual,
+          isMicaMockModeEnabled: mockisMicaMockModeEnabled,
+        };
+      });
+    });
+
+    afterEach(() => {
+      jest.dontMock('./micaMockMode');
     });
 
     it('returns providers unchanged when mock mode is off', () => {
-      process.env.MICA_MOCK_MODE = 'false';
+      mockisMicaMockModeEnabled.mockReturnValue(false);
       const providers = [{ id: '/providers/test', name: 'Test', type: 'native' }];
       const result = injectMockNativeProviderIfNeeded(providers, 'DE');
       expect(result).toEqual(providers);
     });
 
     it('injects transak-native for EEA countries', () => {
+      mockisMicaMockModeEnabled.mockReturnValue(true);
       const providers = [{ id: '/providers/test', name: 'Test', type: 'aggregator' }];
       const result = injectMockNativeProviderIfNeeded(providers, 'DE');
       
@@ -121,6 +141,7 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject if transak-native already exists', () => {
+      mockisMicaMockModeEnabled.mockReturnValue(true);
       const providers = [
         { id: '/providers/transak-native', name: 'Transak', type: 'native' },
         { id: '/providers/test', name: 'Test', type: 'aggregator' },
@@ -130,6 +151,7 @@ describe('micaMockMode', () => {
     });
 
     it('does not inject for non-EEA countries', () => {
+      mockisMicaMockModeEnabled.mockReturnValue(true);
       const providers = [{ id: '/providers/test', name: 'Test', type: 'aggregator' }];
       const result = injectMockNativeProviderIfNeeded(providers, 'US');
       expect(result).toEqual(providers);
@@ -137,18 +159,32 @@ describe('micaMockMode', () => {
   });
 
   describe('injectMicaTermsIds', () => {
+    const mockisMicaMockModeEnabled = jest.fn();
+    
     beforeEach(() => {
-      process.env.MICA_MOCK_MODE = 'true';
+      jest.resetModules();
+      jest.doMock('./micaMockMode', () => {
+        const actual = jest.requireActual('./micaMockMode');
+        return {
+          ...actual,
+          isMicaMockModeEnabled: mockisMicaMockModeEnabled,
+        };
+      });
+    });
+
+    afterEach(() => {
+      jest.dontMock('./micaMockMode');
     });
 
     it('returns quote unchanged when mock mode is off', () => {
-      process.env.MICA_MOCK_MODE = 'false';
+      mockisMicaMockModeEnabled.mockReturnValue(false);
       const quote = { quoteId: 'test', fiatAmount: 100 };
       const result = injectMicaTermsIds(quote);
       expect(result).toEqual(quote);
     });
 
     it('injects MICA_EEA_BUY termsId', () => {
+      mockisMicaMockModeEnabled.mockReturnValue(true);
       const quote = { quoteId: 'test', fiatAmount: 100 };
       const result = injectMicaTermsIds(quote);
       
@@ -156,6 +192,7 @@ describe('micaMockMode', () => {
     });
 
     it('preserves existing termsIds', () => {
+      mockisMicaMockModeEnabled.mockReturnValue(true);
       const quote = { quoteId: 'test', fiatAmount: 100, termsIds: ['EXISTING'] };
       const result = injectMicaTermsIds(quote);
       
@@ -164,6 +201,7 @@ describe('micaMockMode', () => {
     });
 
     it('returns quote unchanged when quote is null', () => {
+      mockisMicaMockModeEnabled.mockReturnValue(true);
       const result = injectMicaTermsIds(null);
       expect(result).toBeNull();
     });
