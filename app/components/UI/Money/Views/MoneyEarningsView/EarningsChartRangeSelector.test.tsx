@@ -43,7 +43,7 @@ describe('EarningsChartRangeSelector', () => {
   });
 
   it('forwards the selected range when a button is pressed', () => {
-    const onRangeChange = jest.fn<(range: EarningsRange) => void>();
+    const onRangeChange = jest.fn();
     const { getByLabelText } = renderWithProvider(
       <EarningsChartRangeSelector
         selectedRange="30D"
