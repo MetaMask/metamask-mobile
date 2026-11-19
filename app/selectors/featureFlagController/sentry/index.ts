@@ -4,31 +4,34 @@ import { selectRemoteFeatureFlags } from '..';
 
 export const SENTRY_FLAG_KEY = 'sentry';
 
-export type SentryTraceSampleRates = Record<string, Record<string, number>>;
+export type SentryTransactionSampleRates = Record<
+  string,
+  Record<string, number>
+>;
 
-const EMPTY_RATES: SentryTraceSampleRates = Object.freeze({});
+const EMPTY_RATES: SentryTransactionSampleRates = Object.freeze({});
 
 const isValidRate = (rate: unknown): rate is number =>
   typeof rate === 'number' && rate >= 0 && rate <= 1;
 
 /**
- * Parses `{ traceSampleRates: { [traceName]: rate | { [Platform.OS]: rate } } }`
+ * Parses `{ transactionSampleRates: { [traceName]: rate | { [Platform.OS]: rate } } }`
  * from the controller-processed `sentry` flag. A plain number applies to both
- * platforms. Only rates in [0, 1] are kept (Sentry drops a trace on an invalid
- * rate instead of falling back).
+ * platforms. Only rates in [0, 1] are kept (Sentry drops a transaction on an
+ * invalid rate instead of falling back).
  *
  * @param value - Processed remote feature flag value.
  * @returns Rates by trace name and platform; empty when missing or malformed.
  */
-export function parseSentryTraceSampleRates(
+export function parseSentryTransactionSampleRates(
   value: unknown,
-): SentryTraceSampleRates {
-  const rates = isPlainObject(value) ? value.traceSampleRates : undefined;
+): SentryTransactionSampleRates {
+  const rates = isPlainObject(value) ? value.transactionSampleRates : undefined;
   if (!isPlainObject(rates)) {
     return EMPTY_RATES;
   }
 
-  const result: SentryTraceSampleRates = {};
+  const result: SentryTransactionSampleRates = {};
   for (const [name, entry] of Object.entries(rates)) {
     if (isValidRate(entry)) {
       result[name] = { android: entry, ios: entry };
@@ -46,8 +49,8 @@ export function parseSentryTraceSampleRates(
   return result;
 }
 
-export const selectSentryTraceSampleRates = createSelector(
+export const selectSentryTransactionSampleRates = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
-    parseSentryTraceSampleRates(remoteFeatureFlags[SENTRY_FLAG_KEY]),
+    parseSentryTransactionSampleRates(remoteFeatureFlags[SENTRY_FLAG_KEY]),
 );

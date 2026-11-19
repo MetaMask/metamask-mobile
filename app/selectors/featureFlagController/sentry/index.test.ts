@@ -1,5 +1,5 @@
 import type { Json } from '@metamask/utils';
-import { SENTRY_FLAG_KEY, selectSentryTraceSampleRates } from '.';
+import { SENTRY_FLAG_KEY, selectSentryTransactionSampleRates } from '.';
 import type { StateWithPartialEngine } from '../types';
 
 function createState(flagValue?: Json): StateWithPartialEngine {
@@ -16,17 +16,17 @@ function createState(flagValue?: Json): StateWithPartialEngine {
   };
 }
 
-describe('selectSentryTraceSampleRates', () => {
+describe('selectSentryTransactionSampleRates', () => {
   it('keeps only rates in [0, 1]', () => {
     const state = createState({
-      traceSampleRates: {
+      transactionSampleRates: {
         'Swap Quote Fetch': { android: 0.25, ios: 1.5 },
         Other: { android: -0.1, ios: '0.5' },
         Zero: { ios: 0 },
       },
     });
 
-    expect(selectSentryTraceSampleRates(state)).toStrictEqual({
+    expect(selectSentryTransactionSampleRates(state)).toStrictEqual({
       'Swap Quote Fetch': { android: 0.25 },
       Zero: { ios: 0 },
     });
@@ -34,10 +34,10 @@ describe('selectSentryTraceSampleRates', () => {
 
   it('applies a plain number to both platforms', () => {
     const state = createState({
-      traceSampleRates: { 'Swap Quote Fetch': 0.25, Zero: 0 },
+      transactionSampleRates: { 'Swap Quote Fetch': 0.25, Zero: 0 },
     });
 
-    expect(selectSentryTraceSampleRates(state)).toStrictEqual({
+    expect(selectSentryTransactionSampleRates(state)).toStrictEqual({
       'Swap Quote Fetch': { android: 0.25, ios: 0.25 },
       Zero: { android: 0, ios: 0 },
     });
@@ -45,22 +45,22 @@ describe('selectSentryTraceSampleRates', () => {
 
   it('drops a plain number outside [0, 1]', () => {
     const state = createState({
-      traceSampleRates: { Negative: -0.1, TooHigh: 1.5, Text: '0.5' },
+      transactionSampleRates: { Negative: -0.1, TooHigh: 1.5, Text: '0.5' },
     });
 
-    expect(selectSentryTraceSampleRates(state)).toStrictEqual({});
+    expect(selectSentryTransactionSampleRates(state)).toStrictEqual({});
   });
 
   it('parses plain numbers and per-platform objects together', () => {
     const state = createState({
-      traceSampleRates: {
+      transactionSampleRates: {
         'Swap Quote Fetch': { android: 0.25 },
         'UI Startup': 0.1,
         Invalid: 2,
       },
     });
 
-    expect(selectSentryTraceSampleRates(state)).toStrictEqual({
+    expect(selectSentryTransactionSampleRates(state)).toStrictEqual({
       'Swap Quote Fetch': { android: 0.25 },
       'UI Startup': { android: 0.1, ios: 0.1 },
     });
@@ -71,11 +71,11 @@ describe('selectSentryTraceSampleRates', () => {
     null,
     [],
     {},
-    { traceSampleRates: null },
-    { traceSampleRates: { 'Swap Quote Fetch': [0.25] } },
+    { transactionSampleRates: null },
+    { transactionSampleRates: { 'Swap Quote Fetch': [0.25] } },
   ])('returns no rates for a missing or malformed flag (%j)', (flagValue) => {
-    expect(selectSentryTraceSampleRates(createState(flagValue))).toStrictEqual(
-      {},
-    );
+    expect(
+      selectSentryTransactionSampleRates(createState(flagValue)),
+    ).toStrictEqual({});
   });
 });
