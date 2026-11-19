@@ -386,6 +386,8 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   ORIGINAL_FEES_VALUE: 'perps-close-all-positions-fees-value-original',
   MARGIN_VALUE: 'perps-close-all-positions-margin-value',
   RECEIVE_VALUE: 'perps-close-all-positions-receive-value',
+  PNL_VALUE: 'perps-close-all-positions-pnl-value',
+  PNL_ROW: 'perps-close-all-positions-pnl-row',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
