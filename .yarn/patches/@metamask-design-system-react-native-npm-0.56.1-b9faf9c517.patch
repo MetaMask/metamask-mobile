@@ -1,3 +1,47 @@
+diff --git a/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.cjs b/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.cjs
+index 50dec0ed0901764c43212648b8033e873c85986f..d53467c84fa1bdae3f177857e02b2afc58e2950e 100644
+--- a/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.cjs
++++ b/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.cjs
+@@ -48,7 +48,7 @@ const ButtonSecondary = ({ children, textProps, spinnerProps, startIconProps, en
+         else if (isDanger) {
+             backgroundClass =
+                 pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted';
+-            borderClass = 'border-transparent';
++            borderClass = 'border-muted';
+         }
+         else if (isInverse) {
+             backgroundClass =
+@@ -58,7 +58,7 @@ const ButtonSecondary = ({ children, textProps, spinnerProps, startIconProps, en
+         else {
+             backgroundClass =
+                 pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted';
+-            borderClass = 'border-transparent';
++            borderClass = 'border-muted';
+         }
+         return `${backgroundClass} ${borderClass} ${baseClasses}`;
+     }, [isInverse, isDanger, isLoading, twClassName]);
+diff --git a/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.mjs b/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.mjs
+index c1146abea3241cd5be177cdcaa8296b098c003ab..2fc12aac6ede7c097c238ccfcb86b6bf037d0ff6 100644
+--- a/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.mjs
++++ b/dist/components/Button/variants/ButtonSecondary/ButtonSecondary.mjs
+@@ -29,7 +29,7 @@ export const ButtonSecondary = ({ children, textProps, spinnerProps, startIconPr
+         else if (isDanger) {
+             backgroundClass =
+                 pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted';
+-            borderClass = 'border-transparent';
++            borderClass = 'border-muted';
+         }
+         else if (isInverse) {
+             backgroundClass =
+@@ -39,7 +39,7 @@ export const ButtonSecondary = ({ children, textProps, spinnerProps, startIconPr
+         else {
+             backgroundClass =
+                 pressed || isLoading ? 'bg-muted-pressed' : 'bg-muted';
+-            borderClass = 'border-transparent';
++            borderClass = 'border-muted';
+         }
+         return `${backgroundClass} ${borderClass} ${baseClasses}`;
+     }, [isInverse, isDanger, isLoading, twClassName]);
 diff --git a/dist/components/ButtonIcon/ButtonIcon.cjs b/dist/components/ButtonIcon/ButtonIcon.cjs
 index 20ae32f0d5c2d00f144227bc128ab59407c4ebc5..9bb77cb68b3856b1c68eed096b8ec781b531ea57 100644
 --- a/dist/components/ButtonIcon/ButtonIcon.cjs
@@ -100,6 +144,32 @@ index 99dfe3ff6b4f3486a74a05aa8a31565aec19eec0..525354bbb49584105d88a7f9db5cac11
              ? textProps
              : {
                  ...textProps,
+diff --git a/dist/components/MainActionButton/MainActionButton.cjs b/dist/components/MainActionButton/MainActionButton.cjs
+index 0e21bd1272671df8f787da960793a162c3720c65..bc9d771747655a1bfb9c67148dec9f2a8dc2635b 100644
+--- a/dist/components/MainActionButton/MainActionButton.cjs
++++ b/dist/components/MainActionButton/MainActionButton.cjs
+@@ -12,7 +12,7 @@ const Text_1 = require("../Text/index.cjs");
+ const MainActionButton = ({ iconName, label, iconProps, labelProps, onPress, onPressIn, onPressOut, style, isDisabled = false, twClassName = '', ...props }) => {
+     const tw = (0, design_system_twrnc_preset_1.useTailwind)();
+     return (<ButtonAnimated_1.ButtonAnimated disabled={isDisabled} accessible onPress={!isDisabled ? onPress : undefined} onPressIn={!isDisabled ? onPressIn : undefined} onPressOut={!isDisabled ? onPressOut : undefined} style={({ pressed }) => {
+-            const baseStyle = tw.style('items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]', pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted', isDisabled ? 'opacity-50' : 'opacity-100', twClassName);
++            const baseStyle = tw.style('items-center justify-center rounded-2xl px-1 py-3 min-w-[68px] border border-muted', pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted', isDisabled ? 'opacity-50' : 'opacity-100', twClassName);
+             const additionalStyle = typeof style === 'function' ? style({ pressed }) : style;
+             return additionalStyle ? [baseStyle, additionalStyle] : [baseStyle];
+         }} {...props}>
+diff --git a/dist/components/MainActionButton/MainActionButton.mjs b/dist/components/MainActionButton/MainActionButton.mjs
+index 2e6e3432a507a3cf3448d120153988e62fdebd80..190a3053425c656d4f9d1c9c40ba55a89931028a 100644
+--- a/dist/components/MainActionButton/MainActionButton.mjs
++++ b/dist/components/MainActionButton/MainActionButton.mjs
+@@ -13,7 +13,7 @@ import { Text, FontWeight, TextColor, TextVariant } from "../Text/index.mjs";
+ export const MainActionButton = ({ iconName, label, iconProps, labelProps, onPress, onPressIn, onPressOut, style, isDisabled = false, twClassName = '', ...props }) => {
+     const tw = useTailwind();
+     return (<ButtonAnimated disabled={isDisabled} accessible onPress={!isDisabled ? onPress : undefined} onPressIn={!isDisabled ? onPressIn : undefined} onPressOut={!isDisabled ? onPressOut : undefined} style={({ pressed }) => {
+-            const baseStyle = tw.style('items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]', pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted', isDisabled ? 'opacity-50' : 'opacity-100', twClassName);
++            const baseStyle = tw.style('items-center justify-center rounded-2xl px-1 py-3 min-w-[68px] border border-muted', pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted', isDisabled ? 'opacity-50' : 'opacity-100', twClassName);
+             const additionalStyle = typeof style === 'function' ? style({ pressed }) : style;
+             return additionalStyle ? [baseStyle, additionalStyle] : [baseStyle];
+         }} {...props}>
 diff --git a/dist/components/SegmentedControl/SegmentedControl.cjs b/dist/components/SegmentedControl/SegmentedControl.cjs
 index b414d55b7fd11c558993afe6755005dbc07e11fe..2cc325218e7d4f6b06512572789d4fd38d45951a 100644
 --- a/dist/components/SegmentedControl/SegmentedControl.cjs

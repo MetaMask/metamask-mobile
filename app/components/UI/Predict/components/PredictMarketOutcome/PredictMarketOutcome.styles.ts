@@ -30,12 +30,18 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 16,
     },
     buttonYes: {
+      // Prototype: 1px border.muted tints the colored fill.
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
       width: '48%',
       paddingVertical: 0,
       color: theme.colors.success.default,
       backgroundColor: theme.colors.success.muted,
     },
     buttonNo: {
+      // Prototype: 1px border.muted tints the colored fill.
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
       width: '48%',
       paddingVertical: 0,
       color: theme.colors.error.default,
