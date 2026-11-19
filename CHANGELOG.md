@@ -15,7 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enabled opening a trader's Social profile from a token's holders list (#39844)
 - Added Social early access so enrolled profiles get the new Social experience (#39714)
 - Added specific error messages for profile and X account failures instead of the generic connection error (#39472)
-- Added a Security settings control to delete encrypted identity verification data (#39037)
 - Added a trader preview when opening a Social profile or position link before joining Social, which opens the linked trader after onboarding (#39697)
 - Added a link to the referral invite terms on the invite sheet and in Rewards settings (#39613)
 - Added display name validation during Social onboarding and profile editing, with errors for rejected names or failed checks (#39583)
@@ -154,7 +153,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed dark corners on the Money onboarding card illustration in light theme (#40117)
 - Fixed the Money home card so an identity check that needs another document offers Continue instead of a final rejection (#39777)
 - Fixed Explore and Watchlist token searches to return all matching tokens, including those flagged Warning, Spam, or Malicious, while keeping default suggestions filtered (#40057)
-- Fixed the price to beat on 1h and daily crypto Up or Down markets settled on Chainlink, which showed the Binance open price (#39918)
 - Fixed Immersve's logo, progress dots, and Close button showing under the MetaMask header during identity verification on Android (#40030)
 - Fixed social profile account pickers to show only accounts from the primary wallet's SRP and SRPs paired with it (#39890)
 - Fixed hidden tokens with no balance not reappearing after being unhidden or re-imported (#39962)
@@ -167,7 +165,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed missing market icon on HIP-3 perps posts in the composer (#39683)
 - Fixed the Explore Perps Top Traders row to rank perps traders (Hyperliquid) instead of the general spot leaderboard (#39709)
 - Fixed Social feed and Leaderboard staying broken after a slow network until the app restarts (#39687)
-- Fixed an issue where a rejected proof of address reopened the upload screen without an explanation (#39497)
 - Fixed Wallet Home onboarding remaining on the Fund step after a completed Buy flow (#38996)
 - Moved the Rewards "Social rewards" info icon next to its label (#39592)
 - Capitalized "Recorded earnings" on the Rewards earnings cards (#39596)
@@ -268,6 +265,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - Hid tokens with a Warning, Spam, or Malicious security verdict from Trending lists by default (#39958)
+
+## [8.20.2]
+
+### Fixed
+
+- Fixed the price to beat on 1h and daily crypto Up or Down markets settled on Chainlink, which showed the Binance open price (#39918)
+
+## [8.20.1]
+
+### Added
+
+- Added a Security settings control to delete encrypted identity verification data (#39037)
+
+### Fixed
+
+- Fixed identity verification reopening on every app restart when it kept reopening itself (#39682)
+- Fixed an issue where a rejected proof of address reopened the upload screen without an explanation (#39497)
 
 ## [8.20.0]
 
@@ -15409,7 +15423,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.0...HEAD
-[8.21.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.0...v8.21.0
+[8.21.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.2...v8.21.0
+[8.20.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.1...v8.20.2
+[8.20.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.0...v8.20.1
 [8.20.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.19.0...v8.20.0
 [8.19.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.1...v8.19.0
 [8.18.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.0...v8.18.1
