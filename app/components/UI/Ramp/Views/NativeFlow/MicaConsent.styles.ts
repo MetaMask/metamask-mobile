@@ -10,14 +10,13 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     content: {
-      padding: 16,
-      paddingBottom: 32,
+      flexGrow: 1,
     },
     section: {
-      marginBottom: 24,
+      marginBottom: 20,
     },
     heading: {
-      marginBottom: 12,
+      marginBottom: 8,
     },
     description: {
       color: colors.text.alternative,
@@ -27,32 +26,27 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     userDataBox: {
       backgroundColor: colors.background.alternative,
+      padding: 12,
       borderRadius: 8,
-      padding: 16,
       marginBottom: 12,
     },
     userDataRow: {
       marginBottom: 8,
     },
     boldText: {
-      fontWeight: 'bold',
+      fontWeight: '600',
     },
     supportNotice: {
       color: colors.text.alternative,
-      fontStyle: 'italic',
     },
     checkboxSpacing: {
       height: 16,
     },
-    button: {
-      marginTop: 8,
-    },
     errorBanner: {
       marginBottom: 16,
     },
-    poweredBy: {
-      marginTop: 24,
-      alignSelf: 'center',
+    footerContent: {
+      gap: 8,
     },
   });
 };

@@ -4,7 +4,8 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
@@ -154,102 +155,144 @@ const MicaConsent = (): React.JSX.Element => {
 
   return (
     <ScreenLayout>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-      >
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMd} style={styles.heading}>
-            {strings('deposit.mica.continueWithTransak')}
-          </Text>
-          <Text variant={TextVariant.BodyMd} style={styles.description}>
-            {strings('deposit.mica.description')}
-          </Text>
-        </View>
-
-        {error && (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            title={strings('deposit.mica.errorTitle')}
-            description={error}
-            style={styles.errorBanner}
-          />
-        )}
-
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
-            {strings('deposit.mica.reviewYourInformation')}
-          </Text>
-          <View style={styles.userDataBox}>
-            {userDetails ? (
-              <>
-                <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMd} style={styles.boldText}>
-                    {strings('deposit.mica.name')}:{' '}
-                  </Text>
-                  {userDetails.firstName} {userDetails.lastName}
-                </Text>
-                <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMd} style={styles.boldText}>
-                    {strings('deposit.mica.dob')}:{' '}
-                  </Text>
-                  {userDetails.dob || strings('deposit.mica.notProvided')}
-                </Text>
-                <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMd} style={styles.boldText}>
-                    {strings('deposit.mica.phone')}:{' '}
-                  </Text>
-                  {userDetails.mobileNumber ||
-                    strings('deposit.mica.notProvided')}
-                </Text>
-                <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMd} style={styles.boldText}>
-                    {strings('deposit.mica.address')}:{' '}
-                  </Text>
-                  {userDetails.address?.addressLine1 || ''},{' '}
-                  {userDetails.address?.city || ''},{' '}
-                  {userDetails.address?.postCode || ''},{' '}
-                  {userDetails.address?.countryCode || ''}
-                </Text>
-              </>
-            ) : (
-              <Text variant={TextVariant.BodyMd}>
-                {strings('deposit.mica.loadingDetails')}
-              </Text>
-            )}
-          </View>
-          <Text variant={TextVariant.BodySm} style={styles.supportNotice}>
-            {strings('deposit.mica.supportNotice')}
-          </Text>
-        </View>
-
-        <View style={styles.section}>
-          <Checkbox
-            label={strings('deposit.mica.dataProcessingConsent')}
-            isChecked={dataProcessingConsent}
-            onPress={() => setDataProcessingConsent(!dataProcessingConsent)}
-          />
-          <View style={styles.checkboxSpacing} />
-          <Checkbox
-            label={strings('deposit.mica.termsAndPrivacyConsent')}
-            isChecked={termsAndPrivacyConsent}
-            onPress={() => setTermsAndPrivacyConsent(!termsAndPrivacyConsent)}
-          />
-        </View>
-
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={handleSubmit}
-          isLoading={loading}
-          isDisabled={!isFormValid || loading}
-          style={styles.button}
+      <ScreenLayout.Body>
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          title={strings('deposit.mica.title')}
+          onBack={handleBack}
+          includesTopInset
+        />
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          enableAutomaticScroll
         >
-          {strings('deposit.mica.agreeAndContinue')}
-        </Button>
+          <ScreenLayout.Content>
+            <View style={styles.section}>
+              <Text variant={TextVariant.HeadingMd} style={styles.heading}>
+                {strings('deposit.mica.continueWithTransak')}
+              </Text>
+              <Text variant={TextVariant.BodyMd} style={styles.description}>
+                {strings('deposit.mica.description')}
+              </Text>
+            </View>
 
-        <PoweredByTransak name="transak-native" style={styles.poweredBy} />
-      </ScrollView>
+            {error && (
+              <BannerAlert
+                severity={BannerAlertSeverity.Error}
+                title={strings('deposit.mica.errorTitle')}
+                description={error}
+                style={styles.errorBanner}
+              />
+            )}
+
+            <View style={styles.section}>
+              <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+                {strings('deposit.mica.reviewYourInformation')}
+              </Text>
+              <View style={styles.userDataBox}>
+                {userDetails ? (
+                  <>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.userDataRow}
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        style={styles.boldText}
+                      >
+                        {strings('deposit.mica.name')}:{' '}
+                      </Text>
+                      {userDetails.firstName} {userDetails.lastName}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.userDataRow}
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        style={styles.boldText}
+                      >
+                        {strings('deposit.mica.dob')}:{' '}
+                      </Text>
+                      {userDetails.dob || strings('deposit.mica.notProvided')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.userDataRow}
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        style={styles.boldText}
+                      >
+                        {strings('deposit.mica.phone')}:{' '}
+                      </Text>
+                      {userDetails.mobileNumber ||
+                        strings('deposit.mica.notProvided')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.userDataRow}
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        style={styles.boldText}
+                      >
+                        {strings('deposit.mica.address')}:{' '}
+                      </Text>
+                      {userDetails.address?.addressLine1 || ''},{' '}
+                      {userDetails.address?.city || ''},{' '}
+                      {userDetails.address?.postCode || ''},{' '}
+                      {userDetails.address?.countryCode || ''}
+                    </Text>
+                  </>
+                ) : (
+                  <Text variant={TextVariant.BodyMd}>
+                    {strings('deposit.mica.loadingDetails')}
+                  </Text>
+                )}
+              </View>
+              <Text variant={TextVariant.BodySm} style={styles.supportNotice}>
+                {strings('deposit.mica.supportNotice')}
+              </Text>
+            </View>
+
+            <View style={styles.section}>
+              <Checkbox
+                label={strings('deposit.mica.dataProcessingConsent')}
+                isChecked={dataProcessingConsent}
+                onPress={() => setDataProcessingConsent(!dataProcessingConsent)}
+              />
+              <View style={styles.checkboxSpacing} />
+              <Checkbox
+                label={strings('deposit.mica.termsAndPrivacyConsent')}
+                isChecked={termsAndPrivacyConsent}
+                onPress={() =>
+                  setTermsAndPrivacyConsent(!termsAndPrivacyConsent)
+                }
+              />
+            </View>
+          </ScreenLayout.Content>
+        </KeyboardAwareScrollView>
+      </ScreenLayout.Body>
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={handleSubmit}
+            isLoading={loading}
+            isDisabled={!isFormValid || loading}
+            isFullWidth
+          >
+            {strings('deposit.mica.agreeAndContinue')}
+          </Button>
+          <PoweredByTransak name="powered-by-transak-logo" />
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
     </ScreenLayout>
   );
 };

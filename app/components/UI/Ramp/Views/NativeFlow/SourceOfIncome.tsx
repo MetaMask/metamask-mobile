@@ -4,7 +4,8 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
@@ -178,85 +179,101 @@ const SourceOfIncome = (): React.JSX.Element => {
 
   return (
     <ScreenLayout>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-      >
-        <View style={styles.section}>
-          <Text variant={TextVariant.BodyMd} style={styles.description}>
-            {strings('deposit.mica.sourceOfIncomeDescription')}
-          </Text>
-        </View>
-
-        {error && (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            title={strings('deposit.mica.errorTitle')}
-            description={error}
-            style={styles.errorBanner}
-          />
-        )}
-
-        <View style={styles.section}>
-          <DepositTextField
-            label={strings('deposit.mica.monthlyVolumeLabel')}
-            placeholder={strings('deposit.mica.monthlyVolumePlaceholder')}
-            value={monthlyVolume}
-            onChangeText={setMonthlyVolume}
-            keyboardType="numeric"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.section}>
-          <DepositSelectField
-            label={strings('deposit.mica.sourceOfFundsLabel')}
-            placeholder={strings('deposit.mica.sourceOfFundsPlaceholder')}
-            options={sourceOfFundsOptions}
-            selectedValue={sourceOfFundsType}
-            onValueChange={setSourceOfFundsType}
-          />
-        </View>
-
-        {isEEA && (
-          <>
-            <View style={styles.section}>
-              <DepositSelectField
-                label={strings('deposit.mica.employmentStatusLabel')}
-                placeholder={strings(
-                  'deposit.mica.employmentStatusPlaceholder',
-                )}
-                options={metadata.employmentStatusOptions || []}
-                selectedValue={employmentStatus}
-                onValueChange={setEmploymentStatus}
-              />
-            </View>
-
-            <View style={styles.section}>
-              <DepositSelectField
-                label={strings('deposit.mica.nationalityLabel')}
-                placeholder={strings('deposit.mica.nationalityPlaceholder')}
-                options={metadata.countryOfCitizenshipOptions || []}
-                selectedValue={countryOfCitizenship}
-                onValueChange={setCountryOfCitizenship}
-              />
-            </View>
-          </>
-        )}
-
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={handleSubmit}
-          isLoading={loading}
-          isDisabled={!isFormValid || loading}
-          style={styles.button}
+      <ScreenLayout.Body>
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          title={strings('deposit.mica.sourceOfIncomeTitle')}
+          onBack={handleBack}
+          includesTopInset
+        />
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          enableAutomaticScroll
         >
-          {strings('deposit.mica.submitButton')}
-        </Button>
+          <ScreenLayout.Content>
+            <View style={styles.section}>
+              <Text variant={TextVariant.BodyMd} style={styles.description}>
+                {strings('deposit.mica.sourceOfIncomeDescription')}
+              </Text>
+            </View>
 
-        <PoweredByTransak name="transak-native" style={styles.poweredBy} />
-      </ScrollView>
+            {error && (
+              <BannerAlert
+                severity={BannerAlertSeverity.Error}
+                title={strings('deposit.mica.errorTitle')}
+                description={error}
+                style={styles.errorBanner}
+              />
+            )}
+
+            <View style={styles.section}>
+              <DepositTextField
+                label={strings('deposit.mica.monthlyVolumeLabel')}
+                placeholder={strings('deposit.mica.monthlyVolumePlaceholder')}
+                value={monthlyVolume}
+                onChangeText={setMonthlyVolume}
+                keyboardType="numeric"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.section}>
+              <DepositSelectField
+                label={strings('deposit.mica.sourceOfFundsLabel')}
+                placeholder={strings('deposit.mica.sourceOfFundsPlaceholder')}
+                options={sourceOfFundsOptions}
+                selectedValue={sourceOfFundsType}
+                onValueChange={setSourceOfFundsType}
+              />
+            </View>
+
+            {isEEA && (
+              <>
+                <View style={styles.section}>
+                  <DepositSelectField
+                    label={strings('deposit.mica.employmentStatusLabel')}
+                    placeholder={strings(
+                      'deposit.mica.employmentStatusPlaceholder',
+                    )}
+                    options={metadata.employmentStatusOptions || []}
+                    selectedValue={employmentStatus}
+                    onValueChange={setEmploymentStatus}
+                  />
+                </View>
+
+                <View style={styles.section}>
+                  <DepositSelectField
+                    label={strings('deposit.mica.nationalityLabel')}
+                    placeholder={strings('deposit.mica.nationalityPlaceholder')}
+                    options={metadata.countryOfCitizenshipOptions || []}
+                    selectedValue={countryOfCitizenship}
+                    onValueChange={setCountryOfCitizenship}
+                  />
+                </View>
+              </>
+            )}
+          </ScreenLayout.Content>
+        </KeyboardAwareScrollView>
+      </ScreenLayout.Body>
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={handleSubmit}
+            isLoading={loading}
+            isDisabled={!isFormValid || loading}
+            isFullWidth
+          >
+            {strings('deposit.mica.submitButton')}
+          </Button>
+          <PoweredByTransak name="powered-by-transak-logo" />
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
     </ScreenLayout>
   );
 };
