@@ -127,6 +127,10 @@ const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
 
 const PROFILE_TABS = ['posts', 'open', 'closed'] as const;
+const V0_PROFILE_TABS = ['open', 'closed'] as const satisfies readonly Exclude<
+  (typeof PROFILE_TABS)[number],
+  'posts'
+>[];
 
 type TraderProfileTab = (typeof PROFILE_TABS)[number];
 
@@ -151,6 +155,11 @@ const TraderProfileView = () => {
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const visibleProfileTabs = useMemo(
+    (): readonly TraderProfileTab[] =>
+      isSocialV1Enabled ? PROFILE_TABS : V0_PROFILE_TABS,
+    [isSocialV1Enabled],
+  );
   const isFocused = useIsFocused();
 
   const {
@@ -172,8 +181,16 @@ const TraderProfileView = () => {
   } = useTraderPositions(traderId, {
     refetchInterval: isFocused ? 30_000 : undefined,
   });
-  const [activeTab, setActiveTab] = useState<TraderProfileTab>('posts');
+  const [activeTab, setActiveTab] = useState<TraderProfileTab>(() =>
+    isSocialV1Enabled ? 'posts' : 'open',
+  );
   const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
+
+  useEffect(() => {
+    if (!isSocialV1Enabled && activeTab === 'posts') {
+      setActiveTab('open');
+    }
+  }, [activeTab, isSocialV1Enabled]);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
@@ -228,7 +245,7 @@ const TraderProfileView = () => {
 
   const positionTabs = useMemo<TabItem[]>(
     () =>
-      PROFILE_TABS.map((tab) => ({
+      visibleProfileTabs.map((tab) => ({
         key: tab,
         label:
           tab === 'posts'
@@ -242,7 +259,7 @@ const TraderProfileView = () => {
               ? TraderProfileViewSelectorsIDs.TAB_CLOSED
               : TraderProfileViewSelectorsIDs.TAB_POSTS,
       })),
-    [],
+    [visibleProfileTabs],
   );
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
   const [closedSort, setClosedSort] = useState<ClosedSortKey>('value');
@@ -299,12 +316,12 @@ const TraderProfileView = () => {
       await Promise.allSettled([
         refresh(),
         refetchPositions(),
-        ...(postsRefresh ? [postsRefresh] : []),
+        ...(isSocialV1Enabled && postsRefresh ? [postsRefresh] : []),
       ]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [refresh, refetchPositions]);
+  }, [isSocialV1Enabled, refresh, refetchPositions]);
 
   const handleFollowPress = useCallback(
     async () =>
@@ -340,11 +357,11 @@ const TraderProfileView = () => {
 
   const handlePositionTabPress = useCallback(
     (index: number) => {
-      const tab = PROFILE_TABS[index];
+      const tab = visibleProfileTabs[index];
       if (!tab) return;
       handleTabChange(tab);
     },
-    [handleTabChange],
+    [handleTabChange, visibleProfileTabs],
   );
 
   const activeTabRef = useRef(activeTab);
@@ -580,7 +597,10 @@ const TraderProfileView = () => {
                     <Box twClassName="flex-1">
                       <TabsBar
                         tabs={positionTabs}
-                        activeIndex={PROFILE_TABS.indexOf(activeTab)}
+                        activeIndex={Math.max(
+                          0,
+                          visibleProfileTabs.indexOf(activeTab),
+                        )}
                         onTabPress={handlePositionTabPress}
                       />
                     </Box>
@@ -599,7 +619,7 @@ const TraderProfileView = () => {
                     )}
                   </Box>
 
-                  {activeTab === 'posts' ? (
+                  {isSocialV1Enabled && activeTab === 'posts' ? (
                     <Box paddingTop={4}>
                       <SocialFeed
                         scope="all"
