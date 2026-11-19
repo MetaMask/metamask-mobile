@@ -3,10 +3,10 @@ import React from 'react';
 import type { RootState } from '../../../app/reducers';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import Routes from '../../../app/constants/navigation/Routes';
-import Engine from '../../../app/core/Engine';
-import { updateBgState } from '../../../app/core/redux/slices/engine';
+import type Engine from '../../../app/core/Engine';
 import CollectiblesScreenStack from '../../../app/components/UI/Collectibles/routes';
 import CollectiblesSection from '../../../app/components/Views/Homepage/Sections/Collectibles';
+import { createEngineStateHarness } from '../helpers/createEngineStateHarness';
 import { initialStateCollectibles } from '../presets/collectibles';
 import { renderScreenWithRoutes } from '../render';
 
@@ -41,27 +41,21 @@ export const renderCollectiblesSectionWithRoutes = (
 export const createCollectiblesFlagHarness = (
   store: ReturnType<typeof renderCollectiblesSectionWithRoutes>['store'],
 ) => {
-  const engineWithState = Engine as { state?: Partial<typeof Engine.state> };
-  const previousEngineState = engineWithState.state;
+  const { publish, cleanup } = createEngineStateHarness(
+    store,
+    'RemoteFeatureFlagController',
+  );
 
   const setEnabled = (enabled: boolean) => {
     const flagState: typeof Engine.state.RemoteFeatureFlagController =
       store.getState().engine.backgroundState.RemoteFeatureFlagController;
-    engineWithState.state = {
-      ...engineWithState.state,
-      RemoteFeatureFlagController: {
-        ...flagState,
-        remoteFeatureFlags: {
-          ...flagState.remoteFeatureFlags,
-          collectiblesEnabled: { enabled, minimumVersion: '0.0.1' },
-        },
+    publish({
+      ...flagState,
+      remoteFeatureFlags: {
+        ...flagState.remoteFeatureFlags,
+        collectiblesEnabled: { enabled, minimumVersion: '0.0.1' },
       },
-    };
-    store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
-  };
-
-  const cleanup = () => {
-    engineWithState.state = previousEngineState;
+    });
   };
 
   return { setEnabled, cleanup };
