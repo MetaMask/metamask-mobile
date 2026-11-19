@@ -492,6 +492,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   SCROLL_VIEW: 'perps-market-details-scroll-view',
   HEADER_SPACER: 'perps-market-details-header-spacer',
   BOTTOM_INSET_SPACER: 'perps-market-details-bottom-inset-spacer',
+  FLOATING_ACTIONS_FOOTER: 'perps-market-details-floating-actions-footer',
   LOADING: 'perps-market-details-loading',
   ERROR: 'perps-market-details-error',
   HEADER: 'perps-market-header',
