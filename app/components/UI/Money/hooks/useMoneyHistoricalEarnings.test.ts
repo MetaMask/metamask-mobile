@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { ApiEnv } from '../../../../core/apiEnv';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import { MoneyQueryKeys } from '../queryKeys';
 import { fetchMoneyInterestHistory } from '../services/moneyInterestHistory';
 import type { InterestHistoryResponse } from '../types/moneyInterestHistory';
 import { useMoneyHistoricalEarnings } from './useMoneyHistoricalEarnings';
@@ -131,7 +131,7 @@ describe('useMoneyHistoricalEarnings', () => {
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         queryKey: [
-          MoneyAccountApiDataServiceQueryKeys.FETCH_INTEREST_HISTORY,
+          MoneyQueryKeys.FETCH_INTEREST_HISTORY,
           MOCK_ADDRESS.toLowerCase(),
           MOCK_CHAIN_ID,
         ],

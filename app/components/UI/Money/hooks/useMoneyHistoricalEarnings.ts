@@ -2,7 +2,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import { MoneyQueryKeys } from '../queryKeys';
 import { fetchMoneyInterestHistory } from '../services/moneyInterestHistory';
 import type { InterestHistoryResponse } from '../types/moneyInterestHistory';
 
@@ -25,7 +25,7 @@ export const useMoneyHistoricalEarnings =
 
     return useQuery({
       queryKey: [
-        MoneyAccountApiDataServiceQueryKeys.FETCH_INTEREST_HISTORY,
+        MoneyQueryKeys.FETCH_INTEREST_HISTORY,
         normalizedAddress,
         chainId,
       ],
