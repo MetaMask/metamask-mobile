@@ -245,6 +245,45 @@ describeForPlatforms('QuickBuySheet', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('hides the post minimum hint when an unpriced token is sold', async () => {
+    mockQuickBuyQuoteTokens();
+    const screen = renderQuickBuySheet({
+      initialTradeMode: 'sell',
+      overrides: merge(
+        quickBuySellableUsdcOverrides(),
+        POST_TRADE_SHARE_HINT_ENABLED,
+        {
+          engine: {
+            backgroundState: {
+              AssetsController: {
+                assetsPrice: {
+                  [QUICK_BUY_USDC_ASSET_ID]: { price: 0, usdPrice: 0 },
+                },
+              },
+              TokenRatesController: {
+                marketData: { '0x1': { [USDC_DEST.address]: { price: 0 } } },
+              },
+            },
+          },
+        },
+      ),
+    });
+
+    expect(
+      await screen.findByTestId(getQuickBuyPercentPillTestId(25)),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialService:fetchQuoteTokens',
+      );
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
+  });
+
   it('updates the fiat amount when the user types on the keypad', async () => {
     const screen = renderQuickBuySheet();
 
@@ -764,8 +803,12 @@ describeForPlatforms('QuickBuySheet', () => {
   });
 
   it('keeps the keypad inert and shows Add funds when the wallet is empty', async () => {
+    mockQuickBuyQuoteTokens();
     const screen = renderQuickBuySheet({
-      overrides: quickBuyZeroEthOverrides(),
+      overrides: merge(
+        quickBuyZeroEthOverrides(),
+        POST_TRADE_SHARE_HINT_ENABLED,
+      ),
     });
 
     await screen.findByTestId(QuickBuySheetSelectorsIDs.DISABLED_KEYPAD);
@@ -784,6 +827,16 @@ describeForPlatforms('QuickBuySheet', () => {
         screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
       ).getByText('Add funds'),
     ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialService:fetchQuoteTokens',
+      );
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows Add funds without a quote skeleton when the typed amount exceeds the balance', async () => {

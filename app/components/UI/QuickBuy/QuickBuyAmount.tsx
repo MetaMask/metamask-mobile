@@ -43,10 +43,14 @@ const QuickBuyAmount: React.FC = () => {
   const { data: quoteTokens } = useQuoteTokensQuery(
     isPostTradeShareHintEnabled,
   );
+  const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
+  // Unpriced sells have no USD value, so they are never posted.
   const showPostTradeShareHint =
     isPostTradeShareHintEnabled &&
     quoteTokens !== undefined &&
     isBelowPostTradeShareMinimum &&
+    !hasNoPayWithFunds &&
+    !isUnpricedSource &&
     !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.
@@ -54,8 +58,6 @@ const QuickBuyAmount: React.FC = () => {
     setIsKeypadOpen(true);
     handleAmountAreaPress();
   }, [setIsKeypadOpen, handleAmountAreaPress]);
-
-  const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
 
   // In sell mode (priced), the secondary label should show how much of the
   // source token the user is selling, not how much destination they'll receive.
