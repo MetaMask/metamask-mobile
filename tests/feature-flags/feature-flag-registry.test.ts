@@ -219,7 +219,7 @@ describe('Feature Flag Registry', () => {
         getRegistryEntry('earnMoneyEarningHistoryEnabled')?.productionDefault,
       ).toEqual({
         enabled: true,
-        minimumVersion: '8.6.0',
+        minimumVersion: '8.21.0',
       });
     });
 
