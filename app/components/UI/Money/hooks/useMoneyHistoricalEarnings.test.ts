@@ -140,6 +140,14 @@ describe('useMoneyHistoricalEarnings', () => {
     );
   });
 
+  it('combines account readiness with the enabled option', () => {
+    renderHook(() => useMoneyHistoricalEarnings({ enabled: false }));
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('disables the query when the account address is unavailable', () => {
     setSelectors({ address: '' });
 
