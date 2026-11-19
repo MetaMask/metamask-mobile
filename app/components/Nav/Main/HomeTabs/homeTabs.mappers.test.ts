@@ -175,14 +175,10 @@ describe('toNativeTabOptions', () => {
     expect(options.tabBarSelectionEnabled).toBeUndefined();
   });
 
-  it('maps a new badge to the native tab icon', () => {
-    const options = toNativeTabOptions(
-      { ...homeTab, showNewBadge: true },
-      undefined,
-      'green',
-    );
+  it('leaves native badge rendering to the overlay', () => {
+    const options = toNativeTabOptions({ ...homeTab, showNewBadge: true });
 
-    expect(options.tabBarBadge).toBe('\u00A0');
-    expect(options.tabBarBadgeStyle).toEqual({ backgroundColor: 'green' });
+    expect(options).not.toHaveProperty('tabBarBadge');
+    expect(options).not.toHaveProperty('tabBarBadgeStyle');
   });
 });
