@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import { selectAssetsHaveLoadedForSelectedAccountGroup } from '../../../../selectors/assets/assets-controller';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -39,8 +39,7 @@ const createSettledAccountGroupsStore = () => {
 
 /**
  * Session-scoped latch shared by every `useAssetsHaveLoaded` caller so full
- * token screens and Money (outside Wallet home) keep real rows during later
- * background refreshes — not only the Wallet home tree under the provider.
+ * token screens and Money keep real rows during later background refreshes.
  */
 const settledAccountGroupsStore = createSettledAccountGroupsStore();
 
@@ -48,15 +47,6 @@ const settledAccountGroupsStore = createSettledAccountGroupsStore();
 export const resetAssetsHaveLoadedLatchForTests = (): void => {
   settledAccountGroupsStore.clear();
 };
-
-/**
- * Optional wrapper kept for Wallet home call sites. The latch lives in
- * {@link useAssetsHaveLoaded}, so screens outside this provider (Tokens full
- * view, Cash, Money) still stay settled across background refreshes.
- */
-export const AssetsHaveLoadedProvider = ({
-  children,
-}: React.PropsWithChildren) => children;
 
 /**
  * Whether assets for the selected account group have finished initial +

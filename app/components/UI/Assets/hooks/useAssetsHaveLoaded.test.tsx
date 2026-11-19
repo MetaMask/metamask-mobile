@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { selectAssetsHaveLoadedForSelectedAccountGroup } from '../../../../selectors/assets/assets-controller';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
-  AssetsHaveLoadedProvider,
   resetAssetsHaveLoadedLatchForTests,
   useAssetsHaveLoaded,
 } from './useAssetsHaveLoaded';
@@ -25,7 +24,7 @@ describe('useAssetsHaveLoaded', () => {
     resetAssetsHaveLoadedLatchForTests();
   });
 
-  it('keeps an account group settled during later background refreshes without a provider', () => {
+  it('keeps an account group settled during later background refreshes', () => {
     let selectedAccountGroup: string | null = 'entropy:wallet/group-1';
     let currentLoadHasSettled = false;
 
@@ -54,41 +53,5 @@ describe('useAssetsHaveLoaded', () => {
     selectedAccountGroup = 'entropy:wallet/group-2';
     view.rerender(<Probe />);
     expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('false');
-  });
-
-  it('still latches when wrapped in AssetsHaveLoadedProvider', () => {
-    let currentLoadHasSettled = false;
-
-    jest.mocked(useSelector).mockImplementation((selector) => {
-      if (selector === selectSelectedAccountGroupId) {
-        return 'entropy:wallet/group-1';
-      }
-      if (selector === selectAssetsHaveLoadedForSelectedAccountGroup) {
-        return currentLoadHasSettled;
-      }
-      return undefined;
-    });
-
-    const view = render(
-      <AssetsHaveLoadedProvider>
-        <Probe />
-      </AssetsHaveLoadedProvider>,
-    );
-
-    currentLoadHasSettled = true;
-    view.rerender(
-      <AssetsHaveLoadedProvider>
-        <Probe />
-      </AssetsHaveLoadedProvider>,
-    );
-    expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('true');
-
-    currentLoadHasSettled = false;
-    view.rerender(
-      <AssetsHaveLoadedProvider>
-        <Probe />
-      </AssetsHaveLoadedProvider>,
-    );
-    expect(screen.getByTestId('assets-have-loaded')).toHaveTextContent('true');
   });
 });

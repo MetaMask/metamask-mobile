@@ -333,8 +333,6 @@ jest.mock('../../../selectors/assets/balances', () => ({
   selectIsAccountGroupFunded: () => mockIsAccountGroupFunded,
 }));
 jest.mock('../../UI/Assets/hooks/useAssetsHaveLoaded', () => ({
-  AssetsHaveLoadedProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
   useAssetsHaveLoaded: () => mockAssetsHaveLoaded,
 }));
 jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
