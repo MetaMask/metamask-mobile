@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import type { PerpsControllerState } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { usePerpsSavedMarginMode } from './usePerpsSavedMarginMode';
 import { usePerpsSelector } from './usePerpsSelector';
@@ -21,15 +22,32 @@ describe('usePerpsSavedMarginMode', () => {
     jest.clearAllMocks();
   });
 
-  it('returns the saved margin mode for the market', () => {
-    mockUsePerpsSelector.mockReturnValue('cross');
+  it('returns the saved margin mode for the given market and venue', () => {
+    const state = {
+      isTestnet: false,
+      activeProvider: 'aggregated',
+      defaultProvider: 'lighter',
+      effectiveProvider: 'lighter',
+      tradeConfigurations: {
+        mainnet: {
+          hyperliquid: {
+            ETH: { marginMode: 'cross' },
+            BTC: { marginMode: 'isolated' },
+          },
+          lighter: {
+            ETH: { marginMode: 'isolated' },
+          },
+        },
+        testnet: {},
+      },
+    } as unknown as PerpsControllerState;
+    mockUsePerpsSelector.mockImplementation((selector) => selector(state));
 
     const { result } = renderHook(() =>
       usePerpsSavedMarginMode('ETH', 'hyperliquid'),
     );
 
     expect(result.current.savedMarginMode).toBe('cross');
-    expect(mockUsePerpsSelector).toHaveBeenCalled();
   });
 
   it('returns undefined when the market has no saved margin mode', () => {

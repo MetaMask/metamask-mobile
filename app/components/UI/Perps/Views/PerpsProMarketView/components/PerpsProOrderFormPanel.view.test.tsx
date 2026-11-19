@@ -129,7 +129,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     );
   });
 
-  it('keeps Cross on the next order ticket after the trader closes the position', async () => {
+  it('keeps Cross after the order ticket is reopened', async () => {
     const { store } = renderPerpsCrossMarginOrderFormPanel({
       streamOverrides: {
         positions: [],

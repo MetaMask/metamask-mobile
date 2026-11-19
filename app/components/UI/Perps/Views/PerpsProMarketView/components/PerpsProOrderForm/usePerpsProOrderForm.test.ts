@@ -4787,6 +4787,41 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.marginMode).toBe('isolated');
     });
 
+    it('applies a saved Cross margin mode once the cross-margin gate opens in the same mount', () => {
+      mockSavedMarginModes.set('hyperliquid:BTC', 'cross');
+      const { result, rerender } = renderHook(
+        ({ isCrossMarginAvailable }: { isCrossMarginAvailable: boolean }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: true,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: jest.fn().mockResolvedValue('hyperliquid'),
+            chaseProviderId: 'hyperliquid',
+            isCrossMarginAvailable,
+          }),
+        { initialProps: { isCrossMarginAvailable: false } },
+      );
+
+      expect(result.current.marginMode).toBe('isolated');
+
+      rerender({ isCrossMarginAvailable: true });
+
+      expect(result.current.marginMode).toBe('cross');
+    });
+
     it('keeps the picker free without an open position', () => {
       const { result } = renderWithCrossMargin();
 

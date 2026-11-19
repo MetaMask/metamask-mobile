@@ -1072,11 +1072,10 @@ export const usePerpsProOrderForm = ({
     (!isMarketDataLoading &&
       !!marketData &&
       !!(marketData.onlyIsolated || marketData.marginMode));
-  const isSavedMarginModeRuledOut =
-    !isCrossMarginAvailable ||
-    (!isMarketDataLoading &&
-      !!marketData &&
-      !!(marketData.onlyIsolated || marketData.marginMode));
+  const isCrossMarginRestrictedByMetadata =
+    !isMarketDataLoading &&
+    !!marketData &&
+    !!(marketData.onlyIsolated || marketData.marginMode);
   // An omitted provider in this eligible flow means the default Hyperliquid
   // route, so hydrating its id does not change the selection context.
   const perpsAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
@@ -1094,14 +1093,15 @@ export const usePerpsProOrderForm = ({
     contextKey: string;
     marginMode: MarginMode;
   } | null>(null);
-  // Markets whose saved mode was ruled out this visit. A later visit reads
-  // the controller again, so closing a position does not clear the preference.
-  const [ruledOutSavedMarginSymbols, setRuledOutSavedMarginSymbols] = useState<
-    ReadonlySet<string>
-  >(() => new Set());
-  // Forget the in-memory pick on a context change or restriction, so switching
-  // back does not revive it. A metadata reload in the same context keeps it.
-  // The saved per-market mode still applies when this visit has no pick.
+  // Fresh metadata restricted Cross this visit, so a metadata reload must not
+  // revive the saved mode. The form is keyed per market, and a later visit
+  // reads the saved mode again. The temporary cross-margin gate is not a
+  // restriction; isCrossMarginUnsupported hides the saved mode while it lasts.
+  const [isSavedMarginModeRuledOut, setIsSavedMarginModeRuledOut] =
+    useState(false);
+  // The in-memory pick overrides the saved mode for this visit. Drop it on a
+  // context change or restriction; the saved per-market mode then applies.
+  // A metadata reload in the same context keeps it.
   useEffect(() => {
     setMarginModeSelection((selection) =>
       !isCrossMarginUnsupported &&
@@ -1111,20 +1111,12 @@ export const usePerpsProOrderForm = ({
     );
   }, [marginModeContextKey, isCrossMarginUnsupported]);
   useEffect(() => {
-    if (!isSavedMarginModeRuledOut) {
-      return;
+    if (isCrossMarginRestrictedByMetadata) {
+      setIsSavedMarginModeRuledOut(true);
     }
-    setRuledOutSavedMarginSymbols((current) => {
-      if (current.has(symbol)) {
-        return current;
-      }
-      const next = new Set(current);
-      next.add(symbol);
-      return next;
-    });
-  }, [isSavedMarginModeRuledOut, symbol]);
+  }, [isCrossMarginRestrictedByMetadata]);
   const persistedMarginMode =
-    !ruledOutSavedMarginSymbols.has(symbol) &&
+    !isSavedMarginModeRuledOut &&
     (savedMarginMode === 'cross' || savedMarginMode === 'isolated')
       ? savedMarginMode
       : undefined;
@@ -1141,17 +1133,10 @@ export const usePerpsProOrderForm = ({
         contextKey: marginModeContextKey,
         marginMode: nextMarginMode,
       });
-      setRuledOutSavedMarginSymbols((current) => {
-        if (!current.has(symbol)) {
-          return current;
-        }
-        const next = new Set(current);
-        next.delete(symbol);
-        return next;
-      });
+      setIsSavedMarginModeRuledOut(false);
       saveMarginMode(nextMarginMode);
     },
-    [marginModeContextKey, saveMarginMode, symbol],
+    [marginModeContextKey, saveMarginMode],
   );
   const {
     lock: marginModeLock,

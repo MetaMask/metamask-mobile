@@ -221,6 +221,7 @@ export function wirePerpsControllerForStore(
     const networkKey = existing.isTestnet ? 'testnet' : 'mainnet';
     const provider =
       providerId ??
+      existing.effectiveProvider ??
       (existing.activeProvider === 'aggregated'
         ? existing.defaultProvider
         : existing.activeProvider) ??
