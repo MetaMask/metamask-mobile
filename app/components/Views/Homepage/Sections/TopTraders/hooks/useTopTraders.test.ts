@@ -198,7 +198,26 @@ describe('useTopTraders', () => {
         followerCount: first.followerCount,
         isFollowing: false,
         xHandle: null,
+        verified: false,
       });
+    });
+
+    it('marks only entries whose verified flag is true', () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({
+          data: {
+            traders: [
+              { ...mockTraders[0], verified: true },
+              { ...mockTraders[1], verified: null },
+            ],
+          } as never,
+        }),
+      );
+
+      const { result } = renderHook(() => useTopTraders());
+
+      expect(result.current.traders[0].verified).toBe(true);
+      expect(result.current.traders[1].verified).toBe(false);
     });
 
     it('copies an X handle and drops a blank one', () => {
