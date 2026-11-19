@@ -107,7 +107,6 @@ import { HYPERLIQUID_CAIP2_CHAIN_ID, toFeedAssetId } from '../../../SocialFeed';
 import { HYPERLIQUID_CHAIN_NAME } from '../../../SocialFeed/utils/perp';
 import type { SocialFeedPageHandle } from '../../../SocialFeed/types';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
-import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPostToFeedButton from '../../components/PerpsPostToFeedButton';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
@@ -119,6 +118,7 @@ import TradingViewChart, {
 import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
   selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
@@ -529,6 +529,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   }, [market?.symbol]);
 
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isPriceAlertsEnabled = useSelector(selectPerpsPriceAlertsEnabledFlag);
   const {
     perpsMode,
@@ -1228,8 +1229,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           return;
         }
 
-        // Check for cross-margin position (MetaMask only supports isolated margin)
-        if (existingPosition?.leverage?.type === 'cross') {
+        // While cross margin is off, an existing cross position cannot be traded.
+        if (
+          !isCrossMarginEnabled &&
+          existingPosition?.leverage?.type === 'cross'
+        ) {
           navigation.navigate(Routes.PERPS.MODALS.ROOT, {
             screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
           });
@@ -1271,6 +1275,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       gate,
       isEligible,
       existingPosition,
+      isCrossMarginEnabled,
       navigation,
       track,
       navigateToOrder,
@@ -1937,9 +1942,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   );
 
   // Social tabs: the Feed tab's posts are rows of the screen's own list.
-  const isSocialLeaderboardEnabled = useSelector(
-    selectSocialLeaderboardEnabled,
-  );
   const [activeSocialTab, setActiveSocialTab] =
     useState<PerpsMarketSocialTab>('overview');
   const feedAssetIds = useMemo(() => {
@@ -2319,7 +2321,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             onLayout={handleScrollLayout}
           >
             <PerpsFeedScroller
-              enabled={activeSocialTab === 'feed' && isSocialLeaderboardEnabled}
+              enabled={activeSocialTab === 'feed'}
               isActive={activeSocialTab === 'feed'}
               refreshProgressViewOffset={isScrollLaidOut ? headerInset : 0}
               scope="all"

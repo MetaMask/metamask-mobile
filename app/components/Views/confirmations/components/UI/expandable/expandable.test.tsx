@@ -6,6 +6,10 @@ import InfoSection from '../info-row/info-section';
 import InfoRow from '../info-row/info-row';
 import Expandable from './expandable';
 
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
+}));
+
 describe('Expandable', () => {
   it('should render correctly for simple Expandable', async () => {
     const { getByText } = render(

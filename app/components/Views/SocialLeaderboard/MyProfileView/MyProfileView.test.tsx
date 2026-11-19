@@ -153,6 +153,7 @@ const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
 const mockSetTitleSectionHeight = jest.fn();
 const mockScrollY = { value: 0 };
 const mockSocialFeedProps = jest.fn();
+const mockSocialFeedMount = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -321,6 +322,9 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     testID?: string;
   }) => {
     mockSocialFeedProps(props);
+    ReactActual.useEffect(() => {
+      mockSocialFeedMount();
+    }, []);
     const result = mockSocialFeedState;
     ReactActual.useImperativeHandle(props.refreshRef, () => ({
       refresh: result.refresh,
@@ -1310,6 +1314,7 @@ describe('MyProfileView', () => {
 
     try {
       renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
       const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
 
       await act(async () => {
@@ -2007,6 +2012,8 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
     ).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
     expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -2016,8 +2023,7 @@ describe('MyProfileView', () => {
         realtime: true,
       }),
     );
-    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
-    expect(screen.getByText('No open positions')).toBeOnTheScreen();
+    expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
     expect(screen.queryByText('Your feed starts here')).toBeNull();
     expect(
       screen.queryByText('When they share a trade, it will show up here.'),
@@ -2138,7 +2144,7 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('defaults to Posts and shows Open and Closed tabs for the owner', () => {
+  it('defaults to Open and shows Closed and Posts for the owner', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
@@ -2150,12 +2156,9 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
     ).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).not.toBeOnTheScreen();
   });
 
@@ -2278,6 +2281,19 @@ describe('MyProfileView', () => {
     ).toHaveStyle({ backgroundColor: lightTheme.colors.background.pressed });
     expect(screen.getByTestId('position-row-DOGE')).toBeOnTheScreen();
     expect(screen.queryByTestId('position-row-BTC')).toBeNull();
+  });
+
+  it('keeps the Posts feed mounted across a positions tab round trip', () => {
+    renderWithProvider(<MyProfileView />);
+    expect(mockSocialFeedMount).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(mockSocialFeedMount).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
+    ).toBeOnTheScreen();
   });
 
   it('requests every feed chain on Posts while the filter is All', () => {

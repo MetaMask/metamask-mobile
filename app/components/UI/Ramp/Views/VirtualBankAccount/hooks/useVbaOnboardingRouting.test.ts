@@ -427,7 +427,27 @@ describe('useOpenVbaOnboarding', () => {
     );
   });
 
-  it('opens identity verification when KYC status is retry after the provider flow was submitted', async () => {
+  it('opens the retry page when KYC status is retry after the provider flow was submitted', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted' as const,
+      kycStatus: 'retry' as const,
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'PUSH' }),
+    );
+  });
+
+  it('re-enters identity verification from the retry page after the provider flow was submitted', async () => {
     const retrySnapshot = {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -440,17 +460,13 @@ describe('useOpenVbaOnboarding', () => {
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
-    await result.current();
+    await result.current({ retryRejectedKyc: true });
 
-    expectResetTo({
-      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-      params: {
-        snapshot: {
-          ...retrySnapshot,
-          vendorTermsAcceptedLocally: true,
-        },
-      },
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+        snapshot: { ...retrySnapshot, vendorTermsAcceptedLocally: true },
+      }),
+    );
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {
@@ -1007,6 +1023,7 @@ describe('resolveVbaOnboarding', () => {
   it.each([
     ['rejected', 'not_started', 'kycRejected'],
     ['retry', 'not_started', 'kycRejected'],
+    ['retry', 'submitted', 'kycRejected'],
     ['pending', 'submitted', 'kycPending'],
   ] as const)(
     'keeps the %s KYC destination for an existing autoramp',
@@ -1644,6 +1661,25 @@ describe('openVbaAccountSetup', () => {
 
   it('opens account details from inside onboarding when Choose Currency is off', () => {
     openVbaAccountSetup(onboardingNavigation, false);
+
+    expect(onboardingDispatch).not.toHaveBeenCalled();
+    expect(lastRootResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ]);
+  });
+
+  it('skips Choose Currency and opens account details when the market has one currency', () => {
+    openVbaAccountSetup(rootNavigation, true, 'EUR');
+
+    expect(lastRootResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ]);
+  });
+
+  it('skips Choose Currency from inside onboarding when the market has one currency', () => {
+    openVbaAccountSetup(onboardingNavigation, true, 'EUR');
 
     expect(onboardingDispatch).not.toHaveBeenCalled();
     expect(lastRootResetRoutes()).toEqual([

@@ -1,0 +1,182 @@
+{
+  "app/__mocks__/rive-app-react-native.tsx": {
+    "typescript/prefer-enum-initializers": {
+      "count": 8
+    }
+  },
+  "app/components/UI/Bridge/Views/BridgeView/BridgeLimitOrderView/BridgeLimitOrderView.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/Views/BridgeView/BridgeRecurringBuyView/BridgeRecurringBuyView.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/LimitOrderConfirmationModal/LimitOrderConfirmationModalScreen.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheetScreen.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/TransactionDetails/TransactionDetails.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/hooks/useSwapsLimitOrderPriceAdjust/index.test.ts": {
+    "no-loss-of-precision": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Bridge/utils/limitOrders/formatLimitOrderFiatPrice.test.ts": {
+    "no-loss-of-precision": {
+      "count": 4
+    }
+  },
+  "app/components/UI/Bridge/utils/limitOrders/getSwapsLimitOrderPriceFromMarketPercent.test.ts": {
+    "no-loss-of-precision": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 3
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProChartPanel.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/components/PerpsModeToggle/PerpsModeSwitchPill.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/routes/index.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Predict/providers/polymarket/safe/types.ts": {
+    "typescript/prefer-enum-initializers": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Predict/providers/polymarket/types.ts": {
+    "typescript/prefer-enum-initializers": {
+      "count": 6
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/utils/index.ts": {
+    "typescript/prefer-enum-initializers": {
+      "count": 9
+    }
+  },
+  "app/components/Views/BrowserTab/types.ts": {
+    "typescript/prefer-enum-initializers": {
+      "count": 3
+    }
+  },
+  "app/components/Views/ConnectQRHardware/index.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 2
+    }
+  },
+  "app/components/Views/Homepage/Homepage.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/Views/ProSubscription/screens/Benefits/components/PlanSelectorCard.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/Views/QRTabSwitcher/QRTabSwitcher.tsx": {
+    "typescript/prefer-enum-initializers": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/SocialV0View/SocialV0View.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 2
+    }
+  },
+  "app/components/Views/confirmations/components/info/custom-amount-info/custom-amount-info.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/value-display/value-display.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 2
+    }
+  },
+  "app/components/Views/confirmations/hooks/useAutomaticGasFeeTokenSelect.test.ts": {
+    "typescript/no-wrapper-object-types": {
+      "count": 2
+    }
+  },
+  "app/constants/permissions.ts": {
+    "typescript/prefer-enum-initializers": {
+      "count": 9
+    }
+  },
+  "app/core/HardwareWallet/components/HardwareWalletBottomSheet/contents/AwaitingConfirmationContent.test.tsx": {
+    "react-hooks/rules-of-hooks": {
+      "count": 2
+    }
+  },
+  "app/core/HardwareWallet/hooks/useAdapterLifecycle.ts": {
+    "react-hooks/rules-of-hooks": {
+      "count": 3
+    }
+  },
+  "app/core/RPCMethods/eth_sendTransaction.ts": {
+    "typescript/no-wrapper-object-types": {
+      "count": 1
+    }
+  },
+  "app/hooks/performance/onboardingPerformanceHooks.test.ts": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "tests/framework/fixtures/playwright/appProfiling.fixture.ts": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "tests/framework/fixtures/playwright/currentDeviceDetails.fixture.ts": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "tests/framework/fixtures/playwright/deviceProvider.fixture.ts": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "tests/framework/fixtures/playwright/driver.fixture.ts": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  },
+  "tests/framework/fixtures/playwright/performanceTracker.fixture.ts": {
+    "react-hooks/rules-of-hooks": {
+      "count": 1
+    }
+  }
+}

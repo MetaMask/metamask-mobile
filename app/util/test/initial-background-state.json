@@ -474,6 +474,11 @@
   },
   "PerpsController": {
     "activeProvider": "hyperliquid",
+    "defaultProvider": "hyperliquid",
+    "effectiveProvider": null,
+    "hasExplicitDefaultProviderSelection": false,
+    "hasExplicitProviderSelection": false,
+    "hasMigratedToMultiProvider": false,
     "isTestnet": false,
     "initializationState": "uninitialized",
     "initializationError": null,
@@ -968,6 +973,7 @@
     "vbaAutorampListFetchedAt": null,
     "vbaCustomerAbilities": null,
     "userRegion": null,
+    "userSelectedProviderId": null,
     "countries": {
       "data": [],
       "selected": null,
@@ -1033,5 +1039,9 @@
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}
+  },
+  "MoneyAccountLifecycleController": {
+    "moneyAccounts": {},
+    "addressRegistrations": {}
   }
 }

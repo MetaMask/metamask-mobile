@@ -184,6 +184,14 @@ _Avoid_: Cash out
 A short-lived, venue-produced plan prepared before a Predict User confirms a Deposit, Withdraw, or Claim. It describes either a wallet transfer or a Venue operation and carries a stable Venue Operation reference. Preparing a Funding Plan must not itself move funds.
 _Avoid_: TransactionBatch as a product term, tx builder, completed transfer
 
+**Client Operation ID**:
+A UUID v4 the app makes once per Deposit before it is signed. It is the idempotency key the device signs, so a retry with the same ID returns the Deposit it already created instead of asking the Venue for a second address.
+_Avoid_: request ID, nonce
+
+**Next Step**:
+What the app does next for a Deposit, as the backend states it: sign the request, make the wallet transfer in the Funding Plan, wait, done, or review by support. The set is closed. The app stops on a step it does not know and never runs a generic "sign these bytes" or "send this transaction" step.
+_Avoid_: action, instruction
+
 **Venue Operation**:
 A durable Venue-side operation reference for a write such as a Deposit, Withdraw, or Order. It lets the system resume observation or reconcile after app restarts and lost responses. The reference does not itself make an external Venue call idempotent; retry requires verified Venue semantics.
 _Avoid_: UI request, transient loading state

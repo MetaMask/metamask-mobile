@@ -1,7 +1,6 @@
 import React, { ReactNode, useCallback, useRef, useState } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Text,
@@ -14,6 +13,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Tooltip.styles';
+import { ConfirmationSheetHeader } from '../sheet-header';
 
 interface TooltipProps {
   content: string | ReactNode;
@@ -68,14 +68,14 @@ export const TooltipModal = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeader
+            <ConfirmationSheetHeader
               onClose={handleRequestClose}
               closeButtonProps={{
                 testID: `${tooltipTestId}-close-btn`,
               }}
             >
               {title}
-            </BottomSheetHeader>
+            </ConfirmationSheetHeader>
             <Box twClassName="flex flex-col">
               <View style={styles.modalContent}>
                 {typeof content === 'string' ? (

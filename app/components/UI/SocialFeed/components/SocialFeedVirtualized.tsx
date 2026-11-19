@@ -24,6 +24,7 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type View, type ViewStyle } from 'react-native';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -211,12 +212,15 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   pendingPostsSurface,
   comparePosts,
   inlineRows = NO_INLINE_ROWS,
+  prepareRefresh,
   onRefresh,
   onListStateChange,
   performance,
   onScroll,
   enabled = true,
   refreshProgressViewOffset,
+  contentTopInset = 0,
+  pendingPostsTopOffset = 0,
   pageRef,
   onAuthorPress,
   onCopyTrade,
@@ -226,6 +230,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   scrollTestID,
 }) => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
@@ -390,18 +395,26 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [],
   );
 
+  // Notify the host after the pages settle so it can leave a held empty
+  // state once the refreshed feed is the one on screen.
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    // The minimum overlaps the cache drop and the one reload. Starting it
+    // after prepareRefresh would hold the spinner for a second past that reload.
+    const minimumRefresh = waitForMinimumRefresh();
     try {
-      onRefresh?.();
+      if (prepareRefresh) {
+        await prepareRefresh();
+      }
       await Promise.all([
         enabled ? refreshWithPendingPosts() : undefined,
-        waitForMinimumRefresh(),
+        minimumRefresh,
       ]);
+      onRefresh?.();
     } finally {
       setRefreshing(false);
     }
-  }, [enabled, onRefresh, refreshWithPendingPosts]);
+  }, [enabled, onRefresh, prepareRefresh, refreshWithPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {
@@ -511,6 +524,22 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     () => ({ paused, pendingNewCount }),
     [paused, pendingNewCount],
   );
+  const listContentStyle = useMemo(
+    () => [
+      tw.style('flex-grow', {
+        paddingBottom: 24 + floatingTabBarInset,
+      }),
+      contentTopInset > 0 ? { paddingTop: contentTopInset } : undefined,
+    ],
+    [contentTopInset, floatingTabBarInset, tw],
+  );
+  const pendingPostsOverlayStyle = useAnimatedStyle(() => {
+    const top =
+      typeof pendingPostsTopOffset === 'number'
+        ? pendingPostsTopOffset
+        : pendingPostsTopOffset.value;
+    return top > 0 ? { top } : {};
+  });
   const header = (
     <>
       {title ? (
@@ -554,7 +583,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               CellRendererComponent={FeedFlashListCell}
               getItemType={getSocialFeedListItemType}
               style={tw.style('flex-1')}
-              contentContainerStyle={tw.style('flex-grow pb-8')}
+              contentContainerStyle={listContentStyle}
               showsVerticalScrollIndicator={false}
               drawDistance={drawDistance}
               maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
@@ -599,16 +628,18 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               testID={scrollTestID}
             />
           </FeedCellSlideDurationContext.Provider>
-          <Box
+          <Animated.View
             pointerEvents="box-none"
-            // Clips the glass pill while it is parked above the feed.
-            twClassName="absolute top-0 left-0 right-0 items-center overflow-hidden pt-5 pb-4"
+            style={[
+              tw.style('absolute top-0 left-0 right-0 items-center pt-4 pb-4'),
+              pendingPostsOverlayStyle,
+            ]}
           >
             <PendingPostsButton
               pendingNewCount={pendingNewCount}
               onPress={handleRevealPending}
             />
-          </Box>
+          </Animated.View>
         </Box>
       </SocialFeedRealtimeContext.Provider>
     </SocialFeedSurfaceProvider>

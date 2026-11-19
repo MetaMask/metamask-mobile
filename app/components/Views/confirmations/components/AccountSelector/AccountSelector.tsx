@@ -22,7 +22,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Skeleton,
   Text,
@@ -38,6 +37,8 @@ import { selectAccountToGroupMap } from '../../../../../selectors/multichainAcco
 import { selectVisibleAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/manageAccounts';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../hooks/useIsGlassHeader';
 
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
@@ -64,6 +65,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   style,
   isAccountAllowed,
 }) => {
+  const isGlassHeader = useIsGlassHeader();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(stylesheet, {});
@@ -232,9 +234,12 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeader onClose={() => closeAccountSheet()}>
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
+              onClose={() => closeAccountSheet()}
+            >
               {selectorTitle}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <View style={styles.modalSheetBody}>
               <MultichainAccountSelectorList
                 selectedAccountGroups={
