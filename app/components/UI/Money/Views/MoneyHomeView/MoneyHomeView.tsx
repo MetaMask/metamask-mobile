@@ -167,6 +167,16 @@ const ACTION_BUTTON_ROW_BASE_COUNT = 3;
  */
 const DETAILS_REENTRY_WINDOW_MS = 1000;
 
+const useSettledValue = <T,>(value: T, isSettling: boolean): T => {
+  const [settled, setSettled] = useState<{ value: T }>();
+  useEffect(() => {
+    if (!isSettling) {
+      setSettled({ value });
+    }
+  }, [isSettling, value]);
+  return isSettling && settled ? settled.value : value;
+};
+
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
@@ -424,13 +434,7 @@ const MoneyHomeView = () => {
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
 
-  // Keep the last settled sections while data reloads, so the layout doesn't jump.
-  const isLayoutLoading =
-    isBalanceLoading ||
-    isCryptoBalanceLoading ||
-    isActivitySettling ||
-    isVbaEligibilityLoading ||
-    !isCardStateResolved;
+  // Each section keeps its last settled value only while its own data reloads.
   const homeCardVariant =
     'variant' in liveHomeCard ? liveHomeCard.variant : undefined;
   const stableLiveHomeCard = useMemo(
@@ -438,36 +442,42 @@ const MoneyHomeView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [liveHomeCard.type, homeCardVariant],
   );
-  const liveLayout = useMemo(
+  const homeCard = useSettledValue(
+    stableLiveHomeCard,
+    isBalanceLoading ||
+      isCryptoBalanceLoading ||
+      isVbaEligibilityLoading ||
+      !isCardStateResolved,
+  );
+  const cardMode = useSettledValue(metamaskCardMode, !isCardStateResolved);
+  const fundedState = useMemo(
     () => ({
-      homeCard: stableLiveHomeCard,
-      cardMode: metamaskCardMode,
       isFunded,
       isEmptyState: hasBalanceValue && !isFunded,
       showEarnings: hasBalanceValue && isFunded,
-      isActivitySettling,
-      activityItems,
-      depositTokens,
     }),
-    [
-      stableLiveHomeCard,
-      metamaskCardMode,
-      hasBalanceValue,
-      isFunded,
-      isActivitySettling,
-      activityItems,
-      depositTokens,
-    ],
+    [hasBalanceValue, isFunded],
   );
-  const [settledLayout, setSettledLayout] = useState<
-    typeof liveLayout | undefined
-  >(undefined);
-  useEffect(() => {
-    if (!isLayoutLoading) {
-      setSettledLayout(liveLayout);
-    }
-  }, [isLayoutLoading, liveLayout]);
-  const layout = isLayoutLoading && settledLayout ? settledLayout : liveLayout;
+  const settledFundedState = useSettledValue(
+    fundedState,
+    isBalanceLoading || isActivitySettling,
+  );
+  const activity = useMemo(
+    () => ({ isActivitySettling, activityItems }),
+    [isActivitySettling, activityItems],
+  );
+  const settledActivity = useSettledValue(activity, isActivitySettling);
+  const settledDepositTokens = useSettledValue(
+    depositTokens,
+    isBalanceLoading || isCryptoBalanceLoading,
+  );
+  const layout = {
+    homeCard,
+    cardMode,
+    ...settledFundedState,
+    ...settledActivity,
+    depositTokens: settledDepositTokens,
+  };
   const isEmptyState = layout.isEmptyState;
   const moneyHomeCard = devOverride?.card ?? layout.homeCard;
 

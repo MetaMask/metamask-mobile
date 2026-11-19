@@ -3715,6 +3715,29 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('shows the live potential earnings tokens while only the activity reloads', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(settledEmptyBalance);
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+
+      mockUseMoneyDepositTokens.mockReturnValue({
+        tokens: [],
+        isNoFeeToken: jest.fn(() => false),
+      });
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({ isLoading: true, isComplete: false }),
+      );
+      rerender(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
     it('keeps the condensed info cards while a funded balance reloads', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...settledEmptyBalance,
