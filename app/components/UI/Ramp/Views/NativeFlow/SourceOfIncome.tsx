@@ -18,6 +18,7 @@ import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { useTransakRouting } from '../../hooks/useTransakRouting';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -53,6 +54,9 @@ const SourceOfIncome = (): React.JSX.Element => {
     useParams<SourceOfIncomeParams>();
   const { submitSourceOfIncome: submitSourceOfIncomeController } =
     useTransakController();
+  const { routeAfterAuthentication } = useTransakRouting({
+    screenLocation: 'SourceOfIncome Screen',
+  });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,11 +120,10 @@ const SourceOfIncome = (): React.JSX.Element => {
         );
       }
 
-      // Navigate back or call the callback
       if (onSourceOfIncomeSubmitted) {
         onSourceOfIncomeSubmitted();
       } else {
-        navigation.goBack();
+        await routeAfterAuthentication(quote);
       }
     } catch (err) {
       Logger.error(err as Error, 'SourceOfIncome: Failed to submit');
@@ -137,7 +140,8 @@ const SourceOfIncome = (): React.JSX.Element => {
     countryOfCitizenship,
     isEEA,
     onSourceOfIncomeSubmitted,
-    navigation,
+    quote,
+    routeAfterAuthentication,
     submitSourceOfIncomeController,
   ]);
 

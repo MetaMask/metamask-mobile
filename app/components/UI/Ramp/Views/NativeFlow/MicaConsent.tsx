@@ -17,8 +17,8 @@ import {
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { useTransakRouting } from '../../hooks/useTransakRouting';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -51,6 +51,9 @@ const MicaConsent = (): React.JSX.Element => {
     useParams<MicaConsentParams>();
   const { getUserDetails, submitMicaConsent: submitMicaConsentController } =
     useTransakController();
+  const { routeAfterAuthentication } = useTransakRouting({
+    screenLocation: 'MicaConsent Screen',
+  });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,12 +119,10 @@ const MicaConsent = (): React.JSX.Element => {
         await submitMicaConsentController(consentedAt);
       }
 
-      // Navigate back to the flow or call the callback
       if (onConsentSubmitted) {
         onConsentSubmitted();
       } else {
-        // By default, go back and let the routing logic re-fetch requirements
-        navigation.goBack();
+        await routeAfterAuthentication(quote);
       }
     } catch (err) {
       Logger.error(err as Error, 'MicaConsent: Failed to submit consent');
@@ -135,7 +136,8 @@ const MicaConsent = (): React.JSX.Element => {
     dataProcessingConsent,
     termsAndPrivacyConsent,
     onConsentSubmitted,
-    navigation,
+    quote,
+    routeAfterAuthentication,
     submitMicaConsentController,
   ]);
 
