@@ -33,10 +33,7 @@ import { useCreateRecurringOrder } from '../../hooks/useCreateRecurringOrder';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import type { RecurringConfirmOrderModalParams } from './RecurringConfirmOrderSheet.types';
-import {
-  showRecurringAutoUpgradeError,
-  showRecurringOrderCreatedToast,
-} from './RecurringConfirmOrderSheet.utils';
+import { showRecurringOrderCreatedToast } from './RecurringConfirmOrderSheet.utils';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -165,7 +162,6 @@ export const RecurringConfirmOrderSheetScreen = () => {
           : undefined;
 
       failurePhase = 'create';
-      throw new Error('Order submission failed');
       await createRecurringOrder({
         accountAddress: delegationParams.accountAddress,
         clientOrderId: preparedDelegations.order.clientOrderId,
@@ -206,11 +202,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
       });
       // Close bottom sheet so user can see the toast
       navigation.goBack();
-      if (failurePhase === 'create') {
-        showGenericErrorToast();
-      } else {
-        showRecurringAutoUpgradeError(error);
-      }
+      showGenericErrorToast();
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
           .addProperties({
