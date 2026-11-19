@@ -33,7 +33,6 @@ import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { TooltipModal } from '../../UI/Tooltip/Tooltip';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { normalizeUsdFiatString } from '../../../hooks/pay/useMoneyDepositFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Hex, Json } from '@metamask/utils';
 import { useConfirmationContext } from '../../../context/confirmation-context';
@@ -125,19 +124,12 @@ function TransactionFeeRow({
   }, [tooltipDisabled]);
 
   const feeTotalUsd = useMemo(() => {
-    const formatFee = (amount: BigNumber) => {
-      const formatted = formatFiat(amount);
-      return isMoneyAccountDeposit
-        ? normalizeUsdFiatString(formatted)
-        : formatted;
-    };
-
     if (
       transactionMeta?.isGasFeeSponsored &&
       !hasSourceAmounts &&
       !isFiatPayment
     ) {
-      return formatFee(new BigNumber(0));
+      return formatFiat(new BigNumber(0));
     }
 
     if (!totals?.fees) return '';
@@ -147,7 +139,7 @@ function TransactionFeeRow({
     const sourceNetwork = totals.fees.sourceNetwork.estimate.usd;
     const targetNetwork = totals.fees.targetNetwork.usd;
 
-    return formatFee(
+    return formatFiat(
       new BigNumber(metaMask)
         .plus(provider)
         .plus(sourceNetwork)
@@ -156,7 +148,6 @@ function TransactionFeeRow({
   }, [
     totals,
     formatFiat,
-    isMoneyAccountDeposit,
     transactionMeta?.isGasFeeSponsored,
     hasSourceAmounts,
     isFiatPayment,
@@ -363,18 +354,6 @@ function FeesTooltip({
   transactionMeta: TransactionMeta;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
-  const formatFee = useCallback(
-    (amount: BigNumber) => {
-      const formatted = formatFiat(amount);
-      return isMoneyAccountDeposit
-        ? normalizeUsdFiatString(formatted)
-        : formatted;
-    },
-    [formatFiat, isMoneyAccountDeposit],
-  );
 
   const networkFeeToken = getNetworkFeeToken({
     quotes,
@@ -388,21 +367,21 @@ function FeesTooltip({
   );
 
   const networkFeeUsd = useMemo(
-    () => (networkFeeUsdBN ? formatFee(networkFeeUsdBN) : ''),
-    [networkFeeUsdBN, formatFee],
+    () => (networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : ''),
+    [networkFeeUsdBN, formatFiat],
   );
 
   // No token is paid when there is no fee, so the icon would be misleading.
   const showNetworkFeeToken = Boolean(networkFeeUsdBN?.isGreaterThan(0));
 
   const providerFeeUsd = useMemo(
-    () => formatFee(new BigNumber(totals.fees.provider.usd)),
-    [totals, formatFee],
+    () => formatFiat(new BigNumber(totals.fees.provider.usd)),
+    [totals, formatFiat],
   );
 
   const metaMaskFeeUsd = useMemo(
-    () => formatFee(new BigNumber(totals.fees.metaMask.usd ?? 0)),
-    [totals, formatFee],
+    () => formatFiat(new BigNumber(totals.fees.metaMask.usd ?? 0)),
+    [totals, formatFiat],
   );
 
   return (

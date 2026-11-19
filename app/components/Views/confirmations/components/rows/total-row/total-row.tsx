@@ -20,10 +20,6 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import {
-  normalizeUsdFiatString,
-  useMoneyDepositFiatFormatter,
-} from '../../../hooks/pay/useMoneyDepositFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -125,7 +121,7 @@ function ReceiveRow({
     currency: 'usd',
     fractionDigits: isMoneyAccountDeposit ? 2 : undefined,
   });
-  const formatSheetFiat = useMoneyDepositFiatFormatter();
+  const formatSheetFiat = useFiatFormatter({ currency: 'usd' });
   const tw = useTailwind();
   const { colors } = useTheme();
   const [isMusdSheetOpen, setIsMusdSheetOpen] = useState(false);
@@ -165,15 +161,10 @@ function ReceiveRow({
     totals?.targetAmount?.usd,
   ]);
 
-  const receiveUsd = useMemo(() => {
-    if (receiveBn == null) {
-      return '';
-    }
-    const formatted = formatFiat(receiveBn);
-    return isMoneyAccountDeposit
-      ? normalizeUsdFiatString(formatted)
-      : formatted;
-  }, [formatFiat, isMoneyAccountDeposit, receiveBn]);
+  const receiveUsd = useMemo(
+    () => (receiveBn == null ? '' : formatFiat(receiveBn)),
+    [formatFiat, receiveBn],
+  );
 
   const receiveSheetUsd = useMemo(
     () => (receiveBn == null ? '' : formatSheetFiat(receiveBn)),

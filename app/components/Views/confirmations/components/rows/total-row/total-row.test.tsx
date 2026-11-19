@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../../locales/i18n';
+import formatFiat from '../../../../../../util/formatFiat';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
@@ -361,7 +363,7 @@ describe('TotalRow', () => {
       expect(queryByTestId('receive-pressable')).toBeNull();
     });
 
-    it('formats receive row and sheet amounts using locale separators and "$" only on comma-decimal locales', () => {
+    it('formats receive row and sheet amounts using locale formatting via useFiatFormatter', () => {
       const originalLocale = I18n.locale;
       I18n.locale = 'pt-BR';
 
@@ -376,12 +378,14 @@ describe('TotalRow', () => {
         });
 
         const receiveText = getByTestId('receive');
-        expect(receiveText).toHaveTextContent('$1.000,00');
+        expect(receiveText).toHaveTextContent(
+          formatFiat(new BigNumber(1000), 'usd', 2),
+        );
 
         fireEvent.press(getByTestId('receive-pressable'));
 
         expect(getByTestId(MoneyMusdInfoSheetTestIds.TITLE)).toHaveTextContent(
-          "You'll receive $1.000 of MetaMask USD",
+          `You'll receive ${formatFiat(new BigNumber(1000), 'usd')} of MetaMask USD`,
         );
       } finally {
         I18n.locale = originalLocale;
