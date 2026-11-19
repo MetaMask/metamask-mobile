@@ -35,8 +35,9 @@ const UNFREEZE_TRIGGER_PATH = 'unfreeze';
 const CARD_FRONT_ASSET_NAME = 'DigitalCard-NewBrand';
 
 /**
- * The artboard's native dimensions in the .riv file. The RiveView renders
- * 1:1 at this size (Fit.None) — no stretching, no clipping, no scaling.
+ * The artboard's native dimensions in the .riv file (the file itself is
+ * never modified). The RiveView is scaled so the artboard's 851-wide card
+ * face spans the static card's width (Fit.Contain) — see the layout below.
  */
 const ARTBOARD_WIDTH = 1192;
 /** The card's size inside the artboard (centred, measured from the file). */
@@ -79,10 +80,11 @@ export interface CardFreezeUnfreezeAnimationProps {
  * `freeze` trigger when the card is frozen and `unfreeze` when it is
  * unfrozen, via the "Card" view model's trigger properties.
  *
- * The RiveView renders at the artboard's native dimensions (1192×754,
- * Fit.None, 1:1 in points) centred on the card art's position — no
- * stretching, no clipping, no scaling. `pointerEvents="none"` on the
- * overlay lets touches pass through to the tiles below.
+ * The RiveView scales the whole artboard (1192×754, the .riv file is
+ * untouched) so its 851-wide card face spans the card art's width — the
+ * view is rendered at width × 1192/851 with Fit.Contain, centred on the
+ * card art's position. `pointerEvents="none"` on the overlay lets touches
+ * pass through to the tiles below.
  *
  * The static card art stays visible until the Rive view is ready, and it is
  * the only thing rendered when Reduce Motion is on or Rive fails.

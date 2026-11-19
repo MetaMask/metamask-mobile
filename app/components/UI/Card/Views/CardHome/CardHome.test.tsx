@@ -75,7 +75,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking, Platform, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
@@ -2790,7 +2790,7 @@ describe('CardHome Component', () => {
     ).toBeDisabled();
   });
 
-  it('shimmers the card image and disables Enable card while setup is being checked', () => {
+  it('keeps the card art mounted and disables Enable card while setup is being checked', () => {
     mockCanEnableCard = true;
     mockProvisioningView = 'reconciling';
     setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
@@ -2803,9 +2803,14 @@ describe('CardHome Component', () => {
 
     render();
 
+    // The Rive card stays mounted for a signed-in user, so the card art area
+    // shows the animation's static card instead of the image skeleton.
     expect(
-      screen.getByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
+      screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
+    ).toBeNull();
     expect(
       screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
     ).toBeDisabled();
@@ -4484,15 +4489,153 @@ describe('CardHome Component', () => {
       ).toBeOnTheScreen();
     });
 
-    it('does not show the freeze animation for an unfrozen card', () => {
+    it('keeps the Rive card mounted for a signed-in cardholder with no freeze action', () => {
       setupMockSelectors({ isAuthenticated: true });
       setupLoadCardDataMock({ isAuthenticated: true });
 
       render();
 
+      // The Rive card stays mounted whenever the signed-in card is shown, so
+      // a later freeze/unfreeze only fires triggers — no swapping layers.
       expect(
-        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
-      ).toBeNull();
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the animation up after a freeze succeeds while the card is frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+      mockUseCardFreeze.mockReturnValue({
+        freeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: true,
+          mutate: mockFreezeMutate,
+          data: undefined,
+          error: null,
+        },
+        unfreeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: false,
+          mutate: mockUnfreezeMutate,
+          data: undefined,
+          error: null,
+        },
+      });
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+      // A frozen card never schedules the return to static — both mutations
+      // keep isSuccess after they settle, so the timer is keyed off the
+      // card's current state instead.
+      const scheduledTimers = setTimeoutSpy.mock.calls.filter(
+        (call) => call[1] === 4000,
+      );
+      expect(scheduledTimers).toHaveLength(0);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('schedules the return to static 4s after an unfreeze when the card is not frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+      mockUseCardFreeze.mockReturnValue({
+        freeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: false,
+          mutate: mockFreezeMutate,
+          data: undefined,
+          error: null,
+        },
+        unfreeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: true,
+          mutate: mockUnfreezeMutate,
+          data: undefined,
+          error: null,
+        },
+      });
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+      const scheduledTimers = setTimeoutSpy.mock.calls.filter(
+        (call) => call[1] === 4000,
+      );
+      expect(scheduledTimers).toHaveLength(1);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('does not schedule the return to static while the card is still frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+      mockUseCardFreeze.mockReturnValue({
+        freeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: false,
+          mutate: mockFreezeMutate,
+          data: undefined,
+          error: null,
+        },
+        unfreeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: true,
+          mutate: mockUnfreezeMutate,
+          data: undefined,
+          error: null,
+        },
+      });
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      render();
+
+      const scheduledTimers = setTimeoutSpy.mock.calls.filter(
+        (call) => call[1] === 4000,
+      );
+      expect(scheduledTimers).toHaveLength(0);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('stacks the card art wrapper above the content below so the drips fall over the action buttons', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      // The card art wrapper Box has no testID; walk up from the card art box
+      // to the ancestor carrying the z-20 stacking class. The animation
+      // overlay itself ignores touches (pointerEvents="none"), so the action
+      // buttons below stay tappable.
+      let cardArtWrapper = screen.getByTestId(
+        CardHomeSelectors.CARD_ART,
+      ).parent;
+      while (
+        cardArtWrapper &&
+        StyleSheet.flatten([cardArtWrapper.props.style])?.zIndex !== 20
+      ) {
+        cardArtWrapper = cardArtWrapper.parent;
+      }
+      expect(cardArtWrapper).not.toBeNull();
     });
   });
 
@@ -5382,8 +5525,8 @@ describe('CardHome Component', () => {
         });
       });
 
-      it('clears image and shows error when image fails to load', async () => {
-        // Given: Authenticated user with card and image URL returned (image loading)
+      it('keeps the animation card mounted even while card details are loaded', () => {
+        // Given: Authenticated user with card and image URL returned (details showing)
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -5404,15 +5547,18 @@ describe('CardHome Component', () => {
           clearImageUrl: mockClearCardDetailsImageUrl,
         });
 
-        // When: component renders and image fails to load
         render();
-        const image = screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE);
-        fireEvent(image, 'error');
 
-        // Then: clearImageUrl is called to reset the state
-        await waitFor(() => {
-          expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
-        });
+        // The Rive card stays mounted for a signed-in user, so the reveal
+        // image no longer swaps into the card art area; the
+        // clear-image-on-error path is covered by the useRevealCardDetails
+        // hook tests.
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeNull();
       });
 
       describe('Biometric Authentication', () => {
