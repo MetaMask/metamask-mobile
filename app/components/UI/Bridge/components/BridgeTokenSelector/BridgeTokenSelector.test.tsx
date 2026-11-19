@@ -3063,63 +3063,67 @@ describe('BridgeTokenSelectorContent', () => {
       mockUseMoneyToken.mockReturnValue(moneyToken);
     });
 
-    it('shows Money for All, a selected network, and searches that match its name, symbol, or address', () => {
+    it('shows the money token when All networks is selected', () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it('shows the money token when a different network is selected', () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.press(getByTestId('select-eth-network'));
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it('hides the money token when search query does not match', () => {
       const { getByTestId, queryByTestId } = renderWithReduxProvider(
         <BridgeTokenSelector />,
       );
 
-      expect(getByTestId('money-token-row')).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('select-polygon-network'));
-      expect(getByTestId('money-token-row')).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('select-all-networks'));
-      expect(getByTestId('money-token-row')).toBeOnTheScreen();
-
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'zzz');
-      expect(queryByTestId('money-token-row')).toBeNull();
 
-      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'money');
-      expect(getByTestId('money-token-row')).toBeOnTheScreen();
-
-      fireEvent.changeText(
-        getByTestId('bridge-token-search-input'),
-        'metamask',
-      );
-      expect(getByTestId('money-token-row')).toBeOnTheScreen();
-
-      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'musd');
-      expect(getByTestId('money-token-row')).toBeOnTheScreen();
-
-      fireEvent.changeText(getByTestId('bridge-token-search-input'), '0xmoney');
-      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+      expect(queryByTestId('money-token-row')).not.toBeOnTheScreen();
     });
 
     it.each([
-      {
-        featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
-        action: 'shows',
-        visible: true,
-      },
-      { featureId: FeatureId.LIMIT_ORDER, action: 'hides', visible: false },
-      { featureId: FeatureId.RECURRING_ORDER, action: 'hides', visible: false },
+      { query: 'money', field: 'name' },
+      { query: 'musd', field: 'symbol' },
+      { query: '0xmoney', field: 'address' },
     ] as const)(
-      '$action the money token for $featureId',
-      ({ featureId, visible }) => {
-        mockUseSwapsFeatureId.mockReturnValue(featureId);
-        mockUseMoneyToken.mockReturnValue(
-          featureId === FeatureId.UNIFIED_SWAP_BRIDGE ? moneyToken : undefined,
+      'shows the money token when search matches $field',
+      ({ query }) => {
+        const { getByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
         );
+
+        fireEvent.changeText(getByTestId('bridge-token-search-input'), query);
+
+        expect(getByTestId('money-token-row')).toBeOnTheScreen();
+      },
+    );
+
+    it('shows the money token for unified swap bridge', () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+      mockUseMoneyToken.mockReturnValue(moneyToken);
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it.each([FeatureId.LIMIT_ORDER, FeatureId.RECURRING_ORDER] as const)(
+      'hides the money token for %s',
+      (featureId) => {
+        mockUseSwapsFeatureId.mockReturnValue(featureId);
+        mockUseMoneyToken.mockReturnValue(undefined);
 
         const { queryByTestId } = renderWithReduxProvider(
           <BridgeTokenSelector />,
         );
 
-        if (visible) {
-          expect(queryByTestId('money-token-row')).toBeOnTheScreen();
-        } else {
-          expect(queryByTestId('money-token-row')).not.toBeOnTheScreen();
-        }
+        expect(queryByTestId('money-token-row')).not.toBeOnTheScreen();
       },
     );
   });
