@@ -8,7 +8,10 @@ import BigNumber from 'bignumber.js';
 import useMoneyAccountDepositAssetId from '../../Money/hooks/useMoneyAccountDepositAssetId';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
-import { selectBridgeMoneyEnabled } from '../../../../selectors/bridge/featureFlags';
+import {
+  selectSwapFromMoneyEnabled,
+  selectSwapToMoneyEnabled,
+} from '../../../../selectors/bridge/featureFlags';
 import { TokenSelectorType } from '../types';
 import { useBridgeMoneyAccountBalance } from './useBridgeMoneyAccountBalance';
 import { useMoneyToken } from './useBridgeMoneyToken';
@@ -19,7 +22,8 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../selectors/bridge/featureFlags', () => ({
-  selectBridgeMoneyEnabled: jest.fn(),
+  selectSwapFromMoneyEnabled: jest.fn(),
+  selectSwapToMoneyEnabled: jest.fn(),
 }));
 
 jest.mock('../../Money/selectors/visibility', () => ({
@@ -44,7 +48,8 @@ jest.mock('./useSwapsFeatureId', () => ({
   useSwapsFeatureId: jest.fn(),
 }));
 
-const mockSelectBridgeMoneyEnabled = jest.mocked(selectBridgeMoneyEnabled);
+const mockSelectSwapFromMoneyEnabled = jest.mocked(selectSwapFromMoneyEnabled);
+const mockSelectSwapToMoneyEnabled = jest.mocked(selectSwapToMoneyEnabled);
 const mockSelectIsMoneyAccountVisible = jest.mocked(
   selectIsMoneyAccountVisible,
 );
@@ -73,7 +78,8 @@ const createBalance = (
 
 describe('useMoneyToken', () => {
   beforeEach(() => {
-    mockSelectBridgeMoneyEnabled.mockReturnValue(true);
+    mockSelectSwapFromMoneyEnabled.mockReturnValue(true);
+    mockSelectSwapToMoneyEnabled.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(true);
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 6.2,
@@ -87,11 +93,21 @@ describe('useMoneyToken', () => {
     jest.resetAllMocks();
   });
 
-  it('returns undefined when money swaps are disabled', () => {
-    mockSelectBridgeMoneyEnabled.mockReturnValue(false);
+  it('returns undefined for source when swap-from-money is disabled', () => {
+    mockSelectSwapFromMoneyEnabled.mockReturnValue(false);
 
     const { result } = renderHook(() =>
       useMoneyToken({ type: TokenSelectorType.Source }),
+    );
+
+    expect(result.current).toBeUndefined();
+  });
+
+  it('returns undefined for dest when swap-to-money is disabled', () => {
+    mockSelectSwapToMoneyEnabled.mockReturnValue(false);
+
+    const { result } = renderHook(() =>
+      useMoneyToken({ type: TokenSelectorType.Dest }),
     );
 
     expect(result.current).toBeUndefined();

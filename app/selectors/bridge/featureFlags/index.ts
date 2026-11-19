@@ -55,14 +55,25 @@ export const selectBridgeLimitOrderFeatureFlags =
   );
 
 /**
- * Selector for the Bridge Money feature flag.
+ * Selector for the Swap to Money (deposit) feature.
  *
- * @returns whether the Money feature is enabled for the current version.
+ * @returns whether the deposit feature is enabled for the current version.
  */
-export const selectBridgeMoneyEnabled = createSelector(
+export const selectSwapToMoneyEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean =>
-    validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsMoneyConfig) ??
+    validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsToMoney) ?? false,
+);
+
+/**
+ * Selector for the Swap from Money (withdraw) feature.
+ *
+ * @returns whether the withdraw feature is enabled for the current version.
+ */
+export const selectSwapFromMoneyEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean =>
+    validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsFromMoney) ??
     false,
 );
 

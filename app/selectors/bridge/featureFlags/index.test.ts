@@ -6,8 +6,9 @@ import {
   selectBridgeLimitOrderDefaultCostTolerance,
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeLimitOrderTabEnabledFlag,
-  selectBridgeMoneyEnabled,
   selectBridgeRecurringBuyBaseUrl,
+  selectSwapFromMoneyEnabled,
+  selectSwapToMoneyEnabled,
   selectBridgeRecurringBuyFeatureFlags,
   selectBridgeRecurringBuyTabEnabledFlag,
   selectSentinelFeeTokensCacheTtlMs,
@@ -419,40 +420,43 @@ describe('selectSentinelFeeTokensCacheTtlMs', () => {
   });
 });
 
-describe('selectBridgeMoneyEnabled', () => {
+describe.each([
+  ['selectSwapToMoneyEnabled', selectSwapToMoneyEnabled, 'swapsToMoney'],
+  ['selectSwapFromMoneyEnabled', selectSwapFromMoneyEnabled, 'swapsFromMoney'],
+] as const)('%s', (_name, selector, flagKey) => {
   beforeEach(() => {
     jest.mocked(getVersion).mockReturnValue('99.0.0');
   });
 
   it('returns true when enabled and the minimum version is met', () => {
     const state = buildStateWithRemoteFlags({
-      swapsMoneyConfig: { enabled: true, minimumVersion: '1.0.0' },
+      [flagKey]: { enabled: true, minimumVersion: '1.0.0' },
     });
 
-    const result = selectBridgeMoneyEnabled(state);
+    const result = selector(state);
 
     expect(result).toBe(true);
   });
 
   it('returns true for a progressive-rollout wrapper when enabled and the minimum version is met', () => {
     const state = buildStateWithRemoteFlags({
-      swapsMoneyConfig: {
-        name: 'swapsMoneyConfig',
+      [flagKey]: {
+        name: flagKey,
         value: { enabled: true, minimumVersion: '1.0.0' },
       },
     });
 
-    const result = selectBridgeMoneyEnabled(state);
+    const result = selector(state);
 
     expect(result).toBe(true);
   });
 
   it('returns false when enabled is false', () => {
     const state = buildStateWithRemoteFlags({
-      swapsMoneyConfig: { enabled: false, minimumVersion: '1.0.0' },
+      [flagKey]: { enabled: false, minimumVersion: '1.0.0' },
     });
 
-    const result = selectBridgeMoneyEnabled(state);
+    const result = selector(state);
 
     expect(result).toBe(false);
   });
@@ -460,26 +464,26 @@ describe('selectBridgeMoneyEnabled', () => {
   it('returns false when the minimum version is not met', () => {
     jest.mocked(getVersion).mockReturnValue('1.0.0');
     const state = buildStateWithRemoteFlags({
-      swapsMoneyConfig: { enabled: true, minimumVersion: '99.0.0' },
+      [flagKey]: { enabled: true, minimumVersion: '99.0.0' },
     });
 
-    const result = selectBridgeMoneyEnabled(state);
+    const result = selector(state);
 
     expect(result).toBe(false);
   });
 
   it('returns false when the remote flag is missing', () => {
-    const result = selectBridgeMoneyEnabled(mockedEmptyFlagsState);
+    const result = selector(mockedEmptyFlagsState);
 
     expect(result).toBe(false);
   });
 
   it('returns false when the flag shape is not version-gated', () => {
     const state = buildStateWithRemoteFlags({
-      swapsMoneyConfig: true,
+      [flagKey]: true,
     });
 
-    const result = selectBridgeMoneyEnabled(state);
+    const result = selector(state);
 
     expect(result).toBe(false);
   });

@@ -7,7 +7,10 @@ import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { useBridgeMoneyAccountBalance } from './useBridgeMoneyAccountBalance';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { selectBridgeMoneyEnabled } from '../../../../selectors/bridge/featureFlags';
+import {
+  selectSwapToMoneyEnabled,
+  selectSwapFromMoneyEnabled,
+} from '../../../../selectors/bridge/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { useSwapsFeatureId } from './useSwapsFeatureId';
 import { FeatureId, formatChainIdToHex } from '@metamask/bridge-controller';
@@ -28,14 +31,16 @@ export const useMoneyToken = ({ type }: { type: TokenSelectorType }) => {
   const moneyAssetId = useMoneyAccountDepositAssetId();
   const { assetReference, chainId } = parseCaipAssetType(moneyAssetId);
 
-  const moneySwapEnabled = useSelector(selectBridgeMoneyEnabled);
+  const toMoneySwapEnabled = useSelector(selectSwapToMoneyEnabled);
+  const fromMoneySwapEnabled = useSelector(selectSwapFromMoneyEnabled);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
   const featureId = useSwapsFeatureId();
 
   return useMemo((): BridgeToken | undefined => {
     if (
-      !moneySwapEnabled ||
+      (type === TokenSelectorType.Source && !fromMoneySwapEnabled) ||
+      (type === TokenSelectorType.Dest && !toMoneySwapEnabled) ||
       !isMoneyAccountVisible ||
       featureId !== FeatureId.UNIFIED_SWAP_BRIDGE
     ) {
@@ -67,7 +72,8 @@ export const useMoneyToken = ({ type }: { type: TokenSelectorType }) => {
   }, [
     apyPercent,
     moneyAccountBalance,
-    moneySwapEnabled,
+    fromMoneySwapEnabled,
+    toMoneySwapEnabled,
     isMoneyAccountVisible,
     type,
     assetReference,
