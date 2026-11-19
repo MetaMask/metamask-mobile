@@ -87,6 +87,8 @@ import {
   usePredictEntryActions,
 } from '../../UI/PredictNext';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
+import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
+import { collectiblesTestIds } from '../../UI/Collectibles/Collectibles.testIds';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
@@ -303,6 +305,7 @@ function TradeWalletActions() {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
   const { openPredict } = usePredictEntryActions();
+  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabledFlag);
 
   const { getTarget } = usePerpsHeaderEntryNavigation();
 
@@ -483,6 +486,16 @@ function TradeWalletActions() {
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
+        />
+      )}
+      {isCollectiblesEnabled && (
+        <ActionListItem
+          label={strings('collectibles.title')}
+          description={strings('collectibles.trade_menu.description')}
+          iconName={IconName.Card}
+          // TODO: open the Collectibles main page (GAC-72), via onboarding (GAC-106).
+          onPress={handleNavigateBack}
+          testID={collectiblesTestIds.tradeMenuItem}
         />
       )}
       {isPredictEnabled && (
