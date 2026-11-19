@@ -481,6 +481,7 @@ export const TokenInputArea = forwardRef<
                 testID={testID}
                 onPress={handleTokenButtonPress}
                 securityBadgeAssetId={tokenSecurityBadgeAssetId}
+                isMoneyToken={token?.isMoneyToken}
               />
             ) : (
               <Button
