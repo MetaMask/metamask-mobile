@@ -15,6 +15,10 @@ import {
 } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  VBA_TEST_PIX_INSTRUCTIONS as pixInstructions,
+  VBA_TEST_US_BANK_INSTRUCTIONS as usBankInstructions,
+} from '../../../../../../tests/component-view/fixtures/vba';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
@@ -239,13 +243,6 @@ const approvedAutoramp: TestAutoramp = {
   walletAddress: '0xabc',
   status: 'Approved',
   depositRailsSummary: { currency: 'BRL' },
-};
-
-const pixInstructions = {
-  type: 'Pix' as const,
-  brCode: '00020126',
-  instruction: 'Pay with PIX',
-  pixKey: 'pix@example.com',
 };
 
 // Test fixtures use plain status strings, not the controller's enum.
@@ -674,15 +671,6 @@ describe('VbaDetails', () => {
   });
 
   describe('when NeoBankService reads every deposit rail', () => {
-    const usBankInstructions = {
-      type: 'UsBank',
-      rail: 'ACH',
-      accountHolder: 'Jane Doe',
-      routingNumber: '021000021',
-      accountNumber: '123456789',
-      bankName: 'Lead Bank',
-    };
-
     it('shows the US bank transfer rows', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
 

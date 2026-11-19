@@ -12,10 +12,11 @@ import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
-import type { RootState } from '../../../../../reducers';
-import { MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY } from '../../../../../selectors/featureFlagController/moneyAccount';
-import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import {
+  VBA_TEST_PIX_INSTRUCTIONS as pixInstructions,
+  VBA_TEST_US_BANK_INSTRUCTIONS as usBankInstructions,
+} from '../../../../../../tests/component-view/fixtures/vba';
 import { VBA_TEST_MONEY_ADDRESS } from '../../../../../../tests/component-view/presets/vba';
 import {
   renderVbaDetails,
@@ -36,39 +37,6 @@ const engineContext = Engine.context as unknown as {
 const mockGetDepositInstructions = jest.fn();
 let previousRampsState: unknown;
 let unmountScreen: (() => void) | undefined;
-
-const pixInstructions = {
-  type: 'Pix' as const,
-  brCode: '00020126',
-  instruction: 'Pay with PIX',
-  pixKey: 'pix@example.com',
-};
-
-const usBankInstructions = {
-  type: 'UsBank' as const,
-  rail: 'ACH',
-  accountHolder: 'Jane Doe',
-  routingNumber: '021000021',
-  accountNumber: '123456789',
-  bankName: 'Lead Bank',
-};
-
-const usdMarketOverrides = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
-            enabled: true,
-            minimumVersion: '0.0.0',
-            currency: 'USD',
-            regions: ['US'],
-          },
-        },
-      },
-    },
-  },
-} as unknown as DeepPartial<RootState>;
 
 const setApprovedAutoramp = (currency: 'BRL' | 'USD'): void => {
   rampsController.state = {
@@ -174,7 +142,7 @@ describeForPlatforms('VbaDetails copy confirmation', () => {
 
     const view = renderVbaDetails({
       location: 'US',
-      overrides: usdMarketOverrides,
+      markets: { usd: true },
     });
     unmountScreen = view.unmount;
 
@@ -198,7 +166,7 @@ describeForPlatforms('VbaDetails copy confirmation', () => {
 
     const view = renderVbaDetails({
       location: 'US',
-      overrides: usdMarketOverrides,
+      markets: { usd: true },
     });
     unmountScreen = view.unmount;
 
@@ -250,7 +218,7 @@ describeForPlatforms('VbaDetails loading skeleton', () => {
 
     const view = renderVbaDetails({
       location: 'US',
-      overrides: usdMarketOverrides,
+      markets: { usd: true },
     });
     unmountScreen = view.unmount;
 
