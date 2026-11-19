@@ -272,7 +272,7 @@ export function useTransakController(): UseTransakControllerResult {
       }
     }
 
-    return getRampsController().transakGetAdditionalRequirements(quoteId);
+    return await getRampsController().transakGetAdditionalRequirements(quoteId);
   }, []);
 
   const createOrder = useCallback(
