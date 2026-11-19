@@ -15,11 +15,6 @@ const cloneFilters = (filters: SocialShellFilters): SocialShellFilters => ({
   volume24h: { ...filters.volume24h },
 });
 
-const rangesEqual = (
-  a: SocialShellFilters['marketCap'],
-  b: SocialShellFilters['marketCap'],
-) => a.min === b.min && a.max === b.max;
-
 const getDefaultFilters = (tab: SocialShellTab): SocialShellFilters =>
   tab === 'leaderboard' ? DEFAULT_LEADERBOARD_FILTERS : DEFAULT_FILTERS;
 
@@ -34,20 +29,22 @@ const tabFiltersEqual = (
 ): boolean => {
   const cohortA = a.traderCohort === 'verified' ? 'all' : a.traderCohort;
   const cohortB = b.traderCohort === 'verified' ? 'all' : b.traderCohort;
-  if ((tab !== 'leaderboard' && a.type !== b.type) || cohortA !== cohortB) {
+  if (tab !== 'leaderboard' && a.type !== b.type) {
     return false;
   }
-  // Positions is a Trending section. Other tabs keep the default and must
-  // not light their icon if a leftover value is still on the model.
-  if (tab === 'trending' && a.positionStatus !== b.positionStatus) {
+  // Leaderboard has no Positions section. The other tabs do.
+  if (tab !== 'leaderboard' && a.positionStatus !== b.positionStatus) {
     return false;
   }
   if (tab === 'leaderboard') {
+    if (cohortA !== cohortB) {
+      return false;
+    }
     return a.timeframe === b.timeframe;
   }
-  // Verification and 24h volume are hidden until the API can honor them, so
-  // leftover values must not light the filter icon.
-  return rangesEqual(a.marketCap, b.marketCap);
+  // Market cap, trader cohort, verification, and 24h volume are hidden on
+  // these tabs, so leftover values must not light the filter icon.
+  return true;
 };
 
 export interface UseSocialShellFiltersResult {

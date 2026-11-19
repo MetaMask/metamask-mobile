@@ -2,14 +2,16 @@ import Engine from '../../../app/core/Engine';
 import { assetIdsMatch } from '@metamask/bridge-controller';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { MOCK_RECURRING_ORDERS } from '../../../app/components/UI/Bridge/api/recurringOrders.mock';
-// CV injects DataService pages and spies cancellation so pending and failed
-// mutation states remain deterministic without live HTTP.
+// CV injects DataService responses and spies cancellation so pending and
+// failed mutation states remain deterministic without live HTTP.
 import { recurringOrdersApiClient } from '../../../app/components/UI/Bridge/api/recurringOrders.client';
 import { MOCK_RECURRING_SWAPS_BY_ORDER_ID } from '../../../app/components/UI/Bridge/api/recurringSwaps.mock';
 import {
   type CancelRecurringOrderQuery,
   RecurringOrderState,
   type CancelRecurringOrderResponse,
+  type GetRecurringOrderQuery,
+  type GetRecurringOrderResponse,
   type GetRecurringOrdersByAssetResponse,
   type ListRecurringOrdersResponse,
   type ListRecurringSwapsResponse,
@@ -30,6 +32,7 @@ let cancelRecurringOrderSpy:
   | undefined;
 
 interface RecurringOrdersDataServiceMockOptions {
+  recurringOrder?: typeof getMockRecurringOrder;
   recurringOrders?: typeof getMockRecurringOrders;
   recurringOrdersByAsset?: typeof getMockRecurringOrdersByAsset;
   recurringSwaps?: typeof getMockRecurringSwaps;
@@ -60,6 +63,18 @@ function getMockOrders() {
         }
       : order,
   );
+}
+
+export async function getMockRecurringOrder(
+  orderId: string,
+  _query: GetRecurringOrderQuery,
+): Promise<GetRecurringOrderResponse> {
+  const order = getMockOrders().find(({ id }) => id === orderId);
+  if (!order) {
+    throw new Error('order_not_found');
+  }
+
+  return { order };
 }
 
 export async function getMockRecurringOrders(
@@ -175,6 +190,7 @@ export async function cancelMockRecurringOrder(
 }
 
 export function setupRecurringOrdersDataServiceMock({
+  recurringOrder = getMockRecurringOrder,
   recurringOrders = getMockRecurringOrders,
   recurringOrdersByAsset = getMockRecurringOrdersByAsset,
   recurringSwaps = getMockRecurringSwaps,
@@ -188,6 +204,15 @@ export function setupRecurringOrdersDataServiceMock({
   messengerCall.mockImplementation(
     (...messengerArgs: [string, ...unknown[]]) => {
       const [action] = messengerArgs;
+
+      if (action === 'RecurringOrdersDataService:getRecurringOrder') {
+        const [, orderId, params] = messengerArgs as [
+          string,
+          string,
+          GetRecurringOrderQuery,
+        ];
+        return recurringOrder(orderId, params);
+      }
 
       if (action === 'RecurringOrdersDataService:getRecurringOrders') {
         const [, params, cursor] = messengerArgs as [

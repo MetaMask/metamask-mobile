@@ -17,6 +17,10 @@ import {
 } from '../../../SocialLeaderboard';
 import { usePerpsEventTracking } from '../../hooks';
 import {
+  SocialEvent,
+  useSocialAnalytics,
+} from '../../../../Views/SocialLeaderboard/analytics';
+import {
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
 } from '../../Perps.testIds';
@@ -48,6 +52,7 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
   footer,
 }) => {
   const { track } = usePerpsEventTracking();
+  const { trackScreenViewed } = useSocialAnalytics();
   const [activeIndex, setActiveIndex] = useState(0);
   const isPerpsLeaderboardEnabled = useSelector(
     selectSocialLeaderboardPerpsEnabled,
@@ -83,8 +88,25 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
         [PERPS_EVENT_PROPERTY.TAB_NAME]: TABS[index],
         [PERPS_EVENT_PROPERTY.ASSET]: symbol,
       });
+      const tab = TABS[index];
+      const marketScreen =
+        tab === 'feed'
+          ? SocialEvent.Screen.PERPS_MARKET_FEED
+          : tab === 'top_traders'
+            ? SocialEvent.Screen.PERPS_MARKET_HOLDERS
+            : undefined;
+      if (marketScreen) {
+        trackScreenViewed({ screen_name: marketScreen, source: marketScreen });
+      }
     },
-    [activeIndex, onOverviewVisibilityChange, onTabChange, symbol, track],
+    [
+      activeIndex,
+      onOverviewVisibilityChange,
+      onTabChange,
+      symbol,
+      track,
+      trackScreenViewed,
+    ],
   );
 
   const activeTab = TABS[activeIndex];

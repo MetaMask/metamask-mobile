@@ -28,7 +28,7 @@ export const PROFILE_AVATAR_PRESETS: readonly ProfileAvatarPreset[] = [
   { id: FoxiconVariant.Vr },
   { id: FoxiconVariant.Astro },
   { id: FoxiconVariant.Goth },
-  { id: FoxiconVariant.Magma },
+  { id: FoxiconVariant.Frozen },
 ];
 
 /**

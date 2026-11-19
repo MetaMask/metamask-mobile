@@ -75,6 +75,31 @@ describe('CampaignLeaderboardEntryRow', () => {
     expect(isPositivePrimaryMetric).toHaveBeenCalledWith(baseEntry);
   });
 
+  it('shows the profile username when it is set', () => {
+    const { getByText, queryByText } = render(
+      <CampaignLeaderboardEntryRow
+        entry={{ ...baseEntry, profileUsername: 'ada' }}
+        formatPrimaryMetric={() => '+12.5%'}
+        isPositivePrimaryMetric={() => true}
+      />,
+    );
+
+    expect(getByText('ada')).toBeOnTheScreen();
+    expect(queryByText('USER01')).toBeNull();
+  });
+
+  it('falls back to the referral code when the profile username is blank', () => {
+    const { getByText } = render(
+      <CampaignLeaderboardEntryRow
+        entry={{ ...baseEntry, profileUsername: '   ' }}
+        formatPrimaryMetric={() => '+12.5%'}
+        isPositivePrimaryMetric={() => true}
+      />,
+    );
+
+    expect(getByText('USER01')).toBeOnTheScreen();
+  });
+
   it('keeps long ranks on one line', () => {
     const { getByText } = render(
       <CampaignLeaderboardEntryRow

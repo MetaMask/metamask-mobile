@@ -2,7 +2,6 @@ import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -15,6 +14,7 @@ import {
   useBalanceRefresh,
   useHomepageEntryPoint,
 } from './hooks';
+import { usePrefetchMoneyAccountPlusSubscriptions } from '../../../hooks/usePrefetchMoneyAccountPlusSubscriptions';
 
 import {
   ActivityIndicator,
@@ -78,6 +78,7 @@ import {
   Text as CustomText,
   TextColor,
   TextVariant,
+  toast,
 } from '@metamask/design-system-react-native';
 
 import {
@@ -91,11 +92,6 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
-import {
-  ToastContext,
-  ToastVariants,
-  ButtonIconVariant,
-} from '../../../component-library/components/Toast';
 import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
@@ -360,6 +356,9 @@ const Wallet = ({
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
+  // Fills SubscriptionController before the accounts menu or profile drawer
+  // opens, so the Orange row can use the stored membership.
+  usePrefetchMoneyAccountPlusSubscriptions();
   const appNavigation = useNavigation<AppNavigationProp>();
   const { navigate } = appNavigation;
   const scrollViewRef = useRef<ScrollView>(null);
@@ -410,7 +409,6 @@ const Wallet = ({
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const { toastRef } = useContext(ToastContext);
   useArcUsageNoticeToast();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -606,10 +604,21 @@ const Wallet = ({
   }, [navigate]);
 
   useEffect(() => {
-    if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
+    // With basic functionality off the Perps modal stack only renders its
+    // "turn it back on" empty state, which would block the wallet.
+    if (
+      basicFunctionalityEnabled &&
+      isPerpsFlagEnabled &&
+      isPerpsGTMModalEnabled
+    ) {
       checkAndNavigateToPerpsGTM();
     }
-  }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
+  }, [
+    basicFunctionalityEnabled,
+    isPerpsFlagEnabled,
+    isPerpsGTMModalEnabled,
+    checkAndNavigateToPerpsGTM,
+  ]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 
@@ -637,39 +646,22 @@ const Wallet = ({
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
-    const toast = toastRef?.current;
     storePrivacyPolicyShownDate();
-    toast?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings(`privacy_policy.toast_message`),
-          isBold: true,
-        },
-      ],
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toast?.closeToast();
-        },
-      },
-      linkButtonOptions: {
-        label: strings(`privacy_policy.toast_read_more`),
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toast?.closeToast();
-          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
-        },
-      },
+    toast({
+      title: strings('privacy_policy.toast_message'),
       hasNoTimeout: true,
+      onClose: storePrivacyPolicyClickedOrClosed,
+      actionButtonLabel: strings('privacy_policy.toast_read_more'),
+      actionButtonOnPress: () => {
+        storePrivacyPolicyClickedOrClosed();
+        toast.dismiss();
+        Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+      },
     });
   }, [
     storePrivacyPolicyShownDate,
     shouldShowNewPrivacyToast,
     storePrivacyPolicyClickedOrClosed,
-    toastRef,
   ]);
 
   const homeGrowthBanner = useHomeGrowthBanner();
@@ -1149,12 +1141,8 @@ const Wallet = ({
     ) : null;
 
   const networkConnectionBanner = useNetworkConnectionBanner();
-  const isNetworkConnectionBannerVisible =
-    (networkConnectionBanner.status === 'degraded' ||
-      networkConnectionBanner.status === 'unavailable') &&
-    Boolean(networkConnectionBanner.network);
   const hasBannerContent =
-    !basicFunctionalityEnabled || isNetworkConnectionBannerVisible;
+    !basicFunctionalityEnabled || networkConnectionBanner.isVisible;
   const bannerContent = hasBannerContent ? (
     <View
       style={styles.banner}

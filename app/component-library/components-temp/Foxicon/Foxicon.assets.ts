@@ -6,10 +6,10 @@ import aviatorPNG from './assets/aviator.png';
 import beaniePNG from './assets/beanie.png';
 import chromePNG from './assets/chrome.png';
 import footballPNG from './assets/football.png';
+import frozenPNG from './assets/frozen.png';
 import gothPNG from './assets/goth.png';
 import heartsPNG from './assets/hearts.png';
 import laserPNG from './assets/laser.png';
-import magmaPNG from './assets/magma.png';
 import nerdPNG from './assets/nerd.png';
 import vrPNG from './assets/vr.png';
 import zombiePNG from './assets/zombie.png';
@@ -22,10 +22,10 @@ export const assetByFoxiconVariant: AssetByFoxiconVariant = {
   [FoxiconVariant.Beanie]: beaniePNG,
   [FoxiconVariant.Chrome]: chromePNG,
   [FoxiconVariant.Football]: footballPNG,
+  [FoxiconVariant.Frozen]: frozenPNG,
   [FoxiconVariant.Goth]: gothPNG,
   [FoxiconVariant.Hearts]: heartsPNG,
   [FoxiconVariant.Laser]: laserPNG,
-  [FoxiconVariant.Magma]: magmaPNG,
   [FoxiconVariant.Nerd]: nerdPNG,
   [FoxiconVariant.Vr]: vrPNG,
   [FoxiconVariant.Zombie]: zombiePNG,

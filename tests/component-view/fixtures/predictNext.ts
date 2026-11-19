@@ -20,6 +20,8 @@ import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signi
 import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
 import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
+import { getPredictFundingServiceMessenger } from '../../../app/core/Engine/messengers/predict-funding-service-messenger';
+import { PredictFundingService } from '../../../app/components/UI/PredictNext/services/PredictFundingService';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/config/venueCatalogs';
@@ -862,6 +864,35 @@ export const composePredictNextPortfolioTrading = () => {
       portfolioService.destroy();
     },
   };
+};
+
+/**
+ * Composes the real Withdraw workflow service the way the Engine init does,
+ * against whatever `globalThis.fetch` is installed when called. Withdrawals
+ * never sign, so the adapter is bearer-only here.
+ */
+export const composePredictNextFundingService = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  }),
+): PredictFundingService => {
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  return new PredictFundingService({
+    messenger: getPredictFundingServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictFundingServiceMessenger
+      >[0],
+    ),
+    funding: adapter.funding,
+    venueId: adapter.venueId,
+  });
 };
 
 /**

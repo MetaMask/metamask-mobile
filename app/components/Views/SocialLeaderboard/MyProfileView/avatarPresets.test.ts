@@ -17,10 +17,25 @@ import {
 } from './avatarPresets';
 
 describe('avatarPresets', () => {
-  it('lists every current look once', () => {
+  it('lists every current look once, in Figma order', () => {
     const ids = PROFILE_AVATAR_PRESETS.map((preset) => preset.id);
 
-    expect(ids).toHaveLength(14);
+    expect(ids).toEqual([
+      FoxiconVariant.Athlete,
+      FoxiconVariant.Football,
+      FoxiconVariant.Nerd,
+      FoxiconVariant.Chrome,
+      FoxiconVariant.Agent,
+      FoxiconVariant.Laser,
+      FoxiconVariant.Beanie,
+      FoxiconVariant.Hearts,
+      FoxiconVariant.Zombie,
+      FoxiconVariant.Aviator,
+      FoxiconVariant.Vr,
+      FoxiconVariant.Astro,
+      FoxiconVariant.Goth,
+      FoxiconVariant.Frozen,
+    ]);
     expect([...ids].sort()).toEqual(Object.values(FoxiconVariant).sort());
   });
 
