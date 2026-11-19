@@ -158,6 +158,9 @@ export const SwapsInputs = ({
             }
             amountReplacementLabelTestID={destAmountReplacementLabelTestID}
             hideFiatValueWhenUnpriced
+            secondaryValue={
+              destToken?.isMoneyToken ? strings('money.usd_name') : undefined
+            }
           />
         </Box>
       </Box>

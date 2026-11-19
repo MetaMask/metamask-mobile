@@ -9714,7 +9714,7 @@ __metadata:
 
 "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller::locator=metamask%40workspace%3A.":
   version: 78.0.3
-  resolution: "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller#../core/packages/bridge-status-controller::hash=dbf35e&locator=metamask%40workspace%3A."
+  resolution: "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller#../core/packages/bridge-status-controller::hash=67fcf9&locator=metamask%40workspace%3A."
   dependencies:
     "@ethersproject/providers": "npm:^5.8.0"
     "@metamask/accounts-controller": "npm:^40.2.0"
@@ -9737,7 +9737,7 @@ __metadata:
     "@metamask/utils": "npm:^12.0.2"
     bignumber.js: "npm:^9.1.2"
     uuid: "npm:^14.0.2"
-  checksum: 10/b116c3907162eb5711662b3ee4b5f51eda64a204e764b1d0965b76364e611d2218bb642ddba02ae0f59b5582d2a6018f26c4051f61aac682bf4461ecc8696f30
+  checksum: 10/e6cebba864ca299b5382d3ee04906f87db879d2889fbb2a877a59d3a8ac815b2e24a7c71cc0491ea6ef5c7c315155ef758aba089c2794fb46970a06e57811793
   languageName: node
   linkType: hard
 
@@ -12458,7 +12458,7 @@ __metadata:
 
 "@metamask/transaction-pay-controller@file:../core/packages/transaction-pay-controller::locator=metamask%40workspace%3A.":
   version: 32.0.0
-  resolution: "@metamask/transaction-pay-controller@file:../core/packages/transaction-pay-controller#../core/packages/transaction-pay-controller::hash=6ed993&locator=metamask%40workspace%3A."
+  resolution: "@metamask/transaction-pay-controller@file:../core/packages/transaction-pay-controller#../core/packages/transaction-pay-controller::hash=2da694&locator=metamask%40workspace%3A."
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -12482,7 +12482,7 @@ __metadata:
     bn.js: "npm:^5.2.5"
     immer: "npm:^11.1.18"
     lodash-es: "npm:^4.18.1"
-  checksum: 10/43932dd5f5d9d0b4cb33604cd40701fd07e2506e349bd5904d3aa634d785ebb6d38787342478f89c8e78beed76d1c3d6a3733c80bbca3017b41b06d261126d97
+  checksum: 10/3c9c1373ea8bcc758ee3d1f884946caaa416f3d627efee5f9544478e4817a20af31c9e4e1053158bc0d30a448cb6cab05955b7cbd271daca35d761fc899b6074
   languageName: node
   linkType: hard
 

@@ -193,7 +193,6 @@ export const useMoneyTransactionStatus = () => {
       resolveMoneyDepositIntent(transactionMeta);
 
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
-      console.log('=====showInProgressFor', transactionMeta);
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       const isRescue = isMusdRescueSendTx(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isRescue) return;
@@ -235,7 +234,6 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showFailedFor = (transactionMeta: TransactionMeta) => {
-      console.log('=====showFailedFor', transactionMeta);
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       const isRescue = isMusdRescueSendTx(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isRescue) return;
@@ -258,7 +256,6 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showConfirmedFor = (transactionMeta: TransactionMeta) => {
-      console.log('=====showConfirmedFor', transactionMeta);
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       const isReceive = isPerpsPredictMoneyWithdraw(transactionMeta);
       const isRescue = isMusdRescueSendTx(transactionMeta);
@@ -401,7 +398,6 @@ export const useMoneyTransactionStatus = () => {
       transactionMeta: TransactionMeta;
     }) => {
       flushTransactionState(transactionMeta);
-      console.log('=====handleTransactionStatusUpdated', transactionMeta);
       switch (transactionMeta.status) {
         case TransactionStatus.approved:
           showInProgressFor(transactionMeta);
