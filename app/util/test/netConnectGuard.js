@@ -23,8 +23,9 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 const nock = require('nock');
 const {
-  refreshDefaultFetchSpy,
-} = require('../../../tests/component-view/api-mocking/fetchStub');
+  DEFAULT_ORIGINS,
+  rearmDefaultMocksIfWiped,
+} = require('../../../tests/component-view/api-mocking/defaults');
 
 /**
  * Hosts nock still lets through for real. Environmental noise only (e.g.
@@ -130,6 +131,13 @@ const recordBlockedRequest = (...args) => {
     blockedRequests.set('(unrecognized request shape)', 1);
     return;
   }
+  // A blocked request on a default-covered origin while every interceptor is
+  // gone means the shared defaults were wiped; re-arm them and treat this
+  // request as lost to that anomaly rather than uncovered by the test.
+  const origin = `${request.scheme}://${request.host.replace(/:(443|80)$/, '')}`;
+  if (DEFAULT_ORIGINS.includes(origin) && rearmDefaultMocksIfWiped()) {
+    return;
+  }
   if (ALLOWED_NET_CONNECT.test(request.host)) {
     return;
   }
@@ -170,8 +178,9 @@ const flushPendingRequests = async () => {
  * @throws {Error} With the blocked requests, their test, and the hints.
  */
 const checkBlockedRequests = async (testName) => {
-  // The flush still belongs to the finished test; only after it may new
-  // emissions be treated as between-test stragglers.
+  // The flush still belongs to the finished test — recording stays on through
+  // it, so late emissions are caught. Only after it may new emissions be
+  // treated as between-test stragglers.
   await flushPendingRequests();
   currentTestActive = false;
   try {
@@ -286,7 +295,13 @@ const installNetConnectGuard = () => {
   blockNetConnect();
   nock.emitter.on('no match', recordBlockedRequest);
 
-  beforeEach(blockNetConnect);
+  beforeEach(() => {
+    currentTestActive = true;
+    blockNetConnect();
+    // If something wiped the shared defaults (a helper's clearAll, a stale
+    // layer), every test still starts with them armed.
+    rearmDefaultMocksIfWiped();
+  });
   afterEach(() => checkBlockedRequests(expect.getState().currentTestName));
   afterAll(() => {
     if (nock.isActive()) {

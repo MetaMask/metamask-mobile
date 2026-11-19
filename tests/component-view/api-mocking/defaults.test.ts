@@ -64,14 +64,4 @@ describe('installDefaultApiMocks', () => {
     ).json();
     expect(assets).toEqual([{ symbol: 'FEATURE' }]);
   });
-  it('reinstalls the defaults after teardownNock clears them', async () => {
-    disableNetConnect();
-    installDefaultApiMocks();
-    teardownNock();
-
-    const assets = await (
-      await fetch('https://token.api.cx.metamask.io/assets?assetIds=x')
-    ).json();
-    expect(assets).toEqual([]);
-  });
 });

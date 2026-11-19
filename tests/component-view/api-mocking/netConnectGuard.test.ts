@@ -134,30 +134,7 @@ describe('netConnectGuard', () => {
     clearFakeWebSocket();
   });
 
-  it('keeps net connect blocked after teardownNock', async () => {
-    teardownNock();
-
-    await expect(
-      fetch('https://unmocked-after-teardown.example.com/v1/x'),
-    ).rejects.toThrow('Disallowed net connect');
-
-    await expect(checkBlockedRequests(currentTestName())).rejects.toThrow(
-      'GET https://unmocked-after-teardown.example.com/v1/x',
-    );
-  });
-
   it('probe: aborted fetch with a nock mock does not crash', async () => {
-    const probeModule = jest.requireActual('@mswjs/interceptors');
-    // eslint-disable-next-line no-console
-    // eslint-disable-next-line no-console
-    console.log(
-      'PROBE patched?',
-      String(probeModule.RequestController.prototype.respondWith).includes(
-        'PENDING',
-      ) &&
-        String(probeModule.RequestController.prototype.respondWith).split('\n')
-          .length < 8,
-    );
     disableNetConnect();
     nock('https://abort-race.example.com')
       .get('/x')

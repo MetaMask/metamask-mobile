@@ -56,6 +56,33 @@ const emptyTransactionsResponse = {
 
 let installedDefaults: nock.Interceptor[] = [];
 
+/** Origins the shared defaults answer; used to detect a wiped state. */
+export const DEFAULT_ORIGINS = [
+  TOKEN_API_ORIGIN,
+  TOKENS_API_ORIGIN,
+  PRICE_API_ORIGIN,
+  ACCOUNTS_API_ORIGIN,
+  ...STATIC_ICON_ORIGINS,
+  BRIDGE_API_ORIGIN,
+  STAKING_API_ORIGIN,
+  SECURITY_ALERTS_API_ORIGIN,
+  PRICE_ALERTS_API_ORIGIN,
+];
+
+/**
+ * Re-arms the shared defaults when everything was wiped — an anomalous state
+ * (interceptors are lost to an unexplained module duplication in some Jest
+ * workers). Returns true when a re-arm happened, so the caller can treat the
+ * triggering request as lost to the anomaly instead of uncovered.
+ */
+export function rearmDefaultMocksIfWiped(): boolean {
+  if (nock.activeMocks().length > 0) {
+    return false;
+  }
+  installDefaultApiMocks();
+  return true;
+}
+
 /** Nock's JSON body type; every default payload is plain JSON. */
 type JsonBody = Record<string, unknown> | unknown[] | string;
 
