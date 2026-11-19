@@ -33,6 +33,7 @@ import type NetworkListModal from '../Network/NetworkListModal';
 import type NetworkManager from '../wallet/NetworkManager';
 import type OnboardingCryptoExperienceQuestionnaireView from '../Onboarding/OnboardingCryptoExperienceQuestionnaireView';
 import type OnboardingInterestQuestionnaireView from '../Onboarding/OnboardingInterestQuestionnaireView';
+import type OnboardingNotificationPermissionView from '../Onboarding/OnboardingNotificationPermissionView';
 import type OnboardingSheet from '../Onboarding/OnboardingSheet';
 import type OrderDetailsView from '../Ramps/OrderDetailsView';
 import type PerpsMarketDetailsView from '../Perps/PerpsMarketDetailsView';
@@ -87,6 +88,7 @@ interface PageObjectModules {
   NetworkManager: typeof NetworkManager;
   OnboardingCryptoExperienceQuestionnaireView: typeof OnboardingCryptoExperienceQuestionnaireView;
   OnboardingInterestQuestionnaireView: typeof OnboardingInterestQuestionnaireView;
+  OnboardingNotificationPermissionView: typeof OnboardingNotificationPermissionView;
   OnboardingSheet: typeof OnboardingSheet;
   OrderDetailsView: typeof OrderDetailsView;
   PerpsMarketDetailsView: typeof PerpsMarketDetailsView;
@@ -152,6 +154,7 @@ const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
   OnboardingCryptoExperienceQuestionnaire:
     'OnboardingCryptoExperienceQuestionnaireView',
   OnboardingInterestQuestionnaire: 'OnboardingInterestQuestionnaireView',
+  OnboardingNotificationPermission: 'OnboardingNotificationPermissionView',
   OnboardingSheet: 'OnboardingSheet',
   OrderDetails: 'OrderDetailsView',
   PerpsMarketDetails: 'PerpsMarketDetailsView',
@@ -212,7 +215,6 @@ const NO_PAGE_OBJECT_ROUTES =
   MultichainAccountsExplorerWebview MultichainAccountsIntroModal MultichainAccountsLearnMoreBottomSheet MultichainAddressList MultichainPrivateKeyList MultichainTransactionDetails MultichainWalletDetails MultiRPcMigrationModal
   MyProfileView NetworkDetails NetworkSelector NetworksManagement NFTAutoDetectionModal NftDetails NftFullView NoHeaderConfirmations
   NotificationsDetails NotificationSettingsSection NotificationsSettings NotificationsView Onboarding OnboardingOAuthRehydrate OnboardingSuccess OpenLimitOrderDetailsModal
-  OnboardingNotificationPermission
   OptinMetrics OptionsSheet OrderCompleted OrderProcessing OriginSpamModal OTAUpdatesModal OtpCode PermittedNetworksInfoSheet
   PerpsActivity PerpsAdjustMargin PerpsBalanceOrder PerpsCancelAllOrders PerpsCloseAllPositions PerpsClosePosition PerpsClosePositionModals PerpsCreatePriceAlert
   PerpsCrossMarginWarning PerpsFundingTransaction PerpsGTMModal PerpsHIP3Debug PerpsModeSelection PerpsOrderBook PerpsOrderRedirect PerpsOrderTransaction

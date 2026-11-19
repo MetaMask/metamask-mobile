@@ -458,7 +458,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     }
   });
 
-  it('navigates to interest questionnaire after social login wallet creation', async () => {
+  it('navigates to notification permission after social login wallet creation', async () => {
     setupSeedlessAuthServerMocks({ marketingOptIn: true });
     mockAuthenticationForSocialWalletCreation();
 
@@ -473,7 +473,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     await submitChoosePassword(screen);
 
     await screen.findByTestId(
-      `route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`,
+      `route-${Routes.ONBOARDING.NOTIFICATION_PERMISSION}`,
     );
   });
 
@@ -532,7 +532,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
 
       // The failed consent sync must not block wallet creation.
       await screen.findByTestId(
-        `route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`,
+        `route-${Routes.ONBOARDING.NOTIFICATION_PERMISSION}`,
       );
 
       // The opt-out lands in the local security preference despite the 500.

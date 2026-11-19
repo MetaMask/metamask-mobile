@@ -44,6 +44,7 @@ import AppiumUtilities, {
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import { isPerformanceSuiteActive } from '../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
+import OnboardingNotificationPermissionView from '../page-objects/Onboarding/OnboardingNotificationPermissionView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import MoneyOnboardingView from '../page-objects/Money/MoneyOnboardingView';
@@ -356,12 +357,12 @@ const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
 const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
 
 /**
- * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
+ * Advances past notification permission and the optional interest questionnaire.
  * No-op when the app navigates straight to the wallet home (common on some builds/flags).
  */
 export const dismissOnboardingInterestQuestionnaire =
   async (): Promise<void> => {
-    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+    let deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
 
     while (Date.now() < deadline) {
       try {
@@ -370,6 +371,22 @@ export const dismissOnboardingInterestQuestionnaire =
             'Wallet home already visible; skipping interest questionnaire',
           );
           return;
+        }
+
+        if (
+          await isOptionalElementVisible(
+            () => OnboardingNotificationPermissionView.skipButton,
+            OPTIONAL_SHEET_MAX_ABSENT_MS,
+          )
+        ) {
+          try {
+            await OnboardingNotificationPermissionView.skip();
+          } finally {
+            // Android may invalidate the tapped element during navigation.
+            // Still give the next route its full appearance window.
+            deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+          }
+          continue;
         }
 
         if (
@@ -425,12 +442,14 @@ export const importWalletWithRecoveryPhrase = async ({
   optInToMetrics = true,
   optInToMarketing = false,
   fromResetWallet = false,
+  stopAtNotificationPermission = false,
 }: {
   seedPhrase?: string;
   password?: string;
   optInToMetrics?: boolean;
   optInToMarketing?: boolean;
   fromResetWallet?: boolean;
+  stopAtNotificationPermission?: boolean;
 }): Promise<void> => {
   // tap on import seed phrase button
 
@@ -474,6 +493,16 @@ export const importWalletWithRecoveryPhrase = async ({
     }
 
     await MetaMetricsOptInView.tapAgreeButton();
+  }
+  if (stopAtNotificationPermission) {
+    await Assertions.expectElementToBeVisible(
+      OnboardingNotificationPermissionView.enableButton,
+      {
+        timeout: 15000,
+        description: 'Notification consent is shown after wallet import',
+      },
+    );
+    return;
   }
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
