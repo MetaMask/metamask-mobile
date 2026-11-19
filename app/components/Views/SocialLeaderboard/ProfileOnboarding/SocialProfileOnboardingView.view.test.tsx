@@ -359,13 +359,19 @@ const renderOnboarding = async (
   ...args: Parameters<typeof renderSocialProfileOnboarding>
 ) => {
   const result = renderSocialProfileOnboarding(...args);
-  await waitFor(() => {
-    expect(
-      introActionDisabled(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    ).toBe(false);
-  });
+  // The intro actions stay disabled until the existing-profile lookup query
+  // (session read, then ProfileController fetch) settles and the screen
+  // re-renders. On a loaded CV shard that can take longer than the 1s default.
+  await waitFor(
+    () => {
+      expect(
+        introActionDisabled(
+          SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+        ),
+      ).toBe(false);
+    },
+    { timeout: 5000 },
+  );
   return result;
 };
 
