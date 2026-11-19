@@ -8,10 +8,14 @@ export type SentryTraceSampleRates = Record<string, Record<string, number>>;
 
 const EMPTY_RATES: SentryTraceSampleRates = Object.freeze({});
 
+const isValidRate = (rate: unknown): rate is number =>
+  typeof rate === 'number' && rate >= 0 && rate <= 1;
+
 /**
- * Parses `{ traceSampleRates: { [traceName]: { [Platform.OS]: rate } } }`
- * from the controller-processed `sentry` flag, keeping only rates in [0, 1]
- * (Sentry drops a trace on an invalid rate instead of falling back).
+ * Parses `{ traceSampleRates: { [traceName]: rate | { [Platform.OS]: rate } } }`
+ * from the controller-processed `sentry` flag. A plain number applies to both
+ * platforms. Only rates in [0, 1] are kept (Sentry drops a trace on an invalid
+ * rate instead of falling back).
  *
  * @param value - Processed remote feature flag value.
  * @returns Rates by trace name and platform; empty when missing or malformed.
@@ -25,12 +29,16 @@ export function parseSentryTraceSampleRates(
   }
 
   const result: SentryTraceSampleRates = {};
-  for (const [name, byPlatform] of Object.entries(rates)) {
-    if (!isPlainObject(byPlatform)) {
+  for (const [name, entry] of Object.entries(rates)) {
+    if (isValidRate(entry)) {
+      result[name] = { android: entry, ios: entry };
       continue;
     }
-    for (const [platform, rate] of Object.entries(byPlatform)) {
-      if (typeof rate === 'number' && rate >= 0 && rate <= 1) {
+    if (!isPlainObject(entry)) {
+      continue;
+    }
+    for (const [platform, rate] of Object.entries(entry)) {
+      if (isValidRate(rate)) {
         result[name] = { ...result[name], [platform]: rate };
       }
     }
