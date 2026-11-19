@@ -10,11 +10,12 @@ import type { PredictFundingAction } from './types';
  * `legacy` runs today's Polymarket deposit and withdrawal. `next` runs the
  * Kalshi deposit (PRED-1161), which stays off until the `predictConfig` flag
  * `kalshiDepositsEnabled` turns it on: `resolvePredictFunding` treats the
- * flow as not implemented while the flag is off. PRED-1163 adds withdraw.
+ * flow as not implemented while the flag is off. It also runs Withdraw
+ * (PRED-1163) through `PredictFundingService`.
  */
 export const PREDICT_FUNDING_IMPLEMENTATIONS: Readonly<
   Record<PredictImplementation, readonly PredictFundingAction[]>
 > = {
   legacy: ['deposit', 'withdraw'],
-  next: ['deposit'],
+  next: ['deposit', 'withdraw'],
 };

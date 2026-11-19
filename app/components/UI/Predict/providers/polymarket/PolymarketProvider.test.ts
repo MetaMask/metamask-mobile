@@ -167,6 +167,7 @@ const mockWebSocketManagerInstance = {
   subscribeToOrderbook: jest.fn(),
   subscribeToCryptoPrices: jest.fn(),
   useCryptoFeed: jest.fn(),
+  updateCryptoFeedCredentials: jest.fn(),
   seedOrderbookSnapshot: jest.fn(),
   getConnectionStatus: jest.fn(() => ({
     sportsConnected: false,
@@ -5106,6 +5107,7 @@ describe('PolymarketProvider.subscribeToCryptoPrices', () => {
   beforeEach(() => {
     mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReset();
     mockWebSocketManagerInstance.useCryptoFeed.mockReset();
+    mockWebSocketManagerInstance.updateCryptoFeedCredentials.mockReset();
     mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
       jest.fn(),
     );
@@ -5213,5 +5215,61 @@ describe('PolymarketProvider.subscribeToCryptoPrices', () => {
     expect(
       mockWebSocketManagerInstance.subscribeToCryptoPrices,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Chainlink API key', () => {
+    const fakeKey = 'fake-chainlink-key-for-tests';
+
+    it('adds the key from remote flags to the PolyBolt credentials', async () => {
+      jest.mocked(createApiKey).mockResolvedValue(credentials);
+      const provider = createProvider(
+        { chainlinkApiKey: fakeKey },
+        () => '0xabc',
+      );
+
+      provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      await flushPromises();
+
+      expect(mockWebSocketManagerInstance.useCryptoFeed).toHaveBeenCalledWith({
+        mode: 'polybolt',
+        credentials: { ...credentials, chainlinkApiKey: fakeKey },
+      });
+    });
+
+    it('sends no key field when the flags carry no key', async () => {
+      jest.mocked(createApiKey).mockResolvedValue(credentials);
+      const provider = createProvider(undefined, () => '0xabc');
+
+      provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      await flushPromises();
+
+      const [[feed]] = mockWebSocketManagerInstance.useCryptoFeed.mock.calls;
+      expect(feed.credentials).not.toHaveProperty('chainlinkApiKey');
+    });
+
+    it('hands a key that arrives after the feed started to the socket', async () => {
+      jest.mocked(createApiKey).mockResolvedValue(credentials);
+      const featureFlags: Partial<PredictFeatureFlags> = {};
+      const provider = createProvider(featureFlags, () => '0xabc');
+      provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      await flushPromises();
+
+      featureFlags.chainlinkApiKey = fakeKey;
+      provider.refreshCryptoPriceFeedCredentials();
+
+      expect(
+        mockWebSocketManagerInstance.updateCryptoFeedCredentials,
+      ).toHaveBeenCalledWith({ ...credentials, chainlinkApiKey: fakeKey });
+    });
+
+    it('does nothing on refresh before the feed has credentials', () => {
+      const provider = createProvider({ chainlinkApiKey: fakeKey });
+
+      provider.refreshCryptoPriceFeedCredentials();
+
+      expect(
+        mockWebSocketManagerInstance.updateCryptoFeedCredentials,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

@@ -7,6 +7,8 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import StorageWrapper from '../../../../store/storage-wrapper';
+import Logger from '../../../../util/Logger';
+import { SOCIAL_SENTRY_FEATURE } from '../../../../util/social/socialServiceTelemetry';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 // eslint-disable-next-line import-x/no-restricted-paths
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
@@ -1128,6 +1130,7 @@ describe('SocialLeaderboardOnboarding', () => {
 
   it('marks seen and exits to the leaderboard on a fatal Rive error without tracking completion', () => {
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+    const loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation();
     renderComponent();
 
     act(() => {
@@ -1137,6 +1140,16 @@ describe('SocialLeaderboardOnboarding', () => {
       });
     });
 
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: SOCIAL_SENTRY_FEATURE,
+          surface: 'leaderboard_onboarding',
+          operation: 'rive_runtime',
+        }),
+      }),
+    );
     expect(setItemSpy).toHaveBeenCalledWith(
       SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
       'true',
@@ -1149,6 +1162,7 @@ describe('SocialLeaderboardOnboarding', () => {
       MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
       expect.anything(),
     );
+    loggerErrorSpy.mockRestore();
   });
 
   it('stays on the onboarding for a non-fatal Rive error (missing binding / input)', () => {

@@ -33,6 +33,7 @@ const PRODUCT_CODE_BY_API_CODE: Record<string, PredictErrorCode | undefined> = {
   insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
   preview_not_found: PredictErrorCode.ORDER_NOT_FOUND,
   preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
+  amount_below_minimum: PredictErrorCode.AMOUNT_BELOW_MINIMUM,
   venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
   venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
   client_order_id_conflict: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
@@ -340,5 +341,18 @@ describe('API emitted error contract at the mobile adapter boundary', () => {
         operationOutcome: 'unknown',
       });
     }
+  });
+
+  it('treats the replaying withdrawal read as unknown, not mutation-free', () => {
+    expect(contract.replayingReads).toContain('withdrawals.observe');
+    expect(
+      predictErrorEvidence('observe', 'venue_unavailable', true, {
+        readCanReplay: true,
+      }).mutationRelay,
+    ).toBe('unknown');
+    // A plain read keeps its claim.
+    expect(
+      predictErrorEvidence('observe', 'venue_unavailable', true).mutationRelay,
+    ).toBe('not_a_mutation');
   });
 });
