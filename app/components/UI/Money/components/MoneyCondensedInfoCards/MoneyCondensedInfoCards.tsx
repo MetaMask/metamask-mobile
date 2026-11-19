@@ -23,7 +23,7 @@ interface MoneyCondensedInfoCardsProps {
   onHowItWorksPress?: () => void;
   onMusdPress?: () => void;
   onWhatYouGetPress?: () => void;
-  /** Prototype: ignored; the cards are always transparent with a border.muted outline. */
+  /** Prototype: ignored; the cards are always solid background.section. */
   isGlass?: boolean;
 }
 
@@ -69,14 +69,14 @@ const CondensedCard = ({
   );
 
   return (
-    // Prototype: transparent card outlined by a 1px border.muted (no glass, no fill).
+    // Prototype: solid background.section card with 1px border.muted (no glass).
     // p-[15px] + 1px border keeps the previous p-4 footprint.
     <Pressable
       onPress={onPress}
       testID={testID}
       style={({ pressed }) =>
         tw.style(
-          'flex-row items-center gap-4 rounded-xl border border-muted bg-transparent p-[15px]',
+          'flex-row items-center gap-4 rounded-xl border border-muted bg-section p-[15px]',
           pressed && 'opacity-70',
         )
       }
