@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}}をコピー",
       "copied_label": "{{field}}をコピーしました",
-      "copy_all_button": "すべての情報をコピー",
-      "copied_all_label": "銀行情報をコピーしました",
       "button": "完了",
       "waiting_for_details": "口座情報がまもなくこちらに表示されます。",
       "loading_details": "口座情報を読み込んでいます",

@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Kopyahin ang {{field}}",
       "copied_label": "Nakopya ang {{field}}",
-      "copy_all_button": "Kopyahin ang lahat ng mga detalye",
-      "copied_all_label": "Kinopyang mga detalye ng bangko",
       "button": "Tapos na",
       "waiting_for_details": "Lilitaw dito ang mga detalye ng account maya-maya.",
       "loading_details": "Naglo-load ang mga detalye ng account",

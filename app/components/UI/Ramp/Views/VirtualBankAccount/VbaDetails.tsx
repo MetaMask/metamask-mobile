@@ -831,7 +831,7 @@ const VbaDetails = () => {
     setIsDebugOpen(false);
   }, []);
 
-  const rows = buildDetailRows(instructions);
+  const rows = useMemo(() => buildDetailRows(instructions), [instructions]);
   const handleShareDetails = useCallback(() => {
     const message = formatBankDetailsForCopy(rows);
     playSelection().catch(() => undefined);
@@ -918,6 +918,19 @@ const VbaDetails = () => {
     instructions?.type === 'UsBank' && rows.length > 0 && !loadError;
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
+  // The row count mirrors the rail's real rows: four for a SEPA or US bank
+  // transfer, two for Pix.
+  let skeletonRowIds = ['pix-key', 'copia-cola'];
+  if (sourceCurrency === 'EUR') {
+    skeletonRowIds = ['account-holder', 'iban', 'bic', 'bank-name'];
+  } else if (isBankTransfer) {
+    skeletonRowIds = [
+      'account-holder',
+      'routing-number',
+      'account-number',
+      'bank-name',
+    ];
+  }
   const errorMessage = loadError
     ? strings('virtual_bank_account.vba_details.load_error')
     : null;
@@ -1027,19 +1040,8 @@ const VbaDetails = () => {
                 and min height as a loaded two-line row, so the card doesn't
                 jump when the details land. Both bars sit in the title slot
                 because it is the only full-width slot, so the 85% bar has a
-                width to resolve against. The row count mirrors the rail's
-                real rows: four for a SEPA or US bank transfer, two for Pix. */}
-            {(sourceCurrency === 'EUR'
-              ? ['account-holder', 'iban', 'bic', 'bank-name']
-              : isBankTransfer
-                ? [
-                    'account-holder',
-                    'routing-number',
-                    'account-number',
-                    'bank-name',
-                  ]
-                : ['pix-key', 'copia-cola']
-            ).map((id) => (
+                width to resolve against. */}
+            {skeletonRowIds.map((id) => (
               <ListItem
                 key={id}
                 testID={`${VbaDetailsSelectorsIDs.LOADING_ROW}-${id}`}

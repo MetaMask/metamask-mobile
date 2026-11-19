@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Copier {{field}}",
       "copied_label": "{{field}} copié",
-      "copy_all_button": "Copier tous les détails",
-      "copied_all_label": "Coordonnées bancaires copiées",
       "button": "Terminé",
       "waiting_for_details": "Les coordonnées de votre compte s'afficheront ici sous peu.",
       "loading_details": "Chargement des coordonnées du compte",

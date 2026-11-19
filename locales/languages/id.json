@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Salin {{field}}",
       "copied_label": "Disalin {{field}}",
-      "copy_all_button": "Salin semua detailnya",
-      "copied_all_label": "Detail bank telah disalin",
       "button": "Selesai",
       "waiting_for_details": "Detail akun Anda akan segera muncul di sini.",
       "loading_details": "Memuat detail akun",

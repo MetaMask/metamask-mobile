@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} कॉपी करें",
       "copied_label": "{{field}} कॉपी किया गया",
-      "copy_all_button": "सभी डिटेल्स कॉपी करें",
-      "copied_all_label": "कॉपी की गई बैंक डिटेल्स",
       "button": "हो गया",
       "waiting_for_details": "आपके अकाउंट की डिटेल्स जल्द ही यहां दिखाई देंगी।",
       "loading_details": "अकाउंट की डिटेल्स लोड हो रही हैं",

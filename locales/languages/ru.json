@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Копировать {{field}}",
       "copied_label": "Скопировано: {{field}}",
-      "copy_all_button": "Скопировать все реквизиты",
-      "copied_all_label": "Банковские реквизиты скопированы",
       "button": "Выполнено",
       "waiting_for_details": "Реквизиты вашего счета скоро появятся здесь.",
       "loading_details": "Загрузка реквизитов счета",
