@@ -48,7 +48,7 @@ const SubscriptionDeveloperOptionsSection = () => {
   }
 
   const handleRefresh = useCallback(() => {
-    refetch();
+    void refetch();
   }, [refetch]);
 
   const handleCopyJson = useCallback(async () => {
