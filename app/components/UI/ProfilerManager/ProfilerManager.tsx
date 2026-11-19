@@ -6,6 +6,7 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 import RNFS from 'react-native-fs';
+import { setPerfSessionManualProfiling } from '../../../core/Performance/perfSession';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconName,
@@ -46,11 +47,14 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
       const timestamp = Date.now();
       const newSessionId = `${appId}_v${appVersion}_${timestamp}`;
 
+      // The perf session sampler shares the global Hermes sampler; pause it.
+      setPerfSessionManualProfiling(true);
       await startProfiling();
       setIsRecording(true);
       setSessionId(newSessionId);
     } catch (error) {
       // fail silently
+      setPerfSessionManualProfiling(false);
     }
   }, [appId]);
 
@@ -69,6 +73,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
     } catch (error) {
       // fail silently
     }
+    setPerfSessionManualProfiling(false);
     setIsRecording(false);
     setSessionId(null);
   }, [sessionId]);

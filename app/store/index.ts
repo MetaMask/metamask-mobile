@@ -1,4 +1,4 @@
-import { AnyAction } from 'redux';
+import { AnyAction, Middleware } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, Persistor } from 'redux-persist';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
@@ -10,6 +10,10 @@ import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
+import {
+  isPerfSessionAvailable,
+  perfSessionReduxMiddleware,
+} from '../core/Performance/perfSession';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
@@ -45,7 +49,11 @@ const createStoreAndPersistor = async () => {
   // Create the store and apply middlewares. In E2E tests, an optional initialState
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
 
-  const middlewares = [sagaMiddleware, thunk];
+  const middlewares: Middleware[] = [sagaMiddleware, thunk];
+  // Perf builds only: count action types for the perf session sampler.
+  if (isPerfSessionAvailable()) {
+    middlewares.push(perfSessionReduxMiddleware);
+  }
 
   store = configureStore({
     reducer: pReducer,

@@ -186,6 +186,41 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
+/**
+ * Perf session sampler config (android/.../nativeModules/PerfSession). The URL and key
+ * ship in the APK and are public by design; the collector treats every client as
+ * untrusted. Fails the build if they are malformed or set for a store build.
+ */
+/**
+ * Perf session sampler (nativeModules/PerfSession). Off unless the build sets
+ * MM_PERF_SESSION_ENABLED=true: the scheduled Friday nightly main-exp Android build
+ * (.github/workflows/nightly-build.yml), or a manual Build dispatch of main-exp with
+ * `perf_session` checked (build.yml), for testing.
+ * The URL and key in builds.yml are inert without it: the native module isn't registered.
+ */
+def perfSessionConfig() {
+    def enabled = System.getenv('MM_PERF_SESSION_ENABLED') == 'true'
+    def environment = System.getenv('METAMASK_ENVIRONMENT') ?: 'dev'
+    def buildType = System.getenv('METAMASK_BUILD_TYPE') ?: 'main'
+    if (!enabled) {
+        return [url: '', key: '', env: "${buildType}-${environment}"]
+    }
+    if (environment != 'exp' || buildType != 'main') {
+        throw new GradleException("MM_PERF_SESSION_ENABLED is only allowed for main-exp builds, not ${buildType}-${environment}")
+    }
+    def url = System.getenv('MM_PERF_SESSION_URL') ?: ''
+    def key = System.getenv('MM_PERF_SESSION_KEY') ?: ''
+    if (!(url ==~ /^https:\/\/[A-Za-z0-9.-]+(:\d+)?\/?$/)) {
+        throw new GradleException('MM_PERF_SESSION_URL must be an https:// origin with no path')
+    }
+    if (!(key ==~ /^[A-Za-z0-9_-]{24,128}$/)) {
+        throw new GradleException('MM_PERF_SESSION_KEY must be 24-128 characters of [A-Za-z0-9_-]')
+    }
+    return [url: url, key: key, env: "${buildType}-${environment}"]
+}
+
+def perfSession = perfSessionConfig()
+
 
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -377,6 +412,11 @@ android {
 		  // Gates the Hermes CPU profiling native module so it is compiled out of
 		  // every build except the BrowserStack performance APKs in builds.yml.
 		  it.buildConfigField 'boolean', 'IS_PERFORMANCE_TEST', "${System.getenv('IS_PERFORMANCE_TEST') == 'true'}"
+		  // Always-on perf sampler; empty (disabled) unless the builds.yml entry merges
+		  // *perf_session. See perfSessionConfig() above and docs/performance/perf-sessions.md.
+		  it.buildConfigField 'String', 'PERF_SESSION_URL', "\"${perfSession.url}\""
+		  it.buildConfigField 'String', 'PERF_SESSION_KEY', "\"${perfSession.key}\""
+		  it.buildConfigField 'String', 'PERF_SESSION_ENV', "\"${perfSession.env}\""
     }
 
     buildFeatures {
