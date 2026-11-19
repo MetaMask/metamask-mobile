@@ -144,7 +144,11 @@ describe('buildVaultCompositionChartModel', () => {
       return;
     }
 
-    expect(result.wedges[0].paintedAngleDegrees).toBeGreaterThanOrEqual(2);
+    const tinyWedge = result.wedges.find(
+      ({ componentKey }) => componentKey === 'direct_idle_musd',
+    );
+
+    expect(tinyWedge?.paintedAngleDegrees).toBeGreaterThanOrEqual(2);
     expect(
       result.wedges.reduce(
         (total, wedge) => total + wedge.paintedAngleDegrees,
