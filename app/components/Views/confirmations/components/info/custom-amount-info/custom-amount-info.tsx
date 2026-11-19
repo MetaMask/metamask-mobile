@@ -2,7 +2,6 @@ import React, {
   ReactNode,
   memo,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -49,6 +48,7 @@ import { useTransactionPayFiatPayment } from '../../../hooks/pay/useTransactionP
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useTransactionPayAccountLoading } from '../../../hooks/pay/useTransactionPayAccountLoading';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../confirm/confirm-component';
@@ -57,7 +57,6 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import { getAmountUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { prefixError } from '../../../../../../util/transactions/error-prefix';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
@@ -79,7 +78,6 @@ import { useTransactionAccountOverride } from '../../../hooks/transactions/useTr
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
-import { useEnsureTransakApiKey } from '../../../../../UI/Ramp/hooks/useEnsureTransakApiKey';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
@@ -95,6 +93,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  toast,
 } from '@metamask/design-system-react-native';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
@@ -243,8 +242,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-
-    const { toastRef } = useContext(ToastContext);
+    const isPayAccountLoading = useTransactionPayAccountLoading();
 
     // Publish the amount being typed so confirmation-level alerts (and the
     // alert metrics that read them) can react to an over-cap amount the user
@@ -330,10 +328,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           return;
         }
         const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
-        toastRef?.current?.showToast(
-          getAmountUpdateErrorToastOptions(prefixed, () =>
-            toastRef?.current?.closeToast(),
-          ),
+        toast(
+          getAmountUpdateErrorToastOptions(prefixed, () => toast.dismiss()),
         );
         // Reopen the keyboard so the user can retry; do not advance the flow.
         setStage(CustomAmountStage.AmountInput);
@@ -353,7 +349,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       setStage,
-      toastRef,
       trackAmountCommitted,
       transactionId,
       updateTokenAmount,
@@ -461,6 +456,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const showBuyButton =
       (!hasPaymentOption || hasAccountNoFunds) &&
       !hideBuyForNoFunds &&
+      !isPayAccountLoading &&
       !isDepositPrefillEnabled;
 
     const alertMessage =
@@ -509,9 +505,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 <>
                   {!hidePayTokenAmount &&
                     disablePay !== true &&
-                    (isMembershipSubscription ? (
-                      <MembershipInfo amountFiat={amountFiat} />
-                    ) : isMoneyAccountDeposit ? (
+                    !isMembershipSubscription &&
+                    (isMoneyAccountDeposit ? (
                       <BalanceProjection
                         amountFiat={amountFiat}
                         projectedYears={1}
@@ -533,6 +528,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           style={styles.bottomBlock}
         >
+          {isMembershipSubscription &&
+            !hasAlert &&
+            !hidePayTokenAmount &&
+            disablePay !== true && (
+              // The one-line caption is absolutely positioned under the amount.
+              // This banner is taller, so it stays in the bottom block and
+              // does not cover From or Pay with.
+              <MembershipInfo amountFiat={amountFiat} />
+            )}
           {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>
               {supportAccountSelection &&
@@ -547,7 +551,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 onSourceChange={setPerpsWithdrawSource}
               />
               {disablePay !== true &&
-                (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
+                (isPayAccountLoading ? (
+                  <PayWithRowSkeleton />
+                ) : (
+                  (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />
+                ))}
               <PerpsReceiveToRow
                 destination={perpsReceiveDestination}
                 onDestinationChange={setPerpsReceiveDestination}
@@ -568,9 +576,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 source={perpsWithdrawSource}
                 onSourceChange={setPerpsWithdrawSource}
               />
-              {disablePay !== true && hasPaymentOption && (
-                <PayWithRow isResultReady />
-              )}
+              {disablePay !== true &&
+                (isPayAccountLoading ? (
+                  <PayWithRowSkeleton />
+                ) : (
+                  hasPaymentOption && <PayWithRow isResultReady />
+                ))}
               <PerpsReceiveToRow
                 destination={perpsReceiveDestination}
                 onDestinationChange={setPerpsReceiveDestination}
@@ -589,7 +600,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {!isMembershipSubscription &&
             stage === CustomAmountStage.AmountInput &&
-            (hasPaymentOption || hasAccountNoFunds) && (
+            (hasPaymentOption || hasAccountNoFunds || isPayAccountLoading) && (
               <DepositKeyboard
                 hidePercentageButtons={
                   Boolean(selectedFiatPaymentMethodId) ||
@@ -669,12 +680,6 @@ function CustomAmountInfoDeferredInit({
   CustomAmountInfoProps,
   'autoSelectFiatPayment' | 'disablePay' | 'preferredToken'
 >) {
-  // Pre-warm the Transak partner API key so the fiat fee estimate's native
-  // buy-quote lookup succeeds on first load, showing the real native fee
-  // instead of the aggregator fallback (which previously only corrected after
-  // the user entered the Transak widget flow).
-  useEnsureTransakApiKey();
-
   useAutomaticTransactionPayToken({
     autoSelectFiatPayment,
     disable: disablePay,

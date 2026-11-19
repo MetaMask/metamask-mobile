@@ -22,7 +22,6 @@ export interface PriceAdvancedProps {
   timePeriod?: TimePeriod;
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  useAmbientColor?: boolean;
   hasInsufficientCoverage?: boolean;
   /** Draws the controls under the chart as glass; the screen passes its flag. */
   isGlass?: boolean;

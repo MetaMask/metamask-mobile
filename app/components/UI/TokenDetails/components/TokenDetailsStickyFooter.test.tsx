@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  type RenderResult,
+} from '@testing-library/react-native';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -7,7 +13,13 @@ import {
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { darkTheme } from '@metamask/design-tokens';
+import {
+  LIGHT_MODE_SUCCESS_GREEN,
+  mockTheme,
+  ThemeContext,
+} from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
@@ -69,11 +81,6 @@ jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
   __esModule: true,
   default: jest.fn(() => null),
 }));
-
-jest.mock('../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../util/theme');
-  return { ...actual, useTheme: jest.fn(() => actual.mockTheme) };
-});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -151,6 +158,20 @@ const setupSelectorMock = (geolocation?: string) => {
 
 const mockTrackEvent = jest.fn();
 
+// The dialog's sheet has no testID; it is the host view that wraps its drag handle.
+const getSheetShell = (
+  getByTestId: RenderResult['getByTestId'],
+): ReturnType<RenderResult['getByTestId']> => {
+  let node = getByTestId('bottom-sheet-dialog-drag-handle').parent;
+  while (node && (typeof node.type !== 'string' || !node.props.style)) {
+    node = node.parent;
+  }
+  if (!node) {
+    throw new Error('Bottom sheet shell not found');
+  }
+  return node;
+};
+
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -224,6 +245,35 @@ describe('TokenDetailsStickyFooter', () => {
         queryByTestId('token-details-sticky-footer-surface'),
       ).toBeOnTheScreen();
     });
+
+    it.each([
+      ['collapsed', false, darkTheme.colors.background.default],
+      ['expanded', true, darkTheme.colors.background.elevated1],
+    ])(
+      'paints the %s trader position sheet in one color in dark mode',
+      (_state, isExpanded, expectedColor) => {
+        const darkMockTheme = {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          themeAppearance: AppThemeKey.dark,
+        };
+        const { getByTestId } = render(
+          <ThemeContext.Provider value={darkMockTheme}>
+            <TokenDetailsStickyFooter
+              {...defaultProps}
+              traderPositionPnl={{ positionValue: '$103.31', isExpanded }}
+            />
+          </ThemeContext.Provider>,
+        );
+
+        expect(getByTestId('token-details-sticky-footer-surface')).toHaveStyle({
+          backgroundColor: expectedColor,
+        });
+        expect(getSheetShell(getByTestId)).toHaveStyle({
+          backgroundColor: expectedColor,
+        });
+      },
+    );
 
     it('reports the measured height of the trader position footer', async () => {
       const onFooterLayout = jest.fn();
@@ -303,6 +353,56 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(onFooterLayout).toHaveBeenLastCalledWith(163);
       jest.useRealTimers();
+    });
+
+    it('stops reporting footer height after the trader position sheet expands', async () => {
+      jest.useFakeTimers();
+      try {
+        const onFooterLayout = jest.fn();
+        const traderPositionPnl = {
+          positionValue: '$103.31',
+          isExpanded: false,
+        };
+        const { getByTestId, rerender } = render(
+          <TokenDetailsStickyFooter
+            {...defaultProps}
+            traderPositionPnl={traderPositionPnl}
+            onFooterLayout={onFooterLayout}
+          />,
+        );
+
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          nativeEvent: { layout: { height: 132 } },
+          persist: jest.fn(),
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+        expect(onFooterLayout).toHaveBeenLastCalledWith(132);
+
+        rerender(
+          <TokenDetailsStickyFooter
+            {...defaultProps}
+            traderPositionPnl={{ ...traderPositionPnl, isExpanded: true }}
+            onFooterLayout={onFooterLayout}
+          />,
+        );
+        act(() => {
+          jest.advanceTimersByTime(300);
+        });
+        onFooterLayout.mockClear();
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          nativeEvent: { layout: { height: 392 } },
+          persist: jest.fn(),
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+
+        expect(onFooterLayout).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('reports no overlay height when the footer renders in flow', () => {
@@ -938,7 +1038,7 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('geo-based button colors', () => {
+  describe('button colors', () => {
     const geoProps = {
       ...defaultProps,
       swapTestID: 'swap-btn',
@@ -947,7 +1047,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     const defaultSuccessBg = `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`;
 
-    it('uses success (green) styles for non-Asia users', () => {
+    it('uses success (green) styles globally regardless of region', () => {
       setupSelectorMock('US');
       const { getByTestId } = render(
         <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
@@ -957,54 +1057,7 @@ describe('TokenDetailsStickyFooter', () => {
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses error-default (red) styles for Asian users when useAmbientColor is true (JP)', () => {
-      setupSelectorMock('JP');
-      const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...geoProps}
-          balanceFiatUsd={50}
-          useAmbientColor
-        />,
-      );
-
-      const buyBtn = getByTestId('buy-btn');
-      expect(buyBtn.props.twClassName).toBe('bg-error-default');
-    });
-
-    it('uses error-default border on secondary button for Asian users when useAmbientColor is true (KR)', () => {
-      setupSelectorMock('KR');
-      const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...geoProps}
-          balanceFiatUsd={50}
-          useAmbientColor
-        />,
-      );
-
-      const swapBtn = getByTestId('swap-btn');
-      expect(swapBtn.props.twClassName).toBe(
-        'bg-transparent border-error-default',
-      );
-    });
-
-    it.each(['TW', 'CN', 'HK'])(
-      'uses error-default for %s country code when useAmbientColor is true',
-      (code) => {
-        setupSelectorMock(code);
-        const { getByTestId } = render(
-          <TokenDetailsStickyFooter
-            {...geoProps}
-            balanceFiatUsd={50}
-            useAmbientColor
-          />,
-        );
-
-        const buyBtn = getByTestId('buy-btn');
-        expect(buyBtn.props.twClassName).toBe('bg-error-default');
-      },
-    );
-
-    it('uses success (green) for Asian users when useAmbientColor is false (control)', () => {
+    it('uses success (green) styles for Asian region users', () => {
       setupSelectorMock('JP');
       const { getByTestId } = render(
         <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,

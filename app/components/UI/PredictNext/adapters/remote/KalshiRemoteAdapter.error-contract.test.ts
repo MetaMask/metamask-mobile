@@ -1,10 +1,12 @@
 import contract from '../../contracts/v1/fixtures/api-errors.v1.json';
+import signRequest from '../../contracts/v1/fixtures/funding-contract/sign-request.json';
+import transferReported from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import { PredictErrorCode } from '../../errors';
 import {
   predictErrorEvidence,
   type PredictErrorPhase,
 } from '../../errors/apiErrorEvidence';
-import type { PredictAmount, PredictEntityId } from '../../types';
+import type { PredictAmount, PredictEntityId, PredictHex } from '../../types';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
 import {
   PredictHttpError,
@@ -31,6 +33,7 @@ const PRODUCT_CODE_BY_API_CODE: Record<string, PredictErrorCode | undefined> = {
   insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
   preview_not_found: PredictErrorCode.ORDER_NOT_FOUND,
   preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
+  amount_below_minimum: PredictErrorCode.AMOUNT_BELOW_MINIMUM,
   venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
   venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
   client_order_id_conflict: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
@@ -48,6 +51,83 @@ const PRODUCT_CODE_BY_API_CODE: Record<string, PredictErrorCode | undefined> = {
   venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
   rate_limited: PredictErrorCode.RATE_LIMITED,
   venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
+  client_operation_id_conflict: PredictErrorCode.DEPOSIT_MISMATCH,
+  deposit_in_progress: PredictErrorCode.DEPOSIT_IN_PROGRESS,
+  deposit_not_cancellable: PredictErrorCode.DEPOSIT_NOT_CANCELLABLE,
+  amount_rejected: PredictErrorCode.DEPOSIT_AMOUNT_REJECTED,
+  deposit_rejected: PredictErrorCode.DEPOSIT_FAILED,
+  deposit_address_invalid: PredictErrorCode.DEPOSIT_FAILED,
+  address_request_lost: PredictErrorCode.DEPOSIT_FAILED,
+  transfer_chain_mismatch: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  transfer_hash_invalid: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  transfer_hash_mismatch: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  transfer_hash_reused: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  transfer_not_expected: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+};
+
+/** Where the deposit routes read a code differently from the Order routes. */
+const DEPOSIT_PRODUCT_CODE_BY_API_CODE: Record<
+  string,
+  PredictErrorCode | undefined
+> = {
+  operation_not_found: PredictErrorCode.DEPOSIT_NOT_FOUND,
+};
+
+type DepositCall = 'createDeposit' | 'reportDepositTransfer' | 'cancelDeposit';
+
+/** Commit codes the deposit routes answer, exercised through every deposit
+ * route that answers them. Every other commit code goes through the Order
+ * commit. */
+const DEPOSIT_CALLS_BY_API_CODE: Record<
+  string,
+  readonly DepositCall[] | undefined
+> = {
+  client_operation_id_conflict: ['createDeposit'],
+  deposit_in_progress: ['createDeposit'],
+  amount_rejected: ['createDeposit'],
+  deposit_rejected: ['createDeposit'],
+  deposit_address_invalid: ['createDeposit'],
+  address_request_lost: ['createDeposit'],
+  deposit_not_cancellable: ['cancelDeposit'],
+  operation_not_found: ['reportDepositTransfer', 'cancelDeposit'],
+  transfer_chain_mismatch: ['reportDepositTransfer'],
+  transfer_hash_invalid: ['reportDepositTransfer'],
+  transfer_hash_mismatch: ['reportDepositTransfer'],
+  transfer_hash_reused: ['reportDepositTransfer'],
+  transfer_not_expected: ['reportDepositTransfer'],
+};
+
+const OPERATION_ID = '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e5f';
+
+const invokeDeposit = async (
+  call: DepositCall,
+  error: PredictHttpError,
+): Promise<unknown> => {
+  const client = {
+    startDeposit: jest.fn().mockResolvedValue(signRequest),
+    createDeposit: jest.fn().mockRejectedValue(error),
+    reportDepositTransfer: jest.fn().mockRejectedValue(error),
+    cancelDeposit: jest.fn().mockRejectedValue(error),
+  } as unknown as PredictApiReadTransport;
+  const adapter = new KalshiRemoteAdapter(client, {
+    getApprovalGeneration: () => 0,
+  });
+  if (call === 'cancelDeposit') {
+    return adapter.funding.cancelDeposit(OPERATION_ID);
+  }
+  if (call === 'reportDepositTransfer') {
+    return adapter.funding.reportDepositTransfer(OPERATION_ID, {
+      txHash: transferReported.txHash as PredictHex,
+      chainId: transferReported.chainId,
+    });
+  }
+  return adapter.funding.prepareDeposit(
+    {
+      amount: '25.50' as PredictAmount,
+      clientOperationId: signRequest.next.clientOperationId,
+    },
+    { kind: 'user-approved' },
+  );
 };
 
 const invoke = async (phase: PredictErrorPhase, error: PredictHttpError) => {
@@ -111,22 +191,34 @@ const invoke = async (phase: PredictErrorPhase, error: PredictHttpError) => {
 };
 
 const cases = Object.entries(contract.codes).flatMap(([code, definition]) =>
-  definition.phases.map((phase) => ({ code, phase, definition })),
+  definition.phases.flatMap((phase) => {
+    const depositCalls =
+      phase === 'commit' ? DEPOSIT_CALLS_BY_API_CODE[code] : undefined;
+    return (depositCalls ?? [undefined]).map((depositCall) => ({
+      code,
+      phase,
+      definition,
+      depositCall,
+      route: depositCall ?? 'the Order and read routes',
+    }));
+  }),
 );
 
 describe('API emitted error contract at the mobile adapter boundary', () => {
   it.each(cases)(
-    '$phase maps $code with API relay evidence',
-    async ({ code, phase, definition }) => {
-      const expected = PRODUCT_CODE_BY_API_CODE[code];
+    '$phase maps $code on $route with API relay evidence',
+    async ({ code, phase, definition, depositCall }) => {
+      const expected =
+        (depositCall && DEPOSIT_PRODUCT_CODE_BY_API_CODE[code]) ??
+        PRODUCT_CODE_BY_API_CODE[code];
       expect(expected).toBeDefined();
       const commitRelay =
         'commitRelay' in definition ? definition.commitRelay : 'unknown';
+      const error = new PredictHttpError(definition.status, code);
       await expect(
-        invoke(
-          phase as PredictErrorPhase,
-          new PredictHttpError(definition.status, code),
-        ),
+        depositCall
+          ? invokeDeposit(depositCall, error)
+          : invoke(phase as PredictErrorPhase, error),
       ).rejects.toMatchObject({
         code: expected,
         metadata: {
@@ -249,5 +341,18 @@ describe('API emitted error contract at the mobile adapter boundary', () => {
         operationOutcome: 'unknown',
       });
     }
+  });
+
+  it('treats the replaying withdrawal read as unknown, not mutation-free', () => {
+    expect(contract.replayingReads).toContain('withdrawals.observe');
+    expect(
+      predictErrorEvidence('observe', 'venue_unavailable', true, {
+        readCanReplay: true,
+      }).mutationRelay,
+    ).toBe('unknown');
+    // A plain read keeps its claim.
+    expect(
+      predictErrorEvidence('observe', 'venue_unavailable', true).mutationRelay,
+    ).toBe('not_a_mutation');
   });
 });

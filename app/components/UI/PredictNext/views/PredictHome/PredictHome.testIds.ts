@@ -13,6 +13,7 @@ export const PredictHomeTestIds = {
   BALANCE_GEO_BLOCKED: 'predict-next-home-balance-geo-blocked',
   ACTIONS: 'predict-next-home-portfolio-actions',
   POSITIONS: 'predict-next-home-positions',
+  WITHDRAW: 'predict-next-home-withdraw',
   HOME_TRENDING: 'predict-next-home-trending',
   HOME_TRENDING_HEADER: 'predict-next-home-trending-header',
   HOME_TRENDING_CHEVRON: 'predict-next-home-trending-chevron',
