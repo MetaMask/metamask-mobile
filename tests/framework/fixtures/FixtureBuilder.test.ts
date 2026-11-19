@@ -1,3 +1,5 @@
+import { bytesToHex } from '@metamask/utils';
+import { sha256 } from '@noble/hashes/sha2';
 import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from './FixtureBuilder';
 import {
   REWARDS_MONEY_E2E_PROFILE_ID,
@@ -141,6 +143,34 @@ describe('FixtureBuilder state log fields', () => {
 
     expect(rewardsMoney.existingField).toBe('kept');
     expect(rewardsMoney.referralMe).toBeDefined();
+  });
+});
+
+describe('FixtureBuilder card controller', () => {
+  const accountRef = (address: string) =>
+    bytesToHex(sha256(new TextEncoder().encode(address.toLowerCase())));
+
+  it('stores the cardholder address as the link account ref', () => {
+    const fixture = new FixtureBuilder().withCardController(false).build();
+    const card = fixture.state.engine.backgroundState.CardController as {
+      cardLinks: { linkedAccountRef: string | null }[];
+    };
+
+    expect(card.cardLinks[0].linkedAccountRef).toBe(
+      accountRef(DEFAULT_FIXTURE_ACCOUNT),
+    );
+  });
+
+  it('stores a caller-supplied address, including a CAIP account id', () => {
+    const address = '0xSpecific00000000000000000000000000000001';
+    const fixture = new FixtureBuilder()
+      .withCardController(true, `eip155:0:${address}`)
+      .build();
+    const card = fixture.state.engine.backgroundState.CardController as {
+      cardLinks: { linkedAccountRef: string | null }[];
+    };
+
+    expect(card.cardLinks[0].linkedAccountRef).toBe(accountRef(address));
   });
 });
 

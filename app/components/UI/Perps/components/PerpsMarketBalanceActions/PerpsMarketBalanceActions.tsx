@@ -262,7 +262,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
-                twClassName="gap-3 px-4 pt-1"
+                twClassName="gap-3 px-4 pt-1 pb-3"
                 flexDirection={BoxFlexDirection.Row}
               >
                 <Box twClassName="flex-1">

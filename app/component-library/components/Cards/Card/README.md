@@ -20,7 +20,7 @@ Content to wrap to display.
 
 ```javascript
 // Replace import with relative path.
-import Card from 'app/component-library/components/Cards/Card/Card';
+import Card from '#app/component-library/components/Cards/Card/Card';
 
 <Card>
   <SampleContent />

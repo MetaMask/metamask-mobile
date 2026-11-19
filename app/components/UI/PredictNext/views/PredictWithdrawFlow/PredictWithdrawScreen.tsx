@@ -47,6 +47,7 @@ import { PredictKeypad } from '../../components/PredictAmountEntry';
 import { useBalance } from '../../hooks/useBalance';
 import { useWithdrawReceipt } from '../../hooks/useWithdrawReceipt';
 import { PredictError, PredictErrorCode } from '../../errors';
+import type { WithdrawCommitResolution } from '../../services/PredictFundingService';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import type {
   PredictAmount,
@@ -188,19 +189,14 @@ const reduceWithdrawStatus = (
     case 'outcomeUnknown':
       return { ...state, error: action.error };
     case 'commitFailed':
-      // Expired, deleted or unresolvable previews cannot create a new
-      // operation. Keep the amount, but require a fresh quote before another
-      // confirmation.
-      return action.error.code === PredictErrorCode.PREVIEW_EXPIRED ||
-        action.error.metadata?.bodyCode === 'preview_not_found' ||
-        action.error.metadata?.bodyCode === 'operation_not_found'
-        ? {
-            phase: 'input',
-            input: state.input,
-            isRequesting: false,
-            error: action.error,
-          }
-        : { ...state, error: action.error };
+      // The funding module already decided this Commit placed nothing. Keep
+      // the amount, but require a fresh quote before another confirmation.
+      return {
+        phase: 'input',
+        input: state.input,
+        isRequesting: false,
+        error: action.error,
+      };
     default:
       return state;
   }
@@ -329,34 +325,24 @@ export const PredictWithdrawScreen = () => {
     (receipt: PredictWithdrawReceipt) => dispatch({ type: 'receipt', receipt }),
     [],
   );
-  /** A lost Commit reply is not a failed withdrawal: read the same operation
-   * before deciding whether the Preview can be retried or the outcome is
-   * unknown. */
-  const recoverCommitOutcome = useCallback(
-    async (previewId: string, error: PredictError) => {
-      try {
-        const receipt = await service.observeWithdraw(venueId, previewId);
-        dispatch({ type: 'receipt', receipt });
-      } catch (recoveryError) {
-        // The read is the authority on whether anything was relayed. A
-        // missing Preview or operation cannot hold a transferred amount, so
-        // the amount is kept and a fresh quote is required. Any other read
-        // failure leaves the outcome unknown.
-        const bodyCode =
-          recoveryError instanceof PredictError
-            ? recoveryError.metadata?.bodyCode
-            : undefined;
-        dispatch({
-          type:
-            bodyCode === 'preview_not_found' ||
-            bodyCode === 'operation_not_found'
-              ? 'commitFailed'
-              : 'outcomeUnknown',
-          error: recoveryError instanceof PredictError ? recoveryError : error,
-        });
+  const dispatchResolution = useCallback(
+    (
+      resolution: WithdrawCommitResolution,
+      receiptType: 'committed' | 'receipt',
+    ) => {
+      if (resolution.outcome === 'receipt') {
+        dispatch({ type: receiptType, receipt: resolution.receipt });
+        return;
       }
+      dispatch({
+        type:
+          resolution.outcome === 'not_placed'
+            ? 'commitFailed'
+            : 'outcomeUnknown',
+        error: resolution.error,
+      });
     },
-    [service, venueId],
+    [],
   );
   /** Once the Commit returns, this screen is the surface observing the
    * Withdrawal: the hook owns the backoff schedule and stops on a terminal
@@ -405,13 +391,27 @@ export const PredictWithdrawScreen = () => {
       if (state.receipt) {
         retryObservation();
       } else if (state.error) {
-        await recoverCommitOutcome(state.preview.previewId, state.error);
+        dispatchResolution(
+          await service.reconcileWithdrawObservation(
+            venueId,
+            state.preview.previewId,
+            state.error,
+          ),
+          'receipt',
+        );
       }
     } finally {
       recoveryInFlight.current = false;
       setIsRecovering(false);
     }
-  }, [isOffline, recoverCommitOutcome, retryObservation, state]);
+  }, [
+    dispatchResolution,
+    isOffline,
+    retryObservation,
+    service,
+    state,
+    venueId,
+  ]);
 
   const handleKeyPress = useCallback(
     (key: string) => {
@@ -455,42 +455,19 @@ export const PredictWithdrawScreen = () => {
     }
   }, [canContinue, input, service, venueId]);
 
-  /** Commits by reference: the phone sends the Preview id and nothing else,
-   * and the receipt it returns is the operation's state from now on. */
+  /** Confirms the quoted Withdraw. The funding module commits by Preview id
+   * and resolves a lost reply; this screen only renders that resolution. */
   const handleConfirm = useCallback(async () => {
     if (!isCommittable(state, isOffline)) {
       return;
     }
     const { preview } = state;
     dispatch({ type: 'confirm' });
-    try {
-      const receipt = await service.commitWithdrawPreview(
-        venueId,
-        preview.previewId,
-      );
-      dispatch({ type: 'committed', receipt });
-    } catch (error_) {
-      const error = toPredictError(error_);
-      // An aborted or timed-out Commit may already have reached the venue.
-      // Recover by GET, never classify a deadline as a safe-to-retry POST.
-      if (
-        error_ instanceof Error &&
-        (error_.name === 'AbortError' || error_.name === 'TimeoutError')
-      ) {
-        await recoverCommitOutcome(preview.previewId, error);
-        return;
-      }
-      if (error.code === PredictErrorCode.PREVIEW_EXPIRED) {
-        dispatch({ type: 'commitFailed', error });
-        return;
-      }
-      if (error.code === PredictErrorCode.UNAUTHENTICATED) {
-        dispatch({ type: 'outcomeUnknown', error });
-        return;
-      }
-      await recoverCommitOutcome(preview.previewId, error);
-    }
-  }, [isOffline, recoverCommitOutcome, service, state, venueId]);
+    dispatchResolution(
+      await service.reconcileWithdrawCommit(venueId, preview.previewId),
+      'committed',
+    );
+  }, [dispatchResolution, isOffline, service, state, venueId]);
 
   const handleBack = useCallback(() => dispatch({ type: 'back' }), []);
 
