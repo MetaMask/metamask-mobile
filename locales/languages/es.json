@@ -9986,7 +9986,6 @@
     },
     "action": {
       "add": "Agregar",
-      "transfer": "Enviar",
       "card": "Tarjeta",
       "details": "Detalles"
     },
@@ -10108,8 +10107,6 @@
       "contact_support": "Contactar a soporte"
     },
     "transfer_sheet": {
-      "title": "Enviar fondos a",
-      "between_accounts": "Otra cuenta",
       "perps_account": "Cuenta de Perps",
       "predictions_account": "Cuenta de Predicciones",
       "send_external": "Dirección externa",
