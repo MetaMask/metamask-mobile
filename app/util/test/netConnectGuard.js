@@ -145,13 +145,22 @@ const recordBlockedWebSocket = (url) => {
 };
 
 /**
- * Lets one macrotask pass so requests issued right before the last assertion
- * still reach the emitter before the registry is checked.
+ * Lets queued work settle so requests issued right before the last assertion
+ * still reach the emitter before the registry is checked. Bounded to a few
+ * immediate rounds and stops early once the registries stabilize, so this is
+ * a yield, not a sleep.
  */
-const flushPendingRequests = () =>
-  new Promise((resolve) => {
-    setImmediate(resolve);
-  });
+const flushPendingRequests = async () => {
+  for (let round = 0; round < 4; round += 1) {
+    const before = blockedRequests.size + blockedWebSockets.size;
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
+    if (blockedRequests.size + blockedWebSockets.size === before) {
+      break;
+    }
+  }
+};
 
 /**
  * Fails the current test when it made unmocked HTTP requests or opened an
@@ -277,9 +286,14 @@ const installNetConnectGuard = () => {
   blockNetConnect();
   nock.emitter.on('no match', recordBlockedRequest);
 
-  beforeEach(() => {
-    currentTestActive = true;
+  beforeEach(async () => {
+    // Quiesce before this test's window opens: stragglers from the previous
+    // test resolving across the boundary are dropped instead of attributed to
+    // this test, which did not issue them.
+    currentTestActive = false;
     blockNetConnect();
+    await flushPendingRequests();
+    currentTestActive = true;
   });
   afterEach(() => checkBlockedRequests(expect.getState().currentTestName));
   afterAll(() => {
