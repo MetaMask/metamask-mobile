@@ -5255,7 +5255,7 @@ describe('CardHome Component', () => {
         });
       });
 
-      it('keeps the animation card mounted even while card details are loaded', () => {
+      it('shows the revealed card details over the still-mounted, hidden Rive card', () => {
         // Given: Authenticated user with card and image URL returned (details showing)
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
@@ -5279,16 +5279,147 @@ describe('CardHome Component', () => {
 
         render();
 
-        // The Rive card stays mounted for a signed-in user, so the reveal
-        // image no longer swaps into the card art area; the
-        // clear-image-on-error path is covered by the useRevealCardDetails
-        // hook tests.
+        // The details render on top of the card art while it is revealed.
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeOnTheScreen();
+        // The Rive card is never unmounted — it is only hidden while the
+        // details are up, so a later freeze never replays its first frame.
         expect(
           screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
         ).toBeOnTheScreen();
         expect(
+          StyleSheet.flatten([
+            screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER).props
+              .style,
+          ])?.opacity,
+        ).toBe(0);
+      });
+
+      it('returns to the Rive card when the details are hidden', () => {
+        // Given: Authenticated user with the details currently revealed
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        let tokenState: {
+          imageUrl: string | null;
+          [key: string]: unknown;
+        } = {
+          fetchCardDetailsToken: mockFetchCardDetailsToken,
+          isLoading: false,
+          isImageLoading: false,
+          onImageLoad: mockOnCardDetailsImageLoad,
+          error: null,
+          imageUrl: 'https://example.com/image',
+          clearImageUrl: mockClearCardDetailsImageUrl,
+        };
+        mockClearCardDetailsImageUrl.mockImplementation(() => {
+          tokenState = { ...tokenState, imageUrl: null };
+        });
+        (useCardDetailsToken as jest.Mock).mockImplementation(() => tokenState);
+
+        const view = renderAuthTransition();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeOnTheScreen();
+
+        // When: the details toggle is pressed (hide)
+        fireEvent.press(
+          screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        );
+
+        // Then: the details swap out and the Rive card is visible again
+        view.update();
+        expect(
           screen.queryByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
         ).toBeNull();
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+        ).toBeOnTheScreen();
+        expect(
+          StyleSheet.flatten([
+            screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER).props
+              .style,
+          ])?.opacity,
+        ).toBeUndefined();
+      });
+
+      it('closes the revealed details when a freeze succeeds', () => {
+        // Given: Authenticated user with the details currently revealed
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        let tokenState: {
+          imageUrl: string | null;
+          [key: string]: unknown;
+        } = {
+          fetchCardDetailsToken: mockFetchCardDetailsToken,
+          isLoading: false,
+          isImageLoading: false,
+          onImageLoad: mockOnCardDetailsImageLoad,
+          error: null,
+          imageUrl: 'https://example.com/image',
+          clearImageUrl: mockClearCardDetailsImageUrl,
+        };
+        mockClearCardDetailsImageUrl.mockImplementation(() => {
+          tokenState = { ...tokenState, imageUrl: null };
+        });
+        (useCardDetailsToken as jest.Mock).mockImplementation(() => tokenState);
+
+        const view = renderAuthTransition();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeOnTheScreen();
+
+        // When: a freeze succeeds while the details are open
+        mockUseCardFreeze.mockReturnValue({
+          freeze: {
+            isError: false,
+            isPending: false,
+            isSuccess: true,
+            mutate: mockFreezeMutate,
+            data: undefined,
+            error: null,
+          },
+          unfreeze: {
+            isError: false,
+            isPending: false,
+            isSuccess: false,
+            mutate: mockUnfreezeMutate,
+            data: undefined,
+            error: null,
+          },
+        });
+        view.update();
+        view.update();
+
+        // Then: the details are gone and the freeze animation shows
+        expect(
+          screen.queryByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeNull();
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+        ).toBeOnTheScreen();
+        expect(
+          StyleSheet.flatten([
+            screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER).props
+              .style,
+          ])?.opacity,
+        ).toBeUndefined();
       });
 
       describe('Biometric Authentication', () => {
