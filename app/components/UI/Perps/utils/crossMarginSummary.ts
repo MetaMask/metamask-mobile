@@ -1,9 +1,11 @@
 import {
+  buildMaintenanceSchedule,
   calculateAccountSummary,
   formatPerpsFiat,
   getCrossCollateral,
   PERPS_CONSTANTS,
   PRICE_RANGES_UNIVERSAL,
+  resolveHyperLiquidMarginTiers,
   type AccountState,
   type CrossMarginSummary,
   type PerpsAccountSummary,
@@ -90,13 +92,95 @@ export const getCrossMarginSummaryThrottleMs = ({
 /**
  * Hyperliquid margin-table ids below this are one tier whose max leverage is
  * the table id. Ids at or above it need `meta.marginTables`, which this
- * client does not have, so the estimate uses the asset max leverage and is
- * marked approximate. TAT-4668 moves the estimate to perps-controller.
+ * client does not have, so the estimate prices the lowest tier at the asset
+ * max leverage and is marked approximate.
  */
 const HYPERLIQUID_TIERED_MARGIN_TABLE_ID = 50;
 
-/** Hyperliquid maintenance leverage is twice the asset's max leverage. */
-const HYPERLIQUID_MAINTENANCE_LEVERAGE_MULTIPLIER = 2;
+type MaintenanceScheduleTier = ReturnType<
+  typeof buildMaintenanceSchedule
+>[number];
+
+const findMaintenanceTier = (
+  schedule: MaintenanceScheduleTier[],
+  notional: number,
+): MaintenanceScheduleTier | undefined =>
+  schedule.find(
+    (tier) => notional >= tier.lowerBound && notional < tier.upperBound,
+  );
+
+/**
+ * Same math as perps-controller `estimateCrossMaintenanceMargin` for one
+ * position, which is not exported by the installed version. TAT-4668 swaps
+ * this for the package export.
+ *
+ * @returns Maintenance margin in USD, or null when no tier covers the notional.
+ */
+const crossMaintenanceMargin = (
+  notional: number,
+  schedule: MaintenanceScheduleTier[],
+): number | null => {
+  const tier = findMaintenanceTier(schedule, Math.abs(notional));
+  return tier
+    ? Math.abs(notional) * tier.maintenanceMarginRate -
+        tier.maintenanceDeduction
+    : null;
+};
+
+/**
+ * Same math as perps-controller `estimateCrossLiquidationPrice` (the formula
+ * behind `calculateLiquidationPrice` with `marginType: 'cross'`), which is not
+ * exported by the installed version. TAT-4668 swaps this for the package
+ * export.
+ *
+ * @returns Liquidation price, or null when no positive price exists.
+ */
+const crossLiquidationPriceAtTier = ({
+  isLong,
+  markPrice,
+  positionSize,
+  accountValue,
+  maintenanceMargin,
+  schedule,
+}: {
+  isLong: boolean;
+  markPrice: number;
+  positionSize: number;
+  accountValue: number;
+  /** Maintenance of every cross position, this one included. */
+  maintenanceMargin: number;
+  schedule: MaintenanceScheduleTier[];
+}): number | null => {
+  const currentTier = findMaintenanceTier(schedule, positionSize * markPrice);
+  if (!currentTier || !(maintenanceMargin >= 0)) {
+    return null;
+  }
+  const side = isLong ? 1 : -1;
+  for (const tier of schedule) {
+    const denominator = positionSize * (side - tier.maintenanceMarginRate);
+    if (Math.abs(denominator) < Number.EPSILON) {
+      continue;
+    }
+    const liquidationPrice =
+      (maintenanceMargin -
+        accountValue +
+        currentTier.maintenanceDeduction -
+        tier.maintenanceDeduction +
+        positionSize * markPrice * (side - currentTier.maintenanceMarginRate)) /
+      denominator;
+    if (!Number.isFinite(liquidationPrice) || liquidationPrice <= 0) {
+      continue;
+    }
+    const notionalAtLiquidation = positionSize * liquidationPrice;
+    if (
+      notionalAtLiquidation >= tier.lowerBound &&
+      notionalAtLiquidation < tier.upperBound
+    ) {
+      return liquidationPrice;
+    }
+  }
+  return null;
+};
 
 export type CrossLiquidationContentKey =
   | 'cross_liquidation_price'
@@ -117,12 +201,15 @@ export type CrossLiquidationEstimate =
   | { status: 'price'; price: number; approximate: boolean };
 
 /**
- * Pre-trade cross liquidation estimate.
+ * Pre-trade cross liquidation estimate, using the formula of perps-controller
+ * `calculateLiquidationPrice` for cross orders.
  *
- * `liq_price = price − side × margin_available / position_size / (1 − l × side)`
- * with `l = 1 / (2 × maxLeverage)` and
- * `margin_available = cross collateral − maintenance of every other position
- * − maintenance of the resulting position at the entry price`.
+ * Within one maintenance tier this is
+ * `liq_price = price − side × (account_value − maintenance) / position_size / (1 − mmr × side)`
+ * with `mmr = 1 / (2 × tier max leverage)`, `account_value` the cross
+ * collateral, and `maintenance` that of every other position plus the
+ * resulting position at the entry price. The tier at the liquidation notional
+ * is used when it differs from the current one.
  *
  * An order that adds to or reduces a position uses the resulting size. Spot
  * collateral that is not published yet is left out and the price is marked
@@ -189,23 +276,37 @@ export const estimateCrossLiquidationPrice = ({
   if (!(resultSize > 0)) {
     return { status: 'none' };
   }
-  const maintenanceFraction =
-    1 / (HYPERLIQUID_MAINTENANCE_LEVERAGE_MULTIPLIER * maxLeverage);
-  const existingMaintenance =
-    Math.abs(existingSignedSize) * entryPrice * maintenanceFraction;
-  const otherMaintenance = Math.max(0, maintenanceMargin - existingMaintenance);
-  const resultMaintenance = resultSize * entryPrice * maintenanceFraction;
-  const marginAvailable = collateral - otherMaintenance - resultMaintenance;
-  const side = signedResult > 0 ? 1 : -1;
-  const liquidationPrice =
-    entryPrice -
-    (side * marginAvailable) / resultSize / (1 - maintenanceFraction * side);
-  if (!Number.isFinite(liquidationPrice) || liquidationPrice <= 0) {
-    return { status: 'none' };
-  }
   const tieredMarket =
     marginTableId !== undefined &&
     marginTableId >= HYPERLIQUID_TIERED_MARGIN_TABLE_ID;
+  const schedule = buildMaintenanceSchedule(
+    resolveHyperLiquidMarginTiers({ marginTableId, maxLeverage }) ?? [
+      { lowerBound: 0, maxLeverage },
+    ],
+  );
+  const existingMaintenance = crossMaintenanceMargin(
+    existingSignedSize * entryPrice,
+    schedule,
+  );
+  const resultMaintenance = crossMaintenanceMargin(
+    resultSize * entryPrice,
+    schedule,
+  );
+  if (existingMaintenance === null || resultMaintenance === null) {
+    return { status: 'unknown' };
+  }
+  const otherMaintenance = Math.max(0, maintenanceMargin - existingMaintenance);
+  const liquidationPrice = crossLiquidationPriceAtTier({
+    isLong: signedResult > 0,
+    markPrice: entryPrice,
+    positionSize: resultSize,
+    accountValue: collateral,
+    maintenanceMargin: otherMaintenance + resultMaintenance,
+    schedule,
+  });
+  if (liquidationPrice === null) {
+    return { status: 'none' };
+  }
   return {
     status: 'price',
     price: liquidationPrice,
