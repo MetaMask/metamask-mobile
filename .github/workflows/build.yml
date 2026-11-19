@@ -715,7 +715,8 @@ jobs:
           retry_wait_seconds: 60
           command: |
             # Fail before building if a secret builds.yml requires is missing or malformed.
-            node scripts/validate-secrets-from-config.js
+            # The retry action runs this script without `set -e`, hence the explicit exit.
+            node scripts/validate-secrets-from-config.js || exit 1
             # AGP can leave a partial ndk/<version> directory after a failed
             # download (corrupt zip → "Error on ZipFile unknown archive"). The
             # next attempt then fails immediately with CXX1101 (missing
