@@ -798,19 +798,43 @@ class PerpsProMarketView {
   }
 
   /**
-   * Taps the inline Cancel button on the first ORDER_CANCEL element in the
-   * orders list. For single-order scenarios this unambiguously cancels the order.
+   * Taps the inline Cancel button on the order row in the Orders tab.
+   *
+   * Between place and cancel the positions panel can scroll away or leave the
+   * Orders tab (toast / keyboard / stream re-layout). Swiping alone cannot
+   * remount `ORDER_CANCEL` when the Orders list is not selected — mirror
+   * `waitForOrderRow` / `tapPositionCloseButton`: re-select Orders, prove the
+   * row, then scroll to Cancel.
    */
-  async tapOrderCancelButton(): Promise<void> {
-    const cancelButton = Matchers.getElementByID(
-      PerpsProMarketViewSelectorsIDs.ORDER_CANCEL,
+  async tapOrderCancelButton(symbol: string, index = 0): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await this.tapOrdersTab();
+        await this.scrollUntilVisible(
+          this.orderRow(symbol, index),
+          `Pro order row ${symbol}[${index}]`,
+          8000,
+        );
+        const cancelButton = Matchers.getElementByID(
+          PerpsProMarketViewSelectorsIDs.ORDER_CANCEL,
+        );
+        await this.scrollUntilVisible(
+          cancelButton,
+          'Pro order cancel button',
+          8000,
+        );
+        await Gestures.waitAndTap(cancelButton, {
+          elemDescription: 'Pro order cancel button',
+          checkForDisplayed: true,
+          timeout: 5000,
+        });
+      },
+      {
+        interval: 1000,
+        timeout: 45000,
+        description: 'tap Pro order cancel button',
+      },
     );
-    await this.scrollUntilVisible(cancelButton, 'Pro order cancel button');
-    await Gestures.waitAndTap(cancelButton, {
-      elemDescription: 'Pro order cancel button',
-      checkForDisplayed: true,
-      timeout: 10000,
-    });
   }
 }
 

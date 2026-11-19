@@ -90,7 +90,9 @@ appiumTest.describe(SmokePerps('Perps Pro - Limit order cancel'), () => {
           await navigateToPerpsProEntry(PERPS_SMOKE_MARKET_SYMBOL);
           await placeLimitOrderInPro(PERPS_SMOKE_MARKET_SYMBOL, 'long', 'Mid');
 
-          await PerpsProMarketView.tapOrderCancelButton();
+          await PerpsProMarketView.tapOrderCancelButton(
+            PERPS_SMOKE_MARKET_SYMBOL,
+          );
           await PerpsProMarketView.expectOrderRowNotVisible(
             PERPS_SMOKE_MARKET_SYMBOL,
             0,
