@@ -13,7 +13,7 @@ import { Text, Button } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
 import Routes from '../../../../../constants/navigation/Routes';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import {
   composePredictNextOrderService,
   configurePredictNextCatalog,

@@ -211,7 +211,8 @@ The Venue catalog is the backend-supplied part of PRED-1376's internal `PredictV
 type PredictVenueAction = 'buy' | 'sell' | 'claim' | 'deposit' | 'withdraw';
 
 /** Stable product key, kebab-case, for example "trending" or "nfl-games".
- * PRED-1376 owns the vocabulary and the surface-to-key mapping table. */
+ * The Predict API owns the vocabulary (PRED-1522). Mobile owns only its
+ * surface-to-key mapping table. */
 type PredictFeedKey = string & { readonly __brand: 'PredictFeedKey' };
 
 interface PredictVenueCatalog {
@@ -232,10 +233,10 @@ The catalog describes support only. It is distinct from rollout flags, Venue Sta
 
 PRED-1376 implements the client side:
 
-- **Vocabulary.** `PREDICT_FEED_KEYS` in `types/index.ts`. Mobile types `PredictFeedKey` as that closed union rather than a branded string; the parser drops keys outside it, so the wire format is unchanged. Add a key there before the backend serves it.
-- **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots, Explore tabs, Rewards campaign rows, and PredictNext Home sections and Feed Screen tabs to keys.
+- **Vocabulary.** The Predict API owns the Feed-key vocabulary, as decided under PRED-1522. Destination: mobile accepts any kebab-case key the API serves (PRED-1526). Today, until PRED-1526 lands, mobile still types `PredictFeedKey` as the closed union `PREDICT_FEED_KEYS` in `types/index.ts` and its parser drops keys outside it, so a key the API adds stays invisible to mobile until it is added there too.
+- **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots, Explore tabs, and PredictNext Home sections and Feed Screen tabs to keys. A Rewards campaign's Venue is decided by `campaigns/campaignVenues.ts`, not by a Feed key.
 - **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions, Feed keys, and fields. A malformed known field, a known key without a Feed ID, or another Venue's `venueId` rejects the whole catalog. `categories` is the exception: it only drives Home's chip row, so an entry that is not a string, not a Feed key in `feeds`, or a repeat is dropped and logged (`Logger.log`), as is a `categories` that is not an array. It never rejects the catalog.
-- **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method calls `GET /v1/venues/{venueId}/catalog`; there is no bundled Kalshi catalog in production. The deployment's `actions` are authoritative, including `withdraw`, which the API advertises only while its withdrawals fence serves the route. The exported `KALSHI_STATIC_VENUE_CATALOG` is a test fixture only.
+- **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method calls `GET /v1/venues/{venueId}/catalog`; there is no bundled Kalshi catalog in production. The deployment's `actions` are authoritative, including `withdraw`, which the API advertises only while its withdrawals fence serves the route. `KALSHI_STATIC_VENUE_CATALOG` (`contracts/v1/fixtures/kalshiVenueCatalog.ts`) is a test fixture only.
 - **Failure.** `useVenueCapabilities` re-validates every catalog. A failed refresh keeps the last valid catalog. With no valid catalog, the result is `loading` or `unavailable` and enables no action, Feed, or search; there is no fallback to the bundled catalog or to another Venue. The Order flow refuses to open an action the Venue does not list.
 
 ## Invariants
@@ -779,7 +780,7 @@ The Predict User bought 50 contracts at 0.55 with a 0.78 fee, so the cost basis 
 
 ### Venue catalog
 
-The Kalshi V1 catalog is served by the Predict API (PRED-1403), including the Politics topic Feeds (PRED-1454), and mobile never falls back to bundled config. `actions` describe deployment support: a deployment adds `withdraw` only while its withdrawals fence serves the route. `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
+The Kalshi V1 catalog is served by the Predict API (PRED-1403), including the Politics topic Feeds (PRED-1454), and mobile never falls back to bundled config. `actions` describe deployment support: a deployment adds `withdraw` only while its withdrawals fence serves the route. `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games, and `politics` is the Politics Category's default Feed, which for V1 is Trump. `categories` lists the Categories Home shows, in order.
 
 ```json
 {
@@ -791,10 +792,12 @@ The Kalshi V1 catalog is served by the Predict API (PRED-1403), including the Po
     "nfl-props": "sports-football-nfl-win-totals",
     "college-football-games": "sports-football-ncaa-games",
     "college-football-props": "sports-football-ncaa-win-totals",
+    "politics": "politics-trump",
     "politics-trump": "politics-trump",
     "politics-congress": "politics-congress",
     "politics-iran": "politics-iran"
   },
+  "categories": ["sports", "politics"],
   "searchSupported": true
 }
 ```
