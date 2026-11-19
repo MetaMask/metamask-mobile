@@ -125,7 +125,7 @@ describe('useMoneyToken', () => {
     expect(result.current).toEqual(
       expect.objectContaining({
         address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-        chainId: 'eip155:143',
+        chainId: '0x8f',
         symbol: 'MUSD',
         name: 'MetaMask Money',
         decimals: 6,

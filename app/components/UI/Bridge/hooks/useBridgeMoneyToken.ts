@@ -10,7 +10,7 @@ import { strings } from '../../../../../locales/i18n';
 import { selectBridgeMoneyEnabled } from '../../../../selectors/bridge/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { useSwapsFeatureId } from './useSwapsFeatureId';
-import { FeatureId } from '@metamask/bridge-controller';
+import { FeatureId, formatChainIdToHex } from '@metamask/bridge-controller';
 
 /**
  * Checks if the money account should be visible, and if the swapsMoneyConfig feature flag is enabled.
@@ -47,7 +47,8 @@ export const useMoneyToken = ({ type }: { type: TokenSelectorType }) => {
       symbol: 'MUSD',
       name: strings('money.splash.eyebrow'),
       decimals: 6,
-      chainId,
+      // EVM tokens use hex chainIds for network and quote lookups
+      chainId: formatChainIdToHex(chainId),
       isMoneyToken: true,
       apy: apyPercent,
     };
