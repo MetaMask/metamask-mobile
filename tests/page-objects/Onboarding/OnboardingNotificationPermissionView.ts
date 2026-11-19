@@ -12,13 +12,14 @@ class OnboardingNotificationPermissionView {
   }
 
   async enable(): Promise<void> {
-    await Gestures.waitAndTap(this.enableButton, {
+    const enableButton = await this.enableButton;
+    await Gestures.waitAndTap(enableButton, {
       elemDescription: 'Enable onboarding notifications',
       timeout: 15000,
       checkEnabled: true,
       checkForDisplayed: true,
     });
-    await Assertions.expectElementToNotBeVisible(this.enableButton, {
+    await Assertions.expectElementToNotExist(enableButton, {
       timeout: 15000,
       description: 'Notification setup completes',
     });

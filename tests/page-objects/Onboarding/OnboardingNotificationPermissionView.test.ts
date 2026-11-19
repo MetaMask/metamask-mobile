@@ -13,21 +13,30 @@ jest.mock('../../framework/Assertions', () => ({
   expectElementToNotExist: jest.fn(),
 }));
 
-it('checks removal of the tapped skip element without looking it up after navigation', async () => {
-  const button = { unwrap: jest.fn() };
-  jest
-    .mocked(Matchers.getElementByID)
-    .mockResolvedValueOnce(
-      button as unknown as Awaited<ReturnType<typeof Matchers.getElementByID>>,
-    )
-    .mockRejectedValue(new Error('Route has unmounted'));
+it.each(['skip', 'enable'] as const)(
+  'checks removal of the tapped %s element without looking it up after navigation',
+  async (action) => {
+    jest.clearAllMocks();
+    const button = { unwrap: jest.fn() };
+    jest
+      .mocked(Matchers.getElementByID)
+      .mockResolvedValueOnce(
+        button as unknown as Awaited<
+          ReturnType<typeof Matchers.getElementByID>
+        >,
+      )
+      .mockRejectedValue(new Error('Route has unmounted'));
 
-  await OnboardingNotificationPermissionView.skip();
+    await OnboardingNotificationPermissionView[action]();
 
-  expect(Matchers.getElementByID).toHaveBeenCalledTimes(1);
-  expect(Gestures.waitAndTap).toHaveBeenCalledWith(button, expect.any(Object));
-  expect(Assertions.expectElementToNotExist).toHaveBeenCalledWith(
-    button,
-    expect.any(Object),
-  );
-});
+    expect(Matchers.getElementByID).toHaveBeenCalledTimes(1);
+    expect(Gestures.waitAndTap).toHaveBeenCalledWith(
+      button,
+      expect.any(Object),
+    );
+    expect(Assertions.expectElementToNotExist).toHaveBeenCalledWith(
+      button,
+      expect.any(Object),
+    );
+  },
+);
