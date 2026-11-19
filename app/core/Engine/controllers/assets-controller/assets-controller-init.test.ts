@@ -13,7 +13,6 @@ import {
 } from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { store } from '../../../../store';
-import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { createApiPlatformClient } from '@metamask/core-backend';
 
 jest.mock('@metamask/assets-controller');
@@ -216,7 +215,6 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
-        tempMigrateAssetsInfoMetadataAssets3346: expect.any(Function),
       }),
     );
   });
@@ -395,71 +393,6 @@ describe('assetsControllerInit', () => {
         | undefined;
       expect(isOnboarded).toBeDefined();
       expect(isOnboarded?.()).toBe(false);
-    });
-  });
-
-  describe('tempMigrateAssetsInfoMetadataAssets3346', () => {
-    it('returns the persisted TokensController and AccountsController state', () => {
-      const requestMock = getInitRequestMock();
-      const mockTokensControllerState = {
-        allTokens: {
-          '0x64': {
-            '0x0000000000000000000000000000000000000001': [
-              {
-                address: '0x0000000000000000000000000000000000000002',
-                symbol: 'TST',
-                decimals: 18,
-              },
-            ],
-          },
-        },
-        allIgnoredTokens: {},
-      };
-      const mockAccountsControllerState = {
-        internalAccounts: {
-          accounts: {
-            'account-id-1': createMockInternalAccount(
-              '0x0000000000000000000000000000000000000001',
-              'Account 1',
-            ),
-          },
-          selectedAccount: 'account-id-1',
-        },
-      };
-      requestMock.persistedState = {
-        TokensController: mockTokensControllerState,
-        AccountsController: mockAccountsControllerState,
-      } as typeof requestMock.persistedState;
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const getMigrationState =
-        constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
-
-      expect(getMigrationState).toBeDefined();
-      expect(getMigrationState?.()).toStrictEqual({
-        TokensController: mockTokensControllerState,
-        AccountsController: mockAccountsControllerState,
-      });
-    });
-
-    it('returns undefined slices when no legacy state is persisted', () => {
-      const requestMock = getInitRequestMock();
-      requestMock.persistedState = {};
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const getMigrationState =
-        constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
-
-      expect(getMigrationState?.()).toStrictEqual({
-        TokensController: undefined,
-        AccountsController: undefined,
-      });
     });
   });
 

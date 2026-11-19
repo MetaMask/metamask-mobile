@@ -15,11 +15,6 @@ import {
   NftControllerActions,
   NftControllerEvents,
   NftDetectionController,
-  TokenListService,
-  TokensController,
-  TokensControllerActions,
-  TokensControllerEvents,
-  TokensControllerState,
   AssetsContractController,
   AssetsContractControllerActions,
   DeFiPositionsController,
@@ -679,7 +674,6 @@ export type GlobalActions =
   | CurrencyRateControllerActions
   | MultichainAssetsControllerGetStateAction
   | NftControllerActions
-  | TokensControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
   | ConnectivityControllerActions
@@ -791,7 +785,6 @@ export type GlobalEvents =
   | SamplePetnamesControllerEvents
   | AssetsControllerEvents
   | NftControllerEvents
-  | TokensControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
@@ -946,7 +939,6 @@ export type MessengerClients = {
   NetworkController: NetworkController;
   NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
-  TokensController: TokensController;
   NftDetectionController: NftDetectionController;
   // TODO: Fix permission types
   // TODO: Replace "any" with type
@@ -1075,7 +1067,6 @@ export type EngineState = {
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   GasFeeController: GasFeeState;
-  TokensController: TokensControllerState;
   SubscriptionController: SubscriptionControllerState;
   ShieldController: ShieldControllerState;
   ClaimsController: ClaimsControllerState;
@@ -1188,7 +1179,6 @@ export type MessengerClientsToInitialize =
   | 'DeFiPositionsControllerV2'
   | 'MultichainNetworkController'
   | 'NftController'
-  | 'TokensController'
   | 'NftDetectionController'
   | 'PhishingController'
   | 'SignatureController'
@@ -1278,14 +1268,6 @@ export type MessengerClientInitRequest<
    * The token API service instance.
    */
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
-
-  /**
-   * Shared token list service instance.
-   * Owns a TanStack Query cache (4-hour stale time) so that both
-   * TokenDetectionController and TokensController share the same in-memory
-   * cache without redundant network requests.
-   */
-  tokenListService: TokenListService;
 
   /**
    * Controller messenger for the client.
@@ -1384,7 +1366,6 @@ export interface InitMessengerClientsFunctionRequest {
   getState: () => RootState;
   analyticsId: string;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
-  tokenListService: TokenListService;
   removeAccount: (address: string) => Promise<void>;
   persistedState: MessengerClientPersistedState;
 }
