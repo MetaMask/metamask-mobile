@@ -636,7 +636,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               mounts PredictBuyBottomContent while the keypad is closed; in
               sheet mode the fee summary is always actionable. */}
           <PredictRebateBanner
-            metamaskFeeUsd={metamaskFee}
+            builderFeeUsd={preview?.fees?.totalFee ?? 0}
             notionalUsd={currentValue}
             twClassName="mt-4"
           />

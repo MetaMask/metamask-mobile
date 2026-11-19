@@ -8,8 +8,8 @@ export const PREDICT_REBATE_BANNER_TEST_ID = 'predict-rebate-banner';
 const BPS_PER_UNIT = 10_000;
 
 /**
- * The rebate to show on a Predict buy, as a percent of the MetaMask fee, or
- * null for no banner.
+ * The rebate to show on a Predict buy, as a percent of the order's builder
+ * fee, or null for no banner.
  *
  * Predict cashback is paid on the eligible fee,
  * `min(shareOfBuilderFee x fee, capBps x notional)`, not on the whole fee, so
@@ -18,13 +18,15 @@ const BPS_PER_UNIT = 10_000;
  * banner never shows more than the fill earns.
  *
  * @param quote - The rebate quote, when loaded.
- * @param metamaskFeeUsd - The MetaMask fee on this order, in USD.
+ * @param builderFeeUsd - The builder fee on this order in USD: the effective
+ * `fees.totalFee` (MetaMask plus provider fee). Not `originalFees`, which
+ * ignores a membership waiver, and not the market fee, which Polymarket keeps.
  * @param notionalUsd - The order amount, in USD.
- * @returns The percent of the MetaMask fee paid back, or null.
+ * @returns The percent of the builder fee paid back, or null.
  */
 export function predictRebatePercent(
   quote: RebateQuoteResponse | undefined,
-  metamaskFeeUsd: number,
+  builderFeeUsd: number,
   notionalUsd: number,
 ): number | null {
   const terms = quote?.eligibleFee;
@@ -33,7 +35,7 @@ export function predictRebatePercent(
     quote.reason !== null ||
     quote.rebateBips <= 0 ||
     !terms ||
-    !(metamaskFeeUsd > 0)
+    !(builderFeeUsd > 0)
   ) {
     return null;
   }
@@ -45,7 +47,7 @@ export function predictRebatePercent(
   if (typeof terms.capBps === 'number') {
     feeShare = Math.min(
       share,
-      (terms.capBps * notionalUsd) / (BPS_PER_UNIT * metamaskFeeUsd),
+      (terms.capBps * notionalUsd) / (BPS_PER_UNIT * builderFeeUsd),
     );
   } else if (terms.capBps !== null) {
     return null;
@@ -56,8 +58,8 @@ export function predictRebatePercent(
 }
 
 interface PredictRebateBannerProps {
-  /** The MetaMask fee on this order, in USD. */
-  metamaskFeeUsd: number;
+  /** The order's effective `fees.totalFee` (MetaMask plus provider fee), in USD. */
+  builderFeeUsd: number;
   /** The order amount, in USD. */
   notionalUsd: number;
   twClassName?: string;
@@ -65,15 +67,15 @@ interface PredictRebateBannerProps {
 
 /**
  * Loads the Predict rebate quote and renders the shared banner with the
- * rebate as a share of this order's MetaMask fee.
+ * rebate as a share of this order's builder fee.
  */
 const PredictRebateBanner: React.FC<PredictRebateBannerProps> = ({
-  metamaskFeeUsd,
+  builderFeeUsd,
   notionalUsd,
   twClassName,
 }) => {
   const { data } = usePredictRebateQuote();
-  const rebatePercent = predictRebatePercent(data, metamaskFeeUsd, notionalUsd);
+  const rebatePercent = predictRebatePercent(data, builderFeeUsd, notionalUsd);
 
   if (rebatePercent === null) {
     return null;

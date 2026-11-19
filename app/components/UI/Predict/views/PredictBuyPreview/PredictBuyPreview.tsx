@@ -589,7 +589,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
             stays full-bleed while the rows line up with the action button. */}
         <Box twClassName="px-4">
           <PredictRebateBanner
-            metamaskFeeUsd={metamaskFee}
+            builderFeeUsd={preview?.fees?.totalFee ?? 0}
             notionalUsd={currentValue}
             twClassName="mt-4"
           />

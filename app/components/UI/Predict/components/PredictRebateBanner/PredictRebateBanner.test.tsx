@@ -50,12 +50,32 @@ describe('PredictRebateBanner', () => {
       eligibleFee: { shareOfBuilderFee: '0.75', capBps: 300 },
     });
 
-    render(<PredictRebateBanner metamaskFeeUsd={0.4} notionalUsd={10} />);
+    render(<PredictRebateBanner builderFeeUsd={0.4} notionalUsd={10} />);
 
     expect(screen.getByTestId(PREDICT_REBATE_BANNER_TEST_ID)).toBeOnTheScreen();
     expect(
       screen.getByText('rewards.rebate.banner:{"percent":7.5}'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the banner for a membership order, where only the provider fee is charged', () => {
+    mockQuote(QUOTE);
+
+    render(<PredictRebateBanner builderFeeUsd={0.2} notionalUsd={10} />);
+
+    expect(
+      screen.getByText('rewards.rebate.banner:{"percent":7.5}'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders nothing on a waived market, where every fee is 0', () => {
+    mockQuote(QUOTE);
+
+    render(<PredictRebateBanner builderFeeUsd={0} notionalUsd={10} />);
+
+    expect(
+      screen.queryByTestId(PREDICT_REBATE_BANNER_TEST_ID),
+    ).not.toBeOnTheScreen();
   });
 
   it.each([
@@ -76,7 +96,7 @@ describe('PredictRebateBanner', () => {
   ])('renders nothing for %s', (_name, data) => {
     mockQuote(data);
 
-    render(<PredictRebateBanner metamaskFeeUsd={0.4} notionalUsd={10} />);
+    render(<PredictRebateBanner builderFeeUsd={0.4} notionalUsd={10} />);
 
     expect(
       screen.queryByTestId(PREDICT_REBATE_BANNER_TEST_ID),
@@ -85,6 +105,21 @@ describe('PredictRebateBanner', () => {
 });
 
 describe('predictRebatePercent', () => {
+  it('pays 7.5 % of the $0.40 builder fee on a $10 bet at 2 % + 2 %', () => {
+    const percent = predictRebatePercent(QUOTE, 0.4, 10);
+
+    expect(percent).toBe(7.5);
+    // $0.03, the eligible $0.30 at 1000 bips.
+    expect(((percent ?? 0) / 100) * 0.4).toBeCloseTo(0.03, 10);
+  });
+
+  it('keeps the provider fee as the base when a membership waives the MetaMask fee', () => {
+    const percent = predictRebatePercent(QUOTE, 0.2, 10);
+
+    expect(percent).toBe(7.5);
+    expect(((percent ?? 0) / 100) * 0.2).toBeCloseTo(0.015, 10);
+  });
+
   it('applies the rebate to the eligible share of the fee', () => {
     // A 4 % fee on $1: 75 % of $0.04 and 3 % of $1 are both $0.03.
     expect(predictRebatePercent(QUOTE, 0.04, 1)).toBe(7.5);
