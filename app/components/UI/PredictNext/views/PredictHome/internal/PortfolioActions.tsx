@@ -71,15 +71,21 @@ interface PortfolioActionsProps {
   onPositionsPress: () => void;
   /** Opens the deposit. Absent unless deposits are ready for the Venue. */
   onAddFundsPress?: () => void;
+  /** Omitted when this Venue offers no Withdraw flow, which hides the action
+   * rather than disabling it. */
+  onWithdrawPress?: () => void;
 }
 
 /**
  * Home's portfolio entry points. Only working actions appear: Add funds
- * only when the caller passes it, because deposits are ready.
+ * shows when deposits are ready for the Venue, and Withdraw shows when the
+ * Active Venue's descriptor lists it and this client implements the flow, so
+ * a Venue without one shows nothing extra.
  */
 export const PortfolioActions = ({
   onPositionsPress,
   onAddFundsPress,
+  onWithdrawPress,
 }: PortfolioActionsProps) => (
   <Box twClassName="flex-row gap-3" testID={PredictHomeTestIds.ACTIONS}>
     {onAddFundsPress ? (
@@ -96,5 +102,13 @@ export const PortfolioActions = ({
       onPress={onPositionsPress}
       testID={PredictHomeTestIds.POSITIONS}
     />
+    {onWithdrawPress ? (
+      <PortfolioAction
+        iconName={IconName.Bank}
+        label={strings('predict_next.withdraw.title')}
+        onPress={onWithdrawPress}
+        testID={PredictHomeTestIds.WITHDRAW}
+      />
+    ) : null}
   </Box>
 );

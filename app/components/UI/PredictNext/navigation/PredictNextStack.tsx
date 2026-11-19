@@ -4,6 +4,7 @@ import { PredictDeviceAuthBootstrap } from '../auth/PredictDeviceAuthBootstrap';
 import { KalshiDemoOnboardingGate } from '../onboarding/KalshiDemoOnboardingGate';
 import { PredictHome } from '../views/PredictHome/PredictHome';
 import { PredictOrderFlowProvider } from '../views/PredictOrderFlow';
+import { PredictWithdrawScreen } from '../views/PredictWithdrawFlow';
 import { PredictEventScreen } from '../views/PredictEvent/PredictEventScreen';
 import { PredictFeedScreen } from '../views/PredictFeedScreen/PredictFeedScreen';
 import { PredictPortfolioScreen } from '../views/PredictPortfolio/PredictPortfolioScreen';
@@ -42,6 +43,10 @@ const PredictNextStack = () => (
           <Stack.Screen
             name={PredictNextRoutes.DEPOSIT}
             component={PredictDepositScreen}
+          />
+          <Stack.Screen
+            name={PredictNextRoutes.WITHDRAW}
+            component={PredictWithdrawScreen}
           />
         </Stack.Navigator>
       </PredictOrderFlowProvider>

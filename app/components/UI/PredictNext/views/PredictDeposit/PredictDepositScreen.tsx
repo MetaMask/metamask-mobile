@@ -32,7 +32,10 @@ import type {
   PredictDepositOperation,
   PredictHex,
 } from '../../types';
-import { OrderAmountInput, OrderKeypad } from '../PredictOrderFlow';
+import {
+  PredictAmountDisplay,
+  PredictKeypad,
+} from '../../components/PredictAmountEntry';
 import { DepositInProgressSheet } from './internal/DepositInProgressSheet';
 import { DepositPayWithRow } from './internal/DepositPayWithRow';
 import { DepositProcessing } from './internal/DepositProcessing';
@@ -290,7 +293,7 @@ export const PredictDepositScreen = (): React.JSX.Element => {
       ) : (
         <Box twClassName="flex-1 justify-between">
           <Box twClassName="flex-1 items-center justify-center gap-3.5">
-            <OrderAmountInput
+            <PredictAmountDisplay
               amount={input}
               isActive={isAmountStage}
               isDisabled={flow.isWorking}
@@ -316,7 +319,7 @@ export const PredictDepositScreen = (): React.JSX.Element => {
             {isAmountStage ? (
               <>
                 <Box twClassName="-mx-4">
-                  <OrderKeypad
+                  <PredictKeypad
                     onKeyPress={(key) => editAmount(`${input}${key}`)}
                     onDelete={() => editAmount(input.slice(0, -1))}
                     testID={PredictDepositScreenTestIds.KEYPAD}

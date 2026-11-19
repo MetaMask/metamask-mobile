@@ -29,6 +29,7 @@ import {
   PredictWimbledonTabSchema,
 } from '../schemas';
 import {
+  PredictCryptoPriceFeedFlag,
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
   PredictHiddenMarketsFlag,
@@ -40,6 +41,34 @@ import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
+}
+
+// PolyBolt's format: 1 to 512 printable ASCII characters. It answers a
+// malformed key with auth_invalid, which blocks the whole feed.
+const CHAINLINK_API_KEY_FORMAT = /^[\x20-\x7E]{1,512}$/u;
+
+/**
+ * Reads the Chainlink API key from `predictCryptoPriceFeed`. A missing or
+ * disabled flag, an app below `minimumVersion`, or a key that is empty or not
+ * in PolyBolt's format all give no key, so the feed connects without one.
+ *
+ * @param flag - Raw `predictCryptoPriceFeed` value, direct or wrapped.
+ * @returns The key, or undefined.
+ */
+function resolveChainlinkApiKey(flag: unknown): string | undefined {
+  const cryptoPriceFeed =
+    unwrapRemoteFeatureFlag<PredictCryptoPriceFeedFlag>(flag);
+  if (!validatedVersionGatedFeatureFlag(cryptoPriceFeed)) {
+    return undefined;
+  }
+
+  const key = cryptoPriceFeed?.chainlinkApiKey;
+  if (typeof key !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = key.trim();
+  return CHAINLINK_API_KEY_FORMAT.test(trimmed) ? trimmed : undefined;
 }
 
 function resolveVersionGatedBooleanFlag(
@@ -162,6 +191,7 @@ export function resolvePredictFeatureFlags(
   const disablePolymarketV2Markets = resolveVersionGatedBooleanFlag(
     flags.predictDisablePolymarketV2Markets,
   );
+  const chainlinkApiKey = resolveChainlinkApiKey(flags.predictCryptoPriceFeed);
   const parsedPredictSportsFeed = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
       flags.predictSportsFeed,
@@ -220,5 +250,6 @@ export function resolvePredictFeatureFlags(
     predictSportsFeed,
     predictHomeCategories,
     predictWimbledonTab,
+    ...(chainlinkApiKey && { chainlinkApiKey }),
   };
 }

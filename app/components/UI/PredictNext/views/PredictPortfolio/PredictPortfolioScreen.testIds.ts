@@ -4,6 +4,7 @@ export const PredictPortfolioScreenTestIds = {
   BACK: 'predict-next-portfolio-back',
   SUMMARY_CARD: 'predict-next-portfolio-summary-card',
   ADD_FUNDS: 'predict-next-portfolio-add-funds',
+  WITHDRAW: 'predict-next-portfolio-withdraw',
   SUMMARY_LOADING: 'predict-next-portfolio-summary-loading',
   SUMMARY_ERROR: 'predict-next-portfolio-summary-error',
   SUMMARY_RETRY: 'predict-next-portfolio-summary-retry',

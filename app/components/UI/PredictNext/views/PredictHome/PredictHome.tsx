@@ -44,7 +44,10 @@ import {
   type PredictVenueCapabilities,
 } from '../../capabilities';
 import { useNextVenueId } from '../../implementation';
-import { usePredictNextDepositAvailable } from '../../funding';
+import {
+  usePredictNextDepositAvailable,
+  usePredictWithdrawAvailable,
+} from '../../funding';
 import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
@@ -232,6 +235,11 @@ const PredictHomeView = ({
     () => navigation.navigate(PredictNextRoutes.DEPOSIT, { venueId }),
     [navigation, venueId],
   );
+  const openWithdraw = useCallback(
+    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
+    [navigation, venueId],
+  );
+  const withdrawResolution = usePredictWithdrawAvailable();
   const openSearch = useCallback(
     () =>
       navigation.navigate(PredictNextRoutes.SEARCH, {
@@ -407,6 +415,9 @@ const PredictHomeView = ({
           <PortfolioActions
             onPositionsPress={openPortfolio}
             onAddFundsPress={canDeposit ? openDeposit : undefined}
+            onWithdrawPress={
+              withdrawResolution.status === 'ready' ? openWithdraw : undefined
+            }
           />
           <HomeTrendingSection
             events={liveRows.trending}

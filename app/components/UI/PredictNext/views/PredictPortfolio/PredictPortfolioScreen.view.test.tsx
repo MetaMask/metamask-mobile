@@ -5,6 +5,7 @@ import { AccessibilityInfo } from 'react-native';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import {
+  composePredictNextFundingService,
   composePredictNextOrderService,
   composePredictNextPortfolioTrading,
   configurePredictNextCatalog,
@@ -19,12 +20,14 @@ import {
   makePredictNextTrade,
   messengerCall,
   mockPredictNextMessenger,
+  resetPredictNextCatalog,
   routePredictPortfolioServicesTo,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
+import { PredictWithdrawFlowTestIds } from '../PredictWithdrawFlow/internal/PredictWithdrawFlow.testIds';
 // eslint-disable-next-line import-x/no-namespace -- spy on named `endTrace` export
 import * as Trace from '../../../../../util/trace';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
@@ -97,6 +100,7 @@ describe('PredictPortfolioScreen', () => {
   afterEach(() => {
     activityTransportRestores.splice(0).forEach((restore) => restore());
     jest.restoreAllMocks();
+    resetPredictNextCatalog();
     onlineManager.setOnline(true);
   });
 
@@ -153,6 +157,33 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
+  it('offers Withdraw from the Summary card and opens the screen', async () => {
+    const funding = composePredictNextFundingService();
+    (Engine.context as Record<string, unknown>).PredictFundingService = funding;
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+
+    fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.WITHDRAW));
+
+    expect(
+      await view.findByTestId(PredictWithdrawFlowTestIds.SCREEN),
+    ).toBeOnTheScreen();
+    funding.destroy();
+  });
+
+  it('hides Withdraw when the Venue does not list it', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell'],
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.WITHDRAW),
+    ).not.toBeOnTheScreen();
+  });
+
   it('flags an incomplete Summary instead of hiding or zeroing it', async () => {
     configurePredictNextFeeds({
       summary: makePredictNextSummary({
@@ -194,6 +225,10 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('offers Add funds only when the Kalshi catalog includes deposit, and opens the deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'withdraw'],
+    });
     const off = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
     await off.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
     expect(
@@ -201,10 +236,7 @@ describe('PredictPortfolioScreen', () => {
     ).not.toBeOnTheScreen();
     off.unmount();
 
-    configurePredictNextCatalog({
-      ...KALSHI_STATIC_VENUE_CATALOG,
-      actions: ['buy', 'sell', 'deposit'],
-    });
+    resetPredictNextCatalog();
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
     await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
 

@@ -14,6 +14,7 @@ export const PredictHomeTestIds = {
   ACTIONS: 'predict-next-home-portfolio-actions',
   POSITIONS: 'predict-next-home-positions',
   ADD_FUNDS: 'predict-next-home-add-funds',
+  WITHDRAW: 'predict-next-home-withdraw',
   HOME_TRENDING: 'predict-next-home-trending',
   HOME_TRENDING_HEADER: 'predict-next-home-trending-header',
   HOME_TRENDING_CHEVRON: 'predict-next-home-trending-chevron',

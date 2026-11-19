@@ -5,4 +5,5 @@ export const PredictNextRoutes = {
   PORTFOLIO: 'PredictNextPortfolio',
   SEARCH: 'PredictNextSearch',
   DEPOSIT: 'PredictNextDeposit',
+  WITHDRAW: 'PredictNextWithdraw',
 } as const;

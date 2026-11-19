@@ -25,6 +25,8 @@ export enum PredictErrorCode {
   APP_UPDATE_REQUIRED = 'APP_UPDATE_REQUIRED',
   /** The user has no enabled venue account yet. Onboarding resolves it. */
   VENUE_ACCOUNT_NOT_ENABLED = 'VENUE_ACCOUNT_NOT_ENABLED',
+  /** A withdrawal below the venue's minimum: the amount is fixable. */
+  AMOUNT_BELOW_MINIMUM = 'AMOUNT_BELOW_MINIMUM',
   /** Another deposit waits for its address or its transfer. */
   DEPOSIT_IN_PROGRESS = 'DEPOSIT_IN_PROGRESS',
   /** No deposit with that ID belongs to the Predict User. */
@@ -187,6 +189,11 @@ export const predictErrorRegistry: Record<
   [PredictErrorCode.POSITION_UNAVAILABLE]: {
     category: 'unavailable',
     message: 'Your position is unavailable right now.',
+    recoverable: true,
+  },
+  [PredictErrorCode.AMOUNT_BELOW_MINIMUM]: {
+    category: 'action_failed',
+    message: 'The withdrawal amount is below the venue minimum.',
     recoverable: true,
   },
   [PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED]: {

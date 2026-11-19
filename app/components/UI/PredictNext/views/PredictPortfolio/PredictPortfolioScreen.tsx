@@ -22,7 +22,10 @@ import { useActivity } from '../../hooks/useActivity';
 import { usePortfolioSummary } from '../../hooks/usePortfolioSummary';
 import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
-import { usePredictNextDepositAvailable } from '../../funding';
+import {
+  usePredictNextDepositAvailable,
+  usePredictWithdrawAvailable,
+} from '../../funding';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
@@ -65,6 +68,7 @@ export const PredictPortfolioScreen = () => {
     enabled: activityActive,
   });
   const { openOrderFlow } = usePredictOrderFlow();
+  const withdrawResolution = usePredictWithdrawAvailable();
   const activeListQuery = positionsActive ? positionsQuery : activityQuery;
 
   useEffect(() => {
@@ -103,6 +107,11 @@ export const PredictPortfolioScreen = () => {
         titleSnapshot,
       });
     },
+    [navigation, venueId],
+  );
+
+  const openWithdraw = useCallback(
+    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
     [navigation, venueId],
   );
 
@@ -147,6 +156,9 @@ export const PredictPortfolioScreen = () => {
           isLoading={summaryQuery.isPending}
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => summaryQuery.refetch()}
+          onWithdrawPress={
+            withdrawResolution.status === 'ready' ? openWithdraw : undefined
+          }
         />
         {canDeposit ? (
           <Button

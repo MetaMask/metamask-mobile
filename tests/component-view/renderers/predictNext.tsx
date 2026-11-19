@@ -33,6 +33,7 @@ import { DepositEnvironmentOverride } from '../../../app/components/UI/PredictNe
 import type { PredictDepositEnvironment } from '../../../app/components/UI/PredictNext/config/depositEnvironment';
 import { PredictNextRoutes } from '../../../app/components/UI/PredictNext/navigation/routes';
 import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictOrderFlow';
+import { PredictWithdrawScreen } from '../../../app/components/UI/PredictNext/views/PredictWithdrawFlow';
 import { NextVenueProvider } from '../../../app/components/UI/PredictNext/implementation';
 import type { PredictVenueId } from '../../../app/components/UI/PredictNext/types';
 import type {
@@ -44,12 +45,22 @@ import type {
   PredictNextSearchParams,
 } from '../../../app/components/UI/PredictNext/navigation/types';
 
-/** Mirrors production wiring: the Order Flow provider wraps the stack. */
+/** The Venue a Kalshi-only rollout resolves, which the fixtures describe. */
+const DEFAULT_VENUE_ID = 'kalshi' as PredictVenueId;
+
+/** Mirrors production wiring: `PredictImplementationSwitch` provides the
+ * Active Venue above the stack, and the Order flow provider wraps it. The
+ * Withdraw flow is a stack screen, not a provider. */
 const withOrderFlow =
-  (Component: React.ComponentType): React.ComponentType =>
+  (
+    Component: React.ComponentType,
+    venueId: PredictVenueId = DEFAULT_VENUE_ID,
+  ): React.ComponentType =>
   (props) => (
     <PredictOrderFlowProvider>
-      <Component {...props} />
+      <NextVenueProvider venueId={venueId}>
+        <Component {...props} />
+      </NextVenueProvider>
     </PredictOrderFlowProvider>
   );
 
@@ -59,17 +70,10 @@ const EventScreen = withOrderFlow(
 const FeedScreen = withOrderFlow(
   PredictFeedScreen as unknown as React.ComponentType<object>,
 );
-/** The Venue a Kalshi-only rollout resolves, which the fixtures describe. */
-const DEFAULT_VENUE_ID = 'kalshi' as PredictVenueId;
-
-/** Mirrors production wiring: the implementation switch provides the
- * resolved Active Venue to the stack's entry screen. */
+/** The implementation switch provides the resolved Active Venue to the
+ * stack's entry screen. */
 const homeScreenFor = (venueId: PredictVenueId) =>
-  withOrderFlow(() => (
-    <NextVenueProvider venueId={venueId}>
-      <PredictHome />
-    </NextVenueProvider>
-  ));
+  withOrderFlow(() => <PredictHome />, venueId);
 
 const HomeScreen = homeScreenFor(DEFAULT_VENUE_ID);
 const PortfolioScreen = withOrderFlow(
@@ -77,6 +81,9 @@ const PortfolioScreen = withOrderFlow(
 );
 const SearchScreen = withOrderFlow(
   PredictSearchScreen as unknown as React.ComponentType<object>,
+);
+const WithdrawScreen = withOrderFlow(
+  PredictWithdrawScreen as unknown as React.ComponentType<object>,
 );
 
 /** Shows the params the Predict root route was opened with. */
@@ -128,6 +135,7 @@ export const renderPredictNext = (
       { name: PredictNextRoutes.PORTFOLIO, Component: PortfolioScreen },
       { name: PredictNextRoutes.SEARCH, Component: SearchScreen },
       { name: PredictNextRoutes.DEPOSIT },
+      { name: PredictNextRoutes.WITHDRAW, Component: WithdrawScreen },
       // A probe: Home never leaves Predict for the app's Explore tab.
       { name: Routes.TRENDING_VIEW },
     ],
@@ -210,6 +218,7 @@ export const renderPredictPortfolioScreen = (
       { name: PredictNextRoutes.HOME, Component: HomeScreen },
       { name: PredictNextRoutes.EVENT, Component: EventScreen },
       { name: PredictNextRoutes.DEPOSIT },
+      { name: PredictNextRoutes.WITHDRAW, Component: WithdrawScreen },
     ],
     {
       state: initialStatePredictNext(privacyMode)

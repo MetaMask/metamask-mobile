@@ -15,7 +15,26 @@ export interface PredictFundingInput {
   activeVenue: ActiveVenueResolution;
   /** The Venue's resolved capabilities: A3's descriptor. */
   getCapabilities: (venue: PredictConfiguredVenue) => PredictVenueCapabilities;
+  /** `predictConfig.kalshiWithdrawalsEnabled`: the Kalshi withdrawal rollout. */
+  kalshiWithdrawalsEnabled?: boolean;
 }
+
+/** Whether a client flow listed in the implementations table is switched on
+ * for the Venue. Kalshi withdrawal has a rollout flag; every other flow is
+ * enabled whenever its implementation and Venue descriptor support it. */
+const isClientFlowEnabled = (
+  action: PredictFundingAction,
+  venue: PredictConfiguredVenue,
+  kalshiWithdrawalsEnabled?: boolean,
+): boolean => {
+  if (venue !== 'kalshi') {
+    return true;
+  }
+  if (action === 'withdraw') {
+    return kalshiWithdrawalsEnabled === true;
+  }
+  return true;
+};
 
 /**
  * Resolves which implementation runs a funding action for the Active Venue.
@@ -25,7 +44,12 @@ export interface PredictFundingInput {
  */
 export const resolvePredictFunding = (
   action: PredictFundingAction,
-  { available, activeVenue, getCapabilities }: PredictFundingInput,
+  {
+    available,
+    activeVenue,
+    getCapabilities,
+    kalshiWithdrawalsEnabled,
+  }: PredictFundingInput,
   implementations: Readonly<
     Record<PredictImplementation, readonly PredictFundingAction[]>
   > = PREDICT_FUNDING_IMPLEMENTATIONS,
@@ -37,7 +61,10 @@ export const resolvePredictFunding = (
     return { status: 'unavailable', reason: 'unavailable' };
   }
   const implementation = getVenueImplementation(activeVenue.venue);
-  if (!implementations[implementation].includes(action)) {
+  if (
+    !implementations[implementation].includes(action) ||
+    !isClientFlowEnabled(action, activeVenue.venue, kalshiWithdrawalsEnabled)
+  ) {
     return { status: 'unavailable', reason: 'notImplemented' };
   }
   if (!canPerformVenueAction(getCapabilities(activeVenue.venue), action)) {
