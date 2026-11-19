@@ -3,9 +3,9 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { mapPerpsTransaction } from '#app/util/activity-adapters';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
-import { usePerpsActivityQuery } from '../../hooks/usePerpsActivityQuery';
+import { usePerpsActivityQuery } from './usePerpsActivityQuery';
 import { usePerpsDetailsItem } from './usePerpsDetailsItem';
-import type { PerpsTransaction } from '../../components/ActivityDetailsPerps.utils';
+import type { PerpsTransaction } from './ActivityDetailsPerps.utils';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -23,13 +23,13 @@ jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
   USDC_ARBITRUM_TESTNET_ADDRESS: '0xUSDCT',
 }));
 
-jest.mock('../../hooks/usePerpsActivityQuery', () => ({
+jest.mock('./usePerpsActivityQuery', () => ({
   usePerpsActivityQuery: jest.fn(),
 }));
 
 jest.mock('#app/util/activity-adapters', () => ({
   getPerpsActivityMappingIds: jest.requireActual(
-    '#app/util/activity-adapters/adapters/perps-transaction',
+    '#app/util/activity-adapters/adapters/perps/perps-transaction',
   ).getPerpsActivityMappingIds,
   mapPerpsTransaction: jest.fn(),
 }));

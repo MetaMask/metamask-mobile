@@ -286,3 +286,61 @@ describe('QuickBuyAmountSection open-keypad symbol', () => {
     ).toHaveTextContent('0');
   });
 });
+
+describe('QuickBuyAmountSection post trade share hint', () => {
+  const baseProps = {
+    amountDisplayMode: 'fiat' as const,
+    fiatAmountLabel: '$9',
+    destSymbol: 'ETH',
+    estimatedReceiveAmount: '2',
+    isQuoteLoading: false,
+  };
+
+  it('shows the buy hint below the receive amount', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        tradeMode="buy"
+        showPostTradeShareHint
+      />,
+    );
+
+    expect(screen.getByText('≈ 2 ETH')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).toHaveTextContent('social_leaderboard.quick_buy.min_post_buy');
+  });
+
+  it('shows the sell hint below the available balance', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        tradeMode="sell"
+        showPostTradeShareHint
+        sourceBalanceDisplay="$18.46"
+      />,
+    );
+
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.available_balance'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).toHaveTextContent('social_leaderboard.quick_buy.min_post_sell');
+  });
+
+  it('hides the hint when the balance is insufficient', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        tradeMode="buy"
+        showPostTradeShareHint
+        hasInsufficientBalance
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
+  });
+});

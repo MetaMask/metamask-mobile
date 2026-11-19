@@ -212,6 +212,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   pendingPostsSurface,
   comparePosts,
   inlineRows = NO_INLINE_ROWS,
+  prepareRefresh,
   onRefresh,
   onListStateChange,
   performance,
@@ -394,18 +395,26 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [],
   );
 
+  // Notify the host after the pages settle so it can leave a held empty
+  // state once the refreshed feed is the one on screen.
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    // The minimum overlaps the cache drop and the one reload. Starting it
+    // after prepareRefresh would hold the spinner for a second past that reload.
+    const minimumRefresh = waitForMinimumRefresh();
     try {
-      onRefresh?.();
+      if (prepareRefresh) {
+        await prepareRefresh();
+      }
       await Promise.all([
         enabled ? refreshWithPendingPosts() : undefined,
-        waitForMinimumRefresh(),
+        minimumRefresh,
       ]);
+      onRefresh?.();
     } finally {
       setRefreshing(false);
     }
-  }, [enabled, onRefresh, refreshWithPendingPosts]);
+  }, [enabled, onRefresh, prepareRefresh, refreshWithPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {

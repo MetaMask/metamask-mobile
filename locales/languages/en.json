@@ -1140,6 +1140,7 @@
       "feature_arrives_title": "Arrives in {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Arrives in a few business days",
       "feature_arrives_title_pix": "Arrives in seconds",
+      "feature_arrives_title_eur": "Arrives in seconds to 1 business day",
       "feature_arrives_description": "Funds arrive as soon as your transfer clears.",
       "feature_set_up_title": "Set up once, use anytime",
       "feature_set_up_description": "Save these details as a payee in your banking app.",
@@ -1192,7 +1193,8 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brazilian real",
-        "usd": "US dollar"
+        "usd": "US dollar",
+        "eur": "Euro"
       }
     },
     "vba_details": {
@@ -1209,6 +1211,9 @@
       "routing_number_label": "Routing number",
       "account_number_label": "Account number",
       "bank_name_label": "Bank name",
+      "iban_label": "IBAN",
+      "bic_label": "BIC",
+      "payment_reference_label": "Payment reference",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "copy_all_button": "Copy all details",
@@ -1230,24 +1235,24 @@
       "step_take_selfie": "Take a selfie",
       "step_confirm_details": "Confirm your details",
       "step_answer_questions": "Answer a few questions",
-      "partner_title": "We partner with idOS to verify your identity.",
-      "benefit_reuse_title": "Verify once, reuse later.",
-      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
-      "benefit_control_title": "You control your data.",
-      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
-      "benefit_delete_title": "Delete anytime.",
-      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "partner_title": "We partner with idOS to verify your identity",
+      "benefit_reuse_title": "Verify once, reuse later",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verification, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data",
+      "benefit_control_description": "We only share your verification with a partner when you agree.",
+      "benefit_delete_title": "Delete anytime",
+      "benefit_delete_description": "Delete your verification anytime in Settings.",
       "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
       "agreement_terms_of_use": "Terms of Use",
       "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "agree_and_continue_button": "Agree and Continue",
+      "agree_and_continue_button": "Agree and continue",
       "learn_more": "Learn more"
     },
     "partner_terms": {
       "title": "Our verification partners",
-      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "description": "idOS verifies your identity and works with Sumsub to complete it.",
       "section_title": "Terms and privacy",
       "idos_group_title": "idOS",
       "sumsub_group_title": "Sumsub",
@@ -1256,7 +1261,7 @@
       "sumsub_notice": "Sumsub Notice of Personal Data Processing",
       "sumsub_privacy_notice": "Privacy Notice",
       "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
-      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in the {{privacyNotice}}.",
       "biometric_consent_privacy_notice": "idOS Privacy Notice",
       "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
       "agreement_terms": "idOS Terms and Conditions",
@@ -1890,6 +1895,7 @@
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Select an account",
+      "linked_account": "Linked account",
       "link_account_change_footnote": "You can change your linked account every 30 days.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
@@ -2064,7 +2070,9 @@
       "select_quote_title": "Select quote",
       "rate": "Rate",
       "get_new_quote": "Get new quote",
-      "available_balance": "{{amount}} Available",
+      "available_balance": "{{amount}} available",
+      "min_post_buy": "Buy ${{amount}} to post",
+      "min_post_sell": "Sell ${{amount}} to post",
       "toggle_amount_display": "Switch between token and dollar amount",
       "receive": "Receive",
       "max": "Max",
@@ -4059,6 +4067,9 @@
       "pnl_with_percent": "{{amount}} ({{percent}})",
       "settlements_complete_from": "Settlements are complete from {{date}}. Earlier ones may be missing."
     },
+    "amount_entry": {
+      "delete": "Delete"
+    },
     "order_preview": {
       "amount": "USD amount",
       "contracts": "Contract count",
@@ -4097,7 +4108,6 @@
       "submitting": "Submitting your order…",
       "done": "Done",
       "close": "Close",
-      "delete": "Delete",
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
@@ -4141,6 +4151,83 @@
     "order_notification": {
       "not_placed_title": "Order not placed",
       "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
+    },
+    "withdraw": {
+      "title": "Withdraw",
+      "amount_label": "Amount",
+      "available_balance": "Available balance: {{amount}}",
+      "balance_loading": "Checking your available balance...",
+      "balance_unavailable": "We couldn't load your available balance.",
+      "below_minimum": "The minimum withdrawal is {{amount}}.",
+      "over_balance": "Enter an amount within your available balance.",
+      "offline": "You're offline. Reconnect to withdraw.",
+      "receive_row": "Receive",
+      "receive_sandbox_wallet": "Sandbox wallet",
+      "continue": "Continue",
+      "confirm": "Confirm",
+      "back": "Back",
+      "submitting": "Submitting your withdrawal…",
+      "outcome_unknown": "We couldn't confirm this withdrawal. Check its status to recover the same withdrawal, not start another.",
+      "retry": "Check withdrawal",
+      "amount_row": "Amount",
+      "network_row": "Network",
+      "destination_row": "To",
+      "copy_destination": "Copy destination address",
+      "fee_row": "Fee",
+      "no_fee": "No fee",
+      "expires_at": "Quote expires at {{time}}",
+      "phase": {
+        "input": "Enter an amount",
+        "confirm": "Review withdrawal",
+        "status": "Withdrawal status"
+      },
+      "full_balance": "Full available balance",
+      "sandbox_notice": {
+        "title": "Sandbox wallet",
+        "body": "This pays the sandbox wallet registered when you set up your demo account. It can't be changed here."
+      },
+      "status": {
+        "processing": {
+          "title": "Withdrawal processing",
+          "body": "This can take a few minutes. You can close this and check your balance later."
+        },
+        "settled": {
+          "title": "Withdrawal sent",
+          "body": "The venue transferred the funds. Your destination wallet may take a few minutes to show them."
+        },
+        "sweep_remainder": "Any amount above the per-withdrawal limit stays in your balance.",
+        "stalled": "We can't get the latest status right now. Check again.",
+        "manual_review": {
+          "title": "Withdrawal under review",
+          "body": "This withdrawal needs a manual review. Check your balance later, and contact support if it doesn't arrive."
+        },
+        "failed": {
+          "title": "Withdrawal failed",
+          "body": "The withdrawal couldn't be completed. Funds may have left your balance. Check your balance and destination wallet before trying again."
+        },
+        "returned": {
+          "title": "Withdrawal returned",
+          "body": "The funds came back to your balance."
+        },
+        "check_balance": "Check balance",
+        "done": "Done"
+      },
+      "rejection": {
+        "insufficient_balance": "Not enough balance",
+        "insufficient_balance_body": "Your balance changed before this was placed. Nothing left your account.",
+        "amount_below_minimum": "Amount too small",
+        "amount_below_minimum_body": "The venue requires at least $1.00. Nothing left your account.",
+        "step_up_verification_required": "Verification required",
+        "step_up_verification_required_body": "This withdrawal needs extra verification, which isn't available in the app yet. Nothing left your account.",
+        "venue_rejected": "Withdrawal not accepted",
+        "venue_rejected_body": "The venue refused this withdrawal. Nothing left your account."
+      },
+      "error": {
+        "preview_expired": "This quote expired. Start the withdrawal again.",
+        "venue_account_not_enabled": "Finish setting up Kalshi before withdrawing.",
+        "venue_unavailable": "The venue is unavailable right now. Try again in a moment.",
+        "generic": "Something went wrong. Try again."
+      }
     }
   },
   "predict": {
@@ -9019,6 +9106,7 @@
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
       "verifying": "Verifying code",
+      "paste": "Paste",
       "get_new_code": "Get new code",
       "get_new_code_in": "Get new code in {{seconds}}s"
     },
@@ -9845,6 +9933,7 @@
       "get_started": {
         "title": "Convert to digital dollars",
         "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "description_with_currency": "Send {{currency}} from your bank and get mUSD in your Money account. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
@@ -11013,7 +11102,16 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} orders",
-      "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
+      "spend_summary": {
+        "swapping": "Swapping",
+        "for": "for",
+        "every": "every",
+        "repeats": "Repeats"
+      },
+      "repeat_summary": {
+        "one": "once",
+        "other": "{{count}} times"
+      },
       "percent_filled": "{{percent}}% filled",
       "completed": "Completed",
       "cancelled": "Cancelled",
@@ -11733,7 +11831,7 @@
     "card_onboarding": {
       "title": "Spend anywhere",
       "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
-      "apply_now_button": "Get card",
+      "apply_now_button": "Get Card",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
@@ -12918,6 +13016,7 @@
       "entered": "Entered",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
+      "create_username": "Create a username",
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",
       "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
@@ -13094,6 +13193,8 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
+      "stats_pnl_gap_amount": "+{{pnlGap}}",
+      "stats_pnl_gap_to_prize_suffix": "to win {{place}} place",
       "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
@@ -13735,6 +13836,7 @@
       "load_error": "Couldn't load your allowances.",
       "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
       "unavailable": "Member pricing isn't available right now.",
+      "paused": "Member pricing is paused while your membership is deactivated.",
       "retry": "Try again"
     },
     "physical_card": {
@@ -13768,6 +13870,9 @@
         "title": "Your membership is cancelled",
         "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
         "action": "Renew membership"
+      },
+      "pending_cancel": {
+        "description": "Resume before {{date}} to keep 7% APY, 3% mUSD back, and more."
       }
     },
     "earned": {
@@ -13791,10 +13896,13 @@
       "paying_with": "Paying with",
       "money_account": "Money account",
       "renews_on": "Renews on",
+      "ends_on": "Ends on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
       "manage": "Manage plan",
       "invoices": "Invoices",
+      "invoices_in_progress": "Opening invoices",
+      "invoices_failed": "We couldn't open your invoices. Try again.",
       "contact_support": "Contact support",
       "cancel_membership": "Cancel membership",
       "cancel_not_allowed": "Cancellation isn't available right now.",
@@ -13815,7 +13923,13 @@
       "keep_membership": "Keep Orange",
       "cancel": "Cancel membership",
       "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
-      "cancellation_failed": "We couldn't cancel your membership. Please try again."
+      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
+      "post_cancel_sheet": {
+        "title": "Your membership is canceled",
+        "period_end_description": "Renew before {{date}} to continue receiving {{apy}} APY, {{rate}} mUSD back, and more.",
+        "immediate_description": "Your membership has ended, so you no longer have {{apy}} APY, {{rate}} mUSD back, or other membership benefits.",
+        "got_it": "Got it"
+      }
     }
   },
   "pro_subscription": {
@@ -13825,6 +13939,8 @@
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Upgrade",
     "join_error": "We couldn't start your Orange membership. Try again.",
+    "join_error_geo_blocked": "MetaMask Orange isn't available in your location, so we couldn't start your membership.",
+    "join_error_feature_disabled": "MetaMask Orange isn't available right now, so we couldn't start your membership.",
     "join_orange": "Join Orange",
     "start_free_trial": "Start free trial",
     "free_trial_description": "No commitment, cancel anytime",

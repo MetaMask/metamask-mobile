@@ -54,6 +54,11 @@ interface SocialPostComposerTradeParams {
   preview: SocialPostComposerPreview;
   /** Surface that started the trade. Omitted when it is unknown. */
   analyticsSource?: SocialEventSource;
+  spotComposerEntry?: Extract<
+    SocialComposerEntry,
+    'post_trade_spot' | 'post_trade_swap'
+  >;
+  shareId?: string;
   position?: never;
   entryPoint?: never;
   openFeedAfterPost?: never;
@@ -67,6 +72,8 @@ interface SocialPostComposerBlankParams {
     'social_feed' | 'my_profile' | 'token_details'
   >;
   analyticsSource?: SocialEventSource;
+  spotComposerEntry?: never;
+  shareId?: never;
   tradeInFlight?: never;
   preview?: never;
   position?: never;
@@ -83,6 +90,8 @@ interface SocialPostComposerPositionParams {
    * viewer's Posts tab. Used by the Perps share screen.
    */
   openFeedAfterPost?: boolean;
+  spotComposerEntry?: never;
+  shareId?: never;
   tradeInFlight?: never;
   preview?: never;
   composerEntry?: never;

@@ -51,6 +51,10 @@ export const MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY =
 export const MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY =
   'moneyMovementNeobankUsd' as const;
 
+/** LaunchDarkly key: `money-movement-neobank-eur`. */
+export const MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY =
+  'moneyMovementNeobankEur' as const;
+
 interface MoneyMovementNeobankFlag extends VersionGatedFeatureFlag {
   chooseCurrency?: unknown;
   regionOverride?: unknown;
@@ -228,6 +232,10 @@ export const selectNeobankMarkets = createSelector(
       readNeobankMarket(
         remoteFeatureFlags?.[MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY],
         'USD',
+      ),
+      readNeobankMarket(
+        remoteFeatureFlags?.[MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY],
+        'EUR',
       ),
     ].filter((market): market is VbaMarket => market !== undefined),
 );

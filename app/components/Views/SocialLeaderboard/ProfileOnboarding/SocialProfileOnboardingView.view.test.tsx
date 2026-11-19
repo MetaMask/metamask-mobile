@@ -81,6 +81,78 @@ const letsGoDisabled = (): boolean =>
   screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON).props
     .accessibilityState?.disabled === true;
 
+const continueDisabled = (): boolean =>
+  screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON).props
+    .accessibilityState?.disabled === true;
+
+const leaveProfileMembership = (store: {
+  dispatch: (action: ReturnType<typeof updateBgState>) => void;
+}) => {
+  engineWithState.state = {
+    ...Engine.state,
+    KeyringController: {
+      isUnlocked: true,
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [],
+          metadata: { id: 'outside-profile', name: '' },
+        },
+      ],
+    },
+  };
+  store.dispatch(updateBgState({ key: 'KeyringController' }));
+};
+
+const dropDefaultOnboardingAccount = (store: {
+  getState: () => {
+    engine: {
+      backgroundState: {
+        AccountTreeController: {
+          accountTree: {
+            wallets: Record<string, { groups: Record<string, unknown> }>;
+          };
+        };
+      };
+    };
+  };
+  dispatch: (action: ReturnType<typeof updateBgState>) => void;
+}) => {
+  const backgroundState = store.getState().engine.backgroundState;
+  const controller = backgroundState.AccountTreeController;
+  const walletId = 'entropy:wallet1';
+  const wallet = controller.accountTree.wallets[walletId];
+  const groups = { ...wallet.groups };
+  delete groups[`${walletId}/0`];
+  engineWithState.state = {
+    ...backgroundState,
+    AccountTreeController: {
+      ...controller,
+      accountTree: {
+        ...controller.accountTree,
+        wallets: {
+          ...controller.accountTree.wallets,
+          [walletId]: { ...wallet, groups },
+        },
+      },
+    },
+  } as unknown as typeof Engine.state;
+  store.dispatch(updateBgState({ key: 'AccountTreeController' }));
+};
+
+const openAccountStep = async () => {
+  fireEvent.press(
+    screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+    ),
+  );
+  await continueFromUsername();
+  fireEvent.press(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+  );
+  expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+};
+
 const leaveReadyStep = async () => {
   await waitFor(() => {
     expect(letsGoDisabled()).toBe(false);
@@ -1525,11 +1597,15 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     fireEvent.changeText(usernameInput, 'hello_');
-    expect(
-      await screen.findByText(
-        'This handle is unavailable. Choose another one.',
-      ),
-    ).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText('This handle is unavailable. Choose another one.'),
+        ).toBeOnTheScreen();
+      },
+      // Username availability is debounced 400ms before the taken result renders.
+      { timeout: 3000 },
+    );
 
     fireEvent.changeText(usernameInput, 'h');
     expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
@@ -1546,11 +1622,15 @@ describe('SocialProfileOnboardingView', () => {
     expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
 
     fireEvent.changeText(usernameInput, 'hello_');
-    expect(
-      await screen.findByText(
-        'This handle is unavailable. Choose another one.',
-      ),
-    ).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText('This handle is unavailable. Choose another one.'),
+        ).toBeOnTheScreen();
+      },
+      // Username availability is debounced 400ms before the taken result renders.
+      { timeout: 3000 },
+    );
     expect(
       screen.queryByText('Use at least 3 characters.'),
     ).not.toBeOnTheScreen();
@@ -2117,6 +2197,7 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(screen.getByText('Linked account')).toBeOnTheScreen();
     expect(
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE,
@@ -2151,6 +2232,163 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        linked_addresses: [`eip155:1:${SECOND_ONBOARDING_EVM_ACCOUNT.address}`],
+      }),
+    );
+  });
+
+  it('disables continue when the linked account leaves the profile', async () => {
+    const { store } = await renderOnboarding();
+    await openAccountStep();
+
+    await act(async () => {
+      leaveProfileMembership(store);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Account 1')).not.toBeOnTheScreen();
+    });
+    expect(continueDisabled()).toBe(true);
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).not.toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not create a profile when the linked account leaves the profile before the id resolves', async () => {
+    let releaseSession: (session: typeof SIGNED_IN_SESSION) => void = () =>
+      undefined;
+    let holdSession = false;
+    jest
+      .mocked(Engine.context.AuthenticationController.getSessionProfile)
+      .mockImplementation(() => {
+        if (!holdSession) {
+          return Promise.resolve(SIGNED_IN_SESSION);
+        }
+        return new Promise((resolve) => {
+          releaseSession = resolve;
+        });
+      });
+    const { store } = await renderOnboarding();
+    await openAccountStep();
+    holdSession = true;
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      leaveProfileMembership(store);
+    });
+    await act(async () => {
+      releaseSession(SIGNED_IN_SESSION);
+    });
+
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+    expect(letsGoDisabled()).toBe(true);
+  });
+
+  it('does not create a profile when the linked account leaves the profile during the existing-profile lookup', async () => {
+    signOut();
+    let releaseLookup: (profile: Profile) => void = () => undefined;
+    const { store } = await renderOnboarding();
+    await openAccountStep();
+    signIn();
+    jest
+      .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            releaseLookup = resolve;
+          }),
+      );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      leaveProfileMembership(store);
+    });
+    await act(async () => {
+      releaseLookup(NO_PROFILE);
+    });
+
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+    expect(letsGoDisabled()).toBe(true);
+  });
+
+  it('creates the account chosen after the in-flight account leaves the profile', async () => {
+    let releaseSession: () => void = () => undefined;
+    let holdSession = false;
+    let sessionHeld = false;
+    jest
+      .mocked(Engine.context.AuthenticationController.getSessionProfile)
+      .mockImplementation(() => {
+        if (!holdSession || sessionHeld) {
+          return Promise.resolve(SIGNED_IN_SESSION);
+        }
+        sessionHeld = true;
+        return new Promise((resolve) => {
+          releaseSession = () => resolve(SIGNED_IN_SESSION);
+        });
+      });
+    const { store } = await renderOnboarding([{ name: Routes.HOME_TABS }], {
+      includeSecondEvmAccount: true,
+    });
+    await openAccountStep();
+    holdSession = true;
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      dropDefaultOnboardingAccount(store);
+    });
+    pressBack();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR),
+    );
+    fireEvent.press(
+      await screen.findByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-${SECOND_ONBOARDING_EVM_ACCOUNT.id}`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      releaseSession();
+    });
+
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.createProfile,
+      ).toHaveBeenCalledTimes(1);
+    });
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({
         linked_addresses: [`eip155:1:${SECOND_ONBOARDING_EVM_ACCOUNT.address}`],
