@@ -301,4 +301,42 @@ describe('OnboardingNotificationPermission', () => {
     expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
     expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
   });
+
+  it('keeps the label in a native wrapper throughout the loading transition', async () => {
+    let resolvePermission!: (granted: boolean) => void;
+    mockRequestPushPermission.mockReturnValueOnce(
+      new Promise<boolean>((resolve) => {
+        resolvePermission = resolve;
+      }),
+    );
+    const { findByTestId, getByText } = render(
+      <OnboardingNotificationPermission />,
+    );
+    const enable = await findByTestId(
+      OnboardingNotificationPermissionTestIds.ENABLE_BUTTON,
+    );
+    const nativeLabelWrapper = () => {
+      let parent = getByText(enable.props.accessibilityLabel).parent;
+      while (parent && parent.type !== 'View') {
+        parent = parent.parent;
+      }
+      return parent;
+    };
+    const wrapper = nativeLabelWrapper();
+    expect(wrapper?.props.collapsable).toBe(false);
+
+    fireEvent.press(enable);
+
+    await waitFor(() =>
+      expect(enable.props.accessibilityState.busy).toBe(true),
+    );
+    expect(nativeLabelWrapper()).toBe(wrapper);
+    expect(wrapper?.props.collapsable).toBe(false);
+
+    await act(async () => resolvePermission(false));
+
+    expect(nativeLabelWrapper()).toBe(wrapper);
+    expect(wrapper?.props.collapsable).toBe(false);
+    expect(enable.props.accessibilityState.busy).toBeUndefined();
+  });
 });

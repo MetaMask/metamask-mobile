@@ -16,7 +16,8 @@ import {
 
 // Requested built-app regression: CV cannot validate native module linkage and
 // the complete SRP import transition. CV covers consent/state behavior. The smoke
-// driver grants/accepts permission by default; actual OS denial is manual QA.
+// driver accepts iOS alerts; Android's runtime prompt is answered explicitly.
+// Actual OS denial is covered by CV and manual QA.
 appiumTest.describe(
   SmokeWalletPlatform('Onboarding notification permission'),
   () => {
@@ -42,7 +43,9 @@ appiumTest.describe(
               optInToMarketing: false,
               stopAtNotificationPermission: true,
             });
-            await OnboardingNotificationPermissionView.enable();
+            await OnboardingNotificationPermissionView.enable({
+              expectNativePrompt: true,
+            });
             await dismissOnboardingInterestQuestionnaire();
             await waitForWalletHomePlaywright();
           },

@@ -428,6 +428,8 @@ const OnboardingNotificationPermission = (): React.ReactElement => {
         primaryButtonProps={{
           children: strings('notifications.push_onboarding.onboarding.enable'),
           size: ButtonSize.Lg,
+          // Keep the label's native parent stable when loading changes its opacity.
+          contentWrapperProps: { collapsable: false },
           isLoading: isSubmitting,
           isDisabled: !isReady || isSubmitting,
           onPress: handleEnableNotifications,
