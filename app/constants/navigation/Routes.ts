@@ -496,7 +496,6 @@ const Routes = {
     ROOT: 'Collectibles',
     HOME: 'CollectiblesHome',
     PACK: 'CollectiblesPack',
-    BUY_SHEET: 'CollectiblesBuySheet',
   },
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',

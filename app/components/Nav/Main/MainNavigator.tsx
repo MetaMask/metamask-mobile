@@ -194,7 +194,6 @@ import {
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
 import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
 import { CollectiblesScreenStack } from '../../UI/Collectibles/routes';
-import { CollectiblesBuySheet } from '../../UI/Collectibles/views/CollectiblesBuySheet';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -1490,18 +1489,11 @@ const MainNavigator = () => {
         </>
       )}
       {isCollectiblesEnabled && (
-        <>
-          <NativeStack.Screen
-            name={Routes.COLLECTIBLES.ROOT}
-            component={CollectiblesScreenStack}
-            options={slideFromRightNativeOptions}
-          />
-          <NativeStack.Screen
-            name={Routes.COLLECTIBLES.BUY_SHEET}
-            component={CollectiblesBuySheet}
-            options={transparentModalStackOptions}
-          />
-        </>
+        <NativeStack.Screen
+          name={Routes.COLLECTIBLES.ROOT}
+          component={CollectiblesScreenStack}
+          options={slideFromRightNativeOptions}
+        />
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <NativeStack.Screen
