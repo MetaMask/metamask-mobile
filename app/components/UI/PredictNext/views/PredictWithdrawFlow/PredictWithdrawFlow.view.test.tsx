@@ -584,7 +584,10 @@ describe('PredictWithdrawFlow', () => {
           : { body: previewOf({ previewId: FRESH_PREVIEW_ID }) },
       commit: () =>
         commitCount++ === 0
-          ? { status: 410, body: { code: 'preview_expired' } }
+          ? {
+              status: 410,
+              body: { code: 'preview_expired', outcome: 'not_placed' },
+            }
           : {
               status: 201,
               body: receiptOf({

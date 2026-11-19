@@ -1300,6 +1300,7 @@ describe('PredictOrderFlow', () => {
         body: {
           code: 'preview_expired',
           message: 'Order Preview has expired; request a fresh quote.',
+          outcome: 'not_placed',
         },
       }),
     });
