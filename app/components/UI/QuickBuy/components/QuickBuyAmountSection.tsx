@@ -304,7 +304,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="mt-3 px-2 py-1 rounded-lg border border-muted"
+            twClassName="mt-4 px-2 py-1 rounded-lg border border-muted"
             testID={QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT}
           >
             <Icon
