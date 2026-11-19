@@ -350,7 +350,7 @@ generateIosBinary() {
 		# archive can be signed with the development certificate and profile
 		# instead of the distribution identity hardcoded in the Xcode project.
 		local -a archiveOverrides=()
-		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ]; then
+		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ] && [ "$DEFER_NATIVE_SIGNING" != "true" ]; then
 			archiveOverrides=(
 				CODE_SIGN_STYLE=Manual
 				"PROVISIONING_PROFILE_SPECIFIER=development-metamask"
@@ -359,9 +359,20 @@ generateIosBinary() {
 			echo "Overriding signing: using development certificate and profile for Release archive"
 		fi
 
+		# The certificate is applied in the sign job, which does not run this
+		# checkout. Archive without a signature so this process never sees the key.
+		if [ "$DEFER_NATIVE_SIGNING" = "true" ]; then
+			archiveOverrides+=(CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO "CODE_SIGN_IDENTITY=-")
+			echo "Deferring device signing until after compile"
+		fi
+
 		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}" "${e2eOverrides[@]}"
-		echo "Generating ipa for $scheme"
-		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+		if [ "$DEFER_NATIVE_SIGNING" = "true" ]; then
+			echo "Skipping exportArchive; the sign job produces the IPA"
+		else
+			echo "Generating ipa for $scheme"
+			xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+		fi
 	fi
 
 }

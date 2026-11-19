@@ -111,10 +111,13 @@ runs:
         security unlock-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
 
         echo "🔐 Importing certificate..."
-        if ! security import "$CERT_PATH" -P "$CERT_PW" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"; then
+        # -x keeps the private key in the keychain. Branch scripts must not run
+        # in this job; -x stops a later step from copying the key out.
+        if ! security import "$CERT_PATH" -P "$CERT_PW" -x -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"; then
           echo "❌ Failed to import certificate."
           exit 1
         fi
+        rm -f "$CERT_PATH"
         echo "✅ Certificate imported"
 
         security set-key-partition-list -S apple-tool:,apple: -k "$CERT_PW" "$KEYCHAIN_PATH" 2>/dev/null || true
