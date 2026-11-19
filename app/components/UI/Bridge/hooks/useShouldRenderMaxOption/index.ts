@@ -17,6 +17,10 @@ export const useShouldRenderMaxOption = (
   const isNativeAsset = isNativeAddress(tokenAddress);
   const isZeroDisplayBalance = new BigNumber(displayBalance || 0).eq(0);
 
+  if (token?.isMoneyToken) {
+    return false;
+  }
+
   // Do not render on zero balance or undefined token
   if (isZeroDisplayBalance || !token) {
     return false;
