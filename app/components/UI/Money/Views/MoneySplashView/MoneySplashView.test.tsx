@@ -6,6 +6,10 @@ import { UserActionType } from '../../../../../actions/user/types';
 
 const mockDispatch = jest.fn();
 const mockRedirectAfterSplash = jest.fn();
+const mockCardRedirect = {
+  type: 'card',
+  cardScreen: 'authentication',
+} as const;
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
@@ -18,7 +22,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: () => ({}),
+  useParams: () => ({ postOnboardingRedirect: mockCardRedirect }),
 }));
 
 jest.mock('../../../../../util/test/utils', () => ({
@@ -46,6 +50,7 @@ describe('MoneySplashView gate', () => {
       type: UserActionType.SET_MONEY_SPLASH_SEEN,
       payload: { seen: true },
     });
+    expect(mockUseMoneySplashRedirect).toHaveBeenCalledWith(mockCardRedirect);
     expect(mockRedirectAfterSplash).toHaveBeenCalledTimes(1);
   });
 });
