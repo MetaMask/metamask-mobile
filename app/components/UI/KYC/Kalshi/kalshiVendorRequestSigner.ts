@@ -86,11 +86,11 @@ const toUpstreamRequest = (
  * Relay codes that a new A2T can fix: Kalshi refused the token or the
  * signature, the token could not be read, or it belongs to another user.
  */
-const STALE_A2T_CODES: readonly KycKalshiErrorCode[] = [
+const STALE_A2T_CODES = new Set<KycKalshiErrorCode>([
   'kalshi_signed_request_rejected',
   'kalshi_signed_request_a2t_invalid',
   'kalshi_signed_request_sub_mismatch',
-];
+]);
 
 /**
  * Whether the relay said the A2T on this attempt was stale or refused.
@@ -102,7 +102,7 @@ const STALE_A2T_CODES: readonly KycKalshiErrorCode[] = [
  */
 const isStaleA2t = (error: unknown): boolean => {
   const code = getKycKalshiErrorCode(error);
-  return code !== undefined && STALE_A2T_CODES.includes(code);
+  return code !== undefined && STALE_A2T_CODES.has(code);
 };
 
 /**
