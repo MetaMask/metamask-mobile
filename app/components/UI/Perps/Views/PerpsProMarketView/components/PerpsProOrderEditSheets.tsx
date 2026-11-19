@@ -69,6 +69,7 @@ const PerpsProOrderEditSheets = ({
         szDecimals={editingOrderSzDecimals}
         leverage={editingOrderLeverage}
         reduceOnly={editingOrder.reduceOnly}
+        direction={getOrderPositionDirection(editingOrder)}
         isMarketDataReady={isEditingOrderMarketDataReady}
         onClose={onClose}
         onConfirm={onConfirmSize}

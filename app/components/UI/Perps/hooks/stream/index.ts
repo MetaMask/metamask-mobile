@@ -7,6 +7,10 @@ export {
 } from './usePerpsLivePositions';
 export { usePerpsLiveFills } from './usePerpsLiveFills';
 export { usePerpsLiveAccount } from './usePerpsLiveAccount';
+export {
+  readAvailableToTradeUsd,
+  usePerpsLiveAvailableToTrade,
+} from './usePerpsLiveAvailableToTrade';
 export { usePerpsTopOfBook } from './usePerpsTopOfBook';
 export { usePerpsLiveFocusedPrice } from './usePerpsLiveFocusedPrice';
 export { usePerpsLiveCandles } from './usePerpsLiveCandles';
@@ -21,6 +25,10 @@ export type {
   UsePerpsLiveAccountOptions,
   UsePerpsLiveAccountReturn,
 } from './usePerpsLiveAccount';
+export type {
+  UsePerpsLiveAvailableToTradeOptions,
+  UsePerpsLiveAvailableToTradeReturn,
+} from './usePerpsLiveAvailableToTrade';
 export type {
   UsePerpsTopOfBookOptions,
   TopOfBookData,

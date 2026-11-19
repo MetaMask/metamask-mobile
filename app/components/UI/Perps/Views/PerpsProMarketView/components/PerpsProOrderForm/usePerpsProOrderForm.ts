@@ -733,6 +733,7 @@ export const usePerpsProOrderForm = ({
     maxPossibleAmount,
     setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
+    isAvailableToTradeLoading,
     orderBookSizeFill,
     clearOrderBookSizeFill,
   } = usePerpsOrderContext();
@@ -2217,6 +2218,7 @@ export const usePerpsProOrderForm = ({
     // Skip protocol validation until position data is ready so we don't flash
     // unrelated errors while waiting for the position snapshot.
     skipValidation:
+      isAvailableToTradeLoading ||
       isReduceOnlyPositionLoading ||
       (orderForm.type === 'chase' &&
         (!isChaseEnabled || chaseProviderId === null)),
@@ -3869,7 +3871,7 @@ export const usePerpsProOrderForm = ({
   }, [assetData.price, commitLimitPrice, szDecimals]);
 
   const availableBalance = useMemo(() => {
-    if (!isInitialized) {
+    if (!isInitialized || isAvailableToTradeLoading) {
       return strings('perps.pro_order_form.available_balance_unavailable');
     }
 
@@ -3878,7 +3880,7 @@ export const usePerpsProOrderForm = ({
         ranges: PRICE_RANGES_MINIMAL_VIEW,
       }),
     });
-  }, [isInitialized, spendableBalance]);
+  }, [isAvailableToTradeLoading, isInitialized, spendableBalance]);
 
   const isTriggerOrderUnavailable =
     isTriggerOrderType(orderForm.type) &&

@@ -791,7 +791,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     deliveryRevision: accountDeliveryRevision = 0,
   } = usePerpsLiveAccount();
   const defaultPayTokenWhenNoPerpsBalance =
-    useDefaultPayWithTokenWhenNoPerpsBalance();
+    useDefaultPayWithTokenWhenNoPerpsBalance(market?.symbol);
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const spendableBalance = Number.parseFloat(

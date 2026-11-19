@@ -1123,6 +1123,10 @@ describe('PerpsOrderView', () => {
             }),
             totalBalance: '1000',
           },
+          availableToTrade: {
+            long: String(availableToTrade),
+            short: String(availableToTrade),
+          },
           positions: [],
           orders: [],
           marketData: [ethMarket],

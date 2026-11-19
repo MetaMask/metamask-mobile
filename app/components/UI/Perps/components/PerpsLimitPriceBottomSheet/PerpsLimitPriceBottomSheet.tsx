@@ -25,10 +25,12 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
-import { usePerpsLiveAccount } from '../../hooks/stream';
+import {
+  readAvailableToTradeUsd,
+  usePerpsLiveAvailableToTrade,
+} from '../../hooks/stream/usePerpsLiveAvailableToTrade';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
-import { getOrderAvailableToTrade } from '../../utils/crossMarginSummary';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -110,11 +112,18 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   });
 
   const isOpenOrderPriceEdit = restingOrderSize !== undefined;
-  const { account, isInitialLoading: isAccountLoading } = usePerpsLiveAccount({
-    enabled: isVisible && isOpenOrderPriceEdit,
-  });
-  const isAccountReady = !isAccountLoading && account !== null;
-  const spendableBalance = getOrderAvailableToTrade(account);
+  const { availableToTrade, isInitialLoading: isAvailableToTradeLoading } =
+    usePerpsLiveAvailableToTrade({
+      symbol: asset,
+      enabled: isVisible && isOpenOrderPriceEdit,
+    });
+  const venueAvailableToTrade = readAvailableToTradeUsd(
+    availableToTrade,
+    direction,
+  );
+  const isAccountReady =
+    !isAvailableToTradeLoading && venueAvailableToTrade !== undefined;
+  const spendableBalance = venueAvailableToTrade ?? 0;
 
   useEffect(() => {
     if (isVisible) {

@@ -14,8 +14,10 @@ import {
   type PerpsToken,
 } from '@metamask/perps-controller';
 import { usePerpsNetwork } from './index';
-import { usePerpsLiveAccount } from './stream';
-import { getOrderAvailableToTrade } from '../utils/crossMarginSummary';
+import {
+  readAvailableToTradeUsd,
+  usePerpsLiveAvailableToTrade,
+} from './stream/usePerpsLiveAvailableToTrade';
 
 /**
  * Hook to get all payment tokens for Perps, including:
@@ -27,19 +29,26 @@ import { getOrderAvailableToTrade } from '../utils/crossMarginSummary';
  * 2. Other USDC tokens (easier to bridge)
  * 3. Other tokens sorted by balance (highest first)
  *
- * Shows all tokens owned by the user, regardless of balance amount
+ * Shows all tokens owned by the user, regardless of balance amount.
+ *
+ * The Hyperliquid USDC row uses the venue's available to trade for `symbol`
+ * (the long side; the list is not tied to an order direction). Without a
+ * symbol the row stays at zero until a market is known. Withdraw surfaces do
+ * not use this hook.
  */
-export function usePerpsPaymentTokens(): PerpsToken[] {
+export function usePerpsPaymentTokens(symbol?: string): PerpsToken[] {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   // Use ref to store previous token array
   const previousTokensRef = useRef<PerpsToken[]>([]);
 
-  // Order-entry Perps balance is available to trade. Withdraw surfaces keep
-  // the venue withdrawable amount.
-  const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
-  const hyperliquidBalance = getOrderAvailableToTrade(account);
+  const { availableToTrade } = usePerpsLiveAvailableToTrade({
+    symbol: symbol ?? '',
+    enabled: Boolean(symbol),
+  });
+  const hyperliquidBalance =
+    readAvailableToTradeUsd(availableToTrade, 'long') ?? 0;
 
   // Get all chain IDs to search for tokens (exclude Hyperliquid chains)
   const allChainIds = useMemo(() => {

@@ -2,12 +2,10 @@ import type { AccountState } from '@metamask/perps-controller';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
   estimateCrossLiquidationPrice,
-  getCrossAvailableToTrade,
   getCrossMarginRatioAlert,
   getCrossMarginRatioAlertLabel,
   getCrossMarginRatioTone,
   getCrossMarginSummaryThrottleMs,
-  getOrderAvailableToTrade,
 } from './crossMarginSummary';
 import {
   CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
@@ -78,64 +76,6 @@ describe('crossMarginSummary', () => {
         accountLeverage: undefined,
         crossMarginUsage: undefined,
       });
-    });
-  });
-
-  describe('getCrossAvailableToTrade', () => {
-    it('subtracts margin used from account value', () => {
-      expect(
-        getCrossAvailableToTrade({
-          accountValue: '1000.50',
-          marginUsed: '300.25',
-        }),
-      ).toBe(700.25);
-    });
-
-    it('floors a negative remainder at zero', () => {
-      expect(
-        getCrossAvailableToTrade({
-          accountValue: '100',
-          marginUsed: '150',
-        }),
-      ).toBe(0);
-    });
-
-    it('returns undefined when either figure is missing', () => {
-      expect(getCrossAvailableToTrade(undefined)).toBeUndefined();
-      expect(
-        getCrossAvailableToTrade({
-          accountValue: '1000',
-          marginUsed: 'not-a-number',
-        }),
-      ).toBeUndefined();
-    });
-  });
-
-  describe('getOrderAvailableToTrade', () => {
-    it('uses available to trade when the cross summary is present', () => {
-      expect(
-        getOrderAvailableToTrade({
-          spendableBalance: '400',
-          crossMarginSummary: {
-            accountValue: '1000',
-            maintenanceMargin: '100',
-            marginUsed: '200',
-            notional: '2000',
-          },
-        }),
-      ).toBe(800);
-    });
-
-    it('falls back to spendable balance when the cross summary is absent', () => {
-      expect(
-        getOrderAvailableToTrade({
-          spendableBalance: '250.5',
-        }),
-      ).toBe(250.5);
-    });
-
-    it('returns zero for a missing account', () => {
-      expect(getOrderAvailableToTrade(null)).toBe(0);
     });
   });
 

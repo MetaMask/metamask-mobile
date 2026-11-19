@@ -47,18 +47,40 @@ jest.mock('../../hooks/useMinimumOrderAmount', () => ({
   }),
 }));
 
-const mockUsePerpsLiveAccount = jest.fn(
-  (): {
-    account: { spendableBalance: string } | null;
-    isInitialLoading: boolean;
-  } => ({
-    account: { spendableBalance: '1000' },
-    isInitialLoading: false,
-  }),
-);
+let mockAvailableToTradeUsd = '1000';
+let mockAvailableToTradePending = false;
 
-jest.mock('../../hooks/stream', () => ({
-  usePerpsLiveAccount: () => mockUsePerpsLiveAccount(),
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      subscribeToAvailableToTrade: jest.fn(
+        (params: {
+          symbol: string;
+          callback: (update: {
+            providerId: 'hyperliquid';
+            symbol: string;
+            long: string;
+            short: string;
+          }) => void;
+        }) => {
+          if (!mockAvailableToTradePending) {
+            params.callback({
+              providerId: 'hyperliquid',
+              symbol: params.symbol,
+              long: mockAvailableToTradeUsd,
+              short: mockAvailableToTradeUsd,
+            });
+          }
+          return jest.fn();
+        },
+      ),
+    },
+  },
+}));
+
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
 }));
 
 describe('PerpsOrderSizeBottomSheet', () => {
@@ -67,10 +89,8 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { spendableBalance: '1000' },
-      isInitialLoading: false,
-    });
+    mockAvailableToTradeUsd = '1000';
+    mockAvailableToTradePending = false;
   });
 
   it('renders and confirms a new size', () => {
@@ -144,10 +164,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   });
 
   it('warns and disables Set when a size increase needs more margin than is available', () => {
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { spendableBalance: '0.51' },
-      isInitialLoading: false,
-    });
+    mockAvailableToTradeUsd = '0.51';
 
     render(
       <PerpsOrderSizeBottomSheet
@@ -173,10 +190,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   });
 
   it('does not warn when decreasing size even with a low available balance', () => {
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { spendableBalance: '0.51' },
-      isInitialLoading: false,
-    });
+    mockAvailableToTradeUsd = '0.51';
 
     render(
       <PerpsOrderSizeBottomSheet
@@ -202,10 +216,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   });
 
   it('skips the margin check for reduce-only orders', () => {
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { spendableBalance: '0.51' },
-      isInitialLoading: false,
-    });
+    mockAvailableToTradeUsd = '0.51';
 
     render(
       <PerpsOrderSizeBottomSheet
@@ -232,10 +243,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   });
 
   it('does not warn when the size is comfortably within available margin', () => {
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { spendableBalance: '1000' },
-      isInitialLoading: false,
-    });
+    mockAvailableToTradeUsd = '1000';
 
     render(
       <PerpsOrderSizeBottomSheet
@@ -259,10 +267,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   });
 
   it('holds keypad and confirm while market data is loading', () => {
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { spendableBalance: '0.51' },
-      isInitialLoading: false,
-    });
+    mockAvailableToTradeUsd = '0.51';
 
     render(
       <PerpsOrderSizeBottomSheet
@@ -287,11 +292,8 @@ describe('PerpsOrderSizeBottomSheet', () => {
     ).toBeDisabled();
   });
 
-  it('holds keypad and confirm while account balance is still loading', () => {
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: null,
-      isInitialLoading: true,
-    });
+  it('holds keypad and confirm while available to trade is still loading', () => {
+    mockAvailableToTradePending = true;
 
     render(
       <PerpsOrderSizeBottomSheet
@@ -316,10 +318,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   });
 
   it('warns and disables Set when spendable balance is zero on a size increase', () => {
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { spendableBalance: '0' },
-      isInitialLoading: false,
-    });
+    mockAvailableToTradeUsd = '0';
 
     render(
       <PerpsOrderSizeBottomSheet
@@ -348,10 +347,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
     // additional notional for huge size ≈ 555555555 * 0.04888
     // at 40x: margin ≈ 678k; at 3x: margin ≈ 9.05M
     // spendable 700k clears 40x but not 3x
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { spendableBalance: '700000' },
-      isInitialLoading: false,
-    });
+    mockAvailableToTradeUsd = '700000';
 
     const { rerender } = render(
       <PerpsOrderSizeBottomSheet
