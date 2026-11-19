@@ -20,6 +20,7 @@ import type { MfaApproval } from '@metamask/profile-sync-controller/sdk';
 import type {
   SecretMetadata,
   SeedlessOnboardingControllerAuthenticateForRecoveryAction,
+  SeedlessOnboardingControllerFetchAllSecretDataAction,
   SeedlessOnboardingControllerGetAccessTokenAction,
   SeedlessOnboardingControllerGetStateAction,
   SeedlessOnboardingControllerMigrateToEnvelopeAction,
@@ -79,6 +80,7 @@ type AllowedActions =
   | MfaRecoveryControllerResumeAction
   | MfaRecoveryControllerUpdateIdentifiersAction
   | SeedlessOnboardingControllerAuthenticateForRecoveryAction
+  | SeedlessOnboardingControllerFetchAllSecretDataAction
   | SeedlessOnboardingControllerGetAccessTokenAction
   | SeedlessOnboardingControllerGetStateAction
   | SeedlessOnboardingControllerMigrateToEnvelopeAction
@@ -115,7 +117,11 @@ export interface MfaRecoveryRunIdentifiers {
   passkeyIdentifier: Identifier;
 }
 
+export type RecoveryIdentifierType = 'passkey' | 'social';
+
 export interface FindRecoveryIdentifierOptions {
+  /** Which enrolled identifier to read the Recovery Secret with. */
+  identifierType: RecoveryIdentifierType;
   /** Whether the social provider can issue a nonce-bound ID token. */
   canProveSocialIdentifier: boolean;
 }
@@ -208,6 +214,16 @@ export class MfaRecoveryService {
     );
   }
 
+  /**
+   * Fetches the SRPs and private keys with the encryption key cached by the last
+   * recovery or `setLocalPassword`. The caller owns the result.
+   */
+  async fetchSecretsWithCachedKey(): Promise<SecretMetadata[]> {
+    return await this.#messenger.call(
+      'SeedlessOnboardingController:fetchAllSecretData',
+    );
+  }
+
   /** Returns a fresh random Recovery Secret. */
   createRecoverySecret(): Uint8Array {
     return randomBytes(RECOVERY_SECRET_LENGTH);
@@ -292,13 +308,15 @@ export class MfaRecoveryService {
   }
 
   /**
-   * Picks the identifier to read the Recovery Secret with: an enrolled passkey
-   * Auth approved, else the enrolled social login when it can be proven. Runs
-   * while the wallet is locked, so it does not verify the user.
+   * Picks the enrolled identifier of `identifierType` to read the Recovery
+   * Secret with. A passkey must be one Auth approved and provable; a social
+   * identifier must be approved and the provider must be able to prove it.
+   * Runs while the wallet is locked, so it does not verify the user.
    *
-   * @returns The identifier, or `null` when recovery is not set up for one.
+   * @returns The identifier, or `null` when none of that type qualifies.
    */
   async findRecoveryIdentifier({
+    identifierType,
     canProveSocialIdentifier,
   }: FindRecoveryIdentifierOptions): Promise<Identifier | null> {
     const { identifiers, authIdentifiers } = await this.#messenger.call(
@@ -312,18 +330,16 @@ export class MfaRecoveryService {
       return authIdentifier ? [authIdentifier] : [];
     });
 
-    const passkey = approved
-      .map(withPasskeyVerifier)
-      .find(isProvablePasskeyIdentifier);
-    if (passkey) {
-      return passkey;
-    }
-    if (canProveSocialIdentifier) {
+    if (identifierType === 'passkey') {
       return (
-        approved.find((identifier) => identifier.type === 'social') ?? null
+        approved.map(withPasskeyVerifier).find(isProvablePasskeyIdentifier) ??
+        null
       );
     }
-    return null;
+    if (!canProveSocialIdentifier) {
+      return null;
+    }
+    return approved.find((identifier) => identifier.type === 'social') ?? null;
   }
 
   /**

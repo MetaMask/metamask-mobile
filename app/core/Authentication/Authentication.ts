@@ -70,7 +70,6 @@ import {
   type SecretMetadata,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import { ensurePasswordlessRecoverySetup } from '../MfaRecovery/ensurePasswordlessRecoverySetup';
 import { selectAnalyticsId } from '../../selectors/analyticsController';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
@@ -747,6 +746,59 @@ class AuthenticationService {
   };
 
   /**
+   * Generates a random local wallet password for passwordless recovery.
+   *
+   * @returns 32 random bytes, hex-encoded without a `0x` prefix.
+   */
+  generateLocalPassword = (): string =>
+    remove0x(bytesToHex(globalThis.crypto.getRandomValues(new Uint8Array(32))));
+
+  /**
+   * Prompts for biometrics and stores the password in the keychain behind
+   * them. The prompt is explicit because an iOS keychain write with access
+   * control shows no sheet by itself.
+   *
+   * @param password - The password to store.
+   * @param authType - BIOMETRIC or DEVICE_AUTHENTICATION; other types are rejected.
+   * @returns Whether the user granted biometrics and the password was stored.
+   */
+  storeLocalPasswordWithBiometrics = async (
+    password: string,
+    authType: AUTHENTICATION_TYPE,
+  ): Promise<boolean> => {
+    if (
+      authType !== AUTHENTICATION_TYPE.BIOMETRIC &&
+      authType !== AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
+    ) {
+      return false;
+    }
+
+    try {
+      if (Platform.OS === 'ios') {
+        const granted =
+          await this.requestBiometricsAccessControlForIOS(authType);
+        if (granted !== authType) {
+          return false;
+        }
+      } else {
+        const result = await authenticateAsync({
+          promptMessage: strings('authentication.auth_prompt_desc'),
+          cancelLabel: strings('navigation.cancel'),
+          disableDeviceFallback: true,
+        });
+        if (!result.success) {
+          return false;
+        }
+      }
+
+      await this.storePassword(password, authType);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  /**
    * Setting up a new wallet for new users
    * @param password - password provided by user
    * @param authData - type of authentication required to fetch password from keychain
@@ -963,19 +1015,12 @@ class AuthenticationService {
       // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
       // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
       parentContext,
-      recoveredSecrets,
     }: {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
       navigationBehavior?: 'default' | 'preserve';
       parentContext?: TraceContext;
-      /**
-       * Seedless flow only: secrets already recovered without the old
-       * password. The vault is created from them instead of fetching with
-       * `password`.
-       */
-      recoveredSecrets?: SecretMetadata[];
     } = {
       password: undefined,
       authPreference: undefined,
@@ -1001,10 +1046,7 @@ class AuthenticationService {
 
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
-          if (authPreference?.oauth2Login && recoveredSecrets) {
-            await this.restoreRecoveredSecrets(passwordToUse, recoveredSecrets);
-            fallbackToPassword = true;
-          } else if (authPreference?.oauth2Login) {
+          if (authPreference?.oauth2Login) {
             // If seedless flow, rehydrate and nest OnboardingFetchSrps under
             // the onboarding journey when a parent context is supplied.
             await this.rehydrateSeedPhrase(passwordToUse, parentContext);
@@ -1057,11 +1099,6 @@ class AuthenticationService {
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
-
-          // Existing social wallets: seal Recovery Secret while unlocked and
-          // before home navigation so a passkey sheet is not raced. Soft-fails.
-          // No-op when already sealed, flag off, or not a seedless wallet.
-          await ensurePasswordlessRecoverySetup();
 
           if (onBeforeNavigate) {
             await onBeforeNavigate();
@@ -1186,6 +1223,102 @@ class AuthenticationService {
   };
 
   /**
+   * Rebuilds the keyring vault from secrets the seedless controller already
+   * recovered, then unlocks the wallet without fetching secrets again.
+   */
+  unlockWithRecoveredSecrets = async (
+    password: string,
+    secrets: SecretMetadata[],
+    {
+      authType,
+      keychainStored = false,
+      onBeforeNavigate,
+    }: {
+      authType: AUTHENTICATION_TYPE;
+      /** The caller already stored `password` in the keychain behind biometrics. */
+      keychainStored?: boolean;
+      onBeforeNavigate?: () => Promise<void>;
+    },
+  ): Promise<void> => {
+    try {
+      await this.restoreSeedlessSecretsToVault(password, secrets);
+      await this.loginVaultCreation(password);
+
+      if (!keychainStored) {
+        await this.updateAuthPreference({
+          password,
+          authType,
+          fallbackToPassword: true,
+        });
+      }
+
+      await this.dispatchLogin();
+      this.dispatchPasswordSet();
+      this.postLoginAsyncOperations().catch(() => undefined);
+
+      ReduxService.store.dispatch(setExistingUser(true));
+
+      await onBeforeNavigate?.();
+
+      await this.navigateAfterUnlock();
+    } catch (error) {
+      try {
+        await this.lockApp({ reset: false, navigateToLogin: false });
+      } catch (lockError) {
+        Logger.error(
+          lockError as Error,
+          'Failed to lock app during unlockWithRecoveredSecrets error condition.',
+        );
+      }
+
+      if (error instanceof Error) {
+        trackErrorAsAnalytics('Unlock Wallet Error', error.message);
+      }
+      throw ensureError(error, 'Unlock wallet failed');
+    } finally {
+      password = this.wipeSensitiveData();
+    }
+  };
+
+  private navigateAfterUnlock = async (): Promise<void> => {
+    // TODO: Refactor this orchestration to sagas.
+    // Navigate to optin metrics or home screen based on metrics consent and UI seen.
+    const isMetricsEnabled = analytics.isEnabled();
+    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+      OPTIN_META_METRICS_UI_SEEN,
+    );
+    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+      const deeplinkAppStartType = getUnlockAppStartType();
+      cancelDeeplinkNavigatedTrace({ reason: 'metrics_opt_in' });
+      clearUnlockAppStartType();
+
+      NavigationService.navigation?.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+                params: {
+                  onContinue: async () => {
+                    resumeUnlockDeeplinkNavigatedAfterOptIn({
+                      appStartType: deeplinkAppStartType,
+                    });
+                    await navigateToPostUnlockHome();
+                  },
+                },
+              },
+            },
+          },
+        ],
+      });
+    } else {
+      await navigateToPostUnlockHome();
+    }
+  };
+
+  /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
   lockApp = async ({
@@ -1193,9 +1326,6 @@ class AuthenticationService {
     reset = true,
     locked = false,
     navigateToLogin = true,
-    // Passwordless recovery still needs the seedless session tokens. Dropping
-    // them makes the new password get used to decrypt the old vault.
-    lockSeedless = true,
   } = {}): Promise<void> => {
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     if (allowRememberMe === false) {
@@ -1208,10 +1338,7 @@ class AuthenticationService {
       await KeyringController.setLocked();
     }
 
-    if (
-      lockSeedless &&
-      selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
-    ) {
+    if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       // SeedlessOnboardingController.setLocked() will not throw, it swallow the error in the function
       await SeedlessOnboardingController.setLocked();
     }
@@ -1599,7 +1726,54 @@ class AuthenticationService {
         });
       }
 
-      await this.restoreSeedlessSecretsToVault(password, allSRPs);
+      if (allSRPs.length > 0) {
+        const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
+        if (!firstSeedPhrase?.data) {
+          throw new Error('No seed phrase found');
+        }
+
+        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
+
+        await this.newWalletVaultAndRestore(password, seedPhrase, false);
+        // add in more srps
+        if (restOfSeedPhrases.length > 0) {
+          for (const item of restOfSeedPhrases) {
+            try {
+              // add new private key
+              if (item.type === SecretType.PrivateKey) {
+                await this.importAccountFromPrivateKey(bytesToHex(item.data), {
+                  shouldCreateSocialBackup: false,
+                  shouldSelectAccount: false,
+                });
+              } else if (item.type === SecretType.Mnemonic) {
+                const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
+                await this.importSeedlessMnemonicToVault(mnemonic);
+              } else {
+                Logger.error(
+                  new Error(
+                    'SeedlessOnboardingController : Unknown secret type',
+                  ),
+                  item.type,
+                );
+              }
+            } catch (error) {
+              // catch error to prevent unable to login
+              Logger.error(
+                error as Error,
+                'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+              );
+            }
+          }
+        }
+        await this.syncKeyringEncryptionKey();
+
+        this.dispatchOauthReset();
+        ReduxService.store.dispatch(setExistingUser(true));
+
+        await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
+      } else {
+        throw new Error('No account data found');
+      }
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
@@ -1615,18 +1789,6 @@ class AuthenticationService {
    * @param password - The new wallet password.
    * @param secrets - The recovered secret data, primary SRP first.
    */
-  restoreRecoveredSecrets = async (
-    password: string,
-    secrets: SecretMetadata[],
-  ): Promise<void> => {
-    try {
-      await this.restoreSeedlessSecretsToVault(password, secrets);
-    } catch (error) {
-      this.lockApp({ reset: false, navigateToLogin: false });
-      throw ensureError(error, 'Restore recovered secrets failed');
-    }
-  };
-
   private restoreSeedlessSecretsToVault = async (
     password: string,
     secrets: SecretMetadata[],

@@ -87,6 +87,7 @@ export const MFA_RECOVERY_SERVICE_ACTIONS = [
   'MfaRecoveryController:resume',
   'MfaRecoveryController:updateIdentifiers',
   'SeedlessOnboardingController:authenticateForRecovery',
+  'SeedlessOnboardingController:fetchAllSecretData',
   'SeedlessOnboardingController:getAccessToken',
   'SeedlessOnboardingController:getState',
   'SeedlessOnboardingController:migrateToEnvelope',

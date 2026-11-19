@@ -8,6 +8,7 @@ import {
   selectSeedlessOnboardingUserEmail,
   selectSeedlessOnboardingAuthConnection,
   selectSeedlessOnboardingLoginFlow,
+  selectSeedlessIsLocalPassword,
 } from './seedlessOnboardingController';
 
 const createMockState = (
@@ -104,6 +105,46 @@ describe('Seedless Onboarding Controller Selectors', () => {
       const mockState = createMockState();
 
       const result = selectSeedlessOnboardingLoginFlow(mockState);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectSeedlessIsLocalPassword', () => {
+    it('returns true when isLocalPassword is true', () => {
+      const mockState = createMockState({
+        isLocalPassword: true,
+      });
+
+      const result = selectSeedlessIsLocalPassword(mockState);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when isLocalPassword is false', () => {
+      const mockState = createMockState({
+        isLocalPassword: false,
+      });
+
+      const result = selectSeedlessIsLocalPassword(mockState);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when isLocalPassword is undefined', () => {
+      const mockState = createMockState();
+
+      const result = selectSeedlessIsLocalPassword(mockState);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the controller state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+
+      const result = selectSeedlessIsLocalPassword(mockState);
 
       expect(result).toBe(false);
     });

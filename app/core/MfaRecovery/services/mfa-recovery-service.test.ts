@@ -312,6 +312,19 @@ describe('MfaRecoveryService', () => {
         newPassword: 'new-password',
       });
     });
+
+    it('fetches the secrets with the cached key, passing no password', async () => {
+      const seedless = Object.assign(createSeedless(), {
+        fetchAllSecretData: jest.fn().mockResolvedValue(['secret']),
+      });
+      const { service } = createService({ seedless });
+
+      await expect(service.fetchSecretsWithCachedKey()).resolves.toStrictEqual([
+        'secret',
+      ]);
+
+      expect(seedless.fetchAllSecretData).toHaveBeenCalledWith();
+    });
   });
 
   it('creates a random Recovery Secret', () => {
@@ -503,7 +516,7 @@ describe('MfaRecoveryService', () => {
   });
 
   describe('findRecoveryIdentifier', () => {
-    it("prefers the enrolled passkey, using Auth's copy with its verifier", async () => {
+    it("returns the enrolled passkey as Auth's copy with its verifier for the passkey type", async () => {
       const controller = createController({
         identifiers: [SIWE, PASSKEY, SOCIAL],
         authIdentifiers: [PASSKEY, SOCIAL],
@@ -511,12 +524,15 @@ describe('MfaRecoveryService', () => {
       const { service, verifyMfa } = createService({ controller });
 
       await expect(
-        service.findRecoveryIdentifier({ canProveSocialIdentifier: true }),
+        service.findRecoveryIdentifier({
+          identifierType: 'passkey',
+          canProveSocialIdentifier: true,
+        }),
       ).resolves.toStrictEqual(PROVABLE_PASSKEY);
       expect(verifyMfa).not.toHaveBeenCalled();
     });
 
-    it('ignores a passkey Auth did not approve', async () => {
+    it('returns null for the passkey type when only social is approved', async () => {
       const controller = createController({
         identifiers: [SIWE, PASSKEY, SOCIAL],
         authIdentifiers: [SOCIAL],
@@ -524,11 +540,30 @@ describe('MfaRecoveryService', () => {
       const { service } = createService({ controller });
 
       await expect(
-        service.findRecoveryIdentifier({ canProveSocialIdentifier: true }),
-      ).resolves.toBe(SOCIAL);
+        service.findRecoveryIdentifier({
+          identifierType: 'passkey',
+          canProveSocialIdentifier: true,
+        }),
+      ).resolves.toBeNull();
     });
 
-    it('returns null without a passkey when the social login cannot be proven', async () => {
+    it('returns the approved social identifier for the social type', async () => {
+      const controller = createController({
+        identifiers: [SIWE, PASSKEY, SOCIAL],
+        authIdentifiers: [PASSKEY, SOCIAL],
+      });
+      const { service, verifyMfa } = createService({ controller });
+
+      await expect(
+        service.findRecoveryIdentifier({
+          identifierType: 'social',
+          canProveSocialIdentifier: true,
+        }),
+      ).resolves.toBe(SOCIAL);
+      expect(verifyMfa).not.toHaveBeenCalled();
+    });
+
+    it('returns null for the social type when the social login cannot be proven', async () => {
       const controller = createController({
         identifiers: [SIWE, SOCIAL],
         authIdentifiers: [SOCIAL],
@@ -536,11 +571,29 @@ describe('MfaRecoveryService', () => {
       const { service } = createService({ controller });
 
       await expect(
-        service.findRecoveryIdentifier({ canProveSocialIdentifier: false }),
+        service.findRecoveryIdentifier({
+          identifierType: 'social',
+          canProveSocialIdentifier: false,
+        }),
       ).resolves.toBeNull();
     });
 
-    it('returns null when nothing enrolled is approved', async () => {
+    it('returns null for the social type when only a passkey is approved', async () => {
+      const controller = createController({
+        identifiers: [SIWE, PASSKEY, SOCIAL],
+        authIdentifiers: [PASSKEY],
+      });
+      const { service } = createService({ controller });
+
+      await expect(
+        service.findRecoveryIdentifier({
+          identifierType: 'social',
+          canProveSocialIdentifier: true,
+        }),
+      ).resolves.toBeNull();
+    });
+
+    it('returns null for each type when nothing enrolled is approved', async () => {
       const controller = createController({
         identifiers: [SIWE],
         authIdentifiers: [PASSKEY, SOCIAL],
@@ -548,7 +601,16 @@ describe('MfaRecoveryService', () => {
       const { service } = createService({ controller });
 
       await expect(
-        service.findRecoveryIdentifier({ canProveSocialIdentifier: true }),
+        service.findRecoveryIdentifier({
+          identifierType: 'passkey',
+          canProveSocialIdentifier: true,
+        }),
+      ).resolves.toBeNull();
+      await expect(
+        service.findRecoveryIdentifier({
+          identifierType: 'social',
+          canProveSocialIdentifier: true,
+        }),
       ).resolves.toBeNull();
     });
   });

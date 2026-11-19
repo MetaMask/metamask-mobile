@@ -32,6 +32,12 @@ export const selectSeedlessOnboardingLoginFlow = createSelector(
     seedlessOnboardingControllerState?.vault != null,
 );
 
+export const selectSeedlessIsLocalPassword = createSelector(
+  selectSeedlessOnboardingControllerState,
+  (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
+    seedlessOnboardingControllerState?.isLocalPassword === true,
+);
+
 export const selectIsSeedlessPasswordOutdated = createSelector(
   selectSeedlessOnboardingControllerState,
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>

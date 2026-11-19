@@ -1,8 +1,10 @@
 import Engine from '../Engine';
+import { ApiEnv, getApiEnv } from '../apiEnv';
 import {
   MfaRecoveryService,
   type MfaRecoveryServiceMessenger,
   type MfaRecoveryServiceOptions,
+  type RecoveryIdentifierType,
 } from './services/mfa-recovery-service';
 import { getMfaRecoveryServiceMessenger } from '../Engine/messengers/mfa-recovery-controller-messenger';
 import { PASSWORDLESS_RECOVERY_OPERATION } from './passwordlessSocialRecovery';
@@ -75,4 +77,12 @@ export function canProveSocialIdentifier(
     return platform === 'ios';
   }
   return false;
+}
+
+/**
+ * The identifier the locked recovery reads the Recovery Secret with: the
+ * passkey on the dev API environment, the social login elsewhere.
+ */
+export function getRecoveryIdentifierType(): RecoveryIdentifierType {
+  return getApiEnv() === ApiEnv.Dev ? 'passkey' : 'social';
 }

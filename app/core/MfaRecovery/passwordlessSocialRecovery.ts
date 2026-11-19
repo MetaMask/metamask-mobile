@@ -8,13 +8,12 @@ import { redactForDisplay } from './redactForDisplay';
 export const PASSWORDLESS_RECOVERY_OPERATION = 'wallet.passwordless_recovery';
 
 /**
- * Where a failed recovery stopped. From `restoring_vault` on, the new
- * password is already the wallet's global password.
+ * Where a failed recovery stopped. At `setting_password` the secrets are
+ * already recovered, but the local password may not be set.
  */
 export type PasswordlessRecoveryStage =
   | 'recovering_secrets'
-  | 'setting_password'
-  | 'restoring_vault';
+  | 'setting_password';
 
 /** A failed passwordless recovery. Carries no token, secret, or password. */
 export class PasswordlessRecoveryError extends Error {
@@ -39,50 +38,34 @@ export class PasswordlessRecoveryError extends Error {
 }
 
 /**
- * Recovers the social wallet without its old password and makes
- * `newPassword` the wallet password.
+ * Recovers the social wallet's encryption key without its old password and
+ * sets `localPassword` as the password that unlocks it on this device.
  *
- * Runs after the locked MFA verification. Opens the TOPRF recovery session
- * (held AAL2, no UI) and uses the Recovery Secret — either prefetched via
- * `service.readRecoverySecret` or read here (may prompt passkey). Then sets
- * the local/global password and restores the keyring vault.
+ * Runs after the locked MFA verification. Reads the Recovery Secret (may
+ * prompt passkey) while opening the TOPRF recovery session (held AAL2, no UI),
+ * then recovers with it. The recovered SRPs and private keys are zeroed and
+ * not returned; fetch them again with `service.fetchSecretsWithCachedKey`.
+ * The global password is left unchanged.
  *
  * @param service - The recovery service for this flow.
  * @param params - The parameters.
  * @param params.identifier - From `service.findRecoveryIdentifier`.
- * @param params.newPassword - The new wallet password. Never logged.
- * @param params.restoreVault - Creates the keyring vault from the secrets.
- * @param params.recoverySecret - Optional secret from `service.readRecoverySecret`
- * so Create password submit skips the escrow passkey sheet.
+ * @param params.localPassword - The new local password. Never logged.
  * @throws {PasswordlessRecoveryError} With the stage that failed.
  */
-export async function recoverWalletWithoutPassword(
+export async function recoverWithLocalPassword(
   service: MfaRecoveryService,
   {
     identifier,
-    newPassword,
-    restoreVault,
-    recoverySecret: prefetchedRecoverySecret,
-  }: {
-    identifier: Identifier;
-    newPassword: string;
-    restoreVault: (
-      password: string,
-      secrets: SecretMetadata[],
-    ) => Promise<void>;
-    recoverySecret?: Uint8Array;
-  },
+    localPassword,
+  }: { identifier: Identifier; localPassword: string },
 ): Promise<void> {
-  let secrets: SecretMetadata[];
   let step = 'reading_secret';
   try {
-    const secretPromise = prefetchedRecoverySecret
-      ? Promise.resolve(prefetchedRecoverySecret)
-      : service
-          .readRecoverySecret(identifier)
-          .then((result) => result.recoverySecret);
     const [secretResult, sessionResult] = await Promise.allSettled([
-      secretPromise,
+      service
+        .readRecoverySecret(identifier)
+        .then((result) => result.recoverySecret),
       service.openRecoverySession(),
     ]);
     if (secretResult.status === 'rejected') {
@@ -95,7 +78,7 @@ export async function recoverWalletWithoutPassword(
         throw sessionResult.reason;
       }
       step = 'recovering_vault';
-      secrets = await service.recoverWithRecoverySecret(recoverySecret);
+      zeroSecrets(await service.recoverWithRecoverySecret(recoverySecret));
     } finally {
       recoverySecret.fill(0);
     }
@@ -105,16 +88,14 @@ export async function recoverWalletWithoutPassword(
 
   try {
     step = 'setting_local_password';
-    await service.setLocalPassword(newPassword);
-    step = 'resetting_global_password';
-    await service.resetGlobalPassword(newPassword);
+    await service.setLocalPassword(localPassword);
   } catch (error) {
     throw new PasswordlessRecoveryError('setting_password', error, step);
   }
+}
 
-  try {
-    await restoreVault(newPassword, secrets);
-  } catch (error) {
-    throw new PasswordlessRecoveryError('restoring_vault', error);
+function zeroSecrets(secrets: SecretMetadata[]): void {
+  for (const secret of secrets) {
+    secret.data.fill(0);
   }
 }

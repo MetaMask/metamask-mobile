@@ -8,4 +8,7 @@ export type {
   WalletRecoveryMethod,
   WalletRecoveryVerifyProps,
 } from './WalletRecoveryVerify';
+export { default as WalletRecoveryFlow } from './WalletRecoveryFlow';
+export type { WalletRecoveryFlowProps } from './WalletRecoveryFlow';
+export type { WalletRecoveryUnlockOptions } from './useWalletRecoveryFlow';
 export { WalletRecoverySelectorsIDs } from './WalletRecovery.testIds';

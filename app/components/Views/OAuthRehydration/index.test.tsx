@@ -231,20 +231,55 @@ jest.mock('../../../util/identity/mfa', () => ({
   }),
 }));
 
-const mockPasswordlessPrepare = jest.fn().mockResolvedValue(false);
-const mockPasswordlessPrefetch = jest.fn().mockResolvedValue(true);
-const mockPasswordlessRecover = jest.fn().mockResolvedValue(undefined);
-const mockPasswordlessClear = jest.fn();
-jest.mock('../../../core/MfaRecovery/PasswordlessRecoveryService', () => ({
-  __esModule: true,
-  default: {
-    prepare: (...args: unknown[]) => mockPasswordlessPrepare(...args),
-    prefetchForChoosePassword: (...args: unknown[]) =>
-      mockPasswordlessPrefetch(...args),
-    recover: (...args: unknown[]) => mockPasswordlessRecover(...args),
-    clear: (...args: unknown[]) => mockPasswordlessClear(...args),
+const mockFindRecoveryIdentifier = jest.fn();
+const mockFetchSecretsWithCachedKey = jest.fn();
+const mockRecoveryService = {
+  findRecoveryIdentifier: (...args: unknown[]) =>
+    mockFindRecoveryIdentifier(...args),
+  fetchSecretsWithCachedKey: () => mockFetchSecretsWithCachedKey(),
+};
+const mockCreatePasswordlessRecoveryService = jest.fn(
+  () => mockRecoveryService,
+);
+const mockGetRecoveryIdentifierType = jest.fn();
+jest.mock('../../../core/MfaRecovery/engineBindings', () => ({
+  canProveSocialIdentifier: jest.fn(() => true),
+  createPasswordlessRecoveryService: () =>
+    mockCreatePasswordlessRecoveryService(),
+  getRecoveryIdentifierType: () => mockGetRecoveryIdentifierType(),
+}));
+
+const mockRecoverWithLocalPassword = jest.fn();
+jest.mock('../../../core/MfaRecovery/passwordlessSocialRecovery', () => ({
+  ...jest.requireActual('../../../core/MfaRecovery/passwordlessSocialRecovery'),
+  recoverWithLocalPassword: (...args: unknown[]) =>
+    mockRecoverWithLocalPassword(...args),
+}));
+
+const mockGenerateLocalPassword = jest.fn();
+const mockStoreLocalPasswordWithBiometrics = jest.fn();
+const mockResetPassword = jest.fn();
+const mockUnlockWithRecoveredSecrets = jest.fn();
+jest.mock('../../../core', () => ({
+  Authentication: {
+    generateLocalPassword: () => mockGenerateLocalPassword(),
+    storeLocalPasswordWithBiometrics: (...args: unknown[]) =>
+      mockStoreLocalPasswordWithBiometrics(...args),
+    resetPassword: () => mockResetPassword(),
+    unlockWithRecoveredSecrets: (...args: unknown[]) =>
+      mockUnlockWithRecoveredSecrets(...args),
   },
 }));
+
+const mockEnsurePasswordlessRecoverySetup = jest.fn();
+jest.mock('../../../core/MfaRecovery/ensurePasswordlessRecoverySetup', () => ({
+  ensurePasswordlessRecoverySetup: () => mockEnsurePasswordlessRecoverySetup(),
+}));
+
+jest.mock(
+  '../../../core/Engine/controllers/mfa-recovery-controller/config',
+  () => ({ isMfaRecoveryConfigured: () => true }),
+);
 
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
@@ -312,13 +347,22 @@ describe('OAuthRehydration', () => {
     mockVerifyForSocialLogin.mockReset();
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
-    mockPasswordlessPrepare.mockReset();
-    mockPasswordlessPrepare.mockResolvedValue(false);
-    mockPasswordlessPrefetch.mockReset();
-    mockPasswordlessPrefetch.mockResolvedValue(true);
-    mockPasswordlessRecover.mockReset();
-    mockPasswordlessRecover.mockResolvedValue(undefined);
-    mockPasswordlessClear.mockReset();
+    mockFindRecoveryIdentifier.mockReset();
+    mockFindRecoveryIdentifier.mockResolvedValue({
+      type: 'passkey',
+      namespace: 'metamask.io',
+      value: 'cred-1',
+    });
+    mockFetchSecretsWithCachedKey.mockReset();
+    mockFetchSecretsWithCachedKey.mockResolvedValue([]);
+    mockGetRecoveryIdentifierType.mockReturnValue('social');
+    mockRecoverWithLocalPassword.mockReset();
+    mockRecoverWithLocalPassword.mockResolvedValue(undefined);
+    mockGenerateLocalPassword.mockReturnValue('generated-local-password');
+    mockStoreLocalPasswordWithBiometrics.mockReset();
+    mockStoreLocalPasswordWithBiometrics.mockResolvedValue(false);
+    mockResetPassword.mockReset();
+    mockResetPassword.mockResolvedValue(undefined);
     mockEngine.context.AuthenticationController.holdLockedRecoveryVerification.mockReset();
     (traceMock as jest.Mock).mockImplementation(
       (_config: unknown, fn?: () => Promise<void>) =>
@@ -1593,6 +1637,26 @@ describe('OAuthRehydration', () => {
     };
 
     /**
+     * InteractionManager is a no-op in testSetup; invoke the callback so the
+     * post-MFA biometrics delay can schedule.
+     */
+    const runInteractionsImmediately = () =>
+      jest
+        .spyOn(InteractionManager, 'runAfterInteractions')
+        .mockImplementation((task) => {
+          if (typeof task === 'function') {
+            task();
+          }
+          return {
+            then: jest.fn(),
+            done: jest.fn(),
+            cancel: jest.fn(),
+          } as unknown as ReturnType<
+            typeof InteractionManager.runAfterInteractions
+          >;
+        });
+
+    /**
      * Highest-factor OS sheet is cancelled → full-page verify → Use passkey.
      */
     const completePasskeyVerify = async (
@@ -1910,6 +1974,7 @@ describe('OAuthRehydration', () => {
         },
       });
       mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+      mockFindRecoveryIdentifier.mockResolvedValue(null);
       cancelHighestFactorOnce();
       mockVerifyForSocialLogin.mockResolvedValueOnce({ token: 'aal2-token' });
 
@@ -1972,8 +2037,7 @@ describe('OAuthRehydration', () => {
           }),
         );
       });
-      expect(mockPasswordlessRecover).not.toHaveBeenCalled();
-      expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
+      expect(mockRecoverWithLocalPassword).not.toHaveBeenCalled();
     });
 
     describe('Enter password → Forgot → Create password (Figma)', () => {
@@ -1989,19 +2053,10 @@ describe('OAuthRehydration', () => {
       };
 
       /**
-       * Face ID declined → Enter password.
-       * InteractionManager is a no-op in testSetup; invoke the callback so the
-       * post-MFA biometrics delay can schedule, then wait past the 1s passkey gap.
+       * Face ID declined → Enter password, after the 1s passkey gap.
        */
       const prepareEnterPasswordAfterMfa = () => {
-        jest
-          .spyOn(InteractionManager, 'runAfterInteractions')
-          .mockImplementation((task) => {
-            if (typeof task === 'function') {
-              task();
-            }
-            return { cancel: jest.fn() };
-          });
+        runInteractionsImmediately();
         mockComponentAuthenticationType.mockResolvedValue({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: 'FaceID',
@@ -2044,7 +2099,7 @@ describe('OAuthRehydration', () => {
         await completePasskeyVerify(getByTestId);
         await waitForEnterPassword(getByTestId);
 
-        expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
+        expect(mockRecoverWithLocalPassword).not.toHaveBeenCalled();
         expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
       });
 
@@ -2089,7 +2144,7 @@ describe('OAuthRehydration', () => {
             }),
           );
         });
-        expect(mockPasswordlessRecover).not.toHaveBeenCalled();
+        expect(mockRecoverWithLocalPassword).not.toHaveBeenCalled();
       });
 
       it('opens ChoosePassword from Forgot when AAL2 is still valid', async () => {
@@ -2098,7 +2153,7 @@ describe('OAuthRehydration', () => {
         mockVerifyForSocialLogin.mockResolvedValueOnce({
           token: validAal2Token,
         });
-        mockPasswordlessPrefetch.mockResolvedValueOnce(true);
+        mockSelectMfaRecoveryEnabled.mockReturnValue(true);
 
         const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
           state: mfaState,
@@ -2112,7 +2167,7 @@ describe('OAuthRehydration', () => {
         });
 
         await waitFor(() => {
-          expect(mockPasswordlessPrefetch).toHaveBeenCalled();
+          expect(mockRecoverWithLocalPassword).toHaveBeenCalled();
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.ONBOARDING.CHOOSE_PASSWORD,
             expect.objectContaining({
@@ -2150,11 +2205,318 @@ describe('OAuthRehydration', () => {
             getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
           ).toBeOnTheScreen();
         });
-        expect(mockPasswordlessPrefetch).not.toHaveBeenCalled();
+        expect(mockRecoverWithLocalPassword).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.ONBOARDING.CHOOSE_PASSWORD,
           expect.anything(),
         );
+      });
+    });
+
+    describe('Passwordless recovery after MFA', () => {
+      const recoveryIdentifier = {
+        type: 'passkey',
+        namespace: 'metamask.io',
+        value: 'cred-1',
+      };
+      const recoveredSecrets = [{ data: new Uint8Array([1, 2, 3]) }];
+
+      /** MFA via the picker passkey, recovery flag on, Face ID available. */
+      const prepareRecoveryAfterMfa = () => {
+        enableMfaFlags();
+        mockSelectMfaRecoveryEnabled.mockReturnValue(true);
+        runInteractionsImmediately();
+        mockComponentAuthenticationType.mockResolvedValue({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: 'FaceID',
+        });
+        mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+        cancelHighestFactorOnce();
+        mockVerifyForSocialLogin.mockResolvedValueOnce({
+          token: {
+            accessToken: 'aal2',
+            obtainedAt: Date.now(),
+            expiresIn: 3600,
+          },
+        });
+        mockFetchSecretsWithCachedKey.mockResolvedValue(recoveredSecrets);
+      };
+
+      const waitForScreen = async (
+        getByTestId: (id: string) => unknown,
+        testId: string,
+      ) => {
+        await waitFor(
+          () => {
+            expect(getByTestId(testId)).toBeOnTheScreen();
+          },
+          { timeout: 3000 },
+        );
+      };
+
+      afterEach(() => {
+        jest.mocked(InteractionManager.runAfterInteractions).mockRestore();
+      });
+
+      it('recovers before storing the local password behind biometrics', async () => {
+        prepareRecoveryAfterMfa();
+        mockStoreLocalPasswordWithBiometrics.mockResolvedValue(true);
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+        await completePasskeyVerify(getByTestId);
+
+        await waitFor(
+          () => {
+            expect(mockStoreLocalPasswordWithBiometrics).toHaveBeenCalled();
+          },
+          { timeout: 3000 },
+        );
+        expect(mockRecoverWithLocalPassword).toHaveBeenCalledWith(
+          mockRecoveryService,
+          {
+            identifier: recoveryIdentifier,
+            localPassword: 'generated-local-password',
+          },
+        );
+        expect(
+          mockRecoverWithLocalPassword.mock.invocationCallOrder[0],
+        ).toBeLessThan(
+          mockStoreLocalPasswordWithBiometrics.mock.invocationCallOrder[0],
+        );
+        expect(mockStoreLocalPasswordWithBiometrics).toHaveBeenCalledWith(
+          'generated-local-password',
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        );
+        expect(mockRequestBiometricsAccessControlForIOS).not.toHaveBeenCalled();
+      });
+
+      it('unlocks with the recovered secrets once the password is stored', async () => {
+        prepareRecoveryAfterMfa();
+        mockStoreLocalPasswordWithBiometrics.mockResolvedValue(true);
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+        await completePasskeyVerify(getByTestId);
+
+        await waitFor(
+          () => {
+            expect(mockUnlockWithRecoveredSecrets).toHaveBeenCalledWith(
+              'generated-local-password',
+              recoveredSecrets,
+              expect.objectContaining({
+                authType: AUTHENTICATION_TYPE.BIOMETRIC,
+                keychainStored: true,
+              }),
+            );
+          },
+          { timeout: 3000 },
+        );
+        expect(mockUnlockWallet).not.toHaveBeenCalled();
+        expect(mockEnsurePasswordlessRecoverySetup).not.toHaveBeenCalled();
+        expect(
+          mockStoreLocalPasswordWithBiometrics.mock.invocationCallOrder[0],
+        ).toBeLessThan(
+          mockFetchSecretsWithCachedKey.mock.invocationCallOrder[0],
+        );
+        expect(mockResetPassword).not.toHaveBeenCalled();
+      });
+
+      it('clears the keychain and shows password when fetching secrets fails', async () => {
+        prepareRecoveryAfterMfa();
+        mockStoreLocalPasswordWithBiometrics.mockResolvedValue(true);
+        mockFetchSecretsWithCachedKey.mockRejectedValue(
+          new Error('fetch failed'),
+        );
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+        await completePasskeyVerify(getByTestId);
+
+        await waitForScreen(
+          getByTestId,
+          WalletRecoverySelectorsIDs.PASSWORD_SCREEN,
+        );
+        expect(mockResetPassword).toHaveBeenCalled();
+        expect(mockUnlockWithRecoveredSecrets).not.toHaveBeenCalled();
+      });
+
+      it('clears the keychain and shows password when unlock fails', async () => {
+        prepareRecoveryAfterMfa();
+        mockStoreLocalPasswordWithBiometrics.mockResolvedValue(true);
+        mockUnlockWithRecoveredSecrets.mockRejectedValue(
+          new Error('unlock failed'),
+        );
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+        await completePasskeyVerify(getByTestId);
+
+        await waitForScreen(
+          getByTestId,
+          WalletRecoverySelectorsIDs.PASSWORD_SCREEN,
+        );
+        expect(mockUnlockWithRecoveredSecrets).toHaveBeenCalled();
+        expect(mockResetPassword).toHaveBeenCalled();
+        expect(
+          mockUnlockWithRecoveredSecrets.mock.invocationCallOrder[0],
+        ).toBeLessThan(mockResetPassword.mock.invocationCallOrder[0]);
+      });
+
+      it('falls back to the biometrics prompt when recovery fails', async () => {
+        prepareRecoveryAfterMfa();
+        mockRecoverWithLocalPassword.mockRejectedValue(
+          new Error('recovery failed'),
+        );
+        mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        );
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+        await completePasskeyVerify(getByTestId);
+
+        await waitForScreen(
+          getByTestId,
+          WalletRecoverySelectorsIDs.PASSWORD_SCREEN,
+        );
+        expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalled();
+        expect(mockStoreLocalPasswordWithBiometrics).not.toHaveBeenCalled();
+        expect(mockUnlockWallet).not.toHaveBeenCalled();
+        expect(mockUnlockWithRecoveredSecrets).not.toHaveBeenCalled();
+      });
+
+      it('shows Enter password and unlocks with the typed password when biometrics are declined', async () => {
+        prepareRecoveryAfterMfa();
+        mockStoreLocalPasswordWithBiometrics.mockResolvedValue(false);
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+        await completePasskeyVerify(getByTestId);
+
+        await waitForScreen(
+          getByTestId,
+          WalletRecoverySelectorsIDs.ENTER_PASSWORD_SCREEN,
+        );
+        expect(mockFetchSecretsWithCachedKey).not.toHaveBeenCalled();
+
+        fireEvent.changeText(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+          'global-password',
+        );
+        await act(async () => {
+          fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+        });
+
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalledWith(
+            expect.objectContaining({
+              password: 'global-password',
+              authPreference: expect.objectContaining({
+                currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+                oauth2Login: true,
+              }),
+            }),
+          );
+        });
+        expect(mockUnlockWithRecoveredSecrets).not.toHaveBeenCalled();
+        expect(mockUnlockWallet.mock.calls[0][0]).not.toHaveProperty(
+          'recoveredSecrets',
+        );
+        expect(mockEnsurePasswordlessRecoverySetup).toHaveBeenCalledTimes(1);
+      });
+
+      it('opens ChoosePassword from Forgot without recovering again when the password is local', async () => {
+        prepareRecoveryAfterMfa();
+        mockStoreLocalPasswordWithBiometrics.mockResolvedValue(false);
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: {
+            engine: {
+              backgroundState: {
+                SeedlessOnboardingController: {
+                  authConnection: AuthConnection.Google,
+                  isLocalPassword: true,
+                },
+              },
+            },
+          },
+        });
+        await completePasskeyVerify(getByTestId);
+        await waitForScreen(
+          getByTestId,
+          WalletRecoverySelectorsIDs.ENTER_PASSWORD_SCREEN,
+        );
+
+        await act(async () => {
+          fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.CHOOSE_PASSWORD,
+          expect.objectContaining({ passwordlessSocialRecovery: true }),
+        );
+        expect(mockRecoverWithLocalPassword).toHaveBeenCalledTimes(1);
+      });
+
+      it('recovers from Forgot before opening ChoosePassword when nothing was recovered', async () => {
+        prepareRecoveryAfterMfa();
+        mockFindRecoveryIdentifier.mockResolvedValueOnce(null);
+        mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
+          AUTHENTICATION_TYPE.PASSWORD,
+        );
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+        await completePasskeyVerify(getByTestId);
+        await waitForScreen(
+          getByTestId,
+          WalletRecoverySelectorsIDs.ENTER_PASSWORD_SCREEN,
+        );
+        expect(mockRecoverWithLocalPassword).not.toHaveBeenCalled();
+
+        await act(async () => {
+          fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+        });
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.ONBOARDING.CHOOSE_PASSWORD,
+            expect.objectContaining({ passwordlessSocialRecovery: true }),
+          );
+        });
+        expect(mockRecoverWithLocalPassword).toHaveBeenCalledTimes(1);
+        expect(
+          mockRecoverWithLocalPassword.mock.invocationCallOrder[0],
+        ).toBeLessThan(mockNavigate.mock.invocationCallOrder.at(-1) ?? 0);
+      });
+
+      it('does not attempt recovery when the recovery flag is off', async () => {
+        prepareRecoveryAfterMfa();
+        mockSelectMfaRecoveryEnabled.mockReturnValue(false);
+        mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        );
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: mfaState,
+        });
+        await completePasskeyVerify(getByTestId);
+
+        await waitForScreen(
+          getByTestId,
+          WalletRecoverySelectorsIDs.PASSWORD_SCREEN,
+        );
+        expect(mockCreatePasswordlessRecoveryService).not.toHaveBeenCalled();
+        expect(mockFindRecoveryIdentifier).not.toHaveBeenCalled();
+        expect(mockRecoverWithLocalPassword).not.toHaveBeenCalled();
       });
     });
   });

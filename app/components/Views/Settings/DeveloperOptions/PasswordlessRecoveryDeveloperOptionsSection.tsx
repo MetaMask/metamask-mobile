@@ -90,11 +90,7 @@ const PasswordlessRecoveryDeveloperOptionsSection = () => {
     setIsRunning(true);
     setMessage(null);
     try {
-      await Authentication.lockApp({
-        reset: false,
-        navigateToLogin: false,
-        lockSeedless: false,
-      });
+      await Authentication.lockApp({ reset: false, navigateToLogin: false });
       navigation.reset({
         index: 0,
         routes: [

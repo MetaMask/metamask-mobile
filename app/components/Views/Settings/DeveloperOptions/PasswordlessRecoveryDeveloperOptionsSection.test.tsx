@@ -78,7 +78,6 @@ describe('PasswordlessRecoveryDeveloperOptionsSection', () => {
     expect(mockLockApp).toHaveBeenCalledWith({
       reset: false,
       navigateToLogin: false,
-      lockSeedless: false,
     });
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
