@@ -120,6 +120,7 @@ import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFla
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import Reanimated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -174,7 +175,12 @@ import {
   usePerpsTopMovers,
 } from '../../hooks/usePerpsTopMovers';
 
+// Sections kept on the first commit; everything below the fold waits for the
+// push transition to end.
+const FIRST_PAINT_SECTION_KEYS = ['positions', 'orders'];
+
 const PerpsHomeView = () => {
+  const isDeferredReady = useScreenTransitionComplete();
   const { styles } = useStyles(styleSheet, {});
   const bottomSafeAreaInset = useBottomSafeAreaInset();
   const navigation = useNavigation<AppNavigationProp>();
@@ -1443,7 +1449,15 @@ const PerpsHomeView = () => {
         />
       </Box>
 
-      <PerpsHomeSectionList sections={homeSections} />
+      <PerpsHomeSectionList
+        sections={
+          isDeferredReady
+            ? homeSections
+            : homeSections.filter(({ key }) =>
+                FIRST_PAINT_SECTION_KEYS.includes(key),
+              )
+        }
+      />
 
       {/* Bottom spacing for tab bar */}
       <View

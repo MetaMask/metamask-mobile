@@ -61,6 +61,13 @@ jest.mock('react-native-worklets', () => ({
   ),
 }));
 
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
+}));
+
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -692,6 +699,7 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseScreenTransitionComplete.mockReturnValue(true);
     // Pin the default inset so a mockReturnValue set by one test cannot leak
     // into later ones (clearAllMocks resets call state, not return values).
     mockUseBottomSafeAreaInset.mockReturnValue(0);
@@ -1287,6 +1295,36 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+  });
+
+  it('holds the watchlist back until the push transition ends', () => {
+    // Arrange
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      watchlistMarkets: [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$50000',
+          change24h: '+$1250',
+          change24hPercent: '+2.5%',
+          volume: '$1.2B',
+          volumeNumber: 1200000000,
+          maxLeverage: '50',
+        },
+      ],
+    });
+
+    // Act
+    const { UNSAFE_queryByType, rerender } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+
+    mockUseScreenTransitionComplete.mockReturnValue(true);
+    rerender(<PerpsHomeView />);
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
   it('does not render watchlist when markets and suggestions are empty', () => {
