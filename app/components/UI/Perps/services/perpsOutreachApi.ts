@@ -7,7 +7,7 @@ import {
   refine,
   string,
 } from '@metamask/superstruct';
-import axios, { isCancel } from 'axios';
+import axios from 'axios';
 import { ACTIONS } from '../../../../constants/deeplinks';
 import { isMetaMaskUniversalLink } from '../../../../core/DeeplinkManager/util/deeplinks';
 
@@ -130,7 +130,12 @@ export async function fetchPerpsOutreachBanner({
       buildPerpsOutreachUrl(endpoint, { profileId, address, locale }),
       {
         signal,
-        validateStatus: () => true,
+        // Server errors are not an answer either: let axios reject them like
+        // transport failures so React Query retries and refetches on
+        // reconnect instead of caching an empty campaign for the query's
+        // `staleTime`. A client error (4xx) is the endpoint answering, so it
+        // stays resolvable and maps to the authoritative null below.
+        validateStatus: (status) => status < 500,
       },
     );
 
@@ -145,13 +150,15 @@ export async function fetchPerpsOutreachBanner({
 
     return result.show ? result.banner : null;
   } catch (error) {
-    // Leaving Perps mid-flight aborts the request, and a transport failure
-    // never produced an answer: re-throw both so React Query retries and
-    // refetches on reconnect instead of caching an empty campaign for the
-    // query's `staleTime`. Only an unusable response (non-2xx, malformed, or
-    // an untrusted link) resolves `null`, the authoritative "no campaign to
-    // render" the backend could also have answered with `show: false`.
-    if (isCancel(error) || axios.isAxiosError(error)) {
+    // A cancellation and a transport or server failure never produced an
+    // answer: re-throw so React Query retries and refetches on reconnect
+    // instead of caching an empty campaign for the query's `staleTime`
+    // (`CanceledError` extends `AxiosError`, so `isAxiosError` covers both).
+    // Only a response that arrived but cannot be rendered (non-2xx other
+    // than 5xx, malformed, or an untrusted link) resolves `null`, the
+    // authoritative "no campaign to render" the backend could also have
+    // answered with `show: false`.
+    if (axios.isAxiosError(error)) {
       throw error;
     }
     return null;
