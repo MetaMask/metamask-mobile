@@ -6,10 +6,8 @@ import Engine from '../../../../core/Engine';
 import type { RebateQuoteResponse } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
-import {
-  predictRebateQuoteQueryKey,
-  usePredictRebateQuote,
-} from './usePredictRebateQuote';
+import { selectPredictRebatesEnabled } from '../../../../selectors/featureFlagController/predictRebates';
+import { usePredictRebateQuote } from './usePredictRebateQuote';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -79,8 +77,19 @@ describe('usePredictRebateQuote', () => {
     await waitFor(() => expect(result.current.data).toEqual(QUOTE));
     expect(mockGetPredictRebateQuote).toHaveBeenCalledTimes(1);
     expect(
-      queryClient.getQueryData(predictRebateQuoteQueryKey('profile-1', true)),
+      queryClient.getQueryData(['predict', 'rebateQuote', 'profile-1', true]),
     ).toEqual(QUOTE);
+    queryClient.clear();
+  });
+
+  it('does not fetch while the Predict rebates flag is off', () => {
+    mockUseSelector.mockImplementation(
+      (selector) => selector !== selectPredictRebatesEnabled,
+    );
+
+    const { queryClient } = render();
+
+    expect(mockGetPredictRebateQuote).not.toHaveBeenCalled();
     queryClient.clear();
   });
 
