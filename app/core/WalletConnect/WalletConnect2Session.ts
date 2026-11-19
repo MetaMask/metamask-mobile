@@ -680,6 +680,33 @@ class WalletConnect2Session {
     this.needsRedirect(requestEvent.id + '');
   }
 
+  /**
+   * Send the error response a branch of {@link handleRequestInternal} already
+   * chose. A relay failure is logged here instead of rethrown: letting it reach
+   * the catch in {@link handleRequest} would make `failRequest` answer the
+   * same request a second time, with the relay error instead of this one.
+   */
+  private async respondWithError(
+    requestId: number,
+    error: { code: number; message: string },
+  ) {
+    try {
+      await this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestId,
+          jsonrpc: '2.0',
+          error,
+        },
+      });
+    } catch (respondError) {
+      Logger.error(
+        respondError as Error,
+        `WC2::handleRequest could not respond requestId=${requestId}`,
+      );
+    }
+  }
+
   private handleRequestInternal = async (
     requestEvent: WalletKitTypes.SessionRequest,
   ) => {
@@ -712,16 +739,9 @@ class WalletConnect2Session {
     // NOTE: unverifiedOrigin is self-reported by the dapp.
     if (INTERNAL_ORIGINS.includes(unverifiedOrigin)) {
       this._isHandlingRequest = false;
-      return this.web3Wallet.respondSessionRequest({
-        topic: this.session.topic,
-        response: {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          error: {
-            code: errorCodes.provider.unauthorized,
-            message: ERROR_MESSAGES.INVALID_ORIGIN,
-          },
-        },
+      return this.respondWithError(requestEvent.id, {
+        code: errorCodes.provider.unauthorized,
+        message: ERROR_MESSAGES.INVALID_ORIGIN,
       });
     }
 
@@ -732,13 +752,9 @@ class WalletConnect2Session {
       );
     } catch {
       this._isHandlingRequest = false;
-      return this.web3Wallet.respondSessionRequest({
-        topic: this.session.topic,
-        response: {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
-        },
+      return this.respondWithError(requestEvent.id, {
+        code: 4902,
+        message: ERROR_MESSAGES.INVALID_CHAIN,
       });
     }
     const method = requestEvent.params.request.method;
@@ -766,16 +782,12 @@ class WalletConnect2Session {
       );
       if (!isPermittedChains) {
         this._isHandlingRequest = false;
-        return this.web3Wallet.respondSessionRequest({
-          topic: this.session.topic,
-          response: {
-            id: requestEvent.id,
-            jsonrpc: '2.0',
-            error: providerErrors.unauthorized({
-              message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${normalizedRequestChainId} to continue.`,
-            }),
-          },
-        });
+        return this.respondWithError(
+          requestEvent.id,
+          providerErrors.unauthorized({
+            message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${normalizedRequestChainId} to continue.`,
+          }),
+        );
       }
 
       return this.handleAdapterRequest({
@@ -803,13 +815,9 @@ class WalletConnect2Session {
       caip2ChainId = `eip155:${parseInt(hexChainId, 16)}` as CaipChainId;
     } catch (err) {
       this._isHandlingRequest = false;
-      return this.web3Wallet.respondSessionRequest({
-        topic: this.session.topic,
-        response: {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
-        },
+      return this.respondWithError(requestEvent.id, {
+        code: 4902,
+        message: ERROR_MESSAGES.INVALID_CHAIN,
       });
     }
 
@@ -843,13 +851,9 @@ class WalletConnect2Session {
         return this.approveRequest({ id: requestEvent.id + '', result: true });
       } catch (error) {
         this._isHandlingRequest = false;
-        return this.web3Wallet.respondSessionRequest({
-          topic: this.session.topic,
-          response: {
-            id: requestEvent.id,
-            jsonrpc: '2.0',
-            error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
-          },
+        return this.respondWithError(requestEvent.id, {
+          code: 4902,
+          message: ERROR_MESSAGES.INVALID_CHAIN,
         });
       }
     }

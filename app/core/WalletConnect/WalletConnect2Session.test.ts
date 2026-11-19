@@ -477,6 +477,47 @@ describe('WalletConnect2Session', () => {
     });
   });
 
+  it('answers an invalid chainId only once when the relay rejects the response', async () => {
+    const mockRespondSessionRequest = jest
+      .spyOn(mockClient, 'respondSessionRequest')
+      .mockClear()
+      .mockRejectedValue(new Error('relay unavailable'));
+
+    const requestEvent = {
+      id: '1',
+      topic: 'test-topic',
+      params: {
+        chainId: '0x2',
+        request: {
+          method: 'eth_sendTransaction',
+          params: [],
+        },
+      },
+      verifyContext: {
+        verified: {
+          origin: 'https://example.com',
+        },
+      },
+    };
+
+    await expect(
+      session.handleRequest(requestEvent as any),
+    ).resolves.toBeUndefined();
+
+    // The relay failure must not fall through to the catch-all, which would
+    // send a second response carrying the relay error instead of this one.
+    expect(mockRespondSessionRequest).toHaveBeenCalledTimes(1);
+    expect(mockRespondSessionRequest).toHaveBeenCalledWith({
+      topic: mockSession.topic,
+      response: {
+        id: '1',
+        jsonrpc: '2.0',
+        error: { code: 4902, message: 'Invalid chainId' },
+      },
+    });
+    expect(session.isHandlingRequest()).toBe(false);
+  });
+
   it('removes listeners correctly', async () => {
     const mockOnDisconnect = jest.spyOn(
       (session as any).backgroundBridge,
@@ -522,6 +563,28 @@ describe('WalletConnect2Session', () => {
         error: { code: 5000, message: 'User rejected' },
       },
     });
+  });
+
+  it('clears the handling flag when approving fails to reach the relay', async () => {
+    jest
+      .spyOn(mockClient, 'respondSessionRequest')
+      .mockRejectedValue(new Error('relay unavailable'));
+    (session as any)._isHandlingRequest = true;
+
+    await session.approveRequest({ id: '1', result: '0x123' });
+
+    expect(session.isHandlingRequest()).toBe(false);
+  });
+
+  it('clears the handling flag when rejecting fails to reach the relay', async () => {
+    jest
+      .spyOn(mockClient, 'respondSessionRequest')
+      .mockRejectedValue(new Error('relay unavailable'));
+    (session as any)._isHandlingRequest = true;
+
+    await session.rejectRequest({ id: '1', error: new Error('User rejected') });
+
+    expect(session.isHandlingRequest()).toBe(false);
   });
 
   it('emits session events with an explicit CAIP-2 chain id', async () => {
