@@ -1,4 +1,8 @@
 import { captureException } from '@sentry/react-native';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import migrate, { migrationVersion } from './163';
 import { ensureValidState } from './util';
 
@@ -13,9 +17,34 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const createState = (user: unknown) => ({
-  engine: { backgroundState: {} },
+const makeBalance = (value: string) => ({
+  address: '0x1',
+  value,
+  currency: 'USD',
+  updatedAt: 0,
+});
+
+const moneyDeposit = (status: TransactionStatus) => ({
+  type: TransactionType.moneyAccountDeposit,
+  status,
+});
+
+const createState = (
+  user: unknown,
+  {
+    lastKnownBalance,
+    transactions = [],
+  }: { lastKnownBalance?: unknown; transactions?: unknown[] } = {},
+) => ({
+  engine: {
+    backgroundState: {
+      TransactionController: { transactions },
+    },
+  },
   user,
+  ...(lastKnownBalance !== undefined
+    ? { moneyBalance: { lastKnownBalance } }
+    : {}),
 });
 
 describe(`Migration ${migrationVersion}: reset moneySplashSeen for Rive viewers`, () => {
@@ -35,7 +64,7 @@ describe(`Migration ${migrationVersion}: reset moneySplashSeen for Rive viewers`
     expect(migrate(state)).toBe(state);
   });
 
-  it('resets moneySplashSeen for users who saw the Rive onboarding', () => {
+  it('resets moneySplashSeen for Rive viewers with no Money activity', () => {
     const state = createState({
       moneyOnboardingSeen: true,
       moneySplashSeen: true,
@@ -43,6 +72,73 @@ describe(`Migration ${migrationVersion}: reset moneySplashSeen for Rive viewers`
 
     expect(migrate(state)).toStrictEqual(
       createState({ moneyOnboardingSeen: true, moneySplashSeen: false }),
+    );
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('keeps moneySplashSeen for Rive viewers with a positive balance', () => {
+    const state = createState(
+      {
+        moneyOnboardingSeen: true,
+        moneySplashSeen: true,
+      },
+      { lastKnownBalance: makeBalance('$12.34') },
+    );
+
+    expect(migrate(state)).toStrictEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('resets moneySplashSeen for Rive viewers with a zero balance', () => {
+    const state = createState(
+      {
+        moneyOnboardingSeen: true,
+        moneySplashSeen: true,
+      },
+      { lastKnownBalance: makeBalance('$0.00') },
+    );
+
+    expect(migrate(state)).toStrictEqual(
+      createState(
+        { moneyOnboardingSeen: true, moneySplashSeen: false },
+        { lastKnownBalance: makeBalance('$0.00') },
+      ),
+    );
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('keeps moneySplashSeen for Rive viewers with a confirmed Money deposit', () => {
+    const state = createState(
+      {
+        moneyOnboardingSeen: true,
+        moneySplashSeen: true,
+      },
+      { transactions: [moneyDeposit(TransactionStatus.confirmed)] },
+    );
+
+    expect(migrate(state)).toStrictEqual(
+      createState(
+        { moneyOnboardingSeen: true, moneySplashSeen: true },
+        { transactions: [moneyDeposit(TransactionStatus.confirmed)] },
+      ),
+    );
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('resets moneySplashSeen for Rive viewers with only a pending Money deposit', () => {
+    const state = createState(
+      {
+        moneyOnboardingSeen: true,
+        moneySplashSeen: true,
+      },
+      { transactions: [moneyDeposit(TransactionStatus.submitted)] },
+    );
+
+    expect(migrate(state)).toStrictEqual(
+      createState(
+        { moneyOnboardingSeen: true, moneySplashSeen: false },
+        { transactions: [moneyDeposit(TransactionStatus.submitted)] },
+      ),
     );
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });

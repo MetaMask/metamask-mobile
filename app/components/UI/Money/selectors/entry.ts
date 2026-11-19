@@ -1,11 +1,31 @@
 import { createSelector } from 'reselect';
 import { selectMoneySplashSeen } from '../../../../reducers/user/selectors';
+import { selectLastKnownMoneyBalance } from '../../../../core/redux/slices/moneyBalance';
+import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectMoneyAccountAccessBlockReason } from './visibility';
 import type { MoneyEntryContext } from '../navigation/moneyEntryDecision';
+import {
+  hasConfirmedMoneyDeposit,
+  isPositiveMoneyBalance,
+} from '../utils/moneyAccountUsage';
+
+/**
+ * Users who have already funded or deposited into Money should not see the
+ * intro splash again.
+ */
+export const selectHasUsedMoneyAccount = createSelector(
+  selectLastKnownMoneyBalance,
+  selectNonReplacedTransactions,
+  (lastKnownBalance, transactions) =>
+    isPositiveMoneyBalance(lastKnownBalance) ||
+    hasConfirmedMoneyDeposit(transactions),
+);
 
 export const selectIsMoneySplashRedirectNeeded = createSelector(
   selectMoneySplashSeen,
-  (hasSeenSplash) => !hasSeenSplash,
+  selectHasUsedMoneyAccount,
+  (hasSeenSplash, hasUsedMoneyAccount) =>
+    !hasSeenSplash && !hasUsedMoneyAccount,
 );
 
 /**
