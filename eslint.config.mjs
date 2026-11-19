@@ -97,8 +97,8 @@ const legacyBeforeTypescript = {
 
 // v15 is a flat config. The old `extends` key cannot load it. Apply it only
 // to TypeScript, then re-apply the *.{ts,tsx} override so rules that are off
-// today stay off. Drop projectService so type-aware parsing stays on today's
-// `parserOptions.project`.
+// today stay off. Drop projectService so ESLint does not load the TypeScript
+// project. Oxlint runs the rules that need type information.
 const typescriptBlocks = (
   Array.isArray(typescriptConfig) ? typescriptConfig : [typescriptConfig]
 ).map((block) => {

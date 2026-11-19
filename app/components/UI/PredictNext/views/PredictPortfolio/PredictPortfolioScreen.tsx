@@ -19,6 +19,7 @@ import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
+import { usePredictWithdrawAvailable } from '../../funding';
 import type { PredictEntityId, PredictPosition } from '../../types';
 import type {
   PredictNextStackParamList,
@@ -58,6 +59,7 @@ export const PredictPortfolioScreen = () => {
     enabled: activityActive,
   });
   const { openOrderFlow } = usePredictOrderFlow();
+  const withdrawResolution = usePredictWithdrawAvailable();
   const activeListQuery = positionsActive ? positionsQuery : activityQuery;
 
   useEffect(() => {
@@ -90,6 +92,11 @@ export const PredictPortfolioScreen = () => {
         titleSnapshot,
       });
     },
+    [navigation, venueId],
+  );
+
+  const openWithdraw = useCallback(
+    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
     [navigation, venueId],
   );
 
@@ -134,6 +141,9 @@ export const PredictPortfolioScreen = () => {
           isLoading={summaryQuery.isPending}
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => summaryQuery.refetch()}
+          onWithdrawPress={
+            withdrawResolution.status === 'ready' ? openWithdraw : undefined
+          }
         />
         <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />

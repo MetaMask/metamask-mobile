@@ -521,7 +521,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).not.toHaveStyle({ color: errorColor });
   });
 
-  it('adds spacing below visible banners only', async () => {
+  it('adds spacing above visible banners only', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -532,17 +532,17 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     fireEvent(bannersWrapper, 'layout', {
       nativeEvent: { layout: { height: 20, width: 0, x: 0, y: 0 } },
     });
-    expect(bannersWrapper).toHaveStyle({ marginBottom: 8 });
+    expect(bannersWrapper).toHaveStyle({ marginTop: 8 });
 
     fireEvent(bannersWrapper, 'layout', {
       nativeEvent: { layout: { height: 20, width: 0, x: 0, y: 0 } },
     });
-    expect(bannersWrapper).toHaveStyle({ marginBottom: 8 });
+    expect(bannersWrapper).toHaveStyle({ marginTop: 8 });
 
     fireEvent(bannersWrapper, 'layout', {
       nativeEvent: { layout: { height: 0, width: 0, x: 0, y: 0 } },
     });
-    expect(bannersWrapper).not.toHaveStyle({ marginBottom: 8 });
+    expect(bannersWrapper).not.toHaveStyle({ marginTop: 8 });
   });
 
   it('appends keypad digits to the every value', async () => {
@@ -601,6 +601,25 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     fireEvent(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.CONTAINER),
       'responderRelease',
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('closes the keypad when tapping a banner', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent(
+      renderResult.getByTestId(
+        BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER,
+      ),
+      'touchEnd',
     );
 
     await waitFor(() => {
@@ -1703,6 +1722,21 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
   });
 
   describe('price range', () => {
+    it('keeps the label outside the press target', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await userEvent.press(
+        renderResult.getByText(
+          strings('bridge.recurring.price_range.input_label'),
+        ),
+      );
+
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
+    });
+
     it('opens the unset price range sheet with market price placeholders', async () => {
       const renderResult = renderRecurringPriceRangeView();
 

@@ -313,6 +313,43 @@ describe('buildSocialLoggerErrorOptions', () => {
     });
   });
 
+  it('puts profileId on context and extras, not tags', () => {
+    const error = makeHttpError(500, 'create failed');
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'profile_onboarding',
+      operation: 'create_profile',
+      extraMessage: 'Profile onboarding create profile failed',
+      source: 'SocialProfileOnboardingView',
+      endpoint: 'create_profile',
+      error,
+      profileId: 'profile-abc',
+    });
+
+    expect(result.tags).toEqual(
+      expect.objectContaining({
+        feature: SOCIAL_SENTRY_FEATURE,
+        surface: 'profile_onboarding',
+        operation: 'create_profile',
+        endpoint: 'create_profile',
+        errorCategory: 'http_error',
+      }),
+    );
+    expect(result.tags).not.toHaveProperty('profileId');
+    expect(result.context?.data).toEqual(
+      expect.objectContaining({
+        operation: 'create_profile',
+        endpoint: 'create_profile',
+        profileId: 'profile-abc',
+      }),
+    );
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        profileId: 'profile-abc',
+        httpStatus: 500,
+      }),
+    );
+  });
+
   it('includes durationMs and queryParams on the non-endpoint extras branch', () => {
     const result = buildSocialLoggerErrorOptions({
       surface: 'quick_buy',
@@ -431,6 +468,37 @@ describe('reportSocialServiceFailure', () => {
         category: 'social_service',
         message: expect.stringContaining('social_service.following.failure'),
       }),
+    );
+  });
+
+  it('forwards profileId onto Logger context and extras', () => {
+    const error = new Error('create failed');
+    reportSocialServiceFailure(error, {
+      surface: 'profile_onboarding',
+      operation: 'create_profile',
+      extraMessage: 'Profile onboarding create profile failed',
+      source: 'SocialProfileOnboardingView',
+      endpoint: 'create_profile',
+      profileId: 'profile-xyz',
+    });
+
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: SOCIAL_SENTRY_FEATURE,
+          surface: 'profile_onboarding',
+          operation: 'create_profile',
+        }),
+        context: expect.objectContaining({
+          name: 'social',
+          data: expect.objectContaining({ profileId: 'profile-xyz' }),
+        }),
+        extras: expect.objectContaining({ profileId: 'profile-xyz' }),
+      }),
+    );
+    expect(mockLoggerError.mock.calls[0][1].tags).not.toHaveProperty(
+      'profileId',
     );
   });
 
