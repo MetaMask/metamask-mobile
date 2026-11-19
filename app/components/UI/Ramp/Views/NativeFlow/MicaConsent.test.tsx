@@ -47,6 +47,14 @@ jest.mock('../../hooks/useTransakController', () => ({
   }),
 }));
 
+const mockRouteAfterAuthentication = jest.fn();
+
+jest.mock('../../hooks/useTransakRouting', () => ({
+  useTransakRouting: () => ({
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  }),
+}));
+
 const mockUseParamsReturn = {
   quote: { quoteId: 'test-quote-id', fiatAmount: 100 },
   headlessSessionId: undefined,
