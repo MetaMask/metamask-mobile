@@ -278,6 +278,11 @@ const PerpsMarketHeader = ({
     onWalletPress ? (
       <BadgeWrapper
         key="wallet"
+        // The wrapper pins itself to the top of the row. Center it with the star.
+        twClassName="self-center"
+        testID={
+          testIDs.walletButton ? `${testIDs.walletButton}-wrapper` : undefined
+        }
         position={BadgeWrapperPosition.TopRight}
         positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
         badge={
