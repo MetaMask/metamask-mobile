@@ -76,6 +76,19 @@ describe('useShouldRenderMaxOption', () => {
     expect(result.current).toBe(false);
   });
 
+  it('returns false for a money token with a positive balance', () => {
+    const moneyToken: BridgeToken = {
+      ...mockToken,
+      isMoneyToken: true,
+    };
+
+    const { result } = renderHook(() =>
+      useShouldRenderMaxOption(moneyToken, '10'),
+    );
+
+    expect(result.current).toBe(false);
+  });
+
   it('returns false when display balance is zero', () => {
     const { result } = renderHook(() =>
       useShouldRenderMaxOption(mockToken, '0'),

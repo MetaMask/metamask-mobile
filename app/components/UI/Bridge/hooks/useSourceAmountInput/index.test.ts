@@ -12,6 +12,7 @@ import {
   formatSecondaryTokenAmount,
 } from '../../utils/sourceAmountInputMode';
 import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../components/TokenInputArea', () => ({
   MAX_INPUT_LENGTH: 36,
@@ -236,5 +237,56 @@ describe('useSourceAmountInput max amount', () => {
     const { result } = renderMaxHook();
 
     expect(result.current.amount).toBe('1.234567890123456789');
+  });
+});
+
+describe('useSourceAmountInput money token', () => {
+  const moneySourceToken = {
+    address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    symbol: 'MUSD',
+    chainId: '0x8f' as const,
+    decimals: 6,
+    isMoneyToken: true,
+  };
+
+  const renderMoneyHook = () =>
+    renderHook(() =>
+      useSourceAmountInput({
+        isFiatToggleEnabled: true,
+        sourceAmount: '10.25',
+        sourceToken: moneySourceToken,
+        onSourceAmountChange: jest.fn(),
+      }),
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+    mockUseTokenFiatRate.mockReturnValue(1);
+  });
+
+  it('locks fiat mode and disables the fiat toggle', () => {
+    const { result } = renderMoneyHook();
+
+    expect(result.current.isFiatMode).toBe(true);
+    expect(result.current.canToggle).toBe(false);
+    expect(result.current.inputPrefix).toBe('$');
+  });
+
+  it('uses the money name as the secondary value', () => {
+    const { result } = renderMoneyHook();
+
+    expect(result.current.secondaryValue).toBe(strings('bridge.money_name'));
+  });
+
+  it('does not toggle away from fiat mode', () => {
+    const { result } = renderMoneyHook();
+
+    act(() => {
+      result.current.handleToggle();
+    });
+
+    expect(mockPlaySelection).not.toHaveBeenCalled();
+    expect(result.current.isFiatMode).toBe(true);
   });
 });

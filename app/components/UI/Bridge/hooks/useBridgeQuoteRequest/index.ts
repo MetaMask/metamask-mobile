@@ -158,6 +158,7 @@ export const useBridgeQuoteRequest = (
         gasIncluded,
         gasIncluded7702,
         insufficientBal: sourceToken?.isMoneyToken ? true : insufficientBal,
+        // @ts-expect-error - need to bump bridge-controller
         isMoneyAccount: Boolean(
           sourceToken?.isMoneyToken || destToken?.isMoneyToken,
         ),

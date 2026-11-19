@@ -1466,6 +1466,64 @@ describe('TokenInputArea', () => {
       expect(getByText(/0x.*\.\.\./)).toBeTruthy();
     });
 
+    // TokenInputArea is a presentational row, not a screen. Dest money APY
+    // copy is render-only ("shows X when prop Y"), which CV writing-tests drop.
+    it('shows the money subtitle override with a dotted underline', () => {
+      const moneyToken: BridgeToken = {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x8f' as `0x${string}`,
+        isMoneyToken: true,
+      };
+
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+              subtitle="Earn 6.2% APY"
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('subtitle-underline')).toBeOnTheScreen();
+      expect(getByText('Earn 6.2% APY')).toBeOnTheScreen();
+      expect(queryByText(/0x.*\.\.\./)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the default subtitle when a money token has no override', () => {
+      const moneyToken: BridgeToken = {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x8f' as `0x${string}`,
+        isMoneyToken: true,
+      };
+
+      const { getByText, queryByTestId } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(queryByTestId('subtitle-underline')).not.toBeOnTheScreen();
+      expect(getByText(/0x.*\.\.\./)).toBeOnTheScreen();
+    });
+
     it('destination native token shows no address subtitle', () => {
       // Arrange — native (zero) address should produce no subtitle
       const nativeToken: BridgeToken = {
