@@ -182,7 +182,7 @@ describe('toNativeTabOptions', () => {
       'green',
     );
 
-    expect(options.tabBarBadge).toBe('');
+    expect(options.tabBarBadge).toBe('\u00A0');
     expect(options.tabBarBadgeStyle).toEqual({ backgroundColor: 'green' });
   });
 });

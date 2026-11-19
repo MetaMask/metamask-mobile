@@ -27,6 +27,10 @@ export const TAB_BAR_HIDDEN_STYLE: NativeBottomTabNavigationOptions['tabBarStyle
 export const SEARCH_TAB_NAME = 'SearchTab';
 export const TRADE_TAB_NAME = 'TradeTab';
 
+// Native iOS treats an empty tab badge as nil, so use an invisible
+// non-empty value to render the badge as a dot.
+const NATIVE_NEW_BADGE_VALUE = '\u00A0';
+
 type NestedState = NavigationState | PartialState<NavigationState> | undefined;
 
 const activeRouteName = (state: NestedState): string | undefined =>
@@ -88,7 +92,7 @@ export const toNativeTabOptions = (
       : null),
     ...(tab.showNewBadge
       ? {
-          tabBarBadge: '',
+          tabBarBadge: NATIVE_NEW_BADGE_VALUE,
           ...(newBadgeColor
             ? { tabBarBadgeStyle: { backgroundColor: newBadgeColor } }
             : null),
