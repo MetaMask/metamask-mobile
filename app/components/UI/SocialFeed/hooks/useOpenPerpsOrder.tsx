@@ -23,6 +23,7 @@ export interface OpenPerpsOrderParams {
   leverage?: number;
   /** Social V1 post being copied, when the order should be attributed. */
   copyTradeOrigin?: CopyTradeOrigin;
+  isCopyTrade?: boolean;
 }
 
 export interface UseOpenPerpsOrderOptions {
@@ -65,7 +66,13 @@ export const useOpenPerpsOrder = ({
   const [isGeoBlockVisible, setIsGeoBlockVisible] = useState(false);
 
   const openPerpsOrder = useCallback(
-    ({ direction, asset, leverage, copyTradeOrigin }: OpenPerpsOrderParams) => {
+    ({
+      direction,
+      asset,
+      leverage,
+      copyTradeOrigin,
+      isCopyTrade,
+    }: OpenPerpsOrderParams) => {
       const openOrder = (): Promise<void> => {
         if (!isEligible) {
           setIsGeoBlockVisible(true);
@@ -85,6 +92,7 @@ export const useOpenPerpsOrder = ({
               useBottomSheet: true,
               stayOnCurrentScreen: true,
               ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
+              ...(isCopyTrade ? { isCopyTrade: true } : {}),
             },
           });
         if (runNavigation) {

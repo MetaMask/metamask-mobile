@@ -7,6 +7,10 @@
 # apply the same number locally at build time (no version-bump commit). Finishes by uploading the
 # iOS IPA to TestFlight.
 #
+# Must be dispatched from a release/X.Y.Z branch whose open release PR into stable meets the
+# stable branch rules (approvals, required checks). Those rules are configured in the repository
+# rulesets, not in this workflow.
+#
 # This workflow only produces fresh native binaries — OTA updates are handled by the separate
 # runway-ota-production.yml workflow.
 #
@@ -30,15 +34,61 @@ permissions:
 cache-mode: none
 
 jobs:
+  verify-release-pr:
+    name: Verify release PR meets the stable branch rules
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      head_sha: ${{ steps.verify-pr.outputs.head_sha }}
+    steps:
+      - name: Checkout scripts
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Resolve release PR into stable
+        id: resolve-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ inputs.source_branch || github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          BRANCH="${SOURCE_REF#refs/heads/}"
+          if ! [[ "$BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Production builds must run from a release/X.Y.Z branch so its release PR can be checked (got: ${BRANCH})."
+            exit 1
+          fi
+
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base stable --state open \
+            --json number,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)] | .[0].number // empty')
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "::error::No open release PR from ${BRANCH} into stable."
+            exit 1
+          fi
+
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Require the release PR to meet the stable branch rules
+        id: verify-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.resolve-pr.outputs.pr_number }}
+        run: .github/scripts/verify-release-pr-mergeable.sh
+
   generate-build-version:
     name: Generate build version
+    needs: verify-release-pr
     permissions:
       id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS + Android (main-prod)
-    needs: generate-build-version
+    needs: [verify-release-pr, generate-build-version]
     permissions:
       contents: read
       id-token: write # AWS OIDC for code signing in build.yml
@@ -46,9 +96,9 @@ jobs:
     with:
       build_name: main-prod
       platform: both
-      # Prefer an explicit input; otherwise pin to the dispatch SHA so iOS and
-      # Android do not race a moving branch tip under one build number.
-      source_branch: ${{ inputs.source_branch || github.sha }}
+      # The release PR head that met the stable rules. Pinning it also keeps iOS and Android
+      # from racing a moving branch tip under one build number.
+      source_branch: ${{ needs.verify-release-pr.outputs.head_sha }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: true
     secrets: inherit
@@ -68,6 +118,72 @@ jobs:
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
     secrets: inherit
+
+  # A separate job so build.yml (shared by every build caller) does not need
+  # attestations: write. Artifacts are digest-checked on download, so the subjects are
+  # the exact files the build job produced.
+  attest-release:
+    name: Attest release binaries and SBOM
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Sigstore signing for the attestations
+      attestations: write
+    steps:
+      - name: Checkout built commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.build.outputs.built_commit_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download iOS IPA
+        uses: actions/download-artifact@v7
+        with:
+          name: ios-ipa-main-prod
+          path: ${{ runner.temp }}/release/ios
+
+      - name: Download Android AAB
+        uses: actions/download-artifact@v7
+        with:
+          name: android-aab-main-prod
+          path: ${{ runner.temp }}/release/android
+
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            ${{ runner.temp }}/release/ios/*.ipa
+            ${{ runner.temp }}/release/android/*.aab
+
+      # SLSA provenance records github.sha, the commit this workflow ran from. The binaries
+      # are built from built_commit_sha (the release PR head), which can differ.
+      - name: Attest built commit
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            ${{ runner.temp }}/release/ios/*.ipa
+            ${{ runner.temp }}/release/android/*.aab
+          predicate-type: https://github.com/MetaMask/metamask-mobile/attestations/release-build/v1
+          predicate: '{"commit":"${{ needs.build.outputs.built_commit_sha }}"}'
+
+      # Catalogs the lockfiles in the source tree (yarn.lock, Podfile.lock, Gemfile.lock).
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: ${{ runner.temp }}/sbom-main-prod.cdx.json
+          artifact-name: sbom-main-prod.cdx.json
+
+      - name: Attest SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            ${{ runner.temp }}/release/ios/*.ipa
+            ${{ runner.temp }}/release/android/*.aab
+          sbom-path: ${{ runner.temp }}/sbom-main-prod.cdx.json
 
   slack-notification:
     name: Slack Production Notification

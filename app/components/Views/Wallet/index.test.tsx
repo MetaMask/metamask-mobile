@@ -2,6 +2,7 @@ import React from 'react';
 import type { Json } from '@metamask/utils';
 
 let mockSearchPasteTreatment = false;
+let mockShowPrivacyToast = false;
 
 jest.mock('../TrendingView/search/useHomepageSearchPaste', () => ({
   useHomepageSearchPaste: jest.fn(() => ({
@@ -22,6 +23,25 @@ jest.mock('react-native-device-info', () => ({
   getSystemVersion: jest.fn(() => '17.0'),
   getTotalMemorySync: jest.fn(() => 4000000000),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
+jest.mock('../../../selectors/legalNotices', () => {
+  const actual = jest.requireActual('../../../selectors/legalNotices');
+  return {
+    ...actual,
+    shouldShowNewPrivacyToastSelector: (
+      state: Parameters<typeof actual.shouldShowNewPrivacyToastSelector>[0],
+    ) =>
+      mockShowPrivacyToast || actual.shouldShowNewPrivacyToastSelector(state),
+  };
+});
 
 // Mock components BEFORE importing the main component
 jest.mock('../AssetDetails/AssetDetailsActions', () => ({
@@ -142,6 +162,7 @@ jest.mock('../../UI/NetworkConnectionBanner', () => ({
   NetworkConnectionBannerContent: () => null,
 }));
 let mockNetworkConnectionBannerVisible = false;
+let mockSlowNetworkBannerVisible = false;
 jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   useNetworkConnectionBanner: () => ({
     status: mockNetworkConnectionBannerVisible ? 'unavailable' : 'available',
@@ -155,6 +176,10 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
           switchableInfuraNetworkClientId: null,
         }
       : null,
+    isVisible:
+      mockNetworkConnectionBannerVisible || mockSlowNetworkBannerVisible,
+    isSlowNetwork: mockSlowNetworkBannerVisible,
+    dismissSlowNetwork: jest.fn(),
     updateRpc: jest.fn(),
     switchToInfura: jest.fn(),
   }),
@@ -410,6 +435,10 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   };
 });
 
+jest.mock('../../../hooks/usePrefetchMoneyAccountPlusSubscriptions', () => ({
+  usePrefetchMoneyAccountPlusSubscriptions: jest.fn(),
+}));
+
 import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
@@ -420,7 +449,15 @@ import {
   renderHook,
   waitFor,
 } from '@testing-library/react-native';
-import { Animated, InteractionManager, StyleSheet } from 'react-native';
+import {
+  Animated,
+  InteractionManager,
+  Linking,
+  StyleSheet,
+} from 'react-native';
+import { toast } from '@metamask/design-system-react-native';
+import { strings } from '../../../../locales/i18n';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import type { ReactTestInstance } from 'react-test-renderer';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -452,6 +489,8 @@ import { selectInterimHeaderNavBarEnabled } from '../../../selectors/featureFlag
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { TabsListProps } from '../../../component-library/components-temp/Tabs';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../component-library/components-temp/HeaderGlass';
+
+const toastMock = toast as unknown as jest.Mock & { dismiss: jest.Mock };
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -907,6 +946,7 @@ const renderWalletWithRootState = (rootState: typeof mockInitialState) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockShowPrivacyToast = false;
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
   mockMoneyAccountEnabled = false;
@@ -918,6 +958,7 @@ beforeEach(() => {
   mockHeaderNavBarVariantName = 'control';
   mockSocialV1VariantName = 'control';
   mockNetworkConnectionBannerVisible = false;
+  mockSlowNetworkBannerVisible = false;
   mockCarouselBannersEnabled = false;
   mockIsAccountGroupFunded = false;
 });
@@ -945,6 +986,33 @@ describe('Wallet', () => {
   it('should render correctly', () => {
     render(Wallet);
     expect(capturedContext).toBeDefined();
+  });
+
+  it('opens the privacy policy from the privacy toast action', () => {
+    mockShowPrivacyToast = true;
+    const openURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as never);
+
+    try {
+      render(Wallet);
+      const privacyToast = toastMock.mock.calls.find(
+        ([options]) =>
+          options?.title === strings('privacy_policy.toast_message'),
+      );
+      const openPrivacyPolicy = privacyToast?.[0]?.actionButtonOnPress;
+      if (typeof openPrivacyPolicy !== 'function') {
+        throw new Error('privacy toast action was not registered');
+      }
+
+      openPrivacyPolicy();
+
+      expect(toastMock.dismiss).toHaveBeenCalledTimes(1);
+      expect(openURL).toHaveBeenCalledWith(CONSENSYS_PRIVACY_POLICY);
+    } finally {
+      openURL.mockRestore();
+      mockShowPrivacyToast = false;
+    }
   });
 
   it('should render homepage scroll context', () => {
@@ -2754,6 +2822,16 @@ describe('Homepage balance breakdown A/B test', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER),
     ).toHaveStyle({ paddingBottom: 16 });
+  });
+
+  it('renders the banner area when the slow network banner is visible', () => {
+    mockSlowNetworkBannerVisible = true;
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
+    ).toBeOnTheScreen();
   });
 
   it('hides breakdown rows during wallet-home post-onboarding', () => {

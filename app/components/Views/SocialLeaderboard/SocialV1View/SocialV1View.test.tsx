@@ -38,6 +38,7 @@ const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
 const mockSocialFeed = jest.fn();
 const mockFeedScrollToOffset = jest.fn();
+const mockFeedWindowOffsetY = jest.fn();
 const mockBottomTabPressListeners = new Set<() => void>();
 let mockIsFocused = true;
 const pressSocialBottomTab = () =>
@@ -121,6 +122,9 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const { SocialFeedRealtimeContext } = jest.requireActual(
     '../../../UI/SocialFeed/components/SocialFeedRealtime/SocialFeedRealtimeContext',
   );
+  const { SocialFeedWindowOffsetContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedWindowOffsetContext',
+  );
 
   interface MockSocialFeedProps {
     location?: string;
@@ -138,6 +142,10 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
 
   const MockSocialFeed = (props: MockSocialFeedProps) => {
     mockSocialFeed(props);
+    mockFeedWindowOffsetY(
+      props.location,
+      ReactActual.useContext(SocialFeedWindowOffsetContext),
+    );
     ReactActual.useImperativeHandle(props.pageRef, () => ({
       scrollToOffset: (offset: number, animated?: boolean) =>
         mockFeedScrollToOffset(props.location, offset, animated),
@@ -781,6 +789,47 @@ describe('SocialV1View', () => {
         scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
       }),
     );
+  });
+
+  describe('feed window offset', () => {
+    const safeArea = jest.requireMock('react-native-safe-area-context') as {
+      useSafeAreaInsets: () => {
+        top: number;
+        right: number;
+        bottom: number;
+        left: number;
+      };
+    };
+
+    beforeEach(() => {
+      jest
+        .spyOn(safeArea, 'useSafeAreaInsets')
+        .mockReturnValue({ top: 62, right: 0, bottom: 0, left: 0 });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('gives iOS pager pages the top safe area as their window offset', () => {
+      renderWithProvider(<SocialV1View />);
+
+      expect(mockFeedWindowOffsetY).toHaveBeenLastCalledWith(
+        'social_trending',
+        62,
+      );
+    });
+
+    it('drops the window offset while the notifications banner is shown', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+
+      expect(mockFeedWindowOffsetY).toHaveBeenLastCalledWith(
+        'social_trending',
+        0,
+      );
+    });
   });
 
   it('emits TSA-1122 exposure when the v1 home opens', () => {

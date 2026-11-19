@@ -175,6 +175,7 @@ import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
@@ -250,7 +251,13 @@ import {
   useCanShareCopyTrade,
   usePostTradePromptResolver,
 } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
-import { getSocialEventSource } from '../../../../Views/SocialLeaderboard/analytics/socialEvents';
+import {
+  SocialEvent,
+  getSocialEventSource,
+} from '../../../../Views/SocialLeaderboard/analytics/socialEvents';
+import { trackPostToFeedToast } from '../../../../Views/SocialLeaderboard/analytics/trackPostToFeedToast';
+import { buildCopyTradeSubmittedProperties } from '../../../../Views/SocialLeaderboard/analytics/buildCopyTradeSubmittedProperties';
+import { useSocialAnalytics } from '../../../../Views/SocialLeaderboard/analytics/useSocialV1Analytics';
 import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import {
   buildPerpsPostTradeComposerParams,
@@ -289,6 +296,7 @@ interface OrderRouteParams {
   stayOnCurrentScreen?: boolean;
   /** Social post being copied; a matching order records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  isCopyTrade?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section forwarded from market details */
@@ -451,6 +459,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
   const { track } = usePerpsEventTracking();
+  const { trackInteraction: trackSocialInteraction } = useSocialAnalytics();
   const { denomination: sizeDenomination } = usePerpsSizeDenomination();
   const sizeDenominationRef = useRef(sizeDenomination);
   useLayoutEffect(() => {
@@ -475,6 +484,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isTradeWithAnyTokenEnabled = useSelector(
     selectPerpsTradeWithAnyTokenEnabledFlag,
   );
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
@@ -1366,6 +1376,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           {
             orderId,
             entryPrice: result?.averagePrice,
+            filledSize: result?.filledSize,
           },
         );
         if (orderId && prompt?.kind === 'share_sheet') {
@@ -1390,7 +1401,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       'social_leaderboard.post_trade_share.post_to_feed',
                     ),
                     onPress: () => {
+                      const shareId = `share:${orderId}`;
                       ToastService.toastRef?.current?.closeToast();
+                      trackPostToFeedToast({
+                        composerEntry:
+                          SocialEvent.ComposerEntry.POST_TRADE_PERPS,
+                        source: shareAnalyticsSource,
+                        shareId,
+                        orderId,
+                      });
                       openPostTradeComposer(
                         buildPerpsPostTradeComposerParams({
                           orderId,
@@ -1400,7 +1419,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                             leverage: orderForm.leverage,
                             amountUsd: orderForm.amount,
                             entryPrice: result?.averagePrice,
+                            filledSize: result?.filledSize,
                           }),
+                          analyticsSource: shareAnalyticsSource,
+                          shareId,
                         }),
                       );
                     },
@@ -1421,6 +1443,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             }),
           { surface: 'trader_feed', source: 'PerpsOrderView' },
         );
+        if (route.params?.isCopyTrade === true || copyTradeOrigin) {
+          const amountUsd = Number.parseFloat(orderForm.amount);
+          trackSocialInteraction(
+            buildCopyTradeSubmittedProperties({
+              source,
+              asset: orderForm.asset,
+              direction: orderForm.direction,
+              ...(Number.isFinite(amountUsd) ? { amountUsd } : {}),
+              ...(orderId ? { orderId } : {}),
+              metamaskFeeUsd: feeResults.metamaskFee,
+            }),
+          );
+        }
       },
       onError: (error) => {
         // Error is already captured in usePerpsOrderExecution hook
@@ -2110,8 +2145,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
 
       const submitOrder = async () => {
-        // Check for cross-margin position (MetaMask only supports isolated margin)
-        if (currentMarketPosition?.leverage?.type === 'cross') {
+        // While cross margin is off, an existing cross position cannot be traded.
+        if (
+          !isCrossMarginEnabled &&
+          currentMarketPosition?.leverage?.type === 'cross'
+        ) {
           navigation.navigate(Routes.PERPS.MODALS.ROOT, {
             screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
           });
@@ -2233,6 +2271,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               getOrderManagementToastKey(orderForm.type)
             ].submitted(orderForm.direction, positionSize, orderForm.asset),
           );
+        } else if (forceTrade) {
+          // The deposit progress toast never times out and is normally replaced
+          // by the submitted toast, which the share sheet suppresses. Close it
+          // so it does not stay on screen next to the share sheet (TSA-1768).
+          ToastService.toastRef?.current?.closeToast();
         }
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
@@ -2340,6 +2383,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       sourceSection,
       chartLibrary,
       isTradeWithAnyTokenEnabled,
+      isCrossMarginEnabled,
       depositAmount,
       activeTransactionMeta,
       hasCustomTokenSelected,
@@ -2508,6 +2552,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           asset: getPerpsDisplaySymbol(orderForm.asset),
         });
 
+  // An order against an open cross position liquidates with the whole
+  // account. The isolated formula does not describe it, so the price, the
+  // stop-loss check, and the explainer all stay off that formula. This is an
+  // estimate we chose not to run, not a confirmed absence of a liquidation
+  // price, so the explainer says the estimate is unavailable.
+  const withholdsCrossLiquidationPrice =
+    isCrossMarginEnabled && currentMarketPosition?.leverage?.type === 'cross';
+  const orderFormLiquidationPrice = withholdsCrossLiquidationPrice
+    ? ''
+    : liquidationPrice;
+  const liquidationInfoContentKey = withholdsCrossLiquidationPrice
+    ? 'cross_liquidation_estimate_unavailable'
+    : 'liquidation_price';
+
   const {
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
@@ -2519,7 +2577,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     direction: orderForm.direction,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
-    liquidationPrice,
+    liquidationPrice: orderFormLiquidationPrice,
     marketPrice: assetData.price,
   });
 
@@ -2721,6 +2779,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isLoadingMarketData || (hasValidAmount && marginRequired == null);
     const parsedLiquidationPrice = Number.parseFloat(liquidationPrice);
     const hasLiquidationPrice =
+      !withholdsCrossLiquidationPrice &&
       hasValidAmount &&
       Number.isFinite(parsedLiquidationPrice) &&
       parsedLiquidationPrice > 0;
@@ -2728,8 +2787,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // retains it while calculating; only the initial unresolved request needs
     // a skeleton.
     const isTradeSheetLiquidationLoading =
-      isLoadingMarketData ||
-      (hasValidAmount && isCalculatingLiquidationPrice && !hasLiquidationPrice);
+      !withholdsCrossLiquidationPrice &&
+      (isLoadingMarketData ||
+        (hasValidAmount &&
+          isCalculatingLiquidationPrice &&
+          !hasLiquidationPrice));
     const tradeSheetLiquidationPrice = hasLiquidationPrice
       ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
       : PERPS_CONSTANTS.FallbackDataDisplay;
@@ -2930,7 +2992,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 initialStopLossPrice={orderForm.stopLossPrice}
                 leverage={orderForm.leverage}
                 limitPrice={orderForm.limitPrice}
-                liquidationPrice={liquidationPrice}
+                liquidationPrice={
+                  withholdsCrossLiquidationPrice ? undefined : liquidationPrice
+                }
                 orderType={tradeSheetOrderType}
                 szDecimals={szDecimals ?? undefined}
                 onSave={handleTradeTPSLSave}
@@ -2943,7 +3007,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ),
             marginInfo: <PerpsTradeInfoScreen contentKey="margin" />,
             liquidationInfo: (
-              <PerpsTradeInfoScreen contentKey="liquidation_price" />
+              <PerpsTradeInfoScreen contentKey={liquidationInfoContentKey} />
             ),
           }}
         />
@@ -3171,11 +3235,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             keyLabel={strings('perps.order.liquidation_price')}
             keyEndButtonIconProps={{
               iconName: IconName.Info,
-              onPress: () => handleTooltipPress('liquidation_price'),
+              onPress: () => handleTooltipPress(liquidationInfoContentKey),
               testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
             }}
             value={
-              hasValidAmount
+              hasValidAmount && !withholdsCrossLiquidationPrice
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })

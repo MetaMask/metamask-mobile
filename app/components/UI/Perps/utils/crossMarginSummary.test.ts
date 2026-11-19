@@ -1,0 +1,228 @@
+import type { AccountState } from '@metamask/perps-controller';
+import {
+  calculateCrossMarginAccountSummaryFromAccount,
+  estimateCrossLiquidationPrice,
+  getCrossMarginRatioAlert,
+  getCrossMarginRatioAlertLabel,
+  getCrossMarginRatioTone,
+  getCrossMarginSummaryThrottleMs,
+} from './crossMarginSummary';
+import {
+  CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
+  CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS,
+} from '../constants/perpsConfig';
+
+const crossMarginSummary = {
+  accountValue: '1000',
+  maintenanceMargin: '250',
+  marginUsed: '500',
+  notional: '12500',
+};
+
+describe('crossMarginSummary', () => {
+  describe('calculateCrossMarginAccountSummaryFromAccount', () => {
+    it('derives the summary from the account with no spot collateral', () => {
+      const account = {
+        totalBalance: '2000',
+        crossMarginSummary,
+        spotCollateral: '0',
+      } as AccountState;
+
+      const result = calculateCrossMarginAccountSummaryFromAccount(account);
+
+      expect(result).toEqual({
+        maintenanceMargin: 250,
+        accountRatio: 0.25,
+        accountLeverage: 6.25,
+        crossMarginUsage: 0.5,
+      });
+    });
+
+    it('counts the account spot collateral in the ratio and usage', () => {
+      const account = {
+        totalBalance: '2000',
+        crossMarginSummary: {
+          ...crossMarginSummary,
+          accountValue: '100',
+          maintenanceMargin: '60',
+          marginUsed: '60',
+        },
+        spotCollateral: '900',
+      } as AccountState;
+
+      const result = calculateCrossMarginAccountSummaryFromAccount(account);
+
+      expect(result.accountRatio).toBeCloseTo(0.06, 10);
+      expect(result.crossMarginUsage).toBeCloseTo(0.06, 10);
+    });
+
+    it('keeps the ratio and usage unknown until the account publishes spot collateral', () => {
+      const account = {
+        totalBalance: '2000',
+        crossMarginSummary,
+      } as AccountState;
+
+      const result = calculateCrossMarginAccountSummaryFromAccount(account);
+
+      expect(result.maintenanceMargin).toBe(250);
+      expect(result.accountRatio).toBeUndefined();
+      expect(result.crossMarginUsage).toBeUndefined();
+    });
+
+    it('returns undefined metrics for a null account', () => {
+      expect(calculateCrossMarginAccountSummaryFromAccount(null)).toEqual({
+        maintenanceMargin: undefined,
+        accountRatio: undefined,
+        accountLeverage: undefined,
+        crossMarginUsage: undefined,
+      });
+    });
+  });
+
+  describe('getCrossMarginRatioTone', () => {
+    it.each([
+      [undefined, undefined],
+      [0, 'safe'],
+      [0.4999, 'safe'],
+      [0.5, 'warning'],
+      [0.75, 'warning'],
+      [0.7501, 'danger'],
+      [1.2, 'danger'],
+    ])('maps %s to %s', (ratio, tone) => {
+      expect(getCrossMarginRatioTone(ratio)).toBe(tone);
+    });
+  });
+
+  describe('getCrossMarginRatioAlert', () => {
+    it.each([
+      [undefined, undefined],
+      ['safe' as const, undefined],
+      ['warning' as const, 'warning'],
+      ['danger' as const, 'danger'],
+    ])('maps %s to %s', (tone, alert) => {
+      expect(getCrossMarginRatioAlert(tone)).toBe(alert);
+    });
+
+    it('masks the ratio while privacy mode is on', () => {
+      expect(getCrossMarginRatioAlertLabel(0.8, true)).toBe('••••••');
+      expect(getCrossMarginRatioAlertLabel(0.8, false)).toBe('80%');
+    });
+  });
+
+  describe('estimateCrossLiquidationPrice', () => {
+    const params = {
+      entryPrice: 100,
+      size: 10,
+      maxLeverage: 50,
+      crossMarginSummary,
+      spotCollateral: '0',
+      providerId: 'hyperliquid' as const,
+    };
+
+    it.each([
+      [true, 25.2525],
+      [false, 173.2673],
+    ])(
+      'finds where equity meets maintenance margin (long: %s)',
+      (isLong, expected) => {
+        expect(
+          estimateCrossLiquidationPrice({ ...params, isLong }),
+        ).toBeCloseTo(expected, 4);
+      },
+    );
+
+    it('returns undefined on a venue other than Hyperliquid', () => {
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: false,
+          providerId: 'lighter',
+        }),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when the long cannot be liquidated', () => {
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: true,
+          crossMarginSummary: { ...crossMarginSummary, accountValue: '5000' },
+        }),
+      ).toBeUndefined();
+    });
+
+    it('counts spot collateral and stays unknown while it is not published', () => {
+      // 500 of spot lifts the short's liquidation from 173.2673 to 222.7723
+      const withSpot = estimateCrossLiquidationPrice({
+        ...params,
+        isLong: false,
+        spotCollateral: '500',
+      });
+
+      expect(withSpot).toBeCloseTo(222.7723, 4);
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: true,
+          spotCollateral: undefined,
+        }),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined without a cross summary, size, or max leverage', () => {
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: true,
+          crossMarginSummary: undefined,
+        }),
+      ).toBeUndefined();
+      expect(
+        estimateCrossLiquidationPrice({ ...params, isLong: true, size: 0 }),
+      ).toBeUndefined();
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: true,
+          maxLeverage: 0,
+        }),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('getCrossMarginSummaryThrottleMs', () => {
+    it.each([
+      [
+        'LOW',
+        'SLOW_CELLULAR',
+        CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
+      ],
+      ['MID', 'SLOW_CELLULAR', CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS],
+      [null, 'SLOW_CELLULAR', CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS],
+      ['LOW', 'WIFI', 1000],
+      ['LOW', null, 1000],
+      [null, null, 1000],
+    ] as const)(
+      'uses the matrix throttle for %s hardware on a %s network',
+      (hardwareTier, networkTier, expected) => {
+        expect(
+          getCrossMarginSummaryThrottleMs({
+            throttleMs: 1000,
+            hardwareTier,
+            networkTier,
+          }),
+        ).toBe(expected);
+      },
+    );
+
+    it('keeps a caller throttle that is already slower than the matrix', () => {
+      expect(
+        getCrossMarginSummaryThrottleMs({
+          throttleMs: 10000,
+          hardwareTier: 'LOW',
+          networkTier: 'SLOW_CELLULAR',
+        }),
+      ).toBe(10000);
+    });
+  });
+});

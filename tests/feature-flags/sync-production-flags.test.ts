@@ -13,6 +13,7 @@ import {
 } from './feature-flag-registry';
 import {
   compareProductionFlagsToRegistry,
+  EXCLUDED_FLAGS,
   findDuplicateRegistryKeys,
   pinScopedVariantsToDefault,
   updateRegistryFile,
@@ -326,7 +327,39 @@ describe('compareProductionFlagsToRegistry', () => {
     expect(result.hasDrift).toBe(true);
   });
 
-  it('does not skip any flags when EXCLUDED_FLAGS is empty', () => {
+  it('ignores predictCryptoPriceFeed, whose value carries a secret', () => {
+    const productionValue = {
+      enabled: true,
+      minimumVersion: '8.20.0',
+      chainlinkApiKey: 'fake-production-key',
+    };
+    const fullRegistryOverride = {
+      predictCryptoPriceFeed: { inProd: false },
+    };
+
+    const notInRegistry = compareProductionFlagsToRegistry(
+      [{ predictCryptoPriceFeed: productionValue }],
+      {},
+      fullRegistryOverride,
+    );
+    const differentInRegistry = compareProductionFlagsToRegistry(
+      [{ predictCryptoPriceFeed: productionValue }],
+      { predictCryptoPriceFeed: { ...productionValue, chainlinkApiKey: '' } },
+    );
+    const goneFromProduction = compareProductionFlagsToRegistry([], {
+      predictCryptoPriceFeed: productionValue,
+    });
+
+    expect(EXCLUDED_FLAGS.has('predictCryptoPriceFeed')).toBe(true);
+    [notInRegistry, differentInRegistry, goneFromProduction].forEach(
+      (result) => {
+        expect(result.hasDrift).toBe(false);
+        expect(JSON.stringify(result)).not.toContain('fake-production-key');
+      },
+    );
+  });
+
+  it('does not skip flags outside EXCLUDED_FLAGS', () => {
     const registryMap = { mobileMinimumVersions: { ios: '1.0.0' } };
     const prodResponse = [{ mobileMinimumVersions: { ios: '7.70.0' } }];
     const result = compareProductionFlagsToRegistry(prodResponse, registryMap);

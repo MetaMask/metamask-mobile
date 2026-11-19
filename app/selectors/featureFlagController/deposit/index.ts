@@ -25,13 +25,6 @@ export const selectDepositConfig = createSelector(
   },
 );
 
-export const selectDepositProviderApiKey = createSelector(
-  selectDepositConfig,
-  (depositConfig) => {
-    const depositProviderApiKey = depositConfig?.providerApiKey;
-    return depositProviderApiKey ?? null;
-  },
-);
 export const selectDepositProviderFrontendAuth = createSelector(
   selectDepositConfig,
   (depositConfig) => {
