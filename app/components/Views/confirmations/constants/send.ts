@@ -5,4 +5,5 @@ export const InitSendLocation = {
   WalletActions: 'wallet_actions',
   QRScanner: 'qr_scanner',
   Deeplink: 'deeplink',
+  MoneyAddSheet: 'money_add_sheet',
 };

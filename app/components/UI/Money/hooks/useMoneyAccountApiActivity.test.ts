@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../../core/apiClient';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyAccountDisplayAddress } from '../../../../selectors/moneyAccountLifecycleController';
 import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { parseAccountsApiActivity } from '../utils/accountsApi';
 import {
@@ -43,8 +43,8 @@ jest.mock('../../../../core/apiClient', () => ({
   },
 }));
 
-jest.mock('../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: jest.fn(),
+jest.mock('../../../../selectors/moneyAccountLifecycleController', () => ({
+  selectMoneyAccountDisplayAddress: jest.fn(),
 }));
 jest.mock('../../../../util/trace', () => ({
   annotateTrace: jest.fn(),
@@ -115,8 +115,8 @@ function setupSelectors(
   // Distinguish "not provided" (default account) from an explicit `undefined`.
   const account = 'account' in opts ? opts.account : { address: ADDR_A };
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectPrimaryMoneyAccount) {
-      return account;
+    if (selector === selectMoneyAccountDisplayAddress) {
+      return account?.address;
     }
     if (selector === selectMoneyCardActivityCashbackMultisendContracts) {
       return CASHBACK_MULTISEND_CONTRACTS;
@@ -176,6 +176,18 @@ describe('useMoneyAccountApiActivity', () => {
         staleTime: 5 * MINUTE,
         retry: false,
       }),
+    );
+  });
+
+  it('composes query options from the MFA address when the display address is the MFA account', () => {
+    const mfaAddress = '0x0000000000000000000000000000000000000002';
+    setupSelectors({ account: { address: mfaAddress } });
+
+    renderHook(() => useMoneyAccountApiActivity());
+
+    expect(mockGetQueryOptions).toHaveBeenCalledWith(
+      mfaAddress,
+      expect.anything(),
     );
   });
 

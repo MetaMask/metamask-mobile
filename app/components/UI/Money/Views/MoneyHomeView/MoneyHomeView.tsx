@@ -66,7 +66,6 @@ import {
   MoneyMfaStatusBanner,
 } from '../../components/MoneyMfa';
 import { useMoneyMfa } from '../../hooks/useMoneyMfa';
-import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
@@ -176,7 +175,6 @@ const DETAILS_REENTRY_WINDOW_MS = 1000;
 
 // The shield pulses once the success toast has left the header.
 // Measured on the iOS sim: white frames plus Money's fade-in after the carousel closes.
-const MONEY_ONBOARDING_CLOSE_FADE_MS = 800;
 const MFA_BADGE_PULSE_DELAY_MS = 3200;
 const MFA_BADGE_PULSE_MS = 3000;
 
@@ -348,33 +346,15 @@ const MoneyHomeView = () => {
   useFocusEffect(refreshMfaCredentials);
 
   const isMfaSignInRequired = mfaStatus === 'sign_in_required';
-  const { isOnboardingRedirectNeeded } = useMoneyOnboardingNavigation();
-  const wasOnboardingShown = useRef(isOnboardingRedirectNeeded);
-  useEffect(() => {
-    if (isOnboardingRedirectNeeded) {
-      wasOnboardingShown.current = true;
-    }
-  }, [isOnboardingRedirectNeeded]);
   const hasPromptedMfaSignIn = useRef(false);
-  // Waits for the intro carousel (flagged), then for its close fade.
   useFocusEffect(
     useCallback(() => {
-      if (
-        !isMfaSignInRequired ||
-        isOnboardingRedirectNeeded ||
-        hasPromptedMfaSignIn.current
-      ) {
+      if (!isMfaSignInRequired || hasPromptedMfaSignIn.current) {
         return;
       }
-      const timeout = setTimeout(
-        () => {
-          hasPromptedMfaSignIn.current = true;
-          signInToMoneyMfa().catch(() => undefined);
-        },
-        wasOnboardingShown.current ? MONEY_ONBOARDING_CLOSE_FADE_MS : 0,
-      );
-      return () => clearTimeout(timeout);
-    }, [isMfaSignInRequired, isOnboardingRedirectNeeded, signInToMoneyMfa]),
+      hasPromptedMfaSignIn.current = true;
+      signInToMoneyMfa().catch(() => undefined);
+    }, [isMfaSignInRequired, signInToMoneyMfa]),
   );
 
   const [isMfaBadgePulsePending, setIsMfaBadgePulsePending] = useState(false);

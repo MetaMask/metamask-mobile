@@ -28,6 +28,10 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
+import { selectMfaAddressPendingRestore } from '../../../../../selectors/moneyAccountLifecycleController';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { handleSendPageNavigation } from '../../../../Views/confirmations/utils/send';
+import { InitSendLocation } from '../../../../Views/confirmations/constants/send';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -132,6 +136,20 @@ jest.mock('../../selectors/visibility', () => ({
   selectMoneyAccountAccessBlockReason: jest.fn(),
 }));
 
+jest.mock('../../../../../selectors/moneyAccountLifecycleController', () => ({
+  selectMfaAddressPendingRestore: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../../../selectors/assets/assets-list'),
+  selectAssetsBySelectedAccountGroup: jest.fn(),
+}));
+
+jest.mock('../../../../Views/confirmations/utils/send', () => ({
+  ...jest.requireActual('../../../../Views/confirmations/utils/send'),
+  handleSendPageNavigation: jest.fn(),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -201,6 +219,12 @@ describe('MoneyAddMoneySheet', () => {
     (
       selectMoneyAccountAccessBlockReason as unknown as jest.Mock
     ).mockReturnValue(undefined);
+    (selectMfaAddressPendingRestore as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
+    (
+      selectAssetsBySelectedAccountGroup as unknown as jest.Mock
+    ).mockReturnValue({});
     delete process.env.MM_MONEY_VBA_GEO_BYPASS;
   });
 
@@ -684,6 +708,86 @@ describe('MoneyAddMoneySheet', () => {
         address: MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
         chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
       },
+    });
+  });
+
+  describe('with an MFA address pending restore', () => {
+    const MFA_ADDRESS = '0x0000000000000000000000000000000000000002';
+    const MUSD_ASSET = {
+      assetId: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET],
+      chainId: CHAIN_IDS.MAINNET,
+      symbol: 'mUSD',
+    };
+
+    beforeEach(() => {
+      (selectMfaAddressPendingRestore as unknown as jest.Mock).mockReturnValue(
+        MFA_ADDRESS,
+      );
+      (
+        selectAssetsBySelectedAccountGroup as unknown as jest.Mock
+      ).mockReturnValue({ [CHAIN_IDS.MAINNET]: [MUSD_ASSET] });
+    });
+
+    it('renders only the move-mUSD row', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyAddMoneySheet />,
+      );
+
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+      ).toBeNull();
+      expect(
+        queryByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+      ).toBeNull();
+      expect(
+        queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+      ).toBeNull();
+      expect(
+        queryByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
+      ).toBeNull();
+    });
+
+    it('opens send with mUSD and the MFA address as recipient when Move mUSD is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(handleSendPageNavigation).toHaveBeenCalledWith(mockNavigate, {
+        location: InitSendLocation.MoneyAddSheet,
+        asset: MUSD_ASSET,
+        predefinedRecipient: expect.objectContaining({ address: MFA_ADDRESS }),
+      });
+    });
+
+    it('does not start a deposit when Move mUSD is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    });
+
+    it('disables the move-mUSD row when there is no mUSD', () => {
+      (useMusdBalance as jest.Mock).mockReturnValue({
+        fiatBalanceAggregated: '0',
+        fiatBalanceAggregatedFormatted: '$0.00',
+        hasMusdBalanceOnAnyChain: false,
+        tokenBalanceAggregated: '0',
+        tokenBalanceByChain: {},
+      });
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+      ).toBeDisabled();
+      expect(handleSendPageNavigation).not.toHaveBeenCalled();
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
     });
   });
 

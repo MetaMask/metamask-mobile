@@ -349,15 +349,6 @@ jest.mock('../../hooks/useMoneyMfa', () => ({
   useMoneyMfa: jest.fn(),
 }));
 
-let mockIsOnboardingRedirectNeeded = false;
-jest.mock('../../hooks/useMoneyNavigation', () => ({
-  ...jest.requireActual('../../hooks/useMoneyNavigation'),
-  useMoneyOnboardingNavigation: () => ({
-    isOnboardingRedirectNeeded: mockIsOnboardingRedirectNeeded,
-    redirectToOnboardingIfNeeded: jest.fn(() => false),
-  }),
-}));
-
 const mockMfaRetry = jest.fn();
 const mockMfaDismissBanner = jest.fn();
 const mockMfaRefreshCredentials = jest.fn();
@@ -2775,81 +2766,34 @@ describe('MoneyHomeView', () => {
     });
 
     describe('sign-in prompt', () => {
-      const ONBOARDING_CLOSE_FADE_MS = 800;
-      const expectSignInStarted = (opened: boolean) =>
-        opened
-          ? expect(mockMfaSignIn).toHaveBeenCalled()
-          : expect(mockMfaSignIn).not.toHaveBeenCalled();
-
       beforeEach(() => {
         mockMfaSignIn.mockClear();
-        jest.useFakeTimers();
-        mockIsOnboardingRedirectNeeded = false;
       });
 
-      afterEach(() => {
-        jest.useRealTimers();
-        mockIsOnboardingRedirectNeeded = false;
-      });
-
-      it('starts sign-in right away when the carousel is not needed', () => {
+      it('starts sign-in when the screen opens and sign-in is required', () => {
         mockMfaStatus('sign_in_required');
 
         renderWithProvider(<MoneyHomeView />);
-        act(() => {
-          jest.advanceTimersByTime(0);
-        });
 
-        expectSignInStarted(true);
-      });
-
-      it('starts sign-in after the close fade once the carousel is no longer needed', () => {
-        mockMfaStatus('sign_in_required');
-        mockIsOnboardingRedirectNeeded = true;
-        const { rerender } = renderWithProvider(<MoneyHomeView />);
-        act(() => {
-          jest.advanceTimersByTime(ONBOARDING_CLOSE_FADE_MS);
-        });
-        expectSignInStarted(false);
-
-        mockIsOnboardingRedirectNeeded = false;
-        rerender(<MoneyHomeView />);
-        act(() => {
-          jest.advanceTimersByTime(ONBOARDING_CLOSE_FADE_MS - 1);
-        });
-        expectSignInStarted(false);
-        act(() => {
-          jest.advanceTimersByTime(1);
-        });
-
-        expectSignInStarted(true);
+        expect(mockMfaSignIn).toHaveBeenCalledTimes(1);
       });
 
       it('does not start sign-in when sign-in is not required', () => {
         mockMfaStatus('enabled');
 
         renderWithProvider(<MoneyHomeView />);
-        act(() => {
-          jest.advanceTimersByTime(ONBOARDING_CLOSE_FADE_MS);
-        });
 
-        expectSignInStarted(false);
+        expect(mockMfaSignIn).not.toHaveBeenCalled();
       });
 
       it('does not start sign-in again after it was started', () => {
         mockMfaStatus('sign_in_required');
         const { rerender } = renderWithProvider(<MoneyHomeView />);
-        act(() => {
-          jest.advanceTimersByTime(0);
-        });
         mockMfaSignIn.mockClear();
 
         rerender(<MoneyHomeView />);
-        act(() => {
-          jest.advanceTimersByTime(ONBOARDING_CLOSE_FADE_MS);
-        });
 
-        expectSignInStarted(false);
+        expect(mockMfaSignIn).not.toHaveBeenCalled();
       });
     });
 
