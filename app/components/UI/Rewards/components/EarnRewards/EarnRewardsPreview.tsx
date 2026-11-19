@@ -148,7 +148,10 @@ const EarnRewardsPreview: React.FC = () => {
       {/* paddingTop matches CampaignsPreview / BenefitsPreview, where
           sections pair SectionHeader with a pt-3 content box. */}
       <Box paddingTop={3}>
-        <View style={styles.tile}>
+        <View
+          testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_TILE}
+          style={styles.tile}
+        >
           <EarnCard
             testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
             image={musdImage}

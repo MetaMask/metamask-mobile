@@ -81,6 +81,24 @@ describe('RewardsDashboard copy trading', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('hides Earn rewards for a UK location', async () => {
+    const { findByText, queryByTestId } = renderRewardsDashboard({
+      socialV1: false,
+      showEarnRewards: true,
+      geoLocation: 'GB',
+    });
+
+    expect(
+      await findByText(
+        strings('rewards.onboarding.not_supported_region_description'),
+      ),
+    ).toBeOnTheScreen();
+
+    expect(
+      queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows Earn rewards when the copy-trading strings are missing', async () => {
     const referralMe = referralMeFixture('plain');
     const { findByTestId, queryByTestId } = renderRewardsDashboard({

@@ -131,30 +131,6 @@ describe('EarnRewardsPreview', () => {
       expect(UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
-    it('does not render Earn rewards while the location is unknown and geo is loading', () => {
-      setupSelectors({ geoStatus: 'loading' });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeNull();
-    });
-
-    it('does not render Earn rewards while geo is idle and the location is unknown', () => {
-      setupSelectors({ geoStatus: 'idle' });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeNull();
-    });
-
-    it('does not render Earn rewards for the UK while geo is still loading', () => {
-      setupSelectors({ geoLocation: 'GB', geoStatus: 'loading' });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeNull();
-    });
-
     it('shows the mUSD slide when geo is still loading but the location is already known', () => {
       setupSelectors({
         geoLocation: 'US',
@@ -181,37 +157,17 @@ describe('EarnRewardsPreview', () => {
 
     it('renders the only tile in the section without a horizontal scroller', () => {
       setupSelectors({ geoLocation: 'US' });
+
       const { getByTestId, UNSAFE_queryByType } = render(
         <EarnRewardsPreview />,
       );
-      const tile = getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD);
-      let node: {
-        props?: { style?: unknown };
-        parent?: typeof node;
-      } | null = tile;
-      let paddingHorizontal: number | undefined;
-      for (
-        let depth = 0;
-        depth < 8 && node && paddingHorizontal === undefined;
-        depth += 1
-      ) {
-        const style = node.props?.style;
-        const entries = Array.isArray(style) ? style : [style];
-        for (const entry of entries) {
-          if (
-            entry &&
-            typeof entry === 'object' &&
-            'paddingHorizontal' in entry &&
-            typeof entry.paddingHorizontal === 'number'
-          ) {
-            paddingHorizontal = entry.paddingHorizontal;
-          }
-        }
-        node = node.parent ?? null;
-      }
 
       expect(UNSAFE_queryByType(ScrollView)).toBeNull();
-      expect(paddingHorizontal).toBe(16);
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_TILE)).toHaveStyle(
+        {
+          paddingHorizontal: 16,
+        },
+      );
     });
 
     it('shows a header spinner while a known non-UK location is still idle', () => {
@@ -223,22 +179,6 @@ describe('EarnRewardsPreview', () => {
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeOnTheScreen();
       expect(UNSAFE_getByType(ActivityIndicator)).toBeDefined();
-    });
-
-    it('does not render Earn rewards when the location is unknown', () => {
-      setupSelectors({ geoLocation: undefined });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeNull();
-    });
-
-    it('does not render Earn rewards when the Money account is disabled', () => {
-      setupSelectors({ geoLocation: 'US', isMoneyAccountEnabled: false });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeNull();
     });
 
     it('shows mUSD card when geoLocation is UNKNOWN (treated as non-UK)', () => {
@@ -267,10 +207,40 @@ describe('EarnRewardsPreview', () => {
     });
   });
 
-  describe('after geo loaded — UK user', () => {
-    it('does not render Earn rewards for UK users', () => {
-      setupSelectors({ geoLocation: 'GB' });
+  describe('hidden Earn rewards', () => {
+    it.each<{
+      reason: string;
+      selectors: SetupOptions;
+    }>([
+      {
+        reason: 'the location is unknown and geo is loading',
+        selectors: { geoStatus: 'loading' },
+      },
+      {
+        reason: 'geo is idle and the location is unknown',
+        selectors: { geoStatus: 'idle' },
+      },
+      {
+        reason: 'the location is the UK and geo is still loading',
+        selectors: { geoLocation: 'GB', geoStatus: 'loading' },
+      },
+      {
+        reason: 'the location is unknown',
+        selectors: { geoLocation: undefined },
+      },
+      {
+        reason: 'the Money account is disabled',
+        selectors: { geoLocation: 'US', isMoneyAccountEnabled: false },
+      },
+      {
+        reason: 'the location is the UK',
+        selectors: { geoLocation: 'GB' },
+      },
+    ])('does not render Earn rewards when $reason', ({ selectors }) => {
+      setupSelectors(selectors);
+
       const { queryByTestId } = render(<EarnRewardsPreview />);
+
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
       ).toBeNull();

@@ -532,8 +532,8 @@ export interface RewardsMoneyViewStateOptions {
    */
   socialV1?: boolean;
   /**
-   * Money account on and a non-UK location, so the Earn rewards mUSD slide
-   * is on screen.
+   * Turns on the Money account flag so Earn rewards can render. When
+   * `geoLocation` is omitted, the location defaults to US.
    */
   showEarnRewards?: boolean;
   /**
@@ -565,7 +565,8 @@ export function rewardsMoneyViewState({
   referralMe: referralMeOverride,
   seedReferralMe = true,
   subscriptionId = null,
-  geoLocation = null,
+  showEarnRewards = false,
+  geoLocation = showEarnRewards ? 'US' : null,
   geoStatus,
   moneyControllerEnabled = false,
   pendingReferralCode = null,
@@ -574,7 +575,6 @@ export function rewardsMoneyViewState({
   glassHeaders = false,
   socialV1 = true,
   supportPreferenceSaved = false,
-  showEarnRewards = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = seedReferralMe
@@ -661,14 +661,6 @@ export function rewardsMoneyViewState({
         backgroundState: {
           ...withMoneyAccountOverrides(account, { includeMoneyAccount }).engine
             .backgroundState,
-          ...(showEarnRewards
-            ? {
-                GeolocationController: {
-                  location: 'US',
-                  status: 'complete',
-                },
-              }
-            : {}),
           AuthenticationController: {
             srpSessionData: {
               [REWARDS_MONEY_KEYRING_ID]: {
