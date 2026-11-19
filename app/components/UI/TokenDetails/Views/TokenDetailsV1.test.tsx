@@ -23,10 +23,6 @@ import {
   selectMemecoinTdpV1TokenApiBaseUrl,
 } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
-import {
-  LIVE_PRICE_HEADER_TEST_ID,
-  LIVE_PRICE_SCROLL_THRESHOLD_PX,
-} from '../hooks/useLivePriceHeaderDescription';
 import type { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
 import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.testIds';
@@ -446,6 +442,11 @@ jest.mock('../components/TokenDetailsInlineHeader', () => {
         </>
       );
     },
+    TokenDetailsIdentity: ({
+      titleEndAccessory,
+    }: {
+      titleEndAccessory?: React.ReactNode;
+    }) => <>{titleEndAccessory}</>,
   };
 });
 
@@ -608,7 +609,11 @@ describe('TokenDetailsV1', () => {
     // the actions row (below-chart Buy/Send/Receive events); both default to
     // 'v2', so dropping the prop would silently mislabel V1 as legacy.
     expect(mockInlineHeaderProps[0]).toEqual(
-      expect.objectContaining({ tdpVersion: 'v3' }),
+      expect.objectContaining({
+        tdpVersion: 'v3',
+        showIdentityInHeader: false,
+        hideContractAddress: true,
+      }),
     );
     expect(mockActionsSectionProps[0]).toEqual(
       expect.objectContaining({ tdpVersion: 'v3' }),
@@ -2038,59 +2043,6 @@ describe('TokenDetailsV1', () => {
         expect.objectContaining({ verdict: 'medium_risk' }),
       );
     });
-  });
-
-  it('keeps the contract address until the page is scrolled', () => {
-    const { queryByTestId } = render(
-      <TokenDetailsV1
-        token={baseToken}
-        variant={TokenDetailsVariant.Memecoin}
-      />,
-    );
-
-    expect(queryByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeNull();
-  });
-
-  it('replaces the contract address with the live price after scrolling', () => {
-    const { getByTestId, queryByTestId } = render(
-      <TokenDetailsV1
-        token={baseToken}
-        variant={TokenDetailsVariant.Memecoin}
-      />,
-    );
-
-    fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
-      nativeEvent: {
-        contentOffset: { y: LIVE_PRICE_SCROLL_THRESHOLD_PX },
-      },
-    });
-
-    expect(getByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeOnTheScreen();
-
-    fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
-      nativeEvent: { contentOffset: { y: 0 } },
-    });
-
-    expect(queryByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeNull();
-  });
-
-  it('keeps the contract address when there is no live price', () => {
-    mockCurrentPrice = 0;
-
-    const { getByTestId, queryByTestId } = render(
-      <TokenDetailsV1
-        token={baseToken}
-        variant={TokenDetailsVariant.Memecoin}
-      />,
-    );
-
-    fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
-      nativeEvent: {
-        contentOffset: { y: LIVE_PRICE_SCROLL_THRESHOLD_PX },
-      },
-    });
-
-    expect(queryByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeNull();
   });
 
   it('renders the stat bar for the variant it is given', () => {
