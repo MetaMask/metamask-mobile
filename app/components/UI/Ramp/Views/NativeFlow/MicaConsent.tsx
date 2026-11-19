@@ -110,15 +110,18 @@ const MicaConsent = (): React.JSX.Element => {
     setLoading(true);
 
     try {
-      // Capture consent timestamp in ISO 8601 with time zone offset
       const consentedAt = new Date().toISOString();
 
-      // Mock mode or real submission
+      let result;
       if (isMicaMockModeEnabled()) {
-        await mockSubmitMicaConsent(consentedAt);
+        result = await mockSubmitMicaConsent(consentedAt);
       } else {
-        // Real submission via controller (requires core PR integration)
-        await submitMicaConsentController(consentedAt);
+        result = await submitMicaConsentController(consentedAt);
+      }
+
+      if (result.status === 'FAILED') {
+        setError(strings('deposit.mica.consentSubmitError'));
+        return;
       }
 
       if (onConsentSubmitted) {

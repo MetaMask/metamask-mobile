@@ -120,7 +120,7 @@ describe('micaMockMode', () => {
   });
 
   describe('mockSubmitSourceOfIncome', () => {
-    it('resolves successfully', async () => {
+    it('returns SUBMITTED status after delay', async () => {
       const data = {
         monthlyVolume: '1000',
         sourceOfFundsType: 'salary_payment',
@@ -128,7 +128,8 @@ describe('micaMockMode', () => {
         countryOfCitizenship: 'DE',
       };
 
-      await expect(mockSubmitSourceOfIncome(data)).resolves.toBeUndefined();
+      const result = await mockSubmitSourceOfIncome(data);
+      expect(result.status).toBe('SUBMITTED');
     });
   });
 

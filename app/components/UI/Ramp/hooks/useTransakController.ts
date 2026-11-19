@@ -34,13 +34,15 @@ import {
 } from '../utils/micaMockMode';
 
 interface RampsControllerWithMica extends RampsController {
-  transakSubmitMicaConsent: (consentedAt: string) => Promise<void>;
+  transakSubmitMicaConsent: (
+    consentedAt: string,
+  ) => Promise<{ status: string }>;
   transakSubmitSourceOfIncome: (
     monthlyVolume: string,
     sourceOfFundsType: string,
     employmentStatus: string,
     countryOfCitizenship: string,
-  ) => Promise<void>;
+  ) => Promise<{ status: string }>;
 }
 
 export interface UseTransakControllerResult {

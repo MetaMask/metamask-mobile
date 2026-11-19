@@ -973,33 +973,43 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             );
             const formsRequired = additionalRequirements?.formsRequired || [];
 
-            // MiCA/EEA: CONSENT form (one-time for existing EEA users)
             const consentForm = formsRequired.find((f) => f.type === 'CONSENT');
             if (consentForm) {
-              navigation.navigate(Routes.RAMP.MICA_CONSENT, {
-                quote,
-                ...(baseRouteParams ?? {}),
-              });
+              if (depth < 5) {
+                navigation.navigate(Routes.RAMP.MICA_CONSENT, {
+                  quote,
+                  ...(baseRouteParams ?? {}),
+                });
+              } else {
+                Logger.error(
+                  new Error(`MiCA consent depth exceeded: ${depth}`),
+                );
+              }
               return;
             }
 
-            // MiCA/EEA: SOURCE_OF_INCOME form (EEA users)
             const sourceOfIncomeForm = formsRequired.find(
               (f) => f.type === 'SOURCE_OF_INCOME',
             );
             if (sourceOfIncomeForm) {
-              navigation.navigate(Routes.RAMP.SOURCE_OF_INCOME, {
-                quote,
-                metadata: {
-                  options: [],
-                  documentProofOptions: [],
-                  expiresAt: '',
-                  kycUrl: '',
-                  workFlowRunId: '',
-                  ...sourceOfIncomeForm.metadata,
-                },
-                ...(baseRouteParams ?? {}),
-              });
+              if (depth < 5) {
+                navigation.navigate(Routes.RAMP.SOURCE_OF_INCOME, {
+                  quote,
+                  metadata: {
+                    options: [],
+                    documentProofOptions: [],
+                    expiresAt: '',
+                    kycUrl: '',
+                    workFlowRunId: '',
+                    ...sourceOfIncomeForm.metadata,
+                  },
+                  ...(baseRouteParams ?? {}),
+                });
+              } else {
+                Logger.error(
+                  new Error(`Source of income depth exceeded: ${depth}`),
+                );
+              }
               return;
             }
 

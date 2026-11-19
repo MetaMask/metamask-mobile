@@ -248,6 +248,14 @@ function PaymentSelectionModal() {
     ],
   );
 
+  const allTermsIds = useMemo(() => {
+    const termsSet = new Set<string>();
+    quotes?.success?.forEach((quote) => {
+      quote.quote?.termsIds?.forEach((id) => termsSet.add(id));
+    });
+    return Array.from(termsSet);
+  }, [quotes]);
+
   const renderListContent = () => {
     if (paymentMethodsLoading) {
       return (
@@ -291,6 +299,11 @@ function PaymentSelectionModal() {
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
+        ListHeaderComponent={
+          allTermsIds.length > 0 ? (
+            <MicaDisclaimer termsIds={allTermsIds} />
+          ) : null
+        }
       />
     );
   };

@@ -120,17 +120,21 @@ const SourceOfIncome = (): React.JSX.Element => {
         ...(isEEA && { employmentStatus, countryOfCitizenship }),
       };
 
-      // Mock mode or real submission
+      let result;
       if (isMicaMockModeEnabled()) {
-        await mockSubmitSourceOfIncome(requestData);
+        result = await mockSubmitSourceOfIncome(requestData);
       } else {
-        // Real submission via controller (requires core PR integration)
-        await submitSourceOfIncomeController(
+        result = await submitSourceOfIncomeController(
           monthlyVolume,
           sourceOfFundsType,
           employmentStatus,
           countryOfCitizenship,
         );
+      }
+
+      if (result.status === 'FAILED') {
+        setError(strings('deposit.mica.sourceOfIncomeSubmitError'));
+        return;
       }
 
       if (onSourceOfIncomeSubmitted) {

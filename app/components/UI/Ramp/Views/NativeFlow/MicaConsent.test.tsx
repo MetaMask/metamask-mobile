@@ -38,7 +38,9 @@ const mockUserDetails = {
 };
 
 const mockGetUserDetails = jest.fn().mockResolvedValue(mockUserDetails);
-const mockSubmitMicaConsent = jest.fn().mockResolvedValue(undefined);
+const mockSubmitMicaConsent = jest
+  .fn()
+  .mockResolvedValue({ status: 'SUBMITTED' });
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({

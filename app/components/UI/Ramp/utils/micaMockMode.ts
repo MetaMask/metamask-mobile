@@ -112,7 +112,6 @@ export async function mockSubmitMicaConsent(
   consentedAt: string,
 ): Promise<{ status: 'SUBMITTED' }> {
   Logger.log('[MiCA Mock] Faking consent submission', { consentedAt });
-  // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 500));
   return { status: 'SUBMITTED' };
 }
@@ -122,10 +121,10 @@ export async function mockSubmitSourceOfIncome(data: {
   sourceOfFundsType: string;
   employmentStatus?: string;
   countryOfCitizenship?: string;
-}): Promise<void> {
+}): Promise<{ status: 'SUBMITTED' }> {
   Logger.log('[MiCA Mock] Faking source of income submission', data);
-  // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 500));
+  return { status: 'SUBMITTED' };
 }
 
 /**
