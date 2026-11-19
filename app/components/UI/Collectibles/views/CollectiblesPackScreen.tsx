@@ -1,6 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -8,13 +7,13 @@ import {
 } from '@react-navigation/native';
 import {
   HeaderStandard,
-  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import type Routes from '../../../../constants/navigation/Routes';
+import { View } from '../../primitives/View';
+import { Text } from '../../primitives/Text';
 import type { CollectiblesStackParamList } from '../types/navigation';
 
 type PackRoute = RouteProp<
@@ -23,25 +22,23 @@ type PackRoute = RouteProp<
 >;
 
 /** Placeholder for the pack detail page until GAC-88. */
-function CollectiblesPackScreen() {
-  const tw = useTailwind();
+export function CollectiblesPackScreen() {
+  const { top } = useSafeAreaInsets();
   const navigation = useNavigation();
   // Later: useLocalSearchParams() with Expo Router.
   const { packCode } = useRoute<PackRoute>().params;
 
   return (
-    <SafeAreaView edges={['top']} style={tw.style('flex-1 bg-default')}>
+    <View className="flex-1 bg-default" style={{ paddingTop: top }}>
       <HeaderStandard
         title={strings('collectibles.placeholder.pack')}
         onBack={() => navigation.goBack()}
       />
-      <View style={tw.style('flex-1 items-center justify-center p-4')}>
+      <View className="flex-1 items-center justify-center p-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {packCode}
         </Text>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
-
-export default CollectiblesPackScreen;

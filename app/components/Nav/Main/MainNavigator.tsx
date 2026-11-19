@@ -193,8 +193,8 @@ import {
 } from '../../UI/Predict';
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
 import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
-import CollectiblesScreenStack from '../../UI/Collectibles/routes';
-import CollectiblesBuySheet from '../../UI/Collectibles/views/CollectiblesBuySheet';
+import { CollectiblesScreenStack } from '../../UI/Collectibles/routes';
+import { CollectiblesBuySheet } from '../../UI/Collectibles/views/CollectiblesBuySheet';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {

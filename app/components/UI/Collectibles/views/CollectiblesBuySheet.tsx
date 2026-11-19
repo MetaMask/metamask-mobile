@@ -1,6 +1,4 @@
 import React, { useRef } from 'react';
-import { View } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useNavigation,
   useRoute,
@@ -10,28 +8,28 @@ import {
   BottomSheet,
   BottomSheetHeader,
   type BottomSheetRef,
-  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { View } from '../../primitives/View';
+import { Text } from '../../primitives/Text';
 
 type BuySheetRoute = RouteProp<RootStackParamList, 'CollectiblesBuySheet'>;
 
 /** Placeholder buy sheet over Home until GAC-77. */
-function CollectiblesBuySheet() {
+export function CollectiblesBuySheet() {
   const navigation = useNavigation();
   const { packCode } = useRoute<BuySheetRoute>().params;
   const sheetRef = useRef<BottomSheetRef>(null);
-  const tw = useTailwind();
 
   return (
     <BottomSheet ref={sheetRef} goBack={() => navigation.goBack()}>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         {strings('collectibles.placeholder.buy')}
       </BottomSheetHeader>
-      <View style={tw.style('p-4')}>
+      <View className="p-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {packCode}
         </Text>
@@ -39,5 +37,3 @@ function CollectiblesBuySheet() {
     </BottomSheet>
   );
 }
-
-export default CollectiblesBuySheet;

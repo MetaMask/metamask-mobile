@@ -1,33 +1,30 @@
 import React from 'react';
-import { View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
   HeaderStandard,
-  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
+import { View } from '../../primitives/View';
+import { Text } from '../../primitives/Text';
 
-function CollectiblesHomeScreen() {
-  const tw = useTailwind();
+export function CollectiblesHomeScreen() {
+  const { top } = useSafeAreaInsets();
   const navigation = useNavigation();
 
   return (
-    <SafeAreaView edges={['top']} style={tw.style('flex-1 bg-default')}>
+    <View className="flex-1 bg-default" style={{ paddingTop: top }}>
       <HeaderStandard
         title={strings('collectibles.placeholder.main')}
         onBack={() => navigation.goBack()}
       />
-      <View style={tw.style('flex-1 items-center justify-center p-4')}>
+      <View className="flex-1 items-center justify-center p-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('collectibles.placeholder.coming_soon')}
         </Text>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
-
-export default CollectiblesHomeScreen;
