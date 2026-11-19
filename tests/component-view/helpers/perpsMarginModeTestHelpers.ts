@@ -82,6 +82,15 @@ export async function confirmCrossMarginSheet() {
   );
 }
 
+/** Leave the cross margin confirm sheet without acknowledging the risks. */
+export async function goBackFromCrossMarginSheet() {
+  await screen.findByTestId(confirmIds.CONTAINER);
+  fireEvent.press(screen.getByTestId(confirmIds.GO_BACK_BUTTON));
+  await waitFor(() =>
+    expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen(),
+  );
+}
+
 /** Press an option in the open margin mode sheet and wait for it to close. */
 export async function pressMarginModeOption(
   optionId: typeof marginIds.CROSS_OPTION | typeof marginIds.ISOLATED_OPTION,

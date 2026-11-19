@@ -20,15 +20,16 @@ import {
   createFundedAccountForViews,
   createLongPositionForViews,
 } from '../../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import { createAccountSwitcher } from '../../../../../../../tests/component-view/helpers/accountSwitcher';
 import {
   crossMarginMarketInfo,
+  goBackFromCrossMarginSheet,
   openMarginModeSheet,
   pressMarginModeOption,
   resetMarginModeControllerMocks,
   selectCrossMarginMode,
 } from '../../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import {
-  createPerpsAccountSwitcher,
   createPerpsControllerStateHarness,
   wirePerpsControllerForStore,
 } from '../../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
@@ -95,6 +96,15 @@ const getSelectedAccount = (
     store.getState().engine.backgroundState.AccountsController.internalAccounts;
   return { id: selectedAccount, address: accounts[selectedAccount].address };
 };
+
+async function expectCrossSelectedWithoutConfirmation() {
+  await waitFor(() =>
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.margin_mode.cross_title'),
+    ),
+  );
+  expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen();
+}
 
 describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   let unwire: (() => void) | undefined;
@@ -320,23 +330,14 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     await openMarginModeSheet();
     await pressMarginModeOption(marginIds.CROSS_OPTION);
 
-    await waitFor(() =>
-      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
-        strings('perps.margin_mode.cross_title'),
-      ),
-    );
-    expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen();
+    await expectCrossSelectedWithoutConfirmation();
   });
 
   it('reopens the Cross confirmation when the user goes back instead of confirming', async () => {
     renderPerpsCrossMarginOrderFormPanel();
     await openMarginModeSheet();
     await pressMarginModeOption(marginIds.CROSS_OPTION);
-    await screen.findByTestId(confirmIds.CONTAINER);
-    fireEvent.press(screen.getByTestId(confirmIds.GO_BACK_BUTTON));
-    await waitFor(() =>
-      expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await goBackFromCrossMarginSheet();
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.pro_order_form.isolated'),
     );
@@ -349,7 +350,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
 
   it('keeps the Cross confirmation separate for each account', async () => {
     const { store } = renderPerpsCrossMarginOrderFormPanel();
-    const accountSwitcher = createPerpsAccountSwitcher(store);
+    const accountSwitcher = createAccountSwitcher(store);
     restoreAccount = accountSwitcher.cleanup;
     const firstAccount = getSelectedAccount(store);
     await openMarginModeSheet();
@@ -360,28 +361,17 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     act(() => accountSwitcher.switchTo(SECOND_ACCOUNT_ID, SECOND_ACCOUNT));
     await openMarginModeSheet();
     await pressMarginModeOption(marginIds.CROSS_OPTION);
-
-    await screen.findByTestId(confirmIds.CONTAINER);
-
-    fireEvent.press(screen.getByTestId(confirmIds.GO_BACK_BUTTON));
-    await waitFor(() =>
-      expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await goBackFromCrossMarginSheet();
     act(() => accountSwitcher.switchTo(firstAccount.id, firstAccount.address));
     await openMarginModeSheet();
     await pressMarginModeOption(marginIds.CROSS_OPTION);
 
-    await waitFor(() =>
-      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
-        strings('perps.margin_mode.cross_title'),
-      ),
-    );
-    expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen();
+    await expectCrossSelectedWithoutConfirmation();
   });
 
   it('closes the Cross confirmation without selecting Cross when the account changes', async () => {
     const { store } = renderPerpsCrossMarginOrderFormPanel();
-    const accountSwitcher = createPerpsAccountSwitcher(store);
+    const accountSwitcher = createAccountSwitcher(store);
     restoreAccount = accountSwitcher.cleanup;
     await openMarginModeSheet();
     await pressMarginModeOption(marginIds.CROSS_OPTION);
