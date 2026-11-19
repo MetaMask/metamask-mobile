@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   useNavigation,
   useRoute,
@@ -12,45 +12,89 @@ import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsB
 import type { TabItem } from '../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
-import type { MoneyNavigationParamList } from '../../types/navigation';
+import type {
+  MoneyEarningsTab,
+  MoneyNavigationParamList,
+} from '../../types/navigation';
+import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import EarningsTab from './EarningsTab';
 import MoneyEarningsFooter from './MoneyEarningsFooter';
 
 type MoneyEarningsRoute = RouteProp<MoneyNavigationParamList, 'MoneyEarnings'>;
 
-// TODO: Implement tab navigation when building APY and Allocation tabs.
-const handleTabPress = (): undefined => undefined;
+type MoneyEarningsTabItem = TabItem & { key: MoneyEarningsTab };
+
+const getInitialActiveTab = (
+  requestedTab: MoneyEarningsTab | undefined,
+): MoneyEarningsTab =>
+  requestedTab === 'earnings' ? requestedTab : 'earnings';
+
+const isEnabledTab = (
+  tab: MoneyEarningsTab,
+): tab is Extract<MoneyEarningsTab, 'earnings'> => tab === 'earnings';
 
 const MoneyEarningsView = (): React.ReactElement => {
   const navigation = useNavigation<AppNavigationProp>();
   const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const { params } = useRoute<MoneyEarningsRoute>();
-  const requestedTab = params?.activeTab ?? 'earnings';
-  const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
-  const tabs: TabItem[] = [
-    {
-      key: 'earnings',
-      label: strings('money.earnings.tab_earnings'),
-      content: null,
-      testID: MoneyEarningsViewTestIds.TAB_EARNINGS,
+  const initialActiveTab = getInitialActiveTab(params?.activeTab);
+  const [activeTab, setActiveTab] =
+    useState<MoneyEarningsTab>(initialActiveTab);
+  const [visitedTabs, setVisitedTabs] = useState<ReadonlySet<MoneyEarningsTab>>(
+    () => new Set([initialActiveTab]),
+  );
+  const tabs = useMemo<MoneyEarningsTabItem[]>(
+    () => [
+      {
+        key: 'earnings',
+        label: strings('money.earnings.tab_earnings'),
+        content: null,
+        testID: MoneyEarningsViewTestIds.TAB_EARNINGS,
+      },
+      {
+        key: 'apy',
+        label: strings('money.earnings.tab_apy'),
+        content: null,
+        isDisabled: true,
+        testID: MoneyEarningsViewTestIds.TAB_APY,
+      },
+      {
+        key: 'allocation',
+        label: strings('money.earnings.tab_allocation'),
+        content: null,
+        isDisabled: true,
+        testID: MoneyEarningsViewTestIds.TAB_ALLOCATION,
+      },
+    ],
+    [],
+  );
+  const handleTabPress = useCallback(
+    (index: number): void => {
+      const selectedTab = tabs[index];
+      if (
+        !selectedTab ||
+        selectedTab.isDisabled ||
+        !isEnabledTab(selectedTab.key)
+      ) {
+        return;
+      }
+
+      setActiveTab(selectedTab.key);
+      setVisitedTabs((previousVisitedTabs) => {
+        if (previousVisitedTabs.has(selectedTab.key)) {
+          return previousVisitedTabs;
+        }
+
+        const nextVisitedTabs = new Set(previousVisitedTabs);
+        nextVisitedTabs.add(selectedTab.key);
+        return nextVisitedTabs;
+      });
     },
-    {
-      key: 'apy',
-      label: strings('money.earnings.tab_apy'),
-      content: null,
-      isDisabled: true,
-      testID: MoneyEarningsViewTestIds.TAB_APY,
-    },
-    {
-      key: 'allocation',
-      label: strings('money.earnings.tab_allocation'),
-      content: null,
-      isDisabled: true,
-      testID: MoneyEarningsViewTestIds.TAB_ALLOCATION,
-    },
-  ];
+    [tabs],
+  );
   const activeTabIndex = tabs.findIndex(({ key }) => key === activeTab);
+  const isEarningsActive = activeTab === 'earnings';
 
   return (
     <Box
@@ -72,7 +116,19 @@ const MoneyEarningsView = (): React.ReactElement => {
           onTabPress={handleTabPress}
         />
       </Box>
-      {activeTab === 'earnings' ? <EarningsTab isActive /> : null}
+      {visitedTabs.has('earnings') ? (
+        <Box
+          testID={MoneyEarningsTestIds.EARNINGS_PANEL}
+          twClassName={isEarningsActive ? 'flex-1' : 'hidden'}
+          accessibilityElementsHidden={!isEarningsActive}
+          importantForAccessibility={
+            isEarningsActive ? 'auto' : 'no-hide-descendants'
+          }
+          pointerEvents={isEarningsActive ? 'auto' : 'none'}
+        >
+          <EarningsTab isActive={isEarningsActive} />
+        </Box>
+      ) : null}
       <MoneyEarningsFooter />
     </Box>
   );

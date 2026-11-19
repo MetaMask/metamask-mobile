@@ -1,39 +1,54 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import type { TabItem } from '../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
-import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
-import type {
-  InterestHistoryAvailability,
-  InterestHistoryBucket,
-  InterestHistoryRange,
-  InterestHistoryResponse,
-} from '../../types/moneyInterestHistory';
+import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import MoneyEarningsView from './MoneyEarningsView';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn();
-const mockRefetchHistoricalEarnings = jest.fn();
+const mockTabsBarProps = jest.fn();
+const mockEarningsTab = jest.fn();
+const mockMoneyEarningsFooter = jest.fn(() => null);
+interface MockTabsBarProps {
+  tabs: TabItem[];
+  activeIndex: number;
+  onTabPress: (index: number) => void;
+}
 
 jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  const actualReactNavigation = jest.requireActual(
+    '@react-navigation/native',
+  ) as typeof import('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: (): { goBack: typeof mockGoBack } => ({
       goBack: mockGoBack,
     }),
-    useRoute: (): unknown => mockUseRoute(),
+    useRoute: (): ReturnType<typeof mockUseRoute> => mockUseRoute(),
   };
 });
 
-jest.mock('../../hooks/useMoneyHistoricalEarnings', () => ({
-  useMoneyHistoricalEarnings: jest.fn(),
+jest.mock('./EarningsTab', () => ({
+  __esModule: true,
+  default: (props: { isActive: boolean }) => {
+    mockEarningsTab(props);
+    return null;
+  },
 }));
 
-jest.mock('../../hooks/useMoneyAccountProjectedEarnings', () => ({
+jest.mock(
+  '../../../../../component-library/components-temp/Tabs/TabsBar',
+  () => ({
+    __esModule: true,
+    default: (props: MockTabsBarProps) => mockTabsBarProps(props) || null,
+  }),
+);
+
+jest.mock('./MoneyEarningsFooter', () => ({
   __esModule: true,
-  default: jest.fn(),
+  default: () => mockMoneyEarningsFooter() || null,
 }));
 
 let mockIsMoneyBrandRefresh = false;
@@ -45,164 +60,28 @@ jest.mock(
 );
 
 const mockHeaderStandardGlassProps = jest.fn();
+
 jest.mock(
   '../../../../../component-library/components-temp/HeaderStandardGlass',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const ActualHeaderStandardGlass = jest.requireActual(
-      '../../../../../component-library/components-temp/HeaderStandardGlass',
-    ).default;
-
-    return {
-      __esModule: true,
-      default: (props: Record<string, unknown>) => {
-        mockHeaderStandardGlassProps(props);
-        return ReactActual.createElement(ActualHeaderStandardGlass, props);
-      },
-    };
-  },
+  () => ({
+    __esModule: true,
+    default: (props: Record<string, unknown>) =>
+      mockHeaderStandardGlassProps(props) || null,
+  }),
 );
 
-jest.mock('./MoneyEarningsFooter', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-const mockUseMoneyHistoricalEarnings = jest.mocked(useMoneyHistoricalEarnings);
-const mockUseMoneyAccountProjectedEarnings = jest.mocked(
-  useMoneyAccountProjectedEarnings,
-);
-
-const setProjectedEarningsResult = (
-  result: Partial<ReturnType<typeof useMoneyAccountProjectedEarnings>> = {},
-): void => {
-  mockUseMoneyAccountProjectedEarnings.mockReturnValue({
-    balanceFiat: 60000,
-    apyDecimal: 0.04,
-    projectedAmount: 2400,
-    ...result,
-  });
-};
-
-const available: InterestHistoryAvailability = {
-  earnings: 'available',
-  usd_pricing: 'available',
-};
-
-const createBucket = (
-  start: string,
-  interestEarnedUsd: string | null,
-  bucketAvailability: InterestHistoryAvailability = available,
-): InterestHistoryBucket => ({
-  start,
-  end: new Date(Date.parse(start) + 24 * 60 * 60 * 1000).toISOString(),
-  period_status: 'complete',
-  availability: bucketAvailability,
-  unavailable_reasons:
-    bucketAvailability.earnings === 'available'
-      ? []
-      : ['before_user_earnings_inception'],
-  interest_earned_musd_assets: interestEarnedUsd,
-  interest_earned_usd: interestEarnedUsd,
-  musd_price_usd: bucketAvailability.usd_pricing === 'available' ? '1' : null,
-  price_as_of: bucketAvailability.usd_pricing === 'available' ? start : null,
-  price_source:
-    bucketAvailability.usd_pricing === 'available'
-      ? 'metamask_price_api'
-      : null,
-  by_vault: [],
-});
-
-const createRange = (
-  range: InterestHistoryRange['range'],
-  buckets: InterestHistoryBucket[],
-  total: string,
-): InterestHistoryRange => ({
-  range,
-  granularity: range === '7d' ? 'day' : range === '30d' ? 'week' : 'month',
-  range_start: buckets[0]?.start ?? '2026-10-17T00:00:00.000Z',
-  range_end: '2026-11-16T00:00:00.000Z',
-  period_status: 'partial',
-  availability: available,
-  unavailable_reasons: [],
-  totals: {
-    interest_earned_musd_assets: total,
-    interest_earned_usd: total,
-  },
-  buckets,
-});
-
-const historicalEarnings: InterestHistoryResponse = {
-  address: '0x1234',
-  chain_id: 143,
-  bucket_timezone: 'UTC',
-  updated_through: '2026-11-16T16:02:44.000Z',
-  source_watermark: {
-    vault_accounting: {
-      block_number: '122782198',
-      block_timestamp: '2026-11-16T16:02:44.000Z',
-    },
-  },
-  method: 'nav_difference',
-  denomination: {
-    asset: 'mUSD',
-    decimals: 6,
-  },
-  ranges: [
-    createRange('7d', [createBucket('2026-11-15T00:00:00.000Z', '10')], '10'),
-    createRange(
-      '30d',
-      [
-        createBucket('2026-10-18T00:00:00.000Z', '20'),
-        createBucket('2026-11-15T00:00:00.000Z', '10'),
-      ],
-      '200',
-    ),
-    createRange('90d', [createBucket('2026-11-15T00:00:00.000Z', '10')], '30'),
-    createRange(
-      '180d',
-      [
-        createBucket('2026-01-01T00:00:00.000Z', '70'),
-        createBucket('2026-11-15T00:00:00.000Z', '10'),
-      ],
-      '80',
-    ),
-    createRange(
-      '365d',
-      [
-        createBucket('2026-01-01T00:00:00.000Z', '70'),
-        createBucket('2026-10-18T00:00:00.000Z', '20'),
-        createBucket('2026-11-15T00:00:00.000Z', '10'),
-      ],
-      '300',
-    ),
-  ],
-};
-
-const setHistoricalEarningsResult = ({
-  data = historicalEarnings,
-  isLoading = false,
-  isError = false,
-}: {
-  data?: InterestHistoryResponse | null;
-  isLoading?: boolean;
-  isError?: boolean;
-} = {}): void => {
-  mockUseMoneyHistoricalEarnings.mockReturnValue({
-    data,
-    isLoading,
-    isError,
-    refetch: mockRefetchHistoricalEarnings,
-  } as unknown as ReturnType<typeof useMoneyHistoricalEarnings>);
-};
+const getTabsBarProps = (): {
+  tabs: TabItem[];
+  activeIndex: number;
+  onTabPress: (index: number) => void;
+} =>
+  mockTabsBarProps.mock.calls.at(-1)?.[0] as ReturnType<typeof getTabsBarProps>;
 
 describe('MoneyEarningsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsMoneyBrandRefresh = false;
     mockUseRoute.mockReturnValue({ params: undefined });
-    setHistoricalEarningsResult();
-    setProjectedEarningsResult();
   });
 
   describe('header', () => {
@@ -238,27 +117,86 @@ describe('MoneyEarningsView', () => {
     });
   });
 
-  it('selects the Earnings tab when route params are missing', () => {
-    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
+  it('initializes the Earnings tab when route params are missing', () => {
+    renderWithProvider(<MoneyEarningsView />);
 
-    const earningsTab = getByTestId(MoneyEarningsViewTestIds.TAB_EARNINGS);
+    const earningsTab = getTabsBarProps().tabs.find(
+      ({ key }) => key === 'earnings',
+    );
 
-    expect(earningsTab.props.accessibilityState.disabled).toBe(false);
+    expect(earningsTab?.isDisabled).toBeUndefined();
+    expect(getTabsBarProps().activeIndex).toBe(0);
+    expect(mockEarningsTab).toHaveBeenCalledWith({ isActive: true });
+    expect(mockMoneyEarningsFooter).toHaveBeenCalledTimes(1);
   });
 
-  it('normalizes an unsupported route tab to Earnings', () => {
+  it('normalizes a disabled Allocation route tab to Earnings', () => {
     mockUseRoute.mockReturnValue({ params: { activeTab: 'allocation' } });
 
-    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
+    renderWithProvider(<MoneyEarningsView />);
 
-    const earningsTab = getByTestId(MoneyEarningsViewTestIds.TAB_EARNINGS);
-    const apyTab = getByTestId(MoneyEarningsViewTestIds.TAB_APY);
-    const allocationTab = getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION);
+    const { tabs, activeIndex } = getTabsBarProps();
 
-    expect(earningsTab.props.accessibilityState.disabled).toBe(false);
-    expect(apyTab.props.accessibilityState.disabled).toBe(true);
-    expect(apyTab.props.onPress).toBeUndefined();
-    expect(allocationTab.props.accessibilityState.disabled).toBe(true);
-    expect(allocationTab.props.onPress).toBeUndefined();
+    expect(tabs.find(({ key }) => key === 'apy')?.isDisabled).toBe(true);
+    expect(tabs.find(({ key }) => key === 'allocation')?.isDisabled).toBe(true);
+    expect(activeIndex).toBe(0);
+    expect(mockEarningsTab).toHaveBeenCalledWith({ isActive: true });
+  });
+
+  it('normalizes a malformed route tab to Earnings', () => {
+    mockUseRoute.mockReturnValue({ params: { activeTab: 'unsupported' } });
+
+    renderWithProvider(<MoneyEarningsView />);
+
+    expect(getTabsBarProps().activeIndex).toBe(0);
+    expect(mockEarningsTab).toHaveBeenCalledWith({ isActive: true });
+  });
+
+  it('keeps APY and Allocation disabled', () => {
+    renderWithProvider(<MoneyEarningsView />);
+
+    getTabsBarProps().onTabPress(1);
+    getTabsBarProps().onTabPress(2);
+
+    expect(getTabsBarProps().activeIndex).toBe(0);
+    expect(mockEarningsTab).toHaveBeenCalledWith({ isActive: true });
+  });
+
+  it('lazily mounts and retains the visited Earnings panel', () => {
+    const { getByTestId, rerender } = renderWithProvider(<MoneyEarningsView />);
+
+    const panel = getByTestId(MoneyEarningsTestIds.EARNINGS_PANEL);
+
+    expect(panel).toBeOnTheScreen();
+    expect(StyleSheet.flatten(panel.props.style)).toMatchObject({
+      display: 'flex',
+      flexBasis: '0%',
+      flexGrow: 1,
+      flexShrink: 1,
+    });
+    expect(panel.props.accessibilityElementsHidden).toBe(false);
+    expect(panel.props.importantForAccessibility).toBe('auto');
+    expect(panel.props.pointerEvents).toBe('auto');
+    expect(mockEarningsTab).toHaveBeenCalledTimes(1);
+
+    rerender(<MoneyEarningsView />);
+
+    expect(getByTestId(MoneyEarningsTestIds.EARNINGS_PANEL)).toBe(panel);
+    expect(mockEarningsTab).toHaveBeenLastCalledWith({ isActive: true });
+  });
+
+  it('does not rerender an already visited Earnings tab', () => {
+    renderWithProvider(<MoneyEarningsView />);
+    const initialRenderCount = mockEarningsTab.mock.calls.length;
+
+    getTabsBarProps().onTabPress(0);
+
+    expect(mockEarningsTab).toHaveBeenCalledTimes(initialRenderCount);
+  });
+
+  it('passes the active state to the rendered Earnings tab', () => {
+    renderWithProvider(<MoneyEarningsView />);
+
+    expect(mockEarningsTab).toHaveBeenLastCalledWith({ isActive: true });
   });
 });
