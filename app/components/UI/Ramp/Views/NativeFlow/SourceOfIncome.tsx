@@ -35,10 +35,12 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 import {
   isMicaMockModeEnabled,
   mockSubmitSourceOfIncome,
+  EEA_COUNTRIES,
 } from '../../utils/micaMockMode';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import styleSheet from './SourceOfIncome.styles';
 
 interface SourceOfIncomeMetadata
@@ -67,6 +69,7 @@ const SourceOfIncome = (): React.JSX.Element => {
   const { routeAfterAuthentication } = useTransakRouting({
     screenLocation: 'SourceOfIncome Screen',
   });
+  const { userRegion } = useRampsUserRegion();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,13 +78,64 @@ const SourceOfIncome = (): React.JSX.Element => {
   const [employmentStatus, setEmploymentStatus] = useState('');
   const [countryOfCitizenship, setCountryOfCitizenship] = useState('');
 
-  // EEA users have employmentStatusOptions and countryOfCitizenshipOptions
-  const isEEA =
-    Boolean(metadata.employmentStatusOptions?.length) &&
-    Boolean(metadata.countryOfCitizenshipOptions?.length);
+  const regionIsoCode = userRegion?.country?.isoCode || '';
+  const isEEA = EEA_COUNTRIES.includes(regionIsoCode.toUpperCase());
 
   const sourceOfFundsOptions: { name: string; value: string }[] =
     metadata.sourceOfFundsTypeOptions || [];
+
+  const employmentStatusOptions: { name: string; value: string }[] = metadata
+    .employmentStatusOptions?.length
+    ? metadata.employmentStatusOptions
+    : [
+        { name: 'Student', value: 'student' },
+        { name: 'Retired', value: 'retired' },
+        { name: 'Unemployed', value: 'unemployed' },
+        { name: 'Self Employed', value: 'self_employed' },
+        {
+          name: 'Junior/Entry-Level Employee',
+          value: 'junior_entry_level_employee',
+        },
+        { name: 'Mid-Level Employee', value: 'mid_level_employee' },
+        { name: 'Management Role', value: 'management_role' },
+        { name: 'Executive Role', value: 'executive_role' },
+      ];
+
+  const countryOfCitizenshipOptions: { name: string; value: string }[] =
+    metadata.countryOfCitizenshipOptions?.length
+      ? metadata.countryOfCitizenshipOptions
+      : [
+          { name: 'Austria', value: 'AT' },
+          { name: 'Belgium', value: 'BE' },
+          { name: 'Bulgaria', value: 'BG' },
+          { name: 'Croatia', value: 'HR' },
+          { name: 'Cyprus', value: 'CY' },
+          { name: 'Czech Republic', value: 'CZ' },
+          { name: 'Denmark', value: 'DK' },
+          { name: 'Estonia', value: 'EE' },
+          { name: 'Finland', value: 'FI' },
+          { name: 'France', value: 'FR' },
+          { name: 'Germany', value: 'DE' },
+          { name: 'Greece', value: 'GR' },
+          { name: 'Hungary', value: 'HU' },
+          { name: 'Ireland', value: 'IE' },
+          { name: 'Italy', value: 'IT' },
+          { name: 'Latvia', value: 'LV' },
+          { name: 'Lithuania', value: 'LT' },
+          { name: 'Luxembourg', value: 'LU' },
+          { name: 'Malta', value: 'MT' },
+          { name: 'Netherlands', value: 'NL' },
+          { name: 'Poland', value: 'PL' },
+          { name: 'Portugal', value: 'PT' },
+          { name: 'Romania', value: 'RO' },
+          { name: 'Slovakia', value: 'SK' },
+          { name: 'Slovenia', value: 'SI' },
+          { name: 'Spain', value: 'ES' },
+          { name: 'Sweden', value: 'SE' },
+          { name: 'Iceland', value: 'IS' },
+          { name: 'Liechtenstein', value: 'LI' },
+          { name: 'Norway', value: 'NO' },
+        ];
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -239,7 +293,7 @@ const SourceOfIncome = (): React.JSX.Element => {
                     placeholder={strings(
                       'deposit.mica.employmentStatusPlaceholder',
                     )}
-                    options={metadata.employmentStatusOptions || []}
+                    options={employmentStatusOptions}
                     selectedValue={employmentStatus}
                     onValueChange={setEmploymentStatus}
                   />
@@ -249,7 +303,7 @@ const SourceOfIncome = (): React.JSX.Element => {
                   <DepositSelectField
                     label={strings('deposit.mica.nationalityLabel')}
                     placeholder={strings('deposit.mica.nationalityPlaceholder')}
-                    options={metadata.countryOfCitizenshipOptions || []}
+                    options={countryOfCitizenshipOptions}
                     selectedValue={countryOfCitizenship}
                     onValueChange={setCountryOfCitizenship}
                   />

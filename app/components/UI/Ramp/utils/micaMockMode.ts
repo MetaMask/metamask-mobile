@@ -13,6 +13,39 @@ import { isMicaMockModeEnabled } from './micaMockModeEnv';
 
 export { isMicaMockModeEnabled };
 
+export const EEA_COUNTRIES = [
+  'AT',
+  'BE',
+  'BG',
+  'HR',
+  'CY',
+  'CZ',
+  'DK',
+  'EE',
+  'FI',
+  'FR',
+  'DE',
+  'GR',
+  'HU',
+  'IE',
+  'IT',
+  'LV',
+  'LT',
+  'LU',
+  'MT',
+  'NL',
+  'PL',
+  'PT',
+  'RO',
+  'SK',
+  'SI',
+  'ES',
+  'SE',
+  'IS',
+  'LI',
+  'NO',
+];
+
 export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
   Logger.log('[MiCA Mock] Returning mock CONSENT form');
   return {
@@ -137,39 +170,6 @@ export function injectMockNativeProviderIfNeeded(
   if (!isMicaMockModeEnabled()) {
     return providers;
   }
-
-  const EEA_COUNTRIES = [
-    'AT',
-    'BE',
-    'BG',
-    'HR',
-    'CY',
-    'CZ',
-    'DK',
-    'EE',
-    'FI',
-    'FR',
-    'DE',
-    'GR',
-    'HU',
-    'IE',
-    'IT',
-    'LV',
-    'LT',
-    'LU',
-    'MT',
-    'NL',
-    'PL',
-    'PT',
-    'RO',
-    'SK',
-    'SI',
-    'ES',
-    'SE',
-    'IS',
-    'LI',
-    'NO',
-  ];
 
   const isEEA = EEA_COUNTRIES.includes(regionCode.toUpperCase());
   if (!isEEA) {
