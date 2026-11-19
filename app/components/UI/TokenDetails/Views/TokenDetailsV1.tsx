@@ -94,6 +94,7 @@ import TokenDetailsV1TabBar, {
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import { FLOATING_ACTIONS_BOTTOM_MARGIN } from '../components/TokenDetailsStickyFooter';
 import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
   TokenDetailsSource,
@@ -500,12 +501,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const handleFooterLayout = useCallback((height: number) => {
     setFooterHeight((current) => (current === height ? current : height));
   }, []);
+  // The Buy/Sell row floats over the content; its reach (plus a 16px gap)
+  // is reserved at the bottom so the last rows scroll clear of it.
+  const [floatingActionsInset, setFloatingActionsInset] = useState(0);
+  const bottomReserve = Math.max(
+    footerHeight,
+    floatingActionsInset > 0
+      ? floatingActionsInset + FLOATING_ACTIONS_BOTTOM_MARGIN
+      : 0,
+  );
   const tabContentStyle = useMemo(() => {
-    const minHeight = viewportHeight - tabBarHeight - footerHeight;
+    const minHeight = viewportHeight - tabBarHeight - bottomReserve;
     return {
       minHeight: Number.isFinite(minHeight) ? Math.max(0, minHeight) : 0,
     };
-  }, [viewportHeight, tabBarHeight, footerHeight]);
+  }, [viewportHeight, tabBarHeight, bottomReserve]);
 
   const socialEnabled = useSelector(selectIsSocialV1Enabled);
   const isTechnicalIndicatorsEnabled = useSelector(
@@ -638,10 +648,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const isEmptyFeed = activeTab === 'feed' && feedIsEmpty;
   const scrollContentStyle = useMemo(
     () => ({
-      paddingBottom: isEmptyFeed ? footerHeight + 48 : footerHeight,
+      paddingBottom: isEmptyFeed ? bottomReserve + 48 : bottomReserve,
       ...(isGlassHeader ? { paddingTop: headerInset } : {}),
     }),
-    [footerHeight, headerInset, isGlassHeader, isEmptyFeed],
+    [bottomReserve, headerInset, isGlassHeader, isEmptyFeed],
   );
 
   useEffect(() => {
@@ -1000,6 +1010,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           // is known empty misses that layout, leaves the height at 0, and the
           // create-post button stays under the position bar.
           onFooterLayout={handleFooterLayout}
+          onFloatingActionsInsetChange={setFloatingActionsInset}
+          floatingActionsScrollY={headerScrollY}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design
