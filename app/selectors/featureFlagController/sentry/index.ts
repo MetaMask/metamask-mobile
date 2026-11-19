@@ -18,13 +18,19 @@ export type SentryTransactionSampleRates = Record<
 
 const EMPTY_RATES: SentryTransactionSampleRates = Object.freeze({});
 
+// A date (00:00 UTC) or a date-time with `Z` or an offset. Date.parse would
+// read a zoneless date-time as device-local time, so those are rejected.
+const EXPIRES_AT_PATTERN =
+  /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2}))?$/u;
+
 const isValidRate = (rate: unknown): rate is number =>
   typeof rate === 'number' && rate >= 0 && rate <= 1;
 
 /**
  * Parses `{ transactionSampleRates: { [traceName]: { android?, ios?, expiresAt } } }`
- * from the controller-processed `sentry` flag. An entry needs a parseable
- * `expiresAt` date string and at least one rate in [0, 1] (Sentry drops a
+ * from the controller-processed `sentry` flag. An entry needs an `expiresAt`
+ * of `YYYY-MM-DD` or an ISO 8601 date-time with a zone, and at least one rate
+ * in [0, 1] (Sentry drops a
  * transaction on an invalid rate instead of falling back). Expiry is not
  * checked here because this result is memoized.
  *
@@ -41,7 +47,11 @@ export function parseSentryTransactionSampleRates(
 
   const result: SentryTransactionSampleRates = {};
   for (const [name, entry] of Object.entries(rates)) {
-    if (!isPlainObject(entry) || typeof entry.expiresAt !== 'string') {
+    if (
+      !isPlainObject(entry) ||
+      typeof entry.expiresAt !== 'string' ||
+      !EXPIRES_AT_PATTERN.test(entry.expiresAt)
+    ) {
       continue;
     }
     const expiresAt = Date.parse(entry.expiresAt);

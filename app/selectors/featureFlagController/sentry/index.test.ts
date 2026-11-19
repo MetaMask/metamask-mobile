@@ -26,10 +26,30 @@ describe('selectSentryTransactionSampleRates', () => {
     });
   });
 
+  it.each<[string, number]>([
+    ['2026-12-01', Date.UTC(2026, 11, 1)],
+    ['2026-12-01T00:00:00Z', Date.UTC(2026, 11, 1)],
+    ['2026-12-01T00:00:00.500Z', Date.UTC(2026, 11, 1, 0, 0, 0, 500)],
+    ['2026-12-01T02:00:00+02:00', Date.UTC(2026, 11, 1)],
+    ['2026-11-30T19:00:00-05:00', Date.UTC(2026, 11, 1)],
+  ])('parses expiresAt %s as UTC', (value, expected) => {
+    const state = createState({
+      transactionSampleRates: {
+        'Swap Quote Fetch': { android: 0.25, expiresAt: value },
+      },
+    });
+
+    expect(selectSentryTransactionSampleRates(state)).toStrictEqual({
+      'Swap Quote Fetch': { android: 0.25, expiresAt: expected },
+    });
+  });
+
   it.each<[string, Json]>([
     ['missing', { android: 0.25 }],
     ['not a string', { android: 0.25, expiresAt: expiresAtMs }],
     ['unparseable', { android: 0.25, expiresAt: 'next week' }],
+    ['zoneless', { android: 0.25, expiresAt: '2026-12-01T00:00:00' }],
+    ['an invalid date', { android: 0.25, expiresAt: '2026-13-01' }],
   ])('drops an entry whose expiresAt is %s', (_, entry) => {
     const state = createState({
       transactionSampleRates: { 'Swap Quote Fetch': entry },
