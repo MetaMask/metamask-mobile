@@ -78,7 +78,7 @@ export function useCardHomeActions({
     onCardDetailsImageError,
     cardSensitiveDetails,
     isSensitiveDetailsLoading,
-    clearCardSensitiveDetails,
+    clearCardDetails,
     copyCardDetail,
     viewCardDetailsAction,
   } = useRevealCardDetails({
@@ -601,7 +601,7 @@ export function useCardHomeActions({
     onCardDetailsImageError,
     cardSensitiveDetails,
     isSensitiveDetailsLoading,
-    clearCardSensitiveDetails,
+    clearCardDetails,
     copyCardDetail,
     viewCardDetailsAction,
     isPinLoading,
