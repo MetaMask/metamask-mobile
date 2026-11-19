@@ -167,16 +167,6 @@ const ACTION_BUTTON_ROW_BASE_COUNT = 3;
  */
 const DETAILS_REENTRY_WINDOW_MS = 1000;
 
-const useSettledValue = <T,>(value: T, isSettling: boolean): T => {
-  const [settled, setSettled] = useState<{ value: T }>();
-  useEffect(() => {
-    if (!isSettling) {
-      setSettled({ value });
-    }
-  }, [isSettling, value]);
-  return isSettling && settled ? settled.value : value;
-};
-
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
@@ -387,6 +377,7 @@ const MoneyHomeView = () => {
       dismissedVbaVariant === 'kyc_decision' &&
       vbaHomeCard.type === 'kyc_decision',
   });
+  const moneyHomeCard = devOverride?.card ?? liveHomeCard;
 
   const metamaskCardMode = deriveMoneyMetaMaskCardMode({
     isCardLinkedToMoneyAccount,
@@ -433,53 +424,7 @@ const MoneyHomeView = () => {
     !!totalFiatRaw &&
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
-
-  // Each section keeps its last settled value only while its own data reloads.
-  const homeCardVariant =
-    'variant' in liveHomeCard ? liveHomeCard.variant : undefined;
-  const stableLiveHomeCard = useMemo(
-    () => liveHomeCard,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [liveHomeCard.type, homeCardVariant],
-  );
-  const homeCard = useSettledValue(
-    stableLiveHomeCard,
-    isBalanceLoading ||
-      isCryptoBalanceLoading ||
-      isVbaEligibilityLoading ||
-      !isCardStateResolved,
-  );
-  const cardMode = useSettledValue(metamaskCardMode, !isCardStateResolved);
-  const fundedState = useMemo(
-    () => ({
-      isFunded,
-      isEmptyState: hasBalanceValue && !isFunded,
-      showEarnings: hasBalanceValue && isFunded,
-    }),
-    [hasBalanceValue, isFunded],
-  );
-  const settledFundedState = useSettledValue(
-    fundedState,
-    isBalanceLoading || isActivitySettling,
-  );
-  const activity = useMemo(
-    () => ({ isActivitySettling, activityItems }),
-    [isActivitySettling, activityItems],
-  );
-  const settledActivity = useSettledValue(activity, isActivitySettling);
-  const settledDepositTokens = useSettledValue(
-    depositTokens,
-    isBalanceLoading || isCryptoBalanceLoading,
-  );
-  const layout = {
-    homeCard,
-    cardMode,
-    ...settledFundedState,
-    ...settledActivity,
-    depositTokens: settledDepositTokens,
-  };
-  const isEmptyState = layout.isEmptyState;
-  const moneyHomeCard = devOverride?.card ?? layout.homeCard;
+  const isEmptyState = hasBalanceValue && !isFunded;
 
   const balanceReady = !isBalanceLoading;
   // Only ready once the preview is no longer settling, so the time-to-content
@@ -1093,12 +1038,12 @@ const MoneyHomeView = () => {
     cardHomeDataStatus === 'success' ||
     cardHomeDataStatus === 'error';
 
-  const metamaskCardSection = layout.cardMode
+  const metamaskCardSection = metamaskCardMode
     ? {
         key: 'metamask-card',
         node: (
           <MoneyMetaMaskCard
-            mode={layout.cardMode}
+            mode={metamaskCardMode}
             onHeaderPress={handleMetaMaskCardHeaderPress}
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
@@ -1124,11 +1069,11 @@ const MoneyHomeView = () => {
     : null;
 
   const shouldShowMetaMaskCardEarly =
-    layout.cardMode !== null && layout.cardMode !== 'upsell';
+    metamaskCardMode !== null && metamaskCardMode !== 'upsell';
 
   const contentSections: { key: string; node: React.ReactNode }[] = [];
 
-  if (isMoneyEarningSectionEnabled && layout.showEarnings) {
+  if (isMoneyEarningSectionEnabled && hasBalanceValue && isFunded) {
     contentSections.push({
       key: 'earnings',
       node: (
@@ -1165,14 +1110,14 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (layout.isActivitySettling || layout.activityItems.length >= 1) {
+  if (isActivitySettling || activityItems.length >= 1) {
     contentSections.push({
       key: 'activity',
-      node: layout.isActivitySettling ? (
+      node: isActivitySettling ? (
         <MoneyActivityLoading />
       ) : (
         <MoneyActivityList
-          items={layout.activityItems}
+          items={activityItems}
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
           onHeaderPress={handleActivityHeaderPress}
@@ -1184,12 +1129,12 @@ const MoneyHomeView = () => {
     });
   }
 
-  if (layout.depositTokens.length > 0) {
+  if (depositTokens.length > 0) {
     contentSections.push({
       key: 'potential-earnings',
       node: (
         <MoneyPotentialEarnings
-          tokens={layout.depositTokens}
+          tokens={depositTokens}
           apyDecimal={apyDecimal}
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
@@ -1206,7 +1151,7 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (layout.isFunded) {
+  if (isFunded) {
     contentSections.push({
       key: 'condensed-info',
       node: (
