@@ -1,4 +1,6 @@
 import { ethers } from 'ethers';
+import { base58 } from 'ethers/lib/utils';
+import { SolScope } from '@metamask/keyring-api';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
@@ -24,27 +26,42 @@ import {
 import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
+  cashbackMeetsClaimMinimum,
+  claimRouteOptions,
+  showEarningsIndicator,
   claimRoutesForSummary,
+  selectClaimRoutes,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
+  solanaAddressFromEarningAddress,
+  stellarAddressFromEarningAddress,
+  signSolanaClaimMessage,
+  signStellarClaimMessage,
   claimFailureReason,
   claimOutcomeIsPartial,
   claimToastKey,
   claimToastText,
   claimTypeForRoute,
   isClaimSubmittable,
+  isTaxDeterminationRefusal,
   isPendingClaimRow,
   mergeInFlightClaims,
   runEarningsClaim,
   submitClaimVoucher,
 } from './claimEarnings';
 
+jest.mock('@metamask/eth-snap-keyring/v2', () => ({
+  isSnapKeyring: (keyring: { submitRequest?: unknown }) =>
+    typeof keyring?.submitRequest === 'function',
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       NetworkController: { findNetworkClientIdByChainId: jest.fn() },
+      KeyringController: { withKeyringV2: jest.fn() },
     },
     controllerMessenger: {
       subscribe: jest.fn(),
@@ -104,6 +121,7 @@ function summary(options: {
   claimable: string;
   cashback?: string;
   revShare?: string;
+  followTrade?: string;
   minimum?: string;
 }): EarningsSummaryDto {
   return {
@@ -144,10 +162,84 @@ function summary(options: {
           claimed: '0',
           voided: '0',
         },
+        SOCIAL_FOLLOW_TRADE: {
+          lifetime: '0',
+          claimable: options.followTrade,
+          pending: '0',
+          claimed: '0',
+          voided: '0',
+        },
       },
     },
   };
 }
+
+describe('cashbackMeetsClaimMinimum', () => {
+  it('is true at the summary minimum', () => {
+    expect(
+      cashbackMeetsClaimMinimum(
+        summary({ claimable: ONE_DOLLAR, cashback: ONE_DOLLAR }),
+      ),
+    ).toBe(true);
+  });
+
+  it('is false below the minimum', () => {
+    expect(
+      cashbackMeetsClaimMinimum(
+        summary({ claimable: UNDER_DOLLAR, cashback: UNDER_DOLLAR }),
+      ),
+    ).toBe(false);
+  });
+
+  it('is false when cashback is absent', () => {
+    expect(
+      cashbackMeetsClaimMinimum(summary({ claimable: '0', cashback: '0' })),
+    ).toBe(false);
+  });
+
+  it('is false when the summary is missing', () => {
+    expect(cashbackMeetsClaimMinimum(null)).toBe(false);
+    expect(cashbackMeetsClaimMinimum(undefined)).toBe(false);
+  });
+});
+
+describe('selectClaimRoutes', () => {
+  const routes = [
+    'referral-trade-fee-cashback',
+    'referral-rev-share',
+    'social-follow-trade',
+  ] as const;
+
+  it('keeps every route when tax does not narrow the press', () => {
+    expect(selectClaimRoutes([...routes])).toEqual([...routes]);
+  });
+
+  it('keeps cashback only', () => {
+    expect(selectClaimRoutes([...routes], { cashbackOnly: true })).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+  });
+
+  it('drops revenue share and follow-trade when income is omitted', () => {
+    expect(selectClaimRoutes([...routes], { omitIncome: true })).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+  });
+
+  it('returns no routes when income is omitted from an income-only list', () => {
+    expect(
+      selectClaimRoutes(['referral-rev-share', 'social-follow-trade'], {
+        omitIncome: true,
+      }),
+    ).toEqual([]);
+  });
+
+  it('cashback-only wins when both flags are set', () => {
+    expect(
+      selectClaimRoutes([...routes], { cashbackOnly: true, omitIncome: true }),
+    ).toEqual(['referral-trade-fee-cashback']);
+  });
+});
 
 describe('claimRoutesForSummary', () => {
   it('posts cashback only when that family is at least $1', () => {
@@ -178,11 +270,11 @@ describe('claimRoutesForSummary', () => {
       cashback: '600000',
       revShare: '600000',
     });
-    expect(canClaimEarnings(split, 'referee')).toBe(false);
+    expect(canClaimEarnings(split)).toBe(false);
     expect(claimRoutesForSummary(split)).toEqual([]);
   });
 
-  it('treats exactly $1 of cashback as claimable for a referee', () => {
+  it('treats exactly $1 of cashback as claimable from the family balance', () => {
     const atMinimum = summary({
       claimable: ONE_DOLLAR,
       cashback: ONE_DOLLAR,
@@ -192,9 +284,43 @@ describe('claimRoutesForSummary', () => {
     expect(claimRoutesForSummary(atMinimum)).toEqual([
       'referral-trade-fee-cashback',
     ]);
-    expect(canClaimEarnings(atMinimum, 'referee')).toBe(true);
-    expect(canClaimEarnings(atMinimum, 'referrer')).toBe(false);
-    expect(canClaimEarnings(atMinimum, 'plain')).toBe(false);
+    expect(canClaimEarnings(atMinimum)).toBe(true);
+    expect(claimRoutesForSummary(atMinimum, { includeRevShare: true })).toEqual(
+      ['referral-trade-fee-cashback', 'referral-rev-share'],
+    );
+  });
+
+  it('lights the indicator when an open income route is held for tax', () => {
+    const held = summary({ claimable: '0', cashback: '0', revShare: '0' });
+    held.held = ONE_DOLLAR;
+    const revShare = held.earned_by_others.by_claim_family.REFERRAL_REV_SHARE;
+    if (revShare) {
+      revShare.held = ONE_DOLLAR;
+      revShare.blocking_reason = 'TAX_DETERMINATION_REQUIRED';
+    }
+
+    expect(showEarningsIndicator(held, { includeRevShare: true })).toBe(true);
+    expect(showEarningsIndicator(held)).toBe(false);
+    expect(
+      showEarningsIndicator(
+        { ...held, blocked: ONE_DOLLAR },
+        { includeRevShare: true },
+      ),
+    ).toBe(true);
+  });
+
+  it('leaves revenue share off while that claim route is closed', () => {
+    const revShare = summary({
+      claimable: ONE_DOLLAR,
+      cashback: '0',
+      revShare: ONE_DOLLAR,
+    });
+
+    expect(claimRoutesForSummary(revShare)).toEqual([]);
+    expect(canClaimEarnings(revShare)).toBe(false);
+    expect(claimRoutesForSummary(revShare, { includeRevShare: true })).toEqual([
+      'referral-rev-share',
+    ]);
   });
 
   it('uses the summary minimum instead of a fixed $1', () => {
@@ -203,7 +329,7 @@ describe('claimRoutesForSummary', () => {
       cashback: ONE_DOLLAR,
       minimum: '5000000',
     });
-    expect(canClaimEarnings(underRaisedMinimum, 'referee')).toBe(false);
+    expect(canClaimEarnings(underRaisedMinimum)).toBe(false);
     expect(claimRoutesForSummary(underRaisedMinimum)).toEqual([]);
 
     const aboveLoweredMinimum = summary({
@@ -211,10 +337,76 @@ describe('claimRoutesForSummary', () => {
       cashback: UNDER_DOLLAR,
       minimum: '500000',
     });
-    expect(canClaimEarnings(aboveLoweredMinimum, 'referee')).toBe(true);
+    expect(canClaimEarnings(aboveLoweredMinimum)).toBe(true);
     expect(claimRoutesForSummary(aboveLoweredMinimum)).toEqual([
       'referral-trade-fee-cashback',
     ]);
+  });
+
+  it('claims cashback then follow-trade when both families meet the minimum', () => {
+    const both = summary({
+      claimable: '2000000',
+      cashback: ONE_DOLLAR,
+      followTrade: ONE_DOLLAR,
+    });
+
+    expect(claimRoutesForSummary(both, { includeFollowTrade: true })).toEqual([
+      'referral-trade-fee-cashback',
+      'social-follow-trade',
+    ]);
+    expect(canClaimEarnings(both, { includeFollowTrade: true })).toBe(true);
+    expect(claimRoutesForSummary(both)).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+  });
+
+  it('claims only follow-trade when cashback is empty and revenue share is closed', () => {
+    const followTrade = summary({
+      claimable: ONE_DOLLAR,
+      cashback: '0',
+      revShare: ONE_DOLLAR,
+      followTrade: ONE_DOLLAR,
+    });
+
+    expect(
+      claimRoutesForSummary(followTrade, {
+        includeFollowTrade: true,
+      }),
+    ).toEqual(['social-follow-trade']);
+    expect(claimRoutesForSummary(followTrade)).toEqual([]);
+    expect(
+      claimRoutesForSummary(followTrade, {
+        includeFollowTrade: false,
+      }),
+    ).toEqual([]);
+    expect(canClaimEarnings(followTrade, { includeFollowTrade: false })).toBe(
+      false,
+    );
+    expect(canClaimEarnings(followTrade, { includeFollowTrade: true })).toBe(
+      true,
+    );
+    expect(canClaimEarnings(followTrade)).toBe(false);
+  });
+
+  it('leaves follow-trade off below the minimum or when the family is absent', () => {
+    const below = summary({
+      claimable: UNDER_DOLLAR,
+      followTrade: UNDER_DOLLAR,
+    });
+    const absent = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+    });
+
+    expect(claimRoutesForSummary(below)).toEqual([]);
+    expect(claimRoutesForSummary(below, { includeFollowTrade: true })).toEqual(
+      [],
+    );
+    expect(canClaimEarnings(below)).toBe(false);
+    expect(claimRoutesForSummary(absent)).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+    expect(canClaimEarnings(absent)).toBe(true);
   });
 
   it('does not claim when the summary minimum is missing', () => {
@@ -223,8 +415,67 @@ describe('claimRoutesForSummary', () => {
       cashback: ONE_DOLLAR,
       minimum: '',
     });
-    expect(canClaimEarnings(noMinimum, 'referee')).toBe(false);
+    expect(canClaimEarnings(noMinimum)).toBe(false);
     expect(claimRoutesForSummary(null)).toEqual([]);
+  });
+
+  it('adds follow-trade only when the route is open and that family meets the minimum', () => {
+    const followTrade = summary({
+      claimable: '0',
+      followTrade: ONE_DOLLAR,
+    });
+    const open = { includeFollowTrade: true };
+
+    expect(claimRoutesForSummary(followTrade, open)).toEqual([
+      'social-follow-trade',
+    ]);
+    expect(claimRoutesForSummary(followTrade)).toEqual([]);
+    expect(canClaimEarnings(followTrade)).toBe(false);
+    expect(canClaimEarnings(followTrade, open)).toBe(true);
+    const formUrl = 'https://tax.example/form';
+    expect(claimRouteOptions(formUrl, true).includeFollowTrade).toBe(true);
+    expect(claimRouteOptions(formUrl, false).includeFollowTrade).toBe(false);
+    expect(claimRouteOptions(formUrl, undefined).includeFollowTrade).toBe(
+      false,
+    );
+    expect(claimRouteOptions('', true).includeFollowTrade).toBe(false);
+    expect(claimRouteOptions(undefined, true).includeFollowTrade).toBe(false);
+  });
+});
+
+describe('claimRouteOptions', () => {
+  const formUrl = 'https://tax.example/form';
+
+  it('includes follow-trade only when the tax form and claim route are both open', () => {
+    expect(claimRouteOptions(formUrl, true)).toEqual({
+      includeFollowTrade: true,
+      includeRevShare: false,
+    });
+    expect(claimRouteOptions(formUrl, false).includeFollowTrade).toBe(false);
+    expect(claimRouteOptions(formUrl, undefined).includeFollowTrade).toBe(
+      false,
+    );
+    expect(claimRouteOptions('', true).includeFollowTrade).toBe(false);
+    expect(claimRouteOptions(undefined, true).includeFollowTrade).toBe(false);
+  });
+
+  it('includes revenue share only when the tax form and claim route are both open', () => {
+    expect(claimRouteOptions(formUrl, false, true)).toEqual({
+      includeFollowTrade: false,
+      includeRevShare: true,
+    });
+    expect(claimRouteOptions(formUrl, true, true)).toEqual({
+      includeFollowTrade: true,
+      includeRevShare: true,
+    });
+    expect(claimRouteOptions(formUrl, true, false).includeRevShare).toBe(false);
+    expect(claimRouteOptions(formUrl, true, undefined).includeRevShare).toBe(
+      false,
+    );
+    expect(claimRouteOptions('', false, true).includeRevShare).toBe(false);
+    expect(claimRouteOptions(undefined, false, true).includeRevShare).toBe(
+      false,
+    );
   });
 });
 
@@ -464,6 +715,41 @@ describe('claimToastKey', () => {
   });
 });
 
+describe('isTaxDeterminationRefusal', () => {
+  it('is true only when nothing was submitted and a route needs tax documentation', () => {
+    expect(
+      isTaxDeterminationRefusal([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'TAX_DETERMINATION_REQUIRED',
+        },
+      ]),
+    ).toBe(true);
+    expect(
+      isTaxDeterminationRefusal([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: true,
+          opened: true,
+          reason: 'TAX_DETERMINATION_REQUIRED',
+        },
+      ]),
+    ).toBe(false);
+    expect(
+      isTaxDeterminationRefusal([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'UNDER_REVIEW',
+        },
+      ]),
+    ).toBe(false);
+  });
+});
+
 describe('evmAddressFromEarningAddress', () => {
   it('reads the address after the first colon', () => {
     expect(
@@ -525,6 +811,170 @@ describe('bitcoinProofHex', () => {
   it('returns null for an empty or odd-length signature', () => {
     expect(bitcoinProofHex('')).toBeNull();
     expect(bitcoinProofHex('0x0')).toBeNull();
+  });
+});
+
+const STELLAR_ADDRESS =
+  'GDVEU3DD4KOFECV66VIHWEZOYX4ZKR3WV27L464SIIPOU2IUI3JCZA57';
+const SOLANA_ADDRESS = 'So11111111111111111111111111111111111111112';
+
+describe('solanaAddressFromEarningAddress', () => {
+  it('keeps the base58 case', () => {
+    expect(solanaAddressFromEarningAddress(`solana:${SOLANA_ADDRESS}`)).toBe(
+      SOLANA_ADDRESS,
+    );
+    expect(
+      solanaAddressFromEarningAddress(`solana:${SOLANA_ADDRESS.toLowerCase()}`),
+    ).toBe(SOLANA_ADDRESS.toLowerCase());
+    expect(SOLANA_ADDRESS.toLowerCase()).not.toBe(SOLANA_ADDRESS);
+  });
+});
+
+describe('stellarAddressFromEarningAddress', () => {
+  it('keeps a G address and refuses a lowercase copy', () => {
+    expect(stellarAddressFromEarningAddress(`stellar:${STELLAR_ADDRESS}`)).toBe(
+      STELLAR_ADDRESS,
+    );
+    expect(
+      stellarAddressFromEarningAddress(
+        `stellar:${STELLAR_ADDRESS.toLowerCase()}`,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe('signSolanaClaimMessage', () => {
+  const withKeyringV2 = Engine.context.KeyringController
+    .withKeyringV2 as jest.Mock;
+  const signatureBytes = Buffer.alloc(64, 7);
+
+  function keyringReturning(result: unknown) {
+    const submitRequest = jest.fn().mockResolvedValue(result);
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+    return submitRequest;
+  }
+
+  it('sends the base64 challenge and returns the base58 reply as 0x hex', async () => {
+    const submitRequest = keyringReturning({
+      signature: base58.encode(signatureBytes),
+    });
+
+    const signature = await signSolanaClaimMessage(
+      'sol-account',
+      SOLANA_ADDRESS,
+      'solana challenge',
+    );
+
+    expect(submitRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: SolScope.Mainnet,
+        account: 'sol-account',
+        request: {
+          method: 'signMessage',
+          params: {
+            account: { address: SOLANA_ADDRESS },
+            message: Buffer.from('solana challenge', 'utf8').toString('base64'),
+          },
+        },
+      }),
+    );
+    expect(signature).toBe(`0x${signatureBytes.toString('hex')}`);
+  });
+
+  it('fails with SIGN_FAILED when the reply is not a 64-byte signature', async () => {
+    keyringReturning({ signature: base58.encode(Buffer.from([1, 2, 3])) });
+
+    await expect(
+      signSolanaClaimMessage('sol-account', SOLANA_ADDRESS, 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
+  });
+});
+
+describe('signStellarClaimMessage', () => {
+  const withKeyringV2 = Engine.context.KeyringController
+    .withKeyringV2 as jest.Mock;
+
+  it('sends the raw challenge and returns signedMessage as 0x hex', async () => {
+    const submitRequest = jest.fn().mockResolvedValue({
+      signedMessage: Buffer.from([1, 2, 3]).toString('base64'),
+      signerAddress: STELLAR_ADDRESS,
+    });
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+
+    const signature = await signStellarClaimMessage(
+      'xlm-account',
+      'sign the claim',
+    );
+
+    expect(submitRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: 'stellar:pubnet',
+        account: 'xlm-account',
+        request: {
+          method: 'signMessage',
+          params: { message: 'sign the claim' },
+        },
+      }),
+    );
+    expect(signature).toBe('0x010203');
+  });
+
+  it('fails with SIGN_FAILED when the snap returns signature instead of signedMessage', async () => {
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) =>
+        operation({
+          keyring: {
+            submitRequest: jest.fn().mockResolvedValue({
+              signature: Buffer.from([1, 2, 3]).toString('base64'),
+            }),
+          },
+        }),
+    );
+
+    await expect(
+      signStellarClaimMessage('xlm-account', 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
+  });
+
+  it('fails with SIGN_FAILED when signedMessage is not base64', async () => {
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) =>
+        operation({
+          keyring: {
+            submitRequest: jest
+              .fn()
+              .mockResolvedValue({ signedMessage: '!!!' }),
+          },
+        }),
+    );
+
+    await expect(
+      signStellarClaimMessage('xlm-account', 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
   });
 });
 

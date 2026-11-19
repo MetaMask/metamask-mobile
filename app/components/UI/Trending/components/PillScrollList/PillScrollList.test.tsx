@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 import PillScrollList from './PillScrollList';
 
@@ -96,6 +96,25 @@ describe('PillScrollList', () => {
 
     expect(getByTestId('pill-scroll-list-wrapper')).toBeTruthy();
     expect(getByTestId('pills-list')).toBeTruthy();
+  });
+
+  it('pins the scroller to its content height so a sibling list cannot collapse the rail', () => {
+    const { getByTestId } = render(
+      <PillScrollList
+        data={[{ id: 'a' }, { id: 'b' }]}
+        isLoading={false}
+        renderItem={(item: { id: string }) => (
+          <Text testID={`pill-${item.id}`}>{item.id}</Text>
+        )}
+        keyExtractor={(item: { id: string }) => item.id}
+        Skeleton={Skeleton}
+        listTestId="pills-list"
+      />,
+    );
+
+    const style = StyleSheet.flatten(getByTestId('pills-list').props.style);
+    expect(style.flexGrow).toBe(0);
+    expect(style.flexShrink).toBe(0);
   });
 
   it('respects maxPills when slicing data before splitting', () => {

@@ -14,11 +14,15 @@ import {
   type PerpsProviderType,
   type TriggerOrderType,
   type PositionModifyPreviewResult,
+  type AccountState,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
@@ -218,6 +222,10 @@ let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
+let mockLiveAccount: Pick<
+  AccountState,
+  'crossMarginSummary' | 'spotCollateral'
+> | null = null;
 let mockLiveMarkPrice = '90000';
 let mockSizeDecimals = 3;
 let mockSelectedAddress = '0xaccount-a';
@@ -408,6 +416,10 @@ jest.mock('../../../../hooks/stream', () => ({
     },
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
+  usePerpsLiveAccount: () => ({
+    account: mockLiveAccount,
+    isInitialLoading: false,
+  }),
 }));
 
 let mockIsInitialized = true;
@@ -503,12 +515,53 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
-jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => ({
-  usePerpsOrderBookPreferences: () => ({
-    preferences: { currency: 'usd', metric: 'total' },
-    setOrderBookPreferences: jest.fn(),
-  }),
-}));
+jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const state: {
+    currency: 'usd' | 'base';
+    notify: () => void;
+  } = {
+    currency: 'usd',
+    notify: () => undefined,
+  };
+
+  return {
+    usePerpsOrderBookPreferences: () => {
+      const [currency, setCurrency] = React.useState(state.currency);
+
+      React.useLayoutEffect(() => {
+        state.notify = () => setCurrency(state.currency);
+        return () => {
+          state.notify = () => undefined;
+        };
+      }, []);
+
+      return {
+        preferences: { currency, metric: 'total' as const },
+        setOrderBookPreferences: (patch: { currency?: 'usd' | 'base' }) => {
+          if (patch.currency) {
+            state.currency = patch.currency;
+            setCurrency(patch.currency);
+          }
+        },
+      };
+    },
+    resetTestOrderBookCurrency: () => {
+      state.currency = 'usd';
+      state.notify = () => undefined;
+    },
+    setTestOrderBookCurrency: (currency: 'usd' | 'base') => {
+      state.currency = currency;
+      state.notify();
+    },
+  };
+});
+
+const { resetTestOrderBookCurrency, setTestOrderBookCurrency } =
+  jest.requireMock('../../../../hooks/usePerpsOrderBookPreferences') as {
+    resetTestOrderBookCurrency: () => void;
+    setTestOrderBookCurrency: (currency: 'usd' | 'base') => void;
+  };
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: {
@@ -673,6 +726,7 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
+    resetTestOrderBookCurrency();
     jest.clearAllMocks();
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
@@ -713,6 +767,7 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
+    mockLiveAccount = null;
     mockLiveMarkPrice = '90000';
     mockTotalFee = 5;
     mockTakerFeeRate = undefined;
@@ -2043,6 +2098,7 @@ describe('usePerpsProOrderForm', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
             PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
       expect(mockTrack).not.toHaveBeenCalledWith(
@@ -2058,6 +2114,49 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       expect(chaseSubmitted).not.toHaveBeenCalled();
+    });
+
+    it('reports usd on place order when coin is saved but the price is not ready', async () => {
+      setTestOrderBookCurrency('base');
+      mockLivePrice = '0';
+      mockLiveMarkPrice = '0';
+      const { result } = renderProForm();
+
+      expect(result.current.sizeInput.denomination.unit).toBe('usd');
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+        }),
+      );
+    });
+
+    it('reports coin on place order after the size denomination is switched', async () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+        }),
+      );
     });
 
     it('does not show Chase feedback for a stale non-Chase fingerprint', async () => {
@@ -3906,6 +4005,103 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it('shows no liquidation estimate for a Cross order', () => {
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    // 0.002 BTC at $90,000 with a 40x max leverage (1/80 maintenance):
+    // 50 collateral - 20 existing - 2.25 new maintenance leaves 27.75.
+    it.each([
+      ['long', '$75,949'],
+      ['short', '$103,704'],
+    ] as const)(
+      'estimates a Cross %s liquidation price from the cross account',
+      (direction, expected) => {
+        mockOrderForm.direction = direction;
+        mockLiveAccount = {
+          spotCollateral: '0',
+          crossMarginSummary: {
+            accountValue: '50',
+            maintenanceMargin: '20',
+            marginUsed: '40',
+            notional: '1600',
+          },
+        };
+        const { result } = renderWithCrossMargin();
+
+        act(() => {
+          result.current.onMarginModeSelect('cross');
+        });
+
+        expect(result.current.summary.liquidationPrice).toBe(expected);
+      },
+    );
+
+    it('shows no Cross liquidation estimate on a venue other than Hyperliquid', () => {
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, providerId: 'lighter' },
+        {},
+        undefined,
+        true,
+      );
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('waits for market max leverage before estimating a Cross liquidation price', () => {
+      mockMarketData = null;
+      mockMarketDataLoading = true;
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('keeps the Cross liquidation price unknown until the account publishes spot collateral', () => {
+      mockLiveAccount = {
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
       const { result } = renderWithCrossMargin();
 
       act(() => {

@@ -3,9 +3,10 @@ import { render, screen } from '@testing-library/react-native';
 import { AvatarBaseSize } from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
 
-import { FoxiconVariant } from '../Foxicon';
+import { FoxiconVariant, RetiredFoxiconVariant } from '../Foxicon';
 import AvatarSocial from './AvatarSocial';
 import {
+  AVATARSOCIAL_FALLBACK_BACKGROUND_COLOR,
   BRAND_COLOR_BY_AVATARSOCIAL_BACKGROUND_COLOR,
   FOXICON_SIZE_BY_AVATARBASE_SIZE,
 } from './AvatarSocial.constants';
@@ -39,7 +40,7 @@ describe('AvatarSocial', () => {
   it('renders with the image accessibility role', () => {
     render(
       <AvatarSocial
-        variant={FoxiconVariant.Base}
+        variant={FoxiconVariant.Astro}
         backgroundColor={AvatarSocialBackgroundColor.Background1}
         testID="avatar-social"
       />,
@@ -56,7 +57,7 @@ describe('AvatarSocial', () => {
     (backgroundColor) => {
       render(
         <AvatarSocial
-          variant={FoxiconVariant.Base}
+          variant={FoxiconVariant.Astro}
           backgroundColor={backgroundColor}
           testID="avatar-social"
         />,
@@ -76,14 +77,14 @@ describe('AvatarSocial', () => {
     (size) => {
       render(
         <AvatarSocial
-          variant={FoxiconVariant.Base}
+          variant={FoxiconVariant.Astro}
           backgroundColor={AvatarSocialBackgroundColor.Background1}
           size={size}
         />,
       );
 
       expect(
-        screen.getByText(`base ${FOXICON_SIZE_BY_AVATARBASE_SIZE[size]}`),
+        screen.getByText(`astro ${FOXICON_SIZE_BY_AVATARBASE_SIZE[size]}`),
       ).toBeOnTheScreen();
     },
   );
@@ -91,22 +92,41 @@ describe('AvatarSocial', () => {
   it('defaults to the medium size', () => {
     render(
       <AvatarSocial
-        variant={FoxiconVariant.Base}
+        variant={FoxiconVariant.Astro}
         backgroundColor={AvatarSocialBackgroundColor.Background1}
       />,
     );
 
     expect(
       screen.getByText(
-        `base ${FOXICON_SIZE_BY_AVATARBASE_SIZE[AvatarBaseSize.Md]}`,
+        `astro ${FOXICON_SIZE_BY_AVATARBASE_SIZE[AvatarBaseSize.Md]}`,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('draws a retired variant on the fallback backdrop', () => {
+    render(
+      <AvatarSocial
+        variant={RetiredFoxiconVariant.Royal}
+        backgroundColor={AvatarSocialBackgroundColor.Background1}
+        testID="avatar-social"
+      />,
+    );
+
+    expect(screen.getByTestId('avatar-social')).toHaveStyle({
+      backgroundColor:
+        brandColor[
+          BRAND_COLOR_BY_AVATARSOCIAL_BACKGROUND_COLOR[
+            AVATARSOCIAL_FALLBACK_BACKGROUND_COLOR
+          ]
+        ],
+    });
   });
 
   it('applies the provided testID', () => {
     render(
       <AvatarSocial
-        variant={FoxiconVariant.Base}
+        variant={FoxiconVariant.Astro}
         backgroundColor={AvatarSocialBackgroundColor.Background1}
         testID="custom-avatar"
       />,

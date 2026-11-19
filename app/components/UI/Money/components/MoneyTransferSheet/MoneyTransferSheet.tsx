@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   IconName,
   Text,
   TextVariant,
@@ -21,7 +20,10 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
-import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
+import {
+  usePredictLegacyDeposit,
+  usePredictLegacyDepositEligibility,
+} from '../../../PredictNext';
 import Logger from '../../../../../util/Logger';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
@@ -35,10 +37,14 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type TransferAction = 'withdraw' | 'perps' | 'predict' | 'rescueSend';
 
-const MoneyTransferSheet = () => {
+const MoneyTransferSheetContent = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -48,7 +54,14 @@ const MoneyTransferSheet = () => {
   const { isEnabled: isPredictEnabled, initiatePredictDeposit } =
     useMoneyPredictDeposit();
   const isPerpsEligible = useSelector(selectPerpsEligibility);
-  const { isEligible: isPredictEligible } = usePredictEligibility();
+  const isPredictEligible = usePredictLegacyDepositEligibility();
+  // The Predictions account transfer is the legacy Polymarket deposit. It is
+  // offered only while it is the Active Venue's deposit, and re-checked when a
+  // deferred transfer runs, since the Active Venue can change in between.
+  const {
+    isAvailable: isPredictDepositAvailable,
+    isAvailableNow: isPredictDepositAvailableNow,
+  } = usePredictLegacyDeposit();
 
   // External mUSD send is available only for a settled balance containing
   // liquid mUSD and no vmUSD-backed balance. Loading/error/missing values and
@@ -139,9 +152,21 @@ const MoneyTransferSheet = () => {
     if (!deferredAction || hasPendingTransaction) {
       return;
     }
+    // The Active Venue may have changed while the rejection cleared. A stale
+    // Predictions transfer is dropped and the sheet stays open, no longer
+    // offering it.
+    if (deferredAction === 'predict' && !isPredictDepositAvailableNow()) {
+      setDeferredAction(null);
+      return;
+    }
     closeAndStart(deferredAction);
     setDeferredAction(null);
-  }, [deferredAction, hasPendingTransaction, closeAndStart]);
+  }, [
+    deferredAction,
+    hasPendingTransaction,
+    closeAndStart,
+    isPredictDepositAvailableNow,
+  ]);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -203,7 +228,7 @@ const MoneyTransferSheet = () => {
           },
         ]
       : []),
-    ...(isPredictEligible
+    ...(isPredictEligible && isPredictDepositAvailable
       ? [
           {
             label: strings('money.transfer_sheet.predictions_account'),
@@ -243,16 +268,29 @@ const MoneyTransferSheet = () => {
       testID={MoneyTransferSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.transfer_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.list}>
         <MoneySheetOptionsList options={options} />
       </View>
     </BottomSheet>
   );
+};
+
+const MoneyTransferSheet = () => {
+  const isMoneyAccountAccessible = useMoneyAccountAccessRedirect();
+
+  if (!isMoneyAccountAccessible) {
+    return null;
+  }
+
+  return <MoneyTransferSheetContent />;
 };
 
 export default MoneyTransferSheet;

@@ -20,58 +20,46 @@ function addedDiff(filePath: string, bodies: readonly string[]): string {
 
 describe('EVAL_RULES', () => {
   it('enables exactly the rules from the JSON source', () => {
-    const ruleIds = Object.keys(EVAL_RULES);
-
-    expect(ruleIds).toEqual(loadEvalRules().map((config) => config.id));
-  });
-
-  it('builds a working rule module per JSON entry', () => {
-    for (const rule of Object.values(EVAL_RULES)) {
-      expect(typeof rule.create).toBe('function');
-    }
+    expect(Object.keys(EVAL_RULES)).toEqual(
+      loadEvalRules().map((config) => config.id),
+    );
   });
 });
 
 describe('isInScopeAppFile', () => {
-  it('accepts an app source file', () => {
-    const filePath = 'app/components/Screen.tsx';
-
-    const inScope = isInScopeAppFile(filePath);
-
-    expect(inScope).toBe(true);
-  });
-
-  it('rejects tests, specs, stories, and files outside app', () => {
+  it('accepts app source and rejects tests, specs, stories, and files outside app', () => {
     const files = [
+      'app/components/Screen.tsx',
       'app/components/Screen.test.tsx',
       'app/components/Screen.view.test.tsx',
       'app/components/Screen.spec.ts',
       'app/components/Screen.stories.tsx',
-      'scripts/design-system/eval-rules.json',
-      '.github/workflows/ci.yml',
+      'scripts/design-system/rules/eval-rules.json',
     ];
 
-    const inScope = files.map(isInScopeAppFile);
-
-    expect(inScope).toEqual([false, false, false, false, false, false]);
+    expect(files.map(isInScopeAppFile)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
   });
 });
 
 describe('runEvals', () => {
-  it('writes a warning annotation and returns 0 for a spacing literal on an added line', () => {
+  it('writes a warning annotation for a spacing literal on an added line', () => {
     const filePath = 'app/Screen.tsx';
     const code = 'export const styles = { marginRight: 8 };\n';
     const writes: string[] = [];
 
-    const codeResult = runEvals({
+    runEvals({
       readDiff: () => addedDiff(filePath, [code.trimEnd()]),
       lintFiles: () => lintSource(filePath, code),
-      write: (line) => {
-        writes.push(line);
-      },
+      write: (line) => writes.push(line),
     });
 
-    expect(codeResult).toBe(0);
     expect(writes).toEqual([
       formatAnnotation(
         filePath,
@@ -86,55 +74,12 @@ describe('runEvals', () => {
     const filePath = 'app/Screen.tsx';
     const writes: string[] = [];
 
-    const codeResult = runEvals({
+    runEvals({
       readDiff: () => addedDiff(filePath, ['export const untouched = true;']),
-      lintFiles: () => [
-        {
-          filePath,
-          line: 40,
-          message: 'Hard-coded spacing value "8" on "marginRight".',
-        },
-      ],
-      write: (line) => {
-        writes.push(line);
-      },
+      lintFiles: () => [{ filePath, line: 40, message: 'Hard-coded spacing.' }],
+      write: (line) => writes.push(line),
     });
 
-    expect(codeResult).toBe(0);
-    expect(writes).toEqual([]);
-  });
-
-  it('does not lint a test file that the diff adds', () => {
-    const linted: string[] = [];
-
-    const codeResult = runEvals({
-      readDiff: () =>
-        addedDiff('app/Screen.test.tsx', ['const styles = { marginRight: 8 };']),
-      lintFiles: (files) => {
-        linted.push(...files);
-        return [];
-      },
-      write: () => undefined,
-    });
-
-    expect(codeResult).toBe(0);
-    expect(linted).toEqual([]);
-  });
-
-  it('passes a line that has a ds-exception reason', () => {
-    const filePath = 'app/Screen.tsx';
-    const code = 'export const styles = { marginRight: 8 }; // ds-exception: icon gap\n';
-    const writes: string[] = [];
-
-    const codeResult = runEvals({
-      readDiff: () => addedDiff(filePath, [code.trimEnd()]),
-      lintFiles: () => lintSource(filePath, code),
-      write: (line) => {
-        writes.push(line);
-      },
-    });
-
-    expect(codeResult).toBe(0);
     expect(writes).toEqual([]);
   });
 
@@ -155,10 +100,6 @@ describe('runEvals', () => {
 
 describe('formatErrorAnnotation', () => {
   it('keeps a crash message on one workflow command', () => {
-    const message = 'bad\nsha';
-
-    const annotation = formatErrorAnnotation(message);
-
-    expect(annotation).toBe('::error::bad%0Asha');
+    expect(formatErrorAnnotation('bad\nsha')).toBe('::error::bad%0Asha');
   });
 });

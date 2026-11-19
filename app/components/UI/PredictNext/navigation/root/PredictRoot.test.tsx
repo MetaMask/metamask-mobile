@@ -1,15 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { useRoute } from '@react-navigation/native';
 import type { PredictConfig } from '../../config/predictConfig';
 import PredictRoot from './PredictRoot';
 
 let mockConfig: PredictConfig;
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useRoute: jest.fn(),
-}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -31,8 +25,6 @@ jest.mock('../../../Predict/routes', () => {
   return () => <Text testID="legacy-predict-stack" />;
 });
 
-const mockUseRoute = jest.mocked(useRoute);
-
 const config = (polymarket: boolean, kalshi: boolean): PredictConfig => ({
   enabled: true,
   venues: {
@@ -42,13 +34,9 @@ const config = (polymarket: boolean, kalshi: boolean): PredictConfig => ({
   venueSelection: { enabled: false },
 });
 
-const givenRoute = (params?: object) =>
-  mockUseRoute.mockReturnValue({ key: 'Predict', name: 'Predict', params });
-
 describe('PredictRoot', () => {
   it('renders the PredictNext stack for a Kalshi-only rollout', () => {
     mockConfig = config(false, true);
-    givenRoute();
 
     render(<PredictRoot />);
 
@@ -60,7 +48,6 @@ describe('PredictRoot', () => {
 
   it('renders the legacy stack for a Polymarket-only rollout', () => {
     mockConfig = config(true, false);
-    givenRoute();
 
     render(<PredictRoot />);
 
@@ -68,24 +55,11 @@ describe('PredictRoot', () => {
     expect(screen.queryByTestId('predict-next-stack')).not.toBeOnTheScreen();
   });
 
-  it.each([
-    { screen: 'PredictMarketDetails' },
-    { screen: 'PredictMarketList', params: { query: 'election' } },
-  ])('keeps a legacy entry point on the legacy stack', (params) => {
-    mockConfig = config(false, true);
-    givenRoute(params);
+  it('renders the legacy stack on the legacy lane', () => {
+    mockConfig = { ...config(true, true), enabled: false };
 
     render(<PredictRoot />);
 
     expect(screen.getByTestId('legacy-predict-stack')).toBeOnTheScreen();
-  });
-
-  it('routes a generic market list to the Active Venue', () => {
-    mockConfig = config(false, true);
-    givenRoute({ screen: 'PredictMarketList' });
-
-    render(<PredictRoot />);
-
-    expect(screen.getByTestId('predict-next-stack')).toBeOnTheScreen();
   });
 });

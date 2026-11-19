@@ -20,7 +20,9 @@ export type { LiveMarketScope as PredictLiveMarketScope } from './internal/LiveE
 export interface PredictLiveDataWatchOptions {
   /**
    * Which of each Event's Markets to hold live prices for. Defaults to `all`;
-   * Home and Feed pass `card` so hidden lines stay off the wire.
+   * Home and Feed pass `card` so hidden lines stay off the wire, and the Event
+   * Screen passes `{ type: 'visible', marketIds }` with the Markets it renders.
+   * An unwatch must carry the same scope (and ids) as the watch it releases.
    */
   marketScope?: LiveMarketScope;
 }

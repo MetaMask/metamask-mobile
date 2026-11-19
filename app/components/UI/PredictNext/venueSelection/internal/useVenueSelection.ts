@@ -51,14 +51,14 @@ export const useVenueSelection = (): VenueSelection => {
           })
           .build(),
       );
-      // Re-enter the root route without legacy market-list parameters, which
-      // would otherwise pin it to Polymarket (`resolvePinnedVenue`). Navigate
-      // before the preference lands: the change remounts this screen.
+      // Re-enter the root route at its home, without legacy market-list
+      // parameters. Navigate before the preference lands: the change remounts
+      // this screen.
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
       });
-      // The root route remounts on the chosen Venue's home. B3 (PRED-1383)
-      // hooks cross-Venue lifecycle handling onto this change.
+      // The root route remounts on the chosen Venue's home. Order handling
+      // reacts to the resolved Active Venue, not to this call (PRED-1383).
       Engine.controllerMessenger.call(
         'PredictVenueController:setVenueSelectionPreference',
         venue,

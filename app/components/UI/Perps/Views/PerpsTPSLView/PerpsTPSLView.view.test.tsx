@@ -64,7 +64,7 @@ describe('PerpsTPSLView', () => {
     renderPerpsTPSLView({
       initialParams: {
         asset: 'ETH',
-        currentPrice: '2500',
+        currentPrice: 2500,
         direction: 'long',
         position,
         initialTakeProfitPrice: '',
@@ -95,6 +95,61 @@ describe('PerpsTPSLView', () => {
         '2300',
         expect.objectContaining({ direction: 'long' }),
       );
+    });
+  });
+
+  describe('take profit checked against a price', () => {
+    /** Opens the form for a new long order and types a 2700 take profit. */
+    const typeNewOrderTakeProfit = async (currentPrice: number | undefined) => {
+      const onConfirm = jest.fn().mockResolvedValue(undefined);
+      renderPerpsTPSLView({
+        initialParams: {
+          asset: 'ETH',
+          currentPrice,
+          direction: 'long',
+          position: undefined,
+          initialTakeProfitPrice: '',
+          initialStopLossPrice: '',
+          leverage: 3,
+          orderType: 'market',
+          onConfirm,
+        },
+      });
+      fireEvent.changeText(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+          {},
+          { timeout: 5000 },
+        ),
+        '2700',
+      );
+      return onConfirm;
+    };
+
+    it('keeps Save disabled while the take profit cannot be checked against a price', async () => {
+      // No current price and no live price: Core's validateTPSLPrices reports
+      // the trigger unresolved, which is not a pass.
+      const onConfirm = await typeNewOrderTakeProfit(undefined);
+      const setButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+      );
+
+      fireEvent.press(setButton);
+
+      expect(setButton).toBeDisabled();
+      expect(onConfirm).not.toHaveBeenCalled();
+    });
+
+    it('enables Save for the same take profit once a price is known', async () => {
+      await typeNewOrderTakeProfit(2500);
+
+      const setButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+      );
+
+      await waitFor(() => {
+        expect(setButton).toBeEnabled();
+      });
     });
   });
 
@@ -146,7 +201,7 @@ describe('PerpsTPSLView', () => {
     renderPerpsTPSLView({
       initialParams: {
         asset: 'ETH',
-        currentPrice: '2500',
+        currentPrice: 2500,
         direction: 'long',
         position,
         initialTakeProfitPrice: '',
@@ -237,7 +292,7 @@ describe('PerpsTPSLView', () => {
           variant,
           initialParams: {
             position,
-            currentPrice: '2500',
+            currentPrice: 2500,
             onBeforeConfirm,
             onConfirm,
           },
@@ -280,7 +335,7 @@ describe('PerpsTPSLView', () => {
           variant,
           initialParams: {
             position,
-            currentPrice: '2500',
+            currentPrice: 2500,
             onBeforeConfirm,
             onConfirm,
           },
@@ -329,7 +384,7 @@ describe('PerpsTPSLView', () => {
           variant,
           initialParams: {
             position,
-            currentPrice: '2500',
+            currentPrice: 2500,
             isPositionReviewCurrent,
             onConfirm,
           },
@@ -370,7 +425,7 @@ describe('PerpsTPSLView', () => {
           variant,
           initialParams: {
             position,
-            currentPrice: '2500',
+            currentPrice: 2500,
             isPositionReviewCurrent,
             onConfirm,
           },
@@ -408,7 +463,7 @@ describe('PerpsTPSLView', () => {
         variant: 'sheet',
         initialParams: {
           asset: 'ETH',
-          currentPrice: '2500',
+          currentPrice: 2500,
           direction: 'long',
           position,
           initialTakeProfitPrice: '',

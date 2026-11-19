@@ -92,6 +92,25 @@ describe('getAmountData', () => {
     });
   });
 
+  it('returns updates with approve and deposit calldata for membershipSubscription', async () => {
+    const result = await getAmountData({
+      amount: '5000000',
+      transaction: buildTransaction({
+        nestedTransactions: [
+          { type: TransactionType.tokenMethodApprove, data: '0x' as Hex },
+          { type: TransactionType.membershipSubscription, data: '0x' as Hex },
+        ],
+      }),
+    });
+
+    expect(result).toStrictEqual({
+      updates: [
+        { nestedTransactionIndex: 0, data: APPROVE_DATA },
+        { nestedTransactionIndex: 1, data: DEPOSIT_DATA },
+      ],
+    });
+  });
+
   it('calls buildMoneyAccountDepositBatch with correct parameters', async () => {
     await getAmountData({
       amount: '5000000',

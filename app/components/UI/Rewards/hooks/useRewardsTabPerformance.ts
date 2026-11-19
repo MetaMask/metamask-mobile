@@ -25,8 +25,7 @@ type UseRewardsTabPerformanceConfig = Pick<
  *
  * Starts {@link TraceName.RewardsTabTimeToContent} when RewardsHome mounts
  * (tab entry) and ends when the account-state content surface is ready:
- * onboarding (post-skeleton), enrolled dashboard shell, Money dashboard, or
- * update-required.
+ * points dashboard, Money dashboard, or update-required.
  *
  * The Money routing inputs are passed in rather than read here, so the trace
  * and RewardsHome's own branch always report the same content state — the

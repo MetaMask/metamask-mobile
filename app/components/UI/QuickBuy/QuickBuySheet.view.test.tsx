@@ -1,6 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import { merge } from 'lodash';
 import {
+  act,
   fireEvent,
   waitFor,
   within,
@@ -11,13 +12,15 @@ import {
   FeatureId,
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
-import { Text, TextColor } from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
   clearQuickBuyApiMocks,
   createQuickBuyFetchedQuote,
+  mockQuickBuyQuoteTokens,
+  QUICK_BUY_USDC_ASSET_ID,
   setupQuickBuyApiMock,
 } from '../../../../tests/component-view/api-mocking/quickBuy';
 import { renderQuickBuySheet } from '../../../../tests/component-view/renderers/quickBuy';
@@ -49,6 +52,21 @@ const BASE_NETWORK_OPTION = 'network-option-eip155:8453';
 const SLIPPAGE_ROUTE = {
   name: Routes.BRIDGE.MODALS.ROOT,
   Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
+};
+
+const POST_TRADE_SHARE_HINT_ENABLED = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          quickBuyPostTradeShareHintEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
 };
 
 const typeAmount = (screen: Pick<RenderAPI, 'getByTestId'>, digits: string) => {
@@ -193,6 +211,40 @@ describeForPlatforms('QuickBuySheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the post minimum hint on an empty amount when the remote flag is on', async () => {
+    mockQuickBuyQuoteTokens();
+    const screen = renderQuickBuySheet({
+      overrides: POST_TRADE_SHARE_HINT_ENABLED,
+    });
+
+    await waitForSheetReady(screen);
+
+    expect(
+      await screen.findByTestId(
+        QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT,
+      ),
+    ).toHaveTextContent('Buy $10 to post');
+  });
+
+  it('hides the post minimum hint for a token that is never posted', async () => {
+    mockQuickBuyQuoteTokens([QUICK_BUY_USDC_ASSET_ID]);
+    const screen = renderQuickBuySheet({
+      overrides: POST_TRADE_SHARE_HINT_ENABLED,
+    });
+
+    await waitForSheetReady(screen);
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialService:fetchQuoteTokens',
+      );
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
+  });
+
   it('updates the fiat amount when the user types on the keypad', async () => {
     const screen = renderQuickBuySheet();
 
@@ -209,17 +261,18 @@ describeForPlatforms('QuickBuySheet', () => {
     });
   });
 
-  it('shows the estimated receive row after a gasless quote loads', async () => {
+  it('shows the estimated receive row without a gas badge after a gasless quote loads', async () => {
     const screen = renderQuickBuySheet();
 
     await selectQuarterBuy(screen);
 
     await waitFor(
       () => {
-        expect(screen.getByText('-$2 for gas')).toBeOnTheScreen();
+        expect(screen.getByTestId('quick-buy-rate-tag')).toBeOnTheScreen();
       },
       { timeout: WAIT_MS },
     );
+    expect(screen.queryByText('-$2 for gas')).not.toBeOnTheScreen();
   });
 
   it('enables confirm when a valid amount and quote are available', async () => {
@@ -775,19 +828,29 @@ describeForPlatforms('QuickBuySheet', () => {
     const amountArea = screen.getByTestId(
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
-    expect(await within(amountArea).findByText(/Available/)).toBeOnTheScreen();
+    expect(await within(amountArea).findByText(/available/)).toBeOnTheScreen();
     expect(within(amountArea).queryByText('Add funds')).not.toBeOnTheScreen();
     await waitFor(() => {
-      const amountLabel = screen.getByTestId(
-        QuickBuySheetSelectorsIDs.AMOUNT_LABEL,
+      // Animated amounts render one glyph per digit, and the animated wrapper
+      // repeats that glyph. Keep the innermost colored digit so each is counted once.
+      const coloredDigits = screen.UNSAFE_root.findAll(
+        (node) =>
+          node.props?.color === TextColor.ErrorDefault &&
+          typeof node.props.children === 'string' &&
+          /^\d+$/.test(node.props.children),
       );
-      const amountGlyphs = amountLabel.findAllByType(Text);
-
-      expect(
-        amountGlyphs.some(
-          (glyph) => glyph.props.color === TextColor.ErrorDefault,
-        ),
-      ).toBe(true);
+      const amountDigits = coloredDigits
+        .filter(
+          (node) =>
+            !coloredDigits.some(
+              (other) =>
+                other !== node &&
+                node.findAll((child) => child === other).length > 0,
+            ),
+        )
+        .map((node) => node.props.children as string)
+        .join('');
+      expect(amountDigits).toBe('3000000000000');
     });
 
     const confirm = screen.getByTestId(
@@ -811,7 +874,7 @@ describeForPlatforms('QuickBuySheet', () => {
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
     expect(
-      await within(amountArea).findByText(/^\$100\.00 Available$/),
+      await within(amountArea).findByText(/^\$100\.00 available$/),
     ).toBeOnTheScreen();
   });
 

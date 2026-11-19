@@ -1,8 +1,10 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
+import { mockTheme } from '../../../../../../util/theme';
 import { RequestStatus } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { mockUseBridgeQuoteData } from '../../../_mocks_/useBridgeQuoteData.mock';
@@ -14,7 +16,10 @@ import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
 import { strings } from '../../../../../../../locales/i18n';
 import { formatMinimumReceived } from '../../../utils/currencyUtils';
-import { initialRecurringState } from '../../../utils/recurringSchedule';
+import {
+  initialRecurringState,
+  RECURRING_INTERVAL_UNITS,
+} from '../../../utils/recurringSchedule';
 
 jest.mock(
   '../../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -55,14 +60,14 @@ function buildActiveQuoteState(
       ...(overrides.bridgeControllerOverrides ?? {}),
     },
     bridgeReducerOverrides: {
-      sourceAmount: '1.0',
+      sourceAmount: '120',
       sourceToken: {
-        address: '0x0000000000000000000000000000000000000000',
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         chainId: '0x1' as Hex,
-        decimals: 18,
+        decimals: 6,
         image: '',
-        name: 'Ether',
-        symbol: 'ETH',
+        name: 'USD Coin',
+        symbol: 'USDC',
       },
       ...(overrides.bridgeReducerOverrides ?? {}),
     },
@@ -73,15 +78,21 @@ function renderFooter(
   state: DeepPartial<RootState>,
   {
     onPreviewOrder = jest.fn(),
+    label = strings('bridge.recurring.preview_order'),
+    destinationTokenSymbol = 'ETH',
     isPreviewDisabled,
   }: {
     onPreviewOrder?: () => void;
+    label?: string;
+    destinationTokenSymbol?: string | null;
     isPreviewDisabled?: boolean;
   } = {},
 ) {
   return renderWithProvider(
     <BridgeRecurringBuyFooterView
       onPreviewOrder={onPreviewOrder}
+      label={label}
+      destinationTokenSymbol={destinationTokenSymbol ?? undefined}
       isPreviewDisabled={isPreviewDisabled}
     />,
     { state },
@@ -96,16 +107,25 @@ describe('BridgeRecurringBuyFooterView', () => {
       .mockImplementation(() => mockUseBridgeQuoteData);
   });
 
-  it('renders nothing when loading without an active quote', () => {
+  it('renders a disabled loading button while fetching the initial quote', () => {
     jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
       ...mockUseBridgeQuoteData,
       isLoading: true,
       activeQuote: null,
     }));
+    const state = buildActiveQuoteState({
+      bridgeControllerOverrides: {
+        quotes: [],
+        quotesLastFetched: null,
+      },
+    });
 
-    const { queryByTestId } = renderFooter(buildActiveQuoteState());
+    const { getByTestId } = renderFooter(state);
 
-    expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(button).toBeOnTheScreen();
+    expect(button.props.accessibilityState?.busy).toBe(true);
+    expect(button.props.accessibilityState?.disabled).toBe(true);
   });
 
   it('renders nothing when there is no active quote', () => {
@@ -149,6 +169,18 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).toHaveTextContent(strings('bridge.recurring.preview_order'));
+  });
+
+  it('renders the supplied confirm button label', () => {
+    const label = strings('bridge.recurring.min_order_amount', {
+      amount: '€90.00',
+    });
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState(), { label });
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(label);
   });
 
   it('shows the confirm button as loading when the quote is refreshing', () => {
@@ -196,23 +228,42 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
     ).toHaveTextContent(
-      strings('bridge.recurring.spend_summary', {
-        amount: formatMinimumReceived('1.0'),
-        symbol: 'ETH',
-        everyValue: '1',
-        unit: strings('bridge.recurring.unit.hour'),
-        repeatCount: '10',
-      }),
+      'Swapping 120 USDC for ETH every hour. Repeats 10 times.',
     );
   });
 
-  it('uses the plural unit when every is greater than 1', () => {
+  it.each(RECURRING_INTERVAL_UNITS)(
+    'uses the plural %s unit when every is greater than 1',
+    (everyUnit) => {
+      const { getByTestId } = renderFooter(
+        buildActiveQuoteState({
+          bridgeReducerOverrides: {
+            recurring: {
+              ...initialRecurringState,
+              everyValue: '2',
+              everyUnit,
+            },
+          },
+        }),
+      );
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+      ).toHaveTextContent(
+        `Swapping 120 USDC for ETH every 2 ${strings(
+          `bridge.recurring.unit_plural.${everyUnit}`,
+        )}. Repeats 10 times.`,
+      );
+    },
+  );
+
+  it('uses once when repeat count is 1', () => {
     const { getByTestId } = renderFooter(
       buildActiveQuoteState({
         bridgeReducerOverrides: {
           recurring: {
             ...initialRecurringState,
-            everyValue: '2',
+            repeatCount: '1',
           },
         },
       }),
@@ -220,15 +271,29 @@ describe('BridgeRecurringBuyFooterView', () => {
 
     expect(
       getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
-    ).toHaveTextContent(
-      strings('bridge.recurring.spend_summary', {
-        amount: formatMinimumReceived('1.0'),
-        symbol: 'ETH',
-        everyValue: '2',
-        unit: strings('bridge.recurring.unit_plural.hour'),
-        repeatCount: '10',
-      }),
-    );
+    ).toHaveTextContent('Swapping 120 USDC for ETH every hour. Repeats once.');
+  });
+
+  it('renders copy in muted grey with user values in white at the same weight', () => {
+    const { getByTestId, getByText } = renderFooter(buildActiveQuoteState());
+
+    const summary = getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY);
+    const highlightedValues = [
+      getByText('120 USDC'),
+      getByText('ETH'),
+      getByText('hour'),
+      getByText('10 times'),
+    ];
+
+    expect(summary).toHaveStyle({
+      color: mockTheme.colors.text.alternative,
+    });
+    highlightedValues.forEach((value) => {
+      expect(value).toHaveStyle({ color: mockTheme.colors.text.default });
+      expect(StyleSheet.flatten(value.props.style).fontFamily).toBe(
+        StyleSheet.flatten(summary.props.style).fontFamily,
+      );
+    });
   });
 
   it('caps spend summary amount decimals like market min received', () => {
@@ -242,13 +307,9 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
     ).toHaveTextContent(
-      strings('bridge.recurring.spend_summary', {
-        amount: formatMinimumReceived(sourceAmount),
-        symbol: 'ETH',
-        everyValue: '1',
-        unit: strings('bridge.recurring.unit.hour'),
-        repeatCount: '10',
-      }),
+      `Swapping ${formatMinimumReceived(
+        sourceAmount,
+      )} USDC for ETH every hour. Repeats 10 times.`,
     );
   });
 
@@ -278,6 +339,16 @@ describe('BridgeRecurringBuyFooterView', () => {
         bridgeReducerOverrides: { sourceAmount: undefined },
       }),
     );
+
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toBeNull();
+  });
+
+  it('hides the spend summary when destination token is missing', () => {
+    const { queryByTestId } = renderFooter(buildActiveQuoteState(), {
+      destinationTokenSymbol: null,
+    });
 
     expect(
       queryByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),

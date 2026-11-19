@@ -41,6 +41,11 @@ const GAS_FEE_MODAL_TEST_ID = 'gas-fee-modal-mock';
 jest.mock('../../../gas/gas-speed', () => ({
   GasSpeed: () => null,
 }));
+// The row mounts GasFeeTokenToast, which calls the design-system toast().
+// These tests do not mount <Toaster />, so keep the side effect out of the row.
+jest.mock('../../../gas/gas-fee-token-toast', () => ({
+  GasFeeTokenToast: () => null,
+}));
 jest.mock('../../../modals/gas-fee-modal', () => {
   const { View } = jest.requireActual('react-native');
   const { createElement } = jest.requireActual('react');

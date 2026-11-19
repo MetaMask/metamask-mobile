@@ -101,6 +101,21 @@ describe('SpreadMarketGroupCard', () => {
     expect(renderedSides(market)).toEqual(['yes', 'no']);
   });
 
+  it('lists the home Team first for a home_first Game', () => {
+    const market = createSpread('CAR3', -3.5, 'away');
+    renderCard(market, { ...game, teamOrder: 'home_first' });
+
+    // Green Bay (home) is the no side of a Carolina line.
+    expect(renderedSides(market)).toEqual(['no', 'yes']);
+  });
+
+  it('keeps the yes row first for a home_first Game when the line backs the home Team', () => {
+    const market = createSpread('GB7', -7.5, 'home');
+    renderCard(market, { ...game, teamOrder: 'home_first' });
+
+    expect(renderedSides(market)).toEqual(['yes', 'no']);
+  });
+
   it('shows each row handicap without a Team prefix', () => {
     const market = createSpread('GB7', -7.5, 'home');
     renderCard(market, game);

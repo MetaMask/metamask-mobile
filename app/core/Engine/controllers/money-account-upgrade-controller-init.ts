@@ -95,7 +95,6 @@ const ensureChainConfigured = async ({
     rpcEndpoints: [
       {
         url: popularEntry.rpcUrl,
-        failoverUrls: popularEntry.failoverRpcUrls,
         name: popularEntry.nickname,
         type: RpcEndpointType.Custom,
       },

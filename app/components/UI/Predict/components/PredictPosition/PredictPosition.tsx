@@ -121,4 +121,4 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   );
 };
 
-export default PredictPosition;
+export default React.memo(PredictPosition);

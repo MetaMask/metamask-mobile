@@ -1,118 +1,150 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-/**
- * Rule source of the design system evals. The engine reads this JSON; how the
- * file is generated is out of scope for the check.
- */
-export const EVAL_RULES_FILE = join(__dirname, 'eval-rules.json');
+/** Rule source of the design system evals: the JSON next to this file. */
+const EVAL_RULES_FILE = join(__dirname, 'rules', 'eval-rules.json');
 
-/**
- * Config for the `no-numeric-literal-on-keys` kind: report numeric literals
- * on the listed object keys, except the allowed values.
- */
-export interface NumericLiteralOnKeysRuleConfig {
-  id: string;
-  kind: 'no-numeric-literal-on-keys';
-  keys: string[];
-  allowedValues: number[];
-  message: string;
+/** Key predicate: an explicit list or a regex. Exactly one is required. */
+export interface KeyMatch {
+  oneOf?: string[];
+  pattern?: string;
 }
 
-export type EvalRuleConfig = NumericLiteralOnKeysRuleConfig;
+/** Value predicate over a literal. `number` allows unary +/- and an except list. */
+export type ValueMatch =
+  | { type: 'number'; except?: number[] }
+  | { type: 'string'; pattern: string };
 
-const KNOWN_KINDS = new Set(['no-numeric-literal-on-keys']);
+/** What a rule matches: an object-literal property. The schema is the language; see README.md. */
+export interface RuleMatch {
+  node: 'Property';
+  key: KeyMatch;
+  value: ValueMatch;
+}
 
-/**
- * Parse and validate the eval rules JSON. Throws on the first defect so a
- * broken source fails the check loudly instead of passing silently.
- */
+export interface EvalRuleConfig {
+  id: string;
+  message: string;
+  match: RuleMatch;
+}
+
+/** Load the eval rules JSON. A missing file yields no rules (pilot: skip, do not fail). */
+export function loadEvalRules(file = EVAL_RULES_FILE): EvalRuleConfig[] {
+  if (!existsSync(file)) {
+    return [];
+  }
+  return parseEvalRules(JSON.parse(readFileSync(file, 'utf8')));
+}
+
+/** Parse the eval rules JSON. Throws on the first defect so a broken source fails loudly. */
 export function parseEvalRules(json: unknown): EvalRuleConfig[] {
-  if (typeof json !== 'object' || json === null || !Array.isArray((json as { rules?: unknown }).rules)) {
+  const rules = (json as { rules?: unknown } | null)?.rules;
+  if (!Array.isArray(rules)) {
     throw new Error('eval rules source must be an object with a "rules" array');
   }
 
-  const configs = (json as { rules: unknown[] }).rules.map((entry, index) =>
-    parseRule(entry, index),
-  );
-
+  const configs = rules.map(parseRule);
   const seen = new Set<string>();
-  for (const config of configs) {
-    if (seen.has(config.id)) {
-      throw new Error(`duplicate eval rule id "${config.id}"`);
+  for (const { id } of configs) {
+    if (seen.has(id)) {
+      throw new Error(`duplicate eval rule id "${id}"`);
     }
-    seen.add(config.id);
+    seen.add(id);
   }
-
   return configs;
-}
-
-/**
- * Load the checked-in eval rules JSON next to this file.
- */
-export function loadEvalRules(): EvalRuleConfig[] {
-  return parseEvalRules(JSON.parse(readFileSync(EVAL_RULES_FILE, 'utf8')));
 }
 
 function parseRule(entry: unknown, index: number): EvalRuleConfig {
   const where = `rules[${index}]`;
-  if (typeof entry !== 'object' || entry === null) {
-    throw new Error(`${where} must be an object`);
+  const rule = asRecord(entry, where);
+  const match = asRecord(rule.match, `${where}.match`);
+
+  const node = readString(match.node, `${where}.match.node`);
+  if (node !== 'Property') {
+    throw new Error(`${where}.match.node "${node}" is not supported ("Property")`);
   }
 
-  const rule = entry as Record<string, unknown>;
-
-  const id = readString(rule, 'id', where);
-  const kind = readString(rule, 'kind', where);
-  if (!KNOWN_KINDS.has(kind)) {
-    throw new Error(
-      `${where} ("${id}") has unknown kind "${kind}". Known kinds: ${[...KNOWN_KINDS].join(', ')}`,
-    );
-  }
-
-  const message = readString(rule, 'message', where);
-  const keys = readStringArray(rule, 'keys', where);
-  const allowedValues = readNumberArray(rule, 'allowedValues', where);
-
-  return { id, kind: kind as EvalRuleConfig['kind'], keys, allowedValues, message };
+  return {
+    id: readString(rule.id, `${where}.id`),
+    message: readString(rule.message, `${where}.message`),
+    match: {
+      node,
+      key: parseKey(asRecord(match.key, `${where}.match.key`), `${where}.match.key`),
+      value: parseValue(
+        asRecord(match.value, `${where}.match.value`),
+        `${where}.match.value`,
+      ),
+    },
+  };
 }
 
-function readString(
-  rule: Record<string, unknown>,
-  field: string,
-  where: string,
-): string {
-  const value = rule[field];
+function parseKey(key: Record<string, unknown>, where: string): KeyMatch {
+  const pattern = readPattern(key.pattern, `${where}.pattern`);
+  if (key.oneOf === undefined) {
+    if (pattern === undefined) {
+      throw new Error(`${where} takes exactly one of "oneOf" or "pattern"`);
+    }
+    return { pattern };
+  }
+  if (pattern !== undefined) {
+    throw new Error(`${where} takes exactly one of "oneOf" or "pattern"`);
+  }
+  const oneOf = key.oneOf;
+  if (
+    !Array.isArray(oneOf) ||
+    oneOf.length === 0 ||
+    oneOf.some((item) => typeof item !== 'string' || item.trim().length === 0)
+  ) {
+    throw new Error(`${where}.oneOf must be a non-empty array of non-empty strings`);
+  }
+  return { oneOf: oneOf as string[] };
+}
+
+function parseValue(value: Record<string, unknown>, where: string): ValueMatch {
+  const type = readString(value.type, `${where}.type`);
+  if (type === 'number') {
+    const except = value.except;
+    if (
+      except !== undefined &&
+      (!Array.isArray(except) || except.some((item) => typeof item !== 'number'))
+    ) {
+      throw new Error(`${where}.except must be an array of numbers`);
+    }
+    return { type, except: except as number[] | undefined };
+  }
+  if (type === 'string') {
+    const pattern = readPattern(value.pattern, `${where}.pattern`);
+    if (pattern === undefined) {
+      throw new Error(`${where}.pattern is required when type is "string"`);
+    }
+    return { type, pattern };
+  }
+  throw new Error(`${where}.type "${type}" is not supported ("number", "string")`);
+}
+
+function asRecord(value: unknown, where: string): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error(`${where} must be an object`);
+  }
+  return value as Record<string, unknown>;
+}
+
+function readString(value: unknown, where: string): string {
   if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new Error(`${where}.${field} must be a non-empty string`);
+    throw new Error(`${where} must be a non-empty string`);
   }
   return value;
 }
 
-function readStringArray(
-  rule: Record<string, unknown>,
-  field: string,
-  where: string,
-): string[] {
-  const value = rule[field];
-  if (
-    !Array.isArray(value) ||
-    value.length === 0 ||
-    value.some((item) => typeof item !== 'string' || item.trim().length === 0)
-  ) {
-    throw new Error(`${where}.${field} must be a non-empty array of non-empty strings`);
+function readPattern(value: unknown, where: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
   }
-  return value as string[];
-}
-
-function readNumberArray(
-  rule: Record<string, unknown>,
-  field: string,
-  where: string,
-): number[] {
-  const value = rule[field];
-  if (!Array.isArray(value) || value.some((item) => typeof item !== 'number')) {
-    throw new Error(`${where}.${field} must be an array of numbers`);
+  const pattern = readString(value, where);
+  try {
+    new RegExp(pattern);
+  } catch {
+    throw new Error(`${where} is not a valid regex: "${pattern}"`);
   }
-  return value as number[];
+  return pattern;
 }

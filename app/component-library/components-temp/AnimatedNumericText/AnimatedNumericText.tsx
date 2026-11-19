@@ -37,9 +37,18 @@ const AnimatedText = Animated.createAnimatedComponent(DesignSystemText);
 export interface AnimatedNumericTextProps {
   accessible?: boolean;
   animated?: boolean;
+  /**
+   * Set `false` to keep the row from gliding when its own frame changes.
+   * Glyphs still animate. On Reanimated 4.5.x the container's layout
+   * transition can stop one frame short of its target
+   * (software-mansion/react-native-reanimated#10395, fixed in 4.6.0), which
+   * shows up in views that move around a lot, like list cells.
+   */
+  animateContainerLayout?: boolean;
   color?: TextColor;
   /** Layout styles for the row that contains the glyphs. */
   containerStyle?: StyleProp<ViewStyle>;
+  fontFamily?: FontFamily;
   fontWeight?: FontWeight;
   /** Typography styles applied to every glyph. */
   style?: StyleProp<TextStyle>;
@@ -93,10 +102,12 @@ export const getNumericGlyphs = (value: string): NumericGlyph[] => {
 const AnimatedNumericText = ({
   accessible = true,
   animated = true,
+  animateContainerLayout = true,
   value,
   variant = TextVariant.BodyMd,
   color = TextColor.TextDefault,
   containerStyle,
+  fontFamily = FontFamily.Hero,
   fontWeight,
   style,
   testID,
@@ -120,7 +131,7 @@ const AnimatedNumericText = ({
     <DesignSystemText
       accessible={false}
       color={color}
-      fontFamily={FontFamily.Hero}
+      fontFamily={fontFamily}
       fontWeight={fontWeight}
       style={style}
       variant={variant}
@@ -135,7 +146,11 @@ const AnimatedNumericText = ({
       accessible={accessible}
       accessibilityRole={accessible ? 'text' : undefined}
       accessibilityLabel={accessible ? value : undefined}
-      layout={animateGlyphs ? GLYPH_LAYOUT_TRANSITION : undefined}
+      layout={
+        animateGlyphs && animateContainerLayout
+          ? GLYPH_LAYOUT_TRANSITION
+          : undefined
+      }
       style={[styles.container, containerStyle]}
     >
       {!motionEnabled || !numeric ? (
@@ -149,7 +164,7 @@ const AnimatedNumericText = ({
               color={color}
               entering={animateGlyphs ? GLYPH_ENTER_TRANSITION : undefined}
               exiting={animateGlyphs ? GLYPH_EXIT_TRANSITION : undefined}
-              fontFamily={FontFamily.Hero}
+              fontFamily={fontFamily}
               fontWeight={fontWeight}
               key={key}
               layout={animateGlyphs ? GLYPH_LAYOUT_TRANSITION : undefined}

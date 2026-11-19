@@ -10,8 +10,8 @@ const mockPredictDiscoveryListWidget = jest.fn(() => (
   <Text>Remote discovery</Text>
 ));
 
-jest.mock('../Predict/uiSlots/widgets/PredictDiscoveryListWidget', () => ({
-  PredictDiscoveryListWidget: () => mockPredictDiscoveryListWidget(),
+jest.mock('../PredictNext/homeSection/PredictDiscoveryListSlotWidget', () => ({
+  PredictDiscoveryListSlotWidget: () => mockPredictDiscoveryListWidget(),
 }));
 jest.mock('../../../util/Logger');
 

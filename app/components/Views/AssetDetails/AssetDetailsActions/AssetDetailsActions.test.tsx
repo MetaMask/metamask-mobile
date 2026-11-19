@@ -50,6 +50,7 @@ jest.mock('@react-navigation/native', () => {
 // Mock react-native-device-info to provide a valid version string
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.0.0'),
+  getTotalMemorySync: jest.fn(() => 4 * 1024 ** 3),
 }));
 
 // Mock the selectIsSwapsEnabled selector

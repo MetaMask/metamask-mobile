@@ -31,9 +31,8 @@ import {
   getMoneyActivityStatus,
   moneyActivityLabel,
 } from '../../../../../UI/Money/utils/classifyMoneyActivity';
-import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -47,7 +46,7 @@ export const SUMMARY_SECTION_TYPES = [
 ];
 
 export function TransactionDetails() {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { transactionMeta } = useTransactionDetails();

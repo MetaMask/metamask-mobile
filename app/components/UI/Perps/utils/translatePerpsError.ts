@@ -122,6 +122,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE]:
     'perps.errors.providerNotAvailable',
   [PERPS_ERROR_CODES.PROVIDER_NOT_FOUND]: 'perps.errors.providerNotAvailable',
+  [PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED]:
+    'perps.errors.providerRouteRequired',
   [PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE]:
     'perps.errors.clientReinitializing',
   [PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED]: 'perps.errors.tokenNotSupported',
@@ -292,6 +294,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.marginAdjustmentFailed',
   [PERPS_ERROR_CODES.TPSL_UPDATE_FAILED]: 'perps.errors.tpslUpdateFailed',
   [PERPS_ERROR_CODES.TPSL_PROTECTION_LOST]: 'perps.errors.tpslUpdateFailed',
+  [PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED]:
+    'perps.errors.tpslLegReplaceUnsupported',
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
@@ -418,6 +422,36 @@ const API_ERROR_PATTERNS: {
   },
 ];
 
+/** HyperLiquid only accepts post-only orders for a while after a network upgrade. */
+const POST_ONLY_WINDOW_PATTERN =
+  /only post-only orders allowed immediately after network upgrade/i;
+/** HyperLiquid refused a post-only order whose price would cross the spread. */
+const POST_ONLY_WOULD_CROSS_PATTERN =
+  /post only order would have immediately matched/i;
+
+/**
+ * Venue rejections without a Core error code, mapped straight to copy. Checked
+ * before API_ERROR_PATTERNS: the would-cross message embeds raw bbo prices that
+ * generic patterns (e.g. /503/) could otherwise match.
+ */
+const POST_ONLY_ERROR_PATTERNS: { pattern: RegExp; i18nKey: string }[] = [
+  {
+    pattern: POST_ONLY_WINDOW_PATTERN,
+    i18nKey: 'perps.errors.postOnlyWindow',
+  },
+  {
+    pattern: POST_ONLY_WOULD_CROSS_PATTERN,
+    i18nKey: 'perps.errors.postOnlyWouldCross',
+  },
+];
+
+function matchPostOnlyErrorKey(errorString: string): string | null {
+  return (
+    POST_ONLY_ERROR_PATTERNS.find(({ pattern }) => pattern.test(errorString))
+      ?.i18nKey ?? null
+  );
+}
+
 /**
  * Attempts to match an error string against known API error patterns.
  * @param errorString - The error message to match
@@ -468,6 +502,11 @@ export function translatePerpsError(
     );
   }
 
+  const postOnlyKey = matchPostOnlyErrorKey(errorInput.error);
+  if (postOnlyKey) {
+    return strings(postOnlyKey);
+  }
+
   const matchedErrorCode = matchApiErrorPattern(errorInput.error);
   if (matchedErrorCode) {
     return strings(
@@ -505,6 +544,39 @@ export function isNoPositionFoundError(error: unknown): boolean {
         ? error
         : '';
   return NO_POSITION_FOUND_PATTERN.test(message);
+}
+
+/** True when HyperLiquid refused the order because of its post-only window. */
+export function isPostOnlyWindowError(error: unknown): boolean {
+  return POST_ONLY_WINDOW_PATTERN.test(normalizePerpsError(error)?.error ?? '');
+}
+
+/** True when HyperLiquid refused a post-only order that would cross the spread. */
+export function isPostOnlyWouldCrossError(error: unknown): boolean {
+  return POST_ONLY_WOULD_CROSS_PATTERN.test(
+    normalizePerpsError(error)?.error ?? '',
+  );
+}
+
+/** Why an order edit was refused, and what happened to the order it replaced. */
+export interface OrderEditRejection {
+  reason: 'post_only_would_cross' | 'other';
+  originalOrder: 'cancelled' | 'retained';
+  error?: string;
+}
+
+/**
+ * Normalizes a refused order edit for the UI. HyperLiquid cancels the original
+ * order when its post-only replacement is rejected, so that outcome reports a
+ * cancelled original. `@metamask/perps-controller` reports it only as venue
+ * wording, so this is the one place that reads it.
+ */
+export function normalizeOrderEditRejection(
+  error?: string,
+): OrderEditRejection {
+  return isPostOnlyWouldCrossError(error)
+    ? { reason: 'post_only_would_cross', originalOrder: 'cancelled', error }
+    : { reason: 'other', originalOrder: 'retained', error };
 }
 
 /**
@@ -593,6 +665,11 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
 
   // Try pattern matching for API error messages
   if (errorString) {
+    const postOnlyKey = matchPostOnlyErrorKey(errorString);
+    if (postOnlyKey) {
+      return strings(postOnlyKey);
+    }
+
     const matchedErrorCode = matchApiErrorPattern(errorString);
     if (matchedErrorCode) {
       debugLogger?.log('PerpsErrorHandler: Matched error pattern', {

@@ -384,4 +384,57 @@ describe('IOSPlatformAdapter', () => {
       expect.anything(),
     );
   });
+
+  it('disposes the driver after closing the app', async () => {
+    const dispose = jest.fn().mockResolvedValue(undefined);
+    mockCreateDriver.mockResolvedValue({
+      backend,
+      driver: { ...mobileDriver, dispose },
+    } as never);
+    const adapter = new IOSPlatformAdapter();
+    await adapter.launch(await adapter.resolve({ platform: 'ios' }));
+
+    await adapter.cleanup();
+    await adapter.cleanup();
+
+    expect(dispose).toHaveBeenCalledTimes(1);
+    expect(backend.closeApp.mock.invocationCallOrder[0]).toBeLessThan(
+      dispose.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('disposes the driver when launch fails after the driver was created', async () => {
+    const dispose = jest.fn().mockResolvedValue(undefined);
+    backend.getAppState.mockResolvedValue({ state: 'Not Installed' });
+    mockCreateDriver.mockResolvedValue({
+      backend,
+      driver: { ...mobileDriver, dispose },
+    } as never);
+    const adapter = new IOSPlatformAdapter();
+    const options = await adapter.resolve({ platform: 'ios' });
+    await expect(adapter.launch(options)).rejects.toBeInstanceOf(
+      IOSLaunchError,
+    );
+
+    await adapter.cleanup();
+
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to backend disposal and never throws on disposal failure', async () => {
+    const backendDispose = jest.fn().mockRejectedValue(new Error('stuck'));
+    mockCreateDriver.mockResolvedValue({
+      backend: { ...backend, dispose: backendDispose },
+      driver: mobileDriver,
+    } as never);
+    const adapter = new IOSPlatformAdapter();
+    await adapter.launch(await adapter.resolve({ platform: 'ios' }));
+
+    await expect(adapter.cleanup()).resolves.toBeUndefined();
+
+    expect(backendDispose).toHaveBeenCalledTimes(1);
+    expect(stderrSpy).toHaveBeenCalledWith(
+      expect.stringContaining('iOS driver disposal failed: stuck'),
+    );
+  });
 });

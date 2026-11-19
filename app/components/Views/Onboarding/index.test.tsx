@@ -59,6 +59,7 @@ const MOCK_ONBOARDING_VERSION = `${MOCK_APP_VERSION} (${MOCK_BUILD_NUMBER})`;
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => MOCK_APP_VERSION),
   getBuildNumber: jest.fn(() => MOCK_BUILD_NUMBER),
+  getTotalMemorySync: jest.fn(() => 4 * 1024 ** 3),
 }));
 
 import React from 'react';

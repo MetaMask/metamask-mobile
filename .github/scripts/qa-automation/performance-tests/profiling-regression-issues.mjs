@@ -373,7 +373,7 @@ function proposalForFinding(aiText, finding, findingCount) {
   );
 }
 
-function additionalContextLines({ exception, currentReport, aiText }) {
+function additionalContextLines({ exception, currentReport, aiText, team }) {
   const lines = [
     `- Performance run: ${exception.meta.runUrl}`,
     `- Baseline: average of the complete, non-spiking runs among the previous ${exception.meta.baselinePreviousRuns} scheduled runs (~36h), ${exception.meta.baselineRunCount} collected; flagged only after two consecutive runs over the threshold`,
@@ -391,6 +391,11 @@ function additionalContextLines({ exception, currentReport, aiText }) {
     '- Source: Hermes CPU sampling only. "JS work" is sampled JS self time attributed from those samples (GC, idle and native waits excluded), not the wall-clock duration of the test.',
     '- Opened automatically by the `Analyze App Profiling` workflow after a scheduled performance run. Recurrences while this issue is open are added as comments instead of new issues.',
   );
+  if (team?.githubLabel) {
+    lines.push(
+      `- Team tag: \`${team.githubLabel}\`. That label routes this bug to the owning team's Jira project.`,
+    );
+  }
   if (aiText) {
     lines.push(
       '',
@@ -485,7 +490,7 @@ export function buildRegressionIssue({
     '',
     '### Additional context',
     '',
-    ...additionalContextLines({ exception, currentReport, aiText }),
+    ...additionalContextLines({ exception, currentReport, aiText, team }),
     '',
     '### Severity',
     '',

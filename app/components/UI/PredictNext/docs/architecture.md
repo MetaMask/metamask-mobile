@@ -105,8 +105,8 @@ A composition root may build the enabled graph and own initialization/teardown. 
 
 `PredictDeviceAuthService` is an Engine-owned stateless capability service. It
 owns the unlocked P-256 key and in-memory A2T lifecycle, delegates only the
-Authentication, Keyring, feature-flag, and message-signing Snap dependencies it
-needs, and exposes no generic signing action. PredictNext may ask it to prepare
+Authentication, Keyring, and feature-flag dependencies it needs, and exposes
+no generic signing action. PredictNext may ask it to prepare
 credentials without blocking rendering. Lock, identity replacement, flag
 disable, and wallet reset invalidate the appropriate credentials independently
 of React mount state. The service binds a bundled authentication profile to an
@@ -184,6 +184,24 @@ Rules:
 - writes retry only with Venue-verified idempotency or lookup semantics,
 - ambiguous results remain observable and reconcile or block safely,
 - durable remote operation state lives on the backend; mobile persists only safe references needed to resume observation.
+
+Order recovery pauses on lock, offline, or background transitions without
+aborting a dispatched Commit. The caller receives an unknown outcome; only
+identity replacement or wallet reset abandons process-local operations.
+Journal v2 records the backend Preview expiry. A missing-operation GET begun
+after that expiry plus a 30-second clock-skew/claim grace resolves not-placed;
+expiry alone, older GETs, transport failures, and migrated v1 references without
+expiry never prove an outcome. Restored references never authorize submission
+or prove a terminal status. Invalid entries are logged without their payload
+and quarantined independently, preserving valid references.
+
+Server-confirmed `needs_manual_review` is terminal for automatic recovery. The
+service publishes `recoveryChanged` before removing its durable journal row,
+keeps the status queryable for the current identity's process lifetime, and
+logs the Preview reference and pruning reason once. Unknown/checking entries
+are never pruned on a local deadline. After restart, backend discovery can
+surface terminal review again without relying on a journal marker or scanning
+the order; no approval or mutation is restored.
 
 ## State ownership
 

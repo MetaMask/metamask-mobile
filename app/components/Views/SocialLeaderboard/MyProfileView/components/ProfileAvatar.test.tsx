@@ -1,7 +1,6 @@
 import { brandColor } from '@metamask/design-tokens';
 import { render, screen } from '@testing-library/react-native';
 import React from 'react';
-import superheroAvatar from '../../../../../images/socialV1/superhero.png';
 import ProfileAvatar from './ProfileAvatar';
 
 jest.mock('../../../../../component-library/components-temp/Foxicon', () => {
@@ -121,9 +120,22 @@ describe('ProfileAvatar', () => {
     expect(screen.getByTestId(TEST_ID)).toBeOnTheScreen();
   });
 
-  it('shows the bundled fox for an unknown preset', () => {
-    render(<ProfileAvatar avatarPresetId="retired-preset" testID={TEST_ID} />);
+  it.each(['royal', 'retired-preset', null])(
+    'shows the astronaut on the sky backdrop for the %s preset',
+    (avatarPresetId) => {
+      render(
+        <ProfileAvatar
+          avatarPresetId={avatarPresetId}
+          avatarBackgroundId="background1"
+          size="md"
+          testID={TEST_ID}
+        />,
+      );
 
-    expect(screen.getByTestId(TEST_ID)).toHaveProp('source', superheroAvatar);
-  });
+      expect(screen.getByTestId(TEST_ID)).toHaveStyle({
+        backgroundColor: brandColor.indigo200,
+      });
+      expect(screen.getByText('astro 48')).toBeOnTheScreen();
+    },
+  );
 });

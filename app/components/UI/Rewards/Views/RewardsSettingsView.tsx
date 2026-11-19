@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -10,15 +10,18 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
-import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import LinkedOffDeviceAccountsSheet from '../components/Settings/LinkedOffDeviceAccountsSheet';
 import OptOutConfirmationSheet from '../components/Settings/OptOutConfirmationSheet';
 import { useLinkedOffDeviceAccounts } from '../hooks/useLinkedOffDeviceAccounts';
 import { useOptout } from '../hooks/useOptout';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const REWARDS_SETTINGS_SAFE_AREA_TEST_ID = 'rewards-settings-safe-area';
 
 const RewardsSettingsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -83,31 +86,19 @@ const RewardsSettingsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_SETTINGS_SAFE_AREA_TEST_ID}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.settings.title')}
           onBack={handleBack}
           backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />
         <Box twClassName="py-4 flex-1 gap-4">
-          {offDeviceAccounts.length > 0 && (
-            <Box twClassName="px-4">
-              <RewardsInfoBanner
-                title={strings(
-                  'rewards.settings.off_device_accounts_banner_title',
-                )}
-                description={strings(
-                  'rewards.settings.off_device_accounts_banner_description',
-                )}
-                onConfirm={handleOpenOffDeviceSheet}
-                confirmButtonLabel={strings(
-                  'rewards.settings.off_device_accounts_banner_cta',
-                )}
-              />
-            </Box>
-          )}
           <RewardSettingsAccountGroupList
             onRequestOptOut={handleRequestOptOut}
+            offDeviceAccounts={offDeviceAccounts}
+            onOpenOffDeviceSheet={handleOpenOffDeviceSheet}
           />
         </Box>
 

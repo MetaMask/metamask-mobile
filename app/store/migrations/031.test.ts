@@ -2,6 +2,7 @@ import migration from './031';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 const oldState1 = {
   engine: {
     backgroundState: {
@@ -232,7 +233,7 @@ describe('Migration #31', () => {
       const newState = await migration(state);
       expect(newState).toStrictEqual(returnedState());
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });

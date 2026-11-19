@@ -1327,6 +1327,8 @@ async function collectPerformanceTestCounts() {
 // ---------------------------------------------------------------------------
 
 const FF_REPORT_PATH = 'tests/artifacts/feature-flag-coverage-report.json';
+const ROUTE_COVERAGE_REPORT_PATH =
+  'tests/test-results/route-coverage-report.json';
 
 async function collectFeatureFlagCoverage() {
   console.log('[feature_flags] running coverage report via tsx...');
@@ -1350,6 +1352,39 @@ async function collectFeatureFlagCoverage() {
 }
 
 // ---------------------------------------------------------------------------
+// Route page-object coverage
+// Delegates to the checked-in route coverage report (single source of truth).
+// Requires `yarn install` in the workflow so tsx is available.
+// ---------------------------------------------------------------------------
+
+async function collectRoutePageObjectCoverage() {
+  console.log('[route_coverage] running route coverage report via tsx...');
+  execSync('yarn test:e2e:route-coverage', { stdio: 'pipe' });
+
+  const report = JSON.parse(
+    await readFile(ROUTE_COVERAGE_REPORT_PATH, 'utf8'),
+  );
+  const { summary } = report;
+
+  console.log(
+    `[route_coverage] total: ${summary.totalRoutes}, ` +
+      `covered: ${summary.withPageObject}, ` +
+      `coverage: ${summary.coveragePercentage}%`,
+  );
+
+  return {
+    total_routes: summary.totalRoutes,
+    covered_routes: summary.withPageObject,
+    uncovered_screen_routes: summary.withoutPageObject,
+    not_screen_routes: summary.notAScreen,
+    unregistered_routes: summary.unregistered,
+    stale_registry_entries: summary.staleEntries,
+    coverage_percentage: summary.coveragePercentage,
+    aliased_route_values: report.aliasedRoutes.length,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -1369,6 +1404,7 @@ async function main() {
     { namespace: 'metametrics', collect: collectMetametricsQaStats },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
     { namespace: 'feature_flags', collect: collectFeatureFlagCoverage },
+    { namespace: 'route_coverage', collect: collectRoutePageObjectCoverage },
   ];
 
   for (const { namespace, collect } of collectors) {

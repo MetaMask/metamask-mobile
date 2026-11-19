@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { setCommissions } from '../../../../reducers/rewardsMoney';
+import {
+  setCommissionMechanisms,
+  setCommissions,
+} from '../../../../reducers/rewardsMoney';
 import { selectCommissions } from '../../../../reducers/rewardsMoney/selectors';
 import type { RootState } from '../../../../reducers';
 import type {
@@ -45,13 +48,21 @@ export const useCommissions = (
           forceFresh: isFirstPage ? forceFresh : undefined,
         },
       );
+      if (isFirstPage && profileId && page.mechanisms) {
+        dispatch(
+          setCommissionMechanisms({
+            profileId,
+            mechanisms: page.mechanisms,
+          }),
+        );
+      }
       return {
         results: page.results,
         cursor: page.cursor,
         has_more: page.has_more,
       };
     },
-    [],
+    [dispatch, profileId],
   );
 
   const onFirstPage = useCallback(
@@ -72,5 +83,6 @@ export const useCommissions = (
     onFirstPage,
     errorMessage: 'Failed to fetch commissions',
     feature: 'rewards-money',
+    laterPageRetryLimit: 1,
   });
 };

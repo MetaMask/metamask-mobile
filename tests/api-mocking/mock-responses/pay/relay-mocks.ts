@@ -141,6 +141,108 @@ export async function mockRelayQuoteWith(mockServer: Mockttp, quote: unknown) {
     .thenCallback(() => ({ statusCode: 200, json: quote }));
 }
 
+interface RelayRequestBody {
+  metamask?: { executeVersion?: number };
+  requestId?: string;
+  user?: string;
+}
+
+const RELAY_QUOTE_URL_PATTERN =
+  /intents\.(uat-)?api\.cx\.metamask\.io\/relay\/quote/;
+const RELAY_EXECUTE_URL_PATTERN =
+  /intents\.(uat-)?api\.cx\.metamask\.io\/relay\/execute/;
+const RELAY_EXECUTE_SIGNATURE = 'money-account-withdraw-e2e-signature';
+
+async function readRelayRequestBody(request: {
+  body: { getText: () => Promise<string | undefined> };
+}): Promise<RelayRequestBody> {
+  try {
+    const text = await request.body.getText();
+    return text ? (JSON.parse(text) as RelayRequestBody) : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Registers Relay quote mocks that serve an execute quote to `executeUser`
+ * when it asks for one, and the plain `quote` otherwise. Also mocks
+ * `/relay/execute`, echoing the quote's request id.
+ */
+export async function mockRelayQuoteWithExecute(
+  mockServer: Mockttp,
+  quote: Record<string, unknown>,
+  executeUser: string,
+) {
+  const handler = async (request: {
+    body: { getText: () => Promise<string | undefined> };
+  }) => {
+    const body = await readRelayRequestBody(request);
+    const isExecute =
+      Boolean(body.metamask?.executeVersion) &&
+      body.user?.toLowerCase() === executeUser.toLowerCase();
+
+    if (!isExecute) {
+      return { statusCode: 200, json: quote };
+    }
+
+    const executeQuote = JSON.parse(JSON.stringify(quote));
+    executeQuote.metamask = {
+      ...executeQuote.metamask,
+      isExecute: true,
+      signature: RELAY_EXECUTE_SIGNATURE,
+    };
+    for (const step of executeQuote.steps ?? []) {
+      for (const item of step.items ?? []) {
+        if (item.data) {
+          item.data.from = body.user;
+        }
+      }
+    }
+    return { statusCode: 200, json: executeQuote };
+  };
+
+  const executeHandler = async (request: {
+    body: { getText: () => Promise<string | undefined> };
+  }) => {
+    const body = await readRelayRequestBody(request);
+    return { statusCode: 200, json: { requestId: body.requestId } };
+  };
+
+  await mockServer
+    .forPost('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url?.includes('api.relay.link/quote') ||
+          url?.includes('bridge.api.cx.metamask.io/relay/quote') ||
+          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote') ||
+          (url && RELAY_QUOTE_URL_PATTERN.test(url)),
+      );
+    })
+    .thenCallback(handler);
+
+  await mockServer
+    .forPost(RELAY_QUOTE_URL_PATTERN)
+    .asPriority(1001)
+    .thenCallback(handler);
+
+  await mockServer
+    .forPost('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url && RELAY_EXECUTE_URL_PATTERN.test(url));
+    })
+    .thenCallback(executeHandler);
+
+  await mockServer
+    .forPost(RELAY_EXECUTE_URL_PATTERN)
+    .asPriority(1001)
+    .thenCallback(executeHandler);
+}
+
 /**
  * Registers the mock server interceptors for Relay status (success) requests.
  */
