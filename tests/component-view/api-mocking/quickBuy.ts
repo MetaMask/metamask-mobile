@@ -16,6 +16,8 @@ import {
   getNativeAssetForChainId,
 } from '@metamask/bridge-controller';
 import Engine from '../../../app/core/Engine';
+import ReactQueryService from '../../../app/core/ReactQueryService';
+import { QUOTE_TOKENS_QUERY_KEY } from '../../../app/components/Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import { updateBgState } from '../../../app/core/redux/slices/engine';
 import { disableNetConnect, teardownNock } from './nockHelpers';
 import {
@@ -104,7 +106,45 @@ export function setupQuickBuyApiMock(): void {
   });
 }
 
+type MessengerCall = typeof Engine.controllerMessenger.call;
+let baseMessengerCall: MessengerCall | undefined;
+
+/**
+ * Serves `SocialService:fetchQuoteTokens` from the CV Engine messenger mock.
+ * Tokens on the list are never posted to Social, so Quick Buy hides the post
+ * minimum hint for them.
+ *
+ * @param stablecoins - Quote-token stablecoin asset ids.
+ */
+export function mockQuickBuyQuoteTokens(stablecoins: string[] = []): void {
+  const quoteTokens = { natives: ['eip155:1/slip44:60'], stablecoins };
+  // isUnsupportedPostTradeAsset reads the app query client, not the CV one.
+  ReactQueryService.queryClient.setQueryData(
+    QUOTE_TOKENS_QUERY_KEY,
+    quoteTokens,
+  );
+  const call = jest.mocked(Engine.controllerMessenger.call);
+  baseMessengerCall ??= call.getMockImplementation() as MessengerCall;
+  const fallback = baseMessengerCall;
+  call.mockImplementation(((action: string, ...args: unknown[]) =>
+    action === 'SocialService:fetchQuoteTokens'
+      ? Promise.resolve(quoteTokens)
+      : Reflect.apply(fallback, Engine.controllerMessenger, [
+          action,
+          ...args,
+        ])) as MessengerCall);
+}
+
 export function clearQuickBuyApiMocks(): void {
+  if (baseMessengerCall) {
+    jest
+      .mocked(Engine.controllerMessenger.call)
+      .mockImplementation(baseMessengerCall);
+    baseMessengerCall = undefined;
+  }
+  ReactQueryService.queryClient.removeQueries({
+    queryKey: QUOTE_TOKENS_QUERY_KEY,
+  });
   jest.mocked(globalThis.fetch).mockRestore?.();
   teardownNock();
 }

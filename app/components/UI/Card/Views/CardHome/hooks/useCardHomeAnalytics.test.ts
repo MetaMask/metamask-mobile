@@ -174,11 +174,11 @@ describe('useCardHomeAnalytics', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
-  it("sets state to 'UNAUTHENTICATED' when not authenticated", () => {
+  it("sets state to 'PENDING' when not authenticated", () => {
     setupHook({ isAuthenticated: false });
     const builder = mockCreateEventBuilder.mock.results[0].value;
     expect(builder.addProperties).toHaveBeenCalledWith(
-      expect.objectContaining({ state: 'UNAUTHENTICATED' }),
+      expect.objectContaining({ state: 'PENDING' }),
     );
   });
 

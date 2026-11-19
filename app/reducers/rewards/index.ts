@@ -2,7 +2,6 @@ import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 import {
   SeasonStatusState,
   SeasonTierDto,
-  GeoRewardsMetadata,
   PointsBoostDto,
   RewardDto,
   PointsEventDto,
@@ -253,12 +252,6 @@ export interface RewardsState {
   // Candidate subscription state
   candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
 
-  // Geolocation state
-  geoLocation: string | null;
-  optinAllowedForGeo: boolean | null;
-  optinAllowedForGeoLoading: boolean;
-  optinAllowedForGeoError: boolean;
-
   // UI preferences
   hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
   hideUnlinkedAccountsBanner: boolean;
@@ -439,10 +432,6 @@ export const initialState: RewardsState = {
   referralDetails: {},
 
   candidateSubscriptionId: 'pending',
-  geoLocation: null,
-  optinAllowedForGeo: null,
-  optinAllowedForGeoLoading: false,
-  optinAllowedForGeoError: false,
   hideUnlinkedAccountsBanner: false,
   hideCurrentAccountNotOptedInBanner: [],
 
@@ -800,29 +789,6 @@ const rewardsSlice = createSlice({
       action: PayloadAction<string | 'pending' | 'error' | 'retry' | null>,
     ) => {
       state.candidateSubscriptionId = action.payload;
-    },
-
-    setGeoRewardsMetadata: (
-      state,
-      action: PayloadAction<GeoRewardsMetadata | null>,
-    ) => {
-      if (action.payload) {
-        state.geoLocation = action.payload.geoLocation;
-        state.optinAllowedForGeo = action.payload.optinAllowedForGeo;
-        state.optinAllowedForGeoLoading = false;
-      } else {
-        state.geoLocation = null;
-        state.optinAllowedForGeo = null;
-        state.optinAllowedForGeoLoading = false;
-      }
-    },
-
-    setGeoRewardsMetadataLoading: (state, action: PayloadAction<boolean>) => {
-      state.optinAllowedForGeoLoading = action.payload;
-    },
-
-    setGeoRewardsMetadataError: (state, action: PayloadAction<boolean>) => {
-      state.optinAllowedForGeoError = action.payload;
     },
 
     setHideUnlinkedAccountsBanner: (state, action: PayloadAction<boolean>) => {
@@ -2016,9 +1982,6 @@ export const {
   setReferralDetailsLoading,
   resetRewardsState,
   setCandidateSubscriptionId,
-  setGeoRewardsMetadata,
-  setGeoRewardsMetadataLoading,
-  setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
   setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,

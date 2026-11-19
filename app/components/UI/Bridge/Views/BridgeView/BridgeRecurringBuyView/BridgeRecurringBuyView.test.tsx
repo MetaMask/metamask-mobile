@@ -39,6 +39,8 @@ import BridgeRecurringBuyView from './index';
 
 const mockNavigate = jest.fn();
 const mockUseIsFocused = jest.fn();
+const mockCloseKeypad = jest.fn();
+const mockScheduleFieldsBlur = jest.fn();
 let mockPreviewOrderHandler: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
@@ -122,7 +124,16 @@ jest.mock('../../../components/SwapsInputs', () => ({
 }));
 
 jest.mock('../../../components/SwapsKeypad', () => ({
-  SwapsKeypad: () => null,
+  SwapsKeypad: ({ onClose }: { onClose?: () => void }) => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const { Pressable } =
+      jest.requireActual<typeof import('react-native')>('react-native');
+
+    return ReactModule.createElement(Pressable, {
+      testID: 'close-keypad',
+      onPress: onClose,
+    });
+  },
 }));
 
 jest.mock('../../../components/SwapsBanners', () => ({
@@ -146,10 +157,31 @@ jest.mock('../../../components/PriceRangeRow', () => ({
   default: () => null,
 }));
 
-jest.mock('../../../components/RecurringScheduleFields', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../../../components/RecurringScheduleFields', () => {
+  const ReactModule = jest.requireActual<typeof React>('react');
+
+  return {
+    __esModule: true,
+    default: ReactModule.forwardRef(
+      (
+        { onDismissKeypad }: { onDismissKeypad: () => void },
+        ref: React.Ref<{ blur: () => void }>,
+      ) => {
+        const { Pressable } =
+          jest.requireActual<typeof import('react-native')>('react-native');
+
+        ReactModule.useImperativeHandle(ref, () => ({
+          blur: mockScheduleFieldsBlur,
+        }));
+
+        return ReactModule.createElement(Pressable, {
+          testID: 'dismiss-schedule-keypad',
+          onPress: onDismissKeypad,
+        });
+      },
+    ),
+  };
+});
 
 jest.mock('./RecurringOrderRow', () => ({
   createRecurringOrdersTab: () => ({
@@ -267,7 +299,7 @@ describe('BridgeRecurringBuyView', () => {
       sourceAmount: '1',
     } as never);
     jest.mocked(useRecurringBuyKeypad).mockReturnValue({
-      close: jest.fn(),
+      close: mockCloseKeypad,
       focusAmount: jest.fn(),
       focusEvery: jest.fn(),
       focusRepeat: jest.fn(),
@@ -347,6 +379,34 @@ describe('BridgeRecurringBuyView', () => {
       screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
       params: { location: MetaMetricsSwapsEventSource.BottomNavBar },
     });
+  });
+
+  it('blurs the schedule fields and closes the keypad when tapping outside', () => {
+    const { getByTestId } = renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      { state: createBridgeTestState() },
+    );
+
+    fireEvent.press(getByTestId('dismiss-schedule-keypad'));
+
+    expect(mockScheduleFieldsBlur).toHaveBeenCalledTimes(1);
+    expect(mockCloseKeypad).toHaveBeenCalledTimes(1);
+  });
+
+  it('blurs the schedule fields when the keypad is minimized', () => {
+    const { getByTestId } = renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      { state: createBridgeTestState() },
+    );
+
+    fireEvent.press(getByTestId('close-keypad'));
+
+    expect(mockScheduleFieldsBlur).toHaveBeenCalledTimes(1);
+    expect(mockCloseKeypad).not.toHaveBeenCalled();
   });
 
   it('loads the orders of the EVM account of the selected group when a non-EVM account is selected', () => {

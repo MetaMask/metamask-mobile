@@ -10,7 +10,6 @@ import {
   AvatarToken,
   AvatarTokenSize,
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -37,6 +36,8 @@ import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { formatTokenBalance } from '../../utils';
 import { BatchSellDestinationTokenSelectorModalSelectorsIDs } from './BatchSellDestinationTokenSelectorModal.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -69,6 +70,7 @@ function getStablecoinBalanceDisplayValue(
 }
 
 export function BatchSellDestinationTokenSelectorModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
@@ -105,7 +107,8 @@ export function BatchSellDestinationTokenSelectorModal() {
       goBack={navigation.goBack}
       testID={BatchSellDestinationTokenSelectorModalSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,
@@ -114,7 +117,7 @@ export function BatchSellDestinationTokenSelectorModal() {
         }}
       >
         {strings('bridge.batch_sell_select_stablecoin')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingTop={2} paddingBottom={4}>
         {destinationTokens.map((token) => {
           const tokenKey = getTokenKey(token);
