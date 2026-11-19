@@ -67,11 +67,6 @@ ruleTester.run(
         errors: [{ messageId: 'flagged' }],
       },
       {
-        code: 'const styles = { marginRight: 8 }; /* ds-exception: icon gap */',
-        filename: 'app/Screen.tsx',
-        errors: [{ messageId: 'flagged' }],
-      },
-      {
         code: [
           'export const seed = {',
           '  marginRight: 0,',

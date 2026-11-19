@@ -39,56 +39,35 @@ export function isInScopeAppFile(filePath: string): boolean {
 }
 
 /**
- * Keep findings that sit on lines the pull request added. Findings are
- * warnings while the system is refined, so this always returns 0.
+ * Annotate findings that sit on lines the pull request added. Findings are
+ * warnings while the system is refined, so they never set a failing exit code.
  */
-export function runEvals(io: EvalIo): number {
+export function runEvals(io: EvalIo): void {
   const added = parseAddedLines(io.readDiff());
   const files = Object.keys(added).filter(isInScopeAppFile).sort();
   if (files.length === 0) {
-    return 0;
+    return;
   }
 
-  for (const finding of io.lintFiles(files)) {
-    const lines = added[finding.filePath];
-    if (!lines?.includes(finding.line)) {
-      continue;
+  for (const { filePath, line, message } of io.lintFiles(files)) {
+    if (added[filePath]?.includes(line)) {
+      io.write(formatAnnotation(filePath, line, message));
     }
-
-    io.write(formatAnnotation(finding.filePath, finding.line, finding.message));
   }
-
-  return 0;
 }
 
 export function lintSource(filePath: string, code: string): LintFinding[] {
-  const linter = createLinter();
-  const messages = linter.verify(code, linterConfig(), { filename: filePath });
-  const findings: LintFinding[] = [];
-
-  for (const message of messages) {
-    if (message.fatal) {
-      throw new Error(
-        `${filePath}:${message.line ?? 1}: ${message.message}`,
-      );
-    }
-
-    if (
-      message.line == null ||
-      message.ruleId == null ||
-      !(message.ruleId in EVAL_RULES)
-    ) {
-      continue;
-    }
-
-    findings.push({
-      filePath,
-      line: message.line,
-      message: message.message,
-    });
+  const messages = createLinter().verify(code, linterConfig(), {
+    filename: filePath,
+  });
+  const fatal = messages.find((message) => message.fatal);
+  if (fatal) {
+    throw new Error(`${filePath}:${fatal.line ?? 1}: ${fatal.message}`);
   }
 
-  return findings;
+  return messages
+    .filter((message) => message.ruleId != null && message.ruleId in EVAL_RULES)
+    .map(({ line, message }) => ({ filePath, line, message }));
 }
 
 export function formatAnnotation(
@@ -96,17 +75,12 @@ export function formatAnnotation(
   line: number,
   message: string,
 ): string {
-  return `::warning file=${escapeProperty(filePath)},line=${line}::${escapeMessage(message)}`;
+  const file = encodeWorkflow(filePath).replace(/:/g, '%3A').replace(/,/g, '%2C');
+  return `::warning file=${file},line=${line}::${encodeWorkflow(message)}`;
 }
 
 export function formatErrorAnnotation(message: string): string {
-  return `::error::${escapeMessage(message)}`;
-}
-
-function lintRepoFiles(files: readonly string[]): LintFinding[] {
-  return files.flatMap((filePath) =>
-    lintSource(filePath, readFileSync(filePath, 'utf8')),
-  );
+  return `::error::${encodeWorkflow(message)}`;
 }
 
 function createLinter(): Linter {
@@ -151,34 +125,21 @@ function main(): void {
     ],
     { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
   );
-  const code = runEvals({
+  runEvals({
     readDiff: () => diff,
-    lintFiles: lintRepoFiles,
+    lintFiles: (files) =>
+      files.flatMap((file) => lintSource(file, readFileSync(file, 'utf8'))),
     write: (line) => {
       process.stdout.write(`${line}\n`);
     },
   });
-  process.exitCode = code;
-}
-
-function escapeProperty(value: string): string {
-  return encodeWorkflow(value).replace(/:/g, '%3A').replace(/,/g, '%2C');
-}
-
-function escapeMessage(value: string): string {
-  return encodeWorkflow(value);
 }
 
 function encodeWorkflow(value: string): string {
   return value.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
 }
 
-function isEntrypoint(): boolean {
-  const entry = process.argv[1] ?? '';
-  return entry.endsWith('run-design-system-evals.ts');
-}
-
-if (isEntrypoint()) {
+if ((process.argv[1] ?? '').endsWith('run-design-system-evals.ts')) {
   try {
     main();
   } catch (error: unknown) {
