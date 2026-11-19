@@ -19,7 +19,7 @@ export enum MoneyPostOnboardingRedirectType {
   CARD = 'card',
 }
 
-/** Card screen to open after Money onboarding when the redirect type is CARD. */
+/** Card screen to open after the Money splash when the redirect type is CARD. */
 export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
 
 export interface MoneyPreferredPaymentToken {

@@ -696,13 +696,13 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
-  describe('Add button onboarding redirect', () => {
+  describe('Add button splash redirect', () => {
     describe('when splash has not been seen', () => {
       beforeEach(() => {
         mockSelectMoneySplashSeen.mockReturnValue(false);
       });
 
-      it('navigates to Money onboarding when Add is pressed', () => {
+      it('navigates to the Money splash when Add is pressed', () => {
         const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
         fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
@@ -917,7 +917,7 @@ describe('MoneyBalanceCard', () => {
         (node) => node.props.variant !== undefined,
       )?.props.variant;
 
-    describe('empty balance, onboarding seen', () => {
+    describe('empty balance, splash seen', () => {
       beforeEach(() => {
         mockUseMoneyAccountBalance.mockReturnValue(
           createBalanceMock({
@@ -979,7 +979,7 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
-    describe('new user (onboarding not seen)', () => {
+    describe('new user (splash not seen)', () => {
       beforeEach(() => {
         mockUseMoneyAccountBalance.mockReturnValue(
           createBalanceMock({

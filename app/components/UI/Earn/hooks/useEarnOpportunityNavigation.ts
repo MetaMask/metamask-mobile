@@ -173,7 +173,7 @@ export const getEarnOpportunityDestination = (
  * Returns the destination reached after selecting an Earn asset.
  *
  * Routes to strategy selection when multiple choices exist; otherwise routes
- * directly to deposit, including Money onboarding when required.
+ * directly to deposit, including the Money splash when required.
  */
 export const getEarnAssetSelectionRedirectTarget = (
   earnAsset: EarnAsset,
@@ -196,7 +196,7 @@ export const getEarnAssetSelectionRedirectTarget = (
 
 /**
  * Returns the deposit destination for a specific Earn experience, including
- * Money onboarding when required.
+ * the Money splash when required.
  */
 export const getEarnExperienceDepositRedirectTarget = (
   experience: EarnExperience,

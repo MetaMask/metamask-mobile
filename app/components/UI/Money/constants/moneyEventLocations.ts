@@ -52,6 +52,7 @@ export enum COMPONENT_NAMES {
   // — Money Balance Summary —
   MONEY_BALANCE_SUMMARY_APY = 'money_balance_summary_apy',
 
+  // — Onboarding card —
   /** The Stepper Card component on Money Home screen (add funds, get/link card). */
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
 

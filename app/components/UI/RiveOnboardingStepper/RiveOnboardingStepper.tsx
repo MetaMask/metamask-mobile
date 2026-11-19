@@ -40,9 +40,6 @@ const DEFAULT_BUTTON_VARIANT = ButtonVariant.Primary;
  * @see {@link RiveOnboardingStepperProps} for the full prop reference.
  * @see {@link OnboardingStep} for per-step configuration options.
  * @see {@link RiveConfig} for animation wiring options.
- *
- * **Example**
- * See `SocialLeaderboardOnboarding` for an example of how to use this component.
  */
 const RiveOnboardingStepper = ({
   steps,

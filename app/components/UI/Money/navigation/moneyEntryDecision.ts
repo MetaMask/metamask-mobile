@@ -20,7 +20,6 @@ export type MoneyEntry = keyof typeof MONEY_ENTRIES;
 
 export interface MoneyEntryContext {
   accessBlockReason: MoneyAccountAccessBlockReason | undefined;
-  /** Shows the Money splash while the user has not seen it. */
   isSplashRedirectNeeded: boolean;
 }
 

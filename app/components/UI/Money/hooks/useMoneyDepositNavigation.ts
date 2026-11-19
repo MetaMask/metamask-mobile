@@ -73,8 +73,6 @@ const useDepositNavigation = (entryContext: MoneyEntryContext) => {
 };
 
 /**
- * Deposit entry for Money surfaces.
- *
  * `useMoneyAccountDeposit` uses `useConfirmNavigation`, which subscribes to
  * transaction state to manage pending confirmations. Keeping this dependency
  * isolated prevents home-only navigation consumers, including tab bars, from
