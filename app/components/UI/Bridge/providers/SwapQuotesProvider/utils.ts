@@ -65,10 +65,7 @@ export const buildGenericQuoteRequest = (input: {
     destTokenAddress: destToken?.address,
     srcTokenAmount: normalizedSourceAmount ?? '0',
     slippage: Number.isNaN(slippageNumber) ? undefined : slippageNumber,
-    walletAddress:
-      srcToken?.isMoneyToken && moneyAccountAddress
-        ? moneyAccountAddress
-        : walletAddress,
+    walletAddress,
     destWalletAddress:
       destToken?.isMoneyToken && moneyAccountAddress
         ? moneyAccountAddress

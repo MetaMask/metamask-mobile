@@ -148,10 +148,7 @@ export const useBridgeQuoteRequest = (
         destTokenAddress: formatAddressToCaipReference(destToken.address),
         srcTokenAmount: normalizedSourceAmount,
         slippage: slippage ? Number(slippage) : undefined,
-        walletAddress:
-          sourceToken?.isMoneyToken && primaryMoneyAccount?.address
-            ? primaryMoneyAccount.address
-            : walletAddress,
+        walletAddress,
         destWalletAddress:
           destToken?.isMoneyToken && primaryMoneyAccount?.address
             ? primaryMoneyAccount.address

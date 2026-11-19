@@ -1399,7 +1399,7 @@ export const runQuoteRequestCases = ({
 
         expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
           expect.objectContaining({
-            walletAddress: moneyAccountAddress,
+            walletAddress: defaultWalletAddress,
             destWalletAddress: defaultWalletAddress,
             insufficientBal: true,
             isMoneyAccount: true,
