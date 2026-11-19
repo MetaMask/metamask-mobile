@@ -2232,11 +2232,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           });
         }
         // A deposit-path re-entry (`forceTrade`) that fires after the deposit
-        // branch already left this screen runs while the user is elsewhere,
-        // so it must not pull them back to this order's market. Funds
-        // arriving while the user is still here (the confirm await has not
-        // settled yet) keep the usual navigation.
-        if (!(forceTrade && hasLeftAfterDepositRef.current)) {
+        // branch already left this screen (`hasLeftAfterDepositRef`) — or
+        // after the user closed the Trade sheet mid-confirmation
+        // (`isClosedByUserRef`, set only by `handleTradeSheetClose`, which
+        // has already navigated away) — runs while the user is elsewhere, so
+        // it must not pull them back to this order's market. Funds arriving
+        // while the user is still here (neither has happened yet) keep the
+        // usual navigation. `isDismissedRef` is deliberately not used here:
+        // the unmount that a deposit confirmation itself triggers also sets
+        // it while the user is still looking at the sheet.
+        if (
+          !(
+            forceTrade &&
+            (hasLeftAfterDepositRef.current || isClosedByUserRef.current)
+          )
+        ) {
           navigateToMarketAfterOrder();
         }
 
