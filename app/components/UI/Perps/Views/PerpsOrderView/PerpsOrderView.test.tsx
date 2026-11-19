@@ -5541,50 +5541,42 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Info icon tooltip interactions', () => {
-    it('should show tooltip when margin info icon is pressed', async () => {
+    // Opening a tooltip is a synchronous setState. waitFor retries getBy on
+    // this full order view, and the failure output alone can blow the default
+    // 5s test timeout on a loaded CI shard.
+    const TOOLTIP_TEST_TIMEOUT_MS = 15000;
+
+    const pressInfoIcon = (testId: string) => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
+      fireEvent.press(screen.getByTestId(testId));
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP),
+      ).toBeOnTheScreen();
+    };
 
-      const marginInfoIcon = screen.getByTestId(
-        PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON,
-      );
-      fireEvent.press(marginInfoIcon);
+    it(
+      'should show tooltip when margin info icon is pressed',
+      () => {
+        pressInfoIcon(PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON);
+      },
+      TOOLTIP_TEST_TIMEOUT_MS,
+    );
 
-      await waitFor(() => {
-        expect(
-          screen.getByTestId('perps-order-view-bottom-sheet-tooltip'),
-        ).toBeDefined();
-      });
-    });
+    it(
+      'should show tooltip when liquidation price info icon is pressed',
+      () => {
+        pressInfoIcon(PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON);
+      },
+      TOOLTIP_TEST_TIMEOUT_MS,
+    );
 
-    it('should show tooltip when liquidation price info icon is pressed', async () => {
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      const liquidationInfoIcon = screen.getByTestId(
-        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
-      );
-      fireEvent.press(liquidationInfoIcon);
-
-      await waitFor(() => {
-        expect(
-          screen.getByTestId('perps-order-view-bottom-sheet-tooltip'),
-        ).toBeDefined();
-      });
-    });
-
-    it('should show tooltip when fees info icon is pressed', async () => {
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      const feesInfoIcon = screen.getByTestId(
-        PerpsOrderViewSelectorsIDs.FEES_INFO_ICON,
-      );
-      fireEvent.press(feesInfoIcon);
-
-      await waitFor(() => {
-        expect(
-          screen.getByTestId('perps-order-view-bottom-sheet-tooltip'),
-        ).toBeDefined();
-      });
-    });
+    it(
+      'should show tooltip when fees info icon is pressed',
+      () => {
+        pressInfoIcon(PerpsOrderViewSelectorsIDs.FEES_INFO_ICON);
+      },
+      TOOLTIP_TEST_TIMEOUT_MS,
+    );
   });
 
   describe('Amount validation and display', () => {
