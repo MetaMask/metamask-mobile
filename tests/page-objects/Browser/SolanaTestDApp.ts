@@ -6,11 +6,13 @@ import {
 import { navigateToBrowserView } from '../../flows/browser.flow.js';
 import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import Utilities from '../../framework/Utilities';
-import { PlatformDetector } from '../../framework/PlatformLocator';
-import type { AppiumElement } from '../../framework';
+import {
+  Gestures,
+  Matchers,
+  PlatformDetector,
+  Utilities,
+  type AppiumElement,
+} from '../../framework';
 import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors.js';
 import { dataTestIds } from '@metamask/test-dapp-solana';
@@ -185,7 +187,7 @@ class SolanaTestDApp {
         } catch (_) {}
         return n;
       })()`,
-    );
+    ).catch(() => null);
     return (count ?? 0) > 0;
   }
 
@@ -197,14 +199,18 @@ class SolanaTestDApp {
   private async waitForSolanaWalletRegistered(
     timeoutMs = 10_000,
   ): Promise<boolean> {
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-      if (await this.isSolanaWalletRegistered()) {
-        return true;
-      }
-      await wait(POLL_MS);
+    if (timeoutMs <= 0) {
+      return false;
     }
-    return false;
+
+    const deadline = Date.now() + timeoutMs;
+    let registered = false;
+    while (Date.now() < deadline) {
+      registered = await this.isSolanaWalletRegistered();
+      if (registered) return true;
+      await wait(Math.min(POLL_MS, Math.max(0, deadline - Date.now())));
+    }
+    return registered;
   }
 
   /**
@@ -254,7 +260,7 @@ class SolanaTestDApp {
         el.click();
         return true;
       })()`,
-    );
+    ).catch(() => false);
     return clicked === true;
   }
 
@@ -278,7 +284,6 @@ class SolanaTestDApp {
 
       // Auto-reconnect may re-open the MetaMask connect sheet after wallets register.
       if (Date.now() - lastNativeConnectAttemptAt >= 3_000) {
-        lastNativeConnectAttemptAt = Date.now();
         const lookBudget = Math.min(500, deadline - Date.now());
         if (lookBudget > 0) {
           const connectVisible = await Utilities.isElementVisible(
@@ -287,8 +292,8 @@ class SolanaTestDApp {
           );
           const tapBudget = Math.min(5_000, deadline - Date.now());
           if (connectVisible && tapBudget > 0) {
-            await DappConnectionModal.tapConnectButton({ timeout: tapBudget });
-            continue;
+            lastNativeConnectAttemptAt = Date.now();
+            await this.tapNativeConnectBestEffort(tapBudget);
           }
         }
       }
@@ -296,14 +301,20 @@ class SolanaTestDApp {
       // Native sheet never appeared — re-open wallet adapter from the dapp.
       if (
         actual === 'Not connected' &&
-        Date.now() - lastDappConnectAttemptAt >= 5_000 &&
-        deadline - Date.now() > 0
+        !(await Utilities.isElementVisible(
+          DappConnectionModal.connectButton,
+          250,
+        )) &&
+        Date.now() - lastDappConnectAttemptAt >= 5_000
       ) {
         lastDappConnectAttemptAt = Date.now();
         await this.attemptDappReconnectBestEffort(deadline);
       }
+      await wait(Math.min(POLL_MS, Math.max(0, deadline - Date.now())));
+    }
 
-      await wait(POLL_MS);
+    if (actual === 'Connected') {
+      return;
     }
 
     throw new Error(
@@ -331,16 +342,30 @@ class SolanaTestDApp {
       return;
     }
 
-    await this.waitForSolanaWalletRegistered(Math.min(8_000, remaining()));
-    if (remaining() <= 0 || !(await this.clickInPage(connectSelector))) {
+    const registered = await this.waitForSolanaWalletRegistered(
+      Math.min(8_000, remaining()),
+    );
+    if (
+      !registered ||
+      remaining() <= 0 ||
+      !(await this.clickInPage(connectSelector))
+    ) {
       return;
     }
 
-    const walletReady = await this.waitForElementWithin(
-      walletOptionSelector,
+    const walletOutcome = await this.waitForWalletOptionOrEmpty(
       Math.min(8_000, remaining()),
     );
-    if (!walletReady || !(await this.clickInPage(walletOptionSelector))) {
+    if (walletOutcome === 'empty') {
+      await this.closeWalletSelectionModalBestEffort();
+      if (remaining() <= 0) return;
+      await this.reloadDappWithin(Math.min(10_000, remaining()));
+      return;
+    }
+    if (
+      walletOutcome !== 'wallet' ||
+      !(await this.clickInPage(walletOptionSelector))
+    ) {
       return;
     }
 
@@ -354,8 +379,73 @@ class SolanaTestDApp {
     );
     const tapBudget = Math.min(5_000, remaining());
     if (nativeConnectVisible && tapBudget > 0) {
-      await DappConnectionModal.tapConnectButton({ timeout: tapBudget });
+      await this.tapNativeConnectBestEffort(tapBudget);
     }
+  }
+
+  private async tapNativeConnectBestEffort(
+    timeoutMs: number,
+  ): Promise<boolean> {
+    return DappConnectionModal.tapConnectButton({ timeout: timeoutMs }).then(
+      () => true,
+      () => false,
+    );
+  }
+
+  private async reloadDappWithin(timeoutMs: number): Promise<boolean> {
+    if (timeoutMs <= 0) return false;
+    const reloaded = await this.evaluate(
+      '(() => { location.reload(); return true; })()',
+    ).then(
+      (result) => result === true,
+      () => false,
+    );
+    if (!reloaded) return false;
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+    return this.waitForDappLoaded(timeoutMs).then(
+      () => true,
+      () => false,
+    );
+  }
+
+  private async waitForWalletOptionOrEmpty(
+    timeoutMs: number,
+  ): Promise<'wallet' | 'empty' | 'timeout'> {
+    if (timeoutMs <= 0) return 'timeout';
+    const deadline = Date.now() + timeoutMs;
+    const outcome: 'wallet' | 'empty' | 'timeout' = 'timeout';
+    while (Date.now() < deadline) {
+      const state = await this.evaluate<'wallet' | 'empty' | null>(
+        `(() => {
+          if (document.querySelector(${JSON.stringify(
+            SolanaTestDappSelectorsWebIDs.WALLET_BUTTON,
+          )})) return 'wallet';
+          if (document.body?.innerText?.includes('No wallet available')) {
+            return 'empty';
+          }
+          return null;
+        })()`,
+      ).catch(() => null);
+      if (state === 'wallet' || state === 'empty') return state;
+      await wait(Math.min(POLL_MS, Math.max(0, deadline - Date.now())));
+    }
+    return outcome;
+  }
+
+  private async closeWalletSelectionModalBestEffort(): Promise<void> {
+    await this.evaluate(
+      `(() => {
+        const closeButton =
+          document.querySelector('button.wallet-adapter-modal-button-close') ||
+          document.querySelector('[aria-label="Close"]');
+        if (closeButton instanceof HTMLElement) {
+          closeButton.click();
+          return true;
+        }
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        return false;
+      })()`,
+    ).catch(() => null);
   }
 
   /**
@@ -369,15 +459,18 @@ class SolanaTestDApp {
     if (timeoutMs <= 0) {
       return false;
     }
-    const end = Date.now() + timeoutMs;
-    while (Date.now() < end) {
-      const exists = await this.evaluate<boolean>(
-        `Boolean(document.querySelector(${JSON.stringify(cssSelector)}))`,
-      ).catch(() => false);
-      if (exists) return true;
-      await wait(POLL_MS);
+    const deadline = Date.now() + timeoutMs;
+    let found = false;
+    while (Date.now() < deadline) {
+      found = Boolean(
+        await this.evaluate<boolean>(
+          `Boolean(document.querySelector(${JSON.stringify(cssSelector)}))`,
+        ).catch(() => false),
+      );
+      if (found) return true;
+      await wait(Math.min(POLL_MS, Math.max(0, deadline - Date.now())));
     }
-    return false;
+    return found;
   }
 
   /**
