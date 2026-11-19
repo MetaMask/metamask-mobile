@@ -31,8 +31,8 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('./EarningsTab', () => ({
   __esModule: true,
-  default: (props: { isActive: boolean }) => {
-    mockEarningsTab(props);
+  default: () => {
+    mockEarningsTab();
     return null;
   },
 }));
@@ -125,7 +125,7 @@ describe('MoneyEarningsView', () => {
 
     expect(earningsTab?.isDisabled).toBeUndefined();
     expect(getTabsBarProps().activeIndex).toBe(0);
-    expect(mockEarningsTab).toHaveBeenCalledWith({ isActive: true });
+    expect(mockEarningsTab).toHaveBeenCalledTimes(1);
     expect(mockMoneyEarningsFooter).toHaveBeenCalledTimes(1);
   });
 
@@ -139,7 +139,7 @@ describe('MoneyEarningsView', () => {
     expect(tabs.find(({ key }) => key === 'apy')?.isDisabled).toBe(true);
     expect(tabs.find(({ key }) => key === 'allocation')?.isDisabled).toBe(true);
     expect(activeIndex).toBe(0);
-    expect(mockEarningsTab).toHaveBeenCalledWith({ isActive: true });
+    expect(mockEarningsTab).toHaveBeenCalledTimes(1);
   });
 
   it('normalizes a malformed route tab to Earnings', () => {
@@ -148,7 +148,7 @@ describe('MoneyEarningsView', () => {
     renderWithProvider(<MoneyEarningsView />);
 
     expect(getTabsBarProps().activeIndex).toBe(0);
-    expect(mockEarningsTab).toHaveBeenCalledWith({ isActive: true });
+    expect(mockEarningsTab).toHaveBeenCalledTimes(1);
   });
 
   it('keeps APY and Allocation disabled', () => {
@@ -158,11 +158,11 @@ describe('MoneyEarningsView', () => {
     getTabsBarProps().onTabPress(2);
 
     expect(getTabsBarProps().activeIndex).toBe(0);
-    expect(mockEarningsTab).toHaveBeenCalledWith({ isActive: true });
+    expect(mockEarningsTab).toHaveBeenCalledTimes(1);
   });
 
-  it('lazily mounts and retains the visited Earnings panel', () => {
-    const { getByTestId, rerender } = renderWithProvider(<MoneyEarningsView />);
+  it('renders the active Earnings panel', () => {
+    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
 
     const panel = getByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
 
@@ -173,29 +173,6 @@ describe('MoneyEarningsView', () => {
       flexGrow: 1,
       flexShrink: 1,
     });
-    expect(panel.props.accessibilityElementsHidden).toBe(false);
-    expect(panel.props.importantForAccessibility).toBe('auto');
-    expect(panel.props.pointerEvents).toBe('auto');
     expect(mockEarningsTab).toHaveBeenCalledTimes(1);
-
-    rerender(<MoneyEarningsView />);
-
-    expect(getByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL)).toBe(panel);
-    expect(mockEarningsTab).toHaveBeenLastCalledWith({ isActive: true });
-  });
-
-  it('does not rerender an already visited Earnings tab', () => {
-    renderWithProvider(<MoneyEarningsView />);
-    const initialRenderCount = mockEarningsTab.mock.calls.length;
-
-    getTabsBarProps().onTabPress(0);
-
-    expect(mockEarningsTab).toHaveBeenCalledTimes(initialRenderCount);
-  });
-
-  it('passes the active state to the rendered Earnings tab', () => {
-    renderWithProvider(<MoneyEarningsView />);
-
-    expect(mockEarningsTab).toHaveBeenLastCalledWith({ isActive: true });
   });
 });

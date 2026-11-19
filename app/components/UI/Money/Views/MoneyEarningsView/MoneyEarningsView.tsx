@@ -40,9 +40,6 @@ const MoneyEarningsView = (): React.ReactElement => {
   const initialActiveTab = getInitialActiveTab(params?.activeTab);
   const [activeTab, setActiveTab] =
     useState<MoneyEarningsTab>(initialActiveTab);
-  const [visitedTabs, setVisitedTabs] = useState<ReadonlySet<MoneyEarningsTab>>(
-    () => new Set([initialActiveTab]),
-  );
   const tabs = useMemo<MoneyEarningsTabItem[]>(
     () => [
       {
@@ -80,20 +77,10 @@ const MoneyEarningsView = (): React.ReactElement => {
       }
 
       setActiveTab(selectedTab.key);
-      setVisitedTabs((previousVisitedTabs) => {
-        if (previousVisitedTabs.has(selectedTab.key)) {
-          return previousVisitedTabs;
-        }
-
-        const nextVisitedTabs = new Set(previousVisitedTabs);
-        nextVisitedTabs.add(selectedTab.key);
-        return nextVisitedTabs;
-      });
     },
     [tabs],
   );
   const activeTabIndex = tabs.findIndex(({ key }) => key === activeTab);
-  const isEarningsActive = activeTab === 'earnings';
 
   return (
     <Box
@@ -115,17 +102,12 @@ const MoneyEarningsView = (): React.ReactElement => {
           onTabPress={handleTabPress}
         />
       </Box>
-      {visitedTabs.has('earnings') ? (
+      {activeTab === 'earnings' ? (
         <Box
           testID={MoneyEarningsViewTestIds.EARNINGS_PANEL}
-          twClassName={isEarningsActive ? 'flex-1' : 'hidden'}
-          accessibilityElementsHidden={!isEarningsActive}
-          importantForAccessibility={
-            isEarningsActive ? 'auto' : 'no-hide-descendants'
-          }
-          pointerEvents={isEarningsActive ? 'auto' : 'none'}
+          twClassName="flex-1"
         >
-          <EarningsTab isActive={isEarningsActive} />
+          <EarningsTab />
         </Box>
       ) : null}
       <MoneyEarningsFooter />

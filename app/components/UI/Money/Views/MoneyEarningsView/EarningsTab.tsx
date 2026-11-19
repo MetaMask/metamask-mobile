@@ -17,21 +17,17 @@ import {
 } from './earningsHistory';
 import { hasInvalidInterestHistoryResponse } from './earningsHistoryValidation';
 
-export interface EarningsTabProps {
-  isActive: boolean;
-}
-
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-const EarningsTab = ({ isActive }: EarningsTabProps): React.ReactElement => {
+const EarningsTab = (): React.ReactElement => {
   const tw = useTailwind();
   const {
     data,
     isLoading,
     isError,
     refetch: refetchHistoricalEarnings,
-  } = useMoneyHistoricalEarnings({ enabled: isActive });
+  } = useMoneyHistoricalEarnings();
   const [selectedRange, setSelectedRange] = useState<EarningsRange>('30D');
   const scrollViewRef = useRef<ScrollView>(null);
   const setScrollEnabled = useCallback((enabled: boolean): void => {
@@ -74,7 +70,7 @@ const EarningsTab = ({ isActive }: EarningsTabProps): React.ReactElement => {
     [selectedRangeData],
   );
   const { projectedAmount: projectedOneYearUsd } =
-    useMoneyAccountProjectedEarnings({ enabled: isActive });
+    useMoneyAccountProjectedEarnings();
   const hasUnavailableRange =
     selectedRangeData !== undefined &&
     (selectedRangeData.availability.earnings !== 'available' ||
