@@ -359,9 +359,6 @@ const renderOnboarding = async (
   ...args: Parameters<typeof renderSocialProfileOnboarding>
 ) => {
   const result = renderSocialProfileOnboarding(...args);
-  // The intro actions stay disabled until the existing-profile lookup query
-  // (session read, then ProfileController fetch) settles and the screen
-  // re-renders. On a loaded CV shard that can take longer than the 1s default.
   await waitFor(
     () => {
       expect(
@@ -370,6 +367,9 @@ const renderOnboarding = async (
         ),
       ).toBe(false);
     },
+    // The intro actions stay disabled until the existing-profile lookup query
+    // (session read, then ProfileController fetch) settles and the screen
+    // re-renders, which can exceed the 1s default on a loaded CV shard.
     { timeout: 5000 },
   );
   return result;
