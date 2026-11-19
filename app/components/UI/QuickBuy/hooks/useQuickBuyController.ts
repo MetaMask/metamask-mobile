@@ -283,6 +283,8 @@ export interface UseQuickBuyControllerResult {
   // button state (priority-encoded; the Buy button surfaces at most one)
   buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
+  /** True when the entered amount is below the Social post-trade share USD minimum. */
+  isBelowPostTradeShareMinimum: boolean;
   isConfirmDisabled: boolean;
   confirmButtonState: 'idle' | 'loading' | 'success';
   getButtonLabel: () => string;
@@ -2088,6 +2090,10 @@ export function useQuickBuyController(
   const hasValidAmount = hasSourcePrice
     ? Boolean(fiatAmount && Number(fiatAmount) > 0)
     : Boolean(sourceAmountTokens && Number(sourceAmountTokens) > 0);
+  const isBelowPostTradeShareMinimum = useMemo(
+    () => !isSpotPostTradeShareEligible(toAmountUsd(fiatAmountNumber)),
+    [toAmountUsd, fiatAmountNumber],
+  );
   // True while the slider is mid-drag: the user has moved the thumb but has not
   // yet committed (released).
   const isAmountUncommitted = fiatAmount !== quotedFiatAmount;
@@ -2329,6 +2335,7 @@ export function useQuickBuyController(
     hasNoPayWithFunds,
     buttonError,
     hasValidAmount,
+    isBelowPostTradeShareMinimum,
     isConfirmDisabled,
     confirmButtonState,
     getButtonLabel,

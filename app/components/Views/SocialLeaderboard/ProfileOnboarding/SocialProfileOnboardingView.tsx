@@ -64,6 +64,10 @@ import {
   XAuthErrorType,
 } from '../../../../core/XAuthService';
 import { getSocialProfileId } from '../../../../util/social/getSocialProfileId';
+import {
+  reportSocialServiceFailure,
+  type SocialEndpoint,
+} from '../../../../util/social/socialServiceTelemetry';
 import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
@@ -94,6 +98,7 @@ import {
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
 import { getDisplayNameError } from './utils/getDisplayNameError';
+import { resolveProfileSaveFailureReason } from './utils/resolveProfileSaveFailureReason';
 import { getUsernameLocalError } from './utils/getUsernameLocalError';
 import { getUsernameFeedback } from './utils/getUsernameFeedback';
 import UsernameStatusLine from './UsernameStatusLine';
@@ -128,7 +133,11 @@ import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
-const { Interaction, Outcome, Screen, Step } = SocialEvent;
+const { Interaction, Outcome, Path, Screen, Step } = SocialEvent;
+
+const onboardingPathFor = (
+  path: ProfileOnboardingPath,
+): (typeof Path)[keyof typeof Path] => (path === 'x' ? Path.X : Path.MANUAL);
 // Future live source: https://metamask.com/terms-of-use
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
@@ -137,6 +146,43 @@ const EXISTING_PROFILE_LOOKUP_QUERY_KEY = [
   'social',
   'profileOnboardingExistingProfile',
 ] as const;
+
+const PROFILE_ONBOARDING_SOURCE = 'SocialProfileOnboardingView';
+
+/**
+ * Report a profile-onboarding failure with `feature:social` tags. Attaches
+ * `profileId` on context/extras when the session has one (not as a Sentry tag).
+ *
+ * Fire and forget: the profile id lookup runs in the background and nothing
+ * here can throw into, or delay, the flow that failed.
+ */
+const reportProfileOnboardingFailure = (
+  error: unknown,
+  {
+    operation,
+    extraMessage,
+    endpoint,
+  }: {
+    operation: string;
+    extraMessage: string;
+    endpoint?: SocialEndpoint;
+  },
+): void => {
+  const report = (profileId?: string) => {
+    reportSocialServiceFailure(error, {
+      surface: 'profile_onboarding',
+      operation,
+      extraMessage,
+      source: PROFILE_ONBOARDING_SOURCE,
+      ...(endpoint !== undefined && { endpoint }),
+      ...(profileId ? { profileId } : {}),
+    });
+  };
+
+  getSocialProfileId()
+    .then(report, () => report())
+    .catch(() => undefined);
+};
 
 /**
  * `superseded` means a newer check started before this one finished. That is
@@ -622,6 +668,10 @@ const SocialProfileOnboardingView: React.FC = () => {
   const profileCreatedRef = useRef(false);
   /** Fingerprint of the profile already stored on the server. */
   const serverProfileFingerprintRef = useRef<string | null>(null);
+  /** Last ineligible draft fingerprint that already emitted a failed claim. */
+  const trackedIneligibleFingerprintRef = useRef<string | null>(null);
+  /** The account step already reported its selected account to analytics. */
+  const linkedAccountSelectionTrackedRef = useRef(false);
   const syncPromiseRef = useRef<Promise<void> | null>(null);
   const startSyncRef = useRef<() => Promise<void>>(async () => undefined);
   const connectAbortRef = useRef<AbortController | null>(null);
@@ -685,6 +735,23 @@ const SocialProfileOnboardingView: React.FC = () => {
   useEffect(() => {
     setDraft((current) => withEligibleLinkedAccount(current, accounts));
   }, [accounts]);
+
+  // Analytics only. The account is preselected long before the account step,
+  // so report it once when that step shows it, unless the user picked first.
+  useEffect(() => {
+    if (
+      step !== 'account' ||
+      !draft.linkedAccountId ||
+      linkedAccountSelectionTrackedRef.current
+    ) {
+      return;
+    }
+    linkedAccountSelectionTrackedRef.current = true;
+    trackInteractionRef.current(Interaction.LINKED_ACCOUNT_SELECTED, {
+      path: onboardingPathFor(draft.path),
+      step: Step.ACCOUNT,
+    });
+  }, [draft.linkedAccountId, draft.path, step]);
 
   const cancelConnectX = useCallback(() => {
     connectAbortRef.current?.abort();
@@ -766,7 +833,12 @@ const SocialProfileOnboardingView: React.FC = () => {
               ),
             };
         }
-      } catch {
+      } catch (error) {
+        reportProfileOnboardingFailure(error, {
+          operation: 'check_username',
+          extraMessage: 'Profile onboarding username availability check failed',
+          endpoint: 'check_username',
+        });
         return {
           status: 'error',
           claimError: strings(
@@ -907,6 +979,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         if (controller.signal.aborted) {
           return;
         }
+        trackInteraction(Interaction.X_SIGN_IN, {
+          path: Path.X,
+          outcome: Outcome.SUCCESS,
+          step: Step.INTRO,
+        });
         setDraft((current) =>
           applyXOnboardingProfile(current, {
             username: xProfile.username,
@@ -916,13 +993,30 @@ const SocialProfileOnboardingView: React.FC = () => {
         );
         setStep('x-identity');
       } catch (error) {
-        if (
-          controller.signal.aborted ||
-          (error instanceof XAuthError &&
-            error.type === XAuthErrorType.UserCancelled)
-        ) {
+        if (controller.signal.aborted) {
           return;
         }
+        if (
+          error instanceof XAuthError &&
+          error.type === XAuthErrorType.UserCancelled
+        ) {
+          trackInteraction(Interaction.X_SIGN_IN, {
+            path: Path.X,
+            outcome: Outcome.CANCELLED,
+            step: Step.INTRO,
+          });
+          return;
+        }
+        trackInteraction(Interaction.X_SIGN_IN, {
+          path: Path.X,
+          outcome: Outcome.FAILED,
+          step: Step.INTRO,
+        });
+        reportProfileOnboardingFailure(error, {
+          operation: 'connect_x',
+          extraMessage: 'Profile onboarding X connect failed',
+          endpoint: 'connect_x',
+        });
         setConnectXError(
           error instanceof XAuthError
             ? getXConnectError(error)
@@ -938,10 +1032,14 @@ const SocialProfileOnboardingView: React.FC = () => {
       }
     };
     connect().catch(() => undefined);
-  }, [cancelConnectX, playSelection]);
+  }, [cancelConnectX, playSelection, trackInteraction]);
 
   const requestPath = useCallback(
     (path: ProfileOnboardingPath) => {
+      trackInteraction(Interaction.BUTTON_CLICKED, {
+        step: Step.INTRO,
+        path: onboardingPathFor(path),
+      });
       if (hasAcceptedSocialTerms()) {
         if (path === 'x') {
           beginConnectX();
@@ -952,7 +1050,10 @@ const SocialProfileOnboardingView: React.FC = () => {
         return;
       }
       playSelection().catch(() => undefined);
-      trackInteraction(Interaction.SHEET_DISPLAYED, { step: Step.TERMS });
+      trackInteraction(Interaction.SHEET_DISPLAYED, {
+        step: Step.TERMS,
+        path: onboardingPathFor(path),
+      });
       setPendingTermsPath(path);
     },
     [beginConnectX, playSelection, startManualPath, trackInteraction],
@@ -972,6 +1073,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     trackInteraction(Interaction.BUTTON_CLICKED, {
       outcome: Outcome.SUCCESS,
       step: Step.TERMS,
+      ...(pendingTermsPath
+        ? { path: onboardingPathFor(pendingTermsPath) }
+        : {}),
     });
     acceptSocialTerms().catch(() => undefined);
     if (pendingTermsOnly) {
@@ -1013,6 +1117,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     trackInteraction(Interaction.SHEET_DISMISSED, {
       outcome: Outcome.DISMISSED,
       step: Step.TERMS,
+      ...(pendingTermsPath
+        ? { path: onboardingPathFor(pendingTermsPath) }
+        : {}),
     });
     if (pendingTermsOnly) {
       setPendingTermsOnly(false);
@@ -1020,12 +1127,17 @@ const SocialProfileOnboardingView: React.FC = () => {
       return;
     }
     setPendingTermsPath(null);
-  }, [navigation, pendingTermsOnly, trackInteraction]);
+  }, [navigation, pendingTermsOnly, pendingTermsPath, trackInteraction]);
 
   const handleToggleXUsername = useCallback(
     (enabled: boolean) => {
       playSelection().catch(() => undefined);
       setUsernameClaimError(null);
+      trackInteraction(Interaction.PROFILE_EDITED, {
+        step: Step.X_IDENTITY,
+        path: Path.X,
+        uses_x_username: enabled,
+      });
       if (enabled) {
         clearUsernameCheckTimer();
         usernameCheckId.current += 1;
@@ -1054,6 +1166,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       draft.xUsername,
       playSelection,
       scheduleUsernameCheck,
+      trackInteraction,
     ],
   );
 
@@ -1063,15 +1176,33 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (enabled === draft.useXAvatar) {
         return;
       }
-      trackInteraction(Interaction.AVATAR_CHANGED);
+      trackInteraction(Interaction.AVATAR_CHANGED, {
+        step: Step.X_IDENTITY,
+        path: Path.X,
+      });
       setDraft((current) => ({ ...current, useXAvatar: enabled }));
     },
     [draft.useXAvatar, playSelection, trackInteraction],
   );
 
+  const trackContinueTap = useCallback(
+    (continueStep: (typeof Step)[keyof typeof Step]) => {
+      trackInteraction(Interaction.BUTTON_CLICKED, {
+        step: continueStep,
+        path: onboardingPathFor(draft.path),
+      });
+    },
+    [draft.path, trackInteraction],
+  );
+
   const handleContinue = useCallback(async () => {
     playSelection().catch(() => undefined);
     if (step !== 'username' && step !== 'x-identity') {
+      if (step === 'avatar') {
+        trackContinueTap(Step.AVATAR);
+      } else if (step === 'account') {
+        trackContinueTap(Step.ACCOUNT);
+      }
       setStep((current) => {
         switch (current) {
           case 'avatar':
@@ -1099,6 +1230,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (step === 'username' && !(await checkDisplayName(draft.displayName))) {
         return;
       }
+      trackContinueTap(step === 'x-identity' ? Step.X_IDENTITY : Step.USERNAME);
       setStep(step === 'x-identity' ? 'account' : 'avatar');
     } finally {
       setIsSubmitting(false);
@@ -1110,6 +1242,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     draft,
     playSelection,
     step,
+    trackContinueTap,
   ]);
 
   const eligibleLinkedAccount = (
@@ -1200,6 +1333,8 @@ const SocialProfileOnboardingView: React.FC = () => {
       trackInteractionRef.current(Interaction.ONBOARDING_COMPLETED, {
         outcome: Outcome.SUCCESS,
         traders_followed_count: 0,
+        path: onboardingPathFor(current.path),
+        uses_x_username: current.useXUsername,
       });
     }
   };
@@ -1225,6 +1360,24 @@ const SocialProfileOnboardingView: React.FC = () => {
       try {
         writeResult = await writeOnboardingProfile(currentDraft);
       } catch (error) {
+        const operation = hadProfile ? 'update_profile' : 'create_profile';
+        // Not awaited: the reporter looks up the profile id in the background
+        // so the error UI below is never delayed by logging.
+        reportProfileOnboardingFailure(error, {
+          operation,
+          extraMessage: hadProfile
+            ? 'Profile onboarding update profile failed'
+            : 'Profile onboarding create profile failed',
+          endpoint: operation,
+        });
+        if (!hadProfile) {
+          trackInteractionRef.current(Interaction.USERNAME_CLAIMED, {
+            outcome: Outcome.FAILED,
+            path: onboardingPathFor(currentDraft.path),
+            step: Step.READY,
+            profile_save_failure_reason: resolveProfileSaveFailureReason(error),
+          });
+        }
         if (stepRef.current === 'ready') {
           setFinishError(
             getProfileCreateErrorCopy(error) ??
@@ -1242,12 +1395,27 @@ const SocialProfileOnboardingView: React.FC = () => {
         return;
       }
       if (writeResult === 'ineligible') {
+        // Keep looping so a later eligible draft (new account pick) can write.
+        // Only emit the failed claim once per fingerprint to avoid spam.
+        if (
+          !hadProfile &&
+          trackedIneligibleFingerprintRef.current !== fingerprint
+        ) {
+          trackedIneligibleFingerprintRef.current = fingerprint;
+          trackInteractionRef.current(Interaction.USERNAME_CLAIMED, {
+            outcome: Outcome.FAILED,
+            path: onboardingPathFor(currentDraft.path),
+            step: Step.READY,
+            profile_save_failure_reason: 'ineligible_account',
+          });
+        }
         continue;
       }
       serverProfileFingerprintRef.current = fingerprint;
       if (!hadProfile) {
         trackInteractionRef.current(Interaction.USERNAME_CLAIMED, {
           outcome: Outcome.SUCCESS,
+          path: onboardingPathFor(currentDraft.path),
           step: currentDraft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
         });
       }
@@ -1357,6 +1525,11 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
+    trackInteraction(Interaction.BUTTON_CLICKED, {
+      step: Step.READY,
+      path: onboardingPathFor(draft.path),
+      outcome: Outcome.SUCCESS,
+    });
     if (openPendingSocialPreviewTarget(navigation)) {
       return;
     }
@@ -1373,7 +1546,12 @@ const SocialProfileOnboardingView: React.FC = () => {
       return;
     }
     finishProfileOnboardingToSocialTab(navigation);
-  }, [draft.path, navigation, openPendingSocialPreviewTarget]);
+  }, [
+    draft.path,
+    navigation,
+    openPendingSocialPreviewTarget,
+    trackInteraction,
+  ]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
@@ -1641,7 +1819,11 @@ const SocialProfileOnboardingView: React.FC = () => {
                       }));
                     }}
                     onSelect={(account) => {
-                      trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED);
+                      linkedAccountSelectionTrackedRef.current = true;
+                      trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED, {
+                        path: onboardingPathFor(draft.path),
+                        step: Step.ACCOUNT,
+                      });
                       playSelection().catch(() => undefined);
                       setDraft((current) => ({
                         ...current,

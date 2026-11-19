@@ -22,6 +22,7 @@ import type {
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 export const VbaAccountCreateErrorSelectorsIDs = {
   CONTAINER: 'vba-account-create-error-container',
@@ -74,6 +75,11 @@ const VbaAccountCreateError = ({
       if (pendingAction) {
         return;
       }
+      fireImpact(
+        pending === 'primary'
+          ? ImpactMoment.PrimaryCTA
+          : ImpactMoment.SecondaryCTA,
+      );
       setPendingAction(pending);
       try {
         await action();
