@@ -45,7 +45,10 @@ import {
 import { useStartProSubscription } from '../../hooks/useStartProSubscription';
 import { isSubscriptionAlreadyStartingError } from '../../hooks/isSubscriptionAlreadyStartingError';
 import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
-import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
+import {
+  PLUS_PRICING_STATUS,
+  type PlusPricingStatus,
+} from './utils/mapMoneyAccountPlusPricing';
 
 interface BenefitsProps {
   onSuccess: (plan: SelectedPlusPlan) => void;
@@ -55,6 +58,57 @@ interface BenefitsProps {
   onCheckoutError: () => void;
   onPlanChange?: (planId: PlanId) => void;
   initialPlan?: PlanId;
+}
+
+/**
+ * Plan cards stay hidden while prices load, and while the trial check is
+ * still running. A pricing error, or a price list that cannot be shown,
+ * does not wait on the trial check.
+ *
+ * @param isPricingLoading - True while subscription prices are loading.
+ * @param isTrialEligibilityLoading - True while the trial check is loading.
+ * @param hasError - True when prices failed to load.
+ * @param pricingStatus - Resolved price-list status.
+ * @returns Whether the plan cards and trial copy should stay hidden.
+ */
+function isBenefitsPlanListLoading(
+  isPricingLoading: boolean,
+  isTrialEligibilityLoading: boolean,
+  hasError: boolean,
+  pricingStatus: PlusPricingStatus,
+): boolean {
+  if (isPricingLoading) {
+    return true;
+  }
+  if (
+    hasError ||
+    pricingStatus === PLUS_PRICING_STATUS.unavailable ||
+    pricingStatus === PLUS_PRICING_STATUS.malformed
+  ) {
+    return false;
+  }
+  return isTrialEligibilityLoading;
+}
+
+/**
+ * Button label for the one loaded answer. Loading copy is shown until the
+ * trial check finishes, then the label is trial or paid.
+ *
+ * @param isPlansLoading - True while plan cards are still hidden.
+ * @param selectedPlanOffersTrial - True when the selected plan includes a trial.
+ * @returns The localized call-to-action label.
+ */
+function getBenefitsCtaLabel(
+  isPlansLoading: boolean,
+  selectedPlanOffersTrial: boolean,
+): string {
+  if (isPlansLoading) {
+    return strings('pro_subscription.pricing.loading');
+  }
+  if (selectedPlanOffersTrial) {
+    return strings('pro_subscription.start_free_trial');
+  }
+  return strings('pro_subscription.join_orange');
 }
 
 const Benefits = ({
@@ -105,12 +159,12 @@ const Benefits = ({
     ({ plan, copy }) => plan.id === resolvedPlan && Boolean(copy.trialLabel),
   );
 
-  const isPlansLoading =
-    isLoading ||
-    (isTrialEligibilityLoading &&
-      !hasError &&
-      plusPricing.status !== PLUS_PRICING_STATUS.unavailable &&
-      plusPricing.status !== PLUS_PRICING_STATUS.malformed);
+  const isPlansLoading = isBenefitsPlanListLoading(
+    isLoading,
+    isTrialEligibilityLoading,
+    hasError,
+    plusPricing.status,
+  );
   const canSelectPlans =
     !isPlansLoading && !hasError && isPricingReady && visiblePlans.length > 0;
   const isCtaDisabled = !canSelectPlans || isSubmitting;
@@ -348,11 +402,7 @@ const Benefits = ({
           isLoading={isSubmitting}
           isFullWidth
         >
-          {isPlansLoading
-            ? strings('pro_subscription.pricing.loading')
-            : selectedPlanOffersTrial
-              ? strings('pro_subscription.start_free_trial')
-              : strings('pro_subscription.join_orange')}
+          {getBenefitsCtaLabel(isPlansLoading, selectedPlanOffersTrial)}
         </Button>
         {!isPlansLoading && selectedPlanOffersTrial ? (
           <Text
