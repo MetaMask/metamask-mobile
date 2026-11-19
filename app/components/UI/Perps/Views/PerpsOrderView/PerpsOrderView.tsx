@@ -2613,8 +2613,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
   const { contentKey: liquidationInfoContentKey } = orderLiquidation;
   const orderFormLiquidationPrice = orderLiquidation.rawPrice;
-  // The row can show the remaining position's price. The stop check follows
-  // the order side, so a reduce that does not flip must not use that price.
+  // The row can show the remaining position's price. The stop check and the
+  // nested auto-close screen follow the order side, so a reduce that does not
+  // flip must not use that price.
   const liquidationPriceForTpSl = isCrossOrder
     ? liquidationPriceForOrderSide({
         liquidationPrice: orderFormLiquidationPrice,
@@ -3060,7 +3061,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 initialStopLossPrice={orderForm.stopLossPrice}
                 leverage={orderForm.leverage}
                 limitPrice={orderForm.limitPrice}
-                liquidationPrice={orderFormLiquidationPrice || undefined}
+                liquidationPrice={liquidationPriceForTpSl || undefined}
                 orderType={tradeSheetOrderType}
                 szDecimals={szDecimals ?? undefined}
                 onSave={handleTradeTPSLSave}
