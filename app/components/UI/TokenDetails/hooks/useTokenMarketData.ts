@@ -10,6 +10,10 @@ import {
   type TokenMarketData,
 } from '../queries/tokenMarketData';
 import { usePriceApiHost } from '../context/PriceApiHostContext';
+import {
+  useLiveQuote,
+  useWatchAssetPrice,
+} from '../../../../hooks/assets/market-stats-live-prices';
 
 export interface UseTokenMarketDataResult {
   /** Null until resolved, and when the token has no market data at all. */
@@ -54,6 +58,8 @@ export const useTokenMarketData = (
   const assetsPrice = useSelector(getAssetsPrice);
   const priceApiHost = usePriceApiHost();
 
+  useWatchAssetPrice(assetId);
+  const liveQuote = useLiveQuote(assetId);
   const cachedPrice = assetId ? assetsPrice?.[assetId] : undefined;
   const cachedMarketData =
     cachedPrice?.assetPriceType === 'fungible' ? cachedPrice : undefined;
@@ -77,8 +83,18 @@ export const useTokenMarketData = (
     }
   }, [error]);
 
+  const marketData = cachedMarketData ?? data ?? null;
+  if (!marketData || liveQuote === undefined) {
+    return { marketData, isLoading };
+  }
   return {
-    marketData: cachedMarketData ?? data ?? null,
+    marketData: {
+      ...marketData,
+      price: liveQuote.price,
+      ...(liveQuote.pricePercentChange1d === undefined
+        ? {}
+        : { pricePercentChange1d: liveQuote.pricePercentChange1d }),
+    },
     isLoading,
   };
 };
