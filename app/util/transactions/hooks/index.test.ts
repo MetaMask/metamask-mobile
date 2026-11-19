@@ -1,8 +1,5 @@
 import { Hex } from '@metamask/utils';
-import {
-  TransactionPayPublishHook,
-  isPayTransactionResumable,
-} from '@metamask/transaction-pay-controller';
+import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
 import {
   type PublishBatchHookTransaction,
   type PublishHook,
@@ -152,7 +149,6 @@ describe('getTransactionControllerHooks', () => {
       expect.objectContaining({
         beforePublish: expect.any(Function),
         beforeSign: expect.any(Function),
-        isResumable: expect.any(Function),
         publish: expect.any(Function),
         publishBatch: expect.any(Function),
       }),
@@ -175,23 +171,6 @@ describe('getTransactionControllerHooks', () => {
       { transactionMeta: MOCK_TRANSACTION_META },
     );
   });
-
-  it.each([true, false])(
-    'returns %s from isResumable when the pay controller gate does',
-    (resumable) => {
-      jest.mocked(isPayTransactionResumable).mockReturnValue(resumable);
-      const request = buildRequest();
-      const hooks = getTransactionControllerHooks(request);
-
-      const result = hooks.isResumable?.(MOCK_TRANSACTION_META);
-
-      expect(result).toBe(resumable);
-      expect(isPayTransactionResumable).toHaveBeenCalledWith(
-        request.initMessenger,
-        MOCK_TRANSACTION_META,
-      );
-    },
-  );
 
   it('short-circuits publish when Predict returns a transaction hash', async () => {
     const request = buildRequest({

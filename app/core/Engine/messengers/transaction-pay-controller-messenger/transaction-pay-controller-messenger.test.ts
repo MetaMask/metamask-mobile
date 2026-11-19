@@ -95,7 +95,10 @@ describe('getTransactionPayControllerMessenger', () => {
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         actions: expect.arrayContaining([
+          'AccountTreeController:getState',
           'KeyringController:getState',
+          'NetworkController:getState',
+          'RampsController:getState',
           'RemoteFeatureFlagController:getState',
           'TransactionController:addTransactionBatch',
           'TransactionController:failTransaction',

@@ -12,7 +12,6 @@ import { getPaymentOverrideData } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getBalance } from './get-balance-callback';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
-import { waitForEngineReady } from '../../utils/engine-ready';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -34,7 +33,6 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,
-      waitForClientReady: waitForEngineReady,
     });
 
     return { controller: transactionPayController };
