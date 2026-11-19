@@ -865,6 +865,12 @@
     "ws": "^8.19.0",
     "xhr2": "^0.2.1"
   },
+  "previewBuilds": {
+    "@metamask/json-rpc-middleware-stream": {
+      "type": "non-breaking",
+      "previewVersion": "9.0.0-preview-955a450b9"
+    }
+  },
   "engines": {
     "node": "^24.22.1",
     "yarn": "^4.14.1"
