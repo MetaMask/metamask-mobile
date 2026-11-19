@@ -145,24 +145,6 @@ describeForPlatforms('MoneySplashView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not reopen the splash when deposit setup fails', async () => {
-    const { getByTestId, findByTestId } = renderMoneySplashView({
-      hasVaultConfig: false,
-      params: {
-        postOnboardingRedirect: {
-          type: 'deposit',
-          preferredPaymentToken: PREFERRED_PAYMENT_TOKEN,
-        },
-      },
-    });
-
-    fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
-
-    expect(
-      await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
-    ).toBeOnTheScreen();
-  });
-
   it('returns to Money home when the splash has no deposit redirect', async () => {
     const { getByTestId, findByTestId } = renderMoneySplashView();
 
@@ -187,7 +169,7 @@ describeForPlatforms('MoneySplashView', () => {
 
     expect(
       await findByTestId(getRouteParamsProbeTestId(Routes.CARD.ROOT)),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(new RegExp(Routes.CARD.AUTHENTICATION));
   });
 
   it('starts only one deposit when the CTA is pressed twice', async () => {

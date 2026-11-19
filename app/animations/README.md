@@ -213,8 +213,6 @@ Existing examples:
 
 - Basic state machine inputs and readiness:
   [`OnboardingAnimation`](../components/UI/OnboardingAnimation/OnboardingAnimation.tsx)
-- Responsive data-bound screen:
-  [`MoneyOnboardingView`](../components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx)
 - High-frequency numeric data and static fallback:
   [`MoneyCardTiltAnimation`](../components/UI/Money/components/MoneyCardTiltAnimation/MoneyCardTiltAnimation.tsx)
 - Loading timeout, first-frame fallback, and native error handling:

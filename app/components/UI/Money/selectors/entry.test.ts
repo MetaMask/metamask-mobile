@@ -24,11 +24,11 @@ describe('selectIsMoneySplashRedirectNeeded', () => {
   });
 
   it.each([
-    [false, true],
-    [true, false],
+    { hasSeenSplash: false, expectedRedirect: true },
+    { hasSeenSplash: true, expectedRedirect: false },
   ])(
-    'returns %s when splash is seen: %s',
-    (hasSeenSplash, expectedRedirect) => {
+    'returns $expectedRedirect when hasSeenSplash is $hasSeenSplash',
+    ({ hasSeenSplash, expectedRedirect }) => {
       mockSelectMoneySplashSeen.mockReturnValue(hasSeenSplash);
 
       const result = selectIsMoneySplashRedirectNeeded({} as never);

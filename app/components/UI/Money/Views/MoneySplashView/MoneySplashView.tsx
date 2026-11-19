@@ -23,17 +23,13 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { setMoneySplashSeen } from '../../../../../actions/user';
 import AppConstants from '../../../../../core/AppConstants';
-import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { ensureError } from '../../../../../util/errorUtils';
-import Logger from '../../../../../util/Logger';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 import { MoneyFaqList } from '../../components/MoneyFaqList/MoneyFaqList';
-import { CARD_RETURN_ROUTES } from '../../constants/cardReturnRoutes';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -41,9 +37,8 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
+import { useMoneySplashRedirect } from '../../hooks/useMoneySplashRedirect';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMountEffect from '../../hooks/useMountEffect';
 import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
@@ -118,8 +113,10 @@ export const MoneySplashView = () => {
   const isOffline = networkTier === 'NONE';
   const showHero = !(hardwareTier === 'LOW' && isOffline);
   const { apyPercent } = useMoneyVaultApy({ enabled: !isOffline });
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const { navigateToMoneyHome } = useMoneyHomeNavigation();
+  const { redirectAfterSplash } = useMoneySplashRedirect(
+    postOnboardingRedirect,
+    analyticsContext,
+  );
   const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
 
@@ -134,13 +131,6 @@ export const MoneySplashView = () => {
 
   const depositStartedRef = useRef(false);
 
-  const goToMoneyHome = useCallback(() => {
-    navigateToMoneyHome({
-      skipFtueRedirect: true,
-      ...(analyticsContext ? { analyticsContext } : {}),
-    });
-  }, [analyticsContext, navigateToMoneyHome]);
-
   const handleStartEarning = useCallback(() => {
     const isDepositRedirect =
       postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT;
@@ -151,11 +141,17 @@ export const MoneySplashView = () => {
       return;
     }
 
+    if (isDepositRedirect) {
+      depositStartedRef.current = true;
+    }
+
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: isDepositRedirect
         ? MONEY_BUTTON_INTENTS.ADD_MONEY
-        : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+        : isCardRedirect
+          ? MONEY_BUTTON_INTENTS.CARD_HOME
+          : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
       label_key: 'money.splash.cta',
       redirect_target: isDepositRedirect
         ? SCREEN_NAMES.MONEY_DEPOSIT
@@ -164,48 +160,8 @@ export const MoneySplashView = () => {
           : SCREEN_NAMES.MONEY_HOME,
     });
 
-    if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
-      navigation.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: {
-          screen: CARD_RETURN_ROUTES[postOnboardingRedirect.cardScreen],
-        },
-      });
-      return;
-    }
-
-    if (!isDepositRedirect) {
-      goToMoneyHome();
-      return;
-    }
-
-    depositStartedRef.current = true;
-
-    initiateDeposit({
-      preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
-      ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
-        ? {
-            autoSelectFiatPayment: postOnboardingRedirect.autoSelectFiatPayment,
-          }
-        : {}),
-      ...(postOnboardingRedirect.intent
-        ? { intent: postOnboardingRedirect.intent }
-        : {}),
-      replaceConfirmation: true,
-      onDepositSetupFailure: goToMoneyHome,
-    }).catch((error) => {
-      Logger.error(
-        ensureError(error, '[Money Splash] Deposit setup failed'),
-        '[Money Splash] Failed to initiate deposit after splash',
-      );
-    });
-  }, [
-    goToMoneyHome,
-    initiateDeposit,
-    navigation,
-    postOnboardingRedirect,
-    trackButtonClicked,
-  ]);
+    redirectAfterSplash();
+  }, [postOnboardingRedirect, redirectAfterSplash, trackButtonClicked]);
 
   const handleClose = useCallback(() => {
     trackButtonClicked({
@@ -346,54 +302,14 @@ export const MoneySplashView = () => {
 // Used in E2E and performance tests to resolve the splash without rendering it.
 const MoneySplashViewE2E = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation<AppNavigationProp>();
   const { postOnboardingRedirect } = useParams<MoneySplashParams>();
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const { navigateToMoneyHome } = useMoneyHomeNavigation();
-
-  const goToMoneyHome = useCallback(() => {
-    navigateToMoneyHome({ skipFtueRedirect: true });
-  }, [navigateToMoneyHome]);
+  const { redirectAfterSplash } = useMoneySplashRedirect(
+    postOnboardingRedirect,
+  );
 
   useMountEffect(() => {
     dispatch(setMoneySplashSeen(true));
-
-    if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
-      navigation.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: {
-          screen: CARD_RETURN_ROUTES[postOnboardingRedirect.cardScreen],
-        },
-      });
-      return;
-    }
-
-    if (
-      postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT
-    ) {
-      initiateDeposit({
-        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
-        ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
-          ? {
-              autoSelectFiatPayment:
-                postOnboardingRedirect.autoSelectFiatPayment,
-            }
-          : {}),
-        ...(postOnboardingRedirect.intent
-          ? { intent: postOnboardingRedirect.intent }
-          : {}),
-        replaceConfirmation: true,
-        onDepositSetupFailure: goToMoneyHome,
-      }).catch((error) => {
-        Logger.error(
-          ensureError(error, '[Money Splash] Deposit setup failed'),
-          '[Money Splash] Failed to initiate deposit after splash',
-        );
-      });
-      return;
-    }
-
-    goToMoneyHome();
+    redirectAfterSplash();
   });
 
   return null;
