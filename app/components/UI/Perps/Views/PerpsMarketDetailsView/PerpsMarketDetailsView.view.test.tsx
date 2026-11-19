@@ -2090,11 +2090,6 @@ describe('PerpsMarketDetailsView', () => {
         clearPerpsMarketHoldersApiMock();
       });
 
-      // Holder rows and the empty state replace the leaderboard skeleton only
-      // after the holders HTTP request (nock) resolves, which starts when the
-      // tab opens. The 1s default is not enough on a loaded CV shard.
-      const HOLDERS_LOAD_TIMEOUT = { timeout: 5000 };
-
       it('lists the open holders of this market in the order the API ranks them', async () => {
         setupLeaderboardApiMock();
         const requestedAssetIds = setupPerpsMarketHoldersApiMock([
@@ -2114,9 +2109,7 @@ describe('PerpsMarketDetailsView', () => {
           ),
         );
 
-        expect(
-          await screen.findByText('whale.eth', {}, HOLDERS_LOAD_TIMEOUT),
-        ).toBeOnTheScreen();
+        expect(await screen.findByText('whale.eth')).toBeOnTheScreen();
         expect(
           screen
             .getAllByTestId(SocialV1TraderRowSelectorsIDs.METRIC)
@@ -2168,11 +2161,7 @@ describe('PerpsMarketDetailsView', () => {
         );
 
         expect(
-          await screen.findByTestId(
-            SocialLeaderboardSelectorsIDs.EMPTY,
-            {},
-            HOLDERS_LOAD_TIMEOUT,
-          ),
+          await screen.findByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
         ).toBeOnTheScreen();
         expect(
           screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS),
