@@ -37,7 +37,6 @@ export const FeedSortFilterSelector: React.FC<FeedSortFilterSelectorProps> = ({
 }) => (
   <SelectButton
     size={SelectButtonSize.Md}
-    twClassName="border-0"
     placeholder={getFeedSortLabel(value)}
     value={getFeedSortLabel(value)}
     onPress={onPress}
