@@ -392,6 +392,12 @@ const CardHome = () => {
       return;
     }
 
+    // Redux sees a sign-in up to 250ms after the controller, so a fresh
+    // login can land here while the store still says signed out.
+    if (Engine.context.CardController.state.isAuthenticated) {
+      return;
+    }
+
     if (hasCard) {
       navigation.dispatch(
         postAuthRedirect

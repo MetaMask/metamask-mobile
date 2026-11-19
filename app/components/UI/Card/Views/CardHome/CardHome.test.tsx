@@ -639,6 +639,8 @@ jest.mock('../../../Tokens/constants', () => ({
   TOKEN_RATE_UNDEFINED: 'tokenRateUndefined',
 }));
 
+const mockCardControllerState = { isAuthenticated: false };
+
 // Mock Engine properly to match how it's used in the component
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -657,6 +659,9 @@ jest.mock('../../../../../core/Engine', () => ({
         setSelectedAccount: jest.fn(),
       },
       CardController: {
+        get state() {
+          return mockCardControllerState;
+        },
         validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
         getCapabilities: jest.fn().mockReturnValue(null),
         logout: jest.fn().mockResolvedValue(undefined),
@@ -1340,6 +1345,7 @@ function renderAuthTransition() {
 
 describe('CardHome Component', () => {
   beforeEach(() => {
+    mockCardControllerState.isAuthenticated = false;
     authTransitionListeners.clear();
     mockIsFocused = true;
     mockCardNavigationParent = undefined;
@@ -1676,6 +1682,18 @@ describe('CardHome Component', () => {
       { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
     );
   });
+
+  it.each([true, false])(
+    'does not redirect when the controller is already signed in and hasCard is %s',
+    (hasCard) => {
+      mockCardControllerState.isAuthenticated = true;
+      setupMockSelectors({ isAuthenticated: false, hasCard });
+
+      render();
+
+      expect(StackActions.replace).not.toHaveBeenCalled();
+    },
+  );
 
   it('sends a logged-out user with no card to welcome', () => {
     setupMockSelectors({ isAuthenticated: false, hasCard: false });
