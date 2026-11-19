@@ -3,7 +3,7 @@
  * for EEA users per MiCA requirements.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -64,8 +64,11 @@ const SourceOfIncome = (): React.JSX.Element => {
   const { styles } = useStyles(styleSheet, {});
   const { quote, metadata, onSourceOfIncomeSubmitted, headlessSessionId } =
     useParams<SourceOfIncomeParams>();
-  const { submitSourceOfIncome: submitSourceOfIncomeController } =
-    useTransakController();
+  const {
+    submitSourceOfIncome: submitSourceOfIncomeController,
+    getUserDetails,
+    getAdditionalRequirements,
+  } = useTransakController();
   const { routeAfterAuthentication } = useTransakRouting({
     screenLocation: 'SourceOfIncome Screen',
   });
@@ -73,69 +76,82 @@ const SourceOfIncome = (): React.JSX.Element => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
   const [monthlyVolume, setMonthlyVolume] = useState('');
   const [sourceOfFundsType, setSourceOfFundsType] = useState('');
   const [employmentStatus, setEmploymentStatus] = useState('');
   const [countryOfCitizenship, setCountryOfCitizenship] = useState('');
+  const [addressCountryCode, setAddressCountryCode] = useState<string>('');
+  const [userDetailsLoading, setUserDetailsLoading] = useState(true);
+  const [currentMetadata, setCurrentMetadata] =
+    useState<SourceOfIncomeMetadata>(metadata);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const details = await getUserDetails();
+        setAddressCountryCode(details?.address?.countryCode || '');
+      } catch (err) {
+        Logger.error(
+          err as Error,
+          'SourceOfIncome: Failed to fetch user details',
+        );
+      } finally {
+        setUserDetailsLoading(false);
+      }
+    };
+    fetchUserDetails();
+  }, [getUserDetails]);
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
-  const isEEA = EEA_COUNTRIES.includes(regionIsoCode.toUpperCase());
+  const effectiveCountryCode = addressCountryCode || regionIsoCode;
+  const isEEA = EEA_COUNTRIES.includes(effectiveCountryCode.toUpperCase());
 
   const sourceOfFundsOptions: { name: string; value: string }[] =
-    metadata.sourceOfFundsTypeOptions || [];
-
-  const employmentStatusOptions: { name: string; value: string }[] = metadata
-    .employmentStatusOptions?.length
-    ? metadata.employmentStatusOptions
-    : [
-        { name: 'Student', value: 'student' },
-        { name: 'Retired', value: 'retired' },
-        { name: 'Unemployed', value: 'unemployed' },
-        { name: 'Self Employed', value: 'self_employed' },
-        {
-          name: 'Junior/Entry-Level Employee',
-          value: 'junior_entry_level_employee',
-        },
-        { name: 'Mid-Level Employee', value: 'mid_level_employee' },
-        { name: 'Management Role', value: 'management_role' },
-        { name: 'Executive Role', value: 'executive_role' },
-      ];
-
+    currentMetadata.sourceOfFundsTypeOptions || [];
+  const employmentStatusOptions: { name: string; value: string }[] =
+    currentMetadata.employmentStatusOptions || [];
   const countryOfCitizenshipOptions: { name: string; value: string }[] =
-    metadata.countryOfCitizenshipOptions?.length
-      ? metadata.countryOfCitizenshipOptions
-      : [
-          { name: 'Austria', value: 'AT' },
-          { name: 'Belgium', value: 'BE' },
-          { name: 'Bulgaria', value: 'BG' },
-          { name: 'Croatia', value: 'HR' },
-          { name: 'Cyprus', value: 'CY' },
-          { name: 'Czech Republic', value: 'CZ' },
-          { name: 'Denmark', value: 'DK' },
-          { name: 'Estonia', value: 'EE' },
-          { name: 'Finland', value: 'FI' },
-          { name: 'France', value: 'FR' },
-          { name: 'Germany', value: 'DE' },
-          { name: 'Greece', value: 'GR' },
-          { name: 'Hungary', value: 'HU' },
-          { name: 'Ireland', value: 'IE' },
-          { name: 'Italy', value: 'IT' },
-          { name: 'Latvia', value: 'LV' },
-          { name: 'Lithuania', value: 'LT' },
-          { name: 'Luxembourg', value: 'LU' },
-          { name: 'Malta', value: 'MT' },
-          { name: 'Netherlands', value: 'NL' },
-          { name: 'Poland', value: 'PL' },
-          { name: 'Portugal', value: 'PT' },
-          { name: 'Romania', value: 'RO' },
-          { name: 'Slovakia', value: 'SK' },
-          { name: 'Slovenia', value: 'SI' },
-          { name: 'Spain', value: 'ES' },
-          { name: 'Sweden', value: 'SE' },
-          { name: 'Iceland', value: 'IS' },
-          { name: 'Liechtenstein', value: 'LI' },
-          { name: 'Norway', value: 'NO' },
-        ];
+    currentMetadata.countryOfCitizenshipOptions || [];
+
+  const hasEEAFieldsMissing =
+    isEEA &&
+    !userDetailsLoading &&
+    (!employmentStatusOptions.length || !countryOfCitizenshipOptions.length);
+
+  const handleRetryFetchRequirements = useCallback(async () => {
+    setRetrying(true);
+    setError(null);
+    try {
+      const freshRequirements = await getAdditionalRequirements(quote.quoteId);
+      const sourceOfIncomeForm = freshRequirements?.formsRequired?.find(
+        (f) => f.type === 'SOURCE_OF_INCOME',
+      );
+      if (sourceOfIncomeForm?.metadata) {
+        setCurrentMetadata({
+          options: [],
+          documentProofOptions: [],
+          expiresAt: '',
+          kycUrl: '',
+          workFlowRunId: '',
+          ...sourceOfIncomeForm.metadata,
+        });
+      }
+    } catch (err) {
+      Logger.error(
+        err as Error,
+        'SourceOfIncome: Failed to retry fetch requirements',
+      );
+      setError(
+        parseUserFacingError(
+          err,
+          strings('deposit.source_of_income.fetch_error'),
+        ),
+      );
+    } finally {
+      setRetrying(false);
+    }
+  }, [getAdditionalRequirements, quote.quoteId]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -223,7 +239,8 @@ const SourceOfIncome = (): React.JSX.Element => {
   const isFormValid =
     monthlyVolume &&
     sourceOfFundsType &&
-    (!isEEA || (employmentStatus && countryOfCitizenship));
+    (!isEEA || (employmentStatus && countryOfCitizenship)) &&
+    !hasEEAFieldsMissing;
 
   if (isMicaMockModeEnabled()) {
     Logger.log('[MiCA Mock] SourceOfIncome screen rendered in mock mode', {
@@ -260,6 +277,21 @@ const SourceOfIncome = (): React.JSX.Element => {
                 severity={BannerAlertSeverity.Error}
                 title={strings('deposit.mica.errorTitle')}
                 description={error}
+                style={styles.errorBanner}
+              />
+            )}
+            {hasEEAFieldsMissing && !error && (
+              <BannerAlert
+                severity={BannerAlertSeverity.Error}
+                title={strings('deposit.source_of_income.eea_fields_missing_title')}
+                description={strings(
+                  'deposit.source_of_income.eea_fields_missing_description',
+                )}
+                actionButtonProps={{
+                  label: strings('deposit.source_of_income.retry_button'),
+                  onPress: handleRetryFetchRequirements,
+                  disabled: retrying,
+                }}
                 style={styles.errorBanner}
               />
             )}

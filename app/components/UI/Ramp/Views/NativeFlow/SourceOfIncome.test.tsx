@@ -25,10 +25,23 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const mockSubmitSourceOfIncome = jest.fn().mockResolvedValue(undefined);
+const mockGetUserDetails = jest.fn().mockResolvedValue({
+  address: { countryCode: 'US' },
+});
+const mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+  formsRequired: [
+    {
+      type: 'SOURCE_OF_INCOME',
+      metadata: mockEEAMetadata,
+    },
+  ],
+});
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
     submitSourceOfIncome: mockSubmitSourceOfIncome,
+    getUserDetails: mockGetUserDetails,
+    getAdditionalRequirements: mockGetAdditionalRequirements,
   }),
 }));
 
@@ -96,26 +109,71 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('../../utils/micaMockMode', () => ({
   isMicaMockModeEnabled: jest.fn(() => false),
   mockSubmitSourceOfIncome: jest.fn().mockResolvedValue(undefined),
+  EEA_COUNTRIES: ['DE', 'FR', 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO'],
+}));
+
+jest.mock('../../hooks/useRampsUserRegion', () => ({
+  useRampsUserRegion: () => ({
+    userRegion: { country: { isoCode: 'US' } },
+  }),
 }));
 
 describe('SourceOfIncome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParamsReturn.metadata = mockEEAMetadata;
+    mockGetUserDetails.mockResolvedValue({
+      address: { countryCode: 'US' },
+    });
   });
 
-  it('renders correctly for EEA users', async () => {
+  it('renders correctly for EEA users with valid metadata', async () => {
+    mockGetUserDetails.mockResolvedValue({
+      address: { countryCode: 'DE' },
+    });
+
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
-    expect(getByText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
-    expect(getByText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
-    expect(getByText('deposit.mica.employmentStatusLabel')).toBeTruthy();
-    expect(getByText('deposit.mica.nationalityLabel')).toBeTruthy();
+    await waitFor(() => {
+      expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
+      expect(getByText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
+      expect(getByText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
+      expect(getByText('deposit.mica.employmentStatusLabel')).toBeTruthy();
+      expect(getByText('deposit.mica.nationalityLabel')).toBeTruthy();
+    });
+  });
+
+  it('calls getUserDetails on mount', async () => {
+    render(
+      <ThemeContext.Provider value={mockTheme}>
+        <SourceOfIncome />
+      </ThemeContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(mockGetUserDetails).toHaveBeenCalled();
+    });
+  });
+
+  it('prefers address country code over region for EEA check', async () => {
+    mockGetUserDetails.mockResolvedValue({
+      address: { countryCode: 'DE' },
+    });
+
+    const { getByText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <SourceOfIncome />
+      </ThemeContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(mockGetUserDetails).toHaveBeenCalled();
+      expect(getByText('deposit.mica.employmentStatusLabel')).toBeTruthy();
+    });
   });
 
   it('renders correctly for non-EEA users', async () => {
@@ -131,11 +189,13 @@ describe('SourceOfIncome', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
-    expect(getByText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
-    expect(getByText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
-    expect(queryByText('deposit.mica.employmentStatusLabel')).toBeNull();
-    expect(queryByText('deposit.mica.nationalityLabel')).toBeNull();
+    await waitFor(() => {
+      expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
+      expect(getByText('deposit.mica.monthlyVolumeLabel')).toBeTruthy();
+      expect(getByText('deposit.mica.sourceOfFundsLabel')).toBeTruthy();
+      expect(queryByText('deposit.mica.employmentStatusLabel')).toBeNull();
+      expect(queryByText('deposit.mica.nationalityLabel')).toBeNull();
+    });
   });
 
   it('renders submit button', async () => {
@@ -150,13 +210,20 @@ describe('SourceOfIncome', () => {
     });
   });
 
-  it('renders correctly in mock mode', async () => {
+  it('uses address country code over region for EEA determination', async () => {
+    mockGetUserDetails.mockResolvedValue({
+      address: { countryCode: 'DE' },
+    });
+
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('deposit.mica.sourceOfIncomeDescription')).toBeTruthy();
+    await waitFor(() => {
+      expect(getByText('deposit.mica.employmentStatusLabel')).toBeTruthy();
+      expect(getByText('deposit.mica.nationalityLabel')).toBeTruthy();
+    });
   });
 });

@@ -1167,6 +1167,12 @@
       "sellDisclaimer": "Subject to regulatory disclosures: In line with the new Markets in Crypto-Assets regulation, Transak GmbH, a virtual asset service provider (VASP) authorised by Austria's Financial Market Authority (FMA) under the new Markets in Crypto-Assets Regulation (MiCAR), is legally required to inform you that: Crypto-assets are not considered legal tender in Austria. Crypto-assets and related services are not backed or regulated by the Austrian Central Bank. Crypto-assets are not covered by the deposit guarantee scheme or the investor compensation scheme. Crypto-asset services are not subject to EU financial services rules under MiFID II (Markets in Financial Instruments Directive). You may lose part or all of your invested capital. The value of crypto-assets can be extremely volatile and unpredictable. We do not offer advice in relation to crypto-assets. For more information, visit {{fmaLink}} and {{euLink}}.",
       "fmaLink": "https://www.fma.gv.at",
       "euLink": "https://www.esma.europa.eu"
+    },
+    "source_of_income": {
+      "eea_fields_missing_title": "Required fields unavailable",
+      "eea_fields_missing_description": "Employment status and nationality options could not be loaded. This may happen if address details were not submitted before reaching this screen.",
+      "retry_button": "Retry",
+      "fetch_error": "Unable to load form options. Please try again."
     }
   },
   "virtual_bank_account": {
