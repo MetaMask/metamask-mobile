@@ -138,6 +138,34 @@ describe('crossMarginSummary', () => {
       },
     );
 
+    it.each([
+      [true, '100', 100_000 - 800 / 0.1 / 0.99],
+      [false, '0', 100_000 + 900 / 0.1 / 1.01],
+    ])(
+      'matches the perps-controller cross formula (long: %s)',
+      (isLong, otherMaintenance, expected) => {
+        // The new 0.1 at 100,000 adds 100 of maintenance at 50x max leverage.
+        const estimate = estimateCrossLiquidationPrice({
+          ...params,
+          isLong,
+          entryPrice: 100_000,
+          size: 0.1,
+          marginTableId: 40,
+          crossMarginSummary: {
+            ...crossMarginSummary,
+            accountValue: '1000',
+            maintenanceMargin: otherMaintenance,
+          },
+        });
+
+        expect(estimate.status).toBe('price');
+        if (estimate.status === 'price') {
+          expect(estimate.price).toBeCloseTo(expected, 6);
+          expect(estimate.approximate).toBe(false);
+        }
+      },
+    );
+
     it('returns unknown on a venue other than Hyperliquid', () => {
       expect(
         estimateCrossLiquidationPrice({
