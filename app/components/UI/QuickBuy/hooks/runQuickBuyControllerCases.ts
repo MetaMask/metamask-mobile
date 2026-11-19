@@ -862,6 +862,31 @@ export const runQuickBuyControllerCases = ({
         expect(mockTrackAmountSelected.mock.calls[0][0]).toBeCloseTo(24);
       });
 
+      it('compares the USD value of the amount against the post-trade share minimum', () => {
+        // €8 = $9.60 stays below the $10 minimum; €9 = $10.80 meets it.
+        (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('EUR');
+        (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+          ETH: { conversionRate: 1000, usdConversionRate: 1200 },
+        });
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
+        });
+
+        expect(result.current.isBelowPostTradeShareMinimum).toBe(true);
+
+        act(() => {
+          result.current.handleAmountChange('8');
+        });
+
+        expect(result.current.isBelowPostTradeShareMinimum).toBe(true);
+
+        act(() => {
+          result.current.handleAmountChange('9');
+        });
+
+        expect(result.current.isBelowPostTradeShareMinimum).toBe(false);
+      });
+
       it('uses two-decimal fiat state for JPY (same as Bridge fiat input)', () => {
         (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('JPY');
         (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({

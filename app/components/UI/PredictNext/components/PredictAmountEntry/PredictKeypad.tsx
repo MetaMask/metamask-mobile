@@ -32,6 +32,9 @@ interface PredictKeypadProps {
    * transparent tile. */
   hasFilledActionKeys?: boolean;
   disabled?: boolean;
+  /** The keypad's test ID; each key's is `${testID}-key-${key}`. Defaults to
+   * the shared amount-entry test ID. */
+  testID?: string;
 }
 
 interface KeyProps {
@@ -87,14 +90,15 @@ export const PredictKeypad = ({
   showsDecimalKey = true,
   hasFilledActionKeys = false,
   disabled = false,
+  testID = PredictAmountEntryTestIds.KEYPAD,
 }: PredictKeypadProps) => (
-  <Box testID={PredictAmountEntryTestIds.KEYPAD} twClassName="gap-3 px-4 py-4">
+  <Box testID={testID} twClassName="gap-3 px-4 py-4">
     {DIGIT_ROWS.map((row) => (
       <Box key={row.join('')} twClassName="flex-row gap-3">
         {row.map((digit) => (
           <Key
             key={digit}
-            testID={PredictAmountEntryTestIds.KEYPAD_KEY(digit)}
+            testID={`${testID}-key-${digit}`}
             onPress={() => onKeyPress(digit)}
             disabled={disabled}
           >
@@ -112,7 +116,7 @@ export const PredictKeypad = ({
       {showsDecimalKey ? (
         <Key
           isPlain={!hasFilledActionKeys}
-          testID={PredictAmountEntryTestIds.KEYPAD_KEY('.')}
+          testID={`${testID}-key-.`}
           onPress={() => onKeyPress('.')}
           disabled={disabled}
         >
@@ -125,7 +129,7 @@ export const PredictKeypad = ({
         <Box twClassName="h-12 flex-1" />
       )}
       <Key
-        testID={PredictAmountEntryTestIds.KEYPAD_KEY('0')}
+        testID={`${testID}-key-0`}
         onPress={() => onKeyPress('0')}
         disabled={disabled}
       >
@@ -135,7 +139,7 @@ export const PredictKeypad = ({
       </Key>
       <Key
         isPlain={!hasFilledActionKeys}
-        testID={PredictAmountEntryTestIds.KEYPAD_KEY('delete')}
+        testID={`${testID}-key-delete`}
         onPress={onDelete}
         disabled={disabled}
         accessibilityLabel={strings('predict_next.amount_entry.delete')}
