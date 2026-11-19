@@ -1,7 +1,11 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import type { KycStep, KycStepStatus } from '@metamask/kyc-controller';
+import {
+  KycApiError,
+  type KycStep,
+  type KycStepStatus,
+} from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -240,7 +244,7 @@ describe('KalshiOnboarding', () => {
       fireEvent.press(primary(screen));
 
       expect(
-        await screen.findByText(/MetaMask could not confirm your email/u),
+        await screen.findByText(/MetaMask couldn’t confirm your email/u),
       ).toBeOnTheScreen();
       expect(flow.startSession).not.toHaveBeenCalled();
     });
@@ -512,12 +516,140 @@ describe('KalshiOnboarding', () => {
     });
   });
 
+  describe('relay error codes', () => {
+    it('keeps a wrong email code on the code screen and says so', async () => {
+      flow.submitEmailCode.mockRejectedValue(
+        new KycApiError(400, 'Bad code', 'invalid_or_expired_code'),
+      );
+      const screen = render('kalshi_email_link');
+      await screen.findByText('Check your email');
+      typeInto(screen, '000000');
+
+      fireEvent.press(primary(screen));
+
+      const error = await screen.findByTestId(KalshiOnboardingTestIds.ERROR);
+      expect(error.props.children).toMatchInlineSnapshot(
+        `"That code is wrong or has expired. Check it and try again, or send a new code."`,
+      );
+      expect(screen.getByText('Check your email')).toBeOnTheScreen();
+      expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+        'PredictDeviceAuthService:clear',
+      );
+    });
+
+    it('asks to try again when Kalshi keeps rejecting the request', async () => {
+      flow.submitEmailCode.mockRejectedValue(
+        new KycApiError(400, 'Rejected', 'kalshi_signed_request_rejected'),
+      );
+      const screen = render('kalshi_email_link');
+      await screen.findByText('Check your email');
+      typeInto(screen, '123456');
+
+      fireEvent.press(primary(screen));
+
+      const error = await screen.findByTestId(KalshiOnboardingTestIds.ERROR);
+      expect(error.props.children).toMatchInlineSnapshot(
+        `"Kalshi couldn’t confirm this request. Try again."`,
+      );
+      expect(flow.submitEmailCode).toHaveBeenCalledTimes(2);
+      expect(primary(screen).props.accessibilityState?.disabled).toBe(false);
+    });
+
+    it('asks kyc-api where the user is when the session is past the email code', async () => {
+      flow.submitEmailCode.mockRejectedValue(
+        new KycApiError(
+          412,
+          'Not waiting',
+          'session_not_in_email_verification',
+        ),
+      );
+      const screen = render('kalshi_email_link');
+      await screen.findByText('Check your email');
+      await waitFor(() => expect(flow.refreshStep).toHaveBeenCalledTimes(1));
+      typeInto(screen, '123456');
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() => expect(flow.refreshStep).toHaveBeenCalledTimes(2));
+      expect(
+        screen.getByTestId(KalshiOnboardingTestIds.ERROR).props.children,
+      ).toMatchInlineSnapshot(
+        `"Kalshi isn’t waiting for an email code right now."`,
+      );
+    });
+
+    it('words a request kyc-api refused as a failed send', async () => {
+      flow.submitEmailCode.mockRejectedValue(
+        new KycApiError(400, 'x', 'kalshi_signed_request_body_invalid'),
+      );
+      const screen = render('kalshi_email_link');
+      await screen.findByText('Check your email');
+      typeInto(screen, '123456');
+
+      fireEvent.press(primary(screen));
+
+      const error = await screen.findByTestId(KalshiOnboardingTestIds.ERROR);
+      expect(error.props.children).toMatchInlineSnapshot(
+        `"MetaMask couldn’t send this request to Kalshi. Try again. (kalshi_signed_request_body_invalid)"`,
+      );
+    });
+
+    it('shows the phone screen error when the user already has a Kalshi account', async () => {
+      flow.submitPhone.mockRejectedValue(
+        new KycApiError(400, 'exists', 'kalshi_account_exists'),
+      );
+      const screen = render('kalshi_phone_link');
+      await screen.findByText('Your phone');
+      typeInto(screen, '+18888888888');
+
+      fireEvent.press(primary(screen));
+
+      const error = await screen.findByTestId(KalshiOnboardingTestIds.ERROR);
+      expect(error.props.children).toMatchInlineSnapshot(
+        `"This phone number already has a Kalshi account. Linking an existing account isn’t supported yet."`,
+      );
+      expect(screen.getByText('Your phone')).toBeOnTheScreen();
+    });
+
+    it('asks for the address again when the phone no longer knows it', async () => {
+      const screen = render('kalshi_email_link');
+      await screen.findByText('Check your email');
+
+      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.RESEND));
+
+      expect(await screen.findByText('Your email')).toBeOnTheScreen();
+      expect(flow.resendEmailCode).not.toHaveBeenCalled();
+    });
+
+    it('sends a new code to the address that was last linked', async () => {
+      const screen = render('kalshi_email_link');
+      await screen.findByText('Check your email');
+      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
+      await screen.findByText('Your email');
+      typeInto(screen, 'other@b.co');
+      fireEvent.press(primary(screen));
+      await screen.findByText('Check your email');
+
+      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.RESEND));
+
+      await waitFor(() =>
+        expect(flow.resendEmailCode).toHaveBeenCalledTimes(2),
+      );
+      expect(flow.resendEmailCode).toHaveBeenLastCalledWith({
+        vendor: 'kalshi',
+        email: 'other@b.co',
+      });
+    });
+  });
+
   describe('errors', () => {
     it('signs again once after Kalshi rejects the A2T', async () => {
       flow.startSession.mockRejectedValueOnce(
-        Object.assign(new Error('Kalshi refused the token'), {
-          code: 'venue_authorization_invalid',
-        }),
+        new KycApiError(
+          400,
+          'Kalshi refused the token',
+          'kalshi_signed_request_rejected',
+        ),
       );
       const screen = await reachEmail();
       typeInto(screen, 'a@b.co');

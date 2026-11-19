@@ -34,6 +34,7 @@ import type { RootState } from '../../../../reducers';
 import { useMfa } from '../../../../util/identity/mfa';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
 import { KALSHI_KYC_VENDOR } from '../vendors/kalshi';
+import { describeKalshiError, shouldRefreshAfter } from './kalshiErrors';
 import { deriveKalshiScreen, type KalshiScreen } from './kalshiScreen';
 import { runKalshiSignedAction } from './kalshiVendorRequestSigner';
 import { nextWaitingPollDelayMs } from './waitingPoll';
@@ -46,6 +47,7 @@ export const KalshiOnboardingTestIds = {
   PRIMARY: 'kalshi-onboarding-primary',
   SECONDARY: 'kalshi-onboarding-secondary',
   ERROR: 'kalshi-onboarding-error',
+  RESEND: 'kalshi-onboarding-resend',
 } as const;
 
 const selectKalshiFlow = (
@@ -68,6 +70,10 @@ const getKycService = () => {
 const getGeoCountry = (): Promise<string> => getKycService().getGeoCountry();
 
 const errorMessage = (error: unknown): string => {
+  const kalshiMessage = describeKalshiError(error);
+  if (kalshiMessage) {
+    return kalshiMessage;
+  }
   if (error instanceof Error && error.message) {
     const { status, code } = error as Error & {
       status?: number;
@@ -195,23 +201,29 @@ const KalshiOnboarding = () => {
 
   // Every controller action saves the step it ended on, so there is nothing
   // to read after one.
-  const run = useCallback(async (action: () => Promise<unknown>) => {
-    setBusy(true);
-    setError(undefined);
-    try {
-      await action();
-    } catch (caught) {
-      if (getMfaErrorCode(caught) === 'flow_cancelled') {
-        return;
+  const run = useCallback(
+    async (action: () => Promise<unknown>) => {
+      setBusy(true);
+      setError(undefined);
+      try {
+        await action();
+      } catch (caught) {
+        if (getMfaErrorCode(caught) === 'flow_cancelled') {
+          return;
+        }
+        Logger.error(caught as Error, {
+          tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
+        });
+        setError(errorMessage(caught));
+        if (shouldRefreshAfter(caught)) {
+          await refresh();
+        }
+      } finally {
+        setBusy(false);
       }
-      Logger.error(caught as Error, {
-        tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
-      });
-      setError(errorMessage(caught));
-    } finally {
-      setBusy(false);
-    }
-  }, []);
+    },
+    [refresh],
+  );
 
   // Terms catalog.
   useEffect(() => {
@@ -275,7 +287,7 @@ const KalshiOnboarding = () => {
       });
       const token = result.token?.accessToken;
       if (!token) {
-        throw new Error('MetaMask could not confirm your email.');
+        throw new Error('MetaMask couldn’t confirm your email.');
       }
       const emailCredential = result.credentials?.find(
         (credential) => credential.type === 'email_otp',
@@ -309,7 +321,7 @@ const KalshiOnboarding = () => {
         setEditingEmail(false);
       } else {
         if (!aal2Token) {
-          throw new Error('MetaMask could not confirm your email.');
+          throw new Error('MetaMask couldn’t confirm your email.');
         }
         await runKalshiSignedAction(() =>
           VendorOnboardingController.startSession({
@@ -332,6 +344,23 @@ const KalshiOnboarding = () => {
     prefill.current = linkedEmail ?? '';
     setEditingEmail(true);
   };
+
+  /**
+   * Sends the email code again. Signs a new `users/link` for the address the
+   * session was created with. After a reinstall the phone no longer knows it,
+   * so the user types it again.
+   */
+  const resendEmailCode = () =>
+    linkedEmail
+      ? run(() =>
+          runKalshiSignedAction(() =>
+            VendorOnboardingController.resendEmailCode({
+              vendor: VENDOR,
+              email: linkedEmail,
+            }),
+          ),
+        )
+      : editLinkEmail();
 
   const submitEmailCode = () =>
     run(() =>
@@ -522,6 +551,18 @@ const KalshiOnboarding = () => {
             testID={KalshiOnboardingTestIds.PRIMARY}
           >
             {primary.label}
+          </Button>
+        )}
+        {screen === 'email_code' && (
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={busy}
+            onPress={resendEmailCode}
+            testID={KalshiOnboardingTestIds.RESEND}
+          >
+            Send a new code
           </Button>
         )}
         {secondary && (
