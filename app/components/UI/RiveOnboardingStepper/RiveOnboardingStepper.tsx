@@ -42,7 +42,7 @@ const DEFAULT_BUTTON_VARIANT = ButtonVariant.Primary;
  * @see {@link RiveConfig} for animation wiring options.
  *
  * **Example**
- * See existing MoneyOnboardingView for an example of how to use this component.
+ * See `SocialLeaderboardOnboarding` for an example of how to use this component.
  */
 const RiveOnboardingStepper = ({
   steps,

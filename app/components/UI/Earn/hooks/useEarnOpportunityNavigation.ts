@@ -45,7 +45,6 @@ export type EarnOpportunityDestination =
 
 export type EarnOpportunityRedirectTarget =
   | EarnOpportunityDestination
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH
   | EARN_MODULE_REDIRECT_TARGETS.SWAP
   | EARN_MODULE_REDIRECT_TARGETS.BUY;
@@ -55,7 +54,6 @@ export type EarnDepositNavigationRoute =
       type: 'money-fiat';
       redirectTarget:
         | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
-        | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
         | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
     }
   | EarnAssetAcquisitionRoute;
@@ -68,7 +66,6 @@ type EarnExperienceDepositDestination = Exclude<
 
 type EarnExperienceRedirectTarget =
   | EarnExperienceDepositDestination
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
 
 const EARN_EXPERIENCE_DESTINATIONS: Record<
@@ -100,12 +97,10 @@ const getEarnExperienceDestination = (
 
 type EarnMoneyHomeRedirectTarget =
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_HOME
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
 
 type EarnMoneyDepositRedirectTarget =
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
 
 export function getEarnMoneyEntryRedirectTarget(

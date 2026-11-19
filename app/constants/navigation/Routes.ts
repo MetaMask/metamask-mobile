@@ -540,7 +540,6 @@ const Routes = {
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
     MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
-    ONBOARDING: 'MoneyOnboarding',
     SPLASH: 'MoneySplash',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',

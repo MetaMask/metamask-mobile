@@ -264,7 +264,7 @@ const EarnSectionListView = () => {
     'deposit',
     moneyEntryContext,
   );
-  const isMoneyOnboardingRedirectNeeded = moneyDepositDestination === 'splash';
+  const isMoneyFtueRedirectNeeded = moneyDepositDestination === 'splash';
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const {
     trackSurfaceClicked: trackMoneySurfaceClicked,
@@ -570,7 +570,7 @@ const EarnSectionListView = () => {
         <EarnMoneyAccountRow
           item={moneyAccountItem}
           onPress={handleMoneyAccountPress}
-          isOnboardingRedirectNeeded={isMoneyOnboardingRedirectNeeded}
+          isFtueRedirectNeeded={isMoneyFtueRedirectNeeded}
           privacyMode={privacyMode}
         />
         {visibleMoneyAssets.map((token, index) => (
@@ -614,7 +614,7 @@ const EarnSectionListView = () => {
     handleTokenButtonPress,
     hasError,
     isLoading,
-    isMoneyOnboardingRedirectNeeded,
+    isMoneyFtueRedirectNeeded,
     isMoneyAccountVisible,
     isNoFeeToken,
     isRetrying,

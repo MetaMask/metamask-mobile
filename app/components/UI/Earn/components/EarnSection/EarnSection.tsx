@@ -183,7 +183,7 @@ const EarnSection = ({
     'deposit',
     moneyEntryContext,
   );
-  const isMoneyOnboardingRedirectNeeded = moneyDepositDestination === 'splash';
+  const isMoneyFtueRedirectNeeded = moneyDepositDestination === 'splash';
   const {
     screen_name: earnScreenName,
     entry_point: earnEntryPoint,
@@ -334,11 +334,11 @@ const EarnSection = ({
   );
 
   const moneyAccountCardSecondaryText = useMemo(() => {
-    if (isMoneyOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+    if (isMoneyFtueRedirectNeeded && moneyAccountBalanceRaw === '0') {
       return strings('earn_module.get_started');
     }
 
-    if (!isMoneyOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+    if (!isMoneyFtueRedirectNeeded && moneyAccountBalanceRaw === '0') {
       return strings('money.asset_overview.cta.start_earning');
     }
 
@@ -357,7 +357,7 @@ const EarnSection = ({
       </SensitiveText>
     );
   }, [
-    isMoneyOnboardingRedirectNeeded,
+    isMoneyFtueRedirectNeeded,
     moneyAccountBalanceFiat,
     moneyAccountBalanceRaw,
     privacyMode,

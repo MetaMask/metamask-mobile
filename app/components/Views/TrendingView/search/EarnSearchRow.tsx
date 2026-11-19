@@ -52,7 +52,7 @@ const EarnSearchRow = ({
     'deposit',
     moneyEntryContext,
   );
-  const isMoneyOnboardingRedirectNeeded = moneyDepositDestination === 'splash';
+  const isMoneyFtueRedirectNeeded = moneyDepositDestination === 'splash';
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const { trackSurfaceClicked: trackMoneySurfaceClicked } = useMoneyAnalytics({
     component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
@@ -113,7 +113,7 @@ const EarnSearchRow = ({
     <EarnMoneyAccountRow
       item={item}
       onPress={handlePress}
-      isOnboardingRedirectNeeded={isMoneyOnboardingRedirectNeeded}
+      isFtueRedirectNeeded={isMoneyFtueRedirectNeeded}
       privacyMode={privacyMode}
     />
   ) : (

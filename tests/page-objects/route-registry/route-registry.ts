@@ -27,7 +27,6 @@ import type ManualBackupStep1View from '../Onboarding/ManualBackupStep1View';
 import type MarketInsightsView from '../wallet/MarketInsightsView';
 import type MoneyAddMoneySheet from '../Money/MoneyAddMoneySheet';
 import type MoneyHomeView from '../Money/MoneyHomeView';
-import type MoneyOnboardingView from '../Money/MoneyOnboardingView';
 import type MoneyTransferSheet from '../Money/MoneyTransferSheet';
 import type NetworkListModal from '../Network/NetworkListModal';
 import type NetworkManager from '../wallet/NetworkManager';
@@ -81,7 +80,6 @@ interface PageObjectModules {
   MarketInsightsView: typeof MarketInsightsView;
   MoneyAddMoneySheet: typeof MoneyAddMoneySheet;
   MoneyHomeView: typeof MoneyHomeView;
-  MoneyOnboardingView: typeof MoneyOnboardingView;
   MoneyTransferSheet: typeof MoneyTransferSheet;
   NetworkListModal: typeof NetworkListModal;
   NetworkManager: typeof NetworkManager;
@@ -145,7 +143,6 @@ const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
   MarketInsightsView: 'MarketInsightsView',
   MoneyAddMoneySheet: 'MoneyAddMoneySheet',
   MoneyHome: 'MoneyHomeView',
-  MoneyOnboarding: 'MoneyOnboardingView',
   MoneyTransferSheet: 'MoneyTransferSheet',
   NetworkListModal: 'NetworkListModal',
   NetworkManager: 'NetworkManager',
