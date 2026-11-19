@@ -26,7 +26,7 @@ describe('micaMockMode', () => {
 
   describe('getMockConsentForm', () => {
     it('returns a CONSENT form', () => {
-      const form = getMockConsentForm();
+      const form = micaMockMode.getMockConsentForm();
       expect(form.formsRequired).toHaveLength(1);
       expect(form.formsRequired[0].type).toBe('CONSENT');
       expect(form.formsRequired[0].metadata).toEqual({
