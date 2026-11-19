@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { strings } from '../../../../locales/i18n.js';
-import { ToastContext } from '../../../component-library/components/Toast/index.ts';
 import {
-  ToastRef,
-  ToastVariants,
-} from '../../../component-library/components/Toast/Toast.types.ts';
+  AvatarFavicon,
+  AvatarFaviconSize,
+  toast,
+} from '@metamask/design-system-react-native';
 import { useFavicon } from '../../hooks/useFavicon/index.ts';
 import {
   METHODS_TO_DELAY,
@@ -32,18 +32,16 @@ const getMethodLabel = (method?: string): string | undefined => {
 };
 
 // Display a toast
-const diplayToast = (
-  toastRef: ToastRef,
-  label: string,
-  faviconURI: ImageURISource,
-): void => {
+const diplayToast = (label: string, faviconURI: ImageURISource): void => {
   const isFavicon = !!faviconURI.uri;
 
-  toastRef?.showToast({
-    variant: isFavicon ? ToastVariants.App : ToastVariants.Plain,
-    labelOptions: [{ label }],
-    appIconSource: faviconURI,
+  toast({
+    title: label,
+    startAccessory: isFavicon ? (
+      <AvatarFavicon src={faviconURI} size={AvatarFaviconSize.Sm} />
+    ) : undefined,
     hasNoTimeout: false,
+    showCloseButton: false,
   });
 };
 
@@ -60,24 +58,13 @@ const ReturnToAppNotification = () => {
   const delayBetweenToast: number = 1500;
   const { method, origin, hideReturnToApp } = route.params ?? {};
   const navigation = useNavigation<AppNavigationProp>();
-  const { toastRef } = useContext(ToastContext);
   const favicon = useFavicon(origin ?? '');
   const hasExecuted = useRef<boolean>(false);
 
   useEffect(() => {
-    if (
-      toastRef &&
-      toastRef.current !== null &&
-      favicon.isLoaded &&
-      !hasExecuted.current
-    ) {
+    if (favicon.isLoaded && !hasExecuted.current) {
       hasExecuted.current = true;
       (async () => {
-        // Only for type checking
-        if (toastRef.current === null) {
-          return;
-        }
-
         // Add delay to display UI feedback before redirecting
         if (method && METHODS_TO_DELAY[method]) {
           await wait(delayAfterMethod);
@@ -86,7 +73,7 @@ const ReturnToAppNotification = () => {
         // Display specific information depending on the method
         const methodLabel = getMethodLabel(method);
         if (methodLabel !== undefined) {
-          diplayToast(toastRef.current, methodLabel, favicon.faviconURI);
+          diplayToast(methodLabel, favicon.faviconURI);
         }
 
         if (hideReturnToApp !== true) {
@@ -94,7 +81,6 @@ const ReturnToAppNotification = () => {
 
           // Ask the user to go back to the app
           diplayToast(
-            toastRef.current,
             strings('sdk_return_to_app_toast.returnToAppLabel'),
             favicon.faviconURI,
           );
@@ -104,7 +90,7 @@ const ReturnToAppNotification = () => {
       // Hide the fake modal
       navigation?.goBack();
     }
-  }, [toastRef, method, favicon, navigation, hideReturnToApp]);
+  }, [method, favicon, navigation, hideReturnToApp]);
 
   return <></>;
 };

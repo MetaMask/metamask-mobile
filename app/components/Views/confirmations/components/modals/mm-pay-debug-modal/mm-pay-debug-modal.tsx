@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Modal, ScrollView, TouchableOpacity } from 'react-native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Button,
@@ -29,8 +28,11 @@ import ClipboardManager from '../../../../../../core/ClipboardManager';
 import { MmPayDebugModalTestIds } from './mm-pay-debug-modal.testIds';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './mm-pay-debug-modal.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export function MmPayDebugModal({ onClose }: { onClose?: () => void }) {
+  const isGlassHeader = useIsGlassHeader();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
   const { sections, copyAllPayload } = useMmPayDebugData();
@@ -88,12 +90,13 @@ export function MmPayDebugModal({ onClose }: { onClose?: () => void }) {
         keyboardAvoidingViewEnabled={false}
         onClose={handleSheetClosed}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleRequestClose}
           closeButtonProps={{ testID: 'close-button' }}
         >
           MMPay Debug
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <ScrollView contentContainerStyle={styles.scrollView}>
           {quoteDebug.isRelay && (
             <>

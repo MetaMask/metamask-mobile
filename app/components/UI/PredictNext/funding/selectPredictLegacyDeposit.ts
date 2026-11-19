@@ -36,6 +36,7 @@ export const selectPredictLegacyDepositAvailable = createSelector(
       activeVenue,
       getCapabilities: getBundledCapabilities,
       kalshiDepositsEnabled: config.kalshiDepositsEnabled === true,
+      kalshiWithdrawalsEnabled: config.kalshiWithdrawalsEnabled === true,
     });
     return (
       resolution.status === 'ready' && resolution.implementation === 'legacy'

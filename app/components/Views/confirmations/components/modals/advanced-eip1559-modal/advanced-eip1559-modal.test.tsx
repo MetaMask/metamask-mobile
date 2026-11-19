@@ -9,6 +9,10 @@ import { AdvancedEIP1559Modal } from './advanced-eip1559-modal';
 
 const mockPersistGasFeePreference = jest.fn();
 
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
+}));
+
 jest.mock('../../../../../../util/transaction-controller');
 jest.mock('../../../hooks/gas/usePersistGasFeePreference', () => ({
   usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),
