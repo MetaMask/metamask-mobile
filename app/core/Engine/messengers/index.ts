@@ -36,6 +36,7 @@ import { getSignatureControllerMessenger } from './signature-controller-messenge
 import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
+import { getCollectiblesControllerMessenger } from './collectibles-controller-messenger';
 import {
   getPredictMarketDataServiceMessenger,
   getPredictMarketDataServiceInitMessenger,
@@ -305,6 +306,10 @@ export const MESSENGER_FACTORIES = {
   },
   PredictController: {
     getMessenger: getPredictControllerMessenger,
+    getInitMessenger: noop,
+  },
+  CollectiblesController: {
+    getMessenger: getCollectiblesControllerMessenger,
     getInitMessenger: noop,
   },
   PredictMarketDataService: {

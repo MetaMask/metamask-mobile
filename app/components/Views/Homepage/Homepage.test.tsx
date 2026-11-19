@@ -1,6 +1,7 @@
 import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
 import { screen } from '@testing-library/react-native';
+import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
@@ -221,6 +222,16 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   })),
 }));
 
+jest.mock('../../UI/Collectibles', () => ({
+  selectCollectiblesEnabledFlag: jest.fn(() => false),
+}));
+
+const mockCollectiblesSection = (enabled: boolean) => {
+  jest
+    .requireMock('../../UI/Collectibles')
+    .selectCollectiblesEnabledFlag.mockReturnValue(enabled);
+};
+
 jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
   UiSlotRenderer: ({ fallback }: { fallback: React.ReactNode }) => fallback,
 }));
@@ -394,6 +405,7 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
+    COLLECTIBLES: 'collectibles',
   },
 }));
 
@@ -401,6 +413,11 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
 function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
   return mockUseHomeViewedEvent.mock.calls;
 }
+
+const callBySectionName = (name: string) =>
+  getUseHomeViewedEventCalls().find(
+    ([params]) => params.sectionName === name,
+  )?.[0];
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
 jest.mock('../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
@@ -497,6 +514,7 @@ describe('Homepage', () => {
     mockIsNetworkEnabled.mockReturnValue(true);
     mockHardwareTier = 'MID';
     mockNetworkTier = 'WIFI';
+    mockCollectiblesSection(false);
   });
 
   it('uses one enabled Perps connection provider for the homepage', () => {
@@ -656,10 +674,6 @@ describe('Homepage', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       // Tokens=0, Perps=1, Predict=2, DeFi=3, NFTs=4 → total=5 (NFTs always present)
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
       expect(callBySectionName('predict')?.sectionIndex).toBe(2);
@@ -686,10 +700,6 @@ describe('Homepage', () => {
 
     it('shifts indices when Perps is disabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('predict')?.sectionIndex).toBe(1);
@@ -726,10 +736,6 @@ describe('Homepage', () => {
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('nfts')?.sectionIndex).toBe(1);
       expect(callBySectionName('tokens')?.totalSectionsLoaded).toBe(2);
@@ -747,10 +753,6 @@ describe('Homepage', () => {
 
     it('passes correct sectionIndex including top_traders and shifts following sections', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
@@ -775,10 +777,6 @@ describe('Homepage', () => {
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
       expect(callBySectionName('top_traders')?.sectionIndex).toBe(0);
       expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
       expect(callBySectionName('perps')?.sectionIndex).toBe(2);
@@ -798,10 +796,6 @@ describe('Homepage', () => {
 
       mockNetworkTier = 'WIFI';
       rendered.rerender(<Homepage />);
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
@@ -842,10 +836,6 @@ describe('Homepage', () => {
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
     });
@@ -875,10 +865,6 @@ describe('Homepage', () => {
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
       expect(callBySectionName('top_traders')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
       expect(callBySectionName('tokens')?.sectionIndex).toBe(2);
@@ -890,10 +876,6 @@ describe('Homepage', () => {
       mockUseSocialTopTradersEligible.mockReturnValue(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
@@ -914,10 +896,6 @@ describe('Homepage', () => {
 
     it('places watchlist after Predictions when all core flags are on', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
@@ -945,10 +923,6 @@ describe('Homepage', () => {
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
       expect(callBySectionName('predict')?.sectionIndex).toBe(2);
@@ -957,9 +931,45 @@ describe('Homepage', () => {
       expect(callBySectionName('defi')?.sectionIndex).toBe(5);
       expect(callBySectionName('nfts')?.sectionIndex).toBe(6);
 
-      calls.forEach((call) => {
+      getUseHomeViewedEventCalls().forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(7);
       });
+    });
+  });
+
+  describe('section indices — Collectibles enabled', () => {
+    it('places Collectibles right after Predictions when its flag is enabled', () => {
+      mockCollectiblesSection(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('collectibles')?.sectionIndex).toBe(3);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
+      getUseHomeViewedEventCalls().forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(6);
+      });
+    });
+
+    it('renders the Collectibles section when its flag is enabled', () => {
+      mockCollectiblesSection(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
+    });
+
+    it('leaves Collectibles out of the sections when its flag is disabled', () => {
+      mockCollectiblesSection(false);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(callBySectionName('collectibles')).toBeUndefined();
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
+      expect(
+        screen.queryByText(strings('collectibles.title')),
+      ).not.toBeOnTheScreen();
     });
   });
 
