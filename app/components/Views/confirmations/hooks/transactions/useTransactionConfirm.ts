@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -11,7 +12,10 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isMpcMoneyAccount,
+} from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import {
@@ -20,7 +24,6 @@ import {
   PayWithOption,
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
-import { useSelector } from 'react-redux';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import {
   isTransactionMarkedAsGasFeeSponsored,
@@ -34,6 +37,9 @@ import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { waitForMfaFlowSuccess } from '../../../../../util/identity/mfa/engine/activeFlow';
+import { MONEY_MPC_SIGN_OPERATION } from '../../../../../core/MpcMoneyKeyring/constants';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
 import { useTransactionPayingAccount } from './useTransactionPayingAccount';
 
@@ -88,8 +94,16 @@ export function useTransactionConfirm() {
   // confirmation waiting to drive the awaiting UI and surface errors.
   const isPayerHardwareWallet = isHardwareAccount(payingAccount ?? '');
 
+  // MPC signs only after 2-step verification, so the confirmation waits for it.
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isMpcMoneyAccountTransaction =
+    isMpcMoneyAccount(transactionMetadata?.txParams?.from ?? '') ||
+    (payWithOption === PayWithOption.MoneyAccount &&
+      isMpcMoneyAccount(primaryMoneyAccount?.address ?? ''));
+
   const waitForResult =
     isPayerHardwareWallet ||
+    isMpcMoneyAccountTransaction ||
     (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
@@ -281,19 +295,30 @@ export function useTransactionConfirm() {
 
       const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
 
-      try {
-        await onRequestConfirm(
-          {
-            deleteAfterResult: true,
-            // Intentionally not hiding errors so we can log
-            handleErrors: false,
-            waitForResult: effectiveWaitForResult,
-          },
-          { txMeta: updatedMetadata },
-        );
-      } catch (error) {
-        log('Error confirming transaction', error);
-        options?.onError?.(error);
+      const confirmed = (async () => {
+        try {
+          await onRequestConfirm(
+            {
+              deleteAfterResult: true,
+              // Intentionally not hiding errors so we can log
+              handleErrors: false,
+              waitForResult: effectiveWaitForResult,
+            },
+            { txMeta: updatedMetadata },
+          );
+        } catch (error) {
+          log('Error confirming transaction', error);
+          options?.onError?.(error);
+        }
+      })();
+
+      if (isMpcMoneyAccountTransaction) {
+        // Leave once verification passes; the Money toasts report the rest.
+        const verified = waitForMfaFlowSuccess(MONEY_MPC_SIGN_OPERATION);
+        await Promise.race([confirmed, verified.promise]);
+        verified.stop();
+      } else {
+        await confirmed;
       }
 
       if (!options?.deferNavigation) {
@@ -316,6 +341,7 @@ export function useTransactionConfirm() {
       transactionMetadata,
       waitForResult,
       isSignerHardwareWallet,
+      isMpcMoneyAccountTransaction,
       isSignerMoneyAccount,
     ],
   );
