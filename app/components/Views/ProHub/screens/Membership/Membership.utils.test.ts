@@ -60,10 +60,17 @@ const createSubscription = (
 });
 
 describe('getMembershipDetails', () => {
+  // Before the fixture period end, so Renews on stays the charge day.
+  const beforePeriodEnd = new Date('2026-10-07T00:00:00.000Z');
+
   it('maps an annual card subscription and comparison pricing', () => {
     const subscription = createSubscription();
 
-    const result = getMembershipDetails(subscription, readyPricing);
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      beforePeriodEnd,
+    );
 
     expect(result).toEqual({
       plan: 'Annual',
@@ -117,7 +124,11 @@ describe('getMembershipDetails', () => {
       endDate: '2026-09-20T00:00:00.000Z',
     });
 
-    const result = getMembershipDetails(subscription, readyPricing);
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      beforePeriodEnd,
+    );
 
     expect(result.renewsOn).toBe('Jul 20, 2027');
   });
