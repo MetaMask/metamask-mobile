@@ -13,7 +13,7 @@ const styleSheet = (params: {
     card: {
       width: vars.cardWidth,
       height: vars.cardHeight,
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: CARD_BORDER_RADIUS,
       overflow: 'hidden',
     },

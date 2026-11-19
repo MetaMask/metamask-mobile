@@ -1010,6 +1010,20 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
+  it('sets the provided input type metric when updatePendingAmountPercentage is called with one', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmountPercentage(100, 'manual_snapped_max');
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_amount_input_type: 'manual_snapped_max',
+      },
+    });
+  });
+
   it('sets manual metric once across consecutive updatePendingAmount calls', async () => {
     const { result } = runHook();
 

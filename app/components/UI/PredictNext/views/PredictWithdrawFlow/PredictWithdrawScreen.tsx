@@ -1,0 +1,742 @@
+import React, {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+  usePreventRemove,
+} from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  AccessibilityInfo,
+  findNodeHandle,
+  ScrollView,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  KeyValueRow,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
+
+import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import Logger from '../../../../../util/Logger';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { PredictKeypad } from '../../components/PredictAmountEntry';
+import { useBalance } from '../../hooks/useBalance';
+import { useWithdrawReceipt } from '../../hooks/useWithdrawReceipt';
+import { PredictError, PredictErrorCode } from '../../errors';
+import type { PredictNextStackParamList } from '../../navigation/types';
+import type {
+  PredictAmount,
+  PredictVenueId,
+  PredictWithdrawPreview,
+  PredictWithdrawPreviewParams,
+  PredictWithdrawReceipt,
+} from '../../types';
+
+import { PredictWithdrawFlowTestIds } from './internal/PredictWithdrawFlow.testIds';
+import {
+  WithdrawAmountStep,
+  type WithdrawBalanceStatus,
+} from './internal/WithdrawAmountStep';
+import { WithdrawConfirmStep } from './internal/WithdrawConfirmStep';
+import { WithdrawStatusStep } from './internal/WithdrawStatusStep';
+import { useWithdrawAnnouncement } from './internal/useWithdrawAnnouncement';
+import { withdrawAnnouncement } from './internal/withdrawAnnouncement';
+import {
+  normalizeWithdrawAmount,
+  sanitizeWithdrawAmount,
+  withdrawAmountIssue,
+} from './internal/withdrawAmount';
+
+/** The amount the person is entering, carried through every phase so a failed
+ * Commit still knows what was being withdrawn: the same confirmation for a
+ * transient failure, the entry step for an expired quote. */
+interface WithdrawAmountInput {
+  amount: string;
+}
+
+/**
+ * The screen's phases are a state machine: an amount can be edited, a quoted
+ * Preview can be committed, and a committed Withdrawal reports its receipt.
+ * Each phase carries exactly the fields it can use, so an unreachable
+ * combination (a receipt in the amount step, a quote in the status step) has
+ * no representation.
+ */
+type WithdrawFlowState =
+  | {
+      phase: 'input';
+      input: WithdrawAmountInput;
+      isRequesting: boolean;
+      error: PredictError | null;
+    }
+  | {
+      phase: 'confirm';
+      input: WithdrawAmountInput;
+      preview: PredictWithdrawPreview;
+      error: PredictError | null;
+    }
+  | {
+      phase: 'status';
+      input: WithdrawAmountInput;
+      preview: PredictWithdrawPreview;
+      receipt: PredictWithdrawReceipt | null;
+      error: PredictError | null;
+    };
+
+type WithdrawFlowAction =
+  | { type: 'editAmount'; amount: string }
+  | { type: 'request' }
+  | { type: 'quoted'; preview: PredictWithdrawPreview }
+  | { type: 'requestFailed'; error: PredictError }
+  | { type: 'confirm' }
+  | { type: 'committed'; receipt: PredictWithdrawReceipt }
+  | { type: 'commitFailed'; error: PredictError }
+  | { type: 'outcomeUnknown'; error: PredictError }
+  | { type: 'back' }
+  | { type: 'receipt'; receipt: PredictWithdrawReceipt };
+
+const initialWithdrawFlowState: WithdrawFlowState = {
+  phase: 'input',
+  input: { amount: '' },
+  isRequesting: false,
+  error: null,
+};
+
+const reduceWithdrawInput = (
+  state: Extract<WithdrawFlowState, { phase: 'input' }>,
+  action: WithdrawFlowAction,
+): WithdrawFlowState => {
+  switch (action.type) {
+    case 'editAmount':
+      return {
+        ...state,
+        input: { amount: action.amount },
+        error: null,
+      };
+    case 'request':
+      return { ...state, isRequesting: true, error: null };
+    case 'quoted':
+      return {
+        phase: 'confirm',
+        input: state.input,
+        preview: action.preview,
+        error: null,
+      };
+    case 'requestFailed':
+      return { ...state, isRequesting: false, error: action.error };
+    default:
+      return state;
+  }
+};
+
+const reduceWithdrawConfirm = (
+  state: Extract<WithdrawFlowState, { phase: 'confirm' }>,
+  action: WithdrawFlowAction,
+): WithdrawFlowState => {
+  switch (action.type) {
+    case 'confirm':
+      return {
+        phase: 'status',
+        input: state.input,
+        preview: state.preview,
+        receipt: null,
+        error: null,
+      };
+    case 'back':
+      return {
+        phase: 'input',
+        input: state.input,
+        isRequesting: false,
+        error: null,
+      };
+    default:
+      return state;
+  }
+};
+
+const reduceWithdrawStatus = (
+  state: Extract<WithdrawFlowState, { phase: 'status' }>,
+  action: WithdrawFlowAction,
+): WithdrawFlowState => {
+  switch (action.type) {
+    case 'committed':
+    case 'receipt':
+      return { ...state, receipt: action.receipt, error: null };
+    case 'outcomeUnknown':
+      return { ...state, error: action.error };
+    case 'commitFailed':
+      // Expired, deleted or unresolvable previews cannot create a new
+      // operation. Keep the amount, but require a fresh quote before another
+      // confirmation.
+      return action.error.code === PredictErrorCode.PREVIEW_EXPIRED ||
+        action.error.metadata?.bodyCode === 'preview_not_found' ||
+        action.error.metadata?.bodyCode === 'operation_not_found'
+        ? {
+            phase: 'input',
+            input: state.input,
+            isRequesting: false,
+            error: action.error,
+          }
+        : { ...state, error: action.error };
+    default:
+      return state;
+  }
+};
+
+const withdrawFlowReducer = (
+  state: WithdrawFlowState,
+  action: WithdrawFlowAction,
+): WithdrawFlowState => {
+  switch (state.phase) {
+    case 'input':
+      return reduceWithdrawInput(state, action);
+    case 'confirm':
+      return reduceWithdrawConfirm(state, action);
+    case 'status':
+      return reduceWithdrawStatus(state, action);
+    default:
+      return state;
+  }
+};
+
+/** The locale key for a Preview or Commit failure. The named codes are the
+ * ones whose remedy differs; everything else retries with one generic line. */
+const errorCopyKey = (error: PredictError): string => {
+  switch (error.code) {
+    case PredictErrorCode.PREVIEW_EXPIRED:
+      return 'predict_next.withdraw.error.preview_expired';
+    case PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED:
+      return 'predict_next.withdraw.error.venue_account_not_enabled';
+    case PredictErrorCode.VENUE_UNAVAILABLE:
+    case PredictErrorCode.RATE_LIMITED:
+      return 'predict_next.withdraw.error.venue_unavailable';
+    default:
+      return 'predict_next.withdraw.error.generic';
+  }
+};
+
+const toPredictError = (error: unknown): PredictError =>
+  error instanceof PredictError
+    ? error
+    : PredictError.from(PredictErrorCode.UNKNOWN);
+
+/** Only an explicitly approved quote can be submitted. Recovery reads never
+ * replay a mutation whose outcome is unknown. */
+const isCommittable = (
+  state: WithdrawFlowState,
+  isOffline: boolean,
+): state is Extract<WithdrawFlowState, { phase: 'confirm' }> =>
+  !isOffline && state.phase === 'confirm';
+
+/**
+ * The one Withdraw screen: enter an amount on the keypad, confirm what the
+ * backend quoted, then watch the receipt until it settles. The Venue owns
+ * every parameter except the amount — the payout destination is resolved
+ * server-side — so this flow has nothing to send and nothing to sign.
+ */
+export const PredictWithdrawScreen = () => {
+  const tw = useTailwind();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
+  const route =
+    useRoute<RouteProp<PredictNextStackParamList, 'PredictNextWithdraw'>>();
+  const venueId: PredictVenueId = route.params.venueId;
+  const service = Engine.context.PredictFundingService;
+  const privacyMode = useSelector(selectPrivacyMode) === true;
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const isWalletUnlocked = useSelector(selectIsUnlocked);
+  const balanceQuery = useBalance(venueId);
+  const networkTier = useNetworkTier();
+  const [state, dispatch] = useReducer(
+    withdrawFlowReducer,
+    initialWithdrawFlowState,
+  );
+  const [isRecovering, setIsRecovering] = useState(false);
+  const recoveryInFlight = useRef(false);
+  const phaseHeadingRef = useRef<View>(null);
+  useEffect(() => {
+    const heading = findNodeHandle(phaseHeadingRef.current);
+    if (heading !== null) {
+      AccessibilityInfo.setAccessibilityFocus(heading);
+    }
+  }, [state.phase]);
+
+  const { input } = state;
+  const availableBalance = balanceQuery.data?.available;
+  let balanceStatus: WithdrawBalanceStatus;
+  if (balanceQuery.isPending) {
+    balanceStatus = 'loading';
+  } else {
+    balanceStatus = availableBalance === undefined ? 'unavailable' : 'ready';
+  }
+  const isOffline = networkTier === 'NONE';
+  const isLowHardware = getHardwareTier() === 'LOW';
+  const amountIssue = withdrawAmountIssue(input.amount, availableBalance);
+  const canContinue =
+    state.phase === 'input' &&
+    !isOffline &&
+    !state.isRequesting &&
+    amountIssue === null &&
+    input.amount.length > 0;
+  const isKeypadLocked =
+    state.phase !== 'input' || state.isRequesting || isOffline;
+  const isOutcomeUnknown = state.phase === 'status' && state.receipt === null;
+  // A receipt the backend is still working through can always be read again;
+  // automatic polling is not the only way back from a stalled observation.
+  const canCheckWithdrawal =
+    state.phase === 'status' &&
+    state.receipt !== null &&
+    !state.receipt.needsManualReview &&
+    (state.receipt.status === 'pending' ||
+      state.receipt.status === 'processing');
+
+  // A lost reply is not a failed withdrawal. Keep this preview reachable until
+  // its receipt is recovered; a new preview would mint another idempotency key.
+  usePreventRemove(isOutcomeUnknown, ({ data }) => {
+    // Session resets may replace the navigator; ordinary Back must not lose
+    // the only reference to a potentially submitted withdrawal.
+    if (!['GO_BACK', 'POP', 'POP_TO_TOP'].includes(data.action.type)) {
+      navigation.dispatch(data.action);
+    }
+  });
+
+  const close = useCallback(() => navigation.goBack(), [navigation]);
+
+  const handleReceipt = useCallback(
+    (receipt: PredictWithdrawReceipt) => dispatch({ type: 'receipt', receipt }),
+    [],
+  );
+  /** A lost Commit reply is not a failed withdrawal: read the same operation
+   * before deciding whether the Preview can be retried or the outcome is
+   * unknown. */
+  const recoverCommitOutcome = useCallback(
+    async (previewId: string, error: PredictError) => {
+      try {
+        const receipt = await service.observeWithdraw(venueId, previewId);
+        dispatch({ type: 'receipt', receipt });
+      } catch (recoveryError) {
+        // The read is the authority on whether anything was relayed. A
+        // missing Preview or operation cannot hold a transferred amount, so
+        // the amount is kept and a fresh quote is required. Any other read
+        // failure leaves the outcome unknown.
+        const bodyCode =
+          recoveryError instanceof PredictError
+            ? recoveryError.metadata?.bodyCode
+            : undefined;
+        dispatch({
+          type:
+            bodyCode === 'preview_not_found' ||
+            bodyCode === 'operation_not_found'
+              ? 'commitFailed'
+              : 'outcomeUnknown',
+          error: recoveryError instanceof PredictError ? recoveryError : error,
+        });
+      }
+    },
+    [service, venueId],
+  );
+  /** Once the Commit returns, this screen is the surface observing the
+   * Withdrawal: the hook owns the backoff schedule and stops on a terminal
+   * receipt, on manual review, or when the screen unmounts. */
+  const { isStalled, retry: retryObservation } = useWithdrawReceipt({
+    service,
+    venueId,
+    receipt: state.phase === 'status' ? state.receipt : null,
+    networkTier,
+    isWalletUnlocked,
+    onReceipt: handleReceipt,
+  });
+
+  // A Preview or Commit failure replaces the visible content; announce the
+  // same sentence the screen shows instead of relying on re-exploration. A
+  // stalled observation replaces the actions with a notice, so iOS needs the
+  // same explicit announcement (`accessibilityLiveRegion` is Android-only).
+  const isStatusStalled =
+    state.phase === 'status' && state.receipt !== null && isStalled;
+  useWithdrawAnnouncement(
+    withdrawAnnouncement(
+      state.error === null
+        ? null
+        : strings(
+            isOutcomeUnknown
+              ? 'predict_next.withdraw.outcome_unknown'
+              : errorCopyKey(state.error),
+          ),
+      isStatusStalled,
+    ),
+  );
+
+  const checkWithdrawal = useCallback(async () => {
+    if (state.phase !== 'status' || isOffline || recoveryInFlight.current) {
+      return;
+    }
+    if (!state.receipt && !state.error) {
+      return;
+    }
+    // One read decides between "nothing was relayed" and "it exists". A second
+    // read racing the first could requote on a not-found while the other
+    // returns a receipt the input phase then ignores.
+    recoveryInFlight.current = true;
+    setIsRecovering(true);
+    try {
+      if (state.receipt) {
+        retryObservation();
+      } else if (state.error) {
+        await recoverCommitOutcome(state.preview.previewId, state.error);
+      }
+    } finally {
+      recoveryInFlight.current = false;
+      setIsRecovering(false);
+    }
+  }, [isOffline, recoverCommitOutcome, retryObservation, state]);
+
+  const handleKeyPress = useCallback(
+    (key: string) => {
+      if (isKeypadLocked) {
+        return;
+      }
+      dispatch({
+        type: 'editAmount',
+        amount: sanitizeWithdrawAmount(`${input.amount}${key}`),
+      });
+    },
+    [input.amount, isKeypadLocked],
+  );
+
+  const handleDelete = useCallback(() => {
+    if (isKeypadLocked) {
+      return;
+    }
+    dispatch({
+      type: 'editAmount',
+      amount: sanitizeWithdrawAmount(input.amount.slice(0, -1)),
+    });
+  }, [input.amount, isKeypadLocked]);
+
+  const handleContinue = useCallback(async () => {
+    if (!canContinue) {
+      return;
+    }
+    dispatch({ type: 'request' });
+    const params: PredictWithdrawPreviewParams = {
+      amount: normalizeWithdrawAmount(input.amount) as PredictAmount,
+    };
+    try {
+      dispatch({
+        type: 'quoted',
+        preview: await service.requestWithdrawPreview(venueId, params),
+      });
+    } catch (error_) {
+      Logger.log('PredictNext: the Withdraw Preview failed', error_);
+      dispatch({ type: 'requestFailed', error: toPredictError(error_) });
+    }
+  }, [canContinue, input, service, venueId]);
+
+  /** Commits by reference: the phone sends the Preview id and nothing else,
+   * and the receipt it returns is the operation's state from now on. */
+  const handleConfirm = useCallback(async () => {
+    if (!isCommittable(state, isOffline)) {
+      return;
+    }
+    const { preview } = state;
+    dispatch({ type: 'confirm' });
+    try {
+      const receipt = await service.commitWithdrawPreview(
+        venueId,
+        preview.previewId,
+      );
+      dispatch({ type: 'committed', receipt });
+    } catch (error_) {
+      const error = toPredictError(error_);
+      // An aborted or timed-out Commit may already have reached the venue.
+      // Recover by GET, never classify a deadline as a safe-to-retry POST.
+      if (
+        error_ instanceof Error &&
+        (error_.name === 'AbortError' || error_.name === 'TimeoutError')
+      ) {
+        await recoverCommitOutcome(preview.previewId, error);
+        return;
+      }
+      if (error.code === PredictErrorCode.PREVIEW_EXPIRED) {
+        dispatch({ type: 'commitFailed', error });
+        return;
+      }
+      if (error.code === PredictErrorCode.UNAUTHENTICATED) {
+        dispatch({ type: 'outcomeUnknown', error });
+        return;
+      }
+      await recoverCommitOutcome(preview.previewId, error);
+    }
+  }, [isOffline, recoverCommitOutcome, service, state, venueId]);
+
+  const handleBack = useCallback(() => dispatch({ type: 'back' }), []);
+
+  const renderInput = () => {
+    if (state.phase !== 'input') {
+      return null;
+    }
+    return (
+      <>
+        <Box twClassName="flex-1">
+          <WithdrawAmountStep
+            amount={input.amount}
+            availableBalance={availableBalance}
+            balanceStatus={balanceStatus}
+            amountIssue={amountIssue}
+            isPrivacyMode={privacyMode}
+          />
+        </Box>
+        <Box twClassName="gap-3 px-4 pb-2">
+          {state.error !== null ? (
+            <Text
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={PredictWithdrawFlowTestIds.ERROR}
+            >
+              {strings(errorCopyKey(state.error))}
+            </Text>
+          ) : null}
+          {isOffline ? (
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              description={strings('predict_next.withdraw.offline')}
+              testID={PredictWithdrawFlowTestIds.OFFLINE_BANNER}
+            />
+          ) : null}
+          <KeyValueRow
+            keyLabel={strings('predict_next.withdraw.receive_row')}
+            value={strings('predict_next.withdraw.receive_sandbox_wallet')}
+            valueTextProps={{
+              color: TextColor.TextAlternative,
+              testID: PredictWithdrawFlowTestIds.RECEIVE_VALUE,
+            }}
+            // KeyValueRow carries its own horizontal padding; the step already
+            // insets its content, so the row aligns with the button below.
+            twClassName="px-0"
+            testID={PredictWithdrawFlowTestIds.RECEIVE}
+          />
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleContinue}
+            isDisabled={!canContinue}
+            // LOW hardware renders no spinner: the label alone says the
+            // request is running, without non-essential animation.
+            isLoading={state.isRequesting && !isLowHardware}
+            loadingText={strings('predict_next.withdraw.submitting')}
+            testID={PredictWithdrawFlowTestIds.CONTINUE}
+          >
+            {state.isRequesting
+              ? strings('predict_next.withdraw.submitting')
+              : strings('predict_next.withdraw.continue')}
+          </Button>
+        </Box>
+        <PredictKeypad
+          onKeyPress={handleKeyPress}
+          onDelete={handleDelete}
+          hasFilledActionKeys
+          disabled={isKeypadLocked}
+        />
+      </>
+    );
+  };
+
+  const renderConfirm = () =>
+    state.phase === 'confirm' ? (
+      <>
+        <ScrollView contentContainerStyle={tw.style('gap-3 px-4 pt-4 pb-4')}>
+          <WithdrawConfirmStep
+            preview={state.preview}
+            isPrivacyMode={privacyMode}
+          />
+          {state.error !== null ? (
+            <Text
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={PredictWithdrawFlowTestIds.ERROR}
+            >
+              {strings(errorCopyKey(state.error))}
+            </Text>
+          ) : null}
+        </ScrollView>
+        <Box twClassName="gap-3 px-4 pb-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleConfirm}
+            isDisabled={isOffline}
+            testID={PredictWithdrawFlowTestIds.CONFIRM}
+          >
+            {strings('predict_next.withdraw.confirm')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleBack}
+            testID={PredictWithdrawFlowTestIds.CONFIRM_BACK}
+          >
+            {strings('predict_next.withdraw.back')}
+          </Button>
+        </Box>
+      </>
+    ) : null;
+
+  const renderStatusActions = () =>
+    state.phase === 'status' ? (
+      <Box twClassName="gap-3 px-4 pb-4">
+        {isStatusStalled ? (
+          <Text
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={PredictWithdrawFlowTestIds.STALLED}
+          >
+            {strings('predict_next.withdraw.status.stalled')}
+          </Text>
+        ) : null}
+        {canCheckWithdrawal ? (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={checkWithdrawal}
+            isDisabled={isOffline || isRecovering}
+            testID={PredictWithdrawFlowTestIds.CHECK_WITHDRAWAL}
+          >
+            {strings('predict_next.withdraw.retry')}
+          </Button>
+        ) : null}
+        <Button
+          variant={
+            canCheckWithdrawal || isStatusStalled
+              ? ButtonVariant.Secondary
+              : ButtonVariant.Primary
+          }
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={state.receipt ? close : checkWithdrawal}
+          isDisabled={
+            !state.receipt && (!state.error || isOffline || isRecovering)
+          }
+          testID={
+            state.receipt
+              ? PredictWithdrawFlowTestIds.DONE
+              : PredictWithdrawFlowTestIds.RETRY
+          }
+        >
+          {strings(
+            state.receipt?.status === 'failed'
+              ? 'predict_next.withdraw.status.check_balance'
+              : state.receipt
+                ? 'predict_next.withdraw.status.done'
+                : 'predict_next.withdraw.retry',
+          )}
+        </Button>
+      </Box>
+    ) : null;
+
+  const renderStatus = () =>
+    state.phase === 'status' ? (
+      <>
+        <ScrollView contentContainerStyle={tw.style('gap-3 px-4 pt-6 pb-4')}>
+          {state.receipt ? (
+            <WithdrawStatusStep
+              receipt={state.receipt}
+              isPrivacyMode={privacyMode}
+            />
+          ) : (
+            <Box
+              twClassName="items-center justify-center py-8"
+              testID={PredictWithdrawFlowTestIds.SUBMITTING}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings(
+                  state.error
+                    ? 'predict_next.withdraw.outcome_unknown'
+                    : 'predict_next.withdraw.submitting',
+                )}
+              </Text>
+            </Box>
+          )}
+        </ScrollView>
+        {renderStatusActions()}
+      </>
+    ) : null;
+
+  // Back leaves confirmation for entry, and leaves the flow anywhere else.
+  // An unknown outcome has no safe back at all.
+  let headerBack;
+  if (!isOutcomeUnknown) {
+    headerBack = state.phase === 'confirm' ? handleBack : close;
+  }
+
+  return (
+    <SafeAreaView
+      edges={['left', 'right', 'bottom']}
+      style={tw.style('flex-1 bg-default')}
+      testID={PredictWithdrawFlowTestIds.SCREEN}
+    >
+      <Box testID={PredictWithdrawFlowTestIds.HEADER}>
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          includesTopInset
+          title={strings('predict_next.withdraw.title')}
+          onBack={headerBack}
+          backButtonProps={{
+            testID: PredictWithdrawFlowTestIds.BACK,
+            isDisabled: isOutcomeUnknown,
+          }}
+        />
+      </Box>
+      <Box twClassName="flex-1">
+        <View ref={phaseHeadingRef} collapsable={false}>
+          <Text
+            accessibilityRole="header"
+            variant={TextVariant.HeadingSm}
+            twClassName="px-4 pt-4"
+          >
+            {strings(`predict_next.withdraw.phase.${state.phase}`)}
+          </Text>
+        </View>
+        {renderInput()}
+        {renderConfirm()}
+        {renderStatus()}
+      </Box>
+    </SafeAreaView>
+  );
+};
