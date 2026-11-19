@@ -5410,6 +5410,13 @@
     "unknown": "Unknown",
     "stock": "Stock"
   },
+  "collectibles": {
+    "title": "Collectibles",
+    "home_section": {
+      "description": "Explore collectibles packs and cards.",
+      "open_collectibles": "Explore Collectibles"
+    }
+  },
   "collectible": {
     "collectible_address": "Address",
     "collectible_type": "Type",

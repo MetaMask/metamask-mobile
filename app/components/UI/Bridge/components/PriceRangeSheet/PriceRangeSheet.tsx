@@ -10,7 +10,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -52,6 +51,9 @@ import { SwapsKeypad } from '../SwapsKeypad';
 import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import { PriceRangeSheetSelectorsIDs } from './PriceRangeSheet.testIds';
 import type { PriceRangeSheetProps } from './PriceRangeSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type PriceRangeField = 'min' | 'max';
 
@@ -144,6 +146,7 @@ const PriceRangeSheet = ({
   onConfirm,
   goBack,
 }: PriceRangeSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -305,14 +308,15 @@ const PriceRangeSheet = ({
       goBack={goBack}
       onClose={closeKeypad}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: PriceRangeSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.recurring.price_range.label')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="relative">
         <ScrollView
           ref={scrollViewRef}
