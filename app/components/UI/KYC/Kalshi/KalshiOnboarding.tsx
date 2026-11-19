@@ -299,7 +299,7 @@ const KalshiOnboarding = () => {
   const submitEmail = () =>
     run(async () => {
       const email = input.trim();
-      if (editingEmail || step === 'account_link') {
+      if (editingEmail || step === 'kalshi_email_link') {
         await runKalshiSignedAction(() =>
           VendorOnboardingController.resendEmailCode({
             vendor: VENDOR,

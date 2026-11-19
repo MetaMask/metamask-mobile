@@ -104,12 +104,12 @@ const typeInto = (screen: ReturnType<typeof render>, value: string) =>
 /**
  * Walks through MetaMask MFA to the Kalshi email field.
  *
- * The email field is the phone's own state on `confirm_identity`.
+ * The email field is the phone's own state on `mfa`.
  *
  * @returns The rendered screen, showing the email field.
  */
 async function reachEmail() {
-  const screen = render('confirm_identity');
+  const screen = render('mfa');
   fireEvent.press(primary(screen));
   await screen.findByText(
     'Kalshi creates your account with this email and sends you a code. It can differ from your MetaMask email.',
@@ -121,7 +121,7 @@ describe('KalshiOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    flow.refreshStep.mockResolvedValue('vendor_terms');
+    flow.refreshStep.mockResolvedValue('terms');
     for (const name of [
       'acceptTerms',
       'startSession',
@@ -131,7 +131,7 @@ describe('KalshiOnboarding', () => {
       'submitEmailCode',
       'resendEmailCode',
     ]) {
-      flow[name].mockResolvedValue('identity_provider');
+      flow[name].mockResolvedValue('sumsub');
     }
     flow.launchProviderFlow.mockResolvedValue('submitted');
     flow.fetchSessionDisclaimers.mockResolvedValue({
@@ -148,7 +148,7 @@ describe('KalshiOnboarding', () => {
   });
 
   it('asks kyc-api for the step when it opens, and shows nothing to do yet', async () => {
-    flow.refreshStep.mockResolvedValue('vendor_terms');
+    flow.refreshStep.mockResolvedValue('terms');
     const screen = render();
 
     await waitFor(() =>
@@ -159,7 +159,7 @@ describe('KalshiOnboarding', () => {
 
   it('keeps going when kyc-api cannot be reached', async () => {
     flow.refreshStep.mockRejectedValue(new Error('offline'));
-    const screen = render('confirm_identity');
+    const screen = render('mfa');
 
     await waitFor(() => expect(flow.refreshStep).toHaveBeenCalled());
     expect(
@@ -171,7 +171,7 @@ describe('KalshiOnboarding', () => {
 
   describe('terms', () => {
     it('loads the Kalshi terms for the user’s country and links to them', async () => {
-      const screen = render('vendor_terms');
+      const screen = render('terms');
 
       expect(await screen.findByText('Terms')).toBeOnTheScreen();
       expect(service.fetchVendorDisclaimers).toHaveBeenCalledWith({
@@ -183,7 +183,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('records the acceptance with kyc-api', async () => {
-      const screen = render('vendor_terms');
+      const screen = render('terms');
       await screen.findByText('Terms');
 
       fireEvent.press(primary(screen));
@@ -204,7 +204,7 @@ describe('KalshiOnboarding', () => {
         token: { accessToken: 'aal2' },
         credentials: [{ type: 'email_otp', email: 'mm@b.co' }],
       });
-      const screen = render('confirm_identity');
+      const screen = render('mfa');
 
       fireEvent.press(primary(screen));
 
@@ -235,7 +235,7 @@ describe('KalshiOnboarding', () => {
 
     it('says so when MetaMask returns no token', async () => {
       mockVerifyOrEnroll.mockResolvedValue({});
-      const screen = render('confirm_identity');
+      const screen = render('mfa');
 
       fireEvent.press(primary(screen));
 
@@ -247,7 +247,7 @@ describe('KalshiOnboarding', () => {
 
     it('stays quiet when the user cancels MFA', async () => {
       mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('flow_cancelled'));
-      const screen = render('confirm_identity');
+      const screen = render('mfa');
 
       fireEvent.press(primary(screen));
 
@@ -259,7 +259,7 @@ describe('KalshiOnboarding', () => {
 
   describe('identity verification', () => {
     it('asks for the email code idOS is waiting for', async () => {
-      const screen = render('account_link');
+      const screen = render('kalshi_email_link');
       expect(await screen.findByText('Check your email')).toBeOnTheScreen();
       typeInto(screen, ' 123456 ');
 
@@ -274,7 +274,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('signs a corrected email into a new link on the same session', async () => {
-      const screen = render('account_link');
+      const screen = render('kalshi_email_link');
       await screen.findByText('Check your email');
 
       fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
@@ -295,7 +295,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('asks for the phone, then its code', async () => {
-      const screen = render('phone_link');
+      const screen = render('kalshi_phone_link');
       expect(await screen.findByText('Your phone')).toBeOnTheScreen();
       typeInto(screen, '+18888888888');
 
@@ -317,7 +317,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('goes back to the phone field to use another number', async () => {
-      const screen = render('phone_link');
+      const screen = render('kalshi_phone_link');
       await screen.findByText('Your phone');
       typeInto(screen, '+18888888888');
       fireEvent.press(primary(screen));
@@ -329,7 +329,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('records the consents, then launches SumSub', async () => {
-      const screen = render('identity_provider');
+      const screen = render('sumsub');
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -357,7 +357,7 @@ describe('KalshiOnboarding', () => {
         kycProvider: [{ key: 'sumsub', version: '2', consented: true }],
         credentialReusabilityConsentGiven: false,
       });
-      const screen = render('identity_provider');
+      const screen = render('sumsub');
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -368,7 +368,7 @@ describe('KalshiOnboarding', () => {
 
     it('says so when SumSub could not finish', async () => {
       flow.launchProviderFlow.mockResolvedValue('failed');
-      const screen = render('identity_provider');
+      const screen = render('sumsub');
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -380,7 +380,7 @@ describe('KalshiOnboarding', () => {
 
     it('stays quiet when the user closes SumSub early', async () => {
       flow.launchProviderFlow.mockResolvedValue('abandoned');
-      const screen = render('identity_provider');
+      const screen = render('sumsub');
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -390,7 +390,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('opens SumSub again after a retry', () => {
-      const screen = render('identity_provider', 'retry');
+      const screen = render('sumsub', 'retry');
 
       expect(screen.getByText('Verify your identity')).toBeOnTheScreen();
     });
@@ -398,7 +398,7 @@ describe('KalshiOnboarding', () => {
 
   describe('after an action', () => {
     it('does not ask kyc-api for the step again', async () => {
-      const screen = render('vendor_terms');
+      const screen = render('terms');
       await screen.findByText('Terms');
       flow.refreshStep.mockClear();
 
@@ -416,8 +416,8 @@ describe('KalshiOnboarding', () => {
 
     it('keeps asking kyc-api while the decision is pending', async () => {
       jest.useFakeTimers();
-      flow.refreshStep.mockResolvedValue('done');
-      render('done', 'pending');
+      flow.refreshStep.mockResolvedValue('decision');
+      render('decision', 'pending');
       await act(async () => undefined);
       flow.refreshStep.mockClear();
 
@@ -433,8 +433,8 @@ describe('KalshiOnboarding', () => {
 
     it('slows the polling down as the wait goes on', async () => {
       jest.useFakeTimers();
-      flow.refreshStep.mockResolvedValue('done');
-      render('done', 'pending');
+      flow.refreshStep.mockResolvedValue('decision');
+      render('decision', 'pending');
       await act(async () => undefined);
       flow.refreshStep.mockClear();
 
@@ -459,8 +459,8 @@ describe('KalshiOnboarding', () => {
 
     it('stops asking once the screen closes', async () => {
       jest.useFakeTimers();
-      flow.refreshStep.mockResolvedValue('done');
-      const screen = render('done', 'pending');
+      flow.refreshStep.mockResolvedValue('decision');
+      const screen = render('decision', 'pending');
       await act(async () => undefined);
       screen.unmount();
       flow.refreshStep.mockClear();
@@ -473,8 +473,8 @@ describe('KalshiOnboarding', () => {
     });
 
     it('checks again on request', async () => {
-      flow.refreshStep.mockResolvedValue('done');
-      const screen = render('done', 'pending');
+      flow.refreshStep.mockResolvedValue('decision');
+      const screen = render('decision', 'pending');
       await waitFor(() => expect(flow.refreshStep).toHaveBeenCalledTimes(1));
 
       fireEvent.press(primary(screen));
@@ -490,8 +490,8 @@ describe('KalshiOnboarding', () => {
     ] as const)(
       'a %s decision ends on a screen the user can close',
       async (status, title) => {
-        flow.refreshStep.mockResolvedValue('done');
-        const screen = render('done', status);
+        flow.refreshStep.mockResolvedValue('decision');
+        const screen = render('decision', status);
         expect(screen.getByText(title)).toBeOnTheScreen();
 
         fireEvent.press(primary(screen));
@@ -576,7 +576,7 @@ describe('KalshiOnboarding', () => {
   });
 
   it('goes back', () => {
-    const screen = render('confirm_identity');
+    const screen = render('mfa');
 
     fireEvent.press(screen.getByText('Back'));
 

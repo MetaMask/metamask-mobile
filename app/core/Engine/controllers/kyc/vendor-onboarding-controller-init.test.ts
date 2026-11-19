@@ -82,7 +82,7 @@ describe('vendorOnboardingControllerInit', () => {
     const persisted: Partial<VendorOnboardingControllerState> = {
       vendors: {
         kalshi: {
-          step: 'confirm_identity',
+          step: 'mfa',
           status: 'none',
           sessionId: 'sid-1',
         },

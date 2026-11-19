@@ -30,7 +30,7 @@ const selectIsKalshiVerified = (state: RootState): boolean => {
     state.engine.backgroundState.VendorOnboardingController?.vendors?.[
       KALSHI_KYC_VENDOR.id
     ];
-  return vendor?.step === 'done' && vendor.status === 'approved';
+  return vendor?.step === 'decision' && vendor.status === 'approved';
 };
 
 /**

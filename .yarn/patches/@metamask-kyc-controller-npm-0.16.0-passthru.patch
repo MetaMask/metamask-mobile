@@ -137,11 +137,10 @@ diff --git a/dist/VendorOnboardingController-method-action-types.d.ts b/dist/Ven
 index f9610a0b2fb..14d8bf4986a 100644
 --- a/dist/VendorOnboardingController-method-action-types.d.ts
 +++ b/dist/VendorOnboardingController-method-action-types.d.ts
-@@ -32,34 +32,6 @@ export type VendorOnboardingControllerAcceptTermsAction = {
-     type: `VendorOnboardingController:acceptTerms`;
+@@ -33,37 +33,9 @@
      handler: VendorOnboardingController['acceptTerms'];
  };
--/**
+ /**
 - * Starts linking the user's account at the vendor (Kalshi), then reads the
 - * next step.
 - *
@@ -169,10 +168,15 @@ index f9610a0b2fb..14d8bf4986a 100644
 -    type: `VendorOnboardingController:verifyAccountLink`;
 -    handler: VendorOnboardingController['verifyAccountLink'];
 -};
- /**
+-/**
   * Opens the vendor's UKYC session, or picks up the one kyc-api already has,
   * then reads the next step. Call it from the step that asks for MFA
-@@ -78,6 +50,9 @@ export type VendorOnboardingControllerVerifyAccountLinkAction = {
+- * (`confirm_identity`), with the token MFA returned.
++ * (`mfa`), with the token MFA returned.
+  *
+  * A new session creates the user's `local_user_secret` when it is missing,
+  * then wraps the encryption key and a capability token for idOS. An existing
+@@ -78,6 +50,9 @@
   * @param params.vendor - The vendor.
   * @param params.aal2Token - AAL2 token from MFA. Required only when a new
   * session has to be created. Omit it to pick up an existing session.
@@ -182,7 +186,7 @@ index f9610a0b2fb..14d8bf4986a 100644
   * @returns The step the user is on once the session exists.
   */
  export type VendorOnboardingControllerStartSessionAction = {
-@@ -177,6 +152,8 @@ export type VendorOnboardingControllerSubmitEmailCodeAction = {
+@@ -177,6 +152,8 @@
   *
   * @param params - The parameters.
   * @param params.vendor - The vendor.
@@ -191,7 +195,7 @@ index f9610a0b2fb..14d8bf4986a 100644
   * @returns The next step.
   */
  export type VendorOnboardingControllerResendEmailCodeAction = {
-@@ -197,5 +174,5 @@ export type VendorOnboardingControllerResetAction = {
+@@ -197,5 +174,5 @@
  /**
   * Union of all VendorOnboardingController action types.
   */
@@ -221,7 +225,7 @@ diff --git a/dist/VendorOnboardingController.d.ts b/dist/VendorOnboardingControl
 index 1ace59cfd70..3724d8c4162 100644
 --- a/dist/VendorOnboardingController.d.ts
 +++ b/dist/VendorOnboardingController.d.ts
-@@ -6,7 +6,7 @@ import type { AuthenticationControllerGetPartnerIdentityTokenAction } from '@met
+@@ -6,7 +6,7 @@
  import type { UserStorageControllerPerformGetStorageAction, UserStorageControllerPerformSetStorageAction } from '@metamask/profile-sync-controller/user-storage';
  import type { KycServiceMethodActions } from './KycService-method-action-types.js';
  import type { KycSumSubLauncher } from './providers/sumsub.js';
@@ -230,7 +234,7 @@ index 1ace59cfd70..3724d8c4162 100644
  import type { VendorOnboardingControllerMethodActions } from './VendorOnboardingController-method-action-types.js';
  /**
   * The name of the {@link VendorOnboardingController}, used to namespace the
-@@ -44,34 +44,6 @@ export type VendorOnboardingControllerState = {
+@@ -44,34 +44,6 @@
   * @returns The default state.
   */
  export declare function getDefaultVendorOnboardingControllerState(): VendorOnboardingControllerState;
@@ -265,7 +269,7 @@ index 1ace59cfd70..3724d8c4162 100644
  export type VendorOnboardingControllerGetStateAction = ControllerGetStateAction<typeof vendorOnboardingControllerName, VendorOnboardingControllerState>;
  export type VendorOnboardingControllerActions = VendorOnboardingControllerGetStateAction | VendorOnboardingControllerMethodActions;
  type AllowedActions = KycServiceMethodActions | AuthenticationControllerGetPartnerIdentityTokenAction | AuthenticatedUserStorageServicePutIdentitySharingConsentAction | UserStorageControllerPerformGetStorageAction | UserStorageControllerPerformSetStorageAction;
-@@ -95,10 +67,11 @@ export type VendorOnboardingControllerOptions = {
+@@ -95,10 +67,11 @@
      messenger: VendorOnboardingControllerMessenger;
      state?: Partial<VendorOnboardingControllerState>;
      /**
@@ -280,7 +284,7 @@ index 1ace59cfd70..3724d8c4162 100644
      /**
       * Platform adapter that presents the SumSub SDK. Injected by each client so
       * the controller stays platform-agnostic. Without it, `launchProviderFlow`
-@@ -123,11 +96,11 @@ export declare class VendorOnboardingController extends BaseController<typeof ve
+@@ -123,11 +96,11 @@
       * @param options - The constructor options.
       * @param options.messenger - The messenger suited for this controller.
       * @param options.state - Partial initial state; merged over defaults.
@@ -295,11 +299,10 @@ index 1ace59cfd70..3724d8c4162 100644
      /**
       * Asks kyc-api for the vendor's current step and saves it. Call it when a
       * screen opens: the answer replaces whatever was saved. Calls that overlap
-@@ -157,37 +130,6 @@ export declare class VendorOnboardingController extends BaseController<typeof ve
-         disclaimerIds: string[];
+@@ -158,40 +131,9 @@
          country?: string;
      }): Promise<KycStep>;
--    /**
+     /**
 -     * Starts linking the user's account at the vendor (Kalshi), then reads the
 -     * next step.
 -     *
@@ -330,10 +333,15 @@ index 1ace59cfd70..3724d8c4162 100644
 -        step: KycStep;
 -        mfaMethod?: KycAccountLinkMfaMethod;
 -    }>;
-     /**
+-    /**
       * Opens the vendor's UKYC session, or picks up the one kyc-api already has,
       * then reads the next step. Call it from the step that asks for MFA
-@@ -206,11 +148,15 @@ export declare class VendorOnboardingController extends BaseController<typeof ve
+-     * (`confirm_identity`), with the token MFA returned.
++     * (`mfa`), with the token MFA returned.
+      *
+      * A new session creates the user's `local_user_secret` when it is missing,
+      * then wraps the encryption key and a capability token for idOS. An existing
+@@ -206,11 +148,15 @@
       * @param params.vendor - The vendor.
       * @param params.aal2Token - AAL2 token from MFA. Required only when a new
       * session has to be created. Omit it to pick up an existing session.
@@ -349,7 +357,7 @@ index 1ace59cfd70..3724d8c4162 100644
      }): Promise<KycStep>;
      /**
       * Fetches the idOS and identity provider (SumSub) documents the user
-@@ -307,10 +253,13 @@ export declare class VendorOnboardingController extends BaseController<typeof ve
+@@ -307,10 +253,13 @@
       *
       * @param params - The parameters.
       * @param params.vendor - The vendor.
@@ -376,7 +384,7 @@ diff --git a/dist/VendorOnboardingController.js b/dist/VendorOnboardingControlle
 index a51b1c244b9..e8168ae74eb 100644
 --- a/dist/VendorOnboardingController.js
 +++ b/dist/VendorOnboardingController.js
-@@ -28,8 +28,6 @@ export function getDefaultVendorOnboardingControllerState() {
+@@ -28,8 +28,6 @@
  const MESSENGER_EXPOSED_METHODS = [
      'refreshStep',
      'acceptTerms',
@@ -385,7 +393,7 @@ index a51b1c244b9..e8168ae74eb 100644
      'startSession',
      'fetchSessionDisclaimers',
      'acceptSessionDisclaimers',
-@@ -51,7 +49,7 @@ const MESSENGER_EXPOSED_METHODS = [
+@@ -51,7 +49,7 @@
   * `KycController` state, so a vendor can move to it on its own.
   */
  export class VendorOnboardingController extends BaseController {
@@ -394,7 +402,7 @@ index a51b1c244b9..e8168ae74eb 100644
      #sumsubLauncher;
      /**
       * The newest step request per vendor. An answer that arrives after a newer
-@@ -70,18 +68,18 @@ export class VendorOnboardingController extends BaseController {
+@@ -70,18 +68,18 @@
       * @param options - The constructor options.
       * @param options.messenger - The messenger suited for this controller.
       * @param options.state - Partial initial state; merged over defaults.
@@ -417,11 +425,10 @@ index a51b1c244b9..e8168ae74eb 100644
          this.#sumsubLauncher = sumsubLauncher;
          this.messenger.registerMethodActionHandlers(this, MESSENGER_EXPOSED_METHODS);
      }
-@@ -117,39 +115,6 @@ export class VendorOnboardingController extends BaseController {
-         });
+@@ -118,42 +116,9 @@
          return this.#readStep(params.vendor, { join: false });
      }
--    /**
+     /**
 -     * Starts linking the user's account at the vendor (Kalshi), then reads the
 -     * next step.
 -     *
@@ -454,10 +461,15 @@ index a51b1c244b9..e8168ae74eb 100644
 -        const step = await this.#readStep(params.vendor, { join: false });
 -        return { step, ...(mfaMethod ? { mfaMethod } : {}) };
 -    }
-     /**
+-    /**
       * Opens the vendor's UKYC session, or picks up the one kyc-api already has,
       * then reads the next step. Call it from the step that asks for MFA
-@@ -168,6 +133,9 @@ export class VendorOnboardingController extends BaseController {
+-     * (`confirm_identity`), with the token MFA returned.
++     * (`mfa`), with the token MFA returned.
+      *
+      * A new session creates the user's `local_user_secret` when it is missing,
+      * then wraps the encryption key and a capability token for idOS. An existing
+@@ -168,6 +133,9 @@
       * @param params.vendor - The vendor.
       * @param params.aal2Token - AAL2 token from MFA. Required only when a new
       * session has to be created. Omit it to pick up an existing session.
@@ -467,7 +479,7 @@ index a51b1c244b9..e8168ae74eb 100644
       * @returns The step the user is on once the session exists.
       */
      async startSession(params) {
-@@ -186,6 +154,16 @@ export class VendorOnboardingController extends BaseController {
+@@ -186,6 +154,16 @@
          if (!params.aal2Token) {
              throw new Error('VendorOnboardingController.startSession: aal2Token is required to create a KYC session.');
          }
@@ -484,7 +496,7 @@ index a51b1c244b9..e8168ae74eb 100644
          const residenceCountry = await this.messenger.call('KycService:getGeoCountry');
          const session = await createAuthorizedSession({
              deps: this.#getSessionDeps(),
-@@ -193,6 +171,7 @@ export class VendorOnboardingController extends BaseController {
+@@ -193,6 +171,7 @@
              residenceCountry,
              aal2Token: params.aal2Token,
              partnerIdentityToken: await this.#mintPartnerIdentityToken(),
@@ -492,7 +504,7 @@ index a51b1c244b9..e8168ae74eb 100644
          });
          this.#write(vendor, { sessionId: session.id });
          return this.#readStep(vendor, { join: false });
-@@ -339,8 +318,14 @@ export class VendorOnboardingController extends BaseController {
+@@ -339,8 +318,14 @@
       * @returns The next step.
       */
      async submitEmailCode(params) {
@@ -507,7 +519,7 @@ index a51b1c244b9..e8168ae74eb 100644
          });
      }
      /**
-@@ -348,10 +333,20 @@ export class VendorOnboardingController extends BaseController {
+@@ -348,10 +333,20 @@
       *
       * @param params - The parameters.
       * @param params.vendor - The vendor.
@@ -529,7 +541,7 @@ index a51b1c244b9..e8168ae74eb 100644
      }
      /**
       * Forgets what the phone saved, for one vendor or all of them. kyc-api
-@@ -425,12 +420,37 @@ export class VendorOnboardingController extends BaseController {
+@@ -425,12 +420,37 @@
          this.#write(vendor, { sessionId: status.id });
          return status.id;
      }
@@ -645,7 +657,7 @@ diff --git a/dist/types.d.ts b/dist/types.d.ts
 index e3a6de6d24f..c0d6e0cc115 100644
 --- a/dist/types.d.ts
 +++ b/dist/types.d.ts
-@@ -306,16 +306,56 @@ export type KycSessionDisclaimers = {
+@@ -306,19 +306,60 @@
   */
  export type OnboardingVendor = 'iron' | 'kalshi';
  /**
@@ -655,26 +667,26 @@ index e3a6de6d24f..c0d6e0cc115 100644
 + *
 + * Relay checks the signature and sends the call to Kalshi unchanged. The
 + * phone signs with its A2T and device key. Relay does not sign these.
-  */
--export declare const KYC_STEPS: readonly ['vendor_terms', 
++ */
 +export declare const KYC_VENDOR_SIGN_OPERATIONS: readonly ['enrollment/intents', 'users/link', 'users/link/verify'];
 +/** One Kalshi call the phone can sign. See {@link KYC_VENDOR_SIGN_OPERATIONS}. */
 +export type KycVendorSignOperation = (typeof KYC_VENDOR_SIGN_OPERATIONS)[number];
- /**
-- * One step, two screens. The client owns the email screen and the code
-- * screen, so someone who mistyped their email can go back and fix it;
-- * kyc-api only knows whether the account is linked.
++/**
 + * A Kalshi call waiting to be signed.
 + *
 + * `email` is the address inside `users/link`. `code` is the code inside
 + * `users/link/verify`. `enrollment/intents` carries neither.
-+ */
+  */
+-export declare const KYC_STEPS: readonly ['vendor_terms', 
 +export type KycVendorSignRequest = {
 +    operation: KycVendorSignOperation;
 +    email?: string;
 +    code?: string;
 +};
-+/**
+ /**
+- * One step, two screens. The client owns the email screen and the code
+- * screen, so someone who mistyped their email can go back and fix it;
+- * kyc-api only knows whether the account is linked.
 + * A Kalshi call the phone has signed.
 + *
 + * `venueAuthorization` is the `Venue-Authorization` header value. kyc-api
@@ -698,17 +710,22 @@ index e3a6de6d24f..c0d6e0cc115 100644
 + * The steps kyc-api can send for a vendor. The client maps each step to a
 + * screen it already has; kyc-api never sends copy or layout.
 + *
-+ * Kalshi sends `account_link` for the email and its code, and `phone_link`
-+ * for the phone and its code. Each is one step and two screens, and the
-+ * phone owns the second screen. Signing `users/link` and `users/link/verify`
-+ * stays on those email screens. Iron still sends `identity_email_code` and
-+ * `identity_phone`.
++ * Kalshi sends `terms`, `mfa`, `kalshi_email_link`, `kalshi_phone_link`,
++ * `sumsub`, and `decision`. Iron sends `terms`, `mfa`, `sumsub`, and
++ * `decision`. `kalshi_email_link` is the email and its code, and
++ * `kalshi_phone_link` is the phone and its code. Each is one step and two
++ * screens, and the phone owns the second screen. Signing `users/link` and
++ * `users/link/verify` stays on those email calls.
   */
 -'account_link', 'confirm_identity', 'identity_email_code', 'identity_phone', 'identity_provider', 
-+export declare const KYC_STEPS: readonly ['vendor_terms', 'confirm_identity', 'account_link', 'phone_link', 'identity_email_code', 'identity_phone', 'identity_provider', 
++export declare const KYC_STEPS: readonly ['terms', 'mfa', 'kalshi_email_link', 'kalshi_phone_link', 'sumsub', 
  /** Nothing left for the user to do. {@link KycStatus} says whether that is
   * good news. */
- 'done', 'error'];
+-'done', 'error'];
++'decision', 'error'];
+ /**
+  * How the user's verification is going, reported next to the step.
+  *
 diff --git a/dist/types.d.ts.map b/dist/types.d.ts.map
 index bf5a0fc4a59..3d8cb60d4db 100644
 --- a/dist/types.d.ts.map
@@ -722,7 +739,7 @@ diff --git a/dist/types.js b/dist/types.js
 index 7c61b74d96d..4838ef13a9d 100644
 --- a/dist/types.js
 +++ b/dist/types.js
-@@ -124,18 +124,31 @@
+@@ -124,24 +124,36 @@
          CAPABILITY_AUTHORIZATION_STATUSES_TO_REFRESH.has(sessionStatus.capabilityAuthorizationStatus));
  }
  /**
@@ -740,26 +757,37 @@ index 7c61b74d96d..4838ef13a9d 100644
   * The steps kyc-api can send for a vendor. The client maps each step to a
   * screen it already has; kyc-api never sends copy or layout.
 + *
-+ * Kalshi sends `account_link` for the email and its code, and `phone_link`
-+ * for the phone and its code. Each is one step and two screens, and the
-+ * phone owns the second screen. Signing `users/link` and `users/link/verify`
-+ * stays on those email screens. Iron still sends `identity_email_code` and
-+ * `identity_phone`.
++ * Kalshi sends `terms`, `mfa`, `kalshi_email_link`, `kalshi_phone_link`,
++ * `sumsub`, and `decision`. Iron sends `terms`, `mfa`, `sumsub`, and
++ * `decision`. `kalshi_email_link` is the email and its code, and
++ * `kalshi_phone_link` is the phone and its code. Each is one step and two
++ * screens, and the phone owns the second screen. Signing `users/link` and
++ * `users/link/verify` stays on those email calls.
   */
  export const KYC_STEPS = [
-     'vendor_terms',
+-    'vendor_terms',
 -    /**
 -     * One step, two screens. The client owns the email screen and the code
 -     * screen, so someone who mistyped their email can go back and fix it;
 -     * kyc-api only knows whether the account is linked.
 -     */
 -    'account_link',
-     'confirm_identity',
-+    'account_link',
-+    'phone_link',
-     'identity_email_code',
-     'identity_phone',
-     'identity_provider',
+-    'confirm_identity',
+-    'identity_email_code',
+-    'identity_phone',
+-    'identity_provider',
++    'terms',
++    'mfa',
++    'kalshi_email_link',
++    'kalshi_phone_link',
++    'sumsub',
+     /** Nothing left for the user to do. {@link KycStatus} says whether that is
+      * good news. */
+-    'done',
++    'decision',
+     'error',
+ ];
+ /**
 diff --git a/dist/types.js.map b/dist/types.js.map
 index c8b7dcb27e9..f187018b82a 100644
 --- a/dist/types.js.map

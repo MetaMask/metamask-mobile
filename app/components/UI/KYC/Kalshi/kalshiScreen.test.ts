@@ -14,11 +14,11 @@ describe('deriveKalshiScreen', () => {
   });
 
   it.each([
-    ['vendor_terms', 'terms'],
-    ['confirm_identity', 'confirm'],
-    ['account_link', 'email_code'],
-    ['phone_link', 'phone'],
-    ['identity_provider', 'sumsub'],
+    ['terms', 'terms'],
+    ['mfa', 'confirm'],
+    ['kalshi_email_link', 'email_code'],
+    ['kalshi_phone_link', 'phone'],
+    ['sumsub', 'sumsub'],
     ['error', 'error'],
   ] as const)('maps %s to the %s screen', (step, expected) => {
     expect(deriveKalshiScreen(step, 'none', context)).toBe(expected);
@@ -30,16 +30,14 @@ describe('deriveKalshiScreen', () => {
     }
   });
 
-  describe('confirm_identity', () => {
+  describe('mfa', () => {
     it('asks MetaMask to confirm first', () => {
-      expect(deriveKalshiScreen('confirm_identity', 'none', context)).toBe(
-        'confirm',
-      );
+      expect(deriveKalshiScreen('mfa', 'none', context)).toBe('confirm');
     });
 
     it('then asks for the Kalshi email, still before a session exists', () => {
       expect(
-        deriveKalshiScreen('confirm_identity', 'none', {
+        deriveKalshiScreen('mfa', 'none', {
           ...context,
           emailEntry: true,
         }),
@@ -47,10 +45,10 @@ describe('deriveKalshiScreen', () => {
     });
   });
 
-  describe('account_link', () => {
+  describe('kalshi_email_link', () => {
     it('goes back to the email so a mistyped address can be signed again', () => {
       expect(
-        deriveKalshiScreen('account_link', 'none', {
+        deriveKalshiScreen('kalshi_email_link', 'none', {
           ...context,
           editingEmail: true,
         }),
@@ -58,14 +56,16 @@ describe('deriveKalshiScreen', () => {
     });
   });
 
-  describe('phone_link', () => {
+  describe('kalshi_phone_link', () => {
     it('asks for the number first', () => {
-      expect(deriveKalshiScreen('phone_link', 'none', context)).toBe('phone');
+      expect(deriveKalshiScreen('kalshi_phone_link', 'none', context)).toBe(
+        'phone',
+      );
     });
 
     it('then for the code, on the same step, once it was sent', () => {
       expect(
-        deriveKalshiScreen('phone_link', 'none', {
+        deriveKalshiScreen('kalshi_phone_link', 'none', {
           ...context,
           phoneCodeSent: true,
         }),
@@ -74,7 +74,7 @@ describe('deriveKalshiScreen', () => {
 
     it('forgets the code field once the step moves on', () => {
       expect(
-        deriveKalshiScreen('identity_provider', 'none', {
+        deriveKalshiScreen('sumsub', 'none', {
           ...context,
           phoneCodeSent: true,
         }),
@@ -84,20 +84,20 @@ describe('deriveKalshiScreen', () => {
 
   describe('a retry', () => {
     it('is the same screen as the first attempt', () => {
-      expect(deriveKalshiScreen('identity_provider', 'retry', context)).toBe(
-        deriveKalshiScreen('identity_provider', 'none', context),
+      expect(deriveKalshiScreen('sumsub', 'retry', context)).toBe(
+        deriveKalshiScreen('sumsub', 'none', context),
       );
     });
   });
 
-  describe('done', () => {
+  describe('decision', () => {
     it.each([
       ['approved', 'done'],
       ['rejected', 'rejected'],
       ['pending', 'waiting'],
       ['none', 'waiting'],
     ] as const)('shows %s as the %s screen', (status, expected) => {
-      expect(deriveKalshiScreen('done', status, context)).toBe(expected);
+      expect(deriveKalshiScreen('decision', status, context)).toBe(expected);
     });
   });
 });
