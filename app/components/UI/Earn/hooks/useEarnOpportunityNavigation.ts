@@ -17,7 +17,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
 import useStakingChain from '../../Stake/hooks/useStakingChain';
-import { useMoneyCtaDepositNavigation } from '../../Money/hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../Money/hooks/useMoneyDepositNavigation';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import Logger from '../../../../util/Logger';
 import useEarnToasts from './useEarnToasts';
@@ -26,7 +26,7 @@ import type { EarnModuleNavigationContext } from '../types/earnModuleEvents.type
 import useEarnAssetAcquisitionNavigation, {
   type EarnAssetAcquisitionRoute,
 } from './useEarnAssetAcquisitionNavigation';
-import { selectMoneyCtaEntryContext } from '../../Money/selectors/entry';
+import { selectMoneyEntryContext } from '../../Money/selectors/entry';
 import {
   getMoneyEntryDecision,
   type MoneyEntry,
@@ -127,8 +127,6 @@ export function getEarnMoneyEntryRedirectTarget(
       return EARN_MODULE_REDIRECT_TARGETS.MONEY_HOME;
     case 'deposit':
       return EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT;
-    case 'onboarding':
-      return EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING;
     case 'splash':
       return EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
     case 'featureDisabled':
@@ -245,8 +243,8 @@ const useEarnOpportunityNavigation = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
   const { isStakingSupportedChain } = useStakingChain();
   const { navigateToMoneyDeposit: navigateToMoneyDepositEntry } =
-    useMoneyCtaDepositNavigation();
-  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
+    useMoneyDepositNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
   const {
     resolveEarnAssetAcquisitionRoute,
     navigateToEarnAssetAcquisitionRoute,

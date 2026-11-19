@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import EarnMoneyAccountRow from '../feeds/earn/EarnMoneyAccountRow';
 import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
-import { useMoneyCtaDepositNavigation } from '../../../UI/Money/hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../../UI/Money/hooks/useMoneyDepositNavigation';
 import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
@@ -11,7 +11,7 @@ import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
 import { COMPONENT_NAMES as MONEY_COMPONENT_NAMES } from '../../../UI/Money/constants/moneyEvents';
-import { selectMoneyCtaEntryContext } from '../../../UI/Money/selectors/entry';
+import { selectMoneyEntryContext } from '../../../UI/Money/selectors/entry';
 import { getMoneyEntryDecision } from '../../../UI/Money/navigation/moneyEntryDecision';
 import Logger from '../../../../util/Logger';
 import { useEarnAnalytics } from '../../../UI/Earn/hooks/useEarnAnalytics';
@@ -46,15 +46,13 @@ const EarnSearchRow = ({
   position: number;
   resultCount?: number;
 }) => {
-  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
-  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
   const { destination: moneyDepositDestination } = getMoneyEntryDecision(
     'deposit',
     moneyEntryContext,
   );
-  const isMoneyOnboardingRedirectNeeded =
-    moneyDepositDestination === 'onboarding' ||
-    moneyDepositDestination === 'splash';
+  const isMoneyOnboardingRedirectNeeded = moneyDepositDestination === 'splash';
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const { trackSurfaceClicked: trackMoneySurfaceClicked } = useMoneyAnalytics({
     component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,

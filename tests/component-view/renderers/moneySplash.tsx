@@ -3,7 +3,7 @@ import React from 'react';
 import { Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../app/core/Engine';
-import MoneySplashView from '../../../app/components/UI/Money/Views/MoneySplashView';
+import { MoneySplashView } from '../../../app/components/UI/Money/Views/MoneySplashView/MoneySplashView';
 import Routes from '../../../app/constants/navigation/Routes';
 import NavigationService from '../../../app/core/NavigationService/NavigationService';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
@@ -95,8 +95,11 @@ export function renderMoneySplashView({
       name: Routes.MONEY.CONFIRMATIONS_ROOT,
       Component: createRouteParamsProbe(Routes.MONEY.CONFIRMATIONS_ROOT),
     },
+    {
+      name: Routes.CARD.ROOT,
+      Component: createRouteParamsProbe(Routes.CARD.ROOT),
+    },
     { name: Routes.HOME_TABS },
-    { name: Routes.MONEY.ONBOARDING },
   ];
 
   if (pushedOverHost) {

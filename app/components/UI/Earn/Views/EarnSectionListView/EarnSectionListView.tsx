@@ -36,7 +36,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import InlineTextFlow from '../../../InlineTextFlow';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
 import { getMoneyEntryDecision } from '../../../Money/navigation/moneyEntryDecision';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyAnalytics } from '../../../Money/hooks/useMoneyAnalytics';
@@ -44,7 +44,7 @@ import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useProjectedEarnings } from '../../../Money/hooks/useProjectedEarnings';
 import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
 import PotentialEarningsTokenRow from '../../../Money/components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
-import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
 import useEarnOpportunityNavigation, {
@@ -258,15 +258,13 @@ const EarnSectionListView = () => {
     isBalanceLoading: isMoneyAccountBalanceLoading,
     refetchBalance: refetchMoneyAccountBalance,
   } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
-  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
-  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
   const { destination: moneyDepositDestination } = getMoneyEntryDecision(
     'deposit',
     moneyEntryContext,
   );
-  const isMoneyOnboardingRedirectNeeded =
-    moneyDepositDestination === 'onboarding' ||
-    moneyDepositDestination === 'splash';
+  const isMoneyOnboardingRedirectNeeded = moneyDepositDestination === 'splash';
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const {
     trackSurfaceClicked: trackMoneySurfaceClicked,

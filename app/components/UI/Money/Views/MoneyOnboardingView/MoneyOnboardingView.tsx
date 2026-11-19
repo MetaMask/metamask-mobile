@@ -69,11 +69,11 @@ import Logger from '../../../../../util/Logger';
 import moneyOnboardingRoundedButtons from '../../../../../animations/money_onboarding_rounded_buttons.riv';
 import {
   MoneyPostOnboardingRedirectType,
-  type MoneyCardReturnScreen,
   type MoneyPostOnboardingRedirect,
 } from '../../types/navigation';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { CARD_RETURN_ROUTES } from '../../constants/cardReturnRoutes';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -136,11 +136,6 @@ type MoneyOnboardingRouteProp = RouteProp<
   RootStackParamList,
   'MoneyOnboarding'
 >;
-
-const CARD_RETURN_ROUTES = {
-  authentication: Routes.CARD.AUTHENTICATION,
-  onboarding: Routes.CARD.ONBOARDING.ROOT,
-} as const satisfies Record<MoneyCardReturnScreen, string>;
 
 const useNavigateToPostOnboardingDestination = ({
   navigation,
@@ -223,7 +218,6 @@ const useNavigateToPostOnboardingDestination = ({
             : {}),
           replaceConfirmation: true,
           onDepositSetupFailure: navigateToMoneyHome,
-          isPostOnboardingContinuation: true,
           ...trackingOptions,
         });
       } catch (error) {

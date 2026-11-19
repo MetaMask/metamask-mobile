@@ -20,21 +20,12 @@ export type MoneyEntry = keyof typeof MONEY_ENTRIES;
 
 export interface MoneyEntryContext {
   accessBlockReason: MoneyAccountAccessBlockReason | undefined;
-  isOnboardingRedirectNeeded: boolean;
-  /**
-   * CTA entries show the Money splash instead of onboarding while the splash is
-   * enabled and unseen. Tab and deeplink entries leave this unset.
-   */
-  isSplashRedirectNeeded?: boolean;
+  /** Shows the Money splash while the user has not seen it. */
+  isSplashRedirectNeeded: boolean;
 }
 
 export interface MoneyEntryDecision {
-  destination:
-    | MoneyEntry
-    | 'featureDisabled'
-    | 'geoBlockSheet'
-    | 'onboarding'
-    | 'splash';
+  destination: MoneyEntry | 'featureDisabled' | 'geoBlockSheet' | 'splash';
   redirect_target:
     | (typeof SCREEN_NAMES)[keyof typeof SCREEN_NAMES]
     | (typeof BOTTOM_SHEET_NAMES)[keyof typeof BOTTOM_SHEET_NAMES];
@@ -44,16 +35,12 @@ export interface MoneyEntryDecision {
 /**
  * Resolves the first destination for a Money entry and its matching analytics.
  *
- * Access policy is evaluated before onboarding so blocked users never enter
- * onboarding or a Money transaction flow.
+ * Access policy is evaluated before the splash so blocked users never enter
+ * the splash or a Money transaction flow.
  */
 export const getMoneyEntryDecision = (
   entry: MoneyEntry,
-  {
-    accessBlockReason,
-    isOnboardingRedirectNeeded,
-    isSplashRedirectNeeded = false,
-  }: MoneyEntryContext,
+  { accessBlockReason, isSplashRedirectNeeded }: MoneyEntryContext,
 ): MoneyEntryDecision => {
   if (accessBlockReason === 'feature_disabled') {
     return {
@@ -76,14 +63,6 @@ export const getMoneyEntryDecision = (
       destination: 'splash',
       redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
-    };
-  }
-
-  if (isOnboardingRedirectNeeded) {
-    return {
-      destination: 'onboarding',
-      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
-      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
     };
   }
 
