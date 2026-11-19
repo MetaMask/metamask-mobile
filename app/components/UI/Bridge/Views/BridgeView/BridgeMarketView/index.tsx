@@ -636,7 +636,28 @@ const BridgeMarketViewContent = ({
                   isLoading={!destTokenAmount && isLoading}
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
-                  showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  inputPrefix={
+                    destToken?.isMoneyToken && !sourceAmountInput.isFiatMode
+                      ? sourceAmountInput.inputPrefix
+                      : undefined
+                  }
+                  showFiatAmountAsPrimary={
+                    sourceAmountInput.isFiatMode ||
+                    sourceToken?.isMoneyToken ||
+                    destToken?.isMoneyToken
+                  }
+                  secondaryValue={
+                    destToken?.isMoneyToken
+                      ? strings('bridge.money_name')
+                      : undefined
+                  }
+                  subtitle={
+                    destToken?.apy !== undefined
+                      ? strings('money.asset_overview.balance_cta.earn_apy', {
+                          apy: destToken.apy,
+                        })
+                      : undefined
+                  }
                 />
               </Box>
             </Box>
