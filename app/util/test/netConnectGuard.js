@@ -122,6 +122,25 @@ const formatEntries = (entries, prefix) =>
     return count > 1 ? `${line} (${count} times)` : line;
   });
 
+/**
+ * True when the armed nock registry already covers this request. Emissions of
+ * such requests come from a stale nock layer a previous file left in the
+ * fetch chain (its own interceptor registry is empty); the armed one would
+ * answer the request, so the stale emission is an artifact, not an uncovered
+ * request by the test.
+ */
+const isCoveredByActiveMocks = ({ method, host, path }) => {
+  const barePath = path.split('?')[0];
+  const keyPrefix = `${method} https://${host}`;
+  return nock
+    .activeMocks()
+    .some(
+      (key) =>
+        key.startsWith(keyPrefix) &&
+        (key.includes(barePath) || key.includes('.*')),
+    );
+};
+
 const recordBlockedRequest = (...args) => {
   if (!currentTestActive) {
     return;
@@ -139,6 +158,9 @@ const recordBlockedRequest = (...args) => {
     return;
   }
   if (ALLOWED_NET_CONNECT.test(request.host)) {
+    return;
+  }
+  if (isCoveredByActiveMocks(request)) {
     return;
   }
   const key = formatRequest(request);
