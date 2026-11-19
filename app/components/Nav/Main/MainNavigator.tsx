@@ -172,6 +172,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneyMfaIntroView from '../../UI/Money/Views/MoneyMfaIntroView';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
@@ -1382,6 +1383,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
+            options={fadeNativeOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.MFA_INTRO}
+            component={MoneyMfaIntroView}
             options={fadeNativeOptions}
           />
           <NativeStack.Screen

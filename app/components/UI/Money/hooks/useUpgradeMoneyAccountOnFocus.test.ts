@@ -86,4 +86,12 @@ describe('useUpgradeMoneyAccountOnFocus', () => {
       .calls[1][0] as AbortSignal;
     expect(secondSignal.aborted).toBe(false);
   });
+
+  it('does not dispatch on focus when disabled', () => {
+    renderHook(() => useUpgradeMoneyAccountOnFocus({ enabled: false }));
+
+    focusCallback();
+
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
 });

@@ -11,19 +11,25 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import MoneyMfaHeaderBadge from '../MoneyMfa/MoneyMfaHeaderBadge';
 
 export interface MoneyNativeHeaderParams {
   onMenuPress: () => void;
   onBack?: () => void;
   isEnabled: boolean;
+  isMfaEnabled?: boolean;
+  onMfaBadgePress?: () => void;
+  isMfaBadgeHighlighted?: boolean;
 }
 
 const MONEY_TITLE_SCREEN_INSET = 16;
 
 const MoneyNativeTitle = ({
   alignToScreenEdge,
+  children,
 }: {
   alignToScreenEdge: boolean;
+  children?: React.ReactNode;
 }) => {
   const titleRef = useRef<View>(null);
   const [marginLeft, setMarginLeft] = useState(0);
@@ -45,7 +51,11 @@ const MoneyNativeTitle = ({
   );
 
   return (
-    <Box ref={titleRef} onLayout={alignTitle} twClassName="overflow-visible">
+    <Box
+      ref={titleRef}
+      onLayout={alignTitle}
+      twClassName="flex-row items-center gap-1 overflow-visible"
+    >
       <Text
         variant={TextVariant.HeadingLg}
         testID={MoneyHeaderTestIds.TITLE}
@@ -53,6 +63,7 @@ const MoneyNativeTitle = ({
       >
         {strings('money.title')}
       </Text>
+      {children}
     </Box>
   );
 };
@@ -66,6 +77,9 @@ export const useMoneyNativeHeader = ({
   onMenuPress,
   onBack,
   isEnabled,
+  isMfaEnabled,
+  onMfaBadgePress,
+  isMfaBadgeHighlighted,
 }: MoneyNativeHeaderParams): boolean => {
   const leftItems = useCallback((): NativeStackHeaderItem[] => {
     const titleItem: NativeStackHeaderItem = {
@@ -75,7 +89,14 @@ export const useMoneyNativeHeader = ({
         // UIKit's leading bar-item inset varies by device width. Measure the
         // root title and move it to the screen's 16pt content inset. A pushed
         // screen keeps the system inset so the title clears the back button.
-        <MoneyNativeTitle alignToScreenEdge={!onBack} />
+        <MoneyNativeTitle alignToScreenEdge={!onBack}>
+          {isMfaEnabled ? (
+            <MoneyMfaHeaderBadge
+              onPress={onMfaBadgePress}
+              isHighlighted={isMfaBadgeHighlighted}
+            />
+          ) : null}
+        </MoneyNativeTitle>
       ),
     };
     if (!onBack) {
@@ -91,7 +112,7 @@ export const useMoneyNativeHeader = ({
       },
       titleItem,
     ];
-  }, [onBack]);
+  }, [onBack, isMfaEnabled, onMfaBadgePress, isMfaBadgeHighlighted]);
 
   const rightItems = useCallback(
     (): NativeStackHeaderItem[] => [
