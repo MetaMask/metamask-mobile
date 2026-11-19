@@ -12,6 +12,7 @@ import {
   KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import Logger from '../../../../../../util/Logger';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsProModalPortal from '../../PerpsProMarketView/components/PerpsProModalPortal';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
@@ -69,6 +70,10 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
   const openMarginInfo = useCallback(() => setIsMarginInfoVisible(true), []);
   const closeMarginInfo = useCallback(() => setIsMarginInfoVisible(false), []);
+
+  if (marginMode) {
+    Logger.log(`[TAT-4707] BUG_MARKER: margin row rendered mode=${marginMode}`);
+  }
 
   return (
     <>
