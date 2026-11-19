@@ -9,6 +9,8 @@ import type { OrderProcessingParams } from '../Views/NativeFlow/OrderProcessing'
 import type { V2KycProcessingParams } from '../Views/NativeFlow/KycProcessing';
 import type { V2AdditionalVerificationParams } from '../Views/NativeFlow/AdditionalVerification';
 import type { KycWebviewParams } from '../Views/NativeFlow/KycWebview';
+import type { MicaConsentParams } from '../Views/NativeFlow/MicaConsent';
+import type { SourceOfIncomeParams } from '../Views/NativeFlow/SourceOfIncome';
 import type { HeadlessHostParams } from '../Views/HeadlessHost/HeadlessHost';
 import type { RampsOrderDetailsParams } from '../utils/rampsNavigation';
 import type { SimpleRampBuildQuoteParams } from '../Aggregator/types/navigation';
@@ -22,6 +24,7 @@ import type { ErrorDetailsModalParams } from '../Views/Modals/ErrorDetailsModal/
 import type { ProcessingInfoModalParams } from '../Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import type { StateSelectorModalParams } from '../Views/Modals/StateSelectorModal/StateSelectorModal';
 import type { UnsupportedStateModalParams } from '../Views/Modals/UnsupportedStateModal/UnsupportedStateModal';
+import type { OptionSelectorModalParams } from '../Views/Modals/OptionSelectorModal/OptionSelectorModal';
 
 /**
  * Param list for screens inside the Ramp unified (V2) main stack
@@ -43,6 +46,8 @@ export type RampScreensStackParamList = {
   RampOrderProcessing: OrderProcessingParams;
   RampKycProcessing: V2KycProcessingParams | undefined;
   RampAdditionalVerification: V2AdditionalVerificationParams;
+  RampMicaConsent: MicaConsentParams;
+  RampSourceOfIncome: SourceOfIncomeParams;
   Checkout: undefined;
   RampKycWebview: KycWebviewParams;
   RampsOrderDetails: RampsOrderDetailsParams | undefined;
@@ -70,6 +75,7 @@ export type RampModalsNavigationParamList = {
   RampPhoneCountrySelectorModal: undefined;
   RampStateSelectorModal: StateSelectorModalParams;
   RampUnsupportedStateModal: UnsupportedStateModalParams;
+  RampOptionSelectorModal: OptionSelectorModalParams;
 
   // Aggregator modals
   RampTokenSelectorModal: undefined;

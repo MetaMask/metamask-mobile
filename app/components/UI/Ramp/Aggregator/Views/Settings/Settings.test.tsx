@@ -4,7 +4,13 @@ import Settings, {
   RAMP_SETTINGS_BACK_BUTTON_TEST_ID,
   RAMP_SETTINGS_HEADER_TEST_ID,
   RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID,
+  RAMP_SETTINGS_MICA_CONSENT_PREVIEW_BUTTON_TEST_ID,
+  RAMP_SETTINGS_SOURCE_OF_INCOME_PREVIEW_BUTTON_TEST_ID,
 } from './Settings';
+import {
+  MICA_CONSENT_PREVIEW_PARAMS,
+  SOURCE_OF_INCOME_PREVIEW_PARAMS,
+} from '../../../Views/NativeFlow/micaPreviewFixtures';
 import useActivationKeys from '../../hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../../reducers/fiatOrders/types';
@@ -415,6 +421,62 @@ describe('Settings', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.RAMP.HEADLESS_PLAYGROUND,
       );
+    });
+  });
+
+  describe('MiCA preview entries', () => {
+    it('does not render the preview buttons when not an internal build', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: false,
+      };
+      render(Settings);
+      expect(
+        screen.queryByTestId(RAMP_SETTINGS_MICA_CONSENT_PREVIEW_BUTTON_TEST_ID),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          RAMP_SETTINGS_SOURCE_OF_INCOME_PREVIEW_BUTTON_TEST_ID,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the consent screen inside the Ramp stack with fixtures', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: true,
+      };
+      render(Settings);
+      fireEvent.press(
+        screen.getByTestId(RAMP_SETTINGS_MICA_CONSENT_PREVIEW_BUTTON_TEST_ID),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+        screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+        params: {
+          screen: Routes.RAMP.MICA_CONSENT,
+          params: MICA_CONSENT_PREVIEW_PARAMS,
+        },
+      });
+    });
+
+    it('opens the source of income screen inside the Ramp stack with fixtures', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: true,
+      };
+      render(Settings);
+      fireEvent.press(
+        screen.getByTestId(
+          RAMP_SETTINGS_SOURCE_OF_INCOME_PREVIEW_BUTTON_TEST_ID,
+        ),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+        screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+        params: {
+          screen: Routes.RAMP.SOURCE_OF_INCOME,
+          params: SOURCE_OF_INCOME_PREVIEW_PARAMS,
+        },
+      });
     });
   });
 });

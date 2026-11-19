@@ -1031,6 +1031,39 @@
       "transak": "Transak encrypts and stores this information.",
       "metamask": "MetaMask never receives or uses your data."
     },
+    "mica_consent": {
+      "title": "Continue with Transak GmbH",
+      "description": "To comply with EU regulations, your Transak services will now be provided by Transak GmbH, our Austrian entity licensed by the Austrian Financial Market Authority (FMA) to operate as a Crypto Asset Service Provider under MiCAR.",
+      "review_prompt": "Please review your information to continue",
+      "name": "Name",
+      "address": "Address",
+      "date_of_birth": "Date of birth",
+      "mobile_number": "Mobile number",
+      "support_notice_part1": "If any of this data is incorrect, ",
+      "support_notice_link": "contact Transak Support",
+      "support_notice_part2": " before continuing.",
+      "data_consent": "I consent to my data being processed by Transak GmbH.",
+      "terms_consent_part1": "I agree with Transak's ",
+      "terms_of_use": "Terms of Use",
+      "terms_consent_part2": " and ",
+      "privacy_policy": "Privacy Policy",
+      "terms_consent_part3": ".",
+      "agree_button": "Agree & Continue"
+    },
+    "source_of_income": {
+      "title": "A few more details",
+      "subtitle": "EU regulations require this information before you can buy crypto.",
+      "monthly_volume": "Expected monthly volume",
+      "monthly_volume_placeholder": "0",
+      "monthly_volume_helper": "An estimate is fine.",
+      "source_of_funds": "Source of funds",
+      "source_of_funds_placeholder": "Select source of funds",
+      "employment_status": "Employment status",
+      "employment_status_placeholder": "Select employment status",
+      "nationality": "Nationality",
+      "nationality_placeholder": "Select nationality",
+      "continue": "Continue"
+    },
     "kyc_processing": {
       "navbar_title": "Verify your identity",
       "heading": "Hang tight...",
@@ -5963,6 +5996,10 @@
       "cancel": "Cancel",
       "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
       "deposit_provider_logged_out": "Logged out of {{depositProviderName}}",
+      "mica_preview": {
+        "consent_button": "Preview MiCA consent screen",
+        "source_of_income_button": "Preview MiCA source of income screen"
+      },
       "headless_playground": {
         "title": "Headless Buy playground",
         "entry_button": "Open Headless Buy playground",

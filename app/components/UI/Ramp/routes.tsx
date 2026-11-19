@@ -16,6 +16,9 @@ import V2OrderProcessing from './Views/NativeFlow/OrderProcessing';
 import V2KycProcessing from './Views/NativeFlow/KycProcessing';
 import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification';
 import V2KycWebview from './Views/NativeFlow/KycWebview';
+import MicaConsent from './Views/NativeFlow/MicaConsent';
+import SourceOfIncome from './Views/NativeFlow/SourceOfIncome';
+import OptionSelectorModal from './Views/Modals/OptionSelectorModal';
 import HeadlessHost from './Views/HeadlessHost';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
@@ -152,6 +155,11 @@ const MainRoutes = () => (
       name={Routes.RAMP.ADDITIONAL_VERIFICATION}
       component={InstrumentedAdditionalVerification}
     />
+    <Stack.Screen name={Routes.RAMP.MICA_CONSENT} component={MicaConsent} />
+    <Stack.Screen
+      name={Routes.RAMP.SOURCE_OF_INCOME}
+      component={SourceOfIncome}
+    />
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={Checkout}
@@ -224,6 +232,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_STATE}
       component={InstrumentedUnsupportedStateModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.OPTION_SELECTOR}
+      component={OptionSelectorModal}
     />
   </ModalsStack.Navigator>
 );

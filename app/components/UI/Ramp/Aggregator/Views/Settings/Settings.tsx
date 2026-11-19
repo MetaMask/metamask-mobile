@@ -30,11 +30,22 @@ import styles from './Settings.styles';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
+import { createMicaConsentNavDetails } from '../../../Views/NativeFlow/MicaConsent';
+import { createSourceOfIncomeNavDetails } from '../../../Views/NativeFlow/SourceOfIncome';
+import {
+  MICA_CONSENT_PREVIEW_PARAMS,
+  SOURCE_OF_INCOME_PREVIEW_PARAMS,
+} from '../../../Views/NativeFlow/micaPreviewFixtures';
 
 export const RAMP_SETTINGS_HEADER_TEST_ID = 'ramp-settings-header';
 export const RAMP_SETTINGS_BACK_BUTTON_TEST_ID = 'ramp-settings-back-button';
 export const RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID =
   'ramp-settings-headless-playground-button';
+export const RAMP_SETTINGS_MICA_CONSENT_PREVIEW_BUTTON_TEST_ID =
+  'ramp-settings-mica-consent-preview-button';
+export const RAMP_SETTINGS_SOURCE_OF_INCOME_PREVIEW_BUTTON_TEST_ID =
+  'ramp-settings-source-of-income-preview-button';
 
 function Settings() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -54,6 +65,20 @@ function Settings() {
 
   const handleOpenHeadlessPlayground = useCallback(() => {
     navigation.navigate(Routes.RAMP.HEADLESS_PLAYGROUND);
+  }, [navigation]);
+
+  const handlePreviewMicaConsent = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createMicaConsentNavDetails(MICA_CONSENT_PREVIEW_PARAMS),
+    );
+  }, [navigation]);
+
+  const handlePreviewSourceOfIncome = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createSourceOfIncomeNavDetails(SOURCE_OF_INCOME_PREVIEW_PARAMS),
+    );
   }, [navigation]);
 
   return (
@@ -114,6 +139,36 @@ function Settings() {
                       'app_settings.fiat_on_ramp.headless_playground.entry_button',
                     )}
                     testID={RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID}
+                  />
+                </Row>
+              ) : null}
+              {isInternalBuild ? (
+                <Row>
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={handlePreviewMicaConsent}
+                    label={strings(
+                      'app_settings.fiat_on_ramp.mica_preview.consent_button',
+                    )}
+                    testID={RAMP_SETTINGS_MICA_CONSENT_PREVIEW_BUTTON_TEST_ID}
+                  />
+                </Row>
+              ) : null}
+              {isInternalBuild ? (
+                <Row>
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={handlePreviewSourceOfIncome}
+                    label={strings(
+                      'app_settings.fiat_on_ramp.mica_preview.source_of_income_button',
+                    )}
+                    testID={
+                      RAMP_SETTINGS_SOURCE_OF_INCOME_PREVIEW_BUTTON_TEST_ID
+                    }
                   />
                 </Row>
               ) : null}
