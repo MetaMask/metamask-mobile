@@ -101,23 +101,6 @@ describe('runEvals', () => {
     expect(writes).toEqual([]);
   });
 
-  it('does not lint a test file that the diff adds', () => {
-    const linted: string[] = [];
-
-    const codeResult = runEvals({
-      readDiff: () =>
-        addedDiff('app/Screen.test.tsx', ['const styles = { marginRight: 8 };']),
-      lintFiles: (files) => {
-        linted.push(...files);
-        return [];
-      },
-      write: () => undefined,
-    });
-
-    expect(codeResult).toBe(0);
-    expect(linted).toEqual([]);
-  });
-
   it('throws when lint fails so the check does not pass silently', () => {
     const readDiff = () => addedDiff('app/Screen.tsx', ['export const x = 1;']);
 

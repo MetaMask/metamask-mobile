@@ -5,7 +5,7 @@ import { Linter, type Rule } from 'eslint';
 
 import { parseAddedLines } from './changed-lines';
 import { loadEvalRules } from './eval-rules';
-import { createRuleFromConfig } from './rule-kinds';
+import { createRuleFromConfig } from './rule-interpreter';
 
 /**
  * Built from the JSON rule source (`eval-rules.json`). A broken source throws

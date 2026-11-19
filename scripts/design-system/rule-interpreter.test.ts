@@ -1,7 +1,7 @@
 import { RuleTester } from 'eslint';
 
 import type { EvalRuleConfig } from './eval-rules';
-import { createRuleFromConfig } from './rule-kinds';
+import { createRuleFromConfig } from './rule-interpreter';
 
 const ruleTester = new RuleTester({
   // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
@@ -15,10 +15,12 @@ const ruleTester = new RuleTester({
 
 const spacingConfig: EvalRuleConfig = {
   id: 'design-system/no-hardcoded-spacing',
-  kind: 'no-numeric-literal-on-keys',
-  keys: ['marginTop', 'marginRight', 'padding', 'gap'],
-  allowedValues: [0],
   message: 'Hard-coded spacing value "{{value}}" on "{{key}}".',
+  match: {
+    node: 'Property',
+    key: { oneOf: ['marginTop', 'marginRight', 'padding', 'gap'] },
+    value: { type: 'number', except: [0] },
+  },
 };
 
 ruleTester.run(
@@ -88,3 +90,33 @@ ruleTester.run(
     ],
   },
 );
+
+// Same interpreter, different rule: no new engine code, only a new config.
+const hexColorConfig: EvalRuleConfig = {
+  id: 'design-system/no-hex-color',
+  message: 'Hard-coded color "{{value}}" on "{{key}}".',
+  match: {
+    node: 'Property',
+    key: { pattern: '[Cc]olor$' },
+    value: { type: 'string', pattern: '^#[0-9a-fA-F]{3,8}$' },
+  },
+};
+
+ruleTester.run('design-system/no-hex-color', createRuleFromConfig(hexColorConfig), {
+  valid: [
+    { code: 'const styles = { color: "red" };', filename: 'app/Screen.tsx' },
+    {
+      code: 'const styles = { backgroundColor: colors.primary };',
+      filename: 'app/Screen.tsx',
+    },
+  ],
+  invalid: [
+    {
+      code: 'const styles = { backgroundColor: "#ffffff" };',
+      filename: 'app/Screen.tsx',
+      errors: [
+        { messageId: 'flagged', data: { value: '"#ffffff"', key: 'backgroundColor' } },
+      ],
+    },
+  ],
+});

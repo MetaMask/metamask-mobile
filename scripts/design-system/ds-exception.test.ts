@@ -9,27 +9,11 @@ describe('readExceptionReason', () => {
     expect(reason).toBe('local seed, keep the raw gap');
   });
 
-  it('returns undefined when the marker is missing', () => {
-    const commentValue = ' icon gap';
-
-    const reason = readExceptionReason(commentValue);
-
-    expect(reason).toBeUndefined();
-  });
-
-  it('returns undefined when the reason is empty', () => {
-    const commentValue = ' ds-exception:';
-
-    const reason = readExceptionReason(commentValue);
-
-    expect(reason).toBeUndefined();
-  });
-
-  it('returns undefined when the reason is only whitespace', () => {
-    const commentValue = ' ds-exception:   ';
-
-    const reason = readExceptionReason(commentValue);
-
-    expect(reason).toBeUndefined();
+  it.each([
+    [' icon gap'],
+    [' ds-exception:'],
+    [' ds-exception:   '],
+  ])('returns undefined for %j', (commentValue) => {
+    expect(readExceptionReason(commentValue)).toBeUndefined();
   });
 });

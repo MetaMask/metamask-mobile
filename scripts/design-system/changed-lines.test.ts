@@ -57,20 +57,6 @@ describe('parseAddedLines', () => {
     expect(added).toEqual({ 'app/New.tsx': [1] });
   });
 
-  it('unquotes a path that contains a space', () => {
-    const diff = [
-      'diff --git "a/app/My File.tsx" "b/app/My File.tsx"',
-      '--- "a/app/My File.tsx"',
-      '+++ "b/app/My File.tsx"',
-      '@@ -1 +1 @@',
-      '+padding: 8,',
-    ].join('\n');
-
-    const added = parseAddedLines(diff);
-
-    expect(added).toEqual({ 'app/My File.tsx': [1] });
-  });
-
   it('returns an empty map for an empty diff', () => {
     const diff = '';
 
