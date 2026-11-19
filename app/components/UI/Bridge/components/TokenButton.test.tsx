@@ -107,4 +107,14 @@ describe('TokenButton', () => {
 
     expect(queryByTestId('swaps-token-security-badge')).toBeNull();
   });
+
+  it('shows the money icon when the token is a money token', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenButton symbol="Money" isMoneyToken />,
+    );
+
+    expect(getByTestId('money-token-icon')).toBeOnTheScreen();
+    expect(getByTestId('money-token-verified-icon')).toBeOnTheScreen();
+    expect(queryByTestId('token-icon-Money')).toBeNull();
+  });
 });

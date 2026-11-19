@@ -118,6 +118,10 @@ import {
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
+import { useTokenFiatRate } from '../../../hooks/useTokenFiatRate';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { getMoneyInputPrefix } from '../../../utils/currencyUtils';
+import { hasMissingTokenFiatRate } from '../../../utils/hasMissingTokenFiatRate';
 import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError/index.ts';
 import { getQuoteEventWarningState } from './BridgeMarketView.utils';
 import { useIsNetworkFeeUnavailable } from '../../../hooks/useIsNetworkFeeUnavailable/index.ts';
@@ -276,6 +280,17 @@ const BridgeMarketViewContent = ({
     needsNewQuote,
     isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteDataContext();
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const destFiatRate = useTokenFiatRate(destToken);
+  const destInputPrefix = getMoneyInputPrefix({
+    isMoneyToken: Boolean(destToken?.isMoneyToken),
+    showFiatAmountAsPrimary: Boolean(
+      destToken?.isMoneyToken || sourceAmountInput.isFiatMode,
+    ),
+    hideFiatValue: hasMissingTokenFiatRate(destToken, destFiatRate),
+    amount: destTokenAmount,
+    currency: currentCurrency,
+  });
 
   const rebatePercent = useSwapsRebate(activeQuote?.quote);
 
@@ -574,7 +589,12 @@ const BridgeMarketViewContent = ({
         >
           <Box style={styles.inputsContainer}>
             <Box style={styles.inputCardsWrapper}>
-              <Box style={styles.tokenCard}>
+              <Box
+                style={[
+                  styles.tokenCard,
+                  sourceToken?.isMoneyToken && styles.moneyTokenCard,
+                ]}
+              >
                 <TokenInputArea
                   ref={inputRef}
                   amount={sourceAmountInput.amount}
@@ -617,10 +637,15 @@ const BridgeMarketViewContent = ({
                   !destChainId ||
                   !destToken ||
                   !sourceToken ||
-                  !isDestNetworkEnabled
+                  (!destToken.isMoneyToken && !isDestNetworkEnabled)
                 }
               />
-              <Box style={styles.tokenCard}>
+              <Box
+                style={[
+                  styles.tokenCard,
+                  destToken?.isMoneyToken && styles.moneyTokenCard,
+                ]}
+              >
                 <TokenInputArea
                   amount={destTokenAmount}
                   token={destToken}
@@ -636,7 +661,11 @@ const BridgeMarketViewContent = ({
                   isLoading={!destTokenAmount && isLoading}
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
-                  showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  showFiatAmountAsPrimary={
+                    destToken?.isMoneyToken || sourceAmountInput.isFiatMode
+                  }
+                  inputPrefix={destInputPrefix}
+                  hideFiatValueWhenUnpriced
                 />
               </Box>
             </Box>

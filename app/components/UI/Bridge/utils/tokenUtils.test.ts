@@ -415,6 +415,17 @@ describe('tokenUtils', () => {
       expect(tokenMatchesQuery(token, token.symbol)).toBe(true);
     });
 
+    it('matches token by alias', () => {
+      const token = createToken({
+        name: 'MetaMask Money',
+        symbol: 'MUSD',
+      });
+
+      expect(tokenMatchesQuery(token, 'money')).toBe(true);
+      expect(tokenMatchesQuery(token, 'metamask')).toBe(true);
+      expect(tokenMatchesQuery(token, 'zzz')).toBe(false);
+    });
+
     it('handles partial matches', () => {
       const token = createToken({
         name: 'Wrapped Bitcoin',

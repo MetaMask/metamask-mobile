@@ -8,7 +8,11 @@ import {
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
+import { getUsdToFiatConversionRate } from '../../../Money/utils/moneyActivityFiat';
 import Engine from '../../../../../core/Engine';
 import {
   selectBridgeControllerState,
@@ -34,6 +38,7 @@ import { useSwapsFeatureId } from '../useSwapsFeatureId';
 
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
+const USD_CURRENCY = 'usd';
 
 const getFiatToggleEventProperties = ({
   previousPrimaryDenomination,
@@ -98,18 +103,33 @@ export const useSourceAmountInput = ({
   const destToken = useSelector(selectDestToken);
   const isMaxSourceAmount = useSelector(selectIsMaxSourceAmount);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const usdToFiatRate = getUsdToFiatConversionRate(
+    useSelector(selectCurrencyRates),
+  );
   const polledFiatRate = useTokenFiatRate(sourceToken);
-  const fiatRate = tokenFiatRate ?? polledFiatRate;
+  // mUSD is USD-pegged, so its fiat rate is the user's USD conversion.
+  const moneyFiatRate = sourceToken?.isMoneyToken
+    ? undefined
+    : currentCurrency.toLowerCase() === USD_CURRENCY
+      ? 1
+      : usdToFiatRate;
+  const fiatRate = moneyFiatRate ?? tokenFiatRate ?? polledFiatRate;
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
-  const canToggle = Boolean(isFiatToggleEnabled && fiatRate && fiatRate > 0);
+  const canToggle = Boolean(
+    isFiatToggleEnabled &&
+      fiatRate &&
+      fiatRate > 0 &&
+      !sourceToken?.isMoneyToken,
+  );
   // The controller stores the persisted preference, while this local value lets
   // the input react immediately as controller state propagates through Redux.
   const [activeInputPrimaryDenomination, setActiveInputPrimaryDenomination] =
     useState<InputPrimaryDenomination>(inputPrimaryDenomination);
   const isFiatMode =
-    activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle;
+    sourceToken?.isMoneyToken ||
+    (activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle);
   // Redux keeps the full Max amount for the quote; the first edit commits the
   // truncated string via setSourceAmount, which clears the Max flag.
   const tokenInputAmount = isMaxSourceAmount
@@ -152,6 +172,21 @@ export const useSourceAmountInput = ({
     [activeInputPrimaryDenomination, destToken, sourceToken, featureId],
   );
 
+  useEffect(() => {
+    if (
+      !sourceToken?.isMoneyToken ||
+      activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION
+    ) {
+      return;
+    }
+
+    setInputPrimaryDenomination(FIAT_VALUE_DENOMINATION);
+  }, [
+    activeInputPrimaryDenomination,
+    sourceToken?.isMoneyToken,
+    setInputPrimaryDenomination,
+  ]);
+
   const handleAmountChange = useCallback(
     (value: string | undefined) => {
       if (!isFiatMode) {
@@ -191,7 +226,7 @@ export const useSourceAmountInput = ({
   // Keep the visible fiat amount aligned when the canonical token amount
   // changes outside fiat typing, such as Max, presets, token, or rate updates.
   useEffect(() => {
-    if (!isFiatMode || !canToggle) {
+    if (!isFiatMode) {
       return;
     }
 
@@ -215,7 +250,6 @@ export const useSourceAmountInput = ({
     setFiatAmount(nextFiatAmount);
     resetSourceAmountCursorPosition();
   }, [
-    canToggle,
     fiatAmount,
     fiatRate,
     isFiatMode,
@@ -311,7 +345,7 @@ export const useSourceAmountInput = ({
   ]);
 
   const inputPrefix = isFiatMode
-    ? getCurrencySymbol(currentCurrency || 'usd')
+    ? getCurrencySymbol(currentCurrency)
     : undefined;
 
   return {

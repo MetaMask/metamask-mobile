@@ -48,7 +48,9 @@ import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
-import { FlexDirection } from '../../../Box/box.types';
+import { AlignItems, FlexDirection } from '../../../Box/box.types';
+import { useTheme } from '../../../../../util/theme';
+import DottedUnderline from '../../../DottedUnderline';
 import {
   formatAddressToAssetId,
   isNativeAddress,
@@ -246,7 +248,11 @@ export const TokenInputArea = forwardRef<
     ref,
   ) => {
     const featureId = useSwapsFeatureId();
+    const { colors } = useTheme();
     const currentCurrency = useSelector(selectCurrentCurrency);
+    const isMoneyToken = Boolean(token?.isMoneyToken);
+    const isDestMoneyToken =
+      isMoneyToken && tokenType === TokenInputAreaType.Destination;
 
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
@@ -371,8 +377,16 @@ export const TokenInputArea = forwardRef<
       [token],
     );
 
-    const subtitle =
-      tokenType === TokenInputAreaType.Source
+    const destMoneyApyLabel =
+      token?.apy !== undefined
+        ? strings('money.asset_overview.balance_cta.earn_apy', {
+            apy: token.apy,
+          })
+        : undefined;
+
+    const subtitle = isDestMoneyToken
+      ? destMoneyApyLabel
+      : tokenType === TokenInputAreaType.Source
         ? formattedBalance
         : formattedAddress;
 
@@ -474,8 +488,11 @@ export const TokenInputArea = forwardRef<
             </Box>
             {token ? (
               <TokenButton
-                symbol={token?.symbol}
+                symbol={
+                  token?.isMoneyToken ? strings('money.title') : token?.symbol
+                }
                 iconUrl={token?.image}
+                isMoneyToken={token.isMoneyToken}
                 networkImageSource={networkImageSource}
                 networkName={networkName}
                 testID={testID}
@@ -534,8 +551,26 @@ export const TokenInputArea = forwardRef<
                     gap={4}
                     style={styles.hidden}
                   >
+                    {/* {isDestMoneyToken && destMoneyApyLabel ? (
+                      <DottedUnderline
+                        color={colors.success.default}
+                        testID="dest-money-apy"
+                      >
+                        <Text
+                          variant={TextVariant.BodySMMedium}
+                          color={TextColor.Success}
+                        >
+                          {subtitle}
+                        </Text> */}
+                    {/* </DottedUnderline> */}
+                    {/* // ) : ( */}
                     <Text
+                      variant={
+                        isMoneyToken ? TextVariant.BodySMMedium : undefined
+                      }
+                      style={isMoneyToken ? { textAlign: 'right' } : undefined}
                       color={
+                        !isMoneyToken &&
                         isInsufficientBalance &&
                         tokenType === TokenInputAreaType.Source
                           ? TextColor.Error
@@ -544,6 +579,7 @@ export const TokenInputArea = forwardRef<
                     >
                       {subtitle}
                     </Text>
+                    {/* // )} */}
                     {tokenType === TokenInputAreaType.Source &&
                       tokenBalance &&
                       onMaxPress &&

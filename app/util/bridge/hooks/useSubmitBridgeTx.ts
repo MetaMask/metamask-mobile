@@ -6,21 +6,18 @@ import {
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import {
   selectAbTestContext,
   selectBridgeControllerState,
-  selectDestToken,
   selectIsSlippageUserOverride,
   selectIsGasIncludedSTXSendBundleSupported,
-  selectSlippage,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
   CHAIN_VALUE_ORDER_AB_KEY,
   CHAIN_VALUE_ORDER_VARIANTS,
 } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import {
   type TransactionActiveAbTestEntry,
@@ -37,6 +34,9 @@ import {
   recordSocialTrade,
 } from '../../social/socialActivityStorage';
 import { captureException } from '@sentry/react-native';
+import { useBridgeSession } from '../../../components/UI/Bridge/hooks/useBridgeSession';
+import useThunkDispatch from '../../../components/hooks/useThunkDispatch';
+import { upgradeMoneyAccount } from '../../../actions/money';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -53,9 +53,9 @@ function mergeTransactionActiveAbTests(
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
-  const walletAddress = useSelector(selectSourceWalletAddress);
-  const destToken = useSelector(selectDestToken);
-  const slippage = useSelector(selectSlippage);
+  const {
+    quoteParams: { srcToken, destToken, slippage, walletAddress },
+  } = useBridgeSession();
   const isSlippageUserOverride =
     useSelector(selectIsSlippageUserOverride) ?? false;
   const bridgeControllerState = useSelector(selectBridgeControllerState);
@@ -86,6 +86,22 @@ export default function useSubmitBridgeTx() {
 
     return tests.length > 0 ? tests : undefined;
   }, [isChainValueOrderAbActive, chainValueOrderVariantName]);
+
+  const operation = useMemo(() => {
+    return srcToken?.isMoneyToken
+      ? 'withdraw'
+      : destToken?.isMoneyToken
+        ? 'deposit'
+        : undefined;
+  }, [srcToken, destToken]);
+
+  const dispatch = useThunkDispatch();
+
+  const upgradeMoneyAccountOnSubmit = useCallback(() => {
+    const abortController = new AbortController();
+    dispatch(upgradeMoneyAccount(abortController.signal));
+    return () => abortController.abort();
+  }, [dispatch]);
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -127,6 +143,9 @@ export default function useSubmitBridgeTx() {
           unifiedSwapBridgeContext.token_symbol_destination || undefined,
       },
     );
+    if (operation && ['withdraw', 'deposit'].includes(operation)) {
+      // upgradeMoneyAccountOnSubmit();
+    }
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
@@ -142,6 +161,7 @@ export default function useSubmitBridgeTx() {
                 inputPrimaryDenomination,
                 quotesReceivedContext,
                 migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+                operation,
               })
             : await Engine.context.BridgeStatusController.submitTx({
                 accountAddress: walletAddress,
@@ -154,6 +174,7 @@ export default function useSubmitBridgeTx() {
                 tokenSecurityTypeDestination,
                 inputPrimaryDenomination,
                 migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+                operation,
               });
 
           if (isSocialTradeSource(location)) {

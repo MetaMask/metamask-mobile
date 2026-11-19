@@ -192,6 +192,10 @@
   },
   "resolutions": {
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
+    "@metamask/transaction-pay-controller": "file:../core/packages/transaction-pay-controller",
+    "@metamask/transaction-controller": "file:../core/packages/transaction-controller",
+    "@metamask/bridge-controller": "file:../core/packages/bridge-controller",
+    "@metamask/bridge-status-controller": "file:../core/packages/bridge-status-controller",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "^38.0.0",

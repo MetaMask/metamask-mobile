@@ -82,8 +82,35 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
     return;
   }
 
-  const { TransactionPayController, AccountsController } = Engine.context;
+  const {
+    TransactionPayController,
+    AccountsController,
+    BridgeStatusController,
+    MoneyAccountController,
+  } = Engine.context;
 
+  // Don't override the account for bridge withdraw or deposit transactions because the bridge-status-controller sets it
+  const isBridgeDeposit = Object.values(
+    BridgeStatusController.state.txHistory,
+  ).find(
+    ({ depositTxMeta, withdrawTxMeta }) =>
+      depositTxMeta?.batchId === transaction.batchId ||
+      withdrawTxMeta?.batchId === transaction.batchId,
+  );
+
+  if (isBridgeDeposit) {
+    console.log('=====MONEY ACCOUNT OVERRIDE');
+
+    TransactionPayController.setTransactionConfig(transaction.id, (config) => {
+      config.accountOverride = undefined;
+      config.isQuoteRequired = undefined;
+    });
+
+    const moneyAccount = MoneyAccountController.getMoneyAccount();
+    moneyAccount?.address &&
+      refreshOverrideAccountBalances(moneyAccount.address);
+    return;
+  }
   const existingOverride =
     TransactionPayController.state.transactionData[transaction.id]
       ?.accountOverride;

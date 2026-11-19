@@ -317,10 +317,16 @@ function validateRequiredQuote(
     !isQuoteRequiredType &&
     data?.isPostQuote === true &&
     !data.sourceAmounts?.length;
+  console.log('=========ISVALID', {
+    isQuoteRequiredType,
+    data,
+  });
 
   if (isValidatedDirectRoute) {
     return;
   }
+
+  if (isPayTokenSubmitReady(data)) return;
 
   throw new Error('MetaMask Pay: Cannot submit without quote');
 }

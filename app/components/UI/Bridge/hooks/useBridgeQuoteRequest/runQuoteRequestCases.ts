@@ -1280,6 +1280,7 @@ export const runQuoteRequestCases = ({
 
         expect(mockUseLatestBalance).toHaveBeenCalledWith({
           address: testState.bridge.sourceToken?.address,
+          isMoneyToken: testState.bridge.sourceToken?.isMoneyToken,
           decimals: testState.bridge.sourceToken?.decimals,
           chainId: testState.bridge.sourceToken?.chainId,
           balance: testState.bridge.sourceToken?.balance,
@@ -1337,6 +1338,7 @@ export const runQuoteRequestCases = ({
 
         expect(mockUseLatestBalance).toHaveBeenCalledWith({
           address: testState.bridge.sourceToken?.address,
+          isMoneyToken: testState.bridge.sourceToken?.isMoneyToken,
           decimals: testState.bridge.sourceToken?.decimals,
           chainId: testState.bridge.sourceToken?.chainId,
           balance: testState.bridge.sourceToken?.balance,

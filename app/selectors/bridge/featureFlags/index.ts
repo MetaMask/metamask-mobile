@@ -54,6 +54,18 @@ export const selectBridgeLimitOrderFeatureFlags =
   );
 
 /**
+ * Selector for the Bridge Money feature flag.
+ *
+ * @returns whether the Money feature is enabled for the current version.
+ */
+export const selectBridgeMoneyEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => true,
+  // validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsMoneyConfig) ??
+  // false,
+);
+
+/**
  * Selector for the Bridge Recurring Buy (DCA) feature flag.
  * Provides both whether the "Recurring" tab should be shown and which chains
  * its token selectors are restricted to.

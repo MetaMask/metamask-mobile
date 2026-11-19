@@ -60,6 +60,12 @@ export const useAutoUpdateDestToken = () => {
         return;
       }
 
+      if (newSourceToken.isMoneyToken) {
+        // TODO pick default
+        dispatch(setDestToken(getNativeSourceToken(EthScope.Mainnet)));
+        return;
+      }
+
       // Calculate what the dest token should be based on the new source
       const defaultDestToken = getDefaultDestToken(newSourceToken.chainId);
       const nativeToken = getNativeSourceToken(newSourceToken.chainId);

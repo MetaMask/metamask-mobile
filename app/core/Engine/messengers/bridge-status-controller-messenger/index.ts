@@ -25,11 +25,13 @@ export function getBridgeStatusControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'AccountsController:getAccountByAddress',
+      'MoneyAccountController:getMoneyAccount',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getState',
       'KeyringController:signTypedMessage',
       'BridgeController:getState',
+      'BridgeController:fetchQuotes',
       'BridgeController:stopPollingForQuotes',
       'BridgeController:trackUnifiedSwapBridgeEvent',
       'SnapController:handleRequest',
@@ -40,8 +42,16 @@ export function getBridgeStatusControllerMessenger(
       'TransactionController:updateTransaction',
       'TransactionController:estimateGasFee',
       'TransactionController:isAtomicBatchSupported',
+      'TransactionPayController:setTransactionConfig',
+      'TransactionPayController:updatePaymentToken',
+      'ApprovalController:acceptRequest',
+      'ApprovalController:rejectRequest',
     ],
-    events: ['TransactionController:transactionStatusUpdated'],
+    events: [
+      'TransactionController:transactionStatusUpdated',
+      'TransactionPayController:stateChange',
+      'TransactionController:unapprovedTransactionAdded',
+    ],
     messenger,
   });
   return messenger;

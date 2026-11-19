@@ -104,6 +104,8 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         }
       }
 
+      // TODO handle selecting money token
+
       if (isSelectingOtherToken && sourceToken && destToken) {
         // Only allow swap if the destination network (which would become source) is enabled
         if (!isDestNetworkEnabled) {
