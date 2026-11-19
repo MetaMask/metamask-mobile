@@ -5,7 +5,7 @@
 
 import type {
   TransakAdditionalRequirementsResponse,
-  TransakSourceOfIncomeFormMetadata,
+  TransakAdditionalRequirement,
 } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 
@@ -42,7 +42,7 @@ export function injectMicaTermsIds(quote: any): any {
 
 export function getMockSourceOfIncomeForm(): TransakAdditionalRequirementsResponse {
   Logger.log('[MiCA Mock] Returning mock SOURCE_OF_INCOME form');
-  const metadata: TransakSourceOfIncomeFormMetadata = {
+  const metadata: NonNullable<TransakAdditionalRequirement['metadata']> = {
     sourceOfFundsTypeOptions: [
       { name: 'Salary payments', value: 'salary_payment' },
       { name: 'Savings', value: 'savings' },

@@ -386,7 +386,10 @@ export function useTransakController(): UseTransakControllerResult {
 
   const submitMicaConsent = useCallback(
     async (consentedAt: string) =>
-      getRampsController().transakSubmitMicaConsent(consentedAt),
+      Engine.context.RampsController.messagingSystem.call(
+        'TransakService:submitMicaConsent',
+        consentedAt,
+      ),
     [],
   );
 
@@ -397,11 +400,12 @@ export function useTransakController(): UseTransakControllerResult {
       employmentStatus?: string,
       countryOfCitizenship?: string,
     ) =>
-      getRampsController().transakSubmitSourceOfIncome(
+      Engine.context.RampsController.messagingSystem.call(
+        'TransakService:submitSourceOfIncome',
         monthlyVolume,
         sourceOfFundsType,
-        employmentStatus,
-        countryOfCitizenship,
+        employmentStatus || '',
+        countryOfCitizenship || '',
       ),
     [],
   );

@@ -33,14 +33,14 @@ import {
   mockSubmitSourceOfIncome,
 } from '../../utils/micaMockMode';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import type { TransakSourceOfIncomeFormMetadata } from '@metamask/ramps-controller';
+import type { TransakAdditionalRequirement } from '@metamask/ramps-controller';
 import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import styleSheet from './SourceOfIncome.styles';
 
 export interface SourceOfIncomeParams {
   quote: TransakBuyQuote;
-  metadata: TransakSourceOfIncomeFormMetadata;
+  metadata: NonNullable<TransakAdditionalRequirement['metadata']>;
   /** Optional callback to continue KYC flow (for testing or direct navigation) */
   onSourceOfIncomeSubmitted?: () => void;
   headlessSessionId?: string;
