@@ -21,6 +21,7 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
+import { selectIsMoneyOnboardingRedirectNeeded } from '../../selectors/entry';
 import BigNumber from 'bignumber.js';
 import {
   Box,
@@ -177,6 +178,8 @@ const DETAILS_REENTRY_WINDOW_MS = 1000;
 // Measured on the iOS sim: white frames plus Money's fade-in after the carousel closes.
 const MFA_BADGE_PULSE_DELAY_MS = 3200;
 const MFA_BADGE_PULSE_MS = 3000;
+
+const MONEY_ONBOARDING_CLOSE_FADE_MS = 800;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -346,15 +349,35 @@ const MoneyHomeView = () => {
   useFocusEffect(refreshMfaCredentials);
 
   const isMfaSignInRequired = mfaStatus === 'sign_in_required';
+  const isOnboardingRedirectNeeded = useSelector(
+    selectIsMoneyOnboardingRedirectNeeded,
+  );
+  const wasOnboardingShown = useRef(isOnboardingRedirectNeeded);
+  useEffect(() => {
+    if (isOnboardingRedirectNeeded) {
+      wasOnboardingShown.current = true;
+    }
+  }, [isOnboardingRedirectNeeded]);
   const hasPromptedMfaSignIn = useRef(false);
+  // Waits for the Money onboarding to close, then for its close fade.
   useFocusEffect(
     useCallback(() => {
-      if (!isMfaSignInRequired || hasPromptedMfaSignIn.current) {
+      if (
+        !isMfaSignInRequired ||
+        isOnboardingRedirectNeeded ||
+        hasPromptedMfaSignIn.current
+      ) {
         return;
       }
-      hasPromptedMfaSignIn.current = true;
-      signInToMoneyMfa().catch(() => undefined);
-    }, [isMfaSignInRequired, signInToMoneyMfa]),
+      const timeout = setTimeout(
+        () => {
+          hasPromptedMfaSignIn.current = true;
+          signInToMoneyMfa().catch(() => undefined);
+        },
+        wasOnboardingShown.current ? MONEY_ONBOARDING_CLOSE_FADE_MS : 0,
+      );
+      return () => clearTimeout(timeout);
+    }, [isMfaSignInRequired, isOnboardingRedirectNeeded, signInToMoneyMfa]),
   );
 
   const [isMfaBadgePulsePending, setIsMfaBadgePulsePending] = useState(false);
