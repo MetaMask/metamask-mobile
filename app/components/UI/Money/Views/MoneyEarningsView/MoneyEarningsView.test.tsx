@@ -1,9 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
 import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
 import type {
@@ -17,8 +14,6 @@ import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn();
-const mockInitiateWithdrawal = jest.fn();
-const mockNavigateToMoneyDeposit = jest.fn();
 const mockRefetchHistoricalEarnings = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -31,23 +26,6 @@ jest.mock('@react-navigation/native', () => {
     useRoute: (): unknown => mockUseRoute(),
   };
 });
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: (): {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  } => ({ top: 48, bottom: 34, left: 0, right: 0 }),
-}));
-
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountWithdrawal: jest.fn(),
-}));
-
-jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
-  useMoneyDepositNavigation: jest.fn(),
-}));
 
 jest.mock('../../hooks/useMoneyHistoricalEarnings', () => ({
   useMoneyHistoricalEarnings: jest.fn(),
@@ -85,8 +63,11 @@ jest.mock(
   },
 );
 
-const mockUseMoneyAccountWithdrawal = jest.mocked(useMoneyAccountWithdrawal);
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
+jest.mock('./MoneyEarningsFooter', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockUseMoneyHistoricalEarnings = jest.mocked(useMoneyHistoricalEarnings);
 const mockUseMoneyAccountProjectedEarnings = jest.mocked(
   useMoneyAccountProjectedEarnings,
@@ -220,12 +201,6 @@ describe('MoneyEarningsView', () => {
     jest.clearAllMocks();
     mockIsMoneyBrandRefresh = false;
     mockUseRoute.mockReturnValue({ params: undefined });
-    mockUseMoneyAccountWithdrawal.mockReturnValue({
-      initiateWithdrawal: mockInitiateWithdrawal,
-    } as unknown as ReturnType<typeof useMoneyAccountWithdrawal>);
-    mockUseMoneyDepositNavigation.mockReturnValue({
-      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
-    });
     setHistoricalEarningsResult();
     setProjectedEarningsResult();
   });
@@ -285,21 +260,5 @@ describe('MoneyEarningsView', () => {
     expect(apyTab.props.onPress).toBeUndefined();
     expect(allocationTab.props.accessibilityState.disabled).toBe(true);
     expect(allocationTab.props.onPress).toBeUndefined();
-  });
-
-  it('starts withdrawal from the Withdraw action', () => {
-    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
-
-    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.WITHDRAW_BUTTON));
-
-    expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
-  });
-
-  it('opens deposit navigation from the Add action', () => {
-    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
-
-    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.ADD_BUTTON));
-
-    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledTimes(1);
   });
 });
