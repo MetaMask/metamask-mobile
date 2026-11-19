@@ -31,13 +31,14 @@ class OnboardingNotificationPermissionView {
   }
 
   async skip(): Promise<void> {
-    await Gestures.waitAndTap(this.skipButton, {
+    const skipButton = await this.skipButton;
+    await Gestures.waitAndTap(skipButton, {
       elemDescription: 'Onboarding notification permission skip button',
       timeout: 5000,
       checkForDisplayed: true,
       checkEnabled: true,
     });
-    await Assertions.expectElementToNotBeVisible(this.skipButton, {
+    await Assertions.expectElementToNotExist(skipButton, {
       timeout: 5000,
       description: 'Notification permission step closes after skipping',
     });

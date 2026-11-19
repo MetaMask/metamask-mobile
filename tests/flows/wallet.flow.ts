@@ -371,9 +371,13 @@ export const dismissOnboardingInterestQuestionnaire =
             OPTIONAL_SHEET_MAX_ABSENT_MS,
           )
         ) {
-          await OnboardingNotificationPermissionView.skip();
-          // Give the following questionnaire its full appearance window.
-          deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+          try {
+            await OnboardingNotificationPermissionView.skip();
+          } finally {
+            // Android may invalidate the tapped element during navigation.
+            // Still give the next route its full appearance window.
+            deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+          }
           continue;
         }
 
