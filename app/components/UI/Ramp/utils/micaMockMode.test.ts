@@ -26,15 +26,9 @@ describe('micaMockMode', () => {
     jest.clearAllMocks();
   });
 
-  describe('isMicaMockModeEnabled', () => {
-    it('is exported from the module', () => {
-      expect(typeof micaMockMode.isMicaMockModeEnabled).toBe('function');
-    });
-  });
-
   describe('getMockConsentForm', () => {
     it('returns a CONSENT form', () => {
-      const form = micaMockMode.getMockConsentForm();
+      const form = getMockConsentForm();
       expect(form.formsRequired).toHaveLength(1);
       expect(form.formsRequired[0].type).toBe('CONSENT');
       expect(form.formsRequired[0].metadata).toEqual({

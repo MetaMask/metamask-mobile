@@ -89,7 +89,9 @@ const MicaConsent = (): React.JSX.Element => {
           );
         }
       }
-    })();
+    })().catch((err) => {
+      Logger.error(err as Error, 'MicaConsent: Unhandled error in effect');
+    });
     return () => {
       mounted = false;
     };
