@@ -1961,11 +1961,13 @@ describe('PerpsOrderView', () => {
     const bothVenues = ({
       activeProvider,
       effectiveProvider,
+      defaultProvider = effectiveProvider ?? 'hyperliquid',
       lighter,
       hyperliquid,
     }: {
       activeProvider: 'aggregated' | 'lighter';
-      effectiveProvider: 'lighter' | 'hyperliquid';
+      effectiveProvider: 'lighter' | 'hyperliquid' | null;
+      defaultProvider?: 'lighter' | 'hyperliquid';
       lighter: Position['leverage'];
       hyperliquid: Position['leverage'];
     }) => {
@@ -1988,7 +1990,7 @@ describe('PerpsOrderView', () => {
                 ...twoExchange.overrides.engine?.backgroundState
                   ?.PerpsController,
                 activeProvider,
-                defaultProvider: effectiveProvider,
+                defaultProvider,
                 effectiveProvider,
               },
             },
@@ -2050,6 +2052,27 @@ describe('PerpsOrderView', () => {
       expect(
         await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
       ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+    });
+
+    it('labels an aggregated order from the saved default before the live venue resolves', async () => {
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'aggregated',
+          effectiveProvider: null,
+          defaultProvider: 'hyperliquid',
+          lighter: { value: 10, type: 'cross' },
+          hyperliquid: { value: 10, type: 'isolated' },
+        }),
+        crossMarginEnabled: true,
+        initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+      ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
     });
 
     it('labels a direct Lighter order from that venue when the route has none', async () => {
