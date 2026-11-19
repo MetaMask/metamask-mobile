@@ -2497,6 +2497,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // order is submitted. Default is market details; `stayOnCurrentScreen`
         // dismisses back to the presenting screen.
         preparePostTradePrompt();
+        if (perpsShareSessionIdRef.current && forceTrade) {
+          // On the pay-with-token path the share sheet replaces the deposit
+          // confirmation toast that is still visible, so it must go — the
+          // share sheet is the submission feedback now. Outside a deposit
+          // there is no toast to close, and the submitted-toast skip below
+          // is the only change in feedback.
+          ToastService.toastRef?.current?.closeToast();
+        }
         // A deposit-path re-entry (`forceTrade`) that fires after the deposit
         // branch already left this screen (`hasLeftAfterDepositRef`) — or
         // after the user closed the Trade sheet mid-confirmation
