@@ -63,7 +63,7 @@ describe('parsePredictConfig', () => {
     expect(result.venues.kalshi.authProfileId).toBe('server-defined-profile');
   });
 
-  it('reads kalshiDepositsEnabled when the config sets it', () => {
+  it('reads kalshiWithdrawalsEnabled when the config sets it', () => {
     const result = parsePredictConfig({
       enabled: true,
       venues: {
@@ -71,13 +71,13 @@ describe('parsePredictConfig', () => {
         kalshi: { enabled: true },
       },
       venueSelection: { enabled: false },
-      kalshiDepositsEnabled: true,
+      kalshiWithdrawalsEnabled: true,
     });
 
-    expect(result.kalshiDepositsEnabled).toBe(true);
+    expect(result.kalshiWithdrawalsEnabled).toBe(true);
   });
 
-  it('parses a config from before kalshiDepositsEnabled, leaving Kalshi deposits off', () => {
+  it('parses a config from before kalshiWithdrawalsEnabled, leaving Kalshi withdrawals off', () => {
     const value = {
       enabled: true,
       venues: {
@@ -90,11 +90,11 @@ describe('parsePredictConfig', () => {
     const result = parsePredictConfig(value);
 
     expect(result).toEqual(value);
-    expect(result.kalshiDepositsEnabled).toBeUndefined();
+    expect(result.kalshiWithdrawalsEnabled).toBeUndefined();
   });
 
-  it('keeps Kalshi deposits off by default', () => {
-    expect(DEFAULT_PREDICT_CONFIG.kalshiDepositsEnabled).toBeUndefined();
+  it('keeps Kalshi withdrawals off by default', () => {
+    expect(DEFAULT_PREDICT_CONFIG.kalshiWithdrawalsEnabled).toBeUndefined();
   });
 
   it.each([undefined, {}, { enabled: true }, { enabled: 'true' }])(
@@ -105,20 +105,6 @@ describe('parsePredictConfig', () => {
       expect(result).toEqual(DEFAULT_PREDICT_CONFIG);
     },
   );
-
-  it('returns the safe config when kalshiDepositsEnabled is not a boolean', () => {
-    const result = parsePredictConfig({
-      enabled: true,
-      venues: {
-        polymarket: { enabled: false },
-        kalshi: { enabled: true },
-      },
-      venueSelection: { enabled: false },
-      kalshiDepositsEnabled: 'true',
-    });
-
-    expect(result).toEqual(DEFAULT_PREDICT_CONFIG);
-  });
 });
 
 describe('resolveVenueAuthProfile', () => {

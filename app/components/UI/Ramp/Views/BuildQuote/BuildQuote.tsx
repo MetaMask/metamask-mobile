@@ -50,6 +50,10 @@ import {
   RampsOrderStatus,
 } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
+import {
+  getLastUserProviderPick,
+  useBuyScreenOwnsProviderPick,
+} from '../../hooks/providerPickCoordination';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
 import useEmbeddedCheckout from '../../hooks/useEmbeddedCheckout';
@@ -177,9 +181,10 @@ function BuildQuote() {
   const {
     userRegion,
     providers,
+    controllerProviders,
+    previouslyUsedProviderIds,
     selectedProvider,
-    setSelectedProvider,
-    setSelectedProviderForAsset,
+    selectProviderForAsset,
     selectedToken,
     paymentMethods,
     paymentMethodsLoading,
@@ -188,6 +193,7 @@ function BuildQuote() {
     selectedPaymentMethod,
   } = useRampsController();
   const { continueWithQuote } = useContinueWithQuote();
+  useBuyScreenOwnsProviderPick();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const prevSelectedProviderRef = useRef(selectedProvider);
@@ -205,9 +211,9 @@ function BuildQuote() {
   const tokenStateIsSettled =
     !params?.assetId || selectedToken?.assetId === params.assetId;
 
-  // Controller state is the source of truth for the active token;
-  // route params are only used as bootstrapping input.
-  const effectiveAssetId = selectedToken?.assetId ?? params?.assetId;
+  // Every entry path passes the token in route params, while the Redux copy of
+  // the selected token can still hold the previous one.
+  const effectiveAssetId = params?.assetId ?? selectedToken?.assetId;
 
   const isTokenUnavailable = useMemo(() => {
     if (!selectedProvider || !effectiveAssetId) {
@@ -263,65 +269,95 @@ function BuildQuote() {
     }, []),
   );
 
-  // When no provider is selected (e.g. first-time user in a region without
-  // Transak), pick the first provider that supports the selected token.
+  // Providers left out for this token and region after they returned no
+  // payment methods, so the next pick moves on instead of coming back to them.
+  // A provider the user picks by hand gets another try.
+  const regionCode = userRegion?.regionCode;
+  const excludedProvidersRef = useRef<{
+    key: string;
+    ids: string[];
+    userPickCount: number;
+  }>({ key: '', ids: [], userPickCount: 0 });
+  const getExcludedProviderIds = useCallback(
+    (assetId: string) => {
+      const key = `${regionCode}:${assetId}`;
+      const userPick = getLastUserProviderPick();
+      const excluded = excludedProvidersRef.current;
+      if (excluded.key !== key) {
+        excludedProvidersRef.current = {
+          key,
+          ids: [],
+          userPickCount: userPick.count,
+        };
+      } else if (excluded.userPickCount !== userPick.count) {
+        excluded.userPickCount = userPick.count;
+        excluded.ids = excluded.ids.filter((id) => id !== userPick.providerId);
+      }
+      return excludedProvidersRef.current.ids;
+    },
+    [regionCode],
+  );
+
+  // Pick the provider for the token whenever the token, the provider list or
+  // the history behind the pick changes. The start-up picker stays out while
+  // this screen is mounted.
+  const hasSelectedProvider = Boolean(selectedProvider);
   useEffect(() => {
-    if (
-      !isOnBuildQuoteScreen ||
-      selectedProvider ||
-      !effectiveAssetId ||
-      providers.length === 0
-    ) {
+    if (!isOnBuildQuoteScreen || !effectiveAssetId || providers.length === 0) {
       return;
     }
-    const supportingProvider = providers.find((p) =>
-      providerSupportsAsset(p, effectiveAssetId),
-    );
-    if (supportingProvider) {
-      setSelectedProvider(supportingProvider, { autoSelected: true });
-    }
+    selectProviderForAsset(effectiveAssetId, {
+      excludeProviderIds: getExcludedProviderIds(effectiveAssetId),
+    });
   }, [
     isOnBuildQuoteScreen,
-    selectedProvider,
     effectiveAssetId,
     providers,
-    setSelectedProvider,
+    // The picker reads the controller's list, which can arrive after the
+    // React Query copy in `providers`.
+    controllerProviders,
+    previouslyUsedProviderIds,
+    hasSelectedProvider,
+    selectProviderForAsset,
+    getExcludedProviderIds,
   ]);
 
-  // When the selected token is unavailable for the current provider, silently
-  // switch to any other provider that supports the token. Only fall through to
-  // the "Token Not Available" modal when no provider supports the token.
+  const selectedProviderId = selectedProvider?.id;
+  const selectedProviderListsToken = Boolean(
+    selectedProvider &&
+      effectiveAssetId &&
+      providerSupportsAsset(selectedProvider, effectiveAssetId),
+  );
+
+  // When the selected provider can't serve the token, move to the next pick.
+  // Only fall through to the "Token Not Available" modal when no provider is
+  // left.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
       return;
     }
 
-    // Keep providers in deps: ensures the effect re-runs when the provider
-    // list loads or refreshes, giving the controller a chance to find a
-    // compatible provider even if it was called too early.
+    // Keep providers in deps so a provider list that loads late gets a pick.
     if (providers.length === 0) return;
 
     if (effectiveAssetId) {
-      const switched = setSelectedProviderForAsset(effectiveAssetId);
-      if (switched) return;
-
-      // Controller no-ops when the current provider already lists the asset in
-      // supportedCryptoCurrencies. Empty payment methods can still mark the
-      // token unavailable for that provider, so try a different supporting
-      // provider before showing the modal (parity with pre-delegation UI).
-      const otherSupporting = providers.find(
-        (p) =>
-          p.id !== selectedProvider?.id &&
-          providerSupportsAsset(p, effectiveAssetId),
-      );
-      if (otherSupporting) {
-        setSelectedProvider(otherSupporting, { autoSelected: true });
-        return;
+      const excluded = getExcludedProviderIds(effectiveAssetId);
+      // A provider that lists the token but returned no payment methods.
+      if (
+        selectedProviderId &&
+        selectedProviderListsToken &&
+        !excluded.includes(selectedProviderId)
+      ) {
+        excluded.push(selectedProviderId);
       }
+      const nextProviderId = selectProviderForAsset(effectiveAssetId, {
+        excludeProviderIds: excluded,
+      });
+      if (nextProviderId && nextProviderId !== selectedProviderId) return;
     }
 
-    const key = `${selectedProvider?.id}:${effectiveAssetId}`;
+    const key = `${selectedProviderId}:${effectiveAssetId}`;
     if (lastShownUnavailableKeyRef.current === key) return;
 
     const timer = setTimeout(() => {
@@ -342,11 +378,12 @@ function BuildQuote() {
     isTokenUnavailable,
     effectiveAssetId,
     navigation,
-    selectedProvider?.id,
     focusTrigger,
     providers,
-    setSelectedProvider,
-    setSelectedProviderForAsset,
+    selectedProviderId,
+    selectedProviderListsToken,
+    selectProviderForAsset,
+    getExcludedProviderIds,
   ]);
 
   const currency = userRegion?.country?.currency || 'USD';

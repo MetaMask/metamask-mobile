@@ -112,6 +112,8 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
             ? swapQuoteFetchTrace.start({
                 srcChainId,
                 destChainId,
+                srcTokenAddress: genericQuoteRequest.srcTokenAddress,
+                destTokenAddress: genericQuoteRequest.destTokenAddress,
                 isRefresh: requestOptions.isRefresh ?? false,
               })
             : undefined;

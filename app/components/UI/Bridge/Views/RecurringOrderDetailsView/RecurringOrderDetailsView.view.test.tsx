@@ -791,12 +791,11 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ...MOCK_RECURRING_OPEN_ORDER,
       isCancellable: false,
     };
-    clearRecurringOrdersDataServiceMock();
-    setupRecurringOrdersDataServiceMock({
-      recurringOrder: jest.fn().mockResolvedValue({
-        order: nonCancellableOrder,
-      }),
+    const recurringOrder = jest.fn().mockResolvedValue({
+      order: nonCancellableOrder,
     });
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ recurringOrder });
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_OPEN_ORDER,
     });
@@ -812,14 +811,29 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         RecurringOrderDetailsViewSelectorsIDs.SUMMARY,
       ),
     ).toBeOnTheScreen();
+    // The summary renders from the cancellable route order before the
+    // order response lands, so wait for that response to remove Cancel.
+    await waitFor(() => {
+      expect(recurringOrder).toHaveBeenCalledWith(
+        MOCK_RECURRING_OPEN_ORDER.id,
+        expect.objectContaining({
+          accountAddress: MOCK_RECURRING_OPEN_ORDER.account,
+        }),
+      );
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
     expect(
       renderResult.queryByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
     ).not.toBeOnTheScreen();
   });
 
-  it('shows no footer action for a cancelled API order', async () => {
+  it('shows duplicate action for a cancelled API order', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_CANCELLED_ORDER,
     });
@@ -841,9 +855,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ),
     ).not.toBeOnTheScreen();
     expect(
-      renderResult.queryByTestId(
+      await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
   });
 });

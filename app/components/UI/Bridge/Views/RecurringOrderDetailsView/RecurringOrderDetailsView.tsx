@@ -525,7 +525,7 @@ function RecurringOrderDetailsView() {
         </Box>
       ) : null}
 
-      {order.state === RecurringOrderState.Completed ? (
+      {order.state !== RecurringOrderState.Open ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}

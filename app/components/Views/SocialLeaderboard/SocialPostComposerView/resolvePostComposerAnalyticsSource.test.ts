@@ -120,6 +120,23 @@ describe('resolvePostComposerEntry', () => {
     ).toBe('token_details');
   });
 
+  it.each(['post_trade_swap', 'post_trade_spot'] as const)(
+    'keeps %s for an in-flight spot trade',
+    (spotComposerEntry) => {
+      expect(
+        resolvePostComposerEntry({
+          tradeInFlight: {
+            transactionHash: '0x1',
+            chain: 'eip155:1',
+            tokenAddress: '0xeth',
+          },
+          preview,
+          spotComposerEntry,
+        }),
+      ).toBe(spotComposerEntry);
+    },
+  );
+
   it('keeps a blank post entry and omits an unknown open', () => {
     expect(resolvePostComposerEntry({ composerEntry: 'my_profile' })).toBe(
       'my_profile',
