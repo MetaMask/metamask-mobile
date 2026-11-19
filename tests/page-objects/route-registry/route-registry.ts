@@ -249,7 +249,8 @@ const NOT_A_SCREEN_ROUTES =
   `  AgenticCliApproval AgenticCliDashboardWebview Bridge BridgeModals CardModals CardOnboarding CardScreens Deposit
   DepositModals DepositRoot EarnModals EarnScreens Home HomeNav Main MarketInsights
   MoneyModals MoneyScreens OnboardingNav OnboardingRootNav OnboardingSuccessFlow Perps PerpsModals Predict
-  PredictModals Ramp RampModals RootModalFlow SetPasswordFlow SettingsView Social WalletTabStackFlow`
+  PredictModals Ramp RampModals RootModalFlow SetPasswordFlow SettingsView Social WalletTabHome BrowserTabHome
+  WalletTabStackFlow`
     .trim()
     .split(/\s+/);
 
