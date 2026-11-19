@@ -8,6 +8,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarIcon,
   AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   BoxBackgroundColor,
   Button,
@@ -48,7 +49,9 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
+  selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
@@ -112,13 +115,31 @@ const AddDeviceToWallet = () => {
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
+  const needsProvisioning = useSelector(selectQrSyncNeedsProvisioning);
+  // Import and existing-user Phase C pop this screen while they still read
+  // pending secrets and provisioning metadata.
+  const shouldKeepQrSyncState = shouldNavigateToImport || needsProvisioning;
 
   const handleBack = useCallback(() => {
-    Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-      () => undefined,
-    );
     navigation.goBack();
-  }, [messenger, navigation]);
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      if (shouldKeepQrSyncState) {
+        return;
+      }
+
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
+    });
+
+    return unsubscribe;
+  }, [messenger, navigation, shouldKeepQrSyncState]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -199,9 +220,9 @@ const AddDeviceToWallet = () => {
         includesTopInset
         onBack={handleBack}
       />
-      <Box twClassName="flex-1" style={{ marginTop: headerInset }}>
+      <Box twClassName="flex-1 pt-3" style={{ marginTop: headerInset }}>
         <TitleStandard
-          twClassName="mb-6 px-4"
+          twClassName="mb-2 px-4"
           title={strings('app_settings.add_device.add_device_to_wallet')}
         />
 
@@ -213,6 +234,7 @@ const AddDeviceToWallet = () => {
               <AvatarIcon
                 iconName={instruction.iconName}
                 severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
               />
             }
             title={strings(instruction.titleKey)}
@@ -231,19 +253,21 @@ const AddDeviceToWallet = () => {
             backgroundColor={BoxBackgroundColor.BackgroundSection}
             twClassName="mx-4 mt-4 rounded-xl p-4 gap-3"
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Bold}
-            >
-              Enter QR data manually
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              Paste the QR code payload here when testing on an emulator.
-            </Text>
+            <Box gap={1}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Bold}
+              >
+                Enter QR data manually
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                Paste the QR code payload here when testing on an emulator.
+              </Text>
+            </Box>
             <TextField
               value={manualQrPayload}
               onChangeText={setManualQrPayload}

@@ -317,7 +317,6 @@ const mockState = {
             nativeCurrency: 'ETH',
             rpcEndpoints: [
               {
-                failoverUrls: [],
                 networkClientId: 'mainnet',
                 type: 'infura',
                 url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
@@ -479,6 +478,77 @@ describe('Earn Controller Selectors', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectHighestBalanceAaveOutputToken', () => {
+    const createOutputToken = ({
+      address,
+      balanceFiatNumber,
+      protocol = 'aave',
+    }: {
+      address: string;
+      balanceFiatNumber: number;
+      protocol?: string;
+    }) =>
+      ({
+        address,
+        chainId: CHAIN_IDS.MAINNET,
+        balanceFiatNumber,
+        experiences: [
+          {
+            market: {
+              protocol,
+            },
+          },
+        ],
+      }) as EarnTokenDetails;
+
+    const selectFromOutputTokens = (earnOutputTokens: EarnTokenDetails[]) =>
+      earnSelectors.selectHighestBalanceAaveOutputToken.resultFunc({
+        earnOutputTokens,
+      } as ReturnType<typeof earnSelectors.selectEarnTokens>);
+
+    it('returns the Aave output token with the highest fiat balance', () => {
+      const lowerBalanceToken = createOutputToken({
+        address: '0x1',
+        balanceFiatNumber: 12,
+      });
+      const higherBalanceToken = createOutputToken({
+        address: '0x2',
+        balanceFiatNumber: 34,
+      });
+
+      expect(
+        selectFromOutputTokens([lowerBalanceToken, higherBalanceToken]),
+      ).toBe(higherBalanceToken);
+    });
+
+    it('excludes output tokens with non-positive fiat balances', () => {
+      const zeroBalanceToken = createOutputToken({
+        address: '0x1',
+        balanceFiatNumber: 0,
+      });
+
+      expect(selectFromOutputTokens([zeroBalanceToken])).toBeUndefined();
+    });
+
+    it('excludes output tokens from non-Aave markets', () => {
+      const nonAaveToken = createOutputToken({
+        address: '0x1',
+        balanceFiatNumber: 100,
+        protocol: 'morpho',
+      });
+      const aaveToken = createOutputToken({
+        address: '0x2',
+        balanceFiatNumber: 10,
+      });
+
+      expect(selectFromOutputTokens([nonAaveToken, aaveToken])).toBe(aaveToken);
+    });
+
+    it('returns undefined when no output tokens are available', () => {
+      expect(selectFromOutputTokens([])).toBeUndefined();
     });
   });
 

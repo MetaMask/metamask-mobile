@@ -41,11 +41,11 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     const map: Record<string, string> = {
       'card.card_spending_limit.spend_and_earn_title': 'Spend and earn',
       'card.card_spending_limit.spend_and_earn_description_prefix':
-        'Link your balance to your card and get mUSD back on purchases. Plus, earn up to ',
+        'Link your balance to your card and spend it anywhere. Plus, earn up to ',
       'card.card_spending_limit.spend_and_earn_description_suffix':
         ' (variable) on your balance.',
       'card.card_spending_limit.spend_and_earn_description_no_apy':
-        'Link your balance to your card and get mUSD back on purchases.',
+        'Link your balance to your card and spend it anywhere Mastercard is accepted.',
       'card.card_spending_limit.spend_and_earn_cta': 'Link card',
       'card.card_spending_limit.use_money_account_cta': 'Use Money account',
     };
@@ -76,7 +76,7 @@ describe('SpendAndEarnPromoCard', () => {
     expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY \(variable\) on your balance\./,
+        /Link your balance to your card and spend it anywhere\. Plus, earn up to 4% APY \(variable\) on your balance\./,
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Link card')).toBeOnTheScreen();
@@ -87,7 +87,7 @@ describe('SpendAndEarnPromoCard', () => {
 
     expect(
       screen.getByText(
-        'Link your balance to your card and get mUSD back on purchases.',
+        'Link your balance to your card and spend it anywhere Mastercard is accepted.',
       ),
     ).toBeOnTheScreen();
     expect(screen.queryByText('4% APY')).not.toBeOnTheScreen();

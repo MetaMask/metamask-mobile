@@ -2,24 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
+import {
+  MONEY_REFERRAL_CODE_MIN_LENGTH,
+  isMoneyReferralCodeFormatValid,
+  normalizeMoneyReferralCode,
+} from '../utils/moneyReferralCode';
 
 export const MONEY_REFERRAL_CODE_DEBOUNCE_MS = 1000;
-export const MONEY_REFERRAL_CODE_MIN_LENGTH = 3;
-export const MONEY_REFERRAL_CODE_MAX_LENGTH = 24;
 /** Validation itself failed, as opposed to the code being rejected. */
 export const MONEY_REFERRAL_CODE_UNKNOWN_ERROR = 'Unknown error';
-
-/** Money codes are alphanumeric only — the points program's hyphen is not accepted. */
-const MONEY_REFERRAL_CODE_PATTERN = /^[A-Z0-9]+$/;
-
-/** The form the API expects, and the only form this hook reports or sends. */
-export const normalizeMoneyReferralCode = (code: string) =>
-  code.trim().toUpperCase();
-
-const isReferralCodeFormatValid = (code: string) =>
-  code.length >= MONEY_REFERRAL_CODE_MIN_LENGTH &&
-  code.length <= MONEY_REFERRAL_CODE_MAX_LENGTH &&
-  MONEY_REFERRAL_CODE_PATTERN.test(code);
 
 export interface UseValidateMoneyReferralCodeResult {
   /**
@@ -50,6 +41,41 @@ export interface UseValidateMoneyReferralCodeResult {
 }
 
 /**
+ * Validates a referral code once, without debouncing. Resolves to an empty
+ * string when the code is valid, otherwise to the error to show. A 429, or a
+ * 503 still busy after the one retry, is rethrown so the caller can read its
+ * status; any other failure resolves to {@link MONEY_REFERRAL_CODE_UNKNOWN_ERROR}.
+ */
+export const validateMoneyReferralCode = async (
+  code: string,
+): Promise<string> => {
+  const refinedCode = normalizeMoneyReferralCode(code);
+
+  if (!isMoneyReferralCodeFormatValid(refinedCode)) {
+    return strings('rewards.error_messages.invalid_referral_code');
+  }
+
+  try {
+    const result = await Engine.controllerMessenger.call(
+      'RewardsMoneyController:validateReferralCode',
+      refinedCode,
+    );
+    if (!result.success) {
+      return strings('rewards.error_messages.invalid_referral_code');
+    }
+    return '';
+  } catch (error) {
+    if (
+      error instanceof RewardsMoneyHttpError &&
+      (error.status === 429 || error.status === 503)
+    ) {
+      throw error;
+    }
+    return MONEY_REFERRAL_CODE_UNKNOWN_ERROR;
+  }
+};
+
+/**
  * Validates Rewards Money referral codes.
  *
  * Debounces backend validation for codes that pass the server's format
@@ -69,7 +95,7 @@ export const useValidateMoneyReferralCode = (
   const [referralCode, setReferralCodeState] = useState(initialReferralCode);
   const [error, setError] = useState('');
   const [isValidating, setIsValidating] = useState(
-    isReferralCodeFormatValid(initialReferralCode),
+    isMoneyReferralCodeFormatValid(initialReferralCode),
   );
   const hasInitialized = useRef(false);
   const requestIdRef = useRef(0);
@@ -79,36 +105,6 @@ export const useValidateMoneyReferralCode = (
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
-    }
-  }, []);
-
-  const validateCode = useCallback(async (code: string): Promise<string> => {
-    const refinedCode = normalizeMoneyReferralCode(code);
-
-    if (!isReferralCodeFormatValid(refinedCode)) {
-      return strings('rewards.error_messages.invalid_referral_code');
-    }
-
-    try {
-      const result = await Engine.controllerMessenger.call(
-        'RewardsMoneyController:validateReferralCode',
-        refinedCode,
-      );
-      if (!result.success) {
-        return strings('rewards.error_messages.invalid_referral_code');
-      }
-      return '';
-    } catch (error) {
-      // A 429 or a 503 that is still busy after the one retry is not an
-      // unknown failure. Accept reads the status. Every other failure is
-      // still "validation could not run".
-      if (
-        error instanceof RewardsMoneyHttpError &&
-        (error.status === 429 || error.status === 503)
-      ) {
-        throw error;
-      }
-      return MONEY_REFERRAL_CODE_UNKNOWN_ERROR;
     }
   }, []);
 
@@ -124,7 +120,7 @@ export const useValidateMoneyReferralCode = (
       debounceTimerRef.current = setTimeout(async () => {
         const refinedCode = normalizeMoneyReferralCode(code);
 
-        if (!isReferralCodeFormatValid(refinedCode)) {
+        if (!isMoneyReferralCodeFormatValid(refinedCode)) {
           if (currentRequestId !== requestIdRef.current) return;
           setError(strings('rewards.error_messages.invalid_referral_code'));
           setIsValidating(false);
@@ -168,7 +164,7 @@ export const useValidateMoneyReferralCode = (
         return;
       }
 
-      if (!isReferralCodeFormatValid(refinedCode)) {
+      if (!isMoneyReferralCodeFormatValid(refinedCode)) {
         requestIdRef.current += 1;
         clearDebounceTimer();
         setIsValidating(false);
@@ -200,13 +196,13 @@ export const useValidateMoneyReferralCode = (
   );
 
   const isValid =
-    isReferralCodeFormatValid(referralCode) && !error && !isValidating;
+    isMoneyReferralCodeFormatValid(referralCode) && !error && !isValidating;
   const isUnknownError = error === MONEY_REFERRAL_CODE_UNKNOWN_ERROR;
 
   return {
     referralCode,
     setReferralCode,
-    validateCode,
+    validateCode: validateMoneyReferralCode,
     isValidating,
     isValid,
     isUnknownError,

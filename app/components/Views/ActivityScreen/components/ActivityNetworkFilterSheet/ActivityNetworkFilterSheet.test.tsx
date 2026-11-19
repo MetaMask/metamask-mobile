@@ -13,6 +13,11 @@ const mockOnNetworkSelect = jest.fn();
 const mockUseParams = jest.fn();
 const mockUseNetworkFilterOptions = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
@@ -75,6 +80,8 @@ jest.mock(
 jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     HeaderStandard: ({
       title,
       onClose,

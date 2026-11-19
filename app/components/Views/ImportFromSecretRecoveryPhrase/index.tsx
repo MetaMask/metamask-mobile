@@ -3,7 +3,6 @@ import React, {
   useState,
   useCallback,
   useRef,
-  useContext,
   useMemo,
 } from 'react';
 import { Alert, Animated, Dimensions, Keyboard, TextInput } from 'react-native';
@@ -75,6 +74,8 @@ import {
   TextField,
   TextVariant,
   TitleStandard,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
@@ -90,12 +91,6 @@ import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
-import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
-import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
-import {
-  IconName as ToastIconName,
-  IconColor as ToastIconColor,
-} from '../../../component-library/components/Icons/Icon';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
@@ -116,7 +111,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import ImportOptionsSheet from './ImportOptionsSheet';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import { selectQrSyncImportMnemonic } from '../../../selectors/qrSyncController';
 import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
@@ -251,7 +245,6 @@ const ImportFromSecretRecoveryPhrase = () => {
 
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
 
-  const { toastRef } = useContext(ToastContext);
   const passwordSetupAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const [password, setPassword] = useState('');
@@ -283,7 +276,6 @@ const ImportFromSecretRecoveryPhrase = () => {
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
   const [slideAnim] = useState(() => new Animated.Value(0));
   const [currentInputWord, setCurrentInputWord] = useState('');
-  const [isImportMenuVisible, setIsImportMenuVisible] = useState(false);
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -406,18 +398,6 @@ const ImportFromSecretRecoveryPhrase = () => {
     });
   }, [hideSeedPhraseInput, navigation]);
 
-  const onScanHeaderPress = useCallback(() => {
-    if (isAddDeviceSyncEnabled) {
-      setIsImportMenuVisible(true);
-      return;
-    }
-    onQrCodePress();
-  }, [isAddDeviceSyncEnabled, onQrCodePress]);
-
-  const onImportFromExtensionPress = useCallback(() => {
-    navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
-  }, [navigation]);
-
   const animateToStep = useCallback(
     (nextStep: number) => {
       if (isTestEnvironment) {
@@ -522,14 +502,11 @@ const ImportFromSecretRecoveryPhrase = () => {
       .filter((item) => item !== '');
     const phrase = trimmedWords.join(SPACE_CHAR);
     if (!SRP_LENGTHS.includes(trimmedWords.length)) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('import_from_seed.seed_phrase_length_error') },
-        ],
+      toast({
+        title: strings('import_from_seed.seed_phrase_length_error'),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
-        iconName: ToastIconName.Error,
-        iconColor: ToastIconColor.Error,
+        showCloseButton: false,
       });
       return false;
     }
@@ -772,7 +749,7 @@ const ImportFromSecretRecoveryPhrase = () => {
             ? [
                 {
                   iconName: IconName.Scan,
-                  onPress: onScanHeaderPress,
+                  onPress: onQrCodePress,
                   testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
                 },
               ]
@@ -795,7 +772,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           ]}
         >
           {currentStep === 0 && (
-            <Box twClassName="gap-y-6">
+            <Box twClassName="gap-y-6 pt-3">
               <TitleStandard
                 title={strings('import_from_seed.title')}
                 titleProps={{
@@ -848,7 +825,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           )}
 
           {currentStep === 1 && (
-            <Box twClassName="gap-y-4 flex-grow">
+            <Box twClassName="gap-y-4 flex-grow pt-3">
               <TitleStandard
                 title={strings('import_from_seed.metamask_password')}
                 titleProps={{
@@ -1001,12 +978,6 @@ const ImportFromSecretRecoveryPhrase = () => {
           />
         </KeyboardStickyView>
       )}
-      <ImportOptionsSheet
-        isVisible={isImportMenuVisible}
-        onClose={() => setIsImportMenuVisible(false)}
-        onSelectQrCode={onQrCodePress}
-        onSelectExtension={onImportFromExtensionPress}
-      />
       <PasswordResetWarningSheet
         isVisible={isWarningSheetVisible}
         onConfirm={onConfirmWarningSheet}

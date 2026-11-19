@@ -6,7 +6,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
-  HeaderStandard,
   IconSize,
   Spinner,
   Text,
@@ -19,11 +18,14 @@ import { selectCardHomeData } from '../../../../../selectors/cardController';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { useCardWalletProvisioning } from '../CardHome/hooks/useCardWalletProvisioning';
 import hero from './assets/hero.png';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const HERO_WIDTH = 874 / 3;
 const HERO_ASPECT_RATIO = 874 / 1209;
 
 const ApplePaySplash = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const tw = useTailwind();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -54,7 +56,9 @@ const ApplePaySplash = () => {
 
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         onClose={handleClose}

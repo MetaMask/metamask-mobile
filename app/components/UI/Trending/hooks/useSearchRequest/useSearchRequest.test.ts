@@ -56,6 +56,68 @@ describe('useSearchRequest', () => {
     unmount();
   });
 
+  it('reports the initial search request outcome to the performance observer', async () => {
+    const requestEnd = jest.fn();
+    const performance = {
+      startRequest: jest.fn(() => ({ end: requestEnd })),
+    };
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+        performance,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(performance.startRequest).toHaveBeenCalledWith('ETH');
+    expect(requestEnd).toHaveBeenCalledWith('success');
+
+    unmount();
+  });
+
+  it('does not repeat the previous query when the query is cleared', async () => {
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    const initialPerformance = {
+      startRequest: jest.fn(() => ({ end: jest.fn() })),
+    };
+
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [query, setQuery] = useState('ETH');
+      const searchRequest = useSearchRequest({
+        chainIds: ['eip155:1'],
+        query,
+        limit: 10,
+        performance: query ? initialPerformance : undefined,
+      });
+
+      return { ...searchRequest, setQuery };
+    });
+
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(1);
+    });
+
+    act(() => {
+      result.current.setQuery('');
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(spySearchTokens).toHaveBeenCalledTimes(1);
+
+    unmount();
+  });
+
   it('sets error state and clears results when search fails', async () => {
     const mockError = new Error('Network error');
     spySearchTokens.mockRejectedValue(mockError);

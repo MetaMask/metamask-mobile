@@ -173,6 +173,7 @@ export interface PolymarketApiMarket {
     twapEnabled?: boolean;
     twapLookbackSeconds?: number | null;
   } | null;
+  resolutionSource?: string | null;
 }
 
 export interface PolymarketApiSeries {
@@ -223,6 +224,7 @@ export interface PolymarketApiEvent {
   eventMetadata?: {
     priceToBeat?: number | string | null;
   };
+  resolutionSource?: string | null;
 }
 
 export interface PolymarketApiActivity {

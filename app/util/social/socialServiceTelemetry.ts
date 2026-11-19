@@ -19,7 +19,10 @@ export type SocialSurface =
   | 'trader_position'
   | 'followed_traders'
   | 'follow'
-  | 'moderation';
+  | 'moderation'
+  | 'profile_onboarding'
+  | 'leaderboard_onboarding'
+  | 'post_composer';
 
 /**
  * SocialService / SocialController operations we instrument.
@@ -40,7 +43,13 @@ export type SocialEndpoint =
   | 'blocked_profiles'
   | 'block'
   | 'unblock'
-  | 'blocked_content';
+  | 'blocked_content'
+  | 'moderation_status'
+  | 'create_profile'
+  | 'update_profile'
+  | 'check_username'
+  | 'connect_x'
+  | 'create_comment';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.
@@ -217,6 +226,7 @@ export function buildSocialLoggerErrorOptions({
   queryParams,
   durationMs,
   extraTags,
+  profileId,
 }: {
   surface: SocialSurface;
   operation: string;
@@ -229,6 +239,12 @@ export function buildSocialLoggerErrorOptions({
   queryParams?: Record<string, string | number | boolean>;
   durationMs?: number;
   extraTags?: Record<string, string | number>;
+  /**
+   * Social profile id for the failing session. Stored on context + extras only
+   * (not tags) to avoid high-cardinality tag explosion. Discover:
+   * `context.social.profileId:<id>`.
+   */
+  profileId?: string;
 }): LoggerErrorOptions {
   const errorCategory = categoriseSocialError(error);
   const message = formatSocialExtraMessage(extraMessage, source);
@@ -248,6 +264,9 @@ export function buildSocialLoggerErrorOptions({
         ...(queryParams !== undefined && { queryParams }),
         ...(durationMs !== undefined && { durationMs }),
       };
+  if (profileId !== undefined) {
+    extras.profileId = profileId;
+  }
 
   return {
     tags: {
@@ -266,6 +285,7 @@ export function buildSocialLoggerErrorOptions({
         ...(source !== undefined && { source }),
         ...(endpoint !== undefined && { endpoint }),
         ...(queryParams !== undefined && { queryParams }),
+        ...(profileId !== undefined && { profileId }),
       },
     },
     extras,
@@ -294,6 +314,8 @@ export interface SocialServiceFailureContext {
   source: string;
   endpoint?: SocialEndpoint;
   queryParams?: Record<string, string | number | boolean>;
+  /** See {@link buildSocialLoggerErrorOptions} `profileId`. */
+  profileId?: string;
 }
 
 /**

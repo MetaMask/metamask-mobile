@@ -17,6 +17,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     IconName: { Search: 'Search', ArrowLeft: 'ArrowLeft' },
     ButtonIconSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg' },
+    BoxFlexDirection: { Row: 'row' },
+    BoxAlignItems: { Center: 'center' },
+    Box: ({ children }: { children?: React.ReactNode }) => (
+      <ReactNative.View>{children}</ReactNative.View>
+    ),
     ButtonIcon: ({
       iconName,
       onPress,
@@ -79,6 +84,19 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+// The venue picker is a PredictNext module with its own view tests; here it
+// only has to sit in the header with the right variant.
+jest.mock('../../../PredictNext/venueSelection', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return {
+    PredictVenueSelectorButton: ({ variant }: { variant: string }) => (
+      <ReactNative.Text testID="venue-selector-stub">
+        {variant}
+      </ReactNative.Text>
+    ),
+  };
+});
+
 const sharedValue = (value: number): SharedValue<number> =>
   ({ value }) as unknown as SharedValue<number>;
 
@@ -135,6 +153,29 @@ describe('PredictHeaderStacked', () => {
     );
 
     expect(onSearchPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('places the venue picker before the search icon', () => {
+    renderHeader();
+
+    const icons = screen.getAllByTestId(
+      /venue-selector-stub|predict-search-button/,
+    );
+    expect(icons.map((icon) => icon.props.testID)).toStrictEqual([
+      'venue-selector-stub',
+      PredictSearchSelectorsIDs.SEARCH_BUTTON,
+    ]);
+    expect(screen.getByTestId('venue-selector-stub')).toHaveTextContent(
+      'standard',
+    );
+  });
+
+  it('renders the glass venue picker in the glass header', () => {
+    renderHeader({ isGlass: true });
+
+    expect(screen.getByTestId('venue-selector-stub')).toHaveTextContent(
+      'glass',
+    );
   });
 
   describe('capsules', () => {

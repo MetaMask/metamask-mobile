@@ -7,7 +7,8 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
 import { useStyles } from '../../../../component-library/hooks';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
@@ -110,6 +111,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -156,8 +158,18 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard onBack={navigation.goBack} />
-      <ScrollView style={styles.container}>
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        onBack={navigation.goBack}
+      />
+      <ScrollView
+        style={
+          isGlassHeader
+            ? [styles.container, styles.notificationsList]
+            : styles.container
+        }
+      >
         <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
           {strings('app_settings.notifications_title')}
         </Text>

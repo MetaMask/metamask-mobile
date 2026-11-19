@@ -1,19 +1,40 @@
 import { useSelector } from 'react-redux';
 import { selectEnrolledCredentials } from '../../../selectors/identity';
-import { mobileMfaControllerAdapter } from './bindings';
+import {
+  createSocialLoginControllerAdapter,
+  mobileMfaControllerAdapter,
+} from './bindings';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { startMfaFlow } from './engine/activeFlow';
+import { METHOD_COST_RANKING } from './engine/planner';
 import Logger from '../../Logger';
+import {
+  MetaMetricsEvents,
+  type IMetaMetricsEvent,
+} from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
+import { analytics } from '../../analytics/analytics';
+import type { MfaEvent } from './engine/analytics';
 import type {
   EnrollOptions,
   MfaFlowOptions,
   MfaFlowResult,
+  MfaReason,
   VerifyOrEnrollOptions,
 } from './engine/types';
 
+const EVENTS: Record<MfaEvent, IMetaMetricsEvent> = {
+  'MFA Flow Status Updated': MetaMetricsEvents.MFA_FLOW_STATUS_UPDATED,
+  'MFA Step Viewed': MetaMetricsEvents.MFA_STEP_VIEWED,
+  'MFA Error Viewed': MetaMetricsEvents.MFA_ERROR_VIEWED,
+  'MFA Error CTA Clicked': MetaMetricsEvents.MFA_ERROR_CTA_CLICKED,
+  'MFA Method Selected': MetaMetricsEvents.MFA_METHOD_SELECTED,
+  'MFA Code Resent': MetaMetricsEvents.MFA_CODE_RESENT,
+};
+
 const clientOptions: Pick<
   MfaFlowOptions,
-  'platform' | 'controller' | 'passkey' | 'reportError'
+  'platform' | 'controller' | 'passkey' | 'reportError' | 'trackEvent'
 > = {
   platform: 'mobile',
   controller: mobileMfaControllerAdapter,
@@ -23,6 +44,12 @@ const clientOptions: Pick<
       tags: { feature: 'mfa', mfaCode: code, operation },
       context: { name: 'mfa_flow', data: { step } },
     }),
+  trackEvent: (event, properties) =>
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(EVENTS[event])
+        .addProperties(properties)
+        .build(),
+    ),
 };
 
 const verifyOrEnroll = ({
@@ -43,6 +70,34 @@ const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
   });
 
 /**
+ * Proves it's the user during social-login wallet recovery, while the wallet
+ * is still locked. Never enrolls: the flow fetches the credentials the
+ * profile already has and verifies with one of the active ones that this
+ * platform supports. Resolves with the flow's result, rejects with
+ * `credential_not_enrolled` when there is none to verify with, or with the
+ * code of an error the kit has already shown.
+ */
+const verifyForSocialLogin = ({
+  reason,
+}: {
+  reason: MfaReason;
+}): Promise<MfaFlowResult> =>
+  startMfaFlow({
+    // Every method may verify: the flow keeps the active ones this platform
+    // runs, and never plans a setup.
+    request: {
+      kind: 'verifyOrEnroll',
+      methods: [...METHOD_COST_RANKING],
+      verifyWith: [...METHOD_COST_RANKING],
+      verifyOnly: true,
+    },
+    reason,
+    ...clientOptions,
+    // One adapter per flow: it keeps the flow's own verification token.
+    controller: createSocialLoginControllerAdapter(),
+  });
+
+/**
  * The MFA kit for features and settings.
  *
  * - `verifyOrEnroll`: makes sure `methods` are set up, then, when
@@ -54,11 +109,14 @@ const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
  * the screens), and lint rejects it outside this folder.
  * - `enroll`: sets up one method, for example from settings. No intro, no
  * verification after.
+ * - `verifyForSocialLogin`: social-login wallet recovery, before the wallet
+ * is unlocked. Verifies with a method the profile already has; never
+ * enrolls.
  * - `credentials`: the profile's methods, as last fetched from the server.
  *
  * @returns The kit's entry points and the credential list.
  */
 export const useMfa = () => {
   const credentials = useSelector(selectEnrolledCredentials);
-  return { credentials, verifyOrEnroll, enroll };
+  return { credentials, verifyOrEnroll, enroll, verifyForSocialLogin };
 };

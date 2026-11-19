@@ -10,7 +10,7 @@ import type { Position as SocialPosition } from '@metamask/social-controllers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import { areAddressesEqual } from '../../../../util/address';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { resolveSocialProfileId } from '../../../../util/social/getSocialProfileId';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getLinkedEvmAddress } from '../../../../selectors/profileController';
@@ -104,7 +104,6 @@ export const postPerpsPositionToFeed = ({
   openComposer({
     position: socialPosition,
     entryPoint: 'perps',
-    openFeedAfterPost: true,
   });
 };
 
@@ -118,32 +117,29 @@ export interface UsePerpsCanPostPositionResult {
 }
 
 export const usePerpsCanPostPosition = (): UsePerpsCanPostPositionResult => {
-  const isPerpsSocialEnabled = usePerpsSocialEnabled();
-  const isSocialLeaderboardEnabled = useSelector(
-    selectSocialLeaderboardEnabled,
-  );
+  const isSocialFeedAvailable = usePerpsSocialEnabled();
   const isSignedIn = useSelector(selectIsSignedIn);
   const accountAddress = useSelector(selectSelectedInternalAccountByScope)(
     PERPS_ACCOUNT_SCOPE,
   )?.address;
   const { profile: socialProfile, fetchAndUpdateProfile } =
     useProfileController();
-  const isSocialFeedAvailable =
-    isPerpsSocialEnabled && isSocialLeaderboardEnabled;
   const shouldLookUpProfile =
     isSocialFeedAvailable && isSignedIn && socialProfile === undefined;
 
   const { data: lookedUpProfileId } = useQuery({
     queryKey: [...PERPS_SHARE_SOCIAL_PROFILE_QUERY_KEY, isSignedIn],
     queryFn: async () => {
-      const sessionProfile =
-        await Engine.context.AuthenticationController.getSessionProfile();
-      if (!sessionProfile?.profileId) {
+      // A failed session lookup must reject so it is not cached as "no profile".
+      const profileId = resolveSocialProfileId(
+        await Engine.context.AuthenticationController.getSessionProfile(),
+      );
+      if (!profileId) {
         return null;
       }
       try {
-        await fetchAndUpdateProfile(sessionProfile.profileId);
-        return sessionProfile.profileId;
+        await fetchAndUpdateProfile(profileId);
+        return profileId;
       } catch (error) {
         if (isProfileNotFoundError(error)) {
           return null;

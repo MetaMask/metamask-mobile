@@ -37,6 +37,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock('../../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 const spotItem: FeedSpotItem = {
   id: 'spot-1',
   type: 'spot',

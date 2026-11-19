@@ -1,5 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
-import { DEFAULT_FILTERS, DEFAULT_TAB_FILTER_STATE } from './filterDefaults';
+import {
+  DEFAULT_FILTERS,
+  DEFAULT_LEADERBOARD_FILTERS,
+  DEFAULT_TAB_FILTER_STATE,
+} from './filterDefaults';
 import { resolveNetworkForType } from './networkOptions';
 import { mapFiltersToApiParams } from './mapFiltersToApiParams';
 import type { SocialFilterApiParams, SocialShellFilters } from './types';
@@ -11,10 +15,8 @@ const cloneFilters = (filters: SocialShellFilters): SocialShellFilters => ({
   volume24h: { ...filters.volume24h },
 });
 
-const rangesEqual = (
-  a: SocialShellFilters['marketCap'],
-  b: SocialShellFilters['marketCap'],
-) => a.min === b.min && a.max === b.max;
+const getDefaultFilters = (tab: SocialShellTab): SocialShellFilters =>
+  tab === 'leaderboard' ? DEFAULT_LEADERBOARD_FILTERS : DEFAULT_FILTERS;
 
 /**
  * Compares only the fields a tab can edit, so the leaderboard's chip-owned
@@ -27,20 +29,22 @@ const tabFiltersEqual = (
 ): boolean => {
   const cohortA = a.traderCohort === 'verified' ? 'all' : a.traderCohort;
   const cohortB = b.traderCohort === 'verified' ? 'all' : b.traderCohort;
-  if ((tab !== 'leaderboard' && a.type !== b.type) || cohortA !== cohortB) {
+  if (tab !== 'leaderboard' && a.type !== b.type) {
     return false;
   }
-  // Positions is a Trending section. Other tabs keep the default and must
-  // not light their icon if a leftover value is still on the model.
-  if (tab === 'trending' && a.positionStatus !== b.positionStatus) {
+  // Leaderboard has no Positions section. The other tabs do.
+  if (tab !== 'leaderboard' && a.positionStatus !== b.positionStatus) {
     return false;
   }
   if (tab === 'leaderboard') {
+    if (cohortA !== cohortB) {
+      return false;
+    }
     return a.timeframe === b.timeframe;
   }
-  // Verification and 24h volume are hidden until the API can honor them, so
-  // leftover values must not light the filter icon.
-  return rangesEqual(a.marketCap, b.marketCap);
+  // Market cap, trader cohort, verification, and 24h volume are hidden on
+  // these tabs, so leftover values must not light the filter icon.
+  return true;
 };
 
 export interface UseSocialShellFiltersResult {
@@ -117,7 +121,7 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     if (!openTab) {
       return;
     }
-    const resetFilters = cloneFilters(DEFAULT_FILTERS);
+    const resetFilters = cloneFilters(getDefaultFilters(openTab));
     if (openTab === 'leaderboard') {
       resetFilters.type = draft.type;
     }
@@ -136,7 +140,7 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
 
   const clearAppliedFilters = useCallback((tab: SocialShellTab) => {
     setApplied((prev) => {
-      const resetFilters = cloneFilters(DEFAULT_FILTERS);
+      const resetFilters = cloneFilters(getDefaultFilters(tab));
       if (tab === 'leaderboard') {
         resetFilters.type = prev.leaderboard.type;
       }
@@ -160,7 +164,7 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
 
   const hasActiveFilters = useCallback(
     (tab: SocialShellTab) =>
-      !tabFiltersEqual(tab, applied[tab], DEFAULT_FILTERS),
+      !tabFiltersEqual(tab, applied[tab], getDefaultFilters(tab)),
     [applied],
   );
 

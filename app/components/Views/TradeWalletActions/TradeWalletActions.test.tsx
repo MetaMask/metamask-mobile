@@ -152,11 +152,13 @@ jest.mock('../../UI/Perps/selectors/perpsController', () => {
     selectIsFirstTimePerpsUser: jest.fn(),
     selectPerpsMode: jest.fn(() => MockedPerpsMode.Lite),
     selectPerpsLastViewedMarketSymbol: jest.fn(() => 'BTC'),
+    selectPerpsWatchlistMarkets: jest.fn(() => []),
   };
 });
 
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(),
+  selectPerpsWatchlistEnabledFlag: jest.fn(() => true),
 }));
 
 const mockHasCompletedPerpsModeSelection = jest.fn(() =>
@@ -173,10 +175,12 @@ jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
   default: () => null,
 }));
 
-jest.mock('../../UI/PredictNext', () => ({
-  ...jest.requireActual('../../UI/PredictNext'),
-  selectPredictAvailability: jest.fn(),
-}));
+// Mock the selector's own module: a factory spreading the PredictNext entry
+// point re-enters it mid-load through its import cycle with confirmations.
+jest.mock(
+  '../../UI/PredictNext/availability/selectPredictAvailability',
+  () => ({ selectPredictAvailability: jest.fn() }),
+);
 
 jest.mock('../../UI/Earn/selectors/eligibility', () => ({
   selectIsEarnSectionEligible: jest.fn(),
@@ -389,25 +393,30 @@ jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
 }));
 
+// AppConstants is a default export, so the override must keep the module's
+// default; spreading the module itself hides every real constant.
 jest.mock('../../../core/AppConstants', () => {
-  const actual = jest.requireActual('../../../core/AppConstants');
+  const actual = jest.requireActual('../../../core/AppConstants').default;
 
   return {
-    ...actual,
-    SWAPS: {
-      ACTIVE: true,
-    },
-    BUNDLE_IDS: {
-      ANDROID: 'io.metamask',
-      IOS: '1438144202',
-    },
-    MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
-    WALLET_CONNECT: {
-      PROJECT_ID: 'test-project-id',
-    },
-    BRIDGE: {
-      ACTIVE: true,
-      URL: 'https://bridge.metamask.io',
+    __esModule: true,
+    default: {
+      ...actual,
+      SWAPS: {
+        ACTIVE: true,
+      },
+      BUNDLE_IDS: {
+        ANDROID: 'io.metamask',
+        IOS: '1438144202',
+      },
+      MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+      WALLET_CONNECT: {
+        PROJECT_ID: 'test-project-id',
+      },
+      BRIDGE: {
+        ACTIVE: true,
+        URL: 'https://bridge.metamask.io',
+      },
     },
   };
 });
@@ -1406,6 +1415,11 @@ describe('TradeWalletActions', () => {
   });
 
   describe('action navigation', () => {
+    // Press-to-destination stays here. TradeWalletActions navigates only after
+    // a Reanimated exit callback and requestAnimationFrame. Component-view
+    // tests do not flush that callback, so the Perps route probe never mounts.
+    // WalletActions.view.test.tsx covers the same Pro header targets with real
+    // Redux state.
     it('calls goToSwaps after dismissing RootModalFlow when Swap is pressed', async () => {
       const { getByTestId } = renderScreen(
         TradeWalletActions,

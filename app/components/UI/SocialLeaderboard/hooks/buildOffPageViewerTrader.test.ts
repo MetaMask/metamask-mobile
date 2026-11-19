@@ -110,7 +110,7 @@ describe('buildOffPageViewerTrader', () => {
 
     expect(result.trader.pnlValue).toBe(20);
     expect(result.trader.percentageChange).toBe(0);
-    expect(result.omitPercentage).toBe(true);
+    expect(result.omitPercentage).toBe(false);
   });
 
   it('uses the global roi when several chains are requested', () => {
@@ -205,7 +205,7 @@ describe('buildOffPageViewerTrader', () => {
     expect(result.trader.pnlValue).toBe(0);
   });
 
-  it('hides the percent when pnl exists and roi does not', () => {
+  it('shows 0% instead of hiding the percent when pnl exists and roi does not', () => {
     const result = buildOffPageViewerTrader({
       identity,
       live: liveProfile({
@@ -216,8 +216,21 @@ describe('buildOffPageViewerTrader', () => {
       chains: ALL_CHAINS,
     });
 
-    expect(result.omitPercentage).toBe(true);
+    expect(result.omitPercentage).toBe(false);
+    expect(result.trader.percentageChange).toBe(0);
     expect(result.trader.pnlValue).toBe(-0.59);
+  });
+
+  it('copies the live X handle onto the pinned card', () => {
+    const result = buildOffPageViewerTrader({
+      identity,
+      live: liveProfile({ socialHandles: { twitter: '@wen' } }),
+      sort: 'pnl',
+      timeframe: '7d',
+      chains: ALL_CHAINS,
+    });
+
+    expect(result.trader.xHandle).toBe('wen');
   });
 
   it('uses the live fox url', () => {

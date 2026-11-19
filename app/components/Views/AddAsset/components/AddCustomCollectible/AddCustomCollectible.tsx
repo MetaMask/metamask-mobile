@@ -52,6 +52,10 @@ const getTokenIdError = (id: string): string => {
   return '';
 };
 
+const getNetworkClientId = (
+  networkClientId: string | null,
+): string | undefined => networkClientId ?? undefined;
+
 // --- Hook: smart contract validation ---
 
 function useSmartContractCheck(
@@ -81,7 +85,7 @@ function useSmartContractCheck(
         const isContract = await isSmartContractAddress(
           trimmed,
           chainId,
-          networkClientId ?? undefined,
+          getNetworkClientId(networkClientId),
         );
         if (cancelled) return;
         setIsSmartContract(Boolean(isContract));
@@ -90,9 +94,8 @@ function useSmartContractCheck(
           error as Error,
           'useSmartContractCheck: failed to validate address',
         );
-      } finally {
-        if (!cancelled) setIsLoading(false);
       }
+      if (!cancelled) setIsLoading(false);
     };
 
     run();
@@ -221,7 +224,7 @@ const AddCustomCollectible = ({
     if (addressError || tokenIdError || isValidating) return;
 
     setIsSubmitting(true);
-    try {
+    const submitCollectible = async (): Promise<void> => {
       if (!(await validateCollectibleOwnership())) return;
 
       // TODO: Replace "any" with type
@@ -248,9 +251,9 @@ const AddCustomCollectible = ({
       }
 
       navigation.goBack();
-    } finally {
-      setIsSubmitting(false);
-    }
+    };
+
+    await submitCollectible().finally(() => setIsSubmitting(false));
   }, [
     addressError,
     tokenIdError,

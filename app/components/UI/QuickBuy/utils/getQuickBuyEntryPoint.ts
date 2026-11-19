@@ -11,6 +11,9 @@ export function getQuickBuyEntryPoint(
       return MetaMetricsSwapsEventSource.TokenView;
     case 'leaderboard':
     case 'trader_feed':
+    case 'social_trending':
+    case 'social_following':
+    case 'social_live_trades':
       return MetaMetricsSwapsEventSource.FollowTradingFeedScreen;
     case 'notification':
     case 'profile_position':

@@ -1,193 +1,158 @@
-import { MOCK_RECURRING_OPEN_ORDER } from './recurringOrders.mock';
+import {
+  createMockPrepareRecurringDelegationResponse,
+  MOCK_RECURRING_EXPIRED_ORDER,
+  MOCK_RECURRING_OPEN_ORDER,
+  MOCK_RECURRING_PREPARE_QUERY,
+} from './recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from './recurringSwaps.mock';
 import {
   parseCancelRecurringOrderResponse,
-  parseGetRecurringOrdersResponse,
+  parseCreateRecurringOrderResponse,
+  parseGetRecurringOrderResponse,
   parseListRecurringOrdersResponse,
   parseListRecurringSwapsResponse,
+  parsePrepareRecurringDelegationResponse,
   parseRecurringApiError,
 } from './recurringOrders.validators';
-import { RecurringSwapStatus } from './recurringOrders.types';
+import {
+  RecurringOrderState,
+  RecurringSwapStatus,
+} from './recurringOrders.types';
 
 describe('recurring order validators', () => {
-  it('parses a complete orders page', () => {
-    const response = {
-      orders: [MOCK_RECURRING_OPEN_ORDER],
+  const apiOrder = MOCK_RECURRING_OPEN_ORDER;
+
+  it('accepts the Swagger order page unchanged', () => {
+    expect(
+      parseListRecurringOrdersResponse({
+        orders: [apiOrder],
+        endCursor: 'next-page',
+        hasNextPage: true,
+        total: 1,
+      }),
+    ).toStrictEqual({
+      orders: [apiOrder],
       endCursor: 'next-page',
       hasNextPage: true,
-    };
-
-    const result = parseListRecurringOrdersResponse(response);
-
-    expect(result).toStrictEqual(response);
+      total: 1,
+    });
   });
 
-  it('rejects an order without canonical fill data', () => {
-    const { fillData: _fillData, ...orderWithoutFillData } =
-      MOCK_RECURRING_OPEN_ORDER;
+  it('keeps an expired cancellation canonical', () => {
+    const response = parseGetRecurringOrderResponse({
+      order: MOCK_RECURRING_EXPIRED_ORDER,
+    });
 
+    expect(response.order).toStrictEqual(MOCK_RECURRING_EXPIRED_ORDER);
+    expect(response.order).toMatchObject({
+      state: RecurringOrderState.Cancelled,
+      cancelReason: 'delegation_expired',
+    });
+  });
+
+  it('keeps documented attempt metadata canonical', () => {
+    const orderWithoutIssues = {
+      ...apiOrder,
+      warnings: [],
+      fillData: {
+        ...apiOrder.fillData,
+        skippedCount: 0,
+        failedCount: 0,
+      },
+    };
+    const orderWithSkippedAttempt = {
+      ...orderWithoutIssues,
+      fillData: {
+        ...orderWithoutIssues.fillData,
+        skippedCount: 1,
+      },
+    };
+
+    expect(
+      parseGetRecurringOrderResponse({ order: orderWithoutIssues }).order,
+    ).toStrictEqual(orderWithoutIssues);
+    expect(
+      parseGetRecurringOrderResponse({ order: orderWithSkippedAttempt }).order,
+    ).toStrictEqual(orderWithSkippedAttempt);
+  });
+
+  it.each([
+    parseCreateRecurringOrderResponse,
+    parseCancelRecurringOrderResponse,
+  ])('accepts an order envelope unchanged', (parseEnvelope) => {
+    expect(parseEnvelope({ order: apiOrder })).toStrictEqual({
+      order: apiOrder,
+    });
+  });
+
+  it('accepts the documented limit-order delegation response', () => {
+    const response = createMockPrepareRecurringDelegationResponse(
+      MOCK_RECURRING_PREPARE_QUERY,
+    );
+
+    expect(parsePrepareRecurringDelegationResponse(response)).toStrictEqual(
+      response,
+    );
+  });
+
+  it('requires uppercase USD in the API order', () => {
+    expect(() =>
+      parseGetRecurringOrderResponse({
+        order: {
+          ...apiOrder,
+          priceRange: {
+            ...apiOrder.priceRange,
+            currency: 'usd',
+          },
+        },
+      }),
+    ).toThrow('Invalid recurring order response');
+  });
+
+  it('requires documented order pagination metadata', () => {
     expect(() =>
       parseListRecurringOrdersResponse({
-        orders: [orderWithoutFillData],
+        orders: [apiOrder],
         hasNextPage: false,
       }),
     ).toThrow('Invalid recurring orders response');
   });
 
-  it('accepts aggregate values without cross-field validation', () => {
-    const response = {
-      orders: [
-        {
-          ...MOCK_RECURRING_OPEN_ORDER,
-          fillData: {
-            src: { amount: '1' },
-            dest: { amount: '0' },
-            count: 0,
-          },
-        },
-      ],
-      hasNextPage: false,
-    };
+  it.each(['not_enough_gas', 'execution_failed'] as const)(
+    'accepts the documented %s skip reason',
+    (skipReason) => {
+      const apiSwap = {
+        ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
+        status: RecurringSwapStatus.Skipped,
+        skipReason,
+      };
 
-    expect(parseListRecurringOrdersResponse(response)).toStrictEqual(response);
-  });
+      expect(
+        parseListRecurringSwapsResponse({
+          swaps: [apiSwap],
+          hasNextPage: false,
+          total: 1,
+        }).swaps[0],
+      ).toMatchObject({
+        status: RecurringSwapStatus.Skipped,
+        skipReason,
+      });
+    },
+  );
 
-  it('accepts pagination metadata without cross-field validation', () => {
-    const response = {
-      orders: [],
-      hasNextPage: true,
-    };
-
-    expect(parseListRecurringOrdersResponse(response)).toStrictEqual(response);
-  });
-
-  it('accepts unknown response states and warnings', () => {
-    const response = {
-      orders: [
-        {
-          ...MOCK_RECURRING_OPEN_ORDER,
-          state: 'future-order-state',
-          warnings: ['future-warning'],
-        },
-      ],
-      hasNextPage: false,
-    };
-
-    expect(parseListRecurringOrdersResponse(response)).toStrictEqual(response);
-  });
-
-  it('accepts schedule values for the backend to validate', () => {
-    const response = {
-      orders: [
-        {
-          ...MOCK_RECURRING_OPEN_ORDER,
-          schedule: {
-            every: 6,
-            unit: 'month' as const,
-            repeatCount: 2,
-          },
-        },
-      ],
-      hasNextPage: false,
-    };
-
-    expect(parseListRecurringOrdersResponse(response)).toStrictEqual(response);
-  });
-
-  it('accepts price bounds for the backend to validate', () => {
-    const response = {
-      orders: [
-        {
-          ...MOCK_RECURRING_OPEN_ORDER,
-          priceRange: {
-            side: 'dest' as const,
-            currency: 'USD' as const,
-            min: '2200',
-            max: '1800',
-          },
-        },
-      ],
-      hasNextPage: false,
-    };
-
-    expect(parseListRecurringOrdersResponse(response)).toStrictEqual(response);
-  });
-
-  it('accepts skipped swaps without cross-field validation', () => {
-    const skippedSwapWithoutReason = {
-      ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
-      status: RecurringSwapStatus.Skipped,
-    };
-    const response = {
-      swaps: [skippedSwapWithoutReason],
-      hasNextPage: false,
-    };
-
-    expect(parseListRecurringSwapsResponse(response)).toStrictEqual(response);
-  });
-
-  it('allows filled swaps without a skip reason', () => {
-    const response = {
-      swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
-      hasNextPage: false,
-    };
-
-    const result = parseListRecurringSwapsResponse(response);
-
-    expect(result).toStrictEqual(response);
-  });
-
-  it('accepts unknown response statuses and reasons', () => {
-    const response = {
-      swaps: [
-        {
-          ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
-          status: 'future-swap-status',
-          skipReason: 'future-skip-reason',
-        },
-      ],
-      hasNextPage: false,
-    };
-
-    expect(parseListRecurringSwapsResponse(response)).toStrictEqual(response);
-  });
-
-  it('accepts optional swap fields without cross-field validation', () => {
-    const response = {
-      swaps: [
-        {
-          ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
-          failureReason: 'Unexpected failure',
-        },
-      ],
-      hasNextPage: false,
-    };
-
-    expect(parseListRecurringSwapsResponse(response)).toStrictEqual(response);
-  });
-
-  it('allows failed swaps to include a failure reason', () => {
-    const failedSwap = MOCK_RECURRING_OPEN_ORDER_SWAPS.find(
-      ({ status }) => status === RecurringSwapStatus.Failed,
-    );
-    if (!failedSwap) {
-      throw new Error('Expected a failed recurring swap fixture');
-    }
-
-    expect(
+  it('rejects undocumented swap statuses', () => {
+    expect(() =>
       parseListRecurringSwapsResponse({
-        swaps: [failedSwap],
+        swaps: [
+          {
+            ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
+            status: 'future-status',
+          },
+        ],
         hasNextPage: false,
-      }).swaps[0].failureReason,
-    ).toBe(failedSwap.failureReason);
-  });
-
-  it('accepts a structurally valid cancellation response', () => {
-    const response = {
-      order: MOCK_RECURRING_OPEN_ORDER,
-    };
-
-    expect(parseCancelRecurringOrderResponse(response)).toStrictEqual(response);
+        total: 1,
+      }),
+    ).toThrow('Invalid recurring swaps response');
   });
 
   it('accepts unknown API error codes', () => {
@@ -197,16 +162,5 @@ describe('recurring order validators', () => {
     };
 
     expect(parseRecurringApiError(response)).toStrictEqual(response);
-  });
-
-  it('parses the normalized Mobile pagination shape', () => {
-    const response = {
-      orders: [MOCK_RECURRING_OPEN_ORDER],
-      nextCursor: 'next-page',
-    };
-
-    const result = parseGetRecurringOrdersResponse(response);
-
-    expect(result).toStrictEqual(response);
   });
 });

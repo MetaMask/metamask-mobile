@@ -4,6 +4,7 @@ import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
+import { createPerpsCrossMarginSummaryMock } from '../../UI/Perps/__mocks__/perpsHooksMocks';
 import { SectionRefreshHandle } from './types';
 import {
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
@@ -13,12 +14,6 @@ import {
   PERPS_SECTION_PRIORITY_VARIANTS,
   PerpsSectionPriorityVariant,
 } from './abTestConfig';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_VARIANTS,
-  SocialV1Variant,
-} from '../../../constants/socialV1';
-
 interface MockABTestResult {
   variant: unknown;
   variantName: string;
@@ -41,13 +36,6 @@ const defaultUseABTestImplementation = (key: string): MockABTestResult => {
       variant:
         PERPS_SECTION_PRIORITY_VARIANTS[PerpsSectionPriorityVariant.Control],
       variantName: PerpsSectionPriorityVariant.Control,
-      isActive: true,
-    };
-  }
-  if (key === SOCIAL_V1_AB_KEY) {
-    return {
-      variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Control],
-      variantName: SocialV1Variant.Control,
       isActive: true,
     };
   }
@@ -78,7 +66,6 @@ jest.mock('../../../hooks', () => ({
   useABTest: (...args: unknown[]) =>
     Reflect.apply(mockUseABTest, undefined, args),
 }));
-
 const mockUseOwnedNfts = jest.fn((): Nft[] => []);
 jest.mock('./Sections/NFTs/hooks', () => ({
   useOwnedNfts: () => mockUseOwnedNfts(),
@@ -125,6 +112,14 @@ jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     candles: { subscribe: jest.fn(() => jest.fn()) },
   })),
+}));
+
+const mockUsePerpsCrossMarginSummary = jest.fn(() =>
+  createPerpsCrossMarginSummaryMock(),
+);
+
+jest.mock('../../UI/Perps/hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: () => mockUsePerpsCrossMarginSummary(),
 }));
 
 jest.mock('../../UI/Perps/hooks', () => ({
@@ -282,6 +277,12 @@ jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
   selectDeFiPositionsV2SectionEnabled: jest.fn(() => false),
 }));
 
+const mockHasSocialV1Access = jest.fn(() => false);
+jest.mock('../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual('../../../selectors/featureFlagController/socialV1'),
+  selectHasSocialV1Access: () => mockHasSocialV1Access(),
+}));
+
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
   selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
@@ -316,6 +317,23 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations', () => ({
     isPending: false,
   })),
 }));
+
+const mockHomepagePerpsHomeSlot = jest.fn();
+jest.mock('./Sections/Perpetuals/HomepagePerpsHomeSlot', () => {
+  const ReactLib = jest.requireActual('react');
+  const { default: ActualHomepagePerpsHomeSlot } = jest.requireActual(
+    './Sections/Perpetuals/HomepagePerpsHomeSlot',
+  );
+  return {
+    __esModule: true,
+    default: ReactLib.forwardRef(
+      (props: Record<string, unknown>, ref: unknown) => {
+        mockHomepagePerpsHomeSlot(props);
+        return <ActualHomepagePerpsHomeSlot {...props} ref={ref} />;
+      },
+    ),
+  };
+});
 
 const mockBalanceBreakdownSection = jest.fn();
 jest.mock('./Sections/BalanceBreakdown', () => {
@@ -470,6 +488,7 @@ describe('Homepage', () => {
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
+    mockHasSocialV1Access.mockReturnValue(false);
     mockUseSocialTopTradersEligible.mockReturnValue(false);
     mockHardwareTier = 'MID';
     mockNetworkTier = 'WIFI';
@@ -487,6 +506,19 @@ describe('Homepage', () => {
     expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
       isEnabled: true,
     });
+  });
+
+  it('passes the device tiers to the Perps section', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockHomepagePerpsHomeSlot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deviceCapability: expect.objectContaining({
+          hardwareTier: 'MID',
+          networkTier: 'WIFI',
+        }),
+      }),
+    );
   });
 
   it('keeps the shared provider inert when Perps is disabled', () => {
@@ -739,16 +771,7 @@ describe('Homepage', () => {
 
     it('moves Top Traders before the Tokens and Perps sections for eligible users', () => {
       mockUseSocialTopTradersEligible.mockReturnValue(true);
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === SOCIAL_V1_AB_KEY) {
-          return {
-            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
-            variantName: SocialV1Variant.Treatment,
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImplementation(key);
-      });
+      mockHasSocialV1Access.mockReturnValue(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
@@ -767,16 +790,7 @@ describe('Homepage', () => {
       mockHardwareTier = 'MID';
       mockNetworkTier = null;
       mockUseSocialTopTradersEligible.mockReturnValue(true);
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === SOCIAL_V1_AB_KEY) {
-          return {
-            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
-            variantName: SocialV1Variant.Treatment,
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImplementation(key);
-      });
+      mockHasSocialV1Access.mockReturnValue(true);
 
       const rendered = renderWithProvider(<Homepage />, {
         state: stateWithPreferences,
@@ -796,16 +810,7 @@ describe('Homepage', () => {
     it('uses cached eligibility without profile hydration on low-end devices', () => {
       mockHardwareTier = 'LOW';
       mockUseSocialTopTradersEligible.mockReturnValue(true);
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === SOCIAL_V1_AB_KEY) {
-          return {
-            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
-            variantName: SocialV1Variant.Treatment,
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImplementation(key);
-      });
+      mockHasSocialV1Access.mockReturnValue(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
@@ -815,16 +820,7 @@ describe('Homepage', () => {
     it('skips profile hydration on low-end devices while network capability is unknown', () => {
       mockHardwareTier = 'LOW';
       mockNetworkTier = null;
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === SOCIAL_V1_AB_KEY) {
-          return {
-            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
-            variantName: SocialV1Variant.Treatment,
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImplementation(key);
-      });
+      mockHasSocialV1Access.mockReturnValue(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
@@ -834,16 +830,7 @@ describe('Homepage', () => {
     it('skips profile hydration on mid-tier devices while network capability is unresolved', () => {
       mockHardwareTier = 'MID';
       mockNetworkTier = null;
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === SOCIAL_V1_AB_KEY) {
-          return {
-            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
-            variantName: SocialV1Variant.Treatment,
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImplementation(key);
-      });
+      mockHasSocialV1Access.mockReturnValue(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
@@ -851,16 +838,7 @@ describe('Homepage', () => {
     });
 
     it('keeps Top Traders below Tokens for ineligible Social V1 treatment users', () => {
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === SOCIAL_V1_AB_KEY) {
-          return {
-            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
-            variantName: SocialV1Variant.Treatment,
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImplementation(key);
-      });
+      mockHasSocialV1Access.mockReturnValue(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
@@ -880,6 +858,7 @@ describe('Homepage', () => {
         ),
       );
       perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+      mockHasSocialV1Access.mockReturnValue(true);
       mockUseABTest.mockImplementation((key: string) => {
         if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
           return {
@@ -888,13 +867,6 @@ describe('Homepage', () => {
                 PerpsSectionPriorityVariant.Treatment
               ],
             variantName: PerpsSectionPriorityVariant.Treatment,
-            isActive: true,
-          };
-        }
-        if (key === SOCIAL_V1_AB_KEY) {
-          return {
-            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
-            variantName: SocialV1Variant.Treatment,
             isActive: true,
           };
         }
@@ -1045,7 +1017,7 @@ describe('Homepage', () => {
       expect(sectionIndexOf('tokens')).toBe(1);
     });
 
-    it('keeps Tokens first when NetInfo resolves after the initial render', () => {
+    it('moves Perps above Tokens when NetInfo resolves after the initial render', () => {
       mockNetworkTier = null;
       setVariant(PerpsSectionPriorityVariant.Treatment);
       perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
@@ -1059,8 +1031,8 @@ describe('Homepage', () => {
       mockNetworkTier = 'WIFI';
       rendered.rerender(<Homepage />);
 
-      expect(latestSectionIndexOf('tokens')).toBe(0);
-      expect(latestSectionIndexOf('perps')).toBe(1);
+      expect(latestSectionIndexOf('perps')).toBe(0);
+      expect(latestSectionIndexOf('tokens')).toBe(1);
     });
 
     it('does not mount Perps before primary content is ready after offline recovery', () => {

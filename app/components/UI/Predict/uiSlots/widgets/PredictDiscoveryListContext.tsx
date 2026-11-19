@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type { PredictEmptyStateCtaName } from '../../../../Views/Homepage/abTestConfig';
-import type { PredictionsTrendingHeaderTestId } from '../../../../Views/Homepage/Sections/Predictions/predictionsSectionTypes';
+import type { PredictionsTrendingHeaderTestId } from '../../homeSection/predictionsSectionTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export interface PredictDiscoveryListHost {

@@ -12,5 +12,15 @@
  */
 export const PERPS_ANALYTICS_PREVIOUS_LEVERAGE = 'previous_leverage' as const;
 
+/**
+ * Order-size denomination on Perp Transaction Considered and Place Order taps.
+ * Segment property: `size_unit`. Values are `usd` or `coin`.
+ *
+ * Not on `PERPS_EVENT_PROPERTY` in `@metamask/perps-controller` 22.0.0 (or core
+ * `eventNames.ts` on main). Call sites use this key until that export exists;
+ * switch to the controller constant in the same change that consumes it.
+ */
+export const PERPS_ANALYTICS_SIZE_UNIT = 'size_unit' as const;
+
 /** Perps market-details `source` when opened from Explore omni-search. */
 export const PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH = 'explore_search' as const;

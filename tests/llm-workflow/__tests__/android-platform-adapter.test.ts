@@ -40,9 +40,6 @@ jest.mock('../android/metro-watch-attach', () => ({
   openAndroidMetroDeepLink: jest.fn(),
   cleanupAndroidMetro: jest.fn(),
 }));
-jest.mock('../android/snapshot-backend', () => ({
-  wrapAndroidSnapshotBackend: jest.fn((backend: DeviceBackend) => backend),
-}));
 
 const mockValidate = jest.mocked(validateAndroidPrerequisites);
 const resumedActivity =
@@ -132,7 +129,6 @@ describe('AndroidPlatformAdapter', () => {
       createBackend,
       createDriver,
       isAdbBackend: jest.fn().mockReturnValue(expectedAdbBackend),
-      wrapBackend: (rawBackend) => rawBackend,
       runDeviceAdb: runReadinessAdb,
       now,
       delay: jest.fn(async (milliseconds: number) => {
@@ -156,17 +152,11 @@ describe('AndroidPlatformAdapter', () => {
     expect(backend.closeApp).not.toHaveBeenCalled();
   });
 
-  it('preserves ADB backend identity while passing the wrapper to driver and cleanup', async () => {
-    const wrappedBackend = {
-      ...backend,
-      closeApp: jest.fn().mockResolvedValue(undefined),
-    } as DeviceBackend;
-    const wrapBackend = jest.fn().mockReturnValue(wrappedBackend);
+  it('passes the device-mcp ADB backend unchanged to the driver and cleanup', async () => {
     const adapter = new AndroidPlatformAdapter({
       createBackend,
       createDriver,
       isAdbBackend: jest.fn().mockReturnValue(true),
-      wrapBackend,
       runDeviceAdb: runReadinessAdb,
       now,
       delay: jest.fn(),
@@ -177,9 +167,10 @@ describe('AndroidPlatformAdapter', () => {
     await adapter.launch(resolved);
     await adapter.cleanup();
 
-    expect(wrapBackend).toHaveBeenCalledWith(backend, 'emulator-5554');
-    expect(createDriver).toHaveBeenCalledWith(wrappedBackend, 'io.metamask');
-    expect(wrappedBackend.closeApp).toHaveBeenCalledWith('io.metamask');
+    expect(createBackend).toHaveBeenCalledWith('emulator-5554', 'android');
+    expect(createDriver).toHaveBeenCalledWith(backend, 'io.metamask');
+    expect(createDriver.mock.calls[0][0]).toBe(backend);
+    expect(backend.closeApp).toHaveBeenCalledWith('io.metamask');
   });
 
   it('identifies the ADB backend by its public kind discriminator', () => {
@@ -596,7 +587,6 @@ describe('AndroidPlatformAdapter', () => {
       createBackend,
       createDriver,
       isAdbBackend: jest.fn().mockReturnValue(true),
-      wrapBackend: (rawBackend) => rawBackend,
       runDeviceAdb: runReadinessAdb,
       now,
       delay,

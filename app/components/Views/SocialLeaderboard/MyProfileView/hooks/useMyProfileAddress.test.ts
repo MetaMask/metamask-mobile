@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
+import { useSocialProfileId } from '../../../../../util/social/useSocialProfileId';
 import { useMyProfileAddress } from './useMyProfileAddress';
 import type { MySocialProfile } from './useMyProfile';
 
@@ -10,14 +10,11 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
-jest.mock(
-  '../../../../../util/notifications/hooks/useSessionProfileId',
-  () => ({
-    useSessionProfileId: jest.fn(),
-  }),
-);
+jest.mock('../../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: jest.fn(),
+}));
 
-const mockUseSessionProfileId = jest.mocked(useSessionProfileId);
+const mockUseSocialProfileId = jest.mocked(useSocialProfileId);
 
 const profile = (
   overrides: Partial<MySocialProfile> = {},
@@ -41,7 +38,7 @@ describe('useMyProfileAddress', () => {
   });
 
   it('returns undefined while the session profile is loading', () => {
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: undefined,
       isLoading: true,
     });
@@ -52,7 +49,7 @@ describe('useMyProfileAddress', () => {
   });
 
   it('returns the session profileId once loaded', () => {
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: 'session-profile-id',
       isLoading: false,
     });
@@ -63,7 +60,7 @@ describe('useMyProfileAddress', () => {
   });
 
   it('falls back to the linked wallet when the session profile is missing', () => {
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: undefined,
       isLoading: false,
     });

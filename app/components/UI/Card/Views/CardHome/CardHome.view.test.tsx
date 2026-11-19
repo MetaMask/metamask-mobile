@@ -1,6 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -127,15 +126,40 @@ const immersveApplePayEnabled = {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          immersveAppleWalletInAppProvisioningEnabled: {
+          cardImmersveProvisioning: {
             enabled: true,
             minimumVersion: '0.0.0',
+            countries: {
+              NZ: {
+                enabled: true,
+                ios: {
+                  apple_wallet: { enabled: true, minimumVersion: '0.0.0' },
+                },
+              },
+            },
           },
         },
       },
     },
   },
 } satisfies DeepPartial<RootState>;
+
+/**
+ * Immersve Apple Pay resolves only when the card's country matches an enabled
+ * leaf. The instructions row is the fallback when that leaf is on and the
+ * card still cannot be added.
+ */
+const immersveProvisioningCountry = {
+  cardHomeData: {
+    walletProvisioning: {
+      eligible: true,
+      cardholderName: 'Test User',
+      lastFour: '1234',
+      network: 'MASTERCARD' as const,
+      countryCode: 'NZ',
+    },
+  },
+};
 
 describe('CardHome', () => {
   afterEach(() => {
@@ -193,6 +217,7 @@ describe('CardHome', () => {
               backgroundState: {
                 ...immersveApplePayEnabled.engine.backgroundState,
                 CardController: {
+                  ...immersveProvisioningCountry,
                   activeProviderId: 'immersve',
                   providerData: {
                     immersve: { location: 'international' },
@@ -274,6 +299,7 @@ describe('CardHome', () => {
               backgroundState: {
                 ...immersveApplePayEnabled.engine.backgroundState,
                 CardController: {
+                  ...immersveProvisioningCountry,
                   activeProviderId: 'immersve',
                   providerData: {
                     immersve: { location: 'international' },
@@ -519,28 +545,16 @@ describe('CardHome', () => {
       });
     });
 
-    it('calls CardController.logout when logout is confirmed', async () => {
-      const logoutMock = Engine.context.CardController.logout as jest.Mock;
-      logoutMock.mockClear();
+    it('does not show logout on Card home after the footer loads', async () => {
+      const { findByTestId, queryByTestId } = renderCardHomeView();
 
-      let confirmHandler: (() => Promise<void>) | undefined;
-      jest
-        .spyOn(Alert, 'alert')
-        .mockImplementationOnce((_title, _msg, buttons) => {
-          const destructive = buttons?.find((b) => b.style === 'destructive');
-          confirmHandler = destructive?.onPress as () => Promise<void>;
-        });
+      expect(
+        await findByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+      ).toBeOnTheScreen();
 
-      const { getByTestId } = renderCardHomeView();
-
-      fireEvent.press(getByTestId(CardHomeSelectors.LOGOUT_ITEM));
-
-      expect(Alert.alert).toHaveBeenCalled();
-      await act(async () => {
-        await confirmHandler?.();
-      });
-
-      expect(logoutMock).toHaveBeenCalled();
+      expect(
+        queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -555,13 +569,41 @@ describe('CardHome', () => {
         extraRoutes: [{ name: Routes.MONEY.MODALS.ROOT }],
       });
 
-      fireEvent.press(
-        await findByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      );
+      fireEvent.press(await findByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
       expect(
         await findByTestId(getRouteProbeTestId(Routes.MONEY.MODALS.ROOT)),
       ).toBeOnTheScreen();
+    });
+
+    it('hides the Link card CTA while the card still needs enabling', async () => {
+      mockGetCapabilities.mockReturnValue({
+        ...defaultCapabilities,
+        supportsMoneyAccountLinking: true,
+      });
+      const { findByTestId, queryByTestId } = renderCardHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...linkableCardHomeOverrides.engine.backgroundState,
+              CardController: {
+                cardHomeData: {
+                  ...linkableCardHomeOverrides.engine.backgroundState
+                    .CardController.cardHomeData,
+                  actions: [{ type: 'enable_card' }],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await findByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
+      ).not.toBeOnTheScreen();
     });
   });
 });

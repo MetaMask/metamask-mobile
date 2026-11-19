@@ -4,7 +4,6 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -29,6 +28,8 @@ import {
   selectCampaignById,
   selectReferralCode,
 } from '../../../../reducers/rewards/selectors';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PredictThePitchCampaignLeaderboardRouteParams = {
@@ -40,6 +41,7 @@ export const PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD_VIEW_TEST_IDS = {
 } as const;
 
 const PredictThePitchCampaignLeaderboardView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -103,7 +105,9 @@ const PredictThePitchCampaignLeaderboardView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings(
             'rewards.predict_the_pitch_campaign.leaderboard_title',
           )}

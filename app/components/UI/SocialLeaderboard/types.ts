@@ -13,7 +13,13 @@ import type { SocialTraderCohort } from '../../Views/SocialLeaderboard/shell/fil
  * A ranked trader with its display metric precomputed, so the value stays
  * stable across renders and the memoised row can skip unchanged traders.
  */
-export type RankedTrader = TopTrader & { displayMetric: TraderRowMetric };
+export type RankedTrader = TopTrader & {
+  displayMetric: TraderRowMetric;
+  /** Replaces the row's ROI line. Holder rows put their P&L here. */
+  secondaryMetric?: TraderRowMetric;
+  /** Tag beside the username. Perp holder rows put their leverage and side here. */
+  nameTag?: TraderRowMetric;
+};
 
 /** Ranking options the host controls. The component renders no filter UI. */
 export interface SocialLeaderboardFilters {

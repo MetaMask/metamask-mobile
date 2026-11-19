@@ -8,7 +8,6 @@ import React, {
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonsAlignment,
@@ -29,6 +28,9 @@ import {
   type SortOptionId,
   type SortDirection,
 } from '@metamask/perps-controller';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const DEFAULT_SORT_OPTION =
   MARKET_SORTING_CONFIG.SortOptions.find(
@@ -64,6 +66,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   onOptionSelect,
   testID,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [draftOptionId, setDraftOptionId] =
     useState<SortOptionId>(selectedOptionId);
@@ -149,14 +152,15 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
 
   return (
     <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: testID ? `${testID}-close` : undefined,
         }}
       >
         {strings('perps.sort.sort_by')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {MARKET_SORTING_CONFIG.SortOptions.map((option) => {
         const isSelected = draftOptionId === option.id;
         return (

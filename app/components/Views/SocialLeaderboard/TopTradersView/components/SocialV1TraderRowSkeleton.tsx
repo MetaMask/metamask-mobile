@@ -11,6 +11,8 @@ import {
 export interface SocialV1TraderRowSkeletonProps {
   /** Matches the taller leaderboard row that shows followers and ROI. */
   showLeaderboardDetails?: boolean;
+  /** Matches a row rendered without its rank column. */
+  showRankColumn?: boolean;
 }
 
 /**
@@ -19,6 +21,7 @@ export interface SocialV1TraderRowSkeletonProps {
  */
 const SocialV1TraderRowSkeleton: React.FC<SocialV1TraderRowSkeletonProps> = ({
   showLeaderboardDetails = false,
+  showRankColumn = true,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -39,8 +42,16 @@ const SocialV1TraderRowSkeleton: React.FC<SocialV1TraderRowSkeletonProps> = ({
         highlightColor={colors.background.subsection}
       >
         <Box style={tw.style('flex-row items-center')}>
-          <Box style={tw.style('w-6 h-4 rounded mr-3')} />
-          <Box style={tw.style('w-10 h-10 rounded-full mr-3')} />
+          {/* SkeletonPlaceholder reads `type` on every child, so a null child crashes it. */}
+          {[
+            ...(showRankColumn
+              ? [<Box key="rank" style={tw.style('w-6 h-4 rounded mr-3')} />]
+              : []),
+            <Box
+              key="avatar"
+              style={tw.style('w-10 h-10 rounded-full mr-3')}
+            />,
+          ]}
           <Box style={tw.style('flex-1')}>
             <Box style={tw.style('w-24 h-4 rounded')} />
             {showLeaderboardDetails ? (

@@ -48,9 +48,15 @@ export const DEFAULT_FILTERS: SocialShellFilters = {
   volume24h: { ...VOLUME_24H_RANGE },
 };
 
+/** Default filter state for the Social V1 Leaderboard tab. */
+export const DEFAULT_LEADERBOARD_FILTERS: SocialShellFilters = {
+  ...DEFAULT_FILTERS,
+  timeframe: '30d',
+};
+
 /**
- * Seed per-tab filter state. Every tab starts from the same defaults; the
- * sheet hides sections per tab but the underlying model is shared in shape.
+ * Seed per-tab filter state. The sheet hides sections per tab but the
+ * underlying model is shared in shape.
  */
 export const DEFAULT_TAB_FILTER_STATE: Record<
   SocialShellTab,
@@ -59,7 +65,7 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
   trending: { ...DEFAULT_FILTERS },
   following: { ...DEFAULT_FILTERS },
   live: { ...DEFAULT_FILTERS },
-  leaderboard: { ...DEFAULT_FILTERS },
+  leaderboard: { ...DEFAULT_LEADERBOARD_FILTERS },
 };
 
 export const TYPE_OPTIONS: SocialFilterType[] = ['all', 'tokens', 'perps'];

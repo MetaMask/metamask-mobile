@@ -15,9 +15,12 @@ concurrency:
   group: update-release-changelog-${{ github.ref }}
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
   validate-branch:
     name: Validate release branch format
+    permissions: {}
     runs-on: ubuntu-latest
     outputs:
       is-valid-release: ${{ steps.check.outputs.is-valid }}

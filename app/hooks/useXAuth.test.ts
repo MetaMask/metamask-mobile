@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import type { XProfile } from '@metamask/profile-controller';
+import {
+  ProfileApiErrorCode,
+  ProfileServiceError,
+  type XProfile,
+} from '@metamask/profile-controller';
 import { useXAuth } from './useXAuth';
 import {
   connectX,
@@ -22,10 +26,13 @@ jest.mock('../core/XAuthService', () => {
   class MockXAuthError extends Error {
     type: string;
 
-    constructor(type: string, message: string) {
+    constructor(type: string, message: string, options?: { cause?: unknown }) {
       super(message);
       this.type = type;
       this.name = 'XAuthError';
+      if (options?.cause !== undefined) {
+        this.cause = options.cause;
+      }
     }
   }
 
@@ -133,7 +140,7 @@ describe('useXAuth', () => {
           }),
       );
 
-      let connectPromise!: Promise<void>;
+      let connectPromise!: Promise<XProfile | undefined>;
       act(() => {
         connectPromise = result.current.connect();
       });
@@ -149,6 +156,38 @@ describe('useXAuth', () => {
       expect(result.current.isConnecting).toBe(false);
       expect(result.current.connectError).toBeUndefined();
       expect(mockConnectX).toHaveBeenCalledTimes(2);
+    });
+
+    it('resolves with the X profile on success', async () => {
+      mockConnectX.mockResolvedValueOnce(X_PROFILE);
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        const res = await result.current.connect();
+        expect(res).toStrictEqual(X_PROFILE);
+      });
+
+      expect(result.current.connectError).toBeUndefined();
+      expect(result.current.isConnecting).toBe(false);
+    });
+
+    it('resolves undefined and records the error on failure', async () => {
+      mockConnectX.mockRejectedValueOnce(
+        new XAuthError(XAuthErrorType.BackendError, 'boom'),
+      );
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        const res = await result.current.connect();
+        expect(res).toBeUndefined();
+      });
+
+      expect(result.current.connectError?.type).toBe(
+        XAuthErrorType.BackendError,
+      );
+      expect(result.current.isConnecting).toBe(false);
     });
 
     it('records the XAuthError when connectX rejects', async () => {
@@ -274,6 +313,23 @@ describe('useXAuth', () => {
 
       expect(result.current.disconnectError).toBe(failure);
       expect(result.current.isDisconnecting).toBe(false);
+    });
+
+    it('keeps the profile API error as the cause of the wrapped XAuthError', async () => {
+      const serviceError = new ProfileServiceError(
+        401,
+        'ProfileService: failed to disconnect X account: 401',
+        { code: ProfileApiErrorCode.AuthTokenExpired },
+      );
+      mockDisconnectXAccount.mockRejectedValue(serviceError);
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        await result.current.disconnect();
+      });
+
+      expect(result.current.disconnectError?.cause).toBe(serviceError);
     });
 
     it('wraps unknown disconnectXAccount errors in a network-failure XAuthError', async () => {

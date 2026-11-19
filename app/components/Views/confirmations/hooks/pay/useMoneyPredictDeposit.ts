@@ -10,6 +10,8 @@ import {
   PayWithOption,
 } from '../../components/confirm/confirm-component';
 import Logger from '../../../../../util/Logger';
+import { useMoneyAccountAvailability } from '../../../../UI/Money/hooks/useMoneyAccountAvailability';
+import { usePredictLegacyDeposit } from '../../../../UI/PredictNext';
 
 const LOG_TAG = '[MoneyPredictDeposit]';
 
@@ -19,8 +21,20 @@ export function useMoneyPredictDeposit() {
   );
   const { deposit: depositWithConfirmation } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
+  const { isAvailableNow: isPredictDepositAvailableNow } =
+    usePredictLegacyDeposit();
 
   const initiatePredictDeposit = useCallback(async () => {
+    // This is the legacy Polymarket deposit. Callers may run it after a delay
+    // (a rejected confirmation clearing, a sheet closing), so re-check that it
+    // is still the Active Venue's deposit before starting anything.
+    if (!isPredictDepositAvailableNow()) {
+      return;
+    }
+
+    assertMoneyAccountAccessible();
+
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.PREDICT.ROOT,
@@ -35,7 +49,12 @@ export function useMoneyPredictDeposit() {
         `${LOG_TAG} Predict deposit initiation failed`,
       );
     }
-  }, [depositWithConfirmation, navigateToConfirmation]);
+  }, [
+    assertMoneyAccountAccessible,
+    depositWithConfirmation,
+    isPredictDepositAvailableNow,
+    navigateToConfirmation,
+  ]);
 
   return {
     isEnabled: Boolean(

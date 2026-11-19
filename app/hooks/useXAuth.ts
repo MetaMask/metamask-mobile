@@ -38,7 +38,7 @@ export interface UseXAuth {
    * starts.
    */
   refreshError: XAuthError | undefined;
-  connect: () => Promise<void>;
+  connect: () => Promise<XProfile | undefined>;
   disconnect: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -48,7 +48,9 @@ const toXAuthError = (error: unknown): XAuthError => {
   if (error instanceof XAuthError) {
     return error;
   }
-  return new XAuthError(XAuthErrorType.NetworkFailure, getErrorMessage(error));
+  return new XAuthError(XAuthErrorType.NetworkFailure, getErrorMessage(error), {
+    cause: error,
+  });
 };
 
 /**
@@ -73,13 +75,14 @@ export const useXAuth = (): UseXAuth => {
     undefined,
   );
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (): Promise<XProfile | undefined> => {
     setIsConnecting(true);
     setConnectError(undefined);
     try {
-      await connectX();
+      return await connectX();
     } catch (error_) {
       setConnectError(toXAuthError(error_));
+      return undefined;
     } finally {
       setIsConnecting(false);
     }

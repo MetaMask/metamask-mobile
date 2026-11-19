@@ -1,9 +1,10 @@
 import { useInfiniteQuery } from '@metamask/react-data-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { focusManager, useQueryClient } from '@tanstack/react-query';
+import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { MOCK_RECURRING_OPEN_ORDER } from '../api/recurringOrders.mock';
 import {
-  type GetRecurringOrdersResponse,
+  type ListRecurringOrdersResponse,
   RecurringOrderState,
 } from '../api/recurringOrders.types';
 import { useRecurringOrders } from './useRecurringOrders';
@@ -13,23 +14,30 @@ jest.mock('@metamask/react-data-query', () => ({
 }));
 
 jest.mock('@tanstack/react-query', () => ({
+  focusManager: {
+    isFocused: jest.fn(),
+  },
   useQueryClient: jest.fn(),
 }));
 
 const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
+const mockIsFocused = jest.mocked(focusManager.isFocused);
 const mockUseQueryClient = jest.mocked(useQueryClient);
 const mockInvalidateQueries = jest.fn();
 const messengerCall = Engine.controllerMessenger.call as jest.Mock;
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 const OPEN_STATES = [RecurringOrderState.Open];
+const REFETCH_INTERVAL = 20_000;
 
 function createPage(
   orderId: string,
-  nextCursor?: string,
-): GetRecurringOrdersResponse {
+  endCursor?: string,
+): ListRecurringOrdersResponse {
   return {
     orders: [{ ...MOCK_RECURRING_OPEN_ORDER, id: orderId }],
-    nextCursor,
+    endCursor,
+    hasNextPage: Boolean(endCursor),
+    total: 1,
   };
 }
 
@@ -40,7 +48,7 @@ function createQueryResult({
   hasNextPage = false,
   isFetchingNextPage = false,
 }: {
-  pages?: GetRecurringOrdersResponse[];
+  pages?: ListRecurringOrdersResponse[];
   isLoading?: boolean;
   isError?: boolean;
   hasNextPage?: boolean;
@@ -61,6 +69,7 @@ describe('useRecurringOrders', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockInvalidateQueries.mockResolvedValue(undefined);
+    mockIsFocused.mockReturnValue(true);
     mockUseQueryClient.mockReturnValue({
       invalidateQueries: mockInvalidateQueries,
     } as never);
@@ -71,11 +80,13 @@ describe('useRecurringOrders', () => {
   it('uses a cursor-free service query key', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
 
-    useRecurringOrders({
-      walletAddress: WALLET_ADDRESS.toUpperCase(),
-      orderStates: OPEN_STATES,
-      chainId: 'eip155:1',
-    });
+    renderHook(() =>
+      useRecurringOrders({
+        walletAddress: WALLET_ADDRESS.toUpperCase(),
+        orderStates: OPEN_STATES,
+        chainId: 'eip155:1',
+      }),
+    );
 
     expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -100,12 +111,14 @@ describe('useRecurringOrders', () => {
     });
     mockUseInfiniteQuery.mockReturnValue(queryResult as never);
 
-    const result = useRecurringOrders({
-      walletAddress: WALLET_ADDRESS,
-      orderStates: OPEN_STATES,
-    });
+    const { result } = renderHook(() =>
+      useRecurringOrders({
+        walletAddress: WALLET_ADDRESS,
+        orderStates: OPEN_STATES,
+      }),
+    );
 
-    expect(result.orders.map(({ id }) => id)).toStrictEqual([
+    expect(result.current.orders.map(({ id }) => id)).toStrictEqual([
       'order-1',
       'order-2',
     ]);
@@ -113,10 +126,12 @@ describe('useRecurringOrders', () => {
 
   it('returns the next page cursor from the service response', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
-    useRecurringOrders({
-      walletAddress: WALLET_ADDRESS,
-      orderStates: OPEN_STATES,
-    });
+    renderHook(() =>
+      useRecurringOrders({
+        walletAddress: WALLET_ADDRESS,
+        orderStates: OPEN_STATES,
+      }),
+    );
     const options = mockUseInfiniteQuery.mock.calls[0][0];
 
     const nextCursor = options.getNextPageParam?.(
@@ -132,9 +147,11 @@ describe('useRecurringOrders', () => {
   it('disables the query without a wallet', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
 
-    useRecurringOrders({
-      orderStates: OPEN_STATES,
-    });
+    renderHook(() =>
+      useRecurringOrders({
+        orderStates: OPEN_STATES,
+      }),
+    );
 
     expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
@@ -144,11 +161,13 @@ describe('useRecurringOrders', () => {
   it('disables the query while inactive', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
 
-    useRecurringOrders({
-      walletAddress: WALLET_ADDRESS,
-      orderStates: OPEN_STATES,
-      enabled: false,
-    });
+    renderHook(() =>
+      useRecurringOrders({
+        walletAddress: WALLET_ADDRESS,
+        orderStates: OPEN_STATES,
+        enabled: false,
+      }),
+    );
 
     expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
@@ -158,12 +177,14 @@ describe('useRecurringOrders', () => {
   it('requests the next page when one is available', () => {
     const queryResult = createQueryResult({ hasNextPage: true });
     mockUseInfiniteQuery.mockReturnValue(queryResult as never);
-    const result = useRecurringOrders({
-      walletAddress: WALLET_ADDRESS,
-      orderStates: OPEN_STATES,
-    });
+    const { result } = renderHook(() =>
+      useRecurringOrders({
+        walletAddress: WALLET_ADDRESS,
+        orderStates: OPEN_STATES,
+      }),
+    );
 
-    result.fetchNextPage();
+    result.current.fetchNextPage();
 
     expect(queryResult.fetchNextPage).toHaveBeenCalledWith({
       cancelRefetch: false,
@@ -182,14 +203,16 @@ describe('useRecurringOrders', () => {
       callOrder.push('ui-start');
     });
 
-    const result = useRecurringOrders({
-      walletAddress: WALLET_ADDRESS,
-      orderStates: OPEN_STATES,
-      chainId: 'eip155:1',
-    });
+    const { result } = renderHook(() =>
+      useRecurringOrders({
+        walletAddress: WALLET_ADDRESS,
+        orderStates: OPEN_STATES,
+        chainId: 'eip155:1',
+      }),
+    );
     const queryKey = mockUseInfiniteQuery.mock.calls[0][0].queryKey;
 
-    await result.refresh();
+    await result.current.refresh();
 
     expect(messengerCall).toHaveBeenCalledWith(
       'RecurringOrdersDataService:invalidateQueries',
@@ -225,12 +248,14 @@ describe('useRecurringOrders', () => {
         isFetchingNextPage,
       });
       mockUseInfiniteQuery.mockReturnValue(queryResult as never);
-      const result = useRecurringOrders({
-        walletAddress: WALLET_ADDRESS,
-        orderStates: OPEN_STATES,
-      });
+      const { result } = renderHook(() =>
+        useRecurringOrders({
+          walletAddress: WALLET_ADDRESS,
+          orderStates: OPEN_STATES,
+        }),
+      );
 
-      result.fetchNextPage();
+      result.current.fetchNextPage();
 
       expect(queryResult.fetchNextPage).not.toHaveBeenCalled();
     },
@@ -245,17 +270,114 @@ describe('useRecurringOrders', () => {
     });
     mockUseInfiniteQuery.mockReturnValue(queryResult as never);
 
-    const result = useRecurringOrders({
-      walletAddress: WALLET_ADDRESS,
-      orderStates: OPEN_STATES,
-    });
+    const { result } = renderHook(() =>
+      useRecurringOrders({
+        walletAddress: WALLET_ADDRESS,
+        orderStates: OPEN_STATES,
+      }),
+    );
 
-    expect(result).toMatchObject({
+    expect(result.current).toMatchObject({
       isLoading: true,
       isError: true,
       hasNextPage: true,
       isFetchingNextPage: true,
       refetch: queryResult.refetch,
+    });
+  });
+
+  describe('refetch interval', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('invalidates its exact query on every interval', () => {
+      renderHook(() =>
+        useRecurringOrders({
+          walletAddress: WALLET_ADDRESS,
+          orderStates: OPEN_STATES,
+          refetchInterval: REFETCH_INTERVAL,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(REFETCH_INTERVAL);
+      });
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        {
+          queryKey: mockUseInfiniteQuery.mock.calls[0][0].queryKey,
+          exact: true,
+        },
+        { cancelRefetch: false },
+      );
+    });
+
+    it.each([
+      {
+        reason: 'the query is disabled',
+        walletAddress: WALLET_ADDRESS,
+        enabled: false,
+      },
+      {
+        reason: 'there is no wallet',
+        walletAddress: undefined,
+        enabled: true,
+      },
+    ])('does not poll while $reason', ({ walletAddress, enabled }) => {
+      renderHook(() =>
+        useRecurringOrders({
+          walletAddress,
+          orderStates: OPEN_STATES,
+          enabled,
+          refetchInterval: REFETCH_INTERVAL,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(REFETCH_INTERVAL * 2);
+      });
+
+      expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('skips intervals while the app is backgrounded', () => {
+      mockIsFocused.mockReturnValue(false);
+      renderHook(() =>
+        useRecurringOrders({
+          walletAddress: WALLET_ADDRESS,
+          orderStates: OPEN_STATES,
+          refetchInterval: REFETCH_INTERVAL,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(REFETCH_INTERVAL);
+      });
+
+      expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it('stops polling after unmount', () => {
+      const { unmount } = renderHook(() =>
+        useRecurringOrders({
+          walletAddress: WALLET_ADDRESS,
+          orderStates: OPEN_STATES,
+          refetchInterval: REFETCH_INTERVAL,
+        }),
+      );
+
+      unmount();
+      act(() => {
+        jest.advanceTimersByTime(REFETCH_INTERVAL);
+      });
+
+      expect(mockInvalidateQueries).not.toHaveBeenCalled();
     });
   });
 });

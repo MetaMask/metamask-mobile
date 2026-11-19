@@ -34,6 +34,7 @@ const FIAT_TEST_FUNDING_SOURCE_ORDER_ID = 'fiat-test-funding-source';
 const TRANSACTION_TYPE_TO_RAMP_SURFACE: Partial<
   Record<TransactionType, RampSurface>
 > = {
+  [TransactionType.membershipSubscription]: RAMP_SURFACE.MONEY_ACCOUNT,
   [TransactionType.moneyAccountDeposit]: RAMP_SURFACE.MONEY_ACCOUNT,
   [TransactionType.perpsDeposit]: RAMP_SURFACE.PERPS,
   [TransactionType.predictDeposit]: RAMP_SURFACE.PREDICTION,

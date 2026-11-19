@@ -54,12 +54,8 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     providers: [xlmProvider],
     providerConfigs: {
       [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(tron)
       [TRX_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// END:ONLY_INCLUDE_IF
     },
   });
 

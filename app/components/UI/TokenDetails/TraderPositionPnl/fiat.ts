@@ -1,5 +1,4 @@
-import I18n from '../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import { getFormatters } from '../../../hooks/useFormatters';
 
 export interface UsdToFiatRate {
   currency: string;
@@ -48,34 +47,12 @@ export function convertUsdToFiat(
   };
 }
 
-/**
- * Formats a fiat amount with no forced plus sign. Used for position value.
- */
-export function formatFiatAmount(
-  value: number,
-  currency: string,
-  locale: string = I18n.locale,
-): string {
-  return getIntlNumberFormatter(locale, {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    currencyDisplay: 'narrowSymbol',
-    signDisplay: 'auto',
-  }).format(value);
+export function formatFiatAmount(value: number, currency: string): string {
+  return getFormatters().formatCurrency(value, currency.toUpperCase());
 }
 
-/**
- * Formats a fiat amount with an explicit sign for non-zero PnL.
- */
-export function formatFiat(
-  value: number,
-  currency: string,
-  locale: string = I18n.locale,
-): string {
-  return getIntlNumberFormatter(locale, {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    currencyDisplay: 'narrowSymbol',
+export function formatFiat(value: number, currency: string): string {
+  return getFormatters().formatCurrency(value, currency.toUpperCase(), {
     signDisplay: 'exceptZero',
-  }).format(value);
+  });
 }

@@ -12,10 +12,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
-import {
-  selectEvmNetworkConfigurationsByChainId,
-  selectIsAllNetworks,
-} from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import {
   selectShowTestNetworks,
   selectTokenNetworkFilter,
@@ -26,7 +23,6 @@ import {
   ButtonSize,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   ButtonsAlignment,
   type BottomSheetFooterButtonProps,
   type BottomSheetRef,
@@ -70,9 +66,7 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   selectIsEvmNetworkSelected,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectNonEvmNetworkConfigurationsByChainId,
-  ///: END:ONLY_INCLUDE_IF
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -84,12 +78,15 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFla
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../util/address';
 import NetworkSelectorList from './NetworkSelectorList';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 interface NetworkSelectorProps {
   route: RouteProp<RootStackParamList, 'NetworkSelector'>;
 }
 
 const NetworkSelector = ({ route }: NetworkSelectorProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   trace({
     name: TraceName.NetworkSwitch,
     op: TraceOperation.NetworkSwitch,
@@ -105,7 +102,6 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const styles = createStyles(colors);
   const sheetRef = useRef<ReusableModalRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
   const isGasFeesSponsoredNetworkEnabled = useSelector(
@@ -122,11 +118,9 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
@@ -318,21 +312,16 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
     return chainId === selectedChainId;
   };
 
-  const {
-    onSetRpcTarget,
-    onNetworkChange,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    onNonEvmNetworkChange,
-    ///: END:ONLY_INCLUDE_IF
-  } = useSwitchNetworks({
-    domainIsConnectedDapp,
-    origin,
-    selectedChainId,
-    selectedNetworkName,
-    dismissModal: () => sheetRef.current?.dismissModal(),
-    closeRpcModal,
-    parentSpan,
-  });
+  const { onSetRpcTarget, onNetworkChange, onNonEvmNetworkChange } =
+    useSwitchNetworks({
+      domainIsConnectedDapp,
+      origin,
+      selectedChainId,
+      selectedNetworkName,
+      dismissModal: () => sheetRef.current?.dismissModal(),
+      closeRpcModal,
+      parentSpan,
+    });
 
   useEffect(() => {
     endTrace({ name: TraceName.NetworkSwitch });
@@ -384,7 +373,6 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       const { PreferencesController } = Engine.context;
       PreferencesController.setTokenNetworkFilter(
         getTokenNetworkFilterAfterNetworkDelete(
-          isAllNetwork,
           tokenNetworkFilter,
           chainId,
         ) as Record<string, boolean>,
@@ -434,9 +422,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
         >
           <NetworkSelectorList
             networkConfigurations={networkConfigurations}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             nonEvmNetworkConfigurations={nonEvmNetworkConfigurations}
-            ///: END:ONLY_INCLUDE_IF
             searchString={searchString}
             showTestNetworks={showTestNetworks}
             isSendFlow={isSendFlow}
@@ -453,9 +439,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
             isNetworkSelected={isNetworkSelected}
             onSetRpcTarget={onSetRpcTarget}
             onNetworkChange={onNetworkChange}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             onNonEvmNetworkChange={onNonEvmNetworkChange}
-            ///: END:ONLY_INCLUDE_IF
             openModal={openModal}
             openRpcModal={openRpcModal}
             onCancel={onCancel}
@@ -538,11 +522,11 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
 
         {showConfirmDeleteModal.isVisible ? (
           <BottomSheet ref={deleteModalSheetRef} onClose={closeDeleteModal}>
-            <BottomSheetHeader>
+            <BottomSheetHeaderGlass isGlass={isGlassHeader}>
               {strings('app_settings.delete')}{' '}
               {showConfirmDeleteModal.networkName}{' '}
               {strings('asset_details.network')}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <View style={styles.containerDeleteText}>
               <Text variant={TextVariant.BodyMd} style={styles.textCentred}>
                 {strings('app_settings.network_delete')}

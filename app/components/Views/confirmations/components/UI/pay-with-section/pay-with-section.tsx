@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Box,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -19,12 +20,13 @@ const PayWithSection = ({ config }: PayWithSectionProps) => {
     <Box twClassName="py-2" testID={testID}>
       {config.title ? (
         <Text
-          variant={TextVariant.BodyXs}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           testID={`${testID}-title`}
           twClassName="px-4 pb-2 tracking-wider"
         >
-          {config.title.toUpperCase()}
+          {config.title}
         </Text>
       ) : null}
       <Box testID={`${testID}-rows`}>

@@ -57,6 +57,53 @@ export interface SaveAlertFlowParams {
 
 export type SaveAlert = (params: SaveAlertFlowParams) => Promise<void>;
 
+const shouldAutoAddCreatedAlertToWatchlist = (
+  editingAlert: SaveAlertFlowParams['editingAlert'],
+  shouldAutoWatchlistOnCreate: boolean | undefined,
+): boolean | undefined => !editingAlert && shouldAutoWatchlistOnCreate;
+
+interface EditedAlertCacheUpdate {
+  alertId: string;
+  patch: AlertPatch;
+}
+
+const editedAlertCacheUpdate = (
+  editingAlert: SaveAlertFlowParams['editingAlert'],
+  patch: AlertPatch | undefined,
+): EditedAlertCacheUpdate | undefined => {
+  if (!editingAlert) {
+    return undefined;
+  }
+  if (!patch) {
+    return undefined;
+  }
+  return { alertId: editingAlert.id, patch };
+};
+
+const buildPriceAlertInteractionProperties = (
+  analyticsProperties: AlertAnalyticsProperties,
+  assetId: string,
+  displayTicker: string,
+  editingAlert: SaveAlertFlowParams['editingAlert'],
+): AlertAnalyticsProperties => ({
+  ...analyticsProperties,
+  asset_id: assetId,
+  token_symbol: displayTicker,
+  alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
+  ...(editingAlert
+    ? {
+        interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
+        alert_active: editingAlert.active,
+        prev_alert_value: editingAlert.threshold,
+        prev_alert_recurring: editingAlert.recurring,
+        prev_alert_active: editingAlert.active,
+      }
+    : {
+        interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
+        alert_active: true,
+      }),
+});
+
 const useAlertSaveFlow = ({
   assetId,
   displayTicker,
@@ -129,7 +176,12 @@ const useAlertSaveFlow = ({
       try {
         await submit();
 
-        if (!editingAlert && shouldAutoWatchlistOnCreate) {
+        if (
+          shouldAutoAddCreatedAlertToWatchlist(
+            editingAlert,
+            shouldAutoWatchlistOnCreate,
+          )
+        ) {
           const watchlistAnalyticsProperties = {
             source: WatchlistAnalytics.ADD_SOURCE.PRICE_ALERT_CREATION,
             asset_id: assetId,
@@ -144,32 +196,21 @@ const useAlertSaveFlow = ({
           );
         }
 
-        if (editingAlert && patch) {
-          patchAlertCache(editingAlert.id, patch);
+        const cacheUpdate = editedAlertCacheUpdate(editingAlert, patch);
+        if (cacheUpdate) {
+          patchAlertCache(cacheUpdate.alertId, cacheUpdate.patch);
         }
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-            .addProperties({
-              ...analyticsProperties,
-              asset_id: assetId,
-              token_symbol: displayTicker,
-              alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
-              ...(editingAlert
-                ? {
-                    interaction_type:
-                      PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
-                    alert_active: editingAlert.active,
-                    prev_alert_value: editingAlert.threshold,
-                    prev_alert_recurring: editingAlert.recurring,
-                    prev_alert_active: editingAlert.active,
-                  }
-                : {
-                    interaction_type:
-                      PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
-                    alert_active: true,
-                  }),
-            })
+            .addProperties(
+              buildPriceAlertInteractionProperties(
+                analyticsProperties,
+                assetId,
+                displayTicker,
+                editingAlert,
+              ),
+            )
             .build(),
         );
 

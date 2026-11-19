@@ -83,7 +83,6 @@ const ModalContent = ({
           >
             {btnLabelCancel}
           </Button>
-          <View style={styles.spacer} />
           <Button
             variant={ButtonVariant.Primary}
             isDisabled={hascheckBox ? !isChecked : false}

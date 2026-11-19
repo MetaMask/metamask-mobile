@@ -16,7 +16,7 @@ import { fontStyles } from '../../styles/common';
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     wrapper: {
-      padding: 15,
+      padding: 16,
       // TODO(wachunei): check if this can be removed without breaking anything
       // minHeight: Device.isIos() ? 55 : 100
     },
@@ -38,7 +38,7 @@ const createStyles = (colors: Theme['colors']) =>
     icon: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginRight: 15,
+      marginRight: 16,
     },
     body: {
       flex: 1,

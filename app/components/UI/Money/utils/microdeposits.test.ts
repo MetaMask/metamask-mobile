@@ -76,13 +76,22 @@ describe('microdeposits', () => {
 
       const display = microdepositDisplayInfo(row);
 
-      expect(display.label).toBe('Test Deposit');
+      expect(display.label).toBe('Verification deposit');
       expect(display.description).toBe('From CHASE');
-      expect(display.primaryAmount).toBe('+0.34 USD');
+      expect(display.fiatAmount).toBe('+$0.34');
+      expect(display.primaryAmount).toBe('');
       expect(display.isIncoming).toBe(true);
       expect(display.icon).toBe(IconName.Bank);
       expect(display.status).toBe('confirmed');
-      expect(display.showPrimaryAmount).toBe(true);
+      expect(display.showPrimaryAmount).toBeUndefined();
+    });
+
+    it('formats a non-USD currency code as a signed dollar amount', () => {
+      const [row] = mapMicrodeposits([
+        deposit({ amount: '0.34', currency_code: 'BRL' }),
+      ]);
+
+      expect(microdepositDisplayInfo(row).fiatAmount).toBe('+$0.34');
     });
 
     it('falls back to the generic bank description without a counterparty', () => {
@@ -97,9 +106,8 @@ describe('microdeposits', () => {
       const [zero] = mapMicrodeposits([deposit({ amount: '0' })]);
       const [garbage] = mapMicrodeposits([deposit({ amount: 'nope' })]);
 
-      expect(microdepositDisplayInfo(zero).showPrimaryAmount).toBe(false);
-      expect(microdepositDisplayInfo(zero).primaryAmount).toBe('');
-      expect(microdepositDisplayInfo(garbage).showPrimaryAmount).toBe(false);
+      expect(microdepositDisplayInfo(zero).fiatAmount).toBe('');
+      expect(microdepositDisplayInfo(garbage).fiatAmount).toBe('');
     });
   });
 });

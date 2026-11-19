@@ -2,11 +2,7 @@ import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import {
-  Box,
-  HeaderStandard,
-  Skeleton,
-} from '@metamask/design-system-react-native';
+import { Box, Skeleton } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -23,6 +19,8 @@ import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import ForcedDarkThemeProvider from '../components/ForcedDarkThemeProvider/ForcedDarkThemeProvider';
 import VipTierRow from '../components/Vip/VipTierRow';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
   ROOT: 'rewards-vip-tiers-view',
@@ -32,6 +30,7 @@ export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
 } as const;
 
 const RewardsVipTiersViewContent: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -76,7 +75,9 @@ const RewardsVipTiersViewContent: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.vip.tiers_title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
