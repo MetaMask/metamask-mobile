@@ -229,6 +229,33 @@ describe('SDKDisconnectModal', () => {
       expect(SDKConnectV2.disconnect).not.toHaveBeenCalled();
     });
 
+    it.each([
+      ['a single session', { channelId: 'channel1' }],
+      [
+        'the last account of a session',
+        { account: '0x123', channelId: 'channel1', accountsLength: 1 },
+      ],
+    ])(
+      'stays on the sheet when disconnecting %s fails',
+      async (_label, routeParams) => {
+        mockRemoveChannel.mockResolvedValueOnce(false);
+        mockRouteParams = routeParams;
+
+        const { getByText, findByText } = render(<SDKDisconnectModal />);
+
+        fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
+
+        expect(
+          await findByText('sdk_disconnect_modal.disconnect_failed'),
+        ).toBeTruthy();
+        expect(mockRemoveChannel).toHaveBeenCalledWith({
+          channelId: 'channel1',
+          sendTerminate: true,
+        });
+        expect(mockNavigate).not.toHaveBeenCalled();
+      },
+    );
+
     it('handles V2 disconnect errors gracefully', async () => {
       (SDKConnectV2.disconnect as jest.Mock).mockRejectedValueOnce(
         new Error('Disconnect failed'),
