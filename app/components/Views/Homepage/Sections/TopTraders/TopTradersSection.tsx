@@ -14,7 +14,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { FlatList, View, type ViewToken } from 'react-native';
+import {
+  FlatList,
+  View,
+  type ListRenderItemInfo,
+  type ViewToken,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -83,6 +88,86 @@ interface TopTradersSectionProps {
   chains?: string[];
 }
 
+interface TopTradersCarouselProps {
+  showSkeletons: boolean;
+  carouselData: TopTradersCarouselItem[];
+  onViewMore: () => void;
+  onFollowPress: (traderId: string) => Promise<void>;
+  onTraderPress: (traderId: string, traderName: string) => void;
+  onViewableItemsChanged: (info: {
+    viewableItems: ViewToken<TopTradersCarouselItem>[];
+  }) => void;
+}
+
+const TopTradersCarousel = ({
+  showSkeletons,
+  carouselData,
+  onViewMore,
+  onFollowPress,
+  onTraderPress,
+  onViewableItemsChanged,
+}: TopTradersCarouselProps) => {
+  const tw = useTailwind();
+
+  const renderCarouselItem = useCallback(
+    ({ item }: ListRenderItemInfo<TopTradersCarouselItem>) => {
+      if (item.kind === 'view_more') {
+        return (
+          <ViewMoreCard
+            onPress={onViewMore}
+            twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] self-stretch`}
+            testID={TopTradersSectionSelectorsIDs.VIEW_MORE_CARD}
+          />
+        );
+      }
+
+      return (
+        <TopTraderCard
+          trader={item.trader}
+          onFollowPress={onFollowPress}
+          onTraderPress={onTraderPress}
+        />
+      );
+    },
+    [onFollowPress, onTraderPress, onViewMore],
+  );
+
+  const keyExtractor = useCallback(
+    (item: TopTradersCarouselItem) =>
+      item.kind === 'view_more' ? 'view-more' : item.trader.id,
+    [],
+  );
+
+  if (showSkeletons) {
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+        testID={TopTradersSectionSelectorsIDs.CAROUSEL}
+      >
+        {SKELETON_KEYS.map((key) => (
+          <TopTraderCardSkeleton key={key} />
+        ))}
+      </ScrollView>
+    );
+  }
+
+  return (
+    <FlatList
+      horizontal
+      data={carouselData}
+      renderItem={renderCarouselItem}
+      keyExtractor={keyExtractor}
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
+      testID={TopTradersSectionSelectorsIDs.CAROUSEL}
+      viewabilityConfig={viewabilityConfig}
+      onViewableItemsChanged={onViewableItemsChanged}
+    />
+  );
+};
+
 /**
  * TopTradersSection -- Social leaderboard entry point on the homepage.
  *
@@ -104,7 +189,6 @@ const TopTradersSection = forwardRef<
   const sectionViewRef = useRef<View>(null);
   const { followWithSetup } = useFollowWithNotificationSetup();
   const navigation = useNavigation<AppNavigationProp>();
-  const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
   const [visibleTraderIds, setVisibleTraderIds] = useState<string[]>([]);
@@ -328,35 +412,6 @@ const TopTradersSection = forwardRef<
     },
   ).current;
 
-  const renderCarouselItem = useCallback(
-    ({ item }: { item: TopTradersCarouselItem }) => {
-      if (item.kind === 'view_more') {
-        return (
-          <ViewMoreCard
-            onPress={handleViewAll}
-            twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] self-stretch`}
-            testID={TopTradersSectionSelectorsIDs.VIEW_MORE_CARD}
-          />
-        );
-      }
-
-      return (
-        <TopTraderCard
-          trader={item.trader}
-          onFollowPress={handleFollowPress}
-          onTraderPress={handleTraderPress}
-        />
-      );
-    },
-    [handleFollowPress, handleTraderPress, handleViewAll],
-  );
-
-  const keyExtractor = useCallback(
-    (item: TopTradersCarouselItem) =>
-      item.kind === 'view_more' ? 'view-more' : item.trader.id,
-    [],
-  );
-
   if (!isEnabled || isEmpty) {
     return null;
   }
@@ -407,30 +462,14 @@ const TopTradersSection = forwardRef<
             )}
           />
           <Box paddingTop={3}>
-            {showSkeletons ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={tw.style('px-4 gap-3')}
-                testID={TopTradersSectionSelectorsIDs.CAROUSEL}
-              >
-                {SKELETON_KEYS.map((key) => (
-                  <TopTraderCardSkeleton key={key} />
-                ))}
-              </ScrollView>
-            ) : (
-              <FlatList
-                horizontal
-                data={carouselData}
-                renderItem={renderCarouselItem}
-                keyExtractor={keyExtractor}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-                testID={TopTradersSectionSelectorsIDs.CAROUSEL}
-                viewabilityConfig={viewabilityConfig}
-                onViewableItemsChanged={onViewableItemsChanged}
-              />
-            )}
+            <TopTradersCarousel
+              showSkeletons={showSkeletons}
+              carouselData={carouselData}
+              onViewMore={handleViewAll}
+              onFollowPress={handleFollowPress}
+              onTraderPress={handleTraderPress}
+              onViewableItemsChanged={onViewableItemsChanged}
+            />
           </Box>
         </Box>
       </View>

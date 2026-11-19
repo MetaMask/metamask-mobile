@@ -168,18 +168,28 @@ export const NextPredictHomeSection = forwardRef<
     isEmpty: itemCount === 0,
     itemCount,
   });
+  let contentStateForTrace: 'error' | undefined;
+  if (
+    showsDiscovery &&
+    discovery.status === 'hidden' &&
+    discovery.reason === 'error'
+  ) {
+    contentStateForTrace = 'error';
+  }
+  let cacheState: 'cold' | 'unknown' | 'warm' = 'unknown';
+  if (isLoading) {
+    cacheState = 'cold';
+  } else if (hasPositions) {
+    cacheState = 'warm';
+  }
+
   useSectionPerformance({
     sectionId: HomeSectionNames.PREDICT,
     contentReady: !isLoading,
     isEmpty: !isLoading && itemCount === 0,
     demandStarted: true,
-    cacheState: isLoading ? 'cold' : hasPositions ? 'warm' : 'unknown',
-    contentStateForTrace:
-      showsDiscovery &&
-      discovery.status === 'hidden' &&
-      discovery.reason === 'error'
-        ? 'error'
-        : undefined,
+    cacheState,
+    contentStateForTrace,
     isLoading,
   });
   const onLayout = useCallback(() => {
