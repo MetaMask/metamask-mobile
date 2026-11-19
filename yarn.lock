@@ -25586,23 +25586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bplist-parser@npm:0.3.1":
-  version: 0.3.1
-  resolution: "bplist-parser@npm:0.3.1"
-  dependencies:
-    big-integer: "npm:1.6.x"
-  checksum: 10/e6877e2711750f0484d9885837918eb9e0d9d4dc01906fc6318d5868c2a4ceeabd7e0ce5d3f1fe0a1666d7065968f59d2693eb004dde6b16b8f280ce01b92ab6
-  languageName: node
-  linkType: hard
-
-"bplist-parser@npm:0.5.0, bplist-parser@npm:^0.x":
-  version: 0.5.0
-  resolution: "bplist-parser@npm:0.5.0"
-  checksum: 10/a85e5b9fc299aa25e3fd4aff67fd55542470f49fd32455d430bdfadf74e834dfe52c6fb97d83d54fb75d6b334197ce639066bbe7c41478554742f8c54e8320c7
-  languageName: node
-  linkType: hard
-
-"bplist-parser@npm:^0.3.1":
+"bplist-parser@npm:0.3.2":
   version: 0.3.2
   resolution: "bplist-parser@npm:0.3.2"
   dependencies:

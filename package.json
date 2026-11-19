@@ -200,6 +200,7 @@
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
     "@appium/schema/json-schema": "^0.4.0",
+    "bplist-parser": "0.3.2",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
     "d3-color": "3.1.0",
