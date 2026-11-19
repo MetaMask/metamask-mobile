@@ -11,6 +11,7 @@ import {
   type FlashListProps,
   type FlashListRef,
   type ListRenderItemInfo,
+  type ViewToken,
 } from '@shopify/flash-list';
 import React, {
   createContext,
@@ -142,6 +143,43 @@ type SocialFeedFlashListProps = FlashListProps<SocialFeedListItem> & {
   ref?: React.Ref<FlashListRef<SocialFeedListItem>>;
 };
 
+/**
+ * A GIF only decodes while its row is actually on screen. FlashList's draw
+ * distance keeps extra rows mounted; those must not hold decoded frames.
+ */
+const GIF_VIEWABILITY_CONFIG = {
+  itemVisiblePercentThreshold: 1,
+  minimumViewTime: 32,
+};
+
+export const viewablePostIds = (
+  viewableItems: readonly ViewToken<SocialFeedListItem>[],
+): ReadonlySet<string> => {
+  const ids = new Set<string>();
+  for (const token of viewableItems) {
+    if (!token.isViewable || token.item.kind !== 'post') {
+      continue;
+    }
+    ids.add(token.item.post.id);
+  }
+  return ids;
+};
+
+const sameStringSet = (
+  left: ReadonlySet<string>,
+  right: ReadonlySet<string>,
+): boolean => {
+  if (left.size !== right.size) {
+    return false;
+  }
+  for (const id of left) {
+    if (!right.has(id)) {
+      return false;
+    }
+  }
+  return true;
+};
+
 const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<SocialFeedFlashListProps>,
 ) as unknown as React.ComponentType<SocialFeedFlashListProps>;
@@ -241,6 +279,17 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const listRef = useRef<FlashListRef<SocialFeedListItem>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [gifVisibleIds, setGifVisibleIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const onGifViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken<SocialFeedListItem>[] }) => {
+      const next = viewablePostIds(viewableItems);
+      setGifVisibleIds((current) =>
+        sameStringSet(current, next) ? current : next,
+      );
+    },
+  ).current;
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
@@ -486,6 +535,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onCopyTrade={onCopyTrade}
               onPositionPress={handlePositionPress}
               viewerProfileId={viewerProfileId}
+              gifVisible={gifVisibleIds.has(item.post.id)}
             />
           );
         case 'inline':
@@ -516,6 +566,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       scheduleEntryDelay,
       state,
       viewerProfileId,
+      gifVisibleIds,
     ],
   );
 
@@ -593,6 +644,9 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onScrollEndDrag={handleScrollSettled}
               onEndReached={enabled ? loadMore : undefined}
               onEndReachedThreshold={0.5}
+              extraData={gifVisibleIds}
+              onViewableItemsChanged={onGifViewableItemsChanged}
+              viewabilityConfig={GIF_VIEWABILITY_CONFIG}
               refreshControl={
                 <RefreshControl
                   colors={[colors.primary.default]}
