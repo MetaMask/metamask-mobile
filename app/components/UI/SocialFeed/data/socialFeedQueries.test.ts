@@ -135,6 +135,19 @@ describe('socialFeedQueries', () => {
         queryKey: ['SocialService:fetchFeed', { scope: 'following_v1' }],
       });
     });
+
+    it('marks both following feeds stale without refetching', async () => {
+      await invalidateFollowingFeed({ refetchType: 'none' });
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
+        refetchType: 'none',
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following_v1' }],
+        refetchType: 'none',
+      });
+    });
   });
 
   describe('fetchSocialFeedPage', () => {

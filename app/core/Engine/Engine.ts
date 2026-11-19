@@ -1337,16 +1337,24 @@ export class Engine {
       SnapController,
       LoggingController,
       MoneyAccountController,
+      MoneyAccountLifecycleController,
       SubscriptionController,
       ShieldController,
       ClaimsController,
       KycController,
+      ProfileMetricsController,
+      ProfileMetricsService,
       PredictOrderService,
       PredictFundingService,
       PredictPortfolioService,
       PredictDeviceAuthService,
       PredictVenueController,
     } = this.context;
+
+    // Wait for any in-flight profile metrics poll before clearing its state
+    // and resetting the circuit breakers for the next wallet.
+    await ProfileMetricsController.clearState();
+    ProfileMetricsService.resetCircuitBreakers();
 
     // Remove all permissions.
     PermissionController?.clearState?.();
@@ -1375,6 +1383,7 @@ export class Engine {
 
     // Accounts:
     MoneyAccountController.clearState();
+    MoneyAccountLifecycleController.clearState();
 
     // Subscriptions:
     SubscriptionController.stopAllPolling();
@@ -1391,12 +1400,13 @@ export class Engine {
 
     // PredictNext account state. A wallet reset replaces the Predict User
     // within one process, so the previous person's account reads, their
-    // Order observation and the deposits the funding service remembers must
-    // not outlive it. Commits are abandoned before the
-    // reads are dropped, so no receipt can refill the cache afterwards. The
-    // reset then clears the durable dispatch journal, so the previous person's
+    // Order and Withdrawal observations and the deposits the funding service
+    // remembers must not outlive it. Commits are abandoned before the reads
+    // are dropped, so no receipt can refill the cache afterwards. The reset
+    // then clears the durable dispatch journal, so the previous person's
     // unresolved references cannot be rediscovered by a later session. The
-    // Venue-scoped market-data and live-data caches carry public data and stay.
+    // Venue-scoped market-data and live-data caches carry public data and
+    // stay.
     try {
       await PredictOrderService.reset();
     } catch (error) {

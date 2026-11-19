@@ -598,7 +598,7 @@ import {
   MoneyAccountUpgradeControllerEvents,
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
-import {
+import type {
   MoneyAccountLifecycleController,
   MoneyAccountLifecycleControllerActions,
   MoneyAccountLifecycleControllerEvents,
