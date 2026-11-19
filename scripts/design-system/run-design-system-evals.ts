@@ -95,6 +95,8 @@ function linterConfig(): Linter.Config[] {
     {
       files: ['**/*.{ts,tsx,js,jsx}'],
       plugins,
+      // A file-level /* eslint-disable */ must not hide findings. ds-exception is the only escape.
+      linterOptions: { noInlineConfig: true },
       languageOptions: {
         // The parser package is CJS. tsx/jest both resolve this require.
         // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs

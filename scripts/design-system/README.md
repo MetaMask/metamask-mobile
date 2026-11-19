@@ -55,6 +55,7 @@ Semantics the interpreter applies to every rule:
 - JSX attributes are not object properties — `<Box marginRight={8} />` never matches
   a `Property` rule.
 - Regexes must compile; an invalid one fails validation.
+- Inline `eslint-disable` / `eslint-enable` directives in the linted file are ignored (`noInlineConfig`). `// ds-exception: <reason>` is the only way to suppress a finding.
 
 Invalid JSON or schema violations fail the check loudly (exit 1). A **missing** `eval-rules.json` is the exception: the check prints a `::warning` and skips (pilot behaviour).
 

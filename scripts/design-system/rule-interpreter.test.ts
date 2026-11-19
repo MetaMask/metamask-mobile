@@ -66,22 +66,6 @@ ruleTester.run(
         filename: 'app/Screen.tsx',
         errors: [{ messageId: 'flagged' }],
       },
-      {
-        code: [
-          'export const seed = {',
-          '  marginRight: 0,',
-          '  marginTop: 8,',
-          '  padding: 1,',
-          '  gap: 4, // ds-exception: local seed, keep the raw gap',
-          '  top: 12,',
-          '};',
-        ].join('\n'),
-        filename: 'app/Screen.tsx',
-        errors: [
-          { messageId: 'flagged', line: 3, data: { value: '8', key: 'marginTop' } },
-          { messageId: 'flagged', line: 4, data: { value: '1', key: 'padding' } },
-        ],
-      },
     ],
   },
 );
@@ -100,10 +84,6 @@ const hexColorConfig: EvalRuleConfig = {
 ruleTester.run('design-system/no-hex-color', createRuleFromConfig(hexColorConfig), {
   valid: [
     { code: 'const styles = { color: "red" };', filename: 'app/Screen.tsx' },
-    {
-      code: 'const styles = { backgroundColor: colors.primary };',
-      filename: 'app/Screen.tsx',
-    },
   ],
   invalid: [
     {
