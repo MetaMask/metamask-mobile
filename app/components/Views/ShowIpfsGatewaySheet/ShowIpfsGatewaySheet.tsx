@@ -1,5 +1,6 @@
 // Third party dependencies
 import React, { useRef } from 'react';
+import { Box } from '@metamask/design-system-react-native';
 
 // External dependencies
 import BottomSheet, {
@@ -41,6 +42,7 @@ const ShowIpfsGatewaySheet = () => {
 
   return (
     <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
+      <Box marginRight={2} />
       <SheetHeader
         title={
           setIpfsBannerVisible
