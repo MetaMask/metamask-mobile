@@ -18,6 +18,7 @@ export function formatMinimumReceived(amount: number | string): string {
 }
 
 /**
+ * @deprecated Use `formatCurrency` from `useFormatters()` in components or `getFormatters()` in utils (`app/components/hooks/useFormatters`). See TMCU-386.
  * Formats currency amounts using the device's locale
  * @param amount - The amount to format (number or string)
  * @param currency - The currency code (e.g., 'USD', 'EUR')

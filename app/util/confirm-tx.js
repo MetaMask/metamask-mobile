@@ -77,6 +77,9 @@ export function getTransactionFee({
   });
 }
 
+/**
+ * @deprecated Use `formatCurrency` from `useFormatters()` in components or `getFormatters()` in utils (`app/components/hooks/useFormatters`). See TMCU-386.
+ */
 export function formatCurrency(value, currencyCode) {
   const upperCaseCurrencyCode = currencyCode.toUpperCase();
 
