@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { setPerpsCrossMarginConfirmed } from '../../../../../../../actions/settings';
 import { selectHasConfirmedCrossMargin } from '../../../../selectors/crossMarginConfirmation';
 import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
 import { usePerpsProCrossMarginConfirm } from './usePerpsProCrossMarginConfirm';
@@ -45,32 +44,9 @@ describe('usePerpsProCrossMarginConfirm', () => {
     setSelectedAccount(ACCOUNT_A);
   });
 
-  it('holds the confirm sheet until the margin mode sheet has closed', () => {
-    const { result, onMarginModeSelect } = renderConfirmHook();
-
-    act(() => result.current.onMarginModeSelect('cross'));
-
-    expect(result.current.isCrossConfirmVisible).toBe(false);
-    expect(onMarginModeSelect).not.toHaveBeenCalled();
-
-    act(() => result.current.onMarginModeSheetClosed());
-
-    expect(result.current.isCrossConfirmVisible).toBe(true);
-  });
-
-  it('stores the confirmation for the account and selects Cross on confirm', () => {
-    const { result, onMarginModeSelect } = renderConfirmHook();
-    requestCross(result);
-
-    act(() => result.current.confirmCrossMargin());
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsCrossMarginConfirmed(ACCOUNT_A),
-    );
-    expect(onMarginModeSelect).toHaveBeenCalledWith('cross');
-    expect(result.current.isCrossConfirmVisible).toBe(false);
-  });
-
+  // The view tests cover the confirm journey. These cases need the margin mode
+  // sheet to stay open across an account switch, or no selected account,
+  // which the view test environment cannot produce.
   it('drops a pending Cross request when the account changes before the sheet closes', () => {
     const { result, rerender, onMarginModeSelect } = renderConfirmHook();
     act(() => result.current.onMarginModeSelect('cross'));
