@@ -449,7 +449,7 @@ const BridgeMarketViewContent = ({
       previousNonSlippageQuoteRequestKey === nonSlippageQuoteRequestKey;
 
     if (hasValidBridgeInputs && !isHydrationOnlySlippageChange) {
-      updateQuoteParams();
+      void updateQuoteParams();
     }
     return () => {
       updateQuoteParams.cancel();
@@ -469,7 +469,7 @@ const BridgeMarketViewContent = ({
     const wasClosed = wasStockMarketClosedRef.current;
     wasStockMarketClosedRef.current = isStockMarketClosed;
     if (wasClosed && !isStockMarketClosed && hasValidBridgeInputs) {
-      updateQuoteParams();
+      void updateQuoteParams();
     }
   }, [isStockMarketClosed, hasValidBridgeInputs, updateQuoteParams]);
 
