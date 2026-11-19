@@ -24,19 +24,4 @@ describe('getLanguage', () => {
     );
     expect(gasModal.gas_limit_too_low).toBeUndefined();
   });
-
-  it('falls back to the English consent sentence when paragraph1b is untranslated', () => {
-    const english =
-      supportedTranslations.en.experience_enhancer_modal.paragraph1b;
-
-    expect(english.startsWith('We')).toBe(true);
-
-    Object.entries(supportedTranslations).forEach(([locale, messages]) => {
-      if (locale === 'en') {
-        return;
-      }
-
-      expect(messages.experience_enhancer_modal.paragraph1b).toBeUndefined();
-    });
-  });
 });

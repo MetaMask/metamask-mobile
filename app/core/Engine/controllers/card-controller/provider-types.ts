@@ -879,6 +879,4 @@ export interface ICardProvider {
     id: string,
     tokens: CardAuthTokens,
   ): Promise<CardTransactionDetails>;
-
-  getOnChainAssets?(address: string): Promise<CardHomeData>;
 }

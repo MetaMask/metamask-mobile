@@ -7,7 +7,7 @@ import {
   refine,
   string,
 } from '@metamask/superstruct';
-import axios, { isCancel } from 'axios';
+import axios from 'axios';
 import { ACTIONS } from '../../../../constants/deeplinks';
 import { isMetaMaskUniversalLink } from '../../../../core/DeeplinkManager/util/deeplinks';
 
@@ -130,7 +130,18 @@ export async function fetchPerpsOutreachBanner({
       buildPerpsOutreachUrl(endpoint, { profileId, address, locale }),
       {
         signal,
-        validateStatus: () => true,
+        // Only a response the endpoint sent is an answer worth caching.
+        // `validateStatus` rejects 5xx so axios raises them like transport
+        // failures, and the catch below re-throws cancellations
+        // (`CanceledError` is an `AxiosError`) and transport failures too:
+        // React Query retries and refetches on reconnect instead of caching
+        // an empty campaign for `staleTime`. Everything else is the
+        // authoritative "no campaign to render" (`show: false` in backend
+        // terms): a 4xx — including 408 and 429, deliberately, so a
+        // rate-limited endpoint gets the `staleTime` backoff rather than
+        // retries — and a response that fails validation (malformed, or an
+        // untrusted `linkUrl`) resolve `null`.
+        validateStatus: (status) => status < 500,
       },
     );
 
@@ -145,10 +156,9 @@ export async function fetchPerpsOutreachBanner({
 
     return result.show ? result.banner : null;
   } catch (error) {
-    // Leaving Perps mid-flight aborts the request. Re-throw so React Query
-    // treats it as a cancellation instead of caching an empty campaign for the
-    // query's `staleTime`; only network and validation failures hide the banner.
-    if (isCancel(error)) {
+    // Cancellations, transport failures, and 5xx are not answers: see the
+    // `validateStatus` predicate above for what is re-thrown vs cached.
+    if (axios.isAxiosError(error)) {
       throw error;
     }
     return null;
