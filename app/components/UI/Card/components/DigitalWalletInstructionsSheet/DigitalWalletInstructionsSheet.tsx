@@ -71,6 +71,7 @@ const DigitalWalletInstructionsSheet = () => {
     isCardDetailsImageLoading,
     onCardDetailsImageLoad,
     cardDetailsImageUrl,
+    cardDetailsHostedPageUrl,
     onCardDetailsImageError,
     cardSensitiveDetails,
     isSensitiveDetailsLoading,
@@ -141,7 +142,8 @@ const DigitalWalletInstructionsSheet = () => {
   const showDetailsSkeleton =
     isSensitiveDetailsLoading ||
     isCardDetailsLoading ||
-    (Boolean(cardDetailsImageUrl) && isCardDetailsImageLoading);
+    (Boolean(cardDetailsImageUrl || cardDetailsHostedPageUrl) &&
+      isCardDetailsImageLoading);
   const showRetry = !isDetailsVisible && !showDetailsSkeleton;
 
   return (
@@ -184,6 +186,7 @@ const DigitalWalletInstructionsSheet = () => {
               <CardSecureDetailsView
                 isLoading={showDetailsSkeleton && !isDetailsVisible}
                 cardDetailsImageUrl={cardDetailsImageUrl}
+                cardDetailsHostedPageUrl={cardDetailsHostedPageUrl}
                 isCardDetailsImageLoading={isCardDetailsImageLoading}
                 onImageLoad={onCardDetailsImageLoad}
                 onImageError={onCardDetailsImageError}

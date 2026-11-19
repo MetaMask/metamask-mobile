@@ -27,6 +27,7 @@ let mockRevealState = {
   isCardDetailsImageLoading: false,
   onCardDetailsImageLoad: jest.fn(),
   cardDetailsImageUrl: null as string | null,
+  cardDetailsHostedPageUrl: null as string | null,
   onCardDetailsImageError: jest.fn(),
   cardSensitiveDetails: null as {
     pan: string;
@@ -131,6 +132,7 @@ describe('DigitalWalletInstructionsSheet', () => {
       isCardDetailsImageLoading: false,
       onCardDetailsImageLoad: jest.fn(),
       cardDetailsImageUrl: null,
+      cardDetailsHostedPageUrl: null,
       onCardDetailsImageError: jest.fn(),
       cardSensitiveDetails: null,
       isSensitiveDetailsLoading: false,
@@ -319,6 +321,22 @@ describe('DigitalWalletInstructionsSheet', () => {
     expect(
       queryByTestId(DigitalWalletInstructionsSheetSelectors.DESCRIPTION),
     ).toBeNull();
+  });
+
+  it('renders the hosted card page when provided', async () => {
+    mockRevealState = {
+      ...mockRevealState,
+      isDetailsVisible: true,
+      cardDetailsHostedPageUrl: 'https://cards.example/card/details?token=one',
+    };
+
+    const { getByTestId } = render(<DigitalWalletInstructionsSheet />);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(CardHomeSelectors.CARD_DETAILS_HOSTED_PAGE),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('renders Baanx secure image when provided', async () => {

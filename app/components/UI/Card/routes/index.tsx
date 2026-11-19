@@ -5,7 +5,6 @@ import {
 } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
-import CardViewCardDetails from '../Views/CardViewCardDetails';
 import ApplePaySplash from '../Views/ApplePaySplash';
 import ApplePayConfirmation from '../Views/ApplePayConfirmation';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
@@ -278,11 +277,6 @@ const CardRoutes = () => (
     screenOptions={{ headerShown: false }}
   >
     <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
-    <RootStack.Screen
-      name={Routes.CARD.VIEW_CARD_DETAILS}
-      component={CardViewCardDetails}
-      options={fullScreenModalSlideFromBottomNativeOptions}
-    />
     <RootStack.Screen
       name={Routes.CARD.MODALS.ID}
       component={CardModalsRoutes}

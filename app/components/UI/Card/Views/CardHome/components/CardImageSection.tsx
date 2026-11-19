@@ -15,6 +15,7 @@ interface CardImageSectionProps {
   isLoading: boolean;
   isCardDetailsLoading: boolean;
   cardDetailsImageUrl: string | null;
+  cardDetailsHostedPageUrl: string | null;
   isCardDetailsImageLoading: boolean;
   onImageLoad: () => void;
   onImageError: () => void;
@@ -28,6 +29,7 @@ const CardImageSection = ({
   isLoading,
   isCardDetailsLoading,
   cardDetailsImageUrl,
+  cardDetailsHostedPageUrl,
   isCardDetailsImageLoading,
   onImageLoad,
   onImageError,
@@ -61,6 +63,7 @@ const CardImageSection = ({
   const secureDetails = (
     <CardSecureDetailsView
       cardDetailsImageUrl={cardDetailsImageUrl}
+      cardDetailsHostedPageUrl={cardDetailsHostedPageUrl}
       isCardDetailsImageLoading={isCardDetailsImageLoading}
       onImageLoad={onImageLoad}
       onImageError={onImageError}
@@ -69,7 +72,7 @@ const CardImageSection = ({
     />
   );
 
-  if (cardSensitiveDetails || cardDetailsImageUrl) {
+  if (cardSensitiveDetails || cardDetailsImageUrl || cardDetailsHostedPageUrl) {
     return secureDetails;
   }
 

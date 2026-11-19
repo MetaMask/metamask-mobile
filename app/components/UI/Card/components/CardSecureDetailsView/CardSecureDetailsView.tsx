@@ -1,5 +1,5 @@
-import React from 'react';
-import { Image, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -17,16 +17,37 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import type { CardSensitiveDetails } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import HostedCardDetailsPage, {
+  HOSTED_CARD_CORNER_RADIUS_RATIO,
+  HOSTED_CARD_DETAILS_ASPECT_RATIO,
+} from './HostedCardDetailsPage';
 
 export interface CardSecureDetailsViewProps {
   isLoading?: boolean;
   cardDetailsImageUrl?: string | null;
+  cardDetailsHostedPageUrl?: string | null;
   isCardDetailsImageLoading?: boolean;
   onImageLoad?: () => void;
   onImageError?: () => void;
   cardSensitiveDetails?: CardSensitiveDetails | null;
   onCopyDetail?: (value: string) => void;
 }
+
+const noop = () => undefined;
+
+const hostedCardSlotStyle = StyleSheet.create({
+  slot: {
+    flex: 0,
+    alignSelf: 'stretch',
+    width: '100%',
+    aspectRatio: HOSTED_CARD_DETAILS_ASPECT_RATIO,
+    overflow: 'hidden',
+  },
+  skeleton: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 10,
+  },
+});
 
 const formatPan = (pan: string): string =>
   pan
@@ -70,6 +91,7 @@ const DetailField = ({
 const CardSecureDetailsView = ({
   isLoading = false,
   cardDetailsImageUrl = null,
+  cardDetailsHostedPageUrl = null,
   isCardDetailsImageLoading = false,
   onImageLoad,
   onImageError,
@@ -77,6 +99,8 @@ const CardSecureDetailsView = ({
   onCopyDetail,
 }: CardSecureDetailsViewProps) => {
   const tw = useTailwind();
+  const [slotWidth, setSlotWidth] = useState(0);
+  const cornerRadius = slotWidth * HOSTED_CARD_CORNER_RADIUS_RATIO;
 
   if (isLoading) {
     return (
@@ -164,6 +188,38 @@ const CardSecureDetailsView = ({
           </Box>
         </Box>
       </Box>
+    );
+  }
+
+  if (cardDetailsHostedPageUrl) {
+    return (
+      <View
+        onLayout={(event) => {
+          const nextWidth = event.nativeEvent.layout.width;
+          setSlotWidth((current) =>
+            current === nextWidth ? current : nextWidth,
+          );
+        }}
+        style={[
+          hostedCardSlotStyle.slot,
+          cornerRadius > 0 ? { borderRadius: cornerRadius } : null,
+        ]}
+        testID={CardHomeSelectors.CARD_DETAILS_HOSTED_PAGE_FRAME}
+      >
+        {isCardDetailsImageLoading && (
+          <Skeleton
+            height={'100%'}
+            width={'100%'}
+            style={hostedCardSlotStyle.skeleton}
+            testID={CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON}
+          />
+        )}
+        <HostedCardDetailsPage
+          url={cardDetailsHostedPageUrl}
+          onLoad={onImageLoad ?? noop}
+          onError={onImageError ?? noop}
+        />
+      </View>
     );
   }
 

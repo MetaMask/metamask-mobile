@@ -37,7 +37,19 @@ interface UseCardDetailsTokenResult {
   onImageLoad: () => void;
   error: Error | null;
   imageUrl: string | null;
+  hostedPageUrl: string | null;
   clearImageUrl: () => void;
+}
+
+function isHttpsUrl(value: string | undefined): value is string {
+  if (!value) {
+    return false;
+  }
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 const useCardDetailsToken = (): UseCardDetailsTokenResult => {
@@ -47,6 +59,7 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [hostedPageUrl, setHostedPageUrl] = useState<string | null>(null);
 
   const fetchCardDetailsToken = useCallback(
     async (
@@ -67,12 +80,13 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
             customCss,
           },
         );
-        if (response.hostedPageUrl) {
+        if (isHttpsUrl(response.hostedPageUrl)) {
+          setHostedPageUrl(response.hostedPageUrl);
           setImageUrl(null);
-          setIsImageLoading(false);
           return response;
         }
         if (response.imageUrl) {
+          setHostedPageUrl(null);
           setImageUrl(response.imageUrl);
           return response;
         }
@@ -96,6 +110,7 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
 
   const clearImageUrl = useCallback(() => {
     setImageUrl(null);
+    setHostedPageUrl(null);
     setError(null);
     setIsImageLoading(false);
   }, []);
@@ -107,6 +122,7 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
     onImageLoad,
     error,
     imageUrl,
+    hostedPageUrl,
     clearImageUrl,
   };
 };

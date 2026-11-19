@@ -38,6 +38,7 @@ describe('useCardDetailsToken', () => {
       const { result } = renderHook(() => useCardDetailsToken());
 
       expect(result.current.imageUrl).toBeNull();
+      expect(result.current.hostedPageUrl).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isImageLoading).toBe(false);
       expect(result.current.error).toBeNull();
@@ -169,6 +170,7 @@ describe('useCardDetailsToken', () => {
       });
 
       expect(result.current.imageUrl).toBe(mockTokenResponse.imageUrl);
+      expect(result.current.hostedPageUrl).toBeNull();
       expect(result.current.error).toBeNull();
     });
 
@@ -183,7 +185,7 @@ describe('useCardDetailsToken', () => {
       expect(response).toEqual(mockTokenResponse);
     });
 
-    it('leaves imageUrl empty when the response includes hostedPageUrl', async () => {
+    it('keeps the hosted page loading until onImageLoad', async () => {
       const hostedPageUrl = 'https://cards.example/card/details?token=hosted';
       mockGetCardDetailsView.mockResolvedValue({
         token: 'hosted',
@@ -193,14 +195,37 @@ describe('useCardDetailsToken', () => {
 
       const { result } = renderHook(() => useCardDetailsToken());
 
-      let response: CardDetailsView | null = null;
       await act(async () => {
-        response = await result.current.fetchCardDetailsToken();
+        await result.current.fetchCardDetailsToken();
       });
 
-      expect(response?.hostedPageUrl).toBe(hostedPageUrl);
+      expect(result.current.hostedPageUrl).toBe(hostedPageUrl);
       expect(result.current.imageUrl).toBeNull();
+      expect(result.current.isImageLoading).toBe(true);
+
+      act(() => {
+        result.current.onImageLoad();
+      });
+
       expect(result.current.isImageLoading).toBe(false);
+    });
+
+    it('uses imageUrl when hostedPageUrl is not https', async () => {
+      const imageUrl = 'https://cards.example/details-image?token=tok';
+      mockGetCardDetailsView.mockResolvedValue({
+        token: 'tok',
+        hostedPageUrl: 'http://cards.example/card/details?token=tok',
+        imageUrl,
+      });
+
+      const { result } = renderHook(() => useCardDetailsToken());
+
+      await act(async () => {
+        await result.current.fetchCardDetailsToken();
+      });
+
+      expect(result.current.hostedPageUrl).toBeNull();
+      expect(result.current.imageUrl).toBe(imageUrl);
     });
 
     it('throws when the response has neither hostedPageUrl nor imageUrl', async () => {
@@ -306,6 +331,29 @@ describe('useCardDetailsToken', () => {
       });
 
       expect(result.current.error).toBeNull();
+    });
+
+    it('clears hostedPageUrl when called', async () => {
+      mockGetCardDetailsView.mockResolvedValue({
+        token: 'hosted',
+        hostedPageUrl: 'https://cards.example/card/details?token=hosted',
+      });
+
+      const { result } = renderHook(() => useCardDetailsToken());
+
+      await act(async () => {
+        await result.current.fetchCardDetailsToken();
+      });
+      expect(result.current.hostedPageUrl).toBe(
+        'https://cards.example/card/details?token=hosted',
+      );
+
+      act(() => {
+        result.current.clearImageUrl();
+      });
+
+      expect(result.current.hostedPageUrl).toBeNull();
+      expect(result.current.imageUrl).toBeNull();
     });
 
     it('clears isImageLoading when called', async () => {

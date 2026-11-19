@@ -683,7 +683,8 @@ const CardHome = () => {
       actions.isCardDetailsLoading ||
       actions.isSensitiveDetailsLoading ||
       Boolean(actions.cardSensitiveDetails) ||
-      Boolean(actions.cardDetailsImageUrl),
+      Boolean(actions.cardDetailsImageUrl) ||
+      Boolean(actions.cardDetailsHostedPageUrl),
   });
 
   // Callers that open Card Home directly still leave when logged out.
@@ -860,6 +861,7 @@ const CardHome = () => {
                     actions.isSensitiveDetailsLoading
                   }
                   cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                  cardDetailsHostedPageUrl={actions.cardDetailsHostedPageUrl}
                   isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
                   onImageLoad={actions.onCardDetailsImageLoad}
                   onImageError={actions.onCardDetailsImageError}
@@ -1030,6 +1032,7 @@ const CardHome = () => {
             isPinLoading={actions.isPinLoading}
             cardDetailsVisible={
               (!!actions.cardDetailsImageUrl ||
+                !!actions.cardDetailsHostedPageUrl ||
                 !!actions.cardSensitiveDetails) &&
               isAuthenticated
             }
@@ -1098,7 +1101,9 @@ const CardHome = () => {
 
         <CardScreenshotDeterrent
           enabled={
-            !!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails
+            !!actions.cardDetailsImageUrl ||
+            !!actions.cardDetailsHostedPageUrl ||
+            !!actions.cardSensitiveDetails
           }
         />
       </ScrollView>

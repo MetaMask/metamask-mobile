@@ -57,6 +57,7 @@ jest.mock('../../../hooks/useRevealCardDetails', () => ({
     isCardDetailsImageLoading: false,
     onCardDetailsImageLoad: jest.fn(),
     cardDetailsImageUrl: undefined,
+    cardDetailsHostedPageUrl: null,
     onCardDetailsImageError: jest.fn(),
     cardSensitiveDetails: null,
     isSensitiveDetailsLoading: false,

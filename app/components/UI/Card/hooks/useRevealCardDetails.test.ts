@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import Routes from '../../../../constants/navigation/Routes';
 import {
   selectCardActiveProviderId,
   selectIsCardAuthenticated,
@@ -64,17 +63,56 @@ jest.mock('../../../../core/Authentication/hooks/useAuthentication', () => ({
   default: () => ({ reauthenticate: mockReauthenticate }),
 }));
 
-jest.mock('./useCardDetailsToken', () => ({
-  __esModule: true,
-  default: () => ({
-    fetchCardDetailsToken: mockFetchCardDetailsToken,
-    isLoading: false,
-    isImageLoading: false,
-    onImageLoad: mockOnImageLoad,
-    imageUrl: null,
-    clearImageUrl: mockClearImageUrl,
-  }),
+let mockNetworkTier: string | null = null;
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
 }));
+
+jest.mock('./useCardDetailsToken', () => {
+  const React = jest.requireActual('react');
+  const useCardDetailsToken = () => {
+    const [imageUrl, setImageUrl] = React.useState(null as string | null);
+    const [hostedPageUrl, setHostedPageUrl] = React.useState(
+      null as string | null,
+    );
+    const clearImageUrl = React.useCallback(() => {
+      setImageUrl(null);
+      setHostedPageUrl(null);
+      mockClearImageUrl();
+    }, []);
+    const fetchCardDetailsToken = React.useCallback(
+      async (cardType: unknown) => {
+        const response = (await mockFetchCardDetailsToken(cardType)) as {
+          hostedPageUrl?: string;
+          imageUrl?: string;
+        } | null;
+        if (response?.hostedPageUrl) {
+          setImageUrl(null);
+          setHostedPageUrl(response.hostedPageUrl);
+        } else if (response?.imageUrl) {
+          setHostedPageUrl(null);
+          setImageUrl(response.imageUrl);
+        }
+        return response;
+      },
+      [],
+    );
+    return {
+      fetchCardDetailsToken,
+      isLoading: false,
+      isImageLoading: false,
+      onImageLoad: mockOnImageLoad,
+      imageUrl,
+      hostedPageUrl,
+      clearImageUrl,
+    };
+  };
+  return {
+    __esModule: true,
+    default: useCardDetailsToken,
+  };
+});
 
 jest.mock('../util/withBiometricAuth', () => ({
   withBiometricAuth: (
@@ -166,6 +204,7 @@ function setup({
 describe('useRevealCardDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNetworkTier = null;
     mockReauthenticate.mockResolvedValue(undefined);
     mockFetchCardDetailsToken.mockResolvedValue({
       url: 'https://example.com/card.png',
@@ -211,13 +250,10 @@ describe('useRevealCardDetails', () => {
     expect(mockWithBiometricAuth).toHaveBeenCalled();
     expect(mockFetchCardDetailsToken).toHaveBeenCalledWith(CardType.VIRTUAL);
     expect(mockGetCardSensitiveDetails).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.CARD.VIEW_CARD_DETAILS,
-      expect.anything(),
-    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('opens the hosted page when the token response includes hostedPageUrl', async () => {
+  it('shows the hosted page in place when the token response includes hostedPageUrl', async () => {
     const hostedPageUrl = 'https://cards.example/card/details?token=hosted';
     mockFetchCardDetailsToken.mockResolvedValue({
       token: 'hosted',
@@ -231,9 +267,50 @@ describe('useRevealCardDetails', () => {
       await result.current.viewCardDetailsAction();
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.VIEW_CARD_DETAILS, {
+    expect(result.current.cardDetailsHostedPageUrl).toBe(hostedPageUrl);
+    expect(result.current.isDetailsVisible).toBe(true);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('hides hosted card details on a second view action', async () => {
+    const hostedPageUrl = 'https://cards.example/card/details?token=hosted';
+    mockFetchCardDetailsToken.mockResolvedValue({
+      token: 'hosted',
       hostedPageUrl,
     });
+
+    const { result } = setup({ supportsSensitiveDetailsView: false });
+
+    await act(async () => {
+      await result.current.viewCardDetailsAction();
+    });
+    expect(result.current.isDetailsVisible).toBe(true);
+
+    await act(async () => {
+      await result.current.viewCardDetailsAction();
+    });
+
+    expect(result.current.cardDetailsHostedPageUrl).toBeNull();
+    expect(result.current.isDetailsVisible).toBe(false);
+    expect(mockClearImageUrl).toHaveBeenCalled();
+    expect(mockFetchCardDetailsToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows an error toast and skips the token request when the network is offline', async () => {
+    mockNetworkTier = 'NONE';
+
+    const { result } = setup({ supportsSensitiveDetailsView: false });
+
+    await act(async () => {
+      await result.current.viewCardDetailsAction();
+    });
+
+    expect(mockFetchCardDetailsToken).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'card.card_home.view_card_details_error' }],
+      }),
+    );
   });
 
   it('fetches Immersve sensitive fields after biometric success', async () => {

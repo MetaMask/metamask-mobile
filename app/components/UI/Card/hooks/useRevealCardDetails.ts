@@ -16,7 +16,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Routes from '../../../../constants/navigation/Routes';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { CardActions, withCardProvider } from '../util/metrics';
 import { withBiometricAuth } from '../util/withBiometricAuth';
 import useAuthentication from '../../../../core/Authentication/hooks/useAuthentication';
@@ -38,6 +38,7 @@ export function useRevealCardDetails({
   capabilities,
 }: UseRevealCardDetailsParams) {
   const navigation = useNavigation<AppNavigationProp>();
+  const networkTier = useNetworkTier();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -51,6 +52,7 @@ export function useRevealCardDetails({
     isImageLoading: isCardDetailsImageLoading,
     onImageLoad: onCardDetailsImageLoad,
     imageUrl: cardDetailsImageUrl,
+    hostedPageUrl: cardDetailsHostedPageUrl,
     clearImageUrl: clearCardDetailsImageUrl,
   } = useCardDetailsToken();
 
@@ -129,13 +131,12 @@ export function useRevealCardDetails({
 
   const fetchAndShowCardDetails = useCallback(async () => {
     trackViewDetails();
+    if (networkTier === 'NONE') {
+      showCardDetailsErrorToast();
+      return;
+    }
     try {
-      const view = await fetchCardDetailsToken(cardType);
-      if (view?.hostedPageUrl) {
-        navigation.navigate(Routes.CARD.VIEW_CARD_DETAILS, {
-          hostedPageUrl: view.hostedPageUrl,
-        });
-      }
+      await fetchCardDetailsToken(cardType);
     } catch {
       showCardDetailsErrorToast();
     }
@@ -144,7 +145,7 @@ export function useRevealCardDetails({
     showCardDetailsErrorToast,
     cardType,
     trackViewDetails,
-    navigation,
+    networkTier,
   ]);
 
   const fetchAndShowSensitiveDetails = useCallback(async () => {
@@ -161,7 +162,9 @@ export function useRevealCardDetails({
     }
   }, [showCardDetailsErrorToast, trackViewDetails]);
 
-  const isDetailsVisible = Boolean(cardSensitiveDetails || cardDetailsImageUrl);
+  const isDetailsVisible = Boolean(
+    cardSensitiveDetails || cardDetailsImageUrl || cardDetailsHostedPageUrl,
+  );
   const isDetailsLoading =
     isSensitiveDetailsLoading ||
     isCardDetailsLoading ||
@@ -233,7 +236,7 @@ export function useRevealCardDetails({
     }
 
     if (isCardDetailsLoading || isCardDetailsImageLoading) return;
-    if (cardDetailsImageUrl) {
+    if (cardDetailsImageUrl || cardDetailsHostedPageUrl) {
       hideCardDetails();
       return;
     }
@@ -253,6 +256,7 @@ export function useRevealCardDetails({
     isCardDetailsLoading,
     isCardDetailsImageLoading,
     cardDetailsImageUrl,
+    cardDetailsHostedPageUrl,
     reauthenticate,
     fetchAndShowCardDetails,
     navigation,
@@ -264,6 +268,7 @@ export function useRevealCardDetails({
     isCardDetailsImageLoading,
     onCardDetailsImageLoad,
     cardDetailsImageUrl,
+    cardDetailsHostedPageUrl,
     onCardDetailsImageError,
     cardSensitiveDetails,
     isSensitiveDetailsLoading,
