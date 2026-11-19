@@ -1,21 +1,40 @@
-import type { Asset } from '@metamask/assets-controller';
+import type { AccountGroupAssets, Asset } from '@metamask/assets-controllers';
 import {
   isZeroAssetAmount,
   shouldShowAssetsLoadingSkeleton,
 } from './shouldShowAssetsLoadingSkeleton';
 
-const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as const;
 
-const asset = (overrides: Partial<Asset> & { address?: string }): Asset =>
+const asset = (
+  overrides: Partial<Asset> & {
+    address?: string;
+    chainId?: string;
+    balance?: string;
+    fiat?: { balance: number } | undefined;
+  } = {},
+): Asset =>
   ({
-    assetId: overrides.address ?? 'eip155:1/slip44:60',
-    address: overrides.address,
-    chainId: '0x1',
+    accountType: 'eip155:eoa',
+    accountId: 'account-1',
+    assetId: (overrides.address ??
+      '0x0000000000000000000000000000000000000000') as `0x${string}`,
+    address: (overrides.address ??
+      '0x0000000000000000000000000000000000000000') as `0x${string}`,
+    chainId: (overrides.chainId ?? '0x1') as `0x${string}`,
+    image: '',
+    name: 'Token',
+    symbol: 'TKN',
+    decimals: 18,
     isNative: false,
+    rawBalance: '0x0',
     balance: '0',
-    fiat: { balance: 0 },
+    fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
     ...overrides,
   }) as Asset;
+
+const assetsByChain = (entries: Record<string, Asset[]>): AccountGroupAssets =>
+  entries;
 
 describe('isZeroAssetAmount', () => {
   it('treats nullish and empty values as zero', () => {
@@ -37,9 +56,9 @@ describe('shouldShowAssetsLoadingSkeleton', () => {
     expect(
       shouldShowAssetsLoadingSkeleton({
         assetsHaveLoaded: true,
-        assetsByChain: {
+        assetsByChain: assetsByChain({
           '0x1': [asset({ isNative: true, balance: '0' })],
-        },
+        }),
       }),
     ).toBe(false);
   });
@@ -48,16 +67,20 @@ describe('shouldShowAssetsLoadingSkeleton', () => {
     expect(
       shouldShowAssetsLoadingSkeleton({
         assetsHaveLoaded: false,
-        assetsByChain: {
+        assetsByChain: assetsByChain({
           '0x1': [
-            asset({ isNative: true, balance: '0', fiat: { balance: 0 } }),
+            asset({
+              isNative: true,
+              balance: '0',
+              fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
+            }),
             asset({
               address: musdAddress,
               balance: '0',
-              fiat: { balance: 0 },
+              fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
             }),
           ],
-        },
+        }),
       }),
     ).toBe(true);
   });
@@ -66,15 +89,15 @@ describe('shouldShowAssetsLoadingSkeleton', () => {
     expect(
       shouldShowAssetsLoadingSkeleton({
         assetsHaveLoaded: false,
-        assetsByChain: {
+        assetsByChain: assetsByChain({
           '0x1': [
             asset({
               isNative: true,
               balance: '1',
-              fiat: { balance: 12.5 },
+              fiat: { balance: 12.5, currency: 'usd', conversionRate: 1 },
             }),
           ],
-        },
+        }),
       }),
     ).toBe(false);
   });
@@ -83,15 +106,15 @@ describe('shouldShowAssetsLoadingSkeleton', () => {
     expect(
       shouldShowAssetsLoadingSkeleton({
         assetsHaveLoaded: false,
-        assetsByChain: {
+        assetsByChain: assetsByChain({
           '0x1': [
             asset({
               address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
               balance: '0',
-              fiat: { balance: 0 },
+              fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
             }),
           ],
-        },
+        }),
       }),
     ).toBe(false);
   });
@@ -110,19 +133,23 @@ describe('shouldShowAssetsLoadingSkeleton', () => {
       shouldShowAssetsLoadingSkeleton({
         assetsHaveLoaded: false,
         allowedChainIds: ['0x1'],
-        assetsByChain: {
+        assetsByChain: assetsByChain({
           '0x1': [
-            asset({ isNative: true, balance: '0', fiat: { balance: 0 } }),
+            asset({
+              isNative: true,
+              balance: '0',
+              fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
+            }),
           ],
           '0xa': [
             asset({
               isNative: true,
               balance: '5',
-              fiat: { balance: 20 },
+              fiat: { balance: 20, currency: 'usd', conversionRate: 1 },
               chainId: '0xa',
             }),
           ],
-        },
+        }),
       }),
     ).toBe(true);
   });
@@ -132,19 +159,23 @@ describe('shouldShowAssetsLoadingSkeleton', () => {
       shouldShowAssetsLoadingSkeleton({
         assetsHaveLoaded: false,
         allowedChainIds: ['eip155:1'],
-        assetsByChain: {
+        assetsByChain: assetsByChain({
           '0x1': [
-            asset({ isNative: true, balance: '0', fiat: { balance: 0 } }),
+            asset({
+              isNative: true,
+              balance: '0',
+              fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
+            }),
           ],
           '0x539': [
             asset({
               isNative: true,
               balance: '10',
-              fiat: { balance: 50 },
+              fiat: { balance: 50, currency: 'usd', conversionRate: 1 },
               chainId: '0x539',
             }),
           ],
-        },
+        }),
       }),
     ).toBe(true);
   });

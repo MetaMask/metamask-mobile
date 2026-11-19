@@ -137,18 +137,30 @@ const arrangeMockSelectors = () => {
   // loads still render the list in these unit tests.
   jest
     .spyOn(AssetsListSelectorsModule, 'selectAssetsBySelectedAccountGroup')
-    .mockImplementation(() => ({
-      '0x1': [
-        {
-          assetId: '0xToken1',
-          address: '0xToken1',
-          chainId: '0x1',
-          isNative: false,
-          balance: '1',
-          fiat: { balance: 10 },
-        },
-      ],
-    }));
+    .mockImplementation(
+      () =>
+        ({
+          '0x1': [
+            {
+              accountType: 'eip155:eoa',
+              accountId: 'account-1',
+              assetId: '0xToken1',
+              address: '0xToken1',
+              chainId: '0x1',
+              image: '',
+              name: 'Token',
+              symbol: 'TKN',
+              decimals: 18,
+              isNative: false,
+              rawBalance: '0x1',
+              balance: '1',
+              fiat: { balance: 10, currency: 'usd', conversionRate: 1 },
+            },
+          ],
+        }) as ReturnType<
+          typeof AssetsListSelectorsModule.selectAssetsBySelectedAccountGroup
+        >,
+    );
 
   return {
     mockSelectSortedAssetsBySelectedAccountGroup,

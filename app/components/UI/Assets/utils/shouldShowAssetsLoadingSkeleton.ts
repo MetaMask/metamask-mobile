@@ -1,4 +1,4 @@
-import type { Asset } from '@metamask/assets-controller';
+import type { AccountGroupAssets, Asset } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 import { isMusdToken } from '../../Earn/constants/musd';
@@ -15,11 +15,9 @@ export const isZeroAssetAmount = (value: unknown): boolean => {
   return !Number.isFinite(numericValue) || numericValue === 0;
 };
 
-type AssetsByChain = Record<string, Asset[] | undefined>;
-
 interface ShouldShowAssetsLoadingSkeletonArgs {
   assetsHaveLoaded: boolean;
-  assetsByChain: AssetsByChain;
+  assetsByChain: AccountGroupAssets;
   /**
    * Optional chain allow-list (e.g. popular networks on home). When set, only
    * those chains are considered for the placeholder check. Accepts CAIP-2 or
@@ -50,7 +48,7 @@ const buildAllowedNetworkIdSet = (chainIds: readonly string[]): Set<string> => {
 };
 
 const flattenAssets = (
-  assetsByChain: AssetsByChain,
+  assetsByChain: AccountGroupAssets,
   allowedChainIds?: readonly string[],
 ): Asset[] => {
   const entries = Object.entries(assetsByChain);
@@ -63,6 +61,9 @@ const flattenAssets = (
     .filter(([chainId]) => allowedIds.has(chainId))
     .flatMap(([, assets]) => assets ?? []);
 };
+
+const getAssetAddressOrId = (asset: Asset): string =>
+  'address' in asset ? asset.address : asset.assetId;
 
 /**
  * Mirrors extension token-list soft-gating: keep skeletons while the load is
@@ -81,13 +82,12 @@ export const shouldShowAssetsLoadingSkeleton = ({
   }
 
   const assets = flattenAssets(assetsByChain, allowedChainIds).filter(
-    (asset) => (musdOnly ? isMusdToken(asset.address ?? asset.assetId) : true),
+    (asset) => (musdOnly ? isMusdToken(getAssetAddressOrId(asset)) : true),
   );
 
   return assets.every(
     (asset) =>
-      (Boolean(asset.isNative) ||
-        isMusdToken(asset.address ?? asset.assetId)) &&
+      (Boolean(asset.isNative) || isMusdToken(getAssetAddressOrId(asset))) &&
       isZeroAssetAmount(asset.balance) &&
       isZeroAssetAmount(asset.fiat?.balance),
   );
