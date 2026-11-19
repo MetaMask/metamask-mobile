@@ -111,9 +111,6 @@ const ManageCardOptions = ({
     isAuthenticated &&
     card;
 
-  const showTeaserOptions =
-    !isLoading && !isAuthenticated && !hasSetupActions && !hasAlertOnlyState;
-
   const isEligibleForMetalCard =
     isMetalCardCheckoutEnabled &&
     isAuthenticated &&
@@ -179,7 +176,9 @@ const ManageCardOptions = ({
         )}
         {capabilities?.supportsFundingLimits &&
           !showUnlinkMoneyAccount &&
-          ((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
+          isAuthenticated &&
+          !isLoading &&
+          card && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.change_asset')}
               description={strings(
@@ -189,11 +188,10 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
             />
           )}
-        {((isFullySetUp && !hideManageOptions) || showTeaserOptions) &&
-          ((isAuthenticated &&
-            capabilities?.supportsCashback &&
-            account?.verificationStatus === 'VERIFIED') ||
-            (showTeaserOptions && capabilities?.supportsCashback)) && (
+        {isFullySetUp &&
+          !hideManageOptions &&
+          capabilities?.supportsCashback &&
+          account?.verificationStatus === 'VERIFIED' && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.cashback', {
                 // English no longer interpolates a rate. Other locales still do
@@ -208,8 +206,7 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CASHBACK_ITEM}
             />
           )}
-        {((isAuthenticated && !isLoading && card && !hideManageOptions) ||
-          showTeaserOptions) && (
+        {isAuthenticated && !isLoading && card && !hideManageOptions && (
           <ManageCardListItem
             title={strings(
               cardDetailsVisible
@@ -238,70 +235,68 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM}
             />
           )}
-        {((isAuthenticated &&
+        {isAuthenticated &&
           !isLoading &&
           card &&
           capabilities?.supportsPinView &&
           cardHasPin &&
-          !hideManageOptions) ||
-          (showTeaserOptions && capabilities?.supportsPinView)) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.view_pin')}
-            description={strings(
-              'card.card_home.manage_card_options.view_pin_description',
-            )}
-            onPress={onViewPin}
-            isLoading={isPinLoading}
-            testID={CardHomeSelectors.VIEW_PIN_BUTTON}
-          />
-        )}
-        {((isAuthenticated &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.view_pin')}
+              description={strings(
+                'card.card_home.manage_card_options.view_pin_description',
+              )}
+              onPress={onViewPin}
+              isLoading={isPinLoading}
+              testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+            />
+          )}
+        {isAuthenticated &&
           !isLoading &&
           card &&
           card.status === CardStatus.ACTIVE &&
           capabilities?.supportsPinSet &&
           cardHasPin &&
-          !hideManageOptions) ||
-          (showTeaserOptions && capabilities?.supportsPinSet)) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.set_pin')}
-            description={strings(
-              'card.card_home.manage_card_options.set_pin_description',
-            )}
-            onPress={onSetPin}
-            testID={CardHomeSelectors.SET_PIN_BUTTON}
-          />
-        )}
-        {((isAuthenticated &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.set_pin')}
+              description={strings(
+                'card.card_home.manage_card_options.set_pin_description',
+              )}
+              onPress={onSetPin}
+              testID={CardHomeSelectors.SET_PIN_BUTTON}
+            />
+          )}
+        {isAuthenticated &&
           !isLoading &&
           card?.isFreezable &&
           card?.status !== CardStatus.BLOCKED &&
-          !hideManageOptions) ||
-          showTeaserOptions) && (
-          <ManageCardListItem
-            title={
-              isFrozen && isAuthenticated
-                ? strings('card.card_home.manage_card_options.unfreeze_card')
-                : strings('card.card_home.manage_card_options.freeze_card')
-            }
-            description={strings(
-              isFrozen && isAuthenticated
-                ? 'card.card_home.manage_card_options.unfreeze_card_description'
-                : 'card.card_home.manage_card_options.freeze_card_description',
-            )}
-            rightElement={
-              <Switch
-                value={isFrozen && isAuthenticated}
-                onValueChange={isFreezeLoading ? undefined : onToggleFreeze}
-                disabled={isFreezeLoading}
-                style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
-                testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
-              />
-            }
-            testID="freeze-card-list-item"
-          />
-        )}
-        {capabilities?.supportsFundingLimits &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                isFrozen
+                  ? 'card.card_home.manage_card_options.unfreeze_card'
+                  : 'card.card_home.manage_card_options.freeze_card',
+              )}
+              description={strings(
+                isFrozen
+                  ? 'card.card_home.manage_card_options.unfreeze_card_description'
+                  : 'card.card_home.manage_card_options.freeze_card_description',
+              )}
+              rightElement={
+                <Switch
+                  value={isFrozen}
+                  onValueChange={isFreezeLoading ? undefined : onToggleFreeze}
+                  disabled={isFreezeLoading}
+                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
+                  testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
+                />
+              }
+              testID="freeze-card-list-item"
+            />
+          )}
+        {isAuthenticated &&
+          capabilities?.supportsFundingLimits &&
           !isLoading &&
           !hideManageOptions && (
             <ManageCardListItem
@@ -366,18 +361,17 @@ const ManageCardOptions = ({
           testID={CardHomeSelectors.TRANSACTION_HISTORY_ITEM}
         />
       ) : null}
-      {capabilities?.supportsTravel &&
-        ((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.travel_title')}
-            description={strings(
-              'card.card_home.manage_card_options.travel_description',
-            )}
-            rightIcon={IconName.ArrowSquareOut}
-            onPress={onTravel}
-            testID={CardHomeSelectors.TRAVEL_ITEM}
-          />
-        )}
+      {capabilities?.supportsTravel && isFullySetUp && !hideManageOptions && (
+        <ManageCardListItem
+          title={strings('card.card_home.manage_card_options.travel_title')}
+          description={strings(
+            'card.card_home.manage_card_options.travel_description',
+          )}
+          rightIcon={IconName.ArrowSquareOut}
+          onPress={onTravel}
+          testID={CardHomeSelectors.TRAVEL_ITEM}
+        />
+      )}
     </>
   );
 };

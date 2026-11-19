@@ -12,7 +12,7 @@ import { selectMoneyAccountGeoBlockedCountries } from './featureFlags';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import {
   selectIsCardAuthenticated,
-  selectCardEntryRouting,
+  selectHasCard,
 } from '../../../../selectors/cardController';
 
 const US_COUNTRY_CODE = 'US';
@@ -47,16 +47,12 @@ export const selectIsUserInUS = createSelector(
 
 /**
  * Whether the user is in the US, not authenticated with the card service, and
- * has no card.
- *
- * While card links are off, that is a cardholder label on any account. Once
- * stored links exist, it is a routable link, so switching accounts does not
- * change it.
+ * has no routable card link. Switching accounts does not change it.
  */
 export const selectIsUsUnauthenticatedNonCardholder = createSelector(
   selectIsUserInUS,
   selectIsCardAuthenticated,
-  selectCardEntryRouting,
-  (isInUS, isCardAuthenticated, routing): boolean =>
-    isInUS && !isCardAuthenticated && !routing.hasCard,
+  selectHasCard,
+  (isInUS, isCardAuthenticated, hasCard): boolean =>
+    isInUS && !isCardAuthenticated && !hasCard,
 );

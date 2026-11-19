@@ -6,6 +6,10 @@ import BuildQuote, {
 } from './BuildQuote';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import {
+  isBuyScreenOwningProviderPick,
+  recordUserProviderPick,
+} from '../../hooks/providerPickCoordination';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -344,6 +348,7 @@ describe('createBuildQuoteNavDetails', () => {
 
 const mockSetSelectedProvider = jest.fn();
 const mockSetSelectedProviderForAsset = jest.fn();
+const mockSelectProviderForAsset = jest.fn();
 
 const buildRampsControllerResult = (overrides = {}) => ({
   userRegion: USER_REGION,
@@ -351,6 +356,7 @@ const buildRampsControllerResult = (overrides = {}) => ({
   selectedProvider: WIDGET_PROVIDER,
   setSelectedProvider: mockSetSelectedProvider,
   setSelectedProviderForAsset: mockSetSelectedProviderForAsset,
+  selectProviderForAsset: mockSelectProviderForAsset,
   selectedToken: SELECTED_TOKEN,
   paymentMethods: [SELECTED_PAYMENT_METHOD],
   getBuyWidgetData: mockGetBuyWidgetData,
@@ -1360,173 +1366,134 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('auto-select provider when none selected', () => {
-    it('selects the first provider that supports the token', () => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-      });
+  describe('provider pre-selection', () => {
+    const PEPE_ASSET =
+      'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933';
+
+    it('asks the controller to pick for the selected token', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedProvider: null }),
+      );
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
 
-      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
-        autoSelected: true,
-      });
+      expect(mockSelectProviderForAsset).toHaveBeenCalledWith(
+        SELECTED_TOKEN.assetId,
+        { excludeProviderIds: [] },
+      );
     });
 
-    it('does not auto-select when a provider is already selected', () => {
-      renderWithProvider(<BuildQuote />, { state: initialRootState });
-
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-    });
-
-    it('does not auto-select when providers list is empty', () => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: null,
-      });
+    it('picks for the route token while the selected token still holds the previous one', () => {
+      mockUseParams.mockReturnValue({ assetId: PEPE_ASSET });
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
 
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-    });
-
-    it('does not auto-select when no token is selected', () => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: null,
-        paymentMethods: [],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: null,
+      expect(mockSelectProviderForAsset).toHaveBeenCalledWith(PEPE_ASSET, {
+        excludeProviderIds: [],
       });
-
-      renderWithProvider(<BuildQuote />, { state: initialRootState });
-
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+      expect(mockSelectProviderForAsset).not.toHaveBeenCalledWith(
+        SELECTED_TOKEN.assetId,
+        expect.anything(),
+      );
     });
 
-    it('skips providers that do not support the token', () => {
-      const unsupportedProvider = {
-        id: 'banxa',
-        name: 'Banxa',
-        supportedCryptoCurrencies: { 'eip155:1/erc20:0xother': true },
-        links: [],
-      };
+    it('picks again when the provider list loads after the screen opened', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ providers: [], selectedProvider: null }),
+      );
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      expect(mockSelectProviderForAsset).not.toHaveBeenCalled();
+
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedProvider: null }),
+      );
+      rerender(<BuildQuote />);
+
+      expect(mockSelectProviderForAsset).toHaveBeenCalledWith(
+        SELECTED_TOKEN.assetId,
+        { excludeProviderIds: [] },
+      );
+    });
+
+    it('picks again when the controller list arrives after the React Query copy', () => {
+      const result = buildRampsControllerResult({ controllerProviders: [] });
+      mockUseRampsController.mockReturnValue(result);
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      mockSelectProviderForAsset.mockClear();
 
       mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [unsupportedProvider, NATIVE_PROVIDER],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+        ...result,
+        controllerProviders: [WIDGET_PROVIDER, NATIVE_PROVIDER],
       });
+      rerender(<BuildQuote />);
 
-      renderWithProvider(<BuildQuote />, { state: initialRootState });
-
-      expect(mockSetSelectedProvider).toHaveBeenCalledWith(NATIVE_PROVIDER, {
-        autoSelected: true,
-      });
+      expect(mockSelectProviderForAsset).toHaveBeenCalledTimes(1);
     });
 
-    it('does not auto-select when no provider supports the token', () => {
-      const unsupportedProvider = {
-        id: 'banxa',
-        name: 'Banxa',
-        supportedCryptoCurrencies: { 'eip155:1/erc20:0xother': true },
-        links: [],
-      };
+    it('picks again when the previously used providers change', () => {
+      const result = buildRampsControllerResult({
+        previouslyUsedProviderIds: [],
+      });
+      mockUseRampsController.mockReturnValue(result);
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      mockSelectProviderForAsset.mockClear();
 
       mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [unsupportedProvider],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: null,
+        ...result,
+        previouslyUsedProviderIds: [NATIVE_PROVIDER.id],
       });
+      rerender(<BuildQuote />);
+
+      expect(mockSelectProviderForAsset).toHaveBeenCalledTimes(1);
+    });
+
+    it('owns the provider pick while mounted', () => {
+      const { unmount } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      expect(isBuyScreenOwningProviderPick()).toBe(true);
+
+      unmount();
+      expect(isBuyScreenOwningProviderPick()).toBe(false);
+    });
+
+    it('does not pick when no token is known', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedToken: null }),
+      );
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
 
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+      expect(mockSelectProviderForAsset).not.toHaveBeenCalled();
     });
 
-    it('does not auto-select when screen is not focused', () => {
+    it('does not pick when the screen is not focused', () => {
       const mockUseIsFocused = jest.requireMock('@react-navigation/native')
         .useIsFocused as jest.Mock;
       mockUseIsFocused.mockReturnValue(false);
 
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [WIDGET_PROVIDER],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSelectProviderForAsset).not.toHaveBeenCalled();
+
+      mockUseIsFocused.mockReturnValue(true);
+    });
+
+    it('never sets a provider directly', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedProvider: null }),
+      );
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
 
       expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-
-      mockUseIsFocused.mockReturnValue(true);
+      expect(mockSetSelectedProviderForAsset).not.toHaveBeenCalled();
     });
   });
 
@@ -1547,6 +1514,7 @@ describe('BuildQuote', () => {
         selectedProvider: transakProvider,
         setSelectedProvider: mockSetSelectedProvider,
         setSelectedProviderForAsset: mockSetSelectedProviderForAsset,
+        selectProviderForAsset: mockSelectProviderForAsset,
         selectedToken: SELECTED_TOKEN,
         paymentMethods: [],
         getBuyWidgetData: mockGetBuyWidgetData,
@@ -1565,6 +1533,8 @@ describe('BuildQuote', () => {
       jest.useFakeTimers();
       mockUseParams.mockReturnValue({ assetId: TOKEN_ASSET });
       mockSetSelectedProviderForAsset.mockReset();
+      mockSelectProviderForAsset.mockReset();
+      mockSelectProviderForAsset.mockReturnValue(null);
     });
 
     afterEach(() => {
@@ -1670,8 +1640,8 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('switches to another supporting provider when current has empty payment methods', () => {
-      mockSetSelectedProviderForAsset.mockReturnValue(false);
+    it('picks again without the current provider when it has empty payment methods', () => {
+      mockSelectProviderForAsset.mockReturnValue(WIDGET_PROVIDER.id);
       mockUnavailableController({
         selectedProvider: transakProvider,
         providers: [transakProvider, WIDGET_PROVIDER],
@@ -1680,9 +1650,8 @@ describe('BuildQuote', () => {
       act(() => {
         jest.advanceTimersByTime(650);
       });
-      expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(TOKEN_ASSET);
-      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
-        autoSelected: true,
+      expect(mockSelectProviderForAsset).toHaveBeenCalledWith(TOKEN_ASSET, {
+        excludeProviderIds: [transakProvider.id],
       });
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'RampModals',
@@ -1690,6 +1659,34 @@ describe('BuildQuote', () => {
           screen: 'RampTokenNotAvailableModal',
         }),
       );
+    });
+
+    it('gives a provider the user picks by hand another try', () => {
+      mockSelectProviderForAsset.mockReturnValue(WIDGET_PROVIDER.id);
+      mockUnavailableController({
+        selectedProvider: transakProvider,
+        providers: [transakProvider, WIDGET_PROVIDER],
+      });
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      expect(mockSelectProviderForAsset).toHaveBeenLastCalledWith(TOKEN_ASSET, {
+        excludeProviderIds: [transakProvider.id],
+      });
+
+      recordUserProviderPick(transakProvider.id);
+      mockUnavailableController({
+        selectedProvider: transakProvider,
+        providers: [transakProvider, WIDGET_PROVIDER],
+        previouslyUsedProviderIds: [transakProvider.id],
+        // Its payment methods are loading again.
+        paymentMethodsFetching: true,
+      });
+      rerender(<BuildQuote />);
+
+      expect(mockSelectProviderForAsset).toHaveBeenLastCalledWith(TOKEN_ASSET, {
+        excludeProviderIds: [],
+      });
     });
 
     it('navigates when token is missing from supportedCryptoCurrencies', () => {
@@ -1801,14 +1798,16 @@ describe('BuildQuote', () => {
           },
         });
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
-        mockSetSelectedProviderForAsset.mockReturnValue(true);
+        mockSelectProviderForAsset.mockReturnValue(coinbaseProvider.id);
 
         renderWithProvider(<BuildQuote />, { state: autoSelectedState });
         act(() => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSelectProviderForAsset).toHaveBeenCalledWith(BTC_ASSET, {
+          excludeProviderIds: [],
+        });
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1834,7 +1833,9 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSelectProviderForAsset).toHaveBeenCalledWith(BTC_ASSET, {
+          excludeProviderIds: [],
+        });
         expect(mockNavigate).toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1854,14 +1855,16 @@ describe('BuildQuote', () => {
           },
         });
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
-        mockSetSelectedProviderForAsset.mockReturnValue(true);
+        mockSelectProviderForAsset.mockReturnValue(coinbaseProvider.id);
 
         renderWithProvider(<BuildQuote />, { state: initialRootState });
         act(() => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSelectProviderForAsset).toHaveBeenCalledWith(BTC_ASSET, {
+          excludeProviderIds: [],
+        });
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({

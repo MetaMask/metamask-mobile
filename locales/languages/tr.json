@@ -9986,7 +9986,6 @@
     },
     "action": {
       "add": "Ekle",
-      "transfer": "Gönder",
       "card": "Kart",
       "details": "Ayrıntılar"
     },
@@ -10108,8 +10107,6 @@
       "contact_support": "Destek ile iletişime geç"
     },
     "transfer_sheet": {
-      "title": "Fon gönder",
-      "between_accounts": "Başka hesap",
       "perps_account": "Perps hesabı",
       "predictions_account": "Tahminler hesabı",
       "send_external": "Harici adres",
