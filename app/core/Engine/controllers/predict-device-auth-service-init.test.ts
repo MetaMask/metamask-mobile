@@ -1,7 +1,8 @@
 import { PredictDeviceAuthService } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
+import { ApiEnv } from '../../apiEnv';
 import {
   predictDeviceAuthServiceInit,
-  resolvePredictDeviceAuthIssuerUrl,
+  resolveKalshiAuthApiUrl,
 } from './predict-device-auth-service-init';
 
 const mockClear = jest.fn();
@@ -223,20 +224,12 @@ describe('predictDeviceAuthServiceInit', () => {
   });
 });
 
-describe('resolvePredictDeviceAuthIssuerUrl', () => {
-  it('uses the development override only in development builds', () => {
-    expect(
-      resolvePredictDeviceAuthIssuerUrl(true, 'https://issuer.example'),
-    ).toBe('https://issuer.example');
-    expect(
-      resolvePredictDeviceAuthIssuerUrl(false, 'https://issuer.example'),
-    ).toBeUndefined();
-  });
-
-  it('uses the temporary issuer only in development builds', () => {
-    expect(resolvePredictDeviceAuthIssuerUrl(true, undefined)).toBe(
-      'https://predict-api.dev-api.cx.metamask.io',
-    );
-    expect(resolvePredictDeviceAuthIssuerUrl(false, undefined)).toBeUndefined();
+describe('resolveKalshiAuthApiUrl', () => {
+  it.each([
+    [ApiEnv.Dev, 'https://authentication.dev-api.cx.metamask.io'],
+    [ApiEnv.Uat, 'https://authentication.uat-api.cx.metamask.io'],
+    [ApiEnv.Prod, 'https://authentication.api.cx.metamask.io'],
+  ])('uses the MetaMask Auth host for %s', (apiEnv, url) => {
+    expect(resolveKalshiAuthApiUrl(apiEnv)).toBe(url);
   });
 });

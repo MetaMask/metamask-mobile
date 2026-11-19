@@ -1,6 +1,4 @@
-import { HandlerType } from '@metamask/snaps-utils';
-import type { SnapId } from '@metamask/snaps-sdk';
-
+import { ApiEnv, getApiEnv } from '../../apiEnv';
 import {
   parsePredictConfig,
   resolveSelectedAuthProfile,
@@ -14,25 +12,23 @@ import {
 import type { PredictDeviceAuthServiceInitMessenger } from '../messengers/predict-device-auth-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
 
-const MESSAGE_SIGNING_SNAP_ID: SnapId =
-  'npm:@metamask/message-signing-snap' as SnapId;
-const DEV_ISSUER_URL = 'https://predict-api.dev-api.cx.metamask.io';
-
-export const resolvePredictDeviceAuthIssuerUrl = (
-  isDevelopment: boolean,
-  override: string | undefined,
-): string | undefined => {
-  if (!isDevelopment) {
-    return undefined;
-  }
-  if (typeof override === 'string' && override.trim().length > 0) {
-    return override;
-  }
-  return DEV_ISSUER_URL;
+/**
+ * MetaMask Auth hosts that mint the Kalshi A2T. The placeholder
+ * `authentication.<env>.cx.metamask.io` does not resolve. These are the
+ * hosts that answer `POST /api/v2/kalshi/token` with 401 when no bearer
+ * token is sent. Prod is `authentication.api`, matching the rest of Auth.
+ */
+const KALSHI_AUTH_API_URL: Record<ApiEnv, string> = {
+  [ApiEnv.Dev]: 'https://authentication.dev-api.cx.metamask.io',
+  [ApiEnv.Uat]: 'https://authentication.uat-api.cx.metamask.io',
+  [ApiEnv.Prod]: 'https://authentication.api.cx.metamask.io',
 };
 
-const getConfiguredIssuerUrl = (): string | undefined =>
-  resolvePredictDeviceAuthIssuerUrl(__DEV__, process.env.MM_A2T_URL);
+/** Auth base for the cluster `MM_API_ENV` selects. Unset is prod. */
+export const resolveKalshiAuthApiUrl = (apiEnv: ApiEnv = getApiEnv()): string =>
+  KALSHI_AUTH_API_URL[apiEnv];
+
+const getConfiguredIssuerUrl = (): string => resolveKalshiAuthApiUrl();
 
 export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   PredictDeviceAuthService,
@@ -43,17 +39,6 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     const state = initMessenger.call('RemoteFeatureFlagController:getState');
     return parsePredictConfig(state.remoteFeatureFlags?.predictConfig);
   };
-
-  const invokeMessageSigningSnap = (
-    method: string,
-    params?: Record<string, unknown>,
-  ): Promise<unknown> =>
-    initMessenger.call('SnapController:handleRequest', {
-      snapId: MESSAGE_SIGNING_SNAP_ID,
-      origin: 'metamask',
-      handler: HandlerType.OnRpcRequest,
-      request: params ? { method, params } : { method },
-    });
 
   // Cached canonical profile id. Bearer-token reads refresh it from
   // getSessionProfile, and profileSignIn writes it when pairing changes the
@@ -88,22 +73,6 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
       return accessToken;
     },
     getCanonicalProfileId: () => canonicalProfileId,
-    getSrpIdentifier: async () => {
-      const identifier = await invokeMessageSigningSnap('getPublicKey');
-      if (typeof identifier !== 'string' || identifier.length === 0) {
-        throw new Error('SRP identifier was not available');
-      }
-      return identifier;
-    },
-    signSrpMessage: async (message) => {
-      const signature = await invokeMessageSigningSnap('signMessage', {
-        message,
-      });
-      if (typeof signature !== 'string' || signature.length === 0) {
-        throw new Error('SRP signature was not available');
-      }
-      return signature;
-    },
     isEnabled: () => resolveVenueAuthProfile(readConfig()) !== undefined,
     isUnlocked: () =>
       initMessenger.call('KeyringController:getState').isUnlocked,

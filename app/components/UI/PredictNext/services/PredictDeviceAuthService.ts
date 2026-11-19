@@ -68,8 +68,6 @@ export interface PredictDeviceAuthServiceDependencies {
   getIssuerUrl: () => string | undefined;
   getAccessToken: () => Promise<string>;
   getCanonicalProfileId: () => string | undefined;
-  getSrpIdentifier: () => Promise<string>;
-  signSrpMessage: (message: string) => Promise<string>;
   isEnabled: () => boolean;
   isUnlocked: () => boolean;
   isSignedIn: () => boolean;
@@ -253,11 +251,8 @@ export class PredictDeviceAuthService {
       getIssuerUrl: () => resolveA2tIssuerUrl(this.#deps.getIssuerUrl()),
       getAccessToken: this.#deps.getAccessToken,
       getCanonicalProfileId: this.#deps.getCanonicalProfileId,
-      getSrpIdentifier: this.#deps.getSrpIdentifier,
-      signSrpMessage: this.#deps.signSrpMessage,
       getDeviceKey: deviceKey.wait,
       peekDeviceKey: deviceKey.get,
-      signDeviceProof: deviceKey.sign,
       fetch: this.#deps.fetch,
       now: this.#deps.now,
       nowMs: this.#deps.nowMs,
