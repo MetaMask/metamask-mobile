@@ -1,4 +1,10 @@
 import React from 'react';
+import {
+  AccessibilityInfo,
+  PanResponder,
+  type PanResponderGestureState,
+} from 'react-native';
+import { act } from '@testing-library/react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import type { VaultCompositionComponent } from '../../../../types/moneyVaultComposition';
@@ -56,7 +62,81 @@ const createComponents = (count: number): VaultCompositionComponent[] =>
     }),
   );
 
+const createInteractionComponents = (): VaultCompositionComponent[] => [
+  createComponent('direct_idle_musd', { allocation_fraction: '0.5' }),
+  createComponent('direct_idle_usdc', { allocation_fraction: '0.3' }),
+  createComponent('aave_v3_musd', { allocation_fraction: '0.2' }),
+];
+
+const createTouchEvent = (angleDegrees: number, radius = 72) => {
+  const angleRadians = (angleDegrees * Math.PI) / 180;
+
+  return {
+    nativeEvent: {
+      locationX: 100 + Math.sin(angleRadians) * radius,
+      locationY: 100 - Math.cos(angleRadians) * radius,
+    },
+  };
+};
+
 describe('MoneyVaultCompositionChart', () => {
+  beforeEach(() => {
+    jest.spyOn(PanResponder, 'create').mockImplementation((config) => ({
+      panHandlers: {
+        onStartShouldSetResponder: config.onStartShouldSetPanResponder
+          ? (event) =>
+              config.onStartShouldSetPanResponder?.(
+                event,
+                {} as PanResponderGestureState,
+              ) ?? false
+          : undefined,
+        onMoveShouldSetResponder: config.onMoveShouldSetPanResponder
+          ? (event) =>
+              config.onMoveShouldSetPanResponder?.(
+                event,
+                {} as PanResponderGestureState,
+              ) ?? false
+          : undefined,
+        onResponderGrant: config.onPanResponderGrant
+          ? (event) =>
+              config.onPanResponderGrant?.(
+                event,
+                {} as PanResponderGestureState,
+              )
+          : undefined,
+        onResponderMove: config.onPanResponderMove
+          ? (event) =>
+              config.onPanResponderMove?.(event, {} as PanResponderGestureState)
+          : undefined,
+        onResponderRelease: config.onPanResponderRelease
+          ? (event) =>
+              config.onPanResponderRelease?.(
+                event,
+                {} as PanResponderGestureState,
+              )
+          : undefined,
+        onResponderTerminate: config.onPanResponderTerminate
+          ? (event) =>
+              config.onPanResponderTerminate?.(
+                event,
+                {} as PanResponderGestureState,
+              )
+          : undefined,
+        onResponderTerminationRequest: config.onPanResponderTerminationRequest
+          ? (event) =>
+              config.onPanResponderTerminationRequest?.(
+                event,
+                {} as PanResponderGestureState,
+              ) ?? false
+          : undefined,
+      },
+    }));
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it.each([1, 3, 5])('renders exactly %i wedges', (count) => {
     const { getAllByTestId } = renderWithProvider(
       <MoneyVaultCompositionChart components={createComponents(count)} />,
@@ -257,5 +337,352 @@ describe('MoneyVaultCompositionChart', () => {
           .fill,
       ).toEqual(colorsByKey[componentKey]);
     });
+  });
+
+  it('starts with the highest allocation selected', () => {
+    const components = [
+      createComponent('direct_idle_musd', {
+        label: 'Highest allocation',
+        allocation_fraction: '0.6',
+      }),
+      createComponent('direct_idle_usdc', {
+        label: 'Lower allocation',
+        allocation_fraction: '0.4',
+      }),
+    ];
+
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CHART).props
+        .accessibilityRole,
+    ).toBe('adjustable');
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('Highest allocation');
+  });
+
+  it('selects a wedge on ring touch and preserves selection after release', () => {
+    const components = createInteractionComponents();
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+    const secondWedgeTouch = createTouchEvent(220);
+
+    act(() => {
+      expect(chart.props.onStartShouldSetResponder(secondWedgeTouch)).toBe(
+        true,
+      );
+      chart.props.onResponderGrant(secondWedgeTouch, {});
+      chart.props.onResponderRelease(secondWedgeTouch, {});
+    });
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('direct_idle_usdc');
+  });
+
+  it('dims inactive wedges and expands the selected wedge while held', () => {
+    const components = createInteractionComponents();
+    const { getAllByTestId, getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+    const wedges = getAllByTestId(/^money-vault-composition-chart-wedge-/);
+    const normalPath = wedges[0].props.d;
+
+    act(() => {
+      chart.props.onResponderGrant(createTouchEvent(60), {});
+    });
+
+    const selectedWedge = getByTestId(
+      MoneyVaultCompositionChartTestIds.WEDGE('direct_idle_musd'),
+    );
+    const inactiveWedge = getByTestId(
+      MoneyVaultCompositionChartTestIds.WEDGE('direct_idle_usdc'),
+    );
+
+    expect(selectedWedge.props.d).not.toBe(normalPath);
+    expect(inactiveWedge.props.opacity).toBe(0.35);
+
+    act(() => {
+      chart.props.onResponderRelease(createTouchEvent(60), {});
+    });
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.WEDGE('direct_idle_musd'))
+        .props.d,
+    ).toBe(normalPath);
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.WEDGE('direct_idle_usdc'))
+        .props.opacity,
+    ).toBeUndefined();
+  });
+
+  it('updates selection while dragging across wedges', () => {
+    const components = createInteractionComponents();
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    act(() => {
+      chart.props.onResponderGrant(createTouchEvent(60), {});
+      chart.props.onResponderMove(createTouchEvent(220), {});
+    });
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('direct_idle_usdc');
+  });
+
+  it('retains selection when dragging through a separator, hole, or outside', () => {
+    const components = createInteractionComponents();
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    act(() => {
+      chart.props.onResponderGrant(createTouchEvent(60), {});
+      chart.props.onResponderMove(createTouchEvent(179.5));
+      chart.props.onResponderMove(createTouchEvent(60, 20));
+      chart.props.onResponderMove(createTouchEvent(60, 100));
+    });
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('direct_idle_musd');
+  });
+
+  it('selects across the zero-degree boundary while dragging', () => {
+    const components = [
+      createComponent('direct_idle_musd', { allocation_fraction: '0.5' }),
+      createComponent('direct_idle_usdc', { allocation_fraction: '0.5' }),
+    ];
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    act(() => {
+      chart.props.onResponderGrant(createTouchEvent(350), {});
+      chart.props.onResponderMove(createTouchEvent(10), {});
+    });
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('direct_idle_musd');
+  });
+
+  it('rejects touches that begin outside the painted ring', () => {
+    const components = createInteractionComponents();
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    expect(
+      chart.props.onStartShouldSetResponder(createTouchEvent(60, 20)),
+    ).toBe(false);
+    expect(
+      chart.props.onStartShouldSetResponder(createTouchEvent(60, 100)),
+    ).toBe(false);
+    expect(chart.props.onStartShouldSetResponder(createTouchEvent(179.5))).toBe(
+      false,
+    );
+  });
+
+  it('restores parent scrolling when the gesture terminates', () => {
+    const setScrollEnabled = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart
+        components={createInteractionComponents()}
+        setScrollEnabled={setScrollEnabled}
+      />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    act(() => {
+      chart.props.onResponderGrant(createTouchEvent(60), {});
+      chart.props.onResponderTerminate(createTouchEvent(60), {});
+    });
+
+    expect(setScrollEnabled).toHaveBeenNthCalledWith(1, false);
+    expect(setScrollEnabled).toHaveBeenNthCalledWith(2, true);
+  });
+
+  it('restores parent scrolling when the chart unmounts during interaction', () => {
+    const setScrollEnabled = jest.fn();
+    const { getByTestId, unmount } = renderWithProvider(
+      <MoneyVaultCompositionChart
+        components={createInteractionComponents()}
+        setScrollEnabled={setScrollEnabled}
+      />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    act(() => {
+      chart.props.onResponderGrant(createTouchEvent(60), {});
+    });
+
+    unmount();
+
+    expect(setScrollEnabled).toHaveBeenLastCalledWith(true);
+  });
+
+  it('restores parent scrolling when data becomes empty', () => {
+    const setScrollEnabled = jest.fn();
+    const { rerender } = renderWithProvider(
+      <MoneyVaultCompositionChart
+        components={createInteractionComponents()}
+        setScrollEnabled={setScrollEnabled}
+      />,
+    );
+
+    rerender(
+      <MoneyVaultCompositionChart
+        components={[
+          createComponent('direct_idle_musd', { allocation_fraction: '0' }),
+        ]}
+        setScrollEnabled={setScrollEnabled}
+      />,
+    );
+
+    expect(setScrollEnabled).toHaveBeenLastCalledWith(true);
+  });
+
+  it('preserves the active wedge when refreshed data keeps it positive', () => {
+    const components = createComponents(3);
+    const { getByTestId, rerender } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    act(() => {
+      chart.props.onResponderGrant(createTouchEvent(220), {});
+      chart.props.onResponderRelease(createTouchEvent(220), {});
+    });
+
+    rerender(
+      <MoneyVaultCompositionChart
+        components={[
+          createComponent('direct_idle_musd', { allocation_fraction: '0.8' }),
+          createComponent('direct_idle_usdc', {
+            allocation_fraction: '0.1',
+            label: 'Refreshed active wedge',
+          }),
+          createComponent('aave_v3_musd', { allocation_fraction: '0.1' }),
+        ]}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('Refreshed active wedge');
+  });
+
+  it('selects the new maximum when the active wedge becomes non-positive', () => {
+    const components = createComponents(3);
+    const { getByTestId, rerender } = renderWithProvider(
+      <MoneyVaultCompositionChart components={components} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    act(() => {
+      chart.props.onResponderGrant(createTouchEvent(220), {});
+      chart.props.onResponderRelease(createTouchEvent(220), {});
+    });
+
+    rerender(
+      <MoneyVaultCompositionChart
+        components={[
+          createComponent('direct_idle_musd', { allocation_fraction: '0.1' }),
+          createComponent('direct_idle_usdc', { allocation_fraction: '0' }),
+          createComponent('aave_v3_musd', { allocation_fraction: '0.9' }),
+        ]}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('aave_v3_musd');
+  });
+
+  it('changes selection through accessibility increment and decrement actions', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={createInteractionComponents()} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    expect(chart.props.accessibilityActions).toEqual(
+      expect.arrayContaining([{ name: 'increment' }, { name: 'decrement' }]),
+    );
+
+    act(() => {
+      chart.props.onAccessibilityAction({
+        nativeEvent: { actionName: 'increment' },
+      });
+    });
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('direct_idle_usdc');
+
+    act(() => {
+      chart.props.onAccessibilityAction({
+        nativeEvent: { actionName: 'decrement' },
+      });
+    });
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
+    ).toHaveTextContent('direct_idle_musd');
+  });
+
+  it('announces changed selection through accessibility', () => {
+    const announceForAccessibility = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={createInteractionComponents()} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    announceForAccessibility.mockClear();
+
+    act(() => {
+      chart.props.onAccessibilityAction({
+        nativeEvent: { actionName: 'increment' },
+      });
+    });
+
+    expect(announceForAccessibility).toHaveBeenLastCalledWith(
+      'direct_idle_usdc, 30%',
+    );
+  });
+
+  it('exposes the active allocation without separately exposing center text', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={createInteractionComponents()} />,
+    );
+    const chart = getByTestId(MoneyVaultCompositionChartTestIds.CHART);
+
+    expect(chart.props.accessibilityLabel).toBe('direct_idle_musd, 50%');
+    expect(chart.props.accessibilityValue).toEqual({
+      min: 0,
+      max: 2,
+      now: 0,
+      text: 'direct_idle_musd, 50%',
+    });
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_PERCENTAGE).props
+        .accessible,
+    ).toBe(false);
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL).props
+        .accessible,
+    ).toBe(false);
   });
 });

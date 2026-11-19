@@ -43,7 +43,7 @@ export const getVaultCompositionComponentKeyAtPoint = (
   const deltaY = y - CHART_CENTER;
   const radius = Math.sqrt(deltaX ** 2 + deltaY ** 2);
 
-  if (radius < DONUT_INNER_RADIUS || radius > PRESSED_DONUT_OUTER_RADIUS) {
+  if (radius < DONUT_INNER_RADIUS || radius > DONUT_OUTER_RADIUS) {
     return null;
   }
 
