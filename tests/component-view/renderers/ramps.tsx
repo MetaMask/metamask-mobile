@@ -43,6 +43,7 @@ import {
   initialStateRamps,
 } from '../presets/ramps';
 import Engine from '../../../app/core/Engine';
+import { providerSupportsAsset } from '../../../app/components/UI/Ramp/utils/providerSupportsAsset';
 import { updateBgState } from '../../../app/core/redux/slices/engine';
 import type { MultichainAccountsFixture } from '../presets/multichainAccounts';
 import type { Store } from '@reduxjs/toolkit';
@@ -165,8 +166,12 @@ export function wireRampsControllerForStore(store: Store) {
   const rampsController = Engine.context.RampsController as unknown as {
     setSelectedProvider: (
       providerId: string | null,
-      options?: { autoSelected?: boolean },
+      options?: { autoSelected?: boolean; userSelected?: boolean },
     ) => void;
+    selectProviderForAsset: (
+      assetId: string | null,
+      options?: { excludeProviderIds?: string[] },
+    ) => string | null;
     setSelectedPaymentMethod: (
       paymentMethod?: { id: string } | string | null,
     ) => void;
@@ -199,13 +204,56 @@ export function wireRampsControllerForStore(store: Store) {
     store.dispatch(updateBgState({ key: 'RampsController' }));
   };
 
-  rampsController.setSelectedProvider = (providerId) => {
+  let userSelectedProviderId: string | null = null;
+
+  rampsController.setSelectedProvider = (providerId, options) => {
+    if (!providerId) {
+      userSelectedProviderId = null;
+    } else if (options?.userSelected) {
+      userSelectedProviderId = providerId;
+    }
     updateRampsSlice('providers', (slice) =>
       providerId
         ? ((slice.data as { id: string }[]).find((p) => p.id === providerId) ??
           null)
         : null,
     );
+  };
+
+  // Stand-in for the controller's picker: the user's own pick, then list
+  // order. Order history and the remote ahead-of-history list are left out.
+  rampsController.selectProviderForAsset = (assetId, options) => {
+    const backgroundState = store.getState().engine.backgroundState as Record<
+      string,
+      unknown
+    >;
+    const { data, selected } = (
+      backgroundState.RampsController as {
+        providers: {
+          data: {
+            id: string;
+            supportedCryptoCurrencies?: Record<string, boolean>;
+          }[];
+          selected: { id: string } | null;
+        };
+      }
+    ).providers;
+    const excluded = options?.excludeProviderIds ?? [];
+    const candidates = data.filter(
+      (provider) =>
+        !excluded.includes(provider.id) &&
+        (!assetId || providerSupportsAsset(provider, assetId)),
+    );
+    const chosen =
+      candidates.find((provider) => provider.id === userSelectedProviderId) ??
+      candidates[0];
+    if (!chosen) {
+      return null;
+    }
+    if (selected?.id !== chosen.id) {
+      rampsController.setSelectedProvider(chosen.id, { autoSelected: true });
+    }
+    return chosen.id;
   };
 
   rampsController.setSelectedPaymentMethod = (paymentMethod) => {

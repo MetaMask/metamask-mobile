@@ -115,6 +115,7 @@ import {
   type InputMethod,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -232,7 +233,10 @@ import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectPerpsProvider } from '../../selectors/perpsController';
+import {
+  selectPerpsOrderProvider,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
 import {
   postCopyTradeIntent,
   type CopyTradeOrigin,
@@ -309,6 +313,8 @@ interface OrderRouteParams {
   chartLibrary?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
+  /** Provider whose same-symbol position locks this order's margin mode. */
+  providerId?: PerpsProviderType;
   useBottomSheet?: boolean;
 }
 
@@ -388,6 +394,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
   const copyTradeOrigin = route.params?.copyTradeOrigin;
   const activePerpsProvider = useSelector(selectPerpsProvider);
+  const orderProvider = useSelector(selectPerpsOrderProvider);
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -699,9 +706,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isDataReady && (szDecimals === null || maxLeverage === null);
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
-  // Same venue the lock and the liquidation formula use. Another venue's
-  // position for this symbol must not set the cross estimate.
+  // A route provider wins. Otherwise use the venue this order will go to, so
+  // the sheet, the margin lock, and the liquidation formula follow the
+  // position it will change. Another venue's position for this symbol must
+  // not set the cross estimate.
   const liquidationProviderId =
+    route.params?.providerId ??
+    orderProvider ??
     marketData?.providerId ??
     (activePerpsProvider === PROVIDER_CONFIG.LighterProvider
       ? PROVIDER_CONFIG.LighterProvider
@@ -2957,6 +2968,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 autoCloseText={tpSlDisplayText}
                 showAutoClose={!hideTPSL}
                 margin={marginDisplay}
+                marginMode={
+                  isCurrentPositionLoading
+                    ? undefined
+                    : isCrossMarginEnabled &&
+                        currentMarketPosition?.leverage?.type === 'cross'
+                      ? 'cross'
+                      : 'isolated'
+                }
                 liquidationPrice={tradeSheetLiquidationPrice}
                 liquidationDistance={tradeSheetLiquidationDistance}
                 amount={displayAmount}

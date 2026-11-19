@@ -595,6 +595,26 @@ describe('CodeStep', () => {
     );
   });
 
+  it('pastes an authenticator app code with the Paste button and submits it', async () => {
+    jest.spyOn(Clipboard, 'getString').mockResolvedValue('123 456');
+    const { onAction, getByTestId } = renderCode(totpCode);
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON));
+
+    await waitFor(() =>
+      expect(onAction).toHaveBeenCalledWith({
+        type: 'submitCode',
+        code: '123456',
+      }),
+    );
+  });
+
+  it('shows no Paste button for email codes', () => {
+    const { queryByTestId } = renderCode(otp(true));
+
+    expect(queryByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON)).toBeNull();
+  });
+
   it('offers a new code once the one on screen expired', () => {
     const { onAction, getByText } = renderCode(otp(true), {
       error: 'flow_expired',
