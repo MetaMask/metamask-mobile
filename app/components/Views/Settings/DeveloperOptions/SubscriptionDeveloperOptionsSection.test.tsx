@@ -51,6 +51,7 @@ const setupQuery = (overrides: Record<string, unknown> = {}) => {
     data: SUBSCRIPTIONS,
     error: null,
     isFetching: false,
+    isEnabled: true,
     refetch: mockRefetch,
     dataUpdatedAt: 0,
     ...overrides,
@@ -100,5 +101,15 @@ describe('SubscriptionDeveloperOptionsSection', () => {
     expect(mockSetString).toHaveBeenCalledWith(
       JSON.stringify(SUBSCRIPTIONS, null, 2),
     );
+  });
+
+  it('disables refresh when the query is not enabled', () => {
+    setupQuery({ isEnabled: false });
+
+    const { getByTestId } = render(<SubscriptionDeveloperOptionsSection />);
+
+    expect(
+      getByTestId(SUBSCRIPTION_DEV_TEST_IDS.REFRESH_BUTTON),
+    ).toBeDisabled();
   });
 });

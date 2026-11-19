@@ -28,10 +28,11 @@ const SubscriptionDeveloperOptionsSection = () => {
   const { styles } = useStyles(styleSheet, { theme });
   const [isJsonVisible, setIsJsonVisible] = useState(false);
 
-  const { data, error, isFetching, refetch, dataUpdatedAt } = useSubscriptions({
-    enabled: true,
-    refetchInterval: false,
-  });
+  const { data, error, isFetching, isEnabled, refetch, dataUpdatedAt } =
+    useSubscriptions({
+      enabled: true,
+      refetchInterval: false,
+    });
   const customerId = useSelector(selectSubscriptionControllerState)?.customerId;
   const json = JSON.stringify(data ?? [], null, 2);
 
@@ -100,7 +101,7 @@ const SubscriptionDeveloperOptionsSection = () => {
         style={styles.accessory}
         size={ButtonSize.Lg}
         onPress={handleRefresh}
-        isDisabled={isFetching}
+        isDisabled={isFetching || !isEnabled}
         isFullWidth
         testID={SUBSCRIPTION_DEV_TEST_IDS.REFRESH_BUTTON}
       >
