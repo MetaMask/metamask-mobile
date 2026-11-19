@@ -146,12 +146,14 @@ export function buildRealMpcMoneyKeyringBuilder({
             `mm-mobile-dev-backup:${getProfileId(await getBearerToken())}`,
           ),
         ),
-      isMfaRequired: async (request, { address, hash }) =>
-        getMfaRequirement(request, {
-          address,
-          hash,
-          config: MPC_MFA_WHITELIST_CONFIG,
-        }).mfaRequired,
+      isMfaRequired: (request, { address, hash }) =>
+        Promise.resolve(
+          getMfaRequirement(request, {
+            address,
+            hash,
+            config: MPC_MFA_WHITELIST_CONFIG,
+          }).mfaRequired,
+        ),
       webSocket: WebSocket,
     });
   };
