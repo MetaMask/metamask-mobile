@@ -3,10 +3,89 @@ import type {
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
 } from '@metamask/social-controllers';
+import isEqual from 'lodash/isEqual';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { getFeedItemId } from '../utils/feedItemId';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
+
+/**
+ * Position fields that move with the mark price. Live card headers already
+ * overlay these from {@link SocialLivePricesProvider}, so a revision that only
+ * touches them does not need to rebuild the feed list.
+ */
+const MARK_TO_MARKET_CORE_KEYS = [
+  'currentValueUSD',
+  'pnlValueUsd',
+  'positionValueUSD',
+  'pnlPercent',
+] as const;
+
+/**
+ * Envelope fields every socket revision rewrites. They identify the event, not
+ * a structural change to the card the list already shows.
+ */
+const REVISION_ENVELOPE_CORE_KEYS = [
+  'eventId',
+  'revision',
+  'occurredAt',
+  // Copied onto every merged core; row identity is compared separately.
+  'feedItemId',
+] as const;
+
+const NON_STRUCTURAL_CORE_KEYS = [
+  ...MARK_TO_MARKET_CORE_KEYS,
+  ...REVISION_ENVELOPE_CORE_KEYS,
+] as const;
+
+/**
+ * Drops own properties whose value is `undefined`. Merge always writes
+ * `authorComment` (often `undefined`); lodash `isEqual` treats that own key as
+ * different from a core that never had the key.
+ */
+const omitUndefinedOwnProperties = (
+  core: CoreFeedItem,
+): Record<string, unknown> => {
+  const next: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(core)) {
+    if (value !== undefined) {
+      next[key] = value;
+    }
+  }
+  return next;
+};
+
+/**
+ * True when `next` only differs from `previous` by mark-to-market figures or
+ * revision envelope fields. The list can keep its current posts; live price
+ * overlays refresh the visible PnL.
+ */
+export const isMarkToMarketOnlyRowChange = (
+  previous: SocialFeedRow,
+  next: SocialFeedRow,
+): boolean => {
+  if (
+    previous.stableId !== next.stableId ||
+    previous.feedItemId !== next.feedItemId
+  ) {
+    return false;
+  }
+
+  const reconstituted: CoreFeedItem = { ...previous.core };
+  for (const key of NON_STRUCTURAL_CORE_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(next.core, key)) {
+      (reconstituted as Record<string, unknown>)[key] = (
+        next.core as Record<string, unknown>
+      )[key];
+    } else {
+      delete (reconstituted as Record<string, unknown>)[key];
+    }
+  }
+  return isEqual(
+    omitUndefinedOwnProperties(reconstituted),
+    omitUndefinedOwnProperties(next.core),
+  );
+};
 
 /**
  * Most posts the realtime layer holds at once: socket-only rows in the list,

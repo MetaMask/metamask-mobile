@@ -33,10 +33,12 @@ import {
   foldRealtimeRows,
   getRowFeedItemId,
   getVisiblePendingNewCount,
+  isMarkToMarketOnlyRowChange,
   mergeRealtimeRows,
   pinRealtimeRows,
   rememberEvictedRevision,
   toRealtimeEventPost,
+  toSocialFeedRow,
   type PendingRealtimeEvent,
   type SocialFeedRow,
 } from './socialFeedRealtime';
@@ -198,15 +200,40 @@ export const useSocialFeedRealtime = (
   const dataUpdatedAtRef = useRef(dataUpdatedAt);
   dataUpdatedAtRef.current = dataUpdatedAt;
 
-  const publish = useCallback(() => {
+  /**
+   * Bumps when a coalesced publish is scheduled or flushed. Only the latest
+   * generation's microtask snapshots the store into React state, so a burst of
+   * socket events becomes one list update.
+   */
+  const publishGenerationRef = useRef(0);
+
+  const flushPublish = useCallback(() => {
     const { socketRows, revisedRows, pending } = storeRef.current;
     setView({
       socketRows,
-      revisedRows,
+      revisedRows: new Map(revisedRows),
       pending: new Map(pending),
       stream: streamRef.current,
     });
   }, []);
+
+  /** Schedules one React publish for the current store after this turn. */
+  const publish = useCallback(() => {
+    const generation = publishGenerationRef.current + 1;
+    publishGenerationRef.current = generation;
+    queueMicrotask(() => {
+      if (generation !== publishGenerationRef.current) {
+        return;
+      }
+      flushPublish();
+    });
+  }, [flushPublish]);
+
+  /** Snapshots the store into React state now and cancels a pending coalesce. */
+  const publishNow = useCallback(() => {
+    publishGenerationRef.current += 1;
+    flushPublish();
+  }, [flushPublish]);
 
   const catchUpPendingRef = useRef(false);
   const refreshingRef = useRef(false);
@@ -226,9 +253,17 @@ export const useSocialFeedRealtime = (
     markCatchUp();
   }, [filterPost, markCatchUp]);
 
-  /** Applies one event to the store. Returns whether the rows changed. */
+  /**
+   * Applies one event to the store.
+   * - `'none'`: ignored (stale / unmappable / evicted)
+   * - `'mtm'`: only mark-to-market fields changed; store updated, list stays
+   * - `'structural'`: list must republish (new row, copy count, comment, …)
+   */
   const applyEvent = useCallback(
-    (event: SocialFeedEvent, animate: boolean): boolean => {
+    (
+      event: SocialFeedEvent,
+      animate: boolean,
+    ): 'none' | 'mtm' | 'structural' => {
       const store = storeRef.current;
       const { feedItemId } = event;
       const serverRow = serverRowsByIdRef.current.get(feedItemId);
@@ -238,7 +273,7 @@ export const useSocialFeedRealtime = (
         const previous = store.revisedRows.get(feedItemId);
         const knownRevision = previous?.revision ?? serverRow.core.revision;
         if (knownRevision !== undefined && knownRevision >= event.revision) {
-          return false;
+          return 'none';
         }
         const next = applyRealtimeEventToRow(
           serverRow,
@@ -247,10 +282,13 @@ export const useSocialFeedRealtime = (
           animate,
         );
         if (!next) {
-          return false;
+          return 'none';
         }
-        store.revisedRows = new Map(store.revisedRows).set(feedItemId, next);
-        return true;
+        const baseline = previous ?? toSocialFeedRow(serverRow);
+        store.revisedRows.set(feedItemId, next);
+        return isMarkToMarketOnlyRowChange(baseline, next)
+          ? 'mtm'
+          : 'structural';
       }
 
       const socketIndex = store.socketRows.findIndex(
@@ -262,7 +300,7 @@ export const useSocialFeedRealtime = (
           previous.revision !== undefined &&
           previous.revision >= event.revision
         ) {
-          return false;
+          return 'none';
         }
         const next = applyRealtimeEventToRow(
           undefined,
@@ -271,17 +309,19 @@ export const useSocialFeedRealtime = (
           animate,
         );
         if (!next) {
-          return false;
+          return 'none';
         }
         store.socketRows = store.socketRows.map((row, index) =>
           index === socketIndex ? next : row,
         );
-        return true;
+        return isMarkToMarketOnlyRowChange(previous, next)
+          ? 'mtm'
+          : 'structural';
       }
 
       if (store.evicted.has(feedItemId)) {
         rememberEvictedRevision(store.evicted, feedItemId, event.revision);
-        return false;
+        return 'none';
       }
 
       const next = applyRealtimeEventToRow(
@@ -291,7 +331,7 @@ export const useSocialFeedRealtime = (
         animate,
       );
       if (!next) {
-        return false;
+        return 'none';
       }
       const socketRows = [next, ...store.socketRows];
       if (socketRows.length > SOCIAL_FEED_REALTIME_BUFFER_SIZE) {
@@ -309,7 +349,7 @@ export const useSocialFeedRealtime = (
         markCatchUp();
       }
       store.socketRows = socketRows.slice(0, SOCIAL_FEED_REALTIME_BUFFER_SIZE);
-      return true;
+      return 'structural';
     },
     [markCatchUp],
   );
@@ -384,7 +424,7 @@ export const useSocialFeedRealtime = (
         return;
       }
 
-      if (applyEvent(event, !isKnown)) {
+      if (applyEvent(event, !isKnown) === 'structural') {
         publish();
       }
     },
@@ -401,13 +441,13 @@ export const useSocialFeedRealtime = (
     }
     if (lastStreamRef.current !== null && lastStreamRef.current !== stream) {
       storeRef.current = createStore();
-      publish();
+      publishNow();
       if (dataUpdatedAtRef.current !== undefined) {
         markCatchUp();
       }
     }
     lastStreamRef.current = stream;
-  }, [markCatchUp, publish, stream]);
+  }, [markCatchUp, publishNow, stream]);
 
   useEffect(() => {
     if (!realtimeScope || !active) {
@@ -515,11 +555,15 @@ export const useSocialFeedRealtime = (
           -1,
         )
       : -1;
+    let needsPublish = false;
     batch.forEach(([feedItemId, held], index) => {
-      applyEvent(
+      const result = applyEvent(
         held.event,
         revealRequested ? index === animatedRevealIndex : held.isNew,
       );
+      if (result === 'structural') {
+        needsPublish = true;
+      }
       pending.delete(feedItemId);
     });
 
@@ -527,12 +571,15 @@ export const useSocialFeedRealtime = (
       // Both updates share the transition: clearing the request before the
       // view lands would count the revealed posts behind the pill again.
       startTransition(() => {
-        publish();
+        publishNow();
         setRevealRequested(false);
       });
       return undefined;
     }
-    publish();
+    if (needsPublish || batch.length > 0) {
+      // Pending map always changes when we drain; publish even for mtm-only.
+      publish();
+    }
     if (drainable.length <= batch.length) {
       return undefined;
     }
@@ -548,6 +595,7 @@ export const useSocialFeedRealtime = (
     nearTop,
     paused,
     publish,
+    publishNow,
     realtimeScope,
     revealRequested,
   ]);

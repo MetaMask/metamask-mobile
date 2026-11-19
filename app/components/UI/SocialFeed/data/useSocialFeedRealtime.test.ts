@@ -154,6 +154,15 @@ describe('useSocialFeedRealtime', () => {
     });
     mockSetScopes.mockResolvedValue(undefined);
     mockSetActive.mockResolvedValue(undefined);
+    // Coalesced publish uses queueMicrotask; run it inline so act() assertions
+    // see the flushed store without awaiting ticks.
+    jest.spyOn(globalThis, 'queueMicrotask').mockImplementation((callback) => {
+      callback();
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('returns null and stays idle without a realtime scope', () => {
@@ -359,25 +368,58 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.realtime.pendingNewCount).toBe(0);
   });
 
-  it('holds new posts at the top when asked to, but applies updates', () => {
+  it('holds new posts at the top when asked to, but applies structural updates', () => {
     const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
     const { result } = renderRealtime({ rows, holdNewPosts: true });
 
     emit(buildEvent('pos-new'));
-    emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
+    emit(buildEvent('pos-a', { revision: 2, data: { copyCount: 9 } }));
 
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
-    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99);
+    expect(result.current?.posts[0]?.position?.copyCount).toBe(9);
     expect(result.current?.realtime.pendingNewCount).toBe(1);
   });
 
-  it('handles updates to loaded posts away from the top straight away', () => {
+  it('keeps the list posts when a loaded post only gets a mark-to-market revision', () => {
+    const rows = [
+      buildRow({ positionId: 'pos-a', revision: 1, pnlValueUsd: 10 }),
+    ];
+    const { result } = renderRealtime({ rows, nearTop: false });
+    const before = result.current?.posts[0]?.position?.pnlValueUsd;
+
+    // Reuse the loaded core so the event only moves mark-to-market fields
+    // (buildEvent wraps mockSpotFeedItem and would rewrite unrelated defaults).
+    emit({
+      version: 1,
+      kind: 'feed-item',
+      eventId: 'event-mtm',
+      feedItemId: 'pos-a',
+      revision: 2,
+      occurredAt: '2026-01-01T00:00:02.000Z',
+      data: {
+        ...rows[0].core,
+        pnlValueUsd: 99,
+        revision: 2,
+        eventId: 'event-mtm',
+        occurredAt: '2026-01-01T00:00:02.000Z',
+      },
+    });
+
+    // Live card headers overlay PnL from SocialLivePricesProvider; the list
+    // does not rebuild for mark-to-market-only socket revisions.
+    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(before);
+    expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
+    expect(result.current?.realtime.pendingNewCount).toBe(0);
+  });
+
+  it('handles structural updates to loaded posts away from the top straight away', () => {
     const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
     const { result } = renderRealtime({ rows, nearTop: false });
 
-    emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
+    emit(buildEvent('pos-a', { revision: 2, data: { copyCount: 9 } }));
 
-    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99);
+    expect(result.current?.posts[0]?.position?.copyCount).toBe(9);
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
     expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
     expect(result.current?.realtime.pendingNewCount).toBe(0);
@@ -523,13 +565,13 @@ describe('useSocialFeedRealtime', () => {
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-b']);
   });
 
-  it('handles updates to loaded posts while paused without counting them', async () => {
+  it('handles structural updates to loaded posts while paused without counting them', async () => {
     const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
     const { result, rerender } = renderRealtime({ rows, paused: true });
-    emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
+    emit(buildEvent('pos-a', { revision: 2, data: { copyCount: 9 } }));
 
     await waitFor(() =>
-      expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99),
+      expect(result.current?.posts[0]?.position?.copyCount).toBe(9),
     );
     const pendingCount = result.current?.realtime.pendingNewCount;
     const wasHeld = result.current?.realtime.hasPendingUpdate('pos-a');
@@ -538,7 +580,7 @@ describe('useSocialFeedRealtime', () => {
 
     expect(pendingCount).toBe(0);
     expect(wasHeld).toBe(false);
-    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99);
+    expect(result.current?.posts[0]?.position?.copyCount).toBe(9);
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
     expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
   });

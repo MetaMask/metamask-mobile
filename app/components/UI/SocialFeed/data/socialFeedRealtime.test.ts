@@ -20,6 +20,7 @@ import {
   getRowFeedItemId,
   getRowSortTimestamp,
   getVisiblePendingNewCount,
+  isMarkToMarketOnlyRowChange,
   mergeRealtimeFeedItem,
   mergeRealtimeRows,
   pinRealtimeRows,
@@ -248,6 +249,82 @@ describe('socialFeedRealtime', () => {
         'item-comment',
         'item-trade',
       ]);
+    });
+  });
+
+  describe('isMarkToMarketOnlyRowChange', () => {
+    it('returns true when only mark-to-market fields differ', () => {
+      const previous = toSocialFeedRow(
+        buildRow({ positionId: 'pos-a', pnlValueUsd: 10, pnlPercent: 1 }),
+      );
+      const next: SocialFeedRow = {
+        ...previous,
+        revision: 2,
+        core: {
+          ...previous.core,
+          pnlValueUsd: 99,
+          pnlPercent: 9,
+          revision: 2,
+          eventId: 'event-2',
+          occurredAt: '2026-01-01T00:00:02.000Z',
+          feedItemId: previous.feedItemId,
+        },
+      };
+
+      expect(isMarkToMarketOnlyRowChange(previous, next)).toBe(true);
+    });
+
+    it('returns true for a merged socket revision that only moves mark-to-market fields', () => {
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 1,
+        pnlValueUsd: 10,
+      });
+      const previous = toSocialFeedRow(serverRow);
+      const next = applyRealtimeEventToRow(
+        serverRow,
+        {
+          version: 1,
+          kind: 'feed-item',
+          eventId: 'event-mtm',
+          feedItemId: 'pos-a',
+          revision: 2,
+          occurredAt: '2026-01-01T00:00:02.000Z',
+          data: {
+            ...serverRow.core,
+            pnlValueUsd: 99,
+            revision: 2,
+            eventId: 'event-mtm',
+            occurredAt: '2026-01-01T00:00:02.000Z',
+          },
+        },
+        previous,
+        false,
+      );
+
+      expect(next).not.toBeNull();
+      if (!next) {
+        throw new Error('Expected a merged mark-to-market row');
+      }
+      expect(isMarkToMarketOnlyRowChange(previous, next)).toBe(true);
+    });
+
+    it('returns false when a non-mark-to-market field differs', () => {
+      const previous = toSocialFeedRow(
+        buildRow({ positionId: 'pos-a', copyCount: 1 }),
+      );
+      const next: SocialFeedRow = {
+        ...previous,
+        revision: 2,
+        core: {
+          ...previous.core,
+          copyCount: 9,
+          revision: 2,
+          eventId: 'event-2',
+        },
+      };
+
+      expect(isMarkToMarketOnlyRowChange(previous, next)).toBe(false);
     });
   });
 
