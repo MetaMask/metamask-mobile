@@ -176,10 +176,8 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setParams: jest.fn(),
   }),
-  // Runs like a focus effect on an always-focused screen: on mount and when the callback changes.
   useFocusEffect: (callback: () => void | (() => void)) =>
     jest.requireActual('react').useEffect(callback, [callback]),
-  useIsFocused: () => true,
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
@@ -4233,7 +4231,7 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the last known balance without the unavailable banner while loading', () => {
+    it('renders the last known balance without the unavailable banner when one is cached', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
@@ -4315,6 +4313,170 @@ describe('MoneyHomeView', () => {
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('layout while data reloads', () => {
+    const settledEmptyBalance = {
+      ...defaultMoneyAccountBalance,
+      totalFiatFormatted: '$0.00',
+      totalFiatRaw: '0',
+      tokenTotal: new BigNumber(0),
+      isBalanceLoading: false,
+    } as ReturnType<typeof useMoneyAccountBalance>;
+    const reloadingBalance = {
+      ...defaultMoneyAccountBalance,
+      totalFiatFormatted: undefined,
+      totalFiatRaw: undefined,
+      tokenTotal: undefined,
+      lastKnownTotalFiatFormatted: undefined,
+      isBalanceLoading: true,
+      isBalanceFetchError: false,
+    } as unknown as ReturnType<typeof useMoneyAccountBalance>;
+
+    beforeEach(() => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+      });
+    });
+
+    it('keeps the empty-state sections while the balance reloads', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(settledEmptyBalance);
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+      expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
+
+      mockUseMoneyAccountBalance.mockReturnValue(reloadingBalance);
+      rerender(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the potential earnings tokens while the balance reloads', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(settledEmptyBalance);
+      const { getByTestId, rerender } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+
+      const emptyTokens = { tokens: [], isNoFeeToken: jest.fn(() => false) };
+      mockUseMoneyDepositTokens.mockReturnValue(emptyTokens);
+      mockUseMoneyAccountBalance.mockReturnValue(reloadingBalance);
+      rerender(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the condensed info cards while a funded balance reloads', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...settledEmptyBalance,
+        totalFiatFormatted: '$25.00',
+        totalFiatRaw: '25',
+        tokenTotal: new BigNumber(25),
+      } as ReturnType<typeof useMoneyAccountBalance>);
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+      expect(
+        getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+
+      mockUseMoneyAccountBalance.mockReturnValue(reloadingBalance);
+      rerender(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the live sections on the first load before anything settled', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(reloadingBalance);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('switches to the new sections once the reload finishes', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(settledEmptyBalance);
+      const { queryByTestId, rerender } = renderWithProvider(<MoneyHomeView />);
+      mockUseMoneyAccountBalance.mockReturnValue(reloadingBalance);
+      rerender(<MoneyHomeView />);
+
+      mockUseMoneyAccountBalance.mockReturnValue(defaultMoneyAccountBalance);
+      rerender(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the VBA card while VBA eligibility reloads', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(settledEmptyBalance);
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+      const { getByTestId, rerender } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).toBeOnTheScreen();
+
+      mockUseVbaEligibility.mockReturnValue({
+        ...VBA_ELIGIBILITY_ELIGIBLE,
+        isLoading: true,
+      });
+      rerender(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the MetaMask Card section while the card state reloads', () => {
+      const { getByTestId, rerender } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
+
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      rerender(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('keeps the activity list instead of the loading rows while activity settles', () => {
+      const { queryByTestId, rerender } = renderWithProvider(<MoneyHomeView />);
+      const hadActivityLoading = queryByTestId(
+        MoneyActivityLoadingTestIds.CONTAINER,
+      );
+
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({ isLoading: true, isComplete: false }),
+      );
+      rerender(<MoneyHomeView />);
+
+      expect(hadActivityLoading).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyActivityLoadingTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
     });
   });

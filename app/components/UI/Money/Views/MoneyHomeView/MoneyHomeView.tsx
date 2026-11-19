@@ -543,7 +543,6 @@ const MoneyHomeView = () => {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
   } else if (isBalanceLoading && !lastKnownTotalFiatFormatted) {
-    // e.g. right after the default Money account changes to the MPC account.
     displayState = { kind: 'loading' };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
@@ -556,7 +555,6 @@ const MoneyHomeView = () => {
     };
   }
 
-  // Only a failed fetch is "unavailable"; while loading, the last known amount shows muted.
   const showBalanceUnavailableBanner =
     displayState.kind === 'unavailable' && !isBalanceLoading;
 
@@ -567,7 +565,7 @@ const MoneyHomeView = () => {
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
 
-  // Keep the last settled sections while balances reload so the layout doesn't jump.
+  // Keep the last settled sections while data reloads, so the layout doesn't jump.
   const isLayoutLoading =
     isBalanceLoading ||
     isCryptoBalanceLoading ||
@@ -578,7 +576,6 @@ const MoneyHomeView = () => {
     'variant' in liveHomeCard ? liveHomeCard.variant : undefined;
   const stableLiveHomeCard = useMemo(
     () => liveHomeCard,
-    // Same card, new object each render: compare by type and variant.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [liveHomeCard.type, homeCardVariant],
   );
@@ -586,10 +583,12 @@ const MoneyHomeView = () => {
     () => ({
       homeCard: stableLiveHomeCard,
       cardMode: metamaskCardMode,
+      isFunded,
       isEmptyState: hasBalanceValue && !isFunded,
       showEarnings: hasBalanceValue && isFunded,
       isActivitySettling,
       activityItems,
+      depositTokens,
     }),
     [
       stableLiveHomeCard,
@@ -598,6 +597,7 @@ const MoneyHomeView = () => {
       isFunded,
       isActivitySettling,
       activityItems,
+      depositTokens,
     ],
   );
   const [settledLayout, setSettledLayout] = useState<
@@ -1348,12 +1348,12 @@ const MoneyHomeView = () => {
     });
   }
 
-  if (depositTokens.length > 0) {
+  if (layout.depositTokens.length > 0) {
     contentSections.push({
       key: 'potential-earnings',
       node: (
         <MoneyPotentialEarnings
-          tokens={depositTokens}
+          tokens={layout.depositTokens}
           apyDecimal={apyDecimal}
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
@@ -1370,7 +1370,7 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (isFunded) {
+  if (layout.isFunded) {
     contentSections.push({
       key: 'condensed-info',
       node: (
