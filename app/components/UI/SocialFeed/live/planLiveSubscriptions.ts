@@ -2,6 +2,8 @@ import type { CaipAssetType } from '@metamask/utils';
 import type { SocialLivePriceKey } from './types';
 
 export const SPOT_CHANNEL_CAP = 20;
+/** LOW hardware: fewer simultaneous candle streams while Live stays open. */
+export const LOW_SPOT_CHANNEL_CAP = 8;
 
 const SPOT_PREFIX = 'spot:';
 const PERP_PREFIX = 'perp:';

@@ -449,6 +449,26 @@ describe('SocialFeedVirtualized', () => {
     );
   });
 
+  it('holds new posts on mid-range hardware', () => {
+    mockGetHardwareTier.mockReturnValue('MID');
+
+    renderFeed();
+
+    expect(lastFeedOptions()).toEqual(
+      expect.objectContaining({ enabled: true, holdNewPosts: true }),
+    );
+  });
+
+  it('holds new posts on low-end hardware', () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+
+    renderFeed();
+
+    expect(lastFeedOptions()).toEqual(
+      expect.objectContaining({ enabled: true, holdNewPosts: true }),
+    );
+  });
+
   it('shows two placeholder posts on low-end hardware', () => {
     mockGetHardwareTier.mockReturnValue('LOW');
     mockUseSocialFeed.mockReturnValue(feedState({ isLoading: true }));

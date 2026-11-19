@@ -293,7 +293,12 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
+  const isMidHardware = hardwareTier === 'MID';
   const isOffline = networkTier === 'NONE';
+  // UX matrix: slow radio, and LOW/MID phones, keep Live inserts behind the
+  // pill. `null` hardware stays on the product default (auto-insert at top).
+  const holdNewPosts =
+    networkTier === 'SLOW_CELLULAR' || isLowHardware || isMidHardware;
   const drawDistance = isLowHardware
     ? LIST_DRAW_DISTANCE.low
     : LIST_DRAW_DISTANCE.default;
@@ -333,7 +338,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     realtime,
     paused,
     nearTop,
-    holdNewPosts: networkTier === 'SLOW_CELLULAR',
+    holdNewPosts,
     filterPost,
     performance: fetchPerformance,
   });
@@ -535,7 +540,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onCopyTrade={onCopyTrade}
               onPositionPress={handlePositionPress}
               viewerProfileId={viewerProfileId}
-              gifVisible={gifVisibleIds.has(item.post.id)}
+              // LOW hardware never decodes GIFs; other tiers use viewability.
+              gifVisible={!isLowHardware && gifVisibleIds.has(item.post.id)}
             />
           );
         case 'inline':

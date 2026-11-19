@@ -333,6 +333,26 @@ describe('SocialLivePricesProvider', () => {
     expect(context?.store.get('perp:BTC')?.price).toBe(101);
   });
 
+  it('slows the tick rate on LOW hardware', async () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+    mockNetworkTier = 'WIFI';
+    renderProvider([{ id: 'a', key: 'perp:BTC', y: 100 }]);
+    await settle();
+    const { callback } = mockSubscribeToSymbols.mock.calls[0][0];
+
+    act(() => {
+      callback({ BTC: { price: '100' } });
+      callback({ BTC: { price: '101' } });
+    });
+    expect(context?.store.get('perp:BTC')?.price).toBe(100);
+
+    await act(async () => {
+      jest.advanceTimersByTime(SLOW_NETWORK_THROTTLE_MS);
+    });
+
+    expect(context?.store.get('perp:BTC')?.price).toBe(101);
+  });
+
   it('reduces motion on LOW hardware only', () => {
     mockNetworkTier = 'WIFI';
     mockGetHardwareTier.mockReturnValue(null);

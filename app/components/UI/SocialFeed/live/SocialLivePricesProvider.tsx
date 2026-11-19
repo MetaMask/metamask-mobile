@@ -20,6 +20,8 @@ import {
 } from '../../Perps/providers/PerpsStreamManager';
 import { selectPerpsEnabledFlag } from '../../Perps/selectors/featureFlags';
 import {
+  LOW_SPOT_CHANNEL_CAP,
+  SPOT_CHANNEL_CAP,
   planLiveSubscriptions,
   selectVisibleKeys,
   type MeasuredCard,
@@ -48,6 +50,8 @@ const LOW_HARDWARE_SLOW_NETWORK_POLL_MS = 8000;
 const SUBSCRIBE_DEBOUNCE_MS = 500;
 /** Cards within one screen above or below the window stay subscribed. */
 const VISIBILITY_BUFFER_SCREENS = 1;
+/** LOW hardware: subscribe only cards that are actually on screen. */
+const LOW_VISIBILITY_BUFFER_SCREENS = 0;
 
 interface Registration {
   key: SocialLivePriceKey;
@@ -101,11 +105,18 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   // UX matrix (app/util/deviceCapability/README.md). The two tiers are read
   // separately. A `null` network tier is the MID-safe cell, never LOW.
   const hardwareTier = getHardwareTier();
-  const reduceMotion = hardwareTier === 'LOW' && networkTier !== null;
+  const isLowHardware = hardwareTier === 'LOW';
+  const reduceMotion = isLowHardware && networkTier !== null;
   const visibilityPollMs =
-    hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
+    isLowHardware && networkTier === 'SLOW_CELLULAR'
       ? LOW_HARDWARE_SLOW_NETWORK_POLL_MS
       : VISIBILITY_POLL_MS;
+  const visibilityBufferScreens = isLowHardware
+    ? LOW_VISIBILITY_BUFFER_SCREENS
+    : VISIBILITY_BUFFER_SCREENS;
+  const spotChannelCap = isLowHardware
+    ? LOW_SPOT_CHANNEL_CAP
+    : SPOT_CHANNEL_CAP;
   const isLive = isFocused && isAppActive && networkTier !== 'NONE';
 
   const isLiveRef = useRef(isLive);
@@ -127,12 +138,14 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Independent levers: slow radio and low-RAM phones both need fewer
+    // price publishes. Do not fold the tiers into one flag.
     store.setThrottleMs(
-      networkTier === 'SLOW_CELLULAR'
+      networkTier === 'SLOW_CELLULAR' || isLowHardware
         ? SLOW_NETWORK_THROTTLE_MS
         : DEFAULT_LIVE_PRICE_THROTTLE_MS,
     );
-  }, [networkTier, store]);
+  }, [isLowHardware, networkTier, store]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) =>
@@ -174,7 +187,10 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
 
   const syncSubscriptions = useCallback(() => {
     const keys = isLiveRef.current ? visibleKeysRef.current : [];
-    const { spotAssetIds, perpSymbols } = planLiveSubscriptions(keys);
+    const { spotAssetIds, perpSymbols } = planLiveSubscriptions(
+      keys,
+      spotChannelCap,
+    );
 
     const nextChannels = new Map(
       spotAssetIds.map((assetId) => [
@@ -230,7 +246,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
       },
       throttleMs: DEFAULT_LIVE_PRICE_THROTTLE_MS,
     });
-  }, [enqueueSpotOperation, perpsStream, store]);
+  }, [enqueueSpotOperation, perpsStream, spotChannelCap, store]);
 
   const scheduleSync = useCallback(() => {
     if (syncTimerRef.current) {
@@ -253,14 +269,14 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
     const keys = selectVisibleKeys(
       cards.filter((card): card is MeasuredCard => card != null),
       viewport,
-      viewport.height * VISIBILITY_BUFFER_SCREENS,
+      viewport.height * visibilityBufferScreens,
     );
     if (keys.join('|') === visibleKeysRef.current.join('|')) {
       return;
     }
     visibleKeysRef.current = keys;
     scheduleSync();
-  }, [scheduleSync]);
+  }, [scheduleSync, visibilityBufferScreens]);
 
   const requestVisibilityCheck = useCallback(
     (delayMs: number = VISIBILITY_DEBOUNCE_MS) => {
@@ -378,10 +394,11 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
  * assets over the `ohlcv.v1` candle channel (the in-progress candle's
  * close is the last trade), perps over the Hyperliquid price stream.
  *
- * Only cards inside the window plus a screen of buffer are subscribed, spot is
- * capped at `SPOT_CHANNEL_CAP` channels, and everything is dropped while the
- * screen is blurred, the app is backgrounded or the network is down. There is
- * no REST fallback: without a stream, cards keep their API snapshot.
+ * Only cards inside the window plus a screen of buffer are subscribed (no
+ * buffer on LOW hardware), spot is capped at `SPOT_CHANNEL_CAP` channels
+ * (`LOW_SPOT_CHANNEL_CAP` on LOW), and everything is dropped while the screen
+ * is blurred, the app is backgrounded or the network is down. There is no REST
+ * fallback: without a stream, cards keep their API snapshot.
  */
 const SocialLivePricesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

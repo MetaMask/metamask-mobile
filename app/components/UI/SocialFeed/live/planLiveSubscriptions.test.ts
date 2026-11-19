@@ -1,4 +1,5 @@
 import {
+  LOW_SPOT_CHANNEL_CAP,
   planLiveSubscriptions,
   selectVisibleKeys,
   type MeasuredCard,
@@ -30,6 +31,16 @@ describe('planLiveSubscriptions', () => {
     expect(plan.spotAssetIds).toStrictEqual(
       keys.slice(0, 3).map((key) => key.slice('spot:'.length)),
     );
+  });
+
+  it('applies the LOW-hardware spot channel cap', () => {
+    const keys = Array.from({ length: LOW_SPOT_CHANNEL_CAP + 4 }, (_, index) =>
+      spotKey(index),
+    );
+
+    const plan = planLiveSubscriptions(keys, LOW_SPOT_CHANNEL_CAP);
+
+    expect(plan.spotAssetIds).toHaveLength(LOW_SPOT_CHANNEL_CAP);
   });
 
   it('dedupes repeated assets', () => {
