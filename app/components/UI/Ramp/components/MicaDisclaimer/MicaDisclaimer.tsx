@@ -50,7 +50,7 @@ const MicaDisclaimer: React.FC<MicaDisclaimerProps> = ({ termsIds, style }) => {
 
   return (
     <View style={[styles.container, style]}>
-      <Text variant={TextVariant.BodySM} style={styles.text}>
+      <Text variant={TextVariant.BodySm} style={styles.text}>
         {disclaimerText}
       </Text>
     </View>

@@ -11,6 +11,8 @@ import type { V2AdditionalVerificationParams } from '../Views/NativeFlow/Additio
 import type { KycWebviewParams } from '../Views/NativeFlow/KycWebview';
 import type { HeadlessHostParams } from '../Views/HeadlessHost/HeadlessHost';
 import type { RampsOrderDetailsParams } from '../utils/rampsNavigation';
+import type { MicaConsentParams } from '../Views/NativeFlow/MicaConsent';
+import type { SourceOfIncomeParams } from '../Views/NativeFlow/SourceOfIncome';
 import type { SimpleRampBuildQuoteParams } from '../Aggregator/types/navigation';
 import type { BuildQuoteParams as RampAggregatorBuildQuoteParams } from '../Aggregator/Views/BuildQuote/BuildQuote';
 
@@ -47,6 +49,8 @@ export type RampScreensStackParamList = {
   RampKycWebview: KycWebviewParams;
   RampsOrderDetails: RampsOrderDetailsParams | undefined;
   RampHeadlessHost: HeadlessHostParams;
+  RampMicaConsent: MicaConsentParams;
+  RampSourceOfIncome: SourceOfIncomeParams;
 };
 
 /**

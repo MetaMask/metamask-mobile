@@ -125,7 +125,7 @@ const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
         onPress={() => setModalVisible(true)}
       >
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           style={
             selectedOption
               ? styles.selectButtonText
@@ -151,7 +151,7 @@ const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
+              <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
                 {label}
               </Text>
             </View>
@@ -167,7 +167,7 @@ const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
                   onPress={() => handleSelect(item.value)}
                 >
                   <Text
-                    variant={TextVariant.BodyMD}
+                    variant={TextVariant.BodyMd}
                     style={styles.optionText}
                   >
                     {item.name}

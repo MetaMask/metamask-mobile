@@ -309,13 +309,6 @@ function PaymentSelectionModal() {
             }}
           />
           {renderListContent()}
-          <MicaDisclaimer
-            termsIds={
-              quotesForAllPayments.success.find(
-                (q) => q.quote?.paymentMethod === selectedPaymentMethod?.id,
-              )?.quote?.termsIds
-            }
-          />
         </View>
         {selectedProvider ? (
           <Box

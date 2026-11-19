@@ -148,12 +148,7 @@ const MicaConsent = (): React.JSX.Element => {
   }
 
   return (
-    <ScreenLayout
-      title={strings('deposit.mica.title')}
-      handleBack={handleBack}
-      HeaderComponent={isGlassHeader ? HeaderStandardGlass : undefined}
-      showHelpButton={false}
-    >
+    <ScreenLayout>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={styles.section}>
           <Text variant={TextVariant.HeadingMD} style={styles.heading}>
@@ -174,32 +169,32 @@ const MicaConsent = (): React.JSX.Element => {
         )}
 
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingSM} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
             {strings('deposit.mica.reviewYourInformation')}
           </Text>
           <View style={styles.userDataBox}>
             {userDetails ? (
               <>
-                <Text variant={TextVariant.BodyMD} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMDBold}>
+                <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
+                  <Text variant={TextVariant.BodyMdBold}>
                     {strings('deposit.mica.name')}:{' '}
                   </Text>
                   {userDetails.firstName} {userDetails.lastName}
                 </Text>
-                <Text variant={TextVariant.BodyMD} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMDBold}>
+                <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
+                  <Text variant={TextVariant.BodyMdBold}>
                     {strings('deposit.mica.dob')}:{' '}
                   </Text>
                   {userDetails.dob || strings('deposit.mica.notProvided')}
                 </Text>
-                <Text variant={TextVariant.BodyMD} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMDBold}>
+                <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
+                  <Text variant={TextVariant.BodyMdBold}>
                     {strings('deposit.mica.phone')}:{' '}
                   </Text>
                   {userDetails.mobileNumber || strings('deposit.mica.notProvided')}
                 </Text>
-                <Text variant={TextVariant.BodyMD} style={styles.userDataRow}>
-                  <Text variant={TextVariant.BodyMDBold}>
+                <Text variant={TextVariant.BodyMd} style={styles.userDataRow}>
+                  <Text variant={TextVariant.BodyMdBold}>
                     {strings('deposit.mica.address')}:{' '}
                   </Text>
                   {userDetails.address?.addressLine1 || ''}, {userDetails.address?.city || ''},{' '}
@@ -207,12 +202,12 @@ const MicaConsent = (): React.JSX.Element => {
                 </Text>
               </>
             ) : (
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMd}>
                 {strings('deposit.mica.loadingDetails')}
               </Text>
             )}
           </View>
-          <Text variant={TextVariant.BodySM} style={styles.supportNotice}>
+          <Text variant={TextVariant.BodySm} style={styles.supportNotice}>
             {strings('deposit.mica.supportNotice')}
           </Text>
         </View>
@@ -241,7 +236,7 @@ const MicaConsent = (): React.JSX.Element => {
           style={styles.button}
         />
 
-        <PoweredByTransak style={styles.poweredBy} />
+        <PoweredByTransak name="transak-native" style={styles.poweredBy} />
       </ScrollView>
     </ScreenLayout>
   );

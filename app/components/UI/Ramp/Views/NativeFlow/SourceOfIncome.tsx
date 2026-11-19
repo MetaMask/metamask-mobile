@@ -157,15 +157,10 @@ const SourceOfIncome = (): React.JSX.Element => {
   }
 
   return (
-    <ScreenLayout
-      title={strings('deposit.mica.sourceOfIncomeTitle')}
-      handleBack={handleBack}
-      HeaderComponent={isGlassHeader ? HeaderStandardGlass : undefined}
-      showHelpButton={false}
-    >
+    <ScreenLayout>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={styles.section}>
-          <Text variant={TextVariant.BodyMD} style={styles.description}>
+          <Text variant={TextVariant.BodyMd} style={styles.description}>
             {strings('deposit.mica.sourceOfIncomeDescription')}
           </Text>
         </View>
@@ -234,7 +229,7 @@ const SourceOfIncome = (): React.JSX.Element => {
           style={styles.button}
         />
 
-        <PoweredByTransak style={styles.poweredBy} />
+        <PoweredByTransak name="transak-native" style={styles.poweredBy} />
       </ScrollView>
     </ScreenLayout>
   );
