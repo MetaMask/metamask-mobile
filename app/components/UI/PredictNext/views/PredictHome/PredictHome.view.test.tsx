@@ -15,7 +15,12 @@ import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrd
 import { PredictWithdrawFlowTestIds } from '../PredictWithdrawFlow/internal/PredictWithdrawFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
+import { PredictDepositScreenTestIds } from '../PredictDeposit/PredictDepositScreen.testIds';
 import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
+import awaitingTransferDeposit from '../../contracts/v1/fixtures/funding-contract/awaiting-transfer.json';
+import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cancelled.json';
+import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
+import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   KALSHI_STATIC_VENUE_CATALOG,
@@ -2016,5 +2021,89 @@ describe('PredictHome', () => {
         );
       });
     });
+  });
+
+  describe('deposit status line', () => {
+    it('shows awaiting_transfer under balance and opens DepositInProgressSheet with Continue and Cancel on tap', async () => {
+      configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+      const view = renderPredictNext();
+
+      const statusLine = await view.findByTestId(
+        PredictHomeTestIds.DEPOSIT_STATUS,
+      );
+      expect(statusLine).toHaveTextContent('Deposit waiting for your transfer');
+      // Pending deposit amount is never added to the authoritative balance ($123.13).
+      expect(
+        view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+      ).toHaveTextContent('$123.13');
+
+      fireEvent.press(statusLine);
+
+      expect(
+        await view.findByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows Deposit processing under balance without adding pending funds', async () => {
+      configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit processing');
+      expect(
+        view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+      ).toHaveTextContent('$123.13');
+    });
+
+    it('shows Deposit under review with the first 8 characters of operationId', async () => {
+      configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent(
+        `Deposit under review · Ref ${needsReviewDeposit.operationId.slice(0, 8)}`,
+      );
+    });
+
+    it.each([
+      [
+        'failed',
+        { ...cancelledDeposit, status: 'failed', next: null },
+        'Deposit failed',
+      ],
+      ['cancelled', cancelledDeposit, 'Deposit cancelled'],
+    ])(
+      'shows %s deposit status once and removes it on the next visit',
+      async (_label, fixture, expectedText) => {
+        configurePredictNextFeeds({ depositStatus: fixture });
+        const firstVisit = renderPredictNext();
+
+        expect(
+          await firstVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent(expectedText);
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            fixture.operationId,
+          ),
+        );
+        firstVisit.unmount();
+
+        const secondVisit = renderPredictNext();
+        await secondVisit.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+        expect(
+          secondVisit.queryByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).not.toBeOnTheScreen();
+      },
+    );
   });
 });

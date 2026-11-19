@@ -3,8 +3,15 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
+import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 
 import { PredictError, PredictErrorCode } from '../errors';
+import { depositTransferRequestId } from '../funding/deposit/depositTransferExecutor';
+import { encodeUsdcTransfer } from '../funding/deposit/usdcTransfer';
 import type { VenueFundingAdapter } from '../adapters/types';
 import type {
   PredictAmount,
@@ -1321,6 +1328,10 @@ describe('PredictFundingService deposit flow', () => {
     });
   });
 
+  afterEach(() => {
+    service.destroy();
+  });
+
   it('registers the deposit actions', () => {
     expect([...messenger.handlers.keys()]).toEqual([
       'PredictFundingService:prepareDeposit',
@@ -1328,6 +1339,8 @@ describe('PredictFundingService deposit flow', () => {
       'PredictFundingService:listOpenDeposits',
       'PredictFundingService:reportDepositTransfer',
       'PredictFundingService:cancelDeposit',
+      'PredictFundingService:getDepositStatus',
+      'PredictFundingService:acknowledgeDepositNotice',
     ]);
   });
 
@@ -1732,5 +1745,265 @@ describe('PredictFundingService deposit flow', () => {
     service.destroy();
 
     expect(messenger.handlers.size).toBe(0);
+  });
+
+  describe('deposit resume, polling, and status', () => {
+    const HASH = transferReported.txHash as PredictHex;
+    const CREATED_AT_MS = Date.parse(awaitingTransfer.createdAt);
+    const TRANSFER_DATA = encodeUsdcTransfer(
+      awaitingTransfer.depositAddress as PredictHex,
+      awaitingTransfer.amount as PredictAmount,
+    );
+    const makeTx = (
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta =>
+      ({
+        id: 'tx-1',
+        chainId: `0x${awaitingTransfer.chainId.toString(16)}`,
+        networkClientId: 'base-sepolia',
+        status: TransactionStatus.submitted,
+        time: CREATED_AT_MS + 1000,
+        type: TransactionType.tokenMethodTransfer,
+        hash: HASH,
+        requestId: depositTransferRequestId(OPERATION_ID),
+        txParams: {
+          from: '0x1111111111111111111111111111111111111111',
+          to: awaitingTransfer.tokenContract,
+          data: TRANSFER_DATA,
+          value: '0x0',
+        },
+        ...overrides,
+      }) as TransactionMeta;
+
+    const flushMicrotasks = async () => {
+      for (let index = 0; index < 8; index += 1) {
+        await Promise.resolve();
+      }
+    };
+
+    const createResumableService = ({
+      transactions = [] as TransactionMeta[],
+      now = () => Date.now(),
+    } = {}) => {
+      service.destroy();
+      let currentTxs = transactions;
+      const resumable = new PredictFundingService({
+        messenger: messenger.messenger,
+        funding,
+        venueId,
+        getTransactions: () => currentTxs,
+        now,
+      });
+      service = resumable;
+      return {
+        service: resumable,
+        setTransactions: (next: TransactionMeta[]) => {
+          currentTxs = next;
+        },
+      };
+    };
+
+    it('reports a matching submitted or confirmed wallet transfer on resume', async () => {
+      funding.listOpenDeposits.mockResolvedValueOnce([
+        deposit(awaitingTransfer),
+      ]);
+      funding.reportDepositTransfer.mockResolvedValueOnce(
+        deposit(transferReported),
+      );
+      const { service: resumable } = createResumableService({
+        transactions: [makeTx({ status: TransactionStatus.submitted })],
+      });
+
+      await resumable.resumeDeposits();
+
+      expect(funding.reportDepositTransfer).toHaveBeenCalledTimes(1);
+      expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
+        txHash: HASH,
+        chainId: awaitingTransfer.chainId,
+      });
+      expect(resumable.getDepositStatus(venueId)).toStrictEqual(
+        transferReported,
+      );
+    });
+
+    it('cancels an awaiting_transfer deposit when its wallet transaction was rejected or failed', async () => {
+      funding.listOpenDeposits.mockResolvedValueOnce([
+        deposit(awaitingTransfer),
+      ]);
+      funding.cancelDeposit.mockResolvedValueOnce(deposit(cancelled));
+      const { service: resumable } = createResumableService({
+        transactions: [
+          makeTx({ status: TransactionStatus.rejected, hash: undefined }),
+        ],
+      });
+
+      await resumable.resumeDeposits();
+
+      expect(funding.cancelDeposit).toHaveBeenCalledTimes(1);
+      expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
+      expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
+      expect(resumable.getDepositStatus(venueId)).toStrictEqual(cancelled);
+    });
+
+    it('leaves an awaiting_transfer deposit alone when the wallet transaction is pending or absent', async () => {
+      funding.listOpenDeposits.mockResolvedValue([deposit(awaitingTransfer)]);
+      const { service: resumable, setTransactions } = createResumableService({
+        transactions: [
+          makeTx({ status: TransactionStatus.unapproved, hash: undefined }),
+        ],
+      });
+
+      await resumable.resumeDeposits();
+      expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
+      expect(funding.cancelDeposit).not.toHaveBeenCalled();
+      expect(resumable.getDepositStatus(venueId)).toStrictEqual(
+        awaitingTransfer,
+      );
+
+      setTransactions([]);
+      await resumable.resumeDeposits();
+      expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
+      expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    });
+
+    it('does not retry a transfer hash permanently refused with DEPOSIT_TRANSFER_MISMATCH', async () => {
+      funding.listOpenDeposits.mockResolvedValue([deposit(awaitingTransfer)]);
+      funding.reportDepositTransfer.mockRejectedValue(
+        PredictError.from(PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH),
+      );
+      const { service: resumable } = createResumableService({
+        transactions: [makeTx({ status: TransactionStatus.confirmed })],
+      });
+
+      await resumable.resumeDeposits();
+      await resumable.resumeDeposits();
+
+      expect(funding.reportDepositTransfer).toHaveBeenCalledTimes(1);
+    });
+
+    it('reconciles a previously tracked deposit that disappears from listOpenDeposits', async () => {
+      funding.listOpenDeposits
+        .mockResolvedValueOnce([deposit(transferReported)])
+        .mockResolvedValueOnce([]);
+      funding.getDeposit.mockResolvedValueOnce(deposit(credited));
+      const { service: resumable } = createResumableService();
+
+      await resumable.resumeDeposits();
+      await resumable.resumeDeposits();
+
+      expect(funding.getDeposit).toHaveBeenCalledWith(OPERATION_ID);
+      expect(messenger.mock.publish).toHaveBeenCalledWith(
+        'PredictFundingService:depositResolved',
+        { venueId, deposit: credited },
+      );
+      expect(resumable.getDepositStatus(venueId)).toBeNull();
+    });
+
+    it('backs off 2s to 30s, stops after 10 minutes, and resumes on next start', async () => {
+      jest.useFakeTimers();
+      try {
+        let nowMs = 1_000_000;
+        const advance = async (ms: number) => {
+          nowMs += ms;
+          jest.advanceTimersByTime(ms);
+          await flushMicrotasks();
+        };
+        funding.listOpenDeposits.mockResolvedValue([deposit(transferReported)]);
+        funding.getDeposit.mockResolvedValue(deposit(transferReported));
+        const { service: resumable } = createResumableService({
+          now: () => nowMs,
+        });
+
+        await resumable.resumeDeposits();
+        expect(funding.getDeposit).toHaveBeenCalledTimes(0);
+
+        // 2s, 4s, 8s, 16s, 30s, 30s
+        for (const delay of [2_000, 4_000, 8_000, 16_000, 30_000, 30_000]) {
+          const before = funding.getDeposit.mock.calls.length;
+          await advance(delay - 1);
+          expect(funding.getDeposit).toHaveBeenCalledTimes(before);
+          await advance(1);
+          expect(funding.getDeposit).toHaveBeenCalledTimes(before + 1);
+        }
+
+        // Advance past the 10-minute session cap: polling stops.
+        await advance(600_000);
+        const countAtCap = funding.getDeposit.mock.calls.length;
+        await advance(120_000);
+        expect(funding.getDeposit).toHaveBeenCalledTimes(countAtCap);
+
+        // Next start (resumeDeposits) starts a fresh polling session.
+        funding.getDeposit.mockResolvedValueOnce(deposit(credited));
+        await resumable.resumeDeposits();
+        await advance(2_000);
+        expect(funding.getDeposit).toHaveBeenCalledTimes(countAtCap + 1);
+        expect(resumable.getDepositStatus(venueId)).toBeNull();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('doubles poll backoff on SLOW_CELLULAR and stops/resumes around NONE', async () => {
+      jest.useFakeTimers();
+      try {
+        let nowMs = 1_000_000;
+        const advance = async (ms: number) => {
+          nowMs += ms;
+          jest.advanceTimersByTime(ms);
+          await flushMicrotasks();
+        };
+        funding.listOpenDeposits.mockResolvedValue([deposit(transferReported)]);
+        funding.getDeposit.mockResolvedValue(deposit(transferReported));
+        const { service: resumable } = createResumableService({
+          now: () => nowMs,
+        });
+
+        resumable.setDepositNetworkTier('SLOW_CELLULAR');
+        await resumable.resumeDeposits();
+        await advance(3_999);
+        expect(funding.getDeposit).toHaveBeenCalledTimes(0);
+        await advance(1);
+        expect(funding.getDeposit).toHaveBeenCalledTimes(1);
+
+        // Going offline stops polling immediately.
+        resumable.setDepositNetworkTier('NONE');
+        await advance(60_000);
+        expect(funding.getDeposit).toHaveBeenCalledTimes(1);
+
+        // Coming back online resumes polling.
+        resumable.setDepositNetworkTier('WIFI');
+        await flushMicrotasks();
+        await advance(2_000);
+        expect(funding.getDeposit).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('publishes depositStatusChanged and clears one-time failed/cancelled notices on acknowledge', async () => {
+      const failedDeposit = deposit({
+        ...awaitingTransfer,
+        status: 'failed',
+        next: null,
+      });
+      await service.prepareDeposit(venueId, PARAMS, APPROVAL);
+      expect(service.getDepositStatus(venueId)).toStrictEqual(awaitingTransfer);
+
+      funding.getDeposit.mockResolvedValueOnce(failedDeposit);
+      await service.getDeposit(venueId, OPERATION_ID);
+
+      expect(service.getDepositStatus(venueId)).toStrictEqual(failedDeposit);
+      expect(messenger.mock.publish).toHaveBeenCalledWith(
+        'PredictFundingService:depositStatusChanged',
+        { venueId, deposit: failedDeposit },
+      );
+
+      service.acknowledgeDepositNotice(venueId, OPERATION_ID);
+      expect(service.getDepositStatus(venueId)).toBeNull();
+      expect(messenger.mock.publish).toHaveBeenLastCalledWith(
+        'PredictFundingService:depositStatusChanged',
+        { venueId, deposit: null },
+      );
+    });
   });
 });

@@ -6,6 +6,8 @@ import {
 import { BASE_DEPOSIT_NETWORK } from '../../config/depositEnvironment';
 import type {
   PredictAmount,
+  PredictDepositOperation,
+  PredictEntityId,
   PredictFundingPlan,
   PredictHex,
   PredictTimestamp,
@@ -20,6 +22,7 @@ import {
   findMatchingUnapprovedDepositTransactions,
   getSessionDepositTransfer,
   isKnownFailedDepositHash,
+  matchDepositTransferForResume,
   recordSessionDepositTransfer,
   waitForPendingDepositTransaction,
   type DepositTransactionMessenger,
@@ -516,5 +519,222 @@ describe('session deposit transfer store', () => {
       operationId: 'op-1',
     });
     expect(getSessionDepositTransfer(key)).toBeUndefined();
+  });
+});
+
+describe('matchDepositTransferForResume', () => {
+  const makeDeposit = (
+    overrides: Partial<PredictDepositOperation> = {},
+  ): PredictDepositOperation => ({
+    operationId: OPERATION_ID as PredictEntityId,
+    status: 'awaiting_transfer',
+    amount: PLAN.amount,
+    chainId: PLAN.chainId,
+    tokenContract: PLAN.tokenContract,
+    depositAddress: DEPOSIT_ADDRESS,
+    planExpiresAt: PLAN.planExpiresAt,
+    txHash: null,
+    createdAt: CREATED_AT,
+    next: { kind: 'wallet_transfer', ...PLAN },
+    ...overrides,
+  });
+
+  it.each([TransactionStatus.submitted, TransactionStatus.confirmed])(
+    'returns report for a matching %s transaction with hash',
+    (status) => {
+      const result = matchDepositTransferForResume({
+        transactions: [makeTx({ status, hash: HASH_1 })],
+        deposit: makeDeposit(),
+      });
+
+      expect(result).toStrictEqual({
+        kind: 'report',
+        txHash: HASH_1,
+        chainId: 8453,
+      });
+    },
+  );
+
+  it('matches a tagged transaction for the same operationId even when device clock is behind createdAt', () => {
+    const result = matchDepositTransferForResume({
+      transactions: [
+        makeTx({
+          status: TransactionStatus.submitted,
+          hash: HASH_1,
+          requestId: depositTransferRequestId(OPERATION_ID),
+          time: CREATED_AT_MS - 300_000,
+        }),
+      ],
+      deposit: makeDeposit(),
+    });
+
+    expect(result).toStrictEqual({
+      kind: 'report',
+      txHash: HASH_1,
+      chainId: 8453,
+    });
+  });
+
+  it.each([
+    [
+      'wrong amount',
+      makeTx({
+        txParams: {
+          from: FROM,
+          to: USDC,
+          data: encodeUsdcTransfer(DEPOSIT_ADDRESS, '25.51' as PredictAmount),
+          value: '0x0',
+        },
+      }),
+    ],
+    [
+      'wrong address',
+      makeTx({
+        txParams: {
+          from: FROM,
+          to: USDC,
+          data: encodeUsdcTransfer(OTHER_ADDRESS, PLAN.amount),
+          value: '0x0',
+        },
+      }),
+    ],
+    [
+      'wrong token contract',
+      makeTx({
+        txParams: { from: FROM, to: OTHER_ADDRESS, data: DATA, value: '0x0' },
+      }),
+    ],
+    ['wrong chain', makeTx({ chainId: '0x1' })],
+    [
+      'non-zero native value',
+      makeTx({ txParams: { from: FROM, to: USDC, data: DATA, value: '0x1' } }),
+    ],
+    [
+      'different operationId requestId',
+      makeTx({ requestId: depositTransferRequestId(OTHER_OPERATION_ID) }),
+    ],
+    ['older than createdAt without tag', makeTx({ time: CREATED_AT_MS - 1 })],
+  ])('returns none for %s', (_label, tx) => {
+    expect(
+      matchDepositTransferForResume({
+        transactions: [tx],
+        deposit: makeDeposit(),
+      }),
+    ).toStrictEqual({ kind: 'none' });
+  });
+
+  it.each([TransactionStatus.rejected, TransactionStatus.failed])(
+    'returns cancel for a matching %s transaction',
+    (status) => {
+      const result = matchDepositTransferForResume({
+        transactions: [makeTx({ status, hash: undefined })],
+        deposit: makeDeposit(),
+      });
+
+      expect(result).toStrictEqual({ kind: 'cancel', status });
+    },
+  );
+
+  it('returns none for a dropped transaction', () => {
+    const result = matchDepositTransferForResume({
+      transactions: [
+        makeTx({ status: TransactionStatus.dropped, hash: undefined }),
+      ],
+      deposit: makeDeposit(),
+    });
+
+    expect(result).toStrictEqual({ kind: 'none' });
+  });
+
+  it.each([
+    TransactionStatus.unapproved,
+    TransactionStatus.approved,
+    TransactionStatus.signed,
+    TransactionStatus.submitted,
+  ])(
+    'returns pending for a matching %s transaction without a hash',
+    (status) => {
+      const tx = makeTx({ status, hash: undefined });
+      const result = matchDepositTransferForResume({
+        transactions: [tx],
+        deposit: makeDeposit(),
+      });
+
+      expect(result).toStrictEqual({ kind: 'pending', transactionMeta: tx });
+    },
+  );
+
+  it('prefers confirmed/submitted over pending and pending over rejected/failed', () => {
+    const rejected = makeTx({
+      id: 'tx-rejected',
+      status: TransactionStatus.rejected,
+      hash: undefined,
+      time: CREATED_AT_MS + 4000,
+    });
+    const pending = makeTx({
+      id: 'tx-pending',
+      status: TransactionStatus.unapproved,
+      hash: undefined,
+      time: CREATED_AT_MS + 3000,
+    });
+    const submitted = makeTx({
+      id: 'tx-submitted',
+      status: TransactionStatus.submitted,
+      hash: HASH_1,
+      time: CREATED_AT_MS + 1000,
+    });
+    const confirmed = makeTx({
+      id: 'tx-confirmed',
+      status: TransactionStatus.confirmed,
+      hash: HASH_2,
+      time: CREATED_AT_MS + 500,
+    });
+
+    expect(
+      matchDepositTransferForResume({
+        transactions: [rejected, pending, submitted, confirmed],
+        deposit: makeDeposit(),
+      }),
+    ).toStrictEqual({ kind: 'report', txHash: HASH_2, chainId: 8453 });
+
+    expect(
+      matchDepositTransferForResume({
+        transactions: [rejected, pending],
+        deposit: makeDeposit(),
+      }),
+    ).toMatchObject({ kind: 'pending', transactionMeta: pending });
+  });
+
+  it('still matches an awaiting_transfer deposit whose plan already expired (next.kind === wait)', () => {
+    const result = matchDepositTransferForResume({
+      transactions: [
+        makeTx({
+          status: TransactionStatus.submitted,
+          hash: HASH_1,
+          requestId: depositTransferRequestId(OPERATION_ID),
+        }),
+      ],
+      deposit: makeDeposit({
+        next: { kind: 'wait' },
+      }),
+    });
+
+    expect(result).toStrictEqual({
+      kind: 'report',
+      txHash: HASH_1,
+      chainId: 8453,
+    });
+  });
+
+  it('returns none when the deposit is not awaiting_transfer', () => {
+    expect(
+      matchDepositTransferForResume({
+        transactions: [makeTx({ status: TransactionStatus.submitted })],
+        deposit: makeDeposit({
+          status: 'processing',
+          next: { kind: 'wait' },
+        }),
+      }),
+    ).toStrictEqual({ kind: 'none' });
   });
 });

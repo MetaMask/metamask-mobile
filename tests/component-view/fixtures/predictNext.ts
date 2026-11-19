@@ -691,10 +691,16 @@ export const mockPredictNextMessenger = (
     if (action === 'PredictOrderService:refreshRecovery') {
       return Promise.resolve();
     }
-    return (
+    const answer =
       answerPredictNextCatalog(action) ??
-      implementation(action, ...(params as never[]))
-    );
+      implementation(action, ...(params as never[]));
+    if (
+      action === 'PredictFundingService:getDepositStatus' &&
+      answer === undefined
+    ) {
+      return null;
+    }
+    return answer;
   });
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
@@ -1122,6 +1128,7 @@ export const configurePredictNextFeeds = ({
   activity,
   settlementsCompleteFrom,
   summary = makePredictNextSummary(),
+  depositStatus = null,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
@@ -1136,6 +1143,7 @@ export const configurePredictNextFeeds = ({
   /** The Activity pages' settlement archive horizon. */
   settlementsCompleteFrom?: string;
   summary?: unknown;
+  depositStatus?: unknown;
 } = {}) => {
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
@@ -1144,6 +1152,7 @@ export const configurePredictNextFeeds = ({
   ];
 
   resetPredictNextCatalog();
+  let currentDepositStatus = depositStatus;
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
       if (action === 'PredictOrderService:getRecovery') {
@@ -1151,6 +1160,21 @@ export const configurePredictNextFeeds = ({
       }
       if (action === 'PredictOrderService:refreshRecovery') {
         return Promise.resolve();
+      }
+      if (action === 'PredictFundingService:getDepositStatus') {
+        return currentDepositStatus;
+      }
+      if (action === 'PredictFundingService:acknowledgeDepositNotice') {
+        if (
+          currentDepositStatus &&
+          typeof currentDepositStatus === 'object' &&
+          'operationId' in currentDepositStatus &&
+          (currentDepositStatus as { operationId: string }).operationId ===
+            resourceId
+        ) {
+          currentDepositStatus = null;
+        }
+        return undefined;
       }
       const catalogResponse = answerPredictNextCatalog(action);
       if (catalogResponse) {
