@@ -53,7 +53,8 @@ export function usePushPrePromptAnalytics(
     () => (location ? { location } : {}),
     [location],
   );
-  const { createEventBuilder, identify, trackEvent, isEnabled } = useAnalytics();
+  const { createEventBuilder, identify, trackEvent, isEnabled } =
+    useAnalytics();
 
   const trackPrePromptViewed = useCallback(
     (_variant: PushPrePromptAnalyticsVariant) => {
