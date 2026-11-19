@@ -1473,6 +1473,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  collectiblesEnabled: {
+    name: 'collectiblesEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   complianceEnabled: {
     name: 'complianceEnabled',
     type: FeatureFlagType.Remote,
