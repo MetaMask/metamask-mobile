@@ -79,11 +79,50 @@ test('lists each failure with its error and TestMu link', () => {
     text,
     [
       '*Performance E2E: 2 of 25 tests failed*',
-      '• *Import SRP with +50 accounts* — Wallet home not ready within 30000ms (Android wallet readiness indicators not satisfied) — <https://example.test/video.mp4|TestMu>',
-      '• *Predict Available Balance* — no_performance_metrics — <https://example.test/predict.mp4|TestMu>',
+      '• *Import SRP with +50 accounts* — No performance metrics: Wallet home not ready within 30000ms (Android wallet readiness indicators not satisfied) — <https://example.test/video.mp4|TestMu>',
+      '• *Predict Available Balance* — No performance metrics — <https://example.test/predict.mp4|TestMu>',
       '',
       RUN_LINK,
     ].join('\n'),
+  );
+});
+
+test('uses the same quality-gate sentence as the PR comment', () => {
+  const text = render(
+    summary({
+      failedTestsStats: {
+        failedTestsByTeam: {
+          onboarding: {
+            tests: [
+              {
+                testName: 'Seedless Onboarding: Apple Login New User',
+                failureReason: 'quality_gates_exceeded',
+                failureMessage: null,
+                recordingLink: 'https://example.test/apple.mp4',
+                qualityGates: {
+                  passed: false,
+                  hasThresholds: true,
+                  violations: [
+                    {
+                      type: 'step',
+                      stepName:
+                        'Apple: Final onboarding action → wallet main screen visible',
+                      actual: 6817,
+                      threshold: 5750,
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+    }),
+  );
+
+  assert.match(
+    text,
+    /• \*Seedless Onboarding: Apple Login New User\* — Quality gates exceeded: "Apple: Final onboarding action → wallet main screen visible" took 6817 ms > max of 5750 ms — <https:\/\/example\.test\/apple\.mp4\|TestMu>/,
   );
 });
 
