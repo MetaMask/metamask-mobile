@@ -2084,12 +2084,11 @@ describe('CustomAmountInfo', () => {
       useTransactionPayTokenMock.mockReturnValue({
         isNative: true,
         payToken: {
-          address: '0x0000000000000000000000000000000000000000',
+          assetId: 'eip155:1/slip44:60',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },
