@@ -980,6 +980,7 @@
       "error": null
     },
     "providerAutoSelected": false,
+    "userSelectedProviderId": null,
     "providers": {
       "data": [],
       "selected": null,

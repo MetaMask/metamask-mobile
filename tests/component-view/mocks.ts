@@ -368,6 +368,7 @@ jest.mock('../../app/core/Engine', () => {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
         setSelectedProviderForAsset: jest.fn().mockReturnValue(false),
+        selectProviderForAsset: jest.fn().mockReturnValue(null),
         setSelectedPaymentMethod: jest.fn(),
         setUserRegion: jest.fn().mockResolvedValue(null),
         // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.

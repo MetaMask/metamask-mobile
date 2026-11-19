@@ -250,6 +250,48 @@ export const getOrders = createSelector(
     ),
 );
 
+/**
+ * Marks a native Deposit order in legacy history. The native provider's id
+ * differs per environment, so callers resolve it against the provider list.
+ */
+export const LEGACY_NATIVE_DEPOSIT_PROVIDER_ID = 'native-deposit';
+
+/**
+ * Completed legacy buy orders from every account, as provider history entries
+ * (`providerId`, `completedAt`). Sell orders are left out.
+ */
+export const getCompletedLegacyBuyHistory = createSelector(
+  ordersSelector,
+  (orders) =>
+    orders.reduce<{ providerId: string; completedAt: number }[]>(
+      (history, order) => {
+        if (
+          order.state !== FIAT_ORDER_STATES.COMPLETED ||
+          String(order.orderType).toUpperCase() === 'SELL'
+        ) {
+          return history;
+        }
+        let providerId: string | undefined;
+        if (
+          order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
+          order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+        ) {
+          providerId = (order.data as Order | RampsOrder | undefined)?.provider
+            ?.id;
+        } else if (order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
+          providerId = LEGACY_NATIVE_DEPOSIT_PROVIDER_ID;
+        } else {
+          providerId = order.provider;
+        }
+        if (providerId) {
+          history.push({ providerId, completedAt: order.createdAt });
+        }
+        return history;
+      },
+      [],
+    ),
+);
+
 export const getAllDepositOrders = createSelector(ordersSelector, (orders) =>
   orders.filter((order) => order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT),
 );

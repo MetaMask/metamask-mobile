@@ -4,10 +4,24 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsProviders } from './useRampsProviders';
+import {
+  getLastUserProviderPick,
+  useBuyScreenOwnsProviderPick,
+} from './providerPickCoordination';
 import { type Provider as RampProvider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
-import { determinePreferredProvider } from '../utils/determinePreferredProvider';
-import { getOrders, type FiatOrder } from '../../../../reducers/fiatOrders';
+import {
+  FIAT_ORDER_PROVIDERS,
+  FIAT_ORDER_STATES,
+} from '../../../../constants/on-ramp';
+
+const mockAheadOfHistory: string[] = [];
+jest.mock(
+  '../../../../selectors/featureFlagController/rampsProvidersAheadOfHistory',
+  () => ({
+    selectRampsProvidersAheadOfHistory: () => mockAheadOfHistory,
+  }),
+);
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -18,7 +32,13 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       setSelectedProvider: jest.fn(),
+      selectProviderForAsset: jest.fn(),
       getProviders: jest.fn().mockResolvedValue({ providers: [], sorted: [] }),
+      state: {
+        providers: { selected: null },
+        providerAutoSelected: false,
+        tokens: { selected: null },
+      },
     },
   },
 }));
@@ -43,18 +63,6 @@ jest.mock(
       mockSelectedAccountGroupAddresses,
   }),
 );
-
-jest.mock('../utils/determinePreferredProvider', () => ({
-  determinePreferredProvider: jest.fn(),
-  completedOrdersFromFiatOrders: jest.fn(() => []),
-  completedOrdersFromRampsOrders: jest.fn(() => []),
-}));
-
-const emptyOrders: FiatOrder[] = [];
-jest.mock('../../../../reducers/fiatOrders', () => ({
-  ...jest.requireActual('../../../../reducers/fiatOrders'),
-  getOrders: jest.fn((_state: unknown) => emptyOrders),
-}));
 
 const mockProviders: RampProvider[] = [
   {
@@ -87,9 +95,15 @@ const mockProviders: RampProvider[] = [
   },
 ];
 
+const NO_LEGACY_ORDERS: unknown[] = [];
+
 const createMockStore = (
   providersState = {},
   userRegion = { regionCode: 'us', country: { currency: 'USD' } },
+  {
+    orders = [],
+    legacyOrders = NO_LEGACY_ORDERS,
+  }: { orders?: unknown[]; legacyOrders?: unknown[] } = {},
 ) =>
   configureStore({
     reducer: {
@@ -104,12 +118,12 @@ const createMockStore = (
               ...providersState,
             },
             userRegion,
-            orders: [],
+            orders,
           },
         },
       }),
       fiatOrders: () => ({
-        orders: [],
+        orders: legacyOrders,
       }),
     },
   });
@@ -320,129 +334,285 @@ describe('useRampsProviders', () => {
         Engine.context.RampsController.setSelectedProvider,
       ).toHaveBeenCalledWith(mockProviders[0].id, { autoSelected: true });
     });
+
+    it('records a provider the user picks by hand', () => {
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(createMockStore()),
+      });
+      const before = getLastUserProviderPick().count;
+
+      act(() => {
+        result.current.setSelectedProvider(mockProviders[0], {
+          autoSelected: true,
+        });
+      });
+      expect(getLastUserProviderPick().count).toBe(before);
+
+      act(() => {
+        result.current.setSelectedProvider(mockProviders[0], {
+          userSelected: true,
+        });
+      });
+      expect(getLastUserProviderPick()).toEqual({
+        providerId: mockProviders[0].id,
+        count: before + 1,
+      });
+    });
   });
 
-  describe('preferred provider effect', () => {
-    const mockGetOrders = getOrders as jest.MockedFunction<typeof getOrders>;
-    const mockDeterminePreferredProvider =
-      determinePreferredProvider as jest.MockedFunction<
-        typeof determinePreferredProvider
-      >;
+  describe('provider pick on start-up and history change', () => {
+    const mockController = Engine.context.RampsController as unknown as {
+      selectProviderForAsset: jest.Mock;
+      state: {
+        providers: { selected: RampProvider | null };
+        providerAutoSelected: boolean;
+        tokens: { selected: { assetId: string } | null };
+      };
+    };
+    const ETH = 'eip155:1/slip44:60';
+    const nativeProvider = {
+      ...mockProviders[1],
+      id: 'transak-native',
+      type: 'native',
+    } as RampProvider;
 
-    it('calls determinePreferredProvider with completed orders and providers when providers exist and selectedProvider is null', () => {
-      const store = createMockStore({ data: mockProviders });
-      mockGetOrders.mockReturnValue(emptyOrders);
-      mockDeterminePreferredProvider.mockReturnValue({
-        provider: mockProviders[0],
-        autoSelected: false,
-      });
-
-      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
-        wrapper: wrapper(store),
-      });
-
-      expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
-        expect.any(Array),
-        mockProviders,
-        mockProviders[0].id,
-      );
+    beforeEach(() => {
+      mockUseQuery.mockReturnValue(undefined);
+      mockAheadOfHistory.length = 0;
+      mockController.state = {
+        providers: { selected: null },
+        providerAutoSelected: false,
+        tokens: { selected: null },
+      };
     });
 
-    it('passes the backend-ranked provider id from sorted metadata', () => {
-      mockUseQuery.mockReturnValue({
-        data: {
-          providers: mockProviders,
-          sorted: [{ sortBy: '1', ids: [mockProviders[1].id] }],
+    it('picks for the controller token with the flag list and legacy history', () => {
+      mockAheadOfHistory.push('crossmint');
+      mockController.state.tokens.selected = { assetId: ETH };
+      const store = createMockStore(
+        { data: [mockProviders[0], nativeProvider] },
+        undefined,
+        {
+          legacyOrders: [
+            {
+              id: 'a',
+              provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+              state: FIAT_ORDER_STATES.COMPLETED,
+              orderType: 'BUY',
+              createdAt: 100,
+              data: { provider: { id: '/providers/moonpay' } },
+            },
+            {
+              id: 'b',
+              provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+              state: FIAT_ORDER_STATES.COMPLETED,
+              orderType: 'DEPOSIT',
+              createdAt: 200,
+            },
+            {
+              id: 'c',
+              provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+              state: FIAT_ORDER_STATES.COMPLETED,
+              orderType: 'SELL',
+              createdAt: 300,
+              data: { provider: { id: '/providers/paypal' } },
+            },
+            {
+              id: 'd',
+              provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+              state: FIAT_ORDER_STATES.FAILED,
+              orderType: 'BUY',
+              createdAt: 400,
+              data: { provider: { id: '/providers/banxa' } },
+            },
+          ],
         },
-        error: null,
-        isLoading: false,
-      });
-      mockGetOrders.mockReturnValue(emptyOrders);
-      mockDeterminePreferredProvider.mockReturnValue({
-        provider: mockProviders[1],
-        autoSelected: true,
-      });
-      const store = createMockStore({ data: mockProviders });
-
-      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
-        wrapper: wrapper(store),
-      });
-
-      expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
-        expect.any(Array),
-        mockProviders,
-        mockProviders[1].id,
       );
-    });
-
-    it('calls setSelectedProvider with result of determinePreferredProvider when providers exist and selectedProvider is null', () => {
-      const store = createMockStore({ data: mockProviders });
-      mockGetOrders.mockReturnValue(emptyOrders);
-      mockDeterminePreferredProvider.mockReturnValue({
-        provider: mockProviders[1],
-        autoSelected: false,
-      });
 
       renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
-      expect(
-        Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(mockProviders[1], { autoSelected: false });
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledWith(ETH, {
+        aheadOfHistory: ['crossmint'],
+        extraHistory: [
+          { providerId: '/providers/moonpay', completedAt: 100 },
+          { providerId: 'transak-native', completedAt: 200 },
+        ],
+      });
     });
 
-    it('does not call setSelectedProvider when determinePreferredProvider returns null', () => {
+    it('picks with a null asset before a token is chosen', () => {
       const store = createMockStore({ data: mockProviders });
-      mockGetOrders.mockReturnValue(emptyOrders);
-      mockDeterminePreferredProvider.mockReturnValue(null);
 
       renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
-      expect(
-        Engine.context.RampsController.setSelectedProvider,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('does not call determinePreferredProvider when providers is empty', () => {
-      const store = createMockStore();
-      mockDeterminePreferredProvider.mockClear();
-
-      renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledWith(null, {
+        aheadOfHistory: [],
+        extraHistory: [],
       });
-
-      expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
     });
 
-    it('does not call determinePreferredProvider when selectedProvider is already set', () => {
-      const store = createMockStore({
+    let currentStore = createMockStore({ data: mockProviders });
+
+    it('picks again when order history changes and the app made the selection', () => {
+      currentStore = createMockStore({ data: mockProviders });
+      mockController.state.providers.selected = mockProviders[0];
+      mockController.state.providerAutoSelected = true;
+      const { rerender } = renderHook(
+        () => useRampsProviders({ enableSideEffects: true }),
+        {
+          wrapper: ({ children }: { children: React.ReactNode }) =>
+            React.createElement(
+              Provider,
+              { store: currentStore } as never,
+              React.createElement(
+                QueryClientProvider,
+                { client: queryClient },
+                children,
+              ),
+            ),
+        },
+      );
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledTimes(1);
+
+      const order = {
+        id: 'order-1',
+        provider: { id: mockProviders[0].id },
+        orderType: 'BUY',
+        createdAt: 1,
+      };
+      currentStore = createMockStore({ data: mockProviders }, undefined, {
+        orders: [{ ...order, status: 'PENDING' }],
+      });
+      rerender({});
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledTimes(1);
+
+      currentStore = createMockStore({ data: mockProviders }, undefined, {
+        orders: [{ ...order, status: 'COMPLETED' }],
+      });
+      rerender({});
+
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledTimes(2);
+    });
+
+    it('picks again when the controller list arrives after the React Query copy', () => {
+      mockUseQuery.mockReturnValue({
+        data: { providers: mockProviders },
+        isLoading: false,
+        error: null,
+      });
+      currentStore = createMockStore({ data: [] });
+      const { rerender } = renderHook(
+        () => useRampsProviders({ enableSideEffects: true }),
+        {
+          wrapper: ({ children }: { children: React.ReactNode }) =>
+            React.createElement(
+              Provider,
+              { store: currentStore } as never,
+              React.createElement(
+                QueryClientProvider,
+                { client: queryClient },
+                children,
+              ),
+            ),
+        },
+      );
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledTimes(1);
+
+      currentStore = createMockStore({ data: mockProviders });
+      rerender({});
+
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledTimes(2);
+    });
+
+    it('picks again when the selection is cleared', () => {
+      mockController.state.providers.selected = mockProviders[0];
+      mockController.state.providerAutoSelected = false;
+      const { rerender } = renderHook(
+        () => useRampsProviders({ enableSideEffects: true }),
+        {
+          wrapper: ({ children }: { children: React.ReactNode }) =>
+            React.createElement(
+              Provider,
+              { store: currentStore } as never,
+              React.createElement(
+                QueryClientProvider,
+                { client: queryClient },
+                children,
+              ),
+            ),
+        },
+      );
+      currentStore = createMockStore({
         data: mockProviders,
         selected: mockProviders[0],
       });
-      mockDeterminePreferredProvider.mockClear();
+      rerender({});
+      expect(mockController.selectProviderForAsset).not.toHaveBeenCalled();
 
-      renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
+      mockController.state.providers.selected = null;
+      currentStore = createMockStore({ data: mockProviders, selected: null });
+      rerender({});
 
-      expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call determinePreferredProvider when providers is undefined', () => {
-      const store = createMockStore({ data: undefined });
-      mockDeterminePreferredProvider.mockClear();
+    it('leaves a selection the app did not make', () => {
+      mockController.state.providers.selected = mockProviders[0];
+      mockController.state.providerAutoSelected = false;
+      const store = createMockStore({ data: mockProviders });
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
-      expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
+      expect(mockController.selectProviderForAsset).not.toHaveBeenCalled();
+    });
+
+    it('leaves the pick to a mounted Buy screen', () => {
+      const store = createMockStore({ data: mockProviders });
+      const buyScreen = renderHook(() => useBuyScreenOwnsProviderPick());
+
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
+        wrapper: wrapper(store),
+      });
+      expect(mockController.selectProviderForAsset).not.toHaveBeenCalled();
+
+      buyScreen.unmount();
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
+        wrapper: wrapper(store),
+      });
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not pick without side effects', () => {
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(createMockStore({ data: mockProviders })),
+      });
+
+      expect(mockController.selectProviderForAsset).not.toHaveBeenCalled();
+    });
+
+    it('forwards picker options and exclusions from selectProviderForAsset', () => {
+      mockAheadOfHistory.push('crossmint');
+      mockController.selectProviderForAsset.mockReturnValue('provider-2');
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(createMockStore({ data: mockProviders })),
+      });
+
       expect(
-        Engine.context.RampsController.setSelectedProvider,
-      ).not.toHaveBeenCalled();
+        result.current.selectProviderForAsset(ETH, {
+          excludeProviderIds: ['provider-1'],
+        }),
+      ).toBe('provider-2');
+      expect(mockController.selectProviderForAsset).toHaveBeenCalledWith(ETH, {
+        aheadOfHistory: ['crossmint'],
+        extraHistory: [],
+        excludeProviderIds: ['provider-1'],
+      });
     });
   });
 });
