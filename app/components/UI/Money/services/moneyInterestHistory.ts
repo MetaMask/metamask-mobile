@@ -1,14 +1,5 @@
-import { ApiEnv, getApiEnv } from '../../../../core/apiEnv';
 import type { InterestHistoryResponse } from '../types/moneyInterestHistory';
-
-const MONEY_ACCOUNT_API_URL_BY_ENV: Record<ApiEnv, string> = {
-  [ApiEnv.Dev]: 'https://money.dev-api.cx.metamask.io',
-  [ApiEnv.Uat]: 'https://money.uat-api.cx.metamask.io',
-  [ApiEnv.Prod]: 'https://money.api.cx.metamask.io',
-};
-
-const getMoneyAccountApiBaseUrl = (): string =>
-  MONEY_ACCOUNT_API_URL_BY_ENV[getApiEnv()];
+import { getMoneyAccountApiBaseUrl } from './moneyAccountApi';
 
 /**
  * Fetches historical interest for a Money account position.
