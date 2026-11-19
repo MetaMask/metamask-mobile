@@ -1,10 +1,19 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { usePayWithSelectedToken } from './usePayWithSelectedToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
+import {
+  evmAssetId,
+  encodeEvmAssetIdMock,
+} from '../../__mocks__/pay-token.mock';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('./useTransactionPayToken');
 
@@ -13,24 +22,33 @@ const AUTOMATIC_TOKEN_MOCK = {
   chainId: '0x1' as Hex,
 };
 
+const SELECTED_TOKEN_ASSET_MOCK = {
+  address: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD' as Hex,
+  chainId: '0x1' as Hex,
+};
+
 const SELECTED_PAY_TOKEN_MOCK: TransactionPaymentToken = {
-  address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
+  assetId: evmAssetId(
+    SELECTED_TOKEN_ASSET_MOCK.address,
+    SELECTED_TOKEN_ASSET_MOCK.chainId,
+  ),
   balanceFiat: '$20.00',
   balanceHuman: '20',
   balanceRaw: '20000000',
   balanceUsd: '20',
-  chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'POL',
 };
 
 const MATCHING_PAY_TOKEN_MOCK: TransactionPaymentToken = {
-  address: AUTOMATIC_TOKEN_MOCK.address,
+  assetId: evmAssetId(
+    AUTOMATIC_TOKEN_MOCK.address,
+    AUTOMATIC_TOKEN_MOCK.chainId,
+  ),
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
   balanceRaw: '12340000',
   balanceUsd: '12.34',
-  chainId: AUTOMATIC_TOKEN_MOCK.chainId,
   decimals: 6,
   symbol: 'USDC',
 };
@@ -47,6 +65,7 @@ describe('usePayWithSelectedToken', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
+    jest.mocked(useSelector).mockReturnValue(encodeEvmAssetIdMock);
     useAutomaticTransactionPayTokenMock.mockReturnValue(AUTOMATIC_TOKEN_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -60,9 +79,8 @@ describe('usePayWithSelectedToken', () => {
 
     expect(result.current.isSelectedDistinctFromAutomatic).toBe(true);
     expect(result.current.selectedToken).toEqual({
-      address: SELECTED_PAY_TOKEN_MOCK.address,
+      ...SELECTED_TOKEN_ASSET_MOCK,
       balanceUsd: SELECTED_PAY_TOKEN_MOCK.balanceUsd,
-      chainId: SELECTED_PAY_TOKEN_MOCK.chainId,
       symbol: SELECTED_PAY_TOKEN_MOCK.symbol,
     });
   });
@@ -112,7 +130,7 @@ describe('usePayWithSelectedToken', () => {
     });
   });
 
-  it('selectToken calls setPayToken with the requested target', () => {
+  it('selectToken calls setPayToken with the asset ID of the requested target', () => {
     const target = {
       address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex,
       chainId: '0x89' as Hex,
@@ -122,13 +140,15 @@ describe('usePayWithSelectedToken', () => {
 
     result.current.selectToken(target);
 
-    expect(setPayTokenMock).toHaveBeenCalledWith(target);
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      assetId: evmAssetId(target.address, target.chainId),
+    });
   });
 
   it('selectToken is a no-op when the target already matches the current pay token', () => {
     const target = {
-      address: SELECTED_PAY_TOKEN_MOCK.address,
-      chainId: SELECTED_PAY_TOKEN_MOCK.chainId,
+      address: SELECTED_TOKEN_ASSET_MOCK.address.toLowerCase() as Hex,
+      chainId: SELECTED_TOKEN_ASSET_MOCK.chainId,
     };
 
     const { result } = renderHook(() => usePayWithSelectedToken());

@@ -42,14 +42,19 @@ jest.mock('../AccountSelector', () => {
       label,
       isAccountAllowed,
     }: {
-      onAccountSelected: (address: string) => void;
+      onAccountSelected: (account: { id: string; address: string }) => void;
       selectedAddress?: string;
       label?: string;
       isAccountAllowed?: (account: unknown) => boolean;
     }) => (
       <TouchableOpacity
         testID="account-selector"
-        onPress={() => onAccountSelected('0xSelectedAddress')}
+        onPress={() =>
+          onAccountSelected({
+            id: 'selected-account-id',
+            address: '0xSelectedAddress',
+          })
+        }
       >
         <Text testID="account-selector-label">{label ?? 'To'}</Text>
         <Text testID="account-selector-address">
@@ -97,6 +102,7 @@ const replaceAccountInNestedTransactionsMock = jest.mocked(
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
+const SELECTED_ACCOUNT_ID_MOCK = 'selected-account-id';
 
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
@@ -248,10 +254,10 @@ describe('PayAccountSelector', () => {
     );
 
     const configCallback = setTransactionConfigMock.mock.calls[0][1];
-    const config = {} as { accountOverride?: Hex; isPostQuote?: boolean };
+    const config = {} as { accountOverride?: string; isPostQuote?: boolean };
     configCallback(config as never);
 
-    expect(config.accountOverride).toBe('0xSelectedAddress');
+    expect(config.accountOverride).toBe(SELECTED_ACCOUNT_ID_MOCK);
   });
 
   it('sets accountOverride for withdraw transactions', async () => {
@@ -268,10 +274,10 @@ describe('PayAccountSelector', () => {
     });
 
     const configCallback = setTransactionConfigMock.mock.calls[0][1];
-    const config = {} as { accountOverride?: Hex; isPostQuote?: boolean };
+    const config = {} as { accountOverride?: string; isPostQuote?: boolean };
     configCallback(config as never);
 
-    expect(config.accountOverride).toBe('0xSelectedAddress');
+    expect(config.accountOverride).toBe(SELECTED_ACCOUNT_ID_MOCK);
     expect(config.isPostQuote).toBeUndefined();
   });
 
@@ -283,10 +289,10 @@ describe('PayAccountSelector', () => {
     });
 
     const configCallback = setTransactionConfigMock.mock.calls[0][1];
-    const config = {} as { accountOverride?: Hex; isPostQuote?: boolean };
+    const config = {} as { accountOverride?: string; isPostQuote?: boolean };
     configCallback(config as never);
 
-    expect(config.accountOverride).toBe('0xSelectedAddress');
+    expect(config.accountOverride).toBe(SELECTED_ACCOUNT_ID_MOCK);
     expect(config.isPostQuote).toBeUndefined();
   });
 

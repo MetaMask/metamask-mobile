@@ -41,6 +41,8 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
 
 const SOURCE_TOKEN_ADDRESS_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const SOURCE_CHAIN_ID_MOCK = '0xa';
+const SOURCE_ASSET_ID_MOCK =
+  `eip155:10/erc20:${SOURCE_TOKEN_ADDRESS_MOCK}` as const;
 const NATIVE_TOKEN_ADDRESS_MOCK = '0x0000000000000000000000000000000000000000';
 
 function createQuoteMock(
@@ -106,8 +108,7 @@ describe('BridgeFeeRow', () => {
 
     useTransactionPayQuotesMock.mockReturnValue([
       createQuoteMock({
-        sourceChainId: SOURCE_CHAIN_ID_MOCK,
-        sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+        sourceAssetId: SOURCE_ASSET_ID_MOCK,
       }),
     ]);
 
@@ -500,8 +501,7 @@ describe('BridgeFeeRow', () => {
       useTransactionPayQuotesMock.mockReturnValue([
         createQuoteMock({
           isPostQuote: true,
-          sourceChainId: SOURCE_CHAIN_ID_MOCK,
-          sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+          sourceAssetId: SOURCE_ASSET_ID_MOCK,
           targetChainId: '0x1',
           targetTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         }),

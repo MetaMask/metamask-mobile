@@ -4,7 +4,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, type Json } from '@metamask/utils';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   DepositPrefillStatus,
@@ -29,6 +29,10 @@ import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAc
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  buildPaymentTokenMock,
+  evmAssetId,
+} from '../../__mocks__/pay-token.mock';
 
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
@@ -126,14 +130,14 @@ function makeTransactionMeta(
 }
 
 function makePayToken(
-  overrides?: Partial<TransactionPaymentToken>,
+  overrides?: Partial<Parameters<typeof buildPaymentTokenMock>[0]>,
 ): TransactionPaymentToken {
-  return {
+  return buildPaymentTokenMock({
     address: ETHEREUM_USDT_ADDRESS,
     balanceUsd: '1000',
     chainId: CHAIN_ID_MOCK,
     ...overrides,
-  } as TransactionPaymentToken;
+  });
 }
 
 /**
@@ -185,7 +189,7 @@ function setupMocks(
   if (resolvedPayToken && !stablecoin) {
     resolvedPayToken = {
       ...resolvedPayToken,
-      address: NON_STABLECOIN_ADDRESS,
+      assetId: evmAssetId(NON_STABLECOIN_ADDRESS, CHAIN_ID_MOCK),
     };
   }
 

@@ -35,6 +35,10 @@ import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/pe
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
+import {
+  buildPaymentTokenMock,
+  evmAssetId,
+} from '../../../__mocks__/pay-token.mock';
 
 const mockRenderNoFeeTag = jest.fn(() => null);
 const mockEnsurePayToken = jest.fn().mockResolvedValue(undefined);
@@ -252,7 +256,10 @@ describe('PayWithModal', () => {
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { address: NATIVE_TOKEN_ADDRESS, chainId: CHAIN_ID_1_MOCK },
+      payToken: buildPaymentTokenMock({
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+      }),
       setPayToken: setPayTokenMock,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
@@ -307,8 +314,7 @@ describe('PayWithModal', () => {
       fireEvent.press(await findByText('Test Token 1'));
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKENS_MOCK[1].address,
-        chainId: TOKENS_MOCK[1].chainId,
+        assetId: evmAssetId(TOKENS_MOCK[1].address, CHAIN_ID_1_MOCK),
       });
     });
 
