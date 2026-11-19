@@ -61,8 +61,8 @@ The Braze SDK may fire multiple `bannerCardsUpdated` events for a single server 
 ## Usage
 
 ```tsx
-import BrazeBanner from 'app/components/UI/BrazeBanner';
-import { BRAZE_BANNER_PLACEMENT_ID } from 'app/core/Braze/constants';
+import BrazeBanner from '#app/components/UI/BrazeBanner';
+import { BRAZE_BANNER_PLACEMENT_ID } from '#app/core/Braze/constants';
 
 <BrazeBanner placementId={BRAZE_BANNER_PLACEMENT_ID} />;
 ```
