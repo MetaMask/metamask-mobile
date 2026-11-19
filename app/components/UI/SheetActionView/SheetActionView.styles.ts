@@ -5,9 +5,10 @@ const createStyles = () =>
     actionsContainer: {
       flexDirection: 'row',
       padding: 16,
+      gap: 8,
     },
-    cancelButton: { flex: 1, marginRight: 8 },
-    confirmButton: { flex: 1, marginLeft: 8 },
+    cancelButton: { flex: 1 },
+    confirmButton: { flex: 1 },
   });
 
 export default createStyles;

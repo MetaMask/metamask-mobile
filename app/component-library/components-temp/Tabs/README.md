@@ -153,6 +153,21 @@ import { TabsList } from '../Tabs';
 - ✅ Lazy loading for better performance
 - ✅ Better design system integration
 
+### TabViewBar
+
+Wraps the `react-native-tab-view` `TabBar` with the `TabsBar` look. Tabs size to their label and the bar scrolls when they overflow. Routes use `title` as the label. It does not use `Tab`.
+
+`TabView` gives every scene the same height, so this fits full-screen tabs. Tabs inside a scrolling page that need a height per tab still need `TabsList`.
+
+```tsx
+<TabView
+  navigationState={{ index, routes }}
+  renderScene={renderScene}
+  renderTabBar={(props) => <TabViewBar {...props} testID="my-tabs" />}
+  onIndexChange={setIndex}
+/>
+```
+
 ## Props
 
 ### TabsList Props

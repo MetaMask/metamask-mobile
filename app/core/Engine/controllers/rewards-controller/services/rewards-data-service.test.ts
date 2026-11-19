@@ -4831,6 +4831,19 @@ describe('RewardsDataService', () => {
         }),
       );
       expect(result).toEqual(mockStatusResponse);
+      expect(mockFetch.mock.calls[0][1]).not.toHaveProperty('body');
+    });
+
+    it('sends profileUsername only when one is provided', async () => {
+      await service.optInToCampaign(mockSubscriptionId, mockCampaignId, 'ada');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/wr/campaigns/${mockCampaignId}/opt-in`,
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ profileUsername: 'ada' }),
+        }),
+      );
     });
 
     it('returns participant status when 409 response (already opted in)', async () => {

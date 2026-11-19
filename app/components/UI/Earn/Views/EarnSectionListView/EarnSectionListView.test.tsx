@@ -35,7 +35,7 @@ import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
 import type { MoneyEntryContext } from '../../../Money/navigation/moneyEntryDecision';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import {
@@ -45,11 +45,10 @@ import {
 } from '../../../Money/constants/moneyEvents';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import EarnSectionListView from './EarnSectionListView';
-import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockNavigateToMoneyHome = jest.fn();
 let mockMoneyEntryContext: MoneyEntryContext = {
   accessBlockReason: undefined,
   isOnboardingRedirectNeeded: false,
@@ -158,13 +157,8 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   ),
 }));
 
-jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(() => ({
-    navigateToMoneyHome: (
-      ...args: Parameters<typeof mockNavigateToMoneyHome>
-    ) => mockNavigateToMoneyHome(...args),
-  })),
-  useMoneyDepositNavigation: jest.fn(),
+jest.mock('../../../Money/hooks/useMoneyDepositNavigation', () => ({
+  useMoneyCtaDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../../Money/hooks/useMoneyAnalytics', () => ({
@@ -400,7 +394,7 @@ describe('EarnSectionListView', () => {
       if (selector === selectIsMoneyAccountVisible) {
         return isMoneyAccountVisible;
       }
-      if (selector === selectMoneyEntryContext) {
+      if (selector === selectMoneyCtaEntryContext) {
         return mockMoneyEntryContext;
       }
       if (selector === selectPrivacyMode) {
@@ -418,26 +412,24 @@ describe('EarnSectionListView', () => {
     mockUseEarnAssetCatalogue.mockReturnValue(createCatalogueResult());
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceResult());
     mockUseProjectedEarnings.mockReturnValue(createProjectionResult());
-    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
-      track?.({
-        redirect_target: 'money_home',
-        button_intent: 'go_to_money_home',
-      });
-    });
     mockNavigateToMoneyDeposit.mockImplementation(
       async ({ track, ...options } = {}) => {
         track?.({
-          redirect_target: mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? 'money_onboarding'
-            : 'money_deposit',
-          button_intent: mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? 'go_to_money_onboarding'
-            : 'add_money',
+          redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
+            ? 'money_splash'
+            : mockMoneyEntryContext.isOnboardingRedirectNeeded
+              ? 'money_onboarding'
+              : 'money_deposit',
+          button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
+            ? 'go_to_money_splash'
+            : mockMoneyEntryContext.isOnboardingRedirectNeeded
+              ? 'go_to_money_onboarding'
+              : 'add_money',
         });
         return options;
       },
     );
-    jest.mocked(useMoneyDepositNavigation).mockReturnValue({
+    jest.mocked(useMoneyCtaDepositNavigation).mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
   });
@@ -777,7 +769,7 @@ describe('EarnSectionListView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('navigates back and to Money', () => {
+  it('navigates back and to Add funds', () => {
     const moneyAssets = createMoneyAssets(6);
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ assets: moneyAssets }),
@@ -791,13 +783,33 @@ describe('EarnSectionListView', () => {
     fireEvent.press(screen.getByTestId('mock-earn-money-account-row'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({
-      pop: false,
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
       track: expect.any(Function),
     });
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith(
       expect.objectContaining({
-        redirect_target: 'money_home',
+        redirect_target: 'money_deposit',
+      }),
+    );
+  });
+
+  it('routes the Money account row to the splash for unseen first-time users', () => {
+    mockMoneyEntryContext = {
+      accessBlockReason: undefined,
+      isOnboardingRedirectNeeded: false,
+      isSplashRedirectNeeded: true,
+    };
+
+    render(<EarnSectionListView />);
+
+    fireEvent.press(screen.getByTestId('mock-earn-money-account-row'));
+
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+      track: expect.any(Function),
+    });
+    expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirect_target: 'money_splash',
       }),
     );
   });

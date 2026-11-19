@@ -18,6 +18,7 @@ import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import ReduxService from '../../../../core/redux';
 import Logger from '../../../../util/Logger';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 import { useMfa, type MfaFlowErrorCode } from '../../../../util/identity/mfa';
 import { getErrorMessage } from '../../../Views/Mfa/labels';
 import type { RootState } from '../../../../reducers';
@@ -26,6 +27,7 @@ import { strings } from '../../../../../locales/i18n';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 import VbaFoxLoader from '../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
 import { useOpenVbaOnboarding } from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaKycSession } from '../../Ramp/Views/VirtualBankAccount/vbaKycSession';
 import { getVbaVendorTermsAcceptance } from '../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
@@ -85,6 +87,7 @@ const KycEmailAdapter = () => {
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
   const handleRetry = useCallback(() => {
+    fireImpact(ImpactMoment.PrimaryCTA);
     setErrorMessage(undefined);
     setAttempt((count) => count + 1);
   }, []);
@@ -121,7 +124,7 @@ const KycEmailAdapter = () => {
         }
       }
 
-      await Engine.context.KycController.startSession(
+      await startVbaKycSession(
         aal2Token
           ? { vendor: VBA_KYC_VENDOR, aal2Token }
           : { vendor: VBA_KYC_VENDOR },

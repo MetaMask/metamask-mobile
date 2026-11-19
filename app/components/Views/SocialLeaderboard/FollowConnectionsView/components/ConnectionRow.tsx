@@ -35,6 +35,11 @@ export interface ConnectionRowProps {
   address: string;
   avatarUri?: string;
   isFollowing: boolean;
+  /**
+   * Follow control style. Omitted keeps a primary Follow button and a
+   * secondary Following button.
+   */
+  followVariant?: ButtonVariant;
   onFollowPress?: () => void;
   onRowPress?: () => void;
 }
@@ -46,6 +51,7 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
   address,
   avatarUri,
   isFollowing,
+  followVariant,
   onFollowPress,
   onRowPress,
 }) => {
@@ -102,7 +108,8 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
       {onFollowPress ? (
         <Button
           variant={
-            isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+            followVariant ??
+            (isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary)
           }
           size={ButtonSize.Md}
           onPress={onFollowPress}

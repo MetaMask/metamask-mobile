@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -27,7 +26,10 @@ import {
   BOTTOM_SHEET_NAMES,
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type MoneyEarnCryptoInfoSheetVariant = 'default' | 'deposit';
 
@@ -37,13 +39,14 @@ interface MoneyEarnCryptoInfoSheetParams {
 }
 
 const MoneyEarnCryptoInfoSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { showMoneyHomeCta = false, variant = 'default' } =
     useParams<MoneyEarnCryptoInfoSheetParams>();
   const { apyPercent } = useMoneyVaultApy();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
 
   const { trackBottomSheetViewed, trackButtonClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,
@@ -84,7 +87,7 @@ const MoneyEarnCryptoInfoSheet = () => {
       testID={MoneyEarnCryptoInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         <Text
           variant={TextVariant.HeadingSm}
           fontWeight={FontWeight.Bold}
@@ -92,7 +95,7 @@ const MoneyEarnCryptoInfoSheet = () => {
         >
           {title}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.content}>
         <Text
           variant={TextVariant.BodyMd}

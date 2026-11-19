@@ -77,10 +77,7 @@ const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
 
       <BenefitRow>
         <Text variant={TextVariant.BodyMd}>
-          {strings('money.what_you_get.benefit_spend_prefix')}
-          <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-            {strings('money.what_you_get.benefit_spend_cashback')}
-          </Text>
+          {strings('money.what_you_get.benefit_spend')}
         </Text>
       </BenefitRow>
 

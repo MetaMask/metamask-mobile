@@ -1,0 +1,19 @@
+{
+  "operationId": "019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e5f",
+  "status": "awaiting_transfer",
+  "amount": "25.50",
+  "chainId": 84532,
+  "tokenContract": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  "depositAddress": "0x3b0b371ae3cb08f272b87319684f6518b3b313a0",
+  "planExpiresAt": "2026-11-13T12:15:00.000Z",
+  "txHash": null,
+  "createdAt": "2026-11-13T12:00:00.000Z",
+  "next": {
+    "kind": "wallet_transfer",
+    "chainId": 84532,
+    "tokenContract": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "amount": "25.50",
+    "depositAddress": "0x3b0b371ae3cb08f272b87319684f6518b3b313a0",
+    "planExpiresAt": "2026-11-13T12:15:00.000Z"
+  }
+}

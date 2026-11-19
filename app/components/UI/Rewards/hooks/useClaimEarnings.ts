@@ -46,6 +46,7 @@ import {
   claimFailureReason,
   claimOutcomeIsPartial,
   claimRoutesForSummary,
+  selectClaimRoutes,
   claimToastKey,
   claimToastText,
   claimTypeForRoute,
@@ -157,11 +158,17 @@ export function earningsSummaryClaimKey(summary: EarningsSummaryDto): string {
 
 export interface ClaimEarningsOptions {
   /**
-   * Leave follow-trade out. The tax sheet is already open and income is
-   * blocked, so submitting it comes back `TAX_DETERMINATION_REQUIRED` and
-   * would open that sheet again. Cashback still submits.
+   * Leave revenue share and follow-trade out. The tax sheet is already open
+   * and income is blocked, so submitting either comes back
+   * `TAX_DETERMINATION_REQUIRED` and would open that sheet again. Cashback
+   * still submits when it meets the minimum.
    */
-  omitFollowTrade?: boolean;
+  omitIncome?: boolean;
+  /**
+   * Submit cashback only. The payee is not cleared, and cashback meets the
+   * minimum, so income stays out of this press.
+   */
+  cashbackOnly?: boolean;
 }
 
 /**
@@ -294,9 +301,9 @@ export function useClaimEarnings(
         followTradeClaimOpen,
         revShareClaimOpen,
       );
-      const routes = claimRoutesForSummary(summary, routeOptions).filter(
-        (route) =>
-          !(options?.omitFollowTrade && route === 'social-follow-trade'),
+      const routes = selectClaimRoutes(
+        claimRoutesForSummary(summary, routeOptions),
+        options,
       );
       if (
         !localizedText ||

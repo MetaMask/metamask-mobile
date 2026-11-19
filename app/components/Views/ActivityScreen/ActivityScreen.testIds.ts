@@ -3,6 +3,8 @@ export const ActivityScreenSelectorsIDs = {
   HEADER: 'activity-screen-header',
   BACK_BUTTON: 'activity-screen-back-button',
   SEARCH_INPUT: 'activity-screen-search-input',
+  FILTER_BAR_IN_LIST: 'activity-screen-filter-bar-in-list',
+  FILTER_BAR_PINNED: 'activity-screen-filter-bar-pinned',
   NETWORK_FILTER_CHIP: 'activity-screen-network-filter-chip',
   NETWORK_FILTER_SHEET: 'activity-screen-network-filter-sheet',
   NETWORK_FILTER_OPTION_PREFIX: 'network-select-',

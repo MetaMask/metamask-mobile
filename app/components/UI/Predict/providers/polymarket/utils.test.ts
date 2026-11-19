@@ -2,6 +2,7 @@ import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
+import { captureMessage } from '@sentry/react-native';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
@@ -51,6 +52,7 @@ import {
   getPredictPositionStatus,
   getRawBalance,
   getTickSizeRoundConfig,
+  parseCryptoPriceProvider,
   parsePolymarketEvents,
   parsePolymarketMarket,
   parsePolymarketActivity,
@@ -4382,6 +4384,180 @@ describe('polymarket utils', () => {
     expect(parsePolymarketEvents([event], 'crypto')[0]).not.toHaveProperty(
       'twapWindowSeconds',
     );
+  });
+});
+
+describe('parseCryptoPriceProvider', () => {
+  // resolutionSource values copied from live Gamma events on 2026-11-09.
+  it.each([
+    [
+      'btc-up-or-down-5m',
+      'https://data.chain.link/streams/btc-usd',
+      'chainlink',
+    ],
+    [
+      'btc-up-or-down-15m',
+      'https://data.chain.link/streams/btc-usd-twap-60s-streams',
+      'chainlink',
+    ],
+    [
+      'btc-up-or-down-4h',
+      'https://data.chain.link/streams/btc-usd-twap-60s-streams',
+      'chainlink',
+    ],
+    [
+      'btc-up-or-down-hourly',
+      'https://www.binance.com/en/trade/BTC_USDT',
+      'binance',
+    ],
+    [
+      'btc-up-or-down-daily',
+      'https://www.binance.com/en/trade/BTC_USDT',
+      'binance',
+    ],
+    [
+      'hype-up-or-down-hourly',
+      'https://www.binance.com/en/futures/HYPEUSDT',
+      'binance',
+    ],
+  ])('reads %s settled on %s as %s', (_series, resolutionSource, provider) => {
+    expect(parseCryptoPriceProvider({}, [{ resolutionSource }])).toBe(provider);
+  });
+
+  it.each([
+    ['a Pyth source', 'https://pythdata.app/explore/Equity.US.AAPL%2FUSD'],
+    ['a look-alike host', 'https://binance.com.example.org/trade'],
+    ['an empty source', ''],
+    ['no source', null],
+  ])('returns undefined for %s', (_case, resolutionSource) => {
+    expect(
+      parseCryptoPriceProvider({ resolutionSource }, [{ resolutionSource }]),
+    ).toBeUndefined();
+  });
+
+  it('prefers the market source over the event source', () => {
+    expect(
+      parseCryptoPriceProvider(
+        { resolutionSource: 'https://data.chain.link/streams/btc-usd' },
+        [{ resolutionSource: 'https://www.binance.com/en/trade/BTC_USDT' }],
+      ),
+    ).toBe('binance');
+  });
+
+  it('falls back to the event source when markets carry none', () => {
+    expect(
+      parseCryptoPriceProvider(
+        { resolutionSource: 'https://www.binance.com/en/trade/ETH_USDT' },
+        [{ resolutionSource: '' }],
+      ),
+    ).toBe('binance');
+  });
+
+  it('sets the provider on a parsed hourly crypto market', () => {
+    const event: PolymarketApiEvent = {
+      id: 'crypto-hourly-event',
+      slug: 'bitcoin-up-or-down-november-9-2026-1pm-et',
+      title: 'Bitcoin Up or Down',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [],
+      markets: [
+        {
+          ...createPolymarketApiMarket(),
+          resolutionSource: 'https://www.binance.com/en/trade/BTC_USDT',
+        },
+      ],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')[0]).toEqual(
+      expect.objectContaining({ cryptoPriceProvider: 'binance' }),
+    );
+  });
+
+  describe('a crypto up/down market without a known vendor', () => {
+    const cryptoEvent = (
+      id: string,
+      resolutionSource?: string,
+    ): PolymarketApiEvent => ({
+      id,
+      slug: 'btc-updown-5m-1763000000',
+      title: 'Bitcoin Up or Down',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: 'series',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down 5m',
+          recurrence: '5m',
+        },
+      ],
+      markets: [{ ...createPolymarketApiMarket(), resolutionSource }],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+    });
+
+    beforeEach(() => {
+      jest.mocked(captureMessage).mockClear();
+    });
+
+    it.each([
+      ['an unknown', 'unknown-source-event', 'https://pythdata.app/BTC'],
+      ['a missing', 'missing-source-event', undefined],
+    ])(
+      'warns Sentry once for %s resolution source',
+      (_case, id, resolutionSource) => {
+        const event = cryptoEvent(id, resolutionSource);
+
+        parsePolymarketEvents([event], 'crypto');
+        parsePolymarketEvents([event], 'crypto');
+
+        expect(jest.mocked(captureMessage).mock.calls).toEqual([
+          [
+            'Polymarket: crypto market settles on an unknown vendor',
+            {
+              level: 'warning',
+              tags: { feature: 'Predict', provider: 'polymarket' },
+              contexts: {
+                parsePolymarketEvents: {
+                  marketId: id,
+                  slug: 'btc-updown-5m-1763000000',
+                  symbol: 'BTC',
+                  resolutionSource: resolutionSource ?? null,
+                  defaultProvider: 'chainlink',
+                },
+              },
+            },
+          ],
+        ]);
+      },
+    );
+
+    it('does not warn for a known vendor or a market that is not crypto up/down', () => {
+      parsePolymarketEvents(
+        [
+          cryptoEvent(
+            'chainlink-source-event',
+            'https://data.chain.link/streams/btc-usd',
+          ),
+          { ...cryptoEvent('not-crypto-event'), tags: [] },
+        ],
+        'crypto',
+      );
+
+      expect(jest.mocked(captureMessage)).not.toHaveBeenCalled();
+    });
   });
 });
 

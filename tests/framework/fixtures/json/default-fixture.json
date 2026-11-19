@@ -71,6 +71,7 @@
       "cardArrivalAnimationSeen": false,
       "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
+      "immersveFundingSettling": false,
       "isDaimoDemo": false,
       "onboarding": {
         "consentSetId": null,
@@ -237,6 +238,10 @@
           "moneyAccounts": {},
           "defaultMoneyAccountId": null
         },
+        "MoneyAccountLifecycleController": {
+          "moneyAccounts": {},
+          "addressRegistrations": {}
+        },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
         },
@@ -340,7 +345,6 @@
               "nativeCurrency": "ETH",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "mainnet",
                   "type": "infura",
                   "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
@@ -356,7 +360,6 @@
               "nativeCurrency": "MON",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "monad-mainnet",
                   "type": "infura",
                   "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
@@ -372,7 +375,6 @@
               "nativeCurrency": "SepoliaETH",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "sepolia",
                   "type": "infura",
                   "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
@@ -388,7 +390,6 @@
               "nativeCurrency": "LineaETH",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "linea-sepolia",
                   "type": "infura",
                   "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
@@ -404,7 +405,6 @@
               "nativeCurrency": "LineaETH",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "linea-mainnet",
                   "type": "infura",
                   "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
@@ -455,8 +455,13 @@
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
           "cachedUserDataByProvider": {},
+          "defaultProvider": "hyperliquid",
           "depositInProgress": false,
           "depositRequests": [],
+          "effectiveProvider": "hyperliquid",
+          "hasExplicitDefaultProviderSelection": false,
+          "hasExplicitProviderSelection": false,
+          "hasMigratedToMultiProvider": false,
           "hasPlacedFirstOrder": {
             "mainnet": false,
             "testnet": false
@@ -606,7 +611,8 @@
             "profileId": "",
             "tradingPrivacy": "public",
             "updatedAt": "",
-            "username": ""
+            "username": "",
+            "verified": false
           }
         },
         "QrSyncController": {
@@ -828,6 +834,10 @@
       "lastLocalFlowConfirmedAt": null,
       "redeemable": null
     },
+    "socialEarlyAccess": {
+      "profileId": null,
+      "hasAccess": false
+    },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
       "currentRoute": "AdvancedSettings"
@@ -905,7 +915,7 @@
       "campaignsFetching": false,
       "campaignsHasLoaded": false,
       "campaignsLoading": false,
-      "candidateSubscriptionId": "pending",
+      "candidateSubscriptionId": null,
       "dismissedCampaignOutcomeToasts": {},
       "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
@@ -914,7 +924,6 @@
       "moneyAccountSweepstakesPrizePools": {},
       "moneyAccountSweepstakesStats": {},
       "moneyAccountSweepstakesVolumeStats": {},
-      "onboardingActiveStep": "INTRO",
       "ondoCampaignActivity": {},
       "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},
@@ -1032,6 +1041,8 @@
       "appServicesReady": false,
       "appTheme": "os",
       "backUpSeedphraseVisible": false,
+      "bridgeLimitTabSeen": false,
+      "bridgeRecurringTabSeen": false,
       "existingUser": true,
       "gasEducationCarouselSeen": false,
       "initialScreen": "",
@@ -1041,6 +1052,7 @@
       "loadingSet": false,
       "moneyEarnBannerDismissedTokens": {},
       "moneyOnboardingSeen": false,
+      "moneySplashSeen": false,
       "multichainAccountsIntroModalSeen": true,
       "musdConversionAssetDetailCtasSeen": {},
       "musdConversionEducationSeen": false,

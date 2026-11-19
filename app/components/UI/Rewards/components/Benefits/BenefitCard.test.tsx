@@ -134,7 +134,7 @@ describe('BenefitCard', () => {
       );
 
       expect(useTailwind().style).toHaveBeenCalledWith(
-        'bg-section rounded-lg p-4 h-[154px]',
+        'bg-section rounded-lg p-4',
       );
     });
 

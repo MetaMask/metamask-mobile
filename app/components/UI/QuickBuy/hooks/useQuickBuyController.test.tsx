@@ -33,11 +33,8 @@ jest.mock('../../../../util/social/socialActivityStorage', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+  useStore: jest.fn(() => ({ getState: () => ({ bridge: {} }) })),
   shallowEqual: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/profileController', () => ({
-  selectIsProfileTradingActivityPrivate: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -250,26 +247,16 @@ jest.mock('../../Bridge/hooks/usePriceImpactViewData', () => ({
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../../component-library/components/Toast', () => {
-  const actualReact = jest.requireActual('react');
-  const mockShowToast = jest.fn();
-  const toastRef = {
-    current: {
-      showToast: mockShowToast,
-    },
-  };
-
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    __esModule: true,
-    mockShowToast,
-    toastRef,
-    ToastContext: actualReact.createContext({
-      toastRef,
-    }),
-    ToastVariants: { Plain: 'Plain', Icon: 'Icon' },
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
@@ -292,7 +279,10 @@ jest.mock('../resolveQuickBuyTerminalToast', () => ({
 
 jest.mock(
   '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
-  () => ({ usePostTradePromptResolver: jest.fn() }),
+  () => ({
+    usePostTradePromptResolver: jest.fn(),
+    useCanShareCopyTrade: jest.fn(),
+  }),
 );
 
 jest.mock(

@@ -725,6 +725,7 @@ describe('useQuickBuyQuotes', () => {
         caip19: 'eip155:8453/erc20:0xDEST',
         amount_usd: 50,
         pay_with_token: 'ETH',
+        is_copy_trade: false,
       }),
     );
 
@@ -736,6 +737,35 @@ describe('useQuickBuyQuotes', () => {
           quote_count: 1,
         }),
       ),
+    );
+  });
+
+  it('marks quote events as copy trades when only a copy-trade origin is set', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: {
+            traderAddress: '0xTRADER',
+            caip19: 'eip155:8453/erc20:0xDEST',
+            amountUsd: 50,
+            copyTradeOrigin: { commentId: 'comment-1' },
+          },
+        }),
+      ),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
+      expect.objectContaining({ is_copy_trade: true }),
     );
   });
 
@@ -766,6 +796,40 @@ describe('useQuickBuyQuotes', () => {
         expect.objectContaining({ quote_count: 0 }),
       ),
     );
+  });
+
+  it('fires quote analytics without trader_address for sheets with no trader', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: { caip19: 'eip155:8453/erc20:0xDEST' },
+        }),
+      ),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() =>
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED,
+        expect.objectContaining({ quote_count: 1 }),
+      ),
+    );
+    const requested = mockTrack.mock.calls.find(
+      ([event]) =>
+        event === MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
+    );
+    expect(requested?.[1]).toEqual(
+      expect.objectContaining({ caip19: 'eip155:8453/erc20:0xDEST' }),
+    );
+    expect(requested?.[1]).not.toHaveProperty('trader_address');
   });
 
   it('defaults amountUsd to 0 when analyticsContext.amountUsd is absent', async () => {

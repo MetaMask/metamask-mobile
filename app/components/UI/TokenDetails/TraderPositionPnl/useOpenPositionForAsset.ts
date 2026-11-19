@@ -40,6 +40,8 @@ const isMissingTrader = (error: unknown): boolean =>
   error instanceof TraderPositionHttpError &&
   (error.status === 404 || error.status === 403);
 
+const openPositionRouteId = (value: string | undefined): string => value ?? '';
+
 /**
  * One wallet's open position from `GET /api/v2/traders/{wallet}/{assetId}/open`.
  * `{assetId}` is the CAIP-19 id of the token on screen.
@@ -61,8 +63,8 @@ export const useOpenPositionForAsset = (
     queryFn: async ({ signal }) => {
       try {
         return await getOpenPositionForAsset(
-          traderId ?? '',
-          tokenAddress ?? '',
+          openPositionRouteId(traderId),
+          openPositionRouteId(tokenAddress),
           signal,
         );
       } catch (error) {
@@ -74,7 +76,7 @@ export const useOpenPositionForAsset = (
           try {
             return await getOpenPositionForAsset(
               fallback,
-              tokenAddress ?? '',
+              openPositionRouteId(tokenAddress),
               signal,
             );
           } catch (retryError) {

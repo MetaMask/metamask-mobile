@@ -226,9 +226,12 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
     'engine.backgroundState.MoneyAccountController.moneyAccounts',
     'engine.backgroundState.MoneyAccountController.defaultMoneyAccountId',
+    'engine.backgroundState.MoneyAccountLifecycleController.moneyAccounts',
+    'engine.backgroundState.MoneyAccountLifecycleController.addressRegistrations',
     'engine.backgroundState.TokenBalancesController.tokenBalances',
     'engine.backgroundState.MultichainNetworkController.networksWithTransactionActivity',
     'browser.activeTab',
+    'socialEarlyAccess.profileId',
 
     // ── Timestamps (non-deterministic) ──
     'engine.backgroundState.CurrencyRateController.currencyRates.ETH.conversionDate',
@@ -262,6 +265,10 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.RemoteFeatureFlagController.featureFlagThresholdGroups',
     'engine.backgroundState.TokenRatesController.marketData',
     'engine.backgroundState.TokenSearchDiscoveryDataController',
+    // Seeded as 'pending', then replaced by RewardsController's result (often null
+    // for a fresh wallet) whenever the Rewards stack mounts. Whether the export
+    // captures it before or after that fetch is timing-dependent.
+    'rewards.candidateSubscriptionId',
 
     // ── Multichain runtime state (address-keyed, fetched live) ──
     'engine.backgroundState.MultichainAssetsController.accountsAssets',

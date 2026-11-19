@@ -9,8 +9,13 @@ import {
 import type { View } from 'react-native';
 import { SocialFeedPageActiveContext } from '../components/SocialFeedPageActiveContext';
 import { computeLivePositionFigures } from './computeLivePositionFigures';
+import type { SocialLivePriceEntry } from './SocialLivePriceStore';
 import { useSocialLivePrices } from './SocialLivePricesContext';
-import type { SocialLivePositionFigures, SocialLivePriceSource } from './types';
+import type {
+  SocialLivePositionFigures,
+  SocialLivePriceKey,
+  SocialLivePriceSource,
+} from './types';
 
 const noopUnsubscribe = () => undefined;
 
@@ -25,7 +30,12 @@ export interface UseSocialLivePriceResult {
 /**
  * Live figures for one open position card. Registers the card for visibility
  * tracking and re-renders only when its own asset ticks. A no-op without a
- * `live` source, outside `SocialLivePricesProvider`, or on an inactive page.
+ * `live` source or outside `SocialLivePricesProvider`.
+ *
+ * On an inactive page (another tab, or the feed blurred under a sheet or the
+ * copy-trade order screen) the card stops listening but holds its last live
+ * price. Dropping back to the API snapshot there flashes a stale price and
+ * P&L until the page is active and ticks again (TSA-1655).
  */
 export function useSocialLivePrice(
   id: string,
@@ -52,7 +62,20 @@ export function useSocialLivePrice(
     () => (context && key ? context.store.get(key) : undefined),
     [context, key],
   );
-  const entry = useSyncExternalStore(subscribe, getSnapshot);
+  const streamedEntry = useSyncExternalStore(subscribe, getSnapshot);
+
+  const lastEntryRef = useRef<{
+    key: SocialLivePriceKey;
+    entry: SocialLivePriceEntry;
+  } | null>(null);
+  if (streamedEntry && key) {
+    lastEntryRef.current = { key, entry: streamedEntry };
+  }
+  const heldEntry =
+    lastEntryRef.current && lastEntryRef.current.key === live?.key
+      ? lastEntryRef.current.entry
+      : undefined;
+  const entry = streamedEntry ?? heldEntry;
 
   const figures = useMemo(
     () =>

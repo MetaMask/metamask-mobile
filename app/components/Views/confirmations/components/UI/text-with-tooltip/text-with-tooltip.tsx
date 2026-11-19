@@ -10,13 +10,13 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Text,
   TextProps,
 } from '@metamask/design-system-react-native';
 import styleSheet from './text-with-tooltip.styles';
+import { ConfirmationSheetHeader } from '../sheet-header';
 interface TextWithTooltipProps {
   ellipsizeMode?: TextProps['ellipsizeMode'];
   label: string;
@@ -72,14 +72,14 @@ const TextWithTooltip = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeader
+            <ConfirmationSheetHeader
               onClose={handleRequestClose}
               closeButtonProps={{
                 testID: tooltipTestId ?? 'tooltipTestId',
               }}
             >
               {label}
-            </BottomSheetHeader>
+            </ConfirmationSheetHeader>
             <Box twClassName="flex flex-col">
               <View style={styles.tooltipContext}>
                 <Text style={styles.text}>{tooltip}</Text>
