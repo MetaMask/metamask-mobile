@@ -214,10 +214,11 @@ const KalshiOnboarding = () => {
         Logger.error(caught as Error, {
           tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
         });
-        setError(errorMessage(caught));
         if (shouldRefreshAfter(caught)) {
           await refresh();
+          return;
         }
+        setError(errorMessage(caught));
       } finally {
         setBusy(false);
       }

@@ -26,7 +26,7 @@ describe('describeKalshiError', () => {
         "kalshi_signed_request_sub_mismatch": "This Kalshi sign-in doesn’t match your MetaMask account. Sign out of MetaMask, sign back in, and try again.",
         "kalshi_signed_requests_sequence_invalid": "MetaMask couldn’t send this request to Kalshi. Try again. (kalshi_signed_requests_sequence_invalid)",
         "not_found": "Kalshi couldn’t find this sign-up. Try again, and contact support if it keeps happening. (not_found)",
-        "session_not_in_email_verification": "Kalshi isn’t waiting for an email code right now.",
+        "session_not_in_email_verification": "MetaMask couldn’t send this request to Kalshi. Try again. (session_not_in_email_verification)",
       }
     `);
   });

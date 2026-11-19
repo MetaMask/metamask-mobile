@@ -572,10 +572,8 @@ describe('KalshiOnboarding', () => {
 
       await waitFor(() => expect(flow.refreshStep).toHaveBeenCalledTimes(2));
       expect(
-        screen.getByTestId(KalshiOnboardingTestIds.ERROR).props.children,
-      ).toMatchInlineSnapshot(
-        `"Kalshi isn’t waiting for an email code right now."`,
-      );
+        screen.queryByTestId(KalshiOnboardingTestIds.ERROR),
+      ).not.toBeOnTheScreen();
     });
 
     it('words a request kyc-api refused as a failed send', async () => {

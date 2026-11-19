@@ -23,8 +23,6 @@ const MESSAGES: Partial<Record<KycKalshiErrorCode, string>> = {
     'MetaMask couldn’t prove your Kalshi sign-in. Try again.',
   kalshi_account_exists:
     'This phone number already has a Kalshi account. Linking an existing account isn’t supported yet.',
-  session_not_in_email_verification:
-    'Kalshi isn’t waiting for an email code right now.',
   idos_relay_unavailable:
     'The verification service is unavailable. Try again in a moment.',
   not_found:
