@@ -12,6 +12,7 @@ on:
       - 'app/**/*.tsx'
       - 'app/**/*.js'
       - 'app/**/*.jsx'
+      - 'scripts/design-system/**'
 
 permissions:
   contents: read

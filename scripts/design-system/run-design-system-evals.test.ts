@@ -1,4 +1,4 @@
-import { SPACING_RULE_ID } from './spacing-rule';
+import { loadEvalRules } from './eval-rules';
 import {
   EVAL_RULES,
   formatAnnotation,
@@ -19,10 +19,16 @@ function addedDiff(filePath: string, bodies: readonly string[]): string {
 }
 
 describe('EVAL_RULES', () => {
-  it('enables the spacing rule from the shared map', () => {
+  it('enables exactly the rules from the JSON source', () => {
     const ruleIds = Object.keys(EVAL_RULES);
 
-    expect(ruleIds).toEqual([SPACING_RULE_ID]);
+    expect(ruleIds).toEqual(loadEvalRules().map((config) => config.id));
+  });
+
+  it('builds a working rule module per JSON entry', () => {
+    for (const rule of Object.values(EVAL_RULES)) {
+      expect(typeof rule.create).toBe('function');
+    }
   });
 });
 
@@ -41,7 +47,7 @@ describe('isInScopeAppFile', () => {
       'app/components/Screen.view.test.tsx',
       'app/components/Screen.spec.ts',
       'app/components/Screen.stories.tsx',
-      'scripts/design-system/spacing-rule.ts',
+      'scripts/design-system/eval-rules.json',
       '.github/workflows/ci.yml',
     ];
 
@@ -52,7 +58,7 @@ describe('isInScopeAppFile', () => {
 });
 
 describe('runEvals', () => {
-  it('writes an annotation and returns 1 for a spacing literal on an added line', () => {
+  it('writes a warning annotation and returns 0 for a spacing literal on an added line', () => {
     const filePath = 'app/Screen.tsx';
     const code = 'export const styles = { marginRight: 8 };\n';
     const writes: string[] = [];
@@ -65,7 +71,7 @@ describe('runEvals', () => {
       },
     });
 
-    expect(codeResult).toBe(1);
+    expect(codeResult).toBe(0);
     expect(writes).toEqual([
       formatAnnotation(
         filePath,
@@ -73,6 +79,7 @@ describe('runEvals', () => {
         'Hard-coded spacing value "8" on "marginRight". Use a Box spacing prop (1 unit = 4px, for example marginRight={2}) or twClassName. Intentional exception: add "// ds-exception: <reason>" on this line.',
       ),
     ]);
+    expect(writes[0]).toMatch(/^::warning /);
   });
 
   it('drops a finding that is not on an added line', () => {

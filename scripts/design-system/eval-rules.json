@@ -1,0 +1,23 @@
+{
+  "rules": [
+    {
+      "id": "design-system/no-hardcoded-spacing",
+      "kind": "no-numeric-literal-on-keys",
+      "keys": [
+        "margin",
+        "marginTop",
+        "marginRight",
+        "marginBottom",
+        "marginLeft",
+        "padding",
+        "paddingTop",
+        "paddingRight",
+        "paddingBottom",
+        "paddingLeft",
+        "gap"
+      ],
+      "allowedValues": [0],
+      "message": "Hard-coded spacing value \"{{value}}\" on \"{{key}}\". Use a Box spacing prop (1 unit = 4px, for example marginRight={2}) or twClassName. Intentional exception: add \"// ds-exception: <reason>\" on this line."
+    }
+  ]
+}

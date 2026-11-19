@@ -4,15 +4,17 @@ import { readFileSync } from 'node:fs';
 import { Linter, type Rule } from 'eslint';
 
 import { parseAddedLines } from './changed-lines';
-import { SPACING_RULE_ID, spacingRule } from './spacing-rule';
+import { loadEvalRules } from './eval-rules';
+import { createRuleFromConfig } from './rule-kinds';
 
 /**
- * Add the next eval here. Registration, severity, and the finding filter all
- * read this map.
+ * The rule source is `eval-rules.json`, next to this file. Registration,
+ * severity, and the finding filter all read this map. A broken JSON source
+ * throws here so the check fails loudly instead of passing silently.
  */
-export const EVAL_RULES: Record<string, Rule.RuleModule> = {
-  [SPACING_RULE_ID]: spacingRule,
-};
+export const EVAL_RULES: Record<string, Rule.RuleModule> = Object.fromEntries(
+  loadEvalRules().map((config) => [config.id, createRuleFromConfig(config)]),
+);
 
 const PARSER_ID = 'design-system-evals-typescript';
 const APP_SOURCE = /^app\/.+\.(?:ts|tsx|js|jsx)$/;
@@ -38,8 +40,8 @@ export function isInScopeAppFile(filePath: string): boolean {
 }
 
 /**
- * Keep findings that sit on lines the pull request added. Returns 1 when any
- * annotation is written.
+ * Keep findings that sit on lines the pull request added. Findings are
+ * warnings while the system is refined, so this always returns 0.
  */
 export function runEvals(io: EvalIo): number {
   const added = parseAddedLines(io.readDiff());
@@ -48,7 +50,6 @@ export function runEvals(io: EvalIo): number {
     return 0;
   }
 
-  let count = 0;
   for (const finding of io.lintFiles(files)) {
     const lines = added[finding.filePath];
     if (!lines?.includes(finding.line)) {
@@ -56,10 +57,9 @@ export function runEvals(io: EvalIo): number {
     }
 
     io.write(formatAnnotation(finding.filePath, finding.line, finding.message));
-    count += 1;
   }
 
-  return count > 0 ? 1 : 0;
+  return 0;
 }
 
 export function lintSource(filePath: string, code: string): LintFinding[] {
@@ -97,7 +97,7 @@ export function formatAnnotation(
   line: number,
   message: string,
 ): string {
-  return `::error file=${escapeProperty(filePath)},line=${line}::${escapeMessage(message)}`;
+  return `::warning file=${escapeProperty(filePath)},line=${line}::${escapeMessage(message)}`;
 }
 
 export function formatErrorAnnotation(message: string): string {
@@ -130,7 +130,7 @@ function linterConfig(): Linter.Config {
       ecmaFeatures: { jsx: true },
     },
     rules: Object.fromEntries(
-      Object.keys(EVAL_RULES).map((ruleId) => [ruleId, 'error']),
+      Object.keys(EVAL_RULES).map((ruleId) => [ruleId, 'warn']),
     ),
   };
 }
