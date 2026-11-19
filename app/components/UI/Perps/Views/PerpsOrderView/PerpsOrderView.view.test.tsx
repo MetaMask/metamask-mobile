@@ -24,7 +24,10 @@ import {
   type OrderBookData,
   type OrderBookLevel,
 } from '@metamask/perps-controller';
+import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import Engine from '../../../../../core/Engine';
+import EngineService from '../../../../../core/EngineService';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -2512,6 +2515,320 @@ describe('PerpsOrderView', () => {
       });
 
       trackEventSpy.mockRestore();
+    });
+  });
+
+  describe('Money account selection', () => {
+    const moneyAccountName = strings(
+      'confirm.pay_with_bottom_sheet.money_account',
+    );
+    const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
+    const payWithLabel = strings('confirm.label.pay_with');
+    const confirmationTxId = 'perps-cv-confirmation-tx';
+    const moneyKeyringId = 'perps-order-money-keyring';
+    const moneyAddress = '0x1111111111111111111111111111111111111111';
+    // 1,000,000 mUSD in atomic units (6 decimals). Higher than any fixture token.
+    const fundedMoneyBalance = '1000000000000';
+
+    type OrderViewStore = ReturnType<typeof renderPerpsOrderView>['store'];
+
+    let orderViewStore: OrderViewStore | undefined;
+    let moneyBalanceFetches = 0;
+    let restoreMessenger: (() => void) | undefined;
+    let previousPayController: unknown;
+    let previousFetchGasFeeEstimates: unknown;
+    let restoreFlushState: (() => void) | undefined;
+
+    const payControllerKey = 'TransactionPayController';
+
+    const publishPaymentOverride = (
+      transactionId: string,
+      paymentOverride: string,
+    ) => {
+      const store = orderViewStore;
+      if (!store) {
+        return;
+      }
+      const backgroundState = store.getState().engine.backgroundState as Record<
+        string,
+        | {
+            transactionData?: Record<string, Record<string, unknown>>;
+          }
+        | undefined
+      >;
+      const current = backgroundState[payControllerKey] ?? {
+        transactionData: {},
+      };
+      const nextController = {
+        ...current,
+        transactionData: {
+          ...(current.transactionData ?? {}),
+          [transactionId]: {
+            ...(current.transactionData?.[transactionId] ?? {}),
+            paymentOverride,
+          },
+        },
+      };
+      const engineWithState = Engine as unknown as {
+        state?: Record<string, unknown>;
+      };
+      engineWithState.state = {
+        ...(engineWithState.state ?? {}),
+        [payControllerKey]: nextController,
+      };
+      store.dispatch(updateBgState({ key: payControllerKey }));
+    };
+
+    beforeEach(() => {
+      moneyBalanceFetches = 0;
+      orderViewStore = undefined;
+      const messengerCall = Engine.controllerMessenger.call as jest.Mock;
+      const previousImplementation = messengerCall.getMockImplementation();
+      messengerCall.mockImplementation((action: string, ...args: unknown[]) => {
+        if (action === 'MoneyAccountBalanceService:fetchBalanceWithFallback') {
+          moneyBalanceFetches += 1;
+          return Promise.resolve({
+            musdBalance: '0',
+            vmusdValueInMusd: fundedMoneyBalance,
+            totalBalance: fundedMoneyBalance,
+            source: 'api',
+            usedFallback: false,
+          });
+        }
+        return previousImplementation
+          ? previousImplementation(action, ...args)
+          : Promise.resolve(undefined);
+      });
+      restoreMessenger = () => {
+        if (previousImplementation) {
+          messengerCall.mockImplementation(previousImplementation);
+        } else {
+          messengerCall.mockReset();
+        }
+      };
+
+      const engineContext = Engine.context as typeof Engine.context &
+        Record<
+          string,
+          | {
+              setTransactionConfig: (
+                transactionId: string,
+                update: (config: { paymentOverride?: string }) => void,
+              ) => void;
+              updateFiatPayment: () => void;
+              updatePaymentToken: () => void;
+            }
+          | undefined
+        >;
+      previousPayController = engineContext[payControllerKey];
+      engineContext[payControllerKey] = {
+        setTransactionConfig(transactionId, update) {
+          const config: { paymentOverride?: string } = {};
+          update(config);
+          if (config.paymentOverride) {
+            publishPaymentOverride(transactionId, config.paymentOverride);
+          }
+        },
+        updateFiatPayment() {
+          return undefined;
+        },
+        updatePaymentToken() {
+          return undefined;
+        },
+      };
+
+      const gasFeeController = Engine.context.GasFeeController as {
+        fetchGasFeeEstimates?: () => Promise<undefined>;
+      };
+      previousFetchGasFeeEstimates = gasFeeController.fetchGasFeeEstimates;
+      gasFeeController.fetchGasFeeEstimates = () => Promise.resolve(undefined);
+      const flushState = jest
+        .spyOn(EngineService, 'flushState')
+        .mockImplementation(() => undefined);
+      restoreFlushState = () => {
+        flushState.mockRestore();
+      };
+    });
+
+    afterEach(() => {
+      restoreMessenger?.();
+      restoreMessenger = undefined;
+      const engineContext = Engine.context as typeof Engine.context &
+        Record<string, unknown>;
+      if (previousPayController === undefined) {
+        delete engineContext[payControllerKey];
+      } else {
+        engineContext[payControllerKey] = previousPayController;
+      }
+      const gasFeeController = Engine.context.GasFeeController as {
+        fetchGasFeeEstimates?: unknown;
+      };
+      if (previousFetchGasFeeEstimates === undefined) {
+        delete gasFeeController.fetchGasFeeEstimates;
+      } else {
+        gasFeeController.fetchGasFeeEstimates = previousFetchGasFeeEstimates;
+      }
+      restoreFlushState?.();
+      restoreFlushState = undefined;
+      orderViewStore = undefined;
+    });
+
+    const renderMoneyAccountOrder = (streamOverrides: PerpsStreamOverrides) => {
+      const result = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          settings: {
+            perpsChartPreferences: {
+              preferredCandlePeriod: CandlePeriod.FifteenMinutes,
+            },
+          },
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsTradeWithAnyTokenIsEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  confirmations_pay_extended: {
+                    enableMoneyAccountTransactions: {
+                      perpsDepositAndOrder: true,
+                    },
+                    defaultPaySelectedSection: {
+                      perpsDepositAndOrder: 'money-account',
+                    },
+                  },
+                },
+              },
+              KeyringController: {
+                keyrings: [
+                  {
+                    type: ExtendedKeyringTypes.hd,
+                    accounts: [],
+                    metadata: { id: moneyKeyringId, name: '' },
+                  },
+                ],
+              },
+              MoneyAccountController: {
+                moneyAccounts: {
+                  'money-1': {
+                    id: 'money-1',
+                    address: moneyAddress,
+                    type: 'eip155:eoa',
+                    scopes: [],
+                    methods: [],
+                    options: {
+                      entropy: {
+                        type: 'mnemonic',
+                        id: moneyKeyringId,
+                        derivationPath: "m/44'/60'/1'/0/0",
+                        groupIndex: 0,
+                      },
+                      exportable: false,
+                    },
+                  },
+                },
+              },
+              TransactionController: {
+                transactions: [
+                  {
+                    id: confirmationTxId,
+                    chainId: '0xa4b1',
+                    networkClientId: 'arbitrum-mainnet',
+                    status: 'unapproved',
+                    time: 0,
+                    type: 'perpsDepositAndOrder',
+                    txParams: {
+                      from: '0x1234567890123456789012345678901234567890',
+                      to: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+                      value: '0x0',
+                      data: '0xa9059cbb000000000000000000000000000000000000000000000000000000000000dead0000000000000000000000000000000000000000000000000000000000000000',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+          ...streamOverrides,
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      orderViewStore = result.store;
+      return result;
+    };
+
+    const payWithRow = () =>
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW);
+
+    it('keeps Perps balance selected while available to trade has not arrived', async () => {
+      const { stream } = renderMoneyAccountOrder({
+        account: accountWithBalance('1000'),
+        availableToTrade: null,
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.PAY_WITH_SKELETON,
+        ),
+      ).toBeOnTheScreen();
+      // The balance query and the sheet-open callback are the two async gates
+      // that would otherwise select the Money account. Wait for both, then
+      // assert the hold-back.
+      await waitFor(() => {
+        expect(moneyBalanceFetches).toBeGreaterThan(0);
+      });
+      await act(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(payWithRow().props.accessibilityLabel).toContain(perpsBalanceName);
+      expect(payWithRow().props.accessibilityLabel).not.toContain(
+        moneyAccountName,
+      );
+      expect(screen.queryByText(moneyAccountName)).toBeNull();
+    });
+
+    it('selects the Money account once available to trade is zero', async () => {
+      const { stream } = renderMoneyAccountOrder({
+        account: accountWithBalance('0'),
+        availableToTrade: { long: '0', short: '0' },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      // Money balance query plus the sheet open callback.
+      await waitFor(() => {
+        expect(payWithRow().props.accessibilityLabel).toContain(
+          `${payWithLabel}, ${moneyAccountName}`,
+        );
+        expect(
+          screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_SKELETON),
+        ).toBeNull();
+      });
+
+      expect(
+        screen.getByText(moneyAccountName, { exact: false }),
+      ).toBeOnTheScreen();
+      expect(payWithRow().props.accessibilityLabel).not.toContain(
+        perpsBalanceName,
+      );
     });
   });
 });

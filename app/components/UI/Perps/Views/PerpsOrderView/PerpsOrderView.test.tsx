@@ -6345,42 +6345,6 @@ describe('PerpsOrderView', () => {
         disable: true,
       });
     });
-
-    it('holds back money account selection while available to trade is unknown', () => {
-      mockEmptyPerpsBalance(false);
-      const current = (
-        usePerpsOrderContext as jest.Mock
-      ).getMockImplementation?.()?.();
-      (usePerpsOrderContext as jest.Mock).mockReturnValue({
-        ...current,
-        perpsAvailableToTrade: undefined,
-        isAvailableToTradeLoading: true,
-      });
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
-        disable: true,
-      });
-    });
-
-    it('allows money account selection once the Perps balance is known to be empty', () => {
-      mockEmptyPerpsBalance(false);
-      const current = (
-        usePerpsOrderContext as jest.Mock
-      ).getMockImplementation?.()?.();
-      (usePerpsOrderContext as jest.Mock).mockReturnValue({
-        ...current,
-        perpsAvailableToTrade: 0,
-        isAvailableToTradeLoading: false,
-      });
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
-        disable: false,
-      });
-    });
   });
 
   describe('Insufficient funds handling', () => {
