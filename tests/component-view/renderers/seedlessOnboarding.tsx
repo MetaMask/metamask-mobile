@@ -182,6 +182,7 @@ export function renderChoosePasswordForSocialLogin(
     ChoosePassword as unknown as React.ComponentType,
     { name: Routes.ONBOARDING.CHOOSE_PASSWORD },
     [
+      { name: Routes.ONBOARDING.NOTIFICATION_PERMISSION },
       { name: Routes.ONBOARDING.INTEREST_QUESTIONNAIRE },
       { name: Routes.ONBOARDING.SUCCESS_FLOW },
     ],
