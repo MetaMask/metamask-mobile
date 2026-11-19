@@ -59,6 +59,7 @@ describe('usePerpsMarketForAsset', () => {
       symbol: 'ETH',
       name: 'ETH',
       maxLeverage: '40x',
+      marketSource: null,
       price: '',
       change24h: '',
       change24hPercent: '',
@@ -119,7 +120,16 @@ describe('usePerpsMarketForAsset', () => {
       expect(result.current.hasPerpsMarket).toBe(true);
     });
     expect(mockGetMarkets).toHaveBeenCalledWith({ standalone: true });
-    expect(result.current.marketData?.symbol).toBe('xyz:MSFT');
+    expect(result.current.marketData).toEqual({
+      symbol: 'xyz:MSFT',
+      name: 'xyz:MSFT',
+      maxLeverage: '10',
+      marketSource: 'xyz',
+      price: '',
+      change24h: '',
+      change24hPercent: '',
+      volume: '',
+    });
   });
 
   it('does not match HIP-3 markets for a token without rwaData', async () => {

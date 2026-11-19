@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
+  getPerpsDexFromSymbol,
   getPerpsDisplaySymbol,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
@@ -60,12 +61,9 @@ interface MatchMarketParams {
   isMatch: (market: PerpsMarket) => boolean;
 }
 
-const isHip3MarketForTicker = (market: PerpsMarket, ticker: string) => {
-  const displaySymbol = getPerpsDisplaySymbol(market.name);
-  return (
-    displaySymbol !== market.name && displaySymbol.toUpperCase() === ticker
-  );
-};
+const isHip3MarketForTicker = (market: PerpsMarket, ticker: string) =>
+  getPerpsDexFromSymbol(market.name) !== null &&
+  getPerpsDisplaySymbol(market.name).toUpperCase() === ticker;
 
 const findMatchingMarket = async (
   getMarkets: GetMarkets,
@@ -212,7 +210,10 @@ export const usePerpsMarketForAsset = (
         marketData = {
           symbol: matchedMarket.name,
           name: matchedMarket.name,
-          maxLeverage: `${matchedMarket.maxLeverage}x`,
+          maxLeverage: isRwaAsset
+            ? String(matchedMarket.maxLeverage)
+            : `${matchedMarket.maxLeverage}x`,
+          marketSource: getPerpsDexFromSymbol(matchedMarket.name),
           price: '',
           change24h: '',
           change24hPercent: '',
