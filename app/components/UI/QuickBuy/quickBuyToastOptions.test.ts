@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   BannerBaseActionButtonLayout,
   ToastSeverity,
@@ -28,15 +29,27 @@ describe('buildQuickBuyToastOptions', () => {
         actionButtonLabel: 'Post to feed',
         actionButtonOnPress: onPress,
         actionButtonLayout: BannerBaseActionButtonLayout.End,
+        showCloseButton: false,
       }),
     );
   });
 
-  it('omits the action button and its layout when no action is given', () => {
+  it('centers the success check on the complete toast', () => {
+    const options = buildQuickBuyToastOptions('complete', { trade });
+
+    const accessory = options.startAccessory as React.ReactElement<{
+      twClassName?: string;
+    }>;
+    expect(React.isValidElement(accessory)).toBe(true);
+    expect(accessory.props.twClassName).toBe('self-center');
+  });
+
+  it('omits the action button, its layout, and the close override when no action is given', () => {
     const options = buildQuickBuyToastOptions('complete', { trade });
 
     expect(options).not.toHaveProperty('actionButtonLabel');
     expect(options).not.toHaveProperty('actionButtonOnPress');
     expect(options).not.toHaveProperty('actionButtonLayout');
+    expect(options).not.toHaveProperty('showCloseButton');
   });
 });
