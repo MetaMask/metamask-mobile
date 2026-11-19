@@ -14,6 +14,7 @@ import {
   SPAM_ASSETS,
   ALL_HOLDINGS,
   CLEANUP_DISABLED_OVERRIDE,
+  CLEANUP_TIMEOUT_MS,
 } from './spam-token-cleanup.helpers.js';
 
 appiumTest.describe(
@@ -44,9 +45,12 @@ appiumTest.describe(
 
             // With useUnlockCleanup off the cleanup must not run, so even the
             // below-floor spam tokens survive unlock.
+            // FlatList virtualizes off-screen rows — scroll to prove each spam
+            // symbol remains held when cleanup is disabled.
             for (const { symbol } of SPAM_ASSETS) {
-              await NetworkManager.scrollToToken(symbol);
-              await NetworkManager.checkTokenExists(symbol);
+              await NetworkManager.scrollToProveTokenExists(symbol, {
+                timeout: CLEANUP_TIMEOUT_MS,
+              });
             }
           },
         );

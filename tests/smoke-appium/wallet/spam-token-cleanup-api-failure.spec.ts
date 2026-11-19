@@ -13,6 +13,7 @@ import {
   buildFixture,
   SPAM_ASSETS,
   ALL_HOLDINGS,
+  CLEANUP_TIMEOUT_MS,
 } from './spam-token-cleanup.helpers.js';
 
 appiumTest.describe(
@@ -42,10 +43,13 @@ appiumTest.describe(
             await TokensFullView.waitForVisible();
 
             // Every spam row must still be held: a failed floor lookup must never
-            // be read as "no floor", which would delete the whole set.
+            // be read as "no floor", which would delete the whole set. FlatList
+            // virtualizes off-screen rows and holdings can paint late — scroll
+            // to prove each symbol instead of a one-shot exist check.
             for (const { symbol } of SPAM_ASSETS) {
-              await NetworkManager.scrollToToken(symbol);
-              await NetworkManager.checkTokenExists(symbol);
+              await NetworkManager.scrollToProveTokenExists(symbol, {
+                timeout: CLEANUP_TIMEOUT_MS,
+              });
             }
           },
         );

@@ -195,6 +195,72 @@ class NetworkManager {
   }
 
   /**
+   * Reset the tokens FlatList toward the top after a failed down-scroll.
+   * Without this, retry passes start near the bottom and can miss a late-mounted
+   * row that lands above the current offset.
+   */
+  async scrollTokenListTowardTop(): Promise<void> {
+    await Gestures.swipe(
+      Matchers.getElementByID(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      'down',
+      {
+        speed: 'fast',
+        elemDescription: 'Tokens list scroll toward top',
+      },
+    );
+  }
+
+  /**
+   * Prove a token row is held by scrolling it into the FlatList viewport.
+   *
+   * Off-screen rows are virtualized, so {@link checkTokenExists} alone can time
+   * out even when the asset is still tracked — the row is simply not mounted.
+   * Holdings / unlock cleanup can also paint rows late. Retry short scroll
+   * passes until the outer timeout (same shape as notification list prove).
+   *
+   * @param symbol - Token symbol rendered on the asset row.
+   * @param options - Retry budget.
+   * @param options.timeout - Outer budget for scroll retries.
+   */
+  async scrollToProveTokenExists(
+    symbol: string,
+    { timeout = 30_000 } = {},
+  ): Promise<void> {
+    const container = Matchers.scrollContainer(
+      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    );
+    let attempt = 0;
+    await Utilities.executeWithRetry(
+      async () => {
+        if (attempt > 0) {
+          await this.scrollTokenListTowardTop();
+        }
+        attempt += 1;
+        await Gestures.scrollToElement(
+          this.getTokenBySymbol(symbol),
+          container,
+          {
+            direction: 'down',
+            scrollAmount: 50,
+            // ~2 scrolls per attempt (Gestures.scrollToElement: timeout/5000)
+            timeout: 10_000,
+            elemDescription: `Tokens list - scroll to ${symbol}`,
+          },
+        );
+        await Assertions.expectElementToExist(this.getTokenBySymbol(symbol), {
+          description: `Token ${symbol} should be in the asset list`,
+          timeout: 3_000,
+        });
+      },
+      {
+        timeout,
+        interval: 1_000,
+        description: `Token ${symbol} scroll-to-prove in asset list`,
+      },
+    );
+  }
+
+  /**
    * Check that a token row is absent from the hierarchy.
    *
    * @param symbol - Token symbol rendered on the asset row.
