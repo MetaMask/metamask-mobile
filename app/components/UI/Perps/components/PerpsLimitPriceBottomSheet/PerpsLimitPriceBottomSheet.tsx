@@ -3,7 +3,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -29,6 +28,9 @@ import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /** Separate bid and ask buttons here, unlike the close sheet's single one. */
 const LIMIT_PRESET_TEST_IDS = {
@@ -81,6 +83,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   reduceOnly = false,
   isMarketDataReady = true,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
 
@@ -194,9 +197,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   return (
     <BottomSheet onClose={onClose}>
-      <BottomSheetHeader onClose={onClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={onClose}>
         {strings('perps.order.limit_price_modal.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="gap-2 px-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

@@ -26,7 +26,7 @@ import {
   MoneyPostOnboardingRedirectType,
   type MoneyOnboardingParams,
 } from '../../types/navigation';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import type { NavigationAnalyticsContext } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   __fireRiveTrigger,
@@ -96,7 +96,7 @@ jest.mock('../../hooks/useMoneyVaultApy', () => ({
   default: () => mockApy,
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 
@@ -338,6 +338,23 @@ describe('MoneyOnboardingView', () => {
           getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.style,
         ).fontSize,
       ).toBe(12);
+    });
+
+    it('stretches the overlay copy across the full width', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TEXT_GROUP).props
+            .style,
+        ),
+      ).toEqual(
+        expect.objectContaining({
+          position: 'absolute',
+          left: 0,
+          right: 0,
+        }),
+      );
     });
 
     it('uses small overlay text size preset on small devices', () => {
@@ -765,6 +782,13 @@ describe('MoneyOnboardingView', () => {
         params: { screen: Routes.CARD.AUTHENTICATION },
       });
       expect(mockNavigateToMoneyDeposit).not.toHaveBeenCalled();
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+          redirect_target: SCREEN_NAMES.CARD_HOME,
+        }),
+      );
     });
 
     it('initiates deposit with preferred token after completing onboarding', async () => {
@@ -1227,7 +1251,7 @@ describe('MoneyOnboardingView', () => {
       ).toBe(strings('money.rive_onboarding.step4_body'));
     });
 
-    it('renders step3 card_eligible body when user is not US unauthenticated non-cardholder', () => {
+    it('renders the spend anywhere body when user is not US unauthenticated non-cardholder', () => {
       mockIsUsUnauthenticatedNonCardholder = false;
 
       const { getByTestId } = renderMoneyOnboardingView();
@@ -1238,14 +1262,10 @@ describe('MoneyOnboardingView', () => {
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
-      ).toBe(
-        strings('money.rive_onboarding.step3_body_card_eligible', {
-          percentage: 3,
-        }),
-      );
+      ).toBe(strings('money.rive_onboarding.step3_body'));
     });
 
-    it('renders step3 card_ineligible body when user is US unauthenticated non-cardholder', () => {
+    it('renders the coming soon spend anywhere body when user is US unauthenticated non-cardholder', () => {
       mockIsUsUnauthenticatedNonCardholder = true;
 
       const { getByTestId } = renderMoneyOnboardingView();
@@ -1256,11 +1276,7 @@ describe('MoneyOnboardingView', () => {
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
-      ).toBe(
-        strings('money.rive_onboarding.step3_body_card_ineligible', {
-          percentage: 3,
-        }),
-      );
+      ).toBe(strings('money.rive_onboarding.step3_body_coming_soon'));
     });
   });
 });

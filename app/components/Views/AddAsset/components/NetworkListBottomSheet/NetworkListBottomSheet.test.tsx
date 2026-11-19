@@ -127,4 +127,74 @@ describe('NetworkListBottomSheet', () => {
 
     expect(mockSetOpenNetworkSelector).toHaveBeenCalledWith(false);
   });
+
+  describe('hideTestnets', () => {
+    const stateWithSepolia = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkController: {
+            ...mockInitialState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...mockInitialState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              '0xaa36a7': {
+                chainId: '0xaa36a7' as Hex,
+                name: 'Sepolia',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [{ networkClientId: 'sepolia' }],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    it('shows testnets by default', () => {
+      const { getByText } = renderComponent({ state: stateWithSepolia });
+
+      expect(getByText('Sepolia')).toBeOnTheScreen();
+    });
+
+    it('hides testnets when requested', () => {
+      const { queryByText, getByText } = renderWithProvider(
+        <NetworkListBottomSheet {...defaultProps} hideTestnets />,
+        { state: stateWithSepolia },
+      );
+
+      expect(queryByText('Sepolia')).toBeNull();
+      expect(getByText('Polygon')).toBeOnTheScreen();
+    });
+  });
+
+  describe('all networks row', () => {
+    it('is not shown without onSelectAll', () => {
+      const { queryByText } = renderWithProvider(
+        <NetworkListBottomSheet {...defaultProps} allNetworksLabel="All" />,
+        { state: mockInitialState },
+      );
+
+      expect(queryByText('All')).toBeNull();
+    });
+
+    it('calls onSelectAll when pressed', () => {
+      const onSelectAll = jest.fn();
+      const { getByText } = renderWithProvider(
+        <NetworkListBottomSheet
+          {...defaultProps}
+          selectedNetwork={null}
+          onSelectAll={onSelectAll}
+          allNetworksLabel="All"
+        />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(getByText('All'));
+
+      expect(onSelectAll).toHaveBeenCalledTimes(1);
+      expect(mockSetSelectedNetwork).not.toHaveBeenCalled();
+    });
+  });
 });

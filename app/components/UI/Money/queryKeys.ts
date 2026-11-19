@@ -37,6 +37,7 @@ export const MoneyAccountApiDataServiceQueryKeys = {
    */
   FETCH_VAULT_RATE: `${MoneyAccountApiDataService.name}:fetchVaultRate`,
   FETCH_RATE_HISTORY: `${MoneyAccountApiDataService.name}:fetchRateHistory`,
+  FETCH_VAULT_SHARE_VALUATIONS: `${MoneyAccountApiDataService.name}:fetchVaultShareValuations`,
   /** Current VBA transfers for the SIWE-authenticated Money Account wallet. */
   FETCH_VBA_TRANSFERS: `${MoneyAccountApiDataService.name}:fetchVbaTransfers`,
 } as const;

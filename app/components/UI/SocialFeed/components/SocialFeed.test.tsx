@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -7,7 +7,10 @@ import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialV1FeedPost } from '../types';
-import SocialFeed, { SOCIAL_FEED_NEXT_PAGE_TEST_ID } from './SocialFeed';
+import SocialFeed, {
+  SOCIAL_FEED_NEXT_PAGE_TEST_ID,
+  type SocialFeedRefreshHandle,
+} from './SocialFeed';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
@@ -23,6 +26,11 @@ jest.mock(
 
 jest.mock('../data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(),
+}));
+
+const mockIsEntryHidden = jest.fn((_target: { postId: string }) => false);
+jest.mock('./SocialEntryOptionsBottomSheet', () => ({
+  useSocialEntryModeration: () => ({ isEntryHidden: mockIsEntryHidden }),
 }));
 
 jest.mock('./SocialFeedPostShell', () => {
@@ -86,6 +94,7 @@ const post = (id: string): SocialV1FeedPost => ({
 describe('SocialFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsEntryHidden.mockReturnValue(false);
     mockSelectEnabled.mockReturnValue(true);
     mockUseSocialFeed.mockReturnValue(feedState());
   });
@@ -116,6 +125,7 @@ describe('SocialFeed', () => {
 
     expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
       filterPost: undefined,
+      realtime: false,
     });
     expect(screen.getByText('Trades')).toBeOnTheScreen();
     expect(screen.getByTestId('post-one')).toBeOnTheScreen();
@@ -206,6 +216,58 @@ describe('SocialFeed', () => {
     expect(loadMore).toHaveBeenCalled();
   });
 
+  it('keeps paging when a filter leaves the current page empty', () => {
+    const loadMore = jest.fn();
+    jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
+      cb(0, 100, 1, 1);
+    });
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [], hasNextPage: true, loadMore }),
+    );
+
+    renderWithProvider(
+      <SocialFeed {...query} location="my_profile" filterPost={() => false} />,
+    );
+
+    expect(loadMore).toHaveBeenCalled();
+  });
+
+  it('drops a hidden post and reports the empty list', () => {
+    const onListStateChange = jest.fn();
+    mockIsEntryHidden.mockImplementation(({ postId }) => postId === 'one');
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+    renderWithProvider(
+      <SocialFeed
+        {...query}
+        location="token_details"
+        onListStateChange={onListStateChange}
+      />,
+    );
+
+    expect(screen.queryByTestId('post-one')).toBeNull();
+    expect(screen.getByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeOnTheScreen();
+    expect(onListStateChange).toHaveBeenCalledWith(
+      expect.objectContaining({ showEmpty: true }),
+    );
+  });
+
+  it('does not page a feed whose tab is not showing', () => {
+    const loadMore = jest.fn();
+    jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
+      cb(0, 100, 1, 1);
+    });
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [post('one')], hasNextPage: true, loadMore }),
+    );
+
+    renderWithProvider(
+      <SocialFeed {...query} location="token_details" isActive={false} />,
+    );
+
+    expect(loadMore).not.toHaveBeenCalled();
+  });
+
   it('does not load another page when the footer is still below the screen', () => {
     const loadMore = jest.fn();
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
@@ -247,7 +309,34 @@ describe('SocialFeed', () => {
       />,
     );
 
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, { filterPost });
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
+      filterPost,
+      realtime: false,
+    });
+  });
+
+  it('streams content-mode posts and exposes refresh to the host', async () => {
+    const refresh = jest.fn(async () => undefined);
+    const refreshRef = React.createRef<SocialFeedRefreshHandle>();
+    mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+
+    renderWithProvider(
+      <SocialFeed
+        {...query}
+        location="my_profile"
+        realtime
+        refreshRef={refreshRef}
+      />,
+    );
+
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
+      filterPost: undefined,
+      realtime: true,
+    });
+    await act(async () => {
+      await refreshRef.current?.refresh();
+    });
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 
   it('renders the virtualized feed for the virtualized scroll mode', () => {

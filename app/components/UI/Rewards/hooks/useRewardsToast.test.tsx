@@ -1,7 +1,13 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { render } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import {
+  Icon,
+  IconName,
+  Spinner,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import useRewardsToast, { type RewardsToastOptions } from './useRewardsToast';
 
@@ -32,14 +38,6 @@ jest.mock('../../../../images/rewards/notification.svg', () => {
     __esModule: true,
     default: () =>
       ReactActual.createElement(View, { testID: 'rewards-notification-svg' }),
-  };
-});
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
@@ -155,7 +153,7 @@ describe('useRewardsToast', () => {
 
       expect(config.hapticsType).toBe(NotificationMoment.Warning);
       expect(config.hasNoTimeout).toBe(true);
-      expect(config.startAccessory).toBeDefined();
+      expect(config.startAccessory).toMatchObject({ type: Spinner });
       expect(config.title).toBe('Loading...');
       expect(config.description).toBe('Please wait');
     });
@@ -170,7 +168,10 @@ describe('useRewardsToast', () => {
 
       expect(config.hapticsType).toBe(NotificationMoment.Warning);
       expect(config.hasNoTimeout).toBe(false);
-      expect(config.startAccessory).toBeDefined();
+      expect(config.startAccessory).toMatchObject({
+        type: Icon,
+        props: { name: IconName.Lock },
+      });
       expect(config.title).toBe('Entries closed');
       expect(config.description).toBe('You missed the opt-in window.');
     });
@@ -193,9 +194,8 @@ describe('useRewardsToast', () => {
       );
       expect(config.actionButtonLabel).toBe('Turn on');
       expect(config.actionButtonOnPress).toBe(onPress);
-      expect(config.startAccessory).toBeDefined();
       const { getByTestId } = render(config.startAccessory as ReactElement);
-      expect(getByTestId('rewards-notification-svg')).toBeDefined();
+      expect(getByTestId('rewards-notification-svg')).toBeOnTheScreen();
     });
 
     it('configures outcomeWinner toast with CTA and close handlers', () => {

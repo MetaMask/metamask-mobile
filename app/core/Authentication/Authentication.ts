@@ -16,6 +16,7 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
   setMoneyOnboardingSeen,
+  setMoneySplashSeen,
 } from '../../actions/user';
 import {
   clearOnboarding,
@@ -1968,6 +1969,7 @@ class AuthenticationService {
     // `moneyOnboardingSeen` lives in persisted user state and is not wiped by
     // Engine rebuild — without this, Money splash is skipped after reset.
     ReduxService.store.dispatch(setMoneyOnboardingSeen(false));
+    ReduxService.store.dispatch(setMoneySplashSeen(false));
   };
 
   /**

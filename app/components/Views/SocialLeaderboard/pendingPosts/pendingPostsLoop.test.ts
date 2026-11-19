@@ -43,7 +43,7 @@ const addEntry = (commentId: string, positionId: string) =>
   });
 
 // What each feed returns for the new comment: equal content, distinct objects,
-// like the Following feed and the profile Posts tab do.
+// like the Trending feed and the profile Posts tab do.
 const servedBy = (surface: string) => [
   buildPost(`${surface}-served`, {
     commentId: 'new-comment',
@@ -77,16 +77,16 @@ describe('pending posts: two surfaces + one stale entry', () => {
       }
     });
 
-    const followingServer = servedBy('following');
+    const trendingServer = servedBy('trending');
     const postsServer = servedBy('posts');
     const refetch = jest.fn().mockResolvedValue(undefined);
 
-    // Profile Posts tab and the Following feed mounted behind it.
+    // Profile Posts tab and the Trending feed mounted behind it.
     renderHook(() =>
       usePendingPostsOverlay({
-        surface: 'following',
-        ownerProfileId: undefined,
-        serverPosts: followingServer,
+        surface: 'trending',
+        ownerProfileId: OWNER,
+        serverPosts: trendingServer,
         refetch,
       }),
     );

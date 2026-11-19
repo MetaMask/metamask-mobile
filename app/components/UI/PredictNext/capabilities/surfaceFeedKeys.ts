@@ -51,6 +51,15 @@ export const PREDICT_SURFACE_FEED_KEYS = {
       nfl: 'nfl-games',
       ncaaf: 'college-football-games',
     },
+    /**
+     * Home's Trending carousel ranks the Games of the NFL and college
+     * football Games reads, so its screen shows those Feeds. No PredictNext
+     * Venue serves a `trending` Feed yet.
+     */
+    trending: {
+      nfl: 'nfl-games',
+      ncaaf: 'college-football-games',
+    },
     politics: {
       trump: 'politics-trump',
       congress: 'politics-congress',

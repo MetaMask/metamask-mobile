@@ -258,7 +258,6 @@ describe('PerpsSharePositionView', () => {
     expect(routeParamsByName[Routes.SOCIAL.POST_COMPOSER]).toEqual({
       position: socialEthLong,
       entryPoint: 'perps',
-      openFeedAfterPost: true,
     });
     await waitFor(() =>
       expect(
@@ -295,7 +294,7 @@ describe('PerpsSharePositionView', () => {
     ).toBeEnabled();
   });
 
-  it('posts through the composer and lands on the Social feed', async () => {
+  it('posts through the composer and lands on the Trending feed', async () => {
     const swapComment: SwapCommentResponse = {
       uid: 'comment-1',
       transactionHash: '0xabc',
@@ -330,6 +329,7 @@ describe('PerpsSharePositionView', () => {
     ).toBeOnTheScreen();
     expect(routeParamsByName[Routes.HOME_TABS]).toEqual({
       screen: Routes.SOCIAL.TAB,
+      params: { initialTab: 'trending' },
     });
     expect(messengerSpy).toHaveBeenCalledWith(
       'SocialService:createSwapComment',

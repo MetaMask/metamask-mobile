@@ -5,6 +5,11 @@ import { PERPS_SLIPPAGE_STEP_BPS } from '../../constants/slippageConfig';
 import { PerpsCustomSlippageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsCustomSlippageBottomSheet from './PerpsCustomSlippageBottomSheet';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {

@@ -3,7 +3,6 @@ import {
   AvatarIconSeverity,
   AvatarIconSize,
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxBackgroundColor,
@@ -21,7 +20,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useSyncExternalStore } from 'react';
+import React, { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { Image } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import NavigationService from '../../../../core/NavigationService';
@@ -48,6 +47,9 @@ import {
   SocialEvent,
   useSocialScreenAnalytics,
 } from '../analytics';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const ILLUSTRATION_SIZE = 64;
 
@@ -81,6 +83,16 @@ const StatusIcon = ({ status }: { status: PostTradeShareStatus }) => {
 
 const getTitle = (session: PostTradeShareSession): string => {
   const isPerps = session.product === 'perps';
+  if (isPerps && session.preview.action === 'close') {
+    switch (session.status) {
+      case 'pending':
+        return strings('social_leaderboard.post_trade_share.close_in_progress');
+      case 'failed':
+        return strings('social_leaderboard.post_trade_share.close_failed');
+      default:
+        return strings('social_leaderboard.post_trade_share.position_closed');
+    }
+  }
   switch (session.status) {
     case 'pending':
       return strings(
@@ -115,6 +127,7 @@ const navigateToActivity = (product: PostTradeShareSession['product']) => {
 };
 const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const PostTradeShareBottomSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const session = useSyncExternalStore(
     subscribePostTradeShareSession,
     getPostTradeShareSession,
@@ -124,10 +137,25 @@ const PostTradeShareBottomSheet: React.FC = () => {
   const isPerps = session?.product === 'perps';
   const source = getSocialEventSource(session?.analyticsSource);
   const tradeType = isPerps ? Trade.PERPS : Trade.SPOT;
+  const shareProperties = useMemo(() => {
+    if (!session) {
+      return undefined;
+    }
+    return {
+      share_id: session.sessionId,
+      ...(session.product === 'perps' && session.orderId
+        ? { order_id: session.orderId }
+        : {}),
+      ...(session.product === 'spot' && session.transactionHash
+        ? { transaction_hash: session.transactionHash }
+        : {}),
+    };
+  }, [session]);
   const trackInteraction = useSocialScreenAnalytics(
     Screen.POST_TRADE_SHARE_SHEET,
     {
       source,
+      properties: shareProperties,
       outcome:
         session?.status === 'complete'
           ? Outcome.CONTENT
@@ -201,6 +229,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
             orderId: session.orderId,
             preview: session.preview,
             analyticsSource: session.analyticsSource,
+            shareId: session.sessionId,
           })
         : session.product === 'spot' &&
             session.transactionHash &&
@@ -210,6 +239,11 @@ const PostTradeShareBottomSheet: React.FC = () => {
               chain: session.tradeInFlightChain,
               preview: session.preview,
               analyticsSource: session.analyticsSource,
+              shareId: session.sessionId,
+              spotComposerEntry:
+                session.isCopyTrade || session.copyTradeOrigin
+                  ? SocialEvent.ComposerEntry.POST_TRADE_SPOT
+                  : SocialEvent.ComposerEntry.POST_TRADE_SWAP,
             })
           : undefined;
     if (!params) {
@@ -246,7 +280,8 @@ const PostTradeShareBottomSheet: React.FC = () => {
       onClose={handleClose}
       testID={PostTradeShareBottomSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PostTradeShareBottomSheetSelectorsIDs.CLOSE_BUTTON,
@@ -257,7 +292,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
         twClassName="pt-4 h-auto"
       >
         <StatusIcon status={session.status} />
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box alignItems={BoxAlignItems.Center} twClassName="gap-1 px-4 py-3">
         <Text
           variant={TextVariant.HeadingLg}

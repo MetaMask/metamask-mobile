@@ -1,7 +1,12 @@
 import React, { useRef, useEffect } from 'react';
-import { render, act } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import PredictFeeBreakdownSheet from './PredictFeeBreakdownSheet';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { type BottomSheetRef } from '@metamask/design-system-react-native';
 
 jest.mock('../../utils/format', () => ({
   formatPrice: jest.fn((value, options) =>
@@ -10,54 +15,6 @@ jest.mock('../../utils/format', () => ({
       : '$0.00',
   ),
 }));
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-
-    return ReactActual.forwardRef(
-      (
-        props: {
-          children?: React.ReactNode;
-          onClose?: () => void;
-          shouldNavigateBack?: boolean;
-        },
-        ref: React.Ref<{
-          onCloseBottomSheet: (callback?: () => void) => void;
-          onOpenBottomSheet: (callback?: () => void) => void;
-        }>,
-      ) => {
-        ReactActual.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => {
-            props.onClose?.();
-            callback?.();
-          },
-          onOpenBottomSheet: (callback?: () => void) => {
-            callback?.();
-          },
-        }));
-
-        return ReactActual.createElement(
-          View,
-          { testID: 'bottom-sheet' },
-          props.children,
-        );
-      },
-    );
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/Sheet/SheetHeader',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { Text: RNText } = jest.requireActual('react-native');
-    return ({ title }: { title: string }) =>
-      ReactModule.createElement(RNText, { testID: 'sheet-header' }, title);
-  },
-);
 
 jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
@@ -141,8 +98,11 @@ describe('PredictFeeBreakdownSheet', () => {
 
       const { getByTestId } = render(<TestComponent />);
 
-      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
-      expect(getByTestId('sheet-header')).toBeOnTheScreen();
+      expect(getByTestId('predict-fee-breakdown-sheet')).toBeOnTheScreen();
+      expect(getByTestId('predict-fee-breakdown-header')).toBeOnTheScreen();
+      expect(getByTestId('predict-fee-breakdown-header-bar')).toHaveStyle({
+        minHeight: 64,
+      });
     });
 
     it('renders price details title', () => {
@@ -154,6 +114,20 @@ describe('PredictFeeBreakdownSheet', () => {
       const { getByText } = render(<TestComponent />);
 
       expect(getByText('Price details')).toBeOnTheScreen();
+    });
+
+    it('renders the sheet in a full-window modal so a parent sheet cannot clip it', () => {
+      const { getByTestId } = render(
+        <PredictFeeBreakdownSheet {...defaultProps} />,
+      );
+
+      const modal = getByTestId('predict-fee-breakdown-modal');
+
+      expect(modal.props.transparent).toBe(true);
+      expect(modal.props.presentationStyle).toBe('overFullScreen');
+      expect(
+        within(modal).getByTestId('predict-fee-breakdown-sheet'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -330,15 +304,13 @@ describe('PredictFeeBreakdownSheet', () => {
     });
   });
   describe('Bottom sheet behavior', () => {
-    it('calls onClose callback when bottom sheet closes', () => {
+    it('calls onClose callback when bottom sheet closes', async () => {
       const mockOnClose = jest.fn();
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
 
         useEffect(() => {
-          act(() => {
-            ref.current?.onCloseBottomSheet();
-          });
+          ref.current?.onCloseBottomSheet();
         }, []);
 
         return (
@@ -352,7 +324,32 @@ describe('PredictFeeBreakdownSheet', () => {
 
       render(<TestComponent />);
 
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockOnClose).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls onClose when the header close button is pressed', async () => {
+      const mockOnClose = jest.fn();
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+
+        return (
+          <PredictFeeBreakdownSheet
+            ref={ref}
+            {...defaultProps}
+            onClose={mockOnClose}
+          />
+        );
+      };
+
+      const { getByTestId } = render(<TestComponent />);
+
+      fireEvent.press(getByTestId('predict-fee-breakdown-close'));
+
+      await waitFor(() => {
+        expect(mockOnClose).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('does not crash when onClose is not provided', () => {
@@ -360,9 +357,7 @@ describe('PredictFeeBreakdownSheet', () => {
         const ref = useRef<BottomSheetRef>(null);
 
         useEffect(() => {
-          act(() => {
-            ref.current?.onCloseBottomSheet();
-          });
+          ref.current?.onCloseBottomSheet();
         }, []);
 
         return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;

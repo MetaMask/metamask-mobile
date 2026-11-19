@@ -192,6 +192,52 @@ describe('useRWAToken', () => {
       expect(isOpen).toBe(false);
     });
 
+    describe('missing market schedule', () => {
+      it.each([
+        {
+          name: 'both market open and close times are missing',
+          market: { nextOpen: null, nextClose: null },
+          nextPause: undefined,
+          expected: true,
+        },
+        {
+          name: 'both market hours are empty strings while a pause window is active',
+          market: { nextOpen: '', nextClose: '' },
+          nextPause: {
+            start: '2024-01-01T14:00:00.000Z',
+            end: '2024-01-01T16:00:00.000Z',
+          },
+          expected: true,
+        },
+        {
+          name: 'both market hours are unparseable',
+          market: { nextOpen: 'not-a-date', nextClose: 'also-not-a-date' },
+          nextPause: undefined,
+          expected: true,
+        },
+        {
+          name: 'only market open time is an empty string',
+          market: { nextOpen: '', nextClose: '2024-01-01T11:00:00.000Z' },
+          nextPause: undefined,
+          expected: false,
+        },
+      ])('returns $expected when $name', ({ market, nextPause, expected }) => {
+        const { result } = renderHookWithProvider(() => useRWAToken(), {
+          state: createState(true),
+        });
+        const token = createToken({
+          rwaData: {
+            market,
+            nextPause,
+            offhours: { nextOpen: null, nextClose: null },
+          } as unknown as BridgeToken['rwaData'],
+        });
+        const isOpen = result.current.isTokenTradingOpen(token);
+
+        expect(isOpen).toBe(expected);
+      });
+    });
+
     it('returns true when market is open without pause window', async () => {
       jest.useFakeTimers();
       jest.setSystemTime(new Date('2024-01-01T08:00:00.000Z'));
@@ -450,6 +496,24 @@ describe('useRWAToken', () => {
       expect(isOpen).toBe(true);
     });
 
+    it('returns true for a Robinhood token with empty market hours and null offhours', async () => {
+      const { result } = renderHookWithProvider(() => useRWAToken(), {
+        state: createState(true),
+      });
+      const token = createToken({
+        rwaData: {
+          market: { nextOpen: '', nextClose: '' },
+          nextPause: {},
+          offhours: { nextOpen: null, nextClose: null },
+          ticker: 'JPM',
+          instrumentType: 'unspecified',
+        } as unknown as BridgeToken['rwaData'],
+      });
+      const isOpen = await result.current.isTokenTradingOpen(token);
+
+      expect(isOpen).toBe(true);
+    });
+
     it('returns false when market close time is missing', async () => {
       const { result } = renderHookWithProvider(() => useRWAToken(), {
         state: createState(true),
@@ -528,7 +592,7 @@ describe('useRWAToken', () => {
       expect(result.current.isTokenMarketFullyClosed(token)).toBe(false);
     });
 
-    it('returns true when stock token has no regular hours and no off-hours', () => {
+    it('returns false when stock token has no regular hours and no off-hours', () => {
       const { result } = renderHookWithProvider(() => useRWAToken(), {
         state: createState(true),
       });
@@ -542,7 +606,24 @@ describe('useRWAToken', () => {
         } as unknown as BridgeToken['rwaData'],
       });
 
-      expect(result.current.isTokenMarketFullyClosed(token)).toBe(true);
+      expect(result.current.isTokenMarketFullyClosed(token)).toBe(false);
+    });
+
+    it('returns false for a Robinhood token with empty market hours', () => {
+      const { result } = renderHookWithProvider(() => useRWAToken(), {
+        state: createState(true),
+      });
+      const token = createToken({
+        rwaData: {
+          market: { nextOpen: '', nextClose: '' },
+          nextPause: {},
+          offhours: { nextOpen: null, nextClose: null },
+          ticker: 'JPM',
+          instrumentType: 'unspecified',
+        } as unknown as BridgeToken['rwaData'],
+      });
+
+      expect(result.current.isTokenMarketFullyClosed(token)).toBe(false);
     });
 
     it('returns true when stock token is between regular close and off-hours open', () => {
@@ -638,6 +719,25 @@ describe('useRWAToken', () => {
       });
 
       expect(result.current.isTokenTradable(token)).toBe(false);
+    });
+
+    it('returns true for a Robinhood token with empty market hours and null offhours at any time', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-01-01T02:30:00.000Z'));
+      const { result } = renderHookWithProvider(() => useRWAToken(), {
+        state: createState(true),
+      });
+      const token = createToken({
+        rwaData: {
+          market: { nextOpen: '', nextClose: '' },
+          nextPause: {},
+          offhours: { nextOpen: null, nextClose: null },
+          ticker: 'JPM',
+          instrumentType: 'unspecified',
+        } as unknown as BridgeToken['rwaData'],
+      });
+
+      expect(result.current.isTokenTradable(token)).toBe(true);
     });
   });
 });
@@ -863,5 +963,118 @@ describe('isTokenTradableAt', () => {
       },
     });
     expect(isTokenTradableAt(t, false, NOW)).toBe(true);
+  });
+
+  describe('missing market schedule', () => {
+    it.each([
+      {
+        name: 'market hours are empty strings',
+        market: { nextOpen: '', nextClose: '' },
+        nextPause: undefined,
+        expected: true,
+      },
+      {
+        name: 'market hours are empty strings while a pause window is active',
+        market: { nextOpen: '', nextClose: '' },
+        nextPause: {
+          start: '2024-01-01T14:00:00Z',
+          end: '2024-01-01T16:00:00Z',
+        },
+        expected: true,
+      },
+      {
+        name: 'market hours are empty strings and the pause window is empty',
+        market: { nextOpen: '', nextClose: '' },
+        nextPause: {},
+        expected: true,
+      },
+      {
+        name: 'both market hours are unparseable',
+        market: { nextOpen: 'not-a-date', nextClose: 'also-not-a-date' },
+        nextPause: undefined,
+        expected: true,
+      },
+      {
+        name: 'only market open hour is an empty string',
+        market: { nextOpen: '', nextClose: '2024-01-02T17:00:00Z' },
+        nextPause: undefined,
+        expected: false,
+      },
+    ])('returns $expected when $name', ({ market, nextPause, expected }) => {
+      const t = makeToken({
+        market,
+        nextPause,
+        offhours: { nextOpen: null, nextClose: null },
+      } as unknown as Partial<BridgeToken['rwaData']>);
+      expect(isTokenTradableAt(t, true, NOW)).toBe(expected);
+    });
+  });
+
+  it('returns true when rwaData is present but has no market object', () => {
+    const t = makeToken();
+    expect(isTokenTradableAt(t, true, NOW)).toBe(true);
+  });
+
+  it('returns true for a Robinhood-shaped token with unspecified instrument type', () => {
+    const t: BridgeToken = {
+      address: '0x07c44da0848960bff894f17584db8b2f60b2409e',
+      symbol: 'JPM',
+      decimals: 18,
+      chainId: '0x123f',
+      rwaData: {
+        market: { nextOpen: '', nextClose: '' },
+        nextPause: {},
+        offhours: { nextOpen: null, nextClose: null },
+        ticker: 'JPM',
+        instrumentType: 'unspecified',
+      } as unknown as BridgeToken['rwaData'],
+    };
+    expect(isTokenTradableAt(t, true, NOW)).toBe(true);
+  });
+
+  describe('Ondo-shaped stock tokens with parseable market hours', () => {
+    it.each([
+      {
+        name: 'inside its regular window',
+        now: '2026-11-16T16:00:00Z',
+        market: {
+          nextOpen: '2026-11-16T14:30:00Z',
+          nextClose: '2026-11-16T21:00:00Z',
+        },
+        expected: true,
+      },
+      {
+        name: 'inside its off-hours window',
+        now: '2026-11-16T22:00:00Z',
+        market: {
+          nextOpen: '2026-11-17T14:30:00Z',
+          nextClose: '2026-11-16T21:00:00Z',
+        },
+        expected: true,
+      },
+      {
+        name: 'fully closed',
+        now: '2026-11-17T02:30:00Z',
+        market: {
+          nextOpen: '2026-11-17T14:30:00Z',
+          nextClose: '2026-11-16T21:00:00Z',
+        },
+        expected: false,
+      },
+    ])(
+      'returns $expected when the token is $name',
+      ({ market, now, expected }) => {
+        const t = makeToken({
+          market,
+          offhours: {
+            nextOpen: '2026-11-16T21:30:00Z',
+            nextClose: '2026-11-17T01:00:00Z',
+          },
+        });
+        expect(isTokenTradableAt(t, true, new Date(now).getTime())).toBe(
+          expected,
+        );
+      },
+    );
   });
 });

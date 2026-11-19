@@ -148,4 +148,20 @@ describe('usePushPrePromptAnalytics', () => {
     });
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
+
+  it('skips the marketing consent trait when MetaMetrics is off', async () => {
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: mockCreateEventBuilder,
+        identify: mockIdentify,
+        trackEvent: mockTrackEvent,
+        isEnabled: jest.fn().mockReturnValue(false),
+      }),
+    );
+    const { result } = renderHook(() => usePushPrePromptAnalytics());
+
+    await result.current.identifyMarketingConsent(true);
+
+    expect(mockIdentify).not.toHaveBeenCalled();
+  });
 });

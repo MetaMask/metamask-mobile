@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -104,8 +105,8 @@ const PredictBuyAmountSection = ({
         twClassName="mt-2"
       >
         <Text
-          variant={TextVariant.BodyLg}
-          twClassName="font-medium"
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           color={TextColor.SuccessDefault}
         >
           {`${strings('predict.order.to_win')} `}
@@ -114,8 +115,8 @@ const PredictBuyAmountSection = ({
           <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
         ) : (
           <Text
-            variant={TextVariant.BodyLg}
-            twClassName="font-medium"
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             color={TextColor.SuccessDefault}
           >
             {formatPrice(toWin, {

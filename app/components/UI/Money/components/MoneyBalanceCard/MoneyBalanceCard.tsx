@@ -37,10 +37,8 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
-import {
-  useMoneyNavigation,
-  useMoneyDepositNavigation,
-} from '../../hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
@@ -69,7 +67,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   } = useMoneyAccountBalance();
   const { apyPercent, vaultApyQuery } = useMoneyVaultApy();
   const { hasMoneyAccount } = useMoneyAccountInfo();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectHasWalletFundingPrimaryCta,
   );

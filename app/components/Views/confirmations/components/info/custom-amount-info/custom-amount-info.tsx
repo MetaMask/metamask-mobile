@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useRef,
+  useState,
 } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -48,6 +49,7 @@ import { useTransactionPayFiatPayment } from '../../../hooks/pay/useTransactionP
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useTransactionPayAccountLoading } from '../../../hooks/pay/useTransactionPayAccountLoading';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../confirm/confirm-component';
@@ -63,6 +65,16 @@ import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import {
+  DEFAULT_PERPS_RECEIVE_DESTINATION,
+  PerpsReceiveToRow,
+  type PerpsReceiveDestination,
+} from '../../rows/perps-receive-to-row';
+import {
+  DEFAULT_PERPS_WITHDRAW_SOURCE,
+  PerpsWithdrawFromRow,
+  type PerpsWithdrawSource,
+} from '../../rows/perps-withdraw-from-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
@@ -209,6 +221,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         ? CustomAmountStage.NoQuote
         : amountStage;
 
+    const [perpsReceiveDestination, setPerpsReceiveDestination] =
+      useState<PerpsReceiveDestination>(DEFAULT_PERPS_RECEIVE_DESTINATION);
+    const [perpsWithdrawSource, setPerpsWithdrawSource] =
+      useState<PerpsWithdrawSource>(DEFAULT_PERPS_WITHDRAW_SOURCE);
+
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
@@ -227,6 +244,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+    const isPayAccountLoading = useTransactionPayAccountLoading();
 
     const { toastRef } = useContext(ToastContext);
 
@@ -445,6 +463,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const showBuyButton =
       (!hasPaymentOption || hasAccountNoFunds) &&
       !hideBuyForNoFunds &&
+      !isPayAccountLoading &&
       !isDepositPrefillEnabled;
 
     const alertMessage =
@@ -493,9 +512,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 <>
                   {!hidePayTokenAmount &&
                     disablePay !== true &&
-                    (isMembershipSubscription ? (
-                      <MembershipInfo amountFiat={amountFiat} />
-                    ) : isMoneyAccountDeposit ? (
+                    !isMembershipSubscription &&
+                    (isMoneyAccountDeposit ? (
                       <BalanceProjection
                         amountFiat={amountFiat}
                         projectedYears={1}
@@ -517,6 +535,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           style={styles.bottomBlock}
         >
+          {isMembershipSubscription &&
+            !hasAlert &&
+            !hidePayTokenAmount &&
+            disablePay !== true && (
+              // The one-line caption is absolutely positioned under the amount.
+              // This banner is taller, so it stays in the bottom block and
+              // does not cover From or Pay with.
+              <MembershipInfo amountFiat={amountFiat} />
+            )}
           {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>
               {supportAccountSelection &&
@@ -526,8 +553,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 )}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
+              <PerpsWithdrawFromRow
+                source={perpsWithdrawSource}
+                onSourceChange={setPerpsWithdrawSource}
+              />
               {disablePay !== true &&
-                (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
+                (isPayAccountLoading ? (
+                  <PayWithRowSkeleton />
+                ) : (
+                  (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />
+                ))}
+              <PerpsReceiveToRow
+                destination={perpsReceiveDestination}
+                onDestinationChange={setPerpsReceiveDestination}
+              />
             </>
           )}
           {stage !== CustomAmountStage.AmountInput && (
@@ -540,9 +579,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !shouldHideAccountSelector && <PayAccountSelector />}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
-              {disablePay !== true && hasPaymentOption && (
-                <PayWithRow isResultReady />
-              )}
+              <PerpsWithdrawFromRow
+                source={perpsWithdrawSource}
+                onSourceChange={setPerpsWithdrawSource}
+              />
+              {disablePay !== true &&
+                (isPayAccountLoading ? (
+                  <PayWithRowSkeleton />
+                ) : (
+                  hasPaymentOption && <PayWithRow isResultReady />
+                ))}
+              <PerpsReceiveToRow
+                destination={perpsReceiveDestination}
+                onDestinationChange={setPerpsReceiveDestination}
+              />
               {!hasAccountNoFunds && <CustomAmountTotals stage={stage} />}
             </View>
           )}
@@ -557,7 +607,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {!isMembershipSubscription &&
             stage === CustomAmountStage.AmountInput &&
-            (hasPaymentOption || hasAccountNoFunds) && (
+            (hasPaymentOption || hasAccountNoFunds || isPayAccountLoading) && (
               <DepositKeyboard
                 hidePercentageButtons={
                   Boolean(selectedFiatPaymentMethodId) ||

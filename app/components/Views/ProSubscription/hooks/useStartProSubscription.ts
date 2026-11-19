@@ -23,6 +23,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
+import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
@@ -33,11 +34,10 @@ import {
 } from '../utils/proSubscriptionPaymentStatus';
 import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from './isSubscriptionAlreadyStartingError';
 
 const PAYMENT_UNAVAILABLE_ERROR =
   'Money Account subscription payment is unavailable';
-const SUBSCRIPTION_IN_PROGRESS_ERROR =
-  'Money Account subscription is already starting';
 
 function isHexAddress(value: string | undefined): value is Hex {
   return isStrictHexString(value) && isValidHexAddress(value);
@@ -45,18 +45,21 @@ function isHexAddress(value: string | undefined): value is Hex {
 
 /**
  * Converts an mUSD base-unit shortfall into a USD amount string for MM Pay.
- * Pads the shortfall to cover vault deposit rounding losses and keeps full
- * 6-decimal precision (no rounding to cents).
+ * Pads the shortfall so vault deposit rounding still covers the price, then
+ * rounds that safe amount up to the next cent. The deposit sheet truncates
+ * anything past two decimals, which would drop the pad or show a sub-cent
+ * top-up as $0.00.
  *
  * @param balance - Current mUSD balance in base units (6 decimals).
  * @param requiredBalance - Required mUSD balance in base units (6 decimals).
- * @returns Padded shortfall in USD as a decimal string with up to 6 fractional digits.
+ * @returns Padded shortfall in USD, rounded up to two decimal places.
  */
 function getTopUpAmountUsd(balance: string, requiredBalance: string): string {
   const shortfall = BigInt(requiredBalance) - BigInt(balance);
   return new BigNumber(getMembershipFundingAmount(shortfall).toString())
     .shiftedBy(-MUSD_DECIMALS)
-    .toFixed();
+    .decimalPlaces(2, BigNumber.ROUND_CEIL)
+    .toFixed(2);
 }
 
 type InitiateDeposit = ReturnType<
@@ -142,7 +145,8 @@ function addCalendarMonths(date: Date, months: number): Date {
  * Builds the `requestData` payload for a `confirm_membership` approval.
  *
  * Annual plans show an equivalent monthly amount (`amount / 12`, rounded to
- * cents) in the sheet hero; the Total row still shows the full plan amount.
+ * cents) in the sheet hero. The Total row and the authorization disclaimer
+ * use the full plan amount and the plan interval.
  *
  * @param plan - Checkout-ready Plus plan.
  * @param isTrial - Whether Benefits determined this user can start a trial.
@@ -169,6 +173,7 @@ export function buildConfirmMembershipRequestData(
     return {
       monthlyAmount,
       totalAmount,
+      isAnnual,
       renewDate: billedOn,
       isTrial: true,
       billedOn,
@@ -180,6 +185,7 @@ export function buildConfirmMembershipRequestData(
   return {
     monthlyAmount,
     totalAmount,
+    isAnnual,
     renewDate: formatMembershipDate(renewDate),
   };
 }
@@ -291,9 +297,17 @@ function requireSubscriptionPayment(
  * Maps a failed subscription start to the message shown on the join screen.
  *
  * @param error - Error caught while starting the subscription.
- * @returns Localized join or insufficient-balance copy.
+ * @returns Localized join, access-blocked, or insufficient-balance copy.
  */
 function getStartSubscriptionErrorMessage(error: Error): string {
+  if (error instanceof MoneyAccountAccessBlockedError) {
+    return strings(
+      error.reason === 'geo_blocked'
+        ? 'pro_subscription.join_error_geo_blocked'
+        : 'pro_subscription.join_error_feature_disabled',
+    );
+  }
+
   const isInsufficientBalanceError =
     error.message ===
     SubscriptionDelegationServiceErrorMessage.InsufficientBalance;
@@ -403,7 +417,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
       options?: StartProSubscriptionOptions,
     ): Promise<StartProSubscriptionResult> => {
       if (isSubmittingRef.current) {
-        throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
+        throw new Error(SUBSCRIPTION_ALREADY_STARTING_MESSAGE);
       }
 
       isSubmittingRef.current = true;
