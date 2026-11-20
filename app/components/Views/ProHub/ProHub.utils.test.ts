@@ -1,5 +1,6 @@
 import {
   CANCEL_TYPES,
+  INVOICE_PAYMENT_STATUSES,
   PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
@@ -12,6 +13,8 @@ import {
   formatSubscriptionPeriodEnd,
   getMembershipManageAction,
   isCancelBlocked,
+  isMembershipPeriodEnded,
+  isPeriodEndCancellationPending,
   MembershipManageAction,
 } from './ProHub.utils';
 
@@ -63,6 +66,16 @@ describe('formatSubscriptionPeriodEnd', () => {
     ).toBe('Sep 20, 2026');
   });
 
+  it('shows the charge day for a midnight UTC renewal when exclusivePeriodEnd is false', () => {
+    I18n.locale = 'en';
+
+    expect(
+      formatSubscriptionPeriodEnd('2027-07-20T00:00:00.000Z', {
+        exclusivePeriodEnd: false,
+      }),
+    ).toBe('Jul 20, 2027');
+  });
+
   it('returns undefined for a missing timestamp', () => {
     expect(formatSubscriptionPeriodEnd(undefined)).toBeUndefined();
   });
@@ -99,6 +112,81 @@ const createSubscription = (
   cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
   isEligibleForSupport: true,
   ...overrides,
+});
+
+describe('isPeriodEndCancellationPending', () => {
+  const now = new Date('2026-10-07T00:00:00.000Z');
+
+  it('is true for a payment-problem plan whose period end is still ahead', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.pastDue,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(isPeriodEndCancellationPending(subscription, now)).toBe(true);
+  });
+
+  it('is false when the period end is already past', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.pastDue,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-10-06T00:00:00.000Z',
+    });
+
+    expect(isPeriodEndCancellationPending(subscription, now)).toBe(false);
+  });
+});
+
+describe('isMembershipPeriodEnded', () => {
+  const now = new Date('2026-10-07T00:00:00.000Z');
+
+  it.each([
+    SUBSCRIPTION_STATUSES.active,
+    SUBSCRIPTION_STATUSES.pastDue,
+    SUBSCRIPTION_STATUSES.unpaid,
+    SUBSCRIPTION_STATUSES.paused,
+  ])('is true for a %s plan whose period end has passed', (status) => {
+    const subscription = createSubscription({
+      status,
+      currentPeriodEnd: '2026-10-06T00:00:00.000Z',
+    });
+
+    expect(isMembershipPeriodEnded(subscription, now)).toBe(true);
+  });
+
+  it('is true when the period end is exactly now', () => {
+    const subscription = createSubscription({
+      currentPeriodEnd: now.toISOString(),
+    });
+
+    expect(isMembershipPeriodEnded(subscription, now)).toBe(true);
+  });
+
+  it('is false while the period end is still ahead', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.unpaid,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(isMembershipPeriodEnded(subscription, now)).toBe(false);
+  });
+
+  it('is false when there is no period end or it cannot be parsed', () => {
+    expect(
+      isMembershipPeriodEnded(
+        createSubscription({ currentPeriodEnd: undefined }),
+        now,
+      ),
+    ).toBe(false);
+    expect(
+      isMembershipPeriodEnded(
+        createSubscription({ currentPeriodEnd: 'not-a-date' }),
+        now,
+      ),
+    ).toBe(false);
+    expect(isMembershipPeriodEnded(undefined, now)).toBe(false);
+  });
 });
 
 describe('canResumeMembership', () => {
@@ -149,6 +237,35 @@ describe('canResumeMembership', () => {
     expect(canResumeMembership(subscription, now)).toBe(false);
   });
 
+  it.each([
+    SUBSCRIPTION_STATUSES.pastDue,
+    SUBSCRIPTION_STATUSES.paused,
+    SUBSCRIPTION_STATUSES.unpaid,
+    SUBSCRIPTION_STATUSES.awaitingFunds,
+    SUBSCRIPTION_STATUSES.provisional,
+  ])('is false for a %s plan even when the period end is ahead', (status) => {
+    const subscription = createSubscription({
+      status,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(canResumeMembership(subscription, now)).toBe(false);
+  });
+
+  it('is false when the latest invoice failed', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+      lastInvoice: {
+        id: 'inv-failed',
+        status: INVOICE_PAYMENT_STATUSES.FAILED,
+      },
+    });
+
+    expect(canResumeMembership(subscription, now)).toBe(false);
+  });
+
   it('is false for a canceled subscription that is not pending period-end cancellation', () => {
     const subscription = createSubscription({
       status: SUBSCRIPTION_STATUSES.canceled,
@@ -182,6 +299,18 @@ describe('getMembershipManageAction', () => {
     const subscription = createSubscription({
       cancelAtPeriodEnd: true,
       currentPeriodEnd: '2026-10-06T00:00:00.000Z',
+    });
+
+    expect(getMembershipManageAction(subscription, now)).toBe(
+      MembershipManageAction.Hidden,
+    );
+  });
+
+  it('hides resume when a past-due plan is also scheduled to cancel', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.pastDue,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
     });
 
     expect(getMembershipManageAction(subscription, now)).toBe(

@@ -1162,6 +1162,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',
   PAY_WITH_ROW: 'perps-trade-sheet-pay-with-row',
   MARGIN_ROW: 'perps-trade-sheet-margin-row',
+  MARGIN_MODE_TAG: 'perps-trade-sheet-margin-mode-tag',
   LIQUIDATION_PRICE_ROW: 'perps-trade-sheet-liquidation-price-row',
   LIQUIDATION_PRICE_SKELETON: 'perps-trade-sheet-liquidation-price-skeleton',
   LIQUIDATION_PRICE_VALUE: 'perps-trade-sheet-liquidation-price-value',

@@ -515,6 +515,93 @@ export interface PredictUnresolvedOrdersPage {
   nextCursor?: string;
 }
 
+/** How a Withdraw names its amount: one fixed USD figure, or the whole
+ * withdrawable balance. */
+export type PredictWithdrawMode = 'fixed' | 'sweep_all';
+
+/** Networks a withdrawal can pay out on. */
+export type PredictWithdrawNetwork = 'base';
+
+/** Where the payout destination came from: the sandbox wallet this client
+ * registered during demo setup, or a binding the Venue itself reported. A
+ * destination is always read-only; the phone never supplies one. */
+export type PredictWithdrawDestinationSource = 'configured_demo' | 'venue';
+
+export interface PredictWithdrawDestination {
+  address: string;
+  network: PredictWithdrawNetwork;
+  source: PredictWithdrawDestinationSource;
+}
+
+/** A Withdraw intent. Exactly one of a fixed USD amount or the whole balance;
+ * the client sends no identity, destination, or idempotency key. */
+export type PredictWithdrawPreviewParams =
+  | { amount: PredictAmount }
+  | { sweepAll: true };
+
+/** A server-authoritative Withdraw Quote. The backend resolves the payout
+ * destination and the expiry; the response carries no fee. A sweep omits
+ * `requestedAmount` rather than nulling it. */
+export interface PredictWithdrawPreview {
+  /** Opaque expiring token binding the quote to the authenticated intent. */
+  previewId: string;
+  venueId: PredictVenueId;
+  currency: 'USD';
+  mode: PredictWithdrawMode;
+  /** Present exactly on a `fixed` quote. */
+  requestedAmount?: PredictAmount;
+  destination: PredictWithdrawDestination;
+  expiresAt: PredictTimestamp;
+}
+
+/** Status of a committed withdrawal, as projected by the backend. `pending`
+ * and `processing` are in-progress: keep observing with the receipt GET,
+ * never another POST. `settled` means the funds left; `failed` and `returned`
+ * are terminal failures, and `returned` means the funds are back in the
+ * account. `rejected` means the Venue refused the withdrawal and nothing was
+ * sent. */
+export type PredictWithdrawReceiptStatus =
+  | 'pending'
+  | 'processing'
+  | 'settled'
+  | 'failed'
+  | 'returned'
+  | 'rejected';
+
+/** Why the Venue refused a `rejected` withdrawal. */
+export type PredictWithdrawRejectionCode =
+  | 'insufficient_balance'
+  | 'amount_below_minimum'
+  | 'step_up_verification_required'
+  | 'venue_rejected';
+
+/** The canonical result of a committed withdrawal. One Withdraw produces
+ * exactly one receipt, and repeated Commits of the same `previewId` converge
+ * on it. `needsManualReview` ends automatic observation: the outcome is
+ * unknown and support resolves it. */
+export interface PredictWithdrawReceipt {
+  /** Durable backend operation identity; stable across repeated Commits. */
+  operationId: string;
+  /** The committed Withdraw Preview; the idempotency key for re-observation. */
+  previewId: string;
+  venueId: PredictVenueId;
+  currency: 'USD';
+  mode: PredictWithdrawMode;
+  status: PredictWithdrawReceiptStatus;
+  /** Present exactly on a `rejected` receipt, and always present there. */
+  rejectionCode?: PredictWithdrawRejectionCode;
+  needsManualReview: boolean;
+  /** Present exactly on a `fixed` receipt. */
+  requestedAmount?: PredictAmount;
+  /** The amount the Venue reports as withdrawn; null until it reports one. */
+  withdrawnAmount: PredictAmount | null;
+  /** Venue transfer identifier once the Venue has produced one. */
+  venueTransferId: string | null;
+  destination: PredictWithdrawDestination;
+  createdAt: PredictTimestamp;
+  resolvedAt: PredictTimestamp | null;
+}
+
 export interface FetchPortfolioPageParams {
   cursor?: string;
   limit?: number;

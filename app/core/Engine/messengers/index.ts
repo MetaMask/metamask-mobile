@@ -114,7 +114,10 @@ import {
   getRampsControllerInitMessenger,
 } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
-import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
+import {
+  getTransakServiceInitMessenger,
+  getTransakServiceMessenger,
+} from './transak-service-messenger/transak-service-messenger';
 import { getNeoBankServiceMessenger } from './neo-bank-service-messenger/neo-bank-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
@@ -152,6 +155,7 @@ import {
   getChompApiServiceInitMessenger,
 } from './chomp-api-service-messenger';
 import { getMoneyAccountUpgradeControllerMessenger } from './money-account-upgrade-controller-messenger';
+import { getMoneyAccountLifecycleControllerMessenger } from './money-account-lifecycle-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -385,7 +389,7 @@ export const MESSENGER_FACTORIES = {
   },
   TransakService: {
     getMessenger: getTransakServiceMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getTransakServiceInitMessenger,
   },
   NeoBankService: {
     getMessenger: getNeoBankServiceMessenger,
@@ -501,6 +505,10 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountUpgradeController: {
     getMessenger: getMoneyAccountUpgradeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  MoneyAccountLifecycleController: {
+    getMessenger: getMoneyAccountLifecycleControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

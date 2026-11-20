@@ -20,6 +20,7 @@ import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount'
 import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { isProduction } from '../../../../util/environment';
 import { StartProSubscriptionOutcome } from '../utils/proSubscriptionPaymentStatus';
 import {
   buildConfirmMembershipRequestData,
@@ -65,6 +66,10 @@ jest.mock('../../../UI/Money/hooks/useMoneyAccount', () => ({
 
 jest.mock('../utils/waitForMembershipTopUp', () => ({
   waitForMembershipTopUp: jest.fn(),
+}));
+
+jest.mock('../../../../util/environment', () => ({
+  isProduction: jest.fn(() => false),
 }));
 
 jest.mock('uuid', () => ({
@@ -148,6 +153,7 @@ const mockedStartSubscription = Engine.context.SubscriptionDelegationService
 const mockedApprovalAdd = Engine.context.ApprovalController.add as jest.Mock;
 const mockedUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockedWaitForMembershipTopUp = jest.mocked(waitForMembershipTopUp);
+const mockIsProduction = jest.mocked(isProduction);
 const mockInitiateDeposit = jest.fn();
 const mockCancelTopUp = jest.fn();
 
@@ -175,6 +181,9 @@ describe('useStartProSubscription', () => {
       status: 'trialing',
     });
     mockedApprovalAdd.mockResolvedValue(undefined);
+    (
+      Engine.context as { TransactionPayController?: unknown }
+    ).TransactionPayController = undefined;
     mockedUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
@@ -183,6 +192,7 @@ describe('useStartProSubscription', () => {
       cancel: mockCancelTopUp,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
+    mockIsProduction.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -230,6 +240,42 @@ describe('useStartProSubscription', () => {
       mockedStartSubscription.mock.invocationCallOrder[0],
     );
     expect(outcome).toEqual({ outcome: StartProSubscriptionOutcome.Ready });
+  });
+
+  it('forwards useTestClock when test clocks are enabled outside production', async () => {
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current.startSubscription(PLAN, {
+        enableTestClocks: true,
+      });
+    });
+
+    expect(mockedStartSubscription).toHaveBeenCalledWith({
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      recurringInterval: RECURRING_INTERVALS.year,
+      chainId: CHAIN_ID,
+      payerAddress: PAYER_ADDRESS,
+      useTestClock: true,
+    });
+  });
+
+  it('omits useTestClock in production even when test clocks are requested', async () => {
+    mockIsProduction.mockReturnValue(true);
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current.startSubscription(PLAN, {
+        enableTestClocks: true,
+      });
+    });
+
+    expect(mockedStartSubscription).toHaveBeenCalledWith({
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      recurringInterval: RECURRING_INTERVALS.year,
+      chainId: CHAIN_ID,
+      payerAddress: PAYER_ADDRESS,
+    });
   });
 
   it('does not start delegation, log, or set an error when membership consent is rejected', async () => {
@@ -298,14 +344,18 @@ describe('useStartProSubscription', () => {
       balance: '10000000',
       requiredBalance: '49990000',
     });
-    mockedWaitForMembershipTopUp.mockReturnValue({
-      promise: new Promise((resolve) => {
-        resolveTopUp = () => resolve({ id: 'tx-1' } as never);
-      }),
-      cancel: mockCancelTopUp,
-    });
     mockedStartSubscription.mockResolvedValue({
       status: SUBSCRIPTION_STATUSES.provisional,
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise((resolve) => {
+        resolveTopUp = () =>
+          resolve({
+            id: 'tx-1',
+            metamaskPay: { fiat: { orderId: 'order-1' } },
+          } as never);
+      }),
+      cancel: mockCancelTopUp,
     });
 
     const { result } = renderHook(() => useStartProSubscription());
@@ -343,6 +393,65 @@ describe('useStartProSubscription', () => {
     });
     await expect(startPromise).resolves.toEqual({
       outcome: StartProSubscriptionOutcome.Processing,
+    });
+  });
+
+  it('returns ready when a crypto top-up is still provisional', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '10000000',
+      requiredBalance: '49990000',
+    });
+    mockedStartSubscription.mockResolvedValue({
+      status: SUBSCRIPTION_STATUSES.provisional,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).resolves.toEqual({
+        outcome: StartProSubscriptionOutcome.Ready,
+      });
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+  });
+
+  it('returns processing when a selected card funds a provisional plan', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '49990000',
+    });
+    mockedStartSubscription.mockResolvedValue({
+      status: SUBSCRIPTION_STATUSES.provisional,
+    });
+    (
+      Engine.context as {
+        TransactionPayController?: {
+          state: {
+            transactionData: Record<
+              string,
+              { fiatPayment?: { selectedPaymentMethodId?: string } }
+            >;
+          };
+        };
+      }
+    ).TransactionPayController = {
+      state: {
+        transactionData: {
+          'tx-1': { fiatPayment: { selectedPaymentMethodId: 'card' } },
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).resolves.toEqual({
+        outcome: StartProSubscriptionOutcome.Processing,
+      });
     });
   });
 

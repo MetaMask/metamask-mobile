@@ -334,6 +334,20 @@ export class WebSocketManager {
     }
   }
 
+  /**
+   * Replaces the PolyBolt credentials, for example when a Chainlink key
+   * arrives from remote flags. A change opens a new connection, or applies to
+   * the next one while the feed is disconnected. Does nothing while RTDS
+   * serves crypto prices.
+   *
+   * @param credentials - CLOB API credentials and the optional Chainlink key.
+   */
+  updateCryptoFeedCredentials(credentials: PolyBoltCredentials): void {
+    if (this.cryptoFeedMode === 'polybolt') {
+      this.polyboltFeed.setCredentials(credentials);
+    }
+  }
+
   static getInstance(): WebSocketManager {
     WebSocketManager.instance ??= new WebSocketManager();
     return WebSocketManager.instance;

@@ -952,6 +952,7 @@ describe('SocialFeedPositionCard', () => {
             source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
+            isCopyTrade: true,
           },
         });
       });

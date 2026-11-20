@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { SOCIAL_TERMS_VERSION } from '../terms/socialTermsAcceptance';
+import { withSocialAppBuild } from './socialAppBuild';
 import {
   getSocialReactionType,
   SocialEvent,
@@ -33,7 +34,10 @@ interface UseSocialScreenViewedOptions {
   resetWhenInactive?: boolean;
 }
 type SocialScreenContextProperties = SocialPositionAnalyticsProperties &
-  Pick<SocialScreenViewedProperties, 'composer_entry'>;
+  Pick<
+    SocialScreenViewedProperties,
+    'composer_entry' | 'share_id' | 'order_id' | 'transaction_hash'
+  >;
 type SocialInteractionContext = Partial<
   Pick<SocialUIInteractionProperties, 'source' | 'tab_name' | 'step'>
 > & { properties?: SocialScreenContextProperties };
@@ -50,7 +54,10 @@ export const useSocialAnalytics = () => {
   const trackInteraction = useCallback(
     (properties: SocialUIInteractionProperties) => {
       if (isSocialV1Enabled) {
-        track(MetaMetricsEvents.SOCIAL_UI_INTERACTION, { ...properties });
+        track(
+          MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+          withSocialAppBuild(properties),
+        );
       }
     },
     [isSocialV1Enabled, track],
@@ -58,7 +65,10 @@ export const useSocialAnalytics = () => {
   const trackScreenViewed = useCallback(
     (properties: SocialScreenViewedProperties) => {
       if (isSocialV1Enabled) {
-        track(MetaMetricsEvents.SOCIAL_SCREEN_VIEWED, { ...properties });
+        track(
+          MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
+          withSocialAppBuild(properties),
+        );
       }
     },
     [isSocialV1Enabled, track],
@@ -140,14 +150,18 @@ export const useSocialFeedInteractions = (
         track(Interaction.COPY_TRADE_BLOCKED, { ...position, blocked_reason }),
       onPositionTap: (position: SocialPositionAnalyticsProperties) =>
         track(Interaction.TAP, position),
-      onReactionInteraction: (action: 'added' | 'removed', emotion: string) => {
+      onReactionInteraction: (
+        action: 'added' | 'removed',
+        emotion: string,
+        subject?: { post_id?: string; author_trader_id?: string },
+      ) => {
         const reaction_type = getSocialReactionType(emotion);
         if (reaction_type) {
           track(
             action === 'added'
               ? Interaction.REACTION_ADDED
               : Interaction.REACTION_REMOVED,
-            { reaction_type },
+            { reaction_type, ...subject },
           );
         }
       },
