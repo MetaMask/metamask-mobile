@@ -17,10 +17,8 @@ import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
 import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
 import { PredictError, PredictErrorCode } from '../../errors';
-import {
-  KALSHI_STATIC_VENUE_CATALOG,
-  POLYMARKET_STATIC_VENUE_CATALOG,
-} from '../../config/venueCatalogs';
+import { POLYMARKET_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
   PredictEntityId,
   PredictEvent,
