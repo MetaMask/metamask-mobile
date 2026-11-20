@@ -1065,10 +1065,10 @@ describe('CampaignTile', () => {
       });
 
       const toastConfig = mockShowToast.mock.calls[0][0] as {
-        closeButtonOptions: { onPress: () => void };
+        onClose: () => void;
       };
       act(() => {
-        toastConfig.closeButtonOptions.onPress();
+        toastConfig.onClose();
       });
 
       notificationsEnabled = true;

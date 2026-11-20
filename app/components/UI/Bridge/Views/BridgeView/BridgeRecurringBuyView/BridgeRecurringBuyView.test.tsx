@@ -25,8 +25,8 @@ import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import type { UseOrderMinAmountResult } from '../../../hooks/useOrderMinAmount';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import {
@@ -77,10 +77,6 @@ jest.mock('../../../hooks/useRecurringOrdersListTrace', () => ({
 
 jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
   useSentinelFeeTokenValidation: jest.fn(),
-}));
-
-jest.mock('../../../hooks/useRecurringOrderMinAmount', () => ({
-  useRecurringOrderMinAmount: jest.fn(),
 }));
 
 jest.mock('./useRecurringBuySwapInputs', () => ({
@@ -222,6 +218,33 @@ const mockActiveQuote = {
   estimatedProcessingTimeInSeconds: 90,
 };
 
+function createMockRecurringBuySwapInputs(
+  recurringOrderMinAmount: UseOrderMinAmountResult = {
+    formattedMinAmountInSelectedCurrency: '$100.00',
+    hasError: false,
+    isBelowMinAmount: false,
+    minAmountUsd: 100,
+  },
+) {
+  return {
+    destToken,
+    destTokenAmount: '10',
+    enabledChainIds: [],
+    handleDestTokenPress: jest.fn(),
+    handleFlipTokensPress: jest.fn(),
+    handleSourceMaxPress: jest.fn(),
+    handleSourcePresetAmountSelect: jest.fn(),
+    handleSourceTokenPress: jest.fn(),
+    isDestAmountLoading: false,
+    isFlipDisabled: false,
+    isQuoteSponsored: false,
+    recurringOrderMinAmount,
+    sourceAmountInput: { value: '1' },
+    sourceToken,
+    sourceAmount: '1',
+  };
+}
+
 const expectAdvancedOrderProperties = (
   event: { category: string },
   properties: {
@@ -276,28 +299,9 @@ describe('BridgeRecurringBuyView', () => {
       isValid: true,
       retry: jest.fn(),
     });
-    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
-      formattedMinAmountInSelectedCurrency: '$100.00',
-      hasError: false,
-      isBelowMinAmount: false,
-      minAmountUsd: 100,
-    });
-    jest.mocked(useRecurringBuySwapInputs).mockReturnValue({
-      destToken,
-      destTokenAmount: '10',
-      enabledChainIds: [],
-      handleDestTokenPress: jest.fn(),
-      handleFlipTokensPress: jest.fn(),
-      handleSourceMaxPress: jest.fn(),
-      handleSourcePresetAmountSelect: jest.fn(),
-      handleSourceTokenPress: jest.fn(),
-      isDestAmountLoading: false,
-      isFlipDisabled: false,
-      isQuoteSponsored: false,
-      sourceAmountInput: { value: '1' },
-      sourceToken,
-      sourceAmount: '1',
-    } as never);
+    jest
+      .mocked(useRecurringBuySwapInputs)
+      .mockReturnValue(createMockRecurringBuySwapInputs() as never);
     jest.mocked(useRecurringBuyKeypad).mockReturnValue({
       close: mockCloseKeypad,
       focusAmount: jest.fn(),
@@ -486,12 +490,14 @@ describe('BridgeRecurringBuyView', () => {
   });
 
   it('does not preview an order below the recurring minimum', () => {
-    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
-      formattedMinAmountInSelectedCurrency: '€90.00',
-      hasError: false,
-      isBelowMinAmount: true,
-      minAmountUsd: 100,
-    });
+    jest.mocked(useRecurringBuySwapInputs).mockReturnValue(
+      createMockRecurringBuySwapInputs({
+        formattedMinAmountInSelectedCurrency: '€90.00',
+        hasError: false,
+        isBelowMinAmount: true,
+        minAmountUsd: 100,
+      }) as never,
+    );
     const { getByTestId } = renderWithProvider(
       <BridgeRecurringBuyView
         location={MetaMetricsSwapsEventSource.BottomNavBar}
@@ -514,12 +520,14 @@ describe('BridgeRecurringBuyView', () => {
   });
 
   it('fails closed when the minimum cannot be validated', () => {
-    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
-      formattedMinAmountInSelectedCurrency: undefined,
-      hasError: true,
-      isBelowMinAmount: false,
-      minAmountUsd: 100,
-    });
+    jest.mocked(useRecurringBuySwapInputs).mockReturnValue(
+      createMockRecurringBuySwapInputs({
+        formattedMinAmountInSelectedCurrency: undefined,
+        hasError: true,
+        isBelowMinAmount: false,
+        minAmountUsd: 100,
+      }) as never,
+    );
     const { getByTestId } = renderWithProvider(
       <BridgeRecurringBuyView
         location={MetaMetricsSwapsEventSource.BottomNavBar}
