@@ -5,6 +5,7 @@ import {
   getRequestParams,
   getSwapType,
   InputPrimaryDenomination,
+  MoneyAccountAction,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
@@ -81,6 +82,11 @@ const getFiatToggleEventProperties = ({
     token_symbol_source: sourceToken?.symbol ?? '',
     token_symbol_destination: destToken?.symbol ?? null,
     feature_id: featureId,
+    money_account_action: sourceToken?.isMoneyToken
+      ? MoneyAccountAction.Withdraw
+      : destToken?.isMoneyToken
+        ? MoneyAccountAction.Deposit
+        : undefined,
   };
 };
 

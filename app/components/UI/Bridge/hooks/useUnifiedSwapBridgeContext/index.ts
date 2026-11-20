@@ -1,4 +1,4 @@
-import { FeatureId } from '@metamask/bridge-controller';
+import { FeatureId, MoneyAccountAction } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -74,6 +74,11 @@ export const useUnifiedSwapBridgeContext = (
       usd_amount_source: usdAmountSource,
       custom_slippage: isSlippageUserOverride,
       feature_id: featureId ?? FeatureId.UNIFIED_SWAP_BRIDGE,
+      operation: fromToken?.isMoneyToken
+        ? MoneyAccountAction.Withdraw
+        : toToken?.isMoneyToken
+          ? MoneyAccountAction.Deposit
+          : undefined,
     }),
     [
       smartTransactionsEnabled,

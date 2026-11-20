@@ -89,7 +89,8 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
     MoneyAccountController,
   } = Engine.context;
 
-  // Don't override the account for bridge withdraw or deposit transactions because the bridge-status-controller sets it
+  // Deposit/withdraw transactions can be queued before or after a swap or bridge
+  // In this case the account override is set by the bridge-status-controller
   const isBridgeDeposit = Object.values(
     BridgeStatusController.state.txHistory,
   ).find(
