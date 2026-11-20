@@ -275,7 +275,7 @@ function breakdownRows(
 
   const trading: BreakdownRow = {
     key: 'trading',
-    iconName: IconName.Coin,
+    iconName: IconName.SwapHorizontal,
     label: localizedText.breakdownTrading,
     description: localizedText.breakdownTradingDescription,
     amount: musdAmount(

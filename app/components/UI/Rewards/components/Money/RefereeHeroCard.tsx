@@ -166,7 +166,7 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
         ) : null}
         {sections.tradingRebates ? (
           <MoneyMetricCard
-            iconName={IconName.Coin}
+            iconName={IconName.SwapHorizontal}
             label={localizedText.tradingRebates}
             amount={
               unavailableAmount ??

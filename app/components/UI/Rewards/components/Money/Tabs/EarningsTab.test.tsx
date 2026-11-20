@@ -346,6 +346,11 @@ describe('EarningsTab', () => {
       getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
     ).toBeOnTheScreen();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(
+      within(
+        getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.SwapHorizontal);
     expect(queryByText('Trading rebates')).toBeNull();
     expect(queryByText('Referrals')).toBeNull();
     expect(
