@@ -378,12 +378,14 @@ jest.mock('./hooks/useCardSetupPendingRefresh', () => {
   };
 });
 
+const mockRecheckProvisioning = jest.fn();
 jest.mock('./hooks/useCardEnableCard', () => ({
   useCardEnableCard: jest.fn(() => ({
     canEnableCard: mockCanEnableCard,
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
     isEnableCardPending: mockIsEnableCardPending,
+    recheck: mockRecheckProvisioning,
   })),
 }));
 
@@ -1368,6 +1370,7 @@ describe('CardHome Component', () => {
     mockIsSignedOutKycPending = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
+    mockRecheckProvisioning.mockClear();
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -4845,6 +4848,51 @@ describe('CardHome Component', () => {
         });
       };
 
+      it('re-checks the Immersve review and the data when signed in', async () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'kyc_under_review';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+        await pullToRefresh();
+
+        // Both things the review waits on: the provisioning reconcile and
+        // fresh card home data.
+        expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
+        expect(mockRefetchAllData).toHaveBeenCalled();
+      });
+
+      it('does not re-check the reconcile while it is reconciling', async () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'reconciling';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+        await pullToRefresh();
+
+        // The check is already in flight; only the data refresh runs.
+        expect(mockRecheckProvisioning).not.toHaveBeenCalled();
+        expect(mockRefetchAllData).toHaveBeenCalled();
+      });
+
       it('re-checks registration status instead of card data when signed out and pending', async () => {
         mockIsSignedOutKycPending = true;
         setupMockSelectors({ isAuthenticated: false });
@@ -4864,6 +4912,7 @@ describe('CardHome Component', () => {
         await pullToRefresh();
 
         expect(mockRefetchAllData).toHaveBeenCalled();
+        expect(mockRecheckProvisioning).not.toHaveBeenCalled();
         expect(mockRefreshRegistrationStatus).not.toHaveBeenCalled();
       });
     });

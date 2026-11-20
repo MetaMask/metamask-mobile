@@ -19,6 +19,12 @@ export interface CardEnableCardState {
   /** True while a Money account funding approval is running in the background. */
   isEnableCardPending: boolean;
   /**
+   * Re-runs the provider's provisioning status check so a waiting view (or a
+   * pull to refresh) can re-check the step it is waiting on. A no-op for
+   * providers that do not reconcile a left-off step.
+   */
+  recheck: () => void;
+  /**
    * Call before leaving for a Card screen so the next focus rechecks setup.
    * A no-op for providers that do not reconcile a left-off step.
    */
@@ -33,6 +39,7 @@ const DEFAULT_STATE: CardEnableCardState = {
   provisioningView: 'provisioning',
   setupStep: null,
   isEnableCardPending: false,
+  recheck: noop,
   markCardFlowOpened: noop,
 };
 
@@ -61,6 +68,7 @@ export function useCardEnableCard(
       provisioningView: immersve.provisioningView,
       setupStep: immersve.setupStep,
       isEnableCardPending: immersve.isEnableCardPending,
+      recheck: immersve.recheck,
       markCardFlowOpened: immersve.markCardFlowOpened,
     };
   }, [
@@ -70,6 +78,7 @@ export function useCardEnableCard(
     immersve.provisioningView,
     immersve.setupStep,
     immersve.isEnableCardPending,
+    immersve.recheck,
     immersve.markCardFlowOpened,
   ]);
 }
