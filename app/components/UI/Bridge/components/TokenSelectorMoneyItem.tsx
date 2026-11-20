@@ -13,9 +13,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
 import { type BridgeToken } from '../types';
-import { MoneyAvatar } from './MoneyAvatar';
+import MoneyIcon from '../../../../images/money-icon.svg';
 
-const MONEY_AVATAR_SIZE = 40;
+const MONEY_ICON_SIZE = 40;
 
 const TokenSelectorMoneyItemInner = ({
   token,
@@ -64,7 +64,12 @@ const TokenSelectorMoneyItemInner = ({
             alignItems={BoxAlignItems.Center}
             gap={4}
           >
-            <MoneyAvatar size={MONEY_AVATAR_SIZE} testID="money-token-icon" />
+            <MoneyIcon
+              width={MONEY_ICON_SIZE}
+              height={MONEY_ICON_SIZE}
+              testID="money-token-icon"
+              name="MoneyIcon"
+            />
             <Box
               testID="money-token-text"
               flexDirection={BoxFlexDirection.Row}
