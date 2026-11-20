@@ -24,6 +24,7 @@ import { pageSourceContainsSecrets } from '../ai-locator/ClaudeLocatorRecoveryPr
 import {
   findInterruptingScreensInPageSource,
   INTERRUPTING_SCREEN_REGISTRY,
+  pageSourceContainsLocator,
   type InterruptingScreenDefinition,
 } from './InterruptingScreenRegistry.ts';
 
@@ -98,8 +99,6 @@ export interface RetryContext {
 export interface TapRetryContext extends RetryContext {
   /** testID / text / label of the control the tap was aimed at. */
   describeTarget(): Promise<string[]>;
-  /** Whether that control is still displayed. A stale element counts as gone. */
-  isTargetDisplayed(): Promise<boolean>;
 }
 
 function errorMessage(error: unknown): string {
@@ -226,7 +225,9 @@ export class InterruptingScreenGuard {
   #turn: Promise<void> = Promise.resolve();
   /** Normalized descriptors of the control a failed tap was aimed at. */
   #recoveryTarget: string[] = [];
-  /** Set when the last recovery tapped that same control. */
+  /** Dismiss locator that matched that control during the last recovery. */
+  #tappedRecoveryLocator: RecoveredLocator | undefined;
+  /** Set when that dismissal completed the tap: nothing matching it is left. */
   #tappedRecoveryTarget = false;
   readonly #adapter: InterruptingScreenDeviceAdapter;
 
@@ -346,6 +347,7 @@ export class InterruptingScreenGuard {
       return false;
     }
     this.#recoveryTarget = [];
+    this.#tappedRecoveryLocator = undefined;
     this.#tappedRecoveryTarget = false;
     if (this.#config === undefined) {
       await this.#turn;
@@ -374,11 +376,13 @@ export class InterruptingScreenGuard {
         )) ||
         (!this.#abandoned() &&
           (await this.#dismissWithAi(pageSource, context)));
-      if (dismissed && tapContext && this.#tappedRecoveryTarget) {
+      const tappedLocator = this.#tappedRecoveryLocator;
+      if (dismissed && tapContext && tappedLocator) {
         // A shared label (two sheets with "Not now") must not skip the retry
-        // while the control the spec aimed at is still on screen.
+        // while a matching control is still on screen. The old element
+        // reference is usually stale after the sheet closes, so look again.
         this.#tappedRecoveryTarget =
-          !(await this.#isTargetDisplayed(tapContext));
+          !(await this.#controlStillOnScreen(tappedLocator));
       }
       return dismissed;
     });
@@ -507,17 +511,21 @@ export class InterruptingScreenGuard {
     }
   }
 
-  async #isTargetDisplayed(context: TapRetryContext): Promise<boolean> {
-    try {
-      return await context.isTargetDisplayed();
-    } catch {
-      return false;
-    }
+  /** True unless a fresh page source shows no control matching `locator`. */
+  async #controlStillOnScreen(locator: RecoveredLocator): Promise<boolean> {
+    const pageSource = await this.#safePageSource();
+    return (
+      pageSource === null ||
+      pageSourceContainsLocator(pageSource, {
+        strategy: 'text',
+        value: locator.value,
+      })
+    );
   }
 
   #noteDismissTap(locator: RecoveredLocator): void {
     if (this.#recoveryTarget.includes(normalizeDescriptor(locator.value))) {
-      this.#tappedRecoveryTarget = true;
+      this.#tappedRecoveryLocator = locator;
     }
   }
 

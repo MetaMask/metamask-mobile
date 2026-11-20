@@ -160,7 +160,6 @@ export default class Gestures {
           intent,
           trigger: 'tap-failure',
           describeTarget: () => describeElement(target),
-          isTargetDisplayed: () => target.isVisible(),
         },
       );
     };
