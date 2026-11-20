@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Feather from 'react-native-vector-icons/Feather';
@@ -20,7 +19,8 @@ import {
   toTokenMinimalUnit,
 } from '../../../../../util/number/bigint';
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
-import { useLegacySwapsBlockExplorer } from '../../../Bridge/hooks/useLegacySwapsBlockExplorer';
+import { useActivityBlockExplorer } from '../../../../Views/ActivityDetails/hooks/useActivityBlockExplorer';
+import { toFiatOrderCaipChainId } from '../../../../../util/activity-adapters/adapters/ramp-order-helpers';
 import Spinner from '../../../AnimatedSpinner';
 import useAnalytics from '../../hooks/useAnalytics';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -30,7 +30,6 @@ import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { getOrderAmount } from '../utils';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -245,10 +244,10 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
+  const explorerLink = useActivityBlockExplorer(
+    toFiatOrderCaipChainId(order) ?? undefined,
+    txHash,
   );
-  const explorer = useLegacySwapsBlockExplorer(networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const renderAmount = getOrderAmount(order);
@@ -583,10 +582,14 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
               </ListItemColumn>
             </ListItem>
           </Row>
-          {Boolean(order.state === OrderStatusEnum.Completed && txHash) && (
+          {Boolean(
+            order.state === OrderStatusEnum.Completed && txHash && explorerLink,
+          ) && (
             <Group>
               <TouchableOpacity
-                onPress={() => handleExplorerLinkPress(explorer.tx(txHash))}
+                onPress={() =>
+                  explorerLink && handleExplorerLinkPress(explorerLink.url)
+                }
               >
                 <Text
                   variant={TextVariant.BodySM}
@@ -594,11 +597,10 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                   style={styles.textCenter}
                 >
                   {strings('fiat_on_ramp_aggregator.order_details.etherscan')}{' '}
-                  {explorer.isValid
-                    ? explorer.name
-                    : strings(
-                        'fiat_on_ramp_aggregator.order_details.a_block_explorer',
-                      )}
+                  {explorerLink?.title ??
+                    strings(
+                      'fiat_on_ramp_aggregator.order_details.a_block_explorer',
+                    )}
                 </Text>
               </TouchableOpacity>
             </Group>
