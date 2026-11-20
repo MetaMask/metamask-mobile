@@ -125,11 +125,28 @@ describe('translatePerpsError', () => {
       );
 
       expect(result).toBe(
-        'perps.errors.providerNotAvailable [providerId:hyperliquid]',
+        'perps.errors.providerRouteRequired [providerId:hyperliquid]',
       );
       expect(strings).toHaveBeenCalledWith(
-        'perps.errors.providerNotAvailable',
+        'perps.errors.providerRouteRequired',
         { providerId: 'hyperliquid' },
+      );
+    });
+
+    it('uses providerId from a failed result object for PROVIDER_ROUTE_REQUIRED', () => {
+      const result = translatePerpsError({
+        success: false,
+        error: 'no route',
+        errorCode: PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED,
+        providerId: 'lighter',
+      });
+
+      expect(result).toBe(
+        'perps.errors.providerRouteRequired [providerId:lighter]',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.providerRouteRequired',
+        { providerId: 'lighter' },
       );
     });
 
@@ -801,10 +818,10 @@ describe('handlePerpsError', () => {
       });
 
       expect(result).toBe(
-        'perps.errors.providerNotAvailable [providerId:Unknown]',
+        'perps.errors.providerRouteRequired [providerId:Unknown]',
       );
       expect(strings).toHaveBeenCalledWith(
-        'perps.errors.providerNotAvailable',
+        'perps.errors.providerRouteRequired',
         {
           providerId: 'Unknown',
         },

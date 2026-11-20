@@ -22,6 +22,7 @@ export interface PerpsErrorInput {
   errorCode?: PerpsErrorCode;
   errorDetails?: PerpsErrorDetails;
   maxSlippageBps?: number;
+  providerId?: string;
 }
 
 const formatBpsAsPercent = (bps: number): number => Math.round(bps) / 100;
@@ -85,8 +86,14 @@ function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
     !hasProperty(value, 'maxSlippageBps') ||
     value.maxSlippageBps === undefined ||
     typeof value.maxSlippageBps === 'number';
+  const hasValidProviderId =
+    !hasProperty(value, 'providerId') ||
+    value.providerId === undefined ||
+    typeof value.providerId === 'string';
 
-  return hasValidCode && hasValidDetails && hasValidSlippage;
+  return (
+    hasValidCode && hasValidDetails && hasValidSlippage && hasValidProviderId
+  );
 }
 
 const normalizePerpsError = (error: unknown): PerpsErrorInput | null => {
@@ -126,7 +133,11 @@ const getErrorInterpolationData = (
       errorCode === PERPS_ERROR_CODES.PROVIDER_NOT_FOUND ||
       errorCode === PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED)
   ) {
-    const providerId = context?.providerId;
+    const providerId =
+      context?.providerId ??
+      (typeof errorInput.providerId === 'string' && errorInput.providerId
+        ? errorInput.providerId
+        : undefined);
     interpolationData.providerId =
       typeof providerId === 'string' && providerId.length > 0
         ? providerId
@@ -725,7 +736,8 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
       case PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE:
       case PERPS_ERROR_CODES.PROVIDER_NOT_FOUND:
       case PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED:
-        errorParams.providerId = context?.providerId || 'Unknown';
+        errorParams.providerId =
+          context?.providerId || normalizedError.providerId || 'Unknown';
         break;
       // Add other error codes that need parameters as they arise
       default:
