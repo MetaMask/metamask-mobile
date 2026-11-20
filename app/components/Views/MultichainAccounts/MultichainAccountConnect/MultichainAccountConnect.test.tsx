@@ -31,6 +31,8 @@ import { WC2VerifyValidation } from '../../../../actions/sdk/state';
 import { AccountConnectMaliciousWarningSelectorsIDs } from '../../MultichainAccounts/shared/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import Routes from '../../../../constants/navigation/Routes';
+import { MM_BLOCKLIST_ISSUE_URL } from '../../../../constants/urls';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -740,6 +742,47 @@ describe('MultichainAccountConnect', () => {
           `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
         );
         expect(warningText).toBeNull();
+      });
+
+      it('opens the phishing report URL on the flat browser tab', async () => {
+        mockGetPhishingTestResultAsync.mockResolvedValueOnce({
+          result: true,
+        });
+
+        const { findByText } = renderWithProvider(
+          <MultichainAccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'https://phishing.com',
+                  },
+                  permissions: createMockCaip25Permission({
+                    'wallet:eip155': {
+                      accounts: [],
+                    },
+                  }),
+                },
+                permissionRequestId: 'test-phishing-url',
+              },
+            }}
+          />,
+          { state: createMockState() },
+        );
+
+        Engine.context.PermissionController.rejectPermissionsRequest =
+          mockRejectPermissionsRequest;
+
+        fireEvent.press(await findByText('Report a detection problem'));
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.BROWSER.HOME,
+          expect.objectContaining({
+            newTabUrl: MM_BLOCKLIST_ISSUE_URL,
+            timestamp: expect.any(Number),
+          }),
+        );
       });
     });
   });
