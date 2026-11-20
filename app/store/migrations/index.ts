@@ -373,6 +373,10 @@ export const migrationList: MigrationsList = {
 export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
   const lastVersion = Math.max(...Object.keys(inputMigrations).map(Number));
   let didInflate = false;
+  // Removed controllers whose files inflate actually read. Cleanup deletes
+  // only this set, so a skipped read (I/O error, bad JSON) is not treated as
+  // "already migrated" and wiped.
+  let loadedRemovedControllerNames = new Set<string>();
 
   type StateWithEngine = Record<string, unknown> & {
     engine?: { backgroundState?: Record<string, unknown> };
@@ -402,6 +406,11 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
 
       const s = state as StateWithEngine;
       const fsControllers = fsState?.backgroundState || {};
+      loadedRemovedControllerNames = new Set(
+        REMOVED_CONTROLLER_NAMES.filter(
+          (controllerName) => controllerName in fsControllers,
+        ),
+      );
 
       if (Object.keys(fsControllers).length === 0) {
         return state;
@@ -494,11 +503,15 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
   };
 
   /**
-   * Deletes the persisted files of removed controllers whose state was dropped
-   * by a migration. Runs only after `deflateToControllersAndStrip` succeeded,
-   * so the data a migration carried over (e.g. into `AssetsController`) is on
-   * disk before its source is deleted. If the app dies earlier, the files are
-   * still there and the migrations run again on the next launch.
+   * Deletes the persisted files of removed controllers whose state was loaded
+   * and then dropped by a migration. Runs only after
+   * `deflateToControllersAndStrip` succeeded, so data a migration carried
+   * over (for example into `AssetsController`) is on disk before its source
+   * is deleted. Files that inflate did not load are left in place: a read
+   * failure must not permanently delete state the next launch could migrate.
+   * Migrations themselves must not delete these files (migration 159 used
+   * to). If the app dies before this step, the files are still there and the
+   * migrations run again on the next launch.
    *
    * @param migratedBackgroundState - `engine.backgroundState` after the last migration.
    */
@@ -507,7 +520,9 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
   ) => {
     await Promise.all(
       REMOVED_CONTROLLER_NAMES.filter(
-        (controllerName) => !(controllerName in migratedBackgroundState),
+        (controllerName) =>
+          loadedRemovedControllerNames.has(controllerName) &&
+          !(controllerName in migratedBackgroundState),
       ).map((controllerName) =>
         ControllerStorage.removeItem(`persist:${controllerName}`),
       ),
