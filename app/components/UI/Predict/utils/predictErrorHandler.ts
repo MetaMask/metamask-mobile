@@ -1,7 +1,8 @@
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { addBreadcrumb } from '@sentry/react-native';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
   getPredictErrorMessages,
   PREDICT_CONSTANTS,
@@ -24,14 +25,37 @@ export function ensureError(error: unknown): Error {
 }
 
 /**
+ * iOS URLSession connectivity codes. Numeric NSURLErrorDomain codes survive
+ * localization, unlike English connectivity phrases.
+ *
+ * Left as errors on purpose: -999 cancelled, -1011 bad server response,
+ * -1013 auth required, -1018 roaming off, -1020 data not allowed, -1022 ATS,
+ * -1200 secure connection failed, -1202 to -1206 certificate. Android
+ * net::ERR_CERT_* and net::ERR_SSL_* are the same failure class and also
+ * stay errors.
+ */
+const IOS_CONNECTIVITY_ERROR_CODES = {
+  timedOut: -1001,
+  cannotFindHost: -1003,
+  cannotConnectToHost: -1004,
+  networkConnectionLost: -1005,
+  notConnectedToInternet: -1009,
+} as const;
+
+const IOS_CONNECTIVITY_ERROR_PATTERN = new RegExp(
+  String.raw`NSURLErrorDomain Code=(${Object.values(IOS_CONNECTIVITY_ERROR_CODES).join('|')})\b`,
+  'u',
+);
+
+/**
  * Patterns that identify transient connectivity failures rather than
  * application bugs. These surface differently across transports
  * (Android Cronet via nitro-fetch, RN default fetch, iOS URLSession) so we
  * match on the substrings each of them emits.
  *
  * Reported as breadcrumbs/warnings instead of Sentry errors, since they are
- * driven by the user's network conditions (DNS failures, timeouts, offline,
- * geo/ISP blocking) and are not actionable as crashes.
+ * driven by the user's network conditions (DNS failures, timeouts, offline)
+ * and are not actionable as crashes.
  */
 const NETWORK_ERROR_PATTERNS: RegExp[] = [
   // Chromium/Cronet (Android nitro-fetch) net::ERR_* codes
@@ -44,13 +68,20 @@ const NETWORK_ERROR_PATTERNS: RegExp[] = [
   /Network request failed/iu,
   // Common cross-platform connectivity phrases
   /connection (was |)(timed out|refused|reset|closed)/iu,
+  // Request timeouts only. A bare "timeout" also matches response bodies.
   /request tim(ed |e)?out/iu,
-  /timeout/iu,
   /network is unreachable/iu,
   /(the )?internet connection appears to be offline/iu,
   /name (not resolved|resolution failed)/iu,
   /could not (connect|resolve host)/iu,
+  IOS_CONNECTIVITY_ERROR_PATTERN,
 ];
+
+// shortcut: status is read from "failed: <code>" text, upgrade when errors carry status.
+const HTTP_FAILURE_STATUS = /failed: (\d{3})\b/u;
+
+// Checked first: /net::ERR_/ and /Cronet failed/ would otherwise match it.
+const ANDROID_TLS_ERROR_PATTERN = /net::ERR_(?:CERT|SSL)_/iu;
 
 /**
  * Determines whether an error represents a transient network/connectivity
@@ -65,7 +96,64 @@ export function isNetworkError(error: unknown): boolean {
   if (!message) {
     return false;
   }
+
+  if (ANDROID_TLS_ERROR_PATTERN.test(message)) {
+    return false;
+  }
+
+  const httpFailure = HTTP_FAILURE_STATUS.exec(message);
+  if (httpFailure) {
+    const status = Number(httpFailure[1]);
+    return status === 408 || status === 504;
+  }
+
   return NETWORK_ERROR_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+const PREDICT_NETWORK_BREADCRUMB_CATEGORY = 'predict.network';
+const NETWORK_FAILURE_CODE =
+  /NSURLErrorDomain Code=(-\d+)|net::(ERR_[A-Z_]+)|failed: (\d{3})\b/u;
+
+// Short, fixed breadcrumb: the raw NSError text is ~1 KB and polling repeats it.
+function addPredictNetworkBreadcrumb(
+  error: unknown,
+  errorContext: LoggerErrorOptions,
+): void {
+  const code = NETWORK_FAILURE_CODE.exec(ensureError(error).message)
+    ?.slice(1)
+    .find(Boolean);
+  const methodValue = errorContext.context?.data.method;
+  const method = typeof methodValue === 'string' ? methodValue : 'unknown';
+
+  addBreadcrumb({
+    category: PREDICT_NETWORK_BREADCRUMB_CATEGORY,
+    level: 'warning',
+    message: [method, 'network failure', code].filter(Boolean).join(' '),
+    data: {
+      source: errorContext.context?.name,
+      method,
+      ...(code !== undefined && { code }),
+    },
+  });
+}
+
+/**
+ * Reports a Predict failure. Connectivity errors are breadcrumbs so they do
+ * not open Sentry issues; every other error is still reported.
+ *
+ * @param error - The caught error (Error, string, or unknown)
+ * @param errorContext - Searchable Logger context for the call site
+ */
+export function reportPredictError(
+  error: unknown,
+  errorContext: LoggerErrorOptions,
+): void {
+  if (isNetworkError(error)) {
+    addPredictNetworkBreadcrumb(error, errorContext);
+    return;
+  }
+
+  Logger.error(ensureError(error), errorContext);
 }
 
 /**
