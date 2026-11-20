@@ -5,6 +5,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -14,6 +18,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 export interface PillOption {
   key: string;
   name: string;
+  /** Optional leading icon rendered before the label. */
+  iconName?: IconName;
 }
 
 interface PillRowProps {
@@ -59,16 +65,33 @@ const PillRow: React.FC<PillRowProps> = ({
                   isSelected ? 'bg-icon-default' : 'bg-muted',
                 )}
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    isSelected ? TextColor.InfoInverse : TextColor.TextDefault
-                  }
-                  testID={`${testIdPrefix}-pill-label-${pill.key}`}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-1"
                 >
-                  {pill.name}
-                </Text>
+                  {pill.iconName ? (
+                    <Icon
+                      name={pill.iconName}
+                      size={IconSize.Sm}
+                      color={
+                        isSelected
+                          ? IconColor.InfoInverse
+                          : IconColor.IconDefault
+                      }
+                    />
+                  ) : null}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={
+                      isSelected ? TextColor.InfoInverse : TextColor.TextDefault
+                    }
+                    testID={`${testIdPrefix}-pill-label-${pill.key}`}
+                  >
+                    {pill.name}
+                  </Text>
+                </Box>
               </Pressable>
             );
           })}

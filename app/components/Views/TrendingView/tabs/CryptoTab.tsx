@@ -1,20 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import type { ListRenderItem } from '@shopify/flash-list';
-import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import ExploreEarnSection from '../components/ExploreEarnSection';
-import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
-import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
-import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
-import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
 import type { SortOptionId } from '@metamask/perps-controller';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
@@ -28,7 +19,6 @@ import {
   usePredictEntryActions,
   usePredictTrendingFeed,
 } from '../../../UI/PredictNext';
-import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import ExploreSectionList, {
   type ExploreSectionItem,
@@ -38,6 +28,18 @@ import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import CryptoTokensPillBlock from '../feeds/tokens/CryptoTokensPillBlock';
+import {
+  getEffectiveActiveCryptoPillKey,
+  getSelectableCryptoPills,
+  getVisibleCryptoPills,
+  useCryptoPillFeed,
+} from '../feeds/tokens/useCryptoPillFeed';
+import {
+  getCryptoPillOrder,
+  type CryptoPillKey,
+} from '../feeds/tokens/cryptoPillConfig';
+import { selectTokenWatchlistEnabled } from '../../../UI/Assets/selectors/featureFlags';
 import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
@@ -48,6 +50,7 @@ import {
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import type { TrendingAsset } from '@metamask/assets-controllers';
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -121,7 +124,6 @@ const CryptoTabContent: React.FC<TabProps> = ({
   refreshing,
   onRefresh,
 }) => {
-  const navigation = useNavigation<AppNavigationProp>();
   const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -135,7 +137,10 @@ const CryptoTabContent: React.FC<TabProps> = ({
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
 
-  const tokens = useTokensFeed({ refresh });
+  const tokensOnQuickTrade = useCallback(
+    (token: TrendingAsset) => openQuickBuy(token, 'explore_crypto'),
+    [openQuickBuy],
+  );
   const cryptoPredictions = usePredictTrendingFeed({
     tab: 'crypto',
     refresh,
@@ -146,35 +151,37 @@ const CryptoTabContent: React.FC<TabProps> = ({
     withTileExtras: true,
   });
 
-  const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
-    ({ item, index }) => (
-      <TokenRowItem
-        token={item}
-        index={index}
-        tokenDetailsSource={TokenDetailsSource.ExploreCryptoTrending}
-        onCardPress={() =>
-          trackExploreInteracted({
-            interaction_type: 'section_item_tapped',
-            tab_name: 'Crypto',
-            section_name: 'tokens_trending',
-            asset_type: 'token',
-            position: index,
-            token_symbol: item.symbol,
-            chain_id: getCaipChainIdFromAssetId(item.assetId),
-            item_clicked: item.assetId,
-          })
-        }
-        onQuickTrade={
-          quickBuyVariant.showQuickTradeButton
-            ? (token) => openQuickBuy(token, 'explore_crypto')
-            : undefined
-        }
-      />
-    ),
-    [openQuickBuy, quickBuyVariant.showQuickTradeButton],
+  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+  const [activeCryptoPillKey, setActiveCryptoPillKey] =
+    useState<CryptoPillKey>();
+  const [feedActivePillKey, setFeedActivePillKey] = useState<CryptoPillKey>();
+  const defaultCryptoPillKey = useMemo(
+    () => getCryptoPillOrder(isWatchlistEnabled)[0]?.key ?? 'trending',
+    [isWatchlistEnabled],
   );
+  const tokensFeed = useCryptoPillFeed({
+    activePillKey: feedActivePillKey ?? defaultCryptoPillKey,
+    refresh,
+  });
+  const visibleCryptoPills = useMemo(
+    () => getVisibleCryptoPills(tokensFeed.results, isWatchlistEnabled),
+    [tokensFeed.results, isWatchlistEnabled],
+  );
+  const selectableCryptoPills = useMemo(
+    () => getSelectableCryptoPills(tokensFeed.results, isWatchlistEnabled),
+    [tokensFeed.results, isWatchlistEnabled],
+  );
+  const showTokensSection = visibleCryptoPills.length > 0;
+  const effectiveActiveCryptoPillKey = getEffectiveActiveCryptoPillKey(
+    activeCryptoPillKey,
+    visibleCryptoPills,
+    defaultCryptoPillKey,
+    selectableCryptoPills,
+  );
+  useEffect(() => {
+    setFeedActivePillKey(effectiveActiveCryptoPillKey);
+  }, [effectiveActiveCryptoPillKey]);
 
-  const showTokens = tokens.isLoading || tokens.data.length > 0;
   const showCryptoPerps =
     isPerpsEnabled && (cryptoPerps.isLoading || cryptoPerps.data.length > 0);
   const showPredictions =
@@ -183,29 +190,26 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const sections = useMemo((): ExploreSectionItem[] => {
     const items: ExploreSectionItem[] = [];
 
-    if (showTokens) {
+    if (showTokensSection) {
       items.push({
         key: 'tokens',
         isVerticalList: true,
         content: (
-          <>
-            <SectionHeader
-              title={strings('trending.trending_tokens')}
-              onViewAll={() =>
-                navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
-              }
-              testID="section-header-view-all-tokens"
-              tabName="Crypto"
-              sectionName="tokens_trending"
-            />
-            <CardList<TrendingAsset>
-              data={tokens.data}
-              isLoading={tokens.isLoading}
-              renderItem={renderTokenItem}
-              Skeleton={TrendingTokensSkeleton}
-              idPrefix="tokens"
-            />
-          </>
+          <CryptoTokensPillBlock
+            title={strings('trending.crypto_tokens_section')}
+            activePillKey={activeCryptoPillKey}
+            onActivePillChange={setActiveCryptoPillKey}
+            onQuickTrade={
+              quickBuyVariant.showQuickTradeButton
+                ? tokensOnQuickTrade
+                : undefined
+            }
+            tabName="Crypto"
+            headerTestID="section-header-view-all-tokens"
+            idPrefix="tokens"
+            testIdPrefix="crypto-tokens"
+            listTestId="crypto-tokens-list"
+          />
         ),
       });
     }
@@ -252,14 +256,13 @@ const CryptoTabContent: React.FC<TabProps> = ({
 
     return items;
   }, [
-    showTokens,
+    showTokensSection,
+    activeCryptoPillKey,
     showCryptoPerps,
     isEarnSectionVisible,
     showPredictions,
-    navigation,
-    tokens.data,
-    tokens.isLoading,
-    renderTokenItem,
+    quickBuyVariant.showQuickTradeButton,
+    tokensOnQuickTrade,
     refresh,
     perpsNavigation,
     cryptoPredictions,

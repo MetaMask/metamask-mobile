@@ -1,14 +1,18 @@
 import React from 'react';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
+import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
-import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
+import { useABTest } from '../../../../hooks/useABTest';
 import { usePredictTrendingFeed } from '../../../UI/PredictNext';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
+import { useCryptoPillFeed } from '../feeds/tokens/useCryptoPillFeed';
+import type { CryptoPillKey } from '../feeds/tokens/cryptoPillConfig';
+import { selectTokenWatchlistEnabled } from '../../../UI/Assets/selectors/featureFlags';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
 import {
@@ -19,14 +23,20 @@ import {
 
 const mockNavigate = jest.fn();
 const mockEarnSection = jest.fn((_props: Record<string, unknown>) => null);
+const mockCryptoTokensPillBlock = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
 const mockUseIsFocused = jest.fn(() => true);
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
-const mockUseTokensFeed = jest.mocked(useTokensFeed);
+const mockUseABTest = useABTest as jest.MockedFunction<typeof useABTest>;
 const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
 const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
+const mockUseCryptoPillFeed = useCryptoPillFeed as jest.MockedFunction<
+  typeof useCryptoPillFeed
+>;
 
 interface TileCarouselMockProps {
   testID?: string;
@@ -61,9 +71,18 @@ jest.mock('../../../UI/Earn/components/EarnSection', () => ({
   default: (props: Record<string, unknown>) => mockEarnSection(props),
 }));
 
-jest.mock('../feeds/tokens/useTokensFeed', () => ({
-  useTokensFeed: jest.fn(),
+jest.mock('../feeds/tokens/CryptoTokensPillBlock', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockCryptoTokensPillBlock(props),
 }));
+
+jest.mock('../feeds/tokens/useCryptoPillFeed', () => {
+  const actual = jest.requireActual('../feeds/tokens/useCryptoPillFeed');
+  return {
+    ...actual,
+    useCryptoPillFeed: jest.fn(),
+  };
+});
 
 jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
   usePredictTrendingFeed: jest.fn(),
@@ -113,9 +132,9 @@ jest.mock('../../../UI/Trending/contexts', () => ({
 }));
 
 jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
+  useABTest: jest.fn(() => ({
     variant: { showQuickTradeButton: false },
-  }),
+  })),
 }));
 
 const defaultTabProps = {
@@ -127,9 +146,13 @@ const defaultTabProps = {
 const arrangeMocks = ({
   perpsEnabled = false,
   earnSectionVisible = false,
+  quickTradeEnabled = false,
+  watchlistEnabled = false,
 }: {
   perpsEnabled?: boolean;
   earnSectionVisible?: boolean;
+  quickTradeEnabled?: boolean;
+  watchlistEnabled?: boolean;
 } = {}) => {
   jest.clearAllMocks();
   mockUseIsFocused.mockReturnValue(true);
@@ -138,8 +161,13 @@ const arrangeMocks = ({
     navigate: mockNavigate,
   } as never);
 
+  mockUseABTest.mockReturnValue({
+    variant: { showQuickTradeButton: quickTradeEnabled },
+  } as never);
+
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
+    if (selector === selectTokenWatchlistEnabled) return watchlistEnabled;
     if (selector === selectIsExploreEarnSectionVisible) {
       return earnSectionVisible;
     }
@@ -149,11 +177,6 @@ const arrangeMocks = ({
     });
   });
 
-  mockUseTokensFeed.mockReturnValue({
-    data: [],
-    isLoading: false,
-    refetch: jest.fn(),
-  } as never);
   mockUsePredictionsFeed.mockReturnValue({
     data: [],
     isLoading: false,
@@ -165,10 +188,21 @@ const arrangeMocks = ({
     refetch: jest.fn(),
     defaultSortOptionId: 'priceChange',
   } as never);
+
+  mockUseCryptoPillFeed.mockReturnValue({
+    results: {
+      trending: {
+        data: [{} as TrendingAsset],
+        isLoading: false,
+        isError: false,
+      },
+    },
+  } as never);
 };
 
 const getSectionOrder = (tree: ReturnType<typeof render>['root']): string[] => {
   const sectionIds = new Set([
+    'explore-section-tokens',
     'explore-section-crypto_perps',
     'explore-section-earn',
   ]);
@@ -267,12 +301,13 @@ describe('CryptoTab — Earn section', () => {
 });
 
 describe('CryptoTab — section ordering', () => {
-  it('renders Earn immediately after Perps when both sections are visible', () => {
+  it('renders Tokens, Perps and Earn in order when all sections are visible', () => {
     arrangeMocks({ perpsEnabled: true, earnSectionVisible: true });
 
     const { root } = render(<CryptoTab {...defaultTabProps} />);
 
     expect(getSectionOrder(root)).toEqual([
+      'explore-section-tokens',
       'explore-section-crypto_perps',
       'explore-section-earn',
     ]);
@@ -297,6 +332,151 @@ describe('CryptoTab — Perps tiles', () => {
         market: { symbol: 'BTC' },
         deviceCapability: { hardwareTier: 'LOW', networkTier: 'SLOW_CELLULAR' },
       }),
+    );
+  });
+});
+
+describe('CryptoTab — tokens pill block', () => {
+  it('renders the tokens section while at least one pill is visible', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).toHaveBeenCalled();
+    expect(screen.getByTestId('explore-section-tokens')).toBeOnTheScreen();
+  });
+
+  it('hides the tokens section entirely when no pill is visible', () => {
+    arrangeMocks();
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        trending: { data: [], isLoading: false, isError: false },
+        gainers: { data: undefined, isLoading: false, isError: true },
+      },
+    } as never);
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('explore-section-tokens')).toBeNull();
+  });
+
+  it('passes the pill block the expected props', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith({
+      title: 'Tokens',
+      activePillKey: undefined,
+      onActivePillChange: expect.any(Function),
+      tabName: 'Crypto',
+      headerTestID: 'section-header-view-all-tokens',
+      idPrefix: 'tokens',
+      testIdPrefix: 'crypto-tokens',
+      listTestId: 'crypto-tokens-list',
+    });
+  });
+
+  it('gates the crypto pill feed on the default pill until the user picks one', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockUseCryptoPillFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ activePillKey: 'trending' }),
+    );
+  });
+
+  it('defaults the feed to trending when the watchlist is enabled but empty', () => {
+    arrangeMocks({ watchlistEnabled: true });
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        watchlist: {
+          data: [],
+          isLoading: false,
+          isError: false,
+        },
+        trending: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+      },
+    } as never);
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockUseCryptoPillFeed).toHaveBeenLastCalledWith(
+      expect.objectContaining({ activePillKey: 'trending' }),
+    );
+  });
+
+  it('targets the user-selected pill for the crypto feed', () => {
+    arrangeMocks();
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        trending: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+        gainers: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+      },
+    } as never);
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    const blockProps = mockCryptoTokensPillBlock.mock.calls[0]?.[0] as {
+      onActivePillChange: (key: CryptoPillKey) => void;
+    };
+    act(() => {
+      blockProps.onActivePillChange('gainers');
+    });
+
+    expect(mockUseCryptoPillFeed).toHaveBeenLastCalledWith(
+      expect.objectContaining({ activePillKey: 'gainers' }),
+    );
+  });
+
+  it('forwards the Explore refresh trigger to the crypto pill feed', () => {
+    arrangeMocks();
+
+    render(
+      <CryptoTab
+        {...defaultTabProps}
+        refresh={{ trigger: 1, silentRefresh: true }}
+      />,
+    );
+
+    expect(mockUseCryptoPillFeed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refresh: { trigger: 1, silentRefresh: true },
+      }),
+    );
+  });
+
+  it('passes a quick-trade callback only when the variant enables it', () => {
+    arrangeMocks({ quickTradeEnabled: true });
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith(
+      expect.objectContaining({ onQuickTrade: expect.any(Function) }),
+    );
+  });
+
+  it('omits the quick-trade callback when the variant is disabled', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith(
+      expect.objectContaining({ onQuickTrade: undefined }),
     );
   });
 });
