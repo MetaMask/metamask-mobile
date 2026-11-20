@@ -129,7 +129,6 @@ function SendTransaction() {
       !assetChainId.startsWith('eip155:'),
     [assetChainId],
   );
-  const isStellar = assetChainId?.startsWith('stellar:') ?? false;
   const isTron = assetChainId?.startsWith('tron:') ?? false;
 
   const fromAccount = useSelector((state: RootState) =>
@@ -137,6 +136,8 @@ function SendTransaction() {
       ? getMemoizedInternalAccountByAddress(state, orderData.walletAddress)
       : undefined,
   );
+
+  const memo = orderData?.memo || undefined;
 
   const networkClientId = useMemo(() => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
@@ -285,6 +286,8 @@ function SendTransaction() {
           // `confirmSend` expects a human-readable decimal amount (the Snap
           // applies decimals), unlike the EVM path which uses minimal units.
           amount,
+          // Optional - used for chains like Stellar/Ripple
+          memo,
         })) as { transactionId?: string; valid?: boolean } | undefined;
 
         // Match the existing non-EVM send: only `valid === false` is a
@@ -421,6 +424,7 @@ function SendTransaction() {
     isTron,
     fromAccount,
     validateTronTransfer,
+    memo,
   ]);
 
   if (!order || !orderData?.cryptoCurrency) {
@@ -568,7 +572,6 @@ function SendTransaction() {
               isDisabled={
                 isConfirming ||
                 isValidating ||
-                isStellar ||
                 Boolean(validationError) ||
                 (!isNonEvm && !networkClientId)
               }
