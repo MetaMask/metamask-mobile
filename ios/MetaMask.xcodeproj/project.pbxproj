@@ -76,6 +76,7 @@
 		135A1E27000000000000000F = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
 		135A1E270000000000000011 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
 		135A1E270000000000000012 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
+		135A1E270000000000000013 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 135A1E270000000000000015 /* UserNotificationsUI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -221,6 +222,7 @@
 		135A1E27000000000000000E = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		135A1E270000000000000002 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PriceAlertContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		135A1E270000000000000010 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlert.swift; sourceTree = "<group>"; };
+		135A1E270000000000000015 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -245,6 +247,14 @@
 				2EF282632B0FF86900D7B4B1 /* JavaScriptCore.framework in Frameworks */,
 				2EF282652B0FF86900D7B4B1 /* Branch.framework in Frameworks */,
 				A9AB7F6A09E06325C0A71FA4 /* libPods-MetaMask-Flask.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		135A1E270000000000000014 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				135A1E270000000000000013 /* UserNotificationsUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +347,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				135A1E270000000000000015 /* UserNotificationsUI.framework */,
 				F961A36A28105CF9007442B5 /* LinkPresentation.framework */,
 				153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */,
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
@@ -548,7 +559,7 @@
 		135A1E270000000000000001 = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 135A1E27000000000000000A;
-			buildPhases = (135A1E270000000000000005, );
+			buildPhases = (135A1E270000000000000005, 135A1E270000000000000014 /* Frameworks */, );
 			buildRules = ();
 			dependencies = ();
 			name = PriceAlertContent;
@@ -1413,6 +1424,7 @@
 				CURRENT_PROJECT_VERSION = 4823;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				INFOPLIST_FILE = PriceAlertContent/Info.plist;
+				OTHER_LDFLAGS = ("$(inherited)", "-Wl,-needed_framework,UserNotificationsUI", );
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				MARKETING_VERSION = 8.23.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.PriceAlertContent;
@@ -1430,6 +1442,7 @@
 				CURRENT_PROJECT_VERSION = 4823;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				INFOPLIST_FILE = PriceAlertContent/Info.plist;
+				OTHER_LDFLAGS = ("$(inherited)", "-Wl,-needed_framework,UserNotificationsUI", );
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				MARKETING_VERSION = 8.23.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.PriceAlertContent;
