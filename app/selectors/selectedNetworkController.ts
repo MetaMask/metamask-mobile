@@ -17,6 +17,7 @@ import {
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { isNonEvmChainId } from '../core/Multichain/utils';
+import { getRegistryNetworkImagesByChainId } from './configRegistry';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.SelectedNetworkController;
@@ -90,12 +91,15 @@ const selectProviderNetworkName = createSelector(
 );
 
 const selectProviderNetworkImageSource = createSelector(
-  selectProviderConfig,
-  (providerConfig: ProviderConfig) =>
-    getNetworkImageSource({
-      networkType: providerConfig.type,
-      chainId: providerConfig.chainId,
-    }),
+  [selectProviderConfig, getRegistryNetworkImagesByChainId],
+  (providerConfig: ProviderConfig, networkImageUrls) =>
+    getNetworkImageSource(
+      {
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
+      },
+      networkImageUrls,
+    ),
 );
 
 const selectChainIdToUse = createSelector(
