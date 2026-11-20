@@ -144,6 +144,16 @@ export interface ClaimableRewardsCardProps {
   isClaiming?: boolean;
   /** A Retry-After window. The button stays disabled without a spinner. */
   isClaimWaiting?: boolean;
+  /**
+   * The filled wait sentence, shown under the disabled Claim button while
+   * `isClaimWaiting` is set.
+   */
+  claimWaitCaption?: string;
+  /**
+   * Replaces Claim. This phone cannot sign any claimable address in the
+   * family's list.
+   */
+  earnedElsewhereLabel?: string;
   onClaim?: () => void;
   onPaused?: () => void;
   /** Opens the balance breakdown. Shown beside the amount when set. */
@@ -229,6 +239,8 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   taxHeld = false,
   isClaiming = false,
   isClaimWaiting = false,
+  claimWaitCaption,
+  earnedElsewhereLabel,
   onClaim,
   onPaused,
   onBalanceBreakdown,
@@ -279,6 +291,9 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   const claimInProgress = button === 'claim' && isClaiming;
   const claimCoolingDown =
     button === 'claim' && isClaimWaiting && !claimInProgress;
+  const replaceClaim = button === 'claim' && Boolean(earnedElsewhereLabel);
+  const showWaitCaption =
+    claimCoolingDown && Boolean(claimWaitCaption) && !replaceClaim;
   const buttonLabel =
     button === 'claim'
       ? localizedText.claim
@@ -337,8 +352,17 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
               ) : null}
             </Box>
           </Box>
-          {button === 'hidden' ? null : (
-            <Box>
+          {button === 'hidden' ? null : replaceClaim ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="max-w-40 shrink text-right"
+              testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE}
+            >
+              {earnedElsewhereLabel}
+            </Text>
+          ) : (
+            <Box alignItems={BoxAlignItems.End} twClassName="max-w-40 shrink">
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Md}
@@ -355,6 +379,16 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
               >
                 {buttonLabel}
               </Button>
+              {showWaitCaption ? (
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  twClassName="mt-1 text-right"
+                  testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_WAIT}
+                >
+                  {claimWaitCaption}
+                </Text>
+              ) : null}
             </Box>
           )}
         </Box>
