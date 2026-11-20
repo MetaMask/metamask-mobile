@@ -17,10 +17,6 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 const nock = require('nock');
-const {
-  DEFAULT_ORIGINS,
-  rearmDefaultMocksIfWiped,
-} = require('../../../tests/component-view/api-mocking/defaults');
 
 /**
  * Hosts nock still lets through for real. Environmental noise only (e.g.
@@ -110,21 +106,6 @@ const formatEntries = (entries, prefix) =>
     return count > 1 ? `${line} (${count} times)` : line;
   });
 
-/** True when the armed nock registry already covers this request: emissions
- * of such requests come from a stale nock layer a previous file left in the
- * fetch chain, not from a request the test left uncovered. */
-const isCoveredByActiveMocks = ({ method, host, path }) => {
-  const barePath = path.split('?')[0];
-  const keyPrefix = `${method} https://${host}`;
-  return nock
-    .activeMocks()
-    .some(
-      (key) =>
-        key.startsWith(keyPrefix) &&
-        (key.includes(barePath) || key.includes('.*')),
-    );
-};
-
 const recordBlockedRequest = (...args) => {
   if (!currentTestActive) {
     return;
@@ -132,19 +113,6 @@ const recordBlockedRequest = (...args) => {
   const request = extractRequestFromEvent(...args);
   if (!request) {
     blockedRequests.set('(unrecognized request shape)', 1);
-    return;
-  }
-  // A blocked request on a default-covered origin while every interceptor is
-  // gone means the shared defaults were wiped; re-arm them and treat this
-  // request as lost to that anomaly rather than uncovered by the test.
-  const origin = `${request.scheme}://${request.host.replace(/:(443|80)$/, '')}`;
-  if (DEFAULT_ORIGINS.includes(origin) && rearmDefaultMocksIfWiped()) {
-    return;
-  }
-  if (ALLOWED_NET_CONNECT.test(request.host)) {
-    return;
-  }
-  if (isCoveredByActiveMocks(request)) {
     return;
   }
   const key = `${request.method} ${request.scheme}://${request.host.replace(/:(443|80)$/, '')}${request.path}`;
@@ -296,15 +264,13 @@ const installNetConnectGuard = () => {
   beforeEach(() => {
     currentTestActive = true;
     blockNetConnect();
-    // If something wiped the shared defaults (a helper's clearAll, a stale
-    // layer), every test still starts with them armed.
-    rearmDefaultMocksIfWiped();
   });
   afterEach(() => checkBlockedRequests(expect.getState().currentTestName));
   afterAll(() => {
     if (nock.isActive()) {
       nock.restore();
     }
+    removeStaleInterceptorListeners();
   });
 };
 

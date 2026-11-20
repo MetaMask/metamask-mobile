@@ -38758,7 +38758,7 @@ __metadata:
     luxon: "npm:^3.5.0"
     mockttp: "npm:^3.15.2"
     multihashes: "npm:0.4.14"
-    nock: "patch:nock@npm%3A14.0.11#~/.yarn/patches/nock-npm-14.0.11-4a1d2e2ff7.patch"
+    nock: "npm:^14.0.11"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
     openai: "npm:^6.25.0"
@@ -40457,25 +40457,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nock@npm:14.0.11":
-  version: 14.0.11
-  resolution: "nock@npm:14.0.11"
+"nock@npm:^14.0.11":
+  version: 14.0.17
+  resolution: "nock@npm:14.0.17"
   dependencies:
     "@mswjs/interceptors": "npm:^0.41.0"
     json-stringify-safe: "npm:^5.0.1"
     propagate: "npm:^2.0.0"
-  checksum: 10/2fc579f3bee5148ebfacdfc7588a1f45205b139dcc6e32a5bef436f74f479383c7445a9812f433908600f62a0e142ff4bbbe7da7d5e9ed1781bad278b792cf98
-  languageName: node
-  linkType: hard
-
-"nock@patch:nock@npm%3A14.0.11#~/.yarn/patches/nock-npm-14.0.11-4a1d2e2ff7.patch":
-  version: 14.0.11
-  resolution: "nock@patch:nock@npm%3A14.0.11#~/.yarn/patches/nock-npm-14.0.11-4a1d2e2ff7.patch::version=14.0.11&hash=e816bf"
-  dependencies:
-    "@mswjs/interceptors": "npm:^0.41.0"
-    json-stringify-safe: "npm:^5.0.1"
-    propagate: "npm:^2.0.0"
-  checksum: 10/e72b2e822ec9c8d4ee73b2e7b1162ab841596efd00e85c7401a956ef97fcdb64c44ee7f691071d1c49904c98124ef03fcb1511c411eae590d6167a11f365a8ce
+  checksum: 10/deab3abb6a519f4b16e5b4656d169aae9ed774541fc224749d42d405640d2495031c2c3cc934b088fd0fa74fb6d323ad2e4900b57cb8b673e27bca3dc3f91604
   languageName: node
   linkType: hard
 
