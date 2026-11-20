@@ -90,6 +90,19 @@ describe('selectHasUsedMoneyAccount', () => {
 
     expect(selectHasUsedMoneyAccount({} as never)).toBe(true);
   });
+
+  it('returns true for a confirmed Money withdrawal', () => {
+    setUsageInputs({
+      transactions: [
+        {
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+        },
+      ],
+    });
+
+    expect(selectHasUsedMoneyAccount({} as never)).toBe(true);
+  });
 });
 
 describe('selectIsMoneySplashRedirectNeeded', () => {

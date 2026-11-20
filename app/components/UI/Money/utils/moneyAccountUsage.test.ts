@@ -3,12 +3,18 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
+  hasConfirmedMoneyAccountTransaction,
   hasConfirmedMoneyDeposit,
   isPositiveMoneyBalance,
 } from './moneyAccountUsage';
 
 const moneyDeposit = (status: TransactionStatus) => ({
   type: TransactionType.moneyAccountDeposit,
+  status,
+});
+
+const moneyWithdraw = (status: TransactionStatus) => ({
+  type: TransactionType.moneyAccountWithdraw,
   status,
 });
 
@@ -61,5 +67,43 @@ describe('hasConfirmedMoneyDeposit', () => {
         'invalid',
       ]),
     ).toBe(false);
+  });
+});
+
+describe('hasConfirmedMoneyAccountTransaction', () => {
+  it('returns true for a confirmed deposit or withdrawal', () => {
+    expect(
+      hasConfirmedMoneyAccountTransaction([
+        moneyDeposit(TransactionStatus.confirmed),
+      ]),
+    ).toBe(true);
+    expect(
+      hasConfirmedMoneyAccountTransaction([
+        moneyWithdraw(TransactionStatus.confirmed),
+      ]),
+    ).toBe(true);
+    expect(
+      hasConfirmedMoneyAccountTransaction([
+        {
+          type: 'batch',
+          status: TransactionStatus.confirmed,
+          nestedTransactions: [moneyWithdraw(TransactionStatus.confirmed)],
+        },
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns false for unconfirmed or unrelated transactions', () => {
+    expect(
+      hasConfirmedMoneyAccountTransaction([
+        moneyWithdraw(TransactionStatus.submitted),
+      ]),
+    ).toBe(false);
+    expect(
+      hasConfirmedMoneyAccountTransaction([
+        { type: 'simpleSend', status: TransactionStatus.confirmed },
+      ]),
+    ).toBe(false);
+    expect(hasConfirmedMoneyAccountTransaction(undefined)).toBe(false);
   });
 });

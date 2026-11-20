@@ -7,7 +7,10 @@ import {
   isMusdOnMoneyAccountChain,
   isMusdToken,
 } from '../../Earn/constants/musd';
-import { isMoneyDepositTransaction } from './moneyAccountUsage';
+import {
+  isMoneyDepositTransaction,
+  isMoneyWithdrawTransaction,
+} from './moneyAccountUsage';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import type { MoneyAccountDepositIntent } from '../hooks/useMoneyAccount';
@@ -47,10 +50,7 @@ export const resolveMoneyDepositIntent = (
 };
 
 export const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
-  transactionMeta.type === TransactionType.moneyAccountWithdraw ||
-  Boolean(
-    nestedTxWithType(transactionMeta, TransactionType.moneyAccountWithdraw),
-  );
+  isMoneyWithdrawTransaction(transactionMeta);
 
 /**
  * True when a Money Account withdrawal lands as mUSD (single-row hero and
