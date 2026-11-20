@@ -283,6 +283,74 @@ export function canClaimEarnings(
   return claimRoutesForSummary(summary, options).length > 0;
 }
 
+export interface DisplayClaimTotals {
+  /** Claimable that meets the minimum, plus any amount with no family to place it. */
+  claimable: string;
+  /** Claim-delay pending plus family claimable under the minimum. */
+  pending: string;
+}
+
+/** Null when the value is missing or not an integer string. */
+function readBaseUnits(value: string | undefined): bigint | null {
+  if (!value) {
+    return null;
+  }
+  try {
+    return BigInt(value);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Display totals for the earnings card and the balance sheet.
+ *
+ * Each family's claimable that is under a readable
+ * `minimum_musd_base_units` moves to pending. A missing or unreadable minimum
+ * leaves it in claimable. The server already reports a closed mechanism as
+ * `blocked` with a family claimable of 0, so no route check is needed here.
+ * Held and blocked are not rewritten.
+ */
+export function displayClaimTotals(
+  summary: EarningsSummaryDto | null | undefined,
+): DisplayClaimTotals {
+  const minimum = readBaseUnits(summary?.minimum_musd_base_units);
+  const familyAmounts = [
+    summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
+      ?.claimable,
+    summary?.earned_by_others?.by_claim_family?.REFERRAL_REV_SHARE?.claimable,
+    summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE?.claimable,
+  ];
+
+  let claimable = 0n;
+  let belowMinimum = 0n;
+  let accounted = 0n;
+  for (const value of familyAmounts) {
+    const amount = readBaseUnits(value) ?? 0n;
+    if (amount <= 0n) {
+      continue;
+    }
+    accounted += amount;
+    if (minimum === null || amount >= minimum) {
+      claimable += amount;
+    } else {
+      belowMinimum += amount;
+    }
+  }
+
+  const rootClaimable = readBaseUnits(summary?.claimable) ?? 0n;
+  if (rootClaimable > accounted) {
+    claimable += rootClaimable - accounted;
+  }
+
+  return {
+    claimable: claimable.toString(),
+    pending: (
+      (readBaseUnits(summary?.pending) ?? 0n) + belowMinimum
+    ).toString(),
+  };
+}
+
 /**
  * True when follow-trade or revenue share is held for tax and that claim
  * route is open. A closed route stays false even when its balance is held.

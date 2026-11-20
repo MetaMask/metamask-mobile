@@ -168,7 +168,7 @@ describe('EarningsTab', () => {
       ...summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE,
       claimable: '1000000',
     };
-    const { findByTestId, queryByTestId } = renderEarningsTab({
+    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
       persona: 'referrer',
       summary,
       claimReady: true,
@@ -176,8 +176,13 @@ describe('EarningsTab', () => {
     });
 
     expect(
+      await findByText(
+        `${REFERRAL_LOCALIZED_TEXT.balance} \u2022 ${REFERRAL_LOCALIZED_TEXT.mUSD}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
-    ).toHaveTextContent('$1.00');
+    ).toHaveTextContent('$58.50');
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).not.toBeOnTheScreen();
