@@ -47,3 +47,26 @@ export const selectPrimaryMoneyAccount = createSelector(
     );
   },
 );
+
+/**
+ * Selects the default Money account: the account named by the controller's
+ * `defaultMoneyAccountId`. Falls back to the primary Money account when no
+ * default is set, or when the default id does not resolve to an account.
+ *
+ * Use this for anything that pays to or binds the user's Money address. The
+ * default moves to the MPC-backed account once the user has MFA enabled.
+ *
+ * @param state - The root Redux state.
+ * @returns The default Money account, or the primary one as a fallback.
+ */
+export const selectDefaultMoneyAccount = createSelector(
+  selectMoneyAccountControllerState,
+  selectPrimaryMoneyAccount,
+  (controllerState, primaryMoneyAccount) => {
+    const defaultId = controllerState.defaultMoneyAccountId;
+    if (defaultId === null) {
+      return primaryMoneyAccount;
+    }
+    return controllerState.moneyAccounts[defaultId] ?? primaryMoneyAccount;
+  },
+);
