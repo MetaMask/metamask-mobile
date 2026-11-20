@@ -71,6 +71,7 @@ import { BadgePosition } from '../../../../../component-library/components/Badge
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { useSelector } from 'react-redux';
+import { selectPerpsOrderProvider } from '../../selectors/perpsController';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
@@ -94,7 +95,8 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Hooks
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { account } = usePerpsLiveAccount();
+  const providerId = useSelector(selectPerpsOrderProvider) ?? undefined;
+  const { account } = usePerpsLiveAccount({ providerId });
 
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
@@ -104,7 +106,7 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Truncate to 2 decimals so the user can withdraw exactly what they see.
   const withdrawableBalance = useMemo(() => {
-    if (!account?.withdrawableBalance) return 0;
+    if (account?.withdrawableBalance === undefined) return undefined;
     return truncateToTwoDecimals(
       parseCurrencyString(account.withdrawableBalance),
     );
@@ -115,7 +117,8 @@ const PerpsWithdrawView: React.FC = () => {
     [withdrawableBalance],
   );
 
-  const hasPositiveBalance = withdrawableBalance > 0;
+  const hasPositiveBalance =
+    withdrawableBalance !== undefined && withdrawableBalance > 0;
 
   // Get withdrawal validation
   const {
@@ -123,7 +126,10 @@ const PerpsWithdrawView: React.FC = () => {
     isBelowMinimum,
     hasInsufficientBalance,
     getMinimumAmount,
-  } = useWithdrawValidation({ withdrawAmount: withdrawAmountDetailed });
+  } = useWithdrawValidation({
+    withdrawAmount: withdrawAmountDetailed,
+    providerId,
+  });
 
   // Check if inputs are valid
   const hasValidInputs =
@@ -135,6 +141,7 @@ const PerpsWithdrawView: React.FC = () => {
   // Get withdrawal quote
   const { formattedQuoteData, networkFeeAmount } = usePerpsWithdrawQuote({
     amount: withdrawAmountDetailed,
+    providerId,
   });
 
   // Calculate destination amount (for now, same as withdrawal amount minus fees).
@@ -260,7 +267,8 @@ const PerpsWithdrawView: React.FC = () => {
 
       const result = await controller.withdraw({
         amount: withdrawAmountDetailed,
-        assetId, // Required CAIP format for USDC withdrawal (with /default suffix)
+        assetId,
+        ...(providerId && { providerId }),
       });
 
       if (result.success) {
@@ -308,6 +316,7 @@ const PerpsWithdrawView: React.FC = () => {
     destToken.chainId,
     destToken.address,
     isTestnet,
+    providerId,
     withdrawAmountDetailed,
   ]);
 

@@ -5,12 +5,10 @@ import {
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import {
-  calculateMaxRemovableMargin,
-  estimateLiquidationPrice,
-} from '../utils/marginUtils';
 import { calculateLiquidationDistance } from '../utils/liquidationDistance';
 import {
+  calculateMaxRemovableMargin,
+  estimateLiquidationPriceAfterMarginChange,
   MARGIN_ADJUSTMENT_CONFIG,
   type Position,
 } from '@metamask/perps-controller';
@@ -107,7 +105,6 @@ export function usePerpsAdjustMarginData(
 
   // Live data subscriptions
   const { positions, isInitialLoading } = usePerpsLivePositions();
-  const { account } = usePerpsLiveAccount();
   const livePrices = usePerpsLivePrices({
     symbols: symbol ? [symbol] : [],
     throttleMs: 1000,
@@ -119,6 +116,8 @@ export function usePerpsAdjustMarginData(
     () => positions?.find((p) => p.symbol === symbol) || null,
     [positions, symbol],
   );
+
+  const { account } = usePerpsLiveAccount({ providerId: position?.providerId });
 
   // Get market info for max leverage fallback
   const marketInfo = useMemo(
@@ -140,7 +139,6 @@ export function usePerpsAdjustMarginData(
     positionValue,
     currentLiquidationPrice,
     positionSize,
-    entryPrice,
     isLong,
     parsedPositionLeverage,
     hasValidPositionData,
@@ -155,7 +153,6 @@ export function usePerpsAdjustMarginData(
       positionValue: positionValueValue,
       currentLiquidationPrice: parseFiniteNumber(position?.liquidationPrice),
       positionSize: Math.abs(signedPositionSize),
-      entryPrice: entryPriceValue,
       isLong: signedPositionSize > 0,
       parsedPositionLeverage: leverageValue,
       hasValidPositionData:
@@ -199,7 +196,6 @@ export function usePerpsAdjustMarginData(
       calculateMaxRemovableMargin({
         currentMargin,
         positionSize,
-        entryPrice,
         currentPrice,
         positionLeverage,
         notionalValue: positionValue,
@@ -211,7 +207,6 @@ export function usePerpsAdjustMarginData(
     spendableBalance,
     currentMargin,
     positionSize,
-    entryPrice,
     currentPrice,
     positionLeverage,
     positionValue,
@@ -232,7 +227,7 @@ export function usePerpsAdjustMarginData(
   const newLiquidationPrice = useMemo(() => {
     if (newMargin === 0 || positionSize === 0) return currentLiquidationPrice;
 
-    return estimateLiquidationPrice({
+    return estimateLiquidationPriceAfterMarginChange({
       isLong,
       currentMargin,
       newMargin,

@@ -5,7 +5,7 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
-  formatPercentage,
+  formatRoePercentage,
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
@@ -59,7 +59,7 @@ export const getPerpsPositionHeaderDisplay = (
     ? strings('perps.market.long')
     : strings('perps.market.short');
   const pnl = Number.parseFloat(position.unrealizedPnl);
-  const roe = parsePositionRoePercentage(position.returnOnEquity) ?? 0;
+  const roe = parsePositionRoePercentage(position.returnOnEquity);
   const pnlColor = pnl >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
   const positionValue = formatPerpsFiat(position.positionValue, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -68,13 +68,16 @@ export const getPerpsPositionHeaderDisplay = (
   return {
     displaySymbol,
     absoluteSize,
-    directionLabel: `${position.leverage.value}x ${direction}`,
+    directionLabel:
+      position.leverage.value === undefined
+        ? direction
+        : `${position.leverage.value}x ${direction}`,
     directionSeverity: isLong ? TagSeverity.Success : TagSeverity.Danger,
     description: `${formatPositionSize(
       absoluteSize.toString(),
     )} ${displaySymbol} • ${positionValue}`,
     pnlText: formatPnl(pnl),
-    roeText: formatPercentage(roe, 1),
+    roeText: formatRoePercentage(roe, pnl < 0),
     pnlColor,
   };
 };

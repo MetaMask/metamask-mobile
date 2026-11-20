@@ -16,6 +16,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { formatFundingPayment } from '../../../../UI/Perps/utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import type { ActivityListItem } from '../../../../../util/activity-adapters';
@@ -38,7 +39,6 @@ import {
   formatPerpsFiat,
   formatPerpsOrderFee,
   formatPerpsTransactionDate,
-  formatSignedPerpsFiat,
   getPerpsFundsCtaLabel,
   getPerpsPositionSize,
   getPerpsPriceValue,
@@ -354,7 +354,7 @@ function FundingDetails({
                       : TextColor.TextDefault
                   }
                 >
-                  {formatSignedPerpsFiat(funding.feeNumber, isPositive)}
+                  {formatFundingPayment(funding.feeNumber)}
                 </Text>
               ) : undefined
             }

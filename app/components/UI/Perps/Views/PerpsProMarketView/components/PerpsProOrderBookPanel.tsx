@@ -22,6 +22,7 @@ import {
   getPerpsDisplaySymbol,
   getPerpsOrderBookPriceFormat,
   type PerpsOrderBookPriceFormat,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { AnimationDuration } from '@metamask/design-tokens';
 import React, {
@@ -86,6 +87,7 @@ type OrderBookViewMode = 'default' | 'buy' | 'sell';
 export interface PerpsProOrderBookPanelProps {
   /** Market symbol (e.g. 'BTC', 'xyz:TSLA'). */
   symbol: string;
+  providerId?: PerpsProviderType;
   /**
    * Fallback mid/market price used to derive grouping options before the raw
    * order book produces its own mid.
@@ -430,6 +432,7 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
  */
 const PerpsProOrderBookPanel = ({
   symbol,
+  providerId,
   marketPrice,
   szDecimals,
   isMarketContextReady = true,
@@ -468,7 +471,10 @@ const PerpsProOrderBookPanel = ({
     setIsConfigOpen(true);
   }, [playSelection]);
 
-  const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
+  const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(
+    symbol,
+    providerId,
+  );
   const { orderBookPosition, setOrderBookPosition } =
     usePerpsProOrderBookPosition();
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
@@ -508,6 +514,7 @@ const PerpsProOrderBookPanel = ({
   const { orderBook: rawOrderBook, dataSymbol: rawOrderBookSymbol } =
     usePerpsLiveOrderBook({
       symbol,
+      providerId,
       enabled: Boolean(symbol) && isMarketContextReady,
       resetKey: marketContextKey,
       // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
@@ -600,6 +607,7 @@ const PerpsProOrderBookPanel = ({
     reconnect,
   } = usePerpsLiveOrderBook({
     symbol,
+    providerId,
     channel: 'orderBookAggregated',
     enabled: Boolean(symbol) && isMarketContextReady,
     resetKey: marketContextKey,
@@ -613,11 +621,11 @@ const PerpsProOrderBookPanel = ({
       aggregatedOrderBook
         ? groupOrderBook(
             aggregatedOrderBook,
-            null,
+            providerId && providerId !== 'hyperliquid' ? currentGrouping : null,
             ORDER_BOOK_AGGREGATED_LEVELS,
           )
         : null,
-    [aggregatedOrderBook],
+    [aggregatedOrderBook, providerId, currentGrouping],
   );
 
   const readinessBaselineRef = useRef({

@@ -36,7 +36,6 @@ import {
   type PerpsTransaction,
   formatPerpsFiat,
   formatPerpsOrderFee,
-  formatSignedPerpsFiat,
   formatPerpsTransactionDate,
   getPerpsPositionSize,
   getPerpsPriceValue,
@@ -1011,32 +1010,24 @@ describeForPlatforms('ActivityDetails — Perps funding', () => {
 
   it('shows received funding fees with a green fee and explorer', async () => {
     const item = buildActivityCvPerpsFundingItem('received');
-    const funding = getPerpsTransaction(item)?.fundingAmount;
 
     await expectFundingDetails({
       item,
       title: strings('transactions.activity_perps_received_funding_fees'),
       rate: '-0.0125%',
-      feeAmount: formatSignedPerpsFiat(
-        funding?.feeNumber ?? 1.23,
-        Boolean(funding?.isPositive),
-      ),
+      feeAmount: '+$1.23',
       feeColor: TextColor.SuccessDefault,
     });
   });
 
   it('shows paid funding fees with a default fee and explorer', async () => {
     const item = buildActivityCvPerpsFundingItem('paid');
-    const funding = getPerpsTransaction(item)?.fundingAmount;
 
     await expectFundingDetails({
       item,
       title: strings('transactions.activity_perps_paid_funding_fees'),
       rate: '0.01%',
-      feeAmount: formatSignedPerpsFiat(
-        funding?.feeNumber ?? 0.5,
-        Boolean(funding?.isPositive),
-      ),
+      feeAmount: '-$0.50',
       feeColor: TextColor.TextDefault,
     });
   });

@@ -5,6 +5,7 @@ import {
   TimeDuration,
   PERPS_CONSTANTS,
   type CandleData,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -20,6 +21,7 @@ const EMPTY_CANDLE_DATA: CandleData = {
 export interface UsePerpsLiveCandlesOptions {
   /** The asset symbol (e.g., "BTC", "ETH") */
   symbol: string;
+  providerId?: PerpsProviderType;
   /** The candle interval (e.g., "1m", "5m", "15m") */
   interval: CandlePeriod;
   /** The duration for historical data (e.g., "1d", "7d", "1M") - currently informational only */
@@ -76,6 +78,7 @@ export function usePerpsLiveCandles(
 ): UsePerpsLiveCandlesReturn {
   const {
     symbol,
+    providerId,
     interval,
     duration,
     throttleMs = 1000,
@@ -112,6 +115,7 @@ export function usePerpsLiveCandles(
     try {
       const unsubscribe = stream.candles.subscribe({
         symbol,
+        ...(providerId && { providerId }),
         interval,
         duration,
         callback: (newCandleData) => {
@@ -210,7 +214,16 @@ export function usePerpsLiveCandles(
       setIsLoading(false);
       return;
     }
-  }, [stream, symbol, interval, duration, throttleMs, resetKey, enabled]);
+  }, [
+    stream,
+    symbol,
+    providerId,
+    interval,
+    duration,
+    throttleMs,
+    resetKey,
+    enabled,
+  ]);
 
   const hasHistoricalData =
     candleData !== null && candleData.candles.length > 0;
@@ -220,7 +233,8 @@ export function usePerpsLiveCandles(
    * Used when user scrolls to the left edge of the chart
    */
   const fetchMoreHistory = async (): Promise<void> => {
-    if (!symbol || isLoadingMore) {
+    // Core's history endpoint still reads the routing default.
+    if (!symbol || isLoadingMore || providerId !== undefined) {
       return;
     }
 

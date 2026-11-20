@@ -3,6 +3,7 @@ import Engine from '../../../../../core/Engine';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   type OrderBookData,
+  type PerpsProviderType,
   type OrderBookConnectionStatus,
 } from '@metamask/perps-controller';
 import { getAggregatedOrderBookConnection } from '../../services/aggregatedOrderBookConnection';
@@ -17,6 +18,7 @@ export type { OrderBookConnectionStatus } from '@metamask/perps-controller';
 export interface UsePerpsLiveOrderBookOptions {
   /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
   symbol: string;
+  providerId?: PerpsProviderType;
   /** Number of levels to display (default: 10) */
   levels?: number;
   /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
@@ -89,6 +91,7 @@ export function usePerpsLiveOrderBook(
 ): UsePerpsLiveOrderBookReturn {
   const {
     symbol,
+    providerId,
     levels = 10,
     nSigFigs = 5,
     mantissa,
@@ -99,8 +102,12 @@ export function usePerpsLiveOrderBook(
     channel = 'orderBook',
   } = options;
 
-  const isAggregated = channel === 'orderBookAggregated';
+  const isAggregated =
+    channel === 'orderBookAggregated' &&
+    (providerId === undefined || providerId === 'hyperliquid');
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
+  const [dataRoute, setDataRoute] = useState<string>();
+  const route = JSON.stringify([symbol, providerId, resetKey]);
   const [dataSymbol, setDataSymbol] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -163,6 +170,7 @@ export function usePerpsLiveOrderBook(
 
     setOrderBook(null);
     setDataSymbol(null);
+    setDataRoute(route);
     setIsLoading(true);
     setError(null);
     setConnectionStatus(isAggregated ? 'connecting' : 'connected');
@@ -217,6 +225,7 @@ export function usePerpsLiveOrderBook(
         const controller = Engine.context.PerpsController;
         unsubscribe = controller.subscribeToOrderBook({
           symbol,
+          ...(providerId && { providerId }),
           levels,
           nSigFigs,
           mantissa,
@@ -267,6 +276,8 @@ export function usePerpsLiveOrderBook(
     };
   }, [
     symbol,
+    providerId,
+    route,
     levels,
     nSigFigs,
     mantissa,
@@ -282,14 +293,19 @@ export function usePerpsLiveOrderBook(
 
   return useMemo(
     () => ({
-      orderBook,
-      dataSymbol,
-      isLoading,
-      error,
+      orderBook: dataRoute === route ? orderBook : null,
+      dataSymbol: dataRoute === route ? dataSymbol : null,
+      isLoading:
+        enabled && Boolean(symbol) && (dataRoute !== route || isLoading),
+      error: dataRoute === route ? error : null,
       connectionStatus: isAggregated ? connectionStatus : 'connected',
       reconnect,
     }),
     [
+      dataRoute,
+      route,
+      symbol,
+      enabled,
       orderBook,
       dataSymbol,
       isLoading,

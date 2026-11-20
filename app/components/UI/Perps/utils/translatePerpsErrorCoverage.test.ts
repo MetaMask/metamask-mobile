@@ -1,5 +1,7 @@
-import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
-import { ERROR_CODE_TO_I18N_KEY } from './translatePerpsError';
+import {
+  PERPS_ERROR_CODES,
+  PERPS_ERROR_COPY,
+} from '@metamask/perps-controller';
 import enTranslations from '../../../../../locales/languages/en.json';
 
 /**
@@ -26,9 +28,9 @@ const resolveTranslation = (i18nKey: string): string | undefined => {
   return typeof node === 'string' ? node : undefined;
 };
 
-describe('ERROR_CODE_TO_I18N_KEY', () => {
+describe('Perps error translations', () => {
   it('maps IOC cancellation to user-facing slippage copy', () => {
-    const key = ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.IOC_CANCEL];
+    const key = PERPS_ERROR_COPY[PERPS_ERROR_CODES.IOC_CANCEL].key;
 
     const message = resolveTranslation(key);
 
@@ -41,7 +43,7 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
   const errorCodes = Object.values(PERPS_ERROR_CODES);
 
   it('maps every error code the controller exports', () => {
-    const unmapped = errorCodes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+    const unmapped = errorCodes.filter((code) => !PERPS_ERROR_COPY[code].key);
 
     expect(unmapped).toStrictEqual([]);
   });
@@ -64,7 +66,7 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
       PERPS_ERROR_CODES.EXCHANGE_INVALID_NONCE,
     ];
 
-    const unmapped = v11Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+    const unmapped = v11Codes.filter((code) => !PERPS_ERROR_COPY[code].key);
 
     expect(unmapped).toStrictEqual([]);
   });
@@ -92,7 +94,7 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
       PERPS_ERROR_CODES.ORDER_CHASE_TOUCH_UNAVAILABLE,
     ];
 
-    const unmapped = v12Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+    const unmapped = v12Codes.filter((code) => !PERPS_ERROR_COPY[code].key);
 
     expect(unmapped).toStrictEqual([]);
   });
@@ -106,7 +108,7 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
       PERPS_ERROR_CODES.TPSL_PROTECTION_LOST,
     ];
 
-    const unmapped = v13Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+    const unmapped = v13Codes.filter((code) => !PERPS_ERROR_COPY[code].key);
 
     expect(unmapped).toStrictEqual([]);
   });
@@ -119,35 +121,35 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
       PERPS_ERROR_CODES.ORDER_MARGIN_MODE_ORDER_OPEN,
     ];
 
-    const unmapped = v16Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+    const unmapped = v16Codes.filter((code) => !PERPS_ERROR_COPY[code].key);
 
     expect(unmapped).toStrictEqual([]);
   });
 
   it('maps the v23 and v24 provider-route and TP/SL leg codes', () => {
     const legReplaceCopy = resolveTranslation(
-      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED],
+      PERPS_ERROR_COPY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED].key,
     );
 
     expect(
-      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED],
+      PERPS_ERROR_COPY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED].key,
     ).toBe('perps.errors.tpslLegReplaceUnsupported');
     expect(legReplaceCopy).toContain('together instead');
     expect(legReplaceCopy).not.toContain('Try again');
     expect(
-      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED],
+      PERPS_ERROR_COPY[PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED].key,
     ).toBe('perps.errors.providerRouteRequired');
   });
 
   it('maps the v20 price-moved code to detailed price movement copy', () => {
-    expect(ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PRICE_MOVED]).toBe(
+    expect(PERPS_ERROR_COPY[PERPS_ERROR_CODES.PRICE_MOVED].key).toBe(
       'perps.errors.priceMoved',
     );
   });
 
   it('resolves every mapped i18n key to English copy', () => {
     const unresolved = errorCodes
-      .map((code) => ERROR_CODE_TO_I18N_KEY[code])
+      .map((code) => PERPS_ERROR_COPY[code].key)
       .filter((i18nKey) => i18nKey && !resolveTranslation(i18nKey));
 
     expect(unresolved).toStrictEqual([]);

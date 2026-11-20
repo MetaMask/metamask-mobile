@@ -21,11 +21,14 @@ import {
   type PerpsOrderBookPriceFormatOptions,
   type PerpsPercentageFormatOptions,
   type PerpsSignDisplay,
+  formatFundingPayment as formatFundingPaymentWithFormatters,
   formatFundingRate as formatFundingRateEnUs,
+  formatPositionFunding as formatPositionFundingWithFormatters,
   formatHyperLiquidPrice,
   formatLiquidationDistance as formatLiquidationDistanceEnUs,
   formatPercentage as formatPercentageEnUs,
   formatPerpsCompact as formatPerpsCompactEnUs,
+  formatPerpsDuration as formatPerpsDurationEnUs,
   formatPerpsFiat as formatPerpsFiatEnUs,
   formatPerpsOrderBookPrice as formatPerpsOrderBookPriceEnUs,
   formatPnl as formatPnlEnUs,
@@ -53,6 +56,10 @@ export {
  */
 
 type PerpsDisplayValue = string | number | null | undefined;
+
+/** Core `formatPerpsDuration` in the app language. */
+export const formatPerpsDuration = (durationMs: PerpsDisplayValue): string =>
+  formatPerpsDurationEnUs(durationMs, { formatters: getFormatters() });
 
 const toDisplayOptions = (
   decimalsOrOptions?: number | PerpsDisplayFormatOptions,
@@ -108,6 +115,14 @@ export const formatRoePercentage = (
   });
   return `-${unsigned}`;
 };
+
+/** Core `formatPositionFunding` in the app language. */
+export const formatPositionFunding = (value: PerpsDisplayValue): string =>
+  formatPositionFundingWithFormatters(value, { formatters: getFormatters() });
+
+/** Core `formatFundingPayment` in the app language. */
+export const formatFundingPayment = (value: PerpsDisplayValue): string =>
+  formatFundingPaymentWithFormatters(value, { formatters: getFormatters() });
 
 /** Core `formatFundingRate` in the app language. */
 export const formatFundingRate = (

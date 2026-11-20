@@ -47,5 +47,8 @@ export function usePerpsLiveAvailableToTrade({
     });
   }, [streamManager, symbol, providerId, throttleMs]);
 
-  return availableToTrade;
+  return availableToTrade?.symbol === symbol &&
+    (providerId === undefined || availableToTrade?.providerId === providerId)
+    ? availableToTrade
+    : undefined;
 }

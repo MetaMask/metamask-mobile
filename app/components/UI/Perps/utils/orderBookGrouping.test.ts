@@ -206,9 +206,9 @@ describe('orderBookGrouping', () => {
       expect(parseFloat(result[1].total)).toBe(5);
     });
 
-    it('returns original levels for grouping size 0', () => {
+    it('preserves level values for grouping size 0', () => {
       const result = aggregateOrderBookLevels(mockBidLevels, 0, 'bid');
-      expect(result).toBe(mockBidLevels);
+      expect(result).toStrictEqual(mockBidLevels);
     });
 
     it('handles empty levels array', () => {

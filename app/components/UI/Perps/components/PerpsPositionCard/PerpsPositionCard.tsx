@@ -36,6 +36,8 @@ import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags'
 import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import {
   getPerpsDisplaySymbol,
+  getPositionFundingDirection,
+  PERPS_CONSTANTS,
   type Order,
   type Position,
 } from '@metamask/perps-controller';
@@ -44,6 +46,7 @@ import {
   formatPnl,
   formatRoePercentage,
   formatPositionSize,
+  formatPositionFunding,
   formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -142,28 +145,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const roePercentage = parsePositionRoePercentage(position.returnOnEquity);
   const roe = roePercentage ?? 0;
 
-  // Funding cost (cumulative since open) formatting logic
-  const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
-  const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
-  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
-
-  // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
-  let fundingColorFromValue: TextColor = TextColor.TextDefault;
-  if (fundingSinceOpen > 0) {
-    fundingColorFromValue = TextColor.ErrorDefault;
-  } else if (fundingSinceOpen < 0) {
-    fundingColorFromValue = TextColor.SuccessDefault;
-  }
-  const fundingColor = isNearZeroFunding
-    ? TextColor.TextDefault
-    : fundingColorFromValue;
-
-  const fundingSignPrefix = fundingSinceOpen >= 0 ? '-' : '+';
-  const fundingDisplay = isNearZeroFunding
-    ? '$0.00'
-    : `${fundingSignPrefix}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
-        ranges: PRICE_RANGES_MINIMAL_VIEW,
-      })}`;
+  const fundingSinceOpen = position.cumulativeFunding?.sinceOpen;
+  const fundingDirection = getPositionFundingDirection(fundingSinceOpen);
+  const fundingColor = {
+    cost: TextColor.ErrorDefault,
+    payment: TextColor.SuccessDefault,
+    none: TextColor.TextDefault,
+  }[fundingDirection];
+  const fundingDisplay = formatPositionFunding(fundingSinceOpen);
 
   const handleSizeToggle = () => {
     setShowSizeInUSD(!showSizeInUSD);
@@ -461,9 +450,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                 >
-                  {formatPerpsFiat(position.marginUsed, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })}
+                  {formatPerpsFiat(
+                    position.displayMarginUsed ?? position.marginUsed,
+                    {
+                      ranges: PRICE_RANGES_MINIMAL_VIEW,
+                    },
+                  )}
                 </SensitiveText>
               </Box>
               {marginPress && (
@@ -529,7 +521,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               direction === 'long'
                 ? strings('perps.market.long')
                 : strings('perps.market.short')
-            } ${position.leverage.value}x`}
+            } ${
+              position.leverage.value === undefined
+                ? PERPS_CONSTANTS.FallbackPriceDisplay
+                : `${position.leverage.value}x`
+            }`}
             valueTextProps={{
               testID: PerpsPositionCardSelectorsIDs.DIRECTION_VALUE,
             }}

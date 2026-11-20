@@ -13,6 +13,7 @@ import {
   selectPendingTradeConfiguration,
   selectSelectedOrderType,
   type OrderFormState,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import {
@@ -24,7 +25,10 @@ import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { usePerpsSelector } from './usePerpsSelector';
-import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  selectPerpsMode,
+  selectPerpsOrderProvider,
+} from '../selectors/perpsController';
 import {
   getMaxAllowedAmountAtExecutionPrice,
   getProspectiveExecutionPrice,
@@ -58,6 +62,7 @@ export interface PerpsOrderPriceFieldHandlers {
 }
 
 interface UsePerpsOrderFormParams {
+  providerId?: PerpsProviderType;
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
@@ -142,6 +147,7 @@ export function usePerpsOrderForm(
   params: UsePerpsOrderFormParams = {},
 ): UsePerpsOrderFormReturn {
   const {
+    providerId: marketProviderId,
     initialAsset = 'BTC',
     initialDirection,
     initialAmount,
@@ -154,7 +160,9 @@ export function usePerpsOrderForm(
 
   const currentNetwork = usePerpsNetwork();
   const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
-  const { account } = usePerpsLiveAccount();
+  const defaultProviderId = useSelector(selectPerpsOrderProvider);
+  const providerId = marketProviderId ?? defaultProviderId ?? undefined;
+  const { account } = usePerpsLiveAccount({ providerId });
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     symbols: [initialAsset],
@@ -172,18 +180,23 @@ export function usePerpsOrderForm(
   // Get existing position leverage for this asset (protocol constraint)
   // Positions load asynchronously via WebSocket, so this may be undefined initially
   const existingPositionLeverage = useMemo(
-    () => positions.find((p) => p.symbol === initialAsset)?.leverage?.value,
-    [positions, initialAsset],
+    () =>
+      positions.find(
+        (p) =>
+          p.symbol === initialAsset &&
+          (p.providerId === undefined || p.providerId === providerId),
+      )?.leverage?.value,
+    [positions, initialAsset, providerId],
   );
 
   // Get saved trade configuration for this asset (user preference for new positions)
   const savedConfig = usePerpsSelector((state) =>
-    selectTradeConfiguration(state, initialAsset),
+    selectTradeConfiguration(state, initialAsset, providerId),
   );
 
   // Get pending trade configuration for this asset (temporary, expires after 30 seconds)
   const pendingConfig = usePerpsSelector((state) =>
-    selectPendingTradeConfiguration(state, initialAsset),
+    selectPendingTradeConfiguration(state, initialAsset, providerId),
   );
 
   const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
