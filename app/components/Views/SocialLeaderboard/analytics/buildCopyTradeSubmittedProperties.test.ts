@@ -26,6 +26,28 @@ describe('buildCopyTradeSubmittedProperties', () => {
       order_id: '12345',
     });
   });
+  it('records the source post and its author on a copy', () => {
+    expect(
+      buildCopyTradeSubmittedProperties({
+        source: 'social_following',
+        asset: 'BTC',
+        direction: 'long',
+        orderId: '12345',
+        postId: 'comment-1',
+        authorTraderId: 'trader-1',
+      }),
+    ).toEqual({
+      ...base,
+      screen_name: SocialEvent.Screen.FOLLOWING,
+      source: 'social_following',
+      asset: 'BTC',
+      direction: SocialEvent.Direction.LONG,
+      order_id: '12345',
+      post_id: 'comment-1',
+      author_trader_id: 'trader-1',
+    });
+  });
+
   it('keeps a copy that has no known source', () => {
     expect(
       buildCopyTradeSubmittedProperties({
