@@ -96,11 +96,27 @@ retry would hide): the cached action, the error, and the action Haiku found.
 - **passed**: nothing to do.
 
 Only cache entries are ever suggested; pins, timers and thresholds stay in the
-Markdown. Automatic heal PRs come in a follow-up PR. Locally, on a downloaded
-run:
+Markdown. Locally, on a downloaded run:
 
 ```bash
 gh run download <run id> --pattern 'testmu-he-*-test-results-*' --dir /tmp/run
 yarn tsx .github/scripts/qa-automation/performance-tests/scenario-report.ts \
   --artifacts /tmp/run
+```
+
+## Heal PRs
+
+The `Heal agent-driven scenarios` job acts on the same classification. For
+each **cache fix below** outcome it opens one **draft** PR
+(`perf-scenario-heal/<run id>`, labels `team-qa`, `perf-scenario-heal`) that
+changes only `*.scenario.cache.json`, and posts to `#mm-qa-legends-ai-alerts`
+(secret `PERF_SCENARIO_HEAL_SLACK_WEBHOOK_URL`). An open heal PR that already
+covers the same steps is reused. Heal PRs are never merged automatically, and
+code rejects any change to Markdown, pins, timers, thresholds or other files.
+Dry run:
+
+```bash
+SCENARIO_HEAL_DRY_RUN=true yarn tsx \
+  .github/scripts/qa-automation/performance-tests/scenario-heal.ts \
+  --artifacts /tmp/run --out /tmp/heal
 ```
