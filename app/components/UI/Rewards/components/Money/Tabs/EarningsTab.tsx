@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -626,33 +626,21 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
           });
       },
     });
-  const accountsOnDevice = useSelector(selectInternalAccounts);
-  const earnedElsewhere = useMemo(() => {
-    // The list is what re-runs this after an import. Signing stays the
-    // claim runner's keyring check, hardware and snap included.
-    const canSign = accountsOnDevice
-      ? canSignEarningAddress
-      : canSignEarningAddress;
-    return (
-      Boolean(localizedText?.earnedOnOtherAccounts) &&
-      claimBlockedOnThisDevice(
-        earningsSummaryEntry?.data,
-        claimRouteOptions(
-          localizedText?.taxFormUrl,
-          followTradeClaimOpen,
-          revShareClaimOpen,
-        ),
-        canSign,
-      )
+  // Subscribing re-renders this screen when the account list changes (an
+  // import), which re-runs the sign check below. Signing itself stays the
+  // claim runner's keyring check, hardware and snap included.
+  useSelector(selectInternalAccounts);
+  const earnedElsewhere =
+    Boolean(localizedText?.earnedOnOtherAccounts) &&
+    claimBlockedOnThisDevice(
+      earningsSummaryEntry?.data,
+      claimRouteOptions(
+        localizedText?.taxFormUrl,
+        followTradeClaimOpen,
+        revShareClaimOpen,
+      ),
+      canSignEarningAddress,
     );
-  }, [
-    accountsOnDevice,
-    earningsSummaryEntry?.data,
-    followTradeClaimOpen,
-    localizedText?.earnedOnOtherAccounts,
-    localizedText?.taxFormUrl,
-    revShareClaimOpen,
-  ]);
 
   if (!localizedText) {
     return null;
@@ -723,7 +711,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               isClaiming={isClaiming}
               isClaimWaiting={isClaimWaiting}
               claimWaitCaption={claimWaitCaption ?? undefined}
-              earnedElsewhereLabel={
+              earnedElsewhereCaption={
                 earnedElsewhere
                   ? localizedText.earnedOnOtherAccounts
                   : undefined

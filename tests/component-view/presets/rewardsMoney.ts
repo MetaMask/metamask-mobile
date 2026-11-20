@@ -64,7 +64,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   claimFailureNoEligibleBalanceToast: 'Nothing eligible to claim',
   claimFailureUnavailableToast: 'Claims are unavailable',
   claimFailureContactSupportToast: 'Contact support',
-  earnedOnOtherAccounts: 'Earned on accounts not in this wallet',
+  earnedOnOtherAccounts:
+    'Earned on accounts not on this device. Import the earning wallet to claim.',
   historyClaimPending: 'Claim pending',
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',

@@ -191,8 +191,9 @@ describe('ClaimableRewardsCard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('replaces Claim when the earnings are on accounts this phone cannot sign', () => {
-    const { queryByTestId, getByText } = renderWithProvider(
+  it('keeps Available to claim with Claim when the earnings are on accounts this phone cannot sign', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
         localizedText={LOCALIZED_TEXT}
         claimable="1000000"
@@ -203,16 +204,26 @@ describe('ClaimableRewardsCard', () => {
         isSummaryLoading={false}
         isLast7Loading={false}
         canClaim
-        earnedElsewhereLabel="Earned on accounts not in this wallet"
+        earnedElsewhereCaption="Earned on accounts not on this device. Import the earning wallet to claim."
+        onClaim={onClaim}
       />,
     );
 
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Claim')).toBeOnTheScreen();
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeDisabled();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeNull();
     expect(
-      getByText('Earned on accounts not in this wallet'),
-    ).toBeOnTheScreen();
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toHaveTextContent(
+      'Earned on accounts not on this device. Import the earning wallet to claim.',
+    );
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).not.toHaveBeenCalled();
   });
 
   it('renders a disabled Claimed button when only claimed is positive', () => {
