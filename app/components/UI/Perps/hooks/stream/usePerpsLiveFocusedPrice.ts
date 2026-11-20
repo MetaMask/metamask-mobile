@@ -15,6 +15,11 @@ export interface UsePerpsLiveFocusedPriceOptions {
    * Set to false when the screen is inactive to avoid unnecessary connections.
    */
   enabled?: boolean;
+  /**
+   * Minimum interval between delivered updates in ms (default: 0, no throttle).
+   * First update is always delivered immediately; later ones are trailing-throttled.
+   */
+  throttleMs?: number;
 }
 
 /**
@@ -51,7 +56,7 @@ export interface UsePerpsLiveFocusedPriceOptions {
 export function usePerpsLiveFocusedPrice(
   options: UsePerpsLiveFocusedPriceOptions,
 ): PriceUpdate | undefined {
-  const { symbol, enabled = true } = options;
+  const { symbol, enabled = true, throttleMs = 0 } = options;
   const stream = usePerpsStream();
   const { key: marketContextKey, isReady: isMarketContextReady } =
     usePerpsMarketContext();
@@ -88,12 +93,20 @@ export function usePerpsLiveFocusedPrice(
           update ? { contextKey: marketContextKey, symbol, update } : undefined,
         );
       },
+      throttleMs,
     });
 
     return () => {
       unsubscribe();
     };
-  }, [stream, symbol, enabled, isMarketContextReady, marketContextKey]);
+  }, [
+    stream,
+    symbol,
+    enabled,
+    isMarketContextReady,
+    marketContextKey,
+    throttleMs,
+  ]);
 
   return priceState?.symbol === symbol &&
     priceState.contextKey === marketContextKey

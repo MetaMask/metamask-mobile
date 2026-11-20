@@ -45,7 +45,18 @@ describe('usePerpsLiveFocusedPrice', () => {
       expect(mockSubscribeToSymbol).toHaveBeenCalledWith({
         symbol: 'BTC',
         callback: expect.any(Function),
+        throttleMs: 0,
       });
+    });
+
+    it('forwards throttleMs to the channel', () => {
+      renderHook(() =>
+        usePerpsLiveFocusedPrice({ symbol: 'BTC', throttleMs: 1000 }),
+      );
+
+      expect(mockSubscribeToSymbol).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'BTC', throttleMs: 1000 }),
+      );
     });
 
     it('passes the symbol from options to the channel', () => {
