@@ -1,5 +1,4 @@
 import React, { createRef } from 'react';
-import { CaipChainId } from '@metamask/utils';
 import {
   FeatureId,
   UnifiedSwapBridgeEventName,
@@ -17,6 +16,7 @@ import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockTrackUnifiedSwapBridgeEvent = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
@@ -1169,6 +1169,38 @@ describe('TokenInputArea', () => {
       // Assert — fall back to token amount rather than rendering the unpriced "$0.00"
       expect(getByTestId('token-input-input').props.value).toBe('1.5');
       expect(queryByText('$0.00')).toBeNull();
+    });
+
+    it('shows quoted dest money amount as primary when dest is unpriced', () => {
+      mockUseDisplayCurrencyValue.mockReturnValue('$0.00');
+      const moneyToken: BridgeToken = {
+        ...mockToken,
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      };
+
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+              amount="1.5"
+              showFiatAmountAsPrimary
+              hideFiatValueWhenUnpriced
+              secondaryValue={strings('bridge.money_name')}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-input-input').props.value).toBe('1.5');
+      expect(queryByText('$0.00')).toBeNull();
+      expect(getByText(strings('bridge.money_name'))).toBeOnTheScreen();
     });
   });
 

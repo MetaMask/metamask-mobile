@@ -149,7 +149,7 @@ export const useBridgeQuoteRequest = (
         srcTokenAmount: normalizedSourceAmount,
         slippage: slippage ? Number(slippage) : undefined,
         walletAddress,
-destWalletAddress:
+        destWalletAddress:
           destToken?.isMoneyToken && primaryMoneyAccount?.address
             ? primaryMoneyAccount.address
             : (destAddress ?? walletAddress),
@@ -158,6 +158,7 @@ destWalletAddress:
         insufficientBal: sourceToken?.isMoneyToken ? true : insufficientBal,
         // @ts-expect-error - need to bump bridge-controller
         isMoneyAccount: Boolean(
+          // oxlint-disable-next-line typescript/prefer-nullish-coalescing
           sourceToken?.isMoneyToken || destToken?.isMoneyToken,
         ),
       };

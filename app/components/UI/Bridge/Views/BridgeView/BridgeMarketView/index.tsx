@@ -636,13 +636,9 @@ const BridgeMarketViewContent = ({
                   isLoading={!destTokenAmount && isLoading}
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
-                  inputPrefix={
-                    destToken?.isMoneyToken && !sourceAmountInput.isFiatMode
-                      ? sourceAmountInput.inputPrefix
-                      : undefined
-                  }
                   showFiatAmountAsPrimary={
                     sourceAmountInput.isFiatMode ||
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
                     sourceToken?.isMoneyToken ||
                     destToken?.isMoneyToken
                   }
@@ -657,6 +653,10 @@ const BridgeMarketViewContent = ({
                           apy: destToken.apy,
                         })
                       : undefined
+                  }
+                  hideFiatValueWhenUnpriced={
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    destToken?.isMoneyToken || sourceToken?.isMoneyToken
                   }
                 />
               </Box>

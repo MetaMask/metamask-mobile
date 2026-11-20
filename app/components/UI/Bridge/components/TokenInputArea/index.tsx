@@ -543,12 +543,7 @@ export const TokenInputArea = forwardRef<
                         color={colors.success.default}
                         testID="subtitle-underline"
                       >
-                        <Text
-                          onPress={() => {
-                            //TODO
-                          }}
-                          color={colors.success.default}
-                        >
+                        <Text color={colors.success.default}>
                           {subtitleOverride}
                         </Text>
                       </DottedUnderline>
