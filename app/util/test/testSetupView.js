@@ -1065,22 +1065,31 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Braze SDK (ESM-only package; must be transformed via transformIgnorePatterns)
-jest.mock('@braze/react-native-sdk', () => ({
-  __esModule: true,
-  default: {
-    changeUser: jest.fn(),
-    enableSDK: jest.fn(),
-    disableSDK: jest.fn(),
-    wipeData: jest.fn(),
-    getInitialPushPayload: jest.fn((callback) => {
-      // Call callback with null payload (no initial push)
-      if (typeof callback === 'function') {
-        callback(null);
-      }
-    }),
-    addListener: jest.fn(() => ({
-      remove: jest.fn(),
-    })),
-    dismissBanner: jest.fn(),
-  },
-}));
+jest.mock('@braze/react-native-sdk', () => {
+  const addListener = jest.fn(() => ({
+    remove: jest.fn(),
+  }));
+
+  return {
+    __esModule: true,
+    addListener,
+    Events: {
+      PUSH_NOTIFICATION_EVENT: 'push_notification_event',
+      BANNER_CARDS_UPDATED: 'bannerCardsUpdated',
+    },
+    default: {
+      changeUser: jest.fn(),
+      enableSDK: jest.fn(),
+      disableSDK: jest.fn(),
+      wipeData: jest.fn(),
+      getInitialPushPayload: jest.fn((callback) => {
+        // Call callback with null payload (no initial push)
+        if (typeof callback === 'function') {
+          callback(null);
+        }
+      }),
+      addListener,
+      dismissBanner: jest.fn(),
+    },
+  };
+});

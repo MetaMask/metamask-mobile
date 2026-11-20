@@ -1,38 +1,26 @@
 import React from 'react';
 import { render, act, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
-import Braze from '@braze/react-native-sdk';
+import { addListener } from '@braze/react-native-sdk';
 import BrazeBanner from './BrazeBanner';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { SKELETON_TIMEOUT_MS } from './BrazeBanner.constants';
 
 const TEST_PLACEMENT_ID = 'test-placement-1';
 
-// ---------------------------------------------------------------------------
-// Mock: @braze/react-native-sdk
-// ---------------------------------------------------------------------------
-let capturedBannerListener:
-  | ((event: { banners: object[] }) => void)
-  | undefined;
+// The Braze SDK is mocked globally in `app/util/test/testSetup.js`; this suite
+// only overrides `addListener` so it can capture the banner event callback.
+type BannerCardsListener = (event: { banners: object[] }) => void;
 
-jest.mock('@braze/react-native-sdk', () => ({
-  __esModule: true,
-  default: {
-    getBanner: jest.fn().mockResolvedValue(null),
-    addListener: jest
-      .fn()
-      .mockImplementation(
-        (_event: string, cb: (event: { banners: object[] }) => void) => {
-          capturedBannerListener = cb;
-          return { remove: jest.fn() };
-        },
-      ),
-    logBannerClick: jest.fn(),
-    logBannerImpression: jest.fn(),
-    logCustomEvent: jest.fn(),
-    requestImmediateDataFlush: jest.fn(),
-  },
-}));
+// `addListener` overloads narrow the callback by event name, so type this test
+// mock against the banner overload instead of the last overload the SDK types
+// resolve to.
+const mockAddListener = addListener as unknown as jest.Mock<
+  { remove: () => void },
+  [string, BannerCardsListener]
+>;
+
+let capturedBannerListener: BannerCardsListener | undefined;
 
 // ---------------------------------------------------------------------------
 // Mock: core/Braze
@@ -154,12 +142,13 @@ function makeBanner(
     dismissable: boolean;
     deeplink: string;
     body: string;
+    isControl: boolean;
   }> = {},
 ) {
   return {
     trackingId: overrides.trackingId ?? 'tracking-abc',
     placementId: overrides.placementId ?? TEST_PLACEMENT_ID,
-    isControl: false,
+    isControl: overrides.isControl ?? false,
     isTestSend: false,
     expiresAt: -1,
     properties: makeRawProperties({
@@ -212,7 +201,10 @@ describe('BrazeBanner', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetBannerForPlacement.mockResolvedValue(null);
-    (Braze.getBanner as jest.Mock).mockResolvedValue(null);
+    mockAddListener.mockImplementation((_event, callback) => {
+      capturedBannerListener = callback;
+      return { remove: jest.fn() };
+    });
     mockIsAllowedBrazeDeeplink.mockReturnValue(true);
     mockIsAllowedBrazeExternalUrl.mockReturnValue(false);
   });
@@ -360,6 +352,71 @@ describe('BrazeBanner', () => {
     render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
 
     expect(mockLogBrazeBannerImpression).not.toHaveBeenCalled();
+  });
+
+  it('renders nothing and logs one impression across repeated control deliveries', async () => {
+    const control = { ...makeBanner({ isControl: true }), properties: {} };
+    const cached = Promise.resolve(control);
+    mockGetBannerForPlacement.mockReturnValueOnce(cached);
+
+    const { toJSON } = render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
+    await act(async () => {
+      await cached;
+    });
+
+    expect(toJSON()).toBeNull();
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledWith(
+      TEST_PLACEMENT_ID,
+      null,
+    );
+
+    fireBannerEvent([control]);
+
+    expect(toJSON()).toBeNull();
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledTimes(1);
+    expect(mockLogBrazeBannerClick).not.toHaveBeenCalled();
+    expect(mockDismissBrazeBanner).not.toHaveBeenCalled();
+  });
+
+  it('keeps the control impression deduplicated after a mismatched cache result', async () => {
+    const control = { ...makeBanner({ isControl: true }), properties: {} };
+    const cached = Promise.resolve(
+      makeBanner({ placementId: 'other-placement' }),
+    );
+    mockGetBannerForPlacement.mockReturnValueOnce(cached);
+    render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
+
+    fireBannerEvent([control]);
+    await act(async () => {
+      await cached;
+    });
+    fireBannerEvent([control]);
+
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not log a control impression for a first event after the startup window', () => {
+    render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
+
+    act(() => {
+      jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+    });
+    fireBannerEvent([makeBanner({ isControl: true })]);
+
+    expect(mockLogBrazeBannerImpression).not.toHaveBeenCalled();
+  });
+
+  it('does not render a late variant after an early control event', () => {
+    const { toJSON } = render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
+
+    fireBannerEvent([{ ...makeBanner({ isControl: true }), properties: {} }]);
+    act(() => {
+      jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+    });
+    fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
+
+    expect(toJSON()).toBeNull();
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledTimes(1);
   });
 
   describe('banner tap', () => {
