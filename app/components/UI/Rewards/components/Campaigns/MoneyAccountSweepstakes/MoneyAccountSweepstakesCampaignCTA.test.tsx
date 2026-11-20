@@ -16,7 +16,7 @@ const mockNavigate = jest.fn();
 const mockNavigateToSocialTab = jest.fn();
 const mockUseSelector = jest.fn();
 let mockIsSocialV1Enabled = false;
-let mockProfile: { profileId?: string } | undefined;
+let mockProfile: { profileId?: string; username?: string } | undefined;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
@@ -355,9 +355,26 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
   });
 
-  it('opens the opt-in sheet when Social V1 is on and the user already has a profile', () => {
+  it('opens the Social tab when a profile id exists but the username does not', () => {
     mockIsSocialV1Enabled = true;
-    mockProfile = { profileId: 'profile-1' };
+    mockProfile = { profileId: 'profile-1', username: '' };
+    const { getByTestId, queryByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign({ socialProfileRequired: true })}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+    expect(mockNavigateToSocialTab).toHaveBeenCalledWith(mockNavigate);
+    expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+  });
+
+  it('opens the opt-in sheet when Social V1 is on and the user already has a username', () => {
+    mockIsSocialV1Enabled = true;
+    mockProfile = { profileId: 'profile-1', username: 'ada' };
     const { getByTestId } = render(
       <MoneyAccountSweepstakesCampaignCTA
         campaign={buildCampaign({ socialProfileRequired: true })}

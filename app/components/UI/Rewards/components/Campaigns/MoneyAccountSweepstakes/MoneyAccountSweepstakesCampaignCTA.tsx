@@ -45,7 +45,7 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   const navigation = useNavigation<AppNavigationProp>();
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const hasSocialProfile = Boolean(
-    useSelector(selectProfileControllerProfile)?.profileId,
+    useSelector(selectProfileControllerProfile)?.username?.trim(),
   );
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
   // Toast after Add Money closes — Rewards toast sits under native modals.

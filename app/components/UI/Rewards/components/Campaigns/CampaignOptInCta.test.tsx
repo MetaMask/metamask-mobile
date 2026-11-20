@@ -5,7 +5,7 @@ import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
 const mockNavigate = jest.fn();
 const mockNavigateToSocialTab = jest.fn();
 let mockIsSocialV1Enabled = false;
-let mockProfile: { profileId?: string } | undefined;
+let mockProfile: { profileId?: string; username?: string } | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -363,8 +363,23 @@ describe('CampaignOptInCta', () => {
       expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
     });
 
-    it('opens the sheet when Social V1 is on, a profile is required, and the user has one', () => {
-      mockProfile = { profileId: 'profile-1' };
+    it('opens the Social tab when a profile id exists but the username does not', () => {
+      mockProfile = { profileId: 'profile-1', username: '  ' };
+      const { getByTestId, queryByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign({ socialProfileRequired: true })}
+          participantStatus={notOptedIn}
+        />,
+      );
+
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+      expect(mockNavigateToSocialTab).toHaveBeenCalledWith(mockNavigate);
+      expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+    });
+
+    it('opens the sheet when Social V1 is on, a profile is required, and the user has a username', () => {
+      mockProfile = { profileId: 'profile-1', username: 'ada' };
       const { getByTestId } = render(
         <CampaignOptInCta
           campaign={buildCampaign({ socialProfileRequired: true })}

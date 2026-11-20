@@ -22,7 +22,9 @@ import useRewardsToast from '../../hooks/useRewardsToast';
 
 /**
  * Social V1 treatment plus a campaign that requires a profile, and this user
- * does not have one yet. Other arms keep the existing opt-in path.
+ * has no username yet. A profile id exists before the Social profile is
+ * created, so the username is the created-profile signal. Other arms keep the
+ * existing opt-in path.
  */
 export const shouldOpenSocialTabBeforeCampaignOptIn = ({
   isSocialV1Enabled,
@@ -69,7 +71,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const hasSocialProfile = Boolean(
-    useSelector(selectProfileControllerProfile)?.profileId,
+    useSelector(selectProfileControllerProfile)?.username?.trim(),
   );
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { isGeoRestricted, isGeoLoading } = useCampaignGeoRestriction(
