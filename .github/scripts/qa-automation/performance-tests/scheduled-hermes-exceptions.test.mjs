@@ -428,21 +428,22 @@ test('two scenarios crossing together are each named in the digest', () => {
   );
 });
 
-test('a finding links the GitHub issue that tracks it', () => {
+test('a finding links the Jira ticket that tracks it', () => {
   const exception = confirmedFinding();
 
   const withoutSync = buildScheduledExceptionSlack(exception);
-  assert.doesNotMatch(withoutSync, /GitHub issue|issues\//);
+  assert.doesNotMatch(withoutSync, /Jira ticket|atlassian\.net\/browse/);
 
   exception.findings[0].issue = {
+    jiraKey: 'TAT-501',
     number: 501,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/501',
+    url: 'https://consensyssoftware.atlassian.net/browse/TAT-501',
     created: true,
   };
   const opened = buildScheduledExceptionSlack(exception);
   assert.match(opened, /Possible regression/);
   assert.match(opened, /owner mm-perps-engineering-team/);
-  assert.match(opened, /#501> opened/);
+  assert.match(opened, /TAT-501> opened/);
   assert.doesNotMatch(opened, /subteam|bug opened for review/);
   const performance = buildPerformanceChannelSlack(exception);
   assert.match(performance, /\*App profiling: bug opened for review\*/);
@@ -453,11 +454,12 @@ test('a finding links the GitHub issue that tracks it', () => {
   );
   assert.match(
     performance,
-    /Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\|#501>/,
+    /Bug: <https:\/\/consensyssoftware\.atlassian\.net\/browse\/TAT-501\|TAT-501>/,
   );
+  assert.match(performance, /filed in the owning team's Jira project/);
   assert.match(
     buildScheduledExceptionMarkdown(exception),
-    /owner mm-perps-engineering-team — \[#501\]\(https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\) opened/,
+    /owner mm-perps-engineering-team — \[TAT-501\]\(https:\/\/consensyssoftware\.atlassian\.net\/browse\/TAT-501\) opened/,
   );
 
   exception.findings[0].issue.created = false;
@@ -468,7 +470,7 @@ test('a finding links the GitHub issue that tracks it', () => {
   exception.findings[0].issue = { error: 'HTTP 403' };
   assert.match(
     buildScheduledExceptionSlack(exception),
-    /GitHub issue not created \(HTTP 403\)/,
+    /Jira ticket not created \(HTTP 403\)/,
   );
   assert.equal(buildPerformanceChannelSlack(exception), null);
 });
@@ -485,39 +487,41 @@ test('two newly opened bugs are each linked and mention their team', () => {
     },
   );
   exception.findings[0].issue = {
+    jiraKey: 'TAT-600',
     number: 600,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/600',
+    url: 'https://consensyssoftware.atlassian.net/browse/TAT-600',
     created: true,
   };
   exception.findings[1].issue = {
+    jiraKey: 'TE-601',
     number: 601,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/601',
+    url: 'https://consensyssoftware.atlassian.net/browse/TE-601',
     created: true,
   };
 
   const slack = buildScheduledExceptionSlack(exception);
   const performance = buildPerformanceChannelSlack(exception);
 
-  assert.match(slack, /#600> opened/);
-  assert.match(slack, /#601> opened/);
+  assert.match(slack, /TAT-600> opened/);
+  assert.match(slack, /TE-601> opened/);
   assert.doesNotMatch(slack, /subteam/);
   assert.match(performance, /\*App profiling: bugs opened for review\*/);
   assert.match(performance, /A bug is open for each owning team/);
   assert.match(
     performance,
-    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team> · Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/600\|#600>/,
+    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team> · Bug: <https:\/\/consensyssoftware\.atlassian\.net\/browse\/TAT-600\|TAT-600>/,
   );
   assert.match(
     performance,
-    /<!subteam\^S052NJFKX6Y\|mm-earn-team> · Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/601\|#601>/,
+    /<!subteam\^S052NJFKX6Y\|mm-earn-team> · Bug: <https:\/\/consensyssoftware\.atlassian\.net\/browse\/TE-601\|TE-601>/,
   );
   assert.match(
     buildScheduledExceptionMarkdown(exception),
-    /\[#600\]\(.*\/600\) opened/,
+    /\[TAT-600\]\(.*\/TAT-600\) opened/,
   );
   assert.match(
     buildScheduledExceptionMarkdown(exception),
-    /\[#601\]\(.*\/601\) opened/,
+    /\[TE-601\]\(.*\/TE-601\) opened/,
   );
 });
 
