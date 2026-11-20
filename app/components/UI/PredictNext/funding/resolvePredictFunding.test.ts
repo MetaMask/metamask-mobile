@@ -4,7 +4,7 @@ import type {
   PredictConfiguredVenue,
 } from '../implementation/types';
 import type { PredictVenueAction, PredictVenueId } from '../types';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import { PREDICT_FUNDING_IMPLEMENTATIONS } from './fundingImplementations';
 import { resolvePredictFunding } from './resolvePredictFunding';
 import type { PredictFundingAction } from './types';
