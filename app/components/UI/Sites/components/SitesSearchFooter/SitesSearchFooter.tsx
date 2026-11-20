@@ -16,6 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 import { SEARCH_ENGINE_URLS, SearchEngine } from '../../../../../util/browser';
 import AppConstants from '../../../../../core/AppConstants';
+import type { BrowserEntryPoint } from '../../../../../constants/browser';
 import isUrlFn from 'is-url';
 
 // TODO: @MetaMask/design-system-engineers
@@ -54,7 +55,9 @@ function looksLikeUrl(str: string): boolean {
   return isUrlFn(str) || URL_REGEX.test(str);
 }
 
-export const useSearchFooterBrowserNavigation = () => {
+export const useSearchFooterBrowserNavigation = (
+  entryPoint?: BrowserEntryPoint,
+) => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const onPress = useCallback(
@@ -65,10 +68,11 @@ export const useSearchFooterBrowserNavigation = () => {
           newTabUrl: url,
           timestamp: Date.now(),
           fromTrending: true,
+          ...(entryPoint ? { entryPoint } : {}),
         },
       });
     },
-    [navigation],
+    [navigation, entryPoint],
   );
 
   return { onPress };

@@ -281,7 +281,11 @@ describe('Browser - Rendering and Initialization', () => {
       { state: { ...mockInitialState } },
     );
 
-    expect(mockCreateNewTab).toHaveBeenCalledWith(undefined, undefined);
+    expect(mockCreateNewTab).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+    );
     jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
   });
 

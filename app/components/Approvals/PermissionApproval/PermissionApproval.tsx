@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import useOriginSource from '../../hooks/useOriginSource';
+import { useOriginEntryPoint } from '../../hooks/useOriginEntryPoint';
 import {
   Caip25EndowmentPermissionName,
   getAllScopesFromPermission,
@@ -34,6 +35,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   const origin = approvalRequest?.requestData?.metadata?.origin;
 
   const originSource = useOriginSource({ origin });
+  const originEntryPoint = useOriginEntryPoint(origin, originSource);
 
   const sdkV2Connection = useSDKV2Connection(origin);
   const anonId = sdkV2Connection?.originatorInfo?.anonId;
@@ -77,6 +79,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           number_of_accounts: totalAccounts,
           source: originSource.source,
           request_source: originSource.requestSource,
+          ...(originEntryPoint ? { entry_point: originEntryPoint } : {}),
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
           ...(anonId ? { remote_session_id: anonId } : {}),
@@ -97,6 +100,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     trackEvent,
     createEventBuilder,
     originSource,
+    originEntryPoint,
     anonId,
     // Re-run when the queue changes so new approvals are picked up.
     // The ref guard above prevents re-navigation for the same approval.

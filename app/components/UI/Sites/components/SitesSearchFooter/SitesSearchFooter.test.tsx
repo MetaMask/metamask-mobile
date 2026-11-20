@@ -169,6 +169,23 @@ describe('SitesSearchFooter', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
     });
 
+    it('does not tag the browser tab when used outside Explore Search', () => {
+      const { getByTestId } = render(
+        <SitesSearchFooter searchQuery="metamask.io" />,
+      );
+
+      fireEvent.press(getByTestId('trending-search-footer-url-link'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
+          params: expect.not.objectContaining({
+            entryPoint: expect.anything(),
+          }),
+        }),
+      );
+    });
+
     it('navigates to Brave search when search link is pressed', () => {
       const { getByTestId } = render(
         <SitesSearchFooter searchQuery="ethereum" />,

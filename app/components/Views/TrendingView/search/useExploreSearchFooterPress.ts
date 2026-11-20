@@ -3,6 +3,7 @@ import {
   useSearchFooterBrowserNavigation,
   type SearchFooterAction,
 } from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { BROWSER_ENTRY_POINT } from '../../../../constants/browser';
 import {
   getSearchQueryLength,
   trackExploreSearchEvent,
@@ -22,7 +23,9 @@ export const useExploreSearchFooterPress = ({
   tabName: SearchFeedPill;
   resultCount?: number;
 }) => {
-  const { onPress: navigateToBrowser } = useSearchFooterBrowserNavigation();
+  const { onPress: navigateToBrowser } = useSearchFooterBrowserNavigation(
+    BROWSER_ENTRY_POINT.EXPLORE_SEARCH,
+  );
 
   return useCallback(
     (url: string, action: SearchFooterAction) => {

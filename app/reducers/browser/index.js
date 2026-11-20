@@ -1,6 +1,30 @@
 import { BrowserActionTypes } from '../../actions/browser';
 import AppConstants from '../../core/AppConstants';
-import { appendURLParams } from '../../util/browser';
+import { getDomain } from 'tldts';
+import { appendURLParams, getHost } from '../../util/browser';
+
+const getSiteDomain = (url) => getDomain(url) ?? getHost(url);
+
+const updateTabEntryPoint = (tab, data) => {
+  const {
+    entryPoint: _entryPoint,
+    entryPointDomain: _entryPointDomain,
+    ...unattributedTab
+  } = tab;
+  if ('entryPoint' in data) {
+    return { ...unattributedTab, ...data };
+  }
+  if (!tab.entryPoint || !data.url) {
+    return { ...tab, ...data };
+  }
+  const domain = getSiteDomain(data.url);
+  if (!tab.entryPointDomain) {
+    return { ...tab, ...data, entryPointDomain: domain };
+  }
+  return domain === tab.entryPointDomain
+    ? { ...tab, ...data }
+    : { ...unattributedTab, ...data };
+};
 
 const initialState = {
   history: [],
@@ -66,6 +90,7 @@ const browserReducer = (state = initialState, action) => {
           {
             url: action.url,
             ...(action.linkType && { linkType: action.linkType }),
+            ...(action.entryPoint && { entryPoint: action.entryPoint }),
             id: action.id,
             lastActiveAt: Date.now(),
           },
@@ -89,7 +114,7 @@ const browserReducer = (state = initialState, action) => {
         ...state,
         tabs: state.tabs.map((tab) => {
           if (tab.id === action.id) {
-            return { ...tab, ...action.data };
+            return updateTabEntryPoint(tab, action.data);
           }
           return { ...tab };
         }),
