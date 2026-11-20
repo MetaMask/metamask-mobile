@@ -48,7 +48,9 @@ import {
   canClaimEarnings,
   canSignEarningAddress,
   claimBlockedOnThisDevice,
+  claimHasUnsignableAddress,
   claimRouteOptions,
+  routesSignableOnDevice,
   displayClaimTotals,
   incomeHeldOnOpenRoute,
   isPendingClaimRow,
@@ -630,17 +632,32 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   // import), which re-runs the sign check below. Signing itself stays the
   // claim runner's keyring check, hardware and snap included.
   useSelector(selectInternalAccounts);
+  const signRouteOptions = claimRouteOptions(
+    localizedText?.taxFormUrl,
+    followTradeClaimOpen,
+    revShareClaimOpen,
+  );
   const earnedElsewhere =
+    Boolean(localizedText?.earnedOnOtherAccounts) &&
+    claimHasUnsignableAddress(
+      earningsSummaryEntry?.data,
+      signRouteOptions,
+      canSignEarningAddress,
+    );
+  const claimBlockedOnDevice =
     Boolean(localizedText?.earnedOnOtherAccounts) &&
     claimBlockedOnThisDevice(
       earningsSummaryEntry?.data,
-      claimRouteOptions(
-        localizedText?.taxFormUrl,
-        followTradeClaimOpen,
-        revShareClaimOpen,
-      ),
+      signRouteOptions,
       canSignEarningAddress,
     );
+  // Same sign check as the button. A later cashback-only press must not
+  // treat an unsignable cashback balance as something this phone can pay.
+  const cashbackSignableOnDevice = routesSignableOnDevice(
+    earningsSummaryEntry?.data,
+    ['referral-trade-fee-cashback'],
+    canSignEarningAddress,
+  ).includes('referral-trade-fee-cashback');
 
   if (!localizedText) {
     return null;
@@ -716,6 +733,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                   ? localizedText.earnedOnOtherAccounts
                   : undefined
               }
+              claimBlockedOnDevice={claimBlockedOnDevice}
               onClaim={
                 summary.data
                   ? () => {
@@ -723,10 +741,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                       if (!summaryData) {
                         return;
                       }
-                      void onClaimPress(summaryData, (options) =>
-                        claim(options?.summary ?? summaryData, options).catch(
-                          () => undefined,
-                        ),
+                      void onClaimPress(
+                        summaryData,
+                        (options) =>
+                          claim(options?.summary ?? summaryData, options).catch(
+                            () => undefined,
+                          ),
+                        { cashbackSignableOnDevice },
                       );
                     }
                   : undefined

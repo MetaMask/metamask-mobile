@@ -379,6 +379,23 @@ export function routesSignableOnDevice(
 }
 
 /**
+ * True when an open route lists a claimable address this phone cannot sign.
+ * One such address is enough. A route with no list, including revenue share,
+ * does not count.
+ */
+export function claimHasUnsignableAddress(
+  summary: EarningsSummaryDto | null | undefined,
+  options: ClaimRouteOptions | undefined,
+  canSign: (earningAddress: string) => boolean,
+): boolean {
+  return claimRoutesForSummary(summary, options).some((route) =>
+    claimableAddressesForRoute(summary, route).some(
+      (address) => !canSign(address),
+    ),
+  );
+}
+
+/**
  * True when every open claim route needs an address this phone cannot sign.
  * No open route is false, so a tax-only Claim is left alone.
  */

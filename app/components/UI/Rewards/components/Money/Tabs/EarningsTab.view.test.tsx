@@ -9,6 +9,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../core/Engine';
 import { RewardsMoneyClaimRefusalError } from '../../../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
+import { TAX_FORM_QUESTION_SHEET_TEST_IDS } from '../TaxFormQuestionSheet.testIds';
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
 import { renderEarningsTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
 import {
@@ -87,7 +88,7 @@ const ON_DEVICE = '0x1111111111111111111111111111111111111111';
 const ELSEWHERE = '0x3333333333333333333333333333333333333333';
 const ONE_DOLLAR = '1000000';
 const EARNED_ELSEWHERE_COPY =
-  'Earned on accounts not on this device. Import the earning wallet to claim.';
+  'Some earnings belong to accounts not on this device. Import the wallet to claim.';
 
 function addressRow(address: string) {
   return {
@@ -110,6 +111,73 @@ function installDeviceKeyring(address: string) {
     keyrings.length = 0;
   };
 }
+function authorizedClaim() {
+  return Promise.resolve({
+    kind: 'authorized',
+    body: {
+      claim: { id: 'claim-1' },
+      voucher: null,
+      excluded: [],
+      status: 'OPENED',
+    },
+  });
+}
+
+/** Proof asks for both addresses. The narrowed retry is accepted without signing. */
+function mixedAddressClaim(route: unknown, body: unknown) {
+  const request = (body ?? {}) as Record<string, unknown>;
+  if (
+    route === 'referral-rev-share' ||
+    request.earning_addresses ||
+    request.proofs
+  ) {
+    return authorizedClaim();
+  }
+  return Promise.resolve({
+    kind: 'proof_required',
+    body: {
+      reason: 'PROOF_REQUIRED',
+      claim_intent_id: 'intent-1',
+      expires_at: '2026-09-29T00:00:00.000Z',
+      challenges: [
+        {
+          earning_address: `eip155:${ON_DEVICE}`,
+          amount_musd_base_units: ONE_DOLLAR,
+          message: 'sign here',
+        },
+        {
+          earning_address: `eip155:${ELSEWHERE}`,
+          amount_musd_base_units: ONE_DOLLAR,
+          message: 'sign elsewhere',
+        },
+      ],
+    },
+  });
+}
+
+function mixedSignSummary() {
+  const summary = earningsSummaryFixture({
+    lifetimeTotal: '3000000',
+    claimable: '3000000',
+    cashbackClaimable: ONE_DOLLAR,
+    revShareLifetime: ONE_DOLLAR,
+    followTradeClaimable: ONE_DOLLAR,
+  });
+  summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address = [
+    addressRow(ELSEWHERE),
+    addressRow(ON_DEVICE),
+  ];
+  summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE.claimable =
+    ONE_DOLLAR;
+  const followTrade =
+    summary.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE;
+  if (!followTrade) {
+    throw new Error('follow-trade family missing from the fixture');
+  }
+  followTrade.by_address = [addressRow(ELSEWHERE), addressRow(ON_DEVICE)];
+  return summary;
+}
+
 function openedClaim() {
   return Promise.resolve({
     kind: 'authorized',
@@ -704,13 +772,18 @@ describe('EarningsTab', () => {
       summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
         [addressRow(ELSEWHERE), addressRow(ON_DEVICE)];
 
-      const { findByTestId, getByTestId, engine } = renderEarningsTab({
-        persona: 'referee',
-        summary,
-        claimReady: true,
-        initiateClaim: 'hang',
-      });
+      const { findByTestId, findByText, getByTestId, engine } =
+        renderEarningsTab({
+          persona: 'referee',
+          summary,
+          claimReady: true,
+          initiateClaim: 'hang',
+        });
 
+      expect(await findByText(EARNED_ELSEWHERE_COPY)).toBeOnTheScreen();
+      expect(
+        getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      ).not.toBeDisabled();
       fireEvent.press(
         await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
       );
@@ -729,6 +802,136 @@ describe('EarningsTab', () => {
       expect(
         getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
       ).toBeOnTheScreen();
+    } finally {
+      restore();
+    }
+  });
+
+  it('submits only the signable cashback when some addresses can be signed and tax is uncleared', async () => {
+    const restore = installDeviceKeyring(ON_DEVICE);
+    try {
+      const { findByTestId, findByText, getByTestId, engine } =
+        renderEarningsTab({
+          persona: 'referrer',
+          summary: mixedSignSummary(),
+          claimReady: true,
+          handlers: {
+            'RewardsMoneyController:getCommissions': incomeCommissions({
+              revShare: true,
+              followTrade: true,
+            }),
+            'RewardsMoneyController:getTaxMe': () =>
+              Promise.resolve({
+                state: 'ACTION_REQUIRED',
+                next_action: 'ANSWER_ATTESTATION',
+                reason: 'NO_ATTESTATION',
+                clears_until: null,
+                cleared: false,
+                can_change_answer: false,
+              }),
+            'RewardsMoneyController:initiateClaim': mixedAddressClaim,
+          },
+        });
+
+      expect(await findByText(EARNED_ELSEWHERE_COPY)).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+        ).not.toBeDisabled();
+      });
+      fireEvent.press(
+        await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+        ).toEqual([
+          [
+            'RewardsMoneyController:initiateClaim',
+            'referral-trade-fee-cashback',
+            { money_account_address: REWARDS_MONEY_ACCOUNT_ADDRESS },
+          ],
+          [
+            'RewardsMoneyController:initiateClaim',
+            'referral-trade-fee-cashback',
+            {
+              money_account_address: REWARDS_MONEY_ACCOUNT_ADDRESS,
+              earning_addresses: [`eip155:${ON_DEVICE}`],
+            },
+          ],
+        ]);
+      });
+    } finally {
+      restore();
+    }
+  });
+
+  it('submits every signable route when some addresses can be signed and tax is cleared', async () => {
+    const restore = installDeviceKeyring(ON_DEVICE);
+    try {
+      const { findByTestId, findByText, getByTestId, engine } =
+        renderEarningsTab({
+          persona: 'referrer',
+          summary: mixedSignSummary(),
+          claimReady: true,
+          handlers: {
+            'RewardsMoneyController:getCommissions': incomeCommissions({
+              revShare: true,
+              followTrade: true,
+            }),
+            'RewardsMoneyController:initiateClaim': mixedAddressClaim,
+          },
+        });
+
+      expect(await findByText(EARNED_ELSEWHERE_COPY)).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+        ).not.toBeDisabled();
+      });
+      fireEvent.press(
+        await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      );
+
+      const moneyAccount = {
+        money_account_address: REWARDS_MONEY_ACCOUNT_ADDRESS,
+      };
+      const signableCashback = {
+        ...moneyAccount,
+        earning_addresses: [`eip155:${ON_DEVICE}`],
+      };
+      await waitFor(() => {
+        expect(
+          callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+        ).toEqual([
+          [
+            'RewardsMoneyController:initiateClaim',
+            'referral-trade-fee-cashback',
+            moneyAccount,
+          ],
+          [
+            'RewardsMoneyController:initiateClaim',
+            'referral-trade-fee-cashback',
+            signableCashback,
+          ],
+          [
+            'RewardsMoneyController:initiateClaim',
+            'referral-rev-share',
+            moneyAccount,
+          ],
+          [
+            'RewardsMoneyController:initiateClaim',
+            'social-follow-trade',
+            moneyAccount,
+          ],
+          [
+            'RewardsMoneyController:initiateClaim',
+            'social-follow-trade',
+            signableCashback,
+          ],
+        ]);
+      });
     } finally {
       restore();
     }
@@ -769,6 +972,61 @@ describe('EarningsTab', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('opens the tax sheet and submits nothing when cashback is unsignable, revenue share is open, and tax is uncleared', async () => {
+    const summary = earningsSummaryFixture({
+      lifetimeTotal: '2000000',
+      claimable: '2000000',
+      cashbackClaimable: ONE_DOLLAR,
+      revShareLifetime: ONE_DOLLAR,
+    });
+    summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+      [addressRow(ELSEWHERE)];
+    summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE.claimable =
+      ONE_DOLLAR;
+
+    const { findByTestId, getByTestId, queryByTestId, engine } =
+      renderEarningsTab({
+        persona: 'referrer',
+        summary,
+        claimReady: true,
+        initiateClaim: 'hang',
+        handlers: {
+          'RewardsMoneyController:getCommissions': incomeCommissions({
+            revShare: true,
+          }),
+          'RewardsMoneyController:getTaxMe': () =>
+            Promise.resolve({
+              state: 'ACTION_REQUIRED',
+              next_action: 'ANSWER_ATTESTATION',
+              reason: 'NO_ATTESTATION',
+              clears_until: null,
+              cleared: false,
+              can_change_answer: false,
+            }),
+        },
+      });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      ).not.toBeDisabled();
+    });
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toHaveTextContent(EARNED_ELSEWHERE_COPY);
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(
+      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveTextContent(REFERRAL_LOCALIZED_TEXT.taxAttestationTitle);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
   it('still claims revenue share when cashback addresses are not on this phone', async () => {
     const summary = earningsSummaryFixture({
       lifetimeTotal: '2000000',
@@ -781,18 +1039,26 @@ describe('EarningsTab', () => {
     summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE.claimable =
       ONE_DOLLAR;
 
-    const { findByTestId, engine } = renderEarningsTab({
-      persona: 'referrer',
-      summary,
-      claimReady: true,
-      initiateClaim: 'hang',
-      handlers: {
-        'RewardsMoneyController:getCommissions': incomeCommissions({
-          revShare: true,
-        }),
+    const { findByTestId, findByText, getByTestId, engine } = renderEarningsTab(
+      {
+        persona: 'referrer',
+        summary,
+        claimReady: true,
+        initiateClaim: 'hang',
+        handlers: {
+          'RewardsMoneyController:getCommissions': incomeCommissions({
+            revShare: true,
+          }),
+        },
       },
-    });
+    );
 
+    expect(await findByText(EARNED_ELSEWHERE_COPY)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      ).not.toBeDisabled();
+    });
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );

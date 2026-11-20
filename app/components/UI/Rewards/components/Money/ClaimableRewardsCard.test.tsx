@@ -206,7 +206,7 @@ describe('ClaimableRewardsCard', () => {
         canClaim
         isClaimWaiting
         claimWaitCaption="You can't claim just yet. Try again in 12 minutes."
-        earnedElsewhereCaption="Earned on accounts not on this device. Import the earning wallet to claim."
+        earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
         onClaim={onClaim}
       />,
     );
@@ -224,7 +224,7 @@ describe('ClaimableRewardsCard', () => {
     expect(onClaim).not.toHaveBeenCalled();
   });
 
-  it('keeps Available to claim with Claim when the earnings are on accounts this phone cannot sign', () => {
+  it('keeps Claim enabled when some earnings are on accounts this phone can sign', () => {
     const onClaim = jest.fn();
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
@@ -237,7 +237,43 @@ describe('ClaimableRewardsCard', () => {
         isSummaryLoading={false}
         isLast7Loading={false}
         canClaim
-        earnedElsewhereCaption="Earned on accounts not on this device. Import the earning wallet to claim."
+        earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Claim')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeDisabled();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toHaveTextContent(
+      'Some earnings belong to accounts not on this device. Import the wallet to claim.',
+    );
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Claim when every earning address is unsignable on this phone', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        claimBlockedOnDevice
+        earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
         onClaim={onClaim}
       />,
     );
@@ -248,13 +284,8 @@ describe('ClaimableRewardsCard', () => {
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeDisabled();
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).toBeNull();
-    expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
-    ).toHaveTextContent(
-      'Earned on accounts not on this device. Import the earning wallet to claim.',
-    );
+    ).toBeOnTheScreen();
     fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
     expect(onClaim).not.toHaveBeenCalled();
   });
