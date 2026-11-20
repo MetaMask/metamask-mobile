@@ -9,11 +9,6 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { parseCAIP19AssetId } from '../utils/parseCaip19AssetId';
 
-export const isUnsupportedStellarSellAsset = (
-  isBuy: boolean,
-  chainId: string,
-) => !isBuy && chainId.startsWith('stellar:');
-
 export default function useCryptoCurrencies() {
   const {
     selectedRegion,
@@ -51,12 +46,6 @@ export default function useCryptoCurrencies() {
       const filteredTokens = sdkCryptoCurrencies.filter((token) => {
         if (!token.network?.chainId) return false;
 
-        // Stellar sell remains disabled until the provider memo is available
-        // end-to-end and can be displayed and passed to the Stellar Snap.
-        if (isUnsupportedStellarSellAsset(isBuy, token.network.chainId)) {
-          return false;
-        }
-
         const tokenCaipChainId = isCaipChainId(token.network.chainId)
           ? token.network.chainId
           : toEvmCaipChainId(toHex(token.network.chainId));
@@ -71,7 +60,6 @@ export default function useCryptoCurrencies() {
     isFetchingCryptoCurrencies,
     sdkCryptoCurrencies,
     networksByCaipChainId,
-    isBuy,
   ]);
 
   /**

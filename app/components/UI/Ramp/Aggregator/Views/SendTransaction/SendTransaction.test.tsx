@@ -397,6 +397,8 @@ const mockStellarOrder = {
     id: 'test-id-stellar',
     providerOrderId: 'test-id-stellar',
     cryptoAmount: '1.5',
+    depositWallet: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+    memo: 'moontagmemo',
     cryptoCurrency: {
       id: '/currencies/crypto/stellar/xlm',
       network: {
@@ -1280,18 +1282,25 @@ describe('SendTransaction View', () => {
       });
     });
 
-    it('blocks Stellar sends until provider memo support is wired', async () => {
+    it('sends Stellar with the order memo', async () => {
       mockUseParamsValues = { orderId: 'test-id-stellar' };
       mockGetInternalAccountByAddress.mockReturnValue(mockStellarAccount);
 
       render(SendTransaction);
       const nextButton = screen.getByRole('button', { name: 'Next' });
 
-      expect(nextButton).toBeDisabled();
-      fireEvent.press(nextButton);
-      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(nextButton).not.toBeDisabled();
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockSendMultichainTransactionForReview).toHaveBeenCalledWith(
+        mockStellarAccount,
+        expect.objectContaining({
+          toAddress: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+          assetId: 'stellar:pubnet/slip44:148',
+          amount: '1.5',
+          memo: 'moontagmemo',
+        }),
+      );
     });
 
     it('does not call the Snap when the asset id is missing', async () => {
