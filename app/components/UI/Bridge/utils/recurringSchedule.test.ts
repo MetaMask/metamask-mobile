@@ -203,7 +203,7 @@ describe('validateRecurringSchedule', () => {
     );
   });
 
-  it('returns both unit max and duration errors when both limits are exceeded', () => {
+  it('skips the duration error when every exceeds the unit maximum', () => {
     const schedule = makeSchedule({
       everyValue: '61',
       everyUnit: 'minute',
@@ -214,7 +214,21 @@ describe('validateRecurringSchedule', () => {
 
     expect(result.errors).toEqual([
       RecurringScheduleErrorCode.EveryExceedsUnitMax,
-      RecurringScheduleErrorCode.DurationExceedsMax,
+    ]);
+  });
+
+  it('returns independent field errors without a duration error', () => {
+    const schedule = makeSchedule({
+      everyValue: '61',
+      everyUnit: 'minute',
+      repeatCount: '0',
+    });
+
+    const result = validateRecurringSchedule(schedule);
+
+    expect(result.errors).toEqual([
+      RecurringScheduleErrorCode.EveryExceedsUnitMax,
+      RecurringScheduleErrorCode.RepeatInvalid,
     ]);
   });
 });

@@ -24,10 +24,6 @@ const expectSkipLogged = (reason: string) =>
 const PROFILE_ID = 'rewards-profile-1';
 const mockFetchReferralMe = jest.fn();
 
-jest.mock('../../../UI/Rewards/hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
-}));
-
 jest.mock('../../../UI/Rewards/hooks/useReferralMe', () => ({
   useReferralMe: () => ({ fetchReferralMe: mockFetchReferralMe }),
 }));
@@ -60,7 +56,6 @@ const renderOffer = ({
       },
       pendingReferralCode,
     },
-    rewards: { geoLocation: null },
   });
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <Provider store={store}>{children}</Provider>
