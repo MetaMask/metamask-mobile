@@ -1193,6 +1193,7 @@ export const configurePredictNextFeeds = ({
           : Promise.resolve({
               venueId: 'kalshi',
               activity: activity ?? [],
+              nextCursor: undefined,
               ...(settlementsCompleteFrom ? { settlementsCompleteFrom } : {}),
             });
       }
