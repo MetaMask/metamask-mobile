@@ -39,22 +39,11 @@
  *     expect(pushController.state.fcmToken).toBe('fcm-token');
  */
 
-import {
-  Messenger,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import {
-  Controller as NotificationServicesController,
-  type NotificationServicesControllerState,
-} from '@metamask/notification-services-controller/notification-services';
-import {
-  Controller as NotificationServicesPushController,
-  defaultState as defaultPushState,
-  type NotificationServicesPushControllerState,
-} from '@metamask/notification-services-controller/push-services';
-import { getNotificationServicesControllerMessenger } from '../../../../app/core/Engine/messengers/notifications/notification-services-controller-messenger';
-import { getNotificationServicesPushControllerMessenger } from '../../../../app/core/Engine/messengers/notifications/notification-services-push-controller-messenger';
+import type { Messenger, MockAnyNamespace } from '@metamask/messenger';
+import type { NotificationServicesControllerState } from '@metamask/notification-services-controller/notification-services';
+import type { NotificationServicesPushControllerState } from '@metamask/notification-services-controller/push-services';
+import type { getNotificationServicesControllerMessenger } from '../../../../app/core/Engine/messengers/notifications/notification-services-controller-messenger';
+import type { getNotificationServicesPushControllerMessenger } from '../../../../app/core/Engine/messengers/notifications/notification-services-push-controller-messenger';
 
 type NotificationsHarnessRootMessenger = Messenger<
   MockAnyNamespace,
@@ -68,6 +57,19 @@ type GetNotificationServicesControllerMessenger =
   typeof getNotificationServicesControllerMessenger;
 type GetNotificationServicesPushControllerMessenger =
   typeof getNotificationServicesPushControllerMessenger;
+
+type NotificationServicesModule =
+  typeof import('@metamask/notification-services-controller/notification-services');
+type PushServicesModule =
+  typeof import('@metamask/notification-services-controller/push-services');
+type MessengerModule = typeof import('@metamask/messenger');
+
+type NotificationServicesController = InstanceType<
+  NotificationServicesModule['Controller']
+>;
+type NotificationServicesPushController = InstanceType<
+  PushServicesModule['Controller']
+>;
 
 /** Accounts must be lowercase hex digits so checksumming is a no-op. */
 export const HARNESS_ACCOUNT_A = '0x1111111111111111111111111111111111111111';
@@ -83,19 +85,6 @@ export const PUSH_API_TOKEN_ENDPOINT =
   'https://push.api.cx.metamask.io/api/v2/token';
 export const NOTIFICATION_API_LIST_ENDPOINT =
   'https://notification.api.cx.metamask.io/api/v4/notifications';
-
-/**
- * The Trigger API reads/writes are cached in a module-level singleton for
- * 60s. The package's exports map blocks reaching it by specifier, so the
- * harness resets it through the resolved file path — the same module
- * instance the real controller code imported.
- */
-const NOTIFICATION_CONFIG_CACHE_PATH =
-  '../../../../node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/services/notification-config-cache.js';
-
-interface NotificationConfigCacheModule {
-  notificationsConfigCache: { clear(): void };
-}
 
 export interface HttpResponseStub {
   status?: number;
@@ -166,12 +155,6 @@ function toUrlString(input: unknown): string {
 export function buildNotificationsIntegrationHarness(
   options: NotificationsHarnessOptions = {},
 ): NotificationsIntegrationHarness {
-  (
-    jest.requireActual(
-      NOTIFICATION_CONFIG_CACHE_PATH,
-    ) as NotificationConfigCacheModule
-  ).notificationsConfigCache.clear();
-
   const responseOverrides = new Map<string, HttpResponseStub>();
 
   const fetchMock = jest.fn(async (input: unknown) => {
@@ -205,70 +188,117 @@ export function buildNotificationsIntegrationHarness(
     keyrings: [{ type: 'HD Key Tree', accounts: [...keyringAccounts] }],
   };
 
-  const rootMessenger = new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  }) as NotificationsHarnessRootMessenger;
+  // Every runtime module the controllers depend on is required inside an
+  // isolated module registry, so module-level state (the 60s Trigger API
+  // config cache) is fresh for this build instead of shared across tests.
+  let built:
+    | {
+        notificationServicesController: NotificationServicesController;
+        pushController: NotificationServicesPushController;
+        rootMessenger: NotificationsHarnessRootMessenger;
+      }
+    | undefined;
+  jest.isolateModules(() => {
+    const { Messenger, MOCK_ANY_NAMESPACE } = jest.requireActual(
+      '@metamask/messenger',
+    ) as unknown as MessengerModule;
+    const notificationServicesModule = jest.requireActual(
+      '@metamask/notification-services-controller/notification-services',
+    ) as unknown as NotificationServicesModule;
+    const pushServicesModule = jest.requireActual(
+      '@metamask/notification-services-controller/push-services',
+    ) as unknown as PushServicesModule;
+    const {
+      getNotificationServicesControllerMessenger: buildControllerMessenger,
+    } = jest.requireActual(
+      '../../../../app/core/Engine/messengers/notifications/notification-services-controller-messenger',
+    ) as unknown as {
+      getNotificationServicesControllerMessenger: GetNotificationServicesControllerMessenger;
+    };
+    const {
+      getNotificationServicesPushControllerMessenger:
+        buildPushControllerMessenger,
+    } = jest.requireActual(
+      '../../../../app/core/Engine/messengers/notifications/notification-services-push-controller-messenger',
+    ) as unknown as {
+      getNotificationServicesPushControllerMessenger: GetNotificationServicesPushControllerMessenger;
+    };
 
-  rootMessenger.registerActionHandler(
-    'AuthenticationController:getBearerToken',
-    () => getBearerToken(),
-  );
-  rootMessenger.registerActionHandler(
-    'AuthenticationController:isSignedIn',
-    () => isSignedIn(),
-  );
-  rootMessenger.registerActionHandler(
-    'AuthenticationController:performSignIn',
-    () => performSignIn(),
-  );
-  rootMessenger.registerActionHandler(
-    'KeyringController:getState',
-    () => keyringState,
-  );
-  rootMessenger.registerActionHandler(
-    'AuthenticatedUserStorageService:getNotificationPreferences',
-    () => getNotificationPreferences(),
-  );
-  rootMessenger.registerActionHandler(
-    'AuthenticatedUserStorageService:putNotificationPreferences',
-    (...args: unknown[]) => putNotificationPreferences(...args),
-  );
+    const rootMessenger = new Messenger({
+      namespace: MOCK_ANY_NAMESPACE,
+    }) as NotificationsHarnessRootMessenger;
 
-  const pushMessenger = getNotificationServicesPushControllerMessenger(
-    rootMessenger as unknown as Parameters<GetNotificationServicesPushControllerMessenger>[0],
-  );
+    rootMessenger.registerActionHandler(
+      'AuthenticationController:getBearerToken',
+      () => getBearerToken(),
+    );
+    rootMessenger.registerActionHandler(
+      'AuthenticationController:isSignedIn',
+      () => isSignedIn(),
+    );
+    rootMessenger.registerActionHandler(
+      'AuthenticationController:performSignIn',
+      () => performSignIn(),
+    );
+    rootMessenger.registerActionHandler(
+      'KeyringController:getState',
+      () => keyringState,
+    );
+    rootMessenger.registerActionHandler(
+      'AuthenticatedUserStorageService:getNotificationPreferences',
+      () => getNotificationPreferences(),
+    );
+    rootMessenger.registerActionHandler(
+      'AuthenticatedUserStorageService:putNotificationPreferences',
+      (...args: unknown[]) => putNotificationPreferences(...args),
+    );
 
-  const pushController = new NotificationServicesPushController({
-    messenger: pushMessenger,
-    state: { ...defaultPushState, ...options.initialPushState },
-    config: {
-      platform: 'mobile',
-      isPushFeatureEnabled: true,
-      pushService,
-      getLocale: () => 'en',
-      env: 'prd',
-    },
-  });
+    const pushMessenger = buildPushControllerMessenger(
+      rootMessenger as unknown as Parameters<GetNotificationServicesPushControllerMessenger>[0],
+    );
 
-  const controllerMessenger = getNotificationServicesControllerMessenger(
-    rootMessenger as unknown as Parameters<GetNotificationServicesControllerMessenger>[0],
-  );
-
-  const notificationServicesController = new NotificationServicesController({
-    messenger: controllerMessenger,
-    state: options.initialState,
-    env: {
-      featureAnnouncements: {
-        platform: 'mobile',
-        accessToken: 'test-access-token',
-        spaceId: 'test-space-id',
-        platformVersion: '7.0.0',
+    const pushController = new pushServicesModule.Controller({
+      messenger: pushMessenger,
+      state: {
+        ...pushServicesModule.defaultState,
+        ...options.initialPushState,
       },
-      locale: () => 'en',
-      env: 'prd',
-    },
+      config: {
+        platform: 'mobile',
+        isPushFeatureEnabled: true,
+        pushService,
+        getLocale: () => 'en',
+        env: 'prd',
+      },
+    });
+
+    const controllerMessenger = buildControllerMessenger(
+      rootMessenger as unknown as Parameters<GetNotificationServicesControllerMessenger>[0],
+    );
+
+    const notificationServicesController =
+      new notificationServicesModule.Controller({
+        messenger: controllerMessenger,
+        state: options.initialState,
+        env: {
+          featureAnnouncements: {
+            platform: 'mobile',
+            accessToken: 'test-access-token',
+            spaceId: 'test-space-id',
+            platformVersion: '7.0.0',
+          },
+          locale: () => 'en',
+          env: 'prd',
+        },
+      });
+    notificationServicesController.init();
+
+    built = {
+      notificationServicesController,
+      pushController,
+      rootMessenger,
+    };
   });
-  notificationServicesController.init();
 
   const fetchCalls = (urlPart: string, excludeUrlPart?: string) =>
     (fetchMock.mock.calls as unknown as [string, RequestInit?][])
@@ -303,10 +333,14 @@ export function buildNotificationsIntegrationHarness(
     }
   };
 
+  if (!built) {
+    throw new Error('Failed to build the notifications integration harness');
+  }
+
   return {
-    notificationServicesController,
-    pushController,
-    rootMessenger,
+    notificationServicesController: built.notificationServicesController,
+    pushController: built.pushController,
+    rootMessenger: built.rootMessenger,
     fetchCalls,
     setHttpResponse,
     waitFor,
