@@ -1139,6 +1139,7 @@ const rewardsSlice = createSlice({
         action.payload.subscriptionId,
       );
       entry.benefits = action.payload.benefits.benefits ?? [];
+      entry.error = false;
       entry.hasLoaded = true;
     },
 

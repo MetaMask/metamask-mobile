@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -12,6 +12,7 @@ import {
   selectBenefits,
   selectBenefitsError,
   selectBenefitsHasLoaded,
+  selectBenefitsLoading,
 } from '../../../../../../reducers/rewards/selectors';
 import { useBenefits } from '../../../hooks/useBenefits';
 import useTrackRewardsPageView from '../../../hooks/useTrackRewardsPageView';
@@ -35,18 +36,8 @@ const BenefitsTab: React.FC = () => {
   const benefits = useSelector(selectBenefits);
   const hasLoaded = useSelector(selectBenefitsHasLoaded);
   const hasError = useSelector(selectBenefitsError);
+  const isLoading = useSelector(selectBenefitsLoading);
   const { getAllBenefits } = useBenefits();
-  // A read clears the stored error before it settles. Holding the banner
-  // through a retry keeps the empty state from showing in between.
-  const [isRetrying, setIsRetrying] = useState(false);
-  const retry = useCallback(async () => {
-    setIsRetrying(true);
-    try {
-      await getAllBenefits();
-    } finally {
-      setIsRetrying(false);
-    }
-  }, [getAllBenefits]);
   useTrackRewardsPageView({ page_type: 'benefits' });
 
   const hasBenefits = benefits.length > 0;
@@ -55,15 +46,19 @@ const BenefitsTab: React.FC = () => {
     // The tab remounts on every selection and re-reads on mount. Only the
     // first read shows skeletons, so a known-empty list does not flash them.
     let body: React.ReactNode;
-    if (hasError || isRetrying) {
+    if (hasError) {
       // A failed read leaves the list empty. Say so rather than claim the
-      // user has no benefits; this scroller has no pull-to-refresh.
+      // user has no benefits; this scroller has no pull-to-refresh. The error
+      // stays stored until a read succeeds, so the banner holds through a
+      // retry and through the re-read on the next visit to this tab.
       body = (
         <RewardsErrorBanner
           title={strings('rewards.benefits.error_title')}
           description={strings('rewards.benefits.error_description')}
-          onConfirm={retry}
-          onConfirmLoading={isRetrying}
+          onConfirm={() => {
+            void getAllBenefits();
+          }}
+          onConfirmLoading={isLoading}
           confirmButtonLabel={strings('rewards.benefits.retry_button')}
           testID={BENEFITS_TAB_TEST_IDS.ERROR}
         />

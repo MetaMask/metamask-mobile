@@ -663,6 +663,44 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     ).not.toBeOnTheScreen();
   });
 
+  it('keeps the benefits error up while the tab re-reads on a later visit', async () => {
+    let benefitsReads = 0;
+    const { findByTestId, getByTestId, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          // The first read fails. Later reads never settle, so the tab is
+          // observed mid-request.
+          'RewardsController:getBenefits': () => {
+            benefitsReads += 1;
+            return benefitsReads === 1
+              ? Promise.reject(new Error('benefits unavailable'))
+              : new Promise(() => undefined);
+          },
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB),
+    );
+    expect(await findByTestId(BENEFITS_TAB_TEST_IDS.ERROR)).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+
+    await waitFor(() => {
+      expect(benefitsReads).toBeGreaterThan(1);
+    });
+    expect(getByTestId(BENEFITS_TAB_TEST_IDS.ERROR)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.empty-list')),
+    ).not.toBeOnTheScreen();
+  });
+
   it('asks for the opt-in in both tabs until the user has a Rewards subscription', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
       renderRewardsMoneyDashboard({

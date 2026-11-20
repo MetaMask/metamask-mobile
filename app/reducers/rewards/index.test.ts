@@ -2262,6 +2262,26 @@ describe('rewardsReducer', () => {
       );
     });
 
+    it('clears an earlier error when a read succeeds', () => {
+      const failed = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: true,
+        }),
+      );
+
+      const state = rewardsReducer(
+        failed,
+        setBenefits({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          benefits: mockBenefitsPayload,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.error).toBe(false);
+    });
+
     it('marks the subscription as loaded, including for an empty list', () => {
       const state = rewardsReducer(
         initialState,
@@ -2285,6 +2305,26 @@ describe('rewardsReducer', () => {
         }),
       );
       expect(state.benefits[TEST_SUBSCRIPTION_ID]?.loading).toBe(true);
+    });
+
+    it('keeps a stored error while the next read is in flight', () => {
+      const failed = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: true,
+        }),
+      );
+
+      const state = rewardsReducer(
+        failed,
+        setBenefitsLoading({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          loading: true,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.error).toBe(true);
     });
 
     it('leaves the subscription not loaded while the first read is in flight', () => {

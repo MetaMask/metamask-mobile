@@ -30,8 +30,9 @@ export const useBenefits = (): {
     isLoadingRef.current = true;
 
     try {
+      // The stored error is left alone here. `setBenefits` clears it when a
+      // read succeeds, so a failure stays visible through the next attempt.
       dispatch(setBenefitsLoading({ subscriptionId, loading: true }));
-      dispatch(setBenefitsError({ subscriptionId, error: false }));
 
       const benefitsState: SubscriptionBenefitsState =
         await Engine.controllerMessenger.call(
