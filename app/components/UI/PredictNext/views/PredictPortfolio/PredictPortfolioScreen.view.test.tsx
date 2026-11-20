@@ -1877,6 +1877,7 @@ describe('PredictPortfolioScreen', () => {
         PredictPortfolioScreenTestIds.DEPOSIT_STATUS,
       );
       expect(statusLine).toHaveTextContent('Deposit waiting for your transfer');
+      expect(statusLine).toHaveProp('hitSlop', { top: 11, bottom: 11 });
       expect(
         await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
       ).toHaveTextContent('$153.50');

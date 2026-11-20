@@ -49,6 +49,7 @@ import {
   nflEvents,
   politicsEvents,
   PREDICT_NEXT_FEED_IDS,
+  publishPredictNextDepositStatus,
   publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
@@ -2103,5 +2104,142 @@ describe('PredictHome', () => {
         ).not.toBeOnTheScreen();
       },
     );
+
+    describe('accessibility', () => {
+      const failedDeposit = {
+        ...cancelledDeposit,
+        operationId: transferReportedDeposit.operationId,
+        status: 'failed',
+        next: null,
+      };
+      const underReviewDeposit = {
+        ...needsReviewDeposit,
+        operationId: transferReportedDeposit.operationId,
+      };
+      const underReviewText = `Deposit under review · Ref ${underReviewDeposit.operationId.slice(0, 8)}`;
+      const depositAnnouncements = (announce: jest.SpyInstance) =>
+        announce.mock.calls
+          .map(([message]) => message)
+          .filter((message: string) => message.startsWith('Deposit'));
+
+      it('extends the awaiting_transfer tap target to 44pt without changing layout', async () => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        const view = renderPredictNext();
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveProp('hitSlop', { top: 11, bottom: 11 });
+      });
+
+      it('announces each live status change once and stays silent for an open status on mount or an identical update', async () => {
+        configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        const statusLine = () =>
+          view.getByTestId(PredictHomeTestIds.DEPOSIT_STATUS);
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit processing');
+        expect(depositAnnouncements(announce)).toEqual([]);
+
+        act(() => publishPredictNextDepositStatus(underReviewDeposit));
+        await waitFor(() =>
+          expect(statusLine()).toHaveTextContent(underReviewText),
+        );
+        act(() => publishPredictNextDepositStatus({ ...underReviewDeposit }));
+        act(() => publishPredictNextDepositStatus(failedDeposit));
+        await waitFor(() =>
+          expect(statusLine()).toHaveTextContent('Deposit failed'),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual([
+          underReviewText,
+          'Deposit failed',
+        ]);
+      });
+
+      it('announces a transfer moving into processing but not a new awaiting_transfer deposit', async () => {
+        configurePredictNextFeeds();
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+        act(() => publishPredictNextDepositStatus(awaitingTransferDeposit));
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit waiting for your transfer');
+        act(() =>
+          publishPredictNextDepositStatus({
+            ...awaitingTransferDeposit,
+            status: 'processing',
+          }),
+        );
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent('Deposit processing'),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual(['Deposit processing']);
+      });
+
+      it.each([
+        ['failed', failedDeposit, 'Deposit failed'],
+        ['cancelled', cancelledDeposit, 'Deposit cancelled'],
+      ])(
+        'announces a %s notice once when it first shows on mount',
+        async (_label, fixture, expectedText) => {
+          configurePredictNextFeeds({ depositStatus: fixture });
+          const announce = jest.spyOn(
+            AccessibilityInfo,
+            'announceForAccessibility',
+          );
+          const view = renderPredictNext();
+
+          expect(
+            await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent(expectedText);
+          await waitFor(() =>
+            expect(messengerCall).toHaveBeenCalledWith(
+              'PredictFundingService:acknowledgeDepositNotice',
+              'kalshi',
+              fixture.operationId,
+            ),
+          );
+
+          expect(depositAnnouncements(announce)).toEqual([expectedText]);
+        },
+      );
+
+      it('announces a change only on the focused Portfolio, not on Home underneath it', async () => {
+        configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS);
+
+        fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
+        expect(
+          await view.findByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit processing');
+        act(() => publishPredictNextDepositStatus(underReviewDeposit));
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent(underReviewText),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual([underReviewText]);
+      });
+    });
   });
 });

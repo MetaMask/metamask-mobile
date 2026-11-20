@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, TouchableOpacity } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -28,6 +29,9 @@ import {
 } from '../../views/PredictDeposit';
 
 const ADDRESS_POLL_INTERVAL_MS = 2_000;
+
+// A BodySm line is 22pt tall; 11pt above and below makes a 44pt target.
+const STATUS_LINE_HIT_SLOP = { top: 11, bottom: 11 };
 
 interface DepositStatusLineProps {
   venueId: PredictVenueId;
@@ -68,6 +72,48 @@ const statusCopy = (
     default:
       return null;
   }
+};
+
+const isOneTimeNotice = (deposit: PredictDepositOperation): boolean =>
+  deposit.status === 'failed' || deposit.status === 'cancelled';
+
+const isAnnouncedStatus = (deposit: PredictDepositOperation): boolean =>
+  deposit.status === 'processing' ||
+  deposit.status === 'under_review' ||
+  isOneTimeNotice(deposit);
+
+/**
+ * The status line swaps its text in place, and iOS VoiceOver ignores
+ * `accessibilityLiveRegion`, so changes are announced explicitly. Only the
+ * focused surface announces, because Home stays mounted under Portfolio. An
+ * open status already showing on mount is not announced; a `failed` or
+ * `cancelled` notice is, because it is shown once and then cleared.
+ */
+const useDepositStatusAnnouncement = (
+  deposit: PredictDepositOperation | null,
+  label: string | undefined,
+): void => {
+  const isFocused = useIsFocused();
+  const statusKey = deposit ? `${deposit.operationId}:${deposit.status}` : null;
+  const previousKeyRef = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const previousKey = previousKeyRef.current;
+    previousKeyRef.current = statusKey;
+    if (
+      statusKey === previousKey ||
+      !isFocused ||
+      !deposit ||
+      !label ||
+      !isAnnouncedStatus(deposit)
+    ) {
+      return;
+    }
+    if (previousKey === undefined && !isOneTimeNotice(deposit)) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(label);
+  }, [deposit, isFocused, label, statusKey]);
 };
 
 interface DepositStatusSheetHostProps {
@@ -154,6 +200,7 @@ export const DepositStatusLine = ({
 
   const copy = deposit ? statusCopy(deposit) : null;
   const isInteractive = deposit?.status === 'awaiting_transfer';
+  useDepositStatusAnnouncement(deposit, copy?.label);
 
   if (!copy && !sheetDeposit) {
     return null;
@@ -165,6 +212,7 @@ export const DepositStatusLine = ({
         isInteractive ? (
           <TouchableOpacity
             onPress={openSheet}
+            hitSlop={STATUS_LINE_HIT_SLOP}
             accessibilityRole="button"
             accessibilityLabel={copy.label}
             testID={testID}

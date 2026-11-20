@@ -1118,6 +1118,13 @@ export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) =>
 export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
   publishPredictNextLiveUpdate('PredictLiveDataService:quoteUpdated', update);
 
+/** Delivers a deposit status change to every surface that subscribed. */
+export const publishPredictNextDepositStatus = (deposit: unknown) =>
+  publishPredictNextLiveUpdate('PredictFundingService:depositStatusChanged', {
+    venueId: 'kalshi',
+    deposit,
+  });
+
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
