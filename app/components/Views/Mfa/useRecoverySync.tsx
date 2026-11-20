@@ -6,6 +6,8 @@ import React, {
   type ReactNode,
 } from 'react';
 import { Platform } from 'react-native';
+import { useSelector } from 'react-redux';
+import { selectMfaRecoveryEnabled } from '../../../selectors/featureFlagController/mfaRecovery';
 import { isMfaDevBuild } from '../../../util/identity/mfa';
 import { verifyOrEnroll } from '../../../util/identity/mfa/useMfa';
 import type {
@@ -52,6 +54,7 @@ interface RecoverySync {
  * builds, picks the social link email.
  */
 const useRecoverySync = (): RecoverySync => {
+  const isMfaRecoveryEnabled = useSelector(selectMfaRecoveryEnabled);
   const [phase, setPhase] = useState<RecoverySyncPhase>('idle');
   const [progressCopy, setProgressCopy] =
     useState<RecoveryProgressCopy>('setup');
@@ -108,6 +111,9 @@ const useRecoverySync = (): RecoverySync => {
 
   const syncRecovery = useCallback(
     async (method: MfaMethod, reason: MfaReason): Promise<void> => {
+      if (!isMfaRecoveryEnabled) {
+        return;
+      }
       startProgress('setup');
       try {
         await syncRecoveryAfterEnroll(method, {
@@ -141,7 +147,7 @@ const useRecoverySync = (): RecoverySync => {
         showPhase('idle');
       }
     },
-    [showPhase, startProgress, stepAsideWhile],
+    [isMfaRecoveryEnabled, showPhase, startProgress, stepAsideWhile],
   );
 
   const removeRecoveryPasskey = useCallback(
@@ -149,6 +155,9 @@ const useRecoverySync = (): RecoverySync => {
       credentialId: string,
       verifyMfa: () => Promise<unknown>,
     ): Promise<void> => {
+      if (!isMfaRecoveryEnabled) {
+        return;
+      }
       startProgress('update');
       try {
         await removePasskeyFromRecovery(credentialId, {
@@ -158,7 +167,7 @@ const useRecoverySync = (): RecoverySync => {
         showPhase('idle');
       }
     },
-    [showPhase, startProgress, stepAsideWhile],
+    [isMfaRecoveryEnabled, showPhase, startProgress, stepAsideWhile],
   );
 
   let recoverySheets: ReactNode = null;

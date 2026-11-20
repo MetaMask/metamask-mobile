@@ -28,6 +28,16 @@ jest.mock('../../../util/identity/mfa/isMfaDevBuild', () => ({
   isMfaDevBuild: (): boolean => mockIsMfaDevBuild(),
 }));
 
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: unknown): unknown => mockUseSelector(selector),
+}));
+
+jest.mock('../../../selectors/featureFlagController/mfaRecovery', () => ({
+  selectMfaRecoveryEnabled: jest.fn(),
+}));
+
 type SyncOptions = Parameters<typeof syncRecoveryAfterEnroll>[1];
 type RemoveOptions = Parameters<typeof removePasskeyFromRecovery>[1];
 type RecoverySync = ReturnType<typeof useRecoverySync>;
@@ -119,6 +129,7 @@ describe('useRecoverySync', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockIsMfaDevBuild.mockReturnValue(false);
+    mockUseSelector.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -334,5 +345,32 @@ describe('useRecoverySync', () => {
     await advance(MODAL_SETTLE_MS);
 
     await expect(email.promise).resolves.toBeUndefined();
+  });
+
+  describe('when the mfaRecovery flag is off', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(false);
+    });
+
+    it('does not run recovery sync', async () => {
+      const { startSync } = renderRecoverySync();
+
+      await startSync();
+
+      expect(mockSync).not.toHaveBeenCalled();
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      expect(progressSheet()).toBeNull();
+    });
+
+    it('does not remove the passkey from recovery', async () => {
+      const verifyMfa = jest.fn();
+      const { startRemove } = renderRecoverySync();
+
+      await startRemove(verifyMfa);
+
+      expect(mockRemoveFromRecovery).not.toHaveBeenCalled();
+      expect(verifyMfa).not.toHaveBeenCalled();
+      expect(progressSheet()).toBeNull();
+    });
   });
 });
