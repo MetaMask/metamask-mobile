@@ -154,7 +154,8 @@ export default defineConfig({
     },
     {
       name: 'scenario-shadow-testmu-android-onboarding-seedless',
-      testMatch: '**/performance/onboarding/scenarios/seedless.scenario.spec.ts',
+      testMatch:
+        '**/performance/onboarding/scenarios/seedless.scenario.spec.ts',
       grep: /@PerformanceShadow\b/,
       use: {
         platform: Platform.ANDROID,
