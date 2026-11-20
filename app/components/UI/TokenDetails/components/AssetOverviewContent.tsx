@@ -366,7 +366,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   })();
 
   return (
-    <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
+    <Box testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
         renderWarning()
       ) : (
