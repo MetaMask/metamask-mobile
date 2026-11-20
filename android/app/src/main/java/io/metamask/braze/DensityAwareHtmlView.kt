@@ -4,25 +4,27 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.core.view.WindowInsetsCompat
 import com.braze.ui.inappmessage.listeners.IWebViewClientStateListener
-import com.braze.ui.inappmessage.views.InAppMessageHtmlFullView
+import com.braze.ui.inappmessage.views.InAppMessageHtmlView
 import com.braze.ui.support.getMaxSafeBottomInset
 import com.braze.ui.support.getMaxSafeLeftInset
 import com.braze.ui.support.getMaxSafeRightInset
 import com.braze.ui.support.getMaxSafeTopInset
 
 /**
- * Full-screen HTML in-app message view that re-injects `--braze-safe-area-inset-*` in CSS pixels.
+ * Custom code HTML in-app message view that re-injects `--braze-safe-area-inset-*` in CSS pixels.
  *
  * Braze (as of 43.1.1) injects these values in physical pixels, which makes them
- * `devicePixelRatio` times too large inside the WebView. Each override runs right after Braze's
- * own injection, so the corrected values win. The re-dispatched `brazeSafeAreaInsetsChanged`
- * event carries `unit: 'css'` so templates that correct the raw values themselves skip it.
+ * `devicePixelRatio` times too large inside the WebView
+ * (https://github.com/braze-inc/braze-android-sdk/issues/121). Each override runs right after
+ * Braze's own injection, so the corrected values win. The re-dispatched
+ * `brazeSafeAreaInsetsChanged` event carries `unit: 'css'` so templates that correct the raw
+ * values themselves can skip it.
  *
- * Inflated through the app's override of the `com_braze_inappmessage_html_full` layout.
+ * Inflated through the app's override of the `com_braze_inappmessage_html` layout.
  * Remove once Braze injects density-independent values.
  */
-class DensityAwareHtmlFullView(context: Context, attrs: AttributeSet?) :
-    InAppMessageHtmlFullView(context, attrs) {
+class DensityAwareHtmlView(context: Context, attrs: AttributeSet?) :
+    InAppMessageHtmlView(context, attrs) {
 
     private var windowInsets: WindowInsetsCompat? = null
 
