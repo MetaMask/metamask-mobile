@@ -1,6 +1,9 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript"],
+  "options": {
+    "typeAware": true
+  },
   "categories": {
     "correctness": "off",
     "suspicious": "off",
@@ -35,12 +38,18 @@
     "app/declarations/**"
   ],
   "rules": {
+    "typescript/no-array-delete": "error",
+    "typescript/no-for-in-array": "error",
+    "typescript/no-meaningless-void-operator": "error",
+    "typescript/no-unnecessary-qualifier": "error",
+    "typescript/no-unsafe-unary-minus": "error",
     "typescript/no-wrapper-object-types": "error",
     "typescript/prefer-enum-initializers": "error",
     "no-loss-of-precision": "error",
     "react/rules-of-hooks": "error",
     "typescript/explicit-function-return-type": "warn",
     "typescript/no-empty-object-type": "warn",
+    "typescript/no-deprecated": "warn",
     "no-unused-vars": [
       "warn",
       {
@@ -57,7 +66,8 @@
     {
       "files": ["*.js", "*.jsx"],
       "rules": {
-        "no-unused-vars": "off"
+        "no-unused-vars": "off",
+        "typescript/no-deprecated": "off"
       }
     }
   ]

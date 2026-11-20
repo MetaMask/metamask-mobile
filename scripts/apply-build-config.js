@@ -4,8 +4,7 @@
  * Runs at workflow runtime (during the "Apply build config" step).
  *
  * Exports: env. Does NOT handle secrets
- * (those are injected by the "Set secrets" step via set-secrets-from-config.js,
- * which reads all secrets via toJSON(secrets) — no explicit per-secret list needed).
+ * (each workflow step that bundles the app maps the GitHub Secrets it needs in its own env).
  *
  * Usage:
  *   node scripts/apply-build-config.js main-prod

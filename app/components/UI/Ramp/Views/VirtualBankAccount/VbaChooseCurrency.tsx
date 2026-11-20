@@ -23,6 +23,7 @@ import {
 } from '../../../../../util/region/getVbaSourceCurrency';
 import bankTransferImage from '../../../../../images/bank-transfer.png';
 import { openCompletedVbaAccount } from './hooks/useVbaOnboardingRouting';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { VbaChooseCurrencySelectorsIDs } from './VbaChooseCurrency.testIds';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -61,6 +62,7 @@ const VbaChooseCurrency = () => {
   }, [navigation]);
 
   const handleSelect = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     openCompletedVbaAccount(navigation);
   }, [navigation]);
 

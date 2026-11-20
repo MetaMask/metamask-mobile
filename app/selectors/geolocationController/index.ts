@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import type { RootState } from '../../reducers';
-import { getDetectedGeolocation } from '../../reducers/fiatOrders';
 import { isAsiaGeolocationLocation } from '../../util/region/isAsiaGeolocationLocation';
 import { selectSocialCopyTradeGeoBlockedRegions } from '../featureFlagController/socialCopyTrade';
 import { isCopyTradeAllowedForGeolocation } from '../../util/region/isCopyTradeAllowedForGeolocation';
@@ -21,8 +20,8 @@ export const selectGeolocationStatus = (state: RootState) =>
  * Defaults to `false` when geolocation is unknown or still loading.
  */
 export const selectIsUserInAsia = createSelector(
-  getDetectedGeolocation,
-  (geolocation): boolean => isAsiaGeolocationLocation(geolocation),
+  selectGeolocationLocation,
+  (location): boolean => isAsiaGeolocationLocation(location),
 );
 
 /**

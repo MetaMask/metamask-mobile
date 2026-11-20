@@ -10,6 +10,13 @@ import {
   parsePredictUnresolvedOrdersPage,
 } from '../../contracts/v1/trading';
 import {
+  parsePredictDepositOperation,
+  parsePredictDepositStart,
+  parsePredictOpenDeposits,
+  parsePredictWithdrawPreview,
+  parsePredictWithdrawReceipt,
+} from '../../contracts/v1/funding';
+import {
   parsePredictEvent,
   parsePredictFeed,
   parsePredictMarketHistory,
@@ -17,12 +24,6 @@ import {
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { parsePredictVenueCatalog } from '../../contracts/v1/venueCatalog';
-import {
-  parsePredictDepositOperation,
-  parsePredictDepositStart,
-  parsePredictOpenDeposits,
-} from '../../contracts/v1/funding';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   predictErrorEvidence,
@@ -34,6 +35,7 @@ import type {
   PredictDepositOperation,
   PredictOrderReview,
   PredictVenueId,
+  PredictWithdrawReceipt,
 } from '../../types';
 import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
 import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
@@ -88,6 +90,7 @@ const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> =
     venue_profile_update_required: PredictErrorCode.APP_UPDATE_REQUIRED,
     venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
     geo_blocked: PredictErrorCode.GEO_BLOCKED,
+    amount_below_minimum: PredictErrorCode.AMOUNT_BELOW_MINIMUM,
     invalid_request: PredictErrorCode.INVALID_RESPONSE,
     unauthorized: PredictErrorCode.UNAUTHENTICATED,
     venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
@@ -118,6 +121,8 @@ const FUNDING_ERROR_CODE_BY_BACKEND_CODE: Record<
 interface RouteErrorReading {
   codes: Record<string, PredictErrorCode | undefined>;
   refusedBeforeRelay?: PredictRouteRefusals;
+  /** Set when a read on this route replays a stored submission first. */
+  readCanReplay?: boolean;
 }
 
 /** The deposit reads and the deposit create. */
@@ -156,6 +161,14 @@ const DEPOSIT_TRANSFER_ROUTE: RouteErrorReading = {
   },
 };
 
+/** The Withdraw receipt read replays the operation's unanswered submission
+ * with its stored Idempotency-Key before it reads. It is not a plain read: a
+ * failure there proves nothing about this invocation. */
+const WITHDRAW_OBSERVE_ROUTE: RouteErrorReading = {
+  codes: {},
+  readCanReplay: true,
+};
+
 const isAbortError = (error: unknown): error is Error =>
   error instanceof Error && error.name === 'AbortError';
 
@@ -168,26 +181,40 @@ const isSameAmount = (left: string, right: string): boolean =>
   left.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '') ===
   right.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '');
 
+/** The operation id a `deposit_in_progress` refusal names, when its body
+ * carries one. The rest of the body is never kept. */
+const blockedDepositOperationId = (
+  error: PredictHttpError,
+): string | undefined => {
+  if (error.bodyCode !== 'deposit_in_progress') {
+    return undefined;
+  }
+  if (typeof error.deposit !== 'object' || error.deposit === null) {
+    return undefined;
+  }
+  const operationId = (error.deposit as { operationId?: unknown }).operationId;
+  return typeof operationId === 'string' ? operationId : undefined;
+};
+
 /**
  * Keeps the HTTP status and the backend's canonical code for diagnosis.
- * Never the response body.
+ * Never the response body: the one value a route needs comes from
+ * `blockedDepositOperationId` instead.
  */
 const toHttpErrorMetadata = (
   error: PredictHttpError,
   phase: PredictErrorPhase,
-  routeRefusals?: PredictRouteRefusals,
+  route: RouteErrorReading,
 ): Record<string, unknown> => ({
   status: error.status,
   ...(error.bodyCode === undefined ? {} : { bodyCode: error.bodyCode }),
   ...(error.requestSent === undefined
     ? {}
     : { requestSent: error.requestSent }),
-  ...predictErrorEvidence(
-    phase,
-    error.bodyCode,
-    error.requestSent,
-    routeRefusals,
-  ),
+  ...predictErrorEvidence(phase, error.bodyCode, error.requestSent, {
+    refusesBeforeRelay: route.refusedBeforeRelay,
+    readCanReplay: route.readCanReplay,
+  }),
 });
 
 /**
@@ -227,11 +254,11 @@ const mapError = (
   }
 
   if (error instanceof PredictHttpError) {
-    const metadata = toHttpErrorMetadata(
-      error,
-      phase,
-      route.refusedBeforeRelay,
-    );
+    const depositOperationId = blockedDepositOperationId(error);
+    const metadata = {
+      ...toHttpErrorMetadata(error, phase, route),
+      ...(depositOperationId === undefined ? {} : { depositOperationId }),
+    };
     const mapped = error.bodyCode
       ? (route.codes[error.bodyCode] ??
         ERROR_CODE_BY_BACKEND_CODE[error.bodyCode])
@@ -248,6 +275,22 @@ const mapError = (
  * every other caller takes the Venue from the Active Venue, a route, or an
  * intent. */
 export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
+
+/** Parses a receipt and re-checks the ownership the parser cannot know: a
+ * response must describe the Preview this session asked about, in this
+ * Venue. Both the Commit and the receipt read go through it, so the two can
+ * never drift apart. */
+const parseOwnWithdrawReceipt = (
+  value: unknown,
+  venueId: PredictVenueId,
+  previewId: string,
+): PredictWithdrawReceipt => {
+  const receipt = parsePredictWithdrawReceipt(value);
+  if (receipt.venueId !== venueId || receipt.previewId !== previewId) {
+    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+  }
+  return receipt;
+};
 
 export interface KalshiOrderSigningDependencies {
   getApprovalGeneration: () => number | undefined;
@@ -547,7 +590,63 @@ export class KalshiRemoteAdapter {
       }
       return deposit;
     };
+    // Withdrawals are bearer-only and server-pinned: the backend owns the
+    // destination, the expiry, and the idempotency key, so there is nothing
+    // for the adapter to pin locally.
     this.funding = {
+      previewWithdraw: async (params, options) => {
+        try {
+          const value = await client.fetchWithdrawPreview(
+            this.venueId,
+            params,
+            options,
+          );
+          const result = parsePredictWithdrawPreview(value);
+          // The backend owns the destination and the expiry, but not the
+          // intent: a quote for another mode or amount is not the one the
+          // person asked to approve.
+          const requestedAmount =
+            'amount' in params ? params.amount : undefined;
+          const quotedForIntent =
+            result.venueId === this.venueId &&
+            result.mode ===
+              (requestedAmount === undefined ? 'sweep_all' : 'fixed') &&
+            (requestedAmount === undefined ||
+              (result.requestedAmount !== undefined &&
+                isSameAmount(result.requestedAmount, requestedAmount)));
+          if (!quotedForIntent) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error, 'preview');
+        }
+      },
+      commitWithdraw: async (previewId, options, onDispatch) => {
+        try {
+          const value = await client.commitWithdraw(
+            this.venueId,
+            previewId,
+            options,
+            onDispatch,
+          );
+          return parseOwnWithdrawReceipt(value, this.venueId, previewId);
+        } catch (error) {
+          return mapError(error, 'commit');
+        }
+      },
+      observeWithdraw: async (previewId, options) => {
+        try {
+          const value = await client.observeWithdraw(
+            this.venueId,
+            previewId,
+            options,
+          );
+          return parseOwnWithdrawReceipt(value, this.venueId, previewId);
+        } catch (error) {
+          return mapError(error, 'observe', WITHDRAW_OBSERVE_ROUTE);
+        }
+      },
       prepareDeposit: async (params, approval, options) => {
         // Copy before the network await: later form edits are not approval.
         params = {
@@ -745,10 +844,18 @@ export class KalshiRemoteAdapter {
       },
     };
     this.marketData = {
-      // Static client config until PRED-1403 serves the catalog from the
-      // Predict API; only this method changes then.
-      fetchVenueCatalog: async () =>
-        parsePredictVenueCatalog(KALSHI_STATIC_VENUE_CATALOG, this.venueId),
+      // The API catalog is authoritative for every action, including
+      // `withdraw`: the deployment advertises it only while its fence serves
+      // the route. A failed read surfaces as an error, so the UI omits
+      // actions instead of fabricating support.
+      fetchVenueCatalog: async (options) => {
+        try {
+          const value = await client.fetchVenueCatalog(this.venueId, options);
+          return parsePredictVenueCatalog(value, this.venueId);
+        } catch (error) {
+          return mapError(error);
+        }
+      },
       fetchVenueStatus: async (options) => {
         try {
           const value = await client.fetchVenueStatus(this.venueId, options);
