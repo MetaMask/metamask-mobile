@@ -23,8 +23,7 @@ import {
 const LOCALIZED_TEXT = {
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
-  rebatePerpsVolume: 'Perps volume',
-  rebateSwapsVolume: 'Swaps volume',
+  rebatePerps: 'Perps',
   rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
   voided: 'Voided',
@@ -112,7 +111,7 @@ describe('PerformanceActivityRows', () => {
     expect(amountColor(UNSAFE_getAllByType, '+$1.00')).toBe(
       TextColor.SuccessDefault,
     );
-    expect(getByText('Perps volume')).toBeOnTheScreen();
+    expect(getByText('Perps')).toBeOnTheScreen();
     expect(
       getByText(
         formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
@@ -121,7 +120,7 @@ describe('PerformanceActivityRows', () => {
     expect(queryByText('Predictions')).toBeNull();
   });
 
-  it('labels a swaps cashback row as swaps volume', () => {
+  it('labels a swaps cashback row as swaps', () => {
     const { getByText } = renderWithProvider(
       <PerformanceRebateRow
         item={rebate({ earning_origin_type: 'SWAPS_FEE_CASHBACK' })}
@@ -129,7 +128,7 @@ describe('PerformanceActivityRows', () => {
       />,
     );
 
-    expect(getByText('Swaps volume')).toBeOnTheScreen();
+    expect(getByText('Swaps')).toBeOnTheScreen();
   });
 
   it('labels a predict cashback row from localized_text', () => {

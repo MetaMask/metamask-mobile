@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   EarningsSummaryDto,
   ReferralLocalizedText,
@@ -148,13 +149,17 @@ describe('RefereeHeroCard', () => {
 
     expect(getByText('INVITER')).toBeOnTheScreen();
     expect(
-      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
-    ).toBeOnTheScreen();
+      within(
+        getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.People);
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByText('$4.80')).toBeOnTheScreen();
     expect(
-      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
-    ).toBeOnTheScreen();
+      within(
+        getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.SwapVertical);
     expect(getByText('$7.65')).toBeOnTheScreen();
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
   });

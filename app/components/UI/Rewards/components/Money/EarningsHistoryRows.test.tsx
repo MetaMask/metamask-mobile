@@ -24,6 +24,8 @@ const LOCALIZED_TEXT = {
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
   rebatePredictions: 'Predictions',
+  rebateSwaps: 'Swaps',
+  rebatePerps: 'Perps',
   historyClaimed: 'Claimed',
   historyClaimPending: 'Pending',
   voided: 'Voided',
@@ -76,6 +78,9 @@ describe('EarningsHistoryRow', () => {
 
     expect(getByText('Commission')).toBeOnTheScreen();
     expect(getByText('+$2.50')).toBeOnTheScreen();
+    expect(UNSAFE_getAllByType(AvatarIcon)[0].props.iconName).toBe(
+      IconName.People,
+    );
     expect(amountColor(UNSAFE_getAllByType, '+$2.50')).toBe(
       TextColor.SuccessDefault,
     );
@@ -130,7 +135,35 @@ describe('EarningsHistoryRow', () => {
     expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Chart);
   });
 
-  it('shows a type a newer server adds as a rebate with the coin icon', () => {
+  it('shows a swaps cashback earning as Swaps with the swap icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, earning_origin_type: 'SWAPS_FEE_CASHBACK' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.SwapVertical,
+    );
+  });
+
+  it('shows a perps cashback earning as Perps with the candlestick icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, earning_origin_type: 'PERPS_FEE_CASHBACK' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Perps')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.Candlestick,
+    );
+  });
+
+  it('shows a type a newer server adds as a rebate with the swap icon', () => {
     const { getByText, UNSAFE_getByType } = renderWithProvider(
       <EarningsHistoryRow
         item={{
@@ -143,7 +176,9 @@ describe('EarningsHistoryRow', () => {
     );
 
     expect(getByText('Rebate')).toBeOnTheScreen();
-    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Coin);
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.SwapVertical,
+    );
   });
 
   it('shows a settled claim as a debit', () => {

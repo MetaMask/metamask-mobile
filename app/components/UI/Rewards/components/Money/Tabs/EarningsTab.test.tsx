@@ -312,6 +312,11 @@ describe('EarningsTab', () => {
     ).toBeNull();
     expect(getByText('Referrals')).toBeOnTheScreen();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(
+      within(
+        getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.People);
     expect(getByText('$41.75')).toBeOnTheScreen();
     expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
@@ -341,6 +346,11 @@ describe('EarningsTab', () => {
       getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
     ).toBeOnTheScreen();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(
+      within(
+        getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.SwapVertical);
     expect(queryByText('Trading rebates')).toBeNull();
     expect(queryByText('Referrals')).toBeNull();
     expect(

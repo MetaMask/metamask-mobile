@@ -75,8 +75,7 @@ const LOCALIZED_TEXT = {
   tradingActivityEmptyAction: 'Start trading',
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
-  rebatePerpsVolume: 'Perps volume',
-  rebateSwapsVolume: 'Swaps volume',
+  rebatePerps: 'Perps',
   rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
 } as unknown as ReferralLocalizedText;
@@ -251,7 +250,7 @@ describe('PerformanceTab', () => {
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
-    expect(getByText('Swaps volume')).toBeOnTheScreen();
+    expect(getByText('Swaps')).toBeOnTheScreen();
     expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: false,
     });
@@ -451,7 +450,7 @@ describe('PerformanceTab', () => {
 
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR)).toBeNull();
     expect(queryByText('Error loading your transactions')).toBeNull();
-    expect(getByText('Swaps volume')).toBeOnTheScreen();
+    expect(getByText('Swaps')).toBeOnTheScreen();
   });
 
   it('retries rebates from the transactions error when nothing is cached', () => {
