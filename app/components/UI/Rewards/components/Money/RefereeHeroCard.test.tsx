@@ -156,8 +156,10 @@ describe('RefereeHeroCard', () => {
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByText('$4.80')).toBeOnTheScreen();
     expect(
-      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
-    ).toBeOnTheScreen();
+      within(
+        getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.SwapHorizontal);
     expect(getByText('$7.65')).toBeOnTheScreen();
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
   });
