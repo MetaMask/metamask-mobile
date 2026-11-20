@@ -1,5 +1,5 @@
 /** The SLACK_BOT_TOKEN bot must be a member of this channel (#swaps-performance). */
-export const SLACK_CHANNEL_ID = 'TODO-swaps-performance-channel-id';
+export const SLACK_CHANNEL_ID = 'C0CFMPG4KB9';
 
 /** Scheduled runs of this workflow on `main` produce the profiles. */
 export const PERFORMANCE_WORKFLOW = 'run-performance-e2e-manual.yml';

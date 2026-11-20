@@ -99,13 +99,8 @@ async function main() {
   if (!env.GH_TOKEN) {
     throw new Error('GH_TOKEN is not set');
   }
-  if (
-    !dryRun &&
-    (!env.SLACK_BOT_TOKEN || SLACK_CHANNEL_ID.startsWith('TODO'))
-  ) {
-    throw new Error(
-      'SLACK_BOT_TOKEN or SLACK_CHANNEL_ID is not set (or run with DRY_RUN=true)',
-    );
+  if (!dryRun && !env.SLACK_BOT_TOKEN) {
+    throw new Error('SLACK_BOT_TOKEN is not set (or run with DRY_RUN=true)');
   }
 
   const window = lastWeek();
