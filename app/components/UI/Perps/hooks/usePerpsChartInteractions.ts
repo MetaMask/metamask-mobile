@@ -8,8 +8,44 @@ import {
 import { setPerpsChartPreferredCandlePeriod } from '../../../../actions/settings';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
+import type { ErrorPayload } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import type { PerpsChartAnalyticsProperties } from '../utils/chartAnalytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+
+const TRADINGVIEW_LIBRARY_LOAD_ERROR_CODE = 'TRADINGVIEW_LIBRARY_LOAD_FAILED';
+
+const getLibraryLoadAnalyticsProperties = (
+  details: unknown,
+  fallbackUsed: boolean,
+): Record<string, unknown> => {
+  if (typeof details !== 'object' || details === null) {
+    return {};
+  }
+
+  const payload = details as Partial<ErrorPayload>;
+  if (payload.code !== TRADINGVIEW_LIBRARY_LOAD_ERROR_CODE) {
+    return {};
+  }
+
+  return {
+    chart_error_code: payload.code,
+    chart_failure_stage: 'library_script',
+    chart_fallback_used: fallbackUsed,
+    ...(payload.url ? { chart_library_url: payload.url } : {}),
+    ...(payload.attempt !== undefined
+      ? { chart_library_load_attempt: payload.attempt }
+      : {}),
+    ...(payload.maxAttempts !== undefined
+      ? { chart_library_load_max_attempts: payload.maxAttempts }
+      : {}),
+    ...(payload.online !== undefined
+      ? { chart_library_load_online: payload.online }
+      : {}),
+    ...(payload.visibilityState
+      ? { chart_library_load_visibility_state: payload.visibilityState }
+      : {}),
+  };
+};
 
 interface UsePerpsChartInteractionsOptions {
   asset?: string;
@@ -44,7 +80,7 @@ export const usePerpsChartInteractions = ({
   );
 
   const handleChartError = useCallback(
-    (error?: Error | string) => {
+    (error?: Error | string, details?: unknown) => {
       const errorMessage =
         typeof error === 'string'
           ? error
@@ -62,6 +98,7 @@ export const usePerpsChartInteractions = ({
           PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
         [PERPS_EVENT_PROPERTY.ASSET]: asset || '',
         ...chartAnalyticsProperties,
+        ...getLibraryLoadAnalyticsProperties(details, isAdvancedChartEnabled),
       });
 
       if (isAdvancedChartEnabled) {

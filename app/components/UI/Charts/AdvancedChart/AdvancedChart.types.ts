@@ -412,6 +412,11 @@ export interface TradeMarkerPressedPayload {
 export interface ErrorPayload {
   message: string;
   code?: string;
+  url?: string;
+  attempt?: number;
+  maxAttempts?: number;
+  online?: boolean;
+  visibilityState?: string;
 }
 
 export type WebViewToRNMessage =
@@ -553,11 +558,20 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
 
     case 'ERROR':
       if (typeof obj.message === 'string') {
+        const attempt = getOptionalNumber(obj, 'attempt');
+        const maxAttempts = getOptionalNumber(obj, 'maxAttempts');
         return {
           type,
           payload: {
             message: obj.message,
             ...(typeof obj.code === 'string' ? { code: obj.code } : {}),
+            ...(typeof obj.url === 'string' ? { url: obj.url } : {}),
+            ...(attempt !== undefined ? { attempt } : {}),
+            ...(maxAttempts !== undefined ? { maxAttempts } : {}),
+            ...(typeof obj.online === 'boolean' ? { online: obj.online } : {}),
+            ...(typeof obj.visibilityState === 'string'
+              ? { visibilityState: obj.visibilityState }
+              : {}),
           },
         };
       }
@@ -730,12 +744,12 @@ export interface AdvancedChartProps {
    */
   onChartLayoutSettled?: () => void;
   /** Callback when an error occurs */
-  onError?: (error: string) => void;
+  onError?: (error: string, details?: ErrorPayload) => void;
   /**
    * Pre-`CHART_READY` failure (CDN, library boot, widget init). When set, AdvancedChart
    * skips its error UI and delegates to the parent (e.g. legacy chart fallback).
    */
-  onInitFailed?: (error: string) => void;
+  onInitFailed?: (error: string, details?: ErrorPayload) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
   /**

@@ -13,7 +13,12 @@ import {
 } from '../../messages/handler';
 import { __resetThemeForTests } from '../../widget/theme';
 import { __resetOhlcvIngestionForTests } from '../../widget/ohlcvIngestion';
-import { __resetLoadLibraryForTests } from '../loadLibrary';
+import {
+  __resetLoadLibraryForTests,
+  LIBRARY_LOAD_ERROR_CODE,
+  LIBRARY_LOAD_RETRY_DELAY_MS,
+  MAX_LIBRARY_LOAD_ATTEMPTS,
+} from '../loadLibrary';
 import type { ChartConfig, ChartTheme } from '../types';
 
 const baseTheme: ChartTheme = {
@@ -73,6 +78,7 @@ describe('core/bootstrap', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
     delete (window as unknown as { CONFIG?: ChartConfig }).CONFIG;
     delete (window as unknown as { ReactNativeWebView?: unknown })
@@ -382,32 +388,54 @@ describe('core/bootstrap', () => {
 
   // --- Library load error path -----------------------------------------------
 
-  it('reports error to RN when loadTradingViewLibrary rejects', async () => {
-    // Override the createElement mock to simulate a script load error
-    const mockScript: Record<string, unknown> = {};
+  it('reports one diagnostic error after the library retry fails', async () => {
+    jest.useFakeTimers();
+    const scripts: HTMLScriptElement[] = [];
     jest.spyOn(document, 'createElement').mockImplementation(((tag: string) => {
-      if (tag === 'script') return mockScript as unknown as HTMLScriptElement;
+      if (tag === 'script') {
+        const script = {} as HTMLScriptElement;
+        scripts.push(script);
+        return script;
+      }
       return {} as HTMLElement;
     }) as never);
-    jest.spyOn(document.head, 'appendChild').mockImplementation(((
-      node: Node,
-    ) => {
-      // Trigger the onerror handler asynchronously to simulate load failure
-      if (mockScript.onerror) {
-        setTimeout(() => (mockScript.onerror as () => void)(), 0);
-      }
-      return node;
-    }) as never);
+    jest
+      .spyOn(document.head, 'appendChild')
+      .mockImplementation(((node: Node) => node) as never);
 
     bootstrap();
+    (scripts[0].onerror as unknown as () => void)();
+    jest.advanceTimersByTime(LIBRARY_LOAD_RETRY_DELAY_MS);
+    (scripts[1].onerror as unknown as () => void)();
+    await Promise.resolve();
 
-    // Wait for the async error handler to fire
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    dispatchInboundMessage({
+      type: 'SET_OHLCV_DATA',
+      payload: {
+        data: [{ time: 1_000, open: 1, high: 2, low: 0.5, close: 1.5 }],
+      },
+    });
+    await Promise.resolve();
 
     const errorCalls = bridge.postMessage.mock.calls.filter((call) =>
       call[0].includes('"type":"ERROR"'),
     );
-    expect(errorCalls.length).toBeGreaterThanOrEqual(1);
-    expect(errorCalls[0][0]).toContain('Failed to load TradingView library');
+    const errorMessage = JSON.parse(errorCalls[0][0]) as {
+      payload: Record<string, unknown>;
+    };
+
+    expect(errorCalls).toHaveLength(1);
+    expect(errorMessage.payload).toEqual(
+      expect.objectContaining({
+        message:
+          'Failed to load TradingView library. URL: https://cdn.example.com/charting_library.js',
+        code: LIBRARY_LOAD_ERROR_CODE,
+        url: 'https://cdn.example.com/charting_library.js',
+        attempt: MAX_LIBRARY_LOAD_ATTEMPTS,
+        maxAttempts: MAX_LIBRARY_LOAD_ATTEMPTS,
+        online: expect.any(Boolean),
+        visibilityState: expect.any(String),
+      }),
+    );
   });
 });
