@@ -52,7 +52,8 @@ export const useBenefits = (): {
 
   useFocusEffect(
     useCallback(() => {
-      getAllBenefits().then();
+      // Fire and forget: getAllBenefits handles its own failures.
+      void getAllBenefits();
     }, [getAllBenefits]),
   );
 
