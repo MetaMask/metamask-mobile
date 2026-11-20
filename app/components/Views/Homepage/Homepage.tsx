@@ -27,7 +27,7 @@ import {
   PredictHomeSection,
   selectPredictAvailability,
 } from '../../UI/PredictNext';
-import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
+import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -129,7 +129,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictAvailability);
-    const isCollectiblesEnabled = useSelector(selectCollectiblesEnabledFlag);
+    const isCollectiblesEnabled = useSelector(selectCollectiblesEnabled);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
