@@ -13,11 +13,11 @@
 //
 // Grouping: each marker always renders as its own atomic avatar (+ buy/sell
 // badge) — avatars are never merged into one element. When markers fall within
-// one avatar width on screen they collapse to a shared anchor point (a tight
-// "bunch"), and a single count disc is added at the bunch's bottom. Grouping is
-// pixel-based, so bunches split apart live as the user zooms in (barSpacing
-// grows -> pixel gaps grow). The same grouping also scopes a tap to every
-// overlapping trade (`tapGroupByMarkerId`).
+// one avatar width on screen they are fanned into an overlapping group centered
+// on the candle (each face stays partly visible), and a single count disc is
+// added below the group. Grouping is pixel-based, so groups split apart live as
+// the user zooms in (barSpacing grows -> pixel gaps grow). The same grouping
+// also scopes a tap to every overlapping trade (`tapGroupByMarkerId`).
 
 import { postToRN, reportErrorToRN } from '../../core/bridge';
 import { onDataLifecycle } from '../../core/dataLifecycle';
@@ -59,7 +59,7 @@ const COUNT_BADGE_SIZE = AVATAR_SIZE - 4;
 /**
  * Markers whose on-screen X centers fall within this many px of a group's
  * leading member are treated as one overlapping group. Grouping drives three
- * things: collapsing the members to a shared anchor (a bunch), adding one count
+ * things: fanning the members into an overlapping cluster, adding one count
  * disc, and scoping a tap to the whole group (`tapGroupByMarkerId`). Each marker
  * still renders as its own atomic avatar; grouping never merges them into one
  * element. Complete-linkage grouping keeps a group bounded to ~one avatar wide.
@@ -69,6 +69,12 @@ const CLUSTER_MERGE_PX = AVATAR_SIZE;
 const REFRESH_DEBOUNCE_MS = 120;
 /** Gap (px) between the candle's high and the bottom edge of the avatar. */
 const MARKER_GAP_PX = 10;
+/**
+ * Horizontal spacing (px) between adjacent avatars in an overlapping group. The
+ * members are fanned evenly around the group centroid by this amount so they
+ * overlap (~40%) but each face stays partly visible, rather than fully stacking.
+ */
+const AVATAR_FAN_PX = Math.round(AVATAR_SIZE * 0.6);
 /**
  * How long (ms) to keep the per-frame reposition loop alive after the last
  * pan/zoom signal. Pinch-zoom and inertial pan don't reliably bracket with
@@ -222,9 +228,9 @@ function buildIntentBadge(
 }
 
 /**
- * Group-count disc: the number of markers in an overlapping bunch (e.g. "3").
- * Rendered as a standalone circle centered at the BOTTOM of the bunch (just
- * below the piled faces, overlapping them slightly), so the faces stack above
+ * Group-count disc: the number of markers in an overlapping group (e.g. "3").
+ * Rendered as a standalone circle centered at the BOTTOM of the group (just
+ * below the fanned faces, overlapping them slightly), so the faces sit above
  * it — matching the design. Count only — no +/− (direction is on each face).
  */
 function buildCountBadge(count: number, theme: ChartTheme): HTMLDivElement {
@@ -597,11 +603,10 @@ export function positionAvatarMarkers(): void {
   const groups = groupByProximity(layouts, CLUSTER_MERGE_PX);
   const clusters = buildRenderables(groups);
 
-  // Collapse every 2+ group to ONE anchor point: a common X (the group's
-  // centroid) and a common Y (the group's topmost candle high). The faces then
-  // pile up as a tight bunch (only the top one fully visible) instead of a
-  // fanned row, and the count disc drops centered at the bottom of that bunch —
-  // matching the design.
+  // Lay every 2+ group out as an overlapping fan: a common Y (the group's
+  // topmost candle high) so the faces share one baseline, and X fanned evenly
+  // around the group centroid by AVATAR_FAN_PX so each face stays partly visible
+  // (not fully stacked). The count disc drops centered under the fan.
   const groupPriceByMarkerId = new Map<string, number>();
   const groupXByMarkerId = new Map<string, number>();
   for (const group of groups) {
@@ -613,11 +618,13 @@ export function positionAvatarMarkers(): void {
       sumX += l.x;
     }
     const cx = sumX / group.length;
-    for (const l of group) {
+    // group is sorted ascending X (groupByProximity); fan symmetrically about cx.
+    const mid = (group.length - 1) / 2;
+    group.forEach((l, i) => {
       const id = String(l.marker.id);
       if (Number.isFinite(top)) groupPriceByMarkerId.set(id, top);
-      groupXByMarkerId.set(id, cx);
-    }
+      groupXByMarkerId.set(id, cx + (i - mid) * AVATAR_FAN_PX);
+    });
   }
   for (const c of clusters) {
     const id = String(c.marker.id);
@@ -635,9 +642,9 @@ export function positionAvatarMarkers(): void {
     const ids = group.map((l) => String(l.marker.id)).sort();
     for (const l of group) tapGroupByMarkerId.set(String(l.marker.id), ids);
     if (group.length > 1) {
-      // Representative carries the count disc. All members collapse to the same
-      // point, so any member works; the disc is centered at the bunch's bottom.
-      const repId = String(group[0].marker.id);
+      // Representative carries the count disc: the middle member of the fan, so
+      // the disc (centered under that avatar) lands under the fan's center.
+      const repId = String(group[Math.floor((group.length - 1) / 2)].marker.id);
       repCounts.set(repId, group.length);
     }
   }

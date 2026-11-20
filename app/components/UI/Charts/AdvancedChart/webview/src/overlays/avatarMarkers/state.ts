@@ -5,7 +5,7 @@ import type { AvatarMarker } from '../../messages/contract';
 /**
  * One atomic avatar marker to render: a single trader's avatar + its buy/sell
  * badge, anchored to its own candle. Markers are never merged into a combined
- * element — close markers collapse into a tight bunch on screen (see
+ * element — close markers are fanned into an overlapping group on screen (see
  * positionAvatarMarkers) with a single count disc for a group of 2+. Tap
  * grouping (surfacing every overlapping trade in the sheet) is handled
  * separately in index.ts (`tapGroupByMarkerId`), not by this structure.
