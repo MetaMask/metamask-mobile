@@ -173,7 +173,7 @@ const hookDefaults = {
   categorizedCampaigns: emptyCategorized,
   isLoading: false,
   hasError: false,
-  hasLoaded: false,
+  hasLoaded: true,
   fetchCampaigns: mockFetchCampaigns,
 };
 
@@ -216,6 +216,18 @@ describe('CampaignsView', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         isLoading: true,
+      });
+
+      const { queryByText } = render(<CampaignsView />);
+
+      expect(queryByText('No campaigns available')).toBeNull();
+      expect(queryByText('Unable to load campaigns')).toBeNull();
+    });
+
+    it('holds the empty state back until the first load settles', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        hasLoaded: false,
       });
 
       const { queryByText } = render(<CampaignsView />);

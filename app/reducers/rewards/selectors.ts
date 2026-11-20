@@ -325,6 +325,12 @@ export const selectBenefitsLoading = createSelector(
   (entry) => entry?.loading ?? false,
 );
 
+/** False until the current subscription's first benefits read settles. */
+export const selectBenefitsHasLoaded = createSelector(
+  [selectCurrentBenefitsEntry],
+  (entry) => entry?.hasLoaded ?? false,
+);
+
 // VIP dashboard selectors
 export const selectVipDashboard =
   (subscriptionId: string | null | undefined) => (state: RootState) =>

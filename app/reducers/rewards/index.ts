@@ -119,6 +119,11 @@ export interface BenefitsEntry {
   benefits: SubscriptionBenefitDto[];
   loading: boolean;
   error: boolean;
+  /**
+   * A read has settled for this subscription, with a list or an error. Until
+   * then an empty `benefits` means "not known yet", not "none".
+   */
+  hasLoaded: boolean;
 }
 
 export interface ActiveBoostsEntry {
@@ -182,6 +187,7 @@ function createEmptyBenefitsEntry(): BenefitsEntry {
     benefits: [],
     loading: false,
     error: false,
+    hasLoaded: false,
   };
 }
 
@@ -1133,6 +1139,7 @@ const rewardsSlice = createSlice({
         action.payload.subscriptionId,
       );
       entry.benefits = action.payload.benefits.benefits ?? [];
+      entry.hasLoaded = true;
     },
 
     setBenefitsLoading: (
@@ -1155,6 +1162,9 @@ const rewardsSlice = createSlice({
         action.payload.subscriptionId,
       );
       entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.hasLoaded = true;
+      }
     },
 
     setVipDashboard: (
