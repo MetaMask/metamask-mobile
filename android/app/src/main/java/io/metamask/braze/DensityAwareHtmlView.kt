@@ -2,7 +2,9 @@ package io.metamask.braze
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import androidx.core.view.WindowInsetsCompat
+import com.braze.configuration.BrazeConfigurationProvider
 import com.braze.ui.inappmessage.listeners.IWebViewClientStateListener
 import com.braze.ui.inappmessage.views.InAppMessageHtmlView
 import com.braze.ui.support.getMaxSafeBottomInset
@@ -48,28 +50,41 @@ class DensityAwareHtmlView(context: Context, attrs: AttributeSet?) :
     }
 
     private fun injectDensityIndependentInsets() {
+        // Braze only injects these variables when it doesn't apply native margins itself.
+        if (BrazeConfigurationProvider(context).isHtmlInAppMessageApplyWindowInsetsEnabled) {
+            return
+        }
         val insets = windowInsets ?: return
         val webView = messageWebView ?: return
-        val density = resources.displayMetrics.density
-        val top = getMaxSafeTopInset(insets) / density
-        val right = getMaxSafeRightInset(insets) / density
-        val bottom = getMaxSafeBottomInset(insets) / density
-        val left = getMaxSafeLeftInset(insets) / density
+        try {
+            val density = resources.displayMetrics.density
+            val top = getMaxSafeTopInset(insets) / density
+            val right = getMaxSafeRightInset(insets) / density
+            val bottom = getMaxSafeBottomInset(insets) / density
+            val left = getMaxSafeLeftInset(insets) / density
 
-        webView.evaluateJavascript(
-            """
-            (function() {
-              var root = document.documentElement;
-              root.style.setProperty('--braze-safe-area-inset-top', '${top}px');
-              root.style.setProperty('--braze-safe-area-inset-right', '${right}px');
-              root.style.setProperty('--braze-safe-area-inset-bottom', '${bottom}px');
-              root.style.setProperty('--braze-safe-area-inset-left', '${left}px');
-              root.dispatchEvent(new CustomEvent('brazeSafeAreaInsetsChanged', {
-                detail: { top: $top, right: $right, bottom: $bottom, left: $left, unit: 'css' }
-              }));
-            })();
-            """.trimIndent(),
-            null,
-        )
+            webView.evaluateJavascript(
+                """
+                (function() {
+                  var root = document.documentElement;
+                  root.style.setProperty('--braze-safe-area-inset-top', '${top}px');
+                  root.style.setProperty('--braze-safe-area-inset-right', '${right}px');
+                  root.style.setProperty('--braze-safe-area-inset-bottom', '${bottom}px');
+                  root.style.setProperty('--braze-safe-area-inset-left', '${left}px');
+                  root.dispatchEvent(new CustomEvent('brazeSafeAreaInsetsChanged', {
+                    detail: { top: $top, right: $right, bottom: $bottom, left: $left, unit: 'css' }
+                  }));
+                })();
+                """.trimIndent(),
+                null,
+            )
+        } catch (e: Exception) {
+            // The caller's page-finished listener opens the message; never let this block it.
+            Log.w(TAG, "Could not inject density-independent safe-area insets", e)
+        }
+    }
+
+    private companion object {
+        const val TAG = "DensityAwareHtmlView"
     }
 }
