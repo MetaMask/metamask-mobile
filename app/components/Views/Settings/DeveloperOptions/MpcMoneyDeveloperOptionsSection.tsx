@@ -1,4 +1,6 @@
 import React, { useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
+import type { MoneyAccountControllerState } from '@metamask/money-account-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { bytesToHex } from '@metamask/utils';
@@ -12,6 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
+import { selectMoneyAccounts } from '../../../../selectors/moneyAccountController';
 import { useStyles } from '../../../../component-library/hooks';
 import { useTheme } from '../../../../util/theme';
 import { MpcMoneyDeveloperOptionsSelectorsIDs } from './MpcMoneyDeveloperOptions.testIds';
@@ -19,8 +22,9 @@ import styleSheet from './DeveloperOptions.styles';
 
 const TEST_MESSAGE = 'MetaMask Money MPC test';
 
-const getMoneyAccountAddresses = () => {
-  const { moneyAccounts } = Engine.context.MoneyAccountController.state;
+const getMoneyAccountAddresses = (
+  moneyAccounts: MoneyAccountControllerState['moneyAccounts'],
+) => {
   const accounts = Object.values(moneyAccounts);
   const findAddress = (type: KeyringAccountEntropyTypeOption) =>
     accounts.find(({ options }) => options.entropy?.type === type)?.address;
@@ -37,6 +41,8 @@ export const MpcMoneyDeveloperOptionsSection = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const [result, setResult] = useState<string>();
+  const moneyAccounts = useSelector(selectMoneyAccounts);
+  const { mpc, mnemonic } = getMoneyAccountAddresses(moneyAccounts);
 
   const run = useCallback(
     async (label: string, action: () => Promise<string>) => {
@@ -67,7 +73,7 @@ export const MpcMoneyDeveloperOptionsSection = () => {
   const sign = useCallback(
     () =>
       run('Sign test message', async () => {
-        const address = getMoneyAccountAddresses().mpc;
+        const address = mpc;
         if (!address) {
           throw new Error('No MPC Money account, create one first');
         }
@@ -82,10 +88,8 @@ export const MpcMoneyDeveloperOptionsSection = () => {
           recovered.toLowerCase() === address.toLowerCase()
         }`;
       }),
-    [run],
+    [run, mpc],
   );
-
-  const { mpc, mnemonic } = getMoneyAccountAddresses();
 
   return (
     <Box
