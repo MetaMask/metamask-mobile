@@ -1,0 +1,22 @@
+{
+  "aps": {
+    "alert": {
+      "title": "ETH down 5.2% in 24h",
+      "body": "ETH is now $3,820.80."
+    },
+    "sound": "default",
+    "category": "mm-price-alert-v1"
+  },
+  "mm_delivery": "price_alert",
+  "mm_ui": "price_alert@1",
+  "symbol": "ETH",
+  "asset_id": "eip155:1/slip44:60",
+  "deeplink": "https://link.metamask.io/asset?assetId=eip155%3A1%2Fslip44%3A60&source=price_alert_notification",
+  "kind": "movement",
+  "price": "3820.8",
+  "period": "24h",
+  "change_pct": "-5.2",
+  "points": "4030,4055,4013,4022,3954,3969,3938,3959,3867,3899,3862,3820.8",
+  "fallback_title": "ETH down 5.2% in 24h",
+  "fallback_body": "ETH is now $3,820.80."
+}

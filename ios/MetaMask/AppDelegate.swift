@@ -267,6 +267,31 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
       return
     }
 
+    let content = response.notification.request.content
+    if content.categoryIdentifier == "mm-price-alert-v1", PriceAlert(userInfo) != nil {
+      let action = response.actionIdentifier
+      if action == UNNotificationDefaultActionIdentifier ||
+        action == "price-alert-view-token" || action == "price-alert-swap" {
+        let isDefault = action == UNNotificationDefaultActionIdentifier
+        let pressAction = isDefault ? "default" : action
+        let eventType = isDefault ? 1 : 2
+        let data = userInfo.reduce(into: [String: String]()) { data, field in
+          if let key = field.key as? String, let value = field.value as? String {
+            data[key] = value
+          }
+        }
+        NotifeeCoreDelegateHolder.instance().didReceiveNotifeeCoreEvent([
+          "type": eventType,
+          "detail": [
+            "notification": ["id": response.notification.request.identifier, "data": data],
+            "pressAction": ["id": pressAction],
+          ],
+        ])
+      }
+      completionHandler()
+      return
+    }
+
     // Braze-originated notification: let Braze track the open and handle deep links.
     if AppDelegate.braze?.notifications.handleUserNotification(
       response: response, withCompletionHandler: completionHandler) == true {

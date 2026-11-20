@@ -11,6 +11,7 @@
 // Notifee UNUserNotificationCenter singleton — used in AppDelegate.swift didReceive to
 // forward taps on Notifee-created notifications so onForegroundEvent(PRESS) fires in JS.
 #import <RNNotifee/NotifeeCore+UNUserNotificationCenter.h>
+#import <RNNotifee/NotifeeCoreDelegateHolder.h>
 
 // Thin C wrappers around BrazeReactBridge / BrazeReactUtils.
 // Implemented in BrazeHelper.mm.

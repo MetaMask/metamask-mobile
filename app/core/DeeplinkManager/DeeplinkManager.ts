@@ -22,6 +22,11 @@ import {
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
 import NotificationsService from '../../util/notifications/services/NotificationService';
 import {
+  isPriceAlertDelivery,
+  PRICE_ALERT_DELIVERY,
+} from '../../util/notifications/priceAlerts/payload';
+import { subscribePriceAlertActions } from '../../util/notifications/priceAlerts/notifications';
+import {
   startDeeplinkProcessedTrace,
   endDeeplinkProcessedTrace,
   cancelDeeplinkProcessedTrace,
@@ -267,7 +272,18 @@ export class DeeplinkManager {
       onPushTap(AppOpenedPushProvider.Wallet, tap);
     };
 
+    subscribePriceAlertActions((deeplink) => {
+      onPushTap(AppOpenedPushProvider.Wallet, { deeplink });
+    });
+
     NotificationsService.onForegroundEvent(async (event) => {
+      const data = event.detail?.notification?.data;
+      if (
+        isPriceAlertDelivery(data) ||
+        data?.mm_local === PRICE_ALERT_DELIVERY
+      ) {
+        return;
+      }
       await NotificationsService.handleNotificationEvent({
         ...event,
         callback: handleNotifeeNotification,

@@ -71,6 +71,11 @@
 		F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
 		F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */; };
 		F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		135A1E270000000000000004 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000003; };
+		135A1E270000000000000007 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000002; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		135A1E27000000000000000F = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
+		135A1E270000000000000011 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
+		135A1E270000000000000012 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +107,7 @@
 			remoteGlobalIDString = 32D980DD1BE9F11C00FA27E5;
 			remoteInfo = RCTAesForked;
 		};
+		135A1E270000000000000008 = {isa = PBXContainerItemProxy; containerPortal = 83CBB9F71A601CBA00E9B192; proxyType = 1; remoteGlobalIDString = 135A1E270000000000000001; remoteInfo = PriceAlertContent; };
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -125,6 +131,15 @@
 				2EF2828C2B0FF86900D7B4B1 /* Branch.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		135A1E270000000000000006 = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (135A1E270000000000000007, );
+			name = "Embed Price Alert Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -202,6 +217,10 @@
 		F961A36A28105CF9007442B5 /* LinkPresentation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LinkPresentation.framework; path = System/Library/Frameworks/LinkPresentation.framework; sourceTree = SDKROOT; };
 		F9DFF7AC557B46B6BEFAA1C1 /* libRNShakeEvent.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNShakeEvent.a; sourceTree = "<group>"; };
 		FE3C9A2458A1416290DEDAD4 /* branch.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = branch.json; path = ../branch.json; sourceTree = "<group>"; };
+		135A1E270000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlertViewController.swift; sourceTree = "<group>"; };
+		135A1E27000000000000000E = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		135A1E270000000000000002 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PriceAlertContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		135A1E270000000000000010 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlert.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -386,6 +405,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				135A1E27000000000000000D,
 				C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */,
 				2EF283352B17EC4E00D7B4B1 /* Light-Swift-Untar-V2 */,
 				2EF283312B17EC1A00D7B4B1 /* RNTar.m */,
@@ -413,6 +433,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* MetaMask.app */,
+				135A1E270000000000000002,
 				2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */,
 			);
 			name = Products;
@@ -464,6 +485,7 @@
 			name = RCTMinimizer;
 			sourceTree = "<group>";
 		};
+		135A1E27000000000000000D = {isa = PBXGroup; children = (135A1E270000000000000010, 135A1E270000000000000003, 135A1E27000000000000000E, ); path = PriceAlertContent; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -478,6 +500,7 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
+				135A1E270000000000000006,
 				00DD1BFF1BD5951E006B06BC /* Bundle JS Code & Upload Sentry Files */,
 				1315792FDF9ED5C1277541D0 /* [CP] Embed Pods Frameworks */,
 				FFED9AB1AACD0DA25EAA971D /* [CP] Copy Pods Resources */,
@@ -488,6 +511,7 @@
 			);
 			dependencies = (
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
+				135A1E270000000000000009,
 			);
 			name = MetaMask;
 			productName = "Hello World";
@@ -520,6 +544,17 @@
 			productName = "Hello World";
 			productReference = 2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */;
 			productType = "com.apple.product-type.application";
+		};
+		135A1E270000000000000001 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 135A1E27000000000000000A;
+			buildPhases = (135A1E270000000000000005, );
+			buildRules = ();
+			dependencies = ();
+			name = PriceAlertContent;
+			productName = PriceAlertContent;
+			productReference = 135A1E270000000000000002;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -568,6 +603,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* MetaMask */,
+				135A1E270000000000000001,
 				2EF282522B0FF86900D7B4B1 /* MetaMask-Flask */,
 			);
 		};
@@ -938,6 +974,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */,
+				135A1E270000000000000011,
 				F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */,
 				B4A2E0110100000100000C03 /* BrazePushModule.m in Sources */,
 				2EF283322B17EC1A00D7B4B1 /* RNTar.m in Sources */,
@@ -956,6 +993,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4B580772E33A001008165E1 /* AppDelegate.swift in Sources */,
+				135A1E270000000000000012,
 				F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */,
 				B4A2E0110100000100000C04 /* BrazePushModule.m in Sources */,
 				2EF283342B17EC1A00D7B4B1 /* RNTar.m in Sources */,
@@ -969,6 +1007,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		135A1E270000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (135A1E27000000000000000F, 135A1E270000000000000004, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -982,6 +1021,7 @@
 			name = Branch;
 			targetProxy = 2EF282562B0FF86900D7B4B1 /* PBXContainerItemProxy */;
 		};
+		135A1E270000000000000009 = {isa = PBXTargetDependency; target = 135A1E270000000000000001; targetProxy = 135A1E270000000000000008; };
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -1366,6 +1406,40 @@
 			};
 			name = Release;
 		};
+		135A1E27000000000000000B = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				INFOPLIST_FILE = PriceAlertContent/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 8.23.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.PriceAlertContent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		135A1E27000000000000000C = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				INFOPLIST_FILE = PriceAlertContent/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 8.23.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.PriceAlertContent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1396,6 +1470,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		135A1E27000000000000000A = {isa = XCConfigurationList; buildConfigurations = (135A1E27000000000000000B, 135A1E27000000000000000C, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Debug; };
 /* End XCConfigurationList section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
