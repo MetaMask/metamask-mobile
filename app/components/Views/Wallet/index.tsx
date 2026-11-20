@@ -2,7 +2,6 @@ import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -79,6 +78,7 @@ import {
   Text as CustomText,
   TextColor,
   TextVariant,
+  toast,
 } from '@metamask/design-system-react-native';
 
 import {
@@ -92,11 +92,6 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
-import {
-  ToastContext,
-  ToastVariants,
-  ButtonIconVariant,
-} from '../../../component-library/components/Toast';
 import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
@@ -170,6 +165,7 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import { useAssetsHaveLoaded } from '../../UI/Assets/hooks/useAssetsHaveLoaded';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -375,7 +371,14 @@ const Wallet = ({
 
   const walletHomeOnboardingStepIndex =
     useSelector(selectWalletHomeOnboardingSteps).stepIndex ?? 0;
-  const isAccountGroupFunded = useSelector(selectIsAccountGroupFunded);
+  const assetsHaveLoaded = useAssetsHaveLoaded();
+  const hasPositiveAccountGroupBalance = useSelector(
+    selectIsAccountGroupFunded,
+  );
+  // Gate with the latched load signal so background refreshes do not drop
+  // funded and hide/show the growth banner incorrectly.
+  const isAccountGroupFunded =
+    assetsHaveLoaded && hasPositiveAccountGroupBalance;
 
   const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
@@ -414,7 +417,6 @@ const Wallet = ({
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const { toastRef } = useContext(ToastContext);
   useArcUsageNoticeToast();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -617,7 +619,7 @@ const Wallet = ({
       isPerpsFlagEnabled &&
       isPerpsGTMModalEnabled
     ) {
-      checkAndNavigateToPerpsGTM();
+      void checkAndNavigateToPerpsGTM();
     }
   }, [
     basicFunctionalityEnabled,
@@ -652,39 +654,22 @@ const Wallet = ({
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
-    const toast = toastRef?.current;
     storePrivacyPolicyShownDate();
-    toast?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings(`privacy_policy.toast_message`),
-          isBold: true,
-        },
-      ],
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toast?.closeToast();
-        },
-      },
-      linkButtonOptions: {
-        label: strings(`privacy_policy.toast_read_more`),
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toast?.closeToast();
-          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
-        },
-      },
+    toast({
+      title: strings('privacy_policy.toast_message'),
       hasNoTimeout: true,
+      onClose: storePrivacyPolicyClickedOrClosed,
+      actionButtonLabel: strings('privacy_policy.toast_read_more'),
+      actionButtonOnPress: () => {
+        storePrivacyPolicyClickedOrClosed();
+        toast.dismiss();
+        Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+      },
     });
   }, [
     storePrivacyPolicyShownDate,
     shouldShowNewPrivacyToast,
     storePrivacyPolicyClickedOrClosed,
-    toastRef,
   ]);
 
   const homeGrowthBanner = useHomeGrowthBanner();

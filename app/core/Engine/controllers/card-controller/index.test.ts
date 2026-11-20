@@ -119,7 +119,6 @@ describe('cardControllerInit', () => {
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,
-      cardholderAccounts: ['eip155:1:0xabc'],
       providerData: { baanx: { location: 'us' } },
     };
 

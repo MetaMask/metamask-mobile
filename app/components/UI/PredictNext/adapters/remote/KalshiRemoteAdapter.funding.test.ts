@@ -23,6 +23,7 @@ const TX_HASH = transferReported.txHash as PredictHex;
 
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
+  fetchVenueCatalog: jest.fn(),
   fetchBalance: jest.fn(),
   fetchPositions: jest.fn(),
   fetchActivity: jest.fn(),
@@ -41,6 +42,9 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   listOpenDeposits: jest.fn(),
   reportDepositTransfer: jest.fn(),
   cancelDeposit: jest.fn(),
+  fetchWithdrawPreview: jest.fn(),
+  commitWithdraw: jest.fn(),
+  observeWithdraw: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter funding', () => {
@@ -225,6 +229,21 @@ describe('KalshiRemoteAdapter funding', () => {
         metadata: { phase: 'preview', mutationRelay: 'not_a_mutation' },
       });
       expect(client.createDeposit).not.toHaveBeenCalled();
+    });
+
+    it('keeps the operation id a deposit refusal names', async () => {
+      client.startDeposit.mockRejectedValue(
+        new PredictHttpError(409, 'deposit_in_progress', {
+          operationId: 'op-9',
+        }),
+      );
+
+      await expect(
+        adapter.funding.prepareDeposit(DEPOSIT, USER_APPROVAL),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.DEPOSIT_IN_PROGRESS,
+        metadata: { depositOperationId: 'op-9' },
+      });
     });
 
     it.each([

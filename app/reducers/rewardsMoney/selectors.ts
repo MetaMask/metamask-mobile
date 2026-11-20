@@ -9,7 +9,7 @@ import type {
   ReferralMeDto,
   ReferralRole,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
-import { selectGeoLocation } from '../rewards/selectors';
+import { selectGeolocationLocation } from '../../selectors/geolocationController';
 import { selectRewardsMoneyControllerEnabled } from '../../selectors/featureFlagController/rewardsMoneyController';
 import { selectSessionProfileId } from '../../selectors/identity';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
@@ -165,14 +165,14 @@ export function selectReferralMeLocalizedText(
 /**
  * Whether the current device country may accept a Money referral invite.
  *
- * Combines Rewards geo metadata with the program's `excluded_regions` from
- * referral me. Unknown geo fails open (same as Rewards opt-in on error).
+ * Combines the live GeolocationController location with the program's
+ * `excluded_regions` from referral me. Unknown geo fails open.
  */
 export function selectMoneyReferralAllowedForGeo(
   state: RootState,
   profileId: string | undefined,
 ): boolean {
-  const geoLocation = selectGeoLocation(state);
+  const geoLocation = selectGeolocationLocation(state);
   const excludedRegions = selectReferralMeEntry(state, profileId)?.data
     ?.excluded_regions;
   return isMoneyReferralAllowedForGeo(geoLocation, excludedRegions);
