@@ -27,14 +27,52 @@ import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds'
 
 export type ClaimButtonState = 'claim' | 'paused' | 'claimed' | 'hidden';
 
+export type ClaimHeadline = 'available' | 'held' | 'pending' | 'balance';
+
 function amountHeading(label: string, currency: string): string {
   return `${label} \u2022 ${currency}`;
 }
 
+interface ClaimCardStateInput {
+  claimable?: string;
+  pending?: string;
+  claimed?: string;
+  held?: string;
+  blocked?: string;
+  canClaim?: boolean;
+  /**
+   * Income is held only until tax documentation is done. The button stays
+   * Claim so the press opens the tax flow, even beside a blocked balance.
+   */
+  taxHeld?: boolean;
+}
+
 /**
- * Claim when `canClaim` is set, even if some money is held or blocked.
- * Otherwise a positive held or blocked balance shows Paused, ahead of a
- * disabled Claimed button. Both missing or zero hides it.
+ * First match wins: payable claimable, a tax hold, pending, then held or
+ * blocked, then whatever balance is left.
+ */
+export function claimHeadline({
+  claimable,
+  pending,
+  held,
+  canClaim = false,
+  taxHeld = false,
+}: ClaimCardStateInput): ClaimHeadline {
+  if (canClaim && isPositiveBaseUnits(claimable)) {
+    return 'available';
+  }
+  if (taxHeld && isPositiveBaseUnits(held)) {
+    return 'held';
+  }
+  if (isPositiveBaseUnits(pending)) {
+    return 'pending';
+  }
+  return 'balance';
+}
+
+/**
+ * Claim when an open route is payable, or when the balance is tax-held.
+ * Pending then shows Claimed or nothing, ahead of Paused.
  */
 export function claimButtonState(
   claimable: string | undefined,
@@ -42,17 +80,17 @@ export function claimButtonState(
   canClaim = false,
   held?: string,
   blocked?: string,
-  /**
-   * Income is held only until tax documentation is done. The button stays
-   * Claim so the press opens the tax flow, even beside a blocked balance.
-   */
   taxHeld = false,
+  pending?: string,
 ): ClaimButtonState {
   if (canClaim && isPositiveBaseUnits(claimable)) {
     return 'claim';
   }
   if (taxHeld && isPositiveBaseUnits(held)) {
     return 'claim';
+  }
+  if (isPositiveBaseUnits(pending)) {
+    return isPositiveBaseUnits(claimed) ? 'claimed' : 'hidden';
   }
   if (isPositiveBaseUnits(held) || isPositiveBaseUnits(blocked)) {
     return 'paused';
@@ -69,14 +107,18 @@ export interface ClaimableRewardsCardProps {
   claimed?: string;
   /** Formatted claimable balance. */
   claimableAmount: string;
+  /** Adjusted pending base units, including an open route under the minimum. */
+  pending?: string;
+  /** Formatted adjusted pending balance. */
+  pendingAmount?: string;
   /**
    * A referrer shows the claimable amount row while Social V1 is enabled.
    */
   isReferrer?: boolean;
   /**
-   * Base units in `held`. A positive value, or a positive `blocked`, shows
-   * Balance and Paused. When the only hold is tax documentation and nothing
-   * is claimable, the row shows this balance under Held and stays Claim.
+   * Base units in `held`. Tax documentation shows this under Held and stays
+   * Claim. Any other positive held or blocked balance shows Balance and
+   * Paused, after Pending.
    */
   held?: string;
   /** Formatted `held` balance. Shown when tax documentation is the only hold. */
@@ -164,14 +206,17 @@ const ClaimableRewardsCardSkeleton: React.FC<{
 };
 
 /**
- * Available-to-claim card. Claim is enabled when cashback or follow-trade
- * reaches the summary minimum, and when the only hold is tax documentation.
+ * Earnings balance card. Claim when an open route is payable or the balance
+ * is tax-held. Pending, including an open route under the minimum, comes
+ * before Paused.
  */
 const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   localizedText,
   claimable,
   claimed,
   claimableAmount,
+  pending,
+  pendingAmount,
   isReferrer = false,
   held,
   heldAmount,
@@ -208,29 +253,29 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     held,
     blocked,
     taxHeld,
+    pending,
   );
-  const paused = button === 'paused';
-  // Nothing is payable yet, and the hold is only tax documentation. Show the
-  // held balance and keep Claim so the press opens the tax flow.
-  const taxHeldOnly =
-    button === 'claim' &&
-    taxHeld &&
-    isPositiveBaseUnits(held) &&
-    !isPositiveBaseUnits(claimable);
+  const headline = claimHeadline({
+    claimable,
+    pending,
+    held,
+    canClaim,
+    taxHeld,
+  });
   const showLast7Skeleton = isLast7Loading && last7Amount === null;
-  const heading = amountHeading(
-    paused
-      ? localizedText.balance
-      : taxHeldOnly
-        ? localizedText.held
-        : localizedText.availableToClaim,
-    localizedText.mUSD,
-  );
-  const amount = paused
-    ? recordedAmount
-    : taxHeldOnly
-      ? (heldAmount ?? claimableAmount)
-      : claimableAmount;
+  const headingLabel = {
+    available: localizedText.availableToClaim,
+    held: localizedText.held,
+    pending: localizedText.pending,
+    balance: localizedText.balance,
+  }[headline];
+  const heading = amountHeading(headingLabel, localizedText.mUSD);
+  const amount = {
+    available: claimableAmount,
+    held: heldAmount ?? claimableAmount,
+    pending: pendingAmount ?? claimableAmount,
+    balance: recordedAmount,
+  }[headline];
   const claimInProgress = button === 'claim' && isClaiming;
   const claimCoolingDown =
     button === 'claim' && isClaimWaiting && !claimInProgress;
