@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
+import { earnRatesFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
   EarningsSummaryDto,
@@ -160,13 +161,9 @@ const LOCALIZED_TEXT = {
   invitedOptInLegal: 'Rewards terms apply.',
 } as unknown as ReferralMeDto['localized_text'];
 
-const EARN_RATES: ReferralMeDto['earn_rates'] = {
+const EARN_RATES: ReferralMeDto['earn_rates'] = earnRatesFixture({
   cashback_rate_bps: 500,
-  cashback_earning_start: null,
-  cashback_earning_end: null,
   revshare_rate_bps: 2500,
-  revshare_earning_start: null,
-  revshare_earning_end: null,
   revshare_by_product: {
     perps: { rate_bps: 2500, source: 'DEFAULT' },
     swaps: { rate_bps: 2500, source: 'DEFAULT' },
@@ -177,8 +174,7 @@ const EARN_RATES: ReferralMeDto['earn_rates'] = {
     swaps: { rate_bps: 500, source: null },
     predict: null,
   },
-  copy_trading_by_product: { perps: null, swaps: null },
-};
+});
 
 const createReferralMe = (
   overrides: Partial<ReferralMeDto> = {},

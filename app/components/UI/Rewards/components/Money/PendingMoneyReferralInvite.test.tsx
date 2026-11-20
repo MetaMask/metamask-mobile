@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { act, render, waitFor } from '@testing-library/react-native';
+import { earnRatesFixture } from '../../../../../../tests/component-view/presets/rewardsMoney';
 import configureStore from '../../../../../util/test/configureStore';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -69,17 +70,7 @@ const buildReferralMe = (
   referral_code: null,
   referral_code_status: null,
   referred_by: null,
-  earn_rates: {
-    cashback_rate_bps: null,
-    cashback_earning_start: null,
-    cashback_earning_end: null,
-    revshare_rate_bps: null,
-    revshare_earning_start: null,
-    revshare_earning_end: null,
-    revshare_by_product: { perps: null, swaps: null, predict: null },
-    cashback_by_product: { perps: null, swaps: null, predict: null },
-    copy_trading_by_product: { perps: null, swaps: null },
-  },
+  earn_rates: earnRatesFixture(),
   localized_text: {} as ReferralMeDto['localized_text'],
   invite_hero: null,
   excluded_regions: [],

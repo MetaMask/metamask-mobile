@@ -1,4 +1,5 @@
 import { getVersion } from 'react-native-device-info';
+import { earnRatesFixture } from '../../../../../../tests/component-view/presets/rewardsMoney';
 import {
   RewardsMoneyDataService,
   RewardsMoneyAuthorizationError,
@@ -171,17 +172,7 @@ describe('RewardsMoneyDataService', () => {
           referral_code: null,
           referral_code_status: null,
           referred_by: null,
-          earn_rates: {
-            cashback_rate_bps: null,
-            cashback_earning_start: null,
-            cashback_earning_end: null,
-            revshare_rate_bps: null,
-            revshare_earning_start: null,
-            revshare_earning_end: null,
-            revshare_by_product: { perps: null, swaps: null, predict: null },
-            cashback_by_product: { perps: null, swaps: null, predict: null },
-            copy_trading_by_product: { perps: null, swaps: null },
-          },
+          earn_rates: earnRatesFixture(),
         }),
       );
 

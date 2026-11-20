@@ -433,17 +433,52 @@ export const PENDING_CLAIM_FIXTURE: ClaimDto = {
   updated_at: '2026-09-01T00:00:00.000Z',
 };
 
-const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
+const EMPTY_REVSHARE_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['revshare_by_product']
+> = { perps: null, swaps: null, predict: null };
+
+const EMPTY_CASHBACK_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['cashback_by_product']
+> = { perps: null, swaps: null, predict: null };
+
+const EMPTY_COPY_TRADING_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['copy_trading_by_product']
+> = { perps: null, swaps: null };
+
+/**
+ * Earn rates with every field null, including the per-product maps.
+ * The next DTO field belongs here so unit tests do not each rewrite the shape.
+ */
+export const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
   cashback_rate_bps: null,
   cashback_earning_start: null,
   cashback_earning_end: null,
   revshare_rate_bps: null,
   revshare_earning_start: null,
   revshare_earning_end: null,
-  revshare_by_product: { perps: null, swaps: null, predict: null },
-  cashback_by_product: { perps: null, swaps: null, predict: null },
-  copy_trading_by_product: { perps: null, swaps: null },
+  revshare_by_product: EMPTY_REVSHARE_BY_PRODUCT,
+  cashback_by_product: EMPTY_CASHBACK_BY_PRODUCT,
+  copy_trading_by_product: EMPTY_COPY_TRADING_BY_PRODUCT,
 };
+
+/**
+ * A fresh earn-rates object. Pass only the rates a test asserts; a product
+ * map replaces that map wholesale.
+ *
+ * @param overrides - Fields that replace the empty rates.
+ * @returns Earn rates, with the empty product maps copied.
+ */
+export function earnRatesFixture(
+  overrides: Partial<ReferralMeDto['earn_rates']> = {},
+): ReferralMeDto['earn_rates'] {
+  return {
+    ...EMPTY_EARN_RATES,
+    revshare_by_product: { ...EMPTY_REVSHARE_BY_PRODUCT },
+    cashback_by_product: { ...EMPTY_CASHBACK_BY_PRODUCT },
+    copy_trading_by_product: { ...EMPTY_COPY_TRADING_BY_PRODUCT },
+    ...overrides,
+  };
+}
 
 export function referralMeFixture(
   persona: MoneyDashboardPersona,
@@ -466,7 +501,7 @@ export function referralMeFixture(
       : null,
     referral_code_status: referrer ? 'ACTIVE' : null,
     referred_by: referee ? { referral_code: 'SOPHIE' } : null,
-    earn_rates: EMPTY_EARN_RATES,
+    earn_rates: earnRatesFixture(),
     localized_text: REFERRAL_LOCALIZED_TEXT,
     invite_hero: null,
     excluded_regions: [],

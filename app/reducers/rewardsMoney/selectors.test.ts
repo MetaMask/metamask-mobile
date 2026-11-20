@@ -1,4 +1,5 @@
 import type { RootState } from '..';
+import { earnRatesFixture } from '../../../tests/component-view/presets/rewardsMoney';
 import type {
   ClaimDto,
   EarningsSummaryDto,
@@ -66,21 +67,14 @@ const mockReferralMe: ReferralMeDto = {
   },
   referral_code_status: 'ACTIVE',
   referred_by: null,
-  earn_rates: {
-    cashback_rate_bps: null,
-    cashback_earning_start: null,
-    cashback_earning_end: null,
+  earn_rates: earnRatesFixture({
     revshare_rate_bps: 1000,
-    revshare_earning_start: null,
-    revshare_earning_end: null,
     revshare_by_product: {
       perps: { rate_bps: 1000, source: 'DEFAULT' },
       swaps: { rate_bps: 1000, source: 'DEFAULT' },
       predict: null,
     },
-    cashback_by_product: { perps: null, swaps: null, predict: null },
-    copy_trading_by_product: { perps: null, swaps: null },
-  },
+  }),
   localized_text: mockLocalizedText,
   invite_hero: null,
   excluded_regions: [],
