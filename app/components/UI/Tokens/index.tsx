@@ -249,11 +249,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
-      try {
-        await refreshTokensForGroup();
-      } finally {
+      await refreshTokensForGroup().finally(() => {
         setRefreshing(false);
-      }
+      });
     }, [refreshTokensForGroup]);
 
     // One event per settled, non-empty query (never per keystroke).
