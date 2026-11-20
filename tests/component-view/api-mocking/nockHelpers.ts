@@ -65,10 +65,14 @@ export function teardownNock(): void {
  * `uri` string (path + query) nock v14 used to pass, so reply callbacks keep
  * working with paths like `/v1/orders?account=0x...`.
  *
- * @param request - The web-standard `Request` nock v15 hands to reply functions.
+ * @param request - The `Request` nock v15 hands to reply functions on the fetch
+ * transport, or the legacy `uri` string on the http-module transport.
  * @returns The request path including its query string, without the origin.
  */
-export function nockRequestUri(request: Request): string {
+export function nockRequestUri(request: Request | string): string {
+  if (typeof request === 'string') {
+    return request;
+  }
   const url = new URL(request.url);
   return `${url.pathname}${url.search}`;
 }
