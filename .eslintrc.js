@@ -548,8 +548,24 @@ module.exports = {
         tailwindcss: {
           callees: ['twClassName', 'tw'],
           config: './tailwind.config.js',
+          // React Native has no CSS files. Without this, no-custom-classname
+          // searches the whole repo for *.css every 5 seconds.
+          cssFiles: [],
           tags: ['tw'], // Enable template literal support for tw`classnames`
         },
+      },
+    },
+    {
+      // The React Compiler does not run under Jest (see
+      // scripts/react-compiler.js), so it never compiles these files.
+      files: [
+        '**/*.test.{js,jsx,ts,tsx}',
+        '**/__mocks__/**',
+        '**/*.mock.{js,ts,tsx}',
+        'tests/**',
+      ],
+      rules: {
+        'react-compiler/react-compiler': 'off',
       },
     },
     {

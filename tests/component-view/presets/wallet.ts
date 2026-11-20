@@ -40,6 +40,8 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
           },
           AssetsController: {
             selectedCurrency: 'usd',
+            // Settled so home balance/token skeletons clear in CV fixtures.
+            assetsLoadingStatus: { 'acc-1': 'loaded' },
           },
           AccountTrackerController: {
             accountsByChainId: {

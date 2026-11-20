@@ -42,6 +42,11 @@ jest.mock('./hooks/useRefreshTokens', () => ({
   useRefreshTokens: () => ({ refresh: mockRefreshTokensForGroup }),
 }));
 
+const mockUseAssetsHaveLoaded = jest.fn(() => true);
+jest.mock('../Assets/hooks/useAssetsHaveLoaded', () => ({
+  useAssetsHaveLoaded: () => mockUseAssetsHaveLoaded(),
+}));
+
 // Mocking versioning for some selectors
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -128,6 +133,35 @@ const arrangeMockSelectors = () => {
       { address: '0xToken3', chainId: '0x3', isStaked: false },
     ]);
 
+  // Soft-gate reads balances from this map; seed non-zero rows so unsettled
+  // loads still render the list in these unit tests.
+  jest
+    .spyOn(AssetsListSelectorsModule, 'selectAssetsBySelectedAccountGroup')
+    .mockImplementation(
+      () =>
+        ({
+          '0x1': [
+            {
+              accountType: 'eip155:eoa',
+              accountId: 'account-1',
+              assetId: '0xToken1',
+              address: '0xToken1',
+              chainId: '0x1',
+              image: '',
+              name: 'Token',
+              symbol: 'TKN',
+              decimals: 18,
+              isNative: false,
+              rawBalance: '0x1',
+              balance: '1',
+              fiat: { balance: 10, currency: 'usd', conversionRate: 1 },
+            },
+          ],
+        }) as ReturnType<
+          typeof AssetsListSelectorsModule.selectAssetsBySelectedAccountGroup
+        >,
+    );
+
   return {
     mockSelectSortedAssetsBySelectedAccountGroup,
   };
@@ -177,6 +211,7 @@ const renderComponent = (
 
 describe('Tokens', () => {
   beforeEach(() => {
+    mockUseAssetsHaveLoaded.mockReturnValue(true);
     arrangeMockComponents();
     arrangeMockSelectors();
     arrangeMockInteractionManager();
@@ -199,9 +234,10 @@ describe('Tokens', () => {
   });
 
   it('displays loading skeleton', async () => {
-    // Force mockInteraction to not run immediately to test the skeleton
-    const { mockRunAfterInteractions } = arrangeMockInteractionManager();
-    mockRunAfterInteractions.mockRestore();
+    mockUseAssetsHaveLoaded.mockReturnValue(false);
+    jest
+      .spyOn(AssetsListSelectorsModule, 'selectAssetsBySelectedAccountGroup')
+      .mockImplementation(() => ({}));
 
     const { getByTestId } = renderComponent();
 

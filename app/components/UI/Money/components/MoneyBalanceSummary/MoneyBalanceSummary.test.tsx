@@ -323,6 +323,46 @@ describe('MoneyBalanceSummary', () => {
     });
   });
 
+  describe('loading state', () => {
+    it('renders a skeleton instead of the balance', () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={{ kind: 'loading' }} />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the APY row visible while loading', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={{ kind: 'loading' }} />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
+    });
+
+    it('does not render a pressable balance even when onBalancePress is provided', () => {
+      const { queryByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={{ kind: 'loading' }}
+          onBalancePress={jest.fn()}
+        />,
+      );
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('privacy mode', () => {
     it('shows the real balance when privacyMode is false', () => {
       const { getByTestId } = render(

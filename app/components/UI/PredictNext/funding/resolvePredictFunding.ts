@@ -15,42 +15,18 @@ export interface PredictFundingInput {
   activeVenue: ActiveVenueResolution;
   /** The Venue's resolved capabilities, including its catalog `actions`. */
   getCapabilities: (venue: PredictConfiguredVenue) => PredictVenueCapabilities;
-  /** `predictConfig.kalshiDepositsEnabled`: the Kalshi deposit rollout. */
-  kalshiDepositsEnabled: boolean;
 }
-
-/** Whether a client flow listed in the implementations table is switched on
- * for the Venue. The Kalshi deposit has a rollout flag. Withdrawal does not:
- * the Venue catalog's `actions` are its gate. Every other flow is on. */
-const isClientFlowEnabled = (
-  action: PredictFundingAction,
-  venue: PredictConfiguredVenue,
-  kalshiDepositsEnabled: boolean,
-): boolean => {
-  if (venue !== 'kalshi') {
-    return true;
-  }
-  if (action === 'deposit') {
-    return kalshiDepositsEnabled;
-  }
-  return true;
-};
 
 /**
  * Resolves which implementation runs a funding action for the Active Venue.
  * Ready only when Predict is available, the Active Venue's implementation has
- * a client flow for the action, the Kalshi deposit rollout flag is on when
- * the action is that deposit, and the Venue catalog's `actions` list it. Every
- * other case is unavailable, and a surface renders no entry point for it.
+ * a client flow for the action, and the Venue catalog's `actions` list it.
+ * Every other case is unavailable, and a surface renders no entry point for
+ * it.
  */
 export const resolvePredictFunding = (
   action: PredictFundingAction,
-  {
-    available,
-    activeVenue,
-    getCapabilities,
-    kalshiDepositsEnabled,
-  }: PredictFundingInput,
+  { available, activeVenue, getCapabilities }: PredictFundingInput,
   implementations: Readonly<
     Record<PredictImplementation, readonly PredictFundingAction[]>
   > = PREDICT_FUNDING_IMPLEMENTATIONS,
@@ -62,10 +38,7 @@ export const resolvePredictFunding = (
     return { status: 'unavailable', reason: 'unavailable' };
   }
   const implementation = getVenueImplementation(activeVenue.venue);
-  if (
-    !implementations[implementation].includes(action) ||
-    !isClientFlowEnabled(action, activeVenue.venue, kalshiDepositsEnabled)
-  ) {
+  if (!implementations[implementation].includes(action)) {
     return { status: 'unavailable', reason: 'notImplemented' };
   }
   if (!canPerformVenueAction(getCapabilities(activeVenue.venue), action)) {

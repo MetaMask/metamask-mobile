@@ -7,7 +7,6 @@ import { useActiveVenue } from '../implementation/activeVenue';
 import { NextVenueProvider } from '../implementation/NextVenueContext';
 import type { ActiveVenueResolution } from '../implementation/types';
 import type { PredictVenueAction, PredictVenueId } from '../types';
-import { selectPredictConfig } from '../selectors/predictConfig';
 import { usePredictWithdrawAvailable } from './usePredictWithdrawAvailable';
 
 jest.mock('react-redux', () => ({
@@ -23,9 +22,6 @@ jest.mock('../availability/selectPredictAvailability', () => ({
 }));
 jest.mock('../capabilities/useVenueCapabilities', () => ({
   useVenueCapabilities: jest.fn(),
-}));
-jest.mock('../selectors/predictConfig', () => ({
-  selectPredictConfig: jest.fn(),
 }));
 
 const KALSHI_ACTIVE: ActiveVenueResolution = {
@@ -64,9 +60,6 @@ const renderWithdrawAvailable = ({
   jest.mocked(useActiveVenue).mockReturnValue(activeVenue);
   jest.mocked(selectPredictAvailability).mockReturnValue(available);
   jest.mocked(useVenueCapabilities).mockReturnValue(capabilities);
-  jest.mocked(selectPredictConfig).mockReturnValue({
-    kalshiDepositsEnabled: false,
-  } as never);
 
   const wrapper = ({ children }: { children: ReactNode }) => (
     <NextVenueProvider venueId={venueId}>{children}</NextVenueProvider>

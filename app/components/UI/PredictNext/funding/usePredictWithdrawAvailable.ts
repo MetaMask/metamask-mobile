@@ -4,7 +4,6 @@ import { selectPredictAvailability } from '../availability/selectPredictAvailabi
 import { useVenueCapabilities } from '../capabilities/useVenueCapabilities';
 import { useActiveVenue } from '../implementation/activeVenue';
 import { useNextVenueId } from '../implementation/NextVenueContext';
-import { selectPredictConfig } from '../selectors/predictConfig';
 import { resolvePredictFunding } from './resolvePredictFunding';
 import type { PredictFundingResolution } from './types';
 
@@ -24,7 +23,6 @@ export const usePredictWithdrawAvailable = (): PredictFundingResolution => {
   const activeVenue = useActiveVenue();
   const venueId = useNextVenueId();
   const capabilities = useVenueCapabilities(venueId);
-  const config = useSelector(selectPredictConfig);
 
   return useMemo(
     () =>
@@ -35,8 +33,7 @@ export const usePredictWithdrawAvailable = (): PredictFundingResolution => {
         // `PredictImplementationSwitch`, so these capabilities are the ones
         // `resolvePredictFunding` asks for by name.
         getCapabilities: () => capabilities,
-        kalshiDepositsEnabled: config.kalshiDepositsEnabled === true,
       }),
-    [activeVenue, available, capabilities, config.kalshiDepositsEnabled],
+    [activeVenue, available, capabilities],
   );
 };

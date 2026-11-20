@@ -8,11 +8,8 @@ import type { PredictFundingAction } from './types';
  * `deposit` ahead of the client flow still shows nothing.
  *
  * `legacy` runs today's Polymarket deposit and withdrawal. `next` runs the
- * Kalshi deposit (PRED-1161), which stays off until the `predictConfig` flag
- * `kalshiDepositsEnabled` turns it on: `resolvePredictFunding` treats the
- * flow as not implemented while the flag is off. It also runs Withdraw
- * (PRED-1163). Withdraw has no rollout flag; the Venue catalog's `actions`
- * decide whether the entry point shows.
+ * Kalshi deposit (PRED-1494) and Withdraw (PRED-1163) whenever the Venue's
+ * catalog `actions` list them.
  */
 export const PREDICT_FUNDING_IMPLEMENTATIONS: Readonly<
   Record<PredictImplementation, readonly PredictFundingAction[]>

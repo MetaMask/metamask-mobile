@@ -44,11 +44,14 @@ import {
   type PredictVenueCapabilities,
 } from '../../capabilities';
 import { useNextVenueId } from '../../implementation';
+import {
+  usePredictNextDepositAvailable,
+  usePredictWithdrawAvailable,
+} from '../../funding';
 import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
-import { usePredictWithdrawAvailable } from '../../funding';
 import type {
   PredictEvent,
   PredictMarket,
@@ -225,6 +228,11 @@ const PredictHomeView = ({
       navigation.navigate(PredictNextRoutes.PORTFOLIO, {
         venueId,
       }),
+    [navigation, venueId],
+  );
+  const canDeposit = usePredictNextDepositAvailable(venueId);
+  const openDeposit = useCallback(
+    () => navigation.navigate(PredictNextRoutes.DEPOSIT, { venueId }),
     [navigation, venueId],
   );
   const openWithdraw = useCallback(
@@ -406,6 +414,7 @@ const PredictHomeView = ({
           />
           <PortfolioActions
             onPositionsPress={openPortfolio}
+            onAddFundsPress={canDeposit ? openDeposit : undefined}
             onWithdrawPress={
               withdrawResolution.status === 'ready' ? openWithdraw : undefined
             }
