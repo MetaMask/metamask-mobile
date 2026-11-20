@@ -1625,6 +1625,25 @@ describe('Engine', () => {
       });
     });
 
+    it('resets TransactionController state without a swapsTransactions key', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+
+      await engine.resetState();
+
+      // swapsTransactions has no entry in the TransactionController state
+      // metadata, so leaving it in the reset state makes every later
+      // TransactionController update throw "No metadata found for
+      // 'swapsTransactions'" and report it to Sentry.
+      expect(engine.context.TransactionController.state).toEqual({
+        methodData: {},
+        transactions: [],
+        transactionBatches: [],
+        batchTransactionCounts: {},
+        lastFetchedBlockNumbers: {},
+        submitHistory: [],
+      });
+    });
+
     it('forgets the Venue history when the PredictNext purge fails', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, {
         ...backgroundState,
