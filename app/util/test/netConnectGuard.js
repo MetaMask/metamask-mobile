@@ -16,7 +16,10 @@
 /* eslint-disable import-x/no-commonjs */
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
-const nock = require('nock');
+// Nock 15 is ESM-only; under Node's require(esm) the require returns the
+// module namespace, so fall back to its default export.
+const nockModule = require('nock');
+const nock = nockModule.default ?? nockModule;
 const {
   installDefaultApiMocks,
 } = require('../../../tests/component-view/api-mocking/defaults');
@@ -209,7 +212,9 @@ const checkBlockedRequests = async (testName) => {
  * callback. */
 const removeStaleInterceptorListeners = () => {
   // eslint-disable-next-line import-x/no-extraneous-dependencies
-  const nodeInterceptors = require('@mswjs/interceptors/presets/node');
+  const nodeInterceptorsModule = require('@mswjs/interceptors/presets/node');
+  const nodeInterceptors =
+    nodeInterceptorsModule.default ?? nodeInterceptorsModule;
   for (const interceptor of nodeInterceptors) {
     interceptor.removeAllListeners?.('request');
     interceptor.removeAllListeners?.('unhandledException');
