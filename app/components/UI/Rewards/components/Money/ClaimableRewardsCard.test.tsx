@@ -290,6 +290,39 @@ describe('ClaimableRewardsCard', () => {
     expect(onClaim).not.toHaveBeenCalled();
   });
 
+  it('keeps Claim pressable when earnings are unsignable and income is held for tax', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        held="1000000"
+        heldAmount="$1.00"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        taxHeld
+        claimBlockedOnDevice
+        earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeDisabled();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+  });
+
   it('renders a disabled Claimed button when only claimed is positive', () => {
     const { getByTestId, getByText, queryByTestId } = renderCard('0', '50');
 
