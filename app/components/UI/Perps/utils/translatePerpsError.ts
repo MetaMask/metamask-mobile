@@ -3,7 +3,10 @@ import { hasProperty } from '@metamask/utils';
 import {
   isPerpsErrorCode as isPerpsErrorCodeValue,
   PERPS_ERROR_CODES,
+  PROVIDER_CONFIG,
+  type HyperLiquidErrorDetails,
   type PerpsErrorDetails,
+  type PriceMovedErrorDetails,
   type PerpsErrorCode,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
@@ -19,11 +22,14 @@ export interface PerpsErrorInput {
   errorCode?: PerpsErrorCode;
   errorDetails?: PerpsErrorDetails;
   maxSlippageBps?: number;
+  providerId?: string;
 }
 
 const formatBpsAsPercent = (bps: number): number => Math.round(bps) / 100;
 
-function isPerpsErrorDetails(value: unknown): value is PerpsErrorDetails {
+function isPriceMovedErrorDetails(
+  value: unknown,
+): value is PriceMovedErrorDetails {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -38,6 +44,24 @@ function isPerpsErrorDetails(value: unknown): value is PerpsErrorDetails {
     hasProperty(value, 'currentPrice') &&
     typeof value.currentPrice === 'number'
   );
+}
+
+function isHyperLiquidErrorDetails(
+  value: unknown,
+): value is HyperLiquidErrorDetails {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    hasProperty(value, 'code') &&
+    isPerpsErrorCodeValue(value.code) &&
+    value.code !== PERPS_ERROR_CODES.PRICE_MOVED &&
+    hasProperty(value, 'provider') &&
+    value.provider === PROVIDER_CONFIG.DefaultProvider
+  );
+}
+
+function isPerpsErrorDetails(value: unknown): value is PerpsErrorDetails {
+  return isPriceMovedErrorDetails(value) || isHyperLiquidErrorDetails(value);
 }
 
 function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
@@ -62,8 +86,14 @@ function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
     !hasProperty(value, 'maxSlippageBps') ||
     value.maxSlippageBps === undefined ||
     typeof value.maxSlippageBps === 'number';
+  const hasValidProviderId =
+    !hasProperty(value, 'providerId') ||
+    value.providerId === undefined ||
+    typeof value.providerId === 'string';
 
-  return hasValidCode && hasValidDetails && hasValidSlippage;
+  return (
+    hasValidCode && hasValidDetails && hasValidSlippage && hasValidProviderId
+  );
 }
 
 const normalizePerpsError = (error: unknown): PerpsErrorInput | null => {
@@ -87,7 +117,7 @@ const getErrorInterpolationData = (
   const { errorCode, errorDetails } = errorInput;
 
   if (
-    errorDetails?.code === PERPS_ERROR_CODES.PRICE_MOVED &&
+    isPriceMovedErrorDetails(errorDetails) &&
     Number.isFinite(errorDetails.priceDeltaBps) &&
     Number.isFinite(errorDetails.maxSlippageBps)
   ) {
@@ -97,6 +127,21 @@ const getErrorInterpolationData = (
     interpolationData.maxSlippage = formatBpsAsPercent(
       errorDetails.maxSlippageBps,
     );
+  } else if (
+    typeof errorCode === 'string' &&
+    (errorCode === PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE ||
+      errorCode === PERPS_ERROR_CODES.PROVIDER_NOT_FOUND ||
+      errorCode === PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED)
+  ) {
+    const providerId =
+      context?.providerId ??
+      (typeof errorInput.providerId === 'string' && errorInput.providerId
+        ? errorInput.providerId
+        : undefined);
+    interpolationData.providerId =
+      typeof providerId === 'string' && providerId.length > 0
+        ? providerId
+        : 'Unknown';
   } else if (errorCode === PERPS_ERROR_CODES.IOC_CANCEL) {
     const maxSlippageBps =
       errorInput.maxSlippageBps ??
@@ -135,6 +180,15 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
+  [PERPS_ERROR_CODES.BATCH_INCOMPLETE]: 'perps.errors.batchIncomplete',
+  [PERPS_ERROR_CODES.ORDERS_FAILED]: 'perps.errors.ordersFailed',
+  [PERPS_ERROR_CODES.ORDER_NO_LONGER_OPEN]: 'perps.errors.orderNoLongerOpen',
+  [PERPS_ERROR_CODES.ORDER_SCALE_EXPOSURE_EXCEEDS_INTENT]:
+    'perps.errors.orderScaleExposureExceedsIntent',
+  [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_CONSERVATION_FAILED]:
+    'perps.errors.orderScaleSizeConservationFailed',
+  [PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE]:
+    'perps.errors.liquidationPriceUnavailable',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
     'perps.errors.orderLeverageReductionFailed',
   [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.iocCancel',
@@ -296,6 +350,10 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.TPSL_PROTECTION_LOST]: 'perps.errors.tpslUpdateFailed',
   [PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED]:
     'perps.errors.tpslLegReplaceUnsupported',
+  // Post-only rejections
+  [PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS]:
+    'perps.errors.postOnlyWouldCross',
+  [PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW]: 'perps.errors.postOnlyWindow',
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
@@ -515,7 +573,10 @@ export function translatePerpsError(
     );
   }
 
-  return errorInput.error;
+  // Unrecognized text is never shown. It can be a venue diagnostic that Core
+  // has not classified yet, so the user gets the same retryable fallback as
+  // UNKNOWN_ERROR.
+  return strings('perps.errors.unknownError');
 }
 
 /**
@@ -537,6 +598,10 @@ const NO_POSITION_FOUND_PATTERN = /No position found/i;
  * filled, closed, or liquidated — a stale-state race, not a user-side failure.
  */
 export function isNoPositionFoundError(error: unknown): boolean {
+  if (isPerpsErrorCode(error, PERPS_ERROR_CODES.POSITION_NOT_FOUND)) {
+    return true;
+  }
+
   const message =
     error instanceof Error
       ? error.message
@@ -548,13 +613,17 @@ export function isNoPositionFoundError(error: unknown): boolean {
 
 /** True when HyperLiquid refused the order because of its post-only window. */
 export function isPostOnlyWindowError(error: unknown): boolean {
-  return POST_ONLY_WINDOW_PATTERN.test(normalizePerpsError(error)?.error ?? '');
+  return (
+    isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW) ||
+    POST_ONLY_WINDOW_PATTERN.test(normalizePerpsError(error)?.error ?? '')
+  );
 }
 
 /** True when HyperLiquid refused a post-only order that would cross the spread. */
 export function isPostOnlyWouldCrossError(error: unknown): boolean {
-  return POST_ONLY_WOULD_CROSS_PATTERN.test(
-    normalizePerpsError(error)?.error ?? '',
+  return (
+    isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS) ||
+    POST_ONLY_WOULD_CROSS_PATTERN.test(normalizePerpsError(error)?.error ?? '')
   );
 }
 
@@ -568,15 +637,40 @@ export interface OrderEditRejection {
 /**
  * Normalizes a refused order edit for the UI. HyperLiquid cancels the original
  * order when its post-only replacement is rejected, so that outcome reports a
- * cancelled original. `@metamask/perps-controller` reports it only as venue
- * wording, so this is the one place that reads it.
+ * cancelled original.
+ *
+ * Core reports that rejection as the stable `ORDER_POST_ONLY_WOULD_CROSS` code
+ * on the provider result. Raw venue wording is still recognised for results
+ * produced by older controllers.
+ *
+ * @param error - The failed edit result, or its error text.
  */
+function readErrorText(error: unknown): string | undefined {
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    hasProperty(error, 'error') &&
+    typeof error.error === 'string'
+  ) {
+    return error.error;
+  }
+  return undefined;
+}
+
 export function normalizeOrderEditRejection(
-  error?: string,
+  error?: unknown,
 ): OrderEditRejection {
+  const message = readErrorText(error);
   return isPostOnlyWouldCrossError(error)
-    ? { reason: 'post_only_would_cross', originalOrder: 'cancelled', error }
-    : { reason: 'other', originalOrder: 'retained', error };
+    ? {
+        reason: 'post_only_would_cross',
+        originalOrder: 'cancelled',
+        error: message,
+      }
+    : { reason: 'other', originalOrder: 'retained', error: message };
 }
 
 /**
@@ -650,7 +744,9 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         break;
       case PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE:
       case PERPS_ERROR_CODES.PROVIDER_NOT_FOUND:
-        errorParams.providerId = context?.providerId || 'Unknown';
+      case PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED:
+        errorParams.providerId =
+          context?.providerId || normalizedError.providerId || 'Unknown';
         break;
       // Add other error codes that need parameters as they arise
       default:

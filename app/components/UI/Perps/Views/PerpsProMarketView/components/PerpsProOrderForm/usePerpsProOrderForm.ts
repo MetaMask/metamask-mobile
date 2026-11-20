@@ -3319,9 +3319,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
@@ -3625,7 +3623,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,

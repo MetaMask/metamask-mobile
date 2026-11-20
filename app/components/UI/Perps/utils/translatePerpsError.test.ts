@@ -10,10 +10,13 @@ jest.mock('@metamask/perps-controller', () => {
       CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
       CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
       PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
+      PROVIDER_NOT_FOUND: 'PROVIDER_NOT_FOUND',
+      PROVIDER_ROUTE_REQUIRED: 'PROVIDER_ROUTE_REQUIRED',
       TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
       BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
       WITHDRAW_FAILED: 'WITHDRAW_FAILED',
       POSITIONS_FAILED: 'POSITIONS_FAILED',
+      POSITION_NOT_FOUND: 'POSITION_NOT_FOUND',
       ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
       MARKETS_FAILED: 'MARKETS_FAILED',
       UNKNOWN_ERROR: 'UNKNOWN_ERROR',
@@ -35,9 +38,12 @@ jest.mock('@metamask/perps-controller', () => {
       POSITION_WOULD_FLIP: 'POSITION_WOULD_FLIP',
       MARGIN_ADJUSTMENT_FAILED: 'MARGIN_ADJUSTMENT_FAILED',
       TPSL_UPDATE_FAILED: 'TPSL_UPDATE_FAILED',
+      TPSL_LEG_REPLACE_UNSUPPORTED: 'TPSL_LEG_REPLACE_UNSUPPORTED',
       ORDER_REJECTED: 'ORDER_REJECTED',
       SLIPPAGE_EXCEEDED: 'SLIPPAGE_EXCEEDED',
       PRICE_MOVED: 'PRICE_MOVED',
+      ORDER_POST_ONLY_WOULD_CROSS: 'ORDER_POST_ONLY_WOULD_CROSS',
+      ORDER_POST_ONLY_WINDOW: 'ORDER_POST_ONLY_WINDOW',
       RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
       SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
       NETWORK_ERROR: 'NETWORK_ERROR',
@@ -46,7 +52,7 @@ jest.mock('@metamask/perps-controller', () => {
 });
 
 import { strings } from '../../../../../locales/i18n';
-import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
+import { PERPS_ERROR_CODES, PROVIDER_CONFIG } from '@metamask/perps-controller';
 import {
   translatePerpsError,
   isPerpsErrorCode,
@@ -103,10 +109,44 @@ describe('translatePerpsError', () => {
         PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE,
       );
 
-      expect(result).toBe('perps.errors.providerNotAvailable');
+      expect(result).toBe(
+        'perps.errors.providerNotAvailable [providerId:Unknown]',
+      );
       expect(strings).toHaveBeenCalledWith(
         'perps.errors.providerNotAvailable',
-        {},
+        { providerId: 'Unknown' },
+      );
+    });
+
+    it('translates PROVIDER_ROUTE_REQUIRED with a provider name when one is passed', () => {
+      const result = translatePerpsError(
+        PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED,
+        { providerId: 'hyperliquid' },
+      );
+
+      expect(result).toBe(
+        'perps.errors.providerRouteRequired [providerId:hyperliquid]',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.providerRouteRequired',
+        { providerId: 'hyperliquid' },
+      );
+    });
+
+    it('uses providerId from a failed result object for PROVIDER_ROUTE_REQUIRED', () => {
+      const result = translatePerpsError({
+        success: false,
+        error: 'no route',
+        errorCode: PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED,
+        providerId: 'lighter',
+      });
+
+      expect(result).toBe(
+        'perps.errors.providerRouteRequired [providerId:lighter]',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.providerRouteRequired',
+        { providerId: 'lighter' },
       );
     });
 
@@ -174,6 +214,24 @@ describe('translatePerpsError', () => {
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
     });
 
+    it('translates a provider-tagged UNKNOWN_ERROR result to the retryable fallback', () => {
+      const rawDiagnostic =
+        'Hyperliquid signer 0xabc returned an internal stack trace';
+
+      const result = translatePerpsError({
+        error: rawDiagnostic,
+        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+          provider: PROVIDER_CONFIG.DefaultProvider,
+        },
+      });
+
+      expect(result).toBe('perps.errors.unknownError');
+      expect(result).not.toContain(rawDiagnostic);
+      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
+    });
+
     it('formats structured PRICE_MOVED details for localized copy', () => {
       const result = translatePerpsError({
         error: 'Price moved too much',
@@ -207,6 +265,45 @@ describe('translatePerpsError', () => {
 
       expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
+
+    it.each([
+      [
+        PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+        'perps.errors.insufficientMargin',
+      ],
+      [PERPS_ERROR_CODES.IOC_CANCEL, 'perps.errors.iocCancelUnknownTolerance'],
+    ])(
+      'translates a normalized Hyperliquid %s result with provider details',
+      (errorCode, expectedMessage) => {
+        const failure = {
+          error: errorCode,
+          errorCode,
+          errorDetails: {
+            code: errorCode,
+            provider: PROVIDER_CONFIG.DefaultProvider,
+          },
+        };
+
+        const result = translatePerpsError(failure);
+
+        expect(result).toBe(expectedMessage);
+      },
+    );
+
+    it('rejects provider-tagged details from an unrecognized provider', () => {
+      const failure = {
+        error: 'Unclassified venue diagnostic',
+        errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+          provider: 'unrecognized-provider',
+        },
+      };
+
+      const result = translatePerpsError(failure);
+
+      expect(result).toBe('perps.errors.unknownError');
+    });
   });
 
   describe('with Error objects', () => {
@@ -221,12 +318,14 @@ describe('translatePerpsError', () => {
       );
     });
 
-    it('returns Error message if not an error code', () => {
+    it('replaces an unrecognized Error message with the retryable fallback', () => {
       const error = new Error('Custom error message');
+
       const result = translatePerpsError(error);
 
-      expect(result).toBe('Custom error message');
-      expect(strings).not.toHaveBeenCalled();
+      expect(result).toBe('perps.errors.unknownError');
+      expect(result).not.toContain('Custom error message');
+      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
     it('translates Error with API pattern matching message', () => {
@@ -250,10 +349,14 @@ describe('translatePerpsError', () => {
   });
 
   describe('with string errors', () => {
-    it('returns string as-is if not an error code', () => {
-      const result = translatePerpsError('Some random error string');
+    it('replaces an unrecognized string with the retryable fallback', () => {
+      const error = 'Some random error string';
 
-      expect(result).toBe('Some random error string');
+      const result = translatePerpsError(error);
+
+      expect(result).toBe('perps.errors.unknownError');
+      expect(result).not.toContain(error);
+      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
     it('translates string error codes', () => {
@@ -390,6 +493,21 @@ describe('isNoPositionFoundError', () => {
     const result = isNoPositionFoundError(error);
 
     // Assert
+    expect(result).toBe(true);
+  });
+
+  it('returns true for a normalized POSITION_NOT_FOUND result', () => {
+    const error = {
+      error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+      errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+      errorDetails: {
+        code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+        provider: PROVIDER_CONFIG.DefaultProvider,
+      },
+    };
+
+    const result = isNoPositionFoundError(error);
+
     expect(result).toBe(true);
   });
 
@@ -546,6 +664,93 @@ describe('post-only rejections', () => {
   );
 });
 
+describe('normalized post-only rejections from Core', () => {
+  const WOULD_CROSS_CODE = 'ORDER_POST_ONLY_WOULD_CROSS';
+  const WINDOW_CODE = 'ORDER_POST_ONLY_WINDOW';
+  const normalizedResult = (
+    code: typeof WOULD_CROSS_CODE | typeof WINDOW_CODE,
+  ) => ({
+    success: false,
+    error: code,
+    errorCode: code,
+    errorDetails: { code, provider: PROVIDER_CONFIG.DefaultProvider },
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each<[string, typeof WOULD_CROSS_CODE | typeof WINDOW_CODE, string]>([
+    ['would-cross', WOULD_CROSS_CODE, 'perps.errors.postOnlyWouldCross'],
+    ['window', WINDOW_CODE, 'perps.errors.postOnlyWindow'],
+  ])(
+    'translates the %s code from a provider result without venue text',
+    (_label, code, expectedKey) => {
+      expect(translatePerpsError(normalizedResult(code))).toBe(expectedKey);
+      expect(translatePerpsError(code)).toBe(expectedKey);
+      expect(
+        handlePerpsError({
+          error: normalizedResult(code),
+          fallbackMessage: 'Fallback message',
+        }),
+      ).toBe(expectedKey);
+    },
+  );
+
+  it('classifies the window code and not the would-cross code as the post-only window', () => {
+    expect(isPostOnlyWindowError(normalizedResult(WINDOW_CODE))).toBe(true);
+    expect(isPostOnlyWindowError(WINDOW_CODE)).toBe(true);
+    expect(isPostOnlyWindowError(normalizedResult(WOULD_CROSS_CODE))).toBe(
+      false,
+    );
+  });
+
+  it('classifies the would-cross code and not the window code as a would-cross rejection', () => {
+    expect(isPostOnlyWouldCrossError(normalizedResult(WOULD_CROSS_CODE))).toBe(
+      true,
+    );
+    expect(isPostOnlyWouldCrossError(WOULD_CROSS_CODE)).toBe(true);
+    expect(isPostOnlyWouldCrossError(normalizedResult(WINDOW_CODE))).toBe(
+      false,
+    );
+  });
+
+  it('reports a cancelled original for a normalized would-cross edit result', () => {
+    const result = normalizeOrderEditRejection(
+      normalizedResult(WOULD_CROSS_CODE),
+    );
+
+    expect(result).toEqual({
+      reason: 'post_only_would_cross',
+      originalOrder: 'cancelled',
+      error: WOULD_CROSS_CODE,
+    });
+  });
+
+  it('reports a retained original for a normalized window edit result', () => {
+    const result = normalizeOrderEditRejection(normalizedResult(WINDOW_CODE));
+
+    expect(result).toEqual({
+      reason: 'other',
+      originalOrder: 'retained',
+      error: WINDOW_CODE,
+    });
+  });
+
+  it('reports a retained original for a normalized unknown edit result', () => {
+    const result = normalizeOrderEditRejection({
+      error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+    });
+
+    expect(result).toEqual({
+      reason: 'other',
+      originalOrder: 'retained',
+      error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+    });
+  });
+});
+
 describe('handlePerpsError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -603,6 +808,22 @@ describe('handlePerpsError', () => {
         'perps.errors.providerNotAvailable',
         {
           providerId: 'hyperliquid',
+        },
+      );
+    });
+
+    it('defaults providerId for a route-required failure', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED,
+      });
+
+      expect(result).toBe(
+        'perps.errors.providerRouteRequired [providerId:Unknown]',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.providerRouteRequired',
+        {
+          providerId: 'Unknown',
         },
       );
     });
