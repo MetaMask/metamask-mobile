@@ -124,6 +124,9 @@ export function installDefaultApiMocks(): void {
     totalCount: 0,
     pageInfo: { nextCursor: null, hasNextPage: false },
   });
+  add('get', 'https://nft.api.cx.metamask.io', '/explore/sites', {
+    dapps: [],
+  });
 
   add('get', TOKENS_API_ORIGIN, '/v3/assets', []);
 
