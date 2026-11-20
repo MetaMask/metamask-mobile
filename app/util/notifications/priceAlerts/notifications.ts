@@ -59,7 +59,7 @@ export async function displayPriceAlert(message: PriceAlertMessage) {
       const color = isUp ? '#16794F' : '#B63131';
       const trend = `<font color="${color}"><b>${isUp ? '▲' : '▼'} ${change}</b></font>`;
       const body = isAndroid
-        ? `${trend}  ·  ${priceAlert.description}`
+        ? `${priceAlert.compactContext} · ${trend}`
         : `${change}  ·  ${priceAlert.description}`;
       const largeIcon =
         priceAlert.assetId === 'eip155:1/slip44:60' ? tokenIcon : undefined;

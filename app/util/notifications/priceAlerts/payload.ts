@@ -13,6 +13,7 @@ export interface PriceAlert {
   change: number;
   points: number[];
   description: string;
+  compactContext: string;
   kind: 'threshold' | 'movement';
   target?: number;
 }
@@ -84,6 +85,7 @@ export function parsePriceAlert(data: PushData): PriceAlert | null {
       kind,
       target,
       description: `Crossed ${direction} ${usd(target)}`,
+      compactContext: `${direction === 'above' ? 'Above' : 'Below'} ${usd(target).replace(/\.00$/u, '')}`,
     };
   }
 
@@ -99,6 +101,7 @@ export function parsePriceAlert(data: PushData): PriceAlert | null {
       points: prices,
       kind,
       description: `Price movement · ${period}`,
+      compactContext: period,
     };
   }
 

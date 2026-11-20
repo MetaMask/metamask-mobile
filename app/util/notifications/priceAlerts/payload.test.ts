@@ -58,6 +58,7 @@ describe('parsePriceAlert', () => {
     expect(priceAlert).toMatchObject({
       kind: 'movement',
       description: 'Price movement · 24h',
+      compactContext: '24h',
       change: -5.2,
     });
     expect(priceAlert?.target).toBeUndefined();

@@ -77,6 +77,7 @@
 		135A1E270000000000000011 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
 		135A1E270000000000000012 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
 		135A1E270000000000000013 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 135A1E270000000000000015 /* UserNotificationsUI.framework */; };
+		135A1E270000000000000016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 135A1E270000000000000017 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -223,6 +224,7 @@
 		135A1E270000000000000002 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PriceAlertContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		135A1E270000000000000010 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlert.swift; sourceTree = "<group>"; };
 		135A1E270000000000000015 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
+		135A1E270000000000000017 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -496,7 +498,7 @@
 			name = RCTMinimizer;
 			sourceTree = "<group>";
 		};
-		135A1E27000000000000000D = {isa = PBXGroup; children = (135A1E270000000000000010, 135A1E270000000000000003, 135A1E27000000000000000E, ); path = PriceAlertContent; sourceTree = "<group>"; };
+		135A1E27000000000000000D = {isa = PBXGroup; children = (135A1E270000000000000010, 135A1E270000000000000003, 135A1E27000000000000000E, 135A1E270000000000000017 /* Assets.xcassets */, ); path = PriceAlertContent; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -559,7 +561,7 @@
 		135A1E270000000000000001 = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 135A1E27000000000000000A;
-			buildPhases = (135A1E270000000000000005, 135A1E270000000000000014 /* Frameworks */, );
+			buildPhases = (135A1E270000000000000005, 135A1E270000000000000014 /* Frameworks */, 135A1E270000000000000018 /* Resources */, );
 			buildRules = ();
 			dependencies = ();
 			name = PriceAlertContent;
@@ -682,6 +684,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		135A1E270000000000000018 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (135A1E270000000000000016 /* Assets.xcassets in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */

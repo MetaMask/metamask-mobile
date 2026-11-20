@@ -44,7 +44,16 @@ export async function writeSparkline(
     const fraction = max === min ? 0.5 : (value - min) / (max - min);
     return bottom - fraction * (bottom - top);
   };
-  const right = WIDTH - PADDING;
+  const label =
+    target === undefined
+      ? undefined
+      : `Target ${usd(target).replace(/\.00$/u, '')}`;
+  const labelWidth =
+    label === undefined
+      ? 0
+      : cardArtwork(() => undefined).textWidth(label, 0.59) + 24;
+  const labelX = WIDTH - PADDING - labelWidth;
+  const right = label === undefined ? labelX : labelX - 28;
   const endY = chartY(points[points.length - 1]);
   const targetY = target === undefined ? -100 : chartY(target);
   const trend = change >= 0 ? LIME : RED;
@@ -68,7 +77,7 @@ export async function writeSparkline(
             clamp((HEIGHT - PADDING - y) / (HEIGHT - PADDING - yTrend || 1))
           : 0;
       const marker =
-        inChart && (x - PADDING) % 25 < 13
+        x >= PADDING && x <= labelX && (x - PADDING) % 25 < 13
           ? 0.7 * clamp(1.9 - Math.abs(y - targetY))
           : 0;
       const radius = Math.hypot(x - right, y - endY);
@@ -164,12 +173,10 @@ export async function writeSparkline(
     0.83,
     muted,
   );
-  if (target !== undefined) {
-    const label = `Target ${usd(target).replace(/\.00$/u, '')}`;
-    const width = art.textWidth(label, 0.59) + 24;
-    const y = Math.round(targetY) - 38;
-    pill(PADDING, y, width, 33, ORANGE, 0.25);
-    art.text(label, PADDING + 12, y + 6, 0.59, [255, 169, 127]);
+  if (label !== undefined) {
+    const y = Math.round(targetY) - 16;
+    pill(labelX, y, labelWidth, 33, ORANGE, 0.25);
+    art.text(label, labelX + 12, y + 6, 0.59, [255, 169, 127]);
   }
 
   const header = Buffer.alloc(13);

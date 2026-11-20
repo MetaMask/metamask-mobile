@@ -23,17 +23,13 @@ private func polygon(_ points: [CGPoint], color: UIColor) {
   path.fill()
 }
 
-private final class Mark: UIView {
-  enum Kind { case ethereum, fox }
-  private let kind: Kind
-
-  init(_ kind: Kind, size: CGFloat) {
-    self.kind = kind
+private final class EthereumMark: UIView {
+  init() {
     super.init(frame: .zero)
     backgroundColor = .clear
     isAccessibilityElement = false
-    widthAnchor.constraint(equalToConstant: size).isActive = true
-    heightAnchor.constraint(equalToConstant: size).isActive = true
+    widthAnchor.constraint(equalToConstant: 32).isActive = true
+    heightAnchor.constraint(equalToConstant: 32).isActive = true
   }
 
   required init?(coder: NSCoder) { nil }
@@ -42,23 +38,11 @@ private final class Mark: UIView {
     func facet(_ coordinates: [(CGFloat, CGFloat)], _ color: UIColor) {
       polygon(coordinates.map { CGPoint(x: $0.0 * rect.width, y: $0.1 * rect.height) }, color: color)
     }
-    switch kind {
-    case .ethereum:
-      blue.withAlphaComponent(0.18).setFill()
-      UIBezierPath(ovalIn: rect).fill()
-      facet([(0.5,0.17),(0.27,0.53),(0.5,0.66)], .white)
-      facet([(0.5,0.17),(0.73,0.53),(0.5,0.66)], blue)
-      facet([(0.27,0.58),(0.5,0.82),(0.73,0.58),(0.5,0.71)], blue)
-    case .fox:
-      facet([(0.06,0.07),(0.39,0.30),(0.61,0.30),(0.94,0.07),(0.99,0.71),(0.74,0.85),(0.59,0.96),(0.41,0.96),(0.26,0.85),(0.01,0.71)], orange)
-      let light = UIColor(red: 1, green: 0.52, blue: 0.26, alpha: 1)
-      facet([(0.06,0.07),(0.39,0.30),(0.29,0.62),(0.01,0.71)], light)
-      facet([(0.94,0.07),(0.61,0.30),(0.71,0.62),(0.99,0.71)], light)
-      facet([(0.26,0.85),(0.29,0.62),(0.50,0.77),(0.71,0.62),(0.74,0.85),(0.59,0.96),(0.41,0.96)], light)
-      facet([(0.23,0.57),(0.41,0.63),(0.29,0.67)], .black)
-      facet([(0.77,0.57),(0.59,0.63),(0.71,0.67)], .black)
-      facet([(0.41,0.82),(0.59,0.82),(0.50,0.89)], .black)
-    }
+    blue.withAlphaComponent(0.18).setFill()
+    UIBezierPath(ovalIn: rect).fill()
+    facet([(0.5,0.17),(0.27,0.53),(0.5,0.66)], .white)
+    facet([(0.5,0.17),(0.73,0.53),(0.5,0.66)], blue)
+    facet([(0.27,0.58),(0.5,0.82),(0.73,0.58),(0.5,0.71)], blue)
   }
 }
 
@@ -84,7 +68,6 @@ private final class CardSurface: UIView {
   }
 }
 
-
 final class PriceAlertViewController: UIViewController, UNNotificationContentExtension {
   func didReceive(_ notification: UNNotification) {
     let content = notification.request.content
@@ -97,40 +80,40 @@ final class PriceAlertViewController: UIViewController, UNNotificationContentExt
     view.addSubview(surface)
     let stack = UIStackView()
     stack.axis = .vertical
-    stack.spacing = 10
+    stack.spacing = 8
     stack.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(stack)
     NSLayoutConstraint.activate([
       stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
       stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-      stack.topAnchor.constraint(equalTo: view.topAnchor, constant: 16),
+      stack.topAnchor.constraint(equalTo: view.topAnchor, constant: 18),
     ])
     guard let alert = PriceAlert(content.userInfo) else {
       extensionContext?.notificationActions = []
-      stack.addArrangedSubview(label(content.title, size: 19, color: .white, weight: .bold))
-      stack.addArrangedSubview(label(content.body, size: 15, color: .white))
-      preferredContentSize = CGSize(width: view.bounds.width, height: 136)
+      let data = content.userInfo
+      let symbol = (data["symbol"] as? String).flatMap {
+        $0.range(of: "^[A-Z0-9]{1,12}$", options: .regularExpression) == nil ? nil : $0
+      }
+      let tokenHeader = header(symbol: symbol, asset: data["asset_id"] as? String)
+      stack.addArrangedSubview(tokenHeader)
+      stack.setCustomSpacing(13, after: tokenHeader)
+      let title = label(content.title, size: 22, color: .white, weight: .semibold)
+      title.numberOfLines = 0
+      stack.addArrangedSubview(title)
+      let body = label(content.body, size: 15, color: muted)
+      body.numberOfLines = 0
+      stack.addArrangedSubview(body)
+      fitCard(to: stack)
       return
     }
 
-    let header = UIStackView()
-    header.spacing = 10
-    header.alignment = .center
-    let isEthereum = alert.asset == "eip155:1/slip44:60"
-    if isEthereum {
-      header.addArrangedSubview(Mark(.ethereum, size: 32))
-    }
-    let name = isEthereum ? "\(alert.symbol) · Ethereum" : alert.symbol
-    let token = label(name, size: 14, color: .white, weight: .semibold)
-    header.addArrangedSubview(token)
-    header.addArrangedSubview(UIView())
-    header.addArrangedSubview(Mark(.fox, size: 21))
-    stack.addArrangedSubview(header)
+    stack.addArrangedSubview(header(symbol: alert.symbol, asset: alert.asset))
 
     let priceRow = UIStackView()
     priceRow.alignment = .center
     priceRow.spacing = 8
-    let price = label(PriceAlert.usd(alert.price), size: 37, color: .white, weight: .bold)
+    let price = label(PriceAlert.usd(alert.price), size: 40, color: .white, weight: .bold)
+    price.font = .monospacedDigitSystemFont(ofSize: 40, weight: .bold)
     price.adjustsFontSizeToFitWidth = true
     price.minimumScaleFactor = 0.6
     price.numberOfLines = 1
@@ -145,12 +128,51 @@ final class PriceAlertViewController: UIViewController, UNNotificationContentExt
     chip.heightAnchor.constraint(equalToConstant: 24).isActive = true
     priceRow.addArrangedSubview(chip)
     stack.addArrangedSubview(priceRow)
+    stack.setCustomSpacing(4, after: priceRow)
     stack.addArrangedSubview(label(alert.description, size: 14, color: muted))
 
     let graph = Sparkline(alert: alert)
     graph.heightAnchor.constraint(equalToConstant: 104).isActive = true
     stack.addArrangedSubview(graph)
-    preferredContentSize = CGSize(width: view.bounds.width, height: 250)
+    fitCard(to: stack)
+  }
+
+  private func header(symbol: String?, asset: String?) -> UIStackView {
+    let row = UIStackView()
+    row.spacing = 9
+    row.alignment = .center
+    let isEthereum = symbol == "ETH" && asset == "eip155:1/slip44:60"
+    if isEthereum {
+      row.addArrangedSubview(EthereumMark())
+    }
+    let name = isEthereum ? "ETH · Ethereum" : symbol ?? "Price alert"
+    row.addArrangedSubview(label(name, size: 14, color: .white, weight: .semibold))
+    row.addArrangedSubview(UIView())
+
+    if let image = UIImage(named: "PriceAlertFox", in: Bundle(for: Self.self), compatibleWith: nil) {
+      let mark = UIImageView(image: image)
+      mark.contentMode = .scaleAspectFit
+      mark.isAccessibilityElement = false
+      row.addArrangedSubview(mark)
+      NSLayoutConstraint.activate([
+        mark.widthAnchor.constraint(equalToConstant: 23),
+        mark.heightAnchor.constraint(equalToConstant: 23),
+      ])
+    } else {
+      row.addArrangedSubview(label("MetaMask", size: 12, color: muted, weight: .semibold))
+    }
+    row.heightAnchor.constraint(greaterThanOrEqualToConstant: 32).isActive = true
+    return row
+  }
+
+  private func fitCard(to stack: UIStackView) {
+    let width = view.bounds.width
+    let size = stack.systemLayoutSizeFitting(
+      CGSize(width: max(0, width - 40), height: UIView.layoutFittingCompressedSize.height),
+      withHorizontalFittingPriority: .required,
+      verticalFittingPriority: .fittingSizeLevel
+    )
+    preferredContentSize = CGSize(width: width, height: ceil(size.height) + 36)
   }
 
   private func label(_ text: String, size: CGFloat, color: UIColor, weight: UIFont.Weight = .regular) -> UILabel {
@@ -179,7 +201,17 @@ private final class Sparkline: UIView {
     let values = alert.points + [alert.target].compactMap { $0 }
     guard let minimum = values.min(), let maximum = values.max() else { return }
     guard let context = UIGraphicsGetCurrentContext() else { return }
-    let chart = rect.insetBy(dx: 9, dy: 13)
+    let targetLabel = alert.target.map {
+      "Target \(PriceAlert.usd($0).replacingOccurrences(of: ".00", with: "", options: .anchored.union(.backwards)))" as NSString
+    }
+    let attributes: [NSAttributedString.Key: Any] = [
+      .font: UIFont.systemFont(ofSize: 10, weight: .semibold),
+      .foregroundColor: UIColor(red: 1, green: 0.64, blue: 0.45, alpha: 1),
+    ]
+    let labelSize = targetLabel?.size(withAttributes: attributes) ?? .zero
+    let labelX = rect.maxX - labelSize.width - 12
+    let chartRight = targetLabel == nil ? rect.maxX - 9 : labelX - 12
+    let chart = CGRect(x: 2, y: 13, width: chartRight - 2, height: rect.height - 26)
     func y(_ value: Double) -> CGFloat {
       let fraction = maximum == minimum ? 0.5 : (value - minimum) / (maximum - minimum)
       return chart.maxY - chart.height * fraction
@@ -187,7 +219,7 @@ private final class Sparkline: UIView {
     if let target = alert.target {
       let marker = UIBezierPath()
       marker.move(to: CGPoint(x: chart.minX, y: y(target)))
-      marker.addLine(to: CGPoint(x: chart.maxX, y: y(target)))
+      marker.addLine(to: CGPoint(x: labelX, y: y(target)))
       marker.setLineDash([4, 5], count: 2, phase: 0)
       orange.withAlphaComponent(0.8).setStroke()
       marker.stroke()
@@ -225,15 +257,11 @@ private final class Sparkline: UIView {
     alert.trend.setFill()
     UIBezierPath(ovalIn: CGRect(x: last.x - 3.5, y: last.y - 3.5, width: 7, height: 7)).fill()
     context.restoreGState()
-    if let target = alert.target {
-      let text = "Target \(PriceAlert.usd(target).replacingOccurrences(of: ".00", with: "", options: .anchored.union(.backwards)))" as NSString
-      let attributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 10, weight: .semibold), .foregroundColor: UIColor(red: 1, green: 0.64, blue: 0.45, alpha: 1)]
-      let size = text.size(withAttributes: attributes)
-      let baseline = y(target)
-      let pill = CGRect(x: chart.minX, y: max(0, baseline - 19), width: size.width + 12, height: 17)
+    if let target = alert.target, let targetLabel {
+      let pill = CGRect(x: labelX, y: y(target) - 8.5, width: labelSize.width + 12, height: 17)
       UIColor(red: 0.19, green: 0.10, blue: 0.07, alpha: 1).setFill()
       UIBezierPath(roundedRect: pill, cornerRadius: 8.5).fill()
-      text.draw(at: CGPoint(x: pill.minX + 6, y: pill.midY - size.height / 2), withAttributes: attributes)
+      targetLabel.draw(at: CGPoint(x: pill.minX + 6, y: pill.midY - labelSize.height / 2), withAttributes: attributes)
     }
   }
 }

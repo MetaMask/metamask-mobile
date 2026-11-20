@@ -31,6 +31,7 @@ describe('onBackgroundPriceAlertMessage', () => {
     expect(display).toHaveBeenCalledWith(
       expect.objectContaining({
         title: 'ETH  ·  $4,036.42',
+        body: 'Above $4,000 · <font color="#16794F"><b>▲ +3.1%</b></font>',
         android: expect.objectContaining({
           style: expect.objectContaining({
             type: AndroidStyle.BIGPICTURE,
