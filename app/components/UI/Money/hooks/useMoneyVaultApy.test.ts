@@ -45,6 +45,11 @@ interface VaultFixtureOptions {
   vaultAddress?: string;
 }
 
+interface BaseVaultConfigFixture {
+  boringVault?: string;
+  chainId?: string;
+}
+
 const DEFAULT_REMOTE_APY_CONFIG: MoneyVaultApyRemoteConfig = {
   vaultApyFallback: undefined,
   vaultApyOverride: undefined,
@@ -93,7 +98,9 @@ const setup = ({
   premiumRate = undefined as string | undefined,
   premiumRateLoading = false,
   premiumVaultAddress = undefined as string | undefined,
-  baseVaultAddress = BASE_VAULT_ADDRESS,
+  baseVaultConfig = { boringVault: BASE_VAULT_ADDRESS } as
+    | BaseVaultConfigFixture
+    | undefined,
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyVaultApyRemoteConfig) {
@@ -108,7 +115,7 @@ const setup = ({
         : undefined;
     }
     if (selector === selectMoneyAccountVaultConfig) {
-      return { boringVault: baseVaultAddress };
+      return baseVaultConfig;
     }
     return undefined;
   });
@@ -200,13 +207,66 @@ describe('useMoneyVaultApy', () => {
         isLoading: false,
         isError: false,
       },
-      baseVaultAddress: '0x0000000000000000000000000000000000000003',
+      baseVaultConfig: {
+        boringVault: '0x0000000000000000000000000000000000000003',
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
 
     expect(result.current.baseApyDecimal).toBe(0.045);
     expect(result.current.apyPercent).toBe(4.5);
+  });
+
+  it('falls back to the standard vault key when the base vault config is missing', () => {
+    setup({
+      query: {
+        data: {
+          vaults: [
+            vault('0.045', {
+              vaultAddress: '0x0000000000000000000000000000000000000002',
+            }),
+          ],
+        },
+        isLoading: false,
+        isError: false,
+      },
+      baseVaultConfig: undefined,
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.baseApyDecimal).toBe(0.045);
+  });
+
+  it('ignores a base vault config without a boring vault', () => {
+    setup({
+      query: {
+        data: vaultsResponse('0.05'),
+        isLoading: false,
+        isError: false,
+      },
+      baseVaultConfig: { chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.baseApyDecimal).toBe(0.05);
+  });
+
+  it('uses the fallback when the vault catalog is empty', () => {
+    setup({
+      query: {
+        data: { vaults: [] },
+        isLoading: false,
+        isError: false,
+      },
+      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: undefined },
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.apyDecimal).toBe(0.04);
   });
 
   it('uses the fallback when no vault matches the base vault', () => {
@@ -223,7 +283,9 @@ describe('useMoneyVaultApy', () => {
         isLoading: false,
         isError: false,
       },
-      baseVaultAddress: '0x0000000000000000000000000000000000000005',
+      baseVaultConfig: {
+        boringVault: '0x0000000000000000000000000000000000000005',
+      },
       remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: undefined },
     });
 
@@ -247,7 +309,9 @@ describe('useMoneyVaultApy', () => {
         isLoading: false,
         isError: false,
       },
-      baseVaultAddress: '0x0000000000000000000000000000000000000005',
+      baseVaultConfig: {
+        boringVault: '0x0000000000000000000000000000000000000005',
+      },
       remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
     });
 

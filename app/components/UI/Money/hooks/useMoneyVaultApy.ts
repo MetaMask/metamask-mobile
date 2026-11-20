@@ -80,7 +80,7 @@ const useMoneyVaultApy = ({
     refetchInterval: FIVE_MINUTES_MS,
   }) as UseQueryResult<VaultsResponse>;
 
-  const baseVaultAddress = baseVaultConfig?.boringVault.toLowerCase();
+  const baseVaultAddress = baseVaultConfig?.boringVault?.toLowerCase();
   const configuredVault = baseVaultAddress
     ? baseVaultApyQuery.data?.vaults.find(
         (vault) => vault.vault_address.toLowerCase() === baseVaultAddress,
