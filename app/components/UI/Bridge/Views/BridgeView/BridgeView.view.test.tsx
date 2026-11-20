@@ -792,9 +792,7 @@ describeForPlatforms('BridgeView', () => {
         ).toBeOnTheScreen();
       });
       expect(store.getState().bridge.sourceToken).toEqual(expectedSourceToken);
-      expect(store.getState().bridge.destToken).toMatchObject(
-        expectedDestToken ?? {},
-      );
+      expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
       expect(store.getState().bridge.sourceAmount).toBe('1');
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
@@ -805,9 +803,7 @@ describeForPlatforms('BridgeView', () => {
         ).toBeOnTheScreen();
       });
       expect(store.getState().bridge.sourceToken).toEqual(expectedSourceToken);
-      expect(store.getState().bridge.destToken).toMatchObject(
-        expectedDestToken ?? {},
-      );
+      expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
       expect(store.getState().bridge.sourceAmount).toBe('1');
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
@@ -818,9 +814,7 @@ describeForPlatforms('BridgeView', () => {
         ).toBeOnTheScreen();
       });
       expect(store.getState().bridge.sourceToken).toEqual(expectedSourceToken);
-      expect(store.getState().bridge.destToken).toMatchObject(
-        expectedDestToken ?? {},
-      );
+      expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
       expect(store.getState().bridge.sourceAmount).toBe('1');
       expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
     });
@@ -845,9 +839,7 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
       ).toBeOnTheScreen();
       expect(store.getState().bridge.sourceToken).toEqual(expectedSourceToken);
-      expect(store.getState().bridge.destToken).toMatchObject(
-        expectedDestToken ?? {},
-      );
+      expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
       expect(store.getState().bridge.sourceAmount).toBe('1');
       expect(store.getState().bridge.selectedQuoteRequestId).toBeUndefined();
     });
