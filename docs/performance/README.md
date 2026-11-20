@@ -49,6 +49,7 @@ Always measure on **Android** (more sensitive, more representative) with the **p
 - **[measuring.md](./measuring.md)** — the power-user scenario, TTI via `trace()`, render-regression tests, FPS benchmarking, CI gates.
 - **[native-crypto.md](./native-crypto.md)** — the native secp256k1 patch in `shimPerf.js` and the `@noble/curves` single-copy invariant it depends on. **Read this before bumping a dependency that does elliptic-curve work.**
 - **[react-compiler.md](./react-compiler.md)** — automatic memoization: how it's set up here and how to opt a feature in.
+- **[offscreen-sections.md](./offscreen-sections.md)** — long scroll screens with live data: scope streams to the leaf that renders them, then unmount and pause sections far from the viewport. When it applies, and when it does not.
 
 ## Deep dives & references
 
