@@ -66,7 +66,7 @@ function earningIcon(origin: EarningOriginType): IconName {
       return IconName.Chart;
     // An undefined icon name crashes the design-system Icon.
     default:
-      return IconName.Coin;
+      return IconName.SwapVertical;
   }
 }
 

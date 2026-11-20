@@ -159,7 +159,7 @@ describe('RefereeHeroCard', () => {
       within(
         getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
       ).UNSAFE_getByType(AvatarIcon).props.iconName,
-    ).toBe(IconName.SwapHorizontal);
+    ).toBe(IconName.SwapVertical);
     expect(getByText('$7.65')).toBeOnTheScreen();
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
   });

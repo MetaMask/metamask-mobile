@@ -133,7 +133,7 @@ describe('EarningsHistoryRow', () => {
     expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Chart);
   });
 
-  it('shows a type a newer server adds as a rebate with the coin icon', () => {
+  it('shows a type a newer server adds as a rebate with the swap icon', () => {
     const { getByText, UNSAFE_getByType } = renderWithProvider(
       <EarningsHistoryRow
         item={{
@@ -146,7 +146,9 @@ describe('EarningsHistoryRow', () => {
     );
 
     expect(getByText('Rebate')).toBeOnTheScreen();
-    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Coin);
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.SwapVertical,
+    );
   });
 
   it('shows a settled claim as a debit', () => {
