@@ -5796,6 +5796,8 @@
     "no_permissions": "No permissions",
     "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Security and privacy",
+    "privacy_title": "Privacy",
+    "transactions_title": "Transactions",
     "back": "Back",
     "security_desc": "Privacy settings, MetaMetrics, private key, Secret Recovery Phrase, and IPFS gateway.",
     "networks_title": "Networks",
