@@ -5,6 +5,7 @@ import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
+import { isUnsentCommitFailure } from '../errors/commitOutcome';
 import type { VenueFundingAdapter } from '../adapters/types';
 import { clearAllSessionDepositTransfers } from '../funding';
 import {
@@ -53,8 +54,10 @@ const isLostCommitTransport = (error: unknown): boolean =>
   error instanceof Error &&
   (error.name === 'AbortError' || error.name === 'TimeoutError');
 
-/** A receipt read that finds no Preview and no operation. Absence here is the
- * authority that nothing was relayed; any other read failure is not. */
+/** A receipt read that finds no Preview and no operation. This is read-side
+ * absence, not the commit's own `outcome`: the backend stores the operation
+ * before it calls the Venue, so no record means nothing was sent. Any other
+ * read failure proves nothing. */
 const isMissingWithdrawOperation = (error: unknown): boolean => {
   if (!(error instanceof PredictError)) {
     return false;
@@ -350,7 +353,7 @@ export class PredictFundingService {
         PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
           metadata: {
             phase: 'commit',
-            mutationRelay: 'not_relayed_this_invocation',
+            requestSent: false,
           },
         }),
       );
@@ -504,7 +507,7 @@ export class PredictFundingService {
       throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED, {
         metadata: {
           phase: 'commit',
-          mutationRelay: 'not_relayed_this_invocation',
+          requestSent: false,
         },
       });
     }
@@ -570,7 +573,9 @@ export class PredictFundingService {
     });
   }
 
-  /** Commits one approved Withdraw Preview and resolves a lost reply by
+  /** Commits one approved Withdraw Preview. A Commit that provably changed
+   * nothing (never sent, or `outcome: not_placed` from the API) is
+   * `not_placed`. Any other failure may be at the Venue, so it is resolved by
    * reading the same operation. An unauthenticated Commit stays `unknown`
    * without that read: the caller asks {@link reconcileWithdrawObservation}
    * when the person checks again, and this method never sends a second POST. */
@@ -588,12 +593,15 @@ export class PredictFundingService {
       if (isLostCommitTransport(error)) {
         return this.#readWithdrawResolution(venueId, previewId, predictError);
       }
-      if (predictError.code === PredictErrorCode.PREVIEW_EXPIRED) {
-        return { outcome: 'not_placed', error: predictError };
-      }
+      // A replaced session may have dispatched this Preview earlier: what
+      // this call proves says nothing about that one.
       if (predictError.code === PredictErrorCode.UNAUTHENTICATED) {
         return { outcome: 'unknown', error: predictError };
       }
+      if (isUnsentCommitFailure(error)) {
+        return { outcome: 'not_placed', error: predictError };
+      }
+      // No guarantee: the Commit may be at the Venue. Read it to find out.
       return this.#readWithdrawResolution(venueId, previewId, predictError);
     }
   }
@@ -879,7 +887,7 @@ export class PredictFundingService {
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
         metadata: {
           phase: 'commit',
-          mutationRelay: 'not_relayed_this_invocation',
+          requestSent: false,
         },
       });
     }
