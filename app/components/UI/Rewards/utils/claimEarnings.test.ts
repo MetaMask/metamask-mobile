@@ -30,6 +30,7 @@ import {
   canClaimEarnings,
   cashbackMeetsClaimMinimum,
   claimBlockedOnThisDevice,
+  claimHasUnsignableAddress,
   claimWaitCaption,
   claimWaitMinutesRemaining,
   displayClaimTotals,
@@ -401,6 +402,7 @@ describe('routesSignableOnDevice', () => {
       ),
     ).toEqual(['referral-trade-fee-cashback']);
     expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(false);
   });
 
   it('drops a cashback or follow-trade route when none of its claimable addresses can be signed here', () => {
@@ -430,8 +432,12 @@ describe('routesSignableOnDevice', () => {
       routesSignableOnDevice(follow, ['social-follow-trade'], canSign),
     ).toEqual([]);
     expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(true);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(true);
     expect(
       claimBlockedOnThisDevice(follow, { includeFollowTrade: true }, canSign),
+    ).toBe(true);
+    expect(
+      claimHasUnsignableAddress(follow, { includeFollowTrade: true }, canSign),
     ).toBe(true);
   });
 
@@ -451,6 +457,7 @@ describe('routesSignableOnDevice', () => {
       ),
     ).toEqual(['referral-trade-fee-cashback']);
     expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(true);
   });
 
   it('leaves revenue share alone, since it has no address list', () => {
@@ -472,6 +479,7 @@ describe('routesSignableOnDevice', () => {
     const held = summary({ claimable: '0', cashback: '0' });
 
     expect(claimBlockedOnThisDevice(held, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(held, undefined, canSign)).toBe(false);
   });
 });
 

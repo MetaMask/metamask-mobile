@@ -149,12 +149,17 @@ export interface ClaimableRewardsCardProps {
    */
   claimWaitCaption?: string;
   /**
-   * Shown under a disabled Claim button when this phone cannot sign any
-   * claimable address in a family's list. The button stays the one
-   * `claimButtonState` picks: a claimable balance is still Available to
-   * claim with Claim, and the press does nothing.
+   * Shown under Claim when at least one claimable address is not signable
+   * on this phone. It does not disable the button. A wait window keeps its
+   * own caption.
    */
   earnedElsewhereCaption?: string;
+  /**
+   * Disables Claim when every open route's claimable addresses are
+   * unsignable on this phone. The button stays the one `claimButtonState`
+   * picks.
+   */
+  claimBlockedOnDevice?: boolean;
   onClaim?: () => void;
   onPaused?: () => void;
   /** Opens the balance breakdown. Shown beside the amount when set. */
@@ -237,6 +242,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   isClaimWaiting = false,
   claimWaitCaption,
   earnedElsewhereCaption,
+  claimBlockedOnDevice = false,
   onClaim,
   onPaused,
   onBalanceBreakdown,
@@ -284,13 +290,13 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     pending: pendingAmount ?? claimableAmount,
     balance: recordedAmount,
   }[headline];
-  const earnedElsewhere = button === 'claim' && Boolean(earnedElsewhereCaption);
-  const claimInProgress = button === 'claim' && isClaiming && !earnedElsewhere;
+  const claimBlocked = button === 'claim' && claimBlockedOnDevice;
+  const claimInProgress = button === 'claim' && isClaiming && !claimBlocked;
   const claimCoolingDown =
     button === 'claim' && isClaimWaiting && !claimInProgress;
-  // The sentence sits under Claim and disables it. It does not change the
-  // button: a claimable balance is still Available to claim with Claim. A
-  // wait window keeps its own caption.
+  // A wait window keeps its own caption. The earned-elsewhere sentence does
+  // not change the button. Claim is disabled only when every address is
+  // unsignable.
   const caption =
     claimCoolingDown && claimWaitCaption
       ? {
@@ -363,11 +369,11 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
                 size={ButtonSize.Lg}
                 twClassName="w-full"
                 isDisabled={
-                  button === 'claimed' || claimCoolingDown || earnedElsewhere
+                  button === 'claimed' || claimCoolingDown || claimBlocked
                 }
                 isLoading={claimInProgress}
                 onPress={
-                  button === 'claim' && !earnedElsewhere
+                  button === 'claim' && !claimBlocked
                     ? onClaim
                     : button === 'paused'
                       ? onPaused
