@@ -49,10 +49,7 @@ import {
   formatPriceRangeLabel,
   USD_PRICE_RANGE_CURRENCY,
 } from '../../utils/priceRange';
-import {
-  parsePositiveInteger,
-  RECURRING_MAX_DURATION_DAYS,
-} from '../../utils/recurringSchedule';
+import { parsePositiveInteger } from '../../utils/recurringSchedule';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
 import MembershipVipBadge from '../../../shared/MembershipVipBadge';
@@ -290,8 +287,6 @@ const RecurringConfirmOrderSheet = ({
         }).format(1 / fiatToUsdRate)
       : '--';
 
-  const expiresAfter = `${RECURRING_MAX_DURATION_DAYS} ${strings('bridge.recurring.unit_plural.day')}`;
-
   const nativeToken = useMemo(
     () =>
       sourceToken?.chainId
@@ -414,11 +409,6 @@ const RecurringConfirmOrderSheet = ({
           skeletonTestID={
             RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_SKELETON
           }
-        />
-        <ConfirmOrderRow
-          label={strings('bridge.recurring.expires_after')}
-          value={expiresAfter}
-          testID={RecurringConfirmOrderSheetSelectorsIDs.EXPIRES_AFTER}
         />
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
