@@ -40,6 +40,13 @@ const getAmountText = (
   return String(getByTestId(FORMATTED_VALUE_PRICE_TEST_ID).props.children);
 };
 
+const getPercentText = (
+  ...args: Parameters<typeof renderBalanceChange>
+): string => {
+  const { getByTestId } = renderBalanceChange(...args);
+  return String(getByTestId(FORMATTED_PERCENTAGE_TEST_ID).props.children);
+};
+
 describe('AccountGroupBalanceChange', () => {
   beforeEach(() => {
     mockI18n.locale = 'en';
@@ -293,6 +300,44 @@ describe('AccountGroupBalanceChange', () => {
           userCurrency: 'eur',
         }),
       ).toBe('-10\u202f293,11\u00a0€ ');
+    });
+  });
+
+  describe('percent change locale', () => {
+    it('formats the US percent change with a decimal point', () => {
+      mockI18n.locale = 'en-US';
+
+      expect(
+        getPercentText({
+          amountChangeInUserCurrency: 12.34,
+          percentChange: 1.23,
+          userCurrency: 'usd',
+        }),
+      ).toBe('(+1.23%)');
+    });
+
+    it('formats the French percent change with the app locale', () => {
+      mockI18n.locale = 'fr-FR';
+
+      expect(
+        getPercentText({
+          amountChangeInUserCurrency: 12.34,
+          percentChange: 1.23,
+          userCurrency: 'eur',
+        }),
+      ).toBe('(+1,23\u00a0%)');
+    });
+
+    it('formats a negative German percent change with the app locale', () => {
+      mockI18n.locale = 'de-DE';
+
+      expect(
+        getPercentText({
+          amountChangeInUserCurrency: -12.34,
+          percentChange: -1.23,
+          userCurrency: 'eur',
+        }),
+      ).toBe('(-1,23\u00a0%)');
     });
   });
 

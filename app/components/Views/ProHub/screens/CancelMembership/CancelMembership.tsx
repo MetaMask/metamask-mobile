@@ -6,11 +6,13 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
+import ReactQueryService from '../../../../../core/ReactQueryService';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyPremiumVaultRate from '../../../../UI/Money/hooks/useMoneyPremiumVaultRate';
 import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+import { clearMoneyAccountPlusTrialEligibilityCache } from '../../../../hooks/moneyAccountPlusTrialEligibility';
 import { CANCEL_REASONS } from './CancelMembership.constants';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import {
@@ -135,6 +137,9 @@ const CancelMembership = () => {
         ...(cancellationReason ? { cancellationReason } : {}),
         ...(cancellationFeedback ? { cancellationFeedback } : {}),
       });
+
+      // A cached "eligible" answer would offer the trial again on the next open.
+      clearMoneyAccountPlusTrialEligibilityCache(ReactQueryService.queryClient);
 
       // Stay on this screen with the post-cancel sheet. isSubmitting stays true,
       // so the screen cannot be left until "Got it" is pressed.

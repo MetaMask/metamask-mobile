@@ -3838,11 +3838,6 @@
       "count": 3
     }
   },
-  "app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView.tsx": {
     "typescript/no-floating-promises": {
       "count": 1
@@ -6441,6 +6436,11 @@
       "count": 4
     }
   },
+  "app/components/UI/PredictNext/adapters/remote/PredictApiReadClient.funding.test.ts": {
+    "typescript/promise-function-async": {
+      "count": 2
+    }
+  },
   "app/components/UI/PredictNext/adapters/remote/PredictApiReadClient.test.ts": {
     "typescript/promise-function-async": {
       "count": 2
@@ -6710,7 +6710,7 @@
       "count": 7
     },
     "typescript/promise-function-async": {
-      "count": 4
+      "count": 5
     }
   },
   "app/components/UI/PredictNext/services/PredictOrderService.recovery.test.ts": {
@@ -11599,12 +11599,14 @@
       "count": 1
     }
   },
-  "app/components/Views/ProSubscription/screens/Benefits/hooks/useMoneyAccountPlusTrialEligibility.ts": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 3
-    },
+  "app/components/Views/ProSubscription/screens/Benefits/hooks/useMoneyAccountPlusTrialEligibility.test.tsx": {
     "typescript/promise-function-async": {
       "count": 1
+    }
+  },
+  "app/components/Views/ProSubscription/screens/Benefits/hooks/useMoneyAccountPlusTrialEligibility.ts": {
+    "typescript/prefer-nullish-coalescing": {
+      "count": 2
     }
   },
   "app/components/Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal.test.tsx": {
@@ -11920,6 +11922,16 @@
     },
     "typescript/promise-function-async": {
       "count": 2
+    }
+  },
+  "app/components/Views/Settings/DeveloperOptions/SubscriptionDeveloperOptionsSection.test.tsx": {
+    "typescript/promise-function-async": {
+      "count": 2
+    }
+  },
+  "app/components/Views/Settings/DeveloperOptions/SubscriptionDeveloperOptionsSection.tsx": {
+    "typescript/no-misused-promises": {
+      "count": 1
     }
   },
   "app/components/Views/Settings/DeveloperOptions/index.tsx": {
@@ -13987,6 +13999,11 @@
   },
   "app/components/hooks/SeedlessHooks/usePromptSeedlessRelogin.test.tsx": {
     "typescript/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "app/components/hooks/moneyAccountPlusTrialEligibility.ts": {
+    "typescript/promise-function-async": {
       "count": 1
     }
   },
@@ -18501,6 +18518,11 @@
   "tests/seeder/anvil-seeder.ts": {
     "typescript/prefer-readonly": {
       "count": 2
+    }
+  },
+  "tests/smoke-appium/accounts/account-syncing-settings-toggle.spec.ts": {
+    "typescript/promise-function-async": {
+      "count": 1
     }
   },
   "tests/smoke-appium/api-specs/helpers/transport.ts": {
