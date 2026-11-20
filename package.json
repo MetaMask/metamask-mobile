@@ -190,6 +190,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/assets-controllers": {
+      "type": "non-breaking",
+      "previewVersion": "113.3.3-preview-f49a29d65"
+    }
+  },
   "resolutions": {
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",
